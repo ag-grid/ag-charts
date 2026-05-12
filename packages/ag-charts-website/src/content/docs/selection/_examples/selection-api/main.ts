@@ -30,18 +30,28 @@ const options: AgCartesianChartOptions = {
             xKey: 'quarter',
             yKey: 'revenue',
             yName: 'Revenue ($m)',
+            highlight: { enabled: false },
         },
     ],
     axes: {
         x: { type: 'category' },
         y: { type: 'number' },
     },
+    listeners: {
+        selectionChange: (event) => {
+            console.log('selectionChange', {
+                source: event.source,
+                added: event.added.map((item) => ({ seriesId: item.seriesId, itemId: item.itemId })),
+                removed: event.removed.map((item) => ({ seriesId: item.seriesId, itemId: item.itemId })),
+            });
+        },
+    },
 };
 
 const chart = AgCharts.create(options);
 
 function logSelection() {
-    console.log(Array.from(chart.getSelection()));
+    console.log('selection', Array.from(chart.getSelection()));
 }
 
 function saveSelection() {

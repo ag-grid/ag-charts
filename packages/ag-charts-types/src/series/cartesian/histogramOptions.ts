@@ -12,7 +12,8 @@ import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTo
 import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export interface AgHistogramSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
-    extends Omit<AgCartesianSeriesTooltipRendererParams<AgHistogramBinDatum<TDatum>, TContext>, 'yKey'>,
+    extends
+        Omit<AgCartesianSeriesTooltipRendererParams<AgHistogramBinDatum<TDatum>, TContext>, 'yKey'>,
         FillOptions,
         StrokeOptions {
     /** yKey as specified on series options. */
@@ -39,8 +40,7 @@ export interface AgHistogramSeriesStyle extends FillOptions, StrokeOptions, Line
 }
 
 export interface AgHistogramSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'selection'>,
-        AgHistogramSeriesStyle {
+    extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'selection'>, AgHistogramSeriesStyle {
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Configuration for the labels shown on bars. */
@@ -82,7 +82,8 @@ export interface AgHistogramSeriesOptionsNames {
 }
 
 export interface AgHistogramSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'selection'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'selection'>,
         AgBaseCartesianSeriesAxisOptions,
         AgHistogramSeriesOptionsKeys<TDatum>,
         AgHistogramSeriesOptionsNames,

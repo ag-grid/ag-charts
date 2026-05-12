@@ -17,7 +17,9 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, szint ${level}[number], ${posInSet}[number] / ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, szint ${level}[number], ${posInSet}[number] / ${setSize}[number], ${collapsedState}',
+        '${description}, szint ${level}[number], ${posInSet}[number] / ${setSize}[number], ${collapsedState}, ${childCount}[number] gyermek, nyomja meg a Szóközt vagy az Entert a váltáshoz',
+    ariaAnnounceOrgChartParentSingular:
+        '${description}, szint ${level}[number], ${posInSet}[number] / ${setSize}[number], ${collapsedState}, 1 gyermek, nyomja meg a Szóközt vagy az Entert a váltáshoz',
     ariaOrgChartCollapsed: 'összezárt',
     ariaOrgChartExpanded: 'kinyitott',
     ariaAnnounceGaugeChart: 'mérőműszer diagram, ${caption}',

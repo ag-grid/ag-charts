@@ -35,17 +35,19 @@ const options: AgChartOptions = {
             colorKey: 'temperature',
             colorName: 'Temperature',
             // Enhanced color scale - diverging blue to red
-            colorRange: [
-                'darkblue',
-                'blue',
-                'lightblue',
-                'lightyellow',
-                'yellow',
-                'orange',
-                'darkorange',
-                'red',
-                'darkred',
-            ],
+            colorScale: {
+                fills: [
+                    { color: 'darkblue' },
+                    { color: 'blue' },
+                    { color: 'lightblue' },
+                    { color: 'lightyellow' },
+                    { color: 'yellow' },
+                    { color: 'orange' },
+                    { color: 'darkorange' },
+                    { color: 'red' },
+                    { color: 'darkred' },
+                ],
+            },
             // Enhanced tooltip
             tooltip: {
                 renderer: ({ datum, xKey, yKey, colorKey }) => {

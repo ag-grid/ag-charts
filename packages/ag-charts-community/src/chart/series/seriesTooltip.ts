@@ -79,7 +79,7 @@ export class SeriesTooltip<P extends AgSeriesTooltipRendererParams<any>> extends
         if (overrides != null) {
             const mergedMarker = mergeDefaults(overrides.symbol?.marker, content.symbol?.marker);
             const mergedLineInput =
-                overrides.symbol?.line ?? content.symbol?.line
+                (overrides.symbol?.line ?? content.symbol?.line)
                     ? mergeDefaults(overrides.symbol?.line, content.symbol?.line)
                     : undefined;
 

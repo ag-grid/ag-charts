@@ -4,27 +4,27 @@
 
 ### Chart Types/Features Covered
 
--   Legend positioning and layout (9 preset positions)
--   Floating legends with offset capabilities
--   Legend pagination for space-constrained scenarios
--   Legend item customization (markers, labels, lines)
--   Series visibility toggling through legend interaction
--   Legend events (click, double-click)
--   Legend spacing and padding options
--   Series stroke display options
+- Legend positioning and layout (9 preset positions)
+- Floating legends with offset capabilities
+- Legend pagination for space-constrained scenarios
+- Legend item customization (markers, labels, lines)
+- Series visibility toggling through legend interaction
+- Legend events (click, double-click)
+- Legend spacing and padding options
+- Series stroke display options
 
 ### Key APIs and Configuration Options Documented
 
--   `AgChartLegendOptions` interface
--   `legend.enabled` - Controls legend visibility
--   `legend.position` - String or object with placement, floating, xOffset, yOffset
--   `legend.orientation` - horizontal/vertical layout
--   `legend.spacing` - Space between legend and series area
--   `legend.maxWidth` / `legend.maxHeight` - Size constraints
--   `legend.item` - Configuration for markers, labels, lines
--   `legend.toggleSeries` - Enable/disable series toggling
--   `legend.preventHidingAll` - Prevent hiding all series
--   `legend.pagination` - Pagination controls styling
+- `AgChartLegendOptions` interface
+- `legend.enabled` - Controls legend visibility
+- `legend.position` - String or object with placement, floating, xOffset, yOffset
+- `legend.orientation` - horizontal/vertical layout
+- `legend.spacing` - Space between legend and series area
+- `legend.maxWidth` / `legend.maxHeight` - Size constraints
+- `legend.item` - Configuration for markers, labels, lines
+- `legend.toggleSeries` - Enable/disable series toggling
+- `legend.preventHidingAll` - Prevent hiding all series
+- `legend.pagination` - Pagination controls styling
 
 ### Examples Referenced and Their Purposes
 
@@ -39,13 +39,13 @@
 
 ### Interactive Features Described
 
--   Single-click to toggle individual series visibility
--   Double-click to show only that series (isolate)
--   Double-click again to show all series
--   Legend item hover states
--   Pagination button interactions
--   Console logging via legendItemClick events
--   Note: Pie series sectors don't toggle on double-click
+- Single-click to toggle individual series visibility
+- Double-click to show only that series (isolate)
+- Double-click again to show all series
+- Legend item hover states
+- Pagination button interactions
+- Console logging via legendItemClick events
+- Note: Pie series sectors don't toggle on double-click
 
 ## Validation Targets
 
@@ -75,135 +75,135 @@
 
 **Documentation claims:**
 
--   Shows all 9 preset positions: top, bottom, left, right, top-left, top-right, bottom-left, bottom-right, and combinations
--   Legend orientation changes automatically (vertical for side positions, horizontal for top/bottom)
--   Series area adjusts to accommodate legend
+- Shows all 9 preset positions: top, bottom, left, right, top-left, top-right, bottom-left, bottom-right, and combinations
+- Legend orientation changes automatically (vertical for side positions, horizontal for top/bottom)
+- Series area adjusts to accommodate legend
 
 **Expected behaviors to validate:**
 
--   Dropdown or controls to switch between all 9 positions
--   Legend renders correctly in each position
--   Orientation automatically switches between horizontal/vertical
--   Chart resizes to accommodate legend without overlap
--   No floating behavior (legend takes space from chart)
+- Dropdown or controls to switch between all 9 positions
+- Legend renders correctly in each position
+- Orientation automatically switches between horizontal/vertical
+- Chart resizes to accommodate legend without overlap
+- No floating behavior (legend takes space from chart)
 
 #### legend-floating
 
 **Documentation claims:**
 
--   Legend can float above series area using `floating: true`
--   Position offsets work with xOffset and yOffset
--   Example shows right-top placement with -50px left offset and 75px down offset
+- Legend can float above series area using `floating: true`
+- Position offsets work with xOffset and yOffset
+- Example shows right-top placement with -50px left offset and 75px down offset
 
 **Expected behaviors to validate:**
 
--   Legend appears above chart data (floating)
--   Legend starts at right-top corner
--   Legend is offset 50px to the left and 75px down
--   Series area doesn't shrink to accommodate legend
--   Legend overlaps chart content appropriately
+- Legend appears above chart data (floating)
+- Legend starts at right-top corner
+- Legend is offset 50px to the left and 75px down
+- Series area doesn't shrink to accommodate legend
+- Legend overlaps chart content appropriately
 
 #### legend-spacing-offsets
 
 **Documentation claims:**
 
--   `spacing` property controls gap between legend and series area
--   `xOffset` and `yOffset` move legend without affecting series area size
--   Spacing shrinks the series area
--   Spacing has no effect when floating is true
+- `spacing` property controls gap between legend and series area
+- `xOffset` and `yOffset` move legend without affecting series area size
+- Spacing shrinks the series area
+- Spacing has no effect when floating is true
 
 **Expected behaviors to validate:**
 
--   Controls for adjusting spacing, xOffset, and yOffset
--   Spacing increases gap and shrinks chart
--   Offsets move legend without resizing chart
--   Visual demonstration of spacing vs offset differences
+- Controls for adjusting spacing, xOffset, and yOffset
+- Spacing increases gap and shrinks chart
+- Offsets move legend without resizing chart
+- Visual demonstration of spacing vs offset differences
 
 #### legend-constraints
 
 **Documentation claims:**
 
--   Shows padding configuration (paddingX, paddingY)
--   Demonstrates item.maxWidth constraint
--   Shows marker.padding configuration
+- Shows padding configuration (paddingX, paddingY)
+- Demonstrates item.maxWidth constraint
+- Shows marker.padding configuration
 
 **Expected behaviors to validate:**
 
--   Item maxWidth of 130px enforced (text truncation/wrapping)
--   PaddingX of 32px between legend items horizontally
--   PaddingY of 8px between legend items vertically
--   Marker padding of 8px between marker and label
--   Visual spacing matches documented values
+- Item maxWidth of 130px enforced (text truncation/wrapping)
+- PaddingX of 32px between legend items horizontally
+- PaddingY of 8px between legend items vertically
+- Marker padding of 8px between marker and label
+- Visual spacing matches documented values
 
 #### legend-seriesStroke
 
 **Documentation claims:**
 
--   Series stroke line shown by default in legend
--   Can be disabled with `showSeriesStroke: false`
--   Legend markers only shown if series has markers enabled
+- Series stroke line shown by default in legend
+- Can be disabled with `showSeriesStroke: false`
+- Legend markers only shown if series has markers enabled
 
 **Expected behaviors to validate:**
 
--   Toggle control for showSeriesStroke
--   When enabled: lines appear in legend items
--   When disabled: only markers shown (if series has markers)
--   Line styles match series stroke styles
+- Toggle control for showSeriesStroke
+- When enabled: lines appear in legend items
+- When disabled: only markers shown (if series has markers)
+- Line styles match series stroke styles
 
 #### legend-pagination
 
 **Documentation claims:**
 
--   Pagination appears when items exceed maxWidth/maxHeight constraints
--   Pagination controls are customizable via legend.pagination
+- Pagination appears when items exceed maxWidth/maxHeight constraints
+- Pagination controls are customizable via legend.pagination
 
 **Expected behaviors to validate:**
 
--   Legend constrained by maxWidth/maxHeight
--   Pagination controls appear when needed
--   Previous/next buttons functional
--   Page indicator shows current page
--   All legend items accessible via pagination
+- Legend constrained by maxWidth/maxHeight
+- Pagination controls appear when needed
+- Previous/next buttons functional
+- Page indicator shows current page
+- All legend items accessible via pagination
 
 #### legend-customisation
 
 **Documentation claims:**
 
--   Comprehensive customization example
--   Label formatting, colors, fonts
--   Marker size, shape, stroke customization
--   Line strokeWidth and length configuration
+- Comprehensive customization example
+- Label formatting, colors, fonts
+- Marker size, shape, stroke customization
+- Line strokeWidth and length configuration
 
 **Expected behaviors to validate:**
 
--   Custom marker shapes (diamond, circle, square, etc.)
--   Custom marker size (20px as shown)
--   Custom line strokeWidth (4px) and length (40px)
--   Label formatting applied correctly
--   All visual customizations render properly
+- Custom marker shapes (diamond, circle, square, etc.)
+- Custom marker size (20px as shown)
+- Custom line strokeWidth (4px) and length (40px)
+- Label formatting applied correctly
+- All visual customizations render properly
 
 #### legend-click-series-toggle
 
 **Documentation claims:**
 
--   Click toggles series visibility
--   Double-click isolates single series
--   Double-click again shows all series
--   legendItemClick events logged to console
--   Pie series sectors don't toggle on double-click
--   Can disable with toggleSeries: false
--   preventHidingAll prevents hiding last series
+- Click toggles series visibility
+- Double-click isolates single series
+- Double-click again shows all series
+- legendItemClick events logged to console
+- Pie series sectors don't toggle on double-click
+- Can disable with toggleSeries: false
+- preventHidingAll prevents hiding last series
 
 **Expected behaviors to validate:**
 
--   Single click hides/shows individual series
--   Double-click hides all except clicked series
--   Second double-click restores all series
--   Console shows legendItemClick event logs
--   Visual feedback on hover/interaction
--   Test with pie chart if available to verify no sector toggle
--   Test toggleSeries: false disables interactions
--   Test preventHidingAll keeps at least one series visible
+- Single click hides/shows individual series
+- Double-click hides all except clicked series
+- Second double-click restores all series
+- Console shows legendItemClick event logs
+- Visual feedback on hover/interaction
+- Test with pie chart if available to verify no sector toggle
+- Test toggleSeries: false disables interactions
+- Test preventHidingAll keeps at least one series visible
 
 ### User Interactions to Validate
 
@@ -274,13 +274,13 @@ For each example, provide the agent with:
 
 ## Estimated Complexity
 
--   High complexity due to:
-    -   Multiple interactive features
-    -   Complex positioning system
-    -   Pagination functionality
-    -   Series visibility toggling
-    -   8 different examples to validate
-    -   Extensive customization options
+- High complexity due to:
+    - Multiple interactive features
+    - Complex positioning system
+    - Pagination functionality
+    - Series visibility toggling
+    - 8 different examples to validate
+    - Extensive customization options
 
 ## Success Criteria
 

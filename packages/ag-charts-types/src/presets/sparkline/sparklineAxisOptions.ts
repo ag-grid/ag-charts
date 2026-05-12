@@ -33,15 +33,13 @@ export interface AgSparklineCategoryAxisOptions extends AgSparklineBaseCategoryA
 }
 
 export interface AgSparklineNumberAxisOptions
-    extends AgSparklineBaseAxisOptions,
-        AgSparklineContinuousAxisOptions<number> {
+    extends AgSparklineBaseAxisOptions, AgSparklineContinuousAxisOptions<number> {
     /** The type of axis. */
     type?: 'number';
 }
 
 export interface AgSparklineTimeAxisOptions
-    extends AgSparklineBaseAxisOptions,
-        AgSparklineContinuousAxisOptions<Date | number> {
+    extends AgSparklineBaseAxisOptions, AgSparklineContinuousAxisOptions<Date | number> {
     /** The type of axis. */
     type?: 'time';
 }

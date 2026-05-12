@@ -11,6 +11,7 @@ import {
     colorUnion,
     commonSeriesThemeableOptionsDefs,
     defined,
+    deprecated,
     fillOptionsDef,
     highlightOptionsDef,
     interpolationOptionsDefs,
@@ -61,7 +62,6 @@ import {
     type AgNightingaleSeriesThemeableOptions,
     type AgOhlcSeriesItemOptions,
     type AgOhlcSeriesThemeableOptions,
-    type AgOrganizationSeriesOptionsExpander,
     type AgOrganizationSeriesThemeableOptions,
     type AgPyramidSeriesStyle,
     type AgPyramidSeriesThemeableOptions,
@@ -331,7 +331,7 @@ export const mapLineBackgroundSeriesThemeableOptionsDef: OptionsDefs<AgMapLineBa
 };
 
 export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesThemeableOptions> = {
-    colorRange: arrayOf(color),
+    colorRange: deprecated(arrayOf(color), 'Use `colorScale.fills` instead.'),
     colorScale: colorScaleOptionsDef,
     maxSize: positiveNumber,
     sizeDomain: arrayOf(positiveNumber),
@@ -346,7 +346,7 @@ export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesTh
 };
 
 export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThemeableOptions> = {
-    colorRange: arrayOf(color),
+    colorRange: deprecated(arrayOf(color), 'Use `colorScale.fills` instead.'),
     colorScale: colorScaleOptionsDef,
     padding: positiveNumber,
     itemStyler: callbackDefs<AgMapShapeSeriesStyle>({
@@ -396,10 +396,7 @@ export const organizationSeriesThemeableOptionsDef: OptionsDefs<AgOrganizationSe
     innerSpacing: defined,
     outerSpacing: defined,
     verticalSpacing: defined,
-    expander: {
-        height: positiveNumberNonZero,
-        spacing: positiveNumber,
-    } satisfies OptionsDefs<AgOrganizationSeriesOptionsExpander>,
+    expander: defined,
     link: defined,
     node: defined,
     tooltip: tooltipOptionsDefs,
@@ -622,7 +619,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
 export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThemeableOptions> = {
     fills: arrayOf(colorUnion),
     strokes: arrayOf(color),
-    colorRange: arrayOf(color),
+    colorRange: deprecated(arrayOf(color), 'Use `colorScale.fills` instead.'),
     colorScale: colorScaleOptionsDef,
     sectorSpacing: positiveNumber,
     cornerRadius: positiveNumber,
@@ -651,7 +648,7 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
 export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemeableOptions> = {
     fills: arrayOf(colorUnion),
     strokes: arrayOf(color),
-    colorRange: arrayOf(color),
+    colorRange: deprecated(arrayOf(color), 'Use `colorScale.fills` instead.'),
     colorScale: colorScaleOptionsDef,
     itemStyler: callbackDefs<AgTreemapSeriesStyle>({
         ...fillOptionsDef,

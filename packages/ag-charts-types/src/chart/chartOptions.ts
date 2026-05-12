@@ -335,8 +335,10 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
 }
 
 /** Configuration common to all charts.  */
-export interface AgBaseChartOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseThemeableChartOptions<TDatum, TContext> {
+export interface AgBaseChartOptions<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgBaseThemeableChartOptions<TDatum, TContext> {
     /** The data to render the chart from. If this is not specified, it must be set on individual series instead. */
     data?: TDatum[];
     /** The key of the property on each datum that contains its unique identifier.
@@ -347,6 +349,4 @@ export interface AgBaseChartOptions<TDatum = DatumDefault, TContext = ContextDef
     container?: HTMLElement | null;
     /** The initial state of the chart. This must be a serialisable value. */
     initialState?: AgInitialStateOptions;
-    /** Set to show or hide the loading overlay. */
-    loading?: boolean;
 }

@@ -1,4 +1,4 @@
-import { type AgAngleNumberAxisOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgAngleNumberAxisOptions, PolarChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
 import {
     type AxisModuleDefinition,
     type DynamicContext,
@@ -6,6 +6,7 @@ import {
     mergeDefaults,
 } from 'ag-charts-core';
 
+import { CrossLinesModule } from '../polar-crosslines/crossLinesModule';
 import { AngleNumberAxis } from './angleNumberAxis';
 
 export const AngleNumberAxisModule: AxisModuleDefinition<AgAngleNumberAxisOptions, AngleNumberAxis> = {
@@ -14,6 +15,7 @@ export const AngleNumberAxisModule: AxisModuleDefinition<AgAngleNumberAxisOption
     chartType: 'polar',
     enterprise: true,
     version: VERSION,
+    dependencies: [PolarChartModule, CrossLinesModule],
 
     options: _ModuleSupport.angleNumberAxisOptionsDefs,
     themeTemplate: mergeDefaults(

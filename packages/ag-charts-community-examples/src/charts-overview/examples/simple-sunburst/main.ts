@@ -12,7 +12,9 @@ const options: AgChartOptions = {
             secondaryLabelKey: 'change',
             sizeKey: 'valuation',
             colorKey: 'change',
-            colorRange: ['#cb4b3f', '#6acb64'],
+            colorScale: {
+                fills: [{ color: '#cb4b3f' }, { color: '#6acb64' }],
+            },
             sectorSpacing: 1,
             secondaryLabel: {
                 formatter(params) {

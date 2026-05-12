@@ -1,9 +1,10 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-export type PositionedScene = Vec2Scene | Vec4Scene;
+export type PositionedScene = Vec2Scene | Vec4Scene | TranslatableScene;
 
 type Vec2Scene = _ModuleSupport.Node & { x: number; y: number };
 type Vec4Scene = _ModuleSupport.Node & { x: number; y: number; x1: number; y1: number; x2: number; y2: number };
+type TranslatableScene = _ModuleSupport.Node & { translationX: number; translationY: number };
 
 export function layoutScenesRow(
     scenes: Array<PositionedScene | Array<PositionedScene>>,
@@ -14,7 +15,7 @@ export function layoutScenesRow(
 
     let index = 0;
     for (const scene of scenes) {
-        const gap = Array.isArray(gaps) ? gaps[index] ?? 0 : gaps;
+        const gap = Array.isArray(gaps) ? (gaps[index] ?? 0) : gaps;
         if (Array.isArray(scene)) {
             for (const scene_ of scene) {
                 layoutSetX(scene_, x);
@@ -43,7 +44,7 @@ export function layoutScenesColumn(
 
     let index = 0;
     for (const scene of scenes) {
-        const gap = Array.isArray(gaps) ? gaps[index] ?? 0 : gaps;
+        const gap = Array.isArray(gaps) ? (gaps[index] ?? 0) : gaps;
         if (Array.isArray(scene)) {
             for (const scene_ of scene) {
                 layoutSetY(scene_, y);
@@ -65,18 +66,20 @@ export function layoutScenesColumn(
 // the previous sibling.
 function alignSceneTopEdge(scene: PositionedScene, targetY: number) {
     const overflow = targetY - scene.getBBox().y;
-    if (overflow !== 0) layoutSetY(scene, ('y1' in scene ? scene.y1 : scene.y) + overflow);
+    if (overflow !== 0) layoutSetY(scene, sceneY(scene) + overflow);
 }
 
 function alignSceneLeftEdge(scene: PositionedScene, targetX: number) {
     const overflow = targetX - scene.getBBox().x;
-    if (overflow !== 0) layoutSetX(scene, ('x1' in scene ? scene.x1 : scene.x) + overflow);
+    if (overflow !== 0) layoutSetX(scene, sceneX(scene) + overflow);
 }
 
 function layoutSetX(scene: PositionedScene, x: number) {
     if ('x1' in scene) {
         scene.x2 = x + (scene.x2 - scene.x1);
         scene.x1 = x;
+    } else if ('translationX' in scene) {
+        scene.translationX = x;
     } else {
         scene.x = x;
     }
@@ -86,7 +89,21 @@ function layoutSetY(scene: PositionedScene, y: number) {
     if ('y1' in scene) {
         scene.y2 = y + (scene.y2 - scene.y1);
         scene.y1 = y;
+    } else if ('translationY' in scene) {
+        scene.translationY = y;
     } else {
         scene.y = y;
     }
+}
+
+function sceneX(scene: PositionedScene) {
+    if ('x1' in scene) return scene.x1;
+    if ('translationX' in scene) return scene.translationX;
+    return scene.x;
+}
+
+function sceneY(scene: PositionedScene) {
+    if ('y1' in scene) return scene.y1;
+    if ('translationY' in scene) return scene.translationY;
+    return scene.y;
 }

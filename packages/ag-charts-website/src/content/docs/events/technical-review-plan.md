@@ -4,17 +4,17 @@
 
 ### Chart Types/Features Covered
 
--   **Event Categories**: Chart events, Series events, Legend events
--   **Event Types**: click, doubleClick, seriesNodeClick, seriesNodeDoubleClick, seriesVisibilityChange, annotations, zoom, legendItemClick, legendItemDoubleClick
--   **Interaction Features**: nodeClickRange configuration for click detection precision
--   **Event Prevention**: preventDefault() mechanism for controlling default behaviors
+- **Event Categories**: Chart events, Series events, Legend events
+- **Event Types**: click, doubleClick, seriesNodeClick, seriesNodeDoubleClick, seriesVisibilityChange, annotations, zoom, legendItemClick, legendItemDoubleClick
+- **Interaction Features**: nodeClickRange configuration for click detection precision
+- **Event Prevention**: preventDefault() mechanism for controlling default behaviors
 
 ### Key APIs and Configuration Options Documented
 
--   **Event Listeners**: Configured via `listeners` property on chart, series, and legend objects
--   **nodeClickRange**: Controls interaction sensitivity ('exact', 'nearest', or pixel distance)
--   **Event Objects**: Specific interfaces for each event type containing contextual data
--   **preventDefault**: Function to stop default behaviors (e.g., series visibility toggling)
+- **Event Listeners**: Configured via `listeners` property on chart, series, and legend objects
+- **nodeClickRange**: Controls interaction sensitivity ('exact', 'nearest', or pixel distance)
+- **Event Objects**: Specific interfaces for each event type containing contextual data
+- **preventDefault**: Function to stop default behaviors (e.g., series visibility toggling)
 
 ### Examples Referenced and Their Purposes
 
@@ -30,13 +30,13 @@
 
 ### Interactive Features Described
 
--   Click detection on chart background, series nodes, and legend items
--   Double-click handling with proper event sequencing
--   Hover states and tooltips (implicit in node interactions)
--   Legend-driven series visibility toggling
--   Zoom and pan interactions
--   Annotation manipulation
--   Selection state toggling with visual feedback
+- Click detection on chart background, series nodes, and legend items
+- Double-click handling with proper event sequencing
+- Hover states and tooltips (implicit in node interactions)
+- Legend-driven series visibility toggling
+- Zoom and pan interactions
+- Annotation manipulation
+- Selection state toggling with visual feedback
 
 ## Validation Targets
 
@@ -45,7 +45,6 @@
 1. **AgSeriesVisibilityChange** (packages/ag-charts-types/src/chart/eventOptions.ts)
     - Properties: seriesId, visible, itemId?, legendItemName?
 2. **AgChartLegendClickEvent** (packages/ag-charts-types/src/chart/legendOptions.ts)
-
     - Properties: seriesId, itemId, enabled, preventDefault()
 
 3. **AgSeriesListeners** (packages/ag-charts-types/src/series/seriesOptions.ts)
@@ -78,7 +77,6 @@
 #### For example-tester agent delegation:
 
 1. **chart-click-event**
-
     - **Documentation claims**: Click on empty chart areas logs to console, double-click shows different message
     - **Expected behaviors**:
         - Single click on blank area → console log "Chart clicked"
@@ -87,7 +85,6 @@
     - **Code patterns to verify**: `listeners: { click: ..., doubleClick: ... }` at chart level
 
 2. **series-node-click-event**
-
     - **Documentation claims**: Column/line marker clicks show node info with temperature data
     - **Expected behaviors**:
         - Click on column → console shows datum info with temperature
@@ -97,7 +94,6 @@
     - **Specific features**: Temperature conversion on double-click, series identification
 
 3. **series-visibility-change**
-
     - **Documentation claims**: Legend clicks decrement counter, visibility changes when counter reaches zero
     - **Expected behaviors**:
         - First 4 legend clicks → counter decreases, no visibility change
@@ -106,7 +102,6 @@
     - **Code patterns**: preventDefault() usage in legendItemClick
 
 4. **annotations-event**
-
     - **Documentation claims**: Annotation changes trigger events with annotation array
     - **Expected behaviors**:
         - Adding/removing/modifying annotations → event fired
@@ -114,7 +109,6 @@
     - **Interactive features**: Financial toolbar integration
 
 5. **zoom-event**
-
     - **Documentation claims**: Zoom/pan triggers events with ratios and ranges
     - **Expected behaviors**:
         - Zoom in/out → event with ratioX/ratioY (0-1 values)
@@ -123,7 +117,6 @@
     - **Data validation**: Ratio values between 0 and 1, range values match axis type
 
 6. **node-click-event**
-
     - **Documentation claims**: Bar clicks show sales breakdown by brand
     - **Expected behaviors**:
         - Click on bar → console shows bar value and brand breakdown
@@ -131,7 +124,6 @@
     - **Data extraction**: Access to full datum object beyond displayed values
 
 7. **node-click-select**
-
     - **Documentation claims**: Click toggles node selection state with visual feedback
     - **Expected behaviors**:
         - Click on marker → visual change (selection state)
@@ -140,7 +132,6 @@
     - **Visual validation**: Marker appearance changes on selection
 
 8. **legend-item-click-event**
-
     - **Documentation claims**: Legend clicks log seriesId and itemId
     - **Expected behaviors**:
         - Single click → legendItemClick event with seriesId, itemId
@@ -267,13 +258,13 @@ No technical-review-exceptions.md file exists for this page.
 
 ### Estimated Complexity/Time
 
--   **Phase 1 (Plan)**: ✓ Completed
--   **Phase 2 (Execution)**: ~2-3 hours
-    -   TypeScript validation: 30 min
-    -   Example testing with example-tester: 60 min
-    -   Interactive testing and screenshots: 60 min
-    -   Report compilation: 30 min
--   **Total scope**: High - 9 examples with complex interaction patterns
+- **Phase 1 (Plan)**: ✓ Completed
+- **Phase 2 (Execution)**: ~2-3 hours
+    - TypeScript validation: 30 min
+    - Example testing with example-tester: 60 min
+    - Interactive testing and screenshots: 60 min
+    - Report compilation: 30 min
+- **Total scope**: High - 9 examples with complex interaction patterns
 
 ## Delegation Plan for example-tester Agent
 
@@ -282,13 +273,11 @@ No technical-review-exceptions.md file exists for this page.
 For each example, validate:
 
 1. **Code Structure**:
-
     - Correct event listener syntax
     - Proper TypeScript types if used
     - AG Charts API usage patterns
 
 2. **Runtime Behavior**:
-
     - Open example in browser
     - Check console for errors
     - Perform documented interactions
@@ -297,27 +286,23 @@ For each example, validate:
 3. **Specific Validations by Example**:
 
     **chart-click-event**:
-
     - Click empty chart area → verify console log
     - Click on data points → verify NO chart click event
     - Double-click empty area → verify both events fire
 
     **series-node-click-event**:
-
     - Click columns and line markers
     - Verify temperature data in console
     - Check series ID is logged
     - Double-click for Fahrenheit conversion
 
     **series-visibility-change**:
-
     - Click legend items 5 times
     - Verify counter behavior
     - Confirm visibility change on 5th click
     - Check preventDefault() implementation
 
     **interaction-ranges**:
-
     - Test each dropdown option
     - Click at various distances from nodes
     - Verify 'exact' requires direct hit

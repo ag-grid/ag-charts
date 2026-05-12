@@ -16,10 +16,10 @@ This documentation page explains the differences between AG Charts Community (MI
 
 ### Special Components Used
 
--   `{% featuresSection library="charts" type="community|enterprise" /%}` - Renders feature lists from DocsFeaturesSection.json
--   `{% trialLicenceForm /%}` - Trial license request form
--   `{% enterpriseIcon /%}` - Enterprise feature indicator
--   `{% if isFramework(...) %}` - Framework-specific content blocks
+- `{% featuresSection library="charts" type="community|enterprise" /%}` - Renders feature lists from DocsFeaturesSection.json
+- `{% trialLicenceForm /%}` - Trial license request form
+- `{% enterpriseIcon /%}` - Enterprise feature indicator
+- `{% if isFramework(...) %}` - Framework-specific content blocks
 
 ## Validation Targets
 
@@ -29,56 +29,56 @@ This documentation page explains the differences between AG Charts Community (MI
 
 #### Community Features to Verify:
 
--   Chart Essentials (line, bar, column, pie charts)
--   Accessibility Support
--   Basic Interactivity (highlighting, tooltips)
--   Intuitive Data Handling
--   Themes and Styling
--   Localisation (31 languages claim)
--   Download API (Base64 and PNG)
--   Event API
--   Major Frameworks support
+- Chart Essentials (line, bar, column, pie charts)
+- Accessibility Support
+- Basic Interactivity (highlighting, tooltips)
+- Intuitive Data Handling
+- Themes and Styling
+- Localisation (31 languages claim)
+- Download API (Base64 and PNG)
+- Event API
+- Major Frameworks support
 
 #### Enterprise Features to Verify:
 
--   Advanced Chart Types (20+ additional types)
--   Financial Charts
--   Animations
--   Advanced Interactivity (context menus, crosshairs, navigator, zoom, synchronisation)
--   Background Images
--   Dedicated Support
+- Advanced Chart Types (20+ additional types)
+- Financial Charts
+- Animations
+- Advanced Interactivity (context menus, crosshairs, navigator, zoom, synchronisation)
+- Background Images
+- Dedicated Support
 
 ### 2. Links and References
 
--   Community feature links pointing to correct documentation pages
--   Enterprise feature links pointing to correct documentation pages
--   External links to AG Grid documentation for framework-specific integrated charts
--   Pricing page link (`/license-pricing/`)
--   GitHub licenses link
--   Zendesk support link
+- Community feature links pointing to correct documentation pages
+- Enterprise feature links pointing to correct documentation pages
+- External links to AG Grid documentation for framework-specific integrated charts
+- Pricing page link (`/license-pricing/`)
+- GitHub licenses link
+- Zendesk support link
 
 ### 3. Technical Claims to Validate
 
--   Enterprise features work locally without license key
--   Watermark appears when using Enterprise without license
--   Console error message appears without license
--   Trial license removes watermark and console errors
--   Trial license valid for two weeks
--   Trial provides access to both AG Grid and AG Charts Enterprise
+- Enterprise features work locally without license key
+- Watermark appears when using Enterprise without license
+- Console error message appears without license
+- Trial license removes watermark and console errors
+- Trial license valid for two weeks
+- Trial provides access to both AG Grid and AG Charts Enterprise
 
 ### 4. Framework-Specific Content
 
--   Verify framework-specific integrated charts links are correct:
-    -   React: `https://www.ag-grid.com/react-data-grid/integrated-charts/`
-    -   Angular: `https://www.ag-grid.com/angular-data-grid/integrated-charts/`
-    -   Vue: `https://www.ag-grid.com/vue-data-grid/integrated-charts/`
-    -   JavaScript: `https://www.ag-grid.com/javascript-data-grid/integrated-charts/`
+- Verify framework-specific integrated charts links are correct:
+    - React: `https://www.ag-grid.com/react-data-grid/integrated-charts/`
+    - Angular: `https://www.ag-grid.com/angular-data-grid/integrated-charts/`
+    - Vue: `https://www.ag-grid.com/vue-data-grid/integrated-charts/`
+    - JavaScript: `https://www.ag-grid.com/javascript-data-grid/integrated-charts/`
 
 ### 5. License Information
 
--   Community: MIT license
--   Enterprise: Commercial EULA license
--   Licenses are perpetual with 1 year support/updates
+- Community: MIT license
+- Enterprise: Commercial EULA license
+- Licenses are perpetual with 1 year support/updates
 
 ## Known Exceptions
 
@@ -124,10 +124,10 @@ No technical review exceptions file found for this page.
 
 Since this page has no interactive examples, the example-tester agent will not be needed for this review. All validation will be done through:
 
--   Documentation cross-referencing
--   Link validation
--   Feature list verification
--   Technical claim testing
+- Documentation cross-referencing
+- Link validation
+- Feature list verification
+- Technical claim testing
 
 ## Expected Outcomes
 

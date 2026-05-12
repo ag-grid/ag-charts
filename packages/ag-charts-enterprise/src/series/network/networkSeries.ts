@@ -1,5 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    type BoxBounds,
     type ChartAnimationPhase,
     type ChartAxisDirection,
     ChartUpdateType,
@@ -17,8 +18,10 @@ import type { NetworkLinkInterpolation } from './networkTypes';
 
 export type NetworkSeriesDatumIndex = number;
 
-export interface NetworkDatum<NetworkVertex, TNetworkEdge>
-    extends _ModuleSupport.SeriesNodeDatum<NetworkSeriesDatumIndex> {
+export interface NetworkDatum<
+    NetworkVertex,
+    TNetworkEdge,
+> extends _ModuleSupport.SeriesNodeDatum<NetworkSeriesDatumIndex> {
     vertex: Vertex<NetworkVertex, TNetworkEdge>;
 }
 
@@ -29,8 +32,10 @@ export class NetworkSeriesProperties extends _ModuleSupport.SeriesProperties<obj
     readonly tooltip = _ModuleSupport.makeSeriesTooltip<any>();
 }
 
-export interface NetworkSeriesContextNodeData<NetworkVertex, TNetworkEdge>
-    extends _ModuleSupport.SeriesNodeDataContext<NetworkSeriesDatumIndex, NetworkDatum<NetworkVertex, TNetworkEdge>> {
+export interface NetworkSeriesContextNodeData<NetworkVertex, TNetworkEdge> extends _ModuleSupport.SeriesNodeDataContext<
+    NetworkSeriesDatumIndex,
+    NetworkDatum<NetworkVertex, TNetworkEdge>
+> {
     linkData: NetworkLinkDatum<NetworkVertex, TNetworkEdge>[];
 
     // labelData is unused.
@@ -189,7 +194,11 @@ export abstract class AbstractNetworkSeries<
     abstract getLinkInterpolation(from: Vertex<TVertex, TEdge>, to: Vertex<TVertex, TEdge>): NetworkLinkInterpolation;
     abstract getFocusedVertex(): Vertex<TVertex, TEdge> | undefined;
     abstract getDefaultFocusedVertices(): Vertex<TVertex, TEdge>[] | undefined;
-    abstract positionDatumNode(node: TNode, groupBBox: _ModuleSupport.BBox, regularBBox?: _ModuleSupport.BBox): void;
+    abstract positionDatumNode(
+        node: TNode,
+        groupBBox: _ModuleSupport.BBox,
+        regularBBox?: _ModuleSupport.BBox
+    ): _ModuleSupport.BBox | undefined;
     abstract updateOffset(offset: Point): void;
 
     abstract expandNetworkToItem(itemIdOrIndex: string | number): void;
@@ -282,20 +291,24 @@ export abstract class AbstractNetworkSeries<
         const { zoomManager } = this.ctx;
         if (!zoomManager) return;
 
-        // FIXME(AG-17179 follow-up): mirror y around the viewport midline because
-        // `calcPanToBBoxRatios` is y-down internally and we render y-up. Remove once the
-        // helper is direction-aware.
-        const flippedTarget = {
-            x: canvasBBox.x,
-            y: 2 * seriesRect.y + seriesRect.height - canvasBBox.y - canvasBBox.height,
-            width: canvasBBox.width,
-            height: canvasBBox.height,
-        };
-
-        const panSuccess = zoomManager.panToBBox(seriesRect, flippedTarget);
+        const panSuccess = zoomManager.panToBBox(seriesRect, this.mapFocusBBoxToPanTarget(seriesRect, canvasBBox));
         if (!panSuccess) {
             Logger.warnOnce(`${this.id}: panToBBox failed — chart may be too small.`);
         }
+    }
+
+    // FIXME(AG-17179 follow-up): mirror y because `calcPanToBBoxRatios` is y-down and we
+    // render y-up. Remove once the helper is direction-aware.
+    public override mapFocusBBoxToPanTarget(
+        seriesRect: BoxBounds,
+        focusBBox: Readonly<_ModuleSupport.BBox>
+    ): BoxBounds {
+        return {
+            x: focusBBox.x,
+            y: 2 * seriesRect.y + seriesRect.height - focusBBox.y - focusBBox.height,
+            width: focusBBox.width,
+            height: focusBBox.height,
+        };
     }
 
     processPendingCollapse() {
@@ -387,7 +400,7 @@ export abstract class AbstractNetworkSeries<
         const node = this.datumSelection.at(nodeDatumIndex);
         if (!node) return;
 
-        this.positionDatumNode(node, groupBBox, regularBBox);
+        return this.positionDatumNode(node, groupBBox, regularBBox);
     }
 
     private layoutLinkNode(vertex: Vertex<TVertex, TEdge>, drawLink: (path: _ModuleSupport.ExtendedPath2D) => void) {

@@ -447,6 +447,7 @@
                     "type": "item",
                     "title": "Org Chart",
                     "path": "org-chart",
+                    "icon": "chartsOrg",
                     "isEnterprise": true
                 }
             ]

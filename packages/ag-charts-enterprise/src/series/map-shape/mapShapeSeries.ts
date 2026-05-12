@@ -61,8 +61,10 @@ const {
     getLabelStyles,
 } = _ModuleSupport;
 
-interface MapShapeNodeDataContext
-    extends _ModuleSupport.DataModelSeriesNodeDataContext<MapShapeNodeDatum, MapShapeNodeLabelDatum> {}
+interface MapShapeNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
+    MapShapeNodeDatum,
+    MapShapeNodeLabelDatum
+> {}
 
 interface ShapeDataValues {
     readonly idValue: string;
@@ -205,7 +207,9 @@ export class MapShapeSeries
                     processor: () => (datum) => featureById.get(datum as string),
                 }),
                 ...(labelKey ? [valueProperty(labelKey, 'category', { id: 'labelValue' })] : []),
-                ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })] : []),
+                ...(colorKey
+                    ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: undefined })]
+                    : []),
             ],
         });
 
@@ -641,6 +645,10 @@ export class MapShapeSeries
             geoGeometry.setStyleProperties(nodeDatum.style, fillBBox);
 
             geoGeometry.drawingMode = drawingMode;
+
+            const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);
+            const bringToFront = !_ModuleSupport.isUnselected(selectionState);
+            geoGeometry.zIndex = bringToFront ? 1 : 0;
         });
     }
 

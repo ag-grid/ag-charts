@@ -19,9 +19,12 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaAnnounceFlowProportionNode: 'node ${index} of ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
     ariaAnnounceOrgChartLeaf: '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number]',
-    // Screen reader announcement when focusing a parent node in an Organization chart
+    // Screen reader announcement when focusing a parent node in an Organization chart with multiple children
     ariaAnnounceOrgChartParent:
-        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}',
+        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}, ${childCount}[number] children, press Enter or Space to toggle',
+    // Screen reader announcement when focusing a parent node in an Organization chart with exactly one child
+    ariaAnnounceOrgChartParentSingular:
+        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}, 1 child, press Enter or Space to toggle',
     ariaOrgChartCollapsed: 'collapsed',
     ariaOrgChartExpanded: 'expanded',
     // Screen reader description for legend items

@@ -4,18 +4,17 @@
 
 ### Chart Types/Features Covered
 
--   Axis label collision avoidance mechanisms
--   Label text wrapping strategies (`on-space`, `always`, `hyphenate`, `never`)
--   Label truncation with tooltip display
--   Label rotation (fixed and automatic)
--   Label skipping behavior
--   Label text formatting (formatter and format string)
--   Label customization (styling)
+- Axis label collision avoidance mechanisms
+- Label text wrapping strategies (`on-space`, `always`, `hyphenate`, `never`)
+- Label truncation with tooltip display
+- Label rotation (fixed and automatic)
+- Label skipping behavior
+- Label text formatting (formatter and format string)
+- Label customization (styling)
 
 ### Key APIs and Configuration Options Documented
 
 1. **Collision Avoidance**:
-
     - `label.avoidCollisions` - Enable/disable collision avoidance
     - `label.wrapping` - Text wrapping strategy
     - `label.truncate` - Enable truncation
@@ -36,12 +35,12 @@
 
 ### Interactive Features Described
 
--   Resizable chart (grab handle) to test collision avoidance
--   Dropdown controls for:
-    -   Enabling/disabling collision avoidance
-    -   Changing label lengths
-    -   Toggling rotation, wrapping, and truncation options
--   Hover tooltips for truncated labels
+- Resizable chart (grab handle) to test collision avoidance
+- Dropdown controls for:
+    - Enabling/disabling collision avoidance
+    - Changing label lengths
+    - Toggling rotation, wrapping, and truncation options
+- Hover tooltips for truncated labels
 
 ## Validation Targets
 
@@ -73,67 +72,65 @@
 
 **Documentation claims**:
 
--   Resizable chart with grab handle
--   Collision avoidance can be toggled on/off
--   Label length can be changed via dropdown
--   Rotation, wrapping, and truncation controls available
--   Labels try wrapping → truncation → rotation → skipping (in that order)
+- Resizable chart with grab handle
+- Collision avoidance can be toggled on/off
+- Label length can be changed via dropdown
+- Rotation, wrapping, and truncation controls available
+- Labels try wrapping → truncation → rotation → skipping (in that order)
 
 **Expected behaviors for example-tester**:
 
--   Chart should be resizable via grab handle in bottom right
--   Collision avoidance toggle should enable/disable all avoidance strategies
--   Label length dropdown should change the text length of axis labels
--   When collision avoidance is enabled:
-    -   Long labels should first try to wrap (if wrapping enabled)
-    -   If still colliding, should truncate (if truncation enabled)
-    -   If still colliding, should rotate (if rotation enabled)
-    -   Finally, should skip labels if needed
--   Hovering over truncated labels should show full text in tooltip
+- Chart should be resizable via grab handle in bottom right
+- Collision avoidance toggle should enable/disable all avoidance strategies
+- Label length dropdown should change the text length of axis labels
+- When collision avoidance is enabled:
+    - Long labels should first try to wrap (if wrapping enabled)
+    - If still colliding, should truncate (if truncation enabled)
+    - If still colliding, should rotate (if rotation enabled)
+    - Finally, should skip labels if needed
+- Hovering over truncated labels should show full text in tooltip
 
 **Interactive features to validate**:
 
--   Grab handle should allow smooth resizing
--   All dropdown controls should work correctly
--   Label behavior should change based on control settings
+- Grab handle should allow smooth resizing
+- All dropdown controls should work correctly
+- Label behavior should change based on control settings
 
 #### 2. axis-label-formatter
 
 **Documentation claims**:
 
--   Number axis multiplies values by 100 and appends '%'
--   Category axis adds '==' around 'Windows' label only
--   Formatter receives params object with value, index, fractionDigits
+- Number axis multiplies values by 100 and appends '%'
+- Category axis adds '==' around 'Windows' label only
+- Formatter receives params object with value, index, fractionDigits
 
 **Expected behaviors for example-tester**:
 
--   Y-axis labels should show as percentages (e.g., "50%", "100%")
--   X-axis should show normal labels except "Windows" should appear as "==Windows=="
--   No console errors when rendering
+- Y-axis labels should show as percentages (e.g., "50%", "100%")
+- X-axis should show normal labels except "Windows" should appear as "==Windows=="
+- No console errors when rendering
 
 #### 3. axis-label-format
 
 **Documentation claims**:
 
--   Time axis uses format "%b %Y" (short month name + full year)
--   Number axis uses format "$#{0>6.2f}" (dollar sign, 6 digits padded with 0, 2 decimal places)
+- Time axis uses format "%b %Y" (short month name + full year)
+- Number axis uses format "$#{0>6.2f}" (dollar sign, 6 digits padded with 0, 2 decimal places)
 
 **Expected behaviors for example-tester**:
 
--   Time axis labels should show as "Jan 2024", "Feb 2024", etc.
--   Number axis labels should show as "$000001.50", "$000002.00", etc.
--   Format strings should be correctly parsed and applied
+- Time axis labels should show as "Jan 2024", "Feb 2024", etc.
+- Number axis labels should show as "$000001.50", "$000002.00", etc.
+- Format strings should be correctly parsed and applied
 
 ### User Interactions to Validate
 
 1. **Resize interactions**:
-
     - Drag grab handle to make chart smaller/larger
     - Verify collision avoidance responds to size changes
     - Check that labels adjust strategy based on available space
 
 2. **Control interactions**:
-
     - Toggle collision avoidance on/off
     - Change label length via dropdown
     - Toggle wrapping/truncation/rotation independently
@@ -160,7 +157,7 @@
 
 ## Known Exceptions
 
--   No existing `technical-review-exceptions.md` file found
+- No existing `technical-review-exceptions.md` file found
 
 ## Execution Plan
 
@@ -206,10 +203,10 @@
 
 ## Success Criteria
 
--   All documented properties exist in TypeScript definitions with correct types
--   Default values in documentation match implementation
--   All examples demonstrate the features as described
--   Interactive controls work as expected
--   Collision avoidance strategies apply in the correct order
--   No console errors during any interactions
--   Visual appearance matches documentation descriptions
+- All documented properties exist in TypeScript definitions with correct types
+- Default values in documentation match implementation
+- All examples demonstrate the features as described
+- Interactive controls work as expected
+- Collision avoidance strategies apply in the correct order
+- No console errors during any interactions
+- Visual appearance matches documentation descriptions

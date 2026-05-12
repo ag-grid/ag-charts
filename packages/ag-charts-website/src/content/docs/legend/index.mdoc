@@ -3,6 +3,10 @@ title: 'Legend'
 description: 'A legend matches visual elements in the $framework chart to the corresponding data categories. Customise the legend layout. Enable pagination. Control series visibility via legend.'
 ---
 
+{% note %}
+This page covers the category Legend. For the Gradient Legend see the [Colour Scale](./colour-scale/#gradient-legend) page.
+{% /note %}
+
 A Legend aids in matching visual elements in the chart to their corresponding series or data categories.
 
 {% chartExampleRunner title="Legend Position" name="legend-position" type="generated" /%}
@@ -40,10 +44,10 @@ The `position` property accepts either a string specifying one of the [nine pres
 
 Notice that when you change the legend position in the example above:
 
--   The size and position of the Series Area changes to accommodate the Legend within the container.
--   The default `orientation` of the Legend changes.
-    -   A `vertical` orientation - with the items arranged in columns - when the Legend is positioned to the sides.
-    -   A `horizontal` orientation - with the items arranged in rows - when the Legend is positioned to above or below.
+- The size and position of the Series Area changes to accommodate the Legend within the container.
+- The default `orientation` of the Legend changes.
+    - A `vertical` orientation - with the items arranged in columns - when the Legend is positioned to the sides.
+    - A `horizontal` orientation - with the items arranged in rows - when the Legend is positioned to above or below.
 
 ### Floating
 
@@ -87,9 +91,9 @@ It is possible to manually offset the position of the Legend, as well as control
 
 In this example:
 
--   The `xOffset` and `yOffset` values move the Legend relative to its original position. This does not affect the overall size of the Series Area.
--   The `spacing` value adjusts the spacing between the Series Area and Legend, and shrinks the Series Area.
-    -   Note that the `spacing` option will have no effect if `floating: true`.
+- The `xOffset` and `yOffset` values move the Legend relative to its original position. This does not affect the overall size of the Series Area.
+- The `spacing` value adjusts the spacing between the Series Area and Legend, and shrinks the Series Area.
+    - Note that the `spacing` option will have no effect if `floating: true`.
 
 ### Size
 
@@ -136,8 +140,8 @@ The Legend item includes a line, representing the stroke style of the series. Us
 
 In this configuration:
 
--   The stroke styling of the series is shown as a line in the Legend item.
--   Legend item markers are only shown if the series has markers enabled.
+- The stroke styling of the series is shown as a line in the Legend item.
+- Legend item markers are only shown if the series has markers enabled.
 
 ## Pagination
 
@@ -210,8 +214,8 @@ Double clicking again will show all of the series.
 
 In the above example:
 
--   Clicking or double clicking a Legend item will toggle the series visibility.
--   It will also log a message to the console via a `legendItemClick` event.
+- Clicking or double clicking a Legend item will toggle the series visibility.
+- It will also log a message to the console via a `legendItemClick` event.
 
 {% note %}
 Pie series sectors do not toggle when a Legend item is double clicked.

@@ -82,20 +82,17 @@ The following APIs have been deprecated since version 13.2 and have now been rem
 
 ## Deprecations
 
-<!-- If there are *no* deprecations, add the following: -->
-
-There are no deprecations in AG Charts version {% migrationVersion() %}.
-
-<!-- Otherwise: -->
-<!--
 {% expandingSection headerText="Deprecations" %}
 
-### Deprecation section Name
+`colorRange` is deprecated on the following series types. Use `colorScale.fills` instead.
 
-- item...
+- `AgHeatmapSeriesOptions.colorRange`
+- `AgSunburstSeriesThemeableOptions.colorRange`
+- `AgTreemapSeriesThemeableOptions.colorRange`
+- `AgMapMarkerSeriesThemeableOptions.colorRange`
+- `AgMapShapeSeriesThemeableOptions.colorRange`
 
 {% /expandingSection %}
--->
 
 <!-- Changelog for the `migrationVersion` property DO NOT TOUCH -->
 

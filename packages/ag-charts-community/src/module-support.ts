@@ -188,16 +188,15 @@ export {
     FillImageDefaults,
     FillPatternDefaults,
     HighlightProperties,
-    HighlightState,
     SeriesProperties,
     toHighlightString,
+    toSelectionString,
+    isUnselected,
 } from './chart/series/seriesProperties';
 export { SeriesMarker } from './chart/series/seriesMarker';
 export { makeSeriesTooltip, SeriesTooltip } from './chart/series/seriesTooltip';
 export type {
-    DatumIndexSetReader,
     DatumIndexType,
-    DatumRangeReader,
     ErrorBoundSeriesNodeDatum,
     ISeries,
     ISeriesProperties,
@@ -205,6 +204,7 @@ export type {
     SeriesNodeDatum,
     SeriesNodeEventTypes,
 } from './chart/series/seriesTypes';
+export { HighlightState, SelectionState } from './chart/series/seriesTypes';
 export { getItemStyles, getItemStylesPerItemId, visibleRangeIndices, findNodeDatumInArray } from './chart/series/util';
 export { AbstractBarSeries, AbstractBarSeriesProperties } from './chart/series/cartesian/abstractBarSeries';
 export type {
@@ -302,7 +302,12 @@ export type { GaugeSeries } from './chart/series/gaugeSeries';
 export { getShapeFill, getShapeStyle } from './chart/series/shapeUtil';
 export type { ShapeFillBBox } from './chart/series/shapeUtil';
 export { AggregationManager } from './chart/series/aggregationManager';
-export { makeAggregateRangeReader, prepareAggregateBucketContext } from './chart/series/aggregationRangeReader';
+export {
+    BucketLookupManager,
+    IndexSetBucketLookupManager,
+    SplitBucketLookupManager,
+} from './chart/series/bucketLookupFeature';
+export type { BucketLookupFeature } from './chart/series/seriesTypes';
 export { Axis, AxisGroupZIndexMap } from './chart/axis/axis';
 export type { AxisTickFormatParams, LabelNodeDatum } from './chart/axis/axis';
 export { createAxisLabelFormatterCache, formatAxisLabelValue, getAxisLabelSideFlag } from './chart/axis/axisLabelUtil';
@@ -364,7 +369,7 @@ export { sectorBox } from './scene/util/sector';
 export { drawCorner } from './scene/util/corner';
 export type { Corner } from './scene/util/corner';
 export type { ShapeLineCap, ShapeColor } from './scene/shape/shape';
-export { SvgPath, TranslatableSvgPath } from './scene/shape/svgPath';
+export { SvgPath, TranslatableSvgPath, RotatableSvgPath } from './scene/shape/svgPath';
 export { Text, RotatableText, TransformableText } from './scene/shape/text';
 export { ContinuousScale } from './scale/continuousScale';
 export { OrdinalTimeScale } from './scale/ordinalTimeScale';

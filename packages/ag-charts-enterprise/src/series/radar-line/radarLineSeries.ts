@@ -11,7 +11,7 @@ import type { CallbackParamRules, RequireOptional } from 'ag-charts-core';
 import { RadarSeries, type ResolvedRadarStyle } from '../radar/radarSeries';
 import { RadarSeriesProperties } from '../radar/radarSeriesProperties';
 
-const { HighlightState, PointerEvents, toHighlightString } = _ModuleSupport;
+const { HighlightState, PointerEvents, toHighlightString, toSelectionString } = _ModuleSupport;
 
 type S = AgRadarSeriesStyle;
 type O = AgBaseRadarSeriesOptions;
@@ -48,10 +48,12 @@ export class RadarLineSeries extends RadarSeries<S, O, P> {
     }
 
     protected override makeStylerParams(
-        highlightStateEnum?: _ModuleSupport.HighlightState
+        highlightStateEnum: _ModuleSupport.HighlightState | undefined,
+        selectionStateEnum: _ModuleSupport.SelectionState | undefined
     ): AgRadarLineSeriesStylerParams {
         const { properties } = this;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+        const selectionState = toSelectionString(selectionStateEnum);
 
         type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> };
         type ParamsRules = CallbackParamRules<AgRadarLineSeriesStylerParams & MarkerRules>;
@@ -68,6 +70,7 @@ export class RadarLineSeries extends RadarSeries<S, O, P> {
                 lineDashOffset: properties.marker.lineDashOffset,
             },
             highlightState,
+            selectionState,
             lineDash: properties.lineDash,
             lineDashOffset: properties.lineDashOffset,
             seriesId: this.id,
@@ -79,10 +82,13 @@ export class RadarLineSeries extends RadarSeries<S, O, P> {
         } satisfies ParamsRules;
     }
 
-    override getStyle(highlightState?: _ModuleSupport.HighlightState): ResolvedRadarStyle<AgRadarLineSeriesStyle> {
+    override getStyle(
+        highlightState: _ModuleSupport.HighlightState | undefined
+    ): ResolvedRadarStyle<AgRadarLineSeriesStyle> {
         const { marker, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = this.properties;
         const { size, shape, fill = 'transparent', fillOpacity } = marker;
-        const stylerResult = this.getStylerResult({}, highlightState);
+        const selectionState: _ModuleSupport.SelectionState | undefined = this.getDataSelectionState(undefined);
+        const stylerResult = this.getStylerResult({}, highlightState, selectionState);
         stylerResult.marker ??= {};
 
         return {

@@ -14,6 +14,9 @@
             {
                 "text": "Data Selection",
                 "path": "./selection/"
+            },
+            {
+                "text": "Tooltip Improvements"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-13-3"

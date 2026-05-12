@@ -22,6 +22,7 @@ const requiredSymbol = Symbol('required');
 const markedSymbol = Symbol('marked');
 const undocumentedSymbol = Symbol('undocumented');
 const enterpriseSymbol = Symbol('enterprise');
+const deprecatedSymbol = Symbol('deprecated');
 export const unionSymbol = Symbol('union');
 
 const similarOptionsMap = [
@@ -55,6 +56,7 @@ type PrivateSymbols = {
     [requiredSymbol]?: boolean;
     [undocumentedSymbol]?: boolean;
     [enterpriseSymbol]?: boolean;
+    [deprecatedSymbol]?: string;
     [unionSymbol]?: string;
 };
 
@@ -77,6 +79,17 @@ export interface ValidatorResult extends ValidationResult<any> {
 export interface ValidatorContext {
     path: string;
     options: any;
+    /**
+     * When true, validators that emit advisory warnings (e.g. `deprecated()`) should stay silent.
+     * Used during post-theme passes where the values originate from theme expansion rather than
+     * the user — emitting a deprecation warning for a theme-injected value would be a false
+     * positive.
+     */
+    silentAdvisories?: boolean;
+}
+
+export interface ValidateOptions {
+    silentAdvisories?: boolean;
 }
 
 export enum ErrorType {
@@ -165,7 +178,12 @@ export class UnknownError extends ValidationError {
  * @param path The current path in the options object, for nested properties.
  * @returns An object containing valid options and validation errors.
  */
-export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path = ''): ValidationResult<T> {
+export function validate<T>(
+    options: unknown,
+    optionsDefs: OptionsDefs<T>,
+    path = '',
+    opts: ValidateOptions = {}
+): ValidationResult<T> {
     if (!isObject(options)) {
         return { cleared: null, invalid: [new ValidationError(ErrorType.Required, 'an object', options, path)] };
     }
@@ -183,7 +201,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
             (options.type == null && defaultType != null)
         ) {
             const { type = defaultType, ...rest } = options;
-            const nestedResult = validate(rest, (optionsDefs as any)[type], path);
+            const nestedResult = validate(rest, (optionsDefs as any)[type], path, opts);
             Object.assign(cleared, { type }, nestedResult.cleared);
             for (const error of nestedResult.invalid) {
                 error.setUnionType(type, path);
@@ -213,7 +231,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
 
         const keyPath = extendPath(path, key);
         if (isFunction(validatorOrDefs)) {
-            const context: ValidatorContext = { options, path: keyPath };
+            const context: ValidatorContext = { options, path: keyPath, silentAdvisories: opts.silentAdvisories };
             const validatorResult = validatorOrDefs(value, context);
             const objectResult = typeof validatorResult === 'object';
 
@@ -239,7 +257,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
                 )
             );
         } else {
-            const nestedResult = validate(value, validatorOrDefs, keyPath);
+            const nestedResult = validate(value, validatorOrDefs, keyPath, opts);
             if (nestedResult.cleared != null) {
                 cleared[key as keyof T] = nestedResult.cleared as any;
             }
@@ -368,6 +386,29 @@ export function enterprise<T extends Validator | OptionsDefs<any>>(validatorOrDe
 }
 
 /**
+ * Marks an option as deprecated. Supplied values still pass through to the inner validator (so the
+ * option remains functional during the deprecation window), but a one-shot warning is emitted via
+ * `warnOnce` to nudge consumers toward the replacement API. The provided `message` should describe
+ * the recommended migration (e.g. "Use `colorScale.fills` instead.").
+ */
+export function deprecated(validator: Validator, message: string): Validator;
+export function deprecated<T extends OptionsDefs<any>>(validatorOrDefs: T, message: string): T;
+export function deprecated<T extends Validator | OptionsDefs<any>>(validatorOrDefs: T, message: string) {
+    const inner: Validator = isFunction(validatorOrDefs) ? validatorOrDefs : optionsDefs(validatorOrDefs);
+    const description = (validatorOrDefs as PrivateSymbols)[descriptionSymbol];
+    const gated: Validator = (value, context) => {
+        if (value !== undefined && !context.silentAdvisories) {
+            warnOnce(`Option \`${context.path}\` is deprecated. ${message}`);
+        }
+        return inner(value, context);
+    };
+    return Object.assign(gated, {
+        [deprecatedSymbol]: message,
+        [descriptionSymbol]: description,
+    }) as T;
+}
+
+/**
  * Creates a validator for ensuring an object matches the provided option definitions.
  * @param defs The option definitions against which to validate an object.
  * @param description (Optional) A description for the validator, defaulting to 'an object'.
@@ -375,7 +416,7 @@ export function enterprise<T extends Validator | OptionsDefs<any>>(validatorOrDe
  */
 export const optionsDefs = <T>(defs: OptionsDefs<T>, description = 'an object', failAll = false): Validator =>
     attachDescription((value, context) => {
-        const result = validate(value, defs, context.path);
+        const result = validate(value, defs, context.path, { silentAdvisories: context.silentAdvisories });
         const valid = !hasRequiredInPath(result.invalid, context.path);
         return { valid, cleared: valid || !failAll ? result.cleared : null, invalid: result.invalid };
     }, description);

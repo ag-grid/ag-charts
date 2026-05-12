@@ -1,4 +1,10 @@
-import type { ContextCallbackParams, HighlightState, SeriesCallbackParams, Styler } from '../../chart/callbackOptions';
+import type {
+    ContextCallbackParams,
+    HighlightState,
+    SelectionState,
+    SeriesCallbackParams,
+    Styler,
+} from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
@@ -20,15 +26,10 @@ export type AgAreaSeriesLabelFormatterParams<TDatum = DatumDefault> = AgAreaSeri
     AgAreaSeriesOptionsNames;
 
 export interface AgAreaSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgCartesianSeriesTooltipRendererParams<TDatum, TContext>,
-        FillOptions,
-        StrokeOptions {}
+    extends AgCartesianSeriesTooltipRendererParams<TDatum, TContext>, FillOptions, StrokeOptions {}
 
 export interface AgAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends StrokeOptions,
-        FillOptions,
-        LineDashOptions,
-        AgBaseCartesianThemeableOptions<TDatum, TContext> {
+    extends StrokeOptions, FillOptions, LineDashOptions, AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgAreaSeriesStylerParams<TDatum, TContext>, AgAreaSeriesStylerResult>;
     /** Configuration for the markers used in the series. */
@@ -57,8 +58,9 @@ export interface AgAreaSeriesOptionsKeys<TDatum = DatumDefault> {
 }
 
 export interface AgAreaSeriesStylerParams<TDatum, TContext>
-    extends AgAreaSeriesOptionsKeys<TDatum>,
-        SeriesCallbackParams<HighlightState>,
+    extends
+        AgAreaSeriesOptionsKeys<TDatum>,
+        SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         Required<StrokeOptions>,
         Required<FillOptions>,
@@ -73,9 +75,7 @@ export interface AgAreaSeriesStylerResult extends StrokeOptions, FillOptions, Li
 }
 
 export interface AgAreaSeriesMarkerItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgAreaSeriesOptionsKeys<TDatum>,
-        ContextCallbackParams<TContext>,
-        Required<AgSeriesMarkerStyle> {
+    extends AgAreaSeriesOptionsKeys<TDatum>, ContextCallbackParams<TContext>, Required<AgSeriesMarkerStyle> {
     /** The x value of the datum. */
     xValue: any;
     /** The y value of the datum. */
@@ -100,7 +100,8 @@ export interface AgAreaSeriesOptionsNames {
 }
 
 export interface AgAreaSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgBaseCartesianSeriesAxisOptions,
         AgAreaSeriesOptionsKeys<TDatum>,
         AgAreaSeriesOptionsNames,

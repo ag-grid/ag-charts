@@ -77,13 +77,11 @@ The `sizeKey` can be used to provide a numeric value to adjust the relative sizi
 }
 ```
 
-## Colour Scales
+## Colour Scale
 
-Sectors can also be coloured using a scale. This lets you add an extra dimension of information to your chart.
+Use `colorScale` to control how `colorKey` values map to colours.
 
-{% chartExampleRunner title="Colour Scale" name="color-scale" type="generated" /%}
-
-Colouring can be customised by the `colorKey` and `colorRange` values in the series options.
+{% chartExampleRunner title="Colour Scale" name="gradient-legend" type="generated" /%}
 
 ```js format="snippet"
 {
@@ -91,21 +89,26 @@ Colouring can be customised by the `colorKey` and `colorRange` values in the ser
         {
             type: 'sunburst',
             labelKey: 'name',
-            sizeKey: 'gdp',
-            sizeName: 'GDP',
             colorKey: 'gdpChange',
             colorName: 'Change',
-            colorRange: ['#FF9800', '#8BC34A'],
+            colorScale: {
+                mode: 'discrete',
+                fills: [
+                    { color: 'tomato', stop: -0.01, name: 'Decline' },
+                    { color: 'gold', stop: 0.01, name: 'Flat' },
+                    { color: 'seagreen', name: 'Growth' },
+                ],
+            },
         },
     ],
 }
 ```
 
-In this configuration:
+In this example:
 
--   `colorKey` supplies numeric values for the colour scale
--   `colorName` sets the title that appears next to the colour value in tooltips
--   `colorRange` supplies the colours for the colour scale (optional)
+- Use the toggle to switch between discrete mode with named stops shown in a category legend, and a continuous gradient shown in a gradient legend.
+
+See the [Colour Scale](./colour-scale/) page for the full range of colour scale options including discrete mode, named stops, fixed domains, missing data, and gradient legend customisation.
 
 ## Other Colours
 
@@ -127,10 +130,10 @@ In this configuration:
 
 In this configuration:
 
--   `fills` and `strokes` are an array of colours to use for the fills and strokes, where each node receives the colour indexed by the index of its root node
+- `fills` and `strokes` are an array of colours to use for the fills and strokes, where each node receives the colour indexed by the index of its root node
 
 {% note %}
-When a `colorRange` is used, the `fills` and `strokes` arrays are ignored
+When a `colorScale` is used, the `fills` and `strokes` arrays are ignored.
 {% /note %}
 
 ## Labels
@@ -164,89 +167,11 @@ All segments can contain both labels and secondary labels, which can be shrunk t
 
 In this configuration:
 
--   `fontSize` sets the size of the font.
--   `minimumFontSize` will enable the font size to shrink down to the given value if there is not enough space.
--   `spacing` controls the amount of space below a label.
--   `padding` adds space between the edge of a sector and its contents.
--   `formatter` allows customising the value of a label using a function.
-
-## Gradient Legend
-
-The Gradient Legend aids in matching the colour coding of the Sunburst Series to the underlying values, and is enabled by default.
-
-{% chartExampleRunner title="Gradient Legend" name="gradient-legend" type="generated" /%}
-
-```js format="snippet"
-series: [
-    {
-        type: 'sunburst',
-        colorKey: 'gdpChange',
-        // ...
-    },
-],
-gradientLegend: {
-    enabled: true,
-}
-```
-
-### Position
-
-{% chartExampleRunner title="Gradient Legend Position" name="gradient-legend-position" type="generated" /%}
-
-By default the Gradient Legend is placed at the bottom of the chart. Use the `position` option to change this.
-
-```js format="snippet"
-{
-    gradientLegend: {
-        position: 'right',
-    },
-}
-```
-
-When the position is `left` or `right`, the Gradient Legend displays the values in descending order. Use `reverseOrder` to change this.
-
-### Size
-
-{% chartExampleRunner title="Gradient Legend Size" name="gradient-legend-size" type="generated" /%}
-
-```js format="snippet"
-{
-    gradientLegend: {
-        gradient: {
-            thickness: 50,
-            preferredLength: 400,
-        },
-    },
-}
-```
-
-In the above configuration:
-
--   `thickness` controls the thickness (or width) of the gradient bar.
--   `preferredLength` sets the initial length of the gradient bar. It is only _preferred_, as the Gradient Legend is constrained by the container edges.
-
-### Labels
-
-It is possible to customise the font, colour and padding of the labels by using the `scale` options.
-
-{% chartExampleRunner title="Gradient Legend Labels" name="gradient-legend-labels" type="generated" /%}
-
-```js format="snippet"
-{
-    gradientLegend: {
-        scale: {
-            label: {
-                fontSize: 20,
-                fontStyle: 'italic',
-                fontWeight: 'bold',
-                fontFamily: 'serif',
-                color: 'red',
-            },
-            padding: 20,
-        },
-    },
-}
-```
+- `fontSize` sets the size of the font.
+- `minimumFontSize` will enable the font size to shrink down to the given value if there is not enough space.
+- `spacing` controls the amount of space below a label.
+- `padding` adds space between the edge of a sector and its contents.
+- `formatter` allows customising the value of a label using a function.
 
 ## Highlighting
 
@@ -254,10 +179,10 @@ It is possible to customise the font, colour and padding of the labels by using 
 
 Each sunburst highlight state exposes a separate style object:
 
--   `highlightedItem` – the hovered segment.
--   `highlightedBranch` – All segments that share the same root node.
--   `unhighlightedItem` – All segments in the highlightedBranch that are not the highlighted segment.
--   `unhighlightedBranch` – segments that belong to different branches.
+- `highlightedItem` – the hovered segment.
+- `highlightedBranch` – All segments that share the same root node.
+- `unhighlightedItem` – All segments in the highlightedBranch that are not the highlighted segment.
+- `unhighlightedBranch` – segments that belong to different branches.
 
 ```js format="snippet"
 {
@@ -279,9 +204,9 @@ Each sunburst highlight state exposes a separate style object:
 
 In this configuration:
 
--   Hovered segments get an accent stroke while preserving the default fill.
--   Sibling segments in the same branch inherit `highlightedBranch` styles (merged with their own highlight state).
--   Segments in other branches fade based on `unhighlightedBranch`.
+- Hovered segments get an accent stroke while preserving the default fill.
+- Sibling segments in the same branch inherit `highlightedBranch` styles (merged with their own highlight state).
+- Segments in other branches fade based on `unhighlightedBranch`.
 
 ## API Reference
 
@@ -289,10 +214,6 @@ In this configuration:
 
 {% tabItem id="AgSunburstSeriesOptions" label="Sunburst Series" %}
 {% apiReference id="AgSunburstSeriesOptions" /%}
-{% /tabItem %}
-
-{% tabItem id="AgGradientLegendOptions" label="Gradient Legend" %}
-{% apiReference id="AgGradientLegendOptions" /%}
 {% /tabItem %}
 
 {% /tabs %}

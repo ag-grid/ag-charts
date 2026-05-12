@@ -4,23 +4,21 @@
 
 ### Chart Types/Features Covered
 
--   Chart state management functionality (save, restore, update)
--   Legend state persistence (visibility toggles)
--   Zoom/pan state persistence (ranges and ratios)
--   Financial chart specific state:
-    -   Annotations (drawings and text)
-    -   Chart type selection
--   Initial state configuration
+- Chart state management functionality (save, restore, update)
+- Legend state persistence (visibility toggles)
+- Zoom/pan state persistence (ranges and ratios)
+- Financial chart specific state:
+    - Annotations (drawings and text)
+    - Chart type selection
+- Initial state configuration
 
 ### Key APIs and Configuration Options Documented
 
 1. **Chart Instance Methods:**
-
     - `chart.getState()` - Retrieves current chart state
     - `chart.setState(state)` - Restores saved state
 
 2. **Configuration Options:**
-
     - `initialState` - Chart option for pre-loaded state
     - State object structure:
         - `zoom` - Contains rangeX/rangeY or ratioX/ratioY
@@ -40,23 +38,21 @@
 
 ### Interactive Features Described
 
--   Zoom and pan interactions
--   Legend item toggles
--   Save/restore button interactions
--   Financial chart toolbar interactions (annotations, chart type selection)
--   Dynamic state updates via initialState mutation
+- Zoom and pan interactions
+- Legend item toggles
+- Save/restore button interactions
+- Financial chart toolbar interactions (annotations, chart type selection)
+- Dynamic state updates via initialState mutation
 
 ## Validation Targets
 
 ### Specific TypeScript Interfaces to Verify
 
 1. `AgChartInstance` interface in `packages/ag-charts-types/src/api/agCharts.ts`:
-
     - Verify `getState()` method signature
     - Verify `setState(state)` method signature
 
 2. `AgInitialStateOptions` in `packages/ag-charts-types/src/api/initialStateOptions.ts`:
-
     - Verify structure matches documentation
     - Check zoom properties (rangeX/Y, ratioX/Y)
     - Validate legend array structure
@@ -68,17 +64,14 @@
 ### Implementation Files to Check
 
 1. Chart state implementation:
-
     - `packages/ag-charts-community/src/chart/Chart.ts` - getState/setState methods
     - State manager classes for handling persistence
 
 2. Legend state:
-
     - Legend component state handling
     - Series visibility management
 
 3. Zoom state:
-
     - Zoom manager implementation
     - Range/ratio conversion logic
 
@@ -92,97 +85,94 @@
 
 **Documentation claims:**
 
--   Save button stores chart state using `chart.getState()`
--   Restore button restores saved state using `chart.setState()`
--   Supports both legend toggles and zoom state
--   State overrides current state when restored
+- Save button stores chart state using `chart.getState()`
+- Restore button restores saved state using `chart.setState()`
+- Supports both legend toggles and zoom state
+- State overrides current state when restored
 
 **Expected behaviors to validate:**
 
--   Zoom/pan interactions modify chart view
--   Legend item clicks toggle series visibility
--   Save button captures current zoom and legend state
--   Restore button returns chart to saved state
--   Multiple save/restore cycles work correctly
+- Zoom/pan interactions modify chart view
+- Legend item clicks toggle series visibility
+- Save button captures current zoom and legend state
+- Restore button returns chart to saved state
+- Multiple save/restore cycles work correctly
 
 **Specific features to test:**
 
--   Zoom functionality (mouse drag on chart)
--   Pan functionality (if available)
--   Legend toggle clicks
--   Save button functionality
--   Restore button functionality
--   State persistence accuracy
+- Zoom functionality (mouse drag on chart)
+- Pan functionality (if available)
+- Legend toggle clicks
+- Save button functionality
+- Restore button functionality
+- State persistence accuracy
 
 #### 2. state-save-restore
 
 **Documentation claims:**
 
--   Financial chart with toolbar
--   Supports annotation state (drawings/text)
--   Supports chart type state changes
--   Save/restore includes annotations and chart type
+- Financial chart with toolbar
+- Supports annotation state (drawings/text)
+- Supports chart type state changes
+- Save/restore includes annotations and chart type
 
 **Expected behaviors to validate:**
 
--   Toolbar provides annotation tools
--   Chart type can be changed via toolbar
--   Annotations can be created and positioned
--   Save captures annotations and chart type
--   Restore recreates exact annotation positions/styles
--   Chart type is restored correctly
+- Toolbar provides annotation tools
+- Chart type can be changed via toolbar
+- Annotations can be created and positioned
+- Save captures annotations and chart type
+- Restore recreates exact annotation positions/styles
+- Chart type is restored correctly
 
 **Specific features to test:**
 
--   Annotation creation tools
--   Chart type selector
--   Save/restore with complex annotations
--   Multiple annotation types
--   Chart type transitions
+- Annotation creation tools
+- Chart type selector
+- Save/restore with complex annotations
+- Multiple annotation types
+- Chart type transitions
 
 #### 3. initial-state
 
 **Documentation claims:**
 
--   Chart loads with pre-configured state
--   Includes zoom range (date-based example)
--   Includes legend visibility (tate-modern series hidden)
--   Runtime mutation of initialState updates chart
--   Button clicks update initialState dynamically
+- Chart loads with pre-configured state
+- Includes zoom range (date-based example)
+- Includes legend visibility (tate-modern series hidden)
+- Runtime mutation of initialState updates chart
+- Button clicks update initialState dynamically
 
 **Expected behaviors to validate:**
 
--   Chart starts with zoom applied (2021-01-01 start date)
--   'tate-modern' series is initially hidden
--   Update buttons modify chart state immediately
--   State changes are reflected visually
--   Date serialization works correctly
+- Chart starts with zoom applied (2021-01-01 start date)
+- 'tate-modern' series is initially hidden
+- Update buttons modify chart state immediately
+- State changes are reflected visually
+- Date serialization works correctly
 
 **Specific features to test:**
 
--   Initial zoom state application
--   Initial legend state application
--   Dynamic state update buttons
--   Visual confirmation of state changes
--   Date handling in zoom ranges
+- Initial zoom state application
+- Initial legend state application
+- Dynamic state update buttons
+- Visual confirmation of state changes
+- Date handling in zoom ranges
 
 ### User Interactions to Validate
 
 1. **Zoom interactions:**
-
     - Mouse drag to create zoom rectangle
     - Mouse wheel for zoom in/out
     - Double-click to reset zoom
     - Pan after zooming (if supported)
 
 2. **Legend interactions:**
-
     - Click legend items to toggle
     - Visual feedback on hover
     - Series hide/show animations
 
 3. **Button interactions:**
-
     - Save button captures state
     - Restore button applies state
     - Update buttons (initial-state example)
@@ -196,13 +186,11 @@
 ### Visual States to Screenshot and Analyze
 
 1. **Default states:**
-
     - Chart initial load appearance
     - Legend default state
     - Toolbar default state (financial)
 
 2. **Interaction states:**
-
     - Zoom rectangle during drag
     - Legend hover states
     - Annotation creation in progress
@@ -217,18 +205,15 @@
 ### Interactive Features Requiring Before/After Visual Comparison
 
 1. Save/restore operations:
-
     - Chart state before save
     - Modified state before restore
     - State after restore (should match saved)
 
 2. Initial state updates:
-
     - Chart before button click
     - Chart after state update
 
 3. Legend visibility:
-
     - Series visible state
     - Series hidden state
     - Multiple series combinations
@@ -251,12 +236,10 @@ Based on documentation claims:
 ### Expected Tooltip Content and Highlighting Behaviors
 
 1. **Legend hovering:**
-
     - Visual feedback on hover
     - Cursor change to indicate clickability
 
 2. **Chart hovering:**
-
     - Data point tooltips (if applicable)
     - Coordinate display during zoom
 
@@ -282,7 +265,6 @@ No documented exceptions file exists for this page.
 ### Phase 2: Basic Example Functionality (Priority: High)
 
 1. Test legend-state-save-restore example:
-
     - Verify zoom interaction works
     - Test legend toggles
     - Confirm save/restore cycle
@@ -309,7 +291,6 @@ No documented exceptions file exists for this page.
 ### Phase 4: Edge Cases and Data Handling (Priority: Medium)
 
 1. Test date serialization:
-
     - Verify ISO-8601 format
     - Test UTC timezone handling
     - Confirm AgStateSerializableDate format
@@ -323,7 +304,6 @@ No documented exceptions file exists for this page.
 ### Phase 5: Interactive Behavior Testing (Priority: Medium)
 
 1. Comprehensive interaction testing:
-
     - Test all zoom/pan variations
     - Try rapid state changes
     - Test keyboard navigation
@@ -352,54 +332,54 @@ No documented exceptions file exists for this page.
 **Task:** Validate basic state management functionality
 **Documentation claims to verify:**
 
--   Chart supports getState() and setState() methods
--   State includes both zoom and legend information
--   Save captures current state accurately
--   Restore overrides current state completely
+- Chart supports getState() and setState() methods
+- State includes both zoom and legend information
+- Save captures current state accurately
+- Restore overrides current state completely
 
 **Expected behaviors:**
 
--   No console errors during state operations
--   State object structure matches documentation
--   Legend toggles are preserved in state
--   Zoom ranges are preserved in state
+- No console errors during state operations
+- State object structure matches documentation
+- Legend toggles are preserved in state
+- Zoom ranges are preserved in state
 
 ### state-save-restore Example
 
 **Task:** Validate financial chart state features
 **Documentation claims to verify:**
 
--   Financial charts support annotation state
--   Chart type selection is preserved
--   Toolbar provides annotation tools
--   Complex state with multiple annotations works
+- Financial charts support annotation state
+- Chart type selection is preserved
+- Toolbar provides annotation tools
+- Complex state with multiple annotations works
 
 **Expected behaviors:**
 
--   Toolbar renders with expected tools
--   Annotations can be created without errors
--   State object includes annotations property
--   Chart type changes are captured in state
+- Toolbar renders with expected tools
+- Annotations can be created without errors
+- State object includes annotations property
+- Chart type changes are captured in state
 
 ### initial-state Example
 
 **Task:** Validate initial state configuration
 **Documentation claims to verify:**
 
--   initialState option works on chart creation
--   Runtime mutations of initialState update chart
--   Date serialization uses correct format
--   Legend initial state with seriesId works
+- initialState option works on chart creation
+- Runtime mutations of initialState update chart
+- Date serialization uses correct format
+- Legend initial state with seriesId works
 
 **Expected behaviors:**
 
--   Chart loads with zoom already applied
--   Specified series is initially hidden
--   Update buttons successfully modify state
--   No errors with date handling
+- Chart loads with zoom already applied
+- Specified series is initially hidden
+- Update buttons successfully modify state
+- No errors with date handling
 
 ## Estimated Complexity
 
--   **High complexity:** State management is a core feature with multiple subsystems
--   **Time estimate:** 2-3 hours for thorough review
--   **Risk areas:** Date serialization, financial chart features, state precedence rules
+- **High complexity:** State management is a core feature with multiple subsystems
+- **Time estimate:** 2-3 hours for thorough review
+- **Risk areas:** Date serialization, financial chart features, state precedence rules

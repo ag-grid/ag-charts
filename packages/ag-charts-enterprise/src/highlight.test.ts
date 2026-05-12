@@ -973,7 +973,7 @@ describe('Enterprise highlight defaults', () => {
                             labelKey: 'name',
                             sizeKey: 'size',
                             colorKey: 'value',
-                            colorRange: ['#2196F3', '#FFC107'],
+                            colorScale: { fills: [{ color: '#2196F3' }, { color: '#FFC107' }] },
                             // No highlight.fill configured - should use colorScale
                         },
                     ],
@@ -994,7 +994,7 @@ describe('Enterprise highlight defaults', () => {
                             labelKey: 'name',
                             sizeKey: 'size',
                             colorKey: 'value',
-                            colorRange: ['#2196F3', '#FFC107'],
+                            colorScale: { fills: [{ color: '#2196F3' }, { color: '#FFC107' }] },
                             tile: {
                                 highlight: {
                                     highlightedItem: {
@@ -1137,7 +1137,7 @@ describe('Enterprise highlight defaults', () => {
                             labelKey: 'name',
                             sizeKey: 'size',
                             colorKey: 'value',
-                            colorRange: ['#E91E63', '#9C27B0'],
+                            colorScale: { fills: [{ color: '#E91E63' }, { color: '#9C27B0' }] },
                             // No highlight.fill configured - should use colorScale
                         },
                     ],
@@ -1158,7 +1158,7 @@ describe('Enterprise highlight defaults', () => {
                             labelKey: 'name',
                             sizeKey: 'size',
                             colorKey: 'value',
-                            colorRange: ['#E91E63', '#9C27B0'],
+                            colorScale: { fills: [{ color: '#E91E63' }, { color: '#9C27B0' }] },
                             highlight: {
                                 highlightedItem: {
                                     fill: 'green', // Should override colorScale

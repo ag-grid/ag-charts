@@ -15,6 +15,7 @@ import {
     clickAction,
     computeLegendBBox,
     deproxy,
+    expectWarningsCalls,
     extractImageData,
     hoverAction,
     setupMockCanvas,
@@ -443,6 +444,69 @@ describe('MapMarkerSeries', () => {
                 (datum: any) => missingNames.has(datum.name),
                 (i) => i
             );
+        });
+
+        it('AG-17195 should not warn when colorKey resolves to null/undefined/missing', async () => {
+            const data = ukData.map((datum: any, idx: number) => {
+                if (idx === 0) return { ...datum, population: null };
+                if (idx === 1) return { ...datum, population: undefined };
+                if (idx === 2) {
+                    const rest = { ...datum };
+                    delete rest.population;
+                    return rest;
+                }
+                return datum;
+            });
+            const options: AgChartOptions = {
+                data,
+                topology: ukTopology,
+                series: [
+                    { type: 'map-shape-background' },
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        colorKey: 'population',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it('should preserve colorScale fill on highlighted marker', async () => {
+            const options: AgChartOptions = {
+                ...COLOR_EXAMPLE,
+                series: [
+                    { type: 'map-shape-background' },
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        colorKey: 'population',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const seriesImpl = chart.series[1] as MapMarkerSeries;
+            const targetNode = seriesImpl?.['contextNodeData']?.nodeData[0];
+            expect(targetNode).toBeDefined();
+
+            const highlightManager = (chart as Chart).ctx.highlightManager;
+            highlightManager.updateHighlight(chart.id, targetNode);
+            await compare();
         });
 
         it('should preserve missingDataFill on highlighted marker', async () => {

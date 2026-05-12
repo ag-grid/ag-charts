@@ -171,7 +171,7 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     protected getBandwidth(xAxis: ChartAxis, minWidth?: 1 | 0) {
         return ContinuousScale.is(xAxis.scale)
             ? xAxis.scale.calcBandwidth(this.smallestDataInterval, minWidth)
-            : xAxis.scale.bandwidth ?? 0;
+            : (xAxis.scale.bandwidth ?? 0);
     }
 
     override xCoordinateRange(xValue: any): [number, number] {

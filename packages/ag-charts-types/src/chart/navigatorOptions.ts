@@ -129,44 +129,57 @@ export type ScatterIgnoredProperties =
     | 'labelName';
 export type WaterfallIgnoredProperties = CommonIgnoredProperties | 'direction';
 
-export interface AgLineMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Partial<Omit<AgLineSeriesOptions<TDatum, TContext>, LineIgnoredProperties>> {}
+export interface AgLineMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Partial<
+    Omit<AgLineSeriesOptions<TDatum, TContext>, LineIgnoredProperties>
+> {}
 
-export interface AgScatterMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Partial<Omit<AgScatterSeriesOptions<TDatum, TContext>, ScatterIgnoredProperties>> {}
+export interface AgScatterMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Partial<
+    Omit<AgScatterSeriesOptions<TDatum, TContext>, ScatterIgnoredProperties>
+> {}
 
-export interface AgBubbleMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Partial<Omit<AgBubbleSeriesOptions<TDatum, TContext>, BubbleIgnoredProperties>> {}
+export interface AgBubbleMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Partial<
+    Omit<AgBubbleSeriesOptions<TDatum, TContext>, BubbleIgnoredProperties>
+> {}
 
-export interface AgAreaMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Partial<Omit<AgAreaSeriesOptions<TDatum, TContext>, CommonIgnoredProperties>> {}
+export interface AgAreaMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Partial<
+    Omit<AgAreaSeriesOptions<TDatum, TContext>, CommonIgnoredProperties>
+> {}
 
-export interface AgBarMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Partial<Omit<AgBarSeriesOptions<TDatum, TContext>, BarIgnoredProperties>> {}
+export interface AgBarMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Partial<
+    Omit<AgBarSeriesOptions<TDatum, TContext>, BarIgnoredProperties>
+> {}
 
-export interface AgBoxPlotMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Partial<Omit<AgBoxPlotSeriesOptions<TDatum, TContext>, BoxPlotIgnoredProperties>> {}
+export interface AgBoxPlotMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Partial<
+    Omit<AgBoxPlotSeriesOptions<TDatum, TContext>, BoxPlotIgnoredProperties>
+> {}
 
-export interface AgHistogramMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Partial<Omit<AgHistogramSeriesOptions<TDatum, TContext>, HistogramIgnoredProperties>> {}
+export interface AgHistogramMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Partial<
+    Omit<AgHistogramSeriesOptions<TDatum, TContext>, HistogramIgnoredProperties>
+> {}
 
-export interface AgHeatmapMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Partial<Omit<AgHeatmapSeriesOptions<TDatum, TContext>, HeatmapIgnoredProperties>> {}
+export interface AgHeatmapMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Partial<
+    Omit<AgHeatmapSeriesOptions<TDatum, TContext>, HeatmapIgnoredProperties>
+> {}
 
-export interface AgWaterfallMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Partial<Omit<AgWaterfallSeriesOptions<TDatum, TContext>, WaterfallIgnoredProperties>> {}
+export interface AgWaterfallMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Partial<
+    Omit<AgWaterfallSeriesOptions<TDatum, TContext>, WaterfallIgnoredProperties>
+> {}
 
-export interface AgRangeBarMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Partial<Omit<AgRangeBarSeriesOptions<TDatum, TContext>, RangeBarIgnoredProperties>> {}
+export interface AgRangeBarMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Partial<
+    Omit<AgRangeBarSeriesOptions<TDatum, TContext>, RangeBarIgnoredProperties>
+> {}
 
-export interface AgRangeAreaMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Partial<Omit<AgRangeAreaSeriesOptions<TDatum, TContext>, RangeAreaIgnoredProperties>> {}
+export interface AgRangeAreaMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Partial<
+    Omit<AgRangeAreaSeriesOptions<TDatum, TContext>, RangeAreaIgnoredProperties>
+> {}
 
-export interface AgCandlestickMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Partial<Omit<AgCandlestickSeriesOptions<TDatum, TContext>, CommonIgnoredProperties>> {}
+export interface AgCandlestickMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Partial<
+    Omit<AgCandlestickSeriesOptions<TDatum, TContext>, CommonIgnoredProperties>
+> {}
 
-export interface AgOhlcMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Partial<Omit<AgOhlcSeriesOptions<TDatum, TContext>, CommonIgnoredProperties>> {}
+export interface AgOhlcMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Partial<
+    Omit<AgOhlcSeriesOptions<TDatum, TContext>, CommonIgnoredProperties>
+> {}
 
 export type AgMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> =
     | AgLineMiniChartSeriesOptions<TDatum, TContext>
@@ -308,8 +321,10 @@ export interface AgNavigatorOptions<TDatum = DatumDefault, TContext = ContextDef
     miniChart?: AgNavigatorMiniChartOptions<TDatum, TContext>;
 }
 
-export interface AgNavigatorThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgNavigatorOptions<TDatum, TContext>, 'miniChart'> {
+export interface AgNavigatorThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
+    AgNavigatorOptions<TDatum, TContext>,
+    'miniChart'
+> {
     /** Mini Chart options. */
     miniChart?: AgNavigatorMiniChartThemeableOptions<TDatum, TContext>;
 }

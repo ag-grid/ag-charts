@@ -4,29 +4,26 @@
 
 ### Chart Types/Features Covered
 
--   **Bar Series**: Basic bar chart creation
--   **Line Series**: Line chart for secondary data
--   **Combination Charts**: Combining bar and line series in a single chart
--   **Secondary Axes**: Configuring multiple Y-axes (left and right)
+- **Bar Series**: Basic bar chart creation
+- **Line Series**: Line chart for secondary data
+- **Combination Charts**: Combining bar and line series in a single chart
+- **Secondary Axes**: Configuring multiple Y-axes (left and right)
 
 ### Key APIs and Configuration Options Documented
 
 1. **Core Chart Options**:
-
     - `container` (JavaScript only): HTML element for chart rendering
     - `data`: Array of data points
     - `series`: Array of series configurations
     - `AgCharts.create()`: JavaScript API for chart creation
 
 2. **Series Configuration**:
-
     - `type`: Chart type ('bar', 'line')
     - `xKey`: Data property for X axis
     - `yKey`: Data property for Y axis
     - `yName`: Human-readable name for tooltips and legend
 
 3. **Axes Configuration**:
-
     - `type`: Axis type ('category', 'number', 'time', 'log')
     - `position`: Axis placement ('top', 'bottom', 'left', 'right')
     - `keys`: Associates axis with specific series
@@ -51,9 +48,9 @@
 
 ### Interactive Features Described
 
--   **Tooltips**: Hovering over chart elements displays data values
--   **Legend Interaction**: Clicking legend items toggles series visibility
--   **Hover Effects**: Chart elements respond to mouse hover
+- **Tooltips**: Hovering over chart elements displays data values
+- **Legend Interaction**: Clicking legend items toggles series visibility
+- **Hover Effects**: Chart elements respond to mouse hover
 
 ## Validation Targets
 
@@ -72,12 +69,10 @@
 ### Implementation Files to Check
 
 1. **Core Series Implementation**:
-
     - `packages/ag-charts-community/src/chart/series/cartesian/barSeries.ts`
     - `packages/ag-charts-community/src/chart/series/cartesian/lineSeries.ts`
 
 2. **Axes Implementation**:
-
     - `packages/ag-charts-community/src/chart/axis/categoryAxis.ts`
     - `packages/ag-charts-community/src/chart/axis/numberAxis.ts`
 
@@ -91,124 +86,122 @@
 
 **Documentation Claims**:
 
--   Creates a simple bar chart
--   Uses container, data, and series properties
--   Displays ice cream sales data by month
+- Creates a simple bar chart
+- Uses container, data, and series properties
+- Displays ice cream sales data by month
 
 **Expected Behaviors**:
 
--   Bar chart renders with months on X-axis
--   Ice cream sales values on Y-axis
--   Tooltips show values on hover
--   No legend (single series)
+- Bar chart renders with months on X-axis
+- Ice cream sales values on Y-axis
+- Tooltips show values on hover
+- No legend (single series)
 
 #### 2. combination-charts-example
 
 **Documentation Claims**:
 
--   Adds line series to existing bar chart
--   Shows both iceCreamSales (bar) and avgTemp (line) data
+- Adds line series to existing bar chart
+- Shows both iceCreamSales (bar) and avgTemp (line) data
 
 **Expected Behaviors**:
 
--   Both bar and line series visible
--   Legend appears automatically with two series
--   Same Y-axis scale for both series
--   Tooltips work for both series types
+- Both bar and line series visible
+- Legend appears automatically with two series
+- Same Y-axis scale for both series
+- Tooltips work for both series types
 
 #### 3. second-series-example
 
 **Documentation Claims**:
 
--   Configures three axes: bottom, left, right
--   Associates iceCreamSales with left axis
--   Associates avgTemp with right axis
+- Configures three axes: bottom, left, right
+- Associates iceCreamSales with left axis
+- Associates avgTemp with right axis
 
 **Expected Behaviors**:
 
--   Three axes visible (bottom category, left and right number)
--   Bar series uses left Y-axis scale
--   Line series uses right Y-axis scale
--   Different scales on left vs right axes
+- Three axes visible (bottom category, left and right number)
+- Bar series uses left Y-axis scale
+- Line series uses right Y-axis scale
+- Different scales on left vs right axes
 
 #### 4. title-example
 
 **Documentation Claims**:
 
--   Adds title "Ice Cream Sales"
--   Adds subtitle "Data from 2022"
+- Adds title "Ice Cream Sales"
+- Adds subtitle "Data from 2022"
 
 **Expected Behaviors**:
 
--   Title appears at top of chart
--   Subtitle appears below title
--   Both are centered by default
+- Title appears at top of chart
+- Subtitle appears below title
+- Both are centered by default
 
 #### 5. legend-example
 
 **Documentation Claims**:
 
--   Positions legend on the right side
--   Legend should show both series
+- Positions legend on the right side
+- Legend should show both series
 
 **Expected Behaviors**:
 
--   Legend moves from bottom to right side
--   Legend items clickable to toggle series
--   Legend shows correct series names/colors
+- Legend moves from bottom to right side
+- Legend items clickable to toggle series
+- Legend shows correct series names/colors
 
 #### 6. format-series-example
 
 **Documentation Claims**:
 
--   Uses yName to provide human-readable series name
--   Legend and tooltips use yName instead of yKey
+- Uses yName to provide human-readable series name
+- Legend and tooltips use yName instead of yKey
 
 **Expected Behaviors**:
 
--   Legend shows "Ice Cream Sales" instead of "iceCreamSales"
--   Tooltips display formatted name
--   Second series still shows raw key name
+- Legend shows "Ice Cream Sales" instead of "iceCreamSales"
+- Tooltips display formatted name
+- Second series still shows raw key name
 
 #### 7. second-series-formatted-example
 
 **Documentation Claims**:
 
--   Formats right axis labels with '°C' suffix
--   Uses formatter function on axis label
+- Formats right axis labels with '°C' suffix
+- Uses formatter function on axis label
 
 **Expected Behaviors**:
 
--   Right axis shows temperature values with "°C"
--   Left axis unchanged
--   Formatter receives params object with value
+- Right axis shows temperature values with "°C"
+- Left axis unchanged
+- Formatter receives params object with value
 
 #### 8. complete-formatted-example
 
 **Documentation Claims**:
 
--   Combines all features from tutorial
--   Interactive legend for toggling series
--   Formatted axes and human-readable names
+- Combines all features from tutorial
+- Interactive legend for toggling series
+- Formatted axes and human-readable names
 
 **Expected Behaviors**:
 
--   All formatting applied correctly
--   Legend interaction works
--   Tooltips show formatted values
--   Both axes properly formatted
+- All formatting applied correctly
+- Legend interaction works
+- Tooltips show formatted values
+- Both axes properly formatted
 
 ### User Interactions to Validate
 
 1. **Hover Interactions**:
-
     - Hover over bars → tooltips with values
     - Hover over line points → tooltips with values
     - Hover between data points → no tooltips
     - Rapid hover across elements → smooth tooltip updates
 
 2. **Legend Interactions**:
-
     - Click legend items → toggle series visibility
     - Hover legend items → visual feedback
     - Legend position affects chart layout
@@ -234,13 +227,11 @@ No existing exceptions file found for this page.
 ### Priority 1: Core Functionality Validation
 
 1. **Verify basic chart creation** (basic-example)
-
     - Test chart renders correctly
     - Validate data binding works
     - Check console for errors
 
 2. **Test combination charts** (combination-charts-example)
-
     - Verify multiple series render
     - Check legend appears automatically
     - Test series interaction
@@ -253,7 +244,6 @@ No existing exceptions file found for this page.
 ### Priority 2: API Contract Verification
 
 1. **Cross-reference TypeScript definitions**
-
     - Check all documented properties exist
     - Verify property types match
     - Confirm optional vs required
@@ -266,17 +256,14 @@ No existing exceptions file found for this page.
 ### Priority 3: Styling and Formatting
 
 1. **Test title/subtitle** (title-example)
-
     - Verify rendering and positioning
     - Check text property usage
 
 2. **Validate legend configuration** (legend-example)
-
     - Test position changes
     - Verify interaction behavior
 
 3. **Check series naming** (format-series-example)
-
     - Confirm yName usage in legend/tooltips
     - Test multiple series naming
 
@@ -287,7 +274,6 @@ No existing exceptions file found for this page.
 ### Priority 4: Comprehensive Testing
 
 1. **Full integration test** (complete-formatted-example)
-
     - All features work together
     - No conflicts between configurations
     - Performance is acceptable
@@ -299,9 +285,9 @@ No existing exceptions file found for this page.
 
 ### Estimated Complexity
 
--   **High complexity**: Multi-series axes configuration, formatter functions
--   **Medium complexity**: Basic chart setup, legend/title configuration
--   **Low complexity**: Simple property settings
+- **High complexity**: Multi-series axes configuration, formatter functions
+- **Medium complexity**: Basic chart setup, legend/title configuration
+- **Low complexity**: Simple property settings
 
 ### Delegation Plan for example-tester Agent
 
@@ -310,7 +296,6 @@ For each example, provide the example-tester agent with:
 1. **Example Path**: `packages/ag-charts-website/src/content/docs/create-a-basic-chart/_examples/[example-name]/`
 
 2. **Specific Validation Requirements**:
-
     - Chart type verification (bar, line, or combination)
     - Data binding correctness
     - Interactive features (tooltips, legend clicks)
@@ -319,7 +304,6 @@ For each example, provide the example-tester agent with:
     - Visual rendering accuracy
 
 3. **Expected Features by Example**:
-
     - basic-example: Single bar series, tooltips
     - combination-charts-example: Two series, auto-legend
     - second-series-example: Three axes, dual Y-scales

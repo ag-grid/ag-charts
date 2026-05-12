@@ -97,10 +97,10 @@ data() {
 
 In this configuration:
 
--   `value` is the value displayed by the gauge.
--   `scale.min` defines the minimum value of the scale.
--   `scale.max` defines the maximum value of the scale.
--   The data is represented by a coloured bar displayed over a grey scale.
+- `value` is the value displayed by the gauge.
+- `scale.min` defines the minimum value of the scale.
+- `scale.max` defines the maximum value of the scale.
+- The data is represented by a coloured bar displayed over a grey scale.
 
 ## Customisation
 
@@ -123,8 +123,8 @@ It is possible to display the data value using a bar, a needle or both. These ar
 
 In the above example, note that:
 
--   When the needle is enabled, the label is not shown.
--   When the bar is disabled, the scale defaults to showing the gradient colour instead of the solid grey.
+- When the needle is enabled, the label is not shown.
+- When the bar is disabled, the scale defaults to showing the gradient colour instead of the solid grey.
 
 For customisation of both the bar and needle, see below or the [API Reference](#api-reference).
 
@@ -154,9 +154,9 @@ Up to two inner labels can be configured with the `label` and `secondaryLabel` p
 
 In this configuration:
 
--   The first label uses a `formatter` to format the value.
--   The second label displays a fixed `text` string. This option is only available for inner labels.
--   The scale labels are hidden using the `scale.label.enabled` option. See the [API Reference](#api-reference) for more details about customising the scale label style and interval.
+- The first label uses a `formatter` to format the value.
+- The second label displays a fixed `text` string. This option is only available for inner labels.
+- The scale labels are hidden using the `scale.label.enabled` option. See the [API Reference](#api-reference) for more details about customising the scale label style and interval.
 
 ### Segmentation
 
@@ -178,11 +178,11 @@ To split the gauge into segments, set `segmentation.enabled` to `true`.
 
 In this configuration:
 
--   `segmentation.interval` specifies how the gauge is segmented. Available options are:
-    -   `step` - segments the gauge at a fixed interval.
-    -   `count` - segments the gauge a fixed number of times.
-    -   `values` - segments the gauge at specific scale values.
--   `spacing` defines the spacing between each segment.
+- `segmentation.interval` specifies how the gauge is segmented. Available options are:
+    - `step` - segments the gauge at a fixed interval.
+    - `count` - segments the gauge a fixed number of times.
+    - `values` - segments the gauge at specific scale values.
+- `spacing` defines the spacing between each segment.
 
 ### Corner Radius
 
@@ -197,8 +197,8 @@ In this configuration:
 
 In this configuration:
 
--   `cornerRadius` specifies the amount of curvature applied to each corner.
--   `cornerMode` can be set to `container` to apply rounded corners only to the start and end of the gauge, or `item` for all visual items within the gauge.
+- `cornerRadius` specifies the amount of curvature applied to each corner.
+- `cornerMode` can be set to `container` to apply rounded corners only to the start and end of the gauge, or `item` for all visual items within the gauge.
 
 ### Start and End Angles
 
@@ -213,7 +213,7 @@ The `startAngle` and `endAngle` properties can be used to customise the start an
 }
 ```
 
--   Angles are calculated clockwise, starting from the top of the gauge.
+- Angles are calculated clockwise, starting from the top of the gauge.
 
 ## Colour Options
 
@@ -251,8 +251,8 @@ Multiple colours can be specified using the `fills` property.
 
 In this configuration:
 
--   `fills` specifies an array of colours to use to fill the bar.
--   `fillMode` can be set to `continuous` for a gradient, or `discrete` to use blocks of solid colours.
+- `fills` specifies an array of colours to use to fill the bar.
+- `fillMode` can be set to `continuous` for a gradient, or `discrete` to use blocks of solid colours.
 
 The default behaviour is to space out the colours evenly. This can be customised by using colour stops.
 
@@ -277,10 +277,10 @@ The default behaviour is to space out the colours evenly. This can be customised
 
 In this configuration:
 
--   Each colour stops at the `stop` value, and the next colour begins at that point.
--   If no `stop` is provided, the fills will be distributed equally.
--   The last colour is used until the end of the scale or bar.
--   Both `discrete` and `continuous` modes can be used with colour stops.
+- Each colour stops at the `stop` value, and the next colour begins at that point.
+- If no `stop` is provided, the fills will be distributed equally.
+- The last colour is used until the end of the scale or bar.
+- Both `discrete` and `continuous` modes can be used with colour stops.
 
 ## Targets
 
@@ -301,8 +301,8 @@ Gauges often display targets or thresholds to provide context to the displayed d
 
 In this configuration:
 
--   `value` is the position for the target marker.
--   `text` is an optional string for the target label.
+- `value` is the position for the target marker.
+- `text` is an optional string for the target label.
 
 ### Customisation
 
@@ -341,10 +341,10 @@ In this configuration:
 
 In this configuration:
 
--   `shape` is a [marker shape](#reference-AgRadialGaugeOptions-targets-shape).
--   `placement` indicates the relative placement to the gauge - either `inside`, `outside`, or `middle`.
--   `size` is the size of the marker, in pixels.
--   `spacing` is spacing from the edge of the gauge to the marker. Ignored when `placement` is `middle`.
+- `shape` is a [marker shape](#reference-AgRadialGaugeOptions-targets-shape).
+- `placement` indicates the relative placement to the gauge - either `inside`, `outside`, or `middle`.
+- `size` is the size of the marker, in pixels.
+- `spacing` is spacing from the edge of the gauge to the marker. Ignored when `placement` is `middle`.
 
 ## API Reference
 

@@ -1,6 +1,8 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
 import { BarSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
+import { random } from './seededRandom';
+
 ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
 
 interface DataItem {
@@ -16,7 +18,7 @@ function createItem(): DataItem {
     return {
         id,
         category: `Item ${nextId++}`,
-        value: Math.round(Math.random() * 100),
+        value: Math.round(random() * 100),
     };
 }
 
@@ -68,7 +70,7 @@ function updateById() {
     const replacement: DataItem = {
         id: existing.id,
         category: existing.category,
-        value: Math.round(Math.random() * 100),
+        value: Math.round(random() * 100),
     };
     data[0] = replacement;
     chart.applyTransaction({ update: [replacement] });

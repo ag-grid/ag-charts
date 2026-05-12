@@ -2,6 +2,7 @@ import type {
     ContextCallbackParams,
     DatumCallbackParams,
     HighlightState,
+    SelectionState,
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
@@ -71,7 +72,8 @@ export type AgBoxPlotSeriesItemStylerParams<TDatum = DatumDefault, TContext = Co
     Required<AgBoxPlotSeriesStyle>;
 
 export interface AgBoxPlotSeriesStylerParams<TDatum, TContext>
-    extends SeriesCallbackParams<HighlightState>,
+    extends
+        SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         BoxPlotOptionsKeys<TDatum>,
         BoxPlotOptionsNamesNoKey,
@@ -84,7 +86,8 @@ export interface AgBoxPlotSeriesStylerParams<TDatum, TContext>
 }
 
 export interface AgBoxPlotSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
-    extends BoxPlotOptionsKeys<TDatum>,
+    extends
+        BoxPlotOptionsKeys<TDatum>,
         BoxPlotOptionsNames,
         BoxPlotOptionsNamesNoKey,
         AgSeriesTooltipRendererParams<TDatum, TContext>,
@@ -100,8 +103,7 @@ export interface AgBoxPlotSeriesStyle extends FillOptions, StrokeOptions, LineDa
 }
 
 export interface AgBoxPlotSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseCartesianThemeableOptions<TDatum, TContext>,
-        AgBoxPlotSeriesStyle {
+    extends AgBaseCartesianThemeableOptions<TDatum, TContext>, AgBoxPlotSeriesStyle {
     /**
      * Bar rendering direction.
      *
@@ -129,7 +131,8 @@ export interface AgBoxPlotHighlightStyleOptions extends AgBoxPlotSeriesStyle {
 }
 
 export interface AgBoxPlotSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBoxPlotSeriesThemeableOptions<TDatum, TContext>,
+    extends
+        AgBoxPlotSeriesThemeableOptions<TDatum, TContext>,
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgBaseCartesianSeriesAxisOptions,
         BoxPlotOptionsKeys<TDatum>,

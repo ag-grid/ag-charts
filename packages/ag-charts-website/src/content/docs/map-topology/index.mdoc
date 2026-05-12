@@ -77,10 +77,10 @@ When using a Map Series which requires topology, both the `topology` and the `da
 }
 ```
 
--   Each item in the data must contain a field that refers to the associated geometry for that data item. In the above example this is the `country` field.
--   The series definition must contain an `idKey` which refers to this field.
--   The series definition can contain an optional `topologyIdKey` to match to the relevant field in the GeoJSON `properties`. If not provided, this will default to `name`.
--   In this example, the first data item which has the value of `United Kingdom` will match to the topology feature with the matching `properties.name` value.
+- Each item in the data must contain a field that refers to the associated geometry for that data item. In the above example this is the `country` field.
+- The series definition must contain an `idKey` which refers to this field.
+- The series definition can contain an optional `topologyIdKey` to match to the relevant field in the GeoJSON `properties`. If not provided, this will default to `name`.
+- In this example, the first data item which has the value of `United Kingdom` will match to the topology feature with the matching `properties.name` value.
 
 {% note %}
 Data items should always have a matching topology feature, and will log a warning to the console if they don't.
@@ -93,9 +93,9 @@ The [Map Shape Background](./map-shapes/#background-shapes) and [Map Line Backgr
 
 ## Useful Resources
 
--   [Map Shaper](https://mapshaper.org) - can simplify maps to reduce their filesize, convert other formats to GeoJSON, and has a command line to manipulate geographic data.
--   [GeoJSON.io](https://geojson.io/) - draw shapes on a map and export GeoJSON.
--   [GeoJSON Lint](https://geojsonlint.com) - validates GeoJSON.
+- [Map Shaper](https://mapshaper.org) - can simplify maps to reduce their filesize, convert other formats to GeoJSON, and has a command line to manipulate geographic data.
+- [GeoJSON.io](https://geojson.io/) - draw shapes on a map and export GeoJSON.
+- [GeoJSON Lint](https://geojsonlint.com) - validates GeoJSON.
 
 {% warning %}
 The links above are examples only.

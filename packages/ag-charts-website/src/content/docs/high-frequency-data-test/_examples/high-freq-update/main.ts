@@ -2,6 +2,12 @@ import { type AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-ente
 
 (window as any).agChartsDebug = ['scene:stats'];
 
+let _seed = 42;
+function random() {
+    _seed = (_seed * 16807) % 2147483647;
+    return (_seed - 1) / 2147483646;
+}
+
 const STREAM_INTERVAL_MS = 50;
 const NUM_STOCKS = 10;
 
@@ -88,7 +94,7 @@ function createStockData(): StockDatum[] {
         symbol,
         price: basePrices[i],
         change: 0,
-        volume: 1000000 + Math.random() * 500000,
+        volume: 1000000 + random() * 500000,
     }));
 }
 
@@ -179,10 +185,10 @@ const updateCallback = async () => {
     updateCount++;
 
     // Randomly select 2-5 stocks to update
-    const numToUpdate = 2 + Math.floor(Math.random() * 4);
+    const numToUpdate = 2 + Math.floor(random() * 4);
     const indicesToUpdate = new Set<number>();
     while (indicesToUpdate.size < numToUpdate) {
-        indicesToUpdate.add(Math.floor(Math.random() * data.length));
+        indicesToUpdate.add(Math.floor(random() * data.length));
     }
 
     const itemsToUpdate: StockDatum[] = [];
@@ -190,11 +196,11 @@ const updateCallback = async () => {
         const item = data[idx];
 
         // Mutate the item in place (simulate price change)
-        const priceChange = (Math.random() - 0.5) * 5;
+        const priceChange = (random() - 0.5) * 5;
         const previousPrice = item.price;
         item.price = Number((item.price + priceChange).toFixed(2));
         item.change = Number((((item.price - previousPrice) / previousPrice) * 100).toFixed(2));
-        item.volume = Math.floor(1000000 + Math.random() * 500000);
+        item.volume = Math.floor(1000000 + random() * 500000);
 
         itemsToUpdate.push(item);
     }
@@ -210,11 +216,11 @@ const updateCallback = async () => {
             // Update all items
             const allItems: StockDatum[] = [];
             for (const item of data) {
-                const priceChange = (Math.random() - 0.5) * 5;
+                const priceChange = (random() - 0.5) * 5;
                 const previousPrice = item.price;
                 item.price = Number((item.price + priceChange).toFixed(2));
                 item.change = Number((((item.price - previousPrice) / previousPrice) * 100).toFixed(2));
-                item.volume = Math.floor(1000000 + Math.random() * 500000);
+                item.volume = Math.floor(1000000 + random() * 500000);
                 allItems.push(item);
             }
             chart.applyTransaction({ update: allItems });

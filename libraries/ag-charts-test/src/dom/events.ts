@@ -44,12 +44,13 @@ function makeMouseEvent<T extends TMouseEvent>(
     clientY: number,
     bubbles = true
 ): MouseEvent {
-    const { offsetX, offsetY } = testTarget;
-    const event = new MouseEvent(type, { bubbles, clientX, clientY });
-    Object.defineProperty(event, 'offsetX', { value: offsetX, configurable: true });
-    Object.defineProperty(event, 'offsetY', { value: offsetY, configurable: true });
-    Object.defineProperty(event, 'pageX', { value: clientX, configurable: true });
-    Object.defineProperty(event, 'pageY', { value: clientY, configurable: true });
+    const { offsetX, offsetY, target } = testTarget;
+    const view = target.ownerDocument.defaultView!;
+    const event = new MouseEvent(type, { bubbles, clientX, clientY, view });
+    Object.defineProperty(event, 'offsetX', { value: offsetX, enumerable: true, configurable: true });
+    Object.defineProperty(event, 'offsetY', { value: offsetY, enumerable: true, configurable: true });
+    Object.defineProperty(event, 'pageX', { value: clientX, enumerable: true, configurable: true });
+    Object.defineProperty(event, 'pageY', { value: clientY, enumerable: true, configurable: true });
     return event;
 }
 
@@ -134,10 +135,10 @@ export function wheelEvent(
         deltaY,
         deltaMode,
     });
-    Object.defineProperty(event, 'offsetX', { value: offsetX, configurable: true });
-    Object.defineProperty(event, 'offsetY', { value: offsetY, configurable: true });
-    Object.defineProperty(event, 'pageX', { value: clientX, configurable: true });
-    Object.defineProperty(event, 'pageY', { value: clientY, configurable: true });
+    Object.defineProperty(event, 'offsetX', { value: offsetX, enumerable: true, configurable: true });
+    Object.defineProperty(event, 'offsetY', { value: offsetY, enumerable: true, configurable: true });
+    Object.defineProperty(event, 'pageX', { value: clientX, enumerable: true, configurable: true });
+    Object.defineProperty(event, 'pageY', { value: clientY, enumerable: true, configurable: true });
     return event;
 }
 

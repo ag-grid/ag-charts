@@ -15,6 +15,7 @@ import {
     clickAction,
     deproxy,
     expectWarningMessages,
+    expectWarningsCalls,
     extractImageData,
     hoverAction,
     resetMockConsole,
@@ -119,6 +120,35 @@ describe('MapLineSeries', () => {
     });
 
     describe('Missing color values', () => {
+        it('AG-17195 should not warn when colorKey resolves to null/undefined/missing', async () => {
+            const data = ukRoadData.map((datum, idx) => {
+                if (idx === 0) return { ...datum, dailyVehicles: null };
+                if (idx === 1) return { ...datum, dailyVehicles: undefined };
+                if (idx === 2) return { name: datum.name };
+                return datum;
+            });
+            const options: AgChartOptions = {
+                data,
+                topology: ukRoadTopology,
+                series: [
+                    {
+                        type: 'map-line',
+                        idKey: 'name',
+                        colorKey: 'dailyVehicles',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+        });
+
         it('renders lines without color values with default styling and keeps tooltips', async () => {
             const missingRoads = new Set(['M3', 'M5']);
             const data = ukRoadData.map((datum) => (missingRoads.has(datum.name) ? { name: datum.name } : datum));

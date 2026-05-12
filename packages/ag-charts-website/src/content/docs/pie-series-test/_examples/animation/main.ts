@@ -1,5 +1,7 @@
 import { AgCharts, AgPolarChartOptions, ContextMenuModule } from 'ag-charts-enterprise';
 
+import { random } from './randomHelpers';
+
 const data = [
     { label: 'Android', value: 56.9 },
     { label: 'iOS', value: 22.5 },
@@ -45,7 +47,7 @@ function reset() {
 }
 
 function randomIndex(array: unknown[]) {
-    const index = Math.floor(Math.random() * array.length);
+    const index = Math.floor(random() * array.length);
     return index;
 }
 
@@ -54,7 +56,7 @@ function randomise() {
         ...(options.data ?? []).map((d: any) => ({
             ...d,
             originalValue: d.originalValue ?? d.value,
-            value: (d.originalValue ?? d.value) * (Math.random() * 5 + 0.5),
+            value: (d.originalValue ?? d.value) * (random() * 5 + 0.5),
         })),
     ];
     chart.update(options);
@@ -66,7 +68,7 @@ function addData(position: 'start' | 'mid' | 'end' | number = 'end', inData: any
     );
     if (!nextLabel) return inData;
 
-    const newDatum = { label: nextLabel, value: Math.random() * 5 + 0.5 };
+    const newDatum = { label: nextLabel, value: random() * 5 + 0.5 };
     const newData = [...(inData ?? [])];
     let newPosition = 0;
     if (typeof position === 'number') newPosition = position;
@@ -108,7 +110,7 @@ function change() {
 
 function shuffle() {
     const newData = [...(options.data ?? [])];
-    newData.sort(() => Math.random() - 0.5);
+    newData.sort(() => random() - 0.5);
 
     options.data = newData;
     chart.update(options);

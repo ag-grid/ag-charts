@@ -5,44 +5,42 @@ import {
     CategoryAxisModule,
     GradientLegendModule,
     HeatmapSeriesModule,
+    LegendModule,
     ModuleRegistry,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([CategoryAxisModule, GradientLegendModule, HeatmapSeriesModule]);
-
-let useGradientLegend = true;
+ModuleRegistry.registerModules([CategoryAxisModule, GradientLegendModule, HeatmapSeriesModule, LegendModule]);
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'UK Monthly Mean Temperature',
+        text: 'Service Quality Ratings',
+    },
+    subtitle: {
+        text: 'NPS Score (0–10)',
     },
     series: [
         {
             type: 'heatmap',
-            xKey: 'month',
-            xName: 'Month',
-            yKey: 'year',
-            yName: 'Year',
-            colorKey: 'temperature',
-            colorName: 'Temperature',
+            xKey: 'segment',
+            xName: 'Segment',
+            yKey: 'service',
+            yName: 'Service',
+            colorKey: 'score',
+            colorName: 'Score',
             colorScale: {
-                fills: [
-                    { color: 'steelblue', name: 'Cold', stop: 5 },
-                    { color: 'lightblue', name: 'Cool', stop: 10 },
-                    { color: 'lightyellow', name: 'Mild', stop: 15 },
-                    { color: 'coral', name: 'Warm' },
-                ],
+                domain: [0, 10],
+                fills: [{ color: 'tomato', stop: 7 }, { color: 'gold', stop: 9 }, { color: 'seagreen' }],
             },
         },
     ],
     gradientLegend: {
         enabled: true,
         gradient: {
-            preferredLength: 300,
+            preferredLength: 200,
         },
     },
     legend: {
@@ -58,9 +56,12 @@ function setMode(mode: 'continuous' | 'discrete') {
     chart.update(options);
 }
 
-function toggleLegendType() {
-    useGradientLegend = !useGradientLegend;
-    options.gradientLegend = { ...options.gradientLegend, enabled: useGradientLegend };
-    options.legend = { ...options.legend, enabled: !useGradientLegend };
+function setGradientLegend(enabled: boolean) {
+    options.gradientLegend = { ...options.gradientLegend, enabled };
+    chart.update(options);
+}
+
+function setCategoryLegend(enabled: boolean) {
+    options.legend = { ...options.legend, enabled };
     chart.update(options);
 }

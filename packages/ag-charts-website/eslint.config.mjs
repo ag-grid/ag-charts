@@ -14,6 +14,7 @@ export default [
         ignores: [
             '.astro/',
             '**/_examples/',
+            '**/_shared/',
             'scripts/',
             '**/.angular',
             '**/benchmarkHarness.ts',

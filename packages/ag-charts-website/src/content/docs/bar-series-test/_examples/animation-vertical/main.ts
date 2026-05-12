@@ -1,6 +1,7 @@
 import { AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
+import { random } from './randomHelpers';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -71,7 +72,7 @@ function randomise() {
     options.data = [
         ...getData().map((d: any) => ({
             ...d,
-            iphone: d.iphone + Math.floor(Math.random() * 50 - 25),
+            iphone: d.iphone + Math.floor(random() * 50 - 25),
         })),
     ];
     chart.update(options as any);

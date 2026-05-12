@@ -1265,7 +1265,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             [OPERATION_VALUE_EDGE]: 'OPV',
             [OVERRIDES_EDGE]: 'OV',
         };
-        let className = edge ? classNames[edge] ?? undefined : undefined;
+        let className = edge ? (classNames[edge] ?? undefined) : undefined;
         className = className ? `:::${className}` : '';
 
         if (typeof vertex.value === 'symbol') {

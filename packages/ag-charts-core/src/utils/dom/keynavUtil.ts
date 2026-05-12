@@ -63,7 +63,7 @@ export function addOverrideFocusVisibleEventListener(
     return attachListener(menu, 'keydown', () => setFocusVisible(true), { once: true });
 }
 
-export function hasNoModifiers(event: KeyboardEvent | MouseEvent): boolean {
+export function hasNoModifiers(event: KeyboardEvent | MouseEvent | TouchEvent): boolean {
     return !(event.shiftKey || event.altKey || event.ctrlKey || event.metaKey);
 }
 

@@ -35,6 +35,7 @@ const options: AgCartesianChartOptions = {
             xKey: 'quarter',
             yKey: 'revenue',
             yName: 'Revenue',
+            highlight: { enabled: false },
             selection: { enabled: true },
         },
         {
@@ -42,6 +43,7 @@ const options: AgCartesianChartOptions = {
             xKey: 'quarter',
             yKey: 'forecast',
             yName: 'Forecast',
+            highlight: { enabled: false },
             selection: { enabled: false },
         },
     ],

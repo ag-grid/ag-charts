@@ -18,34 +18,34 @@ It delivers [outstanding performance](https://www.ag-grid.com/charts/?utm_source
 
 Here are some of the features that make AG Charts stand out:
 
--   Modern, lightweight and performant
--   Thin, easy-to-use wrappers for all popular frameworks: React, Angular, Vue
--   Framework agnostic, easy to use from plain JavaScript or TypeScript
--   Zero dependencies
--   Support for many chart types:
-    -   Line
-    -   Bar
-    -   Area
-    -   Scatter
-    -   Bubble
-    -   Pie
-    -   Donut
-    -   Histogram
-    -   Box Plot \*
-    -   Heatmap \*
-    -   Nightingale \*
-    -   Range
-        -   Bar \*
-        -   Area \*
-    -   Radar
-        -   Area \*
-        -   Line \*
-        -   Bar \*
-        -   Column \*
-    -   Guage \*
--   Reactive - property changes are automatically batched to take effect on next frame
--   Simple, clean API
--   Interactive documentation
+- Modern, lightweight and performant
+- Thin, easy-to-use wrappers for all popular frameworks: React, Angular, Vue
+- Framework agnostic, easy to use from plain JavaScript or TypeScript
+- Zero dependencies
+- Support for many chart types:
+    - Line
+    - Bar
+    - Area
+    - Scatter
+    - Bubble
+    - Pie
+    - Donut
+    - Histogram
+    - Box Plot \*
+    - Heatmap \*
+    - Nightingale \*
+    - Range
+        - Bar \*
+        - Area \*
+    - Radar
+        - Area \*
+        - Line \*
+        - Bar \*
+        - Column \*
+    - Guage \*
+- Reactive - property changes are automatically batched to take effect on next frame
+- Simple, clean API
+- Interactive documentation
 
 \* The features marked with an asterisk are available in the [Enterprise version](https://www.ag-grid.com/charts/license-pricing/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) only.
 

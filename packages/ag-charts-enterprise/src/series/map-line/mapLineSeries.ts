@@ -50,8 +50,10 @@ const {
     Transformable,
 } = _ModuleSupport;
 
-interface MapLineNodeDataContext
-    extends _ModuleSupport.DataModelSeriesNodeDataContext<MapLineNodeDatum, MapLineNodeLabelDatum> {}
+interface MapLineNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
+    MapLineNodeDatum,
+    MapLineNodeLabelDatum
+> {}
 
 interface LineDataValues {
     readonly idValue: string;
@@ -192,7 +194,9 @@ export class MapLineSeries
                 }),
                 ...(labelKey == null ? [] : [valueProperty(labelKey, 'category', { id: 'labelValue' })]),
                 ...(sizeKey == null ? [] : [valueProperty(sizeKey, sizeScaleType, { id: 'sizeValue' })]),
-                ...(colorKey == null ? [] : [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })]),
+                ...(colorKey == null
+                    ? []
+                    : [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: undefined })]),
             ],
         });
 
@@ -477,7 +481,7 @@ export class MapLineSeries
         if (colorValue != null) {
             baseStyle.stroke = this.isColorScaleValid()
                 ? colorScale.convert(colorValue)
-                : colorRange?.[0] ?? properties.stroke;
+                : (colorRange?.[0] ?? properties.stroke);
         } else if (colorKey != null && missingDataFill != null) {
             baseStyle.stroke = missingDataFill;
         }

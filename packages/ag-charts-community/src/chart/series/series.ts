@@ -30,7 +30,6 @@ import {
     isGradientFill,
     isPatternFill,
     jsonDiff,
-    mergeDefaults,
     nearestSquared,
     without,
 } from 'ag-charts-core';
@@ -63,6 +62,7 @@ import { ModuleMap } from '../../module/moduleMap';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import { type Node, PointerEvents } from '../../scene/node';
+import type { Selection } from '../../scene/selection';
 import type { Path } from '../../scene/shape/path';
 import { Transformable } from '../../scene/transformable';
 import type { TypedEvent, TypedEventListener } from '../../util/observable';
@@ -76,21 +76,23 @@ import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import { getItemId } from './pickManager';
+import { mergeMarkerStyles, mergeMarkerStylesPair } from './seriesMarker';
 import type { SeriesMarker } from './seriesMarker';
-import { HighlightState, SelectionState, isSelected, toHighlightString, toSelectionString } from './seriesProperties';
+import { isUnselected, toHighlightString, toSelectionString } from './seriesProperties';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
-import type {
-    DatumIndexSetReader,
-    DatumIndexType,
-    DatumRangeReader,
-    INodeEvent,
-    ISeries,
-    ISeriesProperties,
-    NodeDataDependencies,
-    SeriesNodeDatum,
-    SeriesNodeEventTypes,
+import {
+    type BucketLookupFeature,
+    type DatumIndexType,
+    HighlightState,
+    type INodeEvent,
+    type ISeries,
+    type ISeriesProperties,
+    type NodeDataDependencies,
+    SelectionState,
+    type SeriesNodeDatum,
+    type SeriesNodeEventTypes,
 } from './seriesTypes';
 import { type ShapeFillBBox } from './shapeUtil';
 import { hasDimmedOpacity, resolveMarkerDrawingMode } from './util';
@@ -152,7 +154,13 @@ export type INodeEventConstructor<
     TDatum extends SeriesNodeDatum<DatumIndexType>,
     TSeries extends Series<any, TDatum, object, any>,
     TEvent extends string = SeriesNodeEventTypes,
-> = new <T extends TEvent>(type: T, event: Event, { datum }: TDatum, series: TSeries) => INodeEvent<T>;
+> = new <T extends TEvent>(
+    type: T,
+    event: Event,
+    { datum }: TDatum,
+    series: TSeries,
+    selectionState: PublicSelectionState | undefined
+) => INodeEvent<T>;
 
 const CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR = 0.25;
 const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
@@ -160,24 +168,26 @@ const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
 export class SeriesNodeEvent<
     TDatum extends SeriesNodeDatum<DatumIndexType>,
     TEvent extends string = SeriesNodeEventTypes,
-> implements INodeEvent<TEvent>
-{
+> implements INodeEvent<TEvent> {
     readonly datum: unknown;
     readonly seriesId: string;
     readonly itemId: string | number;
     readonly dataIdKey: string | undefined;
+    readonly selectionState: PublicSelectionState | undefined;
     defaultPrevented = false;
 
     constructor(
         readonly type: TEvent,
         readonly event: Event,
         nodeDatum: TDatum,
-        series: ISeries<DatumIndexType, TDatum, ISeriesProperties, unknown>
+        series: ISeries<DatumIndexType, TDatum, ISeriesProperties, unknown>,
+        selectionState: PublicSelectionState | undefined
     ) {
         this.datum = nodeDatum.datum;
         this.seriesId = series.id;
         this.dataIdKey = series.data?.dataIdKey;
         this.itemId = getItemId(nodeDatum, this.dataIdKey);
+        this.selectionState = selectionState;
     }
 
     public preventDefault() {
@@ -256,17 +266,17 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
 export type UnknownSeries = Series<DatumIndexType, SeriesNodeDatum<DatumIndexType>, object, SeriesProperties<object>>;
 
 export abstract class Series<
-        TDatumIndex extends DatumIndexType,
-        TDatum extends SeriesNodeDatum<TDatumIndex>,
-        TOpts extends object,
-        TProps extends SeriesProperties<TOpts>,
-        TLabel = TDatum,
-        TContext extends SeriesNodeDataContext<TDatumIndex, TDatum, TLabel> = SeriesNodeDataContext<
-            TDatumIndex,
-            TDatum,
-            TLabel
-        >,
-    >
+    TDatumIndex extends DatumIndexType,
+    TDatum extends SeriesNodeDatum<TDatumIndex>,
+    TOpts extends object,
+    TProps extends SeriesProperties<TOpts>,
+    TLabel = TDatum,
+    TContext extends SeriesNodeDataContext<TDatumIndex, TDatum, TLabel> = SeriesNodeDataContext<
+        TDatumIndex,
+        TDatum,
+        TLabel
+    >,
+>
     extends Observable
     implements ISeries<TDatumIndex, TDatum, TProps, TLabel>
 {
@@ -478,6 +488,7 @@ export abstract class Series<
             this.ctx.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event)),
             this.events.on('data-selection-change', () => {
                 this.hasChangesOnSelection = true;
+                this.bucketLookup?.refresh();
             })
         );
     }
@@ -536,7 +547,7 @@ export abstract class Series<
         if (isHighlight) {
             return highlightDrawingMode;
         }
-        return this.hasHighlightOpacity() ? this.ctx.chartService.highlight?.drawingMode ?? 'overlay' : 'overlay';
+        return this.hasHighlightOpacity() ? (this.ctx.chartService.highlight?.drawingMode ?? 'overlay') : 'overlay';
     }
 
     protected getAnimationDrawingModes() {
@@ -790,6 +801,43 @@ export abstract class Series<
         return undefined;
     }
 
+    /**
+     * Per-series aggregation-aware bucket lookup. Optional — populated
+     * lazily for aggregating series only. Owns both the per-bucket SELECTED
+     * roll-up and the bucket→datum-range mapping used by the data-selection
+     * drag handler. `DataModelSeries.getDataSelectionState` consults this
+     * for marker styling; `data-selection-change` and aggregation rebuilds
+     * keep the roll-up in sync.
+     */
+    protected bucketLookup?: BucketLookupFeature;
+
+    /**
+     * Construct the series-specific {@link BucketLookupFeature}. Default
+     * `undefined` for non-aggregating series. Aggregating series override to
+     * return either {@link BucketLookupManager} (single `indexData`) or
+     * {@link SplitBucketLookupManager} (split positive/negative).
+     */
+    protected createBucketLookupFeature(): BucketLookupFeature | undefined {
+        return undefined;
+    }
+
+    /**
+     * Lazy-init `bucketLookup` on first access. The just-created feature is
+     * refreshed once so it reflects the current selection bitset and
+     * aggregation filters — without this any `filtersChanged` events emitted
+     * before the lazy-init would have been missed.
+     */
+    public ensureBucketLookupFeature(): BucketLookupFeature | undefined {
+        if (this.bucketLookup === undefined) {
+            const feature = this.createBucketLookupFeature();
+            if (feature) {
+                this.bucketLookup = feature;
+                feature.refresh();
+            }
+        }
+        return this.bucketLookup;
+    }
+
     public getHighlightStateString(
         datum: HighlightNodeDatum | undefined,
         isHighlight?: boolean,
@@ -836,6 +884,7 @@ export abstract class Series<
     }
 
     public bringToFront() {
+        if (this.hasDataSelection()) return true;
         return (
             this.properties.highlight.enabled &&
             this.properties.highlight.bringToFront &&
@@ -857,14 +906,25 @@ export abstract class Series<
         return highlightedDatum.datumIndex === datumIndex;
     }
 
+    private getDataSelectionCount(): number {
+        return this.data?.selections?.get(this.id)?.getSelectedCount() ?? 0;
+    }
+
+    private hasDataSelection(): boolean {
+        return this.getDataSelectionCount() > 0;
+    }
+
     public getHighlightStyle(
         isHighlight?: boolean,
         datumIndex?: TDatumIndex,
         highlightState?: HighlightState,
         legendItemValues?: string[]
     ) {
-        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        highlightState ??= this.getHighlightState(highlightedDatum, isHighlight, datumIndex, legendItemValues);
+        // Caller-provided highlightState skips the highlightManager + getHighlightState resolution.
+        if (highlightState === undefined) {
+            const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+            highlightState = this.getHighlightState(highlightedDatum, isHighlight, datumIndex, legendItemValues);
+        }
         return this.properties.highlight.getStyle(highlightState);
     }
 
@@ -1041,16 +1101,6 @@ export abstract class Series<
         });
     }
 
-    public getAggregateRangeReader(): DatumRangeReader | undefined {
-        // Override point for subclasses with aggregation
-        return undefined;
-    }
-
-    public getAggregateIndexSetReader(): DatumIndexSetReader | undefined {
-        // Override point for subclasses with non-contiguous index-set aggregation
-        return undefined;
-    }
-
     isPointInArea?(x: number, y: number): boolean;
 
     public getLabelData(): (TLabel & PointLabelDatum)[] {
@@ -1067,19 +1117,22 @@ export abstract class Series<
     }
 
     fireNodeClickEvent(event: Event, datum: TDatum): boolean {
-        const clickEvent = new this.NodeEvent('seriesNodeClick', event, datum, this);
+        const selectionState = this.getSelectionStateString(datum.datumIndex);
+        const clickEvent = new this.NodeEvent('seriesNodeClick', event, datum, this, selectionState);
         this.fireEvent(clickEvent);
         return !clickEvent.defaultPrevented;
     }
 
     fireNodeDoubleClickEvent(event: Event, datum: TDatum): boolean {
-        const clickEvent = new this.NodeEvent('seriesNodeDoubleClick', event, datum, this);
+        const selectionState = this.getSelectionStateString(datum.datumIndex);
+        const clickEvent = new this.NodeEvent('seriesNodeDoubleClick', event, datum, this, selectionState);
         this.fireEvent(clickEvent);
         return !clickEvent.defaultPrevented;
     }
 
     createNodeContextMenuActionEvent(event: Event, datum: TDatum): INodeEvent<'nodeContextMenuAction'> {
-        return new this.NodeEvent('nodeContextMenuAction', event, datum, this);
+        const selectionState = this.getSelectionStateString(datum.datumIndex);
+        return new this.NodeEvent('nodeContextMenuAction', event, datum, this, selectionState);
     }
 
     onLegendInitialState(legendType: ChartLegendType, initialState: AgInitialStateLegendOptions | undefined) {
@@ -1283,6 +1336,8 @@ export abstract class Series<
         params?: TParams,
         opts?: {
             highlightState?: HighlightState;
+            /** Pre-resolved by per-datum hot paths to skip the getDataSelectionState() lookup. */
+            selectionState?: SelectionState;
             isHighlight?: boolean;
             checkForHighlight?: boolean;
             resolveMarkerSubPath?: string[];
@@ -1301,16 +1356,24 @@ export abstract class Series<
             resolveStyler = false,
             hideWithSize0 = false,
         } = opts ?? {};
-        const selectionState: SelectionState | undefined = this.getDataSelectionState(datumIndex);
-        const resolvePath = ['series', `${this.declarationOrder}`, ...resolveMarkerSubPath];
+        const selectionState: SelectionState | undefined =
+            opts?.selectionState ?? this.getDataSelectionState(datumIndex);
 
-        if (hideWithSize0 && isSelected(selectionState)) {
+        if (hideWithSize0 && isUnselected(selectionState)) {
             return { size: 0 } satisfies AgSeriesMarkerStyle;
         }
 
+        // Lazy resolvePath — only the resolveStyler/itemStyler branches consume it.
+        let resolvePath: string[] | undefined;
+        const getResolvePath = () => (resolvePath ??= ['series', `${this.declarationOrder}`, ...resolveMarkerSubPath]);
+
         if (resolveStyler) {
             const resolveOpt = { permissivePath: true };
-            const resolved = this.ctx.optionsGraphService.resolvePartial(resolvePath, defaultOverrideStyle, resolveOpt);
+            const resolved = this.ctx.optionsGraphService.resolvePartial(
+                getResolvePath(),
+                defaultOverrideStyle,
+                resolveOpt
+            );
             if (resolved) {
                 defaultOverrideStyle = { ...resolved, size: resolved.size ?? defaultOverrideStyle.size };
             }
@@ -1319,10 +1382,11 @@ export abstract class Series<
         const highlightStyle: AgSeriesMarkerStyle | undefined = checkForHighlight
             ? this.getHighlightStyle(isHighlight, datumIndex, highlightState)
             : undefined;
-        const selectionStyle: AgSeriesMarkerStyle | undefined = this.properties.selection.enabled
-            ? this.getSelectionStyle(datumIndex, selectionState)
-            : undefined;
-        const baseStyle = mergeDefaults(
+        const selectionStyle: AgSeriesMarkerStyle | undefined =
+            checkForHighlight && this.properties.selection.enabled
+                ? this.getSelectionStyle(datumIndex, selectionState)
+                : undefined;
+        let markerStyle = mergeMarkerStyles(
             selectionStyle,
             highlightStyle,
             defaultOverrideStyle,
@@ -1330,12 +1394,16 @@ export abstract class Series<
             inheritedStyle
         );
 
-        let markerStyle = baseStyle;
-
         if (itemStyler && params) {
-            const highlight = this.ctx.highlightManager?.getActiveHighlight();
-            const highlightStateString = this.getHighlightStateString(highlight, isHighlight, datumIndex);
-            const selectionStateString = this.getSelectionStateString(datumIndex, selectionState);
+            const highlightStateString =
+                highlightState === undefined
+                    ? this.getHighlightStateString(
+                          this.ctx.highlightManager?.getActiveHighlight(),
+                          isHighlight,
+                          datumIndex
+                      )
+                    : toHighlightString(highlightState);
+            const selectionStateString = selectionState === undefined ? undefined : toSelectionString(selectionState);
             const fill = this.filterItemStylerFillParams(markerStyle.fill);
 
             const style = this.cachedCallWithContext(itemStyler, {
@@ -1347,9 +1415,9 @@ export abstract class Series<
                 selectionState: selectionStateString,
                 datum,
             });
-            const resolved = this.ctx.optionsGraphService.resolvePartial(resolvePath, style);
+            const resolved = this.ctx.optionsGraphService.resolvePartial(getResolvePath(), style);
 
-            markerStyle = mergeDefaults(resolved, markerStyle);
+            markerStyle = mergeMarkerStylesPair(resolved, markerStyle);
         }
 
         return markerStyle;
@@ -1366,20 +1434,7 @@ export abstract class Series<
         const visible = this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y);
 
         markerNode.setStyleProperties(style, fillBBox);
-
-        if (applyTranslation) {
-            markerNode.setProperties({
-                visible,
-                shape,
-                size,
-                x: point?.x,
-                y: point?.y,
-                scalingCenterX: point?.x,
-                scalingCenterY: point?.y,
-            });
-        } else {
-            markerNode.setProperties({ visible, shape, size });
-        }
+        markerNode.setVisibilityAndPosition(!!visible, shape!, size, applyTranslation ? point : undefined);
 
         if (!selected) {
             markerNode.fillOpacity *= CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR;
@@ -1402,6 +1457,72 @@ export abstract class Series<
                 point.focusSize = Math.max(bb.width + dx, bb.height + dy);
             }
         }
+    }
+
+    /**
+     * Per-datum marker-style pass with a state-keyed cache, shared across all marker-rendering series.
+     * Callbacks take `series` and `ctx` explicitly so callers can pass static methods (stable function
+     * identity) and keep V8's inline cache monomorphic across series sharing this helper.
+     *
+     * @param ctx - opaque per-pass context forwarded to both callbacks
+     * @param keyExtra - optional extra cache-key dimension (e.g. range-area's `datum.itemType`)
+     * @param cacheable - disable caching when the cached value is mutated per datum (e.g. bubble + colorScale)
+     * @param computeCacheValue - called once per distinct (highlight, selection[, keyExtra]) tuple
+     * @param perDatum - called per non-garbage datum with the cached value
+     */
+    protected runMarkerStylePass<TCtx, TPassDatum extends SeriesNodeDatum<TDatumIndex>, TCache, TSeries = this>(
+        datumSelection: Selection<TPassDatum, Marker<TPassDatum>>,
+        isHighlight: boolean,
+        ctx: TCtx,
+        keyExtra: ((datum: TPassDatum) => string) | undefined,
+        cacheable: boolean,
+        computeCacheValue: (
+            series: TSeries,
+            ctx: TCtx,
+            highlightState: HighlightState,
+            selectionState: SelectionState | undefined,
+            datum: TPassDatum
+        ) => TCache,
+        perDatum: (
+            series: TSeries,
+            ctx: TCtx,
+            datum: TPassDatum,
+            highlightState: HighlightState,
+            selectionState: SelectionState | undefined,
+            cached: TCache
+        ) => void
+    ): void {
+        const cache = cacheable ? new Map<string, TCache>() : null;
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+        // TSeries lets generic subclasses (e.g. RadarSeries<...>) declare callbacks against a closed instance type.
+        const self = this;
+        const seriesArg = self as unknown as TSeries;
+        datumSelection.each(function runMarkerStylePass(node, datum) {
+            if (datumSelection.isGarbage(node)) return;
+            const highlightState = self.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const selectionState = self.getDataSelectionState(datum.datumIndex);
+            const extra = keyExtra === undefined ? '' : `:${keyExtra(datum)}`;
+            const stateKey = `${highlightState}:${selectionState ?? '-'}${extra}`;
+            let cached = cache?.get(stateKey);
+            if (cached === undefined) {
+                cached = computeCacheValue(seriesArg, ctx, highlightState, selectionState, datum);
+                cache?.set(stateKey, cached);
+            }
+            perDatum(seriesArg, ctx, datum, highlightState, selectionState, cached);
+        });
+    }
+
+    /** Default `perDatum` for the no-itemStyler path — writes the cached style straight onto the datum. */
+    protected static assignCachedStyle(
+        this: void,
+        _series: unknown,
+        _ctx: unknown,
+        datum: { style?: unknown },
+        _highlightState: HighlightState,
+        _selectionState: SelectionState | undefined,
+        cached: unknown
+    ): void {
+        datum.style = cached;
     }
 
     protected _nodeDataDependencies?: NodeDataDependencies;
@@ -1431,6 +1552,12 @@ export abstract class Series<
 
     public pickViewportFocus(_opts: PickViewportFocusInputs): PickFocusOutputs | undefined {
         return undefined;
+    }
+
+    // Override in y-up series (network/org) to mirror y so `calcPanToBBoxRatios` (y-down) pans
+    // the right direction. Default identity.
+    public mapFocusBBoxToPanTarget(_seriesRect: BoxBounds, focusBBox: Readonly<BBox>): BoxBounds {
+        return focusBBox;
     }
 
     public resetDatumCallbackCache() {

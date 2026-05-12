@@ -34,7 +34,7 @@ export function convert(
     const { value, groupPercentage } = getGrouping(p);
 
     const { scale, snapToGroup } = context;
-    const width = scale.bandwidth === 0 ? scale.step ?? 0 : scale.bandwidth ?? 0;
+    const width = scale.bandwidth === 0 ? (scale.step ?? 0) : (scale.bandwidth ?? 0);
 
     // For band scales, groupPercentage represents the position within the band
     // 0 = start of band, 0.5 = center, 1 = end of band
@@ -60,7 +60,7 @@ export function invert(
     }
 
     const value = context.scaleInvertNearest(n);
-    const width = scale.bandwidth === 0 ? scale.step : scale.bandwidth ?? 0;
+    const width = scale.bandwidth === 0 ? scale.step : (scale.bandwidth ?? 0);
     const bandStart = scale.convert(value);
     const bandEnd = bandStart + width;
     const groupPercentage = bandStart === bandEnd ? 0 : (n - bandStart) / (bandEnd - bandStart);

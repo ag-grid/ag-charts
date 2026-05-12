@@ -619,23 +619,140 @@ export function compactAggregationIndices(
 }
 
 /**
- * Pre-compute per-bucket selection flags in `indexData`.
- *
- * For each bucket, reads the extrema indices (slots 0..AGGREGATION_INDEX_SELECTED-1)
- * and ORs their selection values into the `AGGREGATION_INDEX_SELECTED` slot.
- * This avoids reading the full selection array during aggregation pyramid traversal.
+ * Build a sparse list of selected datum indices from a Uint8Array selection
+ * bitset. Used by {@link populateBucketSelectedFromSparse} (and its split
+ * variant) to amortise selection-driven roll-up across multiple aggregation
+ * levels — typical user selections have Hamming weight ≪ N, so the sparse
+ * representation lets per-level population be `O(|selection|)` instead of
+ * `O(N)`.
  */
-export function computeBucketSelection(selection: Uint8Array, indexData: Uint32Array, bucketCount: number): void {
+export function collectSparseSelection(selection: Uint8Array): Uint32Array {
+    let count = 0;
+    for (let i = 0; i < selection.length; i++) {
+        if (selection[i] === 1) count++;
+    }
+    const indices = new Uint32Array(count);
+    let pos = 0;
+    for (let i = 0; i < selection.length; i++) {
+        if (selection[i] === 1) indices[pos++] = i;
+    }
+    return indices;
+}
+
+/**
+ * Populate per-bucket SELECTED flags at the given aggregation level by mapping
+ * each pre-collected selected datum index to its bucket and setting that
+ * bucket's SELECTED slot to `1`. Buckets with no selected datums are cleared
+ * to `0` first.
+ *
+ * Bucket-assignment math mirrors the aggregation builder (see
+ * {@link aggregateData}) so that a datum lands in the same bucket here as
+ * it did during aggregation.
+ *
+ * Cost is `O(bucketCount + |sparseSelection|)`, dominated by the clear pass
+ * for buckets and a single bucket-index computation per selected datum. No
+ * propagation between levels is needed — each level is populated directly.
+ */
+export function populateBucketSelectedFromSparse(
+    sparseSelection: Uint32Array,
+    indexData: Uint32Array,
+    bucketCount: number,
+    xValues: any[],
+    d0: number,
+    d1: number,
+    xNeedsValueOf: boolean
+): void {
     for (let i = 0; i < bucketCount; i++) {
-        const base = i * AGGREGATION_SPAN;
-        let selected = 0;
-        for (let j = 0; j < AGGREGATION_INDEX_SELECTED; j++) {
-            const idx = indexData[base + j];
-            if (idx < selection.length) {
-                selected |= selection[idx];
-            }
+        indexData[i * AGGREGATION_SPAN + AGGREGATION_INDEX_SELECTED] = 0;
+    }
+
+    if (sparseSelection.length === 0) return;
+
+    // Bucket assignment mirrors aggregationXRatioForXValue / aggregationXRatioForDatumIndex
+    // / aggregationIndexForXRatio (inlined here to avoid per-datum function-call overhead
+    // in the sparse loop). Keep in sync if the canonical formula changes.
+    const continuous = Number.isFinite(d0) && Number.isFinite(d1);
+    const xValuesLength = xValues.length;
+    const scaleFactor = continuous ? bucketCount / (d1 - d0) : bucketCount * (1 / xValuesLength);
+
+    for (let i = 0; i < sparseSelection.length; i++) {
+        const datumIndex = sparseSelection[i];
+        if (datumIndex >= xValuesLength) continue;
+
+        const xValue = xValues[datumIndex];
+        if (xValue == null) continue;
+
+        let scaledX: number;
+        if (continuous) {
+            scaledX = xNeedsValueOf ? (xValue.valueOf() - d0) * scaleFactor : ((xValue as number) - d0) * scaleFactor;
+        } else {
+            scaledX = datumIndex * scaleFactor;
         }
-        indexData[base + AGGREGATION_INDEX_SELECTED] = selected;
+
+        const bucketIndex = Math.floor(scaledX);
+        const aggIndex = (bucketIndex < bucketCount ? bucketIndex : bucketCount - 1) * AGGREGATION_SPAN;
+        indexData[aggIndex + AGGREGATION_INDEX_SELECTED] = 1;
+    }
+}
+
+/**
+ * Split-arm variant of {@link populateBucketSelectedFromSparse}. Each selected
+ * datum is routed to one arm based on the sign of its y-end value, mirroring
+ * the bucket-assignment math used by the split-mode aggregation builder.
+ */
+export function populateBucketSelectedFromSparseSplit(
+    sparseSelection: Uint32Array,
+    positiveIndexData: Uint32Array,
+    negativeIndexData: Uint32Array,
+    bucketCount: number,
+    xValues: any[],
+    yEndValues: any[],
+    d0: number,
+    d1: number,
+    xNeedsValueOf: boolean,
+    yNeedsValueOf: boolean
+): void {
+    for (let i = 0; i < bucketCount; i++) {
+        const aggIndex = i * AGGREGATION_SPAN;
+        positiveIndexData[aggIndex + AGGREGATION_INDEX_SELECTED] = 0;
+        negativeIndexData[aggIndex + AGGREGATION_INDEX_SELECTED] = 0;
+    }
+
+    if (sparseSelection.length === 0) return;
+
+    // Bucket assignment mirrors aggregationXRatioForXValue / aggregationXRatioForDatumIndex
+    // / aggregationIndexForXRatio (inlined here to avoid per-datum function-call overhead
+    // in the sparse loop). Keep in sync if the canonical formula changes.
+    const continuous = Number.isFinite(d0) && Number.isFinite(d1);
+    const xValuesLength = xValues.length;
+    const scaleFactor = continuous ? bucketCount / (d1 - d0) : bucketCount * (1 / xValuesLength);
+
+    for (let i = 0; i < sparseSelection.length; i++) {
+        const datumIndex = sparseSelection[i];
+        if (datumIndex >= xValuesLength) continue;
+
+        const xValue = xValues[datumIndex];
+        if (xValue == null) continue;
+
+        const yEnd = yEndValues[datumIndex];
+        if (yEnd == null) continue;
+        const yMax = yNeedsValueOf ? yEnd.valueOf() : yEnd;
+        if (yMax !== yMax) continue; // NaN
+
+        let scaledX: number;
+        if (continuous) {
+            scaledX = xNeedsValueOf ? (xValue.valueOf() - d0) * scaleFactor : ((xValue as number) - d0) * scaleFactor;
+        } else {
+            scaledX = datumIndex * scaleFactor;
+        }
+
+        const bucketIndex = Math.floor(scaledX);
+        const aggIndex = (bucketIndex < bucketCount ? bucketIndex : bucketCount - 1) * AGGREGATION_SPAN;
+        if (yMax >= 0) {
+            positiveIndexData[aggIndex + AGGREGATION_INDEX_SELECTED] = 1;
+        } else {
+            negativeIndexData[aggIndex + AGGREGATION_INDEX_SELECTED] = 1;
+        }
     }
 }
 

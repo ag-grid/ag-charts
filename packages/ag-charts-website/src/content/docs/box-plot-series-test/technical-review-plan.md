@@ -14,8 +14,8 @@
 
 This is a minimal test page for box plot series focusing on:
 
--   Styler functionality with box plot series
--   Styler behavior with highlight states
+- Styler functionality with box plot series
+- Styler behavior with highlight states
 
 ### Content Summary
 
@@ -29,12 +29,10 @@ The page contains only two examples with minimal documentation:
 ### TypeScript Interfaces to Cross-Reference
 
 1. **`AgBoxPlotSeriesOptions`** - Main series configuration
-
     - Location: `/Users/bls/git/ag-charts/packages/ag-charts-types/src/series/cartesian/boxPlotOptions.ts`
     - Focus on: styler, itemStyler properties
 
 2. **`AgBoxPlotSeriesStylerParams`** - Styler function parameters
-
     - Location: Same file as above
     - Focus on: highlightState parameter, keys, names
 
@@ -45,7 +43,6 @@ The page contains only two examples with minimal documentation:
 ### Implementation Files to Check
 
 1. **Properties Implementation**:
-
     - `/Users/bls/git/ag-charts/packages/ag-charts-enterprise/src/series/box-plot/boxPlotSeriesProperties.ts`
     - Verify default values from @Property decorators
 
@@ -55,7 +52,7 @@ The page contains only two examples with minimal documentation:
 
 ### Known Exceptions
 
--   No exceptions file exists for this page
+- No exceptions file exists for this page
 
 ## Example Testing Plan
 
@@ -63,69 +60,67 @@ The page contains only two examples with minimal documentation:
 
 **Documentation Claims**:
 
--   Example demonstrates styler functionality with box plot
+- Example demonstrates styler functionality with box plot
 
 **Expected Behaviors**:
 
--   Styler function applies different styles based on yName
--   Company 1: cyan fill, blue stroke with line dash, custom whisker styling
--   Company 2: magenta fill with custom corner radius and cap length ratio
--   Both series should render with grouped box plots
+- Styler function applies different styles based on yName
+- Company 1: cyan fill, blue stroke with line dash, custom whisker styling
+- Company 2: magenta fill with custom corner radius and cap length ratio
+- Both series should render with grouped box plots
 
 **Configuration Validation**:
 
--   ✅ Verify styler function is properly typed
--   ✅ Verify all style properties match TypeScript interface
--   ✅ Verify whisker and cap customization
--   ✅ Verify lineDash, lineDashOffset properties work correctly
+- ✅ Verify styler function is properly typed
+- ✅ Verify all style properties match TypeScript interface
+- ✅ Verify whisker and cap customization
+- ✅ Verify lineDash, lineDashOffset properties work correctly
 
 **Visual Validation** (Browser required):
 
--   Box plots render for both companies
--   Company 1 has cyan fill with blue stroke
--   Company 1 whiskers have distinct line dash pattern
--   Company 2 has rounded corners (cornerRadius: 15)
--   Company 2 caps extend fully (lengthRatio: 1)
+- Box plots render for both companies
+- Company 1 has cyan fill with blue stroke
+- Company 1 whiskers have distinct line dash pattern
+- Company 2 has rounded corners (cornerRadius: 15)
+- Company 2 caps extend fully (lengthRatio: 1)
 
 ### Example 2: Styler Highlight State (`_examples/styler-highlight-state/`)
 
 **Documentation Claims**:
 
--   Example demonstrates styler behavior with highlight states
+- Example demonstrates styler behavior with highlight states
 
 **Expected Behaviors**:
 
--   Styler returns different styles based on highlightState parameter
--   Supports: 'highlighted-item', 'unhighlighted-item', 'highlighted-series', 'unhighlighted-series', 'none'
--   Tooltip is disabled (tooltip: { enabled: false })
--   Visual feedback on hover via styler
+- Styler returns different styles based on highlightState parameter
+- Supports: 'highlighted-item', 'unhighlighted-item', 'highlighted-series', 'unhighlighted-series', 'none'
+- Tooltip is disabled (tooltip: { enabled: false })
+- Visual feedback on hover via styler
 
 **Configuration Validation**:
 
--   ✅ Verify AgBoxPlotSeriesStylerParams includes highlightState
--   ✅ Verify all highlight state values are valid
--   ✅ Verify style changes match TypeScript interface
+- ✅ Verify AgBoxPlotSeriesStylerParams includes highlightState
+- ✅ Verify all highlight state values are valid
+- ✅ Verify style changes match TypeScript interface
 
 **Interactive Testing** (Browser required):
 
--   Hover over Company 1 box plot → should turn yellow/gold
--   Other items should become light gray when one is highlighted
--   Hover over Company 2 box plot → should turn lime/limegreen
--   Legend interaction triggers series-level highlighting
--   Tooltip should be disabled (no tooltip on hover)
+- Hover over Company 1 box plot → should turn yellow/gold
+- Other items should become light gray when one is highlighted
+- Hover over Company 2 box plot → should turn lime/limegreen
+- Legend interaction triggers series-level highlighting
+- Tooltip should be disabled (no tooltip on hover)
 
 ## Technical Accuracy Checks
 
 ### API Validation
 
 1. **Styler Function Signature**:
-
     - Parameter type: `AgBoxPlotSeriesStylerParams<TDatum, TContext>`
     - Return type: `AgBoxPlotSeriesStyle | undefined`
     - Verify highlightState is part of styler params
 
 2. **Style Properties**:
-
     - fill, fillOpacity
     - stroke, strokeWidth, strokeOpacity
     - lineDash, lineDashOffset
@@ -147,7 +142,6 @@ The page contains only two examples with minimal documentation:
 ### Implementation Verification
 
 1. **Styler Support**:
-
     - Verify styler is called during render
     - Verify itemStyler vs styler distinction
     - Verify highlightState parameter is passed correctly
@@ -163,49 +157,49 @@ The page contains only two examples with minimal documentation:
 
 ### Static Page Load
 
--   ✅ Navigate to test page
--   ✅ Capture initial state screenshot: `initial-state.png`
--   ✅ Verify no console errors
+- ✅ Navigate to test page
+- ✅ Capture initial state screenshot: `initial-state.png`
+- ✅ Verify no console errors
 
 ### Example 1: Styler
 
--   ✅ Screenshot: `styler-example.png`
--   ✅ Verify visual appearance matches configuration
--   ✅ Check Company 1 styling (cyan, blue stroke, line dash)
--   ✅ Check Company 2 styling (magenta, rounded corners)
+- ✅ Screenshot: `styler-example.png`
+- ✅ Verify visual appearance matches configuration
+- ✅ Check Company 1 styling (cyan, blue stroke, line dash)
+- ✅ Check Company 2 styling (magenta, rounded corners)
 
 ### Example 2: Styler Highlight State
 
--   ✅ Screenshot initial: `styler-highlight-initial.png`
--   ✅ Hover over Company 1 box → screenshot: `styler-highlight-company1-item.png`
--   ✅ Hover over Company 2 box → screenshot: `styler-highlight-company2-item.png`
--   ✅ Hover over Company 1 legend → screenshot: `styler-highlight-company1-series.png`
--   ✅ Hover over Company 2 legend → screenshot: `styler-highlight-company2-series.png`
--   ✅ Verify no tooltip appears on hover
+- ✅ Screenshot initial: `styler-highlight-initial.png`
+- ✅ Hover over Company 1 box → screenshot: `styler-highlight-company1-item.png`
+- ✅ Hover over Company 2 box → screenshot: `styler-highlight-company2-item.png`
+- ✅ Hover over Company 1 legend → screenshot: `styler-highlight-company1-series.png`
+- ✅ Hover over Company 2 legend → screenshot: `styler-highlight-company2-series.png`
+- ✅ Verify no tooltip appears on hover
 
 ## Content Quality Assessment
 
 ### Coverage Analysis
 
--   Minimal documentation (test page)
--   No prose explanation of features
--   Examples serve as functional tests only
--   Not intended for end-user documentation
+- Minimal documentation (test page)
+- No prose explanation of features
+- Examples serve as functional tests only
+- Not intended for end-user documentation
 
 ### Completeness
 
--   **Styler functionality**: Demonstrated via examples
--   **Highlight state integration**: Demonstrated via examples
--   **Missing**: No explanation text (acceptable for test pages)
+- **Styler functionality**: Demonstrated via examples
+- **Highlight state integration**: Demonstrated via examples
+- **Missing**: No explanation text (acceptable for test pages)
 
 ## Expected Issues
 
 Given this is a test page:
 
--   ⚠️ Minimal documentation is expected and acceptable
--   ⚠️ No prose explanation is acceptable
--   ✅ Focus should be on technical correctness of examples
--   ✅ Examples should demonstrate intended functionality
+- ⚠️ Minimal documentation is expected and acceptable
+- ⚠️ No prose explanation is acceptable
+- ✅ Focus should be on technical correctness of examples
+- ✅ Examples should demonstrate intended functionality
 
 ## Success Criteria
 

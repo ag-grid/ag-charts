@@ -7,7 +7,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { AgOhlcSeriesBaseOptions, AgOhlcSeriesItemStylerParams } from 'ag-charts-community';
+import type { AgOhlcSeriesBaseOptions, AgOhlcSeriesItemStylerParams, SelectionState } from 'ag-charts-community';
 import {
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
@@ -92,8 +92,14 @@ class OhlcSeriesNodeEvent<
     readonly highKey?: string;
     readonly lowKey?: string;
 
-    constructor(type: TEvent, nativeEvent: Event, datum: OhlcNodeDatum, series: OhlcSeriesBase<OhlcSeriesBaseTypes>) {
-        super(type, nativeEvent, datum, series);
+    constructor(
+        type: TEvent,
+        nativeEvent: Event,
+        datum: OhlcNodeDatum,
+        series: OhlcSeriesBase<OhlcSeriesBaseTypes>,
+        selectionState: SelectionState | undefined
+    ) {
+        super(type, nativeEvent, datum, series, selectionState);
         this.xKey = series.properties.xKey;
         this.openKey = series.properties.openKey;
         this.closeKey = series.properties.closeKey;
@@ -337,14 +343,15 @@ export abstract class OhlcSeriesBase<
     // extrema stored at OPEN/HIGH/LOW/CLOSE. The helper re-derives the bucket from
     // the midpoint's xValue (guaranteed to lie within the bucket's x-range) rather
     // than trusting the index itself.
-    public override getAggregateRangeReader(): _ModuleSupport.DatumRangeReader | undefined {
-        return _ModuleSupport.makeAggregateRangeReader({
+    protected override createBucketLookupFeature(): _ModuleSupport.BucketLookupFeature {
+        return new _ModuleSupport.BucketLookupManager({
             series: this,
-            xAxis: this.axes[ChartAxisDirection.X],
-            dataModel: this.dataModel,
-            processedData: this.processedData,
+            getXAxis: () => this.axes[ChartAxisDirection.X],
+            getDataModel: () => this.dataModel,
+            getProcessedData: () => this.processedData,
             aggregationManager: this.aggregationManager,
             domainKey: 'key',
+            getSelection: () => this.data?.selections.get(this.id)?.getSelection(),
         });
     }
 
@@ -425,6 +432,7 @@ export abstract class OhlcSeriesBase<
         this.aggregationManager.ensureLevelForRange(range);
 
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
+        this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
         const crisp = dataAggregationFilter == null;
         const canIncrementallyUpdate =
             this.contextNodeData?.nodeData != null &&

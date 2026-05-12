@@ -568,6 +568,10 @@ describe('Legend', () => {
               {
                 "event": MouseEvent {
                   "isTrusted": false,
+                  "offsetX": 20,
+                  "offsetY": -2,
+                  "pageX": 400,
+                  "pageY": 570,
                 },
                 "itemId": "y",
                 "preventDefault": [Function],
@@ -595,6 +599,10 @@ describe('Legend', () => {
               {
                 "event": MouseEvent {
                   "isTrusted": false,
+                  "offsetX": 20,
+                  "offsetY": -2,
+                  "pageX": 400,
+                  "pageY": 570,
                 },
                 "itemId": "y",
                 "preventDefault": [Function],

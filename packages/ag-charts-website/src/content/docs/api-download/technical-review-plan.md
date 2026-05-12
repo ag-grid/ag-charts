@@ -4,30 +4,30 @@
 
 ### Features Covered
 
--   Chart image download functionality via JavaScript API
--   Two main API methods: `download()` and `getImageDataURL()`
--   Framework-specific guidance for obtaining `AgChartInstance` references (React, Angular, Vue)
--   Customizable download options (dimensions, filename, format)
+- Chart image download functionality via JavaScript API
+- Two main API methods: `download()` and `getImageDataURL()`
+- Framework-specific guidance for obtaining `AgChartInstance` references (React, Angular, Vue)
+- Customizable download options (dimensions, filename, format)
 
 ### Key APIs Documented
 
--   `AgChartInstance.download(options?: DownloadOptions)`
--   `AgChartInstance.getImageDataURL(options?: ImageDataUrlOptions)`
--   `DownloadOptions` interface (extends `ImageDataUrlOptions`)
--   `ImageDataUrlOptions` interface
+- `AgChartInstance.download(options?: DownloadOptions)`
+- `AgChartInstance.getImageDataURL(options?: ImageDataUrlOptions)`
+- `DownloadOptions` interface (extends `ImageDataUrlOptions`)
+- `ImageDataUrlOptions` interface
 
 ### Examples Referenced
 
--   **download** example: Demonstrates all three use cases mentioned in documentation
-    -   Basic download without options
-    -   Download with fixed dimensions (600x300)
-    -   Get image data URL and open in new tab
+- **download** example: Demonstrates all three use cases mentioned in documentation
+    - Basic download without options
+    - Download with fixed dimensions (600x300)
+    - Get image data URL and open in new tab
 
 ### Interactive Features
 
--   Button-triggered download actions
--   Browser's native download behavior
--   New tab/window opening with image data
+- Button-triggered download actions
+- Browser's native download behavior
+- New tab/window opening with image data
 
 ## Validation Targets
 
@@ -56,9 +56,9 @@
 
 **Documentation claims:**
 
--   Shows how to obtain reference to `AgChartInstance`
--   Shows how to use `download()` to start image download
--   Shows how to use `getImageDataURL()` to create base64 URL and open in new tab
+- Shows how to obtain reference to `AgChartInstance`
+- Shows how to use `download()` to start image download
+- Shows how to use `getImageDataURL()` to create base64 URL and open in new tab
 
 **Expected behaviors for example-tester agent:**
 
@@ -75,10 +75,10 @@
 
 **Specific features to validate:**
 
--   Area chart with 0.5 fill opacity
--   Multiple series rendering
--   Legend positioning
--   Title and subtitle display
+- Area chart with 0.5 fill opacity
+- Multiple series rendering
+- Legend positioning
+- Title and subtitle display
 
 ### User Interactions to Validate
 
@@ -160,17 +160,17 @@ No `technical-review-exceptions.md` file exists for this page.
 
 ## Success Criteria
 
--   All API signatures match implementation
--   Example demonstrates all three documented use cases
--   Downloads work correctly across different scenarios
--   No console errors during operations
--   Downloaded images accurately represent chart
--   Documentation accurately describes all features and options
+- All API signatures match implementation
+- Example demonstrates all three documented use cases
+- Downloads work correctly across different scenarios
+- No console errors during operations
+- Downloaded images accurately represent chart
+- Documentation accurately describes all features and options
 
 ## Estimated Complexity
 
--   **API Validation**: Low - Clear interfaces to check
--   **Implementation Review**: Medium - Need to understand canvas rendering
--   **Example Testing**: Low - Straightforward functionality
--   **Visual Testing**: Medium - Need to verify image quality and accuracy
--   **Overall**: Medium complexity due to image generation verification
+- **API Validation**: Low - Clear interfaces to check
+- **Implementation Review**: Medium - Need to understand canvas rendering
+- **Example Testing**: Low - Straightforward functionality
+- **Visual Testing**: Medium - Need to verify image quality and accuracy
+- **Overall**: Medium complexity due to image generation verification

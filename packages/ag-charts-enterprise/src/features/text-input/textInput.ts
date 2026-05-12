@@ -80,7 +80,7 @@ export class TextInput {
         textArea.style.fontWeight =
             typeof opts.styles?.fontWeight === 'number'
                 ? `${opts.styles.fontWeight}`
-                : opts.styles?.fontWeight ?? 'inherit';
+                : (opts.styles?.fontWeight ?? 'inherit');
 
         focusCursorAtEnd(textArea);
 

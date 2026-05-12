@@ -4,11 +4,11 @@
 
 ### Chart Types/Features Covered
 
--   Heatmap series (enterprise feature)
--   Matrix data visualization using color gradients
--   Color range customization
--   Cell labels with formatting
--   Gradient legend with customization options
+- Heatmap series (enterprise feature)
+- Matrix data visualization using color gradients
+- Color range customization
+- Cell labels with formatting
+- Gradient legend with customization options
 
 ### Key APIs and Configuration Options Documented
 
@@ -40,17 +40,16 @@
 
 ### Interactive Features Described
 
--   Color interpolation based on data values
--   Gradient legend for value reference
--   Cell labels showing formatted values
--   Tooltips (implied through series tooltip configuration)
+- Color interpolation based on data values
+- Gradient legend for value reference
+- Cell labels showing formatted values
+- Tooltips (implied through series tooltip configuration)
 
 ## Validation Targets
 
 ### TypeScript Interfaces to Verify
 
 1. **AgHeatmapSeriesOptions** (`packages/ag-charts-types/src/series/cartesian/heatmapOptions.ts`):
-
     - Verify all documented properties exist
     - Check `colorRange` is optional string array
     - Confirm label configuration structure
@@ -65,7 +64,6 @@
 ### Implementation Files to Check
 
 1. **Heatmap Series Implementation**:
-
     - Look for heatmap series in enterprise package
     - Verify color interpolation logic
     - Check label rendering implementation
@@ -84,84 +82,82 @@
 **Documentation claims**: Basic heatmap showing temperature data in a matrix
 **Expected behaviors**:
 
--   Chart renders as a grid/matrix of colored cells
--   X axis shows months, Y axis shows years
--   Colors represent temperature values
--   Gradient legend appears at bottom by default
--   No cell labels visible (not enabled)
+- Chart renders as a grid/matrix of colored cells
+- X axis shows months, Y axis shows years
+- Colors represent temperature values
+- Gradient legend appears at bottom by default
+- No cell labels visible (not enabled)
 
 #### color-range-with-many-values
 
 **Documentation claims**: Custom color range with 3 colors
 **Expected behaviors**:
 
--   Heatmap uses custom blue-green color palette
--   Colors interpolate smoothly between the 3 values
--   Gradient legend reflects the custom colors
--   Color interpolation follows the specified array
+- Heatmap uses custom blue-green color palette
+- Colors interpolate smoothly between the 3 values
+- Gradient legend reflects the custom colors
+- Color interpolation follows the specified array
 
 #### customising-labels
 
 **Documentation claims**: Labels show temperature with °C formatting
 **Expected behaviors**:
 
--   Each cell displays a label
--   Labels show temperature values with °C suffix
--   Label formatting uses the provided formatter function
--   Labels are centered in cells by default
+- Each cell displays a label
+- Labels show temperature values with °C suffix
+- Label formatting uses the provided formatter function
+- Labels are centered in cells by default
 
 #### gradient-legend
 
 **Documentation claims**: Basic gradient legend enabled
 **Expected behaviors**:
 
--   Gradient legend visible at bottom
--   Shows color scale matching heatmap colors
--   Scale values correspond to data range
--   Legend enabled by default (as stated)
+- Gradient legend visible at bottom
+- Shows color scale matching heatmap colors
+- Scale values correspond to data range
+- Legend enabled by default (as stated)
 
 #### gradient-legend-position
 
 **Documentation claims**: Position set to 'right' with reverseOrder option
 **Expected behaviors**:
 
--   Gradient legend appears on right side
--   Vertical orientation with values
--   Values can be reversed when reverseOrder is used
--   Legend adapts to vertical layout
+- Gradient legend appears on right side
+- Vertical orientation with values
+- Values can be reversed when reverseOrder is used
+- Legend adapts to vertical layout
 
 #### gradient-legend-size
 
 **Documentation claims**: Thickness 50px, preferredLength 400px
 **Expected behaviors**:
 
--   Gradient bar is 50px thick
--   Initial length attempts to be 400px
--   Length constrained by container edges
--   Size changes are visually apparent
+- Gradient bar is 50px thick
+- Initial length attempts to be 400px
+- Length constrained by container edges
+- Size changes are visually apparent
 
 #### gradient-legend-labels
 
 **Documentation claims**: Custom font styling for scale labels
 **Expected behaviors**:
 
--   Labels use 20px font size
--   Italic font style applied
--   Bold font weight visible
--   Serif font family used
--   Red color for label text
--   20px padding between gradient and labels
+- Labels use 20px font size
+- Italic font style applied
+- Bold font weight visible
+- Serif font family used
+- Red color for label text
+- 20px padding between gradient and labels
 
 ### User Interactions to Validate
 
 1. **Hover interactions**:
-
     - Hovering over heatmap cells should show tooltips
     - Tooltips should display x, y, and color values
     - Cell highlighting on hover
 
 2. **Gradient legend interactions**:
-
     - Legend should be non-interactive (reference only)
     - No hover effects on gradient bar
 
@@ -226,13 +222,13 @@ No technical review exceptions file exists for this page.
 
 ## Success Criteria
 
--   All documented APIs exist in type definitions
--   Examples render without console errors
--   Visual output matches documentation descriptions
--   Interactive features work as described
--   Gradient legend behaves according to documentation
--   No undocumented required properties
--   Enterprise-only feature properly indicated
+- All documented APIs exist in type definitions
+- Examples render without console errors
+- Visual output matches documentation descriptions
+- Interactive features work as described
+- Gradient legend behaves according to documentation
+- No undocumented required properties
+- Enterprise-only feature properly indicated
 
 ## Estimated Complexity
 
@@ -246,11 +242,11 @@ No technical review exceptions file exists for this page.
 **Instructions**: Validate that this basic heatmap example correctly implements the AG Charts heatmap series API. The documentation states this creates a simple temperature heatmap with month on X axis, year on Y axis, and temperature for colors.
 **Expected validations**:
 
--   Series type is 'heatmap'
--   xKey, yKey, and colorKey are properly configured
--   Chart renders a matrix/grid visualization
--   No console errors or warnings
--   Gradient legend appears by default
+- Series type is 'heatmap'
+- xKey, yKey, and colorKey are properly configured
+- Chart renders a matrix/grid visualization
+- No console errors or warnings
+- Gradient legend appears by default
 
 ### Task 2: Color Range Testing
 
@@ -258,10 +254,10 @@ No technical review exceptions file exists for this page.
 **Instructions**: Test the custom color range feature. Documentation shows colorRange: ['#43a2ca', '#a8ddb5', '#f0f9e8'] with 3 colors for interpolation.
 **Expected validations**:
 
--   colorRange array is properly configured
--   Colors interpolate between the 3 specified values
--   Gradient legend reflects custom colors
--   Smooth color transitions in cells
+- colorRange array is properly configured
+- Colors interpolate between the 3 specified values
+- Gradient legend reflects custom colors
+- Smooth color transitions in cells
 
 ### Task 3: Label Formatting Validation
 
@@ -269,10 +265,10 @@ No technical review exceptions file exists for this page.
 **Instructions**: Verify label configuration and formatting. Documentation shows labels enabled with a formatter that adds °C suffix to temperature values.
 **Expected validations**:
 
--   label.enabled is set to true
--   Formatter function properly implemented
--   Labels display in cells with correct formatting
--   Temperature values show with °C suffix
+- label.enabled is set to true
+- Formatter function properly implemented
+- Labels display in cells with correct formatting
+- Temperature values show with °C suffix
 
 ### Task 4: Gradient Legend Configuration Suite
 
@@ -280,8 +276,8 @@ No technical review exceptions file exists for this page.
 **Instructions**: Validate all gradient legend configuration options across these examples. Check position changes, size adjustments, and label styling.
 **Expected validations**:
 
--   Legend positioning (right vs default bottom)
--   Thickness and preferredLength settings work
--   Label styling (fontSize: 20, fontStyle: 'italic', fontWeight: 'bold', fontFamily: 'serif', color: 'red')
--   Padding configuration affects spacing
--   No rendering issues with different configurations
+- Legend positioning (right vs default bottom)
+- Thickness and preferredLength settings work
+- Label styling (fontSize: 20, fontStyle: 'italic', fontWeight: 'bold', fontFamily: 'serif', color: 'red')
+- Padding configuration affects spacing
+- No rendering issues with different configurations

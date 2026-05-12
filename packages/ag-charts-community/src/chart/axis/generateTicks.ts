@@ -127,7 +127,7 @@ function getTickGenerationType<TScale extends Scale<TDatum, number, TickInterval
     return TickGenerationType.CREATE;
 }
 
-function estimateScaleTickCount<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>({
+export function estimateScaleTickCount<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>({
     scale,
     domain,
     range,
@@ -141,9 +141,12 @@ function estimateScaleTickCount<TScale extends Scale<TDatum, number, TickInterva
     const rangeExtent = findRangeExtent(range);
     const zoomExtent = findRangeExtent(visibleRange);
 
-    // Ordinal scales with a large number of categories can be slow to generate ticks for.
-    // Therefore, we limit the number of ticks generated for such scales.
-    if (CategoryScale.is(scale) || (OrdinalTimeScale.is(scale) && domain.length < 1000)) {
+    // Ordinal-time tick steps are discrete (time-interval-based), so reducing tickCount
+    // doesn't always produce fewer ticks. minTickCount must be 0 to let the binary search
+    // in buildTickData exit when ticks stop changing — otherwise the overlap loop hangs.
+    const isOrdinalTime = OrdinalTimeScale.is(scale);
+
+    if (CategoryScale.is(scale) || (isOrdinalTime && domain.length < 1000)) {
         const maxTickCount = CategoryScale.is(scale)
             ? domain.length
             : Math.min(domain.length, Math.max(1, Math.floor(rangeExtent / (zoomExtent * defaultTickMinSpacing))));
@@ -155,7 +158,18 @@ function estimateScaleTickCount<TScale extends Scale<TDatum, number, TickInterva
         };
     }
 
-    return estimateTickCount(rangeExtent, zoomExtent, minSpacing, maxSpacing, defaultTickCount, defaultTickMinSpacing);
+    const result = estimateTickCount(
+        rangeExtent,
+        zoomExtent,
+        minSpacing,
+        maxSpacing,
+        defaultTickCount,
+        defaultTickMinSpacing
+    );
+    if (isOrdinalTime) {
+        result.minTickCount = 0;
+    }
+    return result;
 }
 
 function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
@@ -274,7 +288,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
     }
 
     const niceDomain = niceMode.includes(NiceMode.TickAndDomain)
-        ? secondaryAxisTicks?.domain ?? scale.niceDomain(domainParams, domain)
+        ? (secondaryAxisTicks?.domain ?? scale.niceDomain(domainParams, domain))
         : domain;
     let tickDomain: TDatum[] = niceDomain;
     let rawTicks: any[] | undefined;

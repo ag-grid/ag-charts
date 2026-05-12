@@ -4,20 +4,20 @@
 
 ### Chart Types/Features Covered
 
--   Bubble Series (`type: 'bubble'`) - extends Scatter Series with size dimension
--   Marker size mapping using `sizeKey` for third variable representation
--   Marker customization (size, shape, fill, stroke)
--   Label placement with intelligent collision avoidance
--   Domain configuration for size mapping
+- Bubble Series (`type: 'bubble'`) - extends Scatter Series with size dimension
+- Marker size mapping using `sizeKey` for third variable representation
+- Marker customization (size, shape, fill, stroke)
+- Label placement with intelligent collision avoidance
+- Domain configuration for size mapping
 
 ### Key APIs and Configuration Options Documented
 
--   **Core Properties**: `xKey`, `yKey`, `sizeKey` (required), `labelKey` (optional)
--   **Display Names**: `xName`, `yName`, `sizeName`, `labelName`, `title`
--   **Size Configuration**: `size` (min), `maxSize` (max), `domain` (manual range)
--   **Marker Customization**: `shape`, `fill`, `stroke`
--   **Label Configuration**: `label.enabled` and related label options
--   **Axes Integration**: Default mapping to Number axes
+- **Core Properties**: `xKey`, `yKey`, `sizeKey` (required), `labelKey` (optional)
+- **Display Names**: `xName`, `yName`, `sizeName`, `labelName`, `title`
+- **Size Configuration**: `size` (min), `maxSize` (max), `domain` (manual range)
+- **Marker Customization**: `shape`, `fill`, `stroke`
+- **Label Configuration**: `label.enabled` and related label options
+- **Axes Integration**: Default mapping to Number axes
 
 ### Examples Referenced
 
@@ -27,34 +27,34 @@
 
 ### Interactive Features Described
 
--   Tooltips showing x, y, and size values with custom names
--   Legend items using series title
--   Label placement with dynamic collision avoidance
--   Responsive label visibility based on chart size
+- Tooltips showing x, y, and size values with custom names
+- Legend items using series title
+- Label placement with dynamic collision avoidance
+- Responsive label visibility based on chart size
 
 ## Validation Targets
 
 ### TypeScript Interface Verification
 
--   **Primary Interface**: `AgBubbleSeriesOptions` in `/packages/ag-charts-types/src/series/cartesian/bubbleOptions.ts`
--   **Related Interfaces**:
-    -   `AgBubbleSeriesThemeableOptions`
-    -   `AgBubbleSeriesOptionsKeys`
-    -   `AgBubbleSeriesOptionsNames`
-    -   `AgBubbleSeriesLabel`
--   **Inherited Properties**: Check `AgBaseSeriesOptions` and `AgBaseCartesianThemeableOptions`
+- **Primary Interface**: `AgBubbleSeriesOptions` in `/packages/ag-charts-types/src/series/cartesian/bubbleOptions.ts`
+- **Related Interfaces**:
+    - `AgBubbleSeriesThemeableOptions`
+    - `AgBubbleSeriesOptionsKeys`
+    - `AgBubbleSeriesOptionsNames`
+    - `AgBubbleSeriesLabel`
+- **Inherited Properties**: Check `AgBaseSeriesOptions` and `AgBaseCartesianThemeableOptions`
 
 ### Implementation Files to Check
 
--   Bubble series implementation in community/enterprise packages
--   Default values for:
-    -   `size` (documented as 7)
-    -   `maxSize` (documented as 30)
-    -   `domain` (documented as series data domain)
-    -   Label placement default (documented as 'top')
--   Marker shape options and rendering
--   Size calculation algorithm (proportional between min/max)
--   Label collision detection implementation
+- Bubble series implementation in community/enterprise packages
+- Default values for:
+    - `size` (documented as 7)
+    - `maxSize` (documented as 30)
+    - `domain` (documented as series data domain)
+    - Label placement default (documented as 'top')
+- Marker shape options and rendering
+- Size calculation algorithm (proportional between min/max)
+- Label collision detection implementation
 
 ### Examples to Test with Expected Behaviors
 
@@ -62,79 +62,76 @@
 
 **Documentation Claims**:
 
--   Shows basic bubble chart with two series (Male/Female)
--   Uses `xKey: 'height'`, `yKey: 'weight'`, `sizeKey: 'age'`
--   Includes display names for tooltips
--   Series titles appear in legend
--   Axes are Number type with formatters
+- Shows basic bubble chart with two series (Male/Female)
+- Uses `xKey: 'height'`, `yKey: 'weight'`, `sizeKey: 'age'`
+- Includes display names for tooltips
+- Series titles appear in legend
+- Axes are Number type with formatters
 
 **Expected Behaviors for example-tester**:
 
--   Two distinct series rendered with different colors
--   Bubble sizes vary based on age values
--   Tooltips show Height, Weight, and Age with proper names
--   Legend shows "Male" and "Female" entries
--   Axes labels formatted with units (cm, kg)
--   No console errors
--   Proper TypeScript typing with `AgChartOptions`
+- Two distinct series rendered with different colors
+- Bubble sizes vary based on age values
+- Tooltips show Height, Weight, and Age with proper names
+- Legend shows "Male" and "Female" entries
+- Axes labels formatted with units (cm, kg)
+- No console errors
+- Proper TypeScript typing with `AgChartOptions`
 
 #### bubble-customised-markers
 
 **Documentation Claims**:
 
--   Demonstrates custom marker sizes with `size: 10`, `maxSize: 20`
--   Shows domain configuration `[0, 100]`
--   Uses different shapes: 'circle' for females, 'square' for males
--   Custom colors: `fill: '#e36f6ab5'`, `stroke: '#9f4e4a'`
+- Demonstrates custom marker sizes with `size: 10`, `maxSize: 20`
+- Shows domain configuration `[0, 100]`
+- Uses different shapes: 'circle' for females, 'square' for males
+- Custom colors: `fill: '#e36f6ab5'`, `stroke: '#9f4e4a'`
 
 **Expected Behaviors for example-tester**:
 
--   Marker sizes constrained between 10 and 20 pixels
--   Size domain of 0-100 properly mapped
--   Female series uses circle markers
--   Male series uses square markers
--   Custom fill and stroke colors applied
--   Proportional sizing: value 50 → size 15
--   All markers visible and properly rendered
+- Marker sizes constrained between 10 and 20 pixels
+- Size domain of 0-100 properly mapped
+- Female series uses circle markers
+- Male series uses square markers
+- Custom fill and stroke colors applied
+- Proportional sizing: value 50 → size 15
+- All markers visible and properly rendered
 
 #### bubble-chart-labels
 
 **Documentation Claims**:
 
--   Labels enabled with `label.enabled: true`
--   Labels don't overlap markers
--   Labels don't overlap other labels
--   Labels hidden if constraints not satisfied
--   More labels appear when chart resized larger
--   Computationally intensive for large datasets
+- Labels enabled with `label.enabled: true`
+- Labels don't overlap markers
+- Labels don't overlap other labels
+- Labels hidden if constraints not satisfied
+- More labels appear when chart resized larger
+- Computationally intensive for large datasets
 
 **Expected Behaviors for example-tester**:
 
--   Labels visible for some bubbles
--   No label-marker overlaps
--   No label-label overlaps
--   Dynamic label visibility on resize
--   Uses `labelKey` for label content
--   Performance acceptable for displayed data
--   Label placement changes with marker size/font size changes
+- Labels visible for some bubbles
+- No label-marker overlaps
+- No label-label overlaps
+- Dynamic label visibility on resize
+- Uses `labelKey` for label content
+- Performance acceptable for displayed data
+- Label placement changes with marker size/font size changes
 
 ### User Interactions to Validate
 
 1. **Tooltip Interactions**:
-
     - Hover over bubbles to see tooltips
     - Verify tooltip shows xName, yName, sizeName values
     - Check tooltip title matches series title
     - Test tooltip positioning near chart edges
 
 2. **Legend Interactions**:
-
     - Click legend items to toggle series visibility
     - Hover legend items for series highlighting
     - Verify legend shows series titles
 
 3. **Responsive Behavior**:
-
     - Resize window to test label repositioning
     - Check bubble rendering at different viewport sizes
     - Verify axes adjust appropriately
@@ -147,13 +144,13 @@
 
 ### Visual States to Screenshot
 
--   Default chart rendering for all examples
--   Tooltip display on bubble hover
--   Legend hover/click states
--   Label placement at different chart sizes
--   Custom marker shapes and colors
--   Size variation demonstration
--   Mobile viewport rendering
+- Default chart rendering for all examples
+- Tooltip display on bubble hover
+- Legend hover/click states
+- Label placement at different chart sizes
+- Custom marker shapes and colors
+- Size variation demonstration
+- Mobile viewport rendering
 
 ## Known Exceptions
 
@@ -205,10 +202,10 @@ No existing technical-review-exceptions.md file found for this page.
 
 ### Success Criteria
 
--   All TypeScript interfaces match documented APIs
--   Examples render without console errors
--   Interactive features work as documented
--   Visual appearance matches descriptions
--   Performance is acceptable for label placement
--   No undocumented required properties
--   All documented features are demonstrable
+- All TypeScript interfaces match documented APIs
+- Examples render without console errors
+- Interactive features work as documented
+- Visual appearance matches descriptions
+- Performance is acceptable for label placement
+- No undocumented required properties
+- All documented features are demonstrable

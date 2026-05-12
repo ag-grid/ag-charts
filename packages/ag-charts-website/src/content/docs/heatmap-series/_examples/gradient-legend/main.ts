@@ -39,9 +39,6 @@ const options: AgChartOptions = {
             colorName: 'Temperature',
         },
     ],
-    gradientLegend: {
-        enabled: true,
-    },
 };
 
 const chart = AgCharts.create(options);

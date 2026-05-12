@@ -2,6 +2,7 @@ import type {
     ContextCallbackParams,
     DatumCallbackParams,
     HighlightState,
+    SelectionState,
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
@@ -12,8 +13,7 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/c
 import type { AgBaseSeriesThemeableOptions, AgMultiSeriesHighlightOptions } from '../seriesOptions';
 
 export interface AgBaseRadialSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseSeriesThemeableOptions<TDatum, TContext>,
-        AgRadialSeriesStyle {
+    extends AgBaseSeriesThemeableOptions<TDatum, TContext>, AgRadialSeriesStyle {
     /** Configuration for the labels shown on top of data points. */
     label?: AgChartLabelOptions<TDatum, AgRadialSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Series-specific tooltip configuration. */
@@ -51,13 +51,15 @@ export type AgRadialSeriesLabelFormatterParams<TDatum = DatumDefault> = AgRadial
     AgRadialSeriesOptionsNames;
 
 export interface AgRadialSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
-    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
+    extends
+        AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
         AgRadialSeriesStyle {}
 
 export interface AgRadialSeriesStylerParams<TDatum, TContext>
-    extends SeriesCallbackParams<HighlightState>,
+    extends
+        SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         AgRadialSeriesOptionsKeys<TDatum>,
         Required<AgRadialSeriesStyle> {

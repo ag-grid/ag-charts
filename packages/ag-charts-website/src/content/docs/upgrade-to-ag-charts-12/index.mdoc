@@ -30,18 +30,18 @@ The minimum version of Vue you can use with AG Charts is now Vue 3.5.
 
 ### Series Changes
 
--   `series[].type` is now required.
+- `series[].type` is now required.
 
 ### Axes Changes
 
--   `time` axis properties of `unit`, `paddingInner`, `paddingOuter`, `groupPaddingInner` are removed. Use the `unit-time` axis instead.
+- `time` axis properties of `unit`, `paddingInner`, `paddingOuter`, `groupPaddingInner` are removed. Use the `unit-time` axis instead.
 
 ### Miscellaneous
 
--   `theme.params.padding` - removed, use `chartPadding` instead.
--   All Series `series[].listeners[]`:
-    -   `.nodeClick` - removed, use `.seriesNodeClick` instead.
-    -   `.nodeDoubleClick` - removed, use `.seriesNodeDoubleClick` instead.
+- `theme.params.padding` - removed, use `chartPadding` instead.
+- All Series `series[].listeners[]`:
+    - `.nodeClick` - removed, use `.seriesNodeClick` instead.
+    - `.nodeDoubleClick` - removed, use `.seriesNodeDoubleClick` instead.
 
 {% /expandingSection %}
 
@@ -55,36 +55,36 @@ This release includes the following behaviour changes:
 
 ### Series
 
--   When Bubble Series `labelKey` is not provided, the `sizeKey` is used for the label text instead of the `yKey`.
--   Series with a `labelKey` defined will show the label value in the tooltip.
+- When Bubble Series `labelKey` is not provided, the `sizeKey` is used for the label text instead of the `yKey`.
+- Series with a `labelKey` defined will show the label value in the tooltip.
 
 ### Axes
 
--   Vertical `time` and `ordinal-time` axes are now sorted with the earliest date at the top. Use `reverse` to change this.
--   Default label formats for `time` and `ordinal-time` axes have been improved.
--   Axis `thickness` defaults to a maximum of 30% of the chart size.
+- Vertical `time` and `ordinal-time` axes are now sorted with the earliest date at the top. Use `reverse` to change this.
+- Default label formats for `time` and `ordinal-time` axes have been improved.
+- Axis `thickness` defaults to a maximum of 30% of the chart size.
 
 ### Theme Defaults
 
--   If the `stroke` property is provided, a default `strokeWidth` will be used to display a stroke.
--   When the Mini Chart is enabled, the Navigator default height is 40px.
--   The following `theme.params` defaults have changed which will result in very slight colour changes.
-    -   `foregroundColor` is changed from `#464646` to `#181d1f`.
-    -   `axisColor` is changed from `#c3c3c3` to `#b4b6b6`.
-    -   `borderColor` is changed from `#dddddd` to `rgba(24, 29, 31, 0.15)`.
-    -   `chromeBackgroundColor` is changed from `#fafafa` to `#fafafb`.
-    -   `crosshairLabelBackgroundColor` is changed from `#464646` to `#181d1f`.
-    -   `foregroundColor` is changed from `#464646` to `#181d1f`.
-    -   `gridLineColor` is changed from `#e0eaf2` to `#e8e8e9`.
-    -   `inputTextColor` is changed from `#464646` to `#181d1f`.
-    -   `subtleTextColor` is changed from `#8c8c8c` to `#707374`.
-    -   `textColor` is changed from `#464646` to `#181d1f`.
--   New `popupShadow` and `focusShadow` are added to `theme.params` and will appear around popup dialogues.
+- If the `stroke` property is provided, a default `strokeWidth` will be used to display a stroke.
+- When the Mini Chart is enabled, the Navigator default height is 40px.
+- The following `theme.params` defaults have changed which will result in very slight colour changes.
+    - `foregroundColor` is changed from `#464646` to `#181d1f`.
+    - `axisColor` is changed from `#c3c3c3` to `#b4b6b6`.
+    - `borderColor` is changed from `#dddddd` to `rgba(24, 29, 31, 0.15)`.
+    - `chromeBackgroundColor` is changed from `#fafafa` to `#fafafb`.
+    - `crosshairLabelBackgroundColor` is changed from `#464646` to `#181d1f`.
+    - `foregroundColor` is changed from `#464646` to `#181d1f`.
+    - `gridLineColor` is changed from `#e0eaf2` to `#e8e8e9`.
+    - `inputTextColor` is changed from `#464646` to `#181d1f`.
+    - `subtleTextColor` is changed from `#8c8c8c` to `#707374`.
+    - `textColor` is changed from `#464646` to `#181d1f`.
+- New `popupShadow` and `focusShadow` are added to `theme.params` and will appear around popup dialogues.
 
 ### Other Changes
 
--   `zoom.autoScaling` defaults to `true`. Use `enabled: false` to disable.
--   "Reset Zoom" is added to the default Context Menu items. Provide explicit `contextMenu.items` change this.
+- `zoom.autoScaling` defaults to `true`. Use `enabled: false` to disable.
+- "Reset Zoom" is added to the default Context Menu items. Provide explicit `contextMenu.items` change this.
 
 {% /expandingSection %}
 
@@ -94,10 +94,10 @@ This release includes the following behaviour changes:
 
 This release includes the following deprecations:
 
--   `time` import is deprecated. Use an `AgTimeInterval` string directly, or an `AgTimeIntervalUnit` object instead.
--   `AgTimeInterval` of `utcYear`, `utcMonth`, `utcDay`, `utcHour` are removed, use an `AgTimeIntervalUnit` object with `utc: true` instead.
--   `AgTimeInterval` of `week` is removed. Use an `AgTimeIntervalUnit` object with `{ unit: 'day', 'step: 7' }` and a format of `%a` or `%A` instead.
--   `highlightStyle` is removed from all series except `treemap` and `sunburst`. Use `highlight` options instead.
+- `time` import is deprecated. Use an `AgTimeInterval` string directly, or an `AgTimeIntervalUnit` object instead.
+- `AgTimeInterval` of `utcYear`, `utcMonth`, `utcDay`, `utcHour` are removed, use an `AgTimeIntervalUnit` object with `utc: true` instead.
+- `AgTimeInterval` of `week` is removed. Use an `AgTimeIntervalUnit` object with `{ unit: 'day', 'step: 7' }` and a format of `%a` or `%A` instead.
+- `highlightStyle` is removed from all series except `treemap` and `sunburst`. Use `highlight` options instead.
 
 {% /expandingSection %}
 
@@ -107,11 +107,11 @@ The following properties have been deprecated since version 11 and have now been
 
 {% expandingSection headerText="Removed Deprecated Properties" %}
 
--   `zoom.minVisibleItemsX` and `zoom.minVisibleItemsY` - removed. Use `zoom.minVisibleItems` instead.
--   `tooltip.position.type` in both chart and series options - removed. Use `tooltip.position.anchorTo` and/or `tooltip.position.placement` instead.
--   `minVisibleItemsX` and `minVisibleItemsY` have been removed in favour of `minVisibleItems`
--   `contextMenu.extraActions[]`, `contextMenu.extraSeriesAreaActions[]`,
-    `contextMenu.extraNodeActions`, and `contextMenu.extraLegendItemActions` - removed. Use `contextMenu.items[]` with the appropriate showOn value instead.
+- `zoom.minVisibleItemsX` and `zoom.minVisibleItemsY` - removed. Use `zoom.minVisibleItems` instead.
+- `tooltip.position.type` in both chart and series options - removed. Use `tooltip.position.anchorTo` and/or `tooltip.position.placement` instead.
+- `minVisibleItemsX` and `minVisibleItemsY` have been removed in favour of `minVisibleItems`
+- `contextMenu.extraActions[]`, `contextMenu.extraSeriesAreaActions[]`,
+  `contextMenu.extraNodeActions`, and `contextMenu.extraLegendItemActions` - removed. Use `contextMenu.items[]` with the appropriate showOn value instead.
 
 {% /expandingSection %}
 

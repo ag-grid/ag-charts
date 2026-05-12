@@ -10,9 +10,9 @@ Even if you are not mandated to conform to any particular accessibility standard
 
 Currently the most commonly encountered conformance guidelines are:
 
--   {% link href="https://www.ada.gov/" isExternal=true %}ADA{% /link %} - US Department of Justice.
--   {% link href="https://www.section508.gov/" isExternal=true %}Section 508{% /link %} - US federal agencies.
--   {% link href="https://www.w3.org/WAI/standards-guidelines/wcag/" isExternal=true %}WCAG 2.0{% /link %} - Globally accepted standard.
+- {% link href="https://www.ada.gov/" isExternal=true %}ADA{% /link %} - US Department of Justice.
+- {% link href="https://www.section508.gov/" isExternal=true %}Section 508{% /link %} - US federal agencies.
+- {% link href="https://www.w3.org/WAI/standards-guidelines/wcag/" isExternal=true %}WCAG 2.0{% /link %} - Globally accepted standard.
 
 WCAG 2.0 has 3 levels of conformance; A, AA and AAA (in order of conformance).
 
@@ -24,30 +24,30 @@ AG Charts fully supports keyboard navigation as an element of accessibility, all
 
 The following keys are available:
 
--   {% kbd "⇥ Tab" /%} moves focus between chart components. These include:
-    -   Series
-    -   Legend
-    -   Legend pagination control
-    -   Toolbars and Buttons
-    -   Navigator
--   {% kbd "←" /%}{% kbd "→" /%} moves focus between items in a series, or between legend items.
--   {% kbd "↑" /%}{% kbd "↓" /%} moves focus between series in a chart.
-    Please note that datapoints and series are traversed in declared order which may not match the visual display.
--   {% kbd "PgUp" /%}{% kbd "PgDown" /%} jumps focus backward or forward by a page of data items, scrolling to keep the focused item in view.
--   {% kbd "Home" /%}{% kbd "End" /%} jumps to the first or last data item.
--   {% kbd "↵ Enter" /%} or {% kbd "␣ Space" /%} toggles legend items and triggers any click listeners for the focused item.
--   In Windows, {% kbd "⇧ Shift"/%}+{% kbd "F10"/%} or {% kbd "≡ Menu"/%} opens the context menu. On Mac this is done with {% kbd "⌃⌥⇧ M" /%} when Voiceover is enabled.
+- {% kbd "⇥ Tab" /%} moves focus between chart components. These include:
+    - Series
+    - Legend
+    - Legend pagination control
+    - Toolbars and Buttons
+    - Navigator
+- {% kbd "←" /%}{% kbd "→" /%} moves focus between items in a series, or between legend items.
+- {% kbd "↑" /%}{% kbd "↓" /%} moves focus between series in a chart.
+  Please note that datapoints and series are traversed in declared order which may not match the visual display.
+- {% kbd "PgUp" /%}{% kbd "PgDown" /%} jumps focus backward or forward by a page of data items, scrolling to keep the focused item in view.
+- {% kbd "Home" /%}{% kbd "End" /%} jumps to the first or last data item.
+- {% kbd "↵ Enter" /%} or {% kbd "␣ Space" /%} toggles legend items and triggers any click listeners for the focused item.
+- In Windows, {% kbd "⇧ Shift"/%}+{% kbd "F10"/%} or {% kbd "≡ Menu"/%} opens the context menu. On Mac this is done with {% kbd "⌃⌥⇧ M" /%} when Voiceover is enabled.
 
 {% chartExampleRunner title="Keyboard Navigation" name="keyboard-navigation" type="generated" /%}
 
 In this example:
 
--   Focusing on the top input box and pressing TAB will move focus into the chart.
--   Pressing TAB will move focus through the chart components.
--   The arrow keys move focus around within the chart components as described above.
--   Pressing ENTER or SPACE when a bar is focused will trigger a click listener which logs a message to the console.
--   Pressing TAB after all the chart components will move focus to the element below the chart.
--   SHIFT+TAB will move focus into, around and out of the chart in reverse order.
+- Focusing on the top input box and pressing TAB will move focus into the chart.
+- Pressing TAB will move focus through the chart components.
+- The arrow keys move focus around within the chart components as described above.
+- Pressing ENTER or SPACE when a bar is focused will trigger a click listener which logs a message to the console.
+- Pressing TAB after all the chart components will move focus to the element below the chart.
+- SHIFT+TAB will move focus into, around and out of the chart in reverse order.
 
 ## Screen Readers (ARIA)
 

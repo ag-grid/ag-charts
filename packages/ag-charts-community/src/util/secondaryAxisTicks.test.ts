@@ -79,6 +79,19 @@ describe('secondaryAxisTicks', () => {
         expect(ticks).toEqual([7, 7.5, 8]);
     });
 
+    test('CRT-1116: heavy primary-axis zoom does not produce fractional steps on secondary axis', () => {
+        const { ticks } = calculateNiceSecondaryAxis(
+            scale,
+            [27385, 31348],
+            { unzoomed: 7, zoomed: 700 },
+            false,
+            [0, 0.01]
+        );
+
+        expect(ticks.every(Number.isInteger)).toBe(true);
+        expect(ticks.length).toBeGreaterThan(7);
+    });
+
     test.each([
         // Ensure magnitude is reflected
         { domain: 0.005, expected: [0, 0.002, 0.004, 0.006, 0.008] },

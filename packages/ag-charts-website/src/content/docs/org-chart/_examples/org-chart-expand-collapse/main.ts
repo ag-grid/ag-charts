@@ -12,47 +12,21 @@ ModuleRegistry.registerModules([OrganizationSeriesModule, ContextMenuModule]);
 
 const options: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
-    title: {
-        text: 'Company Organisation',
-    },
+    title: { text: 'Company Organisation' },
     data: getData(),
     initialState: {
-        collapsed: ['cfo'],
+        collapsed: ['Mr. Jeffrey Brown', 'Nicole Jones', 'Justin Contreras', 'Lawrence Martinez', 'Eric Jensen'],
     },
     series: [
         {
             type: 'organization',
             idKey: 'id',
             parentIdKey: 'parentId',
-            tooltip: {
-                renderer: ({ datum }) => {
-                    return {
-                        heading: datum.title,
-                        data: [
-                            { label: 'Job', value: datum.job },
-                            { label: 'Location', value: datum.location },
-                        ],
-                    };
-                },
-            },
             node: {
-                image: {
-                    key: 'avatar',
-                    height: 50,
-                    width: 50,
-                    position: 'top',
-                },
-                title: {
-                    key: 'name',
-                },
-                subtitle: {
-                    key: 'job',
-                },
-                labels: [
-                    {
-                        key: 'location',
-                    },
-                ],
+                image: { key: 'avatar', position: 'left', height: 50, width: 50, cornerRadius: 25 },
+                title: { key: 'name' },
+                subtitle: { key: 'job' },
+                labels: [{ key: 'location' }],
             },
         },
     ],
@@ -62,42 +36,32 @@ const chart = AgCharts.create(options);
 
 function expandAll() {
     const { version } = chart.getState();
-    chart.setState({
-        version,
-        collapsed: [],
-    });
+    chart.setState({ version, collapsed: [] });
 }
 
-function collapseCEO() {
-    const { version, collapsed } = chart.getState();
+function collapseAll() {
+    const { version } = chart.getState();
     chart.setState({
         version,
-        collapsed: [...(collapsed ?? []), 'ceo'],
+        collapsed: [
+            'Joseph Howe',
+            'Gary Garcia',
+            'Mr. Jeffrey Brown',
+            'Nicole Jones',
+            'Justin Contreras',
+            'Lawrence Martinez',
+            'Eric Jensen',
+        ],
     });
 }
 
 function toggleCTO() {
     const { version, collapsed: prev } = chart.getState();
 
-    const collapsed = prev?.filter((id) => id !== 'cto');
-    if (!prev?.includes('cto')) {
-        collapsed?.push('cto');
+    const collapsed = prev?.filter((id) => id !== 'Joseph Howe');
+    if (!prev?.includes('Joseph Howe')) {
+        collapsed?.push('Joseph Howe');
     }
 
     chart.setState({ version, collapsed });
-}
-
-function toggleActiveEvePark() {
-    const { version, active } = chart.getState();
-
-    chart.setState({
-        version,
-        active: {
-            activeItem: {
-                type: 'series-node',
-                seriesId: 'OrganizationSeries-1',
-                itemId: 'qa',
-            },
-        },
-    });
 }

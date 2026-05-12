@@ -97,8 +97,11 @@ export interface DateFormatterParams<TDatum, TContext> extends BaseFormatterPara
     style: DateFormatterStyle;
 }
 
-export interface CategoryFormatterParams<TDatum, TContext>
-    extends BaseFormatterParams<TDatum, TContext, string | number | Date | string[]> {
+export interface CategoryFormatterParams<TDatum, TContext> extends BaseFormatterParams<
+    TDatum,
+    TContext,
+    string | number | Date | string[]
+> {
     /** Configuration for a category-formatted value. */
     type: 'category';
 }

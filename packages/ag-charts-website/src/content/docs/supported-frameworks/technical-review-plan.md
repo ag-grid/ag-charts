@@ -4,10 +4,10 @@
 
 ### Content Overview
 
--   **Purpose**: Documents the compatibility between AG Charts versions and various JavaScript framework versions
--   **Framework Coverage**: JavaScript (vanilla), React, Angular, and Vue
--   **Content Type**: Compatibility matrices showing supported version combinations
--   **Conditional Content**: Uses framework-specific template conditions (`{% if isFramework(...) %}`) to show relevant information
+- **Purpose**: Documents the compatibility between AG Charts versions and various JavaScript framework versions
+- **Framework Coverage**: JavaScript (vanilla), React, Angular, and Vue
+- **Content Type**: Compatibility matrices showing supported version combinations
+- **Conditional Content**: Uses framework-specific template conditions (`{% if isFramework(...) %}`) to show relevant information
 
 ### Key Information Documented
 
@@ -21,45 +21,44 @@
 
 ### 1. Package.json Version Requirements
 
--   **Files to Check**:
-    -   `/packages/ag-charts-react/package.json` - peerDependencies
-    -   `/packages/ag-charts-angular/package.json` - peerDependencies
-    -   `/packages/ag-charts-vue3/package.json` - peerDependencies
--   **Expected Validations**:
-    -   React package should support versions 18-19 according to docs
-    -   Angular package should support versions 17+ according to docs
-    -   Vue3 package should support version 3.5 according to docs
+- **Files to Check**:
+    - `/packages/ag-charts-react/package.json` - peerDependencies
+    - `/packages/ag-charts-angular/package.json` - peerDependencies
+    - `/packages/ag-charts-vue3/package.json` - peerDependencies
+- **Expected Validations**:
+    - React package should support versions 18-19 according to docs
+    - Angular package should support versions 17+ according to docs
+    - Vue3 package should support version 3.5 according to docs
 
 ### 2. Framework Wrapper Implementation Files
 
--   **React Wrapper**: `/packages/ag-charts-react/src/`
--   **Angular Wrapper**: `/packages/ag-charts-angular/projects/ag-charts-angular/src/`
--   **Vue3 Wrapper**: `/packages/ag-charts-vue3/src/`
--   **Validation Focus**: Check for version-specific code or compatibility layers
+- **React Wrapper**: `/packages/ag-charts-react/src/`
+- **Angular Wrapper**: `/packages/ag-charts-angular/projects/ag-charts-angular/src/`
+- **Vue3 Wrapper**: `/packages/ag-charts-vue3/src/`
+- **Validation Focus**: Check for version-specific code or compatibility layers
 
 ### 3. Build Configuration Files
 
--   **TypeScript Configurations**: Check tsconfig.json files for target compatibility
--   **Angular Configuration**: angular.json for Angular version-specific settings
--   **Build Scripts**: Verify build processes align with supported versions
+- **TypeScript Configurations**: Check tsconfig.json files for target compatibility
+- **Angular Configuration**: angular.json for Angular version-specific settings
+- **Build Scripts**: Verify build processes align with supported versions
 
 ### 4. Documentation Consistency
 
--   **Cross-reference with**:
-    -   Getting started guides for each framework
-    -   Installation documentation
-    -   Framework-specific example requirements
+- **Cross-reference with**:
+    - Getting started guides for each framework
+    - Installation documentation
+    - Framework-specific example requirements
 
 ## Known Exceptions
 
--   No technical-review-exceptions.md file exists for this page
+- No technical-review-exceptions.md file exists for this page
 
 ## Execution Plan
 
 ### Priority 1: Version Compatibility Verification
 
 1. **Compare documented version ranges with package.json peerDependencies**
-
     - React: Verify peerDependencies match documented support (18-19)
     - Angular: Verify peerDependencies match documented support (17-20)
     - Vue: Verify peerDependencies match documented support (3.5)
@@ -73,7 +72,6 @@
 ### Priority 2: Build and Testing Infrastructure
 
 1. **Verify devDependencies use appropriate framework versions**
-
     - Check if testing uses versions within documented ranges
     - Verify CI/CD configurations test against claimed versions
     - Success Criteria: Test infrastructure covers documented version ranges
@@ -86,7 +84,6 @@
 ### Priority 3: Documentation Accuracy
 
 1. **Verify "12+" notation accuracy**
-
     - Confirm current AG Charts version is indeed 12.x
     - Check if future compatibility claims are reasonable
     - Success Criteria: Version numbering is consistent and accurate
@@ -105,20 +102,20 @@
 
 ### Version Range Notation
 
--   The "12+" notation implies future compatibility - verify if this is a reasonable claim
--   Check if there's a policy for updating these tables with new releases
+- The "12+" notation implies future compatibility - verify if this is a reasonable claim
+- Check if there's a policy for updating these tables with new releases
 
 ### Framework Evolution
 
--   React 19 is relatively new - verify actual testing has occurred
--   Angular versions change frequently - check update frequency of this documentation
--   Vue 3.5 is latest - confirm compatibility claims are tested
+- React 19 is relatively new - verify actual testing has occurred
+- Angular versions change frequently - check update frequency of this documentation
+- Vue 3.5 is latest - confirm compatibility claims are tested
 
 ### Missing Information
 
--   No mention of TypeScript version requirements
--   No mention of Node.js version requirements for builds
--   No browser version requirements linked (only mentions supported browsers page)
+- No mention of TypeScript version requirements
+- No mention of Node.js version requirements for builds
+- No browser version requirements linked (only mentions supported browsers page)
 
 ## Testing Approach
 

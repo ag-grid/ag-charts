@@ -6,9 +6,9 @@
 
 The API Explorer page is unique in the AG Charts documentation as it provides an interactive tool for exploring the AG Charts API. The page contains:
 
--   A brief description of the API Explorer's purpose
--   An embedded `<charts-api-explorer>` custom element that provides the interactive interface
--   A hidden baseline example that serves as the foundation for the API Explorer
+- A brief description of the API Explorer's purpose
+- An embedded `<charts-api-explorer>` custom element that provides the interactive interface
+- A hidden baseline example that serves as the foundation for the API Explorer
 
 ### Key Features Documented
 
@@ -18,27 +18,27 @@ The API Explorer page is unique in the AG Charts documentation as it provides an
 
 ### Examples Referenced
 
--   **baseline**: A minimal chart setup with basic data (revenue/profit by month) that serves as the starting point for API exploration
+- **baseline**: A minimal chart setup with basic data (revenue/profit by month) that serves as the starting point for API exploration
 
 ### Interactive Features Described
 
--   Point-and-click configuration interface
--   Real-time chart updates based on configuration changes
--   Automatic code snippet generation
+- Point-and-click configuration interface
+- Real-time chart updates based on configuration changes
+- Automatic code snippet generation
 
 ## Validation Targets
 
 ### TypeScript Interfaces to Verify
 
--   `AgChartOptions` - Verify that all options exposed in the API Explorer match the actual interface
--   Chart series types and their options (need to determine which are exposed in the explorer)
--   Common configuration options (title, subtitle, legend, axes, etc.)
+- `AgChartOptions` - Verify that all options exposed in the API Explorer match the actual interface
+- Chart series types and their options (need to determine which are exposed in the explorer)
+- Common configuration options (title, subtitle, legend, axes, etc.)
 
 ### Implementation Files to Check
 
--   The `<charts-api-explorer>` component implementation (location to be determined)
--   Integration with AG Charts options system
--   Code generation logic that produces snippets
+- The `<charts-api-explorer>` component implementation (location to be determined)
+- Integration with AG Charts options system
+- Code generation logic that produces snippets
 
 ### Examples to Test with Expected Behaviors
 
@@ -46,16 +46,16 @@ The API Explorer page is unique in the AG Charts documentation as it provides an
 
 **Documentation Claims**:
 
--   Serves as the foundation for the API Explorer
--   Should be a minimal working chart
+- Serves as the foundation for the API Explorer
+- Should be a minimal working chart
 
 **Expected Behaviors for example-tester**:
 
--   Chart renders without errors using the provided data
--   Shows revenue and profit data for 6 months (Jan-Jun)
--   Has proper container element (#myChart)
--   Uses AgCharts.create() with minimal options
--   Data structure includes month, revenue, and profit fields
+- Chart renders without errors using the provided data
+- Shows revenue and profit data for 6 months (Jan-Jun)
+- Has proper container element (#myChart)
+- Uses AgCharts.create() with minimal options
+- Data structure includes month, revenue, and profit fields
 
 **Validation Tasks**:
 
@@ -69,13 +69,11 @@ The API Explorer page is unique in the AG Charts documentation as it provides an
 #### API Explorer Component Interactions
 
 1. **Configuration Panel Testing**:
-
     - Verify all exposed options are clickable/editable
     - Test that changing options updates the chart in real-time
     - Validate that invalid configurations show appropriate feedback
 
 2. **Code Snippet Generation**:
-
     - Verify code snippets update as options are changed
     - Check that generated code is syntactically correct
     - Validate that copying the generated code produces the same chart
@@ -87,14 +85,12 @@ The API Explorer page is unique in the AG Charts documentation as it provides an
 ### Visual States to Screenshot and Analyze
 
 1. **API Explorer Interface**:
-
     - Default state of the API Explorer on page load
     - Configuration panel expanded/collapsed states
     - Different sections of configuration options
     - Code snippet area with generated code
 
 2. **Chart States**:
-
     - Default baseline chart rendering
     - Chart after various configuration changes
     - Different chart types if switchable through the explorer
@@ -108,7 +104,6 @@ The API Explorer page is unique in the AG Charts documentation as it provides an
 ### Interactive Features Requiring Before/After Visual Comparison
 
 1. **Configuration Changes**:
-
     - Before: Default baseline chart
     - After: Chart with modified title/subtitle
     - After: Chart with different series types
@@ -123,16 +118,16 @@ The API Explorer page is unique in the AG Charts documentation as it provides an
 
 Based on typical AG Charts behavior and the explorer's purpose:
 
--   Data points/series (hover for tooltips)
--   Legend items (click to show/hide series)
--   Any configured interactive elements through the explorer
+- Data points/series (hover for tooltips)
+- Legend items (click to show/hide series)
+- Any configured interactive elements through the explorer
 
 ### Expected Tooltip Content and Highlighting Behaviors
 
--   Standard AG Charts tooltips showing data values
--   Series highlighting on hover
--   Legend interaction feedback
--   Configuration-dependent behaviors based on explorer settings
+- Standard AG Charts tooltips showing data values
+- Series highlighting on hover
+- Legend interaction feedback
+- Configuration-dependent behaviors based on explorer settings
 
 ## Known Exceptions
 
@@ -143,13 +138,11 @@ No technical review exceptions file exists for this page yet.
 ### Priority 1: Core Functionality Validation
 
 1. **Locate and analyze the charts-api-explorer component** (15 min)
-
     - Find the component implementation
     - Understand its architecture and integration points
     - Document the API surface it exposes
 
 2. **Test baseline example with example-tester** (10 min)
-
     - Validate it renders correctly
     - Verify it serves as proper foundation
     - Check for console errors or warnings
@@ -163,7 +156,6 @@ No technical review exceptions file exists for this page yet.
 ### Priority 2: API Coverage Verification
 
 1. **Cross-reference exposed options with AgChartOptions** (20 min)
-
     - List all options available in the explorer
     - Compare with TypeScript definitions
     - Note any missing or extra options
@@ -176,7 +168,6 @@ No technical review exceptions file exists for this page yet.
 ### Priority 3: Visual and User Experience Testing
 
 1. **Comprehensive screenshot capture** (15 min)
-
     - Document all UI states
     - Capture configuration workflows
     - Record error states and feedback
@@ -195,21 +186,21 @@ No technical review exceptions file exists for this page yet.
 
 ### Success Criteria
 
--   API Explorer loads and functions without errors
--   All exposed options correspond to valid AG Charts API
--   Real-time updates work smoothly
--   Generated code is valid and reproducible
--   User interactions are intuitive and responsive
--   No console errors or warnings during normal operation
+- API Explorer loads and functions without errors
+- All exposed options correspond to valid AG Charts API
+- Real-time updates work smoothly
+- Generated code is valid and reproducible
+- User interactions are intuitive and responsive
+- No console errors or warnings during normal operation
 
 ### Estimated Complexity
 
 **High** - This is a complex interactive tool that requires thorough testing of:
 
--   Dynamic UI components
--   Real-time chart updates
--   Code generation accuracy
--   API surface coverage
+- Dynamic UI components
+- Real-time chart updates
+- Code generation accuracy
+- API surface coverage
 
 Total estimated time: 2-2.5 hours
 
@@ -221,11 +212,11 @@ Total estimated time: 2-2.5 hours
 
 **What to provide to the agent**:
 
--   Example path: `/api-explorer/_examples/baseline/`
--   Expected behavior: A minimal chart showing revenue and profit data by month
--   Data structure: Objects with month (string), revenue (number), and profit (number)
--   Chart type: Not specified in docs, likely a column or line chart
--   Container: Should render in element with id="myChart"
+- Example path: `/api-explorer/_examples/baseline/`
+- Expected behavior: A minimal chart showing revenue and profit data by month
+- Data structure: Objects with month (string), revenue (number), and profit (number)
+- Chart type: Not specified in docs, likely a column or line chart
+- Container: Should render in element with id="myChart"
 
 **Validation criteria**:
 
@@ -242,13 +233,11 @@ Total estimated time: 2-2.5 hours
 ## Notes for Phase 2 Execution
 
 1. The `<charts-api-explorer>` component location needs to be determined - it may be in:
-
     - A separate package
     - The ag-website-shared components
     - Dynamically loaded JavaScript
 
 2. Special attention needed for:
-
     - How the explorer integrates with the baseline example
     - What options are exposed vs. what's available in AgChartOptions
     - The quality and accuracy of generated code snippets

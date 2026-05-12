@@ -1,5 +1,12 @@
 import type { CallbackParamRules, DomainWithMetadata, DynamicContext, RequireOptional } from 'ag-charts-core';
-import { ChartAxisDirection, DebugMetrics, extent, isDefined, mergeDefaults } from 'ag-charts-core';
+import {
+    AGGREGATION_INDEX_Y_MAX,
+    ChartAxisDirection,
+    DebugMetrics,
+    extent,
+    isDefined,
+    mergeDefaults,
+} from 'ag-charts-core';
 import {
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
@@ -43,11 +50,11 @@ import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { AggregationManager } from '../aggregationManager';
-import { makeAggregateRangeReader } from '../aggregationRangeReader';
+import { type BucketLookupFeature, BucketLookupManager } from '../bucketLookupFeature';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { HighlightState, toHighlightString } from '../seriesProperties';
-import type { DatumRangeReader } from '../seriesTypes';
+import { toHighlightString, toSelectionString } from '../seriesProperties';
+import { HighlightState, SelectionState } from '../seriesTypes';
 import { datumStylerProperties } from '../util';
 import {
     CartesianSeries,
@@ -101,6 +108,19 @@ interface LineSeriesTypes extends CartesianSeriesTypes {
 }
 
 type LineAnimationData = CartesianAnimationDataOf<LineSeriesTypes>;
+
+/** Per-pass context for the itemStyler marker-style pass. */
+interface LineStylerPassCtx {
+    marker: LineSeriesProperties['marker'];
+    hideWithSize0: boolean;
+    isHighlight: boolean;
+    xColumn: any[];
+    yColumn: any[];
+    xDomain: any[];
+    yDomain: any[];
+    xKey: string;
+    yKey: string;
+}
 
 export class LineSeries extends CartesianSeries<LineSeriesTypes> {
     static override readonly className = 'LineSeries';
@@ -366,14 +386,16 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         }
     }
 
-    public override getAggregateRangeReader(): DatumRangeReader | undefined {
-        return makeAggregateRangeReader({
+    protected override createBucketLookupFeature(): BucketLookupFeature {
+        return new BucketLookupManager({
             series: this,
-            xAxis: this.axes[ChartAxisDirection.X],
-            dataModel: this.dataModel,
-            processedData: this.processedData,
+            getXAxis: () => this.axes[ChartAxisDirection.X],
+            getDataModel: () => this.dataModel,
+            getProcessedData: () => this.processedData,
             aggregationManager: this.aggregationManager,
             domainKey: 'value',
+            getSelection: () => this.data?.selections.get(this.id)?.getSelection(),
+            canonicalExtremaSlots: [AGGREGATION_INDEX_Y_MAX],
         });
     }
 
@@ -407,6 +429,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         this.aggregationManager.ensureLevelForRange(range);
 
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
+        this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
         return {
@@ -641,7 +664,10 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             animationEnabled,
         } = opts;
 
-        const merged = mergeDefaults(this.getHighlightStyle(), this.getStyle());
+        const highlightStyle = this.getHighlightStyle();
+        const selectionStyle = this.getSelectionStyle();
+        const seriesStyle = this.getStyle(undefined);
+        const merged = mergeDefaults(selectionStyle, highlightStyle, seriesStyle);
         const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, opacity } = merged;
 
         const segments = this.contextNodeData?.segments;
@@ -677,7 +703,15 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         const { contextNodeData, processedData, axes, properties } = this;
         const { marker } = properties;
 
-        const markerDrawMode = cartesianMarkerDrawMode(properties, contextNodeData, processedData!, axes, marker);
+        const markerDrawMode = cartesianMarkerDrawMode(
+            properties,
+            contextNodeData,
+            processedData!,
+            axes,
+            marker,
+            marker,
+            this.chart?.isMiniChart
+        );
         this.hideWithSize0 = markerDrawMode.hideWithSize0;
         nodeData = markerDrawMode.needsNodeData ? nodeData : [];
 
@@ -693,6 +727,73 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         return datumSelection.update(nodeData, undefined, (datum) => createDatumId(datum.xValue));
     }
 
+    // Static callbacks for runMarkerStylePass — see helper for the V8 IC rationale.
+
+    private static computeNoStylerMarkerStyle(
+        this: void,
+        series: LineSeries,
+        ctx: { marker: LineSeriesProperties['marker']; hideWithSize0: boolean; isHighlight: boolean },
+        highlightState: HighlightState,
+        selectionState: SelectionState | undefined,
+        datum: LineNodeDatum
+    ): AgSeriesMarkerStyle {
+        const stylerStyle = series.getStyle(highlightState);
+        return series.getMarkerStyle(
+            ctx.marker,
+            datum,
+            undefined,
+            { isHighlight: ctx.isHighlight, highlightState, selectionState, hideWithSize0: ctx.hideWithSize0 },
+            stylerStyle.marker,
+            {
+                stroke: stylerStyle.stroke,
+                strokeWidth: stylerStyle.strokeWidth,
+                strokeOpacity: stylerStyle.strokeOpacity,
+            }
+        );
+    }
+
+    private static computeStylerStyle(
+        this: void,
+        series: LineSeries,
+        _ctx: LineStylerPassCtx,
+        highlightState: HighlightState,
+        _selectionState: SelectionState | undefined,
+        _datum: LineNodeDatum
+    ): ReturnType<LineSeries['getStyle']> {
+        return series.getStyle(highlightState);
+    }
+
+    private static applyStylerDatum(
+        this: void,
+        series: LineSeries,
+        ctx: LineStylerPassCtx,
+        datum: LineNodeDatum,
+        highlightState: HighlightState,
+        selectionState: SelectionState | undefined,
+        stylerStyle: ReturnType<LineSeries['getStyle']>
+    ): void {
+        const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
+        const markerStyle = stylerStyle.marker;
+        const xValue = ctx.xColumn[datum.datumIndex];
+        const yValue = ctx.yColumn[datum.datumIndex];
+        const fill = series.filterItemStylerFillParams(markerStyle.fill) ?? markerStyle.fill;
+        const params: AgLineSeriesMarkerItemStylerParams<unknown, unknown> = {
+            ...datumStylerProperties(xValue, yValue, ctx.xKey, ctx.yKey, ctx.xDomain, ctx.yDomain),
+            xValue,
+            yValue,
+            ...markerStyle,
+            fill,
+        };
+        datum.style = series.getMarkerStyle(
+            ctx.marker,
+            datum,
+            params,
+            { isHighlight: ctx.isHighlight, highlightState, selectionState, hideWithSize0: ctx.hideWithSize0 },
+            markerStyle,
+            { stroke, strokeWidth, strokeOpacity }
+        );
+    }
+
     protected override updateDatumStyles(opts: {
         datumSelection: Selection<LineNodeDatum, Marker<LineNodeDatum>>;
         isHighlight: boolean;
@@ -700,34 +801,46 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         const { hideWithSize0 } = this;
         const { datumSelection, isHighlight } = opts;
         const { marker } = this.properties;
+        const { itemStyler } = marker;
 
-        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        datumSelection.each((node, datum) => {
-            if (!datumSelection.isGarbage(node)) {
-                const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
-                const stylerStyle = this.getStyle(highlightState);
-                const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
+        if (itemStyler == null) {
+            // No itemStyler: style is a pure function of (highlightState, selectionState).
+            this.runMarkerStylePass(
+                datumSelection,
+                isHighlight,
+                { marker, hideWithSize0, isHighlight },
+                undefined,
+                true,
+                LineSeries.computeNoStylerMarkerStyle,
+                LineSeries.assignCachedStyle
+            );
+            return;
+        }
 
-                const params = this.makeItemStylerParams(
-                    this.dataModel!,
-                    this.processedData!,
-                    datum.datumIndex,
-                    stylerStyle.marker
-                );
-                datum.style = this.getMarkerStyle(
-                    marker,
-                    datum,
-                    params,
-                    { isHighlight, highlightState, hideWithSize0 },
-                    stylerStyle.marker,
-                    {
-                        stroke,
-                        strokeWidth,
-                        strokeOpacity,
-                    }
-                );
-            }
-        });
+        // Hoist resolveColumnById/getDomain out of the per-datum loop — they don't depend on datumIndex.
+        const dataModel = this.dataModel!;
+        const processedData = this.processedData!;
+        const { xKey, yKey } = this.properties;
+        const ctx: LineStylerPassCtx = {
+            marker,
+            hideWithSize0,
+            isHighlight,
+            xColumn: dataModel.resolveColumnById<any>(this, 'xValue', processedData),
+            yColumn: dataModel.resolveColumnById<any>(this, 'yValueRaw', processedData),
+            xDomain: dataModel.getDomain(this, 'xValue', 'key', processedData).domain,
+            yDomain: dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData).domain,
+            xKey,
+            yKey,
+        };
+        this.runMarkerStylePass(
+            datumSelection,
+            isHighlight,
+            ctx,
+            undefined,
+            true,
+            LineSeries.computeStylerStyle,
+            LineSeries.applyStylerDatum
+        );
     }
 
     protected override updateDatumNodes(opts: {
@@ -749,14 +862,17 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
 
         const drawingMode = this.getDrawingMode(isHighlight, opts.drawingMode);
 
-        datumSelection.each((node, datum) => {
-            const state = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            const style = datum.style ?? contextNodeData.styles[state];
-            this.applyMarkerStyle(style, node, datum.point, fillBBox, {
+        const thisSeries = this;
+        datumSelection.each(function datumSelectionUpdate(node, datum) {
+            // updateDatumStyles populates datum.style for non-garbage nodes; the fallback below is rare.
+            const style =
+                datum.style ??
+                contextNodeData.styles[thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+            thisSeries.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 applyTranslation,
                 selected: datum.selected,
             });
-            node.drawingMode = this.resolveMarkerDrawingModeForState(drawingMode, style);
+            node.drawingMode = thisSeries.resolveMarkerDrawingModeForState(drawingMode, style);
         });
 
         if (!isHighlight) {
@@ -802,10 +918,14 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         });
     }
 
-    makeStylerParams(highlightStateEnum?: HighlightState): AgLineSeriesStylerParams<unknown, unknown> {
+    makeStylerParams(
+        highlightStateEnum: HighlightState | undefined,
+        selectionStateEnum: SelectionState | undefined
+    ): AgLineSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
         const { marker, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth, xKey, yKey } = this.properties;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+        const selectionState = toSelectionString(selectionStateEnum);
 
         type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> };
         type ResultRules = CallbackParamRules<AgLineSeriesStylerParams<unknown, unknown> & MarkerRules>;
@@ -822,6 +942,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                 lineDashOffset: marker.lineDashOffset,
             },
             highlightState,
+            selectionState,
             lineDash,
             lineDashOffset,
             seriesId,
@@ -876,7 +997,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
 
         if (xValue === undefined && !allowNullKeys) return;
 
-        const stylerStyle = this.getStyle();
+        const stylerStyle = this.getStyle(undefined);
         const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
 
         const format = this.getMarkerStyle(
@@ -916,7 +1037,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const { stroke, strokeOpacity, strokeWidth, lineDash, marker } = this.getStyle();
+        const { stroke, strokeOpacity, strokeWidth, lineDash, marker } = this.getStyle(undefined);
 
         const markerStyle = this.getMarkerStyle(
             this.properties.marker,
@@ -1133,13 +1254,14 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
     }
 
     public getStyle(
-        highlightState?: HighlightState
+        highlightState: HighlightState | undefined
     ): Required<AgLineSeriesStylerResult> & { marker: Required<AgSeriesMarkerStyle> } {
         const { styler, marker, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = this.properties;
         const { size, shape, fill = 'transparent', fillOpacity } = marker;
         let stylerResult: AgLineSeriesStylerResult = {};
         if (styler) {
-            const stylerParams = this.makeStylerParams(highlightState);
+            const selectionState: SelectionState | undefined = this.getDataSelectionState(undefined);
+            const stylerParams = this.makeStylerParams(highlightState, selectionState);
             const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
             const resolved = this.ctx.optionsGraphService.resolvePartial(
                 ['series', `${this.declarationOrder}`],
@@ -1170,7 +1292,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
     }
 
     public getFormattedMarkerStyle(datum: LineNodeDatum) {
-        const stylerStyle = this.getStyle();
+        const stylerStyle = this.getStyle(undefined);
         const params = this.makeItemStylerParams(
             this.dataModel!,
             this.processedData!,

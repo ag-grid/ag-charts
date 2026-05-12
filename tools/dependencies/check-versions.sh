@@ -51,6 +51,23 @@ else
     checkVersion fontconfig libfontconfig "2..*" "2..*"
 fi
 
+## sharp (used by ag-charts-generate-chart-thumbnail) probes for a system
+## libvips via pkg-config and, if found, builds from source against it. An
+## incompatible host libvips is a common cause of cryptic `yarn install`
+## failures in `node_modules/sharp`. Force prebuilt binaries unless the
+## developer has explicitly opted in to the global build path.
+if [[ -z ${SHARP_IGNORE_GLOBAL_LIBVIPS:-} && -z ${SHARP_FORCE_GLOBAL_LIBVIPS:-} ]] ; then
+    if (which pkg-config >/dev/null 2>&1) && pkg-config --exists vips 2>/dev/null ; then
+        vipsVersion=$(pkg-config --modversion vips 2>/dev/null || echo "unknown")
+        PASS=false
+        echo -e "${RED}Detected system libvips ${vipsVersion} on PATH.${RESET}"
+        echo -e "sharp will try to build from source against it, which often fails."
+        echo -e "Re-run with prebuilt binaries:"
+        echo -e "    SHARP_IGNORE_GLOBAL_LIBVIPS=true yarn install"
+        echo -e "Or set SHARP_IGNORE_GLOBAL_LIBVIPS=true in your shell profile."
+    fi
+fi
+
 if [[ $PASS == "false" ]] ; then
     exit 1
 fi

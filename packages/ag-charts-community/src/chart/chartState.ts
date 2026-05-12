@@ -12,7 +12,7 @@ import type { CategoryLegendDatum } from './legend/legendDatum';
 
 export type ResolvedChartOptions = Omit<AgChartOptions, 'legend' | 'selection' | 'zoom'> & {
     legend: NormalisedLegendOptions;
-    selection: NormalisedSelectionOptions;
+    selection: NormalisedSelectionOptions | undefined;
     zoom: NormalisedZoomOptions;
 };
 

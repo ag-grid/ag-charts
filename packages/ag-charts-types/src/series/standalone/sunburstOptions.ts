@@ -13,7 +13,8 @@ import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../serie
 export type AgSunburstHighlightState = HierarchyHighlightState;
 
 export interface AgSunburstSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
-    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
+    extends
+        AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgSunburstSeriesOptionsKeys,
         AgSunburstSeriesOptionsNames,
         AgSunburstSeriesStyle {
@@ -37,8 +38,10 @@ export interface AgSunburstSeriesHighlightOptions {
     unhighlightedBranch?: AgSunburstSeriesHighlightStyle;
 }
 
-export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlight' | 'showInLegend' | 'selection'> {
+export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
+    AgBaseSeriesThemeableOptions<TDatum, TContext>,
+    'highlight' | 'showInLegend' | 'selection'
+> {
     /** Options for the label in a sector. */
     label?: AgChartAutoSizedLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Options for a secondary, smaller label in a sector - displayed under the primary label. */
@@ -79,7 +82,8 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContex
 }
 
 export interface AgSunburstSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'highlightStyle' | 'showInLegend' | 'selection'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'highlightStyle' | 'showInLegend' | 'selection'>,
         AgSunburstSeriesOptionsKeys,
         AgSunburstSeriesOptionsNames,
         AgSunburstSeriesThemeableOptions<TDatum, TContext> {
@@ -109,7 +113,8 @@ export interface AgSunburstSeriesOptionsNames {
 
 /** The parameters of the Sunburst series formatter function */
 export interface AgSunburstSeriesItemStylerParams<TDatum, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum, AgSunburstHighlightState>,
+    extends
+        DatumCallbackParams<TDatum, AgSunburstHighlightState>,
         ContextCallbackParams<TContext>,
         AgSunburstSeriesOptionsKeys,
         Required<AgSunburstSeriesStyle> {
@@ -118,8 +123,7 @@ export interface AgSunburstSeriesItemStylerParams<TDatum, TContext = ContextDefa
 }
 
 export interface AgSunburstSeriesLabelFormatterParams<_TDatum = DatumDefault>
-    extends AgSunburstSeriesOptionsKeys,
-        AgSunburstSeriesOptionsNames {
+    extends AgSunburstSeriesOptionsKeys, AgSunburstSeriesOptionsNames {
     /** The depth of the datum in the hierarchy. */
     depth: number;
 }

@@ -88,7 +88,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
 
             const fullFormat =
                 style === 'component'
-                    ? specifier?.[unit] ?? defaultTimeFormats[unit]
+                    ? (specifier?.[unit] ?? defaultTimeFormats[unit])
                     : deriveTimeSpecifier(specifier, unit, truncateDate);
 
             return buildDateFormatter(fullFormat) as (value: any) => string;

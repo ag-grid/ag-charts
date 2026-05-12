@@ -1,5 +1,5 @@
 import type { AgSeriesListeners } from '../chart/eventOptions';
-import type { AgSelectionOptions } from '../chart/selectionOptions';
+import type { AgSelectionOptions, AgSelectionStyleOptions } from '../chart/selectionOptions';
 import type { AxisValue, ContextDefault, DatumDefault, InteractionRange, Opacity } from '../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './cartesian/commonOptions';
 
@@ -28,8 +28,6 @@ export interface AgHighlightOptions<ItemHighlightStyleOptions = AgHighlightStyle
 }
 export interface AgHighlightStyleOptions extends AgBaseHighlightStyleOptions, FillOptions {}
 
-export interface AgSelectionStyleOptions extends AgBaseHighlightStyleOptions, FillOptions {}
-
 export interface AgBaseHighlightStyleOptions extends StrokeOptions, LineDashOptions {
     /** The opacity of the whole series (line, fill, labels and markers, if any) */
     opacity?: Opacity;
@@ -43,7 +41,7 @@ export interface AgBaseSeriesThemeableOptions<TDatum, TContext = ContextDefault>
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgHighlightOptions<AgHighlightStyleOptions>;
     /** Configuration for data selection. */
-    selection?: AgSelectionOptions<AgSelectionStyleOptions>;
+    selection?: AgSelectionOptions<AgSelectionStyleOptions, AgSelectionStyleOptions>;
     /** Range from a node that a click triggers the listener. */
     nodeClickRange?: InteractionRange;
     /** Whether to include the series in the legend. */
@@ -52,8 +50,10 @@ export interface AgBaseSeriesThemeableOptions<TDatum, TContext = ContextDefault>
     listeners?: AgSeriesListeners<TDatum, TContext>;
 }
 
-export interface AgBaseCartesianThemeableOptions<TDatum, TContext = ContextDefault>
-    extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
+export interface AgBaseCartesianThemeableOptions<
+    TDatum,
+    TContext = ContextDefault,
+> extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /** Whether to include the series in the Mini Chart. */
     showInMiniChart?: boolean;
 }
@@ -76,8 +76,10 @@ export interface AgSeriesLineSegmentOptions extends StrokeOptions, LineDashOptio
 
 export interface AgSeriesShapeSegmentOptions extends AgSeriesLineSegmentOptions, FillOptions {}
 
-export interface AgBaseSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
+export interface AgBaseSeriesOptions<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /**
      * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series. Auto-generated ids are subject to future change without warning, if your callbacks need to vary behaviour by series please supply your own unique `id` value.
      *

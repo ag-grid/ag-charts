@@ -19,7 +19,8 @@ export type AgOhlcSeriesItemStylerParams<
 > = AgOhlcSeriesBaseItemStylerParams<TDatum, TContext>;
 
 export interface AgOhlcSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
-    extends AgOhlcSeriesBaseTooltipRendererParams<TDatum, TContext>,
+    extends
+        AgOhlcSeriesBaseTooltipRendererParams<TDatum, TContext>,
         AgOhlcSeriesBaseOptions<TDatum>,
         AgOhlcSeriesItemOptions {}
 
@@ -38,8 +39,7 @@ export interface AgOhlcSeriesStyles {
 }
 
 export interface AgOhlcSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'>,
-        AgOhlcSeriesStyles {
+    extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'>, AgOhlcSeriesStyles {
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgOhlcSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual items, based on the given parameters.*/
@@ -53,7 +53,8 @@ export interface AgOhlcHighlightStyleOptions extends AgOhlcSeriesItemOptions {
 }
 
 export interface AgOhlcSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgOhlcSeriesThemeableOptions<TDatum, TContext>,
+    extends
+        AgOhlcSeriesThemeableOptions<TDatum, TContext>,
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgBaseCartesianSeriesAxisOptions,
         AgOhlcSeriesBaseOptions<TDatum>,

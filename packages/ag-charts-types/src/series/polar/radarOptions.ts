@@ -2,6 +2,7 @@ import type {
     ContextCallbackParams,
     DatumCallbackParams,
     HighlightState,
+    SelectionState,
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
@@ -27,9 +28,8 @@ export interface AgRadarSeriesThemeableOptions<
         TContext,
         TStyle
     >,
-> extends StrokeOptions,
-        LineDashOptions,
-        AgBaseSeriesThemeableOptions<TDatum, TContext> {
+>
+    extends StrokeOptions, LineDashOptions, AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the markers used in the series. */
     marker?: AgSeriesMarkerOptions<TDatum, AgRadialSeriesOptionsKeys<TDatum>, TContext>;
     /** Configuration for the labels shown on top of data points. */
@@ -58,7 +58,9 @@ export interface AgBaseRadarSeriesOptions<
         TContext,
         TStyle
     >,
-> extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+>
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
         AgRadarSeriesThemeableOptions<TDatum, TContext, TStyle, TStylerParams> {
@@ -82,11 +84,10 @@ export type AgRadarSeriesItemStylerParams<TDatum = DatumDefault, TContext = Cont
     StrokeOptions &
     LineDashOptions;
 
-export type AgRadarSeriesStylerParams<
-    TDatum,
-    TContext,
-    TStyle extends AgRadarSeriesStyle,
-> = SeriesCallbackParams<HighlightState> &
+export type AgRadarSeriesStylerParams<TDatum, TContext, TStyle extends AgRadarSeriesStyle> = SeriesCallbackParams<
+    HighlightState,
+    SelectionState
+> &
     ContextCallbackParams<TContext> &
     AgRadialSeriesOptionsKeys<TDatum> &
     Required<TStyle>;

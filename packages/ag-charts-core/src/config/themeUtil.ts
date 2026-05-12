@@ -415,8 +415,13 @@ export const SERIES_SELECTION_THEME: WithThemeParams<AgSelectionOptions<AgSelect
     enabled: { $path: ['/selection/enabled', false] },
     containment: { $path: '/selection/containment' },
     selectedItem: {
-        stroke: 'black',
         strokeWidth: 2,
+    },
+    unselectedItem: {
+        opacity: 0.6,
+    },
+    unselectedSeries: {
+        opacity: 0.2,
     },
 };
 
