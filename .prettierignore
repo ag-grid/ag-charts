@@ -38,3 +38,6 @@ tsconfig.base.json
 external/ag-shared/
 
 .rulesync
+
+# Licenses
+LICENSE.html
