@@ -39,6 +39,7 @@ export {
     parentLevelAxisThemeTemplate,
     titleAxisThemeTemplate,
 } from './chart/themes/axisThemeTemplate';
+export { commonChartThemeTemplate } from './chart/themes/chartThemeTemplate';
 export {
     boxPlotSeriesThemeableOptionsDef,
     candlestickSeriesThemeableOptionsDef,

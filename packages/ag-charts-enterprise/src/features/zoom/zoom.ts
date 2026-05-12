@@ -268,7 +268,7 @@ export class Zoom extends AbstractModuleInstance {
         if (event?.device !== 'touch') {
             return false;
         }
-        if (this.ctx.chartService.touch.dragAction !== 'drag') {
+        if (this.ctx.chartState.getValue('options', 'touch').dragAction !== 'drag') {
             return true;
         }
         const { enableSelecting, enablePanning } = this.opts;

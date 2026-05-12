@@ -263,7 +263,7 @@ export class Crosshair
         return (
             event.type === 'mousemove' ||
             event.type === 'click' ||
-            (event.device === 'touch' && this.ctx.chartService.touch.dragAction === 'hover')
+            (event.device === 'touch' && this.ctx.chartState.getValue('options', 'touch').dragAction === 'hover')
         );
     }
 

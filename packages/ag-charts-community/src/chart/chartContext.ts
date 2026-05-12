@@ -78,7 +78,7 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
 
     const domManager = new DOMManager(
         eventsHub,
-        chart,
+        () => chartState.getValue('options', 'styleNonce'),
         vars.agDocument,
         vars.container,
         vars.styleContainer,

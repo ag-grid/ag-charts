@@ -4,19 +4,31 @@ import type {
     NormalisedZoomOptions,
     ZoomState,
 } from 'ag-charts-core';
-import type { AgActiveItemState, AgChartOptions, AgChartPaddingOptions } from 'ag-charts-types';
+import type {
+    AgActiveItemState,
+    AgChartOptions,
+    AgChartPaddingOptions,
+    AgInitialFocus,
+    AgTouchOptions,
+} from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { DataSelectionState } from './data/dataSelectionState';
 import type { CategoryLegendDatum } from './legend/legendDatum';
 
-export type ResolvedChartOptions = Omit<AgChartOptions, 'legend' | 'padding' | 'selection' | 'zoom'> & {
+export type ResolvedChartOptions = Omit<
+    AgChartOptions,
+    'keyboard' | 'legend' | 'padding' | 'selection' | 'suppressFieldDotNotation' | 'touch' | 'zoom'
+> & {
+    keyboard: { enabled: boolean; initialFocus: AgInitialFocus; tabIndex?: number };
     legend: NormalisedLegendOptions;
     padding: Required<AgChartPaddingOptions>;
     selection: NormalisedSelectionOptions | undefined;
+    suppressFieldDotNotation: boolean;
+    touch: Required<AgTouchOptions>;
     zoom: NormalisedZoomOptions;
     // Undocumented options that the chart consumes through chartState.
-    mode?: 'integrated' | 'standalone';
+    mode: 'integrated' | 'standalone';
     withinStudio?: boolean;
 };
 

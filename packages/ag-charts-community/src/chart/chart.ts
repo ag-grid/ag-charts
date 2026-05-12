@@ -15,7 +15,6 @@ import {
     type ModuleInstance,
     ModuleRegistry,
     ModuleType,
-    Property,
     ProxyProperty,
     ZIndexMap,
     callWithContext,
@@ -65,7 +64,6 @@ import type { ChartAxis } from './chartAxis';
 import { ChartCaptions } from './chartCaptions';
 import { createChartContext } from './chartContext';
 import { ChartHighlight } from './chartHighlight';
-import type { ChartMode } from './chartMode';
 import type { ChartService, ChartServiceEvent, ChartServiceEventType } from './chartService';
 import type { ChartState } from './chartState';
 import type { ChartType } from './chartType';
@@ -73,7 +71,6 @@ import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
 import { DataSet } from './data/dataSet';
 import { SyncManager, type SyncStatus } from './interaction/syncManager';
-import { Keyboard } from './keyboard';
 import { type LayoutContext, LayoutElement } from './layout/layoutManager';
 import type { ChartLegend } from './legend/legendDatum';
 import { guessInvalidPositions } from './mapping/prepareAxis';
@@ -88,7 +85,6 @@ import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
 import type { DatumIndexType, ISeries, ISeriesProperties } from './series/seriesTypes';
 import { Tooltip, type TooltipContent } from './tooltip/tooltip';
-import { Touch } from './touch';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
@@ -371,18 +367,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         return this.seriesAreaManager.bbox;
     }
 
-    @Property
-    readonly keyboard = new Keyboard();
-
-    @Property
-    readonly touch = new Touch();
-
-    @Property
-    mode: ChartMode = 'standalone';
-
-    @Property
-    styleNonce: string | undefined = undefined;
-
     @ProxyProperty('chartCaptions.title')
     readonly title!: Caption;
 
@@ -391,12 +375,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     @ProxyProperty('chartCaptions.footnote')
     readonly footnote!: Caption;
-
-    @Property
-    suppressFieldDotNotation: boolean = false;
-
-    @Property
-    loadGoogleFonts: boolean = false;
 
     context?: unknown;
 
@@ -473,8 +451,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         this.tooltip = new Tooltip(agDocument);
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
-        this.mode = (options.userOptions as { mode?: ChartMode }).mode ?? this.mode;
-        this.styleNonce = options.processedOptions.styleNonce;
         const ctx = (this.ctx = createChartContext(this, {
             chartType: this.getChartType(),
             scene,
@@ -489,6 +465,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             fireEvent: (event) => this.fireEvent(event),
             updateMutex: this.updateMutex,
         }));
+        // Publish processed options to chartState immediately so option-derived reads
+        // (mode, padding, etc.) work for the rest of construction. `applyOptions` will
+        // refresh this on each subsequent update.
+        ctx.chartState.setValue('options', options.processedOptions as ChartState['options']);
 
         // Disable delayed unhighlight + tooltip removal for sparklines to avoid laggy tooltips when quickly
         // moving between charts (CRT-1012)
@@ -622,7 +602,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     private initSeriesAreaDependencies(): SeriesAreaChartDependencies {
-        const { ctx, tooltip, highlight, keyboard, overlays, seriesRoot, mode } = this;
+        const { ctx, tooltip, highlight, overlays, seriesRoot } = this;
         const chartType = this.getChartType();
         const hasViewportSupport: () => boolean = () => this.hasViewportSupport();
         const hasPgUpPgDownSupport: () => boolean = () => this.hasPgUpPgDownSupport();
@@ -645,10 +625,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             ctx,
             tooltip,
             highlight,
-            keyboard,
             overlays,
             seriesRoot,
-            mode,
         };
     }
 
@@ -858,7 +836,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         } = opts ?? {};
 
         this.apiUpdate = apiUpdate;
-        this.ctx.widgets.seriesWidget.setDragTouchEnabled(this.touch.dragAction !== 'none');
+        this.ctx.widgets.seriesWidget.setDragTouchEnabled(
+            this.ctx.chartState.getValue('options', 'touch').dragAction !== 'none'
+        );
 
         if (forceNodeDataRefresh) {
             for (const series of this.series) {
@@ -1136,7 +1116,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     private updateDOM() {
         this.updateThemeClassName();
 
-        const { enabled, tabIndex } = this.keyboard;
+        const { enabled, tabIndex } = this.ctx.chartState.getValue('options', 'keyboard');
         this.ctx.domManager.setTabGuardIndex(enabled ? (tabIndex ?? 0) : -1);
         this.ctx.domManager.setThemeParameters(this.chartOptions.themeParameters);
     }
@@ -1230,7 +1210,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
             series.chart = {} as any;
             Object.defineProperty(series.chart, 'mode', {
-                get: () => this.mode,
+                get: () => this.ctx.chartState.getValue('options', 'mode'),
             });
             Object.defineProperty(series.chart, 'isMiniChart', {
                 get: () => false,
@@ -1389,7 +1369,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.assignSeriesToAxes();
         }
 
-        const dataController = new DataController(this.mode, this.suppressFieldDotNotation, this.ctx.eventsHub);
+        const dataController = new DataController(
+            this.ctx.chartState.getValue('options', 'mode'),
+            this.ctx.chartState.getValue('options', 'suppressFieldDotNotation'),
+            this.ctx.eventsHub
+        );
 
         const promises: Promise<void>[] = [];
         for (const series of this.series) {
@@ -1499,7 +1483,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             return;
         }
 
-        if (this.mode !== 'integrated') {
+        if (this.ctx.chartState.getValue('options', 'mode') !== 'integrated') {
             // Validate each series that shares a legend item label uses the same fill colour
             const seriesMarkerFills: { [key: string]: Map<TextOrSegments, AgColorType | undefined> } = {};
             const seriesMap = new Map(this.series.map((s) => [s.id, s]));
@@ -1735,6 +1719,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             'padding',
             'withinStudio',
             'dataIdKey',
+            'mode',
+            'suppressFieldDotNotation',
+            'loadGoogleFonts',
+            'styleNonce',
+            'keyboard',
+            'touch',
         ];
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
@@ -1897,7 +1887,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     private maybeResetAnimations(seriesStatus: SeriesChangeType) {
-        if (this.mode !== 'standalone') return;
+        if (this.ctx.chartState.getValue('options', 'mode') !== 'standalone') return;
 
         switch (seriesStatus) {
             case 'series-grouping-change':
