@@ -165,24 +165,24 @@ test.describe('tooltip', () => {
         });
 
         test('screenshots', async ({ page }) => {
-            hoverCenter(page);
+            await hoverCenter(page);
             await expect(page).toHaveScreenshot('AG-16619-candidate-1st-series.png');
 
-            clickCenter(page);
+            await clickCenter(page);
             await expect(page).toHaveScreenshot('AG-16619-candidate-3rd-series.png');
 
-            clickCenter(page);
+            await clickCenter(page);
             await expect(page).toHaveScreenshot('AG-16619-candidate-1st-series.png');
         });
 
         test('textContent', async ({ page }) => {
-            hoverCenter(page);
+            await hoverCenter(page);
             expect(await getHTMLTextContent(page)).toEqual('1 of 2');
 
-            clickCenter(page);
+            await clickCenter(page);
             expect(await getHTMLTextContent(page)).toEqual('2 of 2');
 
-            clickCenter(page);
+            await clickCenter(page);
             expect(await getHTMLTextContent(page)).toEqual('1 of 2');
         });
     });
