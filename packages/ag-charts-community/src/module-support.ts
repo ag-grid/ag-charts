@@ -421,3 +421,4 @@ export { BaseToolbar, Toolbar } from './components/toolbar/toolbar';
 export type { ToolbarButtonOptions, ToolbarEventMap } from './components/toolbar/toolbar';
 export { FloatingToolbar } from './components/toolbar/floatingToolbar';
 export type { FloatingToolbarAnchor } from './components/toolbar/floatingToolbar';
+export type { LocaleManager } from './locale/localeManager';

@@ -101,9 +101,14 @@ export class ToolbarButtonWidget extends ButtonWidget {
     private lastTooltip?: string;
     private arrowKeyPredicate: KeyboardClickBindingPredicate = falsePredicate;
 
-    constructor(private readonly localeManager: LocaleManager) {
+    constructor(
+        private readonly localeManager: LocaleManager,
+        opensWithArrowKey: boolean
+    ) {
         super();
-        this.addKeyboardClickBinding((ev) => this.arrowKeyPredicate(ev));
+        if (opensWithArrowKey) {
+            this.addKeyboardClickBinding((ev) => this.arrowKeyPredicate(ev));
+        }
     }
 
     public update(options: ToolbarButtonWidgetOptions, interactionOptions: { isRtl: boolean }) {
