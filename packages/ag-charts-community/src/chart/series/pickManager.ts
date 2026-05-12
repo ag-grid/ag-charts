@@ -45,7 +45,7 @@ function indexOf(candidates: PickedNode[], node: PickedNode | undefined): number
 }
 
 function filterDisabledMatches(matches: PickedNode[]): PickedNode[] {
-    return matches.filter(match => {
+    return matches.filter((match) => {
         return match.series.properties.tooltip.enabled ?? true;
     });
 }
