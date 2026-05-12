@@ -995,7 +995,8 @@ export class Annotations extends AbstractModuleInstance {
         const { state } = this;
 
         this.pushAnnotationState(InteractionState.Annotations);
-        // AG-16815 Keep the focus on the series-area element. The axis button can disappear on 'mouseleave' events, which clears the current focus as a consequence.
+        // AG-16815 Keep the focus on the series-area element. The axis button can disappear on 'mouseleave' events,
+        // which clears the current focus as a consequence.
         this.ctx.widgets.seriesWidget.focus({ preventScroll: true });
 
         const isHorizontal = direction === 'horizontal';
