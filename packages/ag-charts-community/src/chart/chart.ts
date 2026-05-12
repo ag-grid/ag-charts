@@ -15,7 +15,6 @@ import {
     type ModuleInstance,
     ModuleRegistry,
     ModuleType,
-    Padding,
     Property,
     ProxyProperty,
     ZIndexMap,
@@ -43,7 +42,6 @@ import type {
     AgMiniChartSeriesOptions,
     AgSelectionItem,
     AgSelectionItemIds,
-    FormatterConfiguration,
     SeriesOptionsTypes,
     SeriesType,
     TextOrSegments,
@@ -369,9 +367,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
     private readonly chartCaptions = new ChartCaptions();
 
-    @Property
-    readonly padding = new Padding(20);
-
     get seriesAreaBoundingBox() {
         return this.seriesAreaManager.bbox;
     }
@@ -384,10 +379,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     @Property
     mode: ChartMode = 'standalone';
-
-    // undocumented property for studio
-    @Property
-    withinStudio: boolean | undefined = undefined;
 
     @Property
     styleNonce: string | undefined = undefined;
@@ -402,16 +393,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     readonly footnote!: Caption;
 
     @Property
-    formatter: FormatterConfiguration<any> | undefined = undefined;
-
-    @Property
     suppressFieldDotNotation: boolean = false;
 
     @Property
     loadGoogleFonts: boolean = false;
-
-    @Property
-    dataIdKey: string | undefined = undefined;
 
     context?: unknown;
 
@@ -454,7 +439,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     protected createDataSet(data: unknown[]): DataSet {
-        return DataSet.replaceWith(this.data, data, this.dataIdKey);
+        return DataSet.replaceWith(this.data, data, this.ctx.chartState.getValue('options', 'dataIdKey'));
     }
 
     constructor(options: ChartOptions, resources?: TransferableResources) {
@@ -566,7 +551,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.seriesAreaManager = new SeriesAreaManager(this.initSeriesAreaDependencies());
         this.cleanup.register(
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
-                e.layoutBox.shrink(this.padding.toJson());
+                e.layoutBox.shrink(ctx.chartState.getValue('options', 'padding'));
                 this.chartCaptions.positionCaptions(e);
             }),
             ctx.eventsHub.on('layout:complete', (e) => this.chartCaptions.positionAbsoluteCaptions(e)),
@@ -1604,7 +1589,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         this.ctx.seriesLabelLayoutManager.updateLabels(
             this.series.filter((s) => s.visible && s.usesPlacedLabels),
-            this.padding,
+            this.ctx.chartState.getValue('options', 'padding'),
             this.seriesRect
         );
     }
@@ -1747,6 +1732,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             'displayNullData',
             'enableRtl',
             'selection',
+            'padding',
+            'withinStudio',
+            'dataIdKey',
         ];
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
@@ -1790,7 +1778,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         if (
             'dataIdKey' in deltaOptions &&
             !(deltaOptions.data && userExplicitlyPassedData) &&
-            this.data.dataIdKey !== this.dataIdKey
+            this.data.dataIdKey !== this.ctx.chartState.getValue('options', 'dataIdKey')
         ) {
             this.data = this.createDataSet(this.data.data);
             dataSetRecreated = true;

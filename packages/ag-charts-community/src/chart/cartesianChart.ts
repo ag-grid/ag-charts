@@ -304,7 +304,7 @@ export class CartesianChart extends Chart {
 
             const chartLayout = {
                 sizeLimit: axisWidth - axis.options.label.spacing,
-                padding: this.padding,
+                padding: this.ctx.chartState.getValue('options', 'padding'),
                 scrollbars,
             };
 

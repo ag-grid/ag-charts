@@ -48,7 +48,8 @@ export class StandaloneChart extends Chart {
     protected override createDataSet(data: unknown[]): _ModuleSupport.DataSet {
         for (const series of this.series) {
             if ('childrenKey' in series.properties) {
-                const ds = new HierarchyDataSet(data, this.dataIdKey, series.properties.childrenKey);
+                const dataIdKey = this.ctx.chartState.getValue('options', 'dataIdKey');
+                const ds = new HierarchyDataSet(data, dataIdKey, series.properties.childrenKey);
                 if (this.data) ds.transferFrom(this.data);
                 return ds;
             }
