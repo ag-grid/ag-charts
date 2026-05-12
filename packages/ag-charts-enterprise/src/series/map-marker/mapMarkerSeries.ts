@@ -1125,6 +1125,7 @@ export class MapMarkerSeries
         }
 
         const format = this.getMarkerItemStyle({ datumIndex, datum, colorValue, sizeValue }, false);
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -1150,6 +1151,7 @@ export class MapMarkerSeries
                 sizeName,
                 labelKey,
                 labelName,
+                pagination,
                 ...format,
             }
         );

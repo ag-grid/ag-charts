@@ -947,6 +947,7 @@ export abstract class OhlcSeriesBase<
         const item = this.properties.item[itemType];
 
         const format = this.getItemStyle(datumIndex, false);
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         const marker = {
             fill: item.fill ?? item.stroke,
@@ -1009,6 +1010,7 @@ export abstract class OhlcSeriesBase<
                 lowName,
                 closeKey,
                 closeName,
+                pagination,
                 ...format,
             } as const
         );

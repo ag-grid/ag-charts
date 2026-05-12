@@ -1582,6 +1582,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             { isHighlight: false },
             stylerStyle.marker
         ) as RequireOptional<AgSeriesMarkerStyle>;
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -1605,6 +1606,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                 xName,
                 yKey,
                 yName,
+                pagination,
                 ...format,
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }

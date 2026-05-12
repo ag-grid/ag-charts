@@ -558,6 +558,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const format = this.getItemStyle(datumIndex, false, undefined, undefined);
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [
             {
@@ -617,6 +618,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
                 minName,
                 maxKey,
                 maxName,
+                pagination,
                 ...format,
             }
         );

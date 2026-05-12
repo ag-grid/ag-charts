@@ -699,6 +699,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         );
 
         const format = this.getItemStyle({ datumIndex, datum }, false);
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
         return this.formatTooltipWithContext(
             tooltip,
             {
@@ -711,6 +712,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 title: undefined,
                 stageKey,
                 valueKey,
+                pagination,
                 ...format,
             }
         );

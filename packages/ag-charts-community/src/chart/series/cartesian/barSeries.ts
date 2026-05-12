@@ -1611,6 +1611,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
         const format = this.getItemStyle(datumIndex, false, undefined, undefined);
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -1636,6 +1637,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 yName,
                 legendItemName,
                 stackGroup,
+                pagination,
                 ...format,
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }

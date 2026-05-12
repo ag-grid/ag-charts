@@ -557,6 +557,7 @@ export abstract class RadarSeries<
         const activeStyle = this.getMarkerStyle(marker, { datum, datumIndex }, this.getDatumStylerProperties(datum), {
             isHighlight: false,
         });
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -589,6 +590,7 @@ export abstract class RadarSeries<
                 angleName,
                 radiusName,
                 legendItemName,
+                pagination,
                 ...(activeStyle as RequireOptional<AgSeriesMarkerStyle>),
             }
         );

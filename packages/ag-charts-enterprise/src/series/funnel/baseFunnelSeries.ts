@@ -571,6 +571,7 @@ export abstract class BaseFunnelSeries<
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         const allowNullKeys = this.properties.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -583,7 +584,15 @@ export abstract class BaseFunnelSeries<
                     },
                 ],
             },
-            { seriesId, datum, title: stageKey, stageKey, valueKey, ...this.tooltipStyle(datum, datumIndex) }
+            {
+                seriesId,
+                datum,
+                title: stageKey,
+                stageKey,
+                valueKey,
+                pagination,
+                ...this.tooltipStyle(datum, datumIndex),
+            }
         );
     }
 

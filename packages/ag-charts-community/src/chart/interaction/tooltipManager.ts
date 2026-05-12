@@ -1,4 +1,5 @@
 import { type BoxBounds, CleanupRegistry, objectsEqual } from 'ag-charts-core';
+import type { AgTooltipPaginationInfo } from 'ag-charts-types';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { DOMManager } from '../../dom/domManager';
@@ -55,6 +56,16 @@ export class TooltipManager {
             tooltip.setup(localeManager, domManager),
             eventsHub.on('dom:hidden', () => this.tooltip.hide())
         );
+    }
+
+    public getPaginationParam(): AgTooltipPaginationInfo | undefined {
+        const id = this.stateTracker.stateId();
+        if (!id) return undefined;
+
+        const { pagination } = this.stateTracker.get(id) ?? {};
+        if (!pagination) return undefined;
+
+        return { currentPage: pagination.index + 1, totalPages: pagination.length };
     }
 
     public destroy() {

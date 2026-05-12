@@ -1042,6 +1042,7 @@ export class SankeySeries extends FlowProportionSeries<
         } else {
             format = this.getNodeStyle({ datumIndex, datum }, datumIndex.index, false);
         }
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
         if (sizeKey != null) {
@@ -1078,6 +1079,7 @@ export class SankeySeries extends FlowProportionSeries<
                 sizeKey,
                 sizeName,
                 size,
+                pagination,
                 ...format,
             }
         );

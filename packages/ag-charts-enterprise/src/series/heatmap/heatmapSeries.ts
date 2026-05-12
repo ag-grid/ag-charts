@@ -829,6 +829,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         if (format.fill != null) {
             fill = format.fill;
         }
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         const symbol: _ModuleSupport.LegendSymbolOptions | undefined =
             fill == null
@@ -859,6 +860,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 yName,
                 colorKey,
                 colorName,
+                pagination,
                 ...(format as any as Required<ItemStyle>),
             }
         );

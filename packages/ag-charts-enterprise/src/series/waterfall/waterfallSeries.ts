@@ -999,6 +999,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
         const format = this.getItemStyle(nodeDatum, false, undefined, nodeDatum?.itemType);
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         // Override only the renderer; other tooltip fields (enabled, position, range, class,
         // interaction) are read directly off `series.properties.tooltip` upstream of this method,
@@ -1024,7 +1025,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                     },
                 ],
             },
-            { seriesId, datum, title: yName, itemType: seriesItemType, xKey, xName, yKey, yName, ...format }
+            { seriesId, datum, title: yName, itemType: seriesItemType, xKey, xName, yKey, yName, pagination, ...format }
         );
     }
 

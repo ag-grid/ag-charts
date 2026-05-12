@@ -856,6 +856,7 @@ export class MapLineSeries
         }
 
         const format = this.getItemStyle({ datumIndex, datum, colorValue, sizeValue }, false);
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -877,6 +878,7 @@ export class MapLineSeries
                 sizeName,
                 labelKey,
                 labelName,
+                pagination,
                 ...format,
             }
         );

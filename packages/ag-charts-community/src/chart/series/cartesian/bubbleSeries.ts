@@ -1453,6 +1453,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             // the on-canvas marker colour.
             activeStyle.fill = resolvedColorFill;
         }
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -1476,6 +1477,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 colorKey,
                 colorName,
                 legendItemName,
+                pagination,
                 ...(activeStyle as RequireOptional<FillOptions & StrokeOptions & LineDashOptions>),
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }

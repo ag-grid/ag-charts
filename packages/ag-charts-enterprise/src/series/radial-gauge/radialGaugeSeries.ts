@@ -1434,13 +1434,14 @@ export class RadialGaugeSeries
         }
 
         if (value == null) return;
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         return this.formatTooltipWithContext(
             tooltip,
             {
                 data: [{ label: text, fallbackLabel, value: this.formatLabel(value) }],
             },
-            { seriesId, title: undefined, datum: undefined, value }
+            { seriesId, title: undefined, datum: undefined, value, pagination }
         );
     }
 

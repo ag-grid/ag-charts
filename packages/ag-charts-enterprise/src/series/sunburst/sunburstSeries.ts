@@ -668,6 +668,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             { ...nodeDatum, colorValue: datumColor ?? nodeDatum.colorValue } as SunburstNode,
             false
         );
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         const color = format.fill as InternalAgColorType;
 
@@ -707,6 +708,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 sizeName,
                 colorKey,
                 colorName,
+                pagination,
                 ...format,
             }
         );

@@ -118,12 +118,21 @@ export interface AgTooltipRendererResult {
     data?: AgTooltipRendererDataRow[];
 }
 
+export interface AgTooltipPaginationInfo {
+    /** Which tooltip page is currently rendered. */
+    currentPage: number;
+    /** Total number of pages available for rendering. */
+    totalPages: number;
+}
+
 export interface AgSeriesTooltipRendererParams<TDatum, TContext = ContextDefault> extends Omit<
     AgChartCallbackParams<TDatum, TContext>,
     'itemId' | 'itemType'
 > {
     /** Series title or yName depending on series configuration. */
     readonly title?: string;
+    /** Tooltip pagination info (if enabled). */
+    readonly pagination?: AgTooltipPaginationInfo;
 }
 
 export interface AgSeriesTooltip<TParams extends AgSeriesTooltipRendererParams<DatumDefault, ContextDefault>> {

@@ -582,6 +582,7 @@ export abstract class RadialColumnSeriesBase<
         if (angleValue === undefined && !this.properties.allowNullKeys) return;
 
         const format = getItemStyle(this, nodeDatum, false, undefined, undefined);
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
         return this.formatTooltipWithContext(
             tooltip,
             {
@@ -605,6 +606,7 @@ export abstract class RadialColumnSeriesBase<
                 radiusKey,
                 radiusName,
                 legendItemName,
+                pagination,
                 ...format,
             }
         );

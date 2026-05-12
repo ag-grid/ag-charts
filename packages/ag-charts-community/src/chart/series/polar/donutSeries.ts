@@ -1720,6 +1720,7 @@ export class DonutSeries extends PolarSeries<
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             }) ?? formatValue(angleRawValue, 3);
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -1741,6 +1742,7 @@ export class DonutSeries extends PolarSeries<
                 angleName,
                 radiusKey,
                 radiusName,
+                pagination,
                 ...this.getItemStyle({ datum, datumIndex }, false),
             }
         );

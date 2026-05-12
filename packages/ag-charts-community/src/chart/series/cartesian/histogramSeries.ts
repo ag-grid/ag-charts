@@ -788,6 +788,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 value: this.getAxisValueText(yAxis, 'tooltip', aggregatedValue, datum, yKey, legendItemName),
             });
         }
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -805,6 +806,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 yName,
                 xRange: [rangeMin, rangeMax] satisfies [number, number],
                 frequency,
+                pagination,
                 ...this.getItemStyle(datumIndex, false),
             }
         );

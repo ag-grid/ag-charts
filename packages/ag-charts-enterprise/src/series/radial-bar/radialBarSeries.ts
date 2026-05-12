@@ -567,6 +567,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         if (radiusValue === undefined && !this.properties.allowNullKeys) return;
 
         const format = getItemStyle(this, nodeDatum, false, undefined, undefined);
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -591,6 +592,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 radiusKey,
                 radiusName,
                 legendItemName,
+                pagination,
                 ...format,
             }
         );

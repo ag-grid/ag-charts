@@ -639,6 +639,7 @@ export class ChordSeries extends FlowProportionSeries<
             const label = seriesDatum.label;
             format = this.getNodeStyle({ datumIndex, datum, size, label }, datumIndex.index, false);
         }
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
         if (sizeKey != null) {
@@ -675,6 +676,7 @@ export class ChordSeries extends FlowProportionSeries<
                 sizeKey,
                 sizeName,
                 size,
+                pagination,
                 ...format,
             }
         );

@@ -888,6 +888,7 @@ export class MapShapeSeries
         }
 
         const format = this.getItemStyle({ datum, datumIndex, colorValue }, false);
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -897,7 +898,7 @@ export class MapShapeSeries
                 symbol: this.legendItemSymbol(datumIndex),
                 data,
             },
-            { seriesId, datum, title, idKey, idName, colorKey, colorName, labelKey, labelName, ...format }
+            { seriesId, datum, title, idKey, idName, colorKey, colorName, labelKey, labelName, pagination, ...format }
         );
     }
 

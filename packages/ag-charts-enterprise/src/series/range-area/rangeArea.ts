@@ -1374,6 +1374,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             { isHighlight: false, resolveMarkerSubPath: ['item', itemType, 'marker'] },
             stylerStyle.item[itemType].marker
         ) as RequireOptional<AgSeriesMarkerStyle>;
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;
         return this.formatTooltipWithContext(
@@ -1405,6 +1406,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 yHighKey,
                 yHighName,
                 legendItemName,
+                pagination,
                 ...format,
             }
         );

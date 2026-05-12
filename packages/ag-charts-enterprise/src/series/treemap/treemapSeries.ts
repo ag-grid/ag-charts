@@ -939,6 +939,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             isLeaf,
             false
         );
+        const pagination = this.ctx.tooltipManager.getPaginationParam();
 
         const color = format.fill as InternalAgColorType;
 
@@ -978,6 +979,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 sizeName,
                 colorKey,
                 colorName,
+                pagination,
                 ...format,
             }
         );
