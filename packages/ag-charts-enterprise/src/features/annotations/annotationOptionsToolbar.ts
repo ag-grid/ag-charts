@@ -80,6 +80,10 @@ interface AnnotationOptionsButtonOptions extends _ModuleSupport.ToolbarButtonOpt
 }
 
 class AnnotationOptionsButtonWidget extends ToolbarButtonWidget {
+    public constructor(localeManager: _ModuleSupport.LocaleManager) {
+        super(localeManager, false);
+    }
+
     public override update(options: AnnotationOptionsButtonOptions, interactionOptions: ButtonInteractionOptions) {
         super.update(options as any, interactionOptions);
 
