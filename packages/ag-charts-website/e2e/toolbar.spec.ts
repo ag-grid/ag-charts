@@ -204,7 +204,7 @@ test.describe('toolbar', () => {
         await expect(page).toHaveScreenshot('settings-button-ignored-hover-event.png', { animations: 'disabled' });
     });
 
-    test('AG-16815 chart responds to arrow keys after', async ({ page }) => {
+    test('AG-16815 chart responds to arrow keys after axis-button click and mouseleave', async ({ page }) => {
         await gotoExample(page, url);
 
         await page.mouse.click(714, 154, { button: 'left' });
