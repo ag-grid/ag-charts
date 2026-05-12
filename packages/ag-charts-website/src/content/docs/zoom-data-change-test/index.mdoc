@@ -6,6 +6,13 @@ enterprise: true
 
 When chart data is updated dynamically, you may want to control how the zoom behaves. AG Charts provides several strategies to handle this through the `zoom.onDataChange` option.
 
+## Data Change Strategies
+
+What to test:
+
+- Zoom in, switch between `reset`, `preserveRatios`, and `preserveDomain`, and confirm each strategy reacts as described in the comparison table.
+- Add data at the start, middle, and end while zoomed and observe the viewport for each strategy.
+
 {% chartExampleRunner title="Zoom Data Change Strategies" name="data-change-strategies" type="generated" /%}
 
 Use the strategy selector and buttons to add data at the start, middle, or end of the dataset while zoomed in to observe how each strategy behaves differently.
@@ -63,6 +70,11 @@ The table below summarizes how each strategy behaves:
 
 For charts displaying live streaming data, you'll typically want to use `strategy: 'preserveRatios'` or `strategy: 'preserveDomain'` to prevent the view from jumping around as new data arrives.
 
+What to test:
+
+- Zoom into a portion of the chart and confirm the view does not jump as new data points stream in each second.
+- Use the navigator mini chart to confirm new points are being appended off-screen.
+
 {% chartExampleRunner title="Live Streaming" name="live-streaming" type="generated" /%}
 
 In the example above:
@@ -74,6 +86,11 @@ In the example above:
 ## Stick to End
 
 The `stickToEnd` option ensures that newly appended data stays visible when the user has panned to the very end of the data range. This is enabled by default (`true`).
+
+What to test:
+
+- Pan to the end of the range and confirm the viewport scrolls to keep new points visible as they arrive.
+- Pan away from the end and confirm the active `strategy` takes over instead of sticking.
 
 {% chartExampleRunner title="Stick to End" name="stick-to-end" type="generated" /%}
 

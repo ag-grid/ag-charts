@@ -2,30 +2,50 @@
 title: 'Accessibility Tests'
 ---
 
-## Keyboard Navigation With Highlight
+## AG-13668 panToBBox
 
-{% chartExampleRunner title="Keyboard Navigation" name="keyboard-navigation-with-highlight" type="generated" /%}
+What to test:
 
-## Keyboard Navigation With Disabled Series Highlight
-
-{% chartExampleRunner title="Keyboard Navigation (Highlight Disabled Series)" name="keyboard-navigation-highlight-disabled-series" type="generated" /%}
-
-## Opening Context Menu Second Chart
-
-{% chartExampleRunner title="Context Menu Second Chart" name="opening-context-menu-second-chart" type="generated" /%}
-
-## AG-13668-panToBBox
+- Focus the candlestick chart and pan with the keyboard; the viewport pans to the focused bounding box without console errors.
 
 {% chartExampleRunner title="Test panToBBox" name="AG-13668-panToBBox" type="generated" /%}
 
-## CRT-1047 Change font family
+## activatesFocusIndicator: false
 
-{% chartExampleRunner title="Change Font Family" name="keyboard-navigation-change-font-family" type="generated" /%}
+What to test:
 
-## AG-16826 initialFocus
+- Focus the chart, create or interact with the comment annotation, then undo and redo; focus indicator does not activate around the annotation during these actions.
+
+{% chartExampleRunner title="activatesFocusIndicator: false" name="activatesFocusIndicator-false" type="generated" /%}
+
+## E2E Tested
+
+### initial-focus
+
+_Auto-tested via Playwright._
 
 {% chartExampleRunner title="Initial Focus" name="initial-focus" type="generated" /%}
 
-## activatesFocusIndicator: false
+### keyboard-navigation-change-font-family
 
-{% chartExampleRunner title="activatesFocusIndicator: false" name="activatesFocusIndicator-false" type="generated" /%}
+_Auto-tested via Playwright._
+
+{% chartExampleRunner title="Change Font Family" name="keyboard-navigation-change-font-family" type="generated" /%}
+
+### keyboard-navigation-highlight-disabled-series
+
+_Auto-tested via Playwright._
+
+{% chartExampleRunner title="Keyboard Navigation (Highlight Disabled Series)" name="keyboard-navigation-highlight-disabled-series" type="generated" /%}
+
+### keyboard-navigation-with-highlight
+
+_Auto-tested via Playwright._
+
+{% chartExampleRunner title="Keyboard Navigation" name="keyboard-navigation-with-highlight" type="generated" /%}
+
+### opening-context-menu-second-chart
+
+_Auto-tested via Playwright._
+
+{% chartExampleRunner title="Context Menu Second Chart" name="opening-context-menu-second-chart" type="generated" /%}

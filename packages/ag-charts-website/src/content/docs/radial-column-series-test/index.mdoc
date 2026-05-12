@@ -5,16 +5,37 @@ enterprise: true
 
 ## Styler
 
+What to test:
+
+- The Software series renders cyan with a blue dashed stroke; the Hardware series renders hotpink with a magenta stroke.
+- Series-level `fill`, `stroke` and `strokeWidth` set to ignored values do not appear; only the styler output applies.
+
 {% chartExampleRunner title="Styler" name="styler" type="generated" /%}
 
 ## Styler & Item Styler
+
+What to test:
+
+- Base styler colours apply across all columns in each series.
+- The `Q1'22` Software column uses the light-blue item-styler override; the `Q3'23` Hardware column uses the dark-khaki override.
 
 {% chartExampleRunner title="Styler & Item Styler" name="styler-and-itemstyler" type="generated" /%}
 
 ## Styler Highlight State
 
+What to test:
+
+- Hover a column; that column fills yellow (Software) or lime (Hardware) while its siblings fade.
+- Hover a legend item; the matching series highlights gold/limegreen and the other dims to the unhighlighted-series styling.
+
 {% chartExampleRunner title="Styler Highlight State" name="styler-highlight-state" type="generated" /%}
 
 ## Positive/Negative Data
+
+What to test:
+
+- Click Toggle Data Sign and Toggle Mixed Sign; columns flip to negative and back, growing inward from the baseline where appropriate.
+- Click Toggle Stacked; the two series stack and unstack correctly across positive, negative and mixed-sign datasets.
+- Click Toggle Radius and Toggle Angle; the axes reverse without clipping or layout glitches.
 
 {% chartExampleRunner title="Positive/Negative Data" name="positive-negative-data" type="generated" /%}

@@ -4,30 +4,52 @@ title: 'Financial Charts Test'
 
 ## Save Restore
 
+What to test:
+
+- Click "Save" to capture annotation state, modify or remove annotations, then click "Restore" and confirm the saved annotations reappear.
+
 {% chartExampleRunner title="Save Restore" name="annotation-save-restore" type="generated" /%}
 
 ## Chart Types
+
+What to test:
+
+- Switch between chart types (candlestick, OHLC, hollow-candlestick, line, step-line, HLC, high-low) and confirm each renders correctly.
 
 {% chartExampleRunner title="Chart Types" name="chart-types" type="generated" /%}
 
 ## Readonly
 
+What to test:
+
+- Confirm pre-loaded annotations render but cannot be edited, moved or deleted.
+
 {% chartExampleRunner title="Readonly" name="readonly" type="generated" /%}
 
 ## Async
 
+What to test:
+
+- Confirm a loading state is shown while data is fetched, then the chart and initial annotations render once the data resolves.
+
 {% chartExampleRunner title="Async" name="async-financial" type="generated" /%}
 
-# E2E Tests
+## E2E Tested
 
-## Icons
+### e2e-icons
+
+_Auto-tested via Playwright._
 
 {% chartExampleRunner title="Icons" name="e2e-icons" type="generated" /%}
 
-## Toolbar
+### e2e-toolbar
+
+_Auto-tested via Playwright._
 
 {% chartExampleRunner title="Toolbar" name="e2e-toolbar" type="generated" /%}
 
-## Zoom Navigator
+### e2e-zoom-navigator
+
+_Auto-tested via Playwright._
 
 {% chartExampleRunner title="Zoom & Navigator" name="e2e-zoom-navigator" type="generated" /%}
