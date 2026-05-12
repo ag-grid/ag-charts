@@ -866,7 +866,33 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         datumSelection: _ModuleSupport.Selection<BoxPlotNodeDatum, BoxPlotNode>;
         isHighlight: boolean;
     }) {
+        const { itemStyler } = this.properties;
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
+        if (itemStyler == null) {
+            // No itemStyler: style is a pure function of (highlightState, selectionState).
+            const styleByState = new Map<string, Required<AgBoxPlotSeriesStyle>>();
+            const thisSeries = this;
+
+            datumSelection.each(function updateDatumSelectionStyles(_, nodeDatum) {
+                const highlightState = thisSeries.getHighlightState(
+                    highlightedDatum,
+                    isHighlight,
+                    nodeDatum.datumIndex
+                );
+                const selectionState = thisSeries.getDataSelectionState(nodeDatum.datumIndex);
+                const stateKey = `${highlightState}:${selectionState ?? '-'}`;
+                let style = styleByState.get(stateKey);
+                if (style === undefined) {
+                    // Concrete datumIndex required: getStyle treats `undefined` as "ignore styler".
+                    style = thisSeries.getItemStyle(nodeDatum.datumIndex, isHighlight, highlightState, selectionState);
+                    styleByState.set(stateKey, style);
+                }
+                nodeDatum.style = style;
+            });
+            return;
+        }
+
         datumSelection.each((_, nodeDatum) => {
             const highlightState = this.getHighlightState(highlightedDatum, isHighlight, nodeDatum.datumIndex);
             const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);

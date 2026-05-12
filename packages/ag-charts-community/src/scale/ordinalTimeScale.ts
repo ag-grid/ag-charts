@@ -26,6 +26,9 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
     private _domain: Date[] = [];
     private isReversed: boolean = false;
     private _uniformityCache: UniformityCheck | undefined;
+    private _uniformityCacheVisibleStart: number | undefined;
+    private _uniformityCacheVisibleEnd: number | undefined;
+    private _uniformityCacheVisible: UniformityCheck | undefined;
 
     override set domain(domain: Date[]) {
         if (domain === this._domain) return;
@@ -35,6 +38,9 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         this._bands = undefined;
         this._numericBands = undefined;
         this._uniformityCache = undefined;
+        this._uniformityCacheVisibleStart = undefined;
+        this._uniformityCacheVisibleEnd = undefined;
+        this._uniformityCacheVisible = undefined;
         this.isReversed = domainReversed(domain);
     }
     override get domain(): Date[] {
@@ -65,10 +71,21 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
             return this._uniformityCache;
         }
 
-        // For partial visible range, sample within that range (no caching)
+        // Partial-range result cached by (startIdx, endIdx) — per-datum render loops re-call with the same visibleRange.
         const startIdx = Math.floor(visibleRange[0] * n);
         const endIdx = Math.min(Math.ceil(visibleRange[1] * n), n - 1);
-        return checkUniformityBySampling(bands, startIdx, endIdx);
+        if (
+            this._uniformityCacheVisible !== undefined &&
+            this._uniformityCacheVisibleStart === startIdx &&
+            this._uniformityCacheVisibleEnd === endIdx
+        ) {
+            return this._uniformityCacheVisible;
+        }
+        const result = checkUniformityBySampling(bands, startIdx, endIdx);
+        this._uniformityCacheVisibleStart = startIdx;
+        this._uniformityCacheVisibleEnd = endIdx;
+        this._uniformityCacheVisible = result;
+        return result;
     }
 
     override normalizeDomains(...domains: DomainWithMetadata<Date>[]): NormalizedDomain<Date> {

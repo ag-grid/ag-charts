@@ -1,6 +1,7 @@
 import { AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { DataType, getArgon, getHelium, getOxygen } from './data';
+import { random } from './randomHelpers';
 
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
@@ -85,11 +86,11 @@ function resetData() {
 }
 
 function randomDelta(min: number, max: number) {
-    return Math.random() * (max - min) + min;
+    return random() * (max - min) + min;
 }
 
 function randomIndex(length: number) {
-    return Math.round(Math.random() * (length - 1));
+    return Math.round(random() * (length - 1));
 }
 
 function randomiseData() {

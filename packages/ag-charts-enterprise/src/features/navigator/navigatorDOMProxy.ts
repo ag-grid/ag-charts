@@ -143,7 +143,10 @@ export class NavigatorDOMProxy {
     }
 
     private onKeyDown(slider: _Widget.Widget) {
-        slider.setFocusOverride(true);
+        const elem = slider.getElement();
+        if (elem === elem.ownerDocument.activeElement) {
+            slider.setFocusOverride(true);
+        }
     }
 
     private onDragStart(index: number, event: _ModuleSupport.DragWidgetEvent<'drag-start'>, key: NavigatorButtonType) {

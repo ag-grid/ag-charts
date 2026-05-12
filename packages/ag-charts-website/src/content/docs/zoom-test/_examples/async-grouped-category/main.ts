@@ -1,6 +1,8 @@
 // @ag-skip-fws
 import { AgCartesianChartOptions, AgCharts, AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
 
+import { random } from './randomHelpers';
+
 ModuleRegistry.registerModules([AllEnterpriseModule]);
 
 const allData = [
@@ -53,7 +55,7 @@ const options: AgCartesianChartOptions = {
                 return totalData;
             }
 
-            const delayTime = 2000 + Math.floor(Math.random() * 500);
+            const delayTime = 2000 + Math.floor(random() * 500);
             await delay(delayTime);
 
             let startIndex = allData.findIndex((d) => d.location[0] === windowStart[0]);

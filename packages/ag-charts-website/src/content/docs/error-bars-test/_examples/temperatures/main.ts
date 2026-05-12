@@ -1,6 +1,7 @@
 import { AgCartesianChartOptions, AgCharts, AgErrorBarItemStylerParams, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { DataType, getData, getData2 } from './data';
+import { random } from './randomHelpers';
 
 const highlight = {
     highlightedItem: { stroke: 'red' },
@@ -107,7 +108,7 @@ function removeOddsErrors() {
 }
 
 function randomDelta(min: number, max: number) {
-    return Math.random() * (max - min) + min;
+    return random() * (max - min) + min;
 }
 
 function randomiseData() {

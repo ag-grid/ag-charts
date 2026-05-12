@@ -62,9 +62,9 @@ runs:
                   git pull origin ${{inputs.branch}} --rebase --autostash
               done
 
-        - name: Fail PR checks if updates needed
-          if: steps.stash-snapshot-changes.outputs.updates == 'true' && github.head_ref
+        - name: Fail if snapshot updates needed
+          if: steps.stash-snapshot-changes.outputs.updates == 'true'
           shell: bash
           run: |
-              echo "Snapshots need to be updated, failing test execution."
+              echo "Snapshots were updated, failing this job so it can be retried individually."
               exit 1

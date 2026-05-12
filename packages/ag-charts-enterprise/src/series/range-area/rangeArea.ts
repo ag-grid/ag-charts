@@ -198,6 +198,15 @@ type GetMarkerStyleArg<I extends number> = Parameters<
     _ModuleSupport.CartesianSeries<RangeAreaSeriesTypes>['getMarkerStyle']
 >[I];
 
+/** Per-pass context for the no-itemStyler marker-style pass. */
+interface RangeAreaNoStylerPassCtx {
+    hideWithSize0: boolean;
+    isHighlight: boolean;
+}
+
+/** Per-pass context for the itemStyler marker-style pass. */
+type RangeAreaStylerPassCtx = RangeAreaNoStylerPassCtx;
+
 export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSeriesTypes> {
     static override readonly className = 'RangeAreaSeries';
     static readonly type = 'range-area' as const;
@@ -350,6 +359,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         this.aggregationManager.ensureLevelForRange(range);
 
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
+        this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
         const existingNodes = this.contextNodeData?.nodeData;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const canIncrementallyUpdate =
@@ -852,7 +862,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const highlightState = this.getHighlightState(highlightDatum, false);
         const highlightStyle = this.getHighlightStyle();
         const selectionStyle = this.getSelectionStyle();
-        const seriesStyle = this.getStyle(highlightState, undefined);
+        const seriesStyle = this.getStyle(highlightState);
 
         const { item, stroke, strokeWidth, strokeOpacity, fill, fillOpacity, opacity } = mergeDefaults(
             selectionStyle,
@@ -971,9 +981,15 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const rules: LowHighRules = properties.styler ? this.getStylerMarkerOptions().item : properties.item;
         const { low, high } = rules;
 
-        const markerDrawMode = cartesianMarkerDrawMode(properties, undefined, processedData!, axes, {
-            enabled: low.marker.enabled || high.marker.enabled,
-        });
+        const markerDrawMode = cartesianMarkerDrawMode(
+            properties,
+            undefined,
+            processedData!,
+            axes,
+            { enabled: low.marker.enabled || high.marker.enabled },
+            undefined,
+            this.chart?.isMiniChart
+        );
         this.hideWithSize0 = markerDrawMode.hideWithSize0;
 
         if (properties.item.low.marker.isDirty() || properties.item.high.marker.isDirty()) {
@@ -1010,6 +1026,76 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         );
     }
 
+    // Static callbacks for runMarkerStylePass — see helper for the V8 IC rationale.
+
+    private static computeNoStylerMarkerStyle(
+        this: void,
+        series: RangeAreaSeries,
+        ctx: RangeAreaNoStylerPassCtx,
+        highlightState: _ModuleSupport.HighlightState,
+        selectionState: _ModuleSupport.SelectionState | undefined,
+        datum: RangeAreaMarkerDatum
+    ): AgSeriesMarkerStyle {
+        const stylerStyle = series.getStyle(highlightState);
+        const { fill, fillOpacity, item } = stylerStyle;
+        const { stroke, strokeWidth, strokeOpacity } = item[datum.itemType];
+        const marker = series.properties.item[datum.itemType].marker;
+        return series.getMarkerStyle(
+            marker,
+            datum,
+            undefined,
+            {
+                isHighlight: ctx.isHighlight,
+                highlightState,
+                selectionState,
+                resolveMarkerSubPath: ['item', datum.itemType, 'marker'],
+                hideWithSize0: ctx.hideWithSize0,
+            },
+            stylerStyle.item[datum.itemType].marker,
+            { fill, fillOpacity, stroke, strokeWidth, strokeOpacity }
+        );
+    }
+
+    private static computeStylerStyle(
+        this: void,
+        series: RangeAreaSeries,
+        _ctx: RangeAreaStylerPassCtx,
+        highlightState: _ModuleSupport.HighlightState,
+        _selectionState: _ModuleSupport.SelectionState | undefined,
+        _datum: RangeAreaMarkerDatum
+    ): StylerResult {
+        return series.getStyle(highlightState);
+    }
+
+    private static applyStylerDatum(
+        this: void,
+        series: RangeAreaSeries,
+        ctx: RangeAreaStylerPassCtx,
+        datum: RangeAreaMarkerDatum,
+        highlightState: _ModuleSupport.HighlightState,
+        selectionState: _ModuleSupport.SelectionState | undefined,
+        stylerStyle: StylerResult
+    ): void {
+        const { fill, fillOpacity, item } = stylerStyle;
+        const { stroke, strokeWidth, strokeOpacity } = item[datum.itemType];
+        const marker = series.properties.item[datum.itemType].marker;
+        const params = series.makeItemStylerParams(datum.itemType);
+        datum.style = series.getMarkerStyle(
+            marker,
+            datum,
+            params,
+            {
+                isHighlight: ctx.isHighlight,
+                highlightState,
+                selectionState,
+                resolveMarkerSubPath: ['item', datum.itemType, 'marker'],
+                hideWithSize0: ctx.hideWithSize0,
+            },
+            stylerStyle.item[datum.itemType].marker,
+            { fill, fillOpacity, stroke, strokeWidth, strokeOpacity }
+        );
+    }
+
     protected override updateDatumStyles({
         datumSelection,
         isHighlight,
@@ -1018,36 +1104,32 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         isHighlight: boolean;
     }) {
         const { hideWithSize0 } = this;
-        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        datumSelection.each((_, datum) => {
-            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            const selectionState = this.getDataSelectionState(datum.datumIndex);
-            const stylerStyle = this.getStyle(highlightState, selectionState);
-            const { fill, fillOpacity, item } = stylerStyle;
-            const { stroke, strokeWidth, strokeOpacity } = item[datum.itemType];
-            const { marker } = this.properties.item[datum.itemType];
+        const ctx = { hideWithSize0, isHighlight };
 
-            const params = this.makeItemStylerParams(datum.itemType);
-            datum.style = this.getMarkerStyle(
-                marker,
-                datum,
-                params,
-                {
-                    isHighlight,
-                    highlightState,
-                    resolveMarkerSubPath: ['item', datum.itemType, 'marker'],
-                    hideWithSize0,
-                },
-                stylerStyle.item[datum.itemType].marker,
-                {
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                }
+        if (this.properties.marker.itemStyler == null) {
+            // No itemStyler: style is a pure function of (highlightState, selectionState, itemType).
+            this.runMarkerStylePass(
+                datumSelection,
+                isHighlight,
+                ctx,
+                (datum) => datum.itemType,
+                true,
+                RangeAreaSeries.computeNoStylerMarkerStyle,
+                RangeAreaSeries.assignCachedStyle
             );
-        });
+            return;
+        }
+
+        // No itemType in the cache key: getStyle() is item-type-agnostic; sub-styles are extracted per datum.
+        this.runMarkerStylePass(
+            datumSelection,
+            isHighlight,
+            ctx,
+            undefined,
+            true,
+            RangeAreaSeries.computeStylerStyle,
+            RangeAreaSeries.applyStylerDatum
+        );
     }
 
     protected override updateDatumNodes(opts: {
@@ -1133,23 +1215,20 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         return highlightItems.length > 0 ? highlightItems : undefined;
     }
 
-    private getStyle(
-        highlightState: _ModuleSupport.HighlightState | undefined,
-        selectionState: _ModuleSupport.SelectionState | undefined
-    ): StylerResult {
-        return this.getStylerCouple(highlightState, selectionState)[0];
+    private getStyle(highlightState: _ModuleSupport.HighlightState | undefined): StylerResult {
+        return this.getStylerCouple(highlightState)[0];
     }
 
     private getStylerMarkerOptions(): StylerMarkerOptionsResult {
-        return this.getStylerCouple(undefined, undefined)[1];
+        return this.getStylerCouple(undefined)[1];
     }
 
     private getStylerCouple(
-        highlightState: _ModuleSupport.HighlightState | undefined,
-        selectionState: _ModuleSupport.SelectionState | undefined
+        highlightState: _ModuleSupport.HighlightState | undefined
     ): [StylerResult, StylerMarkerOptionsResult] {
         const { fill, fillOpacity, item, styler } = this.properties;
 
+        const selectionState: _ModuleSupport.SelectionState | undefined = this.getDataSelectionState(undefined);
         let stylerResult: AgRangeAreaSeriesStyle & ResolvedStyleMixin = {};
         if (styler) {
             const stylerParams = this.makeStylerParams(highlightState, selectionState);
@@ -1286,7 +1365,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const allowNullKeys = this.properties.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
-        const stylerStyle = this.getStyle(undefined, undefined);
+        const stylerStyle = this.getStyle(undefined);
         const params = this.makeItemStylerParams(itemType);
         const format = this.getMarkerStyle(
             this.properties.item[itemType].marker,
@@ -1332,7 +1411,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, topLevel } = this.getStyle(undefined, undefined);
+        const { fill, topLevel } = this.getStyle(undefined);
         const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = topLevel;
 
         const markerStyle = {
@@ -1514,7 +1593,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     }
 
     public getFormattedMarkerStyle(datum: RangeAreaMarkerDatum) {
-        const stylerStyle = this.getStyle(undefined, undefined);
+        const stylerStyle = this.getStyle(undefined);
         const params = this.makeItemStylerParams(datum.itemType);
 
         return this.getMarkerStyle(

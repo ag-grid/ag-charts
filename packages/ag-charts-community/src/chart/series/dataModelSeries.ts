@@ -280,19 +280,15 @@ export abstract class DataModelSeries<
         // be the bucket's representative index. Fall back to the per-datum
         // bitset when no aggregation level applies.
         const selectionBuffer = this.data?.selections.get(this.id);
-        if (datumIndex !== undefined) {
+        if (typeof datumIndex === 'number') {
             const aggregated = this.ensureBucketLookupFeature()?.isBucketSelected(datumIndex);
             const isItem = aggregated ?? selectionBuffer?.isSelected(datumIndex) ?? false;
-            if (isItem) return SelectionState.Item;
+            if (isItem) {
+                return SelectionState.Item;
+            } else {
+                return SelectionState.OtherItem;
+            }
         }
-
-        const selectionCount: number = selectionBuffer?.getSelectedCount() ?? 0;
-        if (datumIndex === undefined && selectionCount === 0) {
-            return SelectionState.OtherSeries;
-        }
-        if (datumIndex !== undefined && selectionCount > 0) {
-            return SelectionState.OtherItem;
-        }
-        return undefined;
+        return SelectionState.OtherSeries;
     }
 }

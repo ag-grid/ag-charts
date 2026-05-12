@@ -1,4 +1,5 @@
 import { Database, Datum, dataEnd, dataStart, day, hour, week } from './data';
+import { random } from './randomHelpers';
 
 /**
  * This fake server mimics how a real server api chart service may get and format data for charts. If you are a
@@ -7,7 +8,7 @@ import { Database, Datum, dataEnd, dataStart, day, hour, week } from './data';
 export const FakeServer = {
     get: async function (params: { windowStart?: Date | number | string; windowEnd?: Date | number | string }) {
         // Simulate a real server with a random 2000-2500ms delay
-        const delayTime = 2000 + Math.floor(Math.random() * 500);
+        const delayTime = 2000 + Math.floor(random() * 500);
         await delay(delayTime);
 
         if (typeof params.windowStart !== 'object' || typeof params.windowEnd !== 'object') {

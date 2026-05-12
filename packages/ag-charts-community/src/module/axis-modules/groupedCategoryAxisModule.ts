@@ -9,6 +9,7 @@ import type { AgGroupedCategoryAxisOptions } from 'ag-charts-types';
 import { groupedCategoryAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { GroupedCategoryAxis } from '../../chart/axis/groupedCategoryAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
+import { CrossLinesModule } from '../../chart/crossline/crossLinesModule';
 import { commonAxisThemeTemplate, titleAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
@@ -18,7 +19,7 @@ export const GroupedCategoryAxisModule: AxisModuleDefinition<AgGroupedCategoryAx
     name: 'grouped-category',
     chartType: 'cartesian',
     version: VERSION,
-    dependencies: [CartesianChartModule],
+    dependencies: [CartesianChartModule, CrossLinesModule],
 
     options: groupedCategoryAxisOptionsDefs,
     themeTemplate: mergeDefaults(

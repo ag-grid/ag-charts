@@ -406,6 +406,10 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         options: SIMPLE_ORG_CHART_THEMED,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
+    SIMPLE_ORG_CHART_RTL: {
+        options: { ...SIMPLE_ORG_CHART, enableRtl: true },
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
     LINKS_ROUNDED_INTERPOLATION: {
         options: LINKS_ROUNDED_INTERPOLATION,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
@@ -1140,6 +1144,10 @@ describe('OrganizationSeries', () => {
                     { id: 'd', name: 'Child D', job: 'Report', parentId: 'a' },
                     { id: 'e', name: 'Child E', job: 'Report', parentId: 'b' },
                     { id: 'f', name: 'Child F', job: 'Report', parentId: 'b' },
+                    { id: 'g', name: 'Parent G', job: 'Manager', parentId: 'root' },
+                    { id: 'h', name: 'Child H', job: 'Report', parentId: 'g' },
+                    { id: 'i', name: 'Child I', job: 'Report', parentId: 'h' },
+                    { id: 'j', name: 'Child J', job: 'Report', parentId: 'i' },
                 ],
                 series: [
                     {

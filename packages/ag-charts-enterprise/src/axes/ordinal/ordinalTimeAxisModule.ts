@@ -1,4 +1,10 @@
-import { type AgOrdinalTimeAxisOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgOrdinalTimeAxisOptions,
+    CartesianChartModule,
+    CrossLinesModule,
+    VERSION,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import {
     type AxisModuleDefinition,
     type DynamicContext,
@@ -14,6 +20,7 @@ export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOption
     chartType: 'cartesian',
     enterprise: true,
     version: VERSION,
+    dependencies: [CartesianChartModule, CrossLinesModule],
 
     options: _ModuleSupport.ordinalTimeAxisOptionsDefs,
     themeTemplate: mergeDefaults(

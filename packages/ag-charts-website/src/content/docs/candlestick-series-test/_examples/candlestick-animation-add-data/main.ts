@@ -1,6 +1,7 @@
 import { AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
+import { random } from './randomHelpers';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -31,7 +32,7 @@ function updateData() {
     const datum = flag < 1 ? newData.at(-2) : newData.at(-1);
     const date = new Date(newData.at(-1).date);
     date.setDate(date.getDate() + 1);
-    const shift = Math.random() * flag + 1;
+    const shift = random() * flag + 1;
     newData.push({
         ...datum,
         date,

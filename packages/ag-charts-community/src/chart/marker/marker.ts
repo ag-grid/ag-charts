@@ -86,6 +86,10 @@ class InternalMarker<D = any> extends Path<D> {
 
 // Needed to ensure correct order of operations WRT computeBBox().
 export class Marker<D = unknown> extends Rotatable(Scalable(Translatable(InternalMarker<any>))) {
+    // Type-only re-declarations of Scalable backing fields, exposed for the optimised hot-path writes.
+    declare __scalingCenterX: number;
+    declare __scalingCenterY: number;
+
     override get datum(): D | undefined {
         return super.datum;
     }
@@ -144,5 +148,50 @@ export class Marker<D = unknown> extends Rotatable(Scalable(Translatable(Interna
 
         // Single dirty notification for the batch
         this.markDirty();
+    }
+
+    /**
+     * Hot-path visibility/position write — bypasses change-detection setters and consolidates
+     * dirtying into a single dirtyPath + markDirty() at the end (matches Path's onChangeDetection).
+     */
+    setVisibilityAndPosition(visible: boolean, shape: AgMarkerShape, size: number, point?: Point): void {
+        let dirty = false;
+        if (this.__visible !== visible) {
+            this.__visible = visible;
+            dirty = true;
+        }
+        if (this.__shape !== shape) {
+            this.__shape = shape;
+            dirty = true;
+        }
+        // Size has a Math.abs convertor — match the setter contract by comparing the post-convert value.
+        const absSize = Math.abs(size);
+        if (this.__size !== absSize) {
+            this.__size = absSize;
+            dirty = true;
+        }
+        if (point) {
+            const { x, y } = point;
+            if (this.__x !== x) {
+                this.__x = x;
+                dirty = true;
+            }
+            if (this.__y !== y) {
+                this.__y = y;
+                dirty = true;
+            }
+            if (this.__scalingCenterX !== x) {
+                this.__scalingCenterX = x;
+                dirty = true;
+            }
+            if (this.__scalingCenterY !== y) {
+                this.__scalingCenterY = y;
+                dirty = true;
+            }
+        }
+        if (dirty) {
+            this.dirtyPath = true;
+            this.markDirty();
+        }
     }
 }

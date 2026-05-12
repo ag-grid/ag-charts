@@ -1,3 +1,5 @@
+import { random } from './randomHelpers';
+
 export function getMaleData() {
     return [
         {
@@ -3053,18 +3055,18 @@ export function getFemaleData() {
 export function getRandomisedMaleData() {
     return getMaleData().map((d) => ({
         ...d,
-        height: d.height + Math.random() * 4 - 2,
-        weight: d.weight + Math.random() + 6 - 3,
-        age: d.age + Math.random() + 4 - 2,
+        height: d.height + random() * 4 - 2,
+        weight: d.weight + random() + 6 - 3,
+        age: d.age + random() + 4 - 2,
     }));
 }
 
 export function getRandomisedFemaleData() {
     return getFemaleData().map((d) => ({
         ...d,
-        height: d.height + Math.random() * 4 - 2,
-        weight: d.weight + Math.random() + 6 - 3,
-        age: d.age + Math.random() + 4 - 2,
+        height: d.height + random() * 4 - 2,
+        weight: d.weight + random() + 6 - 3,
+        age: d.age + random() + 4 - 2,
     }));
 }
 
