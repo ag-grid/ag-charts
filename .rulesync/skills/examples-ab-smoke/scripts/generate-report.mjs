@@ -280,7 +280,7 @@ function renderRow(row) {
         : '';
     const dataTags = ['status:' + row.status, ...(rd?.unseeded ? ['random:unseeded'] : []), ...(rd?.seeded ? ['random:seeded'] : [])].join(' ');
 
-    return `<details class="row" data-status="${row.status}" data-id="${escapeHtml(id)}" data-types="${escapeHtml(Object.keys(typeCounts).join(' '))}" data-tags="${escapeHtml(dataTags)}" ${open ? 'open' : ''}>
+    return `<details class="row" data-status="${row.status}" data-page="${escapeHtml(e.page)}" data-id="${escapeHtml(id)}" data-types="${escapeHtml(Object.keys(typeCounts).join(' '))}" data-tags="${escapeHtml(dataTags)}" ${open ? 'open' : ''}>
   <summary>
     <span class="badge b-${row.status}">${row.status}</span>
     <span class="fb-mark" data-fb-mark-for="${escapeHtml(id)}"></span>
@@ -311,6 +311,19 @@ for (const entry of data.results) {
 
 const addedRows = rows.filter((r) => r.status === 'added');
 const removedRows = rows.filter((r) => r.status === 'removed');
+
+const pageOrder = [];
+const seenPages = new Set();
+for (const r of rows) {
+    if (!seenPages.has(r.entry.page)) {
+        seenPages.add(r.entry.page);
+        pageOrder.push(r.entry.page);
+    }
+}
+pageOrder.sort((a, b) => (a === 'gallery' ? -1 : b === 'gallery' ? 1 : a.localeCompare(b)));
+const pageId = (page) => `page-${page.replace(/[^a-z0-9-]/gi, '-')}`;
+const rowsByPage = new Map(pageOrder.map((p) => [p, []]));
+for (const r of rows) rowsByPage.get(r.entry.page).push(r);
 
 function renderSideMeta(label, side, sideMeta) {
     const parts = [
@@ -359,7 +372,29 @@ const html = `<!doctype html>
   }
   * { box-sizing: border-box; }
   body { font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; margin: 0; padding: 0 0 24px 0; color: var(--text); background: var(--bg); }
-  .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
+  .layout { display: flex; align-items: flex-start; gap: 0; }
+  .sidenav { position: sticky; top: 0; align-self: flex-start; flex: 0 0 220px; height: 100vh; overflow-y: auto; border-right: 1px solid var(--border); background: var(--card); padding: 14px 10px 24px; }
+  .sidenav-header { display: flex; align-items: baseline; justify-content: space-between; margin: 0 4px 8px 4px; }
+  .sidenav h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0; }
+  .sidenav-toggle { font-size: 11px; color: var(--link); cursor: pointer; user-select: none; }
+  .sidenav-toggle input { vertical-align: middle; margin-right: 3px; }
+  .sidenav ul { list-style: none; margin: 0; padding: 0; }
+  .sidenav li { margin: 0; }
+  .sidenav a { display: flex; align-items: center; gap: 6px; padding: 3px 6px; border-radius: 4px; color: var(--text); text-decoration: none; font-size: 12px; border-left: 2px solid transparent; }
+  .sidenav a:hover { background: #eef1f5; }
+  .sidenav a.active { background: #e6efff; border-left-color: var(--accent); font-weight: 500; }
+  .sidenav li.empty { display: none; }
+  .sidenav.show-empty li.empty { display: list-item; }
+  .sidenav.show-empty li.empty a { color: #888; }
+  .sidenav .page-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sidenav .counts { display: flex; gap: 3px; font-variant-numeric: tabular-nums; font-size: 11px; }
+  .sidenav .count { padding: 0 5px; border-radius: 8px; min-width: 14px; text-align: center; }
+  .sidenav .count.green { background: var(--clean-bg); color: var(--clean-fg); }
+  .sidenav .count.red { background: var(--regression-bg); color: var(--regression-fg); }
+  .sidenav .count.hidden { display: none; }
+  .page-section { scroll-margin-top: 12px; }
+  .page-section > h2.page-header { font-size: 14px; margin: 16px 0 4px 0; padding-top: 4px; color: var(--muted); font-weight: 600; }
+  .container { flex: 1; min-width: 0; max-width: 1400px; margin: 0 auto; padding: 0 20px; }
   h1 { font-size: 20px; margin: 16px 0 4px 0; }
   .subtitle { color: var(--muted); margin-bottom: 16px; font-size: 13px; }
   .meta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 0 0 14px 0; }
@@ -522,6 +557,27 @@ const html = `<!doctype html>
   .lb-pos-tabs { display: flex; gap: 4px; }
   .lb-pos-tabs .lb-tab { padding: 3px 8px; }
 </style></head><body>
+<div class="layout">
+<nav class="sidenav" id="sidenav">
+  <div class="sidenav-header">
+    <h2>Pages</h2>
+    <label class="sidenav-toggle"><input type="checkbox" id="show-empty"> show empty</label>
+  </div>
+  <ul>
+    ${pageOrder
+        .map(
+            (p) =>
+                `<li data-nav-li="${escapeHtml(p)}"><a href="#${pageId(p)}" data-nav-page="${escapeHtml(p)}">
+                    <span class="page-name">${escapeHtml(p)}</span>
+                    <span class="counts">
+                      <span class="count green hidden" data-count="green"></span>
+                      <span class="count red hidden" data-count="red"></span>
+                    </span>
+                </a></li>`
+        )
+        .join('')}
+  </ul>
+</nav>
 <div class="container">
 <h1>AG Charts Examples A/B Smoke Report</h1>
 <div class="subtitle">${escapeHtml(data.sides.left.name)} vs ${escapeHtml(data.sides.right.name)} · framework <code>${escapeHtml(data.sides.framework ?? 'vanilla')}</code> · ${data.results.length} examples</div>
@@ -575,7 +631,15 @@ ${counts.added + counts.removed > 0
 </div>
 
 <div id="rows">
-${rows.map(renderRow).join('\n')}
+${pageOrder
+    .map(
+        (p) => `<section class="page-section" id="${pageId(p)}" data-page="${escapeHtml(p)}">
+  <h2 class="page-header">${escapeHtml(p)} <span class="meta">(${rowsByPage.get(p).length})</span></h2>
+  ${rowsByPage.get(p).map(renderRow).join('\n')}
+</section>`
+    )
+    .join('\n')}
+</div>
 </div>
 </div>
 
@@ -723,6 +787,12 @@ ${rows.map(renderRow).join('\n')}
   const chipNone = document.getElementById('chip-none');
   const shownN = document.getElementById('shown-n');
 
+  const GREEN_STATUSES = new Set(['clean', 'triaged-benign']);
+  const sidenav = document.getElementById('sidenav');
+  const showEmptyToggle = document.getElementById('show-empty');
+  const navLinks = [...document.querySelectorAll('.sidenav a[data-nav-page]')];
+  const navItems = new Map([...document.querySelectorAll('li[data-nav-li]')].map((li) => [li.dataset.navLi, li]));
+
   function apply() {
     const q = filter.value.toLowerCase().trim();
     const enabled = new Set(chips.filter((c) => c.getAttribute('aria-pressed') === 'true').map((c) => c.dataset.status));
@@ -730,6 +800,7 @@ ${rows.map(renderRow).join('\n')}
     const onlyRandom = chipOnlyRandom.getAttribute('aria-pressed') === 'true';
     const hideRandom = chipHideRandom.getAttribute('aria-pressed') === 'true';
     let shown = 0;
+    const tally = new Map();
     for (const row of document.querySelectorAll('.row')) {
       const id = row.dataset.id;
       const hasFb = !!fb[id];
@@ -741,10 +812,32 @@ ${rows.map(renderRow).join('\n')}
       if (visible && onlyRandom && !isRandom) visible = false;
       if (visible && hideRandom && isRandom) visible = false;
       row.style.display = visible ? '' : 'none';
-      if (visible) shown++;
+      if (!visible) continue;
+      shown++;
+      const page = row.dataset.page;
+      const bucket = tally.get(page) ?? { green: 0, red: 0 };
+      if (GREEN_STATUSES.has(row.dataset.status)) bucket.green++; else bucket.red++;
+      tally.set(page, bucket);
     }
     shownN.textContent = shown;
+    for (const link of navLinks) {
+      const page = link.dataset.navPage;
+      const t = tally.get(page) ?? { green: 0, red: 0 };
+      const greenEl = link.querySelector('[data-count="green"]');
+      const redEl = link.querySelector('[data-count="red"]');
+      greenEl.textContent = t.green;
+      redEl.textContent = t.red;
+      greenEl.classList.toggle('hidden', t.green === 0);
+      redEl.classList.toggle('hidden', t.red === 0);
+      navItems.get(page).classList.toggle('empty', t.green === 0 && t.red === 0);
+    }
+    for (const section of document.querySelectorAll('.page-section')) {
+      const page = section.dataset.page;
+      const t = tally.get(page) ?? { green: 0, red: 0 };
+      section.style.display = (t.green + t.red === 0) ? 'none' : '';
+    }
   }
+  showEmptyToggle.addEventListener('change', () => sidenav.classList.toggle('show-empty', showEmptyToggle.checked));
   filter.addEventListener('input', apply);
   for (const c of chips) {
     c.addEventListener('click', () => {
@@ -782,6 +875,19 @@ ${rows.map(renderRow).join('\n')}
     apply();
   });
   apply();
+
+  // Active-section highlight on scroll.
+  const linkByPage = new Map(navLinks.map((a) => [a.dataset.navPage, a]));
+  const sectionObserver = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) {
+        for (const a of navLinks) a.classList.remove('active');
+        linkByPage.get(e.target.dataset.page)?.classList.add('active');
+        break;
+      }
+    }
+  }, { rootMargin: '0px 0px -70% 0px' });
+  for (const s of document.querySelectorAll('.page-section')) sectionObserver.observe(s);
 
   // --- Lightbox ---
   const lb = document.getElementById('lb');

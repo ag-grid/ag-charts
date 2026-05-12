@@ -127,6 +127,8 @@ node plans/examples-ab-smoke/run-ab-smoke.mjs
 
 Wall time scales linearly with `(examples × 2 sides) / concurrency`. Concurrency 4 keeps the dev server happy.
 
+When the Playwright phase finishes, the sweep automatically rolls into `diff.mjs` then `triage-queue.mjs` (steps 5 and 6a) so `results.json` is pixel-diffed and `triage-queue.json` is on disk before the script exits. The next thing to do is the AI classification step (6b/6c). Set `SKIP_AUTO_CHAIN=1` if you want to run them manually instead (e.g. while iterating on a script).
+
 #### Iterating: re-run only the exceptions
 
 When you fix a harness bug, an `EXAMPLE_OPTIONS` entry, or an example itself, you don't need a full re-sweep. Set `RERUN_EXCEPTIONS=1` to filter the run to (page, example, framework) tuples that had any exception or non-zero pixel diff in the existing `results.json`, and merge the fresh outcomes back over the prior ones in place.
@@ -230,6 +232,8 @@ open plans/examples-ab-smoke/report.html
 ```
 
 The report leads with the exception list. Verified-clean rows are collapsed. Header counters: `clean / untriaged / triaged-benign / regression / needs-human / added / removed / runner-error`. Each exception card shows side-by-side screenshots, the diff image where applicable, the captured console output, and the LLM verdict + reason. Untriaged `image-diff-major` rows automatically count as `regression` so they cannot be missed in the summary.
+
+A sticky left side-nav groups rows by `page` (`gallery` first, then docs pages alphabetically). Each entry has green/red badges (green = clean + triaged-benign visible; red = everything else visible) that update live as the toolbar chips and search filter change. Pages with zero visible rows are collapsed under a "show empty" toggle in the nav header. An IntersectionObserver highlights the active page as the main pane scrolls.
 
 `added` and `removed` describe the example set drift between sides — with left = baseline and right = candidate, `added` means the example exists only in the candidate (404 on the baseline side), `removed` means it has disappeared from the candidate. The report's "Example set drift" panel lists them grouped by direction.
 

@@ -17,6 +17,8 @@
 import { chromium } from 'playwright';
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 // Without this, stderr writes buffer when the runner is launched with `> log 2>&1`;
 // progress lines lag by minutes, which makes a healthy run look wedged.
@@ -839,4 +841,22 @@ function resultHasFailure(r) {
         );
         console.log(`Wrote ${fresh.length} results to ${RESULTS_PATH}`);
     }
+
+    if (process.env.SKIP_AUTO_CHAIN === '1') {
+        process.stderr.write(`SKIP_AUTO_CHAIN=1 — not running diff.mjs / triage-queue.mjs\n`);
+        return;
+    }
+    const scriptDir = dirname(fileURLToPath(import.meta.url));
+    for (const next of ['diff.mjs', 'triage-queue.mjs']) {
+        process.stderr.write(`>> auto-chaining ${next}\n`);
+        const res = spawnSync(process.execPath, [resolve(scriptDir, next)], {
+            stdio: 'inherit',
+            env: { ...process.env, OUTPUT_DIR },
+        });
+        if (res.status !== 0) {
+            process.stderr.write(`!! ${next} exited with status ${res.status}; stopping auto-chain\n`);
+            process.exit(res.status ?? 1);
+        }
+    }
+    process.stderr.write(`>> data-gathering complete. Next: launch the AI classification step (see SKILL.md step 6b/6c).\n`);
 })();
