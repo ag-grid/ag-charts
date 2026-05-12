@@ -1,4 +1,4 @@
-import { ActionOnSet, Debug, Logger, throttle } from 'ag-charts-core';
+import { ActionOnSet, ChartUpdateType, Debug, Logger, throttle } from 'ag-charts-core';
 import type { AgDataSourceCallbackParams } from 'ag-charts-types';
 
 import type { EventsHub } from '../../core/eventsHub';
@@ -84,6 +84,10 @@ export class DataService<D extends object> {
         }
 
         this.isLoadingData = true;
+
+        // Update to show the loading spinner.
+        this.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
+
         this.throttledFetch(params);
     }
 
