@@ -3,8 +3,20 @@ title: 'Chart State Test'
 hidePageMenu: true
 ---
 
+## Initial State
+
+What to test:
+
+- Chart loads with the parallel-channel annotation and pre-zoomed range from `initialState`.
+- `saveState()` logs the current state; `restoreState()` reapplies it.
+- Switching chart type and panning preserves the restored state on reload.
+
 {% chartExampleRunner title="Initial State" name="initial-state" type="generated" /%}
 
-# E2E Tests
+## E2E Tested
+
+### Legend and Zoom
+
+_Auto-tested via Playwright._
 
 {% chartExampleRunner title="Legend and Zoom" name="legend-zoom-e2e" type="generated" /%}

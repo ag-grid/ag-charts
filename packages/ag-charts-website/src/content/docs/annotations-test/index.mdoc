@@ -4,41 +4,115 @@ title: 'Annotations Test'
 
 ## Initial State
 
+What to test:
+
+- Annotations defined in `initialState` render on load at the correct positions.
+- Crosslines remain visible alongside the seeded annotations.
+
 {% chartExampleRunner title="Initial State" name="initial-state" type="generated" /%}
 
 ## Simple Cartesian
 
+### Simple Area
+
+What to test:
+
+- Each annotation tool draws cleanly on the area series and persists across redraws.
+
 {% chartExampleRunner title="Simple Area" name="simple-area" type="generated" /%}
+
+### Simple Bar
+
+What to test:
+
+- Annotations anchor to category x values and stay aligned when the chart resizes.
+
 {% chartExampleRunner title="Simple Bar" name="simple-bar" type="generated" /%}
+
+### Simple Line
+
+What to test:
+
+- Line, horizontal and trend annotations snap to data points and remain editable after creation.
+
 {% chartExampleRunner title="Simple Line" name="simple-line" type="generated" /%}
+
+### Simple Scatter
+
+What to test:
+
+- Annotations place anywhere on the scatter plane and reposition correctly on zoom and pan.
+
 {% chartExampleRunner title="Simple Scatter" name="simple-scatter" type="generated" /%}
+
+### Simple Histogram
+
+What to test:
+
+- Annotations render over histogram bins without offset artefacts.
+
 {% chartExampleRunner title="Simple Histogram" name="simple-histogram" type="generated" /%}
+
+### Simple Candlestick
+
+What to test:
+
+- Annotations align to the time axis and survive a series-type switch without orphaning.
+
 {% chartExampleRunner title="Simple Candlestick" name="simple-candlestick" type="generated" /%}
 
 ## Right Y Axis
+
+What to test:
+
+- Annotations bind to the right-positioned y axis and follow its scale on drag.
 
 {% chartExampleRunner title="Right Y Axis" name="right-y-axis" type="generated" /%}
 
 ## Category Y Axis
 
+What to test:
+
+- Annotations snap to category y values on the horizontal box-plot and stay aligned after redraws.
+
 {% chartExampleRunner title="Category Y Axis" name="category-y-axis" type="generated" /%}
 
 ## Log Y Axis
+
+What to test:
+
+- Value annotations render at the correct log-scale position and stay stable on zoom.
 
 {% chartExampleRunner title="Log Y Axis" name="log-y-axis" type="generated" /%}
 
 ## Multiple Y Axes
 
+What to test:
+
+- Annotations bind to the intended y axis (left or right) and respect its scale when dragged.
+
 {% chartExampleRunner title="Multiple Y Axes" name="multiple-axes" type="generated" /%}
 
 ## Multiple Left Axes
+
+What to test:
+
+- Annotations created against either left-side axis remain bound to that axis and do not jump scales.
 
 {% chartExampleRunner title="Multiple Left Y Axes" name="multiple-left-axes" type="generated" /%}
 
 ## Time X Axis
 
+What to test:
+
+- Annotations on the OHLC series snap to time-axis values and persist across pan and zoom.
+
 {% chartExampleRunner title="Time X Axis" name="time-axis" type="generated" /%}
 
 ## Grouped Category X Axis
+
+What to test:
+
+- Annotations align to leaf categories and stay stable when grouping is rebuilt.
 
 {% chartExampleRunner title="Grouped Category Axis" name="grouped-category-axis" type="generated" /%}

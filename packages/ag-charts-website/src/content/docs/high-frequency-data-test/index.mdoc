@@ -6,33 +6,73 @@ enterprise: true
 
 ## Line Series
 
+What to test:
+
+- Start the stream and cycle through the append, prepend, and remove methods; confirm the line series updates smoothly without flicker.
+- Compare `applyTransaction` and `updateDelta` variants and confirm both produce equivalent visual output.
+
 {% chartExampleRunner title="High Frequency Data" name="high-freq-line" type="generated" /%}
 
 ## Area Series
+
+What to test:
+
+- Run the feed and confirm the area series fills update in step with each appended or removed datum.
+- Switch between `applyTransaction` and `updateDelta` and confirm no visual regression.
 
 {% chartExampleRunner title="High Frequency Area" name="high-freq-area" type="generated" /%}
 
 ## Bar Series
 
+What to test:
+
+- Run the feed and confirm bars are added and removed from either end without category jitter.
+- Switch update methods and confirm the bar geometry remains consistent.
+
 {% chartExampleRunner title="High Frequency Bar" name="high-freq-bar" type="generated" /%}
 
 ## Histogram Series
+
+What to test:
+
+- Run the feed and confirm histogram bins recompute correctly as data is appended and removed.
+- Switch update methods and confirm bin boundaries stay stable.
 
 {% chartExampleRunner title="High Frequency Histogram" name="high-freq-histogram" type="generated" /%}
 
 ## Scatter Series
 
+What to test:
+
+- Run the feed and confirm scatter markers appear and disappear in step with the data stream.
+- Switch update methods and confirm marker rendering remains consistent.
+
 {% chartExampleRunner title="High Frequency Scatter" name="high-freq-scatter" type="generated" /%}
 
 ## Candlestick Series
+
+What to test:
+
+- Run the feed and confirm candlesticks append and remove cleanly at either end.
+- Switch update methods and confirm OHLC geometry remains correct after each tick.
 
 {% chartExampleRunner title="High Frequency Candlestick" name="high-freq-candlestick" type="generated" /%}
 
 ## Update Operations
 
+What to test:
+
+- Run the feed with `applyTransaction-update` and confirm the bar series mutates existing datums in place rather than appending.
+- Compare against `updateDelta-update` and confirm both produce equivalent results.
+
 {% chartExampleRunner title="High Frequency Update" name="high-freq-update" type="generated" /%}
 
 ## Gap Filling
+
+What to test:
+
+- Run the feed and confirm the initial 30-59 minute gap fills in incrementally as datums arrive.
+- Confirm no rendering glitches around the boundary between existing and newly-filled data.
 
 {% chartExampleRunner title="High Frequency Gap Filling" name="high-freq-gap-filling" type="generated" initialLoadDeferred=true /%}
 
@@ -40,11 +80,21 @@ enterprise: true
 
 The following example demonstrates the performance improvement of incremental grouping with stacked line charts. When using `applyTransaction()` with the new incremental grouping feature, the chart only processes new data points instead of regrouping all data. Compare the CPU usage between `updateDelta()` (full reprocessing) and `applyTransaction()` (incremental updates).
 
+What to test:
+
+- Run the feed under both `updateDelta()` and `applyTransaction()` and compare CPU usage in DevTools.
+- Confirm the stacked line geometry remains identical between the two methods.
+
 {% chartExampleRunner title="High Frequency Stacked Line" name="high-freq-stacked-line" type="generated" /%}
 
 ## Multiple Charts
 
 The following example demonstrates high-frequency updates across multiple area charts, simulating a monitoring dashboard for multiple systems. Each chart displays system and user CPU load with data updating every 50ms when the feed is running.
+
+What to test:
+
+- Start the feed and confirm every chart updates in lock-step at the 50ms cadence.
+- Switch update method and confirm dashboard remains responsive across all charts.
 
 {% chartExampleRunner title="High Frequency Multi-Chart" name="high-freq-multi-chart" type="generated" /%}
 
@@ -52,11 +102,21 @@ The following example demonstrates high-frequency updates across multiple area c
 
 This example is tuned for high-volume datasets. It starts with 100,000 data points and can add or remove batches of 100 points at a time. Use the controls to compare the cost of full `updateDelta()` refreshes against incremental `applyTransaction()` updates while the data stream maintains a constant window size.
 
+What to test:
+
+- Run the rolling-window feed under both update methods and compare per-tick cost.
+- Change series type using the selector and confirm the comparison still holds.
+
 {% chartExampleRunner title="High Frequency High Volume" name="high-freq-high-volume" type="generated" initialLoadDeferred=true /%}
 
 ## Random Updates
 
 This example investigates the performance of `applyTransaction()` with randomized updates on large datasets. Unlike append/remove operations, this tests in-place value mutations where random data points are updated each tick. Compare the cost of incremental `applyTransaction({ update })` against full `updateDelta()` refreshes.
+
+What to test:
+
+- Run the feed and confirm randomly-mutated datums redraw in place without re-laying out the axis.
+- Compare `applyTransaction({ update })` against `updateDelta()` and confirm both produce equivalent renders.
 
 {% chartExampleRunner title="High Frequency Random Update" name="high-freq-random-update" type="generated" initialLoadDeferred=true /%}
 
@@ -68,16 +128,31 @@ The following examples demonstrate high-frequency updates using the Financial Ch
 
 This example simulates a real-time data feed updating a financial chart with new datums.
 
+What to test:
+
+- Run the feed and confirm new candles and volume bars stream in together.
+- Confirm built-in navigator, range buttons, and status bar continue to function while the feed runs.
+
 {% chartExampleRunner title="High Frequency Financial Chart" name="high-freq-financial-chart" type="generated" /%}
 
 ### High Volume Financial Chart
 
 This example tests high-volume datasets with 100,000 data points using the Financial Charts API. Compare the performance of `applyTransaction()` vs `updateDelta()` for rolling window updates.
 
+What to test:
+
+- Run the rolling-window feed under both update methods and compare per-tick cost.
+- Confirm zoom, navigator, and range buttons remain responsive at 100,000 points.
+
 {% chartExampleRunner title="High Volume Financial Chart" name="high-freq-financial-high-volume" type="generated" initialLoadDeferred=true /%}
 
 ### Random Updates
 
 This example investigates the performance of randomized updates on large financial chart datasets. Random datums are mutated each tick to test in-place value updates.
+
+What to test:
+
+- Run the feed and confirm randomly-mutated candles redraw in place without axis re-layout.
+- Compare `applyTransaction` against `updateDelta` and confirm both produce equivalent renders.
 
 {% chartExampleRunner title="Financial Chart Random Updates" name="high-freq-financial-random-update" type="generated" initialLoadDeferred=true /%}

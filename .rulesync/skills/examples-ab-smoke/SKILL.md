@@ -1,5 +1,5 @@
 ---
-targets: ['claudecode']
+targets: ['cursor', 'codexcli', 'geminicli', 'copilot', 'agentsmd']
 name: examples-ab-smoke
 description: A/B smoke-test every visible example across the AG Charts website (gallery + docs pages) by comparing two named sides (e.g. local HEAD vs published archive, RC staging vs production, production-vanilla vs RC-multi-framework). Captures initial render, exercises any `.example-controls` buttons above the example, exercises tooltip / legend interactions, then runs pixel diff. Exceptions (console errors, page errors, canvas-missing, control click did not bump scene-renders, image diff above threshold) are routed to an LLM triage step where each is judged regression vs benign, with image diffs held to a high bar before dismissal. Use when smoke-testing a release branch, RC, or staging deploy before a merge or release. Triggers on `/examples-ab-smoke`, "smoke test the docs examples", "compare local vs production", "A/B test before release".
 invocable: user-only
@@ -127,6 +127,8 @@ node plans/examples-ab-smoke/run-ab-smoke.mjs
 
 Wall time scales linearly with `(examples × 2 sides) / concurrency`. Concurrency 4 keeps the dev server happy.
 
+When the Playwright phase finishes, the sweep automatically rolls into `diff.mjs` then `triage-queue.mjs` (steps 5 and 6a) so `results.json` is pixel-diffed and `triage-queue.json` is on disk before the script exits. The next thing to do is the AI classification step (6b/6c). Set `SKIP_AUTO_CHAIN=1` if you want to run them manually instead (e.g. while iterating on a script).
+
 #### Iterating: re-run only the exceptions
 
 When you fix a harness bug, an `EXAMPLE_OPTIONS` entry, or an example itself, you don't need a full re-sweep. Set `RERUN_EXCEPTIONS=1` to filter the run to (page, example, framework) tuples that had any exception or non-zero pixel diff in the existing `results.json`, and merge the fresh outcomes back over the prior ones in place.
@@ -145,50 +147,153 @@ After the rerun, re-run `diff.mjs`, `triage-queue.mjs`, and `generate-report.mjs
 ### Step 5 — pixel-diff and pre-classify
 
 ```bash
+OUTPUT_DIR=./plans/examples-ab-smoke \
 node plans/examples-ab-smoke/diff.mjs
 ```
 
 Writes `diff/<example>-<framework>-<phase>.png` for any pair that differs and updates `results.json` with per-phase `imageDiff: { changed, total, percent }`.
 
+> All post-sweep scripts (`diff.mjs`, `triage-queue.mjs`, `triage-dispatch.mjs`, `triage-merge.mjs`, `generate-report.mjs`) resolve paths from `OUTPUT_DIR`. Always set it explicitly when invoking from the repo root, or they will look for `results.json` in the current directory and ENOENT.
+
 ### Step 6 — LLM triage
 
+Triage is a three-step pipeline: queue → dispatch → merge.
+
+**6a. Build the queue.**
+
 ```bash
-node plans/examples-ab-smoke/triage-queue.mjs > plans/examples-ab-smoke/triage-queue.json
+OUTPUT_DIR=./plans/examples-ab-smoke \
+node plans/examples-ab-smoke/triage-queue.mjs
 ```
 
-This emits a queue of exception bundles, each containing the screenshot pair, diff image (if any), captured console logs, and the phase context.
+Writes `triage-queue.json` (`{ count, items: [...] }`). Each item bundles the screenshot pair, diff image (if any), captured console logs, and the phase context.
 
-The triage step itself is **not** automated — it is delegated to Claude Code subagents launched from the calling skill or by the user:
+**6b. Chunk and dispatch.**
 
-```
-For each exception in plans/examples-ab-smoke/triage-queue.json, spawn a
-Task subagent (general-purpose) with this prompt:
-
-  Triage the following AG Charts smoke-test exception. Default verdict is
-  `regression`. Only return `benign-cosmetic` if you can identify the
-  rendering or layout cause and convince yourself it is unrelated to chart
-  output (e.g. cookie-banner pixel bleed, font-loading flake, scrollbar
-  width). For `image-diff` specifically, the bar is high — describe the
-  difference precisely and explain why it does not affect the chart.
-
-  Read these files: <leftPng>, <rightPng>, <diffPng>, <consoleLog>.
-  Phase: <phase>. Page: <page>. Example: <example>. Framework: <framework>.
-  Control button at moment of failure (if applicable): <buttonLabel>.
-
-  Respond as JSON: { "verdict": "regression" | "benign-cosmetic" |
-  "benign-flake" | "needs-human", "reason": "<one sentence>" }.
+```bash
+OUTPUT_DIR=./plans/examples-ab-smoke CHUNK_SIZE=20 \
+node plans/examples-ab-smoke/triage-dispatch.mjs
 ```
 
-Append each verdict back into `results.json` under `<example>.<framework>.<phase>.triage`.
+Splits the queue into `triage-chunks/chunk-NNN.json` (default 20 items per chunk) and writes a `triage-manifest.json` describing which chunks need verdicts. Each chunk takes one `general-purpose` Agent ~20–40s; with chunk-size 20, the orchestrator launches `count/20` parallel agents.
+
+For each chunk in the manifest, spawn one `general-purpose` Agent with this prompt:
+
+```
+You are triaging AG Charts smoke-test exceptions from an A/B comparison.
+
+LEFT side: <left.name> (<left.baseUrl>)
+RIGHT side: <right.name> (<right.baseUrl>)
+
+Read items from: <chunk path>
+
+Each item has: id, type, side, page, example, framework, phase, and evidence
+(paths to PNGs + console/page-error arrays + diff percent for image-diff types).
+
+For each item, examine the evidence using the Read tool (PNGs render visually):
+- image-diff / image-diff-major: read leftScreenshot, rightScreenshot, diffPath
+- navigation-error / page-error / console-error: read text fields in evidence
+- canvas-missing: read screenshots if present
+- control-no-render: read screenshots; means a click did not bump scene-renders
+  within 5s on one side
+- legend-asymmetry / chart-not-settled: examine whatever evidence is present
+
+Decide one of: regression | benign-cosmetic | benign-flake | needs-human
+
+Rules:
+- Default is `regression`. Only return benign-* if you can identify the cause
+  and convince yourself it is unrelated to chart output.
+- image-diff has a high bar — describe the difference and explain why it does
+  not affect the chart.
+- nav/page/canvas errors are almost always `regression` unless clearly
+  unrelated to chart code.
+- control-no-render on one side only = `regression`. Both sides = `needs-human`.
+
+Write a JSON array of `{ id, verdict, reason }` to <verdicts path>. Reason ≤ 1 sentence.
+```
+
+The verdicts path is `triage-verdicts/chunk-NNN.json` (mirrors the chunk filename). The dispatch script prints the per-chunk paths to copy into agent prompts.
+
+**6c. Merge verdicts back into `results.json`.**
+
+```bash
+OUTPUT_DIR=./plans/examples-ab-smoke \
+node plans/examples-ab-smoke/triage-merge.mjs
+```
+
+Reads every `triage-verdicts/chunk-*.json` and attaches `triage: { verdict, reason }` onto the matching exception object in `entry.left/right.phases[phase].exceptions[]`. Fails loudly if any verdict cannot be matched — that means a chunk was stale or the exception was filtered. Re-run dispatch on the offending chunks before proceeding.
 
 ### Step 7 — generate the report
 
 ```bash
+OUTPUT_DIR=./plans/examples-ab-smoke \
 node plans/examples-ab-smoke/generate-report.mjs
 open plans/examples-ab-smoke/report.html
 ```
 
-The report leads with the exception list. Verified-clean rows are collapsed. Header counters: `clean / untriaged / triaged-benign / regression / needs-human / runner-error`. Each exception card shows side-by-side screenshots, the diff image where applicable, the captured console output, and the LLM verdict + reason. Untriaged `image-diff-major` rows automatically count as `regression` so they cannot be missed in the summary.
+The report leads with the exception list. Verified-clean rows are collapsed. Header counters: `clean / untriaged / triaged-benign / regression / needs-human / added / removed / runner-error`. Each exception card shows side-by-side screenshots, the diff image where applicable, the captured console output, and the LLM verdict + reason. Untriaged `image-diff-major` rows automatically count as `regression` so they cannot be missed in the summary.
+
+A sticky left side-nav groups rows by `page` (`gallery` first, then docs pages alphabetically). Each entry has green/red badges (green = clean + triaged-benign visible; red = everything else visible) that update live as the toolbar chips and search filter change. Pages with zero visible rows are collapsed under a "show empty" toggle in the nav header. An IntersectionObserver highlights the active page as the main pane scrolls.
+
+`added` and `removed` describe the example set drift between sides — with left = baseline and right = candidate, `added` means the example exists only in the candidate (404 on the baseline side), `removed` means it has disappeared from the candidate. The report's "Example set drift" panel lists them grouped by direction.
+
+### Step 8 — publish the report (optional)
+
+The report is self-contained but references screenshots and diffs as relative paths, so it needs to be served alongside those directories. The quickest route is Netlify.
+
+```bash
+# Build a publish-ready directory: index.html + hardlinked screenshots/ + diff/
+SRC=./plans/examples-ab-smoke
+SHARE="$SRC/share"
+rm -rf "$SHARE" && mkdir -p "$SHARE"
+cp "$SRC/report.html" "$SHARE/index.html"
+rsync -a --link-dest="$(cd "$SRC" && pwd)/" "$SRC/screenshots/" "$SHARE/screenshots/"
+rsync -a --link-dest="$(cd "$SRC" && pwd)/" "$SRC/diff/" "$SHARE/diff/"
+
+# Deploy to Netlify under the signed-in account (auth from ~/.netlify/config.json).
+npx -y netlify-cli deploy --dir="$SHARE" --prod --no-build
+```
+
+`--no-build` is required when there's no `netlify.toml`. The CLI prints a permanent `*.netlify.app` URL under the user's account. A full-matrix run is ~350MB / 4–5k assets and uploads in roughly three minutes.
+
+Anonymous fallback: drag `share/` onto https://app.netlify.com/drop. The resulting URL is unauthenticated and lives for 24h unless claimed.
+
+## Data model
+
+`results.json` is the source of truth for everything downstream (diff, triage, report). Annotated shape:
+
+```jsonc
+{
+  "sides": { "left": { "name": "…", "baseUrl": "…" }, "right": { … } },
+  "framework": "vanilla",
+  "sideMetadata": { "left": { … }, "right": { … } },
+  "results": [
+    {
+      "page": "gallery",
+      "example": "bar-with-labels",
+      "framework": "vanilla",
+      "left": {
+        "side": "archive-13.3.0",
+        "url": "…",
+        "consoleErrors": [], "consoleWarnings": [], "pageErrors": [],
+        "canvasFound": true,
+        "phases": {
+          "initial":    { "name": "initial", "screenshots": [ … ], "exceptions": [ … ] },
+          "controls":   { … },
+          "tooltip":    { … },
+          "legend-hover":  { … },
+          "legend-toggle": { … }
+        }
+      },
+      "right": { … }
+    }
+  ]
+}
+```
+
+An exception is a `{ type, key?, label?, buttonIndex?, percent?, changed?, total?, diffPath?, … }` object inside `phases[phase].exceptions[]`. The tuple `(page, example, framework, side, phase, type, key, label, buttonIndex, percent)` uniquely identifies it — `triage-merge.mjs` matches verdicts back using this tuple.
+
+`triage-queue.mjs` assigns ephemeral `id: "t<n>"` values for the duration of the LLM round-trip; ids are not persisted into `results.json`. The merge script re-derives the match from `(page, example, framework, side, phase, type, …)`.
 
 ## Maintenance
 
@@ -206,7 +311,11 @@ plans/examples-ab-smoke/
 ├── matrix.json
 ├── results.json            # full structured per-phase data per side per (example, framework)
 ├── triage-queue.json       # exceptions awaiting LLM verdicts
+├── triage-chunks/          # written by triage-dispatch.mjs — one file per chunk
+├── triage-verdicts/        # written by the per-chunk Agents — one file per chunk
+├── triage-manifest.json    # chunk → verdict path map written by triage-dispatch.mjs
 ├── report.html             # the visual report — open this
+├── share/                  # publish-ready bundle (Step 8) — index.html + hardlinked assets
 ├── screenshots/
 │   ├── <side>/<example>-<framework>-<phase>[-<control-slug>].png
 │   └── ...
