@@ -7,7 +7,7 @@
 //   node plans/examples-ab-smoke/discover.mjs --framework vanilla > matrix.json
 //   node plans/examples-ab-smoke/discover.mjs --filter "page=gallery" --framework reactFunctional
 
-import { readFileSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { glob } from 'node:fs/promises';
@@ -123,6 +123,9 @@ async function main() {
             continue;
         }
 
+        const exampleDir = resolve(CONTENT_DIR, pagePath, '_examples', example);
+        const randomScan = scanForRandomness(exampleDir);
+
         matrix.push({
             page,
             pagePath,
@@ -133,6 +136,7 @@ async function main() {
                 skipCanvasUpdateCheck: options.skipCanvasUpdateCheck,
                 ignoreConsoleWarnings: options.ignoreConsoleWarnings,
             },
+            randomData: randomScan,
         });
     }
 
@@ -141,6 +145,32 @@ async function main() {
     );
 
     process.stdout.write(JSON.stringify(matrix, null, 2) + '\n');
+}
+
+// Scan an example's source files for randomness markers. Reports whether the
+// example contains a Math.random() call (unseeded — produces different data
+// between runs and between A/B sides), or imports/uses the seededRandom
+// helper. Pre-b13.3.0 releases predate the seeded helper, so examples that
+// NOW use seededRandom were previously unseeded — those are likely sources of
+// false-positive image-diffs when comparing against an archive build.
+function scanForRandomness(dir) {
+    const out = { unseeded: false, seeded: false, files: [] };
+    let entries;
+    try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return out; }
+    for (const e of entries) {
+        if (!e.isFile()) continue;
+        if (!/\.(ts|js|mts|mjs|cts|cjs|tsx|jsx)$/.test(e.name)) continue;
+        let src;
+        try { src = readFileSync(resolve(dir, e.name), 'utf8'); } catch { continue; }
+        // Strip line/block comments before pattern matching so // Math.random
+        // references in comments don't trigger a false positive.
+        const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:\/])\/\/[^\n]*/g, '$1');
+        const hits = [];
+        if (/\bMath\.random\s*\(/.test(code)) { out.unseeded = true; hits.push('Math.random'); }
+        if (/\bseededRandom\b/.test(code)) { out.seeded = true; hits.push('seededRandom'); }
+        if (hits.length) out.files.push({ file: e.name, markers: hits });
+    }
+    return out;
 }
 
 main().catch((err) => {
