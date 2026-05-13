@@ -313,8 +313,7 @@ describe('configureColorScale', () => {
         configureColorScale(
             scale,
             { fills: [{ color: 'red' }, { color: 'green' }], domain: undefined, mode: 'discrete' },
-            [0, 100],
-            []
+            [0, 100]
         );
         expect(scale.mode).toBe('discrete');
         expect(scale.domain).toEqual([0, 50, 100]);
@@ -327,61 +326,13 @@ describe('configureColorScale', () => {
         ]);
     });
 
-    test('fallback path sets continuous mode', () => {
+    test('empty fills is a no-op', () => {
         const scale = new ColorScale();
-        configureColorScale(scale, { fills: [], domain: undefined, mode: 'continuous' }, [10, 90], ['blue', 'orange']);
-        expect(scale.mode).toBe('continuous');
-        expect(scale.domain).toEqual([10, 90]);
-        expect(scale.range).toEqual(['blue', 'orange']);
-        expect(deriveNormalizedStops(scale)).toEqual([
-            { stop: 0, color: 'blue' },
-            { stop: 1, color: 'orange' },
-        ]);
-    });
-
-    test('fallback path respects discrete mode (AG-17288)', () => {
-        const scale = new ColorScale();
-        configureColorScale(
-            scale,
-            { fills: [], domain: undefined, mode: 'discrete' },
-            [0, 100],
-            ['red', 'yellow', 'green']
-        );
-        expect(scale.mode).toBe('discrete');
-        expect(scale.domain).toEqual([0, expect.closeTo(33.33, 1), expect.closeTo(66.67, 1), 100]);
-        expect(scale.range).toEqual(['red', 'yellow', 'green']);
-        expect(deriveNormalizedStops(scale)).toEqual([
-            { stop: 0, color: 'red' },
-            { stop: expect.closeTo(0.333, 2), color: 'red' },
-            { stop: expect.closeTo(0.333, 2), color: 'yellow' },
-            { stop: expect.closeTo(0.667, 2), color: 'yellow' },
-            { stop: expect.closeTo(0.667, 2), color: 'green' },
-            { stop: 1, color: 'green' },
-        ]);
-    });
-
-    test('fallback discrete path with explicit domain clamps bins', () => {
-        const scale = new ColorScale();
-        configureColorScale(scale, { fills: [], domain: [20, 80], mode: 'discrete' }, [0, 100], ['red', 'green']);
-        expect(scale.mode).toBe('discrete');
-        expect(scale.domain).toEqual([20, 50, 80]);
-        expect(scale.range).toEqual(['red', 'green']);
-        expect(scale.displayDomain).toEqual([20, 80]);
-    });
-
-    test('fallback path with 3 colours evenly spaces gradient stops', () => {
-        const scale = new ColorScale();
-        configureColorScale(
-            scale,
-            { fills: [], domain: undefined, mode: 'continuous' },
-            [0, 100],
-            ['red', 'yellow', 'green']
-        );
-        expect(deriveNormalizedStops(scale)).toEqual([
-            { stop: 0, color: 'red' },
-            { stop: 0.5, color: 'yellow' },
-            { stop: 1, color: 'green' },
-        ]);
+        const domainBefore = [...scale.domain];
+        const rangeBefore = [...scale.range];
+        configureColorScale(scale, { fills: [], domain: undefined, mode: 'continuous' }, [10, 90]);
+        expect(scale.domain).toEqual(domainBefore);
+        expect(scale.range).toEqual(rangeBefore);
     });
 
     test('continuous fills produce normalised gradient stops', () => {
@@ -397,8 +348,7 @@ describe('configureColorScale', () => {
                 domain: undefined,
                 mode: 'continuous',
             },
-            [0, 100],
-            []
+            [0, 100]
         );
         expect(deriveNormalizedStops(scale)).toEqual([
             { stop: 0, color: 'red' },
@@ -412,8 +362,7 @@ describe('configureColorScale', () => {
         configureColorScale(
             scale,
             { fills: [{ color: 'red' }, { color: 'green' }], domain: [20, 80], mode: 'discrete' },
-            [0, 100],
-            []
+            [0, 100]
         );
         expect(scale.domain[0]).toBe(20);
         expect(scale.domain.at(-1)).toBe(80);
@@ -432,18 +381,8 @@ describe('configureColorScale', () => {
         configureColorScale(
             scale,
             { fills: [{ color: 'red' }, { color: 'green' }], domain: undefined, mode: 'continuous' },
-            [42],
-            []
+            [42]
         );
-        expect(scale.domain).toEqual(originalDomain);
-        expect(scale.range).toEqual(originalRange);
-    });
-
-    test('no-op when fills and fallbackRange are both empty', () => {
-        const scale = new ColorScale();
-        const originalDomain = [...scale.domain];
-        const originalRange = [...scale.range];
-        configureColorScale(scale, { fills: [], domain: undefined, mode: 'continuous' }, [0, 100], []);
         expect(scale.domain).toEqual(originalDomain);
         expect(scale.range).toEqual(originalRange);
     });
@@ -452,9 +391,8 @@ describe('configureColorScale', () => {
         const scale = new ColorScale();
         configureColorScale(
             scale,
-            { fills: [], domain: undefined, mode: 'continuous' },
-            [10, 20, 30, 90],
-            ['blue', 'orange']
+            { fills: [{ color: 'blue' }, { color: 'orange' }], domain: undefined, mode: 'continuous' },
+            [10, 20, 30, 90]
         );
         expect(scale.domain).toEqual([10, 90]);
         expect(scale.range).toEqual(['blue', 'orange']);
@@ -550,8 +488,7 @@ describe('configureColorScale displayDomain', () => {
                 domain: undefined,
                 mode: 'continuous',
             },
-            [-100, 200],
-            []
+            [-100, 200]
         );
         expect(scale.displayDomain).toEqual([-100, 200]);
     });
@@ -565,16 +502,9 @@ describe('configureColorScale displayDomain', () => {
                 domain: [0, 50],
                 mode: 'continuous',
             },
-            [-100, 200],
-            []
+            [-100, 200]
         );
         expect(scale.displayDomain).toEqual([0, 50]);
-    });
-
-    test('fallback path sets displayDomain from dataDomain', () => {
-        const scale = new ColorScale();
-        configureColorScale(scale, { fills: [], domain: undefined, mode: 'continuous' }, [10, 90], ['blue', 'orange']);
-        expect(scale.displayDomain).toEqual([10, 90]);
     });
 
     test('fills with stops beyond data range keep displayDomain as data range', () => {
@@ -589,8 +519,7 @@ describe('configureColorScale displayDomain', () => {
                 domain: undefined,
                 mode: 'continuous',
             },
-            [0, 100],
-            []
+            [0, 100]
         );
         expect(scale.displayDomain).toEqual([0, 100]);
         // domain reflects the stop positions for interpolation

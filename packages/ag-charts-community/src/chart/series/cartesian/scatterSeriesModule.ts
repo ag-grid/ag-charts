@@ -15,11 +15,7 @@ import type { AgScatterSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
-import {
-    BUBBLE_SCATTER_COLOR_RANGE_THEME,
-    BUBBLE_SCATTER_COLOR_SCALE_THEME,
-    BUBBLE_SCATTER_GRADIENT_LEGEND_THEME,
-} from './bubbleSeriesModule';
+import { BUBBLE_SCATTER_COLOR_SCALE_THEME, BUBBLE_SCATTER_GRADIENT_LEGEND_THEME } from './bubbleSeriesModule';
 import { ScatterSeries } from './scatterSeries';
 import { scatterSeriesOptionsDef } from './scatterSeriesOptionsDef';
 import { predictCartesianAxis } from './util';
@@ -66,11 +62,6 @@ const themeTemplate: ExtensibleTheme<'scatter'> = {
     },
     gradientLegend: BUBBLE_SCATTER_GRADIENT_LEGEND_THEME,
 };
-
-// See bubbleSeriesModule.ts for why `colorRange` is attached here (undocumented option; can't
-// appear in the ExtensibleTheme literal above).
-// @ts-expect-error undocumented option
-themeTemplate.series.colorRange = BUBBLE_SCATTER_COLOR_RANGE_THEME;
 
 export const ScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions> = {
     type: 'series',

@@ -171,7 +171,7 @@ export class MapLineSeries
         if (this.data == null) return;
 
         const { data, topology, sizeScale, colorScale } = this;
-        const { topologyIdKey, idKey, sizeKey, colorKey, labelKey, sizeDomain, colorRange } = this.properties;
+        const { topologyIdKey, idKey, sizeKey, colorKey, labelKey, sizeDomain } = this.properties;
 
         const featureById = new Map<string, Feature>();
         for (const feature of topology?.features.values() ?? []) {
@@ -216,7 +216,7 @@ export class MapLineSeries
         if (this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
             const domain = processedData.domain.values[colorKeyIdx];
-            configureColorScale(colorScale, this.properties.colorScale, domain, colorRange ?? []);
+            configureColorScale(colorScale, this.properties.colorScale, domain);
         }
 
         if (topology == null) {
@@ -473,15 +473,15 @@ export class MapLineSeries
         isHighlight: boolean
     ): Required<AgMapLineSeriesStyle> {
         const { properties, colorScale, sizeScale } = this;
-        const { colorKey, colorRange, itemStyler } = properties;
-        const { missingDataFill } = properties.colorScale;
+        const { colorKey, colorScale: colorScaleProps, itemStyler } = properties;
+        const { missingDataFill } = colorScaleProps;
 
         const baseStyle = properties.getStyle();
 
         if (colorValue != null) {
             baseStyle.stroke = this.isColorScaleValid()
                 ? colorScale.convert(colorValue)
-                : (colorRange?.[0] ?? properties.stroke);
+                : (colorScaleProps.fills[0]?.color ?? properties.stroke);
         } else if (colorKey != null && missingDataFill != null) {
             baseStyle.stroke = missingDataFill;
         }
@@ -717,13 +717,12 @@ export class MapLineSeries
             idKey,
             idName,
             colorKey,
-            colorRange,
             colorScale: colorScaleProps,
             showInLegend,
         } = this.properties;
         const hasColorScale = colorScaleProps.fills.length > 0;
 
-        if (legendType === 'gradient' && colorKey != null && (colorRange != null || hasColorScale)) {
+        if (legendType === 'gradient' && colorKey != null && hasColorScale) {
             return [
                 buildGradientLegendDatum(
                     this.colorScale,

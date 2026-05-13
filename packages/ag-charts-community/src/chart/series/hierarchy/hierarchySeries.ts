@@ -254,7 +254,7 @@ export abstract class HierarchySeries<
         const colorDomain = [minColor, maxColor];
 
         const dataDomain: [number, number] = minColor < maxColor ? [minColor, maxColor] : [0, 1];
-        configureColorScale(this.colorScale, this.properties.colorScale, dataDomain, []);
+        configureColorScale(this.colorScale, this.properties.colorScale, dataDomain);
 
         this.rootNode = rootNode;
         this.maxDepth = maxDepth;

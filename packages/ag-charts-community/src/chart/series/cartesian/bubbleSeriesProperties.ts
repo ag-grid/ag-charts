@@ -82,27 +82,6 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     @Property
     readonly colorScale = new ColorScaleProperties();
 
-    /**
-     * Fallback palette used by {@link BubbleSeries.processData} when the resolved
-     * {@link colorScale}.fills array is empty. This exists because the options graph treats any
-     * user-supplied partial object (e.g. `colorScale: {}` or `colorScale: { mode: 'discrete' }`)
-     * as "user-supplied" for every descendant path, which wipes the theme's
-     * `colorScale.fills` default wholesale. Without a separate fallback the scale would collapse
-     * to the raw `ColorScale` constructor defaults (red→blue over [0,1]) and every data point
-     * would render as a single colour.
-     *
-     * Populated by the series theme template from the active palette's `divergingColors` so the
-     * fallback tracks palette switches (light/dark/financial/etc.) rather than hard-coding the
-     * default chart theme's orange→yellow→green. Same mechanism heatmap uses via its own
-     * `colorRange` option.
-     *
-     * Undocumented: users who want an explicit gradient should supply `colorScale.fills`. This
-     * field exists purely so an omitted or empty `colorScale` still produces the heatmap-style
-     * default palette instead of red→blue.
-     */
-    @Property
-    colorRange: string[] = ['black', 'black'];
-
     @Property
     title?: string;
 

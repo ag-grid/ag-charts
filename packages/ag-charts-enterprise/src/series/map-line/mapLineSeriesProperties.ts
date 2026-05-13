@@ -68,9 +68,6 @@ export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOpt
     sizeDomain?: [number, number];
 
     @Property
-    colorRange: string[] | undefined = undefined;
-
-    @Property
     readonly colorScale = new ColorScaleProperties();
 
     @Property
