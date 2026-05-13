@@ -5759,13 +5759,6 @@
   dependencies:
     "@nx/devkit" "18.3.4"
 
-"@nrwl/devkit@18.3.5":
-  version "18.3.5"
-  resolved "https://registry.yarnpkg.com/@nrwl/devkit/-/devkit-18.3.5.tgz#471ed07a59fb03fa62f5c9a9e475baef6a111416"
-  integrity sha512-DIvChKMe4q8CtIsbrumL/aYgf85H5vlT6eF3jnCCWORj6LTwoHtK8Q9ky1+uM82KIM0gaKd32NVDw+w64scHyg==
-  dependencies:
-    "@nx/devkit" "18.3.5"
-
 "@nx/devkit@18.3.4", "@nx/devkit@^18.3.4":
   version "18.3.4"
   resolved "https://registry.yarnpkg.com/@nx/devkit/-/devkit-18.3.4.tgz#1adee4670d0265c5f07f9e026bbfe60785992359"
@@ -5780,24 +5773,24 @@
     tslib "^2.3.0"
     yargs-parser "21.1.1"
 
-"@nx/devkit@18.3.5", "@nx/devkit@^18.3.5":
-  version "18.3.5"
-  resolved "https://registry.yarnpkg.com/@nx/devkit/-/devkit-18.3.5.tgz#6ea0306e9658ae59a3728108b0d1a75b8d51d928"
-  integrity sha512-9I0L17t0MN87fL4m4MjDiBxJIx7h5RQY/pTYtt5TBjye0ANb165JeE4oh3ibzfjMzXv42Aej2Gm+cOuSPwzT9g==
+"@nx/devkit@20.3.1":
+  version "20.3.1"
+  resolved "https://registry.yarnpkg.com/@nx/devkit/-/devkit-20.3.1.tgz#f8592e5a34c9cefcbd28dd5f5aa00a6eea01fd1f"
+  integrity sha512-Z6VdBg5GRu2Vg9FpeQJY+zQ1TvBoMWk8cTCZOf8J6myjoWYbksRfpWfNIvEk9OUsEMhpg98vxH2Cc8JR1zfiew==
   dependencies:
-    "@nrwl/devkit" "18.3.5"
     ejs "^3.1.7"
     enquirer "~2.3.6"
     ignore "^5.0.4"
+    minimatch "9.0.3"
     semver "^7.5.3"
     tmp "~0.2.1"
     tslib "^2.3.0"
     yargs-parser "21.1.1"
 
-"@nx/devkit@20.3.1":
-  version "20.3.1"
-  resolved "https://registry.yarnpkg.com/@nx/devkit/-/devkit-20.3.1.tgz#f8592e5a34c9cefcbd28dd5f5aa00a6eea01fd1f"
-  integrity sha512-Z6VdBg5GRu2Vg9FpeQJY+zQ1TvBoMWk8cTCZOf8J6myjoWYbksRfpWfNIvEk9OUsEMhpg98vxH2Cc8JR1zfiew==
+"@nx/devkit@^20.8.4":
+  version "20.8.4"
+  resolved "https://registry.yarnpkg.com/@nx/devkit/-/devkit-20.8.4.tgz#5b1d132d437e90c30d83865694159e3b304ca77a"
+  integrity sha512-3r+6QmIXXAWL6K7m8vAbW31aniAZmZAZXeMhOhWcJoOAU7ggpCQaM8JP8/kO5ov/Bmhyf0i/SSVXI6kwiR5WNQ==
   dependencies:
     ejs "^3.1.7"
     enquirer "~2.3.6"
@@ -22274,10 +22267,15 @@ tinyglobby@^0.2.13:
     fdir "^6.4.4"
     picomatch "^4.0.2"
 
-tinypool@^1.0.1, tinypool@^1.0.2:
+tinypool@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/tinypool/-/tinypool-1.0.2.tgz#706193cc532f4c100f66aa00b01c42173d9051b2"
   integrity sha512-al6n+QEANGFOMf/dmUMsuS5/r9B06uwlyNjZZql/zv8J7ybHCgoihBNORZCY2mzUuAnomQa2JdhyHKzZxPCrFA==
+
+tinypool@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/tinypool/-/tinypool-2.1.0.tgz#303a671d6ef68d03c9512cdc9a47c86b8a85f20c"
+  integrity sha512-Pugqs6M0m7Lv1I7FtxN4aoyToKg1C4tu+/381vH35y8oENM/Ai7f7C4StcoK4/+BSw9ebcS8jRiVrORFKCALLw==
 
 tinyrainbow@^1.2.0:
   version "1.2.0"

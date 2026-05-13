@@ -36,14 +36,27 @@ function escapeHtml(s) {
     return String(s ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
 }
 
+// Use the URL stored per-result by the runner (product-agnostic), falling back
+// to inline reconstruction for older results.json files.
 function buildExampleUrl(side, entry) {
+    const stored = entry.left?.url ?? entry.right?.url;
+    if (stored) return stored.replace(/#.*$/, '');
     const base = side.baseUrl.replace(/\/$/, '');
-    return entry.page === 'gallery'
-        ? `${base}/gallery/examples/${entry.example}`
-        : `${base}/${entry.framework}/${entry.page}/examples/${entry.example}`;
+    return `${base}/${entry.framework}/${entry.page}/examples/${entry.example}`;
 }
 
-const PHASE_ORDER = ['initial', 'controls', 'tooltip', 'legend-hover', 'legend-toggle'];
+// Derive phase order from the results themselves rather than hardcoding a
+// product-specific list. Preserves insertion order from the first result that
+// has phases, which matches the profile's PHASES declaration order.
+const PHASE_ORDER = (() => {
+    const seen = new Set();
+    for (const r of data.results) {
+        for (const side of ['left', 'right']) {
+            for (const p of Object.keys(r[side]?.phases ?? {})) seen.add(p);
+        }
+    }
+    return [...seen];
+})();
 
 function classifyPhase(phase) {
     if (!phase) return { status: 'no-data', exceptions: [], imageDiffs: [] };
@@ -320,7 +333,11 @@ for (const r of rows) {
         pageOrder.push(r.entry.page);
     }
 }
-pageOrder.sort((a, b) => (a === 'gallery' ? -1 : b === 'gallery' ? 1 : a.localeCompare(b)));
+pageOrder.sort((a, b) => {
+    const aGallery = a === 'gallery' ? 0 : 1;
+    const bGallery = b === 'gallery' ? 0 : 1;
+    return aGallery - bGallery || a.localeCompare(b);
+});
 const pageId = (page) => `page-${page.replace(/[^a-z0-9-]/gi, '-')}`;
 const rowsByPage = new Map(pageOrder.map((p) => [p, []]));
 for (const r of rows) rowsByPage.get(r.entry.page).push(r);
@@ -332,7 +349,9 @@ function renderSideMeta(label, side, sideMeta) {
     ];
     const m = sideMeta?.meta;
     if (m) {
-        if (m.versions?.charts) parts.push(`<div>charts <code>${escapeHtml(m.versions.charts)}</code></div>`);
+        const productKey = data.product?.replace('ag-', '') ?? 'charts';
+        const version = m.versions?.[productKey];
+        if (version) parts.push(`<div>${escapeHtml(productKey)} <code>${escapeHtml(version)}</code></div>`);
         if (m.git?.shortHash) parts.push(`<div class="meta">git ${escapeHtml(m.git.shortHash)} · ${escapeHtml(m.git.date ?? '')}</div>`);
         if (m.buildDate) parts.push(`<div class="meta">built ${escapeHtml(m.buildDate)}</div>`);
     } else if (sideMeta?.error) {
@@ -350,7 +369,7 @@ function renderOneSidedList(label, rows) {
 }
 
 const html = `<!doctype html>
-<html><head><meta charset="utf-8"><title>AG Charts Examples A/B Smoke Report</title>
+<html><head><meta charset="utf-8"><title>${escapeHtml(data.product ?? 'AG')} Examples A/B Smoke Report</title>
 <style>
   :root {
     --bg: #f7f8fa;
@@ -579,7 +598,7 @@ const html = `<!doctype html>
   </ul>
 </nav>
 <div class="container">
-<h1>AG Charts Examples A/B Smoke Report</h1>
+<h1>${escapeHtml(data.product ?? 'AG')} Examples A/B Smoke Report</h1>
 <div class="subtitle">${escapeHtml(data.sides.left.name)} vs ${escapeHtml(data.sides.right.name)} · framework <code>${escapeHtml(data.framework ?? data.sides.framework ?? 'vanilla')}</code> · ${data.results.length} examples</div>
 <div class="meta-row">
   ${renderSideMeta('left', data.sides.left, data.sideMetadata?.left).replace('class="side-meta"', 'class="side-meta left"')}

@@ -28,6 +28,20 @@ export const HEATMAP_SERIES_THEME: ExtensibleTheme<'heatmap'> = {
             overflowStrategy: 'ellipsis',
         },
         itemPadding: 3,
+        colorScale: {
+            fills: {
+                $map: [
+                    { color: { $value: '$1' } },
+                    {
+                        $if: [
+                            { $eq: [{ $palette: 'type' }, 'inbuilt'] },
+                            { $palette: 'divergingColors' },
+                            SAFE_RANGE2_OPERATION,
+                        ],
+                    },
+                ],
+            },
+        },
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },
             unhighlightedItem: {
@@ -42,9 +56,4 @@ export const HEATMAP_SERIES_THEME: ExtensibleTheme<'heatmap'> = {
     gradientLegend: {
         enabled: { $not: { $eq: [{ $path: '../series/0/colorScale/mode' }, 'discrete'] } },
     },
-};
-
-// @ts-expect-error undocumented option
-HEATMAP_SERIES_THEME.series.colorRange = {
-    $if: [{ $eq: [{ $palette: 'type' }, 'inbuilt'] }, { $palette: 'divergingColors' }, SAFE_RANGE2_OPERATION],
 };

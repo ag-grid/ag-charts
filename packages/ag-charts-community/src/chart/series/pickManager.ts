@@ -44,6 +44,12 @@ function indexOf(candidates: PickedNode[], node: PickedNode | undefined): number
     return node == undefined ? -1 : candidates.findIndex((c) => pickedNodesEqual(c, node));
 }
 
+function filterDisabledMatches(matches: PickedNode[]): PickedNode[] {
+    return matches.filter((match) => {
+        return match.series.properties.tooltip.enabled ?? true;
+    });
+}
+
 type TooltipCandidate = { active?: PickedNode; paginationState?: { index: number; length: number } };
 
 /**
@@ -157,7 +163,7 @@ export class PickManager {
     onPickedNodesTooltip(pickedNodes: PickedNodes | undefined): TooltipCandidate {
         if (pickedNodes !== undefined && this.tooltipProperties.pagination) {
             const previous = this.active;
-            const nextCandidates = pickedNodes.matches;
+            const nextCandidates = filterDisabledMatches(pickedNodes.matches);
 
             this.candidates = nextCandidates;
 
