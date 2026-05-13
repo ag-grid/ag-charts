@@ -237,15 +237,15 @@ jobs:
                   cache_mode: ro
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
-#            - name: nx format:check
-#              id: format
-#              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
-#              run: |
-#                  if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
-#                    yarn nx format:check --all
-#                  else
-#                    yarn nx format:check --base ${{ steps.setup.outputs.base }}
-#                  fi
+            #            - name: nx format:check
+            #              id: format
+            #              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+            #              run: |
+            #                  if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
+            #                    yarn nx format:check --all
+            #                  else
+            #                    yarn nx format:check --base ${{ steps.setup.outputs.base }}
+            #                  fi
 
             - name: nx lint
               id: lint
@@ -464,7 +464,7 @@ jobs:
         steps:
             - name: Pull Playwright Image
               run: |
-                  playwright_image=mcr.microsoft.com/playwright:v1.57.0-jammy
+                  playwright_image=mcr.microsoft.com/playwright:v1.60.0-jammy
                   pull_attempts=4
                   for attempt in $(seq 1 ${pull_attempts}) ; do
                     if docker pull ${playwright_image} ; then
