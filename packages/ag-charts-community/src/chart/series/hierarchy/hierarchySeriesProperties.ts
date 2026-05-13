@@ -53,8 +53,5 @@ export abstract class HierarchySeriesProperties<T extends object> extends Series
     strokes: string[] = Object.values(DEFAULT_STROKES);
 
     @Property
-    colorRange?: string[];
-
-    @Property
     readonly colorScale = new ColorScaleProperties();
 }

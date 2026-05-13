@@ -187,7 +187,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             return;
         }
 
-        const { xKey, yKey, colorRange, colorKey } = this.properties;
+        const { xKey, yKey, colorKey } = this.properties;
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
@@ -211,12 +211,20 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             const domain = extent(rawDomain);
 
             if (domain != null) {
-                let fallbackRange = colorRange;
-                if (domain[0] === domain[1]) {
-                    const midIndex = Math.floor(colorRange.length / 2);
-                    fallbackRange = [colorRange[midIndex], colorRange[midIndex]];
+                const colorScaleProps = this.properties.colorScale;
+                // Collapse to the midpoint colour for a degenerate single-value domain so the
+                // diverging palette doesn't render with its endpoints.
+                if (domain[0] === domain[1] && colorScaleProps.fills.length > 0) {
+                    const midIndex = Math.floor(colorScaleProps.fills.length / 2);
+                    const mid = colorScaleProps.fills[midIndex];
+                    configureColorScale(
+                        this.colorScale,
+                        { fills: [mid, mid], domain: colorScaleProps.domain, mode: colorScaleProps.mode },
+                        domain
+                    );
+                } else {
+                    configureColorScale(this.colorScale, colorScaleProps, domain);
                 }
-                configureColorScale(this.colorScale, this.properties.colorScale, domain, fallbackRange);
             }
         }
     }
@@ -751,8 +759,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties, colorScale, ctx } = this;
         const { formatManager } = ctx;
-        const { xKey, xName, yKey, yName, colorKey, colorName, colorRange, title, legendItemName, tooltip } =
-            properties;
+        const { xKey, xName, yKey, yName, colorKey, colorName, title, legendItemName, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -781,7 +788,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         // Reachable only when colorKey is null (missing-colour datums returned above).
         let fill: InternalAgColorType;
         if (colorValue == null) {
-            fill = colorRange[0];
+            fill = properties.colorScale.fills[0]?.color ?? 'black';
         } else {
             fill = colorScale.convert(colorValue);
             const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData).domain;

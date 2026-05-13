@@ -237,7 +237,7 @@ export class MapMarkerSeries
         if (this.data == null) return;
 
         const { data, sizeScale, colorScale } = this;
-        const { topologyIdKey, idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey, sizeDomain, colorRange } =
+        const { topologyIdKey, idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey, sizeDomain } =
             this.properties;
 
         const featureById = this.buildFeatureMap(topologyIdKey);
@@ -304,7 +304,7 @@ export class MapMarkerSeries
         if (this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
             const domain = processedData.domain.values[colorKeyIdx];
-            configureColorScale(colorScale, this.properties.colorScale, domain, colorRange ?? []);
+            configureColorScale(colorScale, this.properties.colorScale, domain);
         }
 
         this.animationState.transition('updateData');
@@ -775,15 +775,17 @@ export class MapMarkerSeries
         isHighlight: boolean
     ): Required<AgMapMarkerSeriesStyle> {
         const { properties, colorScale, sizeScale } = this;
-        const { colorKey, colorRange, itemStyler } = properties;
-        const { missingDataFill } = properties.colorScale;
+        const { colorKey, colorScale: colorScaleProps, itemStyler } = properties;
+        const { missingDataFill } = colorScaleProps;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
         const baseStyle = mergeDefaults(selectionStyle, highlightStyle, properties.getStyle());
 
         if (colorValue != null) {
-            const fillOverride = this.isColorScaleValid() ? colorScale.convert(colorValue) : colorRange?.[0];
+            const fillOverride = this.isColorScaleValid()
+                ? colorScale.convert(colorValue)
+                : colorScaleProps.fills[0]?.color;
             if (fillOverride != null) {
                 baseStyle.fill = fillOverride;
             }
@@ -974,13 +976,12 @@ export class MapMarkerSeries
             idName,
             idKey,
             colorKey,
-            colorRange,
             colorScale: colorScaleProps,
             showInLegend,
         } = this.properties;
         const hasColorScale = colorScaleProps.fills.length > 0;
 
-        if (legendType === 'gradient' && colorKey != null && (colorRange != null || hasColorScale)) {
+        if (legendType === 'gradient' && colorKey != null && hasColorScale) {
             return [
                 buildGradientLegendDatum(
                     this.colorScale,

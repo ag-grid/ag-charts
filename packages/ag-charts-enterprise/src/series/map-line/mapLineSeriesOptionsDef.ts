@@ -1,16 +1,11 @@
 import { type AgMapLineSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
-    and,
-    arrayLength,
-    arrayOf,
-    color,
     commonSeriesOptionsDefs,
     constant,
     geoJson,
     required,
     string,
-    undocumented,
     without,
 } from 'ag-charts-core';
 
@@ -33,6 +28,3 @@ export const mapLineSeriesOptionsDef: OptionsDefs<AgMapLineSeriesOptions> = {
     legendItemName: string,
     title: string,
 };
-
-// @ts-expect-error undocumented option
-mapLineSeriesOptionsDef.colorRange = undocumented(and(arrayOf(color), arrayLength(1)));

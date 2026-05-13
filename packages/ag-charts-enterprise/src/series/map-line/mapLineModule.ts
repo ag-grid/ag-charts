@@ -26,12 +26,19 @@ export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions>
         ...MAP_THEME_DEFAULTS,
         series: {
             stroke: applyMapPalette(SAFE_STROKE_FILL_OPERATION),
-            colorRange: {
-                $if: [
-                    { $eq: [{ $mapPalette: 'type' }, 'inbuilt'] },
-                    { $mapPalette: 'divergingColors' },
-                    applyMapPalette(SAFE_RANGE2_OPERATION),
-                ],
+            colorScale: {
+                fills: {
+                    $map: [
+                        { color: { $value: '$1' } },
+                        {
+                            $if: [
+                                { $eq: [{ $mapPalette: 'type' }, 'inbuilt'] },
+                                { $mapPalette: 'divergingColors' },
+                                applyMapPalette(SAFE_RANGE2_OPERATION),
+                            ],
+                        },
+                    ],
+                },
             },
             strokeWidth: 1,
             maxStrokeWidth: 3,
