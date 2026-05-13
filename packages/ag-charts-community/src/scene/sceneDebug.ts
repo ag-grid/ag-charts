@@ -407,7 +407,7 @@ export function buildDirtyTree(node: Node): {
     const childrenDirtyTree = Array.from(node instanceof Group ? node.children() : [], (c) => buildDirtyTree(c)).filter(
         (c) => c.paths.length > 0
     );
-    const name = Group.is(node) ? node.name ?? node.id : node.id;
+    const name = Group.is(node) ? (node.name ?? node.id) : node.id;
     const paths = childrenDirtyTree.length
         ? childrenDirtyTree.flatMap((c) => c.paths).map((p) => `${name}.${p}`)
         : [name];

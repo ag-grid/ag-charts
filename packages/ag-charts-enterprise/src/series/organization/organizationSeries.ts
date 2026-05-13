@@ -1,6 +1,8 @@
 import {
     type AgActiveItemState,
     type AgOrganizationNodeTextFormatterParams,
+    type AgOrganizationSeriesExpanderItemStylerParams,
+    type AgOrganizationSeriesExpanderStyle,
     type AgOrganizationSeriesLinkItemStylerParams,
     type AgOrganizationSeriesLinkStyle,
     type AgOrganizationSeriesNodeItemStylerParams,
@@ -23,6 +25,7 @@ import {
     clamp,
     mergeDefaults,
     strictObjectKeys,
+    toPlainText,
 } from 'ag-charts-core';
 
 import { NetworkLinkNode } from '../network/networkLinkNode';
@@ -182,6 +185,25 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const yRange = yEntry.max - yEntry.min;
         if (xRange <= 0 || yRange <= 0) return;
 
+        // AG-17239: at the 1:1 floor, further zoom-in is a no-op — otherwise the
+        // cursor-anchored input mid leaks through `clampMid` and reads as a pan.
+        const oldX = event.oldState[xId];
+        const oldY = event.oldState[yId];
+        if (oldX && oldY) {
+            const oldXRange = oldX.max - oldX.min;
+            const oldYRange = oldY.max - oldY.min;
+            const inputT = Math.max(xRange / fitX, yRange / fitY);
+            const oldT = Math.max(oldXRange / fitX, oldYRange / fitY);
+            const wantsShrink = xRange < oldXRange - ISOTROPY_EPSILON || yRange < oldYRange - ISOTROPY_EPSILON;
+            if (wantsShrink && inputT <= 1 + ISOTROPY_EPSILON && oldT <= 1 + ISOTROPY_EPSILON) {
+                const restored: _ModuleSupport.CoreZoomState = {};
+                restored[xId] = { min: oldX.min, max: oldX.max, direction: ChartAxisDirection.X };
+                restored[yId] = { min: oldY.min, max: oldY.max, direction: ChartAxisDirection.Y };
+                event.constrainChanges(restored);
+                return;
+            }
+        }
+
         // Project to the isotropic line, then floor at sMax (t ≥ 1/sMax).
         const targetT = Math.max(xRange / fitX, yRange / fitY, 1 / sMax);
         const targetXRange = Math.min(1, targetT * fitX);
@@ -244,13 +266,17 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         let index = 0;
         for (const label of labels) {
-            props.push(
-                valueProperty(label.key, undefined, {
-                    id: `labelValue-${index}`,
-                    allowNullKey: true,
-                    missingValue: undefined,
-                })
-            );
+            // Skip disabled tiers — without a `key` they crash `dataModel`. The slot is
+            // preserved as `undefined` in `createGraphData` so tier indexing stays aligned.
+            if (label.enabled) {
+                props.push(
+                    valueProperty(label.key, undefined, {
+                        id: `labelValue-${index}`,
+                        allowNullKey: true,
+                        missingValue: undefined,
+                    })
+                );
+            }
             index++;
         }
 
@@ -287,9 +313,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     hasItemStylers() {
-        const { node, link, selection } = this.properties;
+        const { expander, node, link, selection } = this.properties;
         return (
             selection.enabled ||
+            expander.itemStyler != null ||
             node.itemStyler != null ||
             link.itemStyler != null ||
             node.title.itemStyler != null ||
@@ -334,7 +361,13 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 this.formatText(label, this.properties.node.labels[index]?.formatter, datumIndex, isCollapsed)
             );
 
-            node.update({ image: fields.image, title, subtitle, labels }, descendantsCount, styles, isCollapsed);
+            node.update(
+                { image: fields.image, title, subtitle, labels },
+                descendantsCount,
+                styles,
+                isCollapsed,
+                this.ctx.domManager.isRtl
+            );
         });
     }
 
@@ -358,6 +391,16 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             node.updateBBox(regularBBox);
             node.realign(regularBBox);
         }
+
+        const focusBBox = node.getFocusBBox();
+
+        return new _ModuleSupport.BBox(bbox.x, bbox.y, focusBBox.width, focusBBox.height);
+    }
+
+    // Exclude the expander pill from measurements — its overhang would compound into
+    // `regularBBox` on each layout pass, growing the card by `expander.height / 2` per toggle.
+    protected override measureDatumNode(node: OrganizationNode): _ModuleSupport.BBox {
+        return node.getCardBBox();
     }
 
     getLinkInterpolation(
@@ -441,10 +484,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const node = this.datumSelection.at(nextDatumIdx);
         if (!node) return;
 
-        // Card rect, not the node group's bbox — the group includes the expander pill below.
-        const cardBBox = node.getCardBBox();
-        if (!cardBBox) return;
-        const bounds = _ModuleSupport.Transformable.toCanvas(node, cardBBox);
+        // Card + expander pill so the focus ring shows what `Enter` will toggle.
+        const bounds = _ModuleSupport.Transformable.toCanvas(node, node.getFocusBBox());
         if (!bounds?.isFinite()) return;
 
         const depth = this.graph.findNeighbourValue(next, 'depth') as number | undefined;
@@ -461,7 +502,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         };
     }
 
-    getDatumAriaText(datum: OrganizationDatum, description: string): string | undefined {
+    getDatumAriaText(datum: OrganizationDatum, _description: string): string | undefined {
         const { vertex } = datum;
         const depth = (this.graph.findNeighbourValue(vertex, 'depth') as number | undefined) ?? 1;
 
@@ -470,6 +511,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const setSize = siblings.length;
 
         const childCount = this.getChildren(vertex).length;
+
+        // Tooltip-derived description carries only the heading; build a fuller one for SR.
+        const description = this.composeDatumDescription(vertex);
 
         // Leaf vs. parent — a single key with empty `${collapsedState}` would stutter (",,").
         if (childCount === 0) {
@@ -485,13 +529,30 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const collapsedState = this.ctx.localeManager.t(
             this.ctx.collapsedManager.isCollapsed(itemId) ? 'ariaOrgChartCollapsed' : 'ariaOrgChartExpanded'
         );
-        return this.ctx.localeManager.t('ariaAnnounceOrgChartParent', {
+        // Locale tooling has no `[plural]` annotation, so split the key by child count.
+        const key = childCount === 1 ? 'ariaAnnounceOrgChartParentSingular' : 'ariaAnnounceOrgChartParent';
+        return this.ctx.localeManager.t(key, {
             description,
             level: depth,
             posInSet,
             setSize,
+            childCount,
             collapsedState,
         });
+    }
+
+    private composeDatumDescription(vertex: Vertex<OrganizationVertex, OrganizationEdge>): string {
+        const fields = this.resolveVertexFields(vertex);
+        const parts: string[] = [];
+        const title = toPlainText(fields.title).trim();
+        const subtitle = toPlainText(fields.subtitle).trim();
+        if (title) parts.push(title);
+        if (subtitle) parts.push(subtitle);
+        for (const label of fields.labels ?? []) {
+            const labelText = toPlainText(label).trim();
+            if (labelText) parts.push(labelText);
+        }
+        return parts.join(', ');
     }
 
     // Returns the next focus vertex per the spatial model, or `undefined` for a no-op (ArrowUp
@@ -584,12 +645,16 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             nodeWidth: this.properties.node.width,
             nodeMaxHeight: this.properties.node.maxHeight,
             nodeMaxWidth: this.properties.node.maxWidth,
-            expanderPillHeight: this.properties.expander.height,
             regularDimensions: true,
             hiddenOnCollapse: true,
             innerSpacing: this.properties.innerSpacing ?? 0,
             outerSpacing: this.properties.outerSpacing ?? 0,
             verticalSpacing: this.properties.verticalSpacing ?? 0,
+            verticalSpacingExtra: this.properties.expander.enabled
+                ? this.properties.expander.text.fontSize / 2 +
+                  this.properties.expander.padding +
+                  this.properties.expander.strokeWidth
+                : 0,
         };
     }
 
@@ -606,9 +671,14 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const titleValues = dataModel.resolveColumnById(this, 'titleValue', processedData);
         const subtitleValues = dataModel.resolveColumnById(this, 'subtitleValue', processedData);
 
-        const labelsValues = [];
+        const labelsValues: (string[] | undefined)[] = [];
         for (let i = 0; i < this.properties.node.labels.length; i++) {
-            labelsValues.push(dataModel.resolveColumnById(this, `labelValue-${i}`, processedData));
+            // Disabled tiers have no value-property; preserve slot so tier indexing stays aligned.
+            labelsValues.push(
+                this.properties.node.labels[i].enabled
+                    ? dataModel.resolveColumnById(this, `labelValue-${i}`, processedData)
+                    : undefined
+            );
         }
 
         // TODO: This is passing `any[]` in as the values, and the build fn then constrains the types without any safety.
@@ -738,6 +808,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const { itemStyler } = this.properties.node;
         const { itemStyler: titleStyler } = this.properties.node.title;
         const { itemStyler: subtitleStyler } = this.properties.node.subtitle;
+        const { itemStyler: expanderStyler } = this.properties.expander;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const selectionStyle = this.getSelectionStyle(datumIndex);
@@ -746,33 +817,19 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             title: this.getNodeTextDefaultStyle(this.properties.node.title),
             subtitle: this.getNodeTextDefaultStyle(this.properties.node.subtitle),
             labels: this.properties.node.labels.map((label) => this.getNodeTextDefaultStyle(label)),
-            expander: { height: this.properties.expander.height, spacing: this.properties.expander.spacing },
+            expander: this.getExpanderDefaultStyle(),
         });
 
-        if (itemStyler && dataModel && processedData && datumIndex != null) {
-            const overrides = this.cachedDatumCallback(
-                _ModuleSupport.createDatumId(this.id, datumIndex, 'node', isCollapsed),
-                () => {
-                    const params = this.makeNodeItemStylerParams(
-                        dataModel,
-                        processedData,
-                        datumIndex,
-                        depth,
-                        highlightState,
-                        isCollapsed,
-                        style
-                    );
-                    return this.ctx.optionsGraphService.resolvePartial(
-                        ['series', `${this.declarationOrder}`],
-                        this.callWithContext(itemStyler, params)
-                    );
-                }
-            );
-
-            if (overrides) {
-                style = mergeDefaults(overrides, style);
-            }
-        }
+        style = this.getNodeItemStylerStyle(
+            itemStyler,
+            style,
+            dataModel,
+            processedData,
+            datumIndex,
+            depth,
+            highlightState,
+            isCollapsed
+        );
 
         style.title = this.getNodeTextItemStylerStyle(
             titleStyler,
@@ -789,6 +846,17 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             subtitleStyler,
             style.subtitle,
             'subtitle',
+            dataModel,
+            processedData,
+            datumIndex,
+            depth,
+            highlightState,
+            isCollapsed
+        );
+
+        style.expander = this.getExpanderItemStylerStyle(
+            expanderStyler,
+            style.expander,
             dataModel,
             processedData,
             datumIndex,
@@ -839,12 +907,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             fillOpacity,
             height: height ?? Number.NaN,
             image: {
+                cornerRadius: image.cornerRadius,
                 enabled: image.enabled,
                 key: image.key,
                 height: image.height,
                 width: image.width,
                 position: image.position,
-                shape: image.shape,
                 spacing: image.spacing,
             },
             lineDash,
@@ -856,6 +924,42 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             strokeOpacity,
             strokeWidth,
             width: width ?? Number.NaN,
+        };
+    }
+
+    private getExpanderDefaultStyle(): DeepRequired<AgOrganizationSeriesExpanderStyle> {
+        const {
+            cornerRadius,
+            enabled,
+            fill,
+            fillOpacity,
+            lineDash,
+            lineDashOffset,
+            padding,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            text,
+        } = this.properties.expander;
+        return {
+            cornerRadius,
+            enabled,
+            fill,
+            fillOpacity,
+            lineDash,
+            lineDashOffset: lineDashOffset ?? 0,
+            padding,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            text: {
+                color: text.color,
+                fontFamily: text.fontFamily,
+                fontSize: text.fontSize,
+                fontStyle: text.fontStyle,
+                fontWeight: text.fontWeight,
+                textAlign: text.textAlign,
+            },
         };
     }
 
@@ -891,6 +995,90 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             cornerRadius: props.cornerRadius,
             padding: props.padding,
         };
+    }
+
+    private getNodeItemStylerStyle(
+        styler:
+            | Styler<AgOrganizationSeriesNodeItemStylerParams<unknown, unknown>, AgOrganizationSeriesNodeStyle>
+            | undefined,
+        style: RequiredOrganizationNodeStyle,
+        dataModel: _ModuleSupport.DataModel<any, any, any> | undefined,
+        processedData: _ModuleSupport.ProcessedData<any> | undefined,
+        datumIndex: number | undefined,
+        depth: number,
+        highlightState: _ModuleSupport.HighlightState | undefined,
+        isCollapsed: boolean
+    ) {
+        if (!styler || !dataModel || !processedData || datumIndex == null) {
+            return style;
+        }
+
+        const overrides = this.cachedDatumCallback(
+            _ModuleSupport.createDatumId(this.id, datumIndex, 'node', isCollapsed),
+            () => {
+                const params = this.makeNodeItemStylerParams(
+                    dataModel,
+                    processedData,
+                    datumIndex,
+                    depth,
+                    highlightState,
+                    isCollapsed,
+                    style
+                );
+                return this.ctx.optionsGraphService.resolvePartial(
+                    ['series', `${this.declarationOrder}`],
+                    this.callWithContext(styler, params)
+                );
+            }
+        );
+
+        if (overrides) {
+            style = mergeDefaults(overrides, style);
+        }
+
+        return style;
+    }
+
+    private getExpanderItemStylerStyle(
+        styler:
+            | Styler<AgOrganizationSeriesExpanderItemStylerParams<unknown, unknown>, AgOrganizationSeriesExpanderStyle>
+            | undefined,
+        style: DeepRequired<AgOrganizationSeriesExpanderStyle>,
+        dataModel: _ModuleSupport.DataModel<any, any, any> | undefined,
+        processedData: _ModuleSupport.ProcessedData<any> | undefined,
+        datumIndex: number | undefined,
+        depth: number,
+        highlightState: _ModuleSupport.HighlightState | undefined,
+        isCollapsed: boolean
+    ) {
+        if (!styler || !dataModel || !processedData || datumIndex == null) {
+            return style;
+        }
+
+        const overrides = this.cachedDatumCallback(
+            _ModuleSupport.createDatumId(this.id, datumIndex, 'expander', isCollapsed),
+            () => {
+                const params = this.makeExpanderItemStylerParams(
+                    dataModel,
+                    processedData,
+                    datumIndex,
+                    depth,
+                    highlightState,
+                    isCollapsed,
+                    style
+                );
+                return this.ctx.optionsGraphService.resolvePartial(
+                    ['series', `${this.declarationOrder}`],
+                    this.callWithContext(styler, params)
+                );
+            }
+        );
+
+        if (overrides) {
+            style = mergeDefaults(overrides, style);
+        }
+
+        return style;
     }
 
     private getNodeTextItemStylerStyle(
@@ -953,7 +1141,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             fromDatum,
             toDatum,
             seriesId,
-            selectionState: 'unselected',
+            selectionState: 'unselected-item',
         } satisfies CallbackParamRules<AgOrganizationSeriesLinkItemStylerParams<unknown, unknown>>;
     }
 
@@ -977,8 +1165,32 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             isCollapsed,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
-            selectionState: 'unselected',
+            selectionState: 'unselected-item',
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeItemStylerParams<unknown, unknown>>;
+    }
+
+    private makeExpanderItemStylerParams(
+        _dataModel: NonNullable<typeof this.dataModel>,
+        processedData: NonNullable<typeof this.processedData>,
+        datumIndex: number,
+        depth: number,
+        highlightState: _ModuleSupport.HighlightState | undefined,
+        isCollapsed: boolean,
+        style: Required<AgOrganizationSeriesExpanderStyle>
+    ): AgOrganizationSeriesExpanderItemStylerParams<unknown, unknown> {
+        const { id: seriesId } = this;
+
+        const datum = processedData.dataSources.get(seriesId)?.data?.[datumIndex];
+
+        return {
+            ...style,
+            datum,
+            depth,
+            isCollapsed,
+            seriesId,
+            highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
+            selectionState: 'unselected-item',
+        } satisfies CallbackParamRules<AgOrganizationSeriesExpanderItemStylerParams<unknown, unknown>>;
     }
 
     private makeNodeTextStylerParams(
@@ -1001,7 +1213,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             isCollapsed,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
-            selectionState: 'unselected',
+            selectionState: 'unselected-item',
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeTextStylerParams<unknown, unknown>>;
     }
 

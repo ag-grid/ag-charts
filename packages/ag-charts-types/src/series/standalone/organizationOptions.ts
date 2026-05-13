@@ -26,17 +26,26 @@ import type {
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseSeriesOptions<TDatum, TContext>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection'>,
         AgOrganizationSeriesOptionsKeys,
         AgOrganizationSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Organization Series. */
     type: 'organization';
 
+    expander?: AgOrganizationSeriesOptionsExpander<TDatum, TContext>;
     node?: AgOrganizationSeriesOptionsNode<TDatum, TContext>;
 }
 
-export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
+export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
+    AgBaseSeriesThemeableOptions<TDatum, TContext>,
+    'selection'
+> {
+    /**
+     * Gap in pixels between sibling nodes (nodes that share the same parent).
+     *
+     * Default: `20`
+     */
     innerSpacing?: PixelSize;
     /**
      * Gap in pixels between adjacent nodes whose immediate parents differ (cousins). The layout
@@ -46,9 +55,14 @@ export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TCo
      * Default: `40`
      */
     outerSpacing?: PixelSize;
+    /**
+     * Vertical gap in pixels between parent and child rows.
+     *
+     * Default: `52`
+     */
     verticalSpacing?: PixelSize;
 
-    expander?: AgOrganizationSeriesOptionsExpander;
+    expander?: AgOrganizationSeriesOptionsExpander<TDatum, TContext>;
 
     link?: AgOrganizationSeriesOptionsLink<TDatum, TContext>;
     node?: AgOrganizationSeriesThemeableOptionsNode<TDatum, TContext>;
@@ -57,30 +71,36 @@ export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TCo
     tooltip?: AgSeriesTooltip<AgOrganizationSeriesTooltipRendererParams<TDatum, TContext>>;
 }
 
-export interface AgOrganizationSeriesOptionsExpander {
-    /**
-     * Outer height of the expander pill, in pixels. Increasing this value reserves additional
-     * vertical space between a parent node and its children to fit a larger pill; decreasing it
-     * pulls children closer. Set this to at least the rendered subtitle's line height plus its
-     * top and bottom padding so the descendant-count text fits without overflow — the pill is
-     * rendered at exactly this value so layout reservations and rendered geometry stay aligned.
-     *
-     * Default: `24`
-     */
-    height?: PixelSize;
-    /**
-     * Vertical gap in pixels between the bottom of the last text element in a parent card
-     * and the top of the expander pill. The card's effective bottom padding is the maximum
-     * of `node.padding` and `expander.height / 2 + expander.spacing`, so a short pill has
-     * no effect on layout while a tall pill increases the reserved content space.
-     *
-     * Default: `4`
-     */
-    spacing?: PixelSize;
+export interface AgOrganizationSeriesOptionsExpander<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgOrganizationSeriesExpanderStyle {
+    itemStyler?: Styler<
+        AgOrganizationSeriesExpanderItemStylerParams<TDatum, TContext>,
+        AgOrganizationSeriesExpanderStyle
+    >;
+    text?: AgOrganizationSeriesOptionsExpanderText;
 }
 
-export interface AgOrganizationSeriesOptionsLink<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgOrganizationSeriesLinkStyle {
+export interface AgOrganizationSeriesExpanderStyle extends Toggleable, FillOptions, LineDashOptions, StrokeOptions {
+    cornerRadius?: PixelSize;
+    padding?: PixelSize;
+    text?: AgOrganizationSeriesExpanderTextStyle;
+}
+
+export interface AgOrganizationSeriesExpanderTextStyle extends FontOptions {
+    color?: CssColor;
+    textAlign?: TextAlign;
+}
+
+export interface AgOrganizationSeriesOptionsExpanderText extends AgOrganizationSeriesExpanderTextStyle {
+    // formatter?: RichFormatter<AgOrganizationNodeTextFormatterParams<TDatum, TContext>>;
+}
+
+export interface AgOrganizationSeriesOptionsLink<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgOrganizationSeriesLinkStyle {
     itemStyler?: Styler<AgOrganizationSeriesLinkItemStylerParams<TDatum, TContext>, AgOrganizationSeriesLinkStyle>;
 }
 
@@ -95,8 +115,10 @@ export interface AgOrganizationSeriesOptionsLinkStepInterpolation {
     cornerRadius?: PixelSize;
 }
 
-export interface AgOrganizationSeriesThemeableOptionsNode<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgOrganizationSeriesNodeStyle {
+export interface AgOrganizationSeriesThemeableOptionsNode<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgOrganizationSeriesNodeStyle {
     labels?: AgOrganizationSeriesOptionsNodeText<TDatum, TContext>[];
     subtitle?: AgOrganizationSeriesOptionsNodeSubtitle<TDatum, TContext>;
     title?: AgOrganizationSeriesOptionsNodeTitle<TDatum, TContext>;
@@ -107,18 +129,27 @@ export interface AgOrganizationSeriesNodeStyle extends FillOptions, LineDashOpti
     height?: PixelSize;
     image?: AgOrganizationSeriesOptionsNodeImage;
     maxHeight?: PixelSize;
+    /**
+     * Maximum width of the card in pixels. When set, long text content wraps onto
+     * multiple lines (subject to each text tier's `wrapping` and `overflowStrategy`)
+     * instead of pushing the card wider, so cards do not overlap on tightly packed
+     * graphs.
+     */
     maxWidth?: PixelSize;
     padding?: PixelSize;
     width?: PixelSize;
 }
 
-export interface AgOrganizationSeriesOptionsNode<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgOrganizationSeriesThemeableOptionsNode<TDatum, TContext>, 'labels'> {
+export interface AgOrganizationSeriesOptionsNode<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
+    AgOrganizationSeriesThemeableOptionsNode<TDatum, TContext>,
+    'labels'
+> {
     itemStyler?: Styler<AgOrganizationSeriesNodeItemStylerParams<TDatum, TContext>, AgOrganizationSeriesNodeStyle>;
     labels?: AgOrganizationSeriesOptionsNodeLabel<TDatum, TContext>[];
 }
 
 export interface AgOrganizationSeriesOptionsNodeImage extends Toggleable {
+    cornerRadius?: PixelSize;
     /**
      * Default: `image`
      */
@@ -126,26 +157,25 @@ export interface AgOrganizationSeriesOptionsNodeImage extends Toggleable {
     height?: number;
     width?: number;
     position?: AgOrganizationSeriesOptionsNodeImagePosition;
-    /**
-     * Default: `'circle'`
-     */
-    shape?: AgOrganizationSeriesOptionsNodeImageShape;
     spacing?: number;
 }
 
-export type AgOrganizationSeriesOptionsNodeImageShape = 'circle' | 'square';
 export type AgOrganizationSeriesOptionsNodeImagePosition = 'bottom' | 'left' | 'right' | 'top';
 
-export interface AgOrganizationSeriesOptionsNodeSubtitle<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgOrganizationSeriesOptionsNodeText<TDatum, TContext> {
+export interface AgOrganizationSeriesOptionsNodeSubtitle<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgOrganizationSeriesOptionsNodeText<TDatum, TContext> {
     /**
      * Default: 'subtitle'
      */
     key?: string;
 }
 
-export interface AgOrganizationSeriesOptionsNodeTitle<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgOrganizationSeriesOptionsNodeText<TDatum, TContext> {
+export interface AgOrganizationSeriesOptionsNodeTitle<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgOrganizationSeriesOptionsNodeText<TDatum, TContext> {
     /**
      * Default: 'title'
      */
@@ -153,14 +183,15 @@ export interface AgOrganizationSeriesOptionsNodeTitle<TDatum = DatumDefault, TCo
 }
 
 export interface AgOrganizationSeriesOptionsNodeText<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgOrganizationSeriesNodeTextStyle,
-        Toggleable {
+    extends AgOrganizationSeriesNodeTextStyle, Toggleable {
     formatter?: RichFormatter<AgOrganizationNodeTextFormatterParams<TDatum, TContext>>;
     itemStyler?: Styler<AgOrganizationSeriesNodeTextStylerParams<TDatum, TContext>, AgOrganizationSeriesNodeTextStyle>;
 }
 
-export interface AgOrganizationSeriesOptionsNodeLabel<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgOrganizationSeriesOptionsNodeText<TDatum, TContext> {
+export interface AgOrganizationSeriesOptionsNodeLabel<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgOrganizationSeriesOptionsNodeText<TDatum, TContext> {
     key: string;
 }
 
@@ -177,7 +208,18 @@ export interface AgOrganizationSeriesNodeTextStyle extends FontOptions, FillCssO
 }
 
 export interface AgOrganizationSeriesOptionsKeys {
+    /**
+     * The key of the data field containing the unique node identifier.
+     *
+     * Default: `'id'`
+     */
     idKey?: string;
+    /**
+     * The key of the data field containing the parent node identifier. The root node should
+     * have a `null` value for this field.
+     *
+     * Default: `'parentId'`
+     */
     parentIdKey?: string;
 }
 
@@ -194,8 +236,20 @@ export interface AgOrganizationNodeTextFormatterParams<TDatum = DatumDefault, TC
     value: any;
 }
 
+export interface AgOrganizationSeriesExpanderItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
+    extends
+        DatumCallbackParams<TDatum, HighlightState>,
+        ContextCallbackParams<TContext>,
+        AgOrganizationSeriesExpanderStyle {
+    /** The depth of the data point within the organization. */
+    depth: number;
+    /** `true` when the node is collapsed (its descendants are hidden); `false` otherwise. */
+    isCollapsed: boolean;
+}
+
 export interface AgOrganizationSeriesLinkItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<DatumCallbackParams<TDatum, HighlightState>, 'datum' | 'highlightState'>,
+    extends
+        Omit<DatumCallbackParams<TDatum, HighlightState>, 'datum' | 'highlightState'>,
         ContextCallbackParams<TContext>,
         AgOrganizationSeriesLinkStyle {
     /** The data point from which the link starts. */
@@ -205,7 +259,8 @@ export interface AgOrganizationSeriesLinkItemStylerParams<TDatum = DatumDefault,
 }
 
 export interface AgOrganizationSeriesNodeItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum, HighlightState>,
+    extends
+        DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgOrganizationSeriesNodeStyle {
     /** The depth of the data point within the organization. */
@@ -215,15 +270,15 @@ export interface AgOrganizationSeriesNodeItemStylerParams<TDatum = DatumDefault,
 }
 
 export interface AgOrganizationSeriesNodeTextStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum, HighlightState>,
+    extends
+        DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgOrganizationSeriesNodeTextStyle {
-    /** The depth of the data */
+    /** The depth of the data point within the organisation. */
     depth: number;
     /** `true` when the node is collapsed (its descendants are hidden); `false` otherwise. */
     isCollapsed: boolean;
 }
 
 export interface AgOrganizationSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
-    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
-        AgOrganizationSeriesOptionsKeys {}
+    extends AgSeriesTooltipRendererParams<TDatum, TContext>, AgOrganizationSeriesOptionsKeys {}

@@ -64,10 +64,11 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDa
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { AggregationManager } from '../aggregationManager';
+import { type BucketLookupFeature, SplitBucketLookupManager } from '../bucketLookupFeature';
 import { type PickFocusInputs, SeriesNodePickMode, type SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { HighlightState, toHighlightString } from '../seriesProperties';
-import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
+import { toHighlightString, toSelectionString } from '../seriesProperties';
+import { type ErrorBoundSeriesNodeDatum, HighlightState, SelectionState } from '../seriesTypes';
 import { datumStylerProperties, getItemStyles, visibleRangeIndices } from '../util';
 import {
     AbstractBarSeries,
@@ -495,6 +496,20 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         return this.countVisibleItems('xValue', [yKey], xVisibleRange, yVisibleRange, minVisibleItems);
     }
 
+    protected override createBucketLookupFeature(): BucketLookupFeature {
+        return new SplitBucketLookupManager({
+            series: this,
+            getXAxis: () => this.axes[ChartAxisDirection.X],
+            getDataModel: () => this.dataModel,
+            getProcessedData: () => this.processedData,
+            aggregationManager: this.aggregationManager,
+            domainKey: 'key',
+            getSelection: () => this.data?.selections.get(this.id)?.getSelection(),
+            getYColumnId: (dataModel) => this.yCumulativeKey(dataModel),
+            canonicalExtremaSlots: [AGGREGATION_INDEX_Y_MAX],
+        });
+    }
+
     private aggregateData(dataModel: DataModel<any, any, any>, processedData: ProcessedData<any>) {
         this.aggregationManager.markStale(processedData.input.count);
 
@@ -564,6 +579,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         this.aggregationManager.ensureLevelForRange(range);
 
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
+        this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
         const filteredValueExceedUnfiltered = processedData.reduced?.filteredValueExceedUnfiltered ?? false;
         const isStacked = dataModel.hasColumnById(this, 'yValue-start');
         const { label } = this.properties;
@@ -616,7 +632,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             dataAggregationFilter,
             canIncrementallyUpdate,
-            phantomNodes: canIncrementallyUpdate ? this.contextNodeData!.phantomNodeData ?? [] : [],
+            phantomNodes: canIncrementallyUpdate ? (this.contextNodeData!.phantomNodeData ?? []) : [],
             nodes: canIncrementallyUpdate ? this.contextNodeData!.nodeData : [],
             labels: canIncrementallyUpdate ? this.contextNodeData!.labelData : [],
             nodeIndex: 0,
@@ -803,8 +819,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         // Update main node properties
         const phantom = node.phantom;
         const prevY = params.yStart;
-        const yValue = phantom ? prepared.yFilterValue! : prepared.yFilterValue ?? prepared.yRawValue;
-        const cumulativeValue = phantom ? prepared.yFilterValue! : prepared.yFilterValue ?? params.yEnd;
+        const yValue = phantom ? prepared.yFilterValue! : (prepared.yFilterValue ?? prepared.yRawValue);
+        const cumulativeValue = phantom ? prepared.yFilterValue! : (prepared.yFilterValue ?? params.yEnd);
         const nodeLabelText = phantom ? undefined : prepared.labelText;
 
         let currY: number;
@@ -1270,7 +1286,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const item = seriesHighlighted && highlightedDatum?.datum ? highlightedDatum : undefined;
 
         this.phantomHighlightSelection = this.updateDatumSelection({
-            nodeData: item ? this.getHighlightData(this.contextNodeData?.phantomNodeData ?? [], item) ?? [] : [],
+            nodeData: item ? (this.getHighlightData(this.contextNodeData?.phantomNodeData ?? [], item) ?? []) : [],
             datumSelection: this.phantomHighlightSelection,
         });
 
@@ -1311,7 +1327,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         return opts.datumSelection.update(opts.nodeData, undefined, this.getDatumId.bind(this));
     }
 
-    private makeStylerParams(highlightStateEnum?: HighlightState): AgBarSeriesStylerParams<unknown, unknown> {
+    private makeStylerParams(
+        highlightStateEnum: HighlightState | undefined,
+        selectionStateEnum: SelectionState | undefined
+    ): AgBarSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
         const {
             cornerRadius,
@@ -1327,12 +1346,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             yKey,
         } = this.properties;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+        const selectionState = toSelectionString(selectionStateEnum);
 
         return {
             cornerRadius,
             fill,
             fillOpacity,
             highlightState,
+            selectionState,
             lineDash,
             lineDashOffset,
             seriesId,
@@ -1382,7 +1403,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
     private getStyle(
         ignoreStylerCallback: boolean,
-        highlightState?: HighlightState
+        highlightState: HighlightState | undefined,
+        selectionState: SelectionState | undefined
     ): Required<AgBarSeriesStyle> & { opacity: number } {
         const {
             cornerRadius,
@@ -1397,7 +1419,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         } = this.properties;
         let stylerResult: AgBarSeriesStyle = {};
         if (!ignoreStylerCallback && styler) {
-            const stylerParams = this.makeStylerParams(highlightState);
+            const stylerParams = this.makeStylerParams(highlightState, selectionState);
             stylerResult =
                 this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
@@ -1421,13 +1443,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     private getItemStyle(
         datumIndex: number | undefined,
         isHighlight: boolean,
-        highlightState?: HighlightState
+        highlightState: HighlightState | undefined,
+        selectionState: SelectionState | undefined
     ): Required<AgBarSeriesStyle> {
         const { properties, dataModel, processedData } = this;
         const { itemStyler, simpleItemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        const selectionStyle = this.getSelectionStyle(datumIndex);
+        const selectionStyle = this.getSelectionStyle(datumIndex, selectionState);
 
         // Fast path: simpleItemStyler bypasses options graph resolution
         if (simpleItemStyler && processedData != null && datumIndex != null) {
@@ -1437,14 +1460,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 overrides,
                 selectionStyle,
                 highlightStyle,
-                this.getStyle(false, highlightState)
+                this.getStyle(false, highlightState, selectionState)
             ) as Required<AgBarSeriesStyle>;
         }
 
         let style = mergeDefaults(
             highlightStyle,
             selectionStyle,
-            this.getStyle(datumIndex === undefined, highlightState)
+            this.getStyle(datumIndex === undefined, highlightState, selectionState)
         );
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
@@ -1486,7 +1509,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         function applyDatumStyle(node: BarShape, datum: BarNodeDatum): void {
             if (!opts.datumSelection.isGarbage(node)) {
                 const highlightState = series.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
-                datum.style = series.getItemStyle(datum.datumIndex, opts.isHighlight, highlightState);
+                const selectionState = series.getDataSelectionState(datum.datumIndex);
+                datum.style = series.getItemStyle(datum.datumIndex, opts.isHighlight, highlightState, selectionState);
             }
         }
 
@@ -1586,7 +1610,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
-        const format = this.getItemStyle(datumIndex, false);
+        const format = this.getItemStyle(datumIndex, false, undefined, undefined);
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -1621,7 +1645,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     private legendItemSymbol(): LegendSymbolOptions {
         const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.getStyle(
             false,
-            HighlightState.None
+            HighlightState.None,
+            undefined
         );
 
         return {

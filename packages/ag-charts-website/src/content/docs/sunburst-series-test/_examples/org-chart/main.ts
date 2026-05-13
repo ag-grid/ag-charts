@@ -1,6 +1,7 @@
 import { AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
+import { random } from './randomHelpers';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -25,7 +26,7 @@ function reset() {
 
 function randomise() {
     const data = getData();
-    const shuffleArray = (array: any[]) => array.sort(() => Math.random() - 0.5);
+    const shuffleArray = (array: any[]) => array.sort(() => random() - 0.5);
     const deepShuffle = (node: { children?: any[] }) => {
         if (node.children) {
             shuffleArray(node.children);

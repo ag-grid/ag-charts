@@ -16,7 +16,9 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, سطح ${level}[number], ${posInSet}[number] از ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, سطح ${level}[number], ${posInSet}[number] از ${setSize}[number], ${collapsedState}',
+        '${description}, سطح ${level}[number], ${posInSet}[number] از ${setSize}[number], ${collapsedState}, ${childCount}[number] فرزند, برای تغییر وضعیت، اسپیس یا اینتر را فشار دهید',
+    ariaAnnounceOrgChartParentSingular:
+        '${description}, سطح ${level}[number], ${posInSet}[number] از ${setSize}[number], ${collapsedState}, 1 فرزند, برای تغییر وضعیت، اسپیس یا اینتر را فشار دهید',
     ariaOrgChartCollapsed: 'جمع‌شده',
     ariaOrgChartExpanded: 'بازشده',
     ariaAnnounceGaugeChart: 'چارت سنجشی، ${caption}',

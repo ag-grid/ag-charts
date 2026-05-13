@@ -86,17 +86,20 @@ type AgSparklineSeriesOmit =
     | 'yKey';
 
 export interface AgAreaSparklinePreset<TDatum = DatumDefault>
-    extends AgSparklineBaseThemeableOptions<TDatum>,
+    extends
+        AgSparklineBaseThemeableOptions<TDatum>,
         AgSparklineDataKeysOptions,
         Omit<AgAreaSeriesOptions<TDatum, any>, AgSparklineSeriesOmit> {}
 
 export interface AgBarSparklinePreset<TDatum = DatumDefault>
-    extends AgSparklineBaseThemeableOptions<TDatum>,
+    extends
+        AgSparklineBaseThemeableOptions<TDatum>,
         AgSparklineDataKeysOptions,
         Omit<AgBarSeriesOptions<TDatum, any>, AgSparklineSeriesOmit> {}
 
 export interface AgLineSparklinePreset<TDatum = DatumDefault>
-    extends AgSparklineBaseThemeableOptions<TDatum>,
+    extends
+        AgSparklineBaseThemeableOptions<TDatum>,
         AgSparklineDataKeysOptions,
         Omit<AgLineSeriesOptions<TDatum, any>, AgSparklineSeriesOmit> {
     /** The type of sparkline series. */

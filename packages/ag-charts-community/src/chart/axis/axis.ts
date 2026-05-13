@@ -175,8 +175,7 @@ export abstract class Axis<
     D = any,
     TickLayoutMeta = any,
     TOptions extends NormalisedBaseAxisOptions = NormalisedBaseAxisOptions,
-> implements ChartAxis<TOptions>
-{
+> implements ChartAxis<TOptions> {
     static readonly defaultTickMinSpacing = 50;
 
     readonly id: AxisID = 'unknown' as AxisID;

@@ -268,6 +268,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         name: `${this.id}-annotation-root`,
         zIndex: ZIndexMap.SERIES_ANNOTATION,
     });
+    readonly selectionRoot = new TranslatableGroup({
+        name: `${this.id}-selection-root`,
+        zIndex: ZIndexMap.SERIES_ANNOTATION,
+    });
     // Titles change infrequently, so cache them as an offscreen bitmap to avoid
     // ctx.font assignments on the main canvas (each assignment triggers a browser
     // "recalculate style" for CSS font resolution).
@@ -473,6 +477,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         root.visible = false;
         root.append(this.seriesRoot);
         root.append(this.annotationRoot);
+        root.append(this.selectionRoot);
         root.append(this.titleGroup);
 
         this.titleGroup.append(this.title.node);
@@ -1147,7 +1152,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.updateThemeClassName();
 
         const { enabled, tabIndex } = this.keyboard;
-        this.ctx.domManager.setTabGuardIndex(enabled ? tabIndex ?? 0 : -1);
+        this.ctx.domManager.setTabGuardIndex(enabled ? (tabIndex ?? 0) : -1);
         this.ctx.domManager.setThemeParameters(this.chartOptions.themeParameters);
     }
 

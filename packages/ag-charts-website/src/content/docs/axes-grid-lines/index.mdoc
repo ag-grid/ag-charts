@@ -36,11 +36,11 @@ Grid lines can be styled via the `gridLine.style` property on each axis.
 
 The `gridLine.style` property takes an array of objects containing styling properties:
 
--   `stroke` - The colour of the line.
--   `strokeWidth` - The width of the line. This overrides the top level `gridLine.width` option.
--   `lineDash` - How the line stroke is rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. If the array is empty, the grid lines will be solid without any dashes.
--   `fill` - The colour of the fill between grid lines.
--   `fillOpacity` - The opacity of the fill between grid lines.
+- `stroke` - The colour of the line.
+- `strokeWidth` - The width of the line. This overrides the top level `gridLine.width` option.
+- `lineDash` - How the line stroke is rendered. Every number in the array specifies the length in pixels of alternating dashes and gaps. If the array is empty, the grid lines will be solid without any dashes.
+- `fill` - The colour of the fill between grid lines.
+- `fillOpacity` - The opacity of the fill between grid lines.
 
 Each object in the `gridLine.style` array is applied to the each grid line sequentially, looping around if necessary. This allows alternating styles across multiple grid lines, or styling each individual grid line separately.
 

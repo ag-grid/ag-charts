@@ -9,12 +9,10 @@ This is an upgrade guide for AG Charts version 10.1, focusing on deprecations an
 ### Key Content Areas
 
 1. **Release Information**
-
     - Links to release post for feature highlights
     - Reference to integrated charting on AG Grid 32.1
 
 2. **Deprecations List**
-
     - Financial Charts `chartType` deprecation
     - `AgPriceVolumePreset` property deprecations
     - Toolbar icon naming changes
@@ -35,7 +33,6 @@ This is an upgrade guide for AG Charts version 10.1, focusing on deprecations an
 ### TypeScript Interface Verification
 
 1. **AgPriceVolumePreset Interface**
-
     - File: `packages/ag-charts-types/src/presets/financial/priceVolumeOptions.ts`
     - Verify deprecated properties are NOT present:
         - `rangeToolbar` (should not exist - replaced by `rangeButtons`)
@@ -47,7 +44,6 @@ This is an upgrade guide for AG Charts version 10.1, focusing on deprecations an
         - `toolbar`
 
 2. **AgPriceVolumeChartType Type**
-
     - File: `packages/ag-charts-types/src/presets/financial/priceVolumeOptions.ts`
     - Verify `range-area` is NOT included in the type union
     - Verify `hlc` exists as a valid chart type
@@ -74,7 +70,6 @@ This is an upgrade guide for AG Charts version 10.1, focusing on deprecations an
 ### Implementation Verification
 
 1. **Financial Chart Types**
-
     - Check `packages/ag-charts-community/src/chart/factory/expectedEnterpriseModules.ts`
     - Verify if `range-area` is still referenced (should be deprecated/removed)
     - Verify `hlc` is a supported chart type
@@ -86,7 +81,6 @@ This is an upgrade guide for AG Charts version 10.1, focusing on deprecations an
 ### Cross-Reference with Other Documentation
 
 1. **Version 11 Upgrade Guide**
-
     - File: `packages/ag-charts-website/src/content/docs/upgrade-to-ag-charts-11/index.mdoc`
     - Verify that v10.1 deprecations are listed as removed in v11
     - Check consistency between deprecation (v10.1) and removal (v11) documentation
@@ -99,7 +93,6 @@ This is an upgrade guide for AG Charts version 10.1, focusing on deprecations an
 ### External Link Validation
 
 1. **Release Post Link**
-
     - URL: `https://blog.ag-grid.com/whats-new-in-ag-charts-10-1/`
     - Verify link is accessible and contains relevant v10.1 information
 
@@ -116,14 +109,12 @@ No technical-review-exceptions.md file exists for this page.
 ### Priority 1: TypeScript Definition Validation
 
 1. **AgPriceVolumePreset Interface** (Estimated: 5 minutes)
-
     - Read the interface definition
     - Verify deprecated properties are absent
     - Verify replacement properties exist
     - Document any discrepancies
 
 2. **Chart Type Validation** (Estimated: 5 minutes)
-
     - Check AgPriceVolumeChartType for `range-area` absence
     - Verify `hlc` is a valid type
     - Cross-reference with implementation files
@@ -137,7 +128,6 @@ No technical-review-exceptions.md file exists for this page.
 ### Priority 2: Implementation Consistency
 
 1. **Financial Charts Module Check** (Estimated: 5 minutes)
-
     - Check expectedEnterpriseModules.ts for `range-area` references
     - Verify deprecation is properly handled in implementation
 
@@ -149,7 +139,6 @@ No technical-review-exceptions.md file exists for this page.
 ### Priority 3: Documentation Consistency
 
 1. **Version 11 Cross-Reference** (Estimated: 5 minutes)
-
     - Read v11 upgrade guide
     - Verify v10.1 deprecations are listed as removed
     - Check for consistency in migration guidance
@@ -181,9 +170,9 @@ No technical-review-exceptions.md file exists for this page.
 
 This is a straightforward upgrade guide with no examples or interactive features. The review will focus entirely on verifying that the documented deprecations are accurate by cross-referencing with:
 
--   TypeScript type definitions
--   Implementation code
--   Related documentation (v11 upgrade guide, changelog)
--   External links
+- TypeScript type definitions
+- Implementation code
+- Related documentation (v11 upgrade guide, changelog)
+- External links
 
 The most critical validation is ensuring that deprecated APIs are truly deprecated/removed and their replacements exist as documented.

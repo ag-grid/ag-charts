@@ -1,4 +1,5 @@
 import { Database, Datum, dataEnd, dataStart, day, hour, week } from './data';
+import { random } from './seededRandom';
 
 /**
  * This fake server mimics how a real server api chart service may get and format data for charts. If you are a
@@ -9,7 +10,7 @@ export const FakeServer = {
         if (typeof params.windowStart !== 'object' || typeof params.windowEnd !== 'object') return [];
 
         // Simulate a real server with a random 2000-2500ms delay
-        const delayTime = 2000 + Math.floor(Math.random() * 500);
+        const delayTime = 2000 + Math.floor(random() * 500);
         await delay(delayTime);
 
         // Fetch the data from the fake database

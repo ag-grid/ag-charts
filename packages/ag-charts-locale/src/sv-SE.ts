@@ -16,7 +16,9 @@ export const AG_CHARTS_LOCALE_SV_SE: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, nivå ${level}[number], ${posInSet}[number] av ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, nivå ${level}[number], ${posInSet}[number] av ${setSize}[number], ${collapsedState}',
+        '${description}, nivå ${level}[number], ${posInSet}[number] av ${setSize}[number], ${collapsedState}, ${childCount}[number] underordnade, tryck på Enter eller Space för att växla',
+    ariaAnnounceOrgChartParentSingular:
+        '${description}, nivå ${level}[number], ${posInSet}[number] av ${setSize}[number], ${collapsedState}, 1 underordnad, tryck på Enter eller Space för att växla',
     ariaOrgChartCollapsed: 'komprimerad',
     ariaOrgChartExpanded: 'expanderad',
     ariaAnnounceGaugeChart: 'mätargraf, ${caption}',

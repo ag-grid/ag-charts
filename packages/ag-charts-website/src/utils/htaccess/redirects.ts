@@ -16,4 +16,8 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     { from: '/angular/bullet-series', to: '/angular/linear-gauge/#bullet-series' },
     { from: '/react/bullet-series', to: '/react/linear-gauge/#bullet-series' },
     { from: '/vue/bullet-series', to: '/vue/linear-gauge/#bullet-series' },
+    { fromPattern: '^/javascript/?$', to: '/javascript/quick-start/' },
+    { fromPattern: '^/react/?$', to: '/react/quick-start/' },
+    { fromPattern: '^/vue/?$', to: '/vue/quick-start/' },
+    { fromPattern: '^/angular/?$', to: '/angular/quick-start/' },
 ];

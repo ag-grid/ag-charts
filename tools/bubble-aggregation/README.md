@@ -6,10 +6,10 @@ Computes an approximate opacity formula for bubble aggregation.
 node index.mjs > output.csv
 ```
 
--   `data.mjs` - one or more datasets to use
--   `aggregation.mjs` - should copy logic from bubble series aggregation logic
--   `canvas.mjs` - draws a node in the aggregation, and measures the average opacity
--   `index.mjs` - outputs the average opacities per aggregation node in a CSV
+- `data.mjs` - one or more datasets to use
+- `aggregation.mjs` - should copy logic from bubble series aggregation logic
+- `canvas.mjs` - draws a node in the aggregation, and measures the average opacity
+- `index.mjs` - outputs the average opacities per aggregation node in a CSV
 
 To curve fit, set up Python
 
@@ -26,4 +26,4 @@ Then run,
 python3 fit.py
 ```
 
--   `fit.py` - runs curve fitting on `output.csv` and outputs an equation (& standard deviation)
+- `fit.py` - runs curve fitting on `output.csv` and outputs an equation (& standard deviation)

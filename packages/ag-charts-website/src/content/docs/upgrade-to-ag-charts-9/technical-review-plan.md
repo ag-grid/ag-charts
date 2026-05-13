@@ -7,7 +7,6 @@ This is a migration guide for upgrading to AG Charts version 9.0, documenting br
 ### Key Content Areas
 
 1. **Breaking Changes**:
-
     - Series changes (scatter, treemap, column/bar)
     - Padding API changes
     - Axes configuration changes
@@ -15,13 +14,11 @@ This is a migration guide for upgrading to AG Charts version 9.0, documenting br
     - Miscellaneous API removals
 
 2. **Behavior Changes**:
-
     - Theme default value changes
     - Pie series centering behavior
     - Axis tick inheritance changes
 
 3. **Deprecations**:
-
     - `agCharts.AgChart` → `agCharts.AgCharts`
 
 4. **Links to Minor Versions**:
@@ -37,93 +34,93 @@ This page contains no interactive examples to test, only migration instructions.
 
 #### TypeScript Interfaces to Check:
 
--   `AgScatterSeriesOptions` - Verify `sizeKey` is removed
--   `AgBubbleSeriesOptions` - Verify this exists as replacement
--   `AgTreemapSeriesOptions` - Verify removal from community
--   `AgBarSeriesOptions` - Verify `direction` property exists
--   `AgColumnSeriesOptions` - Verify removal
+- `AgScatterSeriesOptions` - Verify `sizeKey` is removed
+- `AgBubbleSeriesOptions` - Verify this exists as replacement
+- `AgTreemapSeriesOptions` - Verify removal from community
+- `AgBarSeriesOptions` - Verify `direction` property exists
+- `AgColumnSeriesOptions` - Verify removal
 
 #### Implementation Files:
 
--   `packages/ag-charts-community/src/chart/series/cartesian/scatterSeries.ts`
--   `packages/ag-charts-community/src/chart/series/cartesian/bubbleSeries.ts`
--   `packages/ag-charts-community/src/chart/series/cartesian/barSeries.ts`
--   `packages/ag-charts-enterprise/src/series/treemap/treemapSeries.ts`
+- `packages/ag-charts-community/src/chart/series/cartesian/scatterSeries.ts`
+- `packages/ag-charts-community/src/chart/series/cartesian/bubbleSeries.ts`
+- `packages/ag-charts-community/src/chart/series/cartesian/barSeries.ts`
+- `packages/ag-charts-enterprise/src/series/treemap/treemapSeries.ts`
 
 ### 2. Padding API Changes
 
 #### TypeScript Interfaces:
 
--   `AgChartOptions` - Verify `seriesAreaPadding` is removed
--   `AgChartSeriesAreaOptions` - Verify `padding` property exists
--   `AgCartesianAxisOptions` - Verify `groupPaddingInner` and `groupPaddingOuter`
+- `AgChartOptions` - Verify `seriesAreaPadding` is removed
+- `AgChartSeriesAreaOptions` - Verify `padding` property exists
+- `AgCartesianAxisOptions` - Verify `groupPaddingInner` and `groupPaddingOuter`
 
 #### Implementation Files:
 
--   `packages/ag-charts-community/src/chart/chartOptions.ts`
--   `packages/ag-charts-community/src/chart/axis/cartesianAxis.ts`
+- `packages/ag-charts-community/src/chart/chartOptions.ts`
+- `packages/ag-charts-community/src/chart/axis/cartesianAxis.ts`
 
 ### 3. Axes Configuration Changes
 
 #### TypeScript Interfaces:
 
--   `AgCartesianAxisOptions` - Verify `gridStyle` removal and `gridLine.style`
--   `AgAxisTickOptions` - Verify `count` removal
+- `AgCartesianAxisOptions` - Verify `gridStyle` removal and `gridLine.style`
+- `AgAxisTickOptions` - Verify `count` removal
 
 #### Implementation Files:
 
--   `packages/ag-charts-community/src/chart/axis/axisOptions.ts`
--   `packages/ag-charts-community/src/chart/axis/cartesianAxis.ts`
+- `packages/ag-charts-community/src/chart/axis/axisOptions.ts`
+- `packages/ag-charts-community/src/chart/axis/cartesianAxis.ts`
 
 ### 4. Theme Changes
 
 #### Verify Theme Removals:
 
--   Check that `ag-pastel`, `ag-pastel-dark`, `ag-solar`, `ag-solar-dark` themes don't exist
--   Verify root `type` field removal from theme structure
--   Verify `theme.overrides.{cartesian,polar,hierarchy}` removal
+- Check that `ag-pastel`, `ag-pastel-dark`, `ag-solar`, `ag-solar-dark` themes don't exist
+- Verify root `type` field removal from theme structure
+- Verify `theme.overrides.{cartesian,polar,hierarchy}` removal
 
 #### Files to Check:
 
--   `packages/ag-charts-community/src/chart/themes/` directory
--   `packages/ag-charts-types/src/chart/themes/` interfaces
+- `packages/ag-charts-community/src/chart/themes/` directory
+- `packages/ag-charts-types/src/chart/themes/` interfaces
 
 ### 5. Miscellaneous API Removals
 
 #### TypeScript Interfaces:
 
--   `AgTooltipOptions` - Verify `tracking` removal
--   `AgPieSeriesLabelFormatterParams` - Verify removal of listed properties
--   `AgCartesianChartOptions` - Verify `type` removal
--   `AgHierarchyChartOptions` - Verify `type` removal
--   `AgPolarChartOptions` - Verify `type` removal
+- `AgTooltipOptions` - Verify `tracking` removal
+- `AgPieSeriesLabelFormatterParams` - Verify removal of listed properties
+- `AgCartesianChartOptions` - Verify `type` removal
+- `AgHierarchyChartOptions` - Verify `type` removal
+- `AgPolarChartOptions` - Verify `type` removal
 
 ### 6. Behavior Changes Verification
 
 #### Default Values to Check:
 
--   Number axis line default visibility
--   Axis tick default visibility
--   Theme default fills and strokes
--   Pie series centering behavior implementation
--   Grid line style inheritance from ticks
+- Number axis line default visibility
+- Axis tick default visibility
+- Theme default fills and strokes
+- Pie series centering behavior implementation
+- Grid line style inheritance from ticks
 
 #### Files:
 
--   `packages/ag-charts-community/src/chart/axis/numberAxis.ts`
--   `packages/ag-charts-community/src/chart/themes/` default themes
--   `packages/ag-charts-community/src/chart/series/polar/pieSeries.ts`
+- `packages/ag-charts-community/src/chart/axis/numberAxis.ts`
+- `packages/ag-charts-community/src/chart/themes/` default themes
+- `packages/ag-charts-community/src/chart/series/polar/pieSeries.ts`
 
 ### 7. Deprecation Validation
 
 #### Check Export:
 
--   Verify `agCharts.AgChart` is marked deprecated
--   Verify `agCharts.AgCharts` exists as replacement
+- Verify `agCharts.AgChart` is marked deprecated
+- Verify `agCharts.AgCharts` exists as replacement
 
 #### File:
 
--   `packages/ag-charts-community/src/main.ts` or relevant export file
+- `packages/ag-charts-community/src/main.ts` or relevant export file
 
 ## Known Exceptions
 
@@ -134,7 +131,6 @@ No technical-review-exceptions.md file exists for this page.
 ### Priority 1: Critical Breaking Changes
 
 1. **Series API Changes** (High Priority)
-
     - Validate scatter series `sizeKey` removal
     - Confirm bubble series as replacement
     - Verify column series removal and bar series default direction
@@ -147,7 +143,6 @@ No technical-review-exceptions.md file exists for this page.
 ### Priority 2: Configuration Structure Changes
 
 3. **Padding and Axes Changes** (Medium Priority)
-
     - Validate seriesAreaPadding migration path
     - Verify axes gridStyle and tick.count removals
     - Check groupPaddingInner/Outer behavior
@@ -159,7 +154,6 @@ No technical-review-exceptions.md file exists for this page.
 ### Priority 3: Behavior and Deprecation Changes
 
 5. **Default Behavior Changes** (Low Priority)
-
     - Check new axis line and tick defaults
     - Verify theme default colors changed
     - Validate pie series centering behavior
@@ -169,17 +163,17 @@ No technical-review-exceptions.md file exists for this page.
 
 ### Success Criteria
 
--   All removed APIs are confirmed absent in v9
--   All replacement APIs exist and function as documented
--   Migration paths are valid and functional
--   No undocumented breaking changes discovered
+- All removed APIs are confirmed absent in v9
+- All replacement APIs exist and function as documented
+- Migration paths are valid and functional
+- No undocumented breaking changes discovered
 
 ### Estimated Complexity
 
--   **High complexity** due to extensive API surface area changes
--   Requires checking multiple packages (community, enterprise, types)
--   No examples to test, purely API validation
--   Estimated time: 2-3 hours for thorough validation
+- **High complexity** due to extensive API surface area changes
+- Requires checking multiple packages (community, enterprise, types)
+- No examples to test, purely API validation
+- Estimated time: 2-3 hours for thorough validation
 
 ## Charts QA Tester Agent Delegation
 

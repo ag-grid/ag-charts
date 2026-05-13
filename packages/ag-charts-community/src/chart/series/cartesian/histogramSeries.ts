@@ -60,7 +60,7 @@ import {
     type SeriesNodeStyleContext,
 } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import type { HighlightState } from '../seriesProperties';
+import type { HighlightState } from '../seriesTypes';
 import { getItemStyles } from '../util';
 import {
     collapsedStartingBarPosition,
@@ -263,7 +263,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
             const bins = isNumber(this.properties.binCount)
                 ? this.calculateNiceBins(xExtent, this.properties.binCount)
-                : this.properties.bins ?? this.deriveBins(xExtent);
+                : (this.properties.bins ?? this.deriveBins(xExtent));
             const binCount = bins.length;
             calculatedBinDomains = [...bins];
 

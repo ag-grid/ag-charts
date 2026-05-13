@@ -1,6 +1,6 @@
 import type { AgActiveState } from '../api/activeState';
 import type { AgAnnotation } from './annotationsOptions';
-import type { Listener } from './callbackOptions';
+import type { Listener, SelectionState } from './callbackOptions';
 import type { ContextDefault, DatumDefault, DatumKey, Ratio } from './types';
 import type { AgAutoScaledAxes } from './zoomOptions';
 
@@ -16,8 +16,10 @@ export interface AgPreventableEvent {
     preventDefault(): void;
 }
 
-export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = ContextDefault>
-    extends AgChartEvent<TEvent, TContext> {
+export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = ContextDefault> extends AgChartEvent<
+    TEvent,
+    TContext
+> {
     /** Event type. */
     type: TEvent;
     /** Series ID, as specified in `series.id` (or generated if not specified) */
@@ -28,6 +30,8 @@ export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = Cont
     dataIdKey?: DatumKey<TDatum>;
     /** Datum from the chart or series data array. */
     datum: TDatum;
+    /** The current selection state of this datum. Set to `undefined` if the selection module is not enabled. */
+    selectionState?: SelectionState;
     /** xKey as specified on series options */
     xKey?: DatumKey<TDatum>;
     /** yKey as specified on series options */
@@ -79,9 +83,9 @@ export interface AgActiveChangeEvent<TDatum, TContext> extends AgActiveState, Ag
 }
 
 export interface AgSelectionItemIds {
-    /** Series ID, as specified in `series.id` (or generated if not specified) */
+    /** Series ID, as specified in `series.id` (or generated if not specified). */
     seriesId: string;
-    /** Legend item id - usually yKey value for cartesian series. */
+    /** The unique identifier of the datum as specified in `dataIdKey` if set (or generated if not specified). */
     itemId: string | number;
 }
 

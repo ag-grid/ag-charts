@@ -22,6 +22,7 @@ export interface ChartService {
     readonly title: CaptionLike;
     readonly series: BaseSeries[];
     readonly seriesRoot: Group;
+    readonly selectionRoot: Group;
     readonly publicApi?: AgChartInstance;
     readonly touch: DeepRequired<AgTouchOptions>;
     readonly context?: unknown;

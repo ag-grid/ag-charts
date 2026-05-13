@@ -119,12 +119,11 @@ interface RadialGaugeTickDatum {
     text: TextOrSegments;
 }
 
-interface RadialGaugeNodeDataContext
-    extends _ModuleSupport.SeriesNodeDataContext<
-        RadialGaugeNodeDatumIndex,
-        RadialGaugeNodeDatum,
-        RadialGaugeLabelDatum
-    > {
+interface RadialGaugeNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<
+    RadialGaugeNodeDatumIndex,
+    RadialGaugeNodeDatum,
+    RadialGaugeLabelDatum
+> {
     needleData: RadialGaugeNeedleDatum[];
     targetData: RadialGaugeTargetDatum[];
     scaleData: RadialGaugeNodeDatum[];
@@ -360,6 +359,7 @@ export class RadialGaugeSeries
             let text: TextOrSegments | undefined;
             if (label.formatter) {
                 text = formatWithContext(this.ctx, label.formatter, {
+                    type: 'number',
                     value,
                     index,
                     domain: scale.domain,

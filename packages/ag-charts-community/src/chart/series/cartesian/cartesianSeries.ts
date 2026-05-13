@@ -14,7 +14,7 @@ import {
     findMinMax,
     isFiniteNumber,
 } from 'ag-charts-core';
-import type { AgDrawingMode, AgSeriesSegmentation } from 'ag-charts-types';
+import type { AgDrawingMode, AgSeriesSegmentation, SelectionState } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { AnimationValue } from '../../../motion/animation';
@@ -103,9 +103,10 @@ export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTyp
         type: TEvent,
         nativeEvent: Event,
         datum: SeriesNodeDatum<number>,
-        series: ISeries<number, SeriesNodeDatum<number>, ISeriesProperties & { xKey?: string; yKey?: string }>
+        series: ISeries<number, SeriesNodeDatum<number>, ISeriesProperties & { xKey?: string; yKey?: string }>,
+        selectionState: SelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series);
+        super(type, nativeEvent, datum, series, selectionState);
         this.xKey = series.properties.xKey;
         this.yKey = series.properties.yKey;
     }
@@ -778,7 +779,8 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             this.updateDatumStyles({ datumSelection, isHighlight: false });
         }
 
-        const redrawAll = this.strokewidthChange() || this.hasChangesOnHighlight;
+        const redrawAll = this.strokewidthChange() || this.hasChangesOnHighlight || this.hasChangesOnSelection;
+        this.hasChangesOnSelection = false;
 
         if (nodeRefresh || redrawAll) {
             this.updateDatumNodes({ datumSelection, isHighlight: false, drawingMode: 'overlay' });
@@ -1376,8 +1378,8 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         const crossAxis = shouldFlipXY ? this.axes[ChartAxisDirection.Y]! : this.axes[ChartAxisDirection.X]!;
         const axis = shouldFlipXY ? this.axes[ChartAxisDirection.X]! : this.axes[ChartAxisDirection.Y]!;
 
-        const crossVisibleRange = shouldFlipXY ? yVisibleRange ?? [0, 1] : xVisibleRange;
-        const axisVisibleRange = shouldFlipXY ? xVisibleRange : yVisibleRange ?? [0, 1];
+        const crossVisibleRange = shouldFlipXY ? (yVisibleRange ?? [0, 1]) : xVisibleRange;
+        const axisVisibleRange = shouldFlipXY ? xVisibleRange : (yVisibleRange ?? [0, 1]);
 
         if (yVisibleRange == null) {
             const sortOrder = this.sortOrder(crossAxisKey);

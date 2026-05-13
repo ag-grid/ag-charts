@@ -12,8 +12,11 @@ export type AgPyramidSeriesLabelOptions<TDatum, TParams, TContext = ContextDefau
     TContext
 >;
 
-export interface AgPyramidSeriesStageLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext> {
+export interface AgPyramidSeriesStageLabelOptions<
+    TDatum,
+    TParams,
+    TContext = ContextDefault,
+> extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /** Placement of the label in relation to the chart. */
     placement?: 'before' | 'after';
     /** Spacing of the label in relation to the chart. */
@@ -21,25 +24,27 @@ export interface AgPyramidSeriesStageLabelOptions<TDatum, TParams, TContext = Co
 }
 
 export interface AgPyramidSeriesItemStylerParams<TDatum, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum, HighlightState>,
+    extends
+        DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgPyramidSeriesOptionsKeys<TDatum>,
         Required<AgPyramidSeriesStyle> {}
 
 export interface AgPyramidSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
-export interface AgPyramidSeriesLabelFormatterParams<TDatum = DatumDefault>
-    extends AgPyramidSeriesOptionsKeys<TDatum> {}
+export interface AgPyramidSeriesLabelFormatterParams<
+    TDatum = DatumDefault,
+> extends AgPyramidSeriesOptionsKeys<TDatum> {}
 
 export interface AgPyramidSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgPyramidSeriesOptionsKeys<TDatum>,
+    extends
+        AgPyramidSeriesOptionsKeys<TDatum>,
         AgPyramidSeriesOptionsNames,
         AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgPyramidSeriesStyle {}
 
 export interface AgPyramidSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'selection'>,
-        LineDashOptions {
+    extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'selection'>, LineDashOptions {
     /** The colours to cycle through for the fills of the stages. */
     fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the stages. */
@@ -80,7 +85,8 @@ export interface AgPyramidSeriesOptionsKeys<TDatum = DatumDefault> {
 export interface AgPyramidSeriesOptionsNames {}
 
 export interface AgPyramidSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection'>,
         AgPyramidSeriesOptionsKeys<TDatum>,
         AgPyramidSeriesOptionsNames,
         AgPyramidSeriesThemeableOptions<TDatum, TContext> {

@@ -1,6 +1,7 @@
 import { AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
+import { random } from './randomHelpers';
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -45,7 +46,7 @@ function randomise() {
     options.data = [
         ...getData().map((d: any) => ({
             ...d,
-            age: Math.max(17, Math.min(33, d.age + Math.floor(Math.random() * 4) - 2)),
+            age: Math.max(17, Math.min(33, d.age + Math.floor(random() * 4) - 2)),
         })),
     ];
     chart.update(options as any);

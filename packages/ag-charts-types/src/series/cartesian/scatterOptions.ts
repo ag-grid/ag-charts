@@ -2,6 +2,7 @@ import type {
     ContextCallbackParams,
     DatumCallbackParams,
     HighlightState,
+    SelectionState,
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
@@ -20,7 +21,8 @@ import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesT
 import type { AgBaseCartesianSeriesAxisOptions, AgColorScale, FillOptions, StrokeOptions } from './commonOptions';
 
 export interface AgScatterSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
+    extends
+        AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgScatterSeriesOptionsKeys<TDatum>,
         AgScatterSeriesOptionsNames,
         AgErrorBoundSeriesTooltipRendererParams<TDatum>,
@@ -31,8 +33,9 @@ export type AgScatterSeriesLabelFormatterParams<TDatum = DatumDefault> = AgScatt
     AgScatterSeriesOptionsNames;
 
 export interface AgScatterSeriesStylerParams<TDatum, TContext>
-    extends AgScatterSeriesOptionsKeys<TDatum>,
-        SeriesCallbackParams<HighlightState>,
+    extends
+        AgScatterSeriesOptionsKeys<TDatum>,
+        SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         AgSeriesMarkerStyle {}
 
@@ -46,8 +49,11 @@ export type AgScatterSeriesItemStylerParams<TDatum = DatumDefault, TContext = Co
     AgScatterSeriesOptionsKeys<TDatum> &
     Required<AgSeriesMarkerStyle>;
 
-export interface AgScatterSeriesLabel<TDatum, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, AgScatterSeriesLabelFormatterParams<TDatum>, TContext> {
+export interface AgScatterSeriesLabel<TDatum, TContext = ContextDefault> extends AgChartLabelOptions<
+    TDatum,
+    AgScatterSeriesLabelFormatterParams<TDatum>,
+    TContext
+> {
     /**
      * Placement of label in relation to the marker.
      *
@@ -57,8 +63,7 @@ export interface AgScatterSeriesLabel<TDatum, TContext = ContextDefault>
 }
 
 export interface AgScatterSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseCartesianThemeableOptions<TDatum, TContext>,
-        AgSeriesMarkerStyle {
+    extends AgBaseCartesianThemeableOptions<TDatum, TContext>, AgSeriesMarkerStyle {
     /** Determines the largest number of items that can be rendered at once. If there are more items, they will be aggregated to resemble similar visual appearance.
      *
      * Default: `2000`
@@ -107,7 +112,8 @@ export interface AgScatterSeriesOptionsNames {
 }
 
 export interface AgScatterSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgBaseCartesianSeriesAxisOptions,
         AgScatterSeriesOptionsKeys<TDatum>,
         AgScatterSeriesOptionsNames,

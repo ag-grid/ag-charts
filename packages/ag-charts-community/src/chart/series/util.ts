@@ -2,8 +2,15 @@ import { type BoxBounds, Color, findMaxIndex, findMinIndex, isString } from 'ag-
 import type { AgActiveItemState, AgDrawingMode } from 'ag-charts-types';
 
 import { Transformable } from '../../scene/transformable';
-import { type HighlightState, highlightStates } from './seriesProperties';
-import type { DatumIndexType, ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from './seriesTypes';
+import { highlightStates } from './seriesProperties';
+import type {
+    DatumIndexType,
+    ErrorBoundSeriesNodeDatum,
+    HighlightState,
+    ISeries,
+    SelectionState,
+    SeriesNodeDatum,
+} from './seriesTypes';
 
 function datumBoundaryPoints(datum: any, domain: any[]): [boolean, boolean] {
     if (domain.length === 0) {
@@ -148,11 +155,16 @@ export function countExpandingSearch(
 }
 
 export function getItemStyles<TNodeDatum, TStyle>(
-    getItemStyle: (nodeDatum: TNodeDatum | undefined, isHighlight: boolean, highlightState?: HighlightState) => TStyle
+    getItemStyle: (
+        nodeDatum: TNodeDatum | undefined,
+        isHighlight: boolean,
+        highlightState: HighlightState | undefined,
+        selectionState: SelectionState | undefined
+    ) => TStyle
 ) {
     const result = {} as Record<HighlightState, TStyle>;
     for (const state of highlightStates) {
-        result[state] = getItemStyle(undefined, false, state);
+        result[state] = getItemStyle(undefined, false, state, undefined);
     }
     return result;
 }

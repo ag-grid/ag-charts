@@ -6,7 +6,7 @@
 
 #### Documentation Page
 
--   `packages/ag-charts-website/src/content/docs/axes-configuration/index.mdoc`
+- `packages/ag-charts-website/src/content/docs/axes-configuration/index.mdoc`
 
 #### TypeScript Definition Files
 
@@ -29,27 +29,24 @@
 
 #### Exception File
 
--   No `technical-review-exceptions.md` found
+- No `technical-review-exceptions.md` found
 
 ### Key API Features Documented
 
 From documentation extraction:
 
 1. **Axis Configuration Object Structure**:
-
     - Default keys: `x` and `y` for cartesian; `angle` and `radius` for polar
     - Each axis requires: `type` property minimum
     - Optional: `label`, `title` (caption), `position`, etc.
 
 2. **Axis Types Mentioned**:
-
     - `category` (cartesian)
     - `number` (cartesian)
     - `angle-category` (polar)
     - `radius-number` (polar)
 
 3. **Series Linking**:
-
     - `xKeyAxis`, `yKeyAxis` properties for series axis binding
     - Custom axis keys allowed
 
@@ -64,45 +61,45 @@ From documentation extraction:
 
 #### 1. TypeScript Definitions Verification
 
--   [ ] Verify `AgBaseCartesianAxisOptions` includes documented properties
--   [ ] Verify `label`, `title` properties exist and are correct types
--   [ ] Verify `position` property for axis positioning
--   [ ] Verify polar axis types (`AgAngleCategoryAxisOptions`, `AgRadiusNumberAxisOptions`)
--   [ ] Verify series axis binding properties (`xKeyAxis`, `yKeyAxis`)
--   [ ] Check for default values and their documentation
+- [ ] Verify `AgBaseCartesianAxisOptions` includes documented properties
+- [ ] Verify `label`, `title` properties exist and are correct types
+- [ ] Verify `position` property for axis positioning
+- [ ] Verify polar axis types (`AgAngleCategoryAxisOptions`, `AgRadiusNumberAxisOptions`)
+- [ ] Verify series axis binding properties (`xKeyAxis`, `yKeyAxis`)
+- [ ] Check for default values and their documentation
 
 #### 2. Example Testing
 
--   [ ] **axis-configuration example**:
-    -   Verify axis configuration syntax matches docs
-    -   Check that category x-axis with fontSize works
-    -   Check that number y-axis with title works
-    -   Expected: Bar chart with customized axes
--   [ ] **multiple-axes example**:
-    -   Verify secondary axis configuration
-    -   Check `yKeyAxis` property usage
-    -   Verify left/right position works correctly
-    -   Expected: Column series on left axis, line series on right axis
+- [ ] **axis-configuration example**:
+    - Verify axis configuration syntax matches docs
+    - Check that category x-axis with fontSize works
+    - Check that number y-axis with title works
+    - Expected: Bar chart with customized axes
+- [ ] **multiple-axes example**:
+    - Verify secondary axis configuration
+    - Check `yKeyAxis` property usage
+    - Verify left/right position works correctly
+    - Expected: Column series on left axis, line series on right axis
 
 #### 3. Content Accuracy
 
--   [ ] Verify automatic axis selection description is accurate
--   [ ] Verify axis key defaults are correct (x/y for cartesian, angle/radius for polar)
--   [ ] Verify secondary axis linking mechanism
--   [ ] Verify polar chart axis names and defaults
--   [ ] Check linked documentation references
+- [ ] Verify automatic axis selection description is accurate
+- [ ] Verify axis key defaults are correct (x/y for cartesian, angle/radius for polar)
+- [ ] Verify secondary axis linking mechanism
+- [ ] Verify polar chart axis names and defaults
+- [ ] Check linked documentation references
 
 #### 4. Configuration Validation
 
--   [ ] axis-configuration example: options structure matches TypeScript types
--   [ ] multiple-axes example: options structure matches TypeScript types
--   [ ] Data compatibility verified for both examples
--   [ ] Series configuration aligns with axis configuration
+- [ ] axis-configuration example: options structure matches TypeScript types
+- [ ] multiple-axes example: options structure matches TypeScript types
+- [ ] Data compatibility verified for both examples
+- [ ] Series configuration aligns with axis configuration
 
 ### Review Mode
 
--   **ADAPTIVE MODE** will be used (requires MCP Puppeteer and Task tool availability check)
--   If tools unavailable: Static analysis only with appropriate warnings
+- **ADAPTIVE MODE** will be used (requires MCP Puppeteer and Task tool availability check)
+- If tools unavailable: Static analysis only with appropriate warnings
 
 ---
 

@@ -357,10 +357,14 @@ describe('Zoom', () => {
             await compare();
         });
 
-        it('AG-17205 should set touch-action: none on the series-area while panning is enabled so touch-drag pans the chart instead of scrolling the page', async () => {
+        it('AG-17205 should toggle series-area touch-action so touch pans the chart only when zoomed in, otherwise pass to the page', async () => {
             await prepareChart();
             const seriesEl = document.querySelector<HTMLElement>('.ag-charts-series-area')!;
             expect(seriesEl).not.toBeNull();
+            expect(seriesEl.style.touchAction).toBe('pan-y');
+
+            await scrollAction(cx, cy, -1)(chart);
+            await waitForChartStability(chart);
             expect(seriesEl.style.touchAction).toBe('none');
 
             await chart.update({ ...EXAMPLE_OPTIONS, zoom: { enabled: false } });
@@ -770,6 +774,88 @@ describe('Zoom', () => {
             });
             // Chart should not be blank
             await compare();
+        });
+
+        it('CRT-1117 should reset zoom on an axis whose scale type changes', async () => {
+            const boxPlotOptions: AgChartOptions = {
+                data: [
+                    { department: 'Sales', min: 1052, q1: 4465, median: 5765, q3: 8834, max: 14852 },
+                    { department: 'R&D', min: 1009, q1: 2741, median: 4377, q3: 7725, max: 14814 },
+                    { department: 'HR', min: 1555, q1: 2696, median: 4071, q3: 9756, max: 19717 },
+                ],
+                series: [
+                    {
+                        type: 'box-plot',
+                        xKey: 'department',
+                        minKey: 'min',
+                        q1Key: 'q1',
+                        medianKey: 'median',
+                        q3Key: 'q3',
+                        maxKey: 'max',
+                    },
+                ],
+                zoom: { enabled: true, scrollingStep: 0.1 },
+            };
+            await prepareChart(undefined, { ratioX: { start: 0.1, end: 1 } }, boxPlotOptions, false);
+            await waitForChartStability(chart);
+
+            await chart.update({
+                ...boxPlotOptions,
+                data: Array.from({ length: 200 }, (_, i) => ({ age: 17 + (i % 17) })),
+                series: [{ type: 'histogram', xKey: 'age' }],
+                axes: {
+                    x: { type: 'number' },
+                    y: { type: 'number' },
+                },
+            } as AgChartOptions);
+            await waitForChartStability(chart);
+
+            const xZoom = chart.getState().zoom?.ratioX;
+            expect(xZoom).toEqual({ start: 0, end: 1 });
+        });
+
+        it('CRT-1117 should not collapse x zoom via preserveDomain when only x axis type changes', async () => {
+            const boxPlotOptions: AgChartOptions = {
+                data: [
+                    { department: 'Sales', min: 1052, q1: 4465, median: 5765, q3: 8834, max: 14852 },
+                    { department: 'R&D', min: 1009, q1: 2741, median: 4377, q3: 7725, max: 14814 },
+                    { department: 'HR', min: 1555, q1: 2696, median: 4071, q3: 9756, max: 19717 },
+                ],
+                series: [
+                    {
+                        type: 'box-plot',
+                        xKey: 'department',
+                        minKey: 'min',
+                        q1Key: 'q1',
+                        medianKey: 'median',
+                        q3Key: 'q3',
+                        maxKey: 'max',
+                    },
+                ],
+                zoom: { enabled: true, scrollingStep: 0.1 },
+            };
+            await prepareChart(
+                undefined,
+                { ratioX: { start: 0.1, end: 1 }, ratioY: { start: 0, end: 0.5 } },
+                boxPlotOptions,
+                false
+            );
+            await waitForChartStability(chart);
+
+            await chart.update({
+                ...boxPlotOptions,
+                data: Array.from({ length: 200 }, (_, i) => ({ age: 17 + (i % 17) })),
+                series: [{ type: 'histogram', xKey: 'age' }],
+                axes: {
+                    x: { type: 'number' },
+                    y: { type: 'number' },
+                },
+            } as AgChartOptions);
+            await waitForChartStability(chart);
+
+            const { ratioX, ratioY } = chart.getState().zoom ?? {};
+            expect(ratioX).toEqual({ start: 0, end: 1 });
+            expect(ratioY).toEqual({ start: 0, end: 0.5 });
         });
     });
 

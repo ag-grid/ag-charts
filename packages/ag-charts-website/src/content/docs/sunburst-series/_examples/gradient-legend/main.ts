@@ -1,34 +1,18 @@
 import {
-    AgChartOptions,
     AgCharts,
-    AnimationModule,
-    ContextMenuModule,
-    CrosshairModule,
+    AgStandaloneChartOptions,
+    AgSunburstSeriesOptions,
     GradientLegendModule,
+    LegendModule,
     ModuleRegistry,
     SunburstSeriesModule,
 } from 'ag-charts-enterprise';
 
 import { data } from './data';
 
-ModuleRegistry.registerModules([
-    AnimationModule,
-    CrosshairModule,
-    GradientLegendModule,
-    SunburstSeriesModule,
-    ContextMenuModule,
-]);
-const gdpFormatter = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-});
+ModuleRegistry.registerModules([GradientLegendModule, LegendModule, SunburstSeriesModule]);
 
-const percentageFormatter = new Intl.NumberFormat('en-US', {
-    style: 'percent',
-    signDisplay: 'always',
-});
-
-const options: AgChartOptions = {
+const options: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
     data: data,
     series: [
@@ -37,17 +21,46 @@ const options: AgChartOptions = {
             labelKey: 'name',
             colorKey: 'gdpChange',
             colorName: 'Change',
+            colorScale: {
+                fills: [{ color: 'tomato' }, { color: 'gold' }, { color: 'seagreen' }],
+            },
         },
     ],
+    legend: {
+        enabled: false,
+    },
     gradientLegend: {
         enabled: true,
     },
     title: {
-        text: 'Top 10 countries by GDP',
+        text: 'Top Economies by GDP',
     },
     subtitle: {
-        text: '2023',
+        text: '2023 — Year-on-year change',
     },
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+function toggleMode(mode: 'stops' | 'gradient') {
+    const series = options.series![0] as AgSunburstSeriesOptions;
+    if (mode === 'stops') {
+        series.colorScale = {
+            mode: 'discrete',
+            fills: [
+                { color: 'tomato', stop: -0.01, name: 'Decline' },
+                { color: 'gold', stop: 0.01, name: 'Flat' },
+                { color: 'seagreen', name: 'Growth' },
+            ],
+        };
+        options.legend = { enabled: true };
+        options.gradientLegend = { enabled: false };
+    } else {
+        series.colorScale = {
+            fills: [{ color: 'tomato' }, { color: 'gold' }, { color: 'seagreen' }],
+        };
+        options.legend = { enabled: false };
+        options.gradientLegend = { enabled: true };
+    }
+    chart.update(options);
+}

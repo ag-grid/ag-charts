@@ -9,7 +9,7 @@ Synchronize multiple charts to align data insights and interactive elements, off
 
 {% chartExampleRunner title="Basic Synchronization" name="basic-sync" type="generated" /%}
 
-Enable chart synchronization by configuring the `sync` option on at least two charts. By default this will synchronize the axis domain, zoom, and user node interactions along the x axis.
+Enable chart synchronization by configuring the `sync` option on at least two charts. By default this will synchronize the axis domain, zoom, and user node interactions along the x-axis.
 
 ```js format="snippet"
 {
@@ -21,9 +21,9 @@ Enable chart synchronization by configuring the `sync` option on at least two ch
 
 In the above example:
 
--   Both charts have the same axes domain range for the x axis.
--   Any changes to the horizontal zoom level or position made in any chart or the Navigator, are reflected in both charts.
--   Hovering a node in one chart, will highlight and show crosshairs and tooltips for the corresponding node in the other chart.
+- Both charts have the same axes domain range for the x-axis.
+- Any changes to the horizontal zoom level or position made in any chart or the Navigator, are reflected in both charts.
+- Hovering a node in one chart, will highlight and show crosshairs and tooltips for the corresponding node in the other chart.
 
 {% note %}
 All synchronized axes must have the same values for their `min`, `max`, `nice` and `reverse` properties.
@@ -46,9 +46,9 @@ Synchronize the axis domain of multiple charts, to ensure they all show the same
 
 In the above example:
 
--   Only the `y` axes have been synchronized. The values on each `x` axis are different.
--   Changing the automatic `y` axis domain range by clicking the legend items in one chart, will change the `y` axis domain range in the other.
--   The `nodeInteraction` synchronization is disabled, and `zoom` is not enabled on either chart.
+- Only the `y` axes have been synchronized. The values on each `x` axis are different.
+- Changing the automatic `y` axis domain range by clicking the legend items in one chart, will change the `y` axis domain range in the other.
+- The `nodeInteraction` synchronization is disabled, and `zoom` is not enabled on either chart.
 
 ### Node Interaction
 
@@ -62,8 +62,8 @@ For multi-series charts, series with matching `_Key` configurations will be matc
 
 In the above example:
 
--   Node interactions are synchronized by matching X-axis values and Y-axis series keys.
--   Hovering on a node in one chart will highlight the corresponding node in the other chart.
+- Node interactions are synchronized by matching X-axis values and Y-axis series keys.
+- Hovering on a node in one chart will highlight the corresponding node in the other chart.
 
 This synchronisation is enabled by default. To disable, set `nodeInteraction` to `false`.
 
@@ -84,8 +84,8 @@ For multi-series charts, each series can only contain one node per X-axis value,
 
 Maintains shared zoom level and position on the synchronized axes across charts. This is applied to the axes specified in the `sync.axes` option.
 
--   The zoom is shared based on the axis values, and is independent of the actual container or chart size.
--   It is possible to disable zoom functionality on one chart but still allow it to be controlled by zoom functionality on another chart.
+- The zoom is shared based on the axis values, and is independent of the actual container or chart size.
+- It is possible to disable zoom functionality on one chart but still allow it to be controlled by zoom functionality on another chart.
 
 Disable automatic zoom synchronization to manage zoom levels independently.
 
@@ -113,8 +113,8 @@ Use `groupId` to synchronize charts within the same group, supporting multiple i
 
 In the above example:
 
--   The charts on the left are synchronised with each other, as are the charts on the right.
--   The top charts have their x axis and crosshair labels hidden, to give a 'combined chart' effect.
+- The charts on the left are synchronised with each other, as are the charts on the right.
+- The top charts have their x-axis and crosshair labels hidden, to give a 'combined chart' effect.
 
 {% note %}
 Charts without a `groupId` will be allocated to a default group.

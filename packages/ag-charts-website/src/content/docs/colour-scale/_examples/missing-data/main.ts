@@ -1,6 +1,7 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
+    AgHeatmapSeriesOptions,
     CategoryAxisModule,
     GradientLegendModule,
     HeatmapSeriesModule,
@@ -15,19 +16,22 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'UK Monthly Mean Temperature',
+        text: 'Service Quality Ratings',
+    },
+    subtitle: {
+        text: 'NPS Score (0–10)',
     },
     series: [
         {
             type: 'heatmap',
-            xKey: 'month',
-            xName: 'Month',
-            yKey: 'year',
-            yName: 'Year',
-            colorKey: 'temperature',
-            colorName: 'Temperature',
+            xKey: 'segment',
+            xName: 'Segment',
+            yKey: 'service',
+            yName: 'Service',
+            colorKey: 'score',
+            colorName: 'Score',
             colorScale: {
-                fills: [{ color: 'navy' }, { color: 'lightyellow' }, { color: 'darkred' }],
+                domain: [0, 10],
                 missingDataFill: '#e0e0e0',
             },
         },
@@ -35,3 +39,12 @@ const options: AgCartesianChartOptions = {
 };
 
 const chart = AgCharts.create(options);
+
+function setMissingFill(enabled: boolean) {
+    const series = options.series![0] as AgHeatmapSeriesOptions;
+    series.colorScale = {
+        ...series.colorScale,
+        missingDataFill: enabled ? '#e0e0e0' : undefined,
+    };
+    chart.update(options);
+}

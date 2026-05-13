@@ -64,7 +64,7 @@ Polar charts such as the [Radar Line Series](./radar-line-series), use [Polar Ax
 
 Charts can have more than one axis in each direction, allowing for series with different domains to be displayed on the same chart.
 
-Use the axes `keys` property to link the series `_Key` property to the axis.
+Use the series `xKeyAxis` / `yKeyAxis` property to link a series to a specific axis.
 
 ```js format="snippet"
 {
@@ -358,16 +358,22 @@ Use `highlight` options to [customise](./series-highlighting/#customisation) hig
 
 ```js format="snippet"
 {
-    highlight: {
-        // Attributes that apply to the highlighted item only.
-        highlightedItem: {
-            strokeWidth: 5,
+    series: [
+        {
+            type: 'bar',
+            // Per-series highlight customisation.
+            highlight: {
+                // Attributes that apply to the highlighted item only.
+                highlightedItem: {
+                    strokeWidth: 5,
+                },
+                // Attributes that apply to all other series.
+                unhighlightedSeries: {
+                    opacity: 0.2,
+                },
+            },
         },
-        // Attributes that apply to all other series.
-        unhighlightedSeries: {
-            opacity: 0.2,
-        },
-    },
+    ],
 }
 ```
 
@@ -446,8 +452,8 @@ You can also use the `initialState` property to set the [initial state](./api-st
 
 AG Charts comes in two forms:
 
--   **AG Charts Community**: Free for everyone, including production use - no licence required.
--   **AG Charts Enterprise**: Requires a licence to use in production. Free to test locally, but requires a [trial](./community-vs-enterprise/#request-an-enterprise-bundle-trial-licence) to test in production.
+- **AG Charts Community**: Free for everyone, including production use - no licence required.
+- **AG Charts Enterprise**: Requires a licence to use in production. Free to test locally, but requires a [trial](./community-vs-enterprise/#request-an-enterprise-bundle-trial-licence) to test in production.
 
 Import the `ag-charts-enterprise` package to access Enterprise features.
 

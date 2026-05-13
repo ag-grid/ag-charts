@@ -4,53 +4,50 @@
 
 ### Features Covered
 
--   Context Object configuration at root, series, and axis levels
--   Context Object inheritance/fallback mechanism
--   Context Object usage in callbacks (formatters, stylers, tooltip renderers, context menu actions)
--   Practical example demonstrating currency conversion using context
+- Context Object configuration at root, series, and axis levels
+- Context Object inheritance/fallback mechanism
+- Context Object usage in callbacks (formatters, stylers, tooltip renderers, context menu actions)
+- Practical example demonstrating currency conversion using context
 
 ### Key APIs and Configuration Options Documented
 
--   `context` property at root level (AgBaseThemeableChartOptions)
--   `series[].context` property (AgBaseSeriesOptions)
--   `axes[].context` property (AgBaseAxisOptions)
--   Context parameter in callback functions:
-    -   Label formatters
-    -   Tooltip renderers
-    -   Context menu actions
-    -   Item stylers
+- `context` property at root level (AgBaseThemeableChartOptions)
+- `series[].context` property (AgBaseSeriesOptions)
+- `axes[].context` property (AgBaseAxisOptions)
+- Context parameter in callback functions:
+    - Label formatters
+    - Tooltip renderers
+    - Context menu actions
+    - Item stylers
 
 ### Examples Referenced
 
--   **currency-converter**: Demonstrates context usage for dynamic currency conversion
-    -   Shows Y-axis label formatting with context
-    -   Shows tooltip rendering with context
-    -   Shows context menu actions with context
-    -   Includes interactive dropdown to update context state
+- **currency-converter**: Demonstrates context usage for dynamic currency conversion
+    - Shows Y-axis label formatting with context
+    - Shows tooltip rendering with context
+    - Shows context menu actions with context
+    - Includes interactive dropdown to update context state
 
 ### Interactive Features Described
 
--   Dynamic context updates via dropdown selection
--   Context menu custom actions
--   Tooltip customization using context
--   Axis label formatting using context
+- Dynamic context updates via dropdown selection
+- Context menu custom actions
+- Tooltip customization using context
+- Axis label formatting using context
 
 ## Validation Targets
 
 ### TypeScript Interfaces to Verify
 
 1. **AgBaseThemeableChartOptions<TContext>**
-
     - Location: `packages/ag-charts-types/src/chart/chartOptions.ts`
     - Verify: `context?: TContext` property exists
 
 2. **AgBaseSeriesOptions<TDatum, TContext>**
-
     - Location: `packages/ag-charts-types/src/series/seriesOptions.ts`
     - Verify: `context?: TContext` property exists
 
 3. **AgBaseAxisOptions<LabelType, TContext>**
-
     - Location: `packages/ag-charts-types/src/chart/axisOptions.ts`
     - Verify: `context?: TContext` property exists
 
@@ -62,7 +59,6 @@
 ### Implementation Files to Check
 
 1. **Context Property Implementation**
-
     - Check how context is passed through the chart hierarchy
     - Verify fallback mechanism (series/axis context falls back to root context)
 
@@ -77,11 +73,11 @@
 
 **What documentation claims:**
 
--   Dropdown changes update the context object state
--   Y-axis labels convert USD values to preferred user currency
--   Tooltips render both USD and user currency values
--   Context menu actions log converted stock prices to console
--   Context object is accessed via `context` parameter in callbacks
+- Dropdown changes update the context object state
+- Y-axis labels convert USD values to preferred user currency
+- Tooltips render both USD and user currency values
+- Context menu actions log converted stock prices to console
+- Context object is accessed via `context` parameter in callbacks
 
 **Expected behaviors to validate:**
 
@@ -94,25 +90,22 @@
 
 **Specific features to demonstrate:**
 
--   Context inheritance (root context used by axis and series)
--   Dynamic context updates (via `chart.update(options)`)
--   Context usage in multiple callback types
--   Type safety with generic context type
+- Context inheritance (root context used by axis and series)
+- Dynamic context updates (via `chart.update(options)`)
+- Context usage in multiple callback types
+- Type safety with generic context type
 
 ### User Interactions to Validate
 
 1. **Dropdown Currency Selection**
-
     - Test changing currency updates all formatted values
     - Verify smooth transition without errors
 
 2. **Tooltip Hover**
-
     - Hover over candlestick data points
     - Verify dual currency display in tooltips
 
 3. **Context Menu Actions**
-
     - Right-click on chart data
     - Test each currency log action
     - Verify console output shows correct conversions
@@ -161,16 +154,16 @@ No existing `technical-review-exceptions.md` file found for this page.
 
 ### Success Criteria
 
--   [ ] All TypeScript interfaces contain documented context properties
--   [ ] Example demonstrates all documented features
--   [ ] Context inheritance works as described
--   [ ] All callbacks receive context parameter
--   [ ] Interactive features update context properly
--   [ ] No console errors during interactions
--   [ ] Visual elements render correctly with context data
+- [ ] All TypeScript interfaces contain documented context properties
+- [ ] Example demonstrates all documented features
+- [ ] Context inheritance works as described
+- [ ] All callbacks receive context parameter
+- [ ] Interactive features update context properly
+- [ ] No console errors during interactions
+- [ ] Visual elements render correctly with context data
 
 ### Estimated Complexity
 
--   **Low complexity**: Well-focused feature with single example
--   **Time estimate**: 30-45 minutes for complete review
--   **Risk areas**: Context inheritance mechanism, type safety validation
+- **Low complexity**: Well-focused feature with single example
+- **Time estimate**: 30-45 minutes for complete review
+- **Risk areas**: Context inheritance mechanism, type safety validation

@@ -1,6 +1,7 @@
 import { AgCharts, AgFinancialChartOptions, FinancialChartModule, ModuleRegistry } from 'ag-charts-enterprise';
 
 import { Candle, MS_PER_DAY, PriceSimulator, getHistoricalData } from './data';
+import { random } from './seededRandom';
 
 ModuleRegistry.registerModules([FinancialChartModule]);
 
@@ -50,7 +51,7 @@ function startNewCandle() {
         high: openPrice,
         low: openPrice,
         close: openPrice,
-        volume: Math.round(1000000 + Math.random() * 500000),
+        volume: Math.round(1000000 + random() * 500000),
     };
 
     data.push(currentCandle);

@@ -22,6 +22,9 @@ external/ag-website-shared/src/components/documentation-archive/DocumentationArc
 # With script tag
 packages/ag-charts-website/src/components/example-runner/components/FrameworkTemplate.astro
 
+# Prettier 3.8 has a non-idempotency bug on the indented HTML comments under bullet items
+.github/ISSUE_TEMPLATE.md
+
 .prettierrc
 tsconfig.base.json
 
@@ -35,3 +38,6 @@ tsconfig.base.json
 external/ag-shared/
 
 .rulesync
+
+# Licenses
+LICENSE.html

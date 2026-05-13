@@ -2,48 +2,97 @@
 title: 'Zoom Test'
 ---
 
-# E2E Tests
+## Multiple Zoom Axes
 
-{% chartExampleRunner title="Zoom & Crosshairs" name="e2e-zoom-crosshairs" type="generated" /%}
+What to test:
 
-{% chartExampleRunner title="Zoom & Crosshairs" name="e2e-zoom-axis-overlap" type="generated" /%}
-
-# Multiple Zoom Axes
+- Drag-zoom the chart and check both axes respond to the same gesture.
+- Pan the zoomed region and verify the axis domains stay in sync.
 
 {% chartExampleRunner title="Axes Zoom" name="multiple-zoom-axes" type="generated" /%}
 
-# Multi Touch Zoompan
+## Multi Touch Zoompan
+
+What to test:
+
+- Pinch-zoom on a touch device and confirm the chart zooms smoothly.
+- Two-finger pan the zoomed view and check both charts behave consistently.
 
 {% chartExampleRunner title="Multi Touch Zoom" name="multitouch-zoompan" type="generated" /%}
 
-# onDataChange
+## onDataChange
+
+What to test:
+
+- Click the plus button to append data and verify the chart updates without losing zoom state.
+- Switch the x-axis type between number and category and confirm the chart re-renders correctly.
 
 {% chartExampleRunner title="onDataChange" name="on-data-change" type="generated" options={ "exampleHeight": 1000 } /%}
 
-# AG-16803 infinite loop
+## AG-16803 Infinite Loop
+
+What to test:
+
+- Zoom in on the bar chart and confirm rendering completes without entering an infinite loop.
 
 {% chartExampleRunner title="infinite-loop" name="infinite-loop" type="generated" /%}
 
-# Async
+## Async
 
 {% note %}
 Use javascript framework
 {% /note %}
 
-## Async Category
+### Async Category
+
+What to test:
+
+- Zoom in and confirm new category data is fetched and rendered for the visible window.
 
 {% if isFramework("javascript") %}
 {% chartExampleRunner title="async-category" name="async-category" type="generated" /%}
 {% /if %}
 
-## Async Grouped Category
+### Async Grouped Category
+
+What to test:
+
+- Zoom in and confirm grouped category data loads for the visible window without glitches.
 
 {% if isFramework("javascript") %}
 {% chartExampleRunner title="async-grouped-category" name="async-grouped-category" type="generated" /%}
 {% /if %}
 
-## Async Unit Time
+### Async Unit Time
+
+What to test:
+
+- Zoom in on a unit-time axis and confirm data is fetched per visible unit.
 
 {% if isFramework("javascript") %}
 {% chartExampleRunner title="async-unit-time" name="async-unit-time" type="generated" /%}
 {% /if %}
+
+### Async Loading
+
+What to test:
+
+- Trigger a data load and confirm the loading state is shown until data arrives.
+
+{% if isFramework("javascript") %}
+{% chartExampleRunner title="async-loading" name="async-loading" type="generated" /%}
+{% /if %}
+
+## E2E Tested
+
+### e2e-zoom-axis-overlap
+
+_Auto-tested via Playwright._
+
+{% chartExampleRunner title="Zoom & Crosshairs" name="e2e-zoom-axis-overlap" type="generated" /%}
+
+### e2e-zoom-crosshairs
+
+_Auto-tested via Playwright._
+
+{% chartExampleRunner title="Zoom & Crosshairs" name="e2e-zoom-crosshairs" type="generated" /%}

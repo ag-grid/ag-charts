@@ -225,7 +225,8 @@ export function priceVolume(
                         axes: {
                             number: {
                                 interval: { maxSpacing: 45 },
-                                label: { format: '.2f' },
+                                // AG-17247: set formatter here so it takes precedence over label.format (a global formatter would not), while still falling back to label.format when it returns undefined.
+                                label: { format: '.2f', formatter },
                             },
                             category: {
                                 gridLine: { enabled: true },

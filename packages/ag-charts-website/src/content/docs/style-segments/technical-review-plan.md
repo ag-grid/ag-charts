@@ -14,11 +14,11 @@ This document provides a structured plan for reviewing the Style Segments docume
 
 The page covers:
 
--   Basic segmentation configuration with y-axis segments
--   X-axis segmentation for separating actual vs forecast data
--   Segment boundary configuration (start/stop)
--   Style property inheritance from series
--   API reference for `AgSeriesShapeSegmentOptions`
+- Basic segmentation configuration with y-axis segments
+- X-axis segmentation for separating actual vs forecast data
+- Segment boundary configuration (start/stop)
+- Style property inheritance from series
+- API reference for `AgSeriesShapeSegmentOptions`
 
 ### Examples Included
 
@@ -29,8 +29,8 @@ The page covers:
 
 ### 1. Documentation Files
 
--   **Primary Documentation**: `packages/ag-charts-website/src/content/docs/style-segments/index.mdoc`
--   **Exceptions File**: Not found (no exceptions documented)
+- **Primary Documentation**: `packages/ag-charts-website/src/content/docs/style-segments/index.mdoc`
+- **Exceptions File**: Not found (no exceptions documented)
 
 ### 2. TypeScript Definition Files
 
@@ -70,12 +70,12 @@ export interface AgSeriesShapeSegmentOptions extends AgSeriesLineSegmentOptions,
 
 **Critical Implementation Details**:
 
--   Default `key` value: `'x'` (line 204 of seriesProperties.ts)
--   `enabled` property: optional (no default specified)
--   Default segment colors: fill `'#c16068'`, stroke `'#874349'` (lines 178, 184)
--   Default segment opacity: fillOpacity `1`, strokeOpacity `1` (lines 181, 190)
--   Default strokeWidth: `2` (line 187)
--   Default lineDash: `[0]` (line 193)
+- Default `key` value: `'x'` (line 204 of seriesProperties.ts)
+- `enabled` property: optional (no default specified)
+- Default segment colors: fill `'#c16068'`, stroke `'#874349'` (lines 178, 184)
+- Default segment opacity: fillOpacity `1`, strokeOpacity `1` (lines 181, 190)
+- Default strokeWidth: `2` (line 187)
+- Default lineDash: `[0]` (line 193)
 
 ### 4. Example Files
 
@@ -85,9 +85,9 @@ export interface AgSeriesShapeSegmentOptions extends AgSeriesLineSegmentOptions,
 
 **Files**:
 
--   `main.ts` - Chart configuration with y-axis segmentation
--   `data.ts` - Variance data (positive and negative values)
--   `index.html` - HTML container
+- `main.ts` - Chart configuration with y-axis segmentation
+- `data.ts` - Variance data (positive and negative values)
+- `index.html` - HTML container
 
 **Configuration Used**:
 
@@ -110,9 +110,9 @@ segmentation: {
 
 **Files**:
 
--   `main.ts` - Chart configuration with x-axis segmentation
--   `data.ts` - Time series data with actual/forecast status
--   `index.html` - HTML container
+- `main.ts` - Chart configuration with x-axis segmentation
+- `data.ts` - Time series data with actual/forecast status
+- `index.html` - HTML container
 
 **Configuration Used**:
 
@@ -135,27 +135,23 @@ segmentation: {
 **Priority: HIGH**
 
 1. **Verify Segmentation Configuration Structure** (Lines 14-38)
-
     - [ ] Confirm `key` property accepts `'x'` | `'y'` values
     - [ ] Verify `segments` is an array of segment options
     - [ ] Check that `start` and `stop` are optional (AxisValue type)
     - [ ] Validate inheritance behavior description (line 44)
 
 2. **Verify Default Values** (Lines 46-48)
-
     - [ ] Docs claim: "Set `segmentation.key: 'x'` to segment along the `xKey` axis"
     - [ ] Implementation default: `key: 'x'` (seriesProperties.ts:204)
     - [ ] **POTENTIAL MISMATCH**: Docs don't mention default value for `key`
     - [ ] Verify if `enabled` property behavior matches docs
 
 3. **Verify Segment Boundary Behavior** (Lines 81-86)
-
     - [ ] Confirm omitting `start` uses axis minimum or previous segment's `stop`
     - [ ] Confirm omitting `stop` uses axis maximum or next segment's `start`
     - [ ] Validate against implementation logic
 
 4. **Verify Style Properties** (Lines 87-91)
-
     - [ ] Confirm available style properties match `AgSeriesShapeSegmentOptions`
     - [ ] Verify fallback to series options when unspecified
     - [ ] Check fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset
@@ -173,9 +169,9 @@ segmentation: {
 
 **Documentation Claims**:
 
--   "The series `fill` and `stroke` are red when values fall below 0 on the y-axis" (line 42)
--   "The series `fill` and `stroke` are green when values are above 0 on the y-axis" (line 43)
--   "Properties `fillOpacity` and `strokeWidth` not specified in the segment are inherited from the series" (line 44)
+- "The series `fill` and `stroke` are red when values fall below 0 on the y-axis" (line 42)
+- "The series `fill` and `stroke` are green when values are above 0 on the y-axis" (line 43)
+- "Properties `fillOpacity` and `strokeWidth` not specified in the segment are inherited from the series" (line 44)
 
 **Expected Behaviors**:
 
@@ -189,26 +185,26 @@ segmentation: {
 
 **Specific Validations**:
 
--   [ ] Verify color transition occurs exactly at y=0
--   [ ] Verify red segment covers negative variance values
--   [ ] Verify green segment covers positive variance values
--   [ ] Verify fillOpacity inheritance (should be 0.3 for both segments)
--   [ ] Verify strokeWidth inheritance (should be 2 for both segments)
--   [ ] Verify smooth interpolation is applied
--   [ ] Check for any console errors or warnings
+- [ ] Verify color transition occurs exactly at y=0
+- [ ] Verify red segment covers negative variance values
+- [ ] Verify green segment covers positive variance values
+- [ ] Verify fillOpacity inheritance (should be 0.3 for both segments)
+- [ ] Verify strokeWidth inheritance (should be 2 for both segments)
+- [ ] Verify smooth interpolation is applied
+- [ ] Check for any console errors or warnings
 
 **Test Approach**:
 
--   Navigate to example
--   Capture screenshot showing color segmentation
--   Verify visual distinction between positive/negative regions
--   Use browser inspection to validate applied styles
+- Navigate to example
+- Capture screenshot showing color segmentation
+- Verify visual distinction between positive/negative regions
+- Use browser inspection to validate applied styles
 
 #### Example 2: segmentation-x-direction
 
 **Documentation Claims**:
 
--   "The series uses a solid stroke for 2024 and a dashed stroke for 2025 to distinguish actual and forecast data" (line 75)
+- "The series uses a solid stroke for 2024 and a dashed stroke for 2025 to distinguish actual and forecast data" (line 75)
 
 **Expected Behaviors**:
 
@@ -221,20 +217,20 @@ segmentation: {
 
 **Specific Validations**:
 
--   [ ] Verify stroke style transition occurs exactly at Jan 1, 2025
--   [ ] Verify solid stroke for dates < 2025-01-01
--   [ ] Verify dashed stroke (lineDash: [5, 10]) for dates ≥ 2025-01-01
--   [ ] Verify smooth interpolation is applied
--   [ ] Verify other properties (stroke color) are inherited from series
--   [ ] Check data integrity (status field present but not required by implementation)
--   [ ] Check for any console errors or warnings
+- [ ] Verify stroke style transition occurs exactly at Jan 1, 2025
+- [ ] Verify solid stroke for dates < 2025-01-01
+- [ ] Verify dashed stroke (lineDash: [5, 10]) for dates ≥ 2025-01-01
+- [ ] Verify smooth interpolation is applied
+- [ ] Verify other properties (stroke color) are inherited from series
+- [ ] Check data integrity (status field present but not required by implementation)
+- [ ] Check for any console errors or warnings
 
 **Test Approach**:
 
--   Navigate to example
--   Capture screenshot showing stroke style transition
--   Verify visual distinction between actual vs forecast data
--   Use browser inspection to validate applied line styles
+- Navigate to example
+- Capture screenshot showing stroke style transition
+- Verify visual distinction between actual vs forecast data
+- Use browser inspection to validate applied line styles
 
 ### C. Visual & Interaction Testing
 
@@ -252,13 +248,11 @@ segmentation: {
 **Interactive Features to Test**:
 
 1. **Tooltip Display**
-
     - [ ] Verify tooltip appears on hover over segmented areas/lines
     - [ ] Confirm tooltip shows correct values regardless of segment
     - [ ] Check tooltip positioning is consistent
 
 2. **Legend Interaction** (if applicable)
-
     - [ ] Verify series can be toggled via legend
     - [ ] Confirm segmentation persists when toggling visibility
 
@@ -271,20 +265,17 @@ segmentation: {
 **Priority: MEDIUM**
 
 1. **Completeness Check**
-
     - [ ] Verify all segment style properties are documented
     - [ ] Check if `enabled` property should be mentioned
     - [ ] Assess if default `key` value should be documented
     - [ ] Determine if more complex multi-segment examples would be helpful
 
 2. **Clarity Assessment**
-
     - [ ] Evaluate description of segment boundary behavior
     - [ ] Check if style inheritance explanation is clear
     - [ ] Assess if start/stop omission behavior is well explained
 
 3. **Missing Features**
-
     - [ ] Check if multiple segments are demonstrated
     - [ ] Verify if all supported series types are mentioned
     - [ ] Assess if theme integration is discussed (if applicable)
@@ -408,10 +399,10 @@ The example-tester agent should return:
 
 This structured review plan documenting:
 
--   All files requiring review with full paths
--   Validation tasks organized by priority
--   Example testing delegation plan with specific instructions
--   Success criteria for technical accuracy
+- All files requiring review with full paths
+- Validation tasks organized by priority
+- Example testing delegation plan with specific instructions
+- Success criteria for technical accuracy
 
 ### Phase 2 Preparation
 
@@ -426,17 +417,14 @@ This plan enables Phase 2 to execute:
 ### Known Risk Areas
 
 1. **Default Value Documentation**
-
     - `key` property defaults to `'x'` in implementation but docs don't mention default
     - Consider if this should be explicitly documented
 
 2. **Segment Boundary Logic**
-
     - Complex interaction between start/stop omission and multiple segments
     - May require implementation deep-dive to fully validate
 
 3. **Style Inheritance**
-
     - Documentation claims inheritance but doesn't specify precedence rules
     - Need to verify implementation behavior matches expectation
 
@@ -446,12 +434,12 @@ This plan enables Phase 2 to execute:
 
 ## Review Execution Notes
 
--   Use MCP Puppeteer for browser automation and screenshots
--   Use Task tool with example-tester agent for example validation
--   Verify all type definitions against packages/ag-charts-types/src/
--   Check implementation defaults via @Property decorators
--   Cross-reference with existing test files if available
--   Document any exceptions or known limitations
+- Use MCP Puppeteer for browser automation and screenshots
+- Use Task tool with example-tester agent for example validation
+- Verify all type definitions against packages/ag-charts-types/src/
+- Check implementation defaults via @Property decorators
+- Cross-reference with existing test files if available
+- Document any exceptions or known limitations
 
 ---
 

@@ -286,8 +286,8 @@ export class Scrollbar extends AbstractModuleInstance {
 
         const hoverStyle = properties.thumb.hoverStyle;
 
-        thumb.fill = hovered ? hoverStyle?.fill ?? properties.thumb.fill : properties.thumb.fill;
-        thumb.stroke = hovered ? hoverStyle?.stroke ?? properties.thumb.stroke : properties.thumb.stroke;
+        thumb.fill = hovered ? (hoverStyle?.fill ?? properties.thumb.fill) : properties.thumb.fill;
+        thumb.stroke = hovered ? (hoverStyle?.stroke ?? properties.thumb.stroke) : properties.thumb.stroke;
     }
 
     private updateTrack(state: ScrollbarOrientationState, bounds: _ModuleSupport.BBox) {

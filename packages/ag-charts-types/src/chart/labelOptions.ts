@@ -11,8 +11,7 @@ import type { ContextDefault, FontSize, OverflowStrategy, PixelSize, TextWrap } 
 export interface AgChartLabelStyleOptions extends Toggleable, TextOptions, LabelBoxOptions {}
 
 export interface AgChartLabelStylerParams<TDatum, TContext>
-    extends AgChartCallbackParams<TDatum, TContext>,
-        AgChartLabelStyleOptions {
+    extends AgChartCallbackParams<TDatum, TContext>, AgChartLabelStyleOptions {
     /** The specific highlight state of the element. */
     highlightState?: HighlightState | HierarchyHighlightState;
 }
@@ -34,15 +33,20 @@ export interface AgChartLabelOptions<TDatum, TParams, TContext = ContextDefault>
     itemStyler?: Styler<AgChartLabelStylerParams<TDatum, TContext> & TParams, AgChartLabelStyleOptions>;
 }
 
-export interface AgChartLabelFormatterParams<TDatum, TContext = ContextDefault>
-    extends AgChartCallbackParams<TDatum, TContext> {
+export interface AgChartLabelFormatterParams<TDatum, TContext = ContextDefault> extends AgChartCallbackParams<
+    TDatum,
+    TContext
+> {
     /** The default label value that would have been used without a formatter. */
     value: any;
 }
 
 // New auto-sized labels
-export interface AgChartAutoSizedBaseLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext> {
+export interface AgChartAutoSizedBaseLabelOptions<
+    TDatum,
+    TParams,
+    TContext = ContextDefault,
+> extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /**
      * Line height to use for the label.
      */
@@ -72,11 +76,17 @@ export interface AgChartAutoSizedBaseLabelOptions<TDatum, TParams, TContext = Co
     overflowStrategy?: OverflowStrategy;
 }
 
-export interface AgChartAutoSizedLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartAutoSizedBaseLabelOptions<TDatum, TParams, TContext> {
+export interface AgChartAutoSizedLabelOptions<
+    TDatum,
+    TParams,
+    TContext = ContextDefault,
+> extends AgChartAutoSizedBaseLabelOptions<TDatum, TParams, TContext> {
     /** The distance between the label and secondary label, if both are present */
     spacing?: PixelSize;
 }
 
-export interface AgChartAutoSizedSecondaryLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartAutoSizedBaseLabelOptions<TDatum, TParams, TContext> {}
+export interface AgChartAutoSizedSecondaryLabelOptions<
+    TDatum,
+    TParams,
+    TContext = ContextDefault,
+> extends AgChartAutoSizedBaseLabelOptions<TDatum, TParams, TContext> {}

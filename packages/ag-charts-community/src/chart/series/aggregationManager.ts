@@ -1,4 +1,10 @@
+import { EventEmitter } from 'ag-charts-core';
+
 import { DeferredExecutor } from '../../util/deferredExecutor';
+
+export interface AggregationManagerEvents {
+    filtersChanged: void;
+}
 
 /**
  * Base interface for aggregation filters used by AggregationManager.
@@ -39,6 +45,16 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
     private _dataLength: number = 0;
     private readonly executor = new DeferredExecutor<TFilter[]>();
 
+    /**
+     * Emits `filtersChanged` on every filter-set mutation: aggregation
+     * rebuilds (immediate + deferred coarser levels), staleness-driven
+     * discards (`markStale`), and on-demand level merges
+     * (`ensureLevelForRange`). `BucketLookupFeature` subscribes here to
+     * keep the per-bucket SELECTED roll-up cache in sync with the active
+     * filter list.
+     */
+    readonly events = new EventEmitter<AggregationManagerEvents>();
+
     get filters(): TFilter[] | undefined {
         return this._filters;
     }
@@ -67,15 +83,18 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
                 if (computeRemaining) {
                     this.executor.schedule(computeRemaining, (remaining) => {
                         this.mergeFilters(remaining);
+                        this.events.emit('filtersChanged', undefined);
                     });
                 }
 
                 this._filters = immediate;
+                this.events.emit('filtersChanged', undefined);
                 return immediate;
             }
         }
 
         this._filters = options.computeFull(this._filters);
+        this.events.emit('filtersChanged', undefined);
         return this._filters;
     }
 
@@ -87,10 +106,11 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
         const hasLevel = this._filters?.some((f) => f.maxRange > range);
 
         if (!hasLevel && this.executor.isPending()) {
-            const remaining = this.executor.demand();
-            if (remaining) {
-                this.mergeFilters(remaining);
-            }
+            // demand() runs the executor's onComplete (which already called
+            // mergeFilters and emitted filtersChanged). No additional work
+            // needed — the historical second mergeFilters call here was a
+            // double-merge bug.
+            this.executor.demand();
         }
     }
 
@@ -115,7 +135,8 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
      */
     markStale(dataLength: number): void {
         const ratio = this._dataLength > 0 ? dataLength / this._dataLength : 0;
-        if (ratio >= 2 || ratio <= 0.5 || this._dataLength === 0) {
+        const filtersDiscarded = ratio >= 2 || ratio <= 0.5 || this._dataLength === 0;
+        if (filtersDiscarded) {
             this._filters = undefined;
         } else if (this._filters) {
             for (const f of this._filters) {
@@ -125,6 +146,14 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
 
         this._dataLength = dataLength;
         this.executor.cancel();
+
+        if (filtersDiscarded) {
+            // Filters were dropped — notify subscribers so they can release
+            // closures over the now-orphaned `indexData` TypedArrays. (The
+            // `stale: true` branch keeps the filter objects alive, so cached
+            // readers stay valid.)
+            this.events.emit('filtersChanged', undefined);
+        }
     }
 
     private mergeFilters(deferredFilters: TFilter[]): void {

@@ -1082,9 +1082,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             ? undefined
             : (this.findNeighbourValue(autoEnableValueVertex, USER_PARTIAL_OPTIONS_EDGE) as PlainObject | undefined);
 
-        // An explicit `enabled: false` from a user-partial (e.g. an `itemStyler` return)
-        // must override auto-enable, otherwise sibling keys at the same path silently force
-        // `enabled = true` and the partial's disable is lost.
+        // An explicit `enabled: false` from a user-partial must override auto-enable.
         if (userPartialOptionsEnabled?.enabled === false) return;
 
         const isUserEnabled =
@@ -1267,7 +1265,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             [OPERATION_VALUE_EDGE]: 'OPV',
             [OVERRIDES_EDGE]: 'OV',
         };
-        let className = edge ? classNames[edge] ?? undefined : undefined;
+        let className = edge ? (classNames[edge] ?? undefined) : undefined;
         className = className ? `:::${className}` : '';
 
         if (typeof vertex.value === 'symbol') {

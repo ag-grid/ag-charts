@@ -2,6 +2,7 @@ import type {
     AgBaseRadialColumnSeriesOptions,
     AgRadialSeriesLabelFormatterParams,
     AgRadialSeriesStyle,
+    SelectionState,
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -16,7 +17,7 @@ import {
 } from 'ag-charts-core';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
-import { getItemStyle, getStyle } from '../util/radialUtil';
+import { type RadialSeriesStyleResult, getItemStyle, getStyle } from '../util/radialUtil';
 import type { RadialColumnSeriesBaseProperties } from './radialColumnSeriesBaseProperties';
 
 const {
@@ -46,8 +47,14 @@ class RadialColumnSeriesNodeEvent<
 > extends _ModuleSupport.SeriesNodeEvent<RadialColumnNodeDatum, TEvent> {
     readonly angleKey?: string;
     readonly radiusKey?: string;
-    constructor(type: TEvent, nativeEvent: Event, datum: RadialColumnNodeDatum, series: RadialColumnSeriesBase<any>) {
-        super(type, nativeEvent, datum, series);
+    constructor(
+        type: TEvent,
+        nativeEvent: Event,
+        datum: RadialColumnNodeDatum,
+        series: RadialColumnSeriesBase<any>,
+        selectionState: SelectionState | undefined
+    ) {
+        super(type, nativeEvent, datum, series, selectionState);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
     }
@@ -80,8 +87,10 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.DataModelSeriesNod
     style?: AgRadialSeriesStyle;
 }
 
-interface RadialColumnSeriesNodeDataContext
-    extends _ModuleSupport.DataModelSeriesNodeDataContext<RadialColumnNodeDatum, RadialColumnNodeDatum> {
+interface RadialColumnSeriesNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
+    RadialColumnNodeDatum,
+    RadialColumnNodeDatum
+> {
     styles: _ModuleSupport.SeriesNodeStyleContext<AgRadialSeriesStyle>;
 }
 
@@ -311,7 +320,7 @@ export abstract class RadialColumnSeriesBase<
 
         const nodeData: RadialColumnNodeDatum[] = [];
         const styles = getItemStyles((nodeDatum: RadialColumnNodeDatum | undefined, isHighlight, highlightState) =>
-            getItemStyle(this, nodeDatum, isHighlight, highlightState)
+            getItemStyle(this, nodeDatum, isHighlight, highlightState, undefined)
         );
         const context = {
             itemId: radiusKey,
@@ -450,16 +459,36 @@ export abstract class RadialColumnSeriesBase<
 
         const fillBBox = this.getShapeFillBBox();
         const hasItemStylers = this.hasItemStylers();
+        // No itemStyler: style is a pure function of (highlightState, selectionState); cache by state.
+        const styleCache =
+            hasItemStylers && this.properties.itemStyler == null
+                ? new Map<string, RadialSeriesStyleResult>()
+                : undefined;
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
                 const { midPoint } = nodeDatum;
 
+                const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);
                 if (hasItemStylers) {
                     const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
-                    nodeDatum.style = getItemStyle(this, nodeDatum, isHighlight, highlightState);
+
+                    if (styleCache == null) {
+                        nodeDatum.style = getItemStyle(this, nodeDatum, isHighlight, highlightState, selectionState);
+                    } else {
+                        const stateKey = `${highlightState}:${selectionState ?? '-'}`;
+                        let cached = styleCache.get(stateKey);
+                        if (cached === undefined) {
+                            // Concrete nodeDatum required: getStyle treats `undefined` as "ignore styler".
+                            cached = getItemStyle(this, nodeDatum, isHighlight, highlightState, selectionState);
+                            styleCache.set(stateKey, cached);
+                        }
+                        nodeDatum.style = cached;
+                    }
                 }
+                const bringToFront = !_ModuleSupport.isUnselected(selectionState);
+                node.zIndex = bringToFront ? 1 : 0;
 
                 const style =
                     nodeDatum.style ??
@@ -552,7 +581,7 @@ export abstract class RadialColumnSeriesBase<
         // eslint-disable-next-line sonarjs/different-types-comparison
         if (angleValue === undefined && !this.properties.allowNullKeys) return;
 
-        const format = getItemStyle(this, nodeDatum, false);
+        const format = getItemStyle(this, nodeDatum, false, undefined, undefined);
         return this.formatTooltipWithContext(
             tooltip,
             {
@@ -589,7 +618,8 @@ export abstract class RadialColumnSeriesBase<
         const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = getStyle(
             this,
             false,
-            _ModuleSupport.HighlightState.None
+            _ModuleSupport.HighlightState.None,
+            undefined
         );
 
         const markerStyle = {

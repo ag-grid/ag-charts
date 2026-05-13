@@ -41,8 +41,8 @@ This is done by passing an array of `TextSegment` objects, where each object con
 
 In the above example:
 
--   The `title`, `subtitle` and `footnote` use text segments to vary font options within the text.
--   The top level font options within each element are used for all text segments, unless overridden.
+- The `title`, `subtitle` and `footnote` use text segments to vary font options within the text.
+- The top level font options within each element are used for all text segments, unless overridden.
 
 ### Label Formatters with Multi-Style Text
 
@@ -70,11 +70,11 @@ Instead of returning a string, formatters can return an array of `TextSegment` o
 
 In the above example:
 
--   The label formatter returns an array of `TextSegment` objects instead of a string.
--   The first segment shows the value in large, bold, white text.
--   The second segment displays "units" in smaller, semi-transparent text.
--   Each text segment can have independent font styling (size, weight, color, style, family).
--   Newline characters (`\n`) separate segments across multiple lines.
+- The label formatter returns an array of `TextSegment` objects instead of a string.
+- The first segment shows the value in large, bold, white text.
+- The second segment displays "units" in smaller, semi-transparent text.
+- Each text segment can have independent font styling (size, weight, color, style, family).
+- Newline characters (`\n`) separate segments across multiple lines.
 
 ## Font Theme Parameters
 
@@ -96,8 +96,8 @@ To prevent potential licensing and privacy implications, the chart will not load
 
 If you want to use Google fonts, you should either:
 
--   Set the chart's `loadGoogleFonts` option to `true` and use the `{ googleFont: "..." }` object for the chart to load the font from Google's CDN.
--   Load the font yourself using a `@font-face` rule in your application's CSS.
+- Set the chart's `loadGoogleFonts` option to `true` and use the `{ googleFont: "..." }` object for the chart to load the font from Google's CDN.
+- Load the font yourself using a `@font-face` rule in your application's CSS.
 
 If the font has not been loaded through either of the above methods, the theme will fall back to the most appropriate font available on the system.
 
@@ -107,8 +107,8 @@ In the above example:
 
 <!-- cspell:ignore Pacifico Orbitron -->
 
--   The `loadGoogleFonts` option is set to `true` to automatically load Google fonts.
--   The title uses the Google font `Pacifico`.
--   The subtitle uses the Google font `DM Serif Text` with a fallback to `monospace`.
--   The left axis uses the local system font `Helvetica` with a fallback to `Arial` then `sans-serif`.
--   The bottom axis uses the Google font `Orbitron`.
+- The `loadGoogleFonts` option is set to `true` to automatically load Google fonts.
+- The title uses the Google font `Pacifico`.
+- The subtitle uses the Google font `DM Serif Text` with a fallback to `monospace`.
+- The left axis uses the local system font `Helvetica` with a fallback to `Arial` then `sans-serif`.
+- The bottom axis uses the Google font `Orbitron`.

@@ -3,24 +3,34 @@ title: 'Dynamic Highlight Test'
 hidden: true
 ---
 
-E2E Tests For `AgChartState['active']`.
+This page is entirely covered by Playwright end-to-end tests for `AgChartState['active']`.
 
-# Line-Example
+## E2E Tested
+
+### Line-Example
+
+_Auto-tested via Playwright._
 
 {% chartExampleRunner title="Hover-Focus API" name="line-example" type="generated" /%}
 
-# Bubble-Example
+### Bubble-Example
 
--   Clicking `getState()` **MUST** console-log the bubble that is active in the tooltip.
--   Ticking `preventDefault` **MUST** avoid tooltip-pagination `activeChange` events from firing.
+_Auto-tested via Playwright._
+
+- Clicking `getState()` **MUST** console-log the bubble that is active in the tooltip.
+- Ticking `preventDefault` **MUST** avoid tooltip-pagination `activeChange` events from firing.
 
 {% chartExampleRunner title="Hover-Focus API" name="bubble-example" type="generated" /%}
 
-# Multi-Donut-Example
+### Multi-Donut-Example
+
+_Auto-tested via Playwright._
 
 {% chartExampleRunner title="Hover-Focus API" name="multi-donut-example" type="generated" /%}
 
-# Grouped-Category Bars Example
+### Grouped-Category Bars Example
+
+_Auto-tested via Playwright._
 
 {% chartExampleRunner
     title="Group Category Hover-Focus API"
@@ -29,7 +39,9 @@ E2E Tests For `AgChartState['active']`.
     type="generated"
 /%}
 
-# Sankey Example
+### Sankey Example
+
+_Auto-tested via Playwright._
 
 {% chartExampleRunner
     title="Sankey Hover-Focus API"
@@ -38,11 +50,11 @@ E2E Tests For `AgChartState['active']`.
     type="generated"
 /%}
 
-# Initial State
+### Initial State — Series Node
 
-**Series Node**
+_Auto-tested via Playwright._
 
-Initialised to "Germany 2015"
+Initialised to "Germany 2015".
 
 {% chartExampleRunner
     title="Initial State Hover-Focus API"
@@ -50,9 +62,11 @@ Initialised to "Germany 2015"
     type="generated"
 /%}
 
-**Legend**
+### Initial State — Legend
 
-Initialised to "Legend Item: UK"
+_Auto-tested via Playwright._
+
+Initialised to "Legend Item: UK".
 
 {% chartExampleRunner
     title="Initial State Hover-Focus API"
@@ -60,7 +74,9 @@ Initialised to "Legend Item: UK"
     type="generated"
 /%}
 
-# Zoom And Active Restoration
+### Zoom And Active Restoration
+
+_Auto-tested via Playwright._
 
 {% chartExampleRunner
     title="Zoom And Active Restoration"
@@ -68,29 +84,33 @@ Initialised to "Legend Item: UK"
     type="generated"
 /%}
 
-# Interactive Tooltip
+### Interactive Tooltip
 
--   All user-interaction (Mouse/Touch/Keyboard) deactivation `activeChange` **MUST** be prevented.
--   Clicking the "Clear" button (setState) **MUST** clear the activation.
--   Chart resize:
-    -   Hover over a bar with the Mouse.
-    -   Press the "S" key on the Keyboard.
-    -   The chart resizes ; The highlight **MUST** redraw correct.
+_Auto-tested via Playwright._
+
+- All user-interaction (Mouse/Touch/Keyboard) deactivation `activeChange` **MUST** be prevented.
+- Clicking the "Clear" button (setState) **MUST** clear the activation.
+- Chart resize:
+    - Hover over a bar with the Mouse.
+    - Press the "S" key on the Keyboard.
+    - The chart resizes; the highlight **MUST** redraw correctly.
 
 {% chartExampleRunner
     title="Interactive Tooltip and preventDefault"
     name="interactive-tooltip-example"
 /%}
 
-# preventDefault
+### preventDefault
+
+_Auto-tested via Playwright._
 
 When `preventDefault` is ticked:
 
--   Series Area Mouse/Keyboard interactions **MUST NOT** show Highlight.
--   Series Area Mouse/Keyboard interactions **MUST NOT** show Tooltip.
--   Legend Mouse/Keyboard interactions **MUST NOT** update Highlight.
--   Series Area/Legend Keyboard interactions **MUST** show Focus Indicator.
--   Legend Mouse/Keyboard click **MUST** update Series Visibility.
+- Series Area Mouse/Keyboard interactions **MUST NOT** show Highlight.
+- Series Area Mouse/Keyboard interactions **MUST NOT** show Tooltip.
+- Legend Mouse/Keyboard interactions **MUST NOT** update Highlight.
+- Series Area/Legend Keyboard interactions **MUST** show Focus Indicator.
+- Legend Mouse/Keyboard click **MUST** update Series Visibility.
 
 {% chartExampleRunner
     title="Prevent Default Test"
@@ -98,9 +118,9 @@ When `preventDefault` is ticked:
     type="generated"
 /%}
 
-# AG-16841
+### Click-To-Freeze (AG-16841)
 
-## Click-To-Freeze
+_Auto-tested via Playwright._
 
 `seriesNodeClick` should still fire on frozen charts.
 
@@ -110,15 +130,17 @@ When `preventDefault` is ticked:
     type="generated"
 /%}
 
-## Candlestick Crosshairs
+### Candlestick Crosshairs (AG-16841)
 
-When clicking a candlestick
+_Auto-tested via Playwright._
 
--   An "Unfreeze" button **MUST** be shown in the tooltip
--   Series Area Mouse/Keyboard interactions **MUST NOT** update Highlight.
--   Series Area Mouse/Keyboard interactions **MUST NOT** update Tooltip.
--   Series Area Mouse/Keyboard interactions **MUST NOT** update the X-Crosshair.
--   Series Area Mouse-Move interactions **MUST** update the Y-Crosshair.
+When clicking a candlestick:
+
+- An "Unfreeze" button **MUST** be shown in the tooltip.
+- Series Area Mouse/Keyboard interactions **MUST NOT** update Highlight.
+- Series Area Mouse/Keyboard interactions **MUST NOT** update Tooltip.
+- Series Area Mouse/Keyboard interactions **MUST NOT** update the X-Crosshair.
+- Series Area Mouse-Move interactions **MUST** update the Y-Crosshair.
 
 {% chartExampleRunner
     title="Candlestick Crosshairs"
@@ -126,13 +148,15 @@ When clicking a candlestick
     type="generated"
 /%}
 
-## Updating Data
+### Updating Data (AG-16841)
+
+_Auto-tested via Playwright._
 
 Check that `frozen` and `dataIdKey` work properly together:
 
--   Click a bar: it **MUST** activate & freeze.
--   Click "Add Start" button: same bar **MUST** be activated.
--   Click "Remove Start" button: same bar **MUST** be activated.
+- Click a bar: it **MUST** activate & freeze.
+- Click "Add Start" button: same bar **MUST** be activated.
+- Click "Remove Start" button: same bar **MUST** be activated.
 
 {% chartExampleRunner
     title="Updating Data"
@@ -140,18 +164,16 @@ Check that `frozen` and `dataIdKey` work properly together:
     type="generated"
 /%}
 
-## Frozen Survives ZoomPan
+### Frozen Survives ZoomPan (AG-16841)
+
+_Auto-tested via Playwright._
 
 Check that `frozen` survives zoom/panning changes:
 
--   Click "Freeze on April":
-    -   That marker **MUST** freeze and activate.
--   Update the ZoomPan such that the April marker moves:
-    -   The highlight/tooltip **MUST** update to reflect the marker's new position.
--   Update the ZoomPan such that the April marker is no longer in the viewport:
-    -   The higlight/tooltip/crosshair **MUST** be hidden.
--   Update the ZoomPan such that the April marker return into the viewport:
-    -   The higlight/tooltip/crosshair **MUST** be restored.
+- Click "Freeze on April": that marker **MUST** freeze and activate.
+- Update the ZoomPan such that the April marker moves: the highlight/tooltip **MUST** update to reflect the marker's new position.
+- Update the ZoomPan such that the April marker is no longer in the viewport: the highlight/tooltip/crosshair **MUST** be hidden.
+- Update the ZoomPan such that the April marker returns into the viewport: the highlight/tooltip/crosshair **MUST** be restored.
 
 {% chartExampleRunner
     title="Frozen Survives ZoomPan"
@@ -159,9 +181,11 @@ Check that `frozen` survives zoom/panning changes:
     type="generated"
 /%}
 
-## Frozen Survives Legend Toggling
+### Frozen Survives Legend Toggling (AG-16841)
 
-There's 4 test permutations:
+_Auto-tested via Playwright._
+
+There are 4 test permutations:
 
 ```
 1. itemId Valid   ; frozen: false
@@ -171,34 +195,30 @@ There's 4 test permutations:
 ```
 
 1. Valid `itemId` / Thawed
-
-    - Click "Private Car" Legend Item (hide series)
-    - Click "Restore (Valid/Thawed)"
-    - Click "Private Car" Legend Item (show series)
-        - "Private Car" legend-item **MUST** be active (i.e. whole series is highlighted)
+    - Click "Private Car" Legend Item (hide series).
+    - Click "Restore (Valid/Thawed)".
+    - Click "Private Car" Legend Item (show series).
+        - "Private Car" legend-item **MUST** be active (i.e. whole series is highlighted).
 
 2. Invalid `itemId` / Thawed
-
-    - Click "Private Car" Legend Item (hide series)
-    - Click "Restore (Invalid/Thawed)"
+    - Click "Private Car" Legend Item (hide series).
+    - Click "Restore (Invalid/Thawed)".
         - Console **MUST NOT** warn that `itemId` is invalid.
-    - Click "Private Car" Legend Item (show series)
-        - "Private Car" legend-item **MUST** be active (i.e. whole series is highlighted)
+    - Click "Private Car" Legend Item (show series).
+        - "Private Car" legend-item **MUST** be active (i.e. whole series is highlighted).
         - Console **MUST NOT** warn that `itemId` is invalid.
 
 3. Valid `itemId` / Frozen
-
-    - Click "Private Car" Legend Item (hide series)
-    - Click "Restore (Valid/Frozen)"
-    - Click "Private Car" Legend Item (show series)
+    - Click "Private Car" Legend Item (hide series).
+    - Click "Restore (Valid/Frozen)".
+    - Click "Private Car" Legend Item (show series).
         - "Private Car 2020" bar **MUST** be active.
 
 4. Invalid `itemId` / Frozen
-
-    - Click "Private Car" Legend Item (hide series)
-    - Click "Restore (Invalid/Frozen)"
+    - Click "Private Car" Legend Item (hide series).
+    - Click "Restore (Invalid/Frozen)".
         - Console **MUST NOT** warn that `itemId` is invalid.
-    - Click "Private Car" Legend Item (show series)
+    - Click "Private Car" Legend Item (show series).
         - Console **MUST** warn that `itemId` is invalid.
         - Highlight **MUST NOT** be rendered.
 
@@ -208,12 +228,13 @@ There's 4 test permutations:
     type="generated"
 /%}
 
-# External Legend
+### External Legend
 
--   The external legend should behave just like our internal legend.
--   The external legend is implemented using `setState({active})`.
--   Our internal legend is disabled (`legend.enabled: false`); this **MUST NOT**
-    affect the external legend.
+_Auto-tested via Playwright._
+
+- The external legend should behave just like our internal legend.
+- The external legend is implemented using `setState({active})`.
+- Our internal legend is disabled (`legend.enabled: false`); this **MUST NOT** affect the external legend.
 
 {% chartExampleRunner
     title="External Legends"

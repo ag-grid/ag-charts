@@ -20,9 +20,9 @@ This allows you to create and use a secondary axis without any explicit axis con
 
 In this example:
 
--   The `bar` series do not specify a `yKeyAxis`, so they are linked to the default `y` axis.
--   The `line` series specifies `yKeyAxis: 'ySecondary'`, which automatically creates a new secondary axis on the right.
--   Any number of `y` axes can be created in this way and the same concept applies to x-axes using the `xKeyAxis` property.
+- The `bar` series do not specify a `yKeyAxis`, so they are linked to the default `y` axis.
+- The `line` series specifies `yKeyAxis: 'ySecondary'`, which automatically creates a new secondary axis on the right.
+- Any number of `y` axes can be created in this way and the same concept applies to x-axes using the `xKeyAxis` property.
 
 ```js format="snippet"
 {
@@ -92,10 +92,10 @@ The axis key supplied to the series does not need to be used in the `axes` optio
 
 In this configuration:
 
--   The `yKey` values of the first series are plotted against the `profit` axis on the left, whilst the `yKey` values of the second series are plotted against the `revenue` axis on the right.
--   Series default to the `x` and `y` axis keys when not specified, so `series[].xKeyAxis` is not required.
--   `axes.x` is not required because no customisation is needed for the default x axis.
--   There is no `axes.y` in this chart as all series have specified a different `yKeyAxis`.
+- The `yKey` values of the first series are plotted against the `profit` axis on the left, whilst the `yKey` values of the second series are plotted against the `revenue` axis on the right.
+- Series default to the `x` and `y` axis keys when not specified, so `series[].xKeyAxis` is not required.
+- `axes.x` is not required because no customisation is needed for the default x-axis.
+- There is no `axes.y` in this chart as all series have specified a different `yKeyAxis`.
 
 Specifying `type` is not required but is recommended for type-checking and validation.
 

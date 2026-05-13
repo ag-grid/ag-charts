@@ -8,14 +8,31 @@ import type {
     PointLabelDatum,
     SizedPoint,
 } from 'ag-charts-core';
-import type { AgActiveItemState } from 'ag-charts-types';
+import type { AgActiveItemState, SelectionState as PublicSelectionState } from 'ag-charts-types';
 
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { TypedEvent } from '../../util/observable';
+import type { ProcessedData } from '../data/dataModelTypes';
 import type { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { TooltipContent } from '../tooltip/tooltipContent';
+import type { AggregationFilterBase } from './aggregationManager';
+
+export enum HighlightState {
+    None,
+    Item,
+    Series,
+    OtherSeries,
+    OtherItem,
+}
+
+export enum SelectionState {
+    None,
+    Item,
+    OtherItem,
+    OtherSeries,
+}
 
 // Breaks circular dependency between ISeries and ChartAxis.
 interface ChartAxisLike {
@@ -35,7 +52,42 @@ export type SeriesNodeEventTypes =
     | 'seriesNodeClick'
     | 'seriesNodeDoubleClick';
 
-export type DatumRangeReader = (sampledDatumIndex: number) => [number, number];
+export type DatumRangeReader = (sampledDatumIndex: number) => [number, number] | undefined;
+
+/**
+ * Aggregation-aware bucket lookup surface every aggregating series exposes
+ * to the rest of the framework. Implementations live in `bucketLookupFeature.ts`
+ * (`BucketLookupManager`, `SplitBucketLookupManager`).
+ *
+ * Declared here rather than imported from `bucketLookupFeature.ts` so the
+ * implementation file can pull `DatumRangeReader` from `seriesTypes.ts`
+ * without forming a cycle.
+ */
+export interface BucketLookupFeature {
+    /**
+     * Whether the bucket containing `datumIndex` at the active zoom level
+     * contains any selected datums. `undefined` when no aggregation level is
+     * active for the current view.
+     */
+    isBucketSelected(datumIndex: number): boolean | undefined;
+    /** Build a {@link DatumRangeReader} for the active aggregation level. */
+    getRangeReader(): DatumRangeReader | undefined;
+    /**
+     * Underlying datum indices for the cluster represented by `datumIndex`,
+     * or `undefined` when the active aggregation model doesn't expose an
+     * index set (extremes/split managers) or no clustering is active for
+     * the current view.
+     *
+     * Bubble/scatter use cluster-based aggregation: each rendered marker
+     * stands in for an arbitrary group of datums whose underlying indices
+     * are non-contiguous. Drag-select fans out to these underlying indices.
+     */
+    getIndexSet(datumIndex: number): Iterable<number> | undefined;
+    /** Recompute the per-bucket SELECTED slot across every cached aggregation level. */
+    refresh(): void;
+    /** Render-pass entrypoint — series pushes the resolved filter directly, skipping the lazy axis-poll path. */
+    setActiveFilter(processedData: ProcessedData<any>, filter: AggregationFilterBase | undefined): void;
+}
 
 export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
     readonly type: TEvent;
@@ -46,6 +98,7 @@ export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extend
     readonly itemId: string | number;
     readonly dataIdKey: string | undefined;
     readonly defaultPrevented: boolean;
+    readonly selectionState: PublicSelectionState | undefined;
 }
 
 export interface ISeriesProperties {
@@ -54,6 +107,7 @@ export interface ISeriesProperties {
     yKey?: string;
     context?: unknown;
     selection: { enabled: boolean };
+    tooltip: { enabled?: boolean };
 }
 
 export interface ISeries<
@@ -82,6 +136,10 @@ export interface ISeries<
     getCategoryValue(datumIndex: TDatumIndex): any;
     datumIndexForCategoryValue(categoryValue: any): TDatumIndex | undefined;
     isHighlightEnabled(): boolean;
+    getSelectionStateString(
+        datumIndex: TDatumIndex | undefined,
+        selectionState?: SelectionState
+    ): PublicSelectionState | undefined;
     // BoundSeries
     getBandScalePadding?(): { inner: number; outer: number };
     getDomain(direction: ChartAxisDirection): DomainWithMetadata<any>;
@@ -120,7 +178,7 @@ export interface ISeries<
     findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): SeriesNodeDatum<DatumIndexType> | undefined;
     readonly data?: DataSet<any>;
     pickNodesInBBox(bbox: BoxBounds): Iterable<TDatum>;
-    getAggregateRangeReader(): DatumRangeReader | undefined;
+    ensureBucketLookupFeature(): BucketLookupFeature | undefined;
 }
 
 type SeriesNodeDatumSeries<I extends DatumIndexType> = ISeries<I, SeriesNodeDatum<I>, ISeriesProperties, unknown>;

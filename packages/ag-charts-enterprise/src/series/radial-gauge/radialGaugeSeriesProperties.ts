@@ -224,7 +224,7 @@ class RadialGaugeBarProperties extends BaseProperties {
             lineDashOffset,
         } = this;
 
-        const barFill = enabled ? fill ?? createConicGradient(fills, fillMode, defaultColorRange, scale) : 'none';
+        const barFill = enabled ? (fill ?? createConicGradient(fills, fillMode, defaultColorRange, scale)) : 'none';
 
         return {
             fill: barFill,

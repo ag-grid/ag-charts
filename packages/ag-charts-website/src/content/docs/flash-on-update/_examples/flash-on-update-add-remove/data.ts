@@ -1,3 +1,5 @@
+import { random } from './seededRandom';
+
 export interface DataType {
     sector: string;
     institutional: number;
@@ -26,15 +28,15 @@ export function getNextSector(data: DataType[]): DataType | undefined {
 }
 
 export function applyUpdate(data: DataType[]): DataType[] {
-    const count = 1 + Math.floor(Math.random() * 2);
+    const count = 1 + Math.floor(random() * 2);
     const indices = new Set<number>();
     while (indices.size < count) {
-        indices.add(Math.floor(Math.random() * data.length));
+        indices.add(Math.floor(random() * data.length));
     }
 
     return data.map((item, i) => {
         if (!indices.has(i)) return item;
-        const vary = (n: number) => Math.max(10, Math.round(n + (Math.random() - 0.5) * n * 0.4));
+        const vary = (n: number) => Math.max(10, Math.round(n + (random() - 0.5) * n * 0.4));
         return {
             ...item,
             institutional: vary(item.institutional),

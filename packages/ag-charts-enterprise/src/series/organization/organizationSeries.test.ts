@@ -370,42 +370,10 @@ interface StandaloneTestCase extends ChartTestCase {
     options: AgStandaloneChartOptions;
 }
 
-function createExpanderHeightExample(height: number): any {
-    const series = SIMPLE_ORG_CHART.series![0];
-    return {
-        ...SIMPLE_ORG_CHART,
-        series: [
-            {
-                ...series,
-                expander: { height },
-            },
-        ],
-    };
-}
-
-function createExpanderSpacingExample(expanderHeight: number, expanderSpacing: number): any {
-    return {
-        ...SIMPLE_ORG_CHART,
-        series: [
-            {
-                type: 'organization',
-                idKey: 'id',
-                parentIdKey: 'parentId',
-                expander: { height: expanderHeight, spacing: expanderSpacing },
-                node: {
-                    title: { key: 'name' },
-                    subtitle: { key: 'job' },
-                    labels: [{ key: 'location' }],
-                },
-            },
-        ],
-    };
-}
-
 function createTextImageExample(
     textAlign: TextAlign,
     imagePosition: AgOrganizationSeriesOptionsNodeImagePosition,
-    imageShape?: 'circle' | 'square'
+    imageCornerRadius?: number
 ): any {
     return {
         ...SIMPLE_ORG_CHART,
@@ -418,7 +386,7 @@ function createTextImageExample(
                     image: {
                         position: imagePosition,
                         key: 'avatar',
-                        ...(imageShape == null ? {} : { shape: imageShape }),
+                        ...(imageCornerRadius == null ? {} : { cornerRadius: imageCornerRadius }),
                     },
                     title: { key: 'name', textAlign },
                     subtitle: { key: 'job', textAlign },
@@ -436,6 +404,10 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
     },
     SIMPLE_ORG_CHART_THEMED: {
         options: SIMPLE_ORG_CHART_THEMED,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SIMPLE_ORG_CHART_RTL: {
+        options: { ...SIMPLE_ORG_CHART, enableRtl: true },
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     LINKS_ROUNDED_INTERPOLATION: {
@@ -463,21 +435,19 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     IMAGE_CIRCLE_TOP: {
-        // Verifies `shape: 'circle'` clips the image to a circle (width === height) when the
-        // image sits above the text tiers.
-        options: createTextImageExample('center', 'top', 'circle'),
+        options: createTextImageExample('center', 'top', 20),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     IMAGE_CIRCLE_BOTTOM: {
-        options: createTextImageExample('left', 'bottom', 'circle'),
+        options: createTextImageExample('left', 'bottom', 20),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     IMAGE_CIRCLE_LEFT: {
-        options: createTextImageExample('left', 'left', 'circle'),
+        options: createTextImageExample('left', 'left', 20),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     IMAGE_CIRCLE_RIGHT: {
-        options: createTextImageExample('right', 'right', 'circle'),
+        options: createTextImageExample('right', 'right', 20),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     SEGMENT_TITLE_LEFT_ALIGNED: {
@@ -731,19 +701,6 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         } as any,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
-    EXPANDER_HEIGHT_SHORT: {
-        // Layout reserves and renders the pill at exactly the configured height; verifies all
-        // three `networkTreeLayout` consumers (link-draw start/elbow, child-group offset) shrink
-        // in step so children sit closer to the parent without elbow misalignment.
-        options: createExpanderHeightExample(16),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
-    },
-    EXPANDER_HEIGHT_TALL: {
-        // Inverse of EXPANDER_HEIGHT_SHORT: a taller pill expands the parent–child gap and the
-        // count text remains vertically centred against the rendered pill height (not a constant).
-        options: createExpanderHeightExample(32),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
-    },
     TEXT_TIER_BACKING_BOX_PARTIAL_OVERRIDE: {
         // property-level supplies stroke + cornerRadius + padding; itemStyler adds fill conditionally.
         // Verifies merge: defaults + property + itemStyler accumulate correctly per datum.
@@ -930,10 +887,8 @@ describe('OrganizationSeries', () => {
             });
 
             it('should not leak labels onto sparse-tier nodes after collapse reuses scene nodes', async () => {
-                // AG-17246 regression. Sparse `reign` tier (some rows have no value) combined
-                // with a collapse that reduces the visible set forces `Selection` to reuse a
-                // scene node whose previous datum had labels for a node whose new datum does
-                // not. Without trimming trailing labelNodes the previous tier text persists.
+                // AG-17246 regression: collapsing nodes forces Selection reuse; a scene node
+                // whose previous datum had labels retains that text unless trailing nodes are trimmed.
                 const options: AgChartOptions = {
                     data: [
                         { id: 'henry7', name: 'Henry VII', reign: 'King 1485 - 1509', parentId: null },
@@ -963,10 +918,8 @@ describe('OrganizationSeries', () => {
                 await chart.setState({ version: '13.3.0', collapsed: ['henry8'] });
                 await waitForChartStability(chart);
 
-                // Walk the rendered nodes and assert each one's labels match its source datum.
-                // The bug surfaced as label text from a previous datum lingering on a reused
-                // OrganizationNode — a programmatic check is more pointed than a snapshot
-                // because it locates the exact node-vs-data mismatch.
+                // Assert rendered labels match each node's source datum (pinpoints the mismatch
+                // more precisely than a snapshot).
                 const series = deproxy(chart).series[0] as any;
                 const expectedReign: Record<string, string | undefined> = {
                     henry7: 'King 1485 - 1509',
@@ -988,10 +941,41 @@ describe('OrganizationSeries', () => {
                 });
             });
 
+            it('AG-17250 should keep node bbox stable across repeated programmatic toggles', async () => {
+                // Card height must not grow on each expand/collapse cycle.
+                const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                const series = deproxy(chart).series[0] as any;
+                const captureBBoxes = () => {
+                    const bboxes: { itemId: string; width: number; height: number }[] = [];
+                    series.datumSelection.each((node: any, datum: any) => {
+                        const card = node.getCardBBox();
+                        if (card) {
+                            bboxes.push({ itemId: datum.itemId, width: card.width, height: card.height });
+                        }
+                    });
+                    return bboxes;
+                };
+
+                const initial = captureBBoxes();
+                expect(initial.length).toBeGreaterThan(0);
+
+                for (let i = 0; i < 3; i++) {
+                    await chart.setState({ version: '13.3.0', collapsed: ['cto'] });
+                    await waitForChartStability(chart);
+                    await chart.setState({ version: '13.3.0', collapsed: [] });
+                    await waitForChartStability(chart);
+                }
+
+                expect(captureBBoxes()).toEqual(initial);
+            });
+
             it('should respect text-tier itemStyler `enabled: false` (AG-17243)', async () => {
-                // Regression: prior to AG-17243 the optionsGraph auto-enable pass
-                // overwrote a styler's `enabled: false` back to `true`, so collapse-driven
-                // hiding of a text tier was silently ignored.
+                // Auto-enable must not overwrite a styler's `enabled: false`.
                 const options: AgChartOptions = {
                     ...SIMPLE_ORG_CHART,
                     initialState: { collapsed: ['cto'] },
@@ -1055,14 +1039,6 @@ describe('OrganizationSeries', () => {
     });
 
     describe('theme defaults', () => {
-        it('should apply Figma-aligned theme defaults', async () => {
-            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await compare();
-        });
-
         it('should apply default highlight stroke when a node is hovered', async () => {
             // AG-17192 regression. cornerRadius=0 lets JSDOM bbox-hit-test the rect (see
             // .claude/rules/testing.md); without the theme stroke default the hovered node
@@ -1083,6 +1059,31 @@ describe('OrganizationSeries', () => {
             // Root card centre on the 800x600 mock canvas (card spans ~x=357-523, ~y=112-202).
             await hoverAction(440, 155)(chart);
             await compare();
+        });
+    });
+
+    describe('node labels', () => {
+        it('should render when a labels-array entry has `enabled: false` (AG-17252)', async () => {
+            // A disabled label entry must be skipped silently, not crash `dataModel`.
+            const options: AgChartOptions = {
+                ...SIMPLE_ORG_CHART,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location', enabled: false }, { key: 'tenure' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+            expect(console.error).not.toHaveBeenCalled();
         });
     });
 
@@ -1143,6 +1144,10 @@ describe('OrganizationSeries', () => {
                     { id: 'd', name: 'Child D', job: 'Report', parentId: 'a' },
                     { id: 'e', name: 'Child E', job: 'Report', parentId: 'b' },
                     { id: 'f', name: 'Child F', job: 'Report', parentId: 'b' },
+                    { id: 'g', name: 'Parent G', job: 'Manager', parentId: 'root' },
+                    { id: 'h', name: 'Child H', job: 'Report', parentId: 'g' },
+                    { id: 'i', name: 'Child I', job: 'Report', parentId: 'h' },
+                    { id: 'j', name: 'Child J', job: 'Report', parentId: 'i' },
                 ],
                 series: [
                     {
@@ -1155,26 +1160,6 @@ describe('OrganizationSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await compare();
-        });
-
-        it('should not overlap last label with expander pill at default spacing', async () => {
-            // Regression for the overlap caused by node.padding shrinking 16→8: the bottom
-            // padding becomes max(padding, expanderHeight/2 + spacing).
-            const options: AgChartOptions = createExpanderSpacingExample(24, 4) as AgChartOptions;
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await compare();
-        });
-
-        it('should leave card layout unchanged when expander is short enough', async () => {
-            // When max(padding, expanderHeight/2 + spacing) collapses to padding, parent and
-            // leaf cards share the same bottom padding — no extra space reserved.
-            const options: AgChartOptions = createExpanderSpacingExample(8, 0) as AgChartOptions;
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
@@ -1206,6 +1191,213 @@ describe('OrganizationSeries', () => {
                         parentIdKey: 'parentId',
                         node: {
                             maxWidth: 180,
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        const LONG_LABEL_DATA = [
+            {
+                id: 'ceo',
+                name: 'Alexandra Winterbottom-Richardson',
+                job: 'Chief Technology Officer of Global Operations',
+                location: 'San Francisco, California',
+                parentId: null,
+            },
+            {
+                id: 'cto',
+                name: 'Bartholomew Fitzpatrick',
+                job: 'Senior Vice President of Strategic Initiatives',
+                location: 'New York, New York',
+                parentId: 'ceo',
+            },
+            {
+                id: 'coo',
+                name: 'Charlotte Featherington-Smythe',
+                job: 'Operations Manager for International Markets',
+                location: 'London, United Kingdom',
+                parentId: 'ceo',
+            },
+        ];
+
+        it('AG-17253 should wrap long labels with explicit narrow maxWidth and wrapping: always', async () => {
+            const options: AgChartOptions = {
+                data: LONG_LABEL_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxWidth: 140,
+                            title: { key: 'name', wrapping: 'always' },
+                            subtitle: { key: 'job', wrapping: 'always' },
+                            labels: [{ key: 'location', wrapping: 'always' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('AG-17253 should truncate long labels with explicit narrow maxWidth and overflowStrategy: ellipsis', async () => {
+            const options: AgChartOptions = {
+                data: LONG_LABEL_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxWidth: 140,
+                            title: { key: 'name', wrapping: 'never', overflowStrategy: 'ellipsis' },
+                            subtitle: { key: 'job', wrapping: 'never', overflowStrategy: 'ellipsis' },
+                            labels: [{ key: 'location', wrapping: 'never', overflowStrategy: 'ellipsis' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        // AG-17253 pt2 follow-up (David Glickman QA) — clamping the card via `maxWidth`/
+        // `maxHeight` left children drawing outside the card. Mirrors three plunker repros:
+        //   plnkr.co/edit/0maSWVkHxeSLQ5Fb  (narrow width + theme-default top image)
+        //   plnkr.co/edit/jxPaPCmKEyWoTi3b  (narrow height, text-only)
+        //   plnkr.co/edit/oq0FP2LDZkapxUO4  (narrow height + image left)
+        //   plnkr.co/edit/qA05jRd478qdnhDe  (narrow width + height)
+        const OVERFLOW_DATA = [
+            {
+                id: 'ceo',
+                name: 'Alice Chen',
+                job: 'Chief Executive Officer',
+                location: 'London',
+                avatar: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/brandColorsTile.png`,
+                parentId: null,
+            },
+            {
+                id: 'cto',
+                name: 'Bob Smith',
+                job: 'Chief Technology Officer',
+                location: 'London',
+                avatar: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/brandColorsTile.png`,
+                parentId: 'ceo',
+            },
+            {
+                id: 'cfo',
+                name: 'Carol Wu',
+                job: 'Chief Financial Officer',
+                location: 'New York',
+                avatar: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/brandColorsTile.png`,
+                parentId: 'ceo',
+            },
+        ];
+
+        it('AG-17253 pt2 should clip image overflow when card narrower than image width', async () => {
+            // maxWidth (30) is well under image.width (50); image must not poke out the card sides.
+            const options: AgChartOptions = {
+                data: OVERFLOW_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxWidth: 30,
+                            image: { key: 'avatar', position: 'top' },
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('AG-17253 pt2 should clip vertical overflow when card shorter than content (text-only)', async () => {
+            // maxHeight (50) cannot fit title + subtitle + label; trailing tiers must be cut at
+            // the card edge instead of bleeding onto the link/child rows below.
+            const options: AgChartOptions = {
+                data: OVERFLOW_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxHeight: 50,
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('AG-17253 pt2 should clip vertical overflow with image-left layout', async () => {
+            // image-left forces the card to be at least image.height tall (50); maxHeight=50 then
+            // leaves zero room for text. Text must be clipped at the card edge.
+            const options: AgChartOptions = {
+                data: OVERFLOW_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxHeight: 50,
+                            image: { key: 'avatar', position: 'left' },
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('AG-17253 pt2 should clip overflow when both maxWidth and maxHeight are narrow', async () => {
+            // 50x50 card with theme-default top image (50x50): image fills the card and text has
+            // no space; both image bleed (rounded corners clipping) and text overflow must be
+            // contained.
+            const options: AgChartOptions = {
+                data: OVERFLOW_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxWidth: 50,
+                            maxHeight: 50,
+                            image: { key: 'avatar', position: 'top' },
                             title: { key: 'name' },
                             subtitle: { key: 'job' },
                             labels: [{ key: 'location' }],
@@ -1433,7 +1625,9 @@ describe('OrganizationSeries', () => {
             pressArrowOnSeriesArea('ArrowDown');
             await waitForChartStability(chart);
             // Identity-first ordering matches WAI-ARIA tree conventions: name before metadata.
-            expect(readLiveAnnouncement()).toBe('Bob Smith, level 2, 1 of 2, expanded');
+            expect(readLiveAnnouncement()).toBe(
+                'Bob Smith, Chief Technology Officer, London, level 2, 1 of 2, expanded, 2 children, press Enter or Space to toggle'
+            );
         });
 
         it('omits collapsed-state from a leaf announcement', async () => {
@@ -1444,11 +1638,23 @@ describe('OrganizationSeries', () => {
             pressArrowOnSeriesArea('ArrowDown');
             await waitForChartStability(chart);
             const announcement = readLiveAnnouncement();
-            expect(announcement).toBe('Dave Jones, level 3, 1 of 2');
+            expect(announcement).toBe('Dave Jones, Developer, New York, level 3, 1 of 2');
             // Guard against the empty-collapsedState stutter VoiceOver caught before the
             // leaf/parent locale-key split.
             expect(announcement).not.toContain(',,');
             expect(announcement).not.toContain(', ,');
+        });
+
+        it('uses the singular template when a parent has exactly one child', async () => {
+            await setupChart();
+            // ceo → cto → ArrowRight → cfo (Carol Wu, parent of acc — exactly one child).
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            pressArrowOnSeriesArea('ArrowRight');
+            await waitForChartStability(chart);
+            expect(readLiveAnnouncement()).toBe(
+                'Carol Wu, Chief Financial Officer, London, level 2, 2 of 2, expanded, 1 child, press Enter or Space to toggle'
+            );
         });
 
         it('reports collapsed parents in the live announcement', async () => {
@@ -1458,7 +1664,50 @@ describe('OrganizationSeries', () => {
             await waitForChartStability(chart);
             pressArrowOnSeriesArea('ArrowDown');
             await waitForChartStability(chart);
-            expect(readLiveAnnouncement()).toBe('Bob Smith, level 2, 1 of 2, collapsed');
+            expect(readLiveAnnouncement()).toBe(
+                'Bob Smith, Chief Technology Officer, London, level 2, 1 of 2, collapsed, 2 children, press Enter or Space to toggle'
+            );
+        });
+    });
+
+    describe('AG-17239 native pixel floor', () => {
+        it('should not pan when a zoom request asks to zoom in past the 1:1 floor', async () => {
+            const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Land at the 1:1 floor (both axes saturate at fitX/fitY).
+            setZoom(chart, 0.45, 0.55, 0.45, 0.55);
+            await waitForChartStability(chart);
+            const flooredState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+            expect(flooredState).toBeDefined();
+
+            // Further zoom-in with an off-centre mid must not translate the window.
+            setZoom(chart, 0.3, 0.4, 0.3, 0.4);
+            await waitForChartStability(chart);
+            const afterState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+            expect(afterState).toEqual(flooredState);
+        });
+
+        it('should not pan when only one axis requests further zoom-in past the floor', async () => {
+            const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            setZoom(chart, 0.45, 0.55, 0.45, 0.55);
+            await waitForChartStability(chart);
+            const flooredState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+
+            // Shrink x only, leave y at the floored range. Off-isotropic input would otherwise
+            // land at floor (t = 1) with the new x mid, leaking through `clampMid`.
+            setZoom(chart, 0.3, 0.35, flooredState.y.min, flooredState.y.max);
+            await waitForChartStability(chart);
+            const afterState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+            expect(afterState).toEqual(flooredState);
         });
     });
 

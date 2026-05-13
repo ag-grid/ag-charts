@@ -116,8 +116,9 @@ export interface AgContinuousAxisOptions<
     interval?: AgAxisContinuousIntervalOptions<TInterval>;
 }
 
-export interface AgAxisContinuousIntervalOptions<T extends AgTimeInterval | AgTimeIntervalUnit | number>
-    extends AgAxisBaseIntervalOptions {
+export interface AgAxisContinuousIntervalOptions<
+    T extends AgTimeInterval | AgTimeIntervalUnit | number,
+> extends AgAxisBaseIntervalOptions {
     /** The axis interval. Expressed in the units of the axis. If the configured interval results in too many items given the chart size, it will be ignored. */
     step?: T;
     /** Maximum gap in pixels between items. */
@@ -176,6 +177,7 @@ export interface AgBaseAxisLabelStyleOptions extends LabelBoxOptions {
 }
 
 export interface AgAxisLabelFormatterParams<TContext = ContextDefault> {
+    readonly type: 'number' | 'date' | 'category';
     readonly value: any;
     readonly index: number;
     readonly fractionDigits?: number;
@@ -213,8 +215,9 @@ export interface AgBaseAxisLabelOptions<TContext = ContextDefault> extends AgBas
     itemStyler?: Styler<AgAxisLabelStylerParams<TContext>, AgBaseAxisLabelStyleOptions>;
 }
 
-export interface AgNumericAxisFormattableLabelOptions<TContext = ContextDefault>
-    extends AgBaseAxisLabelOptions<TContext> {
+export interface AgNumericAxisFormattableLabelOptions<
+    TContext = ContextDefault,
+> extends AgBaseAxisLabelOptions<TContext> {
     /** Format string used when rendering labels. */
     format?: string;
 }

@@ -94,8 +94,7 @@ export function toggleSelection(changes: Changes, series: Series, data: DataSet,
             changes.added.push(item);
         }
     }
-    changes.countDelta += wasSelected ? -1 : 1;
-    selections.toggle(datumIndex);
+    changes.countDelta += selections.toggle(datumIndex);
 }
 
 export function setSelected(changes: Changes, series: Series, data: DataSet, datumIndex: number): void {
@@ -104,33 +103,29 @@ export function setSelected(changes: Changes, series: Series, data: DataSet, dat
     if (changes.added !== undefined && !wasSelected) {
         changes.added.push(makeChangeItem(series.id, data, datumIndex));
     }
-    changes.countDelta += Number(!wasSelected);
-    selections.select(datumIndex);
+    changes.countDelta += selections.select(datumIndex);
 }
 
-export function setSelectedRange(
-    changes: Changes,
-    series: Series,
-    data: DataSet,
-    assumeZeroInitialised: boolean,
-    start: number,
-    end: number
-): void {
+export function setSelectedRange(changes: Changes, series: Series, data: DataSet, start: number, end: number): void {
     const selection = data.enableSelection(series.id);
-    changes.countDelta += end - start;
-    if (!assumeZeroInitialised) {
-        changes.countDelta -= selection.countRange(start, end);
+    changes.countDelta += selection.selectRange(start, end);
+}
+
+function* iterateSelections(dataSets: ReturnType<typeof getAllDataSets>) {
+    for (const data of dataSets) {
+        for (const [seriesId, selection] of data.selections) {
+            yield { data, seriesId, selection };
+        }
     }
-    selection.selectRange(start, end);
 }
 
 export function clearAllSelections(changes: Changes, state: State, allSeries: Series[]): void {
     const dataSets = getAllDataSets(allSeries);
     if (changes.removed !== undefined) {
-        for (const data of dataSets) {
-            for (const [seriesId, selection] of data.selections) {
-                const n = selection.getLength();
-                for (let datumIndex = 0; datumIndex < n; datumIndex++) {
+        for (const { data, seriesId, selection } of iterateSelections(dataSets)) {
+            const n = selection.getLength();
+            for (let datumIndex = 0; datumIndex < n; datumIndex++) {
+                if (selection.isSelected(datumIndex)) {
                     changes.removed.push(makeChangeItem(seriesId, data, datumIndex));
                 }
             }

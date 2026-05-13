@@ -77,12 +77,10 @@ export interface AgTimeAxisParentLevel<TContext = ContextDefault> {
 }
 
 export interface AgCartesianAxisLabelOptions<TContext = ContextDefault>
-    extends AgBaseCartesianAxisLabelOptions<TContext>,
-        AgNumericAxisFormattableLabelOptions<TContext> {}
+    extends AgBaseCartesianAxisLabelOptions<TContext>, AgNumericAxisFormattableLabelOptions<TContext> {}
 
 export interface AgCartesianTimeAxisLabelOptions<TContext = ContextDefault>
-    extends AgBaseCartesianAxisLabelOptions<TContext>,
-        AgTimeAxisFormattableLabelOptions<TContext> {}
+    extends AgBaseCartesianAxisLabelOptions<TContext>, AgTimeAxisFormattableLabelOptions<TContext> {}
 
 export interface AgBaseCartesianAxisLabelOptions<TContext = ContextDefault> extends AgBaseAxisLabelOptions<TContext> {
     /** If specified and axis labels may collide, they are rotated so that they are positioned at the supplied angle. This is enabled by default for category. If the `rotation` property is specified, it takes precedence. */
@@ -105,8 +103,10 @@ export interface AgBaseCartesianAxisLabelOptions<TContext = ContextDefault> exte
     truncate?: boolean;
 }
 
-export interface AgGroupedCategoryAxisLabelOptions<TContext = ContextDefault>
-    extends Omit<AgBaseAxisLabelOptions<TContext>, 'itemStyler'> {
+export interface AgGroupedCategoryAxisLabelOptions<TContext = ContextDefault> extends Omit<
+    AgBaseAxisLabelOptions<TContext>,
+    'itemStyler'
+> {
     /**
      * Text wrapping strategy for long text.
      * - `'always'` will always wrap text to fit within the `maxWidth`.
@@ -125,8 +125,9 @@ export interface AgGroupedCategoryAxisLabelOptions<TContext = ContextDefault>
     itemStyler?: Styler<AgGroupedCategoryAxisLabelStylerParams<TContext>, AgBaseAxisLabelStyleOptions>;
 }
 
-export interface AgGroupedCategoryAxisLabelStylerParams<TContext = ContextDefault>
-    extends AgAxisLabelStylerParams<TContext> {
+export interface AgGroupedCategoryAxisLabelStylerParams<
+    TContext = ContextDefault,
+> extends AgAxisLabelStylerParams<TContext> {
     /** The depth of the label, used by `grouped-category` axes. */
     readonly depth: number;
 }
@@ -151,23 +152,22 @@ export interface AgBaseCartesianChartOptions<TDatum = DatumDefault, TContext = C
     annotations?: AgAnnotationsOptions;
 }
 
-export interface AgGroupedCategoryDepthLabelOptions<TContext = ContextDefault>
-    extends Pick<
-        AgBaseAxisLabelOptions<TContext>,
-        | 'enabled'
-        | 'avoidCollisions'
-        | 'rotation'
-        | 'spacing'
-        | 'border'
-        | 'color'
-        | 'cornerRadius'
-        | 'fill'
-        | 'fontFamily'
-        | 'fontSize'
-        | 'fontStyle'
-        | 'fontWeight'
-        | 'padding'
-    > {
+export interface AgGroupedCategoryDepthLabelOptions<TContext = ContextDefault> extends Pick<
+    AgBaseAxisLabelOptions<TContext>,
+    | 'enabled'
+    | 'avoidCollisions'
+    | 'rotation'
+    | 'spacing'
+    | 'border'
+    | 'color'
+    | 'cornerRadius'
+    | 'fill'
+    | 'fontFamily'
+    | 'fontSize'
+    | 'fontStyle'
+    | 'fontWeight'
+    | 'padding'
+> {
     /**
      * Text wrapping strategy for long text.
      * - `'always'` will always wrap text to fit within the `maxWidth`.
@@ -204,8 +204,9 @@ export interface AgAxisCategoryIntervalOptions extends AgAxisBaseIntervalOptions
     placement?: AgAxisIntervalPlacement;
 }
 
-export interface AgAxisDiscreteTimeIntervalOptions
-    extends AgAxisContinuousIntervalOptions<AgTimeInterval | AgTimeIntervalUnit | number> {
+export interface AgAxisDiscreteTimeIntervalOptions extends AgAxisContinuousIntervalOptions<
+    AgTimeInterval | AgTimeIntervalUnit | number
+> {
     /**
      * Placement of ticks and labels relative to the time interval.
      *
@@ -216,12 +217,11 @@ export interface AgAxisDiscreteTimeIntervalOptions
 
 export type AgBandAlignment = 'justify' | 'start' | 'center' | 'end';
 
-export interface AgCategoryAxisOptions<TContext = ContextDefault>
-    extends AgBaseCartesianAxisOptions<
-        AgBaseCartesianAxisLabelOptions<TContext>,
-        AgBaseCrosshairLabel<TContext>,
-        TContext
-    > {
+export interface AgCategoryAxisOptions<TContext = ContextDefault> extends AgBaseCartesianAxisOptions<
+    AgBaseCartesianAxisLabelOptions<TContext>,
+    AgBaseCrosshairLabel<TContext>,
+    TContext
+> {
     type?: 'category';
     /** Configuration for the axis ticks interval. */
     interval?: AgAxisCategoryIntervalOptions;
@@ -249,15 +249,10 @@ export interface AgCategoryAxisOptions<TContext = ContextDefault>
 
 type AgGroupedCategoryAxisTickOptions = Omit<AgAxisBaseTickOptions, 'size'>;
 
-export interface AgGroupedCategoryAxisOptions<TContext = ContextDefault>
-    extends Omit<
-        AgBaseCartesianAxisOptions<
-            AgGroupedCategoryAxisLabelOptions<TContext>,
-            AgBaseCrosshairLabel<TContext>,
-            TContext
-        >,
-        'tick'
-    > {
+export interface AgGroupedCategoryAxisOptions<TContext = ContextDefault> extends Omit<
+    AgBaseCartesianAxisOptions<AgGroupedCategoryAxisLabelOptions<TContext>, AgBaseCrosshairLabel<TContext>, TContext>,
+    'tick'
+> {
     type?: 'grouped-category';
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
@@ -279,7 +274,8 @@ export interface AgGroupedCategoryAxisOptions<TContext = ContextDefault>
 }
 
 export interface AgTimeAxisOptions<TContext = ContextDefault>
-    extends Omit<
+    extends
+        Omit<
             AgBaseCartesianAxisOptions<
                 AgCartesianTimeAxisLabelOptions<TContext>,
                 AgCrosshairLabel<AgTimeAxisFormattableLabelFormat, TContext>,
@@ -294,7 +290,8 @@ export interface AgTimeAxisOptions<TContext = ContextDefault>
 }
 
 export interface AgUnitTimeAxisOptions<TContext = ContextDefault>
-    extends Omit<
+    extends
+        Omit<
             AgBaseCartesianAxisOptions<
                 AgCartesianTimeAxisLabelOptions<TContext>,
                 AgCrosshairLabel<AgTimeAxisFormattableLabelFormat, TContext>,
@@ -332,12 +329,11 @@ export interface AgUnitTimeAxisOptions<TContext = ContextDefault>
     skipNullBars?: boolean;
 }
 
-export interface AgOrdinalTimeAxisOptions<TContext = ContextDefault>
-    extends AgBaseCartesianAxisOptions<
-        AgCartesianTimeAxisLabelOptions<TContext>,
-        AgCrosshairLabel<AgTimeAxisFormattableLabelFormat, TContext>,
-        TContext
-    > {
+export interface AgOrdinalTimeAxisOptions<TContext = ContextDefault> extends AgBaseCartesianAxisOptions<
+    AgCartesianTimeAxisLabelOptions<TContext>,
+    AgCrosshairLabel<AgTimeAxisFormattableLabelFormat, TContext>,
+    TContext
+> {
     type?: 'ordinal-time';
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel<TContext>;
@@ -366,7 +362,8 @@ export interface AgOrdinalTimeAxisOptions<TContext = ContextDefault>
 }
 
 export interface AgNumberAxisOptions<TContext = ContextDefault>
-    extends Omit<
+    extends
+        Omit<
             AgBaseCartesianAxisOptions<
                 AgCartesianAxisLabelOptions<TContext>,
                 AgCrosshairLabel<string, TContext>,
@@ -379,7 +376,8 @@ export interface AgNumberAxisOptions<TContext = ContextDefault>
 }
 
 export interface AgLogAxisOptions<TContext = ContextDefault>
-    extends Omit<
+    extends
+        Omit<
             AgBaseCartesianAxisOptions<
                 AgCartesianAxisLabelOptions<TContext>,
                 AgCrosshairLabel<string, TContext>,
@@ -419,15 +417,17 @@ export interface AgCartesianAxisThemeOptions<T> {
     left?: Omit<T, 'position' | 'type' | 'crossLines'>;
 }
 
-export interface AgBaseCartesianThemeOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseThemeableChartOptions<TDatum, TContext> {
+export interface AgBaseCartesianThemeOptions<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgBaseThemeableChartOptions<TDatum, TContext> {
     /** Axis configurations. */
     axes?: AgCartesianAxesTheme<TContext>;
 }
 
-export interface AgCartesianAxesCrossLineThemeOptions<LabelType = AgBaseCrossLineLabelOptions> {
+export interface AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType = AgBaseCrossLineLabelOptions> {
     /** Theme configuration for Cross Lines. */
-    crossLines?: AgCrossLineThemeOptions<LabelType>;
+    crossLines?: AgCrossLineThemeOptions<CrossLineLabelType>;
 }
 
 export interface AgCartesianAxesTheme<TContext = ContextDefault> {
@@ -454,40 +454,56 @@ export type AgContinuousCartesianAxesTheme<TContext = ContextDefault> = Pick<
 
 type ThemeOmittedAxisOptions = 'type' | 'crossLines';
 
-export interface AgNumberAxisThemeOptions<LabelType = AgBaseCrossLineLabelOptions, TContext = ContextDefault>
-    extends Omit<AgNumberAxisOptions<TContext>, ThemeOmittedAxisOptions>,
+export interface AgNumberAxisThemeOptions<CrossLineLabelType = AgBaseCrossLineLabelOptions, TContext = ContextDefault>
+    extends
+        Omit<AgNumberAxisOptions<TContext>, ThemeOmittedAxisOptions>,
         AgCartesianAxisThemeOptions<AgNumberAxisOptions<TContext>>,
-        AgCartesianAxesCrossLineThemeOptions<LabelType> {}
+        AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType> {}
 
-export interface AgLogAxisThemeOptions<LabelType = AgBaseCrossLineLabelOptions, TContext = ContextDefault>
-    extends Omit<AgLogAxisOptions<TContext>, ThemeOmittedAxisOptions>,
+export interface AgLogAxisThemeOptions<CrossLineLabelType = AgBaseCrossLineLabelOptions, TContext = ContextDefault>
+    extends
+        Omit<AgLogAxisOptions<TContext>, ThemeOmittedAxisOptions>,
         AgCartesianAxisThemeOptions<AgLogAxisOptions<TContext>>,
-        AgCartesianAxesCrossLineThemeOptions<LabelType> {}
+        AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType> {}
 
-export interface AgCategoryAxisThemeOptions<LabelType = AgBaseCrossLineLabelOptions, TContext = ContextDefault>
-    extends Omit<AgCategoryAxisOptions<TContext>, ThemeOmittedAxisOptions>,
+export interface AgCategoryAxisThemeOptions<CrossLineLabelType = AgBaseCrossLineLabelOptions, TContext = ContextDefault>
+    extends
+        Omit<AgCategoryAxisOptions<TContext>, ThemeOmittedAxisOptions>,
         AgCartesianAxisThemeOptions<AgCategoryAxisOptions<TContext>>,
-        AgCartesianAxesCrossLineThemeOptions<LabelType> {}
+        AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType> {}
 
-export interface AgOrdinalTimeAxisThemeOptions<LabelType = AgBaseCrossLineLabelOptions, TContext = ContextDefault>
-    extends Omit<AgOrdinalTimeAxisOptions<TContext>, ThemeOmittedAxisOptions>,
+export interface AgOrdinalTimeAxisThemeOptions<
+    CrossLineLabelType = AgBaseCrossLineLabelOptions,
+    TContext = ContextDefault,
+>
+    extends
+        Omit<AgOrdinalTimeAxisOptions<TContext>, ThemeOmittedAxisOptions>,
         AgCartesianAxisThemeOptions<AgOrdinalTimeAxisOptions<TContext>>,
-        AgCartesianAxesCrossLineThemeOptions<LabelType> {}
+        AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType> {}
 
-export interface AgGroupedCategoryAxisThemeOptions<LabelType = AgBaseCrossLineLabelOptions, TContext = ContextDefault>
-    extends Omit<AgGroupedCategoryAxisOptions<TContext>, ThemeOmittedAxisOptions>,
+export interface AgGroupedCategoryAxisThemeOptions<
+    CrossLineLabelType = AgBaseCrossLineLabelOptions,
+    TContext = ContextDefault,
+>
+    extends
+        Omit<AgGroupedCategoryAxisOptions<TContext>, ThemeOmittedAxisOptions>,
         AgCartesianAxisThemeOptions<AgGroupedCategoryAxisOptions<TContext>>,
-        AgCartesianAxesCrossLineThemeOptions<LabelType> {}
+        AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType> {}
 
-export interface AgContinuousTimeAxisThemeOptions<LabelType = AgBaseCrossLineLabelOptions, TContext = ContextDefault>
-    extends Omit<AgTimeAxisOptions<TContext>, ThemeOmittedAxisOptions>,
+export interface AgContinuousTimeAxisThemeOptions<
+    CrossLineLabelType = AgBaseCrossLineLabelOptions,
+    TContext = ContextDefault,
+>
+    extends
+        Omit<AgTimeAxisOptions<TContext>, ThemeOmittedAxisOptions>,
         AgCartesianAxisThemeOptions<AgTimeAxisOptions<TContext>>,
-        AgCartesianAxesCrossLineThemeOptions<LabelType> {}
+        AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType> {}
 
-export interface AgUnitTimeAxisThemeOptions<LabelType = AgBaseCrossLineLabelOptions, TContext = ContextDefault>
-    extends Omit<AgUnitTimeAxisOptions<TContext>, ThemeOmittedAxisOptions>,
+export interface AgUnitTimeAxisThemeOptions<CrossLineLabelType = AgBaseCrossLineLabelOptions, TContext = ContextDefault>
+    extends
+        Omit<AgUnitTimeAxisOptions<TContext>, ThemeOmittedAxisOptions>,
         AgCartesianAxisThemeOptions<AgUnitTimeAxisOptions<TContext>>,
-        AgCartesianAxesCrossLineThemeOptions<LabelType> {}
+        AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType> {}
 
 export interface AgCartesianCrossLineOptions extends AgBaseCrossLineOptions<AgCartesianCrossLineLabelOptions> {}
 

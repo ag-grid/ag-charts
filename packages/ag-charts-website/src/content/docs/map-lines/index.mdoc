@@ -32,10 +32,10 @@ series: [
 
 In this configuration:
 
--   Both the `topology` and `data` for the `map-line` series are provided on the chart level.
--   `idKey` defines the property key in the data that will be matched against the property value in the topology.
-    See [Connecting Data to Topology](./map-topology/#connecting-data-to-topology) for more details.
--   The `map-shape-background` series has its topology defined on the series level.
+- Both the `topology` and `data` for the `map-line` series are provided on the chart level.
+- `idKey` defines the property key in the data that will be matched against the property value in the topology.
+  See [Connecting Data to Topology](./map-topology/#connecting-data-to-topology) for more details.
+- The `map-shape-background` series has its topology defined on the series level.
 
 ## Colour Scale
 
@@ -58,11 +58,11 @@ To colour the lines based on the magnitude of the data, use `colorKey`.
 
 In this configuration:
 
--   `colorKey` is set to 'dailyVehicles', which supplies numerical values for the Colour Scale.
--   `colorName` is optional and configures the display name reflected in [Tooltips](./tooltips/).
+- `colorKey` is set to 'dailyVehicles', which supplies numerical values for the Colour Scale.
+- `colorName` is optional and configures the display name reflected in [Tooltips](./tooltips/).
 
 {% note %}
-See [Colour Range](./heatmap-series/#colour-range) and [Gradient Legend](./heatmap-series/#gradient-legend) for more details about customising these features.
+See the [Colour Scale](./colour-scale/) page for more details about customising colours, discrete bins, and the Gradient Legend.
 {% /note %}
 
 ## Proportional Line Width
@@ -88,10 +88,10 @@ To vary the width of the line to denote the magnitude of the data values use `si
 
 In this configuration:
 
--   `sizeKey` is set to 'dailyVehicles', which supplies numerical values for the size scale.
--   `sizeName` is optional and configures the display name reflected in [Tooltips](./tooltips/).
--   `strokeWidth` is used for the smallest value in the size scale.
--   `maxStrokeWidth` is used for the largest value in the size scale.
+- `sizeKey` is set to 'dailyVehicles', which supplies numerical values for the size scale.
+- `sizeName` is optional and configures the display name reflected in [Tooltips](./tooltips/).
+- `strokeWidth` is used for the smallest value in the size scale.
+- `maxStrokeWidth` is used for the largest value in the size scale.
 
 ## Background Lines
 

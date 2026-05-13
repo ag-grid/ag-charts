@@ -536,8 +536,13 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -611,8 +616,13 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -686,8 +696,13 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -761,8 +776,13 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -839,8 +859,13 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "stroke": "#e1cc00",
@@ -903,8 +928,13 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "stroke": "#9669cb",
@@ -975,8 +1005,13 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -1050,8 +1085,13 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -1125,8 +1165,13 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -1200,8 +1245,13 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -1278,8 +1328,13 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "stroke": "#e1cc00",
@@ -1342,8 +1397,13 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "stroke": "#9669cb",
@@ -1414,8 +1474,13 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -1489,8 +1554,13 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -1564,8 +1634,13 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -1639,8 +1714,13 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -1717,8 +1797,13 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "stroke": "#e1cc00",
@@ -1781,8 +1866,13 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "stroke": "#9669cb",

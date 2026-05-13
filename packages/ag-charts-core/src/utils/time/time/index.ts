@@ -33,7 +33,7 @@ export function intervalUnit(interval: AgTimeInterval | AgTimeIntervalUnit): AgT
 }
 
 export function intervalStep(interval: AgTimeInterval | AgTimeIntervalUnit): number {
-    return typeof interval === 'string' ? 1 : interval.step ?? 1;
+    return typeof interval === 'string' ? 1 : (interval.step ?? 1);
 }
 
 export function intervalEpoch(interval: AgTimeInterval | AgTimeIntervalUnit): Date | undefined {

@@ -118,8 +118,10 @@ export interface AgTooltipRendererResult {
     data?: AgTooltipRendererDataRow[];
 }
 
-export interface AgSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
-    extends Omit<AgChartCallbackParams<TDatum, TContext>, 'itemId' | 'itemType'> {
+export interface AgSeriesTooltipRendererParams<TDatum, TContext = ContextDefault> extends Omit<
+    AgChartCallbackParams<TDatum, TContext>,
+    'itemId' | 'itemType'
+> {
     /** Series title or yName depending on series configuration. */
     readonly title?: string;
 }

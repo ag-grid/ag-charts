@@ -42,8 +42,8 @@
             this.container = shadow.querySelector('#container');
             let fs = shadow.querySelector('#fs');
             fs.addEventListener('click', () => {
-                this.content.classList.toggle('full-screen', true),
-                    this.content.requestFullscreen({ navigationUI: 'auto' });
+                (this.content.classList.toggle('full-screen', true),
+                    this.content.requestFullscreen({ navigationUI: 'auto' }));
             });
             shadow.addEventListener('fullscreenchange', () => {
                 this.content.classList.toggle('full-screen', document.fullscreenElement != null);

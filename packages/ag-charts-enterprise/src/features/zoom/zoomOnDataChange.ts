@@ -70,8 +70,10 @@ function fromVisibleMinMax(domainMinMax: DomainMinMax, visibleMinMax: VisibleMin
     };
 }
 
-export interface ZoomOnDataChangeCtx
-    extends Pick<_ModuleSupport.ChartRegistry, 'chartState' | 'eventsHub' | 'axisManager'> {
+export interface ZoomOnDataChangeCtx extends Pick<
+    _ModuleSupport.ChartRegistry,
+    'chartState' | 'eventsHub' | 'axisManager'
+> {
     // `zoomManager` is optional on _ModuleSupport.ChartRegistry, but ZoomOnDataChange is only ever
     // instantiated by the zoom module, which guarantees its presence. Narrow once at
     // the boundary so consumers don't need `!` assertions at every call site.
@@ -207,9 +209,12 @@ export class ZoomOnDataChange {
         this.desiredChanges = { type: 'domain', domains: [] };
         const xaxes = this.ctx.zoomManager.getAxes().filter((a) => a.direction === ChartAxisDirection.X);
         for (const { id: axisId } of xaxes) {
+            const ratios = this.ctx.zoomManager.getAxisZoom(axisId);
+            // CRT-1117: skip fully zoomed-out axes — avoids snapshotting a placeholder [0,1] domain on a
+            // freshly-recreated axis and collapsing the zoom when re-interpolated against the real domain.
+            if (ratios.min === 0 && ratios.max === 1) continue;
             const domainMinMax: DomainMinMax | undefined = this.computeDomainMinMax(axisId);
             if (domainMinMax) {
-                const ratios = this.ctx.zoomManager.getAxisZoom(axisId);
                 const entry = toVisibleMinMax(axisId, domainMinMax, ratios);
                 this.desiredChanges.domains.push(entry);
             }

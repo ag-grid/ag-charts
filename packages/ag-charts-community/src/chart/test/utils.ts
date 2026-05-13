@@ -163,7 +163,7 @@ export function prepareTestOptions<T extends AgChartOptions<any, any> | AgGaugeO
             ...options.theme,
             baseTheme: options.theme.baseTheme ?? baseTestTheme.baseTheme,
             palette: options.theme.palette ?? baseTestTheme.palette,
-            params: baseThemeString === 'ag-default-dark' ? undefined : options.theme.params ?? baseTestTheme.params,
+            params: baseThemeString === 'ag-default-dark' ? undefined : (options.theme.params ?? baseTestTheme.params),
         };
     } else if (typeof options?.theme === 'string') {
         // Override colours.
@@ -181,6 +181,34 @@ function isChartInstance(chartOrProxy: ChartOrProxy): chartOrProxy is Chart {
 
 export function deproxy(chartOrProxy: ChartOrProxy<any>): Chart {
     return isChartInstance(chartOrProxy) ? chartOrProxy : ((chartOrProxy as any).chart as Chart);
+}
+
+/**
+ * Typed accessor for series internals used by aggregation/data-selection tests.
+ * Centralises the shape so renames in the production code don't require sweeping
+ * the test suite.
+ */
+export interface SeriesAggregationInternals {
+    id: string;
+    data: { getItemIdFromIndex(datumIndex: number): string | number } | undefined;
+    dataAggregation: object | undefined;
+    aggregateIndexSet?: Map<number, number[]>;
+    contextNodeData?: { nodeData?: ReadonlyArray<unknown> };
+    ensureBucketLookupFeature():
+        | {
+              isBucketSelected(datumIndex: number): boolean | undefined;
+              getRangeReader(): ((sampledDatumIndex: number) => [number, number] | undefined) | undefined;
+              getIndexSet(datumIndex: number): Iterable<number> | undefined;
+              setActiveFilter(processedData: unknown, filter: unknown): void;
+          }
+        | undefined;
+}
+
+export function getSeriesAggregationInternals(
+    chartOrProxy: ChartOrProxy<any>,
+    seriesIndex = 0
+): SeriesAggregationInternals {
+    return deproxy(chartOrProxy).series[seriesIndex] as unknown as SeriesAggregationInternals;
 }
 
 export function repeat<T>(value: T, count: number): T[] {

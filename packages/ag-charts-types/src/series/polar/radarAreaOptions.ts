@@ -11,11 +11,14 @@ import type {
 
 export interface AgRadarAreaSeriesStyle extends FillOptions, AgRadarSeriesStyle {}
 
-export interface AgRadarAreaSeriesStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgRadarSeriesStylerParams<TDatum, TContext, AgRadarAreaSeriesStyle> {}
+export interface AgRadarAreaSeriesStylerParams<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgRadarSeriesStylerParams<TDatum, TContext, AgRadarAreaSeriesStyle> {}
 
 export interface AgRadarAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends FillOptions,
+    extends
+        FillOptions,
         AgRadarSeriesThemeableOptions<
             TDatum,
             TContext,
@@ -29,7 +32,8 @@ export interface AgRadarAreaSeriesThemeableOptions<TDatum = DatumDefault, TConte
 }
 
 export interface AgRadarAreaSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgRadarAreaSeriesThemeableOptions<TDatum, TContext>,
+    extends
+        AgRadarAreaSeriesThemeableOptions<TDatum, TContext>,
         Omit<
             AgBaseRadarSeriesOptions<
                 TDatum,

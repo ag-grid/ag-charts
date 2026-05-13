@@ -27,8 +27,11 @@ import type {
     AgMultiSeriesHighlightOptions,
 } from '../seriesOptions';
 
-export interface AgDonutSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext> {
+export interface AgDonutSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault> extends AgChartLabelOptions<
+    TDatum,
+    TParams,
+    TContext
+> {
     /** Distance in pixels between the callout line and the label text. */
     offset?: PixelSize;
     /** Minimum angle in degrees required for a sector to show a label. */
@@ -37,8 +40,11 @@ export interface AgDonutSeriesLabelOptions<TDatum, TParams, TContext = ContextDe
     avoidCollisions?: boolean;
 }
 
-export interface AgDonutSeriesSectorLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext> {
+export interface AgDonutSeriesSectorLabelOptions<
+    TDatum,
+    TParams,
+    TContext = ContextDefault,
+> extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /** Distance in pixels, used to make the label text closer to or further from the center. This offset is applied after positionRatio. */
     positionOffset?: PixelSize;
     /** Position of labels as a ratio proportional to Donut radius (or Donut thickness). Additional offset in pixels can be applied by using positionOffset. */
@@ -68,7 +74,8 @@ export interface AgDonutTitleOptions extends Toggleable, TextOptions {
 }
 
 export interface AgDonutCalloutLineItemStylerParams<TDatum, TContext>
-    extends DatumCallbackParams<TDatum, HighlightState>,
+    extends
+        DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgDonutSeriesLabelFormatterParams<TDatum> {}
 
@@ -109,8 +116,7 @@ export interface AgDonutInnerCircle {
 }
 
 export interface AgDonutSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseSeriesThemeableOptions<TDatum, TContext>,
-        LineDashOptions {
+    extends AgBaseSeriesThemeableOptions<TDatum, TContext>, LineDashOptions {
     /** Configuration for the series title. */
     title?: AgDonutTitleOptions;
     /** Configuration for the labels used outside the sectors. */
@@ -168,7 +174,8 @@ export interface AgDonutSeriesThemeableOptions<TDatum = DatumDefault, TContext =
 }
 
 export interface AgDonutSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgDonutSeriesThemeableOptions<TDatum, TContext>, 'innerLabels'>,
+    extends
+        Omit<AgDonutSeriesThemeableOptions<TDatum, TContext>, 'innerLabels'>,
         AgDonutSeriesOptionsKeys<TDatum>,
         AgDonutSeriesOptionsNames,
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'> {
@@ -203,7 +210,8 @@ export interface AgDonutSeriesOptionsNames {
 }
 
 export interface AgDonutSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
-    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
+    extends
+        AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgDonutSeriesOptionsKeys<TDatum>,
         AgDonutSeriesOptionsNames,
         FillOptions,

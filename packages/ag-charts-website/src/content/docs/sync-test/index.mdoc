@@ -5,34 +5,53 @@ enterprise: true
 
 ## Secondary Axis Synchronization
 
--   Test secondary axis domain synchronization.
-    -   Toggle legend to see domain updates + animations.
--   Test tooltips highlight the matching category + series.
+What to test:
+
+- Toggle a legend item and confirm the secondary axis domain updates with an animation.
+- Hover the chart and verify tooltips highlight the matching category and series across both charts.
 
 {% chartExampleRunner title="Secondary Axis Synchronization" name="secondary-axis-sync" type="generated" /%}
 
-## E2E Tests
+## Multiple Horizontal Series Per Chart
 
-### Multiple horizontal series per chart
+What to test:
+
+- Hover one chart and confirm the matching category highlights in the other.
+- Toggle a series via the legend and check both charts re-align on the shared axes.
 
 {% chartExampleRunner title="Multi-Horizontal-Series Synchronization" name="multi-series-horizontal-sync" type="generated" /%}
 
-### Single series per chart
+## Multiple Series Per Chart
 
-{% chartExampleRunner title="Single-Series Synchronization" name="single-series-sync" type="generated" /%}
+What to test:
 
-### Multiple series per chart
+- Hover one chart and confirm tooltips and highlights sync across both.
+- Toggle a series and verify shared axis domains stay aligned.
 
 {% chartExampleRunner title="Multi-Series Synchronization" name="multi-series-sync" type="generated" /%}
 
-### Mixed series per chart
+## E2E Tested
+
+### single-series-sync
+
+_Auto-tested via Playwright._
+
+{% chartExampleRunner title="Single-Series Synchronization" name="single-series-sync" type="generated" /%}
+
+### multi-series-implicit-key-sync
+
+_Auto-tested via Playwright._
 
 {% chartExampleRunner title="Multi-Series Implicit Key Synchronization" name="multi-series-implicit-key-sync" type="generated" /%}
 
-### Mixed single and multiple series per chart
+### mixed-series-sync
+
+_Auto-tested via Playwright._
 
 {% chartExampleRunner title="Mixed-Series Implicit Key Synchronization" name="mixed-series-sync" type="generated" /%}
 
-### Financial charts
+### financial-charts-sync
+
+_Auto-tested via Playwright._
 
 {% chartExampleRunner title="Financial Charts Synchronization" name="financial-charts-sync" type="generated" /%}

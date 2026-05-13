@@ -4,16 +4,15 @@
 
 ### Chart Types/Features Covered
 
--   **Map Shape Series** (`map-shape`): Geographic area visualization with color-based data representation
--   **Map Shape Background Series** (`map-shape-background`): Non-interactive topology display for context
--   **Color Scale**: Heatmap-style coloring based on numeric data values
--   **Labels**: Text labels displayed within geographic shapes
--   **Legend Integration**: Standard legend support for map series
+- **Map Shape Series** (`map-shape`): Geographic area visualization with color-based data representation
+- **Map Shape Background Series** (`map-shape-background`): Non-interactive topology display for context
+- **Color Scale**: Heatmap-style coloring based on numeric data values
+- **Labels**: Text labels displayed within geographic shapes
+- **Legend Integration**: Standard legend support for map series
 
 ### Key APIs and Configuration Options Documented
 
 1. **Core Series Options**:
-
     - `type: 'map-shape'` or `type: 'map-shape-background'`
     - `topology`: GeoJSON data for geographic shapes
     - `data`: Array of data objects to visualize
@@ -23,7 +22,6 @@
     - `legendItemName`: Legend grouping name
 
 2. **Visual Encoding Options**:
-
     - `colorKey`: Property for color scale values
     - `colorRange`: Color interpolation range
     - `labelKey`: Property for shape labels
@@ -45,17 +43,16 @@
 
 ### Interactive Features Described
 
--   Tooltip display on hover
--   Legend toggling for series visibility
--   Highlighting on hover (series and legend items)
--   Label auto-sizing within shapes
+- Tooltip display on hover
+- Legend toggling for series visibility
+- Highlighting on hover (series and legend items)
+- Label auto-sizing within shapes
 
 ## Validation Targets
 
 ### TypeScript Interface Verification
 
 1. **Primary Interfaces**:
-
     - `AgMapShapeSeriesOptions` in `packages/ag-charts-types/src/series/topology/mapShapeOptions.ts`
     - `AgMapShapeBackgroundOptions` in `packages/ag-charts-types/src/series/topology/mapShapeBackgroundOptions.ts`
     - Related types: `AgMapShapeSeriesStyle`, `AgMapShapeSeriesHighlightStyle`, `AgMapShapeSeriesLabelFormatterParams`
@@ -69,7 +66,6 @@
 ### Implementation Files to Check
 
 1. **Core Implementation**:
-
     - Map shape series implementation in `packages/ag-charts-enterprise/src/series/`
     - Look for files like `mapShapeSeries.ts`, `mapShapeSeriesProperties.ts`
     - Background series implementation files
@@ -87,105 +83,103 @@
 
 **Documentation Claims**:
 
--   Shows multiple map series with different datasets (timezone regions)
--   Each series has its own color and appears in legend
--   Series can be toggled via legend
--   Tooltips show series title and shape information
+- Shows multiple map series with different datasets (timezone regions)
+- Each series has its own color and appears in legend
+- Series can be toggled via legend
+- Tooltips show series title and shape information
 
 **Expected Behaviors**:
 
--   Four distinct series (Pacific, Mountain, Central, Eastern) visible
--   Legend shows all four series with correct titles
--   Clicking legend items toggles series visibility
--   Hovering over shapes shows tooltips with timezone information
--   Each timezone region has distinct coloring
+- Four distinct series (Pacific, Mountain, Central, Eastern) visible
+- Legend shows all four series with correct titles
+- Clicking legend items toggles series visibility
+- Hovering over shapes shows tooltips with timezone information
+- Each timezone region has distinct coloring
 
 **example-tester Validation**:
 
--   Verify topology and data binding works correctly
--   Check that `idKey: 'name'` properly matches data to shapes
--   Confirm legend integration functions as expected
--   Validate tooltip content includes series title
+- Verify topology and data binding works correctly
+- Check that `idKey: 'name'` properly matches data to shapes
+- Confirm legend integration functions as expected
+- Validate tooltip content includes series title
 
 #### 2. heatmap
 
 **Documentation Claims**:
 
--   Uses `colorKey: 'gdp'` to create color scale visualization
--   Shapes colored based on GDP magnitude
--   Should show gradient legend for color scale
--   References "Colour Range" and "Gradient Legend" documentation
+- Uses `colorKey: 'gdp'` to create color scale visualization
+- Shapes colored based on GDP magnitude
+- Should show gradient legend for color scale
+- References "Colour Range" and "Gradient Legend" documentation
 
 **Expected Behaviors**:
 
--   Shapes display with gradient coloring based on GDP values
--   Gradient legend visible showing color scale
--   Tooltips include GDP value information
--   Higher GDP values show different colors than lower values
+- Shapes display with gradient coloring based on GDP values
+- Gradient legend visible showing color scale
+- Tooltips include GDP value information
+- Higher GDP values show different colors than lower values
 
 **example-tester Validation**:
 
--   Verify `colorKey` properly maps to numeric data
--   Check gradient legend displays and functions
--   Confirm color interpolation works across data range
--   Validate tooltip shows color value information
+- Verify `colorKey` properly maps to numeric data
+- Check gradient legend displays and functions
+- Confirm color interpolation works across data range
+- Validate tooltip shows color value information
 
 #### 3. labels
 
 **Documentation Claims**:
 
--   `labelKey: 'code'` displays text within shapes
--   Labels auto-size to fit within shape boundaries
--   References label options for handling long labels
+- `labelKey: 'code'` displays text within shapes
+- Labels auto-size to fit within shape boundaries
+- References label options for handling long labels
 
 **Expected Behaviors**:
 
--   Country/region codes visible inside map shapes
--   Labels properly sized to fit shape constraints
--   No label overflow or clipping issues
--   Labels remain readable at different zoom levels
+- Country/region codes visible inside map shapes
+- Labels properly sized to fit shape constraints
+- No label overflow or clipping issues
+- Labels remain readable at different zoom levels
 
 **example-tester Validation**:
 
--   Verify `labelKey` correctly maps to label data
--   Check label auto-sizing algorithm works
--   Test with various shape sizes and label lengths
--   Confirm label styling options function
+- Verify `labelKey` correctly maps to label data
+- Check label auto-sizing algorithm works
+- Test with various shape sizes and label lengths
+- Confirm label styling options function
 
 #### 4. backgrounds
 
 **Documentation Claims**:
 
--   Background series shows all topology shapes without data
--   No interactivity (tooltips, highlighting)
--   Doesn't appear in legend
--   Provides context for other map series types
+- Background series shows all topology shapes without data
+- No interactivity (tooltips, highlighting)
+- Doesn't appear in legend
+- Provides context for other map series types
 
 **Expected Behaviors**:
 
--   All topology shapes rendered as background
--   No hover effects or tooltips on background shapes
--   Background series not listed in legend
--   Other interactive series overlay correctly
+- All topology shapes rendered as background
+- No hover effects or tooltips on background shapes
+- Background series not listed in legend
+- Other interactive series overlay correctly
 
 **example-tester Validation**:
 
--   Verify `map-shape-background` type renders correctly
--   Confirm no interactive behaviors on background
--   Check legend exclusion works properly
--   Test layering with interactive series on top
+- Verify `map-shape-background` type renders correctly
+- Confirm no interactive behaviors on background
+- Check legend exclusion works properly
+- Test layering with interactive series on top
 
 ### User Interactions to Validate
 
 1. **Hover Interactions**:
-
     - Hover over individual map shapes for tooltips
     - Hover over legend items for series highlighting
     - Test hover at shape boundaries and edges
     - Verify tooltip positioning near viewport edges
 
 2. **Click Interactions**:
-
     - Click legend items to toggle series
     - Click on map shapes (should have no effect unless configured)
     - Test rapid clicking and state changes
@@ -199,13 +193,11 @@
 ### Visual States to Screenshot
 
 1. **Default States**:
-
     - Full chart with all series visible
     - Individual example default views
     - Legend in default state
 
 2. **Interactive States**:
-
     - Tooltip display on shape hover
     - Series highlighting from legend hover
     - Series toggled off via legend
@@ -263,21 +255,21 @@ No existing technical review exceptions file found for this page.
 
 ### Success Criteria
 
--   All documented APIs exist and function as described
--   Examples demonstrate claimed features correctly
--   No console errors during interactions
--   Visual rendering matches documentation descriptions
--   Interactive behaviors work consistently
--   example-tester validates code quality and best practices
+- All documented APIs exist and function as described
+- Examples demonstrate claimed features correctly
+- No console errors during interactions
+- Visual rendering matches documentation descriptions
+- Interactive behaviors work consistently
+- example-tester validates code quality and best practices
 
 ### Estimated Complexity
 
--   **High complexity** due to:
-    -   Geographic/topology data handling
-    -   Multiple visual encoding options
-    -   Complex interaction patterns
-    -   Enterprise-only features
-    -   Integration with other map series types
+- **High complexity** due to:
+    - Geographic/topology data handling
+    - Multiple visual encoding options
+    - Complex interaction patterns
+    - Enterprise-only features
+    - Integration with other map series types
 
 ## Delegation Plan for example-tester Agent
 
@@ -313,10 +305,10 @@ Please test the map-shapes multiple-series example:
 
 The example-tester should provide:
 
--   Code structure validation results
--   API usage correctness assessment
--   Console error/warning reports
--   Visual rendering verification
--   Interactive behavior test results
--   Performance observations
--   Best practices compliance check
+- Code structure validation results
+- API usage correctness assessment
+- Console error/warning reports
+- Visual rendering verification
+- Interactive behavior test results
+- Performance observations
+- Best practices compliance check

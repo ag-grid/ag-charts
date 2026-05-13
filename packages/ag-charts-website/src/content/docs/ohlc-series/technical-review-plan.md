@@ -4,10 +4,10 @@
 
 ### Chart Types/Features Covered
 
--   OHLC (Open-High-Low-Close) series - an enterprise chart type
--   Simple OHLC configuration with basic key mappings
--   Customization of rising/falling items through `item.up` and `item.down` configuration
--   Visual differentiation between rising (close > open) and falling (close < open) data points
+- OHLC (Open-High-Low-Close) series - an enterprise chart type
+- Simple OHLC configuration with basic key mappings
+- Customization of rising/falling items through `item.up` and `item.down` configuration
+- Visual differentiation between rising (close > open) and falling (close < open) data points
 
 ### Key APIs and Configuration Options Documented
 
@@ -29,9 +29,9 @@
 
 ### Interactive Features Described
 
--   Visual differentiation between rising and falling data points
--   Implied tooltip functionality (standard for all chart series)
--   Implied hover states and highlighting (standard for all chart series)
+- Visual differentiation between rising and falling data points
+- Implied tooltip functionality (standard for all chart series)
+- Implied hover states and highlighting (standard for all chart series)
 
 ## Validation Targets
 
@@ -56,10 +56,10 @@
 
 **Documentation Claims**:
 
--   Shows basic OHLC series with required key mappings
--   Should display vertical lines for high/low range
--   Should display horizontal ticks for open/close values
--   X-axis should use date values
+- Shows basic OHLC series with required key mappings
+- Should display vertical lines for high/low range
+- Should display horizontal ticks for open/close values
+- X-axis should use date values
 
 **Expected Behaviors to Validate**:
 
@@ -74,20 +74,20 @@
 
 **example-tester Agent Instructions**:
 
--   Verify OHLC visual structure (vertical line with horizontal ticks)
--   Check that all required keys are properly configured
--   Validate tooltip content shows all OHLC values
--   Ensure no TypeScript errors with data binding
--   Test hover interactions over different OHLC elements
+- Verify OHLC visual structure (vertical line with horizontal ticks)
+- Check that all required keys are properly configured
+- Validate tooltip content shows all OHLC values
+- Ensure no TypeScript errors with data binding
+- Test hover interactions over different OHLC elements
 
 #### ohlc-customisations Example
 
 **Documentation Claims**:
 
--   Demonstrates customization via `item` configuration
--   Rising items (close > open) styled with green (#45ba45)
--   Falling items (close < open) styled with red (#ba4545)
--   Both use strokeWidth of 2
+- Demonstrates customization via `item` configuration
+- Rising items (close > open) styled with green (#45ba45)
+- Falling items (close < open) styled with red (#ba4545)
+- Both use strokeWidth of 2
 
 **Expected Behaviors to Validate**:
 
@@ -99,23 +99,21 @@
 
 **example-tester Agent Instructions**:
 
--   Verify color differentiation between rising and falling items
--   Check exact color values match documentation (#45ba45, #ba4545)
--   Validate strokeWidth is correctly applied (2px)
--   Ensure rising/falling logic works correctly (close > open = up)
--   Test that customization applies to entire OHLC shape
+- Verify color differentiation between rising and falling items
+- Check exact color values match documentation (#45ba45, #ba4545)
+- Validate strokeWidth is correctly applied (2px)
+- Ensure rising/falling logic works correctly (close > open = up)
+- Test that customization applies to entire OHLC shape
 
 ### User Interactions to Validate
 
 1. **Hover Interactions**:
-
     - Hover over OHLC bars to trigger tooltips
     - Hover over different parts of OHLC (high, low, open, close areas)
     - Check tooltip positioning and content
     - Verify highlight states on hover
 
 2. **Visual States to Screenshot**:
-
     - Default rendering state
     - Hover state with tooltip visible
     - Different viewport sizes (responsive behavior)
@@ -130,13 +128,11 @@
 ### Visual States to Screenshot and Analyze
 
 1. **Default State Screenshots**:
-
     - Full chart view showing all OHLC items
     - Close-up of individual OHLC items showing structure
     - Comparison of rising vs falling items in customization example
 
 2. **Interactive State Screenshots**:
-
     - Tooltip display on hover
     - Highlight state of hovered OHLC item
     - Multiple tooltips if supported
@@ -218,21 +214,21 @@ No existing technical review exceptions file found for this page.
 **Task**: Validate basic OHLC series functionality
 **Expectations**:
 
--   Chart renders with proper OHLC visual structure (vertical lines with horizontal ticks)
--   Data binding works with keys: date, low, open, close, high
--   Default styling is applied consistently
--   Tooltips display all OHLC values on hover
--   No console errors or warnings
--   TypeScript types are properly used
+- Chart renders with proper OHLC visual structure (vertical lines with horizontal ticks)
+- Data binding works with keys: date, low, open, close, high
+- Default styling is applied consistently
+- Tooltips display all OHLC values on hover
+- No console errors or warnings
+- TypeScript types are properly used
 
 ### ohlc-customisations Example
 
 **Task**: Validate OHLC customization features
 **Expectations**:
 
--   Rising items (close > open) display in green (#45ba45)
--   Falling items (close < open) display in red (#ba4545)
--   Both item types use strokeWidth of 2
--   Customization applies to entire OHLC shape
--   Rising/falling logic correctly implemented
--   Configuration structure matches documented API
+- Rising items (close > open) display in green (#45ba45)
+- Falling items (close < open) display in red (#ba4545)
+- Both item types use strokeWidth of 2
+- Customization applies to entire OHLC shape
+- Rising/falling logic correctly implemented
+- Configuration structure matches documented API

@@ -26,11 +26,11 @@ The tooltip content is based on the data values and keys of the series. If provi
 
 In this example:
 
--   The `yName` is used in the tooltip and legend when provided.
--   The default [tooltip mode](#tooltip-modes) is:
-    -   `compact` when showing a single series with no `yName`.
-    -   `single` when showing more than 3 series, or a single series with `yName`.
-    -   `shared` when showing 3 or fewer series.
+- The `yName` is used in the tooltip and legend when provided.
+- The default [tooltip mode](#tooltip-modes) is:
+    - `compact` when showing a single series with no `yName`.
+    - `single` when showing more than 3 series, or a single series with `yName`.
+    - `shared` when showing 3 or fewer series.
 
 The `_Name` keys mirror the data keys and differ between series types. See the series specific [API Reference](/options/#reference-AgChartOptions-series/) for more details.
 
@@ -50,9 +50,9 @@ By default a shared tooltip will be used for most cartesian charts containing 3 
 
 The options for `mode` are:
 
--   `single` - shows a title, symbol and data values for a single series.
--   `shared` - shows a merged tooltip, combining the tooltips of all series sharing the same x-value.
--   `compact` - shows fewer data fields and uses less padding.
+- `single` - shows a title, symbol and data values for a single series.
+- `shared` - shows a merged tooltip, combining the tooltips of all series sharing the same x-value.
+- `compact` - shows fewer data fields and uses less padding.
 
 ## Tooltip Position
 
@@ -91,16 +91,16 @@ Fallback positions can be provided in an array of `placement` values. The toolti
 
 In the above example:
 
--   Change the 'Placement' dropdown to 'Left + Right fallback'.
--   Hover the leftmost datapoint and see that the tooltip goes to the right of the marker as there is no room on the left.
+- Change the 'Placement' dropdown to 'Left + Right fallback'.
+- Hover the leftmost datapoint and see that the tooltip goes to the right of the marker as there is no room on the left.
 
 ### Anchor Point
 
 The options for `anchorTo` are:
 
--   `node` - the active datapoint, such as the marker or bar.
--   `pointer` - the mouse pointer or [single finger touch](./touch/#single-finger-touch-dragging) position.
--   `chart` - the chart container.
+- `node` - the active datapoint, such as the marker or bar.
+- `pointer` - the mouse pointer or [single finger touch](./touch/#single-finger-touch-dragging) position.
+- `chart` - the chart container.
 
 ### Offset
 
@@ -120,9 +120,9 @@ Use `tooltip.position.offset` to control the gap between the tooltip and its anc
 
 In the above example:
 
--   Change the 'Placement' dropdown to 'Left + Right fallback' and change the 'Offset' value.
--   Hover the leftmost datapoint and see that the offset is applied to the right of the marker, hover the rightmost datapoint and see that the offset is applied to the left.
--   The directional `offset` can be used together with `xOffset` and `yOffset`.
+- Change the 'Placement' dropdown to 'Left + Right fallback' and change the 'Offset' value.
+- Hover the leftmost datapoint and see that the offset is applied to the right of the marker, hover the rightmost datapoint and see that the offset is applied to the left.
+- The directional `offset` can be used together with `xOffset` and `yOffset`.
 
 ## Tooltip Arrow
 
@@ -158,9 +158,9 @@ Pagination will only become available when two or more data points are under the
 
 In the above example:
 
--   Hover overlapping bubbles.
--   The cursor turns into a hand and the tooltip displays the number of data points under the cursor.
--   Click in the current position to cycle through the data points, highlighting and displaying the tooltip for each in turn.
+- Hover overlapping bubbles.
+- The cursor turns into a hand and the tooltip displays the number of data points under the cursor.
+- Click in the current position to cycle through the data points, highlighting and displaying the tooltip for each in turn.
 
 ## Customisation
 
@@ -168,10 +168,10 @@ The exact contents and structure of a tooltip depends on the series and keys use
 
 Tooltips can contain any number of the following items, in order:-
 
--   A heading - typically the x-value for a cartesian series.
--   A series symbol - this graphically depicts a series and usually matches the legend item.
--   A title - typically the identifying value for non-cartesian series.
--   Some data rows - these contain one or more label and value pairs corresponding to information for a series.
+- A heading - typically the x-value for a cartesian series.
+- A series symbol - this graphically depicts a series and usually matches the legend item.
+- A title - typically the identifying value for non-cartesian series.
+- Some data rows - these contain one or more label and value pairs corresponding to information for a series.
 
 ### Using CSS Styles
 
@@ -179,10 +179,10 @@ Tooltips can contain any number of the following items, in order:-
 
 The default tooltip uses the following CSS classes for the tooltip elements:
 
--   `ag-charts-tooltip` for the entire tooltip container.
--   `ag-charts-tooltip-heading` and `ag-charts-tooltip-title` for the tooltip headings and titles.
--   `ag-charts-tooltip-symbol` for the series symbol.
--   `ag-charts-tooltip-label` and `ag-charts-tooltip-value` for the elements in the data rows.
+- `ag-charts-tooltip` for the entire tooltip container.
+- `ag-charts-tooltip-heading` and `ag-charts-tooltip-title` for the tooltip headings and titles.
+- `ag-charts-tooltip-symbol` for the series symbol.
+- `ag-charts-tooltip-label` and `ag-charts-tooltip-value` for the elements in the data rows.
 
 Adding custom CSS to these will change the styling of all the tooltips in your app.
 
@@ -227,11 +227,11 @@ The tooltip's content can be customised within the default template by using a `
 
 In this configuration:
 
--   The `renderer` receives values associated with the highlighted data point. The actual type of the `params` object passed into the tooltip renderer will depend on the series type being used.
--   The `renderer` returns an object with optional `heading`, `title`, `symbol`, and `data` fields.
--   The `heading` and `title` must be plain text.
--   The `data` field consists of an array of `label` and `value` fields, which are both plain text.
--   Returning an empty string for any field will cause it to be omitted from the rendered tooltip.
+- The `renderer` receives values associated with the highlighted data point. The actual type of the `params` object passed into the tooltip renderer will depend on the series type being used.
+- The `renderer` returns an object with optional `heading`, `title`, `symbol`, and `data` fields.
+- The `heading` and `title` must be plain text.
+- The `data` field consists of an array of `label` and `value` fields, which are both plain text.
+- Returning an empty string for any field will cause it to be omitted from the rendered tooltip.
 
 ### Modifying the Symbol
 
@@ -265,9 +265,9 @@ Whether the symbol defaults to use a `marker`, `line`, or both depends on the se
 
 In this example:
 
--   Click the button to toggle the symbol. This will take effect on the next hover.
--   The `marker` shape has been changed to `'star'` instead of inheriting the circle shape from the series.
--   The marker and line colours have been changed from those used in the series.
+- Click the button to toggle the symbol. This will take effect on the next hover.
+- The `marker` shape has been changed to `'star'` instead of inheriting the circle shape from the series.
+- The marker and line colours have been changed from those used in the series.
 
 ### Using Custom Tooltips
 
@@ -300,12 +300,12 @@ To use a completely custom tooltip instead of modifying the contents of the defa
 
 In this configuration:
 
--   The `renderer` receives values associated with the highlighted data point. The actual type of the `params` object passed into the tooltip renderer will depend on the series type being used.
--   The `renderer` returns a single HTML string.
--   The text gets its colour from the `fill` property in the `params` object. This matches the colour of the series.
--   The label comes from `params.datum[params.xKey]` which is the name of the month.
--   The value comes from the `params.datum[params.yKey]`, which we then stringify as an integer via `toFixed(0)`.
--   We used a custom class names on the returned `div` element, so that we can apply custom styling.
+- The `renderer` receives values associated with the highlighted data point. The actual type of the `params` object passed into the tooltip renderer will depend on the series type being used.
+- The `renderer` returns a single HTML string.
+- The text gets its colour from the `fill` property in the `params` object. This matches the colour of the series.
+- The label comes from `params.datum[params.xKey]` which is the name of the month.
+- The value comes from the `params.datum[params.yKey]`, which we then stringify as an integer via `toFixed(0)`.
+- We used a custom class names on the returned `div` element, so that we can apply custom styling.
 
 ## Tooltip Range
 
@@ -315,9 +315,9 @@ The `tooltip.range` property specifies how near the cursor must be to a node for
 
 Options for `tooltip.range` are:
 
--   `'nearest'` - Always shows the tooltip of the nearest node. This is the default for marker-based series such as `line` and `scatter`.
--   `'exact'` - Only shows the tooltip when the user hovers over a node. This is the default for shape-based series such as `bar` and `pie`.
--   An integer - Only shows the tooltip when the cursor is within the specified pixel distance of a node.
+- `'nearest'` - Always shows the tooltip of the nearest node. This is the default for marker-based series such as `line` and `scatter`.
+- `'exact'` - Only shows the tooltip when the user hovers over a node. This is the default for shape-based series such as `bar` and `pie`.
+- An integer - Only shows the tooltip when the cursor is within the specified pixel distance of a node.
 
 ## Interaction with Tooltips
 

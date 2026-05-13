@@ -16,7 +16,9 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, úroveň ${level}[number], ${posInSet}[number] z ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, úroveň ${level}[number], ${posInSet}[number] z ${setSize}[number], ${collapsedState}',
+        '${description}, úroveň ${level}[number], ${posInSet}[number] z ${setSize}[number], ${collapsedState}, ${childCount}[number] detí, stlačením medzerníka alebo klávesy Enter prepnete',
+    ariaAnnounceOrgChartParentSingular:
+        '${description}, úroveň ${level}[number], ${posInSet}[number] z ${setSize}[number], ${collapsedState}, 1 dieťa, stlačením medzerníka alebo klávesy Enter prepnete',
     ariaOrgChartCollapsed: 'zbalený',
     ariaOrgChartExpanded: 'rozbalený',
     ariaAnnounceGaugeChart: 'stupnicový graf, ${caption}',

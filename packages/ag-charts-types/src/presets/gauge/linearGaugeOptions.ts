@@ -37,8 +37,10 @@ export interface AgLinearGaugeScale<TContext = ContextDefault> extends AgLinearG
     interval?: AgLinearGaugeScaleInterval;
 }
 
-export interface AgLinearGaugeTooltipRendererParams
-    extends AgSeriesTooltipRendererParams<DatumDefault, ContextDefault> {
+export interface AgLinearGaugeTooltipRendererParams extends AgSeriesTooltipRendererParams<
+    DatumDefault,
+    ContextDefault
+> {
     /** Value of the Gauge */
     value: number;
 }
@@ -97,8 +99,9 @@ export interface AgLinearGaugeLabelOptions extends AgChartAutoSizedLabelOptions<
     placement?: AgLinearGaugeLabelPlacement;
 }
 
-export interface AgLinearGaugeThemeableOptions<TContext = ContextDefault>
-    extends AgBaseGaugeThemeableOptions<TContext> {
+export interface AgLinearGaugeThemeableOptions<
+    TContext = ContextDefault,
+> extends AgBaseGaugeThemeableOptions<TContext> {
     /** Direction to display the gauge in. */
     direction?: Direction;
     /** Width of the gauge, or the height if `direction` is `horizontal`. */

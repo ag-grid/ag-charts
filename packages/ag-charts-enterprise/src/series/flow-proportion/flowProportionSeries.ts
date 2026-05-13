@@ -2,6 +2,7 @@ import {
     type AgActiveItemState,
     type FillOptions,
     type LineDashOptions,
+    type SelectionState,
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -93,9 +94,10 @@ export class FlowProportionSeriesNodeEvent<
                 TDatum<FlowProportionNodeDatum<any, any>, FlowProportionLinkDatum<any, any>>,
                 _ModuleSupport.ISeriesProperties
             >;
-        }
+        },
+        selectionState: SelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series);
+        super(type, nativeEvent, datum, series, selectionState);
         const { datumIndex } = datum;
         const nodeDatum = series.contextNodeData?.nodeData.find(
             (d) => d.datumIndex.type === datumIndex.type && d.datumIndex.index === datumIndex.index

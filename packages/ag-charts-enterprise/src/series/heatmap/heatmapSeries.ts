@@ -5,6 +5,7 @@ import type {
     AgHeatmapSeriesStyle,
     FontStyle,
     FontWeight,
+    SelectionState,
     TextAlign,
     TextOrSegments,
     VerticalAlign,
@@ -112,8 +113,14 @@ class HeatmapSeriesNodeEvent<
 > extends _ModuleSupport.CartesianSeriesNodeEvent<TEvent> {
     readonly colorKey?: string;
 
-    constructor(type: TEvent, nativeEvent: Event, datum: HeatmapNodeDatum, series: HeatmapSeries) {
-        super(type, nativeEvent, datum, series);
+    constructor(
+        type: TEvent,
+        nativeEvent: Event,
+        datum: HeatmapNodeDatum,
+        series: HeatmapSeries,
+        selectionState: SelectionState | undefined
+    ) {
+        super(type, nativeEvent, datum, series, selectionState);
         this.colorKey = series.properties.colorKey;
     }
 }

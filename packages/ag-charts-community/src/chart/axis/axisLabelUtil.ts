@@ -72,6 +72,7 @@ export function formatAxisLabelValue(
         const step = params.type === 'date' ? params.step : undefined;
         const visibleDomain = params.type === 'number' ? params.visibleDomain : undefined;
         result = callWithContext(formatter, {
+            type,
             value,
             index,
             domain,

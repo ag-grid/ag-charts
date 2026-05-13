@@ -2,59 +2,70 @@
 title: 'Legend'
 ---
 
+## Vertical Legend Layout
+
+What to test:
+
+- Drag the height slider and confirm the right-positioned legend reflows and paginates correctly at each height.
+
 {% chartExampleRunner title="Vertical Legend Layout" name="legend-layout-vertical" type="generated" /%}
+
+## Horizontal Legend Layout
+
+What to test:
+
+- Drag the width slider and confirm the bottom legend wraps and paginates correctly at each width.
 
 {% chartExampleRunner title="Horizontal Legend Layout" name="legend-layout-horizontal" type="generated" /%}
 
-Pagination customisation
+## Legend Pagination
+
+What to test:
+
+- Use the legend paginator next/previous buttons and confirm items cycle through pages cleanly.
 
 {% chartExampleRunner title="Legend Pagination" name="legend-pagination" type="generated" /%}
 
-## Legend Interactivity with Pagination
+## E2E Tested
 
-Steps to test:
+### legend-interactivity
 
-1.  Hover a legend item.
-    Expected: Pointer cursor is shown.
+_Auto-tested via Playwright._
 
-2.  Click on a legend item.
-    Expected: An alert should appear. No series are toggled.
+What to test:
 
-3.  Dismiss alert.
-
-4.  Go to page 2/2 on the legend paginator.
-
-5.  Hover a legend item.
-    Expected: Pointer cursor is shown.
-
-6.  Click on a legend item.
-    Expected: An alert appears.
-
-7.  Go back to page 1/2 on the legend paginator.
-
-8.  Hover a legend item.
-    Expected: Pointer cursor is shown.
-
-9.  Click on a legend item.
-    Expected: An alert appears.
+- Hover a legend item — pointer cursor is shown.
+- Click a legend item — an alert appears and no series are toggled.
+- Paginate to page 2/2, repeat hover and click — alert still appears.
+- Return to page 1/2 and repeat — alert still appears.
 
 {% chartExampleRunner title="Legend Interactivity" name="legend-interactivity" type="generated" /%}
 
-## Legend Interactivity Pagination & Page Resize to Hide/Show Legend
+### legend-pagination-resize
 
-Steps to test:
+_Auto-tested via Playwright._
 
-1. Shrink the window width until only one legend item is visible.
+What to test:
 
-2. Shrink the window width until no legend items are visible.
-
-3. Increase the window width until one legend item is visible.
-
-4. Click the pagination 'next' button.
-   Expected: Legend goes to page 2.
+- Shrink the window width until only one legend item is visible, then until none are.
+- Grow the width back until one item is visible and click the paginator next button — legend advances to page 2.
 
 {% chartExampleRunner title="Legend Interactivity" name="legend-pagination-resize" type="generated" /%}
 
-## Legend Item Tooltip
+### legend-item-tooltip-e2e
+
+_Auto-tested via Playwright._
 
 {% chartExampleRunner title="Legend Item Tooltip" name="legend-item-tooltip-e2e" type="generated" /%}
+
+### legend-item-key
+
+_Auto-tested via Playwright._
+
+{% chartExampleRunner title="Legend Item Key" name="legend-item-key" type="generated" /%}
+
+### legend-item-name
+
+_Auto-tested via Playwright._
+
+{% chartExampleRunner title="Legend Item Name" name="legend-item-name" type="generated" /%}

@@ -5,6 +5,7 @@ import type {
     CartesianAxisDirection,
     DefinedZoomState,
     DynamicContext,
+    NormalisedSelectionOptions,
     NormalisedZoomOptions,
     ZoomMinMax,
 } from 'ag-charts-core';
@@ -74,6 +75,10 @@ export type ZoomCtx = Omit<DynamicContext<_ModuleSupport.ChartRegistry>, 'zoomMa
 export class Zoom extends AbstractModuleInstance {
     private get opts(): ZoomOpts {
         return this.ctx.chartState.getValue('options', 'zoom') ?? DISABLED_OPTS;
+    }
+
+    private get selectionOpts(): NormalisedSelectionOptions | undefined {
+        return this.ctx.chartState.getValue('options', 'selection');
     }
 
     // Public getter required by `hasViewportSupport()` in chart.ts.
@@ -208,7 +213,6 @@ export class Zoom extends AbstractModuleInstance {
         // Observe option changes. The callback runs immediately during registration
         // (chartState is populated before module creation), handling initial setup too.
         let prevEnabled: boolean | undefined;
-        let prevTouchPan: boolean | undefined;
         this.cleanup.register(
             ctx.chartState.observe((get) => {
                 const opts = get('options', 'zoom');
@@ -227,17 +231,25 @@ export class Zoom extends AbstractModuleInstance {
                     this.onEnabledChange(opts.enabled);
                 }
 
-                // Suppress browser-native touch gestures (page scroll, pinch-zoom) on the
-                // series-area when this chart consumes touch drags for panning or two-finger
-                // zoom — preventDefault on touchmove alone is not sufficient on iOS Safari.
-                const touchPan = Boolean(opts.enabled) && Boolean(opts.enablePanning || opts.enableTwoFingerZoom);
-                if (prevTouchPan !== touchPan) {
-                    prevTouchPan = touchPan;
-                    ctx.widgets.seriesWidget.setTouchAction(touchPan ? 'none' : undefined);
-                }
-            })
+                this.refreshTouchAction();
+            }),
+            ctx.eventsHub.on('zoom:change-complete', () => this.refreshTouchAction()),
+            () => ctx.widgets.seriesWidget.setTouchAction(undefined)
         );
-        this.cleanup.register(() => ctx.widgets.seriesWidget.setTouchAction(undefined));
+    }
+
+    // iOS Safari ignores late preventDefault on touchmove, so suppress browser scroll via
+    // touch-action. `pan-y` at [0,1] lets single-finger pans bubble; pinch still reaches us.
+    private prevTouchAction: 'auto' | 'none' | 'pan-y' | undefined;
+    private refreshTouchAction() {
+        const { enabled, enablePanning, enableTwoFingerZoom } = this.opts;
+        let next: 'none' | 'pan-y' | undefined;
+        if (enabled && (enablePanning || enableTwoFingerZoom)) {
+            next = isMaxZoom(this.getZoom()) ? 'pan-y' : 'none';
+        }
+        if (this.prevTouchAction === next) return;
+        this.prevTouchAction = next;
+        this.ctx.widgets.seriesWidget.setTouchAction(next);
     }
 
     private teardown() {
@@ -304,14 +316,19 @@ export class Zoom extends AbstractModuleInstance {
         // Determine which ZoomDrag behaviour to use.
         let newDragState = DragState.None;
 
+        const selectionOpts = this.selectionOpts;
+        const hasDataSelection: boolean = !!(selectionOpts?.enabled && selectionOpts?.enableDrag);
         const panKeyPressed = this.isPanningKeyPressed(event.sourceEvent as MouseEvent);
+        const modifierlessDragInUse = enableSelecting || hasDataSelection;
         // Allow panning if either selection is disabled or the panning key is pressed.
-        if (enablePanning && (!enableSelecting || panKeyPressed)) {
+        if (enablePanning && (!modifierlessDragInUse || panKeyPressed)) {
             domManager.updateCursor(CURSOR_ID, 'grabbing');
             newDragState = DragState.Pan;
             this.panner.start();
         } else if (enableSelecting && !panKeyPressed) {
-            newDragState = DragState.Select;
+            if (!hasDataSelection) {
+                newDragState = DragState.Select;
+            }
         }
 
         if ((this.dragState = newDragState) !== DragState.None) {

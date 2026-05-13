@@ -66,8 +66,8 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
     },
 
     create: (ctx) => new MapMarkerSeries(ctx),
-    validate(options, optionsDefs, path) {
-        const result = validate(options, optionsDefs, path);
+    validate(options, optionsDefs, path, opts) {
+        const result = validate(options, optionsDefs, path, opts);
         const { cleared, invalid } = result;
 
         if (cleared?.idKey == null && (cleared?.latitudeKey == null || cleared?.longitudeKey == null)) {

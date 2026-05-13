@@ -34,19 +34,31 @@ import { IntervalSet } from './intervalSet';
 
 type Series = NonNullable<NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>['series']>;
 
+const UNSUPPORTED_CARTESIANS = ['histogram', 'waterfall', 'funnel', 'cone-funnel'];
+
 export class DataSelection extends AbstractModuleInstance implements _ModuleSupport.SelectionModuleFns {
     private dragStartEvent?: _Widget.DragWidgetEvent<'drag-start'>;
     private readonly dragRect: _ModuleSupport.Rect;
     private readonly state: _ModuleSupport.DataSelectionState;
 
     private get opts(): NormalisedSelectionOptions {
-        return this.ctx.chartState.getValue('options', 'selection');
+        return this.ctx.chartState.getValue('options', 'selection')!;
     }
 
     private supportsSelection(): boolean {
+        if (this.ctx.chartService.getChartType() === 'standalone') return false;
+
+        const type0 = this.ctx.chartService.series.at(0)?.type;
+        if (type0 && UNSUPPORTED_CARTESIANS.includes(type0)) return false;
+
+        return true;
+    }
+
+    private supportsSelectionDrag(): boolean {
         return (
-            this.ctx.chartService.getChartType() !== 'standalone' &&
-            this.ctx.chartService.series.at(0)?.type !== 'histogram'
+            this.supportsSelection() &&
+            this.ctx.chartService.getChartType() !== 'topology' &&
+            this.ctx.chartService.getChartType() !== 'polar'
         );
     }
 
@@ -65,8 +77,9 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.dragRect.lineDash = SELECTION_LINEDASH;
         this.dragRect.visible = false;
 
+        ctx.chartService.selectionRoot.appendChild(this.dragRect);
         this.cleanup.register(
-            ctx.scene.attachNode(this.dragRect),
+            () => this.dragRect.remove(),
             ctx.eventsHub.on('series-area:click', (ev) => this.onSeriesAreaClick(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-start', (ev) => this.onSeriesAreaDragStart(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-move', (ev) => this.onSeriesAreaDragMove(ev)),
@@ -77,7 +90,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     getSelection(): Iterable<AgSelectionItem<unknown>> {
-        if (!this.supportsSelection()) return [];
+        const { enabled } = this.opts;
+        if (!enabled || !this.supportsSelection()) return [];
 
         return function* getSelectionIterator(this: DataSelection) {
             for (const dataSet of getAllDataSets(this.ctx.chartService.series)) {
@@ -95,7 +109,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     setSelection(items: unknown): void {
-        if (!this.supportsSelection()) return;
+        const { enabled } = this.opts;
+        if (!enabled || !this.supportsSelection()) return;
 
         const { chartService } = this.ctx;
 
@@ -134,21 +149,22 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             setSelected(changes, series, data, datumIndex);
         }
 
-        this.dispatchInternalSelectionChange(chartService.series, changes);
         this.dispatchExternalSelectionChange('api-call', changes);
+        this.dispatchInternalSelectionChange(chartService.series, changes);
         this.redraw(ChartUpdateType.PERFORM_LAYOUT);
     }
 
     clearSelection(): void {
-        if (!this.supportsSelection()) return;
+        const { enabled } = this.opts;
+        if (!enabled || !this.supportsSelection()) return;
 
         const { chartService } = this.ctx;
 
         const changes = this.allocSelectionChanges();
         clearAllSelections(changes, this.state, chartService.series);
 
-        this.dispatchInternalSelectionChange(chartService.series, changes);
         this.dispatchExternalSelectionChange('api-call', changes);
+        this.dispatchInternalSelectionChange(chartService.series, changes);
         this.redraw(ChartUpdateType.PERFORM_LAYOUT);
     }
 
@@ -158,14 +174,12 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const { enabled, enableClick, enableClickAwayToClear, clickMode } = this.opts;
         if (!enabled || !enableClick) return;
 
-        const { type, clickedNode, distance } = event;
+        const { type, clickedNode } = event;
         if (type !== 'click') return;
 
         const modifierPressed = hasAddToSelectionModifier(event);
         const clickMiss =
-            clickedNode === undefined ||
-            distance !== 0 ||
-            !(clickedNode.series.properties.selection.enabled satisfies boolean);
+            clickedNode === undefined || !(clickedNode.series.properties.selection.enabled satisfies boolean);
 
         if (clickMiss && (modifierPressed || !enableClickAwayToClear)) {
             // Ctrl+Click only toggles selection; it shouldn't clear the selection.
@@ -174,9 +188,10 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         }
 
         const changes = this.allocSelectionChanges();
+        let internalRefreshTargets: Iterable<Series>;
         if (clickMiss) {
             clearAllSelections(changes, this.state, this.ctx.chartService.series);
-            this.dispatchInternalSelectionChange(this.ctx.chartService.series, changes);
+            internalRefreshTargets = this.ctx.chartService.series;
         } else {
             const { data } = clickedNode.series;
             if (data === undefined) return;
@@ -189,22 +204,24 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
             if (clickMode === 'multiple' || modifierPressed) {
                 toggleSelection(changes, series, data, datumIndex);
+                internalRefreshTargets = [series];
             } else {
                 clickMode satisfies 'single';
                 clearAllSelections(changes, this.state, this.ctx.chartService.series);
                 setSelected(changes, series, data, datumIndex);
+                internalRefreshTargets = this.ctx.chartService.series;
             }
-            this.dispatchInternalSelectionChange([series], changes);
         }
         this.dispatchExternalSelectionChange('user-interaction', changes);
-        this.redraw(ChartUpdateType.PERFORM_LAYOUT);
+        this.dispatchInternalSelectionChange(internalRefreshTargets, changes);
+        this.redraw(ChartUpdateType.FULL);
     }
 
     private onSeriesAreaDragStart(dragStartEvent: _Widget.DragWidgetEvent<'drag-start'>) {
-        if (!this.supportsSelection()) return;
+        if (!this.supportsSelectionDrag()) return;
 
         const { enabled, enableDrag } = this.opts;
-        if (!enabled || !enableDrag) return;
+        if (!enabled || !enableDrag || this.hasUnknownModifier(dragStartEvent)) return;
 
         this.dragStartEvent = dragStartEvent;
         this.dragRect.x = dragStartEvent.currentX;
@@ -212,10 +229,11 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.dragRect.width = 0;
         this.dragRect.height = 0;
         this.dragRect.visible = true;
+        dragStartEvent.sourceEvent.preventDefault();
     }
 
     private onSeriesAreaDragMove(dragMoveEvent: _Widget.DragWidgetEvent<'drag-move'>) {
-        if (!this.supportsSelection()) return;
+        if (!this.supportsSelectionDrag()) return;
 
         const { enabled, enableDrag } = this.opts;
         const { dragStartEvent } = this;
@@ -233,10 +251,11 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.dragRect.width = canvasBounds.width;
         this.dragRect.height = canvasBounds.height;
         this.redraw(ChartUpdateType.PRE_SERIES_UPDATE);
+        dragMoveEvent.sourceEvent.preventDefault();
     }
 
     private onSeriesAreaDragEnd(dragEndEvent: _Widget.DragWidgetEvent<'drag-end'>) {
-        if (!this.supportsSelection()) return;
+        if (!this.supportsSelectionDrag()) return;
 
         const { enabled, enableDrag } = this.opts;
         const { dragStartEvent } = this;
@@ -248,12 +267,17 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         const changes = this.allocSelectionChanges();
         const shouldClearSelections: boolean = !hasAddToSelectionModifier(dragEndEvent);
+        // On a clear-and-replace drag every series sees a state transition
+        // (Item/OtherItem flips for each rendered marker), so dispatch the
+        // internal change to all of them — error-bar styling and other
+        // per-marker consumers wouldn't otherwise re-render the previously
+        // selected series.
+        const changedSeries = new Set<Series>(shouldClearSelections ? this.ctx.chartService.series : undefined);
         if (shouldClearSelections) {
             clearAllSelections(changes, this.state, this.ctx.chartService.series);
         }
 
         const bbox = toBBox(dragStartEvent, dragEndEvent);
-        const changedSeries: Series[] = [];
         const intervalSet = new IntervalSet();
 
         for (const series of this.ctx.chartService.series) {
@@ -265,38 +289,45 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             let changed = false;
             intervalSet.clear();
 
-            const getRangeOfAggregateIndex = series.getAggregateRangeReader();
+            const bucketLookup = series.ensureBucketLookupFeature();
+            const getRangeOfAggregateIndex = bucketLookup?.getRangeReader();
 
             for (const datum of series.pickNodesInBBox(bbox)) {
-                if (asNumericDatumIndex(datum.datumIndex)) {
-                    if (getRangeOfAggregateIndex) {
-                        const range = getRangeOfAggregateIndex(datum.datumIndex);
-                        if (!intervalSet.has(datum.datumIndex)) {
-                            const [start, end] = range;
-                            if (asNumericDatumIndex(start) && asNumericDatumIndex(end)) {
-                                changed = true;
-                                intervalSet.add(start, end);
-                            }
-                        }
-                    } else {
+                if (!asNumericDatumIndex(datum.datumIndex)) continue;
+
+                const indexSet = bucketLookup?.getIndexSet(datum.datumIndex);
+                if (getRangeOfAggregateIndex) {
+                    const range = getRangeOfAggregateIndex(datum.datumIndex);
+                    if (range && !intervalSet.has(datum.datumIndex)) {
+                        const [start, end] = range;
                         changed = true;
-                        setSelected(changes, series, data, datum.datumIndex);
+                        intervalSet.add(start, end);
+                    }
+                } else if (indexSet === undefined) {
+                    changed = true;
+                    setSelected(changes, series, data, datum.datumIndex);
+                } else {
+                    for (const idx of indexSet) {
+                        changed = true;
+                        setSelected(changes, series, data, idx);
                     }
                 }
             }
 
             for (const interval of intervalSet.values()) {
                 // NOTE: `end` is inclusive in IntervalSet but exclusive in DataSetSelection
-                setSelectedRange(changes, series, data, shouldClearSelections, interval.start, interval.end + 1);
+                setSelectedRange(changes, series, data, interval.start, interval.end + 1);
             }
 
             if (changed) {
-                changedSeries.push(series);
+                changedSeries.add(series);
             }
         }
 
-        this.dispatchInternalSelectionChange(changedSeries, changes);
+        // External listener fires first so any rollback completes before we
+        // refresh per-series bucket caches against the final bitset state.
         this.dispatchExternalSelectionChange('user-interaction', changes);
+        this.dispatchInternalSelectionChange(changedSeries, changes);
         this.endDrag();
     }
 
@@ -316,7 +347,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.ctx.eventsHub.emit('chart:request-update', { type, opts: { skipAnimations: true } });
     }
 
-    private dispatchInternalSelectionChange(changedSeries: Series[], changes: SelectionChanges): void {
+    private dispatchInternalSelectionChange(changedSeries: Iterable<Series>, changes: SelectionChanges): void {
         this.state.selectedCount += changes.countDelta;
         for (const series of changedSeries) {
             series.events.emit('data-selection-change', null);
@@ -355,5 +386,9 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     private allocSelectionChanges(): SelectionChanges {
         if (!this.ctx.chartService.hasListener('selectionChange')) return { countDelta: 0 };
         return { countDelta: 0, added: [], removed: [] };
+    }
+
+    private hasUnknownModifier(event: _Widget.DragWidgetEvent): boolean {
+        return event.sourceEvent.altKey || event.sourceEvent.shiftKey;
     }
 }

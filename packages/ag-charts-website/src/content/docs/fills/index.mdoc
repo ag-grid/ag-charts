@@ -10,13 +10,13 @@ Series and Markers can have solid, gradient and pattern fills, allowing for uniq
 
 Supported Fill Types are:
 
--   **Solid Fill**: A single CSS colour (provided as a `#rgb` hex code, `rgb()` or `rgba()` values, or [a CSS colour name](https://developer.mozilla.org/en-US/docs/Web/CSS/named-color) such as 'black').
+- **Solid Fill**: A single CSS colour (provided as a `#rgb` hex code, `rgb()` or `rgba()` values, or [a CSS colour name](https://developer.mozilla.org/en-US/docs/Web/CSS/named-color) such as 'black').
 
--   **Gradient Fill**: A transition between multiple colours.
+- **Gradient Fill**: A transition between multiple colours.
 
--   **Pattern Fill**: Predefined patterns including lines and shapes, or a user provided path.
+- **Pattern Fill**: Predefined patterns including lines and shapes, or a user provided path.
 
--   **Image Fill**: A user provided image.
+- **Image Fill**: A user provided image.
 
 The default colours and fills come from the default or user provided [Theme Palette](./themes/#palette).
 
@@ -68,8 +68,8 @@ Gradient `colorStops` define an array of colours for the gradient to use.
 
 The array should contain a minimum of two objects, with each object providing optional values for:
 
--   `color`: Any valid CSS colour value.
--   `stop`: A ratio between `0` and `1` indicating the position within the gradient where the colour changes.
+- `color`: Any valid CSS colour value.
+- `stop`: A ratio between `0` and `1` indicating the position within the gradient where the colour changes.
 
 ```js format="snippet"
 {
@@ -91,9 +91,9 @@ The array should contain a minimum of two objects, with each object providing op
 
 In this configuration:
 
--   Each colour stops at the `stop` value, and the next colour begins at that point.
--   If no `stop` is provided, the fills will be distributed equally.
--   The last colour is used until the end of the gradient scale.
+- Each colour stops at the `stop` value, and the next colour begins at that point.
+- If no `stop` is provided, the fills will be distributed equally.
+- The last colour is used until the end of the gradient scale.
 
 See the [Gradient API reference](#reference-AgGradientColor) for all the available options.
 
@@ -120,8 +120,8 @@ Any of the [stock patterns](#reference-AgPatternColor-pattern) can be provided i
 
 Stock patterns include:
 
--   Lines: `vertical-lines`, `horizontal-lines`, `forward-slanted-lines`, `backward-slanted-lines`.
--   Shapes: `squares`, `circles`, `triangles`, `diamonds`, `stars`, `hearts`, `crosses`.
+- Lines: `vertical-lines`, `horizontal-lines`, `forward-slanted-lines`, `backward-slanted-lines`.
+- Shapes: `squares`, `circles`, `triangles`, `diamonds`, `stars`, `hearts`, `crosses`.
 
 {% chartExampleRunner title="Pattern Fill Customisation" name="pattern-fill-customisation" type="generated" /%}
 
@@ -133,8 +133,8 @@ SVG Path Data can be used to create custom patterns. The path can be a line or a
 
 {% chartExampleRunner title="Pattern Custom Path" name="pattern-custom-path" type="generated" /%}
 
--   To remove the stroke, set `strokeWidth` to `0`
--   To remove the fill, set `fill` to `none`.
+- To remove the stroke, set `strokeWidth` to `0`
+- To remove the fill, set `fill` to `none`.
 
 ```js format="snippet"
 {
@@ -149,8 +149,8 @@ SVG Path Data can be used to create custom patterns. The path can be a line or a
 }
 ```
 
--   In the snippet above, the string in the `fill.path` property is an SVG path.
--   It is the value of the `d` attribute on the SVG <path>, in the SVG element shown below.
+- In the snippet above, the string in the `fill.path` property is an SVG path.
+- It is the value of the `d` attribute on the SVG <path>, in the SVG element shown below.
 
 ```html
 <svg viewBox="0 0 16 10">
@@ -189,10 +189,10 @@ The `backgroundFill` and `backgroundFillOpacity` properties provide a fallback i
 
 `image.fit` controls how the image is scaled within the shape. In the example above:
 
--   **Contain**: Scales the image to fit entirely within the shape area without cropping, preserving the aspect ratio of the image. This may leave empty space in one dimension.
--   **Cover**: Scales the image to cover the shape area, potentially cropping parts of the image if the aspect ratios don’t match.
--   **Stretch**: Stretches the image to fill the shape area, ignoring the original aspect ratio, this can distort the image.
--   **None**: Displays the image at its original size and resolution, without any scaling. The image may be clipped depending on the shape size.
+- **Contain**: Scales the image to fit entirely within the shape area without cropping, preserving the aspect ratio of the image. This may leave empty space in one dimension.
+- **Cover**: Scales the image to cover the shape area, potentially cropping parts of the image if the aspect ratios don’t match.
+- **Stretch**: Stretches the image to fill the shape area, ignoring the original aspect ratio, this can distort the image.
+- **None**: Displays the image at its original size and resolution, without any scaling. The image may be clipped depending on the shape size.
 
 ### Image Tiling
 

@@ -6,9 +6,9 @@
 
 This is a minimal upgrade guide page that covers:
 
--   Link to release blog post for feature highlights
--   One deprecation notice: `AgNodeContextMenuActionEvent.itemId`
--   Reference to full changelog
+- Link to release blog post for feature highlights
+- One deprecation notice: `AgNodeContextMenuActionEvent.itemId`
+- Reference to full changelog
 
 ### Key Documentation Claims
 
@@ -18,18 +18,17 @@ This is a minimal upgrade guide page that covers:
 
 ### Examples Referenced
 
--   No examples are present on this page
+- No examples are present on this page
 
 ### Interactive Features Described
 
--   No interactive features are documented on this page
+- No interactive features are documented on this page
 
 ## Validation Targets
 
 ### TypeScript Interfaces to Verify
 
 1. **`AgNodeContextMenuActionEvent` in `packages/ag-charts-types/src/chart/eventOptions.ts`**
-
     - Verify if `itemId` property exists (deprecated or not)
     - Confirm that it extends `AgNodeClickEvent` as indicated
     - Check if deprecation is properly marked with `@deprecated` JSDoc
@@ -41,7 +40,6 @@ This is a minimal upgrade guide page that covers:
 ### Implementation Files to Check
 
 1. **Context menu event handling in core packages**
-
     - Search for usage of `AgNodeContextMenuActionEvent` in implementation
     - Verify if `itemId` is still being set/used in the code
     - Check for any migration logic or warnings
@@ -63,7 +61,6 @@ No `technical-review-exceptions.md` file exists for this page.
 ### Priority 1: TypeScript Definition Validation
 
 1. **Task**: Verify `AgNodeContextMenuActionEvent.itemId` deprecation
-
     - Check if `itemId` property exists on the type
     - Verify if it has `@deprecated` JSDoc annotation
     - Confirm the type extends `AgNodeClickEvent` as claimed
@@ -85,7 +82,6 @@ No `technical-review-exceptions.md` file exists for this page.
 ### Priority 3: Documentation Completeness
 
 4. **Task**: Verify changelog link functionality
-
     - Check if the changelog link works and shows 9.2.0 changes
     - Verify the changelog contains the mentioned deprecation
     - **Success Criteria**: Changelog is accessible and contains relevant information
@@ -104,9 +100,9 @@ No `technical-review-exceptions.md` file exists for this page.
 
 ## Estimated Complexity
 
--   **Low complexity**: This is a simple deprecation documentation with no examples
--   **Estimated time**: 15-20 minutes for complete validation
--   **Main focus**: TypeScript definition verification and deprecation accuracy
+- **Low complexity**: This is a simple deprecation documentation with no examples
+- **Estimated time**: 15-20 minutes for complete validation
+- **Main focus**: TypeScript definition verification and deprecation accuracy
 
 ## Charts QA Tester Agent Delegation Plan
 
@@ -114,6 +110,6 @@ Not applicable - no examples to test on this page.
 
 ## Notes
 
--   This is a minimal upgrade guide focused on a single deprecation
--   The lack of code examples means validation will focus primarily on TypeScript definitions and implementation verification
--   The deprecation appears to be a refactoring where `itemId` information is now available through inherited properties from `AgNodeClickEvent`
+- This is a minimal upgrade guide focused on a single deprecation
+- The lack of code examples means validation will focus primarily on TypeScript definitions and implementation verification
+- The deprecation appears to be a refactoring where `itemId` information is now available through inherited properties from `AgNodeClickEvent`

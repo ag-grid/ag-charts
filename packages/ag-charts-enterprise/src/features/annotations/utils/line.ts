@@ -2,7 +2,7 @@ import type { AgAnnotationLineStyleType, PixelSize, _ModuleSupport } from 'ag-ch
 import { type Bounds4, type Point, Vec2 } from 'ag-charts-core';
 
 export function getLineStyle(lineDash?: PixelSize[], lineStyle?: AgAnnotationLineStyleType) {
-    return lineDash ? 'dashed' : lineStyle ?? 'solid';
+    return lineDash ? 'dashed' : (lineStyle ?? 'solid');
 }
 
 export function getComputedLineDash(strokeWidth: number, styleType: AgAnnotationLineStyleType): PixelSize[] {
@@ -32,7 +32,7 @@ export function getLineCap(
     lineStyle?: AgAnnotationLineStyleType
 ): _ModuleSupport.ShapeLineCap | undefined {
     const styleType = getLineStyle(lineDash, lineStyle);
-    return lineCap ?? styleType === 'dotted' ? 'round' : undefined;
+    return (lineCap ?? styleType === 'dotted') ? 'round' : undefined;
 }
 
 /**

@@ -27,8 +27,7 @@ export type AgHeatmapSeriesTooltipRendererParams<
     AgHeatmapSeriesStyle;
 
 export interface AgHeatmapSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends StrokeOptions,
-        Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'> {
+    extends StrokeOptions, Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'> {
     /** Options for the label in each cell. */
     label?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Minimum distance between the label text and the edges of the cell. */
@@ -64,7 +63,8 @@ export interface AgHeatmapSeriesOptionsNames {
 }
 
 export interface AgHeatmapSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'showInLegend'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'showInLegend'>,
         AgBaseCartesianSeriesAxisOptions,
         AgHeatmapSeriesOptionsKeys<TDatum>,
         AgHeatmapSeriesOptionsNames,

@@ -35,7 +35,9 @@ const options: AgChartOptions = {
             yName: 'City',
             colorKey: 'temperature',
             colorName: 'Temperature',
-            colorRange: ['lightblue', 'lightyellow', 'orange', 'red'],
+            colorScale: {
+                fills: [{ color: 'lightblue' }, { color: 'lightyellow' }, { color: 'orange' }, { color: 'red' }],
+            },
             tooltip: {
                 renderer: ({ datum, xKey, yKey, colorKey }) => {
                     const [year, quarter] = datum[xKey];

@@ -1,8 +1,10 @@
 import {
+    type AgOrganizationSeriesExpanderStyle,
     type AgOrganizationSeriesLinkStyle,
     type AgOrganizationSeriesNodeStyle,
     type AgOrganizationSeriesNodeTextStyle,
     type AgOrganizationSeriesOptions,
+    type AgOrganizationSeriesOptionsExpander,
     type AgOrganizationSeriesOptionsLink,
     type AgOrganizationSeriesOptionsLinkStepInterpolation,
     type AgOrganizationSeriesOptionsNode,
@@ -37,6 +39,32 @@ import {
     union,
 } from 'ag-charts-core';
 
+const expander: OptionsDefs<AgOrganizationSeriesOptionsExpander> = {
+    ...fillOptionsDef,
+    ...lineDashOptionsDef,
+    ...strokeOptionsDef,
+    cornerRadius: positiveNumber,
+    enabled: boolean,
+    itemStyler: callbackDefs<AgOrganizationSeriesExpanderStyle>({
+        ...fillOptionsDef,
+        ...lineDashOptionsDef,
+        ...strokeOptionsDef,
+        cornerRadius: positiveNumber,
+        enabled: boolean,
+        padding: positiveNumber,
+        text: {
+            ...fontOptionsDef,
+            textAlign: textAlign,
+        },
+    }),
+    padding: positiveNumber,
+    text: {
+        ...fontOptionsDef,
+        textAlign: textAlign,
+        // formatter: callbackOf(textOrSegments),
+    },
+};
+
 const stepInterpolation: OptionsDefs<AgOrganizationSeriesOptionsLinkStepInterpolation> = {
     type: required(constant('step')),
     cornerRadius: positiveNumber,
@@ -54,12 +82,12 @@ const link: OptionsDefs<AgOrganizationSeriesOptionsLink> = {
 };
 
 const nodeImage: OptionsDefs<AgOrganizationSeriesOptionsNodeImage> = {
+    cornerRadius: positiveNumber,
     enabled: boolean,
     key: string,
     height: positiveNumberNonZero,
     width: positiveNumberNonZero,
     position: union('bottom', 'left', 'right', 'top'),
-    shape: union('circle', 'square'),
     spacing: positiveNumber,
 };
 
@@ -87,14 +115,14 @@ const node: OptionsDefs<AgOrganizationSeriesOptionsNode> = {
     ...fillOptionsDef,
     ...lineDashOptionsDef,
     ...strokeOptionsDef,
-    cornerRadius: number,
+    cornerRadius: positiveNumber,
     height: number,
     image: nodeImage,
     itemStyler: callbackDefs<AgOrganizationSeriesNodeStyle>({
         ...fillOptionsDef,
         ...lineDashOptionsDef,
         ...strokeOptionsDef,
-        cornerRadius: number,
+        cornerRadius: positiveNumber,
         height: number,
         image: nodeImage,
         maxHeight: number,
@@ -115,6 +143,7 @@ export const organizationSeriesOptionsDef: OptionsDefs<AgOrganizationSeriesOptio
     ...commonSeriesOptionsDefs,
     ..._ModuleSupport.organizationSeriesThemeableOptionsDef,
     type: required(constant('organization')),
+    expander: expander,
     idKey: string,
     link: link,
     node: node,

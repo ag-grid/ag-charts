@@ -17,7 +17,7 @@ const LICENSE_TYPES = {
 const LICENSING_HELP_URL = 'https://www.ag-grid.com/charts/licensing/';
 
 export class LicenseManager {
-    private static readonly RELEASE_INFORMATION: string = 'MTc3NTU0ODM5NDIwNA==';
+    private static readonly RELEASE_INFORMATION: string = 'MTc3ODI1NzUzNDIyOA==';
     private static licenseKey?: string;
     private static gridContext: boolean = false;
     private static licenseOutputLogged = false;
@@ -240,7 +240,7 @@ export class LicenseManager {
         if (!this.document) {
             return false;
         }
-        const win = this.document?.defaultView ?? globalThis.window != undefined ? globalThis : undefined;
+        const win = (this.document?.defaultView ?? globalThis.window != undefined) ? globalThis : undefined;
         if (!win) {
             return false;
         }

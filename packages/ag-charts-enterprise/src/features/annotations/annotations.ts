@@ -106,6 +106,7 @@ export class Annotations extends AbstractModuleInstance {
     private yAxis?: AnnotationAxis;
 
     private postUpdateFns: Array<() => void> = [];
+    private isRestoringMemento = false;
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
@@ -709,13 +710,18 @@ export class Annotations extends AbstractModuleInstance {
                 return current != null && current.type === (annotation.type as AnnotationType);
             });
 
-        if (canPatchInPlace) {
-            for (let i = 0; i < annotations.length; i += 1) {
-                this.annotationData[i].set(annotations[i]);
+        this.isRestoringMemento = true;
+        try {
+            if (canPatchInPlace) {
+                for (let i = 0; i < annotations.length; i += 1) {
+                    this.annotationData[i].set(annotations[i]);
+                }
+            } else {
+                this.reset();
+                this.annotationData.set(annotations);
             }
-        } else {
-            this.reset();
-            this.annotationData.set(annotations);
+        } finally {
+            this.isRestoringMemento = false;
         }
 
         this.postUpdateFns.push(() => {
@@ -835,6 +841,10 @@ export class Annotations extends AbstractModuleInstance {
         } = this;
         const annotationManager = ctx.annotationManager;
         if (!annotationManager) return;
+
+        // Suppress history records caused by side-effects of restoring a memento (undo/redo) — recording them
+        // would truncate the redo stack. See CRT-1094.
+        if (this.isRestoringMemento) return;
 
         const originators = types.map((type) => (type === 'defaults' ? defaults : annotationManager));
         this.postUpdateFns.push(() => {
@@ -985,6 +995,9 @@ export class Annotations extends AbstractModuleInstance {
         const { state } = this;
 
         this.pushAnnotationState(InteractionState.Annotations);
+        // AG-16815 Keep the focus on the series-area element. The axis button can disappear on 'mouseleave' events,
+        // which clears the current focus as a consequence.
+        this.ctx.widgets.seriesWidget.focus({ preventScroll: true });
 
         const isHorizontal = direction === 'horizontal';
         state.transition(isHorizontal ? AnnotationType.HorizontalLine : AnnotationType.VerticalLine);
