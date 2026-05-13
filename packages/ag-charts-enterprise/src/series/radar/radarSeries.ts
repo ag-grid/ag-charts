@@ -62,6 +62,31 @@ interface RadarSeriesNodeDataContext extends _ModuleSupport.SeriesNodeDataContex
     styles: _ModuleSupport.SeriesNodeStyleContext<AgSeriesMarkerStyle>;
 }
 
+/** Per-pass context for the radar marker-style passes (shared by no-itemStyler and itemStyler paths). */
+interface RadarPassCtx {
+    marker: RadarSeriesProperties<any, any>['marker'];
+    isHighlight: boolean;
+}
+
+type RadarNoStylerCompute = _ModuleSupport.MarkerStyleCompute<
+    RadarSeries<any, any, any>,
+    RadarPassCtx,
+    RadarNodeDatum,
+    AgSeriesMarkerStyle
+>;
+type RadarStylerCompute = _ModuleSupport.MarkerStyleCompute<
+    RadarSeries<any, any, any>,
+    RadarPassCtx,
+    RadarNodeDatum,
+    ResolvedRadarStyle<any>
+>;
+type RadarStylerApply = _ModuleSupport.MarkerStyleApply<
+    RadarSeries<any, any, any>,
+    RadarPassCtx,
+    RadarNodeDatum,
+    ResolvedRadarStyle<any>
+>;
+
 type StylerResult<TStyle extends AgRadarSeriesStyle> = TStyle & { marker?: { enabled?: boolean } };
 
 type BaseRadarSeries = RadarSeries<
@@ -400,17 +425,13 @@ export abstract class RadarSeries<
         };
     }
 
-    // Static callbacks for runMarkerStylePass — see helper for the V8 IC rationale.
-    // `series: RadarSeries<any, any, any>` avoids spreading TStyle/TOpts/TProps into the static signatures.
-
-    private static computeNoStylerMarkerStyle(
-        this: void,
-        series: RadarSeries<any, any, any>,
-        ctx: { marker: RadarSeriesProperties<any, any>['marker']; isHighlight: boolean },
-        highlightState: _ModuleSupport.HighlightState,
-        selectionState: _ModuleSupport.SelectionState | undefined,
-        datum: RadarNodeDatum
-    ): AgSeriesMarkerStyle {
+    private static readonly computeNoStylerMarkerStyle: RadarNoStylerCompute = (
+        series,
+        ctx,
+        highlightState,
+        selectionState,
+        datum
+    ) => {
         const stylerStyle = series.getStyle(highlightState);
         const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
         // No hideWithSize0 — polar series don't use the cartesian markerDrawMode mechanism.
@@ -422,28 +443,20 @@ export abstract class RadarSeries<
             stylerStyle.marker,
             { stroke, strokeWidth, strokeOpacity }
         );
-    }
+    };
 
-    private static computeStylerStyle(
-        this: void,
-        series: RadarSeries<any, any, any>,
-        _ctx: { marker: RadarSeriesProperties<any, any>['marker']; isHighlight: boolean },
-        highlightState: _ModuleSupport.HighlightState,
-        _selectionState: _ModuleSupport.SelectionState | undefined,
-        _datum: RadarNodeDatum
-    ): ResolvedRadarStyle<any> {
+    private static readonly computeStylerStyle: RadarStylerCompute = (series, _ctx, highlightState) => {
         return series.getStyle(highlightState);
-    }
+    };
 
-    private static applyStylerDatum(
-        this: void,
-        series: RadarSeries<any, any, any>,
-        ctx: { marker: RadarSeriesProperties<any, any>['marker']; isHighlight: boolean },
-        datum: RadarNodeDatum,
-        highlightState: _ModuleSupport.HighlightState,
-        selectionState: _ModuleSupport.SelectionState | undefined,
-        stylerStyle: ResolvedRadarStyle<any>
-    ): void {
+    private static readonly applyStylerDatum: RadarStylerApply = (
+        series,
+        ctx,
+        datum,
+        highlightState,
+        selectionState,
+        stylerStyle
+    ) => {
         const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
         // No hideWithSize0 — polar series don't use the cartesian markerDrawMode mechanism.
         datum.style = series.getMarkerStyle(
@@ -454,7 +467,7 @@ export abstract class RadarSeries<
             stylerStyle.marker,
             { stroke, strokeWidth, strokeOpacity }
         );
-    }
+    };
 
     protected updateDatumStyles(
         selection: _ModuleSupport.Selection<RadarNodeDatum, _ModuleSupport.Marker<RadarNodeDatum>>,
@@ -462,30 +475,27 @@ export abstract class RadarSeries<
     ) {
         const { marker } = this.properties;
         const { itemStyler } = marker;
-        const ctx = { marker, isHighlight };
+        const ctx: RadarPassCtx = { marker, isHighlight };
 
         if (itemStyler == null) {
             // No itemStyler: style is a pure function of (highlightState, selectionState).
-            this.runMarkerStylePass(
+            this.runMarkerStylePass<RadarPassCtx, RadarNodeDatum, AgSeriesMarkerStyle, RadarSeries<any, any, any>>(
                 selection,
                 isHighlight,
                 ctx,
-                undefined,
-                true,
-                RadarSeries.computeNoStylerMarkerStyle,
-                RadarSeries.assignCachedStyle
+                {
+                    compute: RadarSeries.computeNoStylerMarkerStyle,
+                    apply: _ModuleSupport.Series.assignCachedStyle,
+                }
             );
             return;
         }
 
-        this.runMarkerStylePass(
+        this.runMarkerStylePass<RadarPassCtx, RadarNodeDatum, ResolvedRadarStyle<any>, RadarSeries<any, any, any>>(
             selection,
             isHighlight,
             ctx,
-            undefined,
-            true,
-            RadarSeries.computeStylerStyle,
-            RadarSeries.applyStylerDatum
+            { compute: RadarSeries.computeStylerStyle, apply: RadarSeries.applyStylerDatum }
         );
     }
 

@@ -71,6 +71,8 @@ import { Marker } from '../../marker/marker';
 import { type TooltipContent, type TooltipContentDataRow, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { IndexSetBucketLookupManager } from '../bucketLookupFeature';
 import {
+    type MarkerStyleApply,
+    type MarkerStyleCompute,
     type PickFocusInputs,
     type SeriesNodePickMatch,
     SeriesNodePickMode,
@@ -119,7 +121,7 @@ import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 type BubbleScatterAnimationData = CartesianAnimationDataOf<BubbleSeriesTypes>;
 
-/** Per-pass context for the no-itemStyler/no-colorScale marker-style pass. */
+/** Per-pass context for the no-itemStyler / no-colorScale marker-style pass. */
 interface BubbleNoStylerPassCtx {
     marker: BubbleSeriesProperties['marker'];
     params: { xKey: string; yKey: string; sizeKey?: string; labelKey?: string; colorKey?: string };
@@ -131,6 +133,31 @@ interface BubbleStylerPassCtx extends BubbleNoStylerPassCtx {
     colorScaleValid: boolean;
     colorKey: string | undefined;
 }
+
+type BubbleNoStylerCompute = MarkerStyleCompute<
+    BubbleSeries,
+    BubbleNoStylerPassCtx,
+    BubbleScatterNodeDatum,
+    AgSeriesMarkerStyle
+>;
+type BubbleNoStylerApply = MarkerStyleApply<
+    BubbleSeries,
+    BubbleNoStylerPassCtx,
+    BubbleScatterNodeDatum,
+    AgSeriesMarkerStyle
+>;
+type BubbleStylerCompute = MarkerStyleCompute<
+    BubbleSeries,
+    BubbleStylerPassCtx,
+    BubbleScatterNodeDatum,
+    ReturnType<BubbleSeries['getStyle']>
+>;
+type BubbleStylerApply = MarkerStyleApply<
+    BubbleSeries,
+    BubbleStylerPassCtx,
+    BubbleScatterNodeDatum,
+    ReturnType<BubbleSeries['getStyle']>
+>;
 
 class BubbleScatterSeriesNodeEvent<
     TEvent extends string = SeriesNodeEventTypes,
@@ -978,16 +1005,13 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         return datumSelection.update(nodeData, undefined, getId);
     }
 
-    // Static callbacks for runMarkerStylePass — see helper for the V8 IC rationale.
-
-    private static computeNoStylerMarkerTemplate(
-        this: void,
-        series: BubbleSeries,
-        ctx: BubbleNoStylerPassCtx,
-        highlightState: HighlightState,
-        selectionState: SelectionState | undefined,
-        datum: BubbleScatterNodeDatum
-    ): AgSeriesMarkerStyle {
+    private static readonly computeNoStylerMarkerTemplate: BubbleNoStylerCompute = (
+        series,
+        ctx,
+        highlightState,
+        selectionState,
+        datum
+    ) => {
         const stylerStyle = series.getStyle(highlightState);
         return series.getMarkerStyle(
             ctx.marker,
@@ -996,41 +1020,25 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             { isHighlight: ctx.isHighlight, highlightState, selectionState, resolveMarkerSubPath: [] },
             { ...stylerStyle, size: datum.point.size }
         );
-    }
+    };
 
-    private static applyNoStylerTemplate(
-        this: void,
-        _series: BubbleSeries,
-        _ctx: BubbleNoStylerPassCtx,
-        datum: BubbleScatterNodeDatum,
-        _highlightState: HighlightState,
-        _selectionState: SelectionState | undefined,
-        template: AgSeriesMarkerStyle
-    ): void {
+    private static readonly applyNoStylerTemplate: BubbleNoStylerApply = (_series, _ctx, datum, _h, _s, template) => {
         // Reuse the cached object directly when size matches (e.g. ScatterSeries with fixed size).
         datum.style = template.size === datum.point.size ? template : { ...template, size: datum.point.size };
-    }
+    };
 
-    private static computePerDatumStylerStyle(
-        this: void,
-        series: BubbleSeries,
-        _ctx: BubbleStylerPassCtx,
-        highlightState: HighlightState,
-        _selectionState: SelectionState | undefined,
-        _datum: BubbleScatterNodeDatum
-    ): ReturnType<BubbleSeries['getStyle']> {
+    private static readonly computePerDatumStylerStyle: BubbleStylerCompute = (series, _ctx, highlightState) => {
         return series.getStyle(highlightState);
-    }
+    };
 
-    private static applyPerDatumStyle(
-        this: void,
-        series: BubbleSeries,
-        ctx: BubbleStylerPassCtx,
-        datum: BubbleScatterNodeDatum,
-        highlightState: HighlightState,
-        selectionState: SelectionState | undefined,
-        stylerStyle: ReturnType<BubbleSeries['getStyle']>
-    ): void {
+    private static readonly applyPerDatumStyle: BubbleStylerApply = (
+        series,
+        ctx,
+        datum,
+        highlightState,
+        selectionState,
+        stylerStyle
+    ) => {
         if (ctx.colorScaleValid && datum.colorValue != null) {
             stylerStyle.fill = series.colorScale.convert(datum.colorValue);
         } else if (
@@ -1047,7 +1055,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             { isHighlight: ctx.isHighlight, highlightState, selectionState, resolveMarkerSubPath: [] },
             { ...stylerStyle, size: datum.point.size }
         );
-    }
+    };
 
     override updateDatumStyles(opts: {
         datumSelection: Selection<BubbleScatterNodeDatum, Marker<BubbleScatterNodeDatum>>;
@@ -1056,33 +1064,38 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const { datumSelection, isHighlight } = opts;
         const { xKey, yKey, sizeKey, labelKey, colorKey, marker } = this.properties;
         const colorScaleValid = this.isColorScaleValid();
-
         const params = { xKey, yKey, sizeKey, labelKey, colorKey };
 
         if (marker.itemStyler == null && !colorScaleValid) {
             // No itemStyler / colour-scale: only datum.point.size varies per datum, so cache a
             // per-state template and splice the size in at apply time.
-            this.runMarkerStylePass(
+            this.runMarkerStylePass<BubbleNoStylerPassCtx, BubbleScatterNodeDatum, AgSeriesMarkerStyle, BubbleSeries>(
                 datumSelection,
                 isHighlight,
-                { marker, params, isHighlight } satisfies BubbleNoStylerPassCtx,
-                undefined,
-                true,
-                BubbleSeries.computeNoStylerMarkerTemplate,
-                BubbleSeries.applyNoStylerTemplate
+                { marker, params, isHighlight },
+                {
+                    compute: BubbleSeries.computeNoStylerMarkerTemplate,
+                    apply: BubbleSeries.applyNoStylerTemplate,
+                }
             );
             return;
         }
 
         // colorKey forces cacheable=false: applyPerDatumStyle mutates stylerStyle.fill per datum.
-        this.runMarkerStylePass(
+        this.runMarkerStylePass<
+            BubbleStylerPassCtx,
+            BubbleScatterNodeDatum,
+            ReturnType<BubbleSeries['getStyle']>,
+            BubbleSeries
+        >(
             datumSelection,
             isHighlight,
-            { marker, params, isHighlight, colorScaleValid, colorKey } satisfies BubbleStylerPassCtx,
-            undefined,
-            colorKey == null,
-            BubbleSeries.computePerDatumStylerStyle,
-            BubbleSeries.applyPerDatumStyle
+            { marker, params, isHighlight, colorScaleValid, colorKey },
+            {
+                cacheable: colorKey == null,
+                compute: BubbleSeries.computePerDatumStylerStyle,
+                apply: BubbleSeries.applyPerDatumStyle,
+            }
         );
     }
 

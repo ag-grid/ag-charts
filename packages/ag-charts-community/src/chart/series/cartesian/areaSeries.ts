@@ -62,7 +62,13 @@ import { Marker } from '../../marker/marker';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { AggregationManager } from '../aggregationManager';
 import { type BucketLookupFeature, BucketLookupManager } from '../bucketLookupFeature';
-import { type PickFocusInputs, SeriesNodePickMode } from '../series';
+import {
+    type MarkerStyleApply,
+    type MarkerStyleCompute,
+    type PickFocusInputs,
+    Series,
+    SeriesNodePickMode,
+} from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { toHighlightString, toSelectionString } from '../seriesProperties';
 import { HighlightState, SelectionState } from '../seriesTypes';
@@ -106,6 +112,38 @@ import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClip
 import { calculateSegments } from './util';
 
 type AreaAnimationData = CartesianAnimationDataOf<AreaSeriesTypes>;
+
+/** Per-pass context for the no-itemStyler marker-style pass. */
+interface AreaNoStylerPassCtx {
+    marker: AreaSeriesProperties['marker'];
+    hideWithSize0: boolean;
+    isHighlight: boolean;
+}
+
+/** Per-pass context for the itemStyler marker-style pass. */
+interface AreaStylerPassCtx extends AreaNoStylerPassCtx {
+    dataModel: DataModel<any, any, any>;
+    processedData: ProcessedData<any>;
+}
+
+type AreaNoStylerCompute = MarkerStyleCompute<
+    AreaSeries,
+    AreaNoStylerPassCtx,
+    MarkerSelectionDatum,
+    AgSeriesMarkerStyle
+>;
+type AreaStylerCompute = MarkerStyleCompute<
+    AreaSeries,
+    AreaStylerPassCtx,
+    MarkerSelectionDatum,
+    ReturnType<AreaSeries['getStyle']>
+>;
+type AreaStylerApply = MarkerStyleApply<
+    AreaSeries,
+    AreaStylerPassCtx,
+    MarkerSelectionDatum,
+    ReturnType<AreaSeries['getStyle']>
+>;
 
 interface StackRange {
     leading: number;
@@ -164,15 +202,6 @@ interface AreaNodeDatumScratch {
     x: number;
     y: number;
     validPoint: boolean;
-}
-
-/** Per-pass context for the itemStyler marker-style pass. */
-interface AreaStylerPassCtx {
-    marker: AreaSeriesProperties['marker'];
-    hideWithSize0: boolean;
-    isHighlight: boolean;
-    dataModel: DataModel<any, any, any>;
-    processedData: ProcessedData<any>;
 }
 
 /**
@@ -1322,16 +1351,13 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         return datumSelection.update(data, undefined, (datum) => createDatumId(datum.xValue));
     }
 
-    // Static callbacks for runMarkerStylePass — see helper for the V8 IC rationale.
-
-    private static computeNoStylerMarkerStyle(
-        this: void,
-        series: AreaSeries,
-        ctx: { marker: AreaSeriesProperties['marker']; hideWithSize0: boolean; isHighlight: boolean },
-        highlightState: HighlightState,
-        selectionState: SelectionState | undefined,
-        datum: MarkerSelectionDatum
-    ): AgSeriesMarkerStyle {
+    private static readonly computeNoStylerMarkerStyle: AreaNoStylerCompute = (
+        series,
+        ctx,
+        highlightState,
+        selectionState,
+        datum
+    ) => {
         const stylerStyle = series.getStyle(highlightState);
         return series.getMarkerStyle(
             ctx.marker,
@@ -1345,28 +1371,20 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                 strokeOpacity: stylerStyle.strokeOpacity,
             }
         );
-    }
+    };
 
-    private static computeStylerStyle(
-        this: void,
-        series: AreaSeries,
-        _ctx: AreaStylerPassCtx,
-        highlightState: HighlightState,
-        _selectionState: SelectionState | undefined,
-        _datum: MarkerSelectionDatum
-    ): ReturnType<AreaSeries['getStyle']> {
+    private static readonly computeStylerStyle: AreaStylerCompute = (series, _ctx, highlightState) => {
         return series.getStyle(highlightState);
-    }
+    };
 
-    private static applyStylerDatum(
-        this: void,
-        series: AreaSeries,
-        ctx: AreaStylerPassCtx,
-        datum: MarkerSelectionDatum,
-        highlightState: HighlightState,
-        selectionState: SelectionState | undefined,
-        stylerStyle: ReturnType<AreaSeries['getStyle']>
-    ): void {
+    private static readonly applyStylerDatum: AreaStylerApply = (
+        series,
+        ctx,
+        datum,
+        highlightState,
+        selectionState,
+        stylerStyle
+    ) => {
         const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
         const params = series.makeItemStylerParams(
             ctx.dataModel,
@@ -1382,7 +1400,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             stylerStyle.marker,
             { stroke, strokeWidth, strokeOpacity }
         );
-    }
+    };
 
     protected override updateDatumStyles(opts: {
         datumSelection: Selection<MarkerSelectionDatum, Marker<MarkerSelectionDatum>>;
@@ -1395,14 +1413,11 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
 
         if (itemStyler == null) {
             // No itemStyler: style is a pure function of (highlightState, selectionState).
-            this.runMarkerStylePass(
+            this.runMarkerStylePass<AreaNoStylerPassCtx, MarkerSelectionDatum, AgSeriesMarkerStyle, AreaSeries>(
                 datumSelection,
                 isHighlight,
                 { marker, hideWithSize0, isHighlight },
-                undefined,
-                true,
-                AreaSeries.computeNoStylerMarkerStyle,
-                AreaSeries.assignCachedStyle
+                { compute: AreaSeries.computeNoStylerMarkerStyle, apply: Series.assignCachedStyle }
             );
             return;
         }
@@ -1414,15 +1429,15 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             dataModel: this.dataModel!,
             processedData: this.processedData!,
         };
-        this.runMarkerStylePass(
-            datumSelection,
-            isHighlight,
-            ctx,
-            undefined,
-            true,
-            AreaSeries.computeStylerStyle,
-            AreaSeries.applyStylerDatum
-        );
+        this.runMarkerStylePass<
+            AreaStylerPassCtx,
+            MarkerSelectionDatum,
+            ReturnType<AreaSeries['getStyle']>,
+            AreaSeries
+        >(datumSelection, isHighlight, ctx, {
+            compute: AreaSeries.computeStylerStyle,
+            apply: AreaSeries.applyStylerDatum,
+        });
     }
 
     protected override updateDatumNodes(opts: {

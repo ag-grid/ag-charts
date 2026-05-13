@@ -209,6 +209,27 @@ export type SeriesNodeStyleContext<TStyle> = {
     [HighlightState.OtherItem]: TStyle;
 };
 
+/** Cache-miss callback for `runMarkerStylePass` — computes a value keyed by (highlight, selection[, keyExtra]). */
+export type MarkerStyleCompute<TSeries, TCtx, TDatum, TCache> = (
+    this: void,
+    series: TSeries,
+    ctx: TCtx,
+    highlightState: HighlightState,
+    selectionState: SelectionState | undefined,
+    datum: TDatum
+) => TCache;
+
+/** Per-non-garbage-datum callback for `runMarkerStylePass`. */
+export type MarkerStyleApply<TSeries, TCtx, TDatum, TCache> = (
+    this: void,
+    series: TSeries,
+    ctx: TCtx,
+    datum: TDatum,
+    highlightState: HighlightState,
+    selectionState: SelectionState | undefined,
+    cached: TCache
+) => void;
+
 export type SeriesDirectionKeysMapping<P extends SeriesProperties<any>> = {
     [key in ChartAxisDirection | FormatterPropertyType]?: (keyof P & string)[];
 };
@@ -1461,40 +1482,28 @@ export abstract class Series<
 
     /**
      * Per-datum marker-style pass with a state-keyed cache, shared across all marker-rendering series.
-     * Callbacks take `series` and `ctx` explicitly so callers can pass static methods (stable function
+     * Callbacks take `series` and `ctx` explicitly so callers pass static methods (stable function
      * identity) and keep V8's inline cache monomorphic across series sharing this helper.
      *
-     * @param ctx - opaque per-pass context forwarded to both callbacks
-     * @param keyExtra - optional extra cache-key dimension (e.g. range-area's `datum.itemType`)
-     * @param cacheable - disable caching when the cached value is mutated per datum (e.g. bubble + colorScale)
-     * @param computeCacheValue - called once per distinct (highlight, selection[, keyExtra]) tuple
-     * @param perDatum - called per non-garbage datum with the cached value
+     * @param opts.keyExtra - optional extra cache-key dimension (e.g. range-area's `datum.itemType`)
+     * @param opts.cacheable - set false when `compute` returns a value mutated per datum (e.g. bubble + colorScale)
+     * @param opts.compute - called once per distinct (highlight, selection[, keyExtra]) tuple
+     * @param opts.apply - called per non-garbage datum with the cached value
      */
     protected runMarkerStylePass<TCtx, TPassDatum extends SeriesNodeDatum<TDatumIndex>, TCache, TSeries = this>(
         datumSelection: Selection<TPassDatum, Marker<TPassDatum>>,
         isHighlight: boolean,
         ctx: TCtx,
-        keyExtra: ((datum: TPassDatum) => string) | undefined,
-        cacheable: boolean,
-        computeCacheValue: (
-            series: TSeries,
-            ctx: TCtx,
-            highlightState: HighlightState,
-            selectionState: SelectionState | undefined,
-            datum: TPassDatum
-        ) => TCache,
-        perDatum: (
-            series: TSeries,
-            ctx: TCtx,
-            datum: TPassDatum,
-            highlightState: HighlightState,
-            selectionState: SelectionState | undefined,
-            cached: TCache
-        ) => void
+        opts: {
+            keyExtra?: (datum: TPassDatum) => string;
+            cacheable?: boolean;
+            compute: MarkerStyleCompute<TSeries, TCtx, TPassDatum, TCache>;
+            apply: MarkerStyleApply<TSeries, TCtx, TPassDatum, TCache>;
+        }
     ): void {
+        const { keyExtra, cacheable = true, compute, apply } = opts;
         const cache = cacheable ? new Map<string, TCache>() : null;
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        // TSeries lets generic subclasses (e.g. RadarSeries<...>) declare callbacks against a closed instance type.
         const self = this;
         const seriesArg = self as unknown as TSeries;
         datumSelection.each(function runMarkerStylePass(node, datum) {
@@ -1505,25 +1514,24 @@ export abstract class Series<
             const stateKey = `${highlightState}:${selectionState ?? '-'}${extra}`;
             let cached = cache?.get(stateKey);
             if (cached === undefined) {
-                cached = computeCacheValue(seriesArg, ctx, highlightState, selectionState, datum);
+                cached = compute(seriesArg, ctx, highlightState, selectionState, datum);
                 cache?.set(stateKey, cached);
             }
-            perDatum(seriesArg, ctx, datum, highlightState, selectionState, cached);
+            apply(seriesArg, ctx, datum, highlightState, selectionState, cached);
         });
     }
 
-    /** Default `perDatum` for the no-itemStyler path — writes the cached style straight onto the datum. */
-    protected static assignCachedStyle(
-        this: void,
-        _series: unknown,
-        _ctx: unknown,
-        datum: { style?: unknown },
-        _highlightState: HighlightState,
-        _selectionState: SelectionState | undefined,
-        cached: unknown
-    ): void {
+    /** Default `apply` for the no-itemStyler path — writes the cached style straight onto the datum. */
+    protected static readonly assignCachedStyle: MarkerStyleApply<unknown, unknown, { style?: unknown }, unknown> = (
+        _series,
+        _ctx,
+        datum,
+        _highlightState,
+        _selectionState,
+        cached
+    ) => {
         datum.style = cached;
-    }
+    };
 
     protected _nodeDataDependencies?: NodeDataDependencies;
 
