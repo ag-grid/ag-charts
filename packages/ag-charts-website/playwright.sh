@@ -99,7 +99,7 @@ if [ "$1" == "--host" ] ; then
 
   cd $(git rev-parse --show-toplevel)
 
-  playwright_image=mcr.microsoft.com/playwright:v1.59.1-jammy
+  playwright_image=mcr.microsoft.com/playwright:v1.60.0-jammy
   if ! docker image inspect ${playwright_image} >/dev/null 2>&1 ; then
     pull_attempts=4
     for attempt in $(seq 1 ${pull_attempts}) ; do
