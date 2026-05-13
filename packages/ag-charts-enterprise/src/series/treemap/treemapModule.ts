@@ -43,7 +43,9 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
             strokes: {
                 $applyCycle: [{ $size: { $path: ['./data', { $path: '/data' }] } }, { $palette: 'strokes' }],
             },
-            colorRange: { $palette: 'divergingColors' },
+            colorScale: {
+                fills: { $map: [{ color: { $value: '$1' } }, { $palette: 'divergingColors' }] },
+            },
             undocumentedGroupFills: { $palette: 'hierarchyColors' },
             undocumentedGroupStrokes: { $palette: 'secondHierarchyColors' },
             group: {

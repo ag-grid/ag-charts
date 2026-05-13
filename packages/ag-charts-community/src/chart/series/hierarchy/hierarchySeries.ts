@@ -188,7 +188,7 @@ export abstract class HierarchySeries<
         this.data?.commitPendingTransactions();
 
         const { NodeClass } = this;
-        const { childrenKey, sizeKey, colorKey, colorRange } = this.properties;
+        const { childrenKey, sizeKey, colorKey } = this.properties;
 
         let maxDepth = 0;
         let minColor = Infinity;
@@ -254,7 +254,7 @@ export abstract class HierarchySeries<
         const colorDomain = [minColor, maxColor];
 
         const dataDomain: [number, number] = minColor < maxColor ? [minColor, maxColor] : [0, 1];
-        configureColorScale(this.colorScale, this.properties.colorScale, dataDomain, colorRange ?? ['black']);
+        configureColorScale(this.colorScale, this.properties.colorScale, dataDomain, []);
 
         this.rootNode = rootNode;
         this.maxDepth = maxDepth;
@@ -336,7 +336,7 @@ export abstract class HierarchySeries<
     }
 
     override getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] | GradientLegendDatum[] {
-        const { colorKey, colorRange, colorScale: colorScaleProps } = this.properties;
+        const { colorKey, colorScale: colorScaleProps } = this.properties;
         const hasColorScale = colorScaleProps.fills.length > 0;
         const {
             id: seriesId,
@@ -344,7 +344,7 @@ export abstract class HierarchySeries<
             visible,
         } = this;
 
-        if (colorKey == null || (colorRange == null && !hasColorScale)) {
+        if (colorKey == null || !hasColorScale) {
             return [];
         }
 

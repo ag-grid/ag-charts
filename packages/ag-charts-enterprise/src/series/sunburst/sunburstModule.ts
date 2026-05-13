@@ -34,7 +34,9 @@ const themeTemplate: ExtensibleTheme<'sunburst'> = {
         strokes: {
             $applyCycle: [{ $size: { $path: ['./data', { $path: '/data' }] } }, { $palette: 'strokes' }],
         } as any,
-        colorRange: { $palette: 'divergingColors' },
+        colorScale: {
+            fills: { $map: [{ color: { $value: '$1' } }, { $palette: 'divergingColors' }] },
+        },
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         label: {
             ...LABEL_BOXING_DEFAULTS,

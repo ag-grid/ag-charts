@@ -114,8 +114,7 @@ export type HeatmapIgnoredProperties =
     | 'colorName'
     | 'textAlign'
     | 'verticalAlign'
-    | 'itemPadding'
-    | 'colorRange';
+    | 'itemPadding';
 export type HistogramIgnoredProperties = CommonIgnoredProperties | 'label';
 export type LineIgnoredProperties = CommonIgnoredProperties | 'errorBar' | 'title' | 'label';
 export type RangeAreaIgnoredProperties = CommonIgnoredProperties | 'label' | 'yLowName' | 'yHighName';

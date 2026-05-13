@@ -4,7 +4,6 @@ import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart
 import type {
     AgMarkerShape,
     ContextDefault,
-    CssColor,
     DatumDefault,
     DatumKey,
     GeoJSON,
@@ -95,11 +94,6 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = DatumDefault, TConte
     maxSize?: PixelSize;
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
     sizeDomain?: [number, number];
-    /**
-     * The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into.
-     * @deprecated v13.3.0 Use `colorScale.fills` instead.
-     */
-    colorRange?: CssColor[];
     /** Configuration for colour scale with fills, domain, and mode. */
     colorScale?: AgColorScale;
     /** Configuration for the labels shown on top of data points. */
