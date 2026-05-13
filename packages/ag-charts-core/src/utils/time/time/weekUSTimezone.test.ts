@@ -1,12 +1,8 @@
-import { beforeAll, expect, test } from 'vitest';
+import { expect, test } from 'vitest';
 
 import type { AgTimeInterval } from 'ag-charts-types';
 
 import { intervalFloor, intervalRange } from './index';
-
-beforeAll(() => {
-    process.env.TZ = 'US/Pacific';
-});
 
 const sunday: AgTimeInterval = {
     unit: 'day',

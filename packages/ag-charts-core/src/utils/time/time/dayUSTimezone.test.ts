@@ -1,12 +1,8 @@
-import { beforeAll, expect, test } from 'vitest';
+import { expect, test } from 'vitest';
 
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { intervalAgo, intervalCeil, intervalFloor, intervalRange } from './index';
-
-beforeAll(() => {
-    process.env.TZ = 'US/Pacific';
-});
 
 it('should execute with Los Angeles timezone', () => {
     expect(new Date(2023, 0, 1).getTimezoneOffset()).toEqual(480);
