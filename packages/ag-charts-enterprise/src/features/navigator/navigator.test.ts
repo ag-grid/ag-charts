@@ -358,6 +358,33 @@ describe('Navigator', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
+    describe('keyboard focus', () => {
+        it('should not retain focus override on previous handle after arrow key navigation (CRT-1107)', async () => {
+            const options: AgCartesianChartOptions = {
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', data: xyData([5, 7, 8, 3, 0, 2]) }],
+                navigator: { enabled: true },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const toolbar = document.querySelector('.ag-charts-proxy-navigator-toolbar');
+            expect(toolbar).not.toBeNull();
+
+            const sliders = toolbar!.querySelectorAll<HTMLInputElement>('input[type="range"]');
+            expect(sliders.length).toBe(3);
+
+            const slider = sliders[0];
+            slider.focus();
+            expect(document.activeElement).toBe(slider);
+
+            slider.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', code: 'ArrowDown', bubbles: true }));
+
+            expect(slider.getAttribute('data-focus-override')).not.toBe('true');
+            expect(document.activeElement).not.toBe(slider);
+        });
+    });
+
     describe('#create', () => {
         it.each(Object.entries(NAVIGATOR_ZOOM_EXAMPLES))(
             'for %s it should create chart instance as expected',

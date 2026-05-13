@@ -9,7 +9,7 @@ Synchronize multiple charts to align data insights and interactive elements, off
 
 {% chartExampleRunner title="Basic Synchronization" name="basic-sync" type="generated" /%}
 
-Enable chart synchronization by configuring the `sync` option on at least two charts. By default this will synchronize the axis domain, zoom, and user node interactions along the x axis.
+Enable chart synchronization by configuring the `sync` option on at least two charts. By default this will synchronize the axis domain, zoom, and user node interactions along the x-axis.
 
 ```js format="snippet"
 {
@@ -21,7 +21,7 @@ Enable chart synchronization by configuring the `sync` option on at least two ch
 
 In the above example:
 
-- Both charts have the same axes domain range for the x axis.
+- Both charts have the same axes domain range for the x-axis.
 - Any changes to the horizontal zoom level or position made in any chart or the Navigator, are reflected in both charts.
 - Hovering a node in one chart, will highlight and show crosshairs and tooltips for the corresponding node in the other chart.
 
@@ -114,7 +114,7 @@ Use `groupId` to synchronize charts within the same group, supporting multiple i
 In the above example:
 
 - The charts on the left are synchronised with each other, as are the charts on the right.
-- The top charts have their x axis and crosshair labels hidden, to give a 'combined chart' effect.
+- The top charts have their x-axis and crosshair labels hidden, to give a 'combined chart' effect.
 
 {% note %}
 Charts without a `groupId` will be allocated to a default group.

@@ -1,6 +1,7 @@
 import { AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
+import { random } from './randomHelpers';
 
 const data = getData();
 
@@ -28,8 +29,8 @@ function updateValues() {
     console.log('updating');
     const updatedData = data.map((d) => ({
         ...d,
-        low: Math.random() * d.low,
-        high: Math.random() * d.high,
+        low: random() * d.low,
+        high: random() * d.high,
     }));
     options.data = updatedData;
     chart.update(options);

@@ -647,6 +647,10 @@ export class MapShapeSeries
             geoGeometry.setStyleProperties(nodeDatum.style, fillBBox);
 
             geoGeometry.drawingMode = drawingMode;
+
+            const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);
+            const bringToFront = !_ModuleSupport.isUnselected(selectionState);
+            geoGeometry.zIndex = bringToFront ? 1 : 0;
         });
     }
 

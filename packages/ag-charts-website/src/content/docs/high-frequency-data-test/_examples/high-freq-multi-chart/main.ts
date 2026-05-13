@@ -2,6 +2,8 @@
 // @ag-skip-container-check
 import { type AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
+import { random } from './randomHelpers';
+
 const chartCount = 10;
 const refreshRateInMilliseconds = 50;
 const millisecondsOfData = 30 * 1000;
@@ -113,8 +115,8 @@ function getData(inputData: DataPoint[] = [], hostIndex: number = 1): DataPoint[
             const baseUser = 15 + hostIndex * 2;
             data.push({
                 time: timestamp,
-                system: baseSystem + Math.random() * 30,
-                user: baseUser + Math.random() * 30,
+                system: baseSystem + random() * 30,
+                user: baseUser + random() * 30,
             });
         }
     } else {
@@ -125,8 +127,8 @@ function getData(inputData: DataPoint[] = [], hostIndex: number = 1): DataPoint[
         const baseUser = 15 + hostIndex * 2;
         data.push({
             time: lastTime + refreshRateInMilliseconds,
-            system: baseSystem + Math.random() * 30,
-            user: baseUser + Math.random() * 30,
+            system: baseSystem + random() * 30,
+            user: baseUser + random() * 30,
         });
     }
 

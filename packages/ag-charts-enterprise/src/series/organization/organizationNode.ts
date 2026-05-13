@@ -63,7 +63,8 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         fields: OrganizationNodeFields,
         descendantsCount: number,
         styles: RequiredOrganizationNodeStyle,
-        isCollapsed: boolean
+        isCollapsed: boolean,
+        isRtl: boolean
     ) {
         this.appliedStyles = styles;
         const textMaxWidth = computeTextMaxWidth(styles);
@@ -72,7 +73,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         this.updateTitleNode(fields.title, styles, textMaxWidth);
         this.updateSubtitleNode(fields.subtitle, styles, textMaxWidth);
         this.updateLabelNodes(fields.labels, styles, textMaxWidth);
-        this.updateExpanderNode(descendantsCount, isCollapsed, styles);
+        this.updateExpanderNode(descendantsCount, isCollapsed, isRtl, styles);
 
         let rowScenes = [];
         let rowGaps: number[] = [];
@@ -341,7 +342,12 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         this.labelNodes.length = labels.length;
     }
 
-    private updateExpanderNode(descendantsCount: number, isCollapsed: boolean, styles: RequiredOrganizationNodeStyle) {
+    private updateExpanderNode(
+        descendantsCount: number,
+        isCollapsed: boolean,
+        isRtl: boolean,
+        styles: RequiredOrganizationNodeStyle
+    ) {
         if (descendantsCount === 0 || !styles.expander.enabled) {
             this.expanderNode?.remove();
             this.expanderNode = undefined;
@@ -349,7 +355,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
 
         this.expanderNode ??= this.appendChild(new OrganizationExpanderNode());
-        this.expanderNode.update(descendantsCount, isCollapsed, styles);
+        this.expanderNode.update(descendantsCount, isCollapsed, isRtl, styles);
     }
 }
 
@@ -360,7 +366,7 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
     private countNode?: _ModuleSupport.Text;
     private chevronNode?: ChevronPath;
 
-    update(descendantsCount: number, isCollapsed: boolean, styles: RequiredOrganizationNodeStyle) {
+    update(descendantsCount: number, isCollapsed: boolean, isRtl: boolean, styles: RequiredOrganizationNodeStyle) {
         this.shapeNode ??= this.appendChild(new _ModuleSupport.Rect());
 
         this.countNode ??= this.appendChild(new _ModuleSupport.Text());
@@ -377,9 +383,11 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         );
         this.chevronNode.translationY = styles.expander.padding + styles.expander.text.fontSize / 2;
 
-        layoutScenesRow([this.countNode, this.chevronNode], styles.expander.padding * 1.5, [
-            styles.expander.text.fontSize,
-        ]);
+        layoutScenesRow(
+            isRtl ? [this.chevronNode, this.countNode] : [this.countNode, this.chevronNode],
+            styles.expander.padding * 1.5,
+            [styles.expander.text.fontSize]
+        );
 
         const bbox = _ModuleSupport.Group.computeChildrenBBox([this.countNode, this.chevronNode]).grow({
             top: styles.expander.padding,

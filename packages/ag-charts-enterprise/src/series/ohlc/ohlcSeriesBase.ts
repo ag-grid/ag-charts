@@ -432,6 +432,7 @@ export abstract class OhlcSeriesBase<
         this.aggregationManager.ensureLevelForRange(range);
 
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
+        this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
         const crisp = dataAggregationFilter == null;
         const canIncrementallyUpdate =
             this.contextNodeData?.nodeData != null &&

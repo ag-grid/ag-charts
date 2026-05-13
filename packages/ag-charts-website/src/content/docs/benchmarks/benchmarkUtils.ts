@@ -54,6 +54,9 @@ export function scroll(
     const clientY = rect.top + y;
     const event = new WheelEvent('wheel', {
         bubbles: true,
+        // ZoomWheelSequencer aborts on non-cancelable events (trackpad-inertia guard, AG-16317).
+        // WheelEventInit.cancelable defaults to false — without this the zoom handler never fires.
+        cancelable: true,
         clientX,
         clientY,
         deltaX,
@@ -66,9 +69,7 @@ export function scroll(
     Object.defineProperty(event, 'offsetY', { value: y, writable: false });
     Object.defineProperty(event, 'pageX', { value: clientX, writable: false });
     Object.defineProperty(event, 'pageY', { value: clientY, writable: false });
-    const result = element.dispatchEvent(event);
-
-    if (!result) throw new Error('wheel event not consumed?');
+    element.dispatchEvent(event);
 }
 
 /**

@@ -230,6 +230,6 @@ export abstract class BaseToolbar<
 
 export class Toolbar<ButtonOptions extends ToolbarButtonOptions> extends BaseToolbar<ButtonOptions> {
     protected createButtonWidget() {
-        return new ToolbarButtonWidget(this.localeManager);
+        return new ToolbarButtonWidget(this.localeManager, true);
     }
 }

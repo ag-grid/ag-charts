@@ -536,7 +536,6 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "#2b5c95",
         "strokeWidth": 2,
       },
       "unselectedItem": {
@@ -617,7 +616,6 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "#cc6f10",
         "strokeWidth": 2,
       },
       "unselectedItem": {
@@ -698,7 +696,6 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "#1e652e",
         "strokeWidth": 2,
       },
       "unselectedItem": {
@@ -779,7 +776,6 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "#18859e",
         "strokeWidth": 2,
       },
       "unselectedItem": {
@@ -863,7 +859,6 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "#a69400",
         "strokeWidth": 2,
       },
       "unselectedItem": {
@@ -933,7 +928,6 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "#603c88",
         "strokeWidth": 2,
       },
       "unselectedItem": {
@@ -1011,7 +1005,6 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "#2b5c95",
         "strokeWidth": 2,
       },
       "unselectedItem": {
@@ -1092,7 +1085,6 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "#cc6f10",
         "strokeWidth": 2,
       },
       "unselectedItem": {
@@ -1173,7 +1165,6 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "#1e652e",
         "strokeWidth": 2,
       },
       "unselectedItem": {
@@ -1254,7 +1245,6 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "#18859e",
         "strokeWidth": 2,
       },
       "unselectedItem": {
@@ -1338,7 +1328,6 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "#a69400",
         "strokeWidth": 2,
       },
       "unselectedItem": {
@@ -1408,7 +1397,6 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "#603c88",
         "strokeWidth": 2,
       },
       "unselectedItem": {
@@ -1486,7 +1474,6 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "#2b5c95",
         "strokeWidth": 2,
       },
       "unselectedItem": {
@@ -1567,7 +1554,6 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "#cc6f10",
         "strokeWidth": 2,
       },
       "unselectedItem": {
@@ -1648,7 +1634,6 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "#1e652e",
         "strokeWidth": 2,
       },
       "unselectedItem": {
@@ -1729,7 +1714,6 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "#18859e",
         "strokeWidth": 2,
       },
       "unselectedItem": {
@@ -1813,7 +1797,6 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "#a69400",
         "strokeWidth": 2,
       },
       "unselectedItem": {
@@ -1883,7 +1866,6 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "#603c88",
         "strokeWidth": 2,
       },
       "unselectedItem": {

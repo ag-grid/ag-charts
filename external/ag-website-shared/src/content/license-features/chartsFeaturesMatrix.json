@@ -302,6 +302,7 @@
             {
                 "label": {
                     "name": "Org Chart",
+                    "icon": "chartsOrg",
                     "link": "https://www.ag-grid.com/charts/r/org-chart/"
                 },
                 "community": false,

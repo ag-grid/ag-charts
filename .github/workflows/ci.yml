@@ -455,12 +455,45 @@ jobs:
                       reports/
                       packages/**/__diff_output__/*
 
+    playwright_image:
+        runs-on: ubuntu-latest
+        name: Playwright Image
+        needs: [detect-changes]
+        if: needs.detect-changes.outputs.run_full_ci == 'true'
+        steps:
+            - name: Pull Playwright Image
+              run: |
+                  playwright_image=mcr.microsoft.com/playwright:v1.57.0-jammy
+                  pull_attempts=4
+                  for attempt in $(seq 1 ${pull_attempts}) ; do
+                    if docker pull ${playwright_image} ; then
+                      break
+                    fi
+                    if [[ ${attempt} -eq ${pull_attempts} ]] ; then
+                      echo "Failed to pull ${playwright_image} after ${pull_attempts} attempts."
+                      exit 1
+                    fi
+                    backoff=$((attempt * 15))
+                    jitter=$((RANDOM % 10))
+                    echo "Pull attempt ${attempt} failed, retrying in $((backoff + jitter))s..."
+                    sleep $((backoff + jitter))
+                  done
+                  docker save ${playwright_image} -o /tmp/playwright-docker-image.tar
+
+            - name: Upload Playwright Image
+              uses: actions/upload-artifact@v4
+              with:
+                  name: playwright-docker-image
+                  path: /tmp/playwright-docker-image.tar
+                  retention-days: 1
+                  compression-level: 1
+
     e2e:
         runs-on: ubuntu-latest
         name: E2E Tests (${{ matrix.shard }}/${{ strategy.job-total }})
         permissions:
             contents: write
-        needs: [detect-changes, init]
+        needs: [detect-changes, init, playwright_image]
         if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.e2e_count > 0
         strategy:
             fail-fast: false
@@ -486,6 +519,14 @@ jobs:
                   nx_restore: false # Restored in previous step.
                   cache_mode: ro
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+
+            - name: Restore Playwright Docker Image
+              uses: actions/download-artifact@v4
+              with:
+                  name: playwright-docker-image
+
+            - name: Load Playwright Image
+              run: docker load -i playwright-docker-image.tar
 
             - name: nx test:e2e
               id: test
@@ -561,11 +602,19 @@ jobs:
 
     bundle_tests:
         runs-on: ubuntu-24.04
-        name: Bundle Tests
+        name: Bundle Tests (${{ matrix.name }})
         permissions:
             contents: write
         needs: [detect-changes, init]
         if: needs.detect-changes.outputs.run_full_ci == 'true'
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - name: treeshake
+                      target: bundle-treeshake-tests:test:bundle-treeshake
+                    - name: render
+                      target: bundle-render-tests:test:bundle-render
         env:
             NX_BASE: ${{ needs.init.outputs.nx_base }}
         steps:
@@ -586,13 +635,8 @@ jobs:
                   cache_mode: ro
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
-            - name: nx test:bundle-treeshake
-              id: treeshake
-              run: yarn nx run bundle-treeshake-tests:test:bundle-treeshake
-
-            - name: nx test:bundle-render
-              id: render
-              run: yarn nx run bundle-render-tests:test:bundle-render
+            - name: nx test:bundle-${{ matrix.name }}
+              run: yarn nx run ${{ matrix.target }}
 
     report:
         runs-on: ubuntu-24.04
@@ -613,6 +657,7 @@ jobs:
                 sonarqube,
                 fw_pkg_test,
                 bundle_tests,
+                playwright_image,
             ]
         if: cancelled() != true
         steps:
@@ -686,6 +731,8 @@ jobs:
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.fw_pkg_test.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
+                  elif [ "${{ needs.playwright_image.result }}" == "failure" ] ; then
+                    WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.sonarqube.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="partial"
                   fi
@@ -744,6 +791,7 @@ jobs:
                       ${{ needs.test.result == 'failure' && '- ❌ Test' || '' }}
                       ${{ needs.e2e.result == 'failure' && '- ❌ E2E' || '' }}
                       ${{ needs.fw_pkg_test.result == 'failure' && '- ❌ FW Pkg' || '' }}
+                      ${{ needs.playwright_image.result == 'failure' && '- ❌ Playwright Image' || '' }}
                       ${{ needs.sonarqube.result == 'failure' && '- ❌ Sonar' || '' }}
 
                       *Changes:*

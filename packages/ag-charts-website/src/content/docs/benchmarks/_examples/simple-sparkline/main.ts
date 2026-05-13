@@ -6,6 +6,7 @@ import { AgChartInstance } from 'ag-charts-community';
 
 import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
 import { getData } from './data';
+import { random } from './randomHelpers';
 
 (window as any).agChartsDebug = 'scene:stats';
 
@@ -73,7 +74,7 @@ async function performPooledCreation(): Promise<number> {
 
 /** inScope */
 async function performDataUpdate(): Promise<number> {
-    const newData = getData().map((d) => ({ ...d, y: d.y * (0.8 + Math.random() * 0.4) }));
+    const newData = getData().map((d) => ({ ...d, y: d.y * (0.8 + random() * 0.4) }));
 
     const start = performance.now();
     await chart.update({ ...options, data: newData });
@@ -83,7 +84,7 @@ async function performDataUpdate(): Promise<number> {
 
 /** inScope */
 async function performDeltaUpdate(): Promise<number> {
-    const newData = getData().map((d) => ({ ...d, y: d.y * (0.8 + Math.random() * 0.4) }));
+    const newData = getData().map((d) => ({ ...d, y: d.y * (0.8 + random() * 0.4) }));
 
     const start = performance.now();
     await chart.updateDelta({ data: newData });

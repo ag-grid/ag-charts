@@ -44,7 +44,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
 
     protected override getMarkerFill(highlightedStyle?: _ModuleSupport.SeriesItemHighlightStyle) {
         if (highlightedStyle?.fill != null) return highlightedStyle.fill;
-        const stylerStyle = this.getStyle(undefined, undefined);
+        const stylerStyle = this.getStyle(undefined);
         return stylerStyle.marker.fill ?? stylerStyle.fill;
     }
 
@@ -117,7 +117,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
         if (areaNode) {
             const { path: areaPath } = areaNode;
             const areaPoints = this.getAreaPoints();
-            const stylerStyle = superStyle ?? this.getStyle(undefined, undefined);
+            const stylerStyle = superStyle ?? this.getStyle(undefined);
             const fillBBox = this.getShapeFillBBox();
 
             areaNode.setStyleProperties(
@@ -189,12 +189,12 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
     }
 
     override getStyle(
-        highlightState: _ModuleSupport.HighlightState | undefined,
-        selectionState: _ModuleSupport.SelectionState | undefined
+        highlightState: _ModuleSupport.HighlightState | undefined
     ): ResolvedRadarStyle<AgRadarAreaSeriesStyle> {
         const { marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } =
             this.properties;
         const { size, shape, fill: markerFill = 'transparent', fillOpacity: markerFillOpacity } = marker;
+        const selectionState: _ModuleSupport.SelectionState | undefined = this.getDataSelectionState(undefined);
         const stylerResult = this.getStylerResult({}, highlightState, selectionState);
         stylerResult.marker ??= {};
 

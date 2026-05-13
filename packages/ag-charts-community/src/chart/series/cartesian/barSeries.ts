@@ -579,6 +579,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         this.aggregationManager.ensureLevelForRange(range);
 
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
+        this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
         const filteredValueExceedUnfiltered = processedData.reduced?.filteredValueExceedUnfiltered ?? false;
         const isStacked = dataModel.hasColumnById(this, 'yValue-start');
         const { label } = this.properties;

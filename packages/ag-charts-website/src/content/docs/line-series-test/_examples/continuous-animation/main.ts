@@ -1,6 +1,7 @@
 import { AgCartesianChartOptions, AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
+import { random } from './randomHelpers';
 
 const allSeries: NonNullable<AgChartOptions['series']> = [
     {
@@ -124,16 +125,16 @@ function genDataPoint(ref: Date | DataType, offsetDays: number): DataType {
 
     return {
         date: new Date(date.getTime() + offsetDays * 3600 * 24 * 1000),
-        value1: value1 + Math.random() * 4 - 2,
-        value2: value2 + Math.random() * 4 - 2,
-        value3: value3 + Math.random() * 4 - 2,
-        value4: value4 + Math.random() * 4 - 2,
-        value5: value5 + Math.random() * 4 - 2,
-        value6: value6 + Math.random() * 4 - 2,
-        value7: value7 + Math.random() * 4 - 2,
-        value8: value8 + Math.random() * 4 - 2,
-        value9: value9 + Math.random() * 4 - 2,
-        value10: value10 + Math.random() * 4 - 2,
+        value1: value1 + random() * 4 - 2,
+        value2: value2 + random() * 4 - 2,
+        value3: value3 + random() * 4 - 2,
+        value4: value4 + random() * 4 - 2,
+        value5: value5 + random() * 4 - 2,
+        value6: value6 + random() * 4 - 2,
+        value7: value7 + random() * 4 - 2,
+        value8: value8 + random() * 4 - 2,
+        value9: value9 + random() * 4 - 2,
+        value10: value10 + random() * 4 - 2,
     };
 }
 
@@ -237,16 +238,16 @@ function actionAddDouble() {
 function actionUpdatePoints() {
     options.data = (options.data ?? []).map((d: DataType) => ({
         ...d,
-        value1: d.value1 + Math.random() * 4 - 2,
-        value2: d.value2 + Math.random() * 4 - 2,
-        value3: d.value3 + Math.random() * 4 - 2,
-        value4: d.value4 + Math.random() * 4 - 2,
-        value5: d.value5 + Math.random() * 4 - 2,
-        value6: d.value6 + Math.random() * 4 - 2,
-        value7: d.value7 + Math.random() * 4 - 2,
-        value8: d.value8 + Math.random() * 4 - 2,
-        value9: d.value9 + Math.random() * 4 - 2,
-        value10: d.value10 + Math.random() * 4 - 2,
+        value1: d.value1 + random() * 4 - 2,
+        value2: d.value2 + random() * 4 - 2,
+        value3: d.value3 + random() * 4 - 2,
+        value4: d.value4 + random() * 4 - 2,
+        value5: d.value5 + random() * 4 - 2,
+        value6: d.value6 + random() * 4 - 2,
+        value7: d.value7 + random() * 4 - 2,
+        value8: d.value8 + random() * 4 - 2,
+        value9: d.value9 + random() * 4 - 2,
+        value10: d.value10 + random() * 4 - 2,
     }));
     chart.update(options);
 }
@@ -256,16 +257,16 @@ function actionUpdatePointUndefined() {
         (d: DataType) =>
             ({
                 ...d,
-                value1: Math.random() > 0.9 ? undefined : d.value1,
-                value2: Math.random() > 0.9 ? undefined : d.value2,
-                value3: Math.random() > 0.9 ? undefined : d.value3,
-                value4: Math.random() > 0.9 ? undefined : d.value4,
-                value5: Math.random() > 0.9 ? undefined : d.value5,
-                value6: Math.random() > 0.9 ? undefined : d.value6,
-                value7: Math.random() > 0.9 ? undefined : d.value7,
-                value8: Math.random() > 0.9 ? undefined : d.value8,
-                value9: Math.random() > 0.9 ? undefined : d.value9,
-                value10: Math.random() > 0.9 ? undefined : d.value10,
+                value1: random() > 0.9 ? undefined : d.value1,
+                value2: random() > 0.9 ? undefined : d.value2,
+                value3: random() > 0.9 ? undefined : d.value3,
+                value4: random() > 0.9 ? undefined : d.value4,
+                value5: random() > 0.9 ? undefined : d.value5,
+                value6: random() > 0.9 ? undefined : d.value6,
+                value7: random() > 0.9 ? undefined : d.value7,
+                value8: random() > 0.9 ? undefined : d.value8,
+                value9: random() > 0.9 ? undefined : d.value9,
+                value10: random() > 0.9 ? undefined : d.value10,
             }) as DataType
     );
     chart.update(options);
