@@ -865,7 +865,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
 
         const { datumSelection, isHighlight } = opts;
 
-        const applyTranslation = this.ctx.animationManager.isSkipped();
+        const applyPosition = this.ctx.animationManager.isSkipped();
         const fillBBox = this.getShapeFillBBox();
 
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
@@ -879,7 +879,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                 datum.style ??
                 contextNodeData.styles[thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
             thisSeries.applyMarkerStyle(style, node, datum.point, fillBBox, {
-                applyTranslation,
+                applyPosition,
                 selected: datum.selected,
             });
             node.drawingMode = thisSeries.resolveMarkerDrawingModeForState(drawingMode, style);

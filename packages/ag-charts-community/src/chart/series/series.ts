@@ -1449,13 +1449,13 @@ export abstract class Series<
         markerNode: Marker,
         point: { x: number; y: number; size?: number; focusSize?: number } | undefined,
         fillBBox?: ShapeFillBBox,
-        { applyTranslation = true, selected = true } = {}
+        { applyPosition = true, selected = true } = {}
     ) {
         const { shape, size = 0 } = style;
         const visible = this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y);
 
         markerNode.setStyleProperties(style, fillBBox);
-        markerNode.setVisibilityAndPosition(!!visible, shape!, size, applyTranslation ? point : undefined);
+        markerNode.setVisibilityAndPosition(!!visible, shape!, size, applyPosition ? point : undefined);
 
         if (!selected) {
             markerNode.fillOpacity *= CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR;
