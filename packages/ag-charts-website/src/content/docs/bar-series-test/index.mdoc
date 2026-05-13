@@ -4,20 +4,46 @@ title: 'Bar Series Test'
 
 # Animations
 
+## Animation
+
+What to test:
+
+- Cycle through Randomise, Remove Data, Add/Remove Series and Switch Direction; bars animate smoothly between states.
+- Toggle stacked/grouped and move the legend; layout reflows without jumps.
+- Switch standalone/integrated mode; category ordering is preserved.
+
 {% chartExampleRunner title="Animation Example" name="animation" type="generated" /%}
+
+## Animation (Grouped Category Axis)
+
+What to test:
+
+- Run Randomise, Remove Data and Add/Remove Series; grouped category labels stay aligned with their bars.
+- Switch stacked/grouped and direction; the group hierarchy remains intact.
 
 {% chartExampleRunner title="Animation Example (Grouped Category Axis)" name="animation-grouped-category" type="generated" /%}
 
+## Vertical Animation
+
+What to test:
+
+- Use Randomise, Remove and Reset; vertical bars animate height changes without flicker.
+
 {% chartExampleRunner title="Vertical Animation Example" name="animation-vertical" type="generated" /%}
 
-{% chartExampleRunner title="Animation with Container Padding (CRT-1065)" name="animation-with-padding" type="generated" /%}
+## Data-per-series
 
-# Data-per-series
+What to test:
 
-Verify:
-
-- Tooltip content
-- Legend toggling
-    - Categories should always be the super-set of categories.
+- Tooltip content reflects the hovered series' own data.
+- Legend toggling preserves the union of categories across series.
 
 {% chartExampleRunner title="Data-per-series" name="data-per-series" type="generated" /%}
+
+## E2E Tested
+
+### animation-with-padding
+
+_Auto-tested via Playwright._
+
+{% chartExampleRunner title="Animation with Container Padding (CRT-1065)" name="animation-with-padding" type="generated" /%}

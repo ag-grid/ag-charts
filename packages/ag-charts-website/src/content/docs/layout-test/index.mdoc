@@ -4,70 +4,101 @@ title: 'Layout Test'
 
 ## Unstyled OOB
 
-- Should render at 300px high and full width of example.
+What to test:
+
+- Renders at 300px high and the full width of the example container.
 
 {% chartExampleRunner title="Unstyled OOB layout" name="layout-basic" type="generated" /%}
 
 ## Unstyled WebComponent / Shadow-DOM OOB
 
-- Should render at 300px high and full width of example.
-- Hover/highlight and tooltips should work.
+What to test:
+
+- Renders at 300px high and the full width of the example container.
+- Hover, highlight and tooltips all work.
 
 {% chartExampleRunner title="Shadow DOM layout" name="layout-shadow-dom" type="generated" /%}
 
 ## Detached WebComponent / Shadow-DOM OOB
 
-- Should render at 300px high and full width of example.
-- Hover/highlight and tooltips should work.
+What to test:
+
+- Renders at 300px high and the full width of the example container.
+- Hover, highlight and tooltips all work.
 
 {% chartExampleRunner title="Detached Shadow DOM layout" name="layout-detached-shadow-dom" type="generated" /%}
 
 ## Fullscreen WebComponent / Shadow-DOM OOB
 
-- Clicking fullscreen button should render Chart full screen.
-- Hovering/tooltips should work as expected in full screen and only be constrained by the window.
+What to test:
+
+- Click the fullscreen button and confirm the chart renders full screen.
+- Hover and tooltips behave correctly in fullscreen, constrained only by the window.
 
 {% chartExampleRunner title="Fullscreen Shadow DOM layout" name="layout-shadow-dom-fs" type="generated" /%}
 
-## Unstyled fixed width/height
+## Unstyled Fixed Width/Height
 
-- Should render horizontally CENTERED at 400x300px in size.
+What to test:
+
+- Renders horizontally centred at 400x300px.
 
 {% chartExampleRunner title="Unstyled fixed width/height layout" name="layout-fixed-size" type="generated" /%}
 
-## Styled fixed width
+## Styled Fixed Width
 
-- Should render with width 500px and full height of example.
+What to test:
+
+- Renders at 500px wide and the full height of the example container.
 
 {% chartExampleRunner title="Styled fixed width layout" name="layout-fixed-width" type="generated" /%}
 
-## Styled fixed height
+## Styled Fixed Height
 
-- Should render with height 400px and full width of example.
+What to test:
+
+- Renders at 400px high and the full width of the example container.
 
 {% chartExampleRunner title="Styled fixed height layout" name="layout-fixed-height" type="generated" /%}
 
-## Matrix of DOM constrained vs. options constrained
+## Matrix of DOM Constrained vs. Options Constrained
+
+What to test:
+
+- Each cell of the matrix renders at the expected size for its DOM/options constraint combination.
 
 {% chartExampleRunner title="Matrix of layout test cases" name="layout-matrix" type="generated" /%}
 
-## Common inline app layouts
+## Common Inline App Layouts
+
+What to test:
+
+- Each inline layout scenario (article, explicit size, grid) renders the chart at the expected size.
+- Resize the textarea in the grid case and confirm the chart reflows.
 
 {% chartExampleRunner title="Inline layout test cases" name="layout-inline" type="generated" /%}
 
-## Shadow DOM relocation
+## Shadow DOM Relocation
 
-- Should be able to move the container inside/outside of a shadow DOM, and the styles still apply
+What to test:
+
+- Move the container in and out of a shadow DOM and confirm styles still apply.
 
 {% chartExampleRunner title="Shadow DOM relocation" name="layout-shadow-dom-relocation" type="generated" /%}
 
-## Caption Tooltips
-
-{% chartExampleRunner title="Caption tooltip E2E" name="e2e-caption-tooltip" type="generated" /%}
-
 ## Sparkline WebComponent / Shadow-DOM OOB
 
-- Should render at 300px high and full width of example.
-- Hover/highlight and tooltips should work.
+What to test:
+
+- Renders at 300px high and the full width of the example container.
+- Hover, highlight and tooltips all work.
 
 {% chartExampleRunner title="Sparkline Shadow DOM layout" name="layout-sparkline-shadow-dom" type="generated" /%}
+
+## E2E Tested
+
+### e2e-caption-tooltip
+
+_Auto-tested via Playwright._
+
+{% chartExampleRunner title="Caption tooltip E2E" name="e2e-caption-tooltip" type="generated" /%}
