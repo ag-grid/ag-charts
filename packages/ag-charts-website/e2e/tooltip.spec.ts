@@ -5,7 +5,6 @@ import {
     SELECTORS,
     canvasToPageTransformer,
     gotoExample,
-    locateCanvas,
     readSwapchainText,
     setupIntrinsicAssertions,
     toExamplePageUrl,
@@ -142,14 +141,15 @@ test.describe('tooltip', () => {
     });
 
     test.describe('AG-16619 some series disable tooltip', () => {
-        let canvas: Awaited<ReturnType<typeof locateCanvas>>;
+        const x = 410;
+        const y = 263;
 
         async function hoverCenter(page: Page) {
-            await page.mouse.move(canvas.width / 2, canvas.height / 2);
+            await page.mouse.move(x, y);
         }
 
         async function clickCenter(page: Page) {
-            await page.mouse.click(canvas.width / 2, canvas.height / 2);
+            await page.mouse.click(x, y);
         }
 
         async function getHTMLTextContent(page: Page) {
@@ -157,11 +157,10 @@ test.describe('tooltip', () => {
             await expect(elements).toHaveCount(1);
             return await elements.first().textContent();
         }
+
         test.beforeEach(async ({ page }) => {
             const { url } = toExamplePageUrl('tooltips-test', 'e2e-tooltip-pagination-disabled-series', 'vanilla');
             await gotoExample(page, url);
-
-            canvas = await locateCanvas(page);
         });
 
         test('screenshots', async ({ page }) => {
