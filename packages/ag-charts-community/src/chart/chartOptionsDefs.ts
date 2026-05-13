@@ -40,7 +40,7 @@ export const initialStatePickedOptionsDef: OptionsDefs<AgActiveState> = {
 export const commonChartOptions = {
     mode: undocumented(union('integrated', 'standalone')),
     withinStudio: undocumented(boolean),
-    loading: undocumented(boolean),
+    loading: boolean,
     container: htmlElement,
     context: () => true,
     theme: defined,
