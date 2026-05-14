@@ -15,6 +15,7 @@ export const ChartToolbarModule: PluginModuleDefinition<AgChartToolbarThemeableO
         options: {
             enabled: boolean,
         },
+        themeTemplate: { enabled: false },
 
         create: (ctx) => new ChartToolbar(ctx),
         register: (ctx) => {
