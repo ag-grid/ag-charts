@@ -1,4 +1,3 @@
-import type { Point } from 'ag-charts-core';
 import type { AgMarkerShape, AgMarkerShapeFn, AgMarkerShapeFnParams } from 'ag-charts-types';
 
 import { ExtendedPath2D } from '../../scene/extendedPath2D';
@@ -23,15 +22,12 @@ interface CacheEntry {
 const stringShapeCache = new Map<string, CacheEntry>();
 const functionShapeCache = new WeakMap<AgMarkerShapeFn, Map<number, CacheEntry>>();
 
-function buildEntry(shape: AgMarkerShape, size: number, anchor: Point): CacheEntry {
+function buildEntry(shape: AgMarkerShape, size: number): CacheEntry {
     const path = new ExtendedPath2D();
-    // Author the path so the shape's *anchor* lands at the origin. Shape generators draw centred
-    // on their input (x, y); shifting by `-(anchor - 0.5) * size` places the anchor at (0, 0),
-    // letting the consumer treat `translationX/Y` as "the anchor point" with no further offset.
     const drawParams: AgMarkerShapeFnParams = {
         path,
-        x: -(anchor.x - 0.5) * size,
-        y: -(anchor.y - 0.5) * size,
+        x: 0,
+        y: 0,
         size,
         pixelRatio: 1,
     };
@@ -43,12 +39,12 @@ function buildEntry(shape: AgMarkerShape, size: number, anchor: Point): CacheEnt
     return { path };
 }
 
-export function getSharedMarkerPath(shape: AgMarkerShape, size: number, anchor: Point): ExtendedPath2D {
+export function getSharedMarkerPath(shape: AgMarkerShape, size: number): ExtendedPath2D {
     if (typeof shape === 'string') {
         const key = `${shape}:${size}`;
         let entry = stringShapeCache.get(key);
         if (entry === undefined) {
-            entry = buildEntry(shape, size, anchor);
+            entry = buildEntry(shape, size);
             stringShapeCache.set(key, entry);
         }
         return entry.path;
@@ -61,13 +57,13 @@ export function getSharedMarkerPath(shape: AgMarkerShape, size: number, anchor: 
         }
         let entry = sizeMap.get(size);
         if (entry === undefined) {
-            entry = buildEntry(shape, size, anchor);
+            entry = buildEntry(shape, size);
             sizeMap.set(size, entry);
         }
         return entry.path;
     }
     // Fallback for unset/invalid shape — build a one-off square so rendering doesn't crash.
-    return buildEntry('square', size, { x: 0.5, y: 0.5 }).path;
+    return buildEntry('square', size).path;
 }
 
 export function clearMarkerPathCache(): void {

@@ -135,12 +135,10 @@ export function resetMarkerSelectionsDirect<D extends CartesianSeriesNodeDatum>(
 
 export function resetMarkerPositionFn<D extends CartesianSeriesNodeDatum>(_node: Node<D>, datum: D) {
     return {
-        translationX: datum.point?.x ?? Number.NaN,
-        translationY: datum.point?.y ?? Number.NaN,
-        // Scaling pivots are in this node's local (origin-centred) space — translationX/Y is
-        // applied on top by the Translatable mixin — so the scaling centre is the origin.
-        scalingCenterX: 0,
-        scalingCenterY: 0,
+        x: datum.point?.x ?? Number.NaN,
+        y: datum.point?.y ?? Number.NaN,
+        scalingCenterX: datum.point?.x ?? Number.NaN,
+        scalingCenterY: datum.point?.y ?? Number.NaN,
     };
 }
 

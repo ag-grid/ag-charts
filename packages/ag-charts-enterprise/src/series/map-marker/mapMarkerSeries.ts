@@ -864,11 +864,10 @@ export class MapMarkerSeries
 
             marker.setStyleProperties(style, fillBBox);
 
-            marker.translationX = point.x;
-            marker.translationY = point.y;
-            // Scaling pivots are in this node's local (origin-centred) space.
-            marker.scalingCenterX = 0;
-            marker.scalingCenterY = 0;
+            marker.x = point.x;
+            marker.y = point.y;
+            marker.scalingCenterX = point.x;
+            marker.scalingCenterY = point.y;
 
             marker.zIndex = !isHighlight && highlightedDatum != null && datum === highlightedDatum.datum ? 1 : 0;
 

@@ -91,7 +91,7 @@ export class LegendMarkerLabel<D = CategoryLegendDatum> extends TranslatableGrou
     }
 
     private layout() {
-        const { marker, line, length } = this;
+        const { marker, line, length, isCustomMarker } = this;
 
         let centerTranslateX = 0;
         let centerTranslateY = 0;
@@ -102,8 +102,17 @@ export class LegendMarkerLabel<D = CategoryLegendDatum> extends TranslatableGrou
             centerTranslateX = (anchor.x - 0.5) * size + length / 2;
             centerTranslateY = (anchor.y - 0.5) * size;
 
-            marker.translationX = centerTranslateX;
-            marker.translationY = centerTranslateY;
+            if (isCustomMarker) {
+                marker.x = 0;
+                marker.y = 0;
+                marker.translationX = centerTranslateX;
+                marker.translationY = centerTranslateY;
+            } else {
+                marker.x = centerTranslateX;
+                marker.y = centerTranslateY;
+                marker.translationX = 0;
+                marker.translationY = 0;
+            }
         }
 
         if (line.visible) {

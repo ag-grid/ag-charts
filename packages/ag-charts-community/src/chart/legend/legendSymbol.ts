@@ -65,12 +65,11 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
         const y = height / 2 + (anchor.y - 0.5) * size;
         const scale = size / (size + markerStrokeWidth);
 
-        marker.translationX = x;
-        marker.translationY = y;
+        marker.x = x;
+        marker.y = y;
 
-        // Scaling pivots are in this node's local (origin-centred) space.
-        marker.scalingCenterX = 0;
-        marker.scalingCenterY = 0;
+        marker.scalingCenterX = x;
+        marker.scalingCenterY = y;
         marker.scalingX = scale;
         marker.scalingY = scale;
 

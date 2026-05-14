@@ -35,8 +35,8 @@ export abstract class ShapePointScene<Datum extends ShapePointProperties> extend
 
     protected updateShapePath(datum: Datum, point: Point) {
         const { shape } = this;
-        shape.translationX = point.x;
-        shape.translationY = point.y;
+        shape.x = point.x;
+        shape.y = point.y;
         shape.size = datum.size;
     }
 
