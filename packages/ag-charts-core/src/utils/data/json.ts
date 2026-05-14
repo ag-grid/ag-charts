@@ -1,13 +1,9 @@
 import { warn } from '../../logging/logger';
-import { isProperties } from '../../state/properties';
-import type { DeepPartial, PlainObject } from '../../types/global';
-import { isArray, isDate, isFunction, isHtmlElement, isObject, isPlainObject, isRegExp } from '../types/typeGuards';
-import { SKIP_JS_BUILTINS } from './object';
+import type { PlainObject } from '../../types/global';
+import { isArray, isDate, isPlainObject, isRegExp } from '../types/typeGuards';
 
 type StringSet = { has(value: string): boolean };
 export type CloneOptions = { shallow?: StringSet; assign?: StringSet; seen?: unknown[] };
-
-const CLASS_INSTANCE_TYPE = 'class-instance';
 
 /**
  * Performs a recursive JSON-diff between a source and target JSON structure.
@@ -192,129 +188,4 @@ export function jsonWalk<T, C, R>(
     }
 
     return acc!;
-}
-
-/**
- * Recursively apply a JSON object into a class-hierarchy, optionally instantiating certain classes
- * by property name.
- *
- * @param target to apply source JSON properties into
- * @param source to be applied
- * @param params
- * @param params.path path for logging/error purposes, to aid with pinpointing problems
- * @param params.matcherPath path for pattern matching, to lookup allowedTypes override.
- * @param params.skip property names to skip from the source
- * @param params.constructedArrays map stores arrays which items should be initialised using a class constructor
- */
-export function jsonApply<Target extends object, Source extends DeepPartial<Target>>(
-    target: Target,
-    source?: Source,
-    params: {
-        path?: string;
-        matcherPath?: string;
-        skip?: string[];
-    } = {}
-): Target {
-    const { path, matcherPath = path?.replace(/(\[[0-9+]+])/i, '[]'), skip = [] } = params;
-
-    if (target == null) {
-        throw new Error(`AG Charts - target is uninitialised: ${path ?? '<root>'}`);
-    }
-    if (source == null) {
-        return target;
-    }
-
-    if (isProperties(target)) {
-        return target.set(source);
-    }
-
-    const targetAny = target as any;
-    const targetType = classify(target);
-    for (const property of Object.keys(source)) {
-        if (SKIP_JS_BUILTINS.has(property)) continue;
-
-        const propertyMatcherPath = `${matcherPath ? matcherPath + '.' : ''}${property}`;
-        if (skip.includes(propertyMatcherPath)) continue;
-
-        const newValue = (source as any)[property];
-        const propertyPath = `${path ? path + '.' : ''}${property}`;
-        const targetClass = targetAny.constructor;
-        const currentValue = targetAny[property];
-        try {
-            const currentValueType = classify(currentValue);
-            const newValueType = classify(newValue);
-
-            if (targetType === CLASS_INSTANCE_TYPE && !(property in target || property === 'context')) {
-                if (newValue === undefined) continue;
-
-                warn(`unable to set [${propertyPath}] in ${targetClass?.name} - property is unknown`);
-                continue;
-            }
-
-            if (
-                currentValueType != null &&
-                newValueType != null &&
-                newValueType !== currentValueType &&
-                (currentValueType !== CLASS_INSTANCE_TYPE || newValueType !== 'object')
-            ) {
-                warn(
-                    `unable to set [${propertyPath}] in ${targetClass?.name} - can't apply type of [${newValueType}], allowed types are: [${currentValueType}]`
-                );
-                continue;
-            }
-
-            if (isProperties(currentValue)) {
-                if (newValue === undefined) {
-                    currentValue.clear();
-                } else {
-                    currentValue.set(newValue);
-                }
-            } else if (newValueType === 'object' && property !== 'context') {
-                if (!(property in targetAny)) {
-                    warn(`unable to set [${propertyPath}] in ${targetClass?.name} - property is unknown`);
-                    continue;
-                }
-
-                if (currentValue == null) {
-                    targetAny[property] = newValue;
-                } else {
-                    jsonApply(currentValue, newValue, {
-                        ...params,
-                        path: propertyPath,
-                        matcherPath: propertyMatcherPath,
-                    });
-                }
-            } else {
-                targetAny[property] = newValue;
-            }
-        } catch (error: any) {
-            warn(`unable to set [${propertyPath}] in [${targetClass?.name}]; nested error is: ${error.message}`);
-        }
-    }
-
-    return target;
-}
-
-type RestrictedClassification = 'array' | 'object' | 'primitive';
-type Classification = RestrictedClassification | 'function' | 'class-instance';
-/**
- * Classify the type of value to assist with handling for merge purposes.
- */
-function classify(value: any): Classification | null {
-    if (value == null) {
-        return null;
-    }
-    if (isHtmlElement(value) || isDate(value)) {
-        return 'primitive';
-    }
-    if (isArray(value)) {
-        return 'array';
-    }
-    if (isObject(value)) {
-        return isPlainObject(value) ? 'object' : CLASS_INSTANCE_TYPE;
-    }
-    if (isFunction(value)) {
-        return 'function';
-    }
-    return 'primitive';
 }
