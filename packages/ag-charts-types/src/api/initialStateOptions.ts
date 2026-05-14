@@ -46,13 +46,10 @@ export interface AgInitialStateZoomOptions {
 }
 
 export interface AgInitialStateZoomRange {
-    // @todo(AG-13954) Re-enable strings
-    // start?: AgStateSerializableDate | string | number;
-    // end?: AgStateSerializableDate | string | number;
     /** The start value of the zoom range. */
-    start?: AgStateSerializableDate | number;
+    start?: AgStateSerializableDate | string | number;
     /** The end value of the zoom range. */
-    end?: AgStateSerializableDate | number;
+    end?: AgStateSerializableDate | string | number;
 }
 
 export interface AgInitialStateZoomRatio {
