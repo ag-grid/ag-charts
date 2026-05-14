@@ -11,6 +11,11 @@ import { Rotatable, Scalable, Translatable } from '../../scene/transformable';
 import { align } from '../../scene/util/pixel';
 import { getSharedMarkerPath } from './markerPathCache';
 
+// Anchor lookups happen in the per-frame hot path (drawPath, computeBBox, distanceSquared,
+// svgPathData). Returning shared frozen literals keeps the call allocation-free.
+const PIN_ANCHOR: Point = Object.freeze({ x: 0.5, y: 1 });
+const CENTRE_ANCHOR: Point = Object.freeze({ x: 0.5, y: 0.5 });
+
 class InternalMarker<D = any> extends Path<D> {
     @DeclaredSceneObjectChangeDetection({ equals: TRIPLE_EQ })
     shape: AgMarkerShape = 'square';
@@ -42,11 +47,20 @@ class InternalMarker<D = any> extends Path<D> {
     private _drawTranslateActive: boolean = false;
     private _drawTranslateX: number = 0;
     private _drawTranslateY: number = 0;
+    // Scratch BBoxes reused across draws to avoid per-frame allocations. Only ever read inside
+    // the synchronous span of {@link drawPath}, so a single instance per marker is safe.
+    private readonly _scratchFillBBox: BBox = new BBox(0, 0, 0, 0);
+    private readonly _scratchDrawBBox: BBox = new BBox(0, 0, 0, 0);
 
     override getBBox(): BBox {
         const bbox = super.getBBox();
         if (this._drawTranslateActive) {
-            return new BBox(bbox.x - this._drawTranslateX, bbox.y - this._drawTranslateY, bbox.width, bbox.height);
+            const out = this._scratchDrawBBox;
+            out.x = bbox.x - this._drawTranslateX;
+            out.y = bbox.y - this._drawTranslateY;
+            out.width = bbox.width;
+            out.height = bbox.height;
+            return out;
         }
         return bbox;
     }
@@ -80,8 +94,19 @@ class InternalMarker<D = any> extends Path<D> {
         return Math.max(dx * dx + dy * dy - radius * radius, 0);
     }
 
+    /**
+     * Marker geometry lives on the shared cache via {@link _sharedPath}; the inherited
+     * `this.path` is unused for built-in markers. Override the complexity hook so
+     * {@link Path.preRender} never lazy-allocates an unused `ExtendedPath2D` per marker.
+     */
+    protected override pathComplexity(): number {
+        return this._sharedPath?.commands.length ?? 0;
+    }
+
     override updatePath(): void {
         const { shape, size } = this;
+        // `!(size > 0)` rather than `size <= 0` so `NaN` size is treated as no path.
+        // eslint-disable-next-line sonarjs/no-inverted-boolean-check
         if (shape == null || !(size > 0)) {
             this._sharedPath = undefined;
             return;
@@ -115,12 +140,12 @@ class InternalMarker<D = any> extends Path<D> {
         if (originalFillBBox) {
             // fillBBox bounds (e.g. axis-bounded gradients) must follow the translate to stay
             // anchored on screen.
-            this.__fillBBox = new BBox(
-                originalFillBBox.x - tx,
-                originalFillBBox.y - ty,
-                originalFillBBox.width,
-                originalFillBBox.height
-            );
+            const shifted = this._scratchFillBBox;
+            shifted.x = originalFillBBox.x - tx;
+            shifted.y = originalFillBBox.y - ty;
+            shifted.width = originalFillBBox.width;
+            shifted.height = originalFillBBox.height;
+            this.__fillBBox = shifted;
         }
         this._drawTranslateActive = true;
         this._drawTranslateX = tx;
@@ -181,12 +206,12 @@ export class Marker<D = unknown> extends Rotatable(Scalable(Translatable(Interna
 
     static anchor(shape: AgMarkerShape | undefined): Point {
         if (shape === 'pin') {
-            return { x: 0.5, y: 1 };
+            return PIN_ANCHOR;
         } else if (typeof shape === 'function' && 'anchor' in shape) {
             // Undocumented API - used by FC annotations
             return shape.anchor as any;
         }
-        return { x: 0.5, y: 0.5 };
+        return CENTRE_ANCHOR;
     }
 
     constructor(options?: NodeOptions & { shape?: AgMarkerShape }) {

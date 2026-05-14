@@ -13,8 +13,19 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
      * Declare a path to retain for later rendering and hit testing
      * using custom Path2D class. Think of it as a TypeScript version
      * of the native Path2D (with some differences) that works in all browsers.
+     *
+     * Lazily allocated so subclasses that author their geometry elsewhere (e.g. `Marker`, which
+     * shares an origin-centred path via the marker path cache) do not pay the per-instance
+     * `ExtendedPath2D` allocation when `this.path` is never read.
      */
-    path = new ExtendedPath2D();
+    private _path?: ExtendedPath2D;
+    get path(): ExtendedPath2D {
+        this._path ??= new ExtendedPath2D();
+        return this._path;
+    }
+    set path(value: ExtendedPath2D) {
+        this._path = value;
+    }
 
     protected _clipX: number = Number.NaN;
     protected _clipY: number = Number.NaN;
@@ -133,7 +144,16 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
         }
         this.lastPixelRatio = renderCtx.devicePixelRatio;
         this.updatePathIfDirty();
-        return super.preRender(renderCtx, this.path.commands.length);
+        return super.preRender(renderCtx, this.pathComplexity());
+    }
+
+    /**
+     * Per-render complexity hint for {@link preRender}. Subclasses with externally-managed path
+     * geometry (e.g. `Marker`, which uses a shared origin-centred path from a cache) override
+     * this to avoid forcing `this.path` to lazy-allocate on every render.
+     */
+    protected pathComplexity(): number {
+        return this.path.commands.length;
     }
 
     override render(renderCtx: RenderContext) {
