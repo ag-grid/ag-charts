@@ -42,11 +42,13 @@ export type NormalisedGradientLegendScaleOptions<TContext = ContextDefault> = No
 >;
 
 /**
- * Post-theme-merge shape for `gradientLegend`. The `scale` subtree is replaced
- * with its normalised form; everything else stays as the user-facing shape.
+ * Post-theme-merge shape for `gradientLegend`. Required keys reflect values
+ * populated by `gradientLegendModule.themeTemplate` (which spreads
+ * `LEGEND_CONTAINER_THEME` for `cornerRadius`, `fillOpacity`, `padding`,
+ * `border`).
  */
 export type NormalisedGradientLegendOptions<TContext = ContextDefault> = Normalised<
     AgGradientLegendOptions<TContext>,
-    never,
+    'enabled' | 'position' | 'spacing' | 'reverseOrder' | 'cornerRadius' | 'fillOpacity',
     { scale?: NormalisedGradientLegendScaleOptions<TContext> }
 >;

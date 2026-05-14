@@ -32,16 +32,19 @@ export class GradientLegend extends AbstractModuleInstance {
 
     data: _ModuleSupport.GradientLegendDatum[] = [];
 
+    // GradientLegend is only created when the `gradientLegend` subtree is configured,
+    // so assert presence here and rely on the module's themeTemplate (which spreads
+    // LEGEND_CONTAINER_THEME) for field-level defaults.
     private get opts(): NormalisedGradientLegendOptions {
-        return this.ctx.chartState.getValue('options', 'gradientLegend') ?? {};
+        return this.ctx.chartState.getValue('options', 'gradientLegend')!;
     }
 
     get enabled(): boolean {
-        return this.opts.enabled ?? false;
+        return this.opts.enabled;
     }
 
     private isVertical(): boolean {
-        const { placement } = expandLegendPosition(this.opts.position ?? 'bottom');
+        const { placement } = expandLegendPosition(this.opts.position);
         return placement.startsWith('right') || placement.startsWith('left');
     }
 
@@ -169,9 +172,9 @@ export class GradientLegend extends AbstractModuleInstance {
         axisTicks.labelOptions = scale.label;
         axisTicks.intervalOptions = scale.interval;
         axisTicks.padding = scalePadding;
-        const { placement } = expandLegendPosition(opts.position ?? 'bottom');
+        const { placement } = expandLegendPosition(opts.position);
         const vertical = placement.startsWith('right') || placement.startsWith('left');
-        const positiveAxis = (opts.reverseOrder ?? false) !== vertical;
+        const positiveAxis = opts.reverseOrder !== vertical;
 
         axisTicks.placement = placement;
         axisTicks.boundSeries = data.series;
@@ -251,10 +254,10 @@ export class GradientLegend extends AbstractModuleInstance {
         };
 
         const opts = this.opts;
-        const spacing = opts.spacing ?? 20;
+        const spacing = opts.spacing;
         let { x: left, y: top } = shrinkRect;
         const { width, height } = legendBBox;
-        const { placement, floating, xOffset, yOffset } = expandLegendPosition(opts.position ?? 'bottom');
+        const { placement, floating, xOffset, yOffset } = expandLegendPosition(opts.position);
 
         const containerStyles = this.getContainerStyles();
 
@@ -335,9 +338,9 @@ export class GradientLegend extends AbstractModuleInstance {
         const stroke = b.stroke;
         const strokeOpacity = b.strokeOpacity ?? 1;
         const strokeWidth = b.strokeWidth ?? 1;
-        const cornerRadius = opts.cornerRadius ?? 0;
+        const cornerRadius = opts.cornerRadius;
         const fill = opts.fill as string | undefined;
-        const fillOpacity = opts.fillOpacity ?? 1;
+        const fillOpacity = opts.fillOpacity;
         const padding = opts.padding ?? 4;
         const isPaddingNumber = typeof padding === 'number';
 
