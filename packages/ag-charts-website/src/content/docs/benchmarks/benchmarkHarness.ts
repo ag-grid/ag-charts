@@ -327,11 +327,15 @@ class BenchmarkUI {
     resultsElement: HTMLDivElement | null = null;
     errorElement: HTMLDivElement | null = null;
     runButton: HTMLButtonElement | null = null;
+    runDropdownButton: HTMLButtonElement | null = null;
+    runDropdownMenu: HTMLDivElement | null = null;
+    runControlWrapper: HTMLDivElement | null = null;
     panelCollapsed: boolean = false;
     panelToggleButton: HTMLButtonElement | null = null;
     panelContent: HTMLDivElement | null = null;
     isFloatingMode: boolean = false;
     private compareMode = false;
+    private dropdownDocumentClickHandler: ((e: MouseEvent) => void) | null = null;
 
     setCompareMode(value: boolean): void {
         this.compareMode = value;
@@ -434,30 +438,148 @@ class BenchmarkUI {
             }
         }
 
-        // Create run benchmark button (non-floating mode)
-        this.runButton = document.createElement('button');
-        this.runButton.id = 'runBenchmarkBtn';
-        this.runButton.textContent = 'Run Benchmark';
-        this.runButton.style.cssText =
-            'margin-left: auto; background-color: var(--bm-run-button-bg); color: white; border: none; padding: 5px 15px; cursor: pointer; border-radius: 4px;';
-        controlsRow.appendChild(this.runButton);
+        this.runControlWrapper = this.buildRunControl({ floating: false });
+        controlsRow.appendChild(this.runControlWrapper);
     }
 
     private createFloatingButton(): void {
         const chartParent = this.getChartParentWithPositioning();
 
-        // Create floating button
+        this.runControlWrapper = this.buildRunControl({ floating: true });
+
+        if (chartParent) {
+            chartParent.appendChild(this.runControlWrapper);
+        } else {
+            document.body.appendChild(this.runControlWrapper);
+        }
+    }
+
+    /**
+     * Builds a split run button: a primary "Run Benchmark" button to run everything,
+     * paired with a caret button that opens a dropdown for running a single test case.
+     */
+    private buildRunControl({ floating }: { floating: boolean }): HTMLDivElement {
+        const wrapper = document.createElement('div');
+        wrapper.id = 'runBenchmarkControl';
+        const wrapperBase = 'display: inline-flex; align-items: stretch;';
+        wrapper.style.cssText = floating
+            ? `position: absolute; top: 10px; right: 10px; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); border-radius: 4px; ${wrapperBase}`
+            : `margin-left: auto; ${wrapperBase}`;
+
+        const buttonBase = `background-color: var(--bm-run-button-bg); color: white; border: none; cursor: pointer; ${
+            floating ? 'font-weight: 500;' : ''
+        }`;
+        const padding = floating ? 'padding: 8px 16px;' : 'padding: 5px 15px;';
+
         this.runButton = document.createElement('button');
         this.runButton.id = 'runBenchmarkBtn';
         this.runButton.textContent = 'Run Benchmark';
-        this.runButton.style.cssText =
-            'position: absolute; top: 10px; right: 10px; z-index: 100; background-color: var(--bm-run-button-bg); color: white; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); font-weight: 500;';
+        this.runButton.style.cssText = `${buttonBase} ${padding} border-radius: 4px 0 0 4px; border-right: 1px solid rgba(255,255,255,0.25);`;
 
-        // Insert button relative to chart element
-        if (chartParent) {
-            chartParent.appendChild(this.runButton);
+        this.runDropdownButton = document.createElement('button');
+        this.runDropdownButton.id = 'runBenchmarkDropdownBtn';
+        this.runDropdownButton.type = 'button';
+        this.runDropdownButton.title = 'Run a single test case';
+        this.runDropdownButton.setAttribute('aria-haspopup', 'true');
+        this.runDropdownButton.setAttribute('aria-expanded', 'false');
+        this.runDropdownButton.textContent = '▾';
+        this.runDropdownButton.style.cssText = `${buttonBase} ${
+            floating ? 'padding: 8px 10px;' : 'padding: 5px 10px;'
+        } border-radius: 0 4px 4px 0;`;
+        this.runDropdownButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleRunDropdown();
+        });
+
+        this.runDropdownMenu = document.createElement('div');
+        this.runDropdownMenu.id = 'runBenchmarkDropdownMenu';
+        this.runDropdownMenu.setAttribute('role', 'menu');
+        this.runDropdownMenu.style.cssText =
+            'display: none; position: absolute; top: 100%; right: 0; margin-top: 4px; background: var(--bm-container-bg); color: var(--bm-table-text); border: 1px solid var(--bm-container-border); border-radius: 4px; box-shadow: 0 4px 12px var(--bm-container-shadow); min-width: 220px; max-height: 60vh; overflow-y: auto; z-index: 101; font-size: 13px;';
+
+        // Positioning context for the absolutely positioned menu
+        wrapper.style.position = wrapper.style.position || 'relative';
+        wrapper.appendChild(this.runButton);
+        wrapper.appendChild(this.runDropdownButton);
+        wrapper.appendChild(this.runDropdownMenu);
+
+        return wrapper;
+    }
+
+    /**
+     * Populate dropdown menu items for running individual test cases.
+     */
+    setTestCases(testCases: NormalizedTestCase[], onRunSingle: (testCaseId: string) => void): void {
+        if (!this.runDropdownMenu) return;
+
+        this.runDropdownMenu.innerHTML = '';
+
+        if (testCases.length === 0) {
+            const empty = document.createElement('div');
+            empty.style.cssText = 'padding: 8px 12px; color: var(--bm-badge-text); font-style: italic;';
+            empty.textContent = 'No test cases available';
+            this.runDropdownMenu.appendChild(empty);
+            if (this.runDropdownButton) this.runDropdownButton.disabled = true;
+            return;
+        }
+
+        const header = document.createElement('div');
+        header.style.cssText =
+            'padding: 8px 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--bm-badge-text); border-bottom: 1px solid var(--bm-table-border);';
+        header.textContent = 'Run single test case';
+        this.runDropdownMenu.appendChild(header);
+
+        for (const tc of testCases) {
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.setAttribute('role', 'menuitem');
+            item.dataset.testCaseId = tc.id;
+            item.style.cssText =
+                'display: block; width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; cursor: pointer; color: inherit; font: inherit;';
+            item.textContent = tc.label || tc.id;
+            item.addEventListener('mouseenter', () => {
+                item.style.background = 'var(--bm-table-row-hover)';
+            });
+            item.addEventListener('mouseleave', () => {
+                item.style.background = 'none';
+            });
+            item.addEventListener('click', () => {
+                this.closeRunDropdown();
+                onRunSingle(tc.id);
+            });
+            this.runDropdownMenu.appendChild(item);
+        }
+    }
+
+    private toggleRunDropdown(): void {
+        if (!this.runDropdownMenu) return;
+        if (this.runDropdownMenu.style.display === 'block') {
+            this.closeRunDropdown();
         } else {
-            document.body.appendChild(this.runButton);
+            this.openRunDropdown();
+        }
+    }
+
+    private openRunDropdown(): void {
+        if (!this.runDropdownMenu || !this.runDropdownButton) return;
+        this.runDropdownMenu.style.display = 'block';
+        this.runDropdownButton.setAttribute('aria-expanded', 'true');
+
+        this.dropdownDocumentClickHandler = (e: MouseEvent) => {
+            const target = e.target as Node | null;
+            if (target && this.runControlWrapper?.contains(target)) return;
+            this.closeRunDropdown();
+        };
+        document.addEventListener('click', this.dropdownDocumentClickHandler);
+    }
+
+    private closeRunDropdown(): void {
+        if (!this.runDropdownMenu || !this.runDropdownButton) return;
+        this.runDropdownMenu.style.display = 'none';
+        this.runDropdownButton.setAttribute('aria-expanded', 'false');
+        if (this.dropdownDocumentClickHandler) {
+            document.removeEventListener('click', this.dropdownDocumentClickHandler);
+            this.dropdownDocumentClickHandler = null;
         }
     }
 
@@ -477,17 +599,17 @@ class BenchmarkUI {
     }
 
     hideControls(): void {
-        // Only hide the run button, not the entire controls row
+        // Only hide the run control, not the entire controls row
         // This preserves the original example controls
-        if (this.runButton) {
-            this.runButton.style.display = 'none';
+        if (this.runControlWrapper) {
+            this.runControlWrapper.style.display = 'none';
         }
+        this.closeRunDropdown();
     }
 
     showControls(): void {
-        // Show the run button
-        if (this.runButton) {
-            this.runButton.style.display = this.isFloatingMode ? 'block' : '';
+        if (this.runControlWrapper) {
+            this.runControlWrapper.style.display = this.isFloatingMode ? 'inline-flex' : '';
         }
     }
 
@@ -834,6 +956,12 @@ class BenchmarkUI {
         if (this.runButton) {
             this.runButton.disabled = !enabled;
         }
+        if (this.runDropdownButton) {
+            this.runDropdownButton.disabled = !enabled;
+        }
+        if (!enabled) {
+            this.closeRunDropdown();
+        }
     }
 
     togglePanelCollapsed(): void {
@@ -911,13 +1039,17 @@ class BenchmarkRunner {
         return 'unknown';
     }
 
-    private calculateTotalUpdates(): number {
+    private calculateTotalUpdates(testCases: NormalizedTestCase[]): number {
         let total = 0;
-        for (const testCase of this.config.testCases) {
+        for (const testCase of testCases) {
             const availableVariants = testCase.variants.filter((v) => v.available);
             total += availableVariants.length * this.config.config.updatesPerTest;
         }
         return total;
+    }
+
+    getTestCases(): NormalizedTestCase[] {
+        return this.config.testCases;
     }
 
     private cleanupClipboardListeners(): void {
@@ -931,18 +1063,23 @@ class BenchmarkRunner {
         }
     }
 
-    async run(): Promise<void> {
+    async run(opts?: { testCaseId?: string }): Promise<void> {
         if (this.isRunning) return;
+
+        const testCases = opts?.testCaseId
+            ? this.config.testCases.filter((tc) => tc.id === opts.testCaseId)
+            : this.config.testCases;
+        if (testCases.length === 0) {
+            console.warn(`Benchmark: no test case matched id "${opts?.testCaseId}"`);
+            return;
+        }
 
         this.cleanupClipboardListeners();
         this.isRunning = true;
         this.results = [];
         this.updateIndex = 0;
-        this.totalUpdates = this.calculateTotalUpdates();
-        this.totalTests = this.config.testCases.reduce(
-            (sum, tc) => sum + tc.variants.filter((v) => v.available).length,
-            0
-        );
+        this.totalUpdates = this.calculateTotalUpdates(testCases);
+        this.totalTests = testCases.reduce((sum, tc) => sum + tc.variants.filter((v) => v.available).length, 0);
 
         this.ui.clearResults();
         this.ui.hideControls();
@@ -953,7 +1090,7 @@ class BenchmarkRunner {
         this.updateProgress();
 
         try {
-            for (const testCase of this.config.testCases) {
+            for (const testCase of testCases) {
                 this.currentTestCase = testCase;
 
                 // Setup the test case
@@ -1429,6 +1566,10 @@ export function initBenchmark(config: BenchmarkConfig): void {
     // Set up run button handler
     ui.setRunButtonHandler(() => {
         void runner.run();
+    });
+
+    ui.setTestCases(runner.getTestCases(), (testCaseId) => {
+        void runner.run({ testCaseId });
     });
 
     // Check for auto-run URL parameter
