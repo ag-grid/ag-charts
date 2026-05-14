@@ -1,36 +1,31 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import {
-    ActionOnSet,
-    ChartUpdateType,
-    type Placement,
-    Property,
-    ProxyPropertyOnWrite,
-    ZIndexMap,
-} from 'ag-charts-core';
+import { ChartUpdateType, type DynamicContext, type Placement, ZIndexMap } from 'ag-charts-core';
 
 import { Image } from '../image/image';
 
-export class Foreground extends _ModuleSupport.Background<Image> {
-    @Property
-    @ActionOnSet<Foreground>({
-        newValue(image: Image) {
-            this.node.appendChild(image.node);
-            image.onLoad = () => this.onImageLoad();
-        },
-        oldValue(image: Image) {
-            image.node.remove();
-            image.onLoad = undefined;
-        },
-    })
-    override image = new Image();
+export class Foreground extends _ModuleSupport.Background {
+    private readonly image = new Image();
 
-    @Property
-    @ProxyPropertyOnWrite('rectNode', 'fill')
-    override fill?: string = 'transparent';
+    constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
+        super(ctx);
+        this.node.appendChild(this.image.node);
+        this.image.onLoad = () => this.onImageLoad();
+        this.cleanup.register(() => {
+            this.image.node.remove();
+            this.image.onLoad = undefined;
+        });
+    }
 
-    @Property
-    @ProxyPropertyOnWrite('rectNode', 'fillOpacity')
-    fillOpacity?: number = undefined;
+    protected override applyOptions() {
+        const opts = this.ctx.chartState.getValue('options', 'foreground');
+        this.node.visible = opts?.visible ?? true;
+        this.rectNode.fill = opts?.fill ?? 'transparent';
+        this.rectNode.fillOpacity = opts?.fillOpacity ?? 1;
+        if (opts?.image != null) {
+            this.image.set(opts.image);
+        }
+        this.textNode.text = opts?.text;
+    }
 
     protected override createNode() {
         return new _ModuleSupport.Group({ name: 'foreground', zIndex: ZIndexMap.FOREGROUND });
@@ -42,12 +37,12 @@ export class Foreground extends _ModuleSupport.Background<Image> {
         const { width, height } = event.chart;
         const placement = this.image.performLayout(width, height);
 
-        if (this.text) {
+        if (this.textNode.text) {
             this.updateTextNode(placement);
         }
     }
 
-    protected onImageLoad() {
+    private onImageLoad() {
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
 

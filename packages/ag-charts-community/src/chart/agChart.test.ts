@@ -152,8 +152,8 @@ describe('AgChart', () => {
         expect(chart.title?.fontStyle).toBe(theme.config.line.title.fontStyle);
         expect(chart.subtitle?.text).toBe(theme.config.line.subtitle.text);
         expect(chart.subtitle?.enabled).toBe(false);
-        expect((chart as any).background.fill).toBe('red');
-        expect((chart as any).background.visible).toBe(false);
+        expect(chart.ctx.chartState.getValue('options', 'background').fill).toBe('red');
+        expect(chart.ctx.chartState.getValue('options', 'background').visible).toBe(false);
         expect((chart.series[0] as any).properties.marker.shape).toBe('plus');
 
         await chartProxy.updateDelta({

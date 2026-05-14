@@ -1,20 +1,23 @@
-import { Property, cachedTextMeasurer, isArray, measureTextSegments, toTextString } from 'ag-charts-core';
+import type { DynamicContext } from 'ag-charts-core';
+import { cachedTextMeasurer, isArray, measureTextSegments, toTextString } from 'ag-charts-core';
 import type { TextAlign } from 'ag-charts-types';
 
 import type { LayoutCompleteEvent } from '../core/eventsHub';
+import type { ChartRegistry } from '../module/moduleContext';
 import type { BBox } from '../scene/bbox';
-import { Caption } from './caption';
+import { ChartCaption } from './chartCaption';
 import type { LayoutContext } from './layout/layoutManager';
 
 export class ChartCaptions {
-    @Property
-    readonly title = new Caption();
+    readonly title: ChartCaption;
+    readonly subtitle: ChartCaption;
+    readonly footnote: ChartCaption;
 
-    @Property
-    readonly subtitle = new Caption();
-
-    @Property
-    readonly footnote = new Caption();
+    constructor(ctx: DynamicContext<ChartRegistry>) {
+        this.title = new ChartCaption(ctx, 'title');
+        this.subtitle = new ChartCaption(ctx, 'subtitle');
+        this.footnote = new ChartCaption(ctx, 'footnote');
+    }
 
     positionCaptions({ layoutBox }: LayoutContext) {
         const { title, subtitle, footnote } = this;
@@ -59,7 +62,8 @@ export class ChartCaptions {
         return layoutBox.x + layoutBox.width / 2;
     }
 
-    private positionCaption(vAlign: 'top' | 'bottom', caption: Caption, layoutBox: BBox, maxHeight: number) {
+    private positionCaption(vAlign: 'top' | 'bottom', caption: ChartCaption, layoutBox: BBox, maxHeight: number) {
+        caption.applyToNode();
         // Position the node even when text is empty so its bbox reserves a line of space —
         // an `enabled: true` caption with `text: ''` should still occupy layout (AG-16511).
         caption.node.x = this.computeX(caption.textAlign, layoutBox) + caption.padding;
@@ -73,11 +77,11 @@ export class ChartCaptions {
         caption.computeTextWrap(layoutBox.width, containerHeight);
     }
 
-    private shrinkLayoutByCaption(vAlign: 'top' | 'bottom', caption: Caption, layoutBox: BBox) {
+    private shrinkLayoutByCaption(vAlign: 'top' | 'bottom', caption: ChartCaption, layoutBox: BBox) {
         if (caption.layoutStyle !== 'block') return;
 
         const bbox = caption.node.getBBox().clone();
-        const { spacing = 0 } = caption;
+        const spacing = caption.spacing ?? 0;
 
         // Empty text yields a zero-height bbox from the Text node; reserve one line of font
         // height so an enabled caption with `text: ''` still occupies layout space (AG-16511).

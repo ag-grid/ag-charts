@@ -15,7 +15,6 @@ import {
     type ModuleInstance,
     ModuleRegistry,
     ModuleType,
-    ProxyProperty,
     ZIndexMap,
     callWithContext,
     createId,
@@ -58,9 +57,9 @@ import type { TypedEvent, TypedEventListener } from '../util/observable';
 import { Observable } from '../util/observable';
 import { debouncedCallback } from '../util/render';
 import { Background } from './background/background';
-import { Caption } from './caption';
 import { ChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
+import type { ChartCaption } from './chartCaption';
 import { ChartCaptions } from './chartCaptions';
 import { createChartContext } from './chartContext';
 import { ChartHighlight } from './chartHighlight';
@@ -279,9 +278,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     readonly tooltip: Tooltip;
     readonly overlays: ChartOverlays;
     readonly highlight: ChartHighlight;
-    readonly background: Background<any>;
+    readonly background: Background;
     readonly seriesArea: SeriesArea;
-    foreground?: Background<any>;
+    foreground?: Background;
 
     protected readonly debug = Debug.create(true, 'chart');
 
@@ -361,20 +360,23 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     toSVG() {
         return this.ctx.scene.toSVG();
     }
-    private readonly chartCaptions = new ChartCaptions();
+    private readonly chartCaptions: ChartCaptions;
 
     get seriesAreaBoundingBox() {
         return this.seriesAreaManager.bbox;
     }
 
-    @ProxyProperty('chartCaptions.title')
-    readonly title!: Caption;
+    get title(): ChartCaption {
+        return this.chartCaptions.title;
+    }
 
-    @ProxyProperty('chartCaptions.subtitle')
-    readonly subtitle!: Caption;
+    get subtitle(): ChartCaption {
+        return this.chartCaptions.subtitle;
+    }
 
-    @ProxyProperty('chartCaptions.footnote')
-    readonly footnote!: Caption;
+    get footnote(): ChartCaption {
+        return this.chartCaptions.footnote;
+    }
 
     context?: unknown;
 
@@ -443,10 +445,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         root.append(this.selectionRoot);
         root.append(this.titleGroup);
 
-        this.titleGroup.append(this.title.node);
-        this.titleGroup.append(this.subtitle.node);
-        this.titleGroup.append(this.footnote.node);
-
         const agDocument = new AgDocument(options.specialOverrides.document, options.specialOverrides.window);
 
         this.tooltip = new Tooltip(agDocument);
@@ -469,6 +467,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         // (mode, padding, etc.) work for the rest of construction. `applyOptions` will
         // refresh this on each subsequent update.
         ctx.chartState.setValue('options', options.processedOptions as ChartState['options']);
+
+        this.chartCaptions = new ChartCaptions(ctx);
+        this.titleGroup.append(this.title.node);
+        this.titleGroup.append(this.subtitle.node);
+        this.titleGroup.append(this.footnote.node);
 
         // Disable delayed unhighlight + tooltip removal for sparklines to avoid laggy tooltips when quickly
         // moving between charts (CRT-1012)
@@ -1536,7 +1539,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     protected animationRect?: BBox;
 
     protected getDebugColors(): { background?: string; foreground?: string } | undefined {
-        const bg = this.background.fill;
+        const bg = this.ctx.chartState.getValue('options', 'background').fill;
         if (!bg) return undefined;
         try {
             const color = Color.fromString(bg);
@@ -1725,6 +1728,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             'styleNonce',
             'keyboard',
             'touch',
+            'background',
+            'foreground',
+            'title',
+            'subtitle',
+            'footnote',
         ];
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added

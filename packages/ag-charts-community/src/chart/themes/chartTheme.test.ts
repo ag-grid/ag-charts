@@ -186,7 +186,7 @@ describe('ChartTheme', () => {
             expect(chart.title?.fontSize).toBe(24);
             expect(chart.title?.fontWeight).toBe('normal');
 
-            expect((chart as any).background.fill).toBe('red');
+            expect(chart.ctx.chartState.getValue('options', 'background').fill).toBe('red');
 
             const fills = ['red', 'green', 'blue', 'red', 'green'];
             const strokes = ['cyan', 'cyan', 'cyan', 'cyan', 'cyan'];
@@ -281,7 +281,7 @@ describe('ChartTheme', () => {
             expect(chart.title?.fontSize).toBe(24);
             expect(chart.title?.fontWeight).toBe('normal');
 
-            expect((chart as any).background.fill).toBe('red');
+            expect(chart.ctx.chartState.getValue('options', 'background').fill).toBe('red');
 
             expect(chart.series[0].type).toBe('pie');
             expect((chart.series[0] as PieSeries).properties.fills).toEqual(['red', 'green', 'blue', 'red', 'green']);
@@ -430,7 +430,7 @@ describe('ChartTheme', () => {
             expect(chart.title?.fontSize).toBe(24);
             expect(chart.title?.fontWeight).toBe('normal');
 
-            expect((chart as any).background.fill).toBe('red');
+            expect(chart.ctx.chartState.getValue('options', 'background').fill).toBe('red');
 
             const fills = ['red', 'green', 'blue', 'red', 'green'];
             const strokes = ['cyan', 'cyan', 'cyan', 'cyan', 'cyan'];
@@ -456,7 +456,7 @@ describe('ChartTheme', () => {
             expect(chart.title?.fontSize).toBe(24);
             expect(chart.title?.fontWeight).toBe('normal');
 
-            expect((chart as any).background.fill).toBe('red');
+            expect(chart.ctx.chartState.getValue('options', 'background').fill).toBe('red');
 
             expect(chart.series[0].type).toBe('pie');
             expect((chart.series[0] as PieSeries).properties.fills).toEqual(['red', 'green', 'blue', 'red', 'green']);

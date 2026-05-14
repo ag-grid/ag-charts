@@ -6,6 +6,7 @@ import type {
 } from 'ag-charts-core';
 import type {
     AgActiveItemState,
+    AgChartBackground,
     AgChartOptions,
     AgChartPaddingOptions,
     AgInitialFocus,
@@ -16,10 +17,21 @@ import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { DataSelectionState } from './data/dataSelectionState';
 import type { CategoryLegendDatum } from './legend/legendDatum';
 
+export type ResolvedBackgroundOptions = AgChartBackground & { visible: boolean; fill: string };
+
+export type ResolvedForegroundOptions = {
+    visible?: boolean;
+    fill?: string;
+    fillOpacity?: number;
+    image?: AgChartBackground['image'];
+    text?: string;
+};
+
 export type ResolvedChartOptions = Omit<
     AgChartOptions,
-    'keyboard' | 'legend' | 'padding' | 'selection' | 'suppressFieldDotNotation' | 'touch' | 'zoom'
+    'background' | 'keyboard' | 'legend' | 'padding' | 'selection' | 'suppressFieldDotNotation' | 'touch' | 'zoom'
 > & {
+    background: ResolvedBackgroundOptions;
     keyboard: { enabled: boolean; initialFocus: AgInitialFocus; tabIndex?: number };
     legend: NormalisedLegendOptions;
     padding: Required<AgChartPaddingOptions>;
@@ -30,6 +42,7 @@ export type ResolvedChartOptions = Omit<
     // Undocumented options that the chart consumes through chartState.
     mode: 'integrated' | 'standalone';
     withinStudio?: boolean;
+    foreground?: ResolvedForegroundOptions;
 };
 
 export interface ChartState {
