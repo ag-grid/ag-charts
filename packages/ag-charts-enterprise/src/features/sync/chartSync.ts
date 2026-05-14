@@ -5,6 +5,7 @@ import {
     ChartAxisDirection,
     ChartUpdateType,
     Debug,
+    type DefinedZoomState,
     type DynamicContext,
     Logger,
     type Scale,
@@ -168,9 +169,11 @@ export class ChartSync extends AbstractModuleInstance {
     private onZoom(e: _ModuleSupport.ZoomChangeCompleteEvent) {
         const { syncManager } = this.moduleContext;
         for (const chart of syncManager.getGroupSiblings(this.groupId)) {
-            const syncModule: any = chart.modulesManager.getModule('sync');
+            const syncModule = chart.modulesManager.getModule<ChartSync>('sync');
             if (!syncModule?.zoom) continue;
-            const zoomModule: any = chart.modulesManager.getModule('zoom');
+            const zoomModule = chart.modulesManager.getModule<{
+                updateSyncZoom(zoom: DefinedZoomState): void;
+            }>('zoom');
             if (!zoomModule) continue;
 
             const zoom = this.prepareZoomUpdate();
@@ -233,7 +236,7 @@ export class ChartSync extends AbstractModuleInstance {
 
         if (!event.currentHighlight?.datum) {
             for (const chart of syncManager.getGroupSiblings(opts.groupId)) {
-                const syncModule: any = chart.modulesManager.getModule('sync');
+                const syncModule = chart.modulesManager.getModule<ChartSync>('sync');
                 if (!syncModule?.nodeInteraction) continue;
 
                 chart.ctx.highlightManager.updateHighlight(`${chart.id}-sync`, undefined, true);
@@ -280,7 +283,7 @@ export class ChartSync extends AbstractModuleInstance {
         });
 
         for (const chart of syncManager.getGroupSiblings(this.groupId)) {
-            const syncModule: any = chart.modulesManager.getModule('sync');
+            const syncModule = chart.modulesManager.getModule<ChartSync>('sync');
             if (!syncModule?.nodeInteraction) continue;
 
             let dispatched = false;
@@ -453,7 +456,7 @@ export class ChartSync extends AbstractModuleInstance {
 
         for (const member of groupState.members) {
             const { axes, modulesManager } = member;
-            const syncModule: any = modulesManager.getModule('sync');
+            const syncModule = modulesManager.getModule<ChartSync>('sync');
             const memberSyncDirections = syncedDirections(syncModule?.axes);
 
             const keyMatchedAxes = axes

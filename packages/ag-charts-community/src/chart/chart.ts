@@ -1445,7 +1445,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                     break;
 
                 case 'gradientLegend':
-                    const moduleInstance = this.modulesManager.getModule('gradientLegend') as ChartLegend;
+                    const moduleInstance = this.modulesManager.getModule<ChartLegend>('gradientLegend')!;
                     moduleInstance.data = this.series
                         .filter((s) => s.properties.showInLegend)
                         .flatMap((s) => s.getLegendData('gradient'));
@@ -1766,7 +1766,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         this.chartOptions = newChartOptions;
 
-        const navigatorModule: any = this.modulesManager.getModule('navigator');
+        const navigatorModule = this.modulesManager.getModule<any>('navigator');
 
         if (!this.hasViewportSupport()) {
             // reset zoom to initial state
@@ -1954,10 +1954,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 module.register?.(this.getModuleContext());
                 const moduleInstance = module.create(this.getModuleContext());
                 this.modulesManager.addModule(module.name, moduleInstance);
-                (this as any)[module.name] = moduleInstance; // TODO remove
             } else {
                 this.modulesManager.removeModule(module.name);
-                delete (this as any)[module.name]; // TODO remove
             }
 
             modulesChanged = true;

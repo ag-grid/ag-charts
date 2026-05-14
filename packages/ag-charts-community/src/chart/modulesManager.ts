@@ -12,13 +12,13 @@ export class ModulesManager extends ModuleMap<PluginModuleInstance> {
             if (module.name === 'legend' || module.name === 'gradientLegend') {
                 yield {
                     legendType: module.name === 'legend' ? 'category' : 'gradient',
-                    legend: this.getModule(module.name) as ChartLegend,
+                    legend: this.getModule<ChartLegend>(module.name)!,
                 };
             }
         }
     }
 
     selection(): SelectionModuleFns | undefined {
-        return this.getModule('selection') as SelectionModuleFns | undefined;
+        return this.getModule<SelectionModuleFns>('selection');
     }
 }
