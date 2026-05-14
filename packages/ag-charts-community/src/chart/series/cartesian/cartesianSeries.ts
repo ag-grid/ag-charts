@@ -1034,7 +1034,9 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         }
 
         if (minDistanceSquared != null) {
-            return { datum: closestDatum, distance: Math.sqrt(minDistanceSquared) };
+            const radius: number = (closestDatum?.point?.size ?? 0) / 2;
+            const distanceFromHitPoint = Math.sqrt(minDistanceSquared);
+            return { datum: closestDatum, distance: Math.max(distanceFromHitPoint - radius, 0) };
         }
     }
 
@@ -1072,8 +1074,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         }
 
         if (closestDatum) {
-            const distance = Math.max(minDistance - (closestDatum.point?.size ?? 0) / 2, 0);
-            return { datum: closestDatum, distance };
+            return { datum: closestDatum, distance: minDistance };
         }
     }
 
