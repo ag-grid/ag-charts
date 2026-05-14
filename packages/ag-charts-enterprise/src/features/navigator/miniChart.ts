@@ -6,7 +6,6 @@ import {
     type DynamicContext,
     Logger,
     Padding,
-    Property,
     ProxyProperty,
     ZIndexMap,
     calcLineHeight,
@@ -15,17 +14,11 @@ import {
 import { MiniChartGroup } from './shapes/miniChartGroup';
 
 const { CategoryAxis, Group, BBox, stackCartesianSeries } = _ModuleSupport;
-class MiniChartPadding {
-    @Property
-    top: number = 0;
-
-    @Property
-    bottom: number = 0;
-}
 
 export class MiniChart extends AbstractModuleInstance {
-    @Property
-    enabled: boolean = false;
+    get enabled(): boolean {
+        return this.ctx.chartState.getValue('options', 'navigator.miniChart.enabled') ?? false;
+    }
 
     @ProxyProperty(['seriesRoot', 'inset'])
     inset!: number;
@@ -33,7 +26,10 @@ export class MiniChart extends AbstractModuleInstance {
     @ProxyProperty(['seriesRoot', 'cornerRadius'])
     cornerRadius!: number;
 
-    readonly padding = new MiniChartPadding();
+    get padding(): { top: number; bottom: number } {
+        const p = this.ctx.chartState.getValue('options', 'navigator.miniChart.padding') ?? {};
+        return { top: p.top ?? 0, bottom: p.bottom ?? 0 };
+    }
 
     readonly root = new Group({ name: 'root' });
     readonly seriesRoot = this.root.appendChild(

@@ -4,26 +4,37 @@ import {
     ChartAxisDirection,
     ChartUpdateType,
     type DynamicContext,
-    Property,
     UNIT_MAX,
     UNIT_MIN,
     ZIndexMap,
     clamp,
     definedZoomState,
 } from 'ag-charts-core';
+import type {
+    AgScrollbarHorizontalOrientationOptions,
+    AgScrollbarOptions,
+    AgScrollbarThumbStyle,
+    AgScrollbarTrackStyle,
+    AgScrollbarVerticalOrientationOptions,
+} from 'ag-charts-types';
 
 import { ZoomScrollPanner } from '../zoom-interaction/zoomScrollPanner';
 import { ScrollbarDOMProxy } from './scrollbarDOMProxy';
-import {
-    HorizontalScrollbarProperties,
-    ScrollbarThumb,
-    ScrollbarTrack,
-    VerticalScrollbarProperties,
-} from './scrollbarProperties';
 
 const { BBox, Group, Rect, LayoutElement, InteractionState } = _ModuleSupport;
 
 type ScrollbarOrientation = 'horizontal' | 'vertical';
+
+type ResolvedOrientationOptions = (AgScrollbarHorizontalOrientationOptions | AgScrollbarVerticalOrientationOptions) & {
+    enabled: boolean;
+    thickness: number;
+    spacing: number;
+    tickSpacing: number;
+    placement: 'inner' | 'outer';
+    visible: 'auto' | 'always' | 'never';
+    track: AgScrollbarTrackStyle;
+    thumb: AgScrollbarThumbStyle;
+};
 
 interface ScrollbarOrientationState {
     orientation: ScrollbarOrientation;
@@ -31,7 +42,7 @@ interface ScrollbarOrientationState {
     track: _ModuleSupport.Rect;
     thumb: _ModuleSupport.Rect;
     dom: ScrollbarDOMProxy;
-    properties: HorizontalScrollbarProperties | VerticalScrollbarProperties;
+    properties: ResolvedOrientationOptions;
     layoutRect?: _ModuleSupport.BBox;
     position: AgCartesianAxisPosition;
     positionHasAxis: boolean;
@@ -43,46 +54,26 @@ const SCROLLING_STEP = 0.1;
 const SCROLLING_MODE = 'pan';
 
 export class Scrollbar extends AbstractModuleInstance {
-    @Property
-    public enabled: boolean = false;
-
-    @Property
-    public enableAxisScrolling: boolean = false;
-
-    @Property
-    public enableSeriesAreaScrolling: boolean = false;
-
-    @Property
-    public thickness?: number;
-
-    @Property
-    public spacing?: number;
-
-    @Property
-    public tickSpacing?: number;
-
-    @Property
-    public placement?: 'inner' | 'outer';
-
-    @Property
-    public visible?: 'auto' | 'always' | 'never';
-
-    @Property
-    public track = new ScrollbarTrack();
-
-    @Property
-    public thumb = new ScrollbarThumb();
-
-    @Property
-    public horizontal = new HorizontalScrollbarProperties();
-
-    @Property
-    public vertical = new VerticalScrollbarProperties();
-
     private readonly state: Record<ScrollbarOrientation, ScrollbarOrientationState>;
     private seriesRect?: _ModuleSupport.BBox;
 
     private readonly scrollPanner = new ZoomScrollPanner();
+
+    private get opts(): AgScrollbarOptions {
+        return this.ctx.chartState.getValue('options', 'scrollbar') ?? {};
+    }
+
+    private get enabled(): boolean {
+        return this.opts.enabled ?? false;
+    }
+
+    private get enableAxisScrolling(): boolean {
+        return this.opts.enableAxisScrolling ?? false;
+    }
+
+    private get enableSeriesAreaScrolling(): boolean {
+        return this.opts.enableSeriesAreaScrolling ?? false;
+    }
 
     public constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
@@ -133,9 +124,10 @@ export class Scrollbar extends AbstractModuleInstance {
         };
     }
 
-    private resolveProperties(orientation: ScrollbarOrientation) {
-        // base properties are merged with orientation-specific properties in theme processing
-        return orientation === 'horizontal' ? this.horizontal : this.vertical;
+    private resolveProperties(orientation: ScrollbarOrientation): ResolvedOrientationOptions {
+        return (
+            orientation === 'horizontal' ? (this.opts.horizontal ?? {}) : (this.opts.vertical ?? {})
+        ) as ResolvedOrientationOptions;
     }
 
     private getDefaultPosition(orientation: ScrollbarOrientation): AgCartesianAxisPosition {
@@ -429,8 +421,10 @@ export class Scrollbar extends AbstractModuleInstance {
 
         const isHorizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY);
 
-        if (isHorizontal && !this.horizontal.enabled) return;
-        if (!isHorizontal && !this.vertical.enabled) return;
+        const horizontalEnabled = this.opts.horizontal?.enabled ?? false;
+        const verticalEnabled = this.opts.vertical?.enabled ?? false;
+        if (isHorizontal && !horizontalEnabled) return;
+        if (!isHorizontal && !verticalEnabled) return;
 
         baseEvent.stopProcessing();
 

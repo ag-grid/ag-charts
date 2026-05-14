@@ -1,50 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, ActionOnSet, type DynamicContext, Property } from 'ag-charts-core';
-import type { AgDataSourceCallbackParams } from 'ag-charts-types';
+import { AbstractModuleInstance, type DynamicContext } from 'ag-charts-core';
 
 export class DataSource extends AbstractModuleInstance {
-    @ActionOnSet<DataSource>({
-        newValue(enabled) {
-            this.updateCallback(enabled, this.getData);
-        },
-    })
-    @Property
-    public enabled = true;
-
-    @ActionOnSet<DataSource>({
-        newValue(getData) {
-            this.updateCallback(this.enabled, getData);
-        },
-    })
-    @Property
-    public getData: (params: AgDataSourceCallbackParams) => Promise<unknown> = () => Promise.resolve();
-
-    @ActionOnSet<DataSource>({
-        newValue(requestThrottle) {
-            this.dataService.requestThrottle = requestThrottle;
-        },
-    })
-    public requestThrottle?: number;
-
-    @ActionOnSet<DataSource>({
-        newValue(updateThrottle) {
-            this.dataService.dispatchThrottle = updateThrottle;
-        },
-    })
-    public updateThrottle?: number;
-
-    @ActionOnSet<DataSource>({
-        newValue(updateDuringInteraction) {
-            this.dataService.dispatchOnlyLatest = !updateDuringInteraction;
-        },
-    })
-    public updateDuringInteraction?: boolean;
-
-    private readonly dataService: DynamicContext<_ModuleSupport.ChartRegistry>['dataService'];
-
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
-        this.dataService = ctx.dataService;
+
+        const { dataService } = ctx;
 
         let dirty: boolean = false;
         this.cleanup.register(
@@ -55,17 +16,28 @@ export class DataSource extends AbstractModuleInstance {
                 if (dirty) {
                     ctx.zoomManager?.updateZoom({ source: 'data-update', sourceDetail: 'dataSource' });
                 }
+            }),
+            ctx.chartState.observe((get) => {
+                const enabled = get('options', 'dataSource.enabled') ?? true;
+                const getData = get('options', 'dataSource.getData');
+                if (enabled && getData != null) {
+                    dataService.updateCallback(getData);
+                } else {
+                    dataService.clearCallback();
+                }
+            }),
+            ctx.chartState.observe((get) => {
+                const requestThrottle = get('options', 'dataSource.requestThrottle');
+                if (requestThrottle != null) dataService.requestThrottle = requestThrottle;
+            }),
+            ctx.chartState.observe((get) => {
+                const updateThrottle = get('options', 'dataSource.updateThrottle');
+                if (updateThrottle != null) dataService.dispatchThrottle = updateThrottle;
+            }),
+            ctx.chartState.observe((get) => {
+                const updateDuringInteraction = get('options', 'dataSource.updateDuringInteraction');
+                if (updateDuringInteraction != null) dataService.dispatchOnlyLatest = !updateDuringInteraction;
             })
         );
-    }
-
-    private updateCallback(enabled: boolean, getData: (params: AgDataSourceCallbackParams) => Promise<unknown>) {
-        if (!this.dataService) return;
-
-        if (enabled && getData != null) {
-            this.dataService.updateCallback(getData);
-        } else {
-            this.dataService.clearCallback();
-        }
     }
 }

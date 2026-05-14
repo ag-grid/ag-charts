@@ -1,16 +1,17 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
-    BaseProperties,
     ChartAxisDirection,
     type DynamicContext,
-    Property,
     ZIndexMap,
     cachedTextMeasurer,
     calcLineHeight,
 } from 'ag-charts-core';
 
-const { LayoutElement, Group, Label, Rect, Text } = _ModuleSupport;
+type ResolvedStatusBarOptions = _ModuleSupport.ResolvedStatusBarOptions;
+type ResolvedStatusBarLabelOptions = _ModuleSupport.ResolvedStatusBarLabelOptions;
+
+const { LayoutElement, Group, Rect, Text } = _ModuleSupport;
 enum LabelConfiguration {
     Open = 2, // 1 << 1
     Close = 4, // 1 << 2
@@ -57,53 +58,52 @@ const neutralColorMap: Partial<Record<AgPriceVolumeChartType, 'neutral' | 'altNe
     hlc: 'altNeutral',
 };
 
-class StatusBarBackground extends BaseProperties {
-    @Property
-    fill: string = 'black';
-
-    @Property
-    fillOpacity: number = 1;
-}
-
 export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.ScopeProvider {
-    @Property
-    enabled: boolean = false;
+    private get opts(): ResolvedStatusBarOptions {
+        return this.ctx.chartState.getValue('options', 'statusBar')!;
+    }
 
-    @Property
-    openKey?: string = undefined;
+    private get enabled(): boolean {
+        return this.opts?.enabled ?? false;
+    }
 
-    @Property
-    highKey?: string = undefined;
+    private get openKey(): string | undefined {
+        return this.opts?.openKey;
+    }
+    private get highKey(): string | undefined {
+        return this.opts?.highKey;
+    }
+    private get lowKey(): string | undefined {
+        return this.opts?.lowKey;
+    }
+    private get closeKey(): string | undefined {
+        return this.opts?.closeKey;
+    }
+    private get volumeKey(): string | undefined {
+        return this.opts?.volumeKey;
+    }
 
-    @Property
-    lowKey?: string = undefined;
-
-    @Property
-    closeKey?: string = undefined;
-
-    @Property
-    volumeKey?: string = undefined;
-
-    @Property
-    readonly title = new Label();
-
-    @Property
-    readonly positive = new Label();
-
-    @Property
-    readonly negative = new Label();
-
-    @Property
-    readonly neutral = new Label();
-
-    @Property
-    readonly altNeutral = new Label();
-
-    @Property
-    readonly background = new StatusBarBackground();
-
-    @Property
-    layoutStyle: 'block' | 'overlay' = 'block';
+    private get title(): ResolvedStatusBarLabelOptions {
+        return this.opts?.title;
+    }
+    private get positive(): ResolvedStatusBarLabelOptions {
+        return this.opts?.positive;
+    }
+    private get negative(): ResolvedStatusBarLabelOptions {
+        return this.opts?.negative;
+    }
+    private get neutral(): ResolvedStatusBarLabelOptions {
+        return this.opts?.neutral;
+    }
+    private get altNeutral(): ResolvedStatusBarLabelOptions {
+        return this.opts?.altNeutral;
+    }
+    private get background(): { fill: string; fillOpacity: number } {
+        return this.opts?.background;
+    }
+    private get layoutStyle(): 'block' | 'overlay' {
+        return this.opts?.layoutStyle ?? 'block';
+    }
 
     readonly id = 'status-bar';
 

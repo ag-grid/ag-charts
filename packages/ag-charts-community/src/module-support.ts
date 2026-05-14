@@ -2,7 +2,17 @@ import * as fromToMotion from './motion/fromToMotion';
 import * as resetMotion from './motion/resetMotion';
 
 export { Chart } from './chart/chart';
-export type { ChartState } from './chart/chartState';
+export type {
+    ChartState,
+    ResolvedAnimationOptions,
+    ResolvedAnnotationsOptions,
+    ResolvedBackgroundOptions,
+    ResolvedChartOptions,
+    ResolvedFlashOnUpdateOptions,
+    ResolvedForegroundOptions,
+    ResolvedStatusBarLabelOptions,
+    ResolvedStatusBarOptions,
+} from './chart/chartState';
 export { FormatManager } from './chart/formatter/formatManager';
 export type { TransferableResources } from './chart/chart';
 export {

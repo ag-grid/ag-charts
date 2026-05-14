@@ -1,30 +1,24 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, type DynamicContext, ObserveChanges, Property } from 'ag-charts-core';
+import { AbstractModuleInstance, type DynamicContext } from 'ag-charts-core';
 
 export class Animation extends AbstractModuleInstance {
-    @ObserveChanges<Animation>((target: Animation, newValue?: boolean) => {
-        target.ctx.animationManager.skip(!newValue);
-    })
-    @Property
-    public enabled: boolean = true;
-
-    @ObserveChanges<Animation>((target: Animation, newValue?: number) => {
-        if (newValue != null) {
-            target.ctx.animationManager.defaultDuration = newValue;
-        }
-    })
-    @Property
-    public duration?: number;
-
-    @ObserveChanges<Animation>((target: Animation, newValue?: number) => {
-        target.ctx.animationManager.maxAnimatableItems = newValue ?? Infinity;
-    })
-    @Property
-    public maxAnimatableItems?: number;
-
-    constructor(protected readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
         ctx.animationManager.skip(false);
-        this.cleanup.register(() => ctx.animationManager.skip(true));
+        this.cleanup.register(
+            () => ctx.animationManager.skip(true),
+            ctx.chartState.observe((get) => {
+                ctx.animationManager.skip(get('options', 'animation.enabled') === false);
+            }),
+            ctx.chartState.observe((get) => {
+                const duration = get('options', 'animation.duration');
+                if (duration != null) {
+                    ctx.animationManager.defaultDuration = duration;
+                }
+            }),
+            ctx.chartState.observe((get) => {
+                ctx.animationManager.maxAnimatableItems = get('options', 'animation.maxAnimatableItems') ?? Infinity;
+            })
+        );
     }
 }

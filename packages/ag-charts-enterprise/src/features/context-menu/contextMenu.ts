@@ -10,7 +10,6 @@ import {
     AbstractModuleInstance,
     type DynamicContext,
     Logger,
-    Property,
     callWithContext,
     clamp,
     createElement,
@@ -59,17 +58,21 @@ type PickedNode = _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> 
 };
 
 export class ContextMenu extends AbstractModuleInstance {
-    @Property
-    enabled = true;
+    private get opts() {
+        return this.ctx.chartState.getValue('options', 'contextMenu') ?? {};
+    }
 
-    @Property
-    darkTheme = false;
+    private get enabled(): boolean {
+        return this.opts.enabled ?? true;
+    }
 
-    @Property
-    readonly items: readonly Readonly<AgContextMenuItem>[] = ['defaults'];
+    private get items(): readonly Readonly<AgContextMenuItem>[] {
+        return this.opts.items ?? ['defaults'];
+    }
 
-    @Property
-    readonly getItems?: AgContextMenuGetItemsCallback;
+    private get getItems(): AgContextMenuGetItemsCallback | undefined {
+        return this.opts.getItems;
+    }
 
     // Module context
     private readonly interactionManager: _ModuleSupport.InteractionManager;

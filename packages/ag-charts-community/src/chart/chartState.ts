@@ -6,9 +6,13 @@ import type {
 } from 'ag-charts-core';
 import type {
     AgActiveItemState,
+    AgAnimationOptions,
     AgChartBackground,
     AgChartOptions,
     AgChartPaddingOptions,
+    AgDataSourceCallbackParams,
+    AgDataSourceOptions,
+    AgFlashOnUpdateOptions,
     AgInitialFocus,
     AgTouchOptions,
 } from 'ag-charts-types';
@@ -27,11 +31,39 @@ export type ResolvedForegroundOptions = {
     text?: string;
 };
 
+export type ResolvedAnimationOptions = AgAnimationOptions & { maxAnimatableItems?: number };
+
+export type ResolvedFlashOnUpdateOptions = Required<
+    Pick<AgFlashOnUpdateOptions, 'enabled' | 'item' | 'fill' | 'fillOpacity'>
+> &
+    Pick<AgFlashOnUpdateOptions, 'flashDuration' | 'fadeOutDuration'>;
+
+export type ResolvedDataSourceOptions = AgDataSourceOptions & {
+    enabled?: boolean;
+    getData?: (params: AgDataSourceCallbackParams) => Promise<unknown[]>;
+    requestThrottle?: number;
+    updateThrottle?: number;
+    updateDuringInteraction?: boolean;
+};
+
 export type ResolvedChartOptions = Omit<
     AgChartOptions,
-    'background' | 'keyboard' | 'legend' | 'padding' | 'selection' | 'suppressFieldDotNotation' | 'touch' | 'zoom'
+    | 'animation'
+    | 'background'
+    | 'dataSource'
+    | 'flashOnUpdate'
+    | 'keyboard'
+    | 'legend'
+    | 'padding'
+    | 'selection'
+    | 'suppressFieldDotNotation'
+    | 'touch'
+    | 'zoom'
 > & {
+    animation?: ResolvedAnimationOptions;
     background: ResolvedBackgroundOptions;
+    dataSource?: ResolvedDataSourceOptions;
+    flashOnUpdate?: ResolvedFlashOnUpdateOptions;
     keyboard: { enabled: boolean; initialFocus: AgInitialFocus; tabIndex?: number };
     legend: NormalisedLegendOptions;
     padding: Required<AgChartPaddingOptions>;
@@ -43,6 +75,45 @@ export type ResolvedChartOptions = Omit<
     mode: 'integrated' | 'standalone';
     withinStudio?: boolean;
     foreground?: ResolvedForegroundOptions;
+    chartToolbar?: { enabled: boolean };
+    statusBar?: ResolvedStatusBarOptions;
+    annotations?: ResolvedAnnotationsOptions;
+};
+
+export type ResolvedStatusBarOptions = {
+    enabled: boolean;
+    openKey?: string;
+    highKey?: string;
+    lowKey?: string;
+    closeKey?: string;
+    volumeKey?: string;
+    layoutStyle: 'block' | 'overlay';
+    title: ResolvedStatusBarLabelOptions;
+    positive: ResolvedStatusBarLabelOptions;
+    negative: ResolvedStatusBarLabelOptions;
+    neutral: ResolvedStatusBarLabelOptions;
+    altNeutral: ResolvedStatusBarLabelOptions;
+    background: { fill: string; fillOpacity: number };
+};
+
+export type ResolvedStatusBarLabelOptions = {
+    color: string;
+    fontFamily: string;
+    fontSize: number;
+    fontWeight?: import('ag-charts-types').FontWeight;
+    fontStyle?: import('ag-charts-types').FontStyle;
+};
+
+export type ResolvedAnnotationsOptions = {
+    enabled?: boolean;
+    snap?: boolean;
+    axesButtons?: unknown;
+    toolbar?: unknown;
+    optionsToolbar?: unknown;
+    data?: unknown[];
+    xKey?: string;
+    volumeKey?: string;
+    [key: string]: unknown;
 };
 
 export interface ChartState {

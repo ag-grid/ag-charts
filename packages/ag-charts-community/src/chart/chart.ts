@@ -36,7 +36,6 @@ import type {
     AgColorType,
     AgDataTransaction,
     AgInitialStateLegendOptions,
-    AgLocaleOptions,
     AgMiniChartSeriesOptions,
     AgSelectionItem,
     AgSelectionItemIds,
@@ -809,7 +808,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     private apiUpdate = false;
-    private pendingLocaleText?: AgLocaleOptions['localeText'];
     private _pendingFactoryUpdatesCount = 0;
     private _performUpdateSkipAnimations: boolean = false;
     private readonly _performUpdateNotify = new AsyncAwaitQueue();
@@ -969,14 +967,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
                 await this.processData();
                 this.seriesAreaManager.dataChanged();
-                if (this.pendingLocaleText) {
-                    type LocaleModule = ModuleInstance & { localeText?: Record<string, string> };
-                    const localeModule: LocaleModule | undefined = this.modulesManager.getModule('locale');
-                    if (localeModule && 'localeText' in localeModule) {
-                        localeModule.localeText = this.pendingLocaleText;
-                    }
-                    this.pendingLocaleText = undefined;
-                }
 
                 this.updateSplits('📊');
             // fallthrough
@@ -1709,7 +1699,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             'zoom',
             'navigator.miniChart.series',
             'navigator.miniChart.label',
-            'locale.localeText',
+            'locale',
             'axes',
             'topology',
             'nodes',
@@ -1733,6 +1723,17 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             'title',
             'subtitle',
             'footnote',
+            'animation',
+            'flashOnUpdate',
+            'chartToolbar',
+            'contextMenu',
+            'dataSource',
+            'scrollbar',
+            'ranges',
+            'sync',
+            'gradientLegend',
+            'statusBar',
+            'navigator',
         ];
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
@@ -1785,10 +1786,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             // Series type changed without a data change — recreate DataSet so subclass
             // overrides (e.g. HierarchyDataSet for treemap) are installed.
             this.data = this.createDataSet(this.data.data);
-        }
-
-        if (deltaOptions.locale?.localeText) {
-            this.pendingLocaleText = deltaOptions.locale?.localeText;
         }
 
         this.chartOptions = newChartOptions;
