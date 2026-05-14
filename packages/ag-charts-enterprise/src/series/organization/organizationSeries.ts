@@ -10,6 +10,7 @@ import {
     type AgOrganizationSeriesNodeTextStyle,
     type AgOrganizationSeriesNodeTextStylerParams,
     type Formatter,
+    type PaddingOptions,
     type Styler,
     type TextOrSegments,
     _ModuleSupport,
@@ -42,6 +43,7 @@ import type {
     OrganizationVertex,
     RequiredOrganizationNodeStyle,
     RequiredOrganizationNodeTextStyle,
+    RequiredOrganizationSeriesExpanderStyle,
 } from './organizationTypes';
 
 const { keyProperty, valueProperty } = _ModuleSupport;
@@ -652,7 +654,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             verticalSpacing: this.properties.verticalSpacing ?? 0,
             verticalSpacingExtra: this.properties.expander.enabled
                 ? this.properties.expander.text.fontSize / 2 +
-                  this.properties.expander.padding +
+                  this.properties.expander.padding.top +
+                  this.properties.expander.padding.bottom +
                   this.properties.expander.strokeWidth
                 : 0,
         };
@@ -884,7 +887,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return style;
     }
 
-    private getNodeDefaultStyle(): DeepRequired<AgOrganizationSeriesNodeStyle> {
+    private getNodeDefaultStyle(): DeepRequired<
+        Omit<AgOrganizationSeriesNodeStyle, 'padding'> & { padding: PaddingOptions }
+    > {
         const {
             cornerRadius,
             fill,
@@ -927,7 +932,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         };
     }
 
-    private getExpanderDefaultStyle(): DeepRequired<AgOrganizationSeriesExpanderStyle> {
+    private getExpanderDefaultStyle(): RequiredOrganizationSeriesExpanderStyle {
         const {
             cornerRadius,
             enabled,
@@ -1043,7 +1048,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         styler:
             | Styler<AgOrganizationSeriesExpanderItemStylerParams<unknown, unknown>, AgOrganizationSeriesExpanderStyle>
             | undefined,
-        style: DeepRequired<AgOrganizationSeriesExpanderStyle>,
+        style: RequiredOrganizationSeriesExpanderStyle,
         dataModel: _ModuleSupport.DataModel<any, any, any> | undefined,
         processedData: _ModuleSupport.ProcessedData<any> | undefined,
         datumIndex: number | undefined,
@@ -1176,7 +1181,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         depth: number,
         highlightState: _ModuleSupport.HighlightState | undefined,
         isCollapsed: boolean,
-        style: Required<AgOrganizationSeriesExpanderStyle>
+        style: RequiredOrganizationSeriesExpanderStyle
     ): AgOrganizationSeriesExpanderItemStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
 

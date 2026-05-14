@@ -32,7 +32,7 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
             strokeWidth: { $path: '../node/strokeWidth' },
             lineDash: { $path: '../node/lineDash' },
             lineDashOffset: { $path: '../node/lineDashOffset' },
-            padding: 5,
+            padding: { $applyPadding: { top: 5, right: 7.5, bottom: 5, left: 7.5 } },
             text: {
                 color: { $ref: 'subtleTextColor' },
                 fontFamily: { $ref: 'fontFamily' },

@@ -20,6 +20,7 @@ import type {
     FillOptions,
     FontOptions,
     LineDashOptions,
+    Padding,
     StrokeOptions,
     Toggleable,
 } from '../cartesian/commonOptions';
@@ -84,7 +85,7 @@ export interface AgOrganizationSeriesOptionsExpander<
 
 export interface AgOrganizationSeriesExpanderStyle extends Toggleable, FillOptions, LineDashOptions, StrokeOptions {
     cornerRadius?: PixelSize;
-    padding?: PixelSize;
+    padding?: Padding;
     text?: AgOrganizationSeriesExpanderTextStyle;
 }
 
@@ -136,7 +137,7 @@ export interface AgOrganizationSeriesNodeStyle extends FillOptions, LineDashOpti
      * graphs.
      */
     maxWidth?: PixelSize;
-    padding?: PixelSize;
+    padding?: Padding;
     width?: PixelSize;
 }
 
@@ -204,7 +205,7 @@ export interface AgOrganizationSeriesNodeTextStyle extends FontOptions, FillCssO
     /** Corner radius of the backing box. Has no effect unless `fill` or `stroke` is set. */
     cornerRadius?: PixelSize;
     /** Padding between the text and the backing box edge. Has no effect unless `fill` or `stroke` is set. */
-    padding?: PixelSize;
+    padding?: Padding;
 }
 
 export interface AgOrganizationSeriesOptionsKeys {
@@ -240,7 +241,7 @@ export interface AgOrganizationSeriesExpanderItemStylerParams<TDatum = DatumDefa
     extends
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
-        AgOrganizationSeriesExpanderStyle {
+        Omit<AgOrganizationSeriesExpanderStyle, 'padding'> {
     /** The depth of the data point within the organization. */
     depth: number;
     /** `true` when the node is collapsed (its descendants are hidden); `false` otherwise. */
