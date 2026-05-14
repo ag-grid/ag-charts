@@ -93,8 +93,11 @@ export type NormalisedScrollbarOrientationOptions = (
 };
 
 export type NormalisedScrollbarOptions = AgScrollbarOptions & {
-    horizontal?: NormalisedScrollbarOrientationOptions;
-    vertical?: NormalisedScrollbarOrientationOptions;
+    enabled: boolean;
+    enableAxisScrolling: boolean;
+    enableSeriesAreaScrolling: boolean;
+    horizontal: NormalisedScrollbarOrientationOptions;
+    vertical: NormalisedScrollbarOrientationOptions;
 };
 
 export type ResolvedChartOptions = Omit<

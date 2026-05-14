@@ -41,8 +41,11 @@ export class Scrollbar extends AbstractModuleInstance {
 
     private readonly scrollPanner = new ZoomScrollPanner();
 
+    // Scrollbar is only created when the `scrollbar` subtree is configured, so assert presence
+    // here and rely on SCROLLBAR_THEME for field-level defaults (including horizontal/vertical
+    // sub-objects, which the theme always populates via SCROLLBAR_ORIENTATION_THEME).
     private get opts(): _ModuleSupport.NormalisedScrollbarOptions {
-        return this.ctx.chartState.getValue('options', 'scrollbar') ?? {};
+        return this.ctx.chartState.getValue('options', 'scrollbar')!;
     }
 
     public constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
@@ -95,10 +98,7 @@ export class Scrollbar extends AbstractModuleInstance {
     }
 
     private resolveProperties(orientation: ScrollbarOrientation): _ModuleSupport.NormalisedScrollbarOrientationOptions {
-        return (
-            (orientation === 'horizontal' ? this.opts.horizontal : this.opts.vertical) ??
-            ({} as _ModuleSupport.NormalisedScrollbarOrientationOptions)
-        );
+        return orientation === 'horizontal' ? this.opts.horizontal : this.opts.vertical;
     }
 
     private getDefaultPosition(orientation: ScrollbarOrientation): AgCartesianAxisPosition {
@@ -177,10 +177,10 @@ export class Scrollbar extends AbstractModuleInstance {
         const opts = this.opts;
         this.ctx.eventsHub.emit('axis-dom-proxy:update', {
             source: 'scrollbar',
-            enabled: opts.enabled ?? false,
+            enabled: opts.enabled,
             enableDoubleClick: false,
             enableDragging: false,
-            enableScrolling: opts.enableAxisScrolling ?? false,
+            enableScrolling: opts.enableAxisScrolling,
         });
 
         this.seriesRect = event.series.rect;
@@ -373,12 +373,12 @@ export class Scrollbar extends AbstractModuleInstance {
     }
 
     private onWheel(baseEvent: _ModuleSupport.ZoomInteractionWheelEvent) {
-        if (!(this.opts.enableSeriesAreaScrolling ?? false)) return;
+        if (!this.opts.enableSeriesAreaScrolling) return;
         return this.handleWheel(baseEvent);
     }
 
     private onAxisWheel(baseEvent: _ModuleSupport.ZoomInteractionAxisWheelEvent) {
-        if (!(this.opts.enableAxisScrolling ?? false)) return;
+        if (!this.opts.enableAxisScrolling) return;
         return this.handleWheel(baseEvent);
     }
 
@@ -393,8 +393,8 @@ export class Scrollbar extends AbstractModuleInstance {
 
         const isHorizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY);
 
-        const horizontalEnabled = this.opts.horizontal?.enabled ?? false;
-        const verticalEnabled = this.opts.vertical?.enabled ?? false;
+        const horizontalEnabled = this.opts.horizontal.enabled;
+        const verticalEnabled = this.opts.vertical.enabled;
         if (isHorizontal && !horizontalEnabled) return;
         if (!isHorizontal && !verticalEnabled) return;
 
