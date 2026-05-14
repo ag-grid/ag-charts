@@ -23,7 +23,6 @@ import {
     getWindow,
     isFiniteNumber,
     isInputPending,
-    jsonApply,
     mergeDefaults,
     pause,
     roundTo,
@@ -1688,55 +1687,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         const modulesChanged = this.applyModules();
 
-        const skip = [
-            'type',
-            'data',
-            'series',
-            'listeners',
-            'preset',
-            'theme',
-            'legend',
-            'zoom',
-            'navigator.miniChart.series',
-            'navigator.miniChart.label',
-            'locale',
-            'axes',
-            'topology',
-            'nodes',
-            'initialState',
-            'styleContainer',
-            'formatter',
-            'displayNullData',
-            'enableRtl',
-            'selection',
-            'padding',
-            'withinStudio',
-            'dataIdKey',
-            'mode',
-            'suppressFieldDotNotation',
-            'loadGoogleFonts',
-            'styleNonce',
-            'keyboard',
-            'touch',
-            'background',
-            'foreground',
-            'title',
-            'subtitle',
-            'footnote',
-            'animation',
-            'flashOnUpdate',
-            'chartToolbar',
-            'contextMenu',
-            'dataSource',
-            'scrollbar',
-            'ranges',
-            'sync',
-            'gradientLegend',
-            'statusBar',
-            'navigator',
-            'annotations',
-        ];
-
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
         if ('listeners' in deltaOptions) {
             this.registerListeners(this, deltaOptions.listeners as Record<string, TypedEventListener> | undefined);
@@ -1746,7 +1696,32 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.ctx.domManager.setEnableRtl(deltaOptions.enableRtl);
         }
 
-        jsonApply<any, any>(this, deltaOptions, { skip });
+        // Chart-level fields not yet migrated to chartState-driven consumption.
+        // Their @ActionOnSet decorators trigger resize / DOM setup on assignment.
+        if ('container' in deltaOptions) this.container = deltaOptions.container ?? undefined;
+        if ('height' in deltaOptions) this.height = deltaOptions.height;
+        if ('minHeight' in deltaOptions) this.minHeight = deltaOptions.minHeight;
+        if ('minWidth' in deltaOptions) this.minWidth = deltaOptions.minWidth;
+        if ('overrideDevicePixelRatio' in deltaOptions) {
+            this.overrideDevicePixelRatio = deltaOptions.overrideDevicePixelRatio as number | undefined;
+        }
+        if ('width' in deltaOptions) this.width = deltaOptions.width;
+        if ('loading' in deltaOptions) this.loading = deltaOptions.loading as boolean | undefined;
+        if ('context' in deltaOptions) this.context = (deltaOptions as any).context;
+
+        // BaseProperties cascades: tooltip/highlight/seriesArea/overlays own their option subtree.
+        if ('tooltip' in deltaOptions && deltaOptions.tooltip != null) {
+            this.tooltip.set(deltaOptions.tooltip);
+        }
+        if ('highlight' in deltaOptions && (deltaOptions as any).highlight != null) {
+            this.highlight.set((deltaOptions as any).highlight);
+        }
+        if ('seriesArea' in deltaOptions && (deltaOptions as any).seriesArea != null) {
+            this.seriesArea.set((deltaOptions as any).seriesArea);
+        }
+        if ('overlays' in deltaOptions && (deltaOptions as any).overlays != null) {
+            this.overlays.set((deltaOptions as any).overlays);
+        }
 
         let forceNodeDataRefresh = false;
         let seriesStatus: SeriesChangeType = 'no-op';
