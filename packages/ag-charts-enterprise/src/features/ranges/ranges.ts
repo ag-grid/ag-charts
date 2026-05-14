@@ -1,7 +1,6 @@
 import {
     type AgRangesButton,
     type AgRangesButtonValue,
-    type AgRangesOptions,
     type AgRangesStateStyles,
     type AgRangesStyles,
     _ModuleSupport,
@@ -76,8 +75,10 @@ export class Ranges extends AbstractModuleInstance {
     private dropdownLabel = DEFAULT_DROPDOWN_LABEL;
     private dropdownMinWidth?: number;
 
-    private get opts(): AgRangesOptions {
-        return this.ctx.chartState.getValue('options', 'ranges') ?? {};
+    // Ranges is only created when the `ranges` subtree is configured, so assert
+    // presence here and rely on rangesTheme for field-level defaults.
+    private get opts(): _ModuleSupport.NormalisedRangesOptions {
+        return this.ctx.chartState.getValue('options', 'ranges')!;
     }
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
@@ -130,9 +131,7 @@ export class Ranges extends AbstractModuleInstance {
 
     private onLayoutStart({ layoutBox }: _ModuleSupport.LayoutContext) {
         const opts = this.opts;
-        const enabled = opts.enabled ?? false;
-        const position = opts.position ?? 'top-right';
-        const spacing = opts.spacing ?? 0;
+        const { enabled, position, spacing } = opts;
         const dropdownVisible = opts.dropdown?.visible ?? 'auto';
 
         if (!enabled) {
@@ -174,7 +173,7 @@ export class Ranges extends AbstractModuleInstance {
     private onLayoutComplete({ series: { rect: seriesRect }, layoutBox }: _ModuleSupport.LayoutCompleteEvent) {
         const { buttonsToolbar, ctx, dropdownMenu, dropdownToolbar } = this;
         const opts = this.opts;
-        if (!(opts.enabled ?? false) || !buttonsToolbar || !dropdownToolbar || !dropdownMenu) return;
+        if (!opts.enabled || !buttonsToolbar || !dropdownToolbar || !dropdownMenu) return;
 
         const dropdownVisible = opts.dropdown?.visible ?? 'auto';
         const buttons = opts.buttons ?? [];
@@ -225,7 +224,7 @@ export class Ranges extends AbstractModuleInstance {
         layoutBox: Readonly<_ModuleSupport.BBox>,
         cachedBounds?: BoxBounds
     ) {
-        const position = this.opts.position ?? 'top-right';
+        const position = this.opts.position;
         const bounds = cachedBounds ?? toolbar.getBounds();
 
         if (position === 'top-right' || position === 'bottom-right') {
@@ -242,7 +241,7 @@ export class Ranges extends AbstractModuleInstance {
 
     private updateCSSVariables() {
         const opts = this.opts;
-        const gap = opts.gap ?? 0;
+        const gap = opts.gap;
         if (gap > 0) {
             this.buttonsToolbar?.addClass('ag-charts-range-buttons--gapped');
         } else {
@@ -490,7 +489,7 @@ export class Ranges extends AbstractModuleInstance {
     }
 
     private getButtonEnabled(button: AgRangesButton) {
-        const enableOutOfRange = this.opts.enableOutOfRange ?? false;
+        const enableOutOfRange = this.opts.enableOutOfRange;
         const zoomManager = this.ctx.zoomManager;
 
         let buttonEnabled = button.enabled ?? enableOutOfRange;

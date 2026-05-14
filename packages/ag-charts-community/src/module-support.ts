@@ -11,6 +11,7 @@ export type {
     NormalisedFlashOnUpdateOptions,
     NormalisedForegroundOptions,
     NormalisedNavigatorOptions,
+    NormalisedRangesOptions,
     NormalisedScrollbarOptions,
     NormalisedScrollbarOrientationOptions,
     NormalisedStatusBarLabelOptions,

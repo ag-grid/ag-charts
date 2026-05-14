@@ -18,6 +18,7 @@ import type {
     AgFlashOnUpdateOptions,
     AgInitialFocus,
     AgNavigatorOptions,
+    AgRangesOptions,
     AgScrollbarHorizontalOrientationOptions,
     AgScrollbarOptions,
     AgScrollbarThumbStyle,
@@ -78,6 +79,14 @@ export type NormalisedNavigatorOptions = AgNavigatorOptions & {
     cornerRadius: number;
 };
 
+export type NormalisedRangesOptions = AgRangesOptions & {
+    enabled: boolean;
+    enableOutOfRange: boolean;
+    position: 'top-right' | 'top-left' | 'top' | 'right' | 'bottom-right' | 'bottom-left' | 'bottom' | 'left';
+    gap: number;
+    spacing: number;
+};
+
 export type NormalisedScrollbarOrientationOptions = (
     | AgScrollbarHorizontalOrientationOptions
     | AgScrollbarVerticalOrientationOptions
@@ -112,6 +121,7 @@ export type ResolvedChartOptions = Omit<
     | 'legend'
     | 'navigator'
     | 'padding'
+    | 'ranges'
     | 'scrollbar'
     | 'selection'
     | 'suppressFieldDotNotation'
@@ -128,6 +138,7 @@ export type ResolvedChartOptions = Omit<
     legend: NormalisedLegendOptions;
     navigator?: NormalisedNavigatorOptions;
     padding: Required<AgChartPaddingOptions>;
+    ranges?: NormalisedRangesOptions;
     scrollbar?: NormalisedScrollbarOptions;
     selection: NormalisedSelectionOptions | undefined;
     suppressFieldDotNotation: boolean;
