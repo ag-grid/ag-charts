@@ -74,7 +74,7 @@ export class ChartCaption implements CaptionLike {
     });
 
     get opts(): ChartCaptionOptions {
-        return (this.ctx.chartState.getValue('options', this.key) as ChartCaptionOptions | undefined) ?? {};
+        return this.ctx.chartState.getValue('options', this.key) ?? {};
     }
 
     // Members required by CaptionLike. Other field reads go through `opts` at the call site.

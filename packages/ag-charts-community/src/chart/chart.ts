@@ -1766,7 +1766,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         this.chartOptions = newChartOptions;
 
-        const navigatorModule = this.modulesManager.getModule<any>('navigator');
+        const navigatorModule = this.modulesManager.getModule<{
+            miniChart?: { enabled?: boolean; series: unknown[]; axes: unknown[] };
+        }>('navigator');
 
         if (!this.hasViewportSupport()) {
             // reset zoom to initial state
