@@ -531,6 +531,25 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         this.seriesAreaManager = new SeriesAreaManager(this.initSeriesAreaDependencies());
         this.cleanup.register(
+            // Observers that re-apply BaseProperties subtrees when their option subtree
+            // changes. Replaces the explicit `.set()` cascade previously in Chart.applyOptions
+            // (Phase 12.7 migration off the BaseProperties cascade).
+            ctx.chartState.observe((get) => {
+                const opts = get('options', 'tooltip');
+                if (opts != null) this.tooltip.set(opts);
+            }),
+            ctx.chartState.observe((get) => {
+                const opts = get('options', 'highlight');
+                if (opts != null) this.highlight.set(opts);
+            }),
+            ctx.chartState.observe((get) => {
+                const opts = get('options', 'seriesArea');
+                if (opts != null) this.seriesArea.set(opts);
+            }),
+            ctx.chartState.observe((get) => {
+                const opts = get('options', 'overlays');
+                if (opts != null) this.overlays.set(opts);
+            }),
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
                 e.layoutBox.shrink(ctx.chartState.getValue('options', 'padding'));
                 this.chartCaptions.positionCaptions(e);
@@ -1709,19 +1728,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         if ('loading' in deltaOptions) this.loading = deltaOptions.loading as boolean | undefined;
         if ('context' in deltaOptions) this.context = (deltaOptions as any).context;
 
-        // BaseProperties cascades: tooltip/highlight/seriesArea/overlays own their option subtree.
-        if ('tooltip' in deltaOptions && deltaOptions.tooltip != null) {
-            this.tooltip.set(deltaOptions.tooltip);
-        }
-        if ('highlight' in deltaOptions && (deltaOptions as any).highlight != null) {
-            this.highlight.set((deltaOptions as any).highlight);
-        }
-        if ('seriesArea' in deltaOptions && (deltaOptions as any).seriesArea != null) {
-            this.seriesArea.set((deltaOptions as any).seriesArea);
-        }
-        if ('overlays' in deltaOptions && (deltaOptions as any).overlays != null) {
-            this.overlays.set((deltaOptions as any).overlays);
-        }
+        // tooltip/highlight/seriesArea/overlays subtrees are applied via chartState observers
+        // registered in the constructor — no explicit cascade needed here.
 
         let forceNodeDataRefresh = false;
         let seriesStatus: SeriesChangeType = 'no-op';
