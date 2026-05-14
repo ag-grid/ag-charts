@@ -304,7 +304,9 @@ describe('Tooltip', () => {
 
             const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
             expect(element?.innerHTML).toContain('ag-charts-tooltip-symbol');
-            expect(element?.innerHTML).toContain('d="M 4 0 L 16 0 L 16 12 L 4 12 Z"');
+            // Marker SVG output is origin-centred and positioned via the wrapping <g transform>.
+            expect(element?.innerHTML).toContain('transform="matrix(1 0 0 1 10 6)"');
+            expect(element?.innerHTML).toContain('d="M -6 -6 L 6 -6 L 6 6 L -6 6 Z"');
             expect(element?.innerHTML).toContain('fill="red"');
         });
 
