@@ -63,7 +63,7 @@ export class ChartSync extends AbstractModuleInstance {
     private readonly domainSync = new AsyncAwaitQueue();
     private disabledByValidation = false;
 
-    private get opts(): _ModuleSupport.ResolvedChartSyncOptions {
+    private get opts(): _ModuleSupport.NormalisedChartSyncOptions {
         return this.moduleContext.chartState.getValue('options', 'sync') ?? {};
     }
 

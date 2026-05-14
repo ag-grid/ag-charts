@@ -8,7 +8,7 @@ import {
     calcLineHeight,
 } from 'ag-charts-core';
 
-type ResolvedStatusBarOptions = _ModuleSupport.ResolvedStatusBarOptions;
+type NormalisedStatusBarOptions = _ModuleSupport.NormalisedStatusBarOptions;
 
 const { LayoutElement, Group, Rect, Text } = _ModuleSupport;
 enum LabelConfiguration {
@@ -58,7 +58,7 @@ const neutralColorMap: Partial<Record<AgPriceVolumeChartType, 'neutral' | 'altNe
 };
 
 export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.ScopeProvider {
-    private get opts(): ResolvedStatusBarOptions {
+    private get opts(): NormalisedStatusBarOptions {
         return this.ctx.chartState.getValue('options', 'statusBar')!;
     }
 

@@ -4,15 +4,17 @@ import * as resetMotion from './motion/resetMotion';
 export { Chart } from './chart/chart';
 export type {
     ChartState,
+    NormalisedAnimationOptions,
     NormalisedAnnotationsOptions,
-    ResolvedAnimationOptions,
-    ResolvedBackgroundOptions,
+    NormalisedBackgroundOptions,
+    NormalisedChartSyncOptions,
+    NormalisedFlashOnUpdateOptions,
+    NormalisedForegroundOptions,
+    NormalisedScrollbarOptions,
+    NormalisedScrollbarOrientationOptions,
+    NormalisedStatusBarLabelOptions,
+    NormalisedStatusBarOptions,
     ResolvedChartOptions,
-    ResolvedChartSyncOptions,
-    ResolvedFlashOnUpdateOptions,
-    ResolvedForegroundOptions,
-    ResolvedStatusBarLabelOptions,
-    ResolvedStatusBarOptions,
 } from './chart/chartState';
 export { FormatManager } from './chart/formatter/formatManager';
 export type { TransferableResources } from './chart/chart';

@@ -10,7 +10,7 @@ import {
     easeOut,
 } from 'ag-charts-core';
 
-type ResolvedFlashOnUpdateOptions = _ModuleSupport.ResolvedFlashOnUpdateOptions;
+type NormalisedFlashOnUpdateOptions = _ModuleSupport.NormalisedFlashOnUpdateOptions;
 
 const { Group, Rect, Selection, TranslatableGroup } = _ModuleSupport;
 
@@ -117,7 +117,7 @@ export function mergeBands(data: BandFlashDatum[], isHorizontal: boolean, axisSp
 export class FlashOnUpdate extends AbstractModuleInstance {
     private readonly id = createId(this);
 
-    private get opts(): ResolvedFlashOnUpdateOptions {
+    private get opts(): NormalisedFlashOnUpdateOptions {
         return this.ctx.chartState.getValue('options', 'flashOnUpdate')!;
     }
 

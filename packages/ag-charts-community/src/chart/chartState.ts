@@ -1,4 +1,5 @@
 import type {
+    NormalisedGradientLegendOptions,
     NormalisedLegendOptions,
     NormalisedSelectionOptions,
     NormalisedZoomOptions,
@@ -16,6 +17,11 @@ import type {
     AgDataSourceOptions,
     AgFlashOnUpdateOptions,
     AgInitialFocus,
+    AgScrollbarHorizontalOrientationOptions,
+    AgScrollbarOptions,
+    AgScrollbarThumbStyle,
+    AgScrollbarTrackStyle,
+    AgScrollbarVerticalOrientationOptions,
     AgTouchOptions,
 } from 'ag-charts-types';
 
@@ -23,9 +29,9 @@ import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { DataSelectionState } from './data/dataSelectionState';
 import type { CategoryLegendDatum } from './legend/legendDatum';
 
-export type ResolvedBackgroundOptions = AgChartBackground & { visible: boolean; fill: string };
+export type NormalisedBackgroundOptions = AgChartBackground & { visible: boolean; fill: string };
 
-export type ResolvedForegroundOptions = {
+export type NormalisedForegroundOptions = {
     visible?: boolean;
     fill?: string;
     fillOpacity?: number;
@@ -33,14 +39,14 @@ export type ResolvedForegroundOptions = {
     text?: string;
 };
 
-export type ResolvedAnimationOptions = AgAnimationOptions & { maxAnimatableItems?: number };
+export type NormalisedAnimationOptions = AgAnimationOptions & { maxAnimatableItems?: number };
 
-export type ResolvedFlashOnUpdateOptions = Required<
+export type NormalisedFlashOnUpdateOptions = Required<
     Pick<AgFlashOnUpdateOptions, 'enabled' | 'item' | 'fill' | 'fillOpacity'>
 > &
     Pick<AgFlashOnUpdateOptions, 'flashDuration' | 'fadeOutDuration'>;
 
-export type ResolvedDataSourceOptions = AgDataSourceOptions & {
+export type NormalisedDataSourceOptions = AgDataSourceOptions & {
     enabled?: boolean;
     getData?: (params: AgDataSourceCallbackParams) => Promise<unknown[]>;
     requestThrottle?: number;
@@ -48,7 +54,7 @@ export type ResolvedDataSourceOptions = AgDataSourceOptions & {
     updateDuringInteraction?: boolean;
 };
 
-export type ResolvedChartSyncOptions = AgChartSyncOptions & {
+export type NormalisedChartSyncOptions = AgChartSyncOptions & {
     domainMode?: 'direction' | 'position' | 'id';
 };
 
@@ -59,6 +65,25 @@ export type NormalisedAnnotationsOptions = AgAnnotationsOptions & {
     volumeKey?: string;
 };
 
+export type NormalisedScrollbarOrientationOptions = (
+    | AgScrollbarHorizontalOrientationOptions
+    | AgScrollbarVerticalOrientationOptions
+) & {
+    enabled: boolean;
+    thickness: number;
+    spacing: number;
+    tickSpacing: number;
+    placement: 'inner' | 'outer';
+    visible: 'auto' | 'always' | 'never';
+    track: AgScrollbarTrackStyle;
+    thumb: AgScrollbarThumbStyle;
+};
+
+export type NormalisedScrollbarOptions = AgScrollbarOptions & {
+    horizontal?: NormalisedScrollbarOrientationOptions;
+    vertical?: NormalisedScrollbarOrientationOptions;
+};
+
 export type ResolvedChartOptions = Omit<
     AgChartOptions,
     | 'animation'
@@ -66,37 +91,41 @@ export type ResolvedChartOptions = Omit<
     | 'background'
     | 'dataSource'
     | 'flashOnUpdate'
+    | 'gradientLegend'
     | 'keyboard'
     | 'legend'
     | 'padding'
+    | 'scrollbar'
     | 'selection'
     | 'suppressFieldDotNotation'
     | 'sync'
     | 'touch'
     | 'zoom'
 > & {
-    animation?: ResolvedAnimationOptions;
-    background: ResolvedBackgroundOptions;
-    dataSource?: ResolvedDataSourceOptions;
-    flashOnUpdate?: ResolvedFlashOnUpdateOptions;
+    animation?: NormalisedAnimationOptions;
+    background: NormalisedBackgroundOptions;
+    dataSource?: NormalisedDataSourceOptions;
+    flashOnUpdate?: NormalisedFlashOnUpdateOptions;
+    gradientLegend?: NormalisedGradientLegendOptions;
     keyboard: { enabled: boolean; initialFocus: AgInitialFocus; tabIndex?: number };
     legend: NormalisedLegendOptions;
     padding: Required<AgChartPaddingOptions>;
+    scrollbar?: NormalisedScrollbarOptions;
     selection: NormalisedSelectionOptions | undefined;
     suppressFieldDotNotation: boolean;
-    sync?: ResolvedChartSyncOptions;
+    sync?: NormalisedChartSyncOptions;
     touch: Required<AgTouchOptions>;
     zoom: NormalisedZoomOptions;
     // Undocumented options that the chart consumes through chartState.
     mode: 'integrated' | 'standalone';
     withinStudio?: boolean;
-    foreground?: ResolvedForegroundOptions;
+    foreground?: NormalisedForegroundOptions;
     chartToolbar?: { enabled: boolean };
-    statusBar?: ResolvedStatusBarOptions;
+    statusBar?: NormalisedStatusBarOptions;
     annotations?: NormalisedAnnotationsOptions;
 };
 
-export type ResolvedStatusBarOptions = {
+export type NormalisedStatusBarOptions = {
     enabled: boolean;
     openKey?: string;
     highKey?: string;
@@ -104,15 +133,15 @@ export type ResolvedStatusBarOptions = {
     closeKey?: string;
     volumeKey?: string;
     layoutStyle: 'block' | 'overlay';
-    title: ResolvedStatusBarLabelOptions;
-    positive: ResolvedStatusBarLabelOptions;
-    negative: ResolvedStatusBarLabelOptions;
-    neutral: ResolvedStatusBarLabelOptions;
-    altNeutral: ResolvedStatusBarLabelOptions;
+    title: NormalisedStatusBarLabelOptions;
+    positive: NormalisedStatusBarLabelOptions;
+    negative: NormalisedStatusBarLabelOptions;
+    neutral: NormalisedStatusBarLabelOptions;
+    altNeutral: NormalisedStatusBarLabelOptions;
     background: { fill: string; fillOpacity: number };
 };
 
-export type ResolvedStatusBarLabelOptions = {
+export type NormalisedStatusBarLabelOptions = {
     color: string;
     fontFamily: string;
     fontSize: number;

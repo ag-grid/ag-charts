@@ -1,4 +1,10 @@
-import type { AgAxisContinuousIntervalOptions, AgGradientLegendLabelOptions, ContextDefault } from 'ag-charts-types';
+import type {
+    AgAxisContinuousIntervalOptions,
+    AgGradientLegendLabelOptions,
+    AgGradientLegendOptions,
+    AgGradientLegendScaleOptions,
+    ContextDefault,
+} from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
 
@@ -21,3 +27,26 @@ export type NormalisedGradientLegendLabelOptions<TContext = ContextDefault> = No
  * `gradientLegendModule.themeTemplate` does not populate any interval fields.
  */
 export type NormalisedGradientLegendIntervalOptions = Normalised<AgAxisContinuousIntervalOptions<number>>;
+
+/**
+ * Post-theme-merge shape for `gradientLegend.scale`. `label` and `interval` are
+ * narrowed to their normalised forms so consumers can read them without casts.
+ */
+export type NormalisedGradientLegendScaleOptions<TContext = ContextDefault> = Normalised<
+    AgGradientLegendScaleOptions<TContext>,
+    never,
+    {
+        label?: NormalisedGradientLegendLabelOptions<TContext>;
+        interval?: NormalisedGradientLegendIntervalOptions;
+    }
+>;
+
+/**
+ * Post-theme-merge shape for `gradientLegend`. The `scale` subtree is replaced
+ * with its normalised form; everything else stays as the user-facing shape.
+ */
+export type NormalisedGradientLegendOptions<TContext = ContextDefault> = Normalised<
+    AgGradientLegendOptions<TContext>,
+    never,
+    { scale?: NormalisedGradientLegendScaleOptions<TContext> }
+>;

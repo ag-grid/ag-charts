@@ -1,8 +1,9 @@
-import { type AgGradientLegendOptions, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     type DynamicContext,
     type GradientColorStop,
+    type NormalisedGradientLegendOptions,
     ZIndexMap,
     createId,
     expandLegendPosition,
@@ -31,7 +32,7 @@ export class GradientLegend extends AbstractModuleInstance {
 
     data: _ModuleSupport.GradientLegendDatum[] = [];
 
-    private get opts(): AgGradientLegendOptions {
+    private get opts(): NormalisedGradientLegendOptions {
         return this.ctx.chartState.getValue('options', 'gradientLegend') ?? {};
     }
 
@@ -161,12 +162,12 @@ export class GradientLegend extends AbstractModuleInstance {
         gradientRectBBox: _ModuleSupport.BBox
     ) {
         const opts = this.opts;
-        const s = (opts.scale ?? {}) as any;
-        const scalePadding = s.padding ?? 0;
+        const scale = opts.scale ?? {};
+        const scalePadding = scale.padding ?? 0;
         const gradientThickness = opts.gradient?.thickness ?? 16;
 
-        axisTicks.labelOptions = s.label;
-        axisTicks.intervalOptions = s.interval;
+        axisTicks.labelOptions = scale.label;
+        axisTicks.intervalOptions = scale.interval;
         axisTicks.padding = scalePadding;
         const { placement } = expandLegendPosition(opts.position ?? 'bottom');
         const vertical = placement.startsWith('right') || placement.startsWith('left');

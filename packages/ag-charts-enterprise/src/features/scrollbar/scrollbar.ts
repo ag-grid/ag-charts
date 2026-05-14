@@ -10,13 +10,6 @@ import {
     clamp,
     definedZoomState,
 } from 'ag-charts-core';
-import type {
-    AgScrollbarHorizontalOrientationOptions,
-    AgScrollbarOptions,
-    AgScrollbarThumbStyle,
-    AgScrollbarTrackStyle,
-    AgScrollbarVerticalOrientationOptions,
-} from 'ag-charts-types';
 
 import { ZoomScrollPanner } from '../zoom-interaction/zoomScrollPanner';
 import { ScrollbarDOMProxy } from './scrollbarDOMProxy';
@@ -25,24 +18,13 @@ const { BBox, Group, Rect, LayoutElement, InteractionState } = _ModuleSupport;
 
 type ScrollbarOrientation = 'horizontal' | 'vertical';
 
-type ResolvedOrientationOptions = (AgScrollbarHorizontalOrientationOptions | AgScrollbarVerticalOrientationOptions) & {
-    enabled: boolean;
-    thickness: number;
-    spacing: number;
-    tickSpacing: number;
-    placement: 'inner' | 'outer';
-    visible: 'auto' | 'always' | 'never';
-    track: AgScrollbarTrackStyle;
-    thumb: AgScrollbarThumbStyle;
-};
-
 interface ScrollbarOrientationState {
     orientation: ScrollbarOrientation;
     group: _ModuleSupport.Group;
     track: _ModuleSupport.Rect;
     thumb: _ModuleSupport.Rect;
     dom: ScrollbarDOMProxy;
-    properties: ResolvedOrientationOptions;
+    properties: _ModuleSupport.NormalisedScrollbarOrientationOptions;
     layoutRect?: _ModuleSupport.BBox;
     position: AgCartesianAxisPosition;
     positionHasAxis: boolean;
@@ -59,7 +41,7 @@ export class Scrollbar extends AbstractModuleInstance {
 
     private readonly scrollPanner = new ZoomScrollPanner();
 
-    private get opts(): AgScrollbarOptions {
+    private get opts(): _ModuleSupport.NormalisedScrollbarOptions {
         return this.ctx.chartState.getValue('options', 'scrollbar') ?? {};
     }
 
@@ -112,10 +94,11 @@ export class Scrollbar extends AbstractModuleInstance {
         };
     }
 
-    private resolveProperties(orientation: ScrollbarOrientation): ResolvedOrientationOptions {
+    private resolveProperties(orientation: ScrollbarOrientation): _ModuleSupport.NormalisedScrollbarOrientationOptions {
         return (
-            orientation === 'horizontal' ? (this.opts.horizontal ?? {}) : (this.opts.vertical ?? {})
-        ) as ResolvedOrientationOptions;
+            (orientation === 'horizontal' ? this.opts.horizontal : this.opts.vertical) ??
+            ({} as _ModuleSupport.NormalisedScrollbarOrientationOptions)
+        );
     }
 
     private getDefaultPosition(orientation: ScrollbarOrientation): AgCartesianAxisPosition {
