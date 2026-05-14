@@ -331,7 +331,7 @@ export class GradientLegend extends AbstractModuleInstance {
     private getContainerStyles() {
         const opts = this.opts;
         const b = opts.border ?? {};
-        const borderEnabled = b.enabled ?? true;
+        const borderEnabled = b.enabled ?? false;
         const stroke = b.stroke;
         const strokeOpacity = b.strokeOpacity ?? 1;
         const strokeWidth = b.strokeWidth ?? 1;
