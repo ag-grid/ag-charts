@@ -122,7 +122,7 @@ export class FlashOnUpdate extends AbstractModuleInstance {
     }
 
     get enabled(): boolean {
-        return this.opts.enabled ?? false;
+        return this.opts.enabled;
     }
 
     private readonly flashGroup = new Group({ name: 'flash-on-update', zIndex: ZIndexMap.AXIS_BAND_HIGHLIGHT });

@@ -20,6 +20,10 @@ export class ChartToolbar extends AbstractModuleInstance {
     private readonly menu: _ModuleSupport.Menu;
     private menuShowing = false;
 
+    // The ChartToolbar module is registered for cartesian charts but the option subtree is
+    // optional. ChartToolbarModule.themeTemplate emits `enabled: false` so the subtree is
+    // present once any chart applies the theme; the fallbacks here remain only because the
+    // observer can fire during transient absent-subtree windows (deltaOptions removal).
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
@@ -31,14 +35,14 @@ export class ChartToolbar extends AbstractModuleInstance {
             ctx.layoutManager.registerElement(LayoutElement.ToolbarLeft, this.onLayoutStart.bind(this)),
             ctx.eventsHub.on('series-area:click', () => this.hidePopover()),
             ctx.chartState.observe((get) => {
-                this.toolbar.setHidden(!(get('options', 'chartToolbar.enabled') ?? false));
+                this.toolbar.setHidden(!get('options', 'chartToolbar')?.enabled);
             }),
             () => this.toolbar.destroy()
         );
     }
 
     private onLayoutStart(ctx: _ModuleSupport.LayoutContext) {
-        if (!(this.ctx.chartState.getValue('options', 'chartToolbar.enabled') ?? false)) return;
+        if (!this.ctx.chartState.getValue('options', 'chartToolbar')?.enabled) return;
         this.updateButton();
         this.toolbar.layout(ctx.layoutBox);
     }
