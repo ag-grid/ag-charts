@@ -1,4 +1,4 @@
-import { type AgChartSyncOptions, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     AsyncAwaitQueue,
@@ -63,7 +63,7 @@ export class ChartSync extends AbstractModuleInstance {
     private readonly domainSync = new AsyncAwaitQueue();
     private disabledByValidation = false;
 
-    private get opts(): AgChartSyncOptions {
+    private get opts(): _ModuleSupport.ResolvedChartSyncOptions {
         return this.moduleContext.chartState.getValue('options', 'sync') ?? {};
     }
 
@@ -85,17 +85,6 @@ export class ChartSync extends AbstractModuleInstance {
 
     get zoom(): boolean {
         return this.opts.zoom ?? true;
-    }
-
-    private get domainMode(): 'direction' | 'position' | 'id' {
-        // domainMode is an undocumented chart-level option, accessed via the resolved type
-        return (
-            (this.moduleContext.chartState.getValue('options', 'sync.domainMode' as any) as
-                | 'direction'
-                | 'position'
-                | 'id'
-                | undefined) ?? 'id'
-        );
     }
 
     constructor(protected moduleContext: DynamicContext<_ModuleSupport.ChartRegistry>) {
@@ -229,7 +218,8 @@ export class ChartSync extends AbstractModuleInstance {
 
         const series = event.currentHighlight?.series;
 
-        const [mainDirection] = syncedDirections(this.axes);
+        const opts = this.opts;
+        const [mainDirection] = syncedDirections(opts.axes ?? 'x');
         const secondaryDirection = mainDirection === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
 
         const [primaryKeys, secondaryKeys] = series ? getDirectionKeys(series, mainDirection, secondaryDirection) : [];
@@ -242,7 +232,7 @@ export class ChartSync extends AbstractModuleInstance {
         }
 
         if (!event.currentHighlight?.datum) {
-            for (const chart of syncManager.getGroupSiblings(this.groupId)) {
+            for (const chart of syncManager.getGroupSiblings(opts.groupId)) {
                 const syncModule: any = chart.modulesManager.getModule('sync');
                 if (!syncModule?.nodeInteraction) continue;
 
@@ -252,7 +242,7 @@ export class ChartSync extends AbstractModuleInstance {
             return;
         }
 
-        const useSecondaryDirectionKey = syncManager.getGroupSyncMode(this.groupId) === 'multi-series';
+        const useSecondaryDirectionKey = syncManager.getGroupSyncMode(opts.groupId) === 'multi-series';
         this.findMatchingHighlightNodes(
             mainDirection,
             secondaryDirection,
@@ -389,7 +379,9 @@ export class ChartSync extends AbstractModuleInstance {
     }
 
     async getSyncedDomain(axis: unknown) {
-        if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== (axis.direction as string))) {
+        const opts = this.opts;
+        const axes = opts.axes ?? 'x';
+        if (!CartesianAxis.is(axis) || (axes !== 'xy' && axes !== (axis.direction as string))) {
             return;
         }
 
@@ -398,11 +390,12 @@ export class ChartSync extends AbstractModuleInstance {
 
         await this.waitForDomainsToBeReady();
 
-        if (this.domainMode === 'position') {
+        const domainMode = opts.domainMode ?? 'id';
+        if (domainMode === 'position') {
             return this.calculateDerivedDomain(axis, positionDomains);
         }
 
-        if (this.domainMode === 'direction') {
+        if (domainMode === 'direction') {
             return this.calculateDerivedDomain(axis, directionDomains);
         }
 
@@ -411,10 +404,11 @@ export class ChartSync extends AbstractModuleInstance {
 
     private updateDomainState(axis: _ModuleSupport.CartesianAxis<any, any>) {
         const { syncManager } = this.moduleContext;
+        const groupId = this.opts.groupId;
         const chartId = syncManager.getChart().id;
         const axisId = axis.id;
-        const groupState = syncManager.getGroupState(this.groupId);
-        if (!groupState) throw new Error('AG Charts - no GroupState for groupId: ' + this.groupId);
+        const groupState = syncManager.getGroupState(groupId);
+        if (!groupState) throw new Error('AG Charts - no GroupState for groupId: ' + groupId);
 
         const domainsByDirection = (groupState.domains ??= {});
         const directionDomains = (domainsByDirection[axis.direction] ??= { derived: [], sources: {}, dirty: true });
@@ -438,9 +432,10 @@ export class ChartSync extends AbstractModuleInstance {
     }
 
     private validateAxis(axis: _ModuleSupport.CartesianAxis<any, any>, groupState: _ModuleSupport.SyncGroupState) {
-        const multiSeries = this.moduleContext.syncManager.getGroupSyncMode(this.groupId) === 'multi-series';
+        const opts = this.opts;
+        const multiSeries = this.moduleContext.syncManager.getGroupSyncMode(opts.groupId) === 'multi-series';
 
-        if (!syncedDirections(this.axes).includes(axis.direction)) return;
+        if (!syncedDirections(opts.axes ?? 'x').includes(axis.direction)) return;
 
         if (multiSeries) {
             this.validateMultiSeries(axis, groupState);
@@ -548,12 +543,14 @@ export class ChartSync extends AbstractModuleInstance {
     }
 
     removeAxis(axis: unknown) {
-        if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== (axis.direction as string))) {
+        const opts = this.opts;
+        const axes = opts.axes ?? 'x';
+        if (!CartesianAxis.is(axis) || (axes !== 'xy' && axes !== (axis.direction as string))) {
             return;
         }
 
         const { syncManager } = this.moduleContext;
-        const syncGroup = syncManager.getGroupState(this.groupId);
+        const syncGroup = syncManager.getGroupState(opts.groupId);
 
         const chartId = syncManager.getChart().id;
         const axisId = axis.id;
@@ -564,9 +561,10 @@ export class ChartSync extends AbstractModuleInstance {
 
     private async waitForDomainsToBeReady() {
         const { syncManager } = this.moduleContext;
+        const groupId = this.opts.groupId;
         let count = 0;
-        while (syncManager.getGroupMembers(this.groupId).some((c) => c.syncStatus === 'init')) {
-            debug('ChartSync.waitForDomainsToBeReady() - waiting for all domains to be calculated', this.groupId);
+        while (syncManager.getGroupMembers(groupId).some((c) => c.syncStatus === 'init')) {
+            debug('ChartSync.waitForDomainsToBeReady() - waiting for all domains to be calculated', groupId);
             await this.domainSync.waitForCompletion();
             count++;
         }
@@ -578,9 +576,10 @@ export class ChartSync extends AbstractModuleInstance {
 
     private prepareZoomUpdate() {
         const zoom = { ...this.moduleContext.chartState.getValue('zoom') };
-        if (this.axes === 'x') {
+        const axes = this.opts.axes ?? 'x';
+        if (axes === 'x') {
             delete zoom?.y;
-        } else if (this.axes === 'y') {
+        } else if (axes === 'y') {
             delete zoom?.x;
         }
 
@@ -589,11 +588,13 @@ export class ChartSync extends AbstractModuleInstance {
 
     private onEnabledChange() {
         const { syncManager, highlightManager } = this.moduleContext;
-        if (this.enabled) {
-            syncManager.subscribe(this.groupId);
+        const opts = this.opts;
+        const enabled = !this.disabledByValidation && (opts.enabled ?? false);
+        if (enabled) {
+            syncManager.subscribe(opts.groupId);
             highlightManager.unhighlightDelay = 0;
         } else {
-            syncManager.unsubscribe(this.groupId);
+            syncManager.unsubscribe(opts.groupId);
             highlightManager.unhighlightDelay = 100;
         }
         this.updateSiblings();
@@ -617,7 +618,9 @@ export class ChartSync extends AbstractModuleInstance {
     }
 
     private onNodeInteractionChange() {
-        if (this.enabled && this.nodeInteraction) {
+        const opts = this.opts;
+        const enabled = !this.disabledByValidation && (opts.enabled ?? false);
+        if (enabled && (opts.nodeInteraction ?? true)) {
             this.enabledNodeInteractionSync();
         } else {
             this.disableNodeInteractionSync?.();
@@ -625,7 +628,9 @@ export class ChartSync extends AbstractModuleInstance {
     }
 
     private onZoomChange() {
-        if (this.enabled && this.zoom) {
+        const opts = this.opts;
+        const enabled = !this.disabledByValidation && (opts.enabled ?? false);
+        if (enabled && (opts.zoom ?? true)) {
             this.enabledZoomSync();
         } else {
             this.disableZoomSync?.();

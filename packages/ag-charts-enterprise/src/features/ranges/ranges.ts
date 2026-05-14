@@ -1,9 +1,7 @@
 import {
     type AgRangesButton,
     type AgRangesButtonValue,
-    type AgRangesDropdown,
     type AgRangesOptions,
-    type AgRangesPosition,
     type AgRangesStateStyles,
     type AgRangesStyles,
     _ModuleSupport,
@@ -82,43 +80,6 @@ export class Ranges extends AbstractModuleInstance {
         return this.ctx.chartState.getValue('options', 'ranges') ?? {};
     }
 
-    private get enabled(): boolean {
-        return this.opts.enabled ?? false;
-    }
-
-    private get position(): AgRangesPosition {
-        return this.opts.position ?? 'top-right';
-    }
-
-    private get spacing(): number {
-        return this.opts.spacing ?? 0;
-    }
-
-    private get gap(): number {
-        return this.opts.gap ?? 0;
-    }
-
-    private get minSize(): number {
-        return 0;
-    }
-
-    private get enableOutOfRange(): boolean {
-        return this.opts.enableOutOfRange ?? false;
-    }
-
-    private get buttons(): AgRangesButton[] {
-        return this.opts.buttons ?? [];
-    }
-
-    private get dropdown(): AgRangesDropdown & ResolvedStyles {
-        const dropdown = this.opts.dropdown ?? {};
-        return { ...resolveStyles(dropdown), visible: dropdown.visible ?? 'auto' };
-    }
-
-    private get button(): ResolvedStyles {
-        return resolveStyles(this.opts.button);
-    }
-
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
@@ -168,7 +129,11 @@ export class Ranges extends AbstractModuleInstance {
     }
 
     private onLayoutStart({ layoutBox }: _ModuleSupport.LayoutContext) {
-        const { dropdown, enabled, position, spacing } = this;
+        const opts = this.opts;
+        const enabled = opts.enabled ?? false;
+        const position = opts.position ?? 'top-right';
+        const spacing = opts.spacing ?? 0;
+        const dropdownVisible = opts.dropdown?.visible ?? 'auto';
 
         if (!enabled) {
             this.buttonsToolbar?.setHidden(true);
@@ -181,12 +146,12 @@ export class Ranges extends AbstractModuleInstance {
         const { buttonsToolbar, dropdownToolbar } = this;
         if (!buttonsToolbar || !dropdownToolbar) return;
 
-        buttonsToolbar.updateButtons(this.buttons);
+        buttonsToolbar.updateButtons(opts.buttons ?? []);
         dropdownToolbar.updateButtons([this.getDropdownButtonOptions(this.dropdownLabel)]);
 
         this.updateCSSVariables();
 
-        if (dropdown.visible === 'always') {
+        if (dropdownVisible === 'always') {
             this.swapDropdownIn();
         } else {
             this.swapDropdownOut();
@@ -207,12 +172,16 @@ export class Ranges extends AbstractModuleInstance {
     }
 
     private onLayoutComplete({ series: { rect: seriesRect }, layoutBox }: _ModuleSupport.LayoutCompleteEvent) {
-        const { buttons, buttonsToolbar, ctx, dropdown, dropdownMenu, dropdownToolbar, enabled } = this;
-        if (!enabled || !buttonsToolbar || !dropdownToolbar || !dropdownMenu) return;
+        const { buttonsToolbar, ctx, dropdownMenu, dropdownToolbar } = this;
+        const opts = this.opts;
+        if (!(opts.enabled ?? false) || !buttonsToolbar || !dropdownToolbar || !dropdownMenu) return;
+
+        const dropdownVisible = opts.dropdown?.visible ?? 'auto';
+        const buttons = opts.buttons ?? [];
 
         let bounds: BoxBounds | undefined;
 
-        if (dropdown.visible === 'auto') {
+        if (dropdownVisible === 'auto') {
             bounds = buttonsToolbar.getBounds();
             if (bounds.width > seriesRect.width) {
                 this.swapDropdownIn();
@@ -256,7 +225,7 @@ export class Ranges extends AbstractModuleInstance {
         layoutBox: Readonly<_ModuleSupport.BBox>,
         cachedBounds?: BoxBounds
     ) {
-        const { position } = this;
+        const position = this.opts.position ?? 'top-right';
         const bounds = cachedBounds ?? toolbar.getBounds();
 
         if (position === 'top-right' || position === 'bottom-right') {
@@ -272,22 +241,21 @@ export class Ranges extends AbstractModuleInstance {
     }
 
     private updateCSSVariables() {
-        if (this.gap > 0) {
+        const opts = this.opts;
+        const gap = opts.gap ?? 0;
+        if (gap > 0) {
             this.buttonsToolbar?.addClass('ag-charts-range-buttons--gapped');
         } else {
             this.buttonsToolbar?.removeClass('ag-charts-range-buttons--gapped');
         }
 
         const numericKeys = ['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'strokeWidth'];
-        const button = this.button;
-        const dropdown = this.dropdown;
-        this.ctx.domManager.setModuleCSSVariables(
-            'ranges',
-            undefined,
-            undefined,
-            { gap: this.gap, minSize: this.minSize },
-            ['gap', 'minSize']
-        );
+        const button = resolveStyles(opts.button);
+        const dropdown = resolveStyles(opts.dropdown);
+        this.ctx.domManager.setModuleCSSVariables('ranges', undefined, undefined, { gap, minSize: 0 }, [
+            'gap',
+            'minSize',
+        ]);
         this.ctx.domManager.setModuleCSSVariables(
             'ranges',
             'button',
@@ -439,7 +407,7 @@ export class Ranges extends AbstractModuleInstance {
 
         this.dropdownToolbar.toggleActiveButtonByIndex(0);
 
-        const menuItems = this.buttons.map((button, index) => {
+        const menuItems = (this.opts.buttons ?? []).map((button, index) => {
             return {
                 ariaLabel: button.ariaLabel,
                 enabled: this.getButtonEnabled(button),
@@ -471,7 +439,7 @@ export class Ranges extends AbstractModuleInstance {
         const zoomManager = this.ctx.zoomManager;
         if (!zoomManager) return;
 
-        const button = this.buttons.at(index);
+        const button = (this.opts.buttons ?? []).at(index);
         if (!button) return;
 
         const { value } = button;
@@ -522,8 +490,8 @@ export class Ranges extends AbstractModuleInstance {
     }
 
     private getButtonEnabled(button: AgRangesButton) {
-        const { enableOutOfRange, ctx } = this;
-        const zoomManager = ctx.zoomManager;
+        const enableOutOfRange = this.opts.enableOutOfRange ?? false;
+        const zoomManager = this.ctx.zoomManager;
 
         let buttonEnabled = button.enabled ?? enableOutOfRange;
 

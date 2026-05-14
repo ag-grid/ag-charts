@@ -1,5 +1,4 @@
 import type {
-    AgContextMenuGetItemsCallback,
     AgContextMenuGetItemsParams,
     AgContextMenuGetItemsParamsSeriesNode,
     AgContextMenuItem,
@@ -60,18 +59,6 @@ type PickedNode = _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> 
 export class ContextMenu extends AbstractModuleInstance {
     private get opts() {
         return this.ctx.chartState.getValue('options', 'contextMenu') ?? {};
-    }
-
-    private get enabled(): boolean {
-        return this.opts.enabled ?? true;
-    }
-
-    private get items(): readonly Readonly<AgContextMenuItem>[] {
-        return this.opts.items ?? ['defaults'];
-    }
-
-    private get getItems(): AgContextMenuGetItemsCallback | undefined {
-        return this.opts.getItems;
     }
 
     // Module context
@@ -144,7 +131,8 @@ export class ContextMenu extends AbstractModuleInstance {
     private makeGetItemsParams(event: ContextMenuEvent): AgContextMenuGetItemsParams {
         const { showOn } = event;
         const { context } = this.ctx.chartService; // TODO: callWithContext
-        const defaultItems: AgContextMenuItem[] = expandBuiltinLists(showOn, this.items, this.ctx.contextMenuRegistry);
+        const items = this.opts.items ?? ['defaults'];
+        const defaultItems: AgContextMenuItem[] = expandBuiltinLists(showOn, items, this.ctx.contextMenuRegistry);
         switch (showOn) {
             case 'always':
             case 'series-area':
@@ -184,13 +172,14 @@ export class ContextMenu extends AbstractModuleInstance {
 
     private expandItemsOptions(event: ContextMenuEvent): ContextMenuItem[] {
         const result: ContextMenuItem[] = [];
+        const opts = this.opts;
 
         let items: readonly Readonly<AgContextMenuItem>[] | undefined;
-        if (this.getItems) {
+        if (opts.getItems) {
             const cbParams = this.makeGetItemsParams(event);
-            items = this.getItems(cbParams);
+            items = opts.getItems(cbParams);
         }
-        items ??= this.items;
+        items ??= opts.items ?? ['defaults'];
 
         expandItems(event.showOn, this.ctx.contextMenuRegistry, items, result);
 
@@ -198,7 +187,7 @@ export class ContextMenu extends AbstractModuleInstance {
     }
 
     private onContext(event: ContextMenuEvent) {
-        if (!this.enabled) return;
+        if (!(this.opts.enabled ?? true)) return;
 
         event.widgetEvent.sourceEvent.preventDefault();
         this.showEvent = event.widgetEvent.sourceEvent;

@@ -63,18 +63,6 @@ export class Scrollbar extends AbstractModuleInstance {
         return this.ctx.chartState.getValue('options', 'scrollbar') ?? {};
     }
 
-    private get enabled(): boolean {
-        return this.opts.enabled ?? false;
-    }
-
-    private get enableAxisScrolling(): boolean {
-        return this.opts.enableAxisScrolling ?? false;
-    }
-
-    private get enableSeriesAreaScrolling(): boolean {
-        return this.opts.enableSeriesAreaScrolling ?? false;
-    }
-
     public constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
@@ -203,12 +191,13 @@ export class Scrollbar extends AbstractModuleInstance {
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
+        const opts = this.opts;
         this.ctx.eventsHub.emit('axis-dom-proxy:update', {
             source: 'scrollbar',
-            enabled: this.enabled,
+            enabled: opts.enabled ?? false,
             enableDoubleClick: false,
             enableDragging: false,
-            enableScrolling: this.enableAxisScrolling,
+            enableScrolling: opts.enableAxisScrolling ?? false,
         });
 
         this.seriesRect = event.series.rect;
@@ -401,12 +390,12 @@ export class Scrollbar extends AbstractModuleInstance {
     }
 
     private onWheel(baseEvent: _ModuleSupport.ZoomInteractionWheelEvent) {
-        if (!this.enableSeriesAreaScrolling) return;
+        if (!(this.opts.enableSeriesAreaScrolling ?? false)) return;
         return this.handleWheel(baseEvent);
     }
 
     private onAxisWheel(baseEvent: _ModuleSupport.ZoomInteractionAxisWheelEvent) {
-        if (!this.enableAxisScrolling) return;
+        if (!(this.opts.enableAxisScrolling ?? false)) return;
         return this.handleWheel(baseEvent);
     }
 

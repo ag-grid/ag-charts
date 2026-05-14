@@ -1,9 +1,4 @@
-import {
-    type AgChartLegendPosition,
-    type AgGradientLegendOptions,
-    type Padding,
-    _ModuleSupport,
-} from 'ag-charts-community';
+import { type AgGradientLegendOptions, _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     type DynamicContext,
@@ -44,56 +39,8 @@ export class GradientLegend extends AbstractModuleInstance {
         return this.opts.enabled ?? false;
     }
 
-    private get position(): AgChartLegendPosition {
-        return this.opts.position ?? 'bottom';
-    }
-
-    private get reverseOrder(): boolean {
-        return this.opts.reverseOrder ?? false;
-    }
-
-    private get spacing(): number {
-        return this.opts.spacing ?? 20;
-    }
-
-    private get padding(): Padding {
-        return this.opts.padding ?? 4;
-    }
-
-    private get cornerRadius(): number {
-        return this.opts.cornerRadius ?? 0;
-    }
-
-    private get fill(): string | undefined {
-        return this.opts.fill as string | undefined;
-    }
-
-    private get fillOpacity(): number {
-        return this.opts.fillOpacity ?? 1;
-    }
-
-    private get gradient(): { thickness: number; preferredLength: number } {
-        const g = this.opts.gradient ?? {};
-        return { thickness: g.thickness ?? 16, preferredLength: g.preferredLength ?? 100 };
-    }
-
-    private get border(): { enabled: boolean; stroke?: string; strokeOpacity: number; strokeWidth: number } {
-        const b = this.opts.border ?? {};
-        return {
-            enabled: b.enabled ?? true,
-            stroke: b.stroke,
-            strokeOpacity: b.strokeOpacity ?? 1,
-            strokeWidth: b.strokeWidth ?? 1,
-        };
-    }
-
-    private get scale(): { label: any; interval: any; padding: number } {
-        const s = (this.opts.scale ?? {}) as any;
-        return { label: s.label, interval: s.interval, padding: s.padding ?? 0 };
-    }
-
     private isVertical(): boolean {
-        const { placement } = expandLegendPosition(this.position);
+        const { placement } = expandLegendPosition(this.opts.position ?? 'bottom');
         return placement.startsWith('right') || placement.startsWith('left');
     }
 
@@ -176,7 +123,9 @@ export class GradientLegend extends AbstractModuleInstance {
         shrinkRect: _ModuleSupport.BBox,
         colorStops: GradientColorStop[]
     ) {
-        const { preferredLength, thickness } = this.gradient;
+        const g = this.opts.gradient ?? {};
+        const thickness = g.thickness ?? 16;
+        const preferredLength = g.preferredLength ?? 100;
         const gradientRectBBox = new BBox(0, 0, 0, 0);
 
         let angle: number;
@@ -211,19 +160,21 @@ export class GradientLegend extends AbstractModuleInstance {
         data: _ModuleSupport.GradientLegendDatum,
         gradientRectBBox: _ModuleSupport.BBox
     ) {
-        const scale = this.scale;
-        const gradient = this.gradient;
+        const opts = this.opts;
+        const s = (opts.scale ?? {}) as any;
+        const scalePadding = s.padding ?? 0;
+        const gradientThickness = opts.gradient?.thickness ?? 16;
 
-        axisTicks.labelOptions = scale.label;
-        axisTicks.intervalOptions = scale.interval;
-        axisTicks.padding = scale.padding;
-        const { placement } = expandLegendPosition(this.position);
-        const vertical = this.isVertical();
-        const positiveAxis = this.reverseOrder !== vertical;
+        axisTicks.labelOptions = s.label;
+        axisTicks.intervalOptions = s.interval;
+        axisTicks.padding = scalePadding;
+        const { placement } = expandLegendPosition(opts.position ?? 'bottom');
+        const vertical = placement.startsWith('right') || placement.startsWith('left');
+        const positiveAxis = (opts.reverseOrder ?? false) !== vertical;
 
         axisTicks.placement = placement;
         axisTicks.boundSeries = data.series;
-        const tickOffset = gradient.thickness + (scale.padding ?? 0);
+        const tickOffset = gradientThickness + scalePadding;
         axisTicks.translationX = vertical ? tickOffset : gradientRectBBox.x;
         axisTicks.translationY = vertical ? gradientRectBBox.y : tickOffset;
         axisTicks.namedLabels = data.namedLabels;
@@ -298,9 +249,11 @@ export class GradientLegend extends AbstractModuleInstance {
             return undefined as never;
         };
 
+        const opts = this.opts;
+        const spacing = opts.spacing ?? 20;
         let { x: left, y: top } = shrinkRect;
         const { width, height } = legendBBox;
-        const { placement, floating, xOffset, yOffset } = expandLegendPosition(this.position);
+        const { placement, floating, xOffset, yOffset } = expandLegendPosition(opts.position ?? 'bottom');
 
         const containerStyles = this.getContainerStyles();
 
@@ -347,22 +300,22 @@ export class GradientLegend extends AbstractModuleInstance {
                 case 'left':
                 case 'left-top':
                 case 'left-bottom':
-                    shrinkRect.shrink(width + this.spacing, 'left');
+                    shrinkRect.shrink(width + spacing, 'left');
                     break;
                 case 'right':
                 case 'right-top':
                 case 'right-bottom':
-                    shrinkRect.shrink(width + this.spacing, 'right');
+                    shrinkRect.shrink(width + spacing, 'right');
                     break;
                 case 'top':
                 case 'top-left':
                 case 'top-right':
-                    shrinkRect.shrink(height + this.spacing, 'top');
+                    shrinkRect.shrink(height + spacing, 'top');
                     break;
                 case 'bottom':
                 case 'bottom-left':
                 case 'bottom-right':
-                    shrinkRect.shrink(height + this.spacing, 'bottom');
+                    shrinkRect.shrink(height + spacing, 'bottom');
                     break;
                 default:
                     unreachable(placement);
@@ -375,8 +328,16 @@ export class GradientLegend extends AbstractModuleInstance {
     }
 
     private getContainerStyles() {
-        const { stroke, strokeOpacity, strokeWidth, enabled: borderEnabled } = this.border;
-        const { cornerRadius, fill, fillOpacity, padding } = this;
+        const opts = this.opts;
+        const b = opts.border ?? {};
+        const borderEnabled = b.enabled ?? true;
+        const stroke = b.stroke;
+        const strokeOpacity = b.strokeOpacity ?? 1;
+        const strokeWidth = b.strokeWidth ?? 1;
+        const cornerRadius = opts.cornerRadius ?? 0;
+        const fill = opts.fill as string | undefined;
+        const fillOpacity = opts.fillOpacity ?? 1;
+        const padding = opts.padding ?? 4;
         const isPaddingNumber = typeof padding === 'number';
 
         return {

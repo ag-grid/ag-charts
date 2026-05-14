@@ -9,7 +9,6 @@ import {
 } from 'ag-charts-core';
 
 type ResolvedStatusBarOptions = _ModuleSupport.ResolvedStatusBarOptions;
-type ResolvedStatusBarLabelOptions = _ModuleSupport.ResolvedStatusBarLabelOptions;
 
 const { LayoutElement, Group, Rect, Text } = _ModuleSupport;
 enum LabelConfiguration {
@@ -61,48 +60,6 @@ const neutralColorMap: Partial<Record<AgPriceVolumeChartType, 'neutral' | 'altNe
 export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.ScopeProvider {
     private get opts(): ResolvedStatusBarOptions {
         return this.ctx.chartState.getValue('options', 'statusBar')!;
-    }
-
-    private get enabled(): boolean {
-        return this.opts?.enabled ?? false;
-    }
-
-    private get openKey(): string | undefined {
-        return this.opts?.openKey;
-    }
-    private get highKey(): string | undefined {
-        return this.opts?.highKey;
-    }
-    private get lowKey(): string | undefined {
-        return this.opts?.lowKey;
-    }
-    private get closeKey(): string | undefined {
-        return this.opts?.closeKey;
-    }
-    private get volumeKey(): string | undefined {
-        return this.opts?.volumeKey;
-    }
-
-    private get title(): ResolvedStatusBarLabelOptions {
-        return this.opts?.title;
-    }
-    private get positive(): ResolvedStatusBarLabelOptions {
-        return this.opts?.positive;
-    }
-    private get negative(): ResolvedStatusBarLabelOptions {
-        return this.opts?.negative;
-    }
-    private get neutral(): ResolvedStatusBarLabelOptions {
-        return this.opts?.neutral;
-    }
-    private get altNeutral(): ResolvedStatusBarLabelOptions {
-        return this.opts?.altNeutral;
-    }
-    private get background(): { fill: string; fillOpacity: number } {
-        return this.opts?.background;
-    }
-    private get layoutStyle(): 'block' | 'overlay' {
-        return this.opts?.layoutStyle ?? 'block';
     }
 
     readonly id = 'status-bar';
@@ -260,7 +217,8 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
     }
 
     private updateDomainsFromSeries() {
-        if (!this.enabled) return;
+        const opts = this.opts;
+        if (!opts?.enabled) return;
 
         const series = this.ctx.chartService.series;
         if (series.length === 0) return;
@@ -287,7 +245,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
 
         // Apply domains to labels based on their key type
         for (const label of this.labels) {
-            const key = this[label.key];
+            const key = opts[label.key];
             if (key == null) {
                 label.domain = undefined;
                 continue;
@@ -302,7 +260,8 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         this.labelGroup.translationX = 0;
         this.labelGroup.translationY = 0;
 
-        if (!this.enabled) {
+        const opts = this.opts;
+        if (!opts?.enabled) {
             this.labelGroup.visible = false;
             return;
         }
@@ -318,7 +277,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
 
         this.labelGroup.translationY = layoutBox.y + spacingAbove;
 
-        const maxFontSize = Math.max(this.title.fontSize, this.positive.fontSize, this.negative.fontSize);
+        const maxFontSize = Math.max(opts.title.fontSize, opts.positive.fontSize, opts.negative.fontSize);
         const lineHeight = calcLineHeight(maxFontSize);
 
         const labelConfigurations = chartConfigurations[this.getChartType()] ?? 0;
@@ -326,7 +285,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         let left = 0;
         let offsetTop: number;
         let textVAlign: CanvasTextBaseline = 'alphabetic';
-        if (this.layoutStyle === 'block') {
+        if ((opts.layoutStyle ?? 'block') === 'block') {
             layoutBox.shrink(spacingAbove + lineHeight + spacingBelow, 'top');
             offsetTop = maxFontSize + (lineHeight - maxFontSize) / 2;
         } else {
@@ -348,8 +307,8 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
                 continue;
             }
 
-            const positiveTextMeasurer = cachedTextMeasurer(this.positive);
-            const negativeTextMeasurer = cachedTextMeasurer(this.negative);
+            const positiveTextMeasurer = cachedTextMeasurer(opts.positive);
+            const negativeTextMeasurer = cachedTextMeasurer(opts.negative);
 
             const maxValueWidth = Math.max(
                 positiveTextMeasurer.textWidth(formatter.format(domain[0])),
@@ -361,9 +320,9 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             title.visible = true;
             value.visible = true;
 
-            const titleMetrics = cachedTextMeasurer(this.title).measureLines(label);
-            title.setFont(this.title);
-            title.fill = this.title.color;
+            const titleMetrics = cachedTextMeasurer(opts.title).measureLines(label);
+            title.setFont(opts.title);
+            title.fill = opts.title.color;
             title.text = label;
             title.textAlign = 'left';
             title.textBaseline = textVAlign;
@@ -384,8 +343,8 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         this.backgroundNode.y = 0;
         this.backgroundNode.width = left - outerSpacing;
         this.backgroundNode.height = lineHeight + spacingAbove + spacingBelow;
-        this.backgroundNode.fill = this.background.fill;
-        this.backgroundNode.fillOpacity = this.background.fillOpacity;
+        this.backgroundNode.fill = opts.background.fill;
+        this.backgroundNode.fillOpacity = opts.background.fillOpacity;
     }
 
     private onLayoutComplete(opts: _ModuleSupport.LayoutCompleteEvent) {
@@ -395,7 +354,8 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
     }
 
     private updateHighlight(activeHighlight: _ModuleSupport.HighlightNodeDatum | undefined) {
-        if (!this.enabled) return;
+        const opts = this.opts;
+        if (!opts?.enabled) return;
 
         // Get fallback from chart data when nothing is highlighted
         const datum = activeHighlight?.datum ?? this.chartData?.data?.at(-1);
@@ -410,9 +370,9 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         const itemId = activeHighlight?.itemId;
 
         let baseStyle = itemId == null ? undefined : itemIdMap[itemId];
-        if (baseStyle == null && this.openKey != null && this.closeKey != null) {
+        if (baseStyle == null && opts.openKey != null && opts.closeKey != null) {
             // Fallback for series without distinct positive/negative items.
-            if (datum[this.openKey] < datum[this.closeKey]) {
+            if (datum[opts.openKey] < datum[opts.closeKey]) {
                 baseStyle = 'positive';
             } else {
                 baseStyle = 'negative';
@@ -427,11 +387,11 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
                 labelStyle = neutralColorMap[this.getChartType()] ?? labelStyle;
             }
 
-            const datumKey = this[key];
+            const datumKey = opts[key];
             const datumValue = datumKey == null ? undefined : datum?.[datumKey];
 
-            value.setFont(this[labelStyle]);
-            value.fill = this[labelStyle].color;
+            value.setFont(opts[labelStyle]);
+            value.fill = opts[labelStyle].color;
             value.text = typeof datumValue === 'number' ? formatter.format(datumValue) : '';
         }
     }

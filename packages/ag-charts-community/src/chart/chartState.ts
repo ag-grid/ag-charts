@@ -10,6 +10,7 @@ import type {
     AgChartBackground,
     AgChartOptions,
     AgChartPaddingOptions,
+    AgChartSyncOptions,
     AgDataSourceCallbackParams,
     AgDataSourceOptions,
     AgFlashOnUpdateOptions,
@@ -46,6 +47,10 @@ export type ResolvedDataSourceOptions = AgDataSourceOptions & {
     updateDuringInteraction?: boolean;
 };
 
+export type ResolvedChartSyncOptions = AgChartSyncOptions & {
+    domainMode?: 'direction' | 'position' | 'id';
+};
+
 export type ResolvedChartOptions = Omit<
     AgChartOptions,
     | 'animation'
@@ -57,6 +62,7 @@ export type ResolvedChartOptions = Omit<
     | 'padding'
     | 'selection'
     | 'suppressFieldDotNotation'
+    | 'sync'
     | 'touch'
     | 'zoom'
 > & {
@@ -69,6 +75,7 @@ export type ResolvedChartOptions = Omit<
     padding: Required<AgChartPaddingOptions>;
     selection: NormalisedSelectionOptions | undefined;
     suppressFieldDotNotation: boolean;
+    sync?: ResolvedChartSyncOptions;
     touch: Required<AgTouchOptions>;
     zoom: NormalisedZoomOptions;
     // Undocumented options that the chart consumes through chartState.

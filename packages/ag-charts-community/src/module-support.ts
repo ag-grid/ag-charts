@@ -8,6 +8,7 @@ export type {
     ResolvedAnnotationsOptions,
     ResolvedBackgroundOptions,
     ResolvedChartOptions,
+    ResolvedChartSyncOptions,
     ResolvedFlashOnUpdateOptions,
     ResolvedForegroundOptions,
     ResolvedStatusBarLabelOptions,

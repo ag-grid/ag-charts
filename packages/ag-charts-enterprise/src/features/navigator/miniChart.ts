@@ -26,11 +26,6 @@ export class MiniChart extends AbstractModuleInstance {
     @ProxyProperty(['seriesRoot', 'cornerRadius'])
     cornerRadius!: number;
 
-    get padding(): { top: number; bottom: number } {
-        const p = this.ctx.chartState.getValue('options', 'navigator.miniChart.padding') ?? {};
-        return { top: p.top ?? 0, bottom: p.bottom ?? 0 };
-    }
-
     readonly root = new Group({ name: 'root' });
     readonly seriesRoot = this.root.appendChild(
         new MiniChartGroup({ name: 'Series-root', zIndex: ZIndexMap.SERIES_LAYER, renderToOffscreenCanvas: true })
@@ -248,15 +243,17 @@ export class MiniChart extends AbstractModuleInstance {
     }
 
     async layout(width: number, height: number) {
-        const { padding } = this;
+        const p = this.ctx.chartState.getValue('options', 'navigator.miniChart.padding') ?? {};
+        const paddingTop = p.top ?? 0;
+        const paddingBottom = p.bottom ?? 0;
         const animated = this.seriesRect != null;
-        const seriesRect = new BBox(0, 0, width, height - (padding.top + padding.bottom));
+        const seriesRect = new BBox(0, 0, width, height - (paddingTop + paddingBottom));
 
         const resized = this.seriesRect?.width !== width || this.seriesRect?.height !== height;
 
         this.seriesRect = seriesRect;
-        this.seriesRoot.translationY = padding.top;
-        this.seriesRoot.setClipRectCanvasSpace(new BBox(0, -padding.top, width, height));
+        this.seriesRoot.translationY = paddingTop;
+        this.seriesRoot.setClipRectCanvasSpace(new BBox(0, -paddingTop, width, height));
 
         for (const axis of this.axes) {
             const { position = 'left' } = axis;

@@ -20,10 +20,6 @@ export class ChartToolbar extends AbstractModuleInstance {
     private readonly menu: _ModuleSupport.Menu;
     private menuShowing = false;
 
-    private get enabled(): boolean {
-        return this.ctx.chartState.getValue('options', 'chartToolbar.enabled') ?? false;
-    }
-
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
@@ -42,7 +38,7 @@ export class ChartToolbar extends AbstractModuleInstance {
     }
 
     private onLayoutStart(ctx: _ModuleSupport.LayoutContext) {
-        if (!this.enabled) return;
+        if (!(this.ctx.chartState.getValue('options', 'chartToolbar.enabled') ?? false)) return;
         this.updateButton();
         this.toolbar.layout(ctx.layoutBox);
     }

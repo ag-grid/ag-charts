@@ -30,14 +30,6 @@ export class Navigator extends AbstractModuleInstance {
         return this.opts.enabled ?? false;
     }
 
-    private get height(): number {
-        return this.opts.height ?? 30;
-    }
-
-    private get spacing(): number {
-        return this.opts.spacing ?? 10;
-    }
-
     private readonly maskVisibleRange: BBoxProvider = {
         id: 'navigator-mask-visible-range',
         getBBox: (): _ModuleSupport.BBox => this.mask.computeVisibleRangeBBox(),
@@ -130,15 +122,19 @@ export class Navigator extends AbstractModuleInstance {
     }
 
     protected onLayoutStart({ layoutBox }: _ModuleSupport.LayoutContext) {
-        if (this.enabled) {
-            const navigatorTotalHeight = this.height + this.spacing;
-            layoutBox.shrink(navigatorTotalHeight, 'bottom');
-            this.y = layoutBox.y + layoutBox.height + this.spacing;
+        const opts = this.opts;
+        const enabled = opts.enabled ?? false;
+        const height = opts.height ?? 30;
+        const spacing = opts.spacing ?? 10;
+
+        if (enabled) {
+            layoutBox.shrink(height + spacing, 'bottom');
+            this.y = layoutBox.y + layoutBox.height + spacing;
         } else {
             this.y = 0;
         }
 
-        if (this.enabled && this.miniChart) {
+        if (enabled && this.miniChart) {
             const { top, bottom } = this.miniChart.computeAxisPadding();
             layoutBox.shrink(top + bottom, 'bottom');
             this.y -= bottom;
@@ -148,12 +144,15 @@ export class Navigator extends AbstractModuleInstance {
         }
     }
 
-    onLayoutComplete(opts: _ModuleSupport.LayoutCompleteEvent) {
-        const { x, width } = opts.series.rect;
-        const { y, height } = this;
+    onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
+        const { x, width } = event.series.rect;
+        const { y } = this;
+        const opts = this.opts;
+        const enabled = opts.enabled ?? false;
+        const height = opts.height ?? 30;
 
-        this.domProxy.updateVisibility(this.enabled);
-        if (this.enabled) {
+        this.domProxy.updateVisibility(enabled);
+        if (enabled) {
             const { _min: min, _max: max } = this.domProxy;
             this.layoutNodes(x, y, width, height, min, max);
             this.domProxy.updateBounds({ x, y, width, height });
@@ -208,7 +207,8 @@ export class Navigator extends AbstractModuleInstance {
         const { x: xZoom } = event;
         if (!xZoom) return;
 
-        const { x, y, width, height } = this;
+        const { x, y, width } = this;
+        const height = this.opts.height ?? 30;
         const { min, max } = xZoom;
 
         this.domProxy.updateMinMax(min, max);

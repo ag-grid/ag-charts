@@ -160,7 +160,7 @@ export class FlashOnUpdate extends AbstractModuleInstance {
     }
 
     private onLayoutComplete({ chart, series }: _ModuleSupport.LayoutCompleteEvent): void {
-        if (!this.enabled) return;
+        if (!this.opts.enabled) return;
 
         this.chartFlashRect.x = 0;
         this.chartFlashRect.y = 0;
