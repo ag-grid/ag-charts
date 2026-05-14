@@ -63,8 +63,10 @@ export class Annotations extends AbstractModuleInstance {
 
     public axesButtons = new AxesButtons();
 
+    // Annotations is only created when the `annotations` subtree is configured, so assert
+    // the subtree's presence here and rely on annotationsTheme for field-level defaults.
     private get opts(): _ModuleSupport.NormalisedAnnotationsOptions {
-        return this.ctx.chartState.getValue('options', 'annotations') ?? {};
+        return this.ctx.chartState.getValue('options', 'annotations')!;
     }
 
     // State
@@ -105,16 +107,16 @@ export class Annotations extends AbstractModuleInstance {
 
         this.cleanup.register(
             ctx.chartState.observe((get) => {
-                const opts = get('options', 'annotations') ?? {};
-                const enabled = opts.enabled ?? true;
+                const opts = get('options', 'annotations');
+                const enabled = opts?.enabled ?? false;
 
                 this.toolbar.enabled = enabled;
                 this.optionsToolbar.enabled = enabled;
                 this.axesButtons.enabled = enabled;
 
-                if (opts.toolbar != null) this.toolbar.set(opts.toolbar);
-                if (opts.optionsToolbar != null) this.optionsToolbar.set(opts.optionsToolbar);
-                if (opts.axesButtons != null) this.axesButtons.set(opts.axesButtons);
+                if (opts?.toolbar != null) this.toolbar.set(opts.toolbar);
+                if (opts?.optionsToolbar != null) this.optionsToolbar.set(opts.optionsToolbar);
+                if (opts?.axesButtons != null) this.axesButtons.set(opts.axesButtons);
             }),
             () => {
                 this.clear();

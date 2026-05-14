@@ -17,6 +17,8 @@ export class Animation extends AbstractModuleInstance {
                 }
             }),
             ctx.chartState.observe((get) => {
+                // `maxAnimatableItems` is an undocumented escape-hatch with no themeTemplate
+                // entry; the `?? Infinity` here is the canonical "no limit" default.
                 ctx.animationManager.maxAnimatableItems = get('options', 'animation.maxAnimatableItems') ?? Infinity;
             })
         );

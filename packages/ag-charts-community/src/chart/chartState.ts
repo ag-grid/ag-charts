@@ -64,6 +64,7 @@ export type NormalisedChartSyncOptions = AgChartSyncOptions & {
 };
 
 export type NormalisedAnnotationsOptions = AgAnnotationsOptions & {
+    enabled: boolean;
     snap?: boolean;
     data?: unknown[];
     xKey?: string;
