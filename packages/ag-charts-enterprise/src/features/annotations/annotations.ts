@@ -1142,9 +1142,6 @@ export class Annotations extends AbstractModuleInstance {
 
         if (translation.x || translation.y) {
             state.transition('translate', { translation });
-
-            // eslint-disable-next-line no-restricted-properties
-            sourceEvent.stopPropagation();
             sourceEvent.preventDefault();
         }
 
