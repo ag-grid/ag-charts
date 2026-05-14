@@ -64,12 +64,14 @@ export class ChartSync extends AbstractModuleInstance {
     private readonly domainSync = new AsyncAwaitQueue();
     private disabledByValidation = false;
 
+    // ChartSync is only created when the `sync` subtree is configured, so we
+    // assert the subtree's presence here and rely on theme defaults for fields.
     private get opts(): _ModuleSupport.NormalisedChartSyncOptions {
-        return this.moduleContext.chartState.getValue('options', 'sync') ?? {};
+        return this.moduleContext.chartState.getValue('options', 'sync')!;
     }
 
     get enabled(): boolean {
-        return !this.disabledByValidation && (this.opts.enabled ?? false);
+        return !this.disabledByValidation && this.opts.enabled;
     }
 
     get groupId(): string | undefined {
@@ -77,15 +79,15 @@ export class ChartSync extends AbstractModuleInstance {
     }
 
     get axes(): 'x' | 'y' | 'xy' {
-        return this.opts.axes ?? 'x';
+        return this.opts.axes;
     }
 
     get nodeInteraction(): boolean {
-        return this.opts.nodeInteraction ?? true;
+        return this.opts.nodeInteraction;
     }
 
     get zoom(): boolean {
-        return this.opts.zoom ?? true;
+        return this.opts.zoom;
     }
 
     constructor(protected moduleContext: DynamicContext<_ModuleSupport.ChartRegistry>) {
@@ -222,7 +224,7 @@ export class ChartSync extends AbstractModuleInstance {
         const series = event.currentHighlight?.series;
 
         const opts = this.opts;
-        const [mainDirection] = syncedDirections(opts.axes ?? 'x');
+        const [mainDirection] = syncedDirections(opts.axes);
         const secondaryDirection = mainDirection === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
 
         const [primaryKeys, secondaryKeys] = series ? getDirectionKeys(series, mainDirection, secondaryDirection) : [];
@@ -383,7 +385,7 @@ export class ChartSync extends AbstractModuleInstance {
 
     async getSyncedDomain(axis: unknown) {
         const opts = this.opts;
-        const axes = opts.axes ?? 'x';
+        const axes = opts.axes;
         if (!CartesianAxis.is(axis) || (axes !== 'xy' && axes !== (axis.direction as string))) {
             return;
         }
@@ -438,7 +440,7 @@ export class ChartSync extends AbstractModuleInstance {
         const opts = this.opts;
         const multiSeries = this.moduleContext.syncManager.getGroupSyncMode(opts.groupId) === 'multi-series';
 
-        if (!syncedDirections(opts.axes ?? 'x').includes(axis.direction)) return;
+        if (!syncedDirections(opts.axes).includes(axis.direction)) return;
 
         if (multiSeries) {
             this.validateMultiSeries(axis, groupState);
@@ -547,7 +549,7 @@ export class ChartSync extends AbstractModuleInstance {
 
     removeAxis(axis: unknown) {
         const opts = this.opts;
-        const axes = opts.axes ?? 'x';
+        const axes = opts.axes;
         if (!CartesianAxis.is(axis) || (axes !== 'xy' && axes !== (axis.direction as string))) {
             return;
         }
@@ -579,7 +581,7 @@ export class ChartSync extends AbstractModuleInstance {
 
     private prepareZoomUpdate() {
         const zoom = { ...this.moduleContext.chartState.getValue('zoom') };
-        const axes = this.opts.axes ?? 'x';
+        const axes = this.opts.axes;
         if (axes === 'x') {
             delete zoom?.y;
         } else if (axes === 'y') {
@@ -592,7 +594,7 @@ export class ChartSync extends AbstractModuleInstance {
     private onEnabledChange() {
         const { syncManager, highlightManager } = this.moduleContext;
         const opts = this.opts;
-        const enabled = !this.disabledByValidation && (opts.enabled ?? false);
+        const enabled = !this.disabledByValidation && opts.enabled;
         if (enabled) {
             syncManager.subscribe(opts.groupId);
             highlightManager.unhighlightDelay = 0;
@@ -622,8 +624,8 @@ export class ChartSync extends AbstractModuleInstance {
 
     private onNodeInteractionChange() {
         const opts = this.opts;
-        const enabled = !this.disabledByValidation && (opts.enabled ?? false);
-        if (enabled && (opts.nodeInteraction ?? true)) {
+        const enabled = !this.disabledByValidation && opts.enabled;
+        if (enabled && opts.nodeInteraction) {
             this.enabledNodeInteractionSync();
         } else {
             this.disableNodeInteractionSync?.();
@@ -632,8 +634,8 @@ export class ChartSync extends AbstractModuleInstance {
 
     private onZoomChange() {
         const opts = this.opts;
-        const enabled = !this.disabledByValidation && (opts.enabled ?? false);
-        if (enabled && (opts.zoom ?? true)) {
+        const enabled = !this.disabledByValidation && opts.enabled;
+        if (enabled && opts.zoom) {
             this.enabledZoomSync();
         } else {
             this.disableZoomSync?.();

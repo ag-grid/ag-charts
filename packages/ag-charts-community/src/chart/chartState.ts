@@ -55,6 +55,10 @@ export type NormalisedDataSourceOptions = AgDataSourceOptions & {
 };
 
 export type NormalisedChartSyncOptions = AgChartSyncOptions & {
+    enabled: boolean;
+    axes: 'x' | 'y' | 'xy';
+    nodeInteraction: boolean;
+    zoom: boolean;
     domainMode?: 'direction' | 'position' | 'id';
 };
 
