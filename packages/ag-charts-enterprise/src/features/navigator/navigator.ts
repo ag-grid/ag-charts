@@ -1,4 +1,4 @@
-import { type AgNavigatorOptions, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import { AbstractModuleInstance, type BoxBounds, type DynamicContext, Logger, clamp } from 'ag-charts-core';
 
 import { MiniChart } from './miniChart';
@@ -22,12 +22,14 @@ export class Navigator extends AbstractModuleInstance {
     public minHandle = new RangeHandle();
     public maxHandle = new RangeHandle();
 
-    private get opts(): AgNavigatorOptions {
-        return this.ctx.chartState.getValue('options', 'navigator') ?? {};
+    // Navigator is only created when the `navigator` subtree is configured, so we
+    // assert the subtree's presence here and rely on theme defaults for fields.
+    private get opts(): _ModuleSupport.NormalisedNavigatorOptions {
+        return this.ctx.chartState.getValue('options', 'navigator')!;
     }
 
     get enabled(): boolean {
-        return this.opts.enabled ?? false;
+        return this.opts.enabled;
     }
 
     private readonly maskVisibleRange: BBoxProvider = {
@@ -123,9 +125,7 @@ export class Navigator extends AbstractModuleInstance {
 
     protected onLayoutStart({ layoutBox }: _ModuleSupport.LayoutContext) {
         const opts = this.opts;
-        const enabled = opts.enabled ?? false;
-        const height = opts.height ?? 30;
-        const spacing = opts.spacing ?? 10;
+        const { enabled, height, spacing } = opts;
 
         if (enabled) {
             layoutBox.shrink(height + spacing, 'bottom');
@@ -147,9 +147,7 @@ export class Navigator extends AbstractModuleInstance {
     onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         const { x, width } = event.series.rect;
         const { y } = this;
-        const opts = this.opts;
-        const enabled = opts.enabled ?? false;
-        const height = opts.height ?? 30;
+        const { enabled, height } = this.opts;
 
         this.domProxy.updateVisibility(enabled);
         if (enabled) {
@@ -208,7 +206,7 @@ export class Navigator extends AbstractModuleInstance {
         if (!xZoom) return;
 
         const { x, y, width } = this;
-        const height = this.opts.height ?? 30;
+        const { height } = this.opts;
         const { min, max } = xZoom;
 
         this.domProxy.updateMinMax(min, max);

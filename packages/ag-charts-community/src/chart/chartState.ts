@@ -17,6 +17,7 @@ import type {
     AgDataSourceOptions,
     AgFlashOnUpdateOptions,
     AgInitialFocus,
+    AgNavigatorOptions,
     AgScrollbarHorizontalOrientationOptions,
     AgScrollbarOptions,
     AgScrollbarThumbStyle,
@@ -69,6 +70,13 @@ export type NormalisedAnnotationsOptions = AgAnnotationsOptions & {
     volumeKey?: string;
 };
 
+export type NormalisedNavigatorOptions = AgNavigatorOptions & {
+    enabled: boolean;
+    height: number;
+    spacing: number;
+    cornerRadius: number;
+};
+
 export type NormalisedScrollbarOrientationOptions = (
     | AgScrollbarHorizontalOrientationOptions
     | AgScrollbarVerticalOrientationOptions
@@ -98,6 +106,7 @@ export type ResolvedChartOptions = Omit<
     | 'gradientLegend'
     | 'keyboard'
     | 'legend'
+    | 'navigator'
     | 'padding'
     | 'scrollbar'
     | 'selection'
@@ -113,6 +122,7 @@ export type ResolvedChartOptions = Omit<
     gradientLegend?: NormalisedGradientLegendOptions;
     keyboard: { enabled: boolean; initialFocus: AgInitialFocus; tabIndex?: number };
     legend: NormalisedLegendOptions;
+    navigator?: NormalisedNavigatorOptions;
     padding: Required<AgChartPaddingOptions>;
     scrollbar?: NormalisedScrollbarOptions;
     selection: NormalisedSelectionOptions | undefined;

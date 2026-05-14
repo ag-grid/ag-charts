@@ -10,6 +10,7 @@ export type {
     NormalisedChartSyncOptions,
     NormalisedFlashOnUpdateOptions,
     NormalisedForegroundOptions,
+    NormalisedNavigatorOptions,
     NormalisedScrollbarOptions,
     NormalisedScrollbarOrientationOptions,
     NormalisedStatusBarLabelOptions,
