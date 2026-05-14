@@ -772,13 +772,33 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     destroy(opts?: { keepTransferableResources: boolean }): TransferableResources | undefined {
         if (this.destroyed) return;
-        // Set the flag before `this.ctx.destroy()` so any event emitted or callback fired
+        // Set the flag before any further work so any event emitted or callback fired
         // during the cascade sees a destroyed chart and early-exits via this guard.
         this.destroyed = true;
 
         const keepTransferableResources = opts?.keepTransferableResources;
         let result: TransferableResources | undefined;
 
+        if (keepTransferableResources) {
+            // Strip synchronously so the scene is safe to hand to a replacement chart
+            // even while the rest of the teardown is queued behind any in-flight update.
+            this.ctx.scene.strip();
+            result = {
+                container: this.container,
+                scene: this.ctx.scene,
+            };
+        }
+
+        // Queue teardown behind any in-flight update so we don't mutate shared state
+        // (e.g. clear `series.chart`) mid-render-cycle.
+        this.updateMutex
+            .acquire(() => this.performTeardown(keepTransferableResources === true))
+            .catch((e) => Logger.errorOnce(e));
+
+        return result;
+    }
+
+    private performTeardown(keepTransferableResources: boolean): void {
         this.performUpdateType = ChartUpdateType.NONE;
 
         this.cleanup.flush();
@@ -791,14 +811,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.foreground?.destroy();
         this.seriesArea.destroy();
 
-        if (keepTransferableResources) {
-            this.ctx.scene.strip();
-            // The wrapper object is going to get destroyed. So to be safe, copy its properties.
-            result = {
-                container: this.container,
-                scene: this.ctx.scene,
-            };
-        } else {
+        if (!keepTransferableResources) {
             this.ctx.scene.destroy();
             this.container = undefined;
         }
@@ -814,8 +827,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.ctx.destroy();
 
         Object.freeze(this);
-
-        return result;
     }
 
     requestFactoryUpdate(cb: (chart: Chart) => Promise<void> | void) {
