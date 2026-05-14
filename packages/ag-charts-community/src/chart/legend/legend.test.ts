@@ -1148,7 +1148,7 @@ describe('Legend', () => {
         type NullableString = string | null;
         type NullableStringTrouple = [NullableString, NullableString, NullableString];
 
-        const OPTIONS: AgChartOptions = {
+        const options: AgChartOptions = {
             data: [
                 { year: '2016', gold: 26, silver: 18, bronze: 26 },
                 { year: '2020', gold: 38, silver: 32, bronze: 19 },
@@ -1182,7 +1182,7 @@ describe('Legend', () => {
         }
 
         test('interactions enabled', async () => {
-            chart = await createChart({ ...OPTIONS });
+            chart = await createChart({ ...options });
             await waitForChartStability(chart);
 
             const EXPECTED_ID = 'ag-charts-3';
@@ -1200,7 +1200,7 @@ describe('Legend', () => {
         });
 
         test('interactions disabled', async () => {
-            chart = await createChart({ ...OPTIONS, legend: { toggleSeries: false } });
+            chart = await createChart({ ...options, legend: { toggleSeries: false } });
             await waitForChartStability(chart);
 
             const [ariaDescribedById0, ariaDescribedById1, ariaDescribedById2] = findAriaDescribedByIds();
