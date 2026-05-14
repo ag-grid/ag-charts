@@ -46,6 +46,16 @@ export type ChartCaptionOptions = AgChartCaptionOptions & {
     padding?: number;
 };
 
+/** Build the font spec (FontOptions shape) consumed by text measurers from a caption's options. */
+export function captionFont(opts: ChartCaptionOptions) {
+    return {
+        fontSize: opts.fontSize ?? FONT_SIZE.SMALLER,
+        fontStyle: opts.fontStyle,
+        fontWeight: opts.fontWeight,
+        fontFamily: (opts.fontFamily as string | undefined) ?? 'sans-serif',
+    };
+}
+
 /**
  * Chart-level caption (title/subtitle/footnote). Reads its option subtree from
  * `ctx.chartState.getValue('options', key)` and applies values to its scene node
@@ -67,6 +77,7 @@ export class ChartCaption implements CaptionLike {
         return (this.ctx.chartState.getValue('options', this.key) as ChartCaptionOptions | undefined) ?? {};
     }
 
+    // Members required by CaptionLike. Other field reads go through `opts` at the call site.
     get enabled(): boolean {
         return this.opts.enabled ?? false;
     }
@@ -75,40 +86,8 @@ export class ChartCaption implements CaptionLike {
         return this.opts.text;
     }
 
-    get textAlign() {
-        return this.opts.textAlign ?? 'center';
-    }
-
-    get layoutStyle(): 'block' | 'overlay' {
-        return this.opts.layoutStyle ?? 'block';
-    }
-
     get padding(): number {
         return this.opts.padding ?? 0;
-    }
-
-    get spacing(): number | undefined {
-        return this.opts.spacing;
-    }
-
-    get fontSize(): number {
-        return this.opts.fontSize ?? FONT_SIZE.SMALLER;
-    }
-
-    get fontFamily(): string {
-        return (this.opts.fontFamily as string | undefined) ?? 'sans-serif';
-    }
-
-    get fontWeight() {
-        return this.opts.fontWeight;
-    }
-
-    get fontStyle() {
-        return this.opts.fontStyle;
-    }
-
-    get color() {
-        return this.opts.color;
     }
 
     private truncated = false;
@@ -153,7 +132,7 @@ export class ChartCaption implements CaptionLike {
         const effectiveContainerHeight = truncate ? containerHeight : Infinity;
         const maxWidth = Math.min(opts.maxWidth ?? Infinity, effectiveContainerWidth) - padding * 2;
         const maxHeight = opts.maxHeight ?? effectiveContainerHeight - padding * 2;
-        const options = { maxWidth, maxHeight, font: this, textWrap: wrapping };
+        const options = { maxWidth, maxHeight, font: captionFont(opts), textWrap: wrapping };
 
         const text = opts.text;
         if (!Number.isFinite(maxWidth) && !Number.isFinite(maxHeight)) {

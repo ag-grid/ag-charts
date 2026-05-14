@@ -183,8 +183,8 @@ describe('ChartTheme', () => {
             if (!(chart instanceof CartesianChart)) fail();
 
             expect(chart.title?.enabled).toBe(true);
-            expect(chart.title?.fontSize).toBe(24);
-            expect(chart.title?.fontWeight).toBe('normal');
+            expect(chart.title?.opts.fontSize).toBe(24);
+            expect(chart.title?.opts.fontWeight).toBe('normal');
 
             expect(chart.ctx.chartState.getValue('options', 'background').fill).toBe('red');
 
@@ -278,8 +278,8 @@ describe('ChartTheme', () => {
             if (!(chart instanceof PolarChart)) fail();
 
             expect(chart.title?.enabled).toBe(true);
-            expect(chart.title?.fontSize).toBe(24);
-            expect(chart.title?.fontWeight).toBe('normal');
+            expect(chart.title?.opts.fontSize).toBe(24);
+            expect(chart.title?.opts.fontWeight).toBe('normal');
 
             expect(chart.ctx.chartState.getValue('options', 'background').fill).toBe('red');
 
@@ -427,8 +427,8 @@ describe('ChartTheme', () => {
             await waitForChartStability(chart);
 
             expect(chart.title?.enabled).toBe(true);
-            expect(chart.title?.fontSize).toBe(24);
-            expect(chart.title?.fontWeight).toBe('normal');
+            expect(chart.title?.opts.fontSize).toBe(24);
+            expect(chart.title?.opts.fontWeight).toBe('normal');
 
             expect(chart.ctx.chartState.getValue('options', 'background').fill).toBe('red');
 
@@ -453,8 +453,8 @@ describe('ChartTheme', () => {
             await waitForChartStability(chart);
 
             expect(chart.title?.enabled).toBe(true);
-            expect(chart.title?.fontSize).toBe(24);
-            expect(chart.title?.fontWeight).toBe('normal');
+            expect(chart.title?.opts.fontSize).toBe(24);
+            expect(chart.title?.opts.fontWeight).toBe('normal');
 
             expect(chart.ctx.chartState.getValue('options', 'background').fill).toBe('red');
 

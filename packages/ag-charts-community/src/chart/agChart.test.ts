@@ -149,7 +149,7 @@ describe('AgChart', () => {
         // expect(chart.title?.fontWeight).toBe(theme.config.line.title.fontWeight);
         // expect(chart.subtitle?.fontSize).toBe(theme.config.line.subtitle.fontSize);
 
-        expect(chart.title?.fontStyle).toBe(theme.config.line.title.fontStyle);
+        expect(chart.title?.opts.fontStyle).toBe(theme.config.line.title.fontStyle);
         expect(chart.subtitle?.text).toBe(theme.config.line.subtitle.text);
         expect(chart.subtitle?.enabled).toBe(false);
         expect(chart.ctx.chartState.getValue('options', 'background').fill).toBe('red');
@@ -190,7 +190,7 @@ describe('AgChart', () => {
         // expect(chart.title?.fontWeight).toBe(theme.config.line.title.fontWeight);
         // expect(chart.subtitle?.fontSize).toBe(theme.config.line.subtitle.fontSize);
 
-        expect(chart.title?.fontStyle).toBe(theme.config.line.title.fontStyle);
+        expect(chart.title?.opts.fontStyle).toBe(theme.config.line.title.fontStyle);
 
         expect(chart.subtitle?.enabled).toBe(false);
         expect(chart.subtitle?.text).toBe(theme.config.line.subtitle.text);
