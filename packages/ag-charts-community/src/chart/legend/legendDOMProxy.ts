@@ -181,6 +181,7 @@ export class LegendDOMProxy {
                 l.proxyButton.setEnabled(enabled);
                 l.proxyButton.setPointerEvents(enabled ? undefined : 'none');
                 l.proxyButton.setBounds(bbox);
+                l.proxyButton.setAriaDescribedBy(enabled ? this.itemDescription.id : undefined);
             }
         });
     }
