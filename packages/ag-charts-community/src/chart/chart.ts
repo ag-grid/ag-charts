@@ -1734,6 +1734,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             'gradientLegend',
             'statusBar',
             'navigator',
+            'annotations',
         ];
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added

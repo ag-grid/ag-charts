@@ -7,6 +7,7 @@ import type {
 import type {
     AgActiveItemState,
     AgAnimationOptions,
+    AgAnnotationsOptions,
     AgChartBackground,
     AgChartOptions,
     AgChartPaddingOptions,
@@ -51,9 +52,17 @@ export type ResolvedChartSyncOptions = AgChartSyncOptions & {
     domainMode?: 'direction' | 'position' | 'id';
 };
 
+export type NormalisedAnnotationsOptions = AgAnnotationsOptions & {
+    snap?: boolean;
+    data?: unknown[];
+    xKey?: string;
+    volumeKey?: string;
+};
+
 export type ResolvedChartOptions = Omit<
     AgChartOptions,
     | 'animation'
+    | 'annotations'
     | 'background'
     | 'dataSource'
     | 'flashOnUpdate'
@@ -84,7 +93,7 @@ export type ResolvedChartOptions = Omit<
     foreground?: ResolvedForegroundOptions;
     chartToolbar?: { enabled: boolean };
     statusBar?: ResolvedStatusBarOptions;
-    annotations?: ResolvedAnnotationsOptions;
+    annotations?: NormalisedAnnotationsOptions;
 };
 
 export type ResolvedStatusBarOptions = {
@@ -109,18 +118,6 @@ export type ResolvedStatusBarLabelOptions = {
     fontSize: number;
     fontWeight?: import('ag-charts-types').FontWeight;
     fontStyle?: import('ag-charts-types').FontStyle;
-};
-
-export type ResolvedAnnotationsOptions = {
-    enabled?: boolean;
-    snap?: boolean;
-    axesButtons?: unknown;
-    toolbar?: unknown;
-    optionsToolbar?: unknown;
-    data?: unknown[];
-    xKey?: string;
-    volumeKey?: string;
-    [key: string]: unknown;
 };
 
 export interface ChartState {

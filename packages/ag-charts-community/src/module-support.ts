@@ -4,8 +4,8 @@ import * as resetMotion from './motion/resetMotion';
 export { Chart } from './chart/chart';
 export type {
     ChartState,
+    NormalisedAnnotationsOptions,
     ResolvedAnimationOptions,
-    ResolvedAnnotationsOptions,
     ResolvedBackgroundOptions,
     ResolvedChartOptions,
     ResolvedChartSyncOptions,

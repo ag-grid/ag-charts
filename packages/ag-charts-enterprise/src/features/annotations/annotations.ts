@@ -10,10 +10,8 @@ import {
     ChartAxisDirection,
     ChartUpdateType,
     type DynamicContext,
-    ObserveChanges,
     type Point,
     PropertiesArray,
-    Property,
     Vec2,
     isValidDate,
 } from 'ag-charts-core';
@@ -55,35 +53,19 @@ interface AnnotationAxis {
 }
 
 export class Annotations extends AbstractModuleInstance {
-    @Property
     public readonly toolbar = new AnnotationsToolbar(this.ctx);
 
-    @Property
     public optionsToolbar = new AnnotationOptionsToolbar(this.ctx, () => {
         const active = this.state.getActive();
         if (active == null) return;
         return getTypedDatum(this.annotationData.at(active));
     });
 
-    @Property
     public axesButtons = new AxesButtons();
 
-    @Property
-    @ObserveChanges<Annotations>((target: Annotations, value?: boolean) => {
-        const enabled = value ?? true;
-        target.toolbar.enabled = enabled;
-        target.optionsToolbar.enabled = enabled;
-        target.axesButtons.enabled = enabled;
-    })
-    public enabled: boolean = true;
-
-    @Property
-    public snap: boolean = false;
-
-    // Hidden options for use with measurer statistics
-    public data?: any[] = undefined;
-    public xKey?: string = undefined;
-    public volumeKey?: string = undefined;
+    private get opts(): _ModuleSupport.NormalisedAnnotationsOptions {
+        return this.ctx.chartState.getValue('options', 'annotations') ?? {};
+    }
 
     // State
     private readonly state: AnnotationsStateMachine;
@@ -121,12 +103,26 @@ export class Annotations extends AbstractModuleInstance {
         this.ctx.historyManager.addMementoOriginator(this.defaults);
         this.textInput.setKeyDownHandler(this.onTextInput.bind(this));
 
-        this.cleanup.register(() => {
-            this.clear();
-            this.xAxis?.button?.destroy();
-            this.yAxis?.button?.destroy();
-            this.textInput.destroy();
-        });
+        this.cleanup.register(
+            ctx.chartState.observe((get) => {
+                const opts = get('options', 'annotations') ?? {};
+                const enabled = opts.enabled ?? true;
+
+                this.toolbar.enabled = enabled;
+                this.optionsToolbar.enabled = enabled;
+                this.axesButtons.enabled = enabled;
+
+                if (opts.toolbar != null) this.toolbar.set(opts.toolbar);
+                if (opts.optionsToolbar != null) this.optionsToolbar.set(opts.optionsToolbar);
+                if (opts.axesButtons != null) this.axesButtons.set(opts.axesButtons);
+            }),
+            () => {
+                this.clear();
+                this.xAxis?.button?.destroy();
+                this.yAxis?.button?.destroy();
+                this.textInput.destroy();
+            }
+        );
     }
 
     private setupStateMachine() {
@@ -560,18 +556,20 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     async processData(dataController: _ModuleSupport.DataController) {
-        if (!this.enabled || this.data == null || this.xKey == null || this.volumeKey == null) return;
+        const opts = this.opts;
+        const enabled = opts.enabled ?? true;
+        if (!enabled || opts.data == null || opts.xKey == null || opts.volumeKey == null) return;
 
         const props = [
-            keyProperty(this.xKey, undefined, { id: 'date' }),
-            valueProperty(this.volumeKey, 'number', { id: 'volume' }),
+            keyProperty(opts.xKey, undefined, { id: 'date' }),
+            valueProperty(opts.volumeKey, 'number', { id: 'volume' }),
         ];
 
         // TODO: While the below should hold true, we instead need to clone the data array to ensure it is a separate
         // data model and we don't have missing props of `date` and `volume`.
         // Request a data model with no extra props, we expect the required keys of `date` and `volume` will already
         // be provided by the series, so we can skip duplicate processing.
-        const dataSet = _ModuleSupport.DataSet.wrap(this.data) ?? _ModuleSupport.DataSet.empty();
+        const dataSet = _ModuleSupport.DataSet.wrap(opts.data as any[]) ?? _ModuleSupport.DataSet.empty();
         const { dataModel, processedData } = await dataController.request('annotations', dataSet, {
             props,
         });
@@ -639,7 +637,8 @@ export class Annotations extends AbstractModuleInstance {
 
         let from = getGroupingValue(fromPoint);
         let to = getGroupingValue(toPoint);
-        if (!isValidDate(from) || !isValidDate(to) || !dataModel || !processedData || this.volumeKey == null) return;
+        if (!isValidDate(from) || !isValidDate(to) || !dataModel || !processedData || this.opts.volumeKey == null)
+            return;
 
         if (from > to) {
             [from, to] = [to, from];
@@ -700,7 +699,7 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private onRestoreAnnotations(event: { annotations: Array<AgAnnotation> }) {
-        if (!this.enabled) return;
+        if (!(this.opts.enabled ?? true)) return;
 
         const { annotations } = event;
         const canPatchInPlace =
@@ -731,7 +730,7 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
-        if (!this.enabled) return;
+        if (!(this.opts.enabled ?? true)) return;
 
         const seriesRect = event.series.paddedRect;
         this.seriesRect = seriesRect;
@@ -795,7 +794,7 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private onPreRender() {
-        if (!this.enabled) return;
+        if (!(this.opts.enabled ?? true)) return;
         this.updateAnnotations();
         this.state.transition('render');
     }
@@ -813,9 +812,12 @@ export class Annotations extends AbstractModuleInstance {
 
         const lineDirection = direction === ChartAxisDirection.X ? 'vertical' : 'horizontal';
 
-        const { axesButtons, snap } = this;
+        const opts = this.opts;
+        const enabled = opts.enabled ?? true;
+        const snap = opts.snap ?? false;
+        const { axesButtons } = this;
         const buttonEnabled =
-            this.enabled && axesButtons.enabled && (axesButtons.axes === 'xy' || axesButtons.axes === direction);
+            enabled && axesButtons.enabled && (axesButtons.axes === 'xy' || axesButtons.axes === direction);
         if (buttonEnabled) {
             button ??= new AxisButton(
                 this.ctx,
@@ -925,9 +927,10 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private getAnnotationContext(): AnnotationContext | undefined {
-        const { seriesRect, xAxis, yAxis, snap, ctx } = this;
+        const { seriesRect, xAxis, yAxis, ctx } = this;
         if (!seriesRect || !xAxis || !yAxis) return;
 
+        const snap = this.opts.snap ?? false;
         return {
             seriesRect,
             isRtl: ctx.domManager.isRtl,
