@@ -148,10 +148,8 @@ export interface AgChartLegendItemOptions<TContext = ContextDefault> {
     tooltip?: AgChartLegendItemTooltipOptions<TContext>;
     /** Used to constrain the width of legend items. */
     maxWidth?: PixelSize;
-    /** The horizontal spacing in pixels to use between legend items. */
-    paddingX?: PixelSize;
-    /** The vertical spacing in pixels to use between legend items. */
-    paddingY?: PixelSize;
+    /** The spacing in pixels to use between legend items. */
+    padding?: Padding;
     /** Set to `false` to hide the legend line line representing the stroke styling of line and area series.
      *  If enabled, legend marker will be hidden if series markers are disabled. */
     showSeriesStroke?: boolean;

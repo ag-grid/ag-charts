@@ -224,7 +224,7 @@ const options: AgTopologyChartOptions = {
         enabled: true,
         position: 'right',
         item: {
-            paddingY: 5,
+            padding: { top: 2.5, bottom: 2.5 },
             marker: {
                 size: 12,
             },

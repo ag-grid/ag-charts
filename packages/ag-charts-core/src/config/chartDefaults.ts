@@ -394,8 +394,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
                 renderer: callback,
             },
             maxWidth: positiveNumber,
-            paddingX: positiveNumber,
-            paddingY: positiveNumber,
+            padding: padding,
             showSeriesStroke: boolean,
         },
         pagination: {

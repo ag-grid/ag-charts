@@ -70,8 +70,7 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
                 renderer: callback,
             },
             maxWidth: positiveNumber,
-            paddingX: positiveNumber,
-            paddingY: positiveNumber,
+            padding: padding,
             showSeriesStroke: boolean,
         },
         pagination: {
@@ -146,8 +145,7 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
         listeners: {},
         toggleSeries: true,
         item: {
-            paddingX: 16,
-            paddingY: 8,
+            padding: { top: 4, right: 8, bottom: 4, left: 8 },
             marker: { size: 15, padding: 8 },
             line: { length: 25 },
             showSeriesStroke: true,

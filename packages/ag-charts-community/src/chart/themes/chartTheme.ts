@@ -213,10 +213,7 @@ export class ChartTheme {
             minWidth: 300,
             background: { visible: true, fill: { $ref: 'chartBackgroundColor' } },
             padding: {
-                top: { $ref: 'chartPadding' },
-                right: { $ref: 'chartPadding' },
-                bottom: { $ref: 'chartPadding' },
-                left: { $ref: 'chartPadding' },
+                $applyPadding: { $ref: 'chartPadding' },
             },
             seriesArea: {
                 border: {
@@ -226,7 +223,7 @@ export class ChartTheme {
                     strokeWidth: 1,
                 },
                 cornerRadius: 4,
-                padding: { $if: [{ $path: './border/enabled' }, 5, 0] },
+                padding: { $applyPadding: { $if: [{ $path: './border/enabled' }, 5, 0] } },
             },
             keyboard: { enabled: true },
             title: {

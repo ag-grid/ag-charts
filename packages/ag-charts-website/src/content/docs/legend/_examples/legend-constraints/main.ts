@@ -18,8 +18,7 @@ const options: AgPolarChartOptions = {
         maxHeight: 200,
         item: {
             maxWidth: 130,
-            paddingX: 32,
-            paddingY: 8,
+            padding: { top: 4, right: 16, bottom: 4, left: 16 },
             marker: {
                 padding: 8,
             },
