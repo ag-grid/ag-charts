@@ -792,7 +792,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         // Queue teardown behind any in-flight update so we don't mutate shared state
         // (e.g. clear `series.chart`) mid-render-cycle.
         this.updateMutex
-            .acquire(() => this.performTeardown(keepTransferableResources === true))
+            .acquire(() => this.performTeardown(!!keepTransferableResources))
             .catch((e) => Logger.errorOnce(e));
 
         return result;

@@ -1600,15 +1600,8 @@ describe('Chart destroy() / performUpdate() race condition', () => {
         // → console.error. setupMockConsole's afterEach asserts console.error is never called.
     }
 
-    it('does not throw TypeError when destroy() races with a bar series update', async () => {
-        await testDestroyRace('bar');
-    });
-
-    it('does not throw TypeError when destroy() races with an area series update', async () => {
-        await testDestroyRace('area');
-    });
-
-    it('does not throw TypeError when destroy() races with a line series update', async () => {
-        await testDestroyRace('line');
-    });
+    it.each(['bar', 'area', 'line'] as const)(
+        'does not throw TypeError when destroy() races with a %s series update',
+        testDestroyRace
+    );
 });
