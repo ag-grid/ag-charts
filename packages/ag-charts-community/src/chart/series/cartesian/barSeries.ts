@@ -1252,11 +1252,16 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         ctx: BarSeriesNodeDatumContext,
         result: BarSeriesNodeDataContext
     ): BarSeriesNodeDataContext {
+        // chart/seriesRect may be missing if a pooled chart's previous in-flight update
+        // resumes after the chart has been recycled (AG-17361).
+        const seriesRect = this.chart?.seriesRect;
+        if (seriesRect == null) return result;
+
         result.segments = calculateSegments(
             this.properties.segmentation,
             ctx.xAxis,
             ctx.yAxis,
-            this.chart!.seriesRect!,
+            seriesRect,
             this.ctx.scene
         );
         return result;

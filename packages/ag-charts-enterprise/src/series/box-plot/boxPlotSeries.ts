@@ -457,17 +457,19 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         ctx: BoxPlotSeriesNodeDatumContext,
         result: BoxPlotSeriesNodeDataContext
     ): BoxPlotSeriesNodeDataContext {
-        const segments = calculateSegments(
-            this.properties.segmentation,
-            ctx.xAxis,
-            ctx.yAxis,
-            this.chart!.seriesRect!,
-            this.ctx.scene
-        );
-
         result.groupScale = this.getScaling(this.ctx.seriesStateManager.getGroupScale(this)!);
         result.styles = getItemStyles(this.getItemStyle.bind(this));
-        result.segments = segments;
+
+        const seriesRect = this.chart?.seriesRect;
+        if (seriesRect != null) {
+            result.segments = calculateSegments(
+                this.properties.segmentation,
+                ctx.xAxis,
+                ctx.yAxis,
+                seriesRect,
+                this.ctx.scene
+            );
+        }
 
         return result;
     }

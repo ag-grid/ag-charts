@@ -1185,12 +1185,15 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         ctx: AreaSeriesCreateNodeDatumContext,
         result: AreaSeriesNodeDataContext
     ): AreaSeriesNodeDataContext {
+        const seriesRect = this.chart?.seriesRect;
+        if (seriesRect == null) return result;
+
         // Calculate segments (only computed field needed beyond what initializeResult provides)
         result.segments = calculateSegments(
             this.properties.segmentation,
             ctx.xAxis,
             ctx.yAxis,
-            this.chart!.seriesRect!,
+            seriesRect,
             this.ctx.scene,
             false
         );
