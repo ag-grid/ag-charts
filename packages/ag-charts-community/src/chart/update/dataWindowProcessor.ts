@@ -2,40 +2,36 @@ import {
     ChartAxisDirection,
     ChartUpdateType,
     CleanupRegistry,
-    type ReactiveState,
     isFiniteNumber,
     pickDirectionZoom,
 } from 'ag-charts-core';
-import type { ZoomMinMax } from 'ag-charts-core';
+import type { DynamicContext, ZoomMinMax } from 'ag-charts-core';
+import type { AgDataSourceCallbackParams } from 'ag-charts-types';
 
-import type { EventsHub, UpdateCompleteEvent } from '../../core/eventsHub';
-import type { ChartState } from '../chartState';
-import type { DataService } from '../data/dataService';
-import type { AnimationManager } from '../interaction/animationManager';
+import type { UpdateCompleteEvent } from '../../core/eventsHub';
+import type { ChartRegistry } from '../../module/moduleContext';
 import type { AxisLike, ChartLike, UpdateProcessor } from './processor';
 
 const DEFAULT_ZOOM: ZoomMinMax = { min: 0, max: 1 };
 
-export class DataWindowProcessor<D extends object> implements UpdateProcessor {
+export class DataWindowProcessor implements UpdateProcessor {
     private dirtyZoom = false;
     private dirtyDataSource = false;
     private readonly lastAxisZooms = new Map<string, ZoomMinMax>();
+    private lastWindow: AgDataSourceCallbackParams | undefined;
 
     private readonly cleanup = new CleanupRegistry();
 
     constructor(
         private readonly chart: ChartLike,
-        private readonly eventsHub: EventsHub,
-        private readonly chartState: ReactiveState<ChartState>,
-        private readonly dataService: DataService<D>,
-        private readonly animationManager: AnimationManager
+        private readonly ctx: DynamicContext<ChartRegistry>
     ) {
         this.cleanup.register(
-            this.eventsHub.on('data:source-change', () => this.onDataSourceChange()),
-            this.eventsHub.on('data:load', () => this.onDataLoad()),
-            this.eventsHub.on('data:error', () => this.onDataError()),
-            this.eventsHub.on('update:complete', (e) => this.onUpdateComplete(e)),
-            this.eventsHub.on('zoom:change-complete', () => this.onZoomChange())
+            ctx.eventsHub.on('data:source-change', () => this.onDataSourceChange()),
+            ctx.eventsHub.on('data:load', () => this.onDataLoad()),
+            ctx.eventsHub.on('data:error', () => this.onDataError()),
+            ctx.eventsHub.on('update:complete', (e) => this.onUpdateComplete(e)),
+            ctx.eventsHub.on('zoom:change-complete', () => this.onZoomChange())
         );
     }
 
@@ -44,12 +40,12 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
     }
 
     private onDataLoad() {
-        this.animationManager.skip();
-        this.eventsHub.emit('chart:request-update', { type: ChartUpdateType.UPDATE_DATA });
+        this.ctx.animationManager.skip();
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.UPDATE_DATA });
     }
 
     private onDataError() {
-        this.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
     }
 
     private onDataSourceChange() {
@@ -70,28 +66,36 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
     }
 
     private updateWindow(event: UpdateCompleteEvent) {
-        if (!this.dataService.isLazy()) return;
+        if (!this.ctx.dataService.isLazy()) return;
 
         const axis = this.chart.axes.find(({ direction }) => direction === ChartAxisDirection.X);
 
-        let window;
+        let window: AgDataSourceCallbackParams | undefined;
         let shouldRefresh = true;
 
         if (axis) {
-            const zoom = pickDirectionZoom(this.chartState.getValue('zoom'), axis.direction) ?? DEFAULT_ZOOM;
+            const zoom = pickDirectionZoom(this.ctx.chartState.getValue('zoom'), axis.direction) ?? DEFAULT_ZOOM;
             window = this.getAxisWindow(axis, zoom);
-            shouldRefresh = this.shouldRefresh(event, axis, zoom);
+            shouldRefresh = this.shouldRefresh(event, axis, zoom, window);
         }
 
         this.dirtyZoom = false;
         this.dirtyDataSource = false;
+        this.lastWindow = window;
 
         if (!shouldRefresh) return;
 
-        this.dataService.load({ windowStart: window?.start, windowEnd: window?.end });
+        this.ctx.dataService.load({ windowStart: window?.windowStart, windowEnd: window?.windowEnd });
     }
 
-    private shouldRefresh(event: UpdateCompleteEvent, axis: AxisLike, zoom: ZoomMinMax) {
+    private shouldRefresh(
+        event: UpdateCompleteEvent,
+        axis: AxisLike,
+        zoom: ZoomMinMax,
+        window: AgDataSourceCallbackParams | undefined
+    ) {
+        const { lastAxisZooms, lastWindow } = this;
+
         if (event.apiUpdate) return true;
         if (this.dirtyDataSource) return true;
         if (!this.dirtyZoom) return false;
@@ -101,29 +105,38 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
             return false;
         }
 
-        this.lastAxisZooms.set(axis.id, zoom);
+        lastAxisZooms.set(axis.id, zoom);
+
+        if (
+            window &&
+            lastWindow &&
+            window.windowStart?.valueOf() === lastWindow.windowStart?.valueOf() &&
+            window.windowEnd?.valueOf() === lastWindow.windowEnd?.valueOf()
+        ) {
+            return false;
+        }
 
         return true;
     }
 
-    private getAxisWindow(axis: AxisLike, zoom: ZoomMinMax) {
+    private getAxisWindow(axis: AxisLike, zoom: ZoomMinMax): AgDataSourceCallbackParams | undefined {
         const extents = this.getDomainPixelExtents(axis);
         if (!extents) return;
 
         const [d0, d1] = extents;
 
-        let start;
-        let end;
+        let windowStart;
+        let windowEnd;
 
         if (d0 <= d1) {
-            start = axis.scale.invert(0, true); // 0 is the start of the visible axis
-            end = axis.scale.invert(d0 + (d1 - d0) * zoom.max, true);
+            windowStart = axis.scale.invert(0, true); // 0 is the start of the visible axis
+            windowEnd = axis.scale.invert(d0 + (d1 - d0) * zoom.max, true);
         } else {
-            start = axis.scale.invert(d0 - (d0 - d1) * zoom.min, true);
-            end = axis.scale.invert(0, true);
+            windowStart = axis.scale.invert(d0 - (d0 - d1) * zoom.min, true);
+            windowEnd = axis.scale.invert(0, true);
         }
 
-        return { start, end };
+        return { windowStart, windowEnd };
     }
 
     private getDomainPixelExtents(axis: AxisLike) {
