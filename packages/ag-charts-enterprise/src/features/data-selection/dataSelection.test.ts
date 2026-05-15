@@ -109,8 +109,12 @@ describe('DataSelection', () => {
         expect(imageData).toMatchImageSnapshot(defaults);
     };
 
-    const strictCompare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
-        await compare({ ...defaults, customDiffConfig: { threshold: 0 } });
+    const compareExact = async (name: string) => {
+        await compare({
+            ...IMAGE_SNAPSHOT_DEFAULTS,
+            customSnapshotIdentifier: name,
+            customDiffConfig: { threshold: 0 },
+        });
     };
 
     function getChartSelectionArray() {
@@ -690,25 +694,17 @@ describe('DataSelection', () => {
                     test('screenshot', async () => {
                         await mouseDown(POINT_A);
                         await mouseMove(POINT_B);
-                        await strictCompare({
-                            customSnapshotIdentifier: 'drag-modifiers-bubble-region-AB-selection-in-progress',
-                        });
+                        await compareExact('drag-modifiers-bubble-region-AB-selection-in-progress');
 
                         await mouseUp(POINT_B);
-                        await strictCompare({
-                            customSnapshotIdentifier: 'drag-modifiers-bubble-region-AB-selected-only',
-                        });
+                        await compareExact('drag-modifiers-bubble-region-AB-selected-only');
 
                         await mouseDown(POINT_C);
                         await mouseMove(POINT_D);
-                        await strictCompare({
-                            customSnapshotIdentifier: 'drag-modifiers-bubble-region-CD-selection-in-progress',
-                        });
+                        await compareExact('drag-modifiers-bubble-region-CD-selection-in-progress');
 
                         await mouseUp(POINT_D);
-                        await strictCompare({
-                            customSnapshotIdentifier: 'drag-modifiers-bubble-region-CD-selected-only',
-                        });
+                        await compareExact('drag-modifiers-bubble-region-CD-selected-only');
                     });
                     test('getSelection', async () => {
                         await mouseDown(POINT_A);
@@ -746,25 +742,17 @@ describe('DataSelection', () => {
                     test('screenshot', async () => {
                         await mouseDown(POINT_A, { ctrlKey });
                         await mouseMove(POINT_B, { ctrlKey });
-                        await strictCompare({
-                            customSnapshotIdentifier: 'drag-modifiers-bubble-region-AB-selection-in-progress',
-                        });
+                        await compareExact('drag-modifiers-bubble-region-AB-selection-in-progress');
 
                         await mouseUp(POINT_B, { ctrlKey });
-                        await strictCompare({
-                            customSnapshotIdentifier: 'drag-modifiers-bubble-region-AB-selected-only',
-                        });
+                        await compareExact('drag-modifiers-bubble-region-AB-selected-only');
 
                         await mouseDown(POINT_C, { ctrlKey });
                         await mouseMove(POINT_D, { ctrlKey });
-                        await strictCompare({
-                            customSnapshotIdentifier: 'drag-modifiers-bubble-region-CD-selection-in-progress',
-                        });
+                        await compareExact('drag-modifiers-bubble-region-CD-selection-in-progress');
 
                         await mouseUp(POINT_D, { ctrlKey });
-                        await strictCompare({
-                            customSnapshotIdentifier: 'drag-modifiers-bubble-regions-ABCD-selected',
-                        });
+                        await compareExact('drag-modifiers-bubble-regions-ABCD-selected');
                     });
                     test('getSelection', async () => {
                         await mouseDown(POINT_A, { ctrlKey });
@@ -802,25 +790,17 @@ describe('DataSelection', () => {
                     test('screenshot', async () => {
                         await mouseDown(POINT_A, { metaKey });
                         await mouseMove(POINT_B, { metaKey });
-                        await strictCompare({
-                            customSnapshotIdentifier: 'drag-modifiers-bubble-region-AB-selection-in-progress',
-                        });
+                        await compareExact('drag-modifiers-bubble-region-AB-selection-in-progress');
 
                         await mouseUp(POINT_B, { metaKey });
-                        await strictCompare({
-                            customSnapshotIdentifier: 'drag-modifiers-bubble-region-AB-selected-only',
-                        });
+                        await compareExact('drag-modifiers-bubble-region-AB-selected-only');
 
                         await mouseDown(POINT_C, { metaKey });
                         await mouseMove(POINT_D, { metaKey });
-                        await strictCompare({
-                            customSnapshotIdentifier: 'drag-modifiers-bubble-region-CD-selection-in-progress',
-                        });
+                        await compareExact('drag-modifiers-bubble-region-CD-selection-in-progress');
 
                         await mouseUp(POINT_D, { metaKey });
-                        await strictCompare({
-                            customSnapshotIdentifier: 'drag-modifiers-bubble-regions-ABCD-selected',
-                        });
+                        await compareExact('drag-modifiers-bubble-regions-ABCD-selected');
                     });
                     test('getSelection', async () => {
                         await mouseDown(POINT_A, { metaKey });
@@ -858,25 +838,17 @@ describe('DataSelection', () => {
                     test('screenshot', async () => {
                         await mouseDown(POINT_A, { altKey });
                         await mouseMove(POINT_B, { altKey });
-                        await strictCompare({
-                            customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
-                        });
+                        await compareExact('drag-modifiers-bubble-no-selection');
 
                         await mouseUp(POINT_B, { altKey });
-                        await strictCompare({
-                            customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
-                        });
+                        await compareExact('drag-modifiers-bubble-no-selection');
 
                         await mouseDown(POINT_C, { altKey });
                         await mouseMove(POINT_D, { altKey });
-                        await strictCompare({
-                            customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
-                        });
+                        await compareExact('drag-modifiers-bubble-no-selection');
 
                         await mouseUp(POINT_D, { altKey });
-                        await strictCompare({
-                            customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
-                        });
+                        await compareExact('drag-modifiers-bubble-no-selection');
                     });
                     test('getSelection', async () => {
                         await mouseDown(POINT_A, { altKey });
@@ -914,25 +886,17 @@ describe('DataSelection', () => {
                     test('screenshot', async () => {
                         await mouseDown(POINT_A, { shiftKey });
                         await mouseMove(POINT_B, { shiftKey });
-                        await strictCompare({
-                            customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
-                        });
+                        await compareExact('drag-modifiers-bubble-no-selection');
 
                         await mouseUp(POINT_B, { shiftKey });
-                        await strictCompare({
-                            customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
-                        });
+                        await compareExact('drag-modifiers-bubble-no-selection');
 
                         await mouseDown(POINT_C, { shiftKey });
                         await mouseMove(POINT_D, { shiftKey });
-                        await strictCompare({
-                            customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
-                        });
+                        await compareExact('drag-modifiers-bubble-no-selection');
 
                         await mouseUp(POINT_D, { shiftKey });
-                        await strictCompare({
-                            customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
-                        });
+                        await compareExact('drag-modifiers-bubble-no-selection');
                     });
                     test('getSelection', async () => {
                         await mouseDown(POINT_A, { shiftKey });
