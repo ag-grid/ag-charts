@@ -675,6 +675,10 @@ describe('DataSelection', () => {
                             enableDrag: true,
                             enableClick: false,
                         },
+                        axes: {
+                            x: { crosshair: { enabled: false } },
+                            y: { crosshair: { enabled: false } },
+                        },
                         navigator: { enabled: false },
                         scrollbar: { enabled: false },
                         zoom: { enabled: false },
