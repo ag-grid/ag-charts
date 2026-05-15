@@ -23,7 +23,7 @@ function report_flaky_tests {
     FILE=$(echo "$test" | jq -r '.file')
     LINE=$(echo "$test" | jq -r '.line')
     COLUMN=$(echo "$test" | jq -r '.column')
-    
+
     echo "::warning file=$FILE,line=$LINE,col=$COLUMN::Flaky test detected"
   done
 }
@@ -99,7 +99,7 @@ if [ "$1" == "--host" ] ; then
 
   cd $(git rev-parse --show-toplevel)
 
-  playwright_image=mcr.microsoft.com/playwright:v1.57.0-jammy
+  playwright_image=mcr.microsoft.com/playwright:v1.60.0-jammy
   if ! docker image inspect ${playwright_image} >/dev/null 2>&1 ; then
     pull_attempts=4
     for attempt in $(seq 1 ${pull_attempts}) ; do
@@ -134,7 +134,7 @@ if [ "$1" == "--host" ] ; then
     /bin/bash -l playwright.sh $@
 
   docker logs -f ${container_name} &
-  
+
   exit_code=$(docker wait ${container_name})
   echo "Exit code from docker wait: $exit_code"
 

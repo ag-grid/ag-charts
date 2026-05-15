@@ -30,10 +30,10 @@ const themeTemplate: ExtensibleTheme<'sunburst'> = {
                     ],
                 },
             ],
-        } as any,
+        },
         strokes: {
             $applyCycle: [{ $size: { $path: ['./data', { $path: '/data' }] } }, { $palette: 'strokes' }],
-        } as any,
+        },
         colorScale: {
             fills: { $map: [{ color: { $value: '$1' } }, { $palette: 'divergingColors' }] },
         },

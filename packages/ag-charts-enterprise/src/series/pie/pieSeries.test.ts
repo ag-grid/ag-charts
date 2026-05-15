@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 
 import { type AgChartInstance, AgCharts } from 'ag-charts-community';
 import {
@@ -77,6 +77,6 @@ describe('PieSeries', () => {
     });
 
     afterEach(() => {
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 });

@@ -136,8 +136,7 @@ function areEqualCoreZooms(p: CoreZoomStateSafeRetrieval, q: CoreZoomStateSafeRe
             continue;
         } else if (
             pVal == undefined ||
-            qVal == undefined ||
-            pVal.direction !== qVal.direction ||
+            pVal.direction !== qVal?.direction ||
             pVal.min !== qVal.min ||
             pVal.max !== qVal.max
         ) {
@@ -441,8 +440,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             const newAxisState = newState[id] ?? { min: 0, max: 1 };
             const oldAxisState = oldState[id];
             if (
-                oldAxisState == undefined ||
-                oldAxisState.min !== newAxisState.min ||
+                oldAxisState?.min !== newAxisState.min ||
                 oldAxisState.max !== newAxisState.max
             ) {
                 result.push(id);

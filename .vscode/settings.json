@@ -16,7 +16,7 @@
   "eslint.useFlatConfig": true,
   "eslint.workingDirectories": [{ "mode": "auto" }],
   "typescript.tsdk": "node_modules/typescript/lib",
-  "jestrunner.jestCommand": "node --expose-gc 'node_modules/.bin/jest'",
+  "vitest.nodeExecutable": "node --expose-gc",
   "gitlens.autolinks": [
     { "prefix": "AG-", "url": "https://ag-grid.atlassian.net/browse/AG-<num>" },
     { "prefix": "CRT-", "url": "https://ag-grid.atlassian.net/browse/CRT-<num>" },

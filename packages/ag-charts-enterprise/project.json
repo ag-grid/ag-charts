@@ -38,7 +38,6 @@
     "lint:circular": {},
     "lint:depcruise": {},
     "lint:change-detection": {},
-
     "lint": {
       "executor": "nx:noop",
       "dependsOn": ["lint:eslint", "lint:circular", "lint:depcruise", "lint:change-detection"],
@@ -48,17 +47,23 @@
     },
     "test": {
       "executor": "nx:run-commands",
-      "inputs": ["default", "buildOutputExcludes", "^production", "{workspaceRoot}/jest.preset.js"],
+      "inputs": ["default", "buildOutputExcludes", "^production"],
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-enterprise.xml"],
       "cache": true,
-      "parallelism": false,
       "options": {
-        "command": "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathIgnorePatterns='benchmarks/.*'"
+        "command": "npx vitest run --config {projectRoot}/vitest.config.ts"
       },
+      "parallelism": false,
       "configurations": {
-        "ci": { "args": "-u" },
-        "watch": { "args": "--watch" },
-        "update": { "args": "-u" }
+        "ci": {
+          "args": "--update"
+        },
+        "watch": {
+          "command": "npx vitest --config {projectRoot}/vitest.config.ts"
+        },
+        "update": {
+          "args": "--update"
+        }
       },
       "dependsOn": [
         "build:test",
@@ -110,7 +115,9 @@
       "dependsOn": ["pack"],
       "inputs": ["allOutputs"],
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-enterprise/"],
-      "options": { "command": "tools/package/extract-contents.sh {projectRoot}" }
+      "options": {
+        "command": "tools/package/extract-contents.sh {projectRoot}"
+      }
     },
     "pack:verify": {
       "executor": "nx:run-commands",

@@ -34,7 +34,7 @@
   "typings": "./dist/ag-charts-angular/index.d.ts",
   "dependencies": {
     "ag-charts-community": "13.3.0-beta.20260512.1138",
-    "tslib": "^2.3.0"
+    "tslib": "^2.8.1"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^18.0.7",
@@ -51,13 +51,13 @@
     "@types/jasmine": "~4.6.5",
     "@types/node": "^18.18.10",
     "jasmine-core": "~4.6.1",
-    "karma": "~6.4.0",
-    "karma-chrome-launcher": "~3.1.0",
+    "karma": "~6.4.4",
+    "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.1.0",
+    "karma-jasmine-html-reporter": "~2.2.0",
     "ng-packagr": "^18.0.0",
-    "rxjs": "~7.5.0",
+    "rxjs": "~7.8.2",
     "typescript": "~5.4.5",
     "zone.js": "~0.14.10"
   },

@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`AG-15850 activeChange area mouse 1`] = `
+exports[`AG-15850 activeChange > area > mouse 1`] = `
 [
   [
     {
@@ -24,7 +24,7 @@ exports[`AG-15850 activeChange area mouse 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange area mouse 2`] = `
+exports[`AG-15850 activeChange > area > mouse 2`] = `
 [
   [
     {
@@ -48,7 +48,7 @@ exports[`AG-15850 activeChange area mouse 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange area mouse 3`] = `
+exports[`AG-15850 activeChange > area > mouse 3`] = `
 [
   [
     {
@@ -79,7 +79,7 @@ exports[`AG-15850 activeChange area mouse 3`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange area mouse 4`] = `
+exports[`AG-15850 activeChange > area > mouse 4`] = `
 [
   [
     {
@@ -95,7 +95,7 @@ exports[`AG-15850 activeChange area mouse 4`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange area setState 1`] = `
+exports[`AG-15850 activeChange > area > setState 1`] = `
 [
   [
     {
@@ -119,7 +119,7 @@ exports[`AG-15850 activeChange area setState 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange area setState 2`] = `
+exports[`AG-15850 activeChange > area > setState 2`] = `
 [
   [
     {
@@ -143,7 +143,7 @@ exports[`AG-15850 activeChange area setState 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange area setState 3`] = `
+exports[`AG-15850 activeChange > area > setState 3`] = `
 [
   [
     {
@@ -163,7 +163,7 @@ exports[`AG-15850 activeChange area setState 3`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange bar mouse 1`] = `
+exports[`AG-15850 activeChange > bar > mouse 1`] = `
 [
   [
     {
@@ -187,7 +187,7 @@ exports[`AG-15850 activeChange bar mouse 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange bar mouse 2`] = `
+exports[`AG-15850 activeChange > bar > mouse 2`] = `
 [
   [
     {
@@ -211,7 +211,7 @@ exports[`AG-15850 activeChange bar mouse 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange bar mouse 3`] = `
+exports[`AG-15850 activeChange > bar > mouse 3`] = `
 [
   [
     {
@@ -242,7 +242,7 @@ exports[`AG-15850 activeChange bar mouse 3`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange bar mouse 4`] = `
+exports[`AG-15850 activeChange > bar > mouse 4`] = `
 [
   [
     {
@@ -258,7 +258,7 @@ exports[`AG-15850 activeChange bar mouse 4`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange bar setState 1`] = `
+exports[`AG-15850 activeChange > bar > setState 1`] = `
 [
   [
     {
@@ -282,7 +282,7 @@ exports[`AG-15850 activeChange bar setState 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange bar setState 2`] = `
+exports[`AG-15850 activeChange > bar > setState 2`] = `
 [
   [
     {
@@ -306,7 +306,7 @@ exports[`AG-15850 activeChange bar setState 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange bar setState 3`] = `
+exports[`AG-15850 activeChange > bar > setState 3`] = `
 [
   [
     {
@@ -326,7 +326,7 @@ exports[`AG-15850 activeChange bar setState 3`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange bar tooltip disabled (race condition) hover does not produce spurious activeChange events 1`] = `
+exports[`AG-15850 activeChange > bar tooltip disabled (race condition) > hover does not produce spurious activeChange events 1`] = `
 [
   [
     {
@@ -349,7 +349,7 @@ exports[`AG-15850 activeChange bar tooltip disabled (race condition) hover does 
 ]
 `;
 
-exports[`AG-15850 activeChange box-plot mouse 1`] = `
+exports[`AG-15850 activeChange > box-plot > mouse 1`] = `
 [
   [
     {
@@ -381,7 +381,7 @@ exports[`AG-15850 activeChange box-plot mouse 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange box-plot mouse 2`] = `
+exports[`AG-15850 activeChange > box-plot > mouse 2`] = `
 [
   [
     {
@@ -413,7 +413,7 @@ exports[`AG-15850 activeChange box-plot mouse 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange box-plot mouse 3`] = `
+exports[`AG-15850 activeChange > box-plot > mouse 3`] = `
 [
   [
     {
@@ -444,7 +444,7 @@ exports[`AG-15850 activeChange box-plot mouse 3`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange box-plot mouse 4`] = `
+exports[`AG-15850 activeChange > box-plot > mouse 4`] = `
 [
   [
     {
@@ -460,7 +460,7 @@ exports[`AG-15850 activeChange box-plot mouse 4`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange box-plot setState 1`] = `
+exports[`AG-15850 activeChange > box-plot > setState 1`] = `
 [
   [
     {
@@ -492,7 +492,7 @@ exports[`AG-15850 activeChange box-plot setState 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange box-plot setState 2`] = `
+exports[`AG-15850 activeChange > box-plot > setState 2`] = `
 [
   [
     {
@@ -524,7 +524,7 @@ exports[`AG-15850 activeChange box-plot setState 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange box-plot setState 3`] = `
+exports[`AG-15850 activeChange > box-plot > setState 3`] = `
 [
   [
     {
@@ -544,7 +544,7 @@ exports[`AG-15850 activeChange box-plot setState 3`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange chord mouse 1`] = `
+exports[`AG-15850 activeChange > chord > mouse 1`] = `
 [
   [
     {
@@ -568,7 +568,7 @@ exports[`AG-15850 activeChange chord mouse 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange chord mouse 2`] = `
+exports[`AG-15850 activeChange > chord > mouse 2`] = `
 [
   [
     {
@@ -592,7 +592,7 @@ exports[`AG-15850 activeChange chord mouse 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange chord mouse 3`] = `
+exports[`AG-15850 activeChange > chord > mouse 3`] = `
 [
   [
     {
@@ -612,7 +612,7 @@ exports[`AG-15850 activeChange chord mouse 3`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange chord mouse 4`] = `
+exports[`AG-15850 activeChange > chord > mouse 4`] = `
 [
   [
     {
@@ -632,7 +632,7 @@ exports[`AG-15850 activeChange chord mouse 4`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange chord setState 1`] = `
+exports[`AG-15850 activeChange > chord > setState 1`] = `
 [
   [
     {
@@ -656,7 +656,7 @@ exports[`AG-15850 activeChange chord setState 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange chord setState 2`] = `
+exports[`AG-15850 activeChange > chord > setState 2`] = `
 [
   [
     {
@@ -680,7 +680,7 @@ exports[`AG-15850 activeChange chord setState 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange chord setState 3`] = `
+exports[`AG-15850 activeChange > chord > setState 3`] = `
 [
   [
     {
@@ -700,7 +700,7 @@ exports[`AG-15850 activeChange chord setState 3`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange chord setState 4`] = `
+exports[`AG-15850 activeChange > chord > setState 4`] = `
 [
   [
     {
@@ -720,7 +720,7 @@ exports[`AG-15850 activeChange chord setState 4`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange donut-shared-legend mouse 1`] = `
+exports[`AG-15850 activeChange > donut-shared-legend > mouse 1`] = `
 [
   [
     {
@@ -744,7 +744,7 @@ exports[`AG-15850 activeChange donut-shared-legend mouse 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange donut-shared-legend mouse 2`] = `
+exports[`AG-15850 activeChange > donut-shared-legend > mouse 2`] = `
 [
   [
     {
@@ -768,7 +768,7 @@ exports[`AG-15850 activeChange donut-shared-legend mouse 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange donut-shared-legend mouse 3`] = `
+exports[`AG-15850 activeChange > donut-shared-legend > mouse 3`] = `
 [
   [
     {
@@ -799,7 +799,7 @@ exports[`AG-15850 activeChange donut-shared-legend mouse 3`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange donut-shared-legend mouse 4`] = `
+exports[`AG-15850 activeChange > donut-shared-legend > mouse 4`] = `
 [
   [
     {
@@ -815,7 +815,7 @@ exports[`AG-15850 activeChange donut-shared-legend mouse 4`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange donut-shared-legend setState 1`] = `
+exports[`AG-15850 activeChange > donut-shared-legend > setState 1`] = `
 [
   [
     {
@@ -839,7 +839,7 @@ exports[`AG-15850 activeChange donut-shared-legend setState 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange donut-shared-legend setState 2`] = `
+exports[`AG-15850 activeChange > donut-shared-legend > setState 2`] = `
 [
   [
     {
@@ -863,7 +863,7 @@ exports[`AG-15850 activeChange donut-shared-legend setState 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange donut-shared-legend setState 3`] = `
+exports[`AG-15850 activeChange > donut-shared-legend > setState 3`] = `
 [
   [
     {
@@ -883,7 +883,7 @@ exports[`AG-15850 activeChange donut-shared-legend setState 3`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange line broadcast frozen changes 1`] = `
+exports[`AG-15850 activeChange > line > broadcast frozen changes 1`] = `
 [
   [
     {
@@ -907,7 +907,7 @@ exports[`AG-15850 activeChange line broadcast frozen changes 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange line broadcast frozen changes 2`] = `
+exports[`AG-15850 activeChange > line > broadcast frozen changes 2`] = `
 [
   [
     {
@@ -931,7 +931,7 @@ exports[`AG-15850 activeChange line broadcast frozen changes 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange line mouse 1`] = `
+exports[`AG-15850 activeChange > line > mouse 1`] = `
 [
   [
     {
@@ -955,7 +955,7 @@ exports[`AG-15850 activeChange line mouse 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange line mouse 2`] = `
+exports[`AG-15850 activeChange > line > mouse 2`] = `
 [
   [
     {
@@ -979,7 +979,7 @@ exports[`AG-15850 activeChange line mouse 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange line mouse 3`] = `
+exports[`AG-15850 activeChange > line > mouse 3`] = `
 [
   [
     {
@@ -1010,7 +1010,7 @@ exports[`AG-15850 activeChange line mouse 3`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange line mouse 4`] = `
+exports[`AG-15850 activeChange > line > mouse 4`] = `
 [
   [
     {
@@ -1026,7 +1026,7 @@ exports[`AG-15850 activeChange line mouse 4`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange line setState 1`] = `
+exports[`AG-15850 activeChange > line > setState 1`] = `
 [
   [
     {
@@ -1050,7 +1050,7 @@ exports[`AG-15850 activeChange line setState 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange line setState 2`] = `
+exports[`AG-15850 activeChange > line > setState 2`] = `
 [
   [
     {
@@ -1074,7 +1074,7 @@ exports[`AG-15850 activeChange line setState 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange line setState 3`] = `
+exports[`AG-15850 activeChange > line > setState 3`] = `
 [
   [
     {
@@ -1094,7 +1094,7 @@ exports[`AG-15850 activeChange line setState 3`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange line setState 4`] = `
+exports[`AG-15850 activeChange > line > setState 4`] = `
 [
   [
     {
@@ -1110,7 +1110,7 @@ exports[`AG-15850 activeChange line setState 4`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange sankey mouse 1`] = `
+exports[`AG-15850 activeChange > sankey > mouse 1`] = `
 [
   [
     {
@@ -1134,7 +1134,7 @@ exports[`AG-15850 activeChange sankey mouse 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange sankey mouse 2`] = `
+exports[`AG-15850 activeChange > sankey > mouse 2`] = `
 [
   [
     {
@@ -1158,7 +1158,7 @@ exports[`AG-15850 activeChange sankey mouse 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange sankey mouse 3`] = `
+exports[`AG-15850 activeChange > sankey > mouse 3`] = `
 [
   [
     {
@@ -1178,7 +1178,7 @@ exports[`AG-15850 activeChange sankey mouse 3`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange sankey mouse 4`] = `
+exports[`AG-15850 activeChange > sankey > mouse 4`] = `
 [
   [
     {
@@ -1198,7 +1198,7 @@ exports[`AG-15850 activeChange sankey mouse 4`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange sankey setState 1`] = `
+exports[`AG-15850 activeChange > sankey > setState 1`] = `
 [
   [
     {
@@ -1222,7 +1222,7 @@ exports[`AG-15850 activeChange sankey setState 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange sankey setState 2`] = `
+exports[`AG-15850 activeChange > sankey > setState 2`] = `
 [
   [
     {
@@ -1246,7 +1246,7 @@ exports[`AG-15850 activeChange sankey setState 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange sankey setState 3`] = `
+exports[`AG-15850 activeChange > sankey > setState 3`] = `
 [
   [
     {
@@ -1266,7 +1266,7 @@ exports[`AG-15850 activeChange sankey setState 3`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange sankey setState 4`] = `
+exports[`AG-15850 activeChange > sankey > setState 4`] = `
 [
   [
     {
@@ -1286,7 +1286,7 @@ exports[`AG-15850 activeChange sankey setState 4`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange sunburst mouse 1`] = `
+exports[`AG-15850 activeChange > sunburst > mouse 1`] = `
 [
   [
     {
@@ -1338,7 +1338,7 @@ exports[`AG-15850 activeChange sunburst mouse 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange sunburst mouse 2`] = `
+exports[`AG-15850 activeChange > sunburst > mouse 2`] = `
 [
   [
     {
@@ -1361,7 +1361,7 @@ exports[`AG-15850 activeChange sunburst mouse 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange sunburst mouse 3`] = `
+exports[`AG-15850 activeChange > sunburst > mouse 3`] = `
 [
   [
     {
@@ -1394,7 +1394,7 @@ exports[`AG-15850 activeChange sunburst mouse 3`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange sunburst setState 1`] = `
+exports[`AG-15850 activeChange > sunburst > setState 1`] = `
 [
   [
     {
@@ -1446,7 +1446,7 @@ exports[`AG-15850 activeChange sunburst setState 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange sunburst setState 2`] = `
+exports[`AG-15850 activeChange > sunburst > setState 2`] = `
 [
   [
     {
@@ -1469,7 +1469,7 @@ exports[`AG-15850 activeChange sunburst setState 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange sunburst setState 3`] = `
+exports[`AG-15850 activeChange > sunburst > setState 3`] = `
 [
   [
     {
@@ -1502,7 +1502,7 @@ exports[`AG-15850 activeChange sunburst setState 3`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange treemap mouse 1`] = `
+exports[`AG-15850 activeChange > treemap > mouse 1`] = `
 [
   [
     {
@@ -1554,7 +1554,7 @@ exports[`AG-15850 activeChange treemap mouse 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange treemap mouse 2`] = `
+exports[`AG-15850 activeChange > treemap > mouse 2`] = `
 [
   [
     {
@@ -1577,7 +1577,7 @@ exports[`AG-15850 activeChange treemap mouse 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange treemap mouse 3`] = `
+exports[`AG-15850 activeChange > treemap > mouse 3`] = `
 [
   [
     {
@@ -1610,7 +1610,7 @@ exports[`AG-15850 activeChange treemap mouse 3`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange treemap setState 1`] = `
+exports[`AG-15850 activeChange > treemap > setState 1`] = `
 [
   [
     {
@@ -1662,7 +1662,7 @@ exports[`AG-15850 activeChange treemap setState 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange treemap setState 2`] = `
+exports[`AG-15850 activeChange > treemap > setState 2`] = `
 [
   [
     {
@@ -1685,7 +1685,7 @@ exports[`AG-15850 activeChange treemap setState 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange treemap setState 3`] = `
+exports[`AG-15850 activeChange > treemap > setState 3`] = `
 [
   [
     {
@@ -1718,7 +1718,7 @@ exports[`AG-15850 activeChange treemap setState 3`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange waterfall mouse 1`] = `
+exports[`AG-15850 activeChange > waterfall > mouse 1`] = `
 [
   [
     {
@@ -1741,7 +1741,7 @@ exports[`AG-15850 activeChange waterfall mouse 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange waterfall mouse 2`] = `
+exports[`AG-15850 activeChange > waterfall > mouse 2`] = `
 [
   [
     {
@@ -1766,7 +1766,7 @@ exports[`AG-15850 activeChange waterfall mouse 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange waterfall mouse 3`] = `
+exports[`AG-15850 activeChange > waterfall > mouse 3`] = `
 [
   [
     {
@@ -1789,7 +1789,7 @@ exports[`AG-15850 activeChange waterfall mouse 3`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange waterfall mouse 4`] = `
+exports[`AG-15850 activeChange > waterfall > mouse 4`] = `
 [
   [
     {
@@ -1805,7 +1805,7 @@ exports[`AG-15850 activeChange waterfall mouse 4`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange waterfall setState 1`] = `
+exports[`AG-15850 activeChange > waterfall > setState 1`] = `
 [
   [
     {
@@ -1828,7 +1828,7 @@ exports[`AG-15850 activeChange waterfall setState 1`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange waterfall setState 2`] = `
+exports[`AG-15850 activeChange > waterfall > setState 2`] = `
 [
   [
     {
@@ -1853,7 +1853,7 @@ exports[`AG-15850 activeChange waterfall setState 2`] = `
 ]
 `;
 
-exports[`AG-15850 activeChange waterfall setState 3`] = `
+exports[`AG-15850 activeChange > waterfall > setState 3`] = `
 [
   [
     {
@@ -1876,7 +1876,7 @@ exports[`AG-15850 activeChange waterfall setState 3`] = `
 ]
 `;
 
-exports[`AG-15850 labels area formatter 1`] = `
+exports[`AG-15850 labels > area > formatter 1`] = `
 [
   [
     {
@@ -1915,7 +1915,7 @@ exports[`AG-15850 labels area formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels area itemStyler 1`] = `
+exports[`AG-15850 labels > area > itemStyler 1`] = `
 [
   [
     {
@@ -1990,7 +1990,7 @@ exports[`AG-15850 labels area itemStyler 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels bar formatter 1`] = `
+exports[`AG-15850 labels > bar > formatter 1`] = `
 [
   [
     {
@@ -2029,7 +2029,7 @@ exports[`AG-15850 labels bar formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels bar itemStyler 1`] = `
+exports[`AG-15850 labels > bar > itemStyler 1`] = `
 [
   [
     {
@@ -2104,7 +2104,7 @@ exports[`AG-15850 labels bar itemStyler 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels bubble formatter 1`] = `
+exports[`AG-15850 labels > bubble > formatter 1`] = `
 [
   [
     {
@@ -2155,7 +2155,7 @@ exports[`AG-15850 labels bubble formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels bubble itemStyler 1`] = `
+exports[`AG-15850 labels > bubble > itemStyler 1`] = `
 [
   [
     {
@@ -2201,7 +2201,7 @@ exports[`AG-15850 labels bubble itemStyler 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels chord formatter 1`] = `
+exports[`AG-15850 labels > chord > formatter 1`] = `
 [
   [
     {
@@ -2239,7 +2239,7 @@ exports[`AG-15850 labels chord formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels chord itemStyler 1`] = `
+exports[`AG-15850 labels > chord > itemStyler 1`] = `
 [
   [
     {
@@ -2331,7 +2331,7 @@ exports[`AG-15850 labels chord itemStyler 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels donut formatter 1`] = `
+exports[`AG-15850 labels > donut > formatter 1`] = `
 [
   [
     {
@@ -2420,7 +2420,7 @@ exports[`AG-15850 labels donut formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels donut itemStyler 1`] = `
+exports[`AG-15850 labels > donut > itemStyler 1`] = `
 [
   [
     {
@@ -2485,7 +2485,7 @@ exports[`AG-15850 labels donut itemStyler 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels funnel formatter 1`] = `
+exports[`AG-15850 labels > funnel > formatter 1`] = `
 [
   [
     {
@@ -2520,7 +2520,7 @@ exports[`AG-15850 labels funnel formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels funnel itemStyler 1`] = `
+exports[`AG-15850 labels > funnel > itemStyler 1`] = `
 [
   [
     {
@@ -2589,7 +2589,7 @@ exports[`AG-15850 labels funnel itemStyler 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels histogram formatter 1`] = `
+exports[`AG-15850 labels > histogram > formatter 1`] = `
 [
   [
     {
@@ -2646,7 +2646,7 @@ exports[`AG-15850 labels histogram formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels histogram itemStyler 1`] = `
+exports[`AG-15850 labels > histogram > itemStyler 1`] = `
 [
   [
     {
@@ -2784,7 +2784,7 @@ exports[`AG-15850 labels histogram itemStyler 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels line formatter 1`] = `
+exports[`AG-15850 labels > line > formatter 1`] = `
 [
   [
     {
@@ -2823,7 +2823,7 @@ exports[`AG-15850 labels line formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels line itemStyler 1`] = `
+exports[`AG-15850 labels > line > itemStyler 1`] = `
 [
   [
     {
@@ -2898,7 +2898,7 @@ exports[`AG-15850 labels line itemStyler 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels linear-gauge formatter 1`] = `
+exports[`AG-15850 labels > linear-gauge > formatter 1`] = `
 [
   [
     {
@@ -2924,9 +2924,9 @@ exports[`AG-15850 labels linear-gauge formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels linear-gauge itemStyler 1`] = `[]`;
+exports[`AG-15850 labels > linear-gauge > itemStyler 1`] = `[]`;
 
-exports[`AG-15850 labels map-line formatter 1`] = `
+exports[`AG-15850 labels > map-line > formatter 1`] = `
 [
   [
     {
@@ -2949,7 +2949,7 @@ exports[`AG-15850 labels map-line formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels map-line itemStyler 1`] = `
+exports[`AG-15850 labels > map-line > itemStyler 1`] = `
 [
   [
     {
@@ -2979,7 +2979,7 @@ exports[`AG-15850 labels map-line itemStyler 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels map-marker formatter 1`] = `
+exports[`AG-15850 labels > map-marker > formatter 1`] = `
 [
   [
     {
@@ -3007,7 +3007,7 @@ exports[`AG-15850 labels map-marker formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels map-marker itemStyler 1`] = `
+exports[`AG-15850 labels > map-marker > itemStyler 1`] = `
 [
   [
     {
@@ -3037,7 +3037,7 @@ exports[`AG-15850 labels map-marker itemStyler 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels map-shape formatter 1`] = `
+exports[`AG-15850 labels > map-shape > formatter 1`] = `
 [
   [
     {
@@ -3058,7 +3058,7 @@ exports[`AG-15850 labels map-shape formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels map-shape itemStyler 1`] = `
+exports[`AG-15850 labels > map-shape > itemStyler 1`] = `
 [
   [
     {
@@ -3088,7 +3088,7 @@ exports[`AG-15850 labels map-shape itemStyler 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels pyramid formatter 1`] = `
+exports[`AG-15850 labels > pyramid > formatter 1`] = `
 [
   [
     {
@@ -3121,7 +3121,7 @@ exports[`AG-15850 labels pyramid formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels pyramid itemStyler 1`] = `
+exports[`AG-15850 labels > pyramid > itemStyler 1`] = `
 [
   [
     {
@@ -3151,7 +3151,7 @@ exports[`AG-15850 labels pyramid itemStyler 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels radars formatter 1`] = `
+exports[`AG-15850 labels > radars > formatter 1`] = `
 [
   [
     {
@@ -3258,7 +3258,7 @@ exports[`AG-15850 labels radars formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels radars itemStyler 1`] = `
+exports[`AG-15850 labels > radars > itemStyler 1`] = `
 [
   [
     {
@@ -3323,7 +3323,7 @@ exports[`AG-15850 labels radars itemStyler 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels radial-bar formatter 1`] = `
+exports[`AG-15850 labels > radial-bar > formatter 1`] = `
 [
   [
     {
@@ -3362,7 +3362,7 @@ exports[`AG-15850 labels radial-bar formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels radial-bar itemStyler 1`] = `
+exports[`AG-15850 labels > radial-bar > itemStyler 1`] = `
 [
   [
     {
@@ -3427,7 +3427,7 @@ exports[`AG-15850 labels radial-bar itemStyler 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels radial-column formatter 1`] = `
+exports[`AG-15850 labels > radial-column > formatter 1`] = `
 [
   [
     {
@@ -3466,7 +3466,7 @@ exports[`AG-15850 labels radial-column formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels radial-column itemStyler 1`] = `
+exports[`AG-15850 labels > radial-column > itemStyler 1`] = `
 [
   [
     {
@@ -3531,7 +3531,7 @@ exports[`AG-15850 labels radial-column itemStyler 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels radial-gauge formatter 1`] = `
+exports[`AG-15850 labels > radial-gauge > formatter 1`] = `
 [
   [
     {
@@ -3564,9 +3564,9 @@ exports[`AG-15850 labels radial-gauge formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels radial-gauge itemStyler 1`] = `[]`;
+exports[`AG-15850 labels > radial-gauge > itemStyler 1`] = `[]`;
 
-exports[`AG-15850 labels range-area formatter 1`] = `
+exports[`AG-15850 labels > range-area > formatter 1`] = `
 [
   [
     {
@@ -3655,7 +3655,7 @@ exports[`AG-15850 labels range-area formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels range-area itemStyler 1`] = `
+exports[`AG-15850 labels > range-area > itemStyler 1`] = `
 [
   [
     {
@@ -3812,7 +3812,7 @@ exports[`AG-15850 labels range-area itemStyler 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels range-bar formatter 1`] = `
+exports[`AG-15850 labels > range-bar > formatter 1`] = `
 [
   [
     {
@@ -3901,7 +3901,7 @@ exports[`AG-15850 labels range-bar formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels range-bar itemStyler 1`] = `
+exports[`AG-15850 labels > range-bar > itemStyler 1`] = `
 [
   [
     {
@@ -4058,7 +4058,7 @@ exports[`AG-15850 labels range-bar itemStyler 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels sankey formatter 1`] = `
+exports[`AG-15850 labels > sankey > formatter 1`] = `
 [
   [
     {
@@ -4096,7 +4096,7 @@ exports[`AG-15850 labels sankey formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels sankey itemStyler 1`] = `
+exports[`AG-15850 labels > sankey > itemStyler 1`] = `
 [
   [
     {
@@ -4159,7 +4159,7 @@ exports[`AG-15850 labels sankey itemStyler 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels sunburst formatter 1`] = `
+exports[`AG-15850 labels > sunburst > formatter 1`] = `
 [
   [
     {
@@ -4227,7 +4227,7 @@ exports[`AG-15850 labels sunburst formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels sunburst itemStyler 1`] = `
+exports[`AG-15850 labels > sunburst > itemStyler 1`] = `
 [
   [
     {
@@ -4349,7 +4349,7 @@ exports[`AG-15850 labels sunburst itemStyler 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels treemap formatter 1`] = `
+exports[`AG-15850 labels > treemap > formatter 1`] = `
 [
   [
     {
@@ -4390,7 +4390,7 @@ exports[`AG-15850 labels treemap formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels treemap itemStyler 1`] = `
+exports[`AG-15850 labels > treemap > itemStyler 1`] = `
 [
   [
     {
@@ -4467,7 +4467,7 @@ exports[`AG-15850 labels treemap itemStyler 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels waterfall formatter 1`] = `
+exports[`AG-15850 labels > waterfall > formatter 1`] = `
 [
   [
     {
@@ -4517,7 +4517,7 @@ exports[`AG-15850 labels waterfall formatter 1`] = `
 ]
 `;
 
-exports[`AG-15850 labels waterfall itemStyler 1`] = `
+exports[`AG-15850 labels > waterfall > itemStyler 1`] = `
 [
   [
     {

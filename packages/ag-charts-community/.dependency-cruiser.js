@@ -86,7 +86,7 @@ module.exports = {
                 "That's problematic as the package either (1) won't be available on live (2 - worse) will be " +
                 'available on live with an non-guaranteed version. Fix it by adding the package to the dependencies ' +
                 'in your package.json.',
-            from: {},
+            from: { pathNot: ['^benchmarks/'] },
             to: {
                 dependencyTypes: ['npm-no-pkg', 'npm-unknown'],
             },
@@ -145,7 +145,7 @@ module.exports = {
             from: {
                 path: '^(src)',
                 pathNot:
-                    '(src/chart/test)|(src/util/test)|(.(spec|test).(js|mjs|cjs|ts|ls|coffee|litcoffee|coffee.md)$)',
+                    '(src/chart/test)|(src/util/test)|(.(spec|test).(js|mjs|cjs|ts|ls|coffee|litcoffee|coffee.md)$)|(.test.d.ts$)',
             },
             to: {
                 dependencyTypes: ['npm-dev'],
@@ -257,9 +257,12 @@ module.exports = {
                     'ag-charts-types',
                     'node_modules',
                     'src/main',
+                    'src/module-bundles',
                     'src/version',
                     'path',
                     'fs',
+                    'url',
+                    'util',
                 ],
             },
         },

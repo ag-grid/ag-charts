@@ -15,7 +15,6 @@ import { ContinuousScale } from './continuousScale';
 
 const sunday = new Date(1970, 0, 4);
 
-// eslint-disable-next-line sonarjs/use-type-alias
 export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeIntervalUnit | number> {
     static override is(value: unknown): value is TimeScale {
         return value instanceof TimeScale;

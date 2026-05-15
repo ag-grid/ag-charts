@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 
 import type { Size } from './sizeMonitor';
 import { SizeMonitor } from './sizeMonitor';
@@ -43,7 +43,7 @@ function mockElement(opts: {
         paddingTop: opts.paddingTop ?? '0px',
         paddingBottom: opts.paddingBottom ?? '0px',
     };
-    jest.spyOn(element.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue(style as any);
+    vi.spyOn(element.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue(style as any);
 
     return element;
 }

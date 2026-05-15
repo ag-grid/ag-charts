@@ -13,7 +13,7 @@
     "sharp": "0.33.5",
     "ag-charts-enterprise": "13.3.0-beta.20260512.1138",
     "ag-charts-test": "13.3.0-beta.20260512.1138",
-    "@swc/helpers": "0.5.3",
+    "@swc/helpers": "0.5.21",
     "process": "0.11.10"
   },
   "type": "commonjs",

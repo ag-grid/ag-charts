@@ -65,7 +65,7 @@ type CtorReturnType<Ctor extends AnyCtor> = Ctor extends abstract new (...arg: a
 
 /**
  * This class converts an input value type into new types. There are no compile-time checks (uses `as` internally), but
- * the methods will check the types at runtime (using the `expect()` jest function).
+ * the methods will check the types at runtime (using the `expect()` vitest function).
  *
  * This is similar to a Java cast or C++ dynamic_cast.
  */

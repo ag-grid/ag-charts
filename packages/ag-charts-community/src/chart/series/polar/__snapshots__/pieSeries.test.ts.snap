@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`PieSeries AG-11672 calloutLine.itemStyler calls 1`] = `
+exports[`PieSeries > AG-11672 calloutLine.itemStyler > calls 1`] = `
 [
   [
     {

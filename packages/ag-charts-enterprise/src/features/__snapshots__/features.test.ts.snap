@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Feature Combinations Context Menu and Zoom when fully zoomed in it should only enable the pan option 1`] = `
+exports[`Feature Combinations > Context Menu and Zoom > when fully zoomed in it should only enable the pan option 1`] = `
 HTMLCollection [
   <div
     class="ag-charts-context-menu"
@@ -89,7 +89,7 @@ HTMLCollection [
 ]
 `;
 
-exports[`Feature Combinations Context Menu and Zoom when fully zoomed out it should only enable the zoom option 1`] = `
+exports[`Feature Combinations > Context Menu and Zoom > when fully zoomed out it should only enable the zoom option 1`] = `
 HTMLCollection [
   <div
     class="ag-charts-context-menu"
@@ -178,7 +178,7 @@ HTMLCollection [
 ]
 `;
 
-exports[`Feature Combinations Context Menu and Zoom when zoomed in it should enable both the zoom and pan options 1`] = `
+exports[`Feature Combinations > Context Menu and Zoom > when zoomed in it should enable both the zoom and pan options 1`] = `
 HTMLCollection [
   <div
     class="ag-charts-context-menu"

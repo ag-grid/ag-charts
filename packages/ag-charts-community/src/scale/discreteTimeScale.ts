@@ -79,7 +79,7 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
     override convert(value: Date, options?: { clamp?: boolean; alignment?: ScaleAlignment }): number {
         this.refresh();
 
-        if (!(value instanceof Date)) value = new Date(value as any);
+        if (!(value instanceof Date)) value = new Date(value);
         const { domain, reversed } = this;
         const numericBands = this.numericBands;
         const bandCount = numericBands.length;

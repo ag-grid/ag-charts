@@ -34,7 +34,7 @@ export function getDragStartState<PointName extends string>(
     const dragState = {} as Record<PointName, Point>;
 
     for (const [name, point] of entries(points)) {
-        dragState[name] = convertPoint(point as DataPoint, context);
+        dragState[name] = convertPoint(point, context);
     }
 
     return dragState;

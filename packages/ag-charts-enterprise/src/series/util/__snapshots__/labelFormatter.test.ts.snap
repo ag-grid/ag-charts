@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`label formatter formatStackedLabels formats stacked labels without shrinking within large bounds 1`] = `
+exports[`label formatter > formatStackedLabels > formats stacked labels without shrinking within large bounds 1`] = `
 {
   "height": 44.4970703125,
   "label": {
@@ -22,7 +22,7 @@ exports[`label formatter formatStackedLabels formats stacked labels without shri
 }
 `;
 
-exports[`label formatter formatStackedLabels ignores minimumFontSizes greater than fontSize 1`] = `
+exports[`label formatter > formatStackedLabels > ignores minimumFontSizes greater than fontSize 1`] = `
 {
   "height": 44.4970703125,
   "label": {
@@ -44,7 +44,7 @@ exports[`label formatter formatStackedLabels ignores minimumFontSizes greater th
 }
 `;
 
-exports[`label formatter formatStackedLabels shrinks stacked labels to fit within smaller bounds 1`] = `
+exports[`label formatter > formatStackedLabels > shrinks stacked labels to fit within smaller bounds 1`] = `
 {
   "height": 29.54833984375,
   "label": {

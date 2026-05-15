@@ -6,6 +6,7 @@ tools
 .swcrc
 .dependency-cruiser.js
 jest.*
+vitest.*
 tsconfig.*
 project.json
 .esbuild.*

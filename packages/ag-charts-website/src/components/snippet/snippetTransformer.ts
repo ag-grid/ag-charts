@@ -320,7 +320,7 @@ const isProperty = (node) => node.type === 'Property';
 const isLiteralProperty = (node) => isProperty(node) && node.value.type === 'Literal';
 const isObjectProperty = (node) => isProperty(node) && node.value.type === 'ObjectExpression';
 const isObjectExpr = (node) => node.type === 'ObjectExpression';
-const isArrayExpr = (node) => node.value && node.value.type === 'ArrayExpression';
+const isArrayExpr = (node) => node.value?.type === 'ArrayExpression';
 const isVarDeclaration = (node) => node.type === 'VariableDeclaration' && Array.isArray(node.declarations);
 const isVarDeclarator = (node) => node.type === 'VariableDeclarator';
 const isExprStatement = (node) => node.type === 'ExpressionStatement';

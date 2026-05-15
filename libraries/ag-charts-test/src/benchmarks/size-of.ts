@@ -331,7 +331,7 @@ function guesstimateFunctionSize(fn: Function, visited: Set<unknown>, path: stri
     };
 
     // Recursively measure user-added properties on the function object
-    const propertyNames = getAllPropertyNames(fn as any);
+    const propertyNames = getAllPropertyNames(fn);
     return [...propertyNames].reduce((acc, key) => {
         if (
             shouldSkipProperty(key) ||

@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Text text measurements should measure text size currently 1`] = `
+exports[`Text > text measurements > should measure text size currently 1`] = `
 {
   "ascent": 22.119140625,
   "descent": 5.478515625,
@@ -9,7 +9,7 @@ exports[`Text text measurements should measure text size currently 1`] = `
 }
 `;
 
-exports[`Text text measurements should measure text size currently 2`] = `
+exports[`Text > text measurements > should measure text size currently 2`] = `
 {
   "ascent": 44.23828125,
   "descent": 10.95703125,
