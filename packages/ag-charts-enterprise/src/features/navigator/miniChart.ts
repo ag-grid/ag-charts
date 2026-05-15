@@ -243,9 +243,10 @@ export class MiniChart extends AbstractModuleInstance {
     }
 
     async layout(width: number, height: number) {
-        const p = this.ctx.chartState.getValue('options', 'navigator.miniChart.padding') ?? {};
-        const paddingTop = p.top ?? 0;
-        const paddingBottom = p.bottom ?? 0;
+        const { top: paddingTop, bottom: paddingBottom } = this.ctx.chartState.getValue(
+            'options',
+            'navigator.miniChart.padding'
+        );
         const animated = this.seriesRect != null;
         const seriesRect = new BBox(0, 0, width, height - (paddingTop + paddingBottom));
 
