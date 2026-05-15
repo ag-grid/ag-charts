@@ -241,12 +241,12 @@ export class Scrollbar extends AbstractModuleInstance {
 
     private updateStyles({ track, thumb, properties, hovered }: ScrollbarOrientationState) {
         track.setStyleProperties(properties.track);
-        track.cornerRadius = properties.track.cornerRadius ?? 0;
-        track.opacity = properties.track.opacity ?? 1;
+        track.cornerRadius = properties.track.cornerRadius;
+        track.opacity = properties.track.opacity;
 
         thumb.setStyleProperties(properties.thumb);
-        thumb.cornerRadius = properties.thumb.cornerRadius ?? 0;
-        thumb.opacity = properties.thumb.opacity ?? 1;
+        thumb.cornerRadius = properties.thumb.cornerRadius;
+        thumb.opacity = properties.thumb.opacity;
 
         const hoverStyle = properties.thumb.hoverStyle;
 
@@ -272,7 +272,7 @@ export class Scrollbar extends AbstractModuleInstance {
             return;
         }
 
-        const minSize = state.properties.thumb.minSize ?? 0;
+        const minSize = state.properties.thumb.minSize;
         let thumbSpan: number;
         if (state.orientation === 'horizontal') {
             const thumbWidth = Math.min(Math.max(minSize, track.width * span), track.width);
