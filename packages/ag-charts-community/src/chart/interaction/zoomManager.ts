@@ -439,10 +439,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         for (const id of strictObjectKeys(newState)) {
             const newAxisState = newState[id] ?? { min: 0, max: 1 };
             const oldAxisState = oldState[id];
-            if (
-                oldAxisState?.min !== newAxisState.min ||
-                oldAxisState.max !== newAxisState.max
-            ) {
+            if (oldAxisState?.min !== newAxisState.min || oldAxisState.max !== newAxisState.max) {
                 result.push(id);
             }
         }

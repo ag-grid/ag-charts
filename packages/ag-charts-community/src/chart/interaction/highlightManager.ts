@@ -125,11 +125,7 @@ export class HighlightManager {
         if (a === b) return true;
 
         return (
-            a != null &&
-            a.series === b?.series &&
-            this.idsMatch(a, b) &&
-            this.pointsMatch(a, b) &&
-            a.datum === b.datum
+            a != null && a.series === b?.series && this.idsMatch(a, b) && this.pointsMatch(a, b) && a.datum === b.datum
         );
     }
 

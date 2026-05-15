@@ -41,21 +41,20 @@ describe('sceneDebug stats lifecycle', () => {
 });
 
 function createMockContext(): CanvasRenderingContext2D {
-    const measureText: CanvasRenderingContext2D['measureText'] = () =>
-        ({
-            width: 10,
-            actualBoundingBoxAscent: 5,
-            actualBoundingBoxDescent: 5,
-            actualBoundingBoxLeft: 0,
-            actualBoundingBoxRight: 10,
-            emHeightAscent: 5,
-            emHeightDescent: 5,
-            alphabeticBaseline: 0,
-            fontBoundingBoxAscent: 5,
-            fontBoundingBoxDescent: 5,
-            hangingBaseline: 0,
-            ideographicBaseline: 0,
-        });
+    const measureText: CanvasRenderingContext2D['measureText'] = () => ({
+        width: 10,
+        actualBoundingBoxAscent: 5,
+        actualBoundingBoxDescent: 5,
+        actualBoundingBoxLeft: 0,
+        actualBoundingBoxRight: 10,
+        emHeightAscent: 5,
+        emHeightDescent: 5,
+        alphabeticBaseline: 0,
+        fontBoundingBoxAscent: 5,
+        fontBoundingBoxDescent: 5,
+        hangingBaseline: 0,
+        ideographicBaseline: 0,
+    });
 
     let fillStyleValue = '';
     let textBaselineValue: CanvasTextBaseline = 'alphabetic';
