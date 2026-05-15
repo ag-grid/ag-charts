@@ -1,4 +1,5 @@
 import type {
+    NormalisedChartCaptionOptions,
     NormalisedGradientLegendOptions,
     NormalisedLegendOptions,
     NormalisedSelectionOptions,
@@ -17,7 +18,11 @@ import type {
     AgDataSourceOptions,
     AgFlashOnUpdateOptions,
     AgInitialFocus,
+    AgNavigatorMiniChartOptions,
+    AgNavigatorMiniChartPadding,
     AgNavigatorOptions,
+    AgRangesButton,
+    AgRangesDropdown,
     AgRangesOptions,
     AgScrollbarHorizontalOrientationOptions,
     AgScrollbarOptions,
@@ -72,19 +77,39 @@ export type NormalisedAnnotationsOptions = AgAnnotationsOptions & {
     volumeKey?: string;
 };
 
-export type NormalisedNavigatorOptions = AgNavigatorOptions & {
+export type NormalisedNavigatorMiniChartOptions = Omit<AgNavigatorMiniChartOptions, 'padding'> & {
+    padding: Required<AgNavigatorMiniChartPadding>;
+};
+
+export type NormalisedNavigatorOptions = Omit<AgNavigatorOptions, 'miniChart'> & {
     enabled: boolean;
     height: number;
     spacing: number;
     cornerRadius: number;
+    miniChart?: NormalisedNavigatorMiniChartOptions;
 };
 
-export type NormalisedRangesOptions = AgRangesOptions & {
+export type NormalisedRangesDropdown = AgRangesDropdown & { visible: 'auto' | 'always' | 'never' };
+
+export type NormalisedRangesOptions = Omit<AgRangesOptions, 'dropdown' | 'buttons'> & {
     enabled: boolean;
     enableOutOfRange: boolean;
     position: 'top-right' | 'top-left' | 'top' | 'right' | 'bottom-right' | 'bottom-left' | 'bottom' | 'left';
     gap: number;
     spacing: number;
+    buttons: AgRangesButton[];
+    dropdown: NormalisedRangesDropdown;
+};
+
+export type NormalisedScrollbarTrackStyle = AgScrollbarTrackStyle & {
+    cornerRadius: number;
+    opacity: number;
+};
+
+export type NormalisedScrollbarThumbStyle = AgScrollbarThumbStyle & {
+    cornerRadius: number;
+    opacity: number;
+    minSize: number;
 };
 
 export type NormalisedScrollbarOrientationOptions = (
@@ -97,8 +122,8 @@ export type NormalisedScrollbarOrientationOptions = (
     tickSpacing: number;
     placement: 'inner' | 'outer';
     visible: 'auto' | 'always' | 'never';
-    track: AgScrollbarTrackStyle;
-    thumb: AgScrollbarThumbStyle;
+    track: NormalisedScrollbarTrackStyle;
+    thumb: NormalisedScrollbarThumbStyle;
 };
 
 export type NormalisedScrollbarOptions = AgScrollbarOptions & {
@@ -116,6 +141,7 @@ export type ResolvedChartOptions = Omit<
     | 'background'
     | 'dataSource'
     | 'flashOnUpdate'
+    | 'footnote'
     | 'gradientLegend'
     | 'keyboard'
     | 'legend'
@@ -124,8 +150,10 @@ export type ResolvedChartOptions = Omit<
     | 'ranges'
     | 'scrollbar'
     | 'selection'
+    | 'subtitle'
     | 'suppressFieldDotNotation'
     | 'sync'
+    | 'title'
     | 'touch'
     | 'zoom'
 > & {
@@ -133,6 +161,7 @@ export type ResolvedChartOptions = Omit<
     background: NormalisedBackgroundOptions;
     dataSource?: NormalisedDataSourceOptions;
     flashOnUpdate?: NormalisedFlashOnUpdateOptions;
+    footnote?: NormalisedChartCaptionOptions;
     gradientLegend?: NormalisedGradientLegendOptions;
     keyboard: { enabled: boolean; initialFocus: AgInitialFocus; tabIndex?: number };
     legend: NormalisedLegendOptions;
@@ -141,8 +170,10 @@ export type ResolvedChartOptions = Omit<
     ranges?: NormalisedRangesOptions;
     scrollbar?: NormalisedScrollbarOptions;
     selection: NormalisedSelectionOptions | undefined;
+    subtitle?: NormalisedChartCaptionOptions;
     suppressFieldDotNotation: boolean;
     sync?: NormalisedChartSyncOptions;
+    title?: NormalisedChartCaptionOptions;
     touch: Required<AgTouchOptions>;
     zoom: NormalisedZoomOptions;
     // Undocumented options that the chart consumes through chartState.

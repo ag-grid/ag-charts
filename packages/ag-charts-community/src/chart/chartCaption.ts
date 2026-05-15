@@ -1,4 +1,4 @@
-import type { DynamicContext } from 'ag-charts-core';
+import type { DynamicContext, NormalisedChartCaptionOptions } from 'ag-charts-core';
 import {
     FONT_SIZE,
     callWithContext,
@@ -11,12 +11,7 @@ import {
     wrapText,
     wrapTextSegments,
 } from 'ag-charts-core';
-import type {
-    AgCaptionTooltipOptions,
-    AgCaptionTooltipRendererParams,
-    AgChartCaptionOptions,
-    TextOrSegments,
-} from 'ag-charts-types';
+import type { AgCaptionTooltipOptions, AgCaptionTooltipRendererParams, TextOrSegments } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
@@ -40,19 +35,13 @@ type CaptionNodeDatum = {
 
 export type ChartCaptionKey = 'title' | 'subtitle' | 'footnote';
 
-export type ChartCaptionOptions = AgChartCaptionOptions & {
-    layoutStyle?: 'block' | 'overlay';
-    truncate?: boolean;
-    padding?: number;
-};
-
 /** Build the font spec (FontOptions shape) consumed by text measurers from a caption's options. */
-export function captionFont(opts: ChartCaptionOptions) {
+export function captionFont(opts: NormalisedChartCaptionOptions) {
     return {
         fontSize: opts.fontSize ?? FONT_SIZE.SMALLER,
         fontStyle: opts.fontStyle,
         fontWeight: opts.fontWeight,
-        fontFamily: (opts.fontFamily as string | undefined) ?? 'sans-serif',
+        fontFamily: opts.fontFamily ?? 'sans-serif',
     };
 }
 
@@ -73,7 +62,7 @@ export class ChartCaption implements CaptionLike {
         pointerEvents: PointerEvents.None,
     });
 
-    get opts(): ChartCaptionOptions {
+    get opts(): NormalisedChartCaptionOptions {
         return this.ctx.chartState.getValue('options', this.key) ?? {};
     }
 
@@ -115,7 +104,7 @@ export class ChartCaption implements CaptionLike {
         node.fontStyle = opts.fontStyle;
         node.fontWeight = opts.fontWeight;
         node.fontSize = opts.fontSize ?? FONT_SIZE.SMALLER;
-        node.fontFamily = (opts.fontFamily as string | undefined) ?? 'sans-serif';
+        node.fontFamily = opts.fontFamily ?? 'sans-serif';
         node.fill = opts.color;
     }
 
