@@ -47,8 +47,8 @@ function makeMouseEvent<T extends TMouseEvent>(
 ): MouseEvent {
     const { offsetX, offsetY, target } = testTarget;
     const view = target.ownerDocument.defaultView!;
-    const event = new MouseEvent(type, { bubbles, clientX, clientY, view });
-    Object.assign(event, { ...modifiers, offsetX, offsetY, pageX: clientX, pageY: clientY });
+    const event = new MouseEvent(type, { ...modifiers, bubbles, clientX, clientY, view });
+    Object.assign(event, { offsetX, offsetY, pageX: clientX, pageY: clientY });
     return event;
 }
 
