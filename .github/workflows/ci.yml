@@ -33,7 +33,7 @@ env:
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
     AG_LIBRARY: charts
     AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
-    AG_E2E_SHARD_COUNT: 32
+    AG_E2E_SHARD_COUNT: 40
 
 permissions:
     contents: read
@@ -624,10 +624,16 @@ jobs:
                       target: bundle-treeshake-tests:test:bundle-treeshake
                       render_bundlers: ''
                       treeshake_bundlers: 'vite'
-                    - name: treeshake-webpack
+                    - name: treeshake-webpack-1of2
                       target: bundle-treeshake-tests:test:bundle-treeshake
                       render_bundlers: ''
                       treeshake_bundlers: 'webpack'
+                      treeshake_shard: '1/2'
+                    - name: treeshake-webpack-2of2
+                      target: bundle-treeshake-tests:test:bundle-treeshake
+                      render_bundlers: ''
+                      treeshake_bundlers: 'webpack'
+                      treeshake_shard: '2/2'
                     - name: render-esbuild
                       target: bundle-render-tests:test:bundle-render
                       render_bundlers: 'esbuild'
@@ -651,6 +657,7 @@ jobs:
             BUNDLE_RENDER_BUNDLERS: ${{ matrix.render_bundlers }}
             BUNDLE_RENDER_SHARD: ${{ matrix.render_shard }}
             BUNDLE_TREESHAKE_BUNDLERS: ${{ matrix.treeshake_bundlers }}
+            BUNDLE_TREESHAKE_SHARD: ${{ matrix.treeshake_shard }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
