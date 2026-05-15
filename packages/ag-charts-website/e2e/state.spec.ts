@@ -2592,9 +2592,13 @@ test.describe('state', () => {
                 test('popEvents', async ({ page }) => {
                     expect(await popChartEvents(page)).toEqual([]);
 
-                    await click2024q4(page);
+                    await hover2024q4(page);
                     expect(await popChartEvents(page)).toEqual([
                         { ...Q4_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: false },
+                    ]);
+
+                    await click2024q4(page);
+                    expect(await popChartEvents(page)).toEqual([
                         { ...Q4_2024_ACTIVE_CHANGE, source: 'state-change', frozen: true },
                     ]);
 
@@ -2694,9 +2698,13 @@ test.describe('state', () => {
                 test('popEvents', async ({ page }) => {
                     expect(await popChartEvents(page)).toEqual([]);
 
-                    await click2024q4(page);
+                    await hover2024q4(page);
                     expect(await popChartEvents(page)).toEqual([
                         { ...Q4_2024_ACTIVE_CHANGE, source: 'user-interaction', frozen: false },
+                    ]);
+
+                    await click2024q4(page);
+                    expect(await popChartEvents(page)).toEqual([
                         { ...Q4_2024_ACTIVE_CHANGE, source: 'state-change', frozen: true },
                     ]);
 
