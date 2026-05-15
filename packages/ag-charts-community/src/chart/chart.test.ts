@@ -1581,13 +1581,11 @@ describe('Chart destroy() / performUpdate() race condition', () => {
         const chartProto = Object.getPrototypeOf(innerChart);
         const origProcessData = chartProto.processData;
         jest.spyOn(chartProto, 'processData').mockImplementationOnce(function (this: any) {
-            // Simulate ag-grid recycling a sparkline cell while the render pipeline is
-            // awaited at processData — the scenario that produced the crash in GH-6848.
+            // Fire destroy() while the pipeline is paused on the processData await.
             innerChart.destroy();
             return origProcessData.call(this) as Promise<void>;
         });
 
-        // Trigger a full update so the pipeline re-enters processData with our interception.
         innerChart.update(ChartUpdateType.FULL);
 
         // waitForChartStability returns as soon as `destroyed` is true; the deferred

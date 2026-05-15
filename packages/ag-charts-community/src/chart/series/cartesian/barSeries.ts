@@ -1252,8 +1252,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         ctx: BarSeriesNodeDatumContext,
         result: BarSeriesNodeDataContext
     ): BarSeriesNodeDataContext {
-        // chart/seriesRect may be missing if a pooled chart's previous in-flight update
-        // resumes after the chart has been recycled (AG-17361).
+        // seriesRect may be unset during early-layout races or pool recycling (AG-17361).
         const seriesRect = this.chart?.seriesRect;
         if (seriesRect == null) return result;
 
