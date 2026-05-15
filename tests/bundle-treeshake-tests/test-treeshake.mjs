@@ -8,11 +8,23 @@ import { bundleWithVite } from './bundlers/vite.mjs';
 import { bundleWithWebpack } from './bundlers/webpack.mjs';
 import { scenarios } from './scenarios.mjs';
 
-const bundlers = [
+const allBundlers = [
     { name: 'esbuild', fn: bundleWithEsbuild },
     { name: 'vite', fn: bundleWithVite },
     { name: 'webpack', fn: bundleWithWebpack },
 ];
+
+// BUNDLE_TREESHAKE_BUNDLERS env var (comma-separated) selects a subset for CI sharding.
+const bundlerFilter = process.env.BUNDLE_TREESHAKE_BUNDLERS?.split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+const bundlers = bundlerFilter?.length ? allBundlers.filter((b) => bundlerFilter.includes(b.name)) : allBundlers;
+if (bundlers.length === 0) {
+    throw new Error(
+        `BUNDLE_TREESHAKE_BUNDLERS=${process.env.BUNDLE_TREESHAKE_BUNDLERS} matched no bundlers (known: ${allBundlers.map((b) => b.name).join(', ')})`
+    );
+}
+console.log(`>>> running bundlers: ${bundlers.map((b) => b.name).join(', ')}`);
 
 const { values: args } = parseArgs({
     options: {
