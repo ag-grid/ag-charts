@@ -50,10 +50,14 @@ const { values: args } = parseArgs({
     },
 });
 
-const results = [];
 const workDir = resolve('.entries');
 
-for (const scenario of shardedScenarios) {
+// Run scenarios with bounded concurrency. Each scenario's per-bundler work is
+// CPU-bound (webpack especially); on a 4-vCPU runner, running several
+// scenarios in parallel meaningfully reduces wall-clock time.
+const concurrency = Math.max(1, Number(process.env.BUNDLE_TREESHAKE_CONCURRENCY ?? 4));
+
+async function runScenario(scenario) {
     const scenarioResults = { scenario: scenario.name, limit: scenario.limit, sizes: {} };
 
     for (const bundler of bundlers) {
@@ -80,8 +84,24 @@ for (const scenario of shardedScenarios) {
         }
     }
 
-    results.push(scenarioResults);
+    return scenarioResults;
 }
+
+async function runWithConcurrency(items, limit, fn) {
+    const out = new Array(items.length);
+    let next = 0;
+    const worker = async () => {
+        while (true) {
+            const i = next++;
+            if (i >= items.length) return;
+            out[i] = await fn(items[i]);
+        }
+    };
+    await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+    return out;
+}
+
+const results = await runWithConcurrency(shardedScenarios, concurrency, runScenario);
 
 // Print results table
 const pad = (s, n) => String(s).padEnd(n);
