@@ -132,7 +132,7 @@ export class Ranges extends AbstractModuleInstance {
     private onLayoutStart({ layoutBox }: _ModuleSupport.LayoutContext) {
         const opts = this.opts;
         const { enabled, position, spacing } = opts;
-        const dropdownVisible = opts.dropdown?.visible ?? 'auto';
+        const dropdownVisible = opts.dropdown.visible;
 
         if (!enabled) {
             this.buttonsToolbar?.setHidden(true);
@@ -145,7 +145,7 @@ export class Ranges extends AbstractModuleInstance {
         const { buttonsToolbar, dropdownToolbar } = this;
         if (!buttonsToolbar || !dropdownToolbar) return;
 
-        buttonsToolbar.updateButtons(opts.buttons ?? []);
+        buttonsToolbar.updateButtons(opts.buttons);
         dropdownToolbar.updateButtons([this.getDropdownButtonOptions(this.dropdownLabel)]);
 
         this.updateCSSVariables();
@@ -175,8 +175,8 @@ export class Ranges extends AbstractModuleInstance {
         const opts = this.opts;
         if (!opts.enabled || !buttonsToolbar || !dropdownToolbar || !dropdownMenu) return;
 
-        const dropdownVisible = opts.dropdown?.visible ?? 'auto';
-        const buttons = opts.buttons ?? [];
+        const dropdownVisible = opts.dropdown.visible;
+        const buttons = opts.buttons;
 
         let bounds: BoxBounds | undefined;
 
@@ -406,7 +406,7 @@ export class Ranges extends AbstractModuleInstance {
 
         this.dropdownToolbar.toggleActiveButtonByIndex(0);
 
-        const menuItems = (this.opts.buttons ?? []).map((button, index) => {
+        const menuItems = this.opts.buttons.map((button, index) => {
             return {
                 ariaLabel: button.ariaLabel,
                 enabled: this.getButtonEnabled(button),
@@ -438,7 +438,7 @@ export class Ranges extends AbstractModuleInstance {
         const zoomManager = this.ctx.zoomManager;
         if (!zoomManager) return;
 
-        const button = (this.opts.buttons ?? []).at(index);
+        const button = this.opts.buttons.at(index);
         if (!button) return;
 
         const { value } = button;
