@@ -684,280 +684,280 @@ describe('DataSelection', () => {
 
                 describe('no-modifier clears and selects', () => {
                     test('screenshot', async () => {
-                        mouseDown(POINT_A);
-                        mouseMove(POINT_B);
+                        await mouseDown(POINT_A);
+                        await mouseMove(POINT_B);
                         await strictCompare({
                             customSnapshotIdentifier: 'drag-modifiers-bubble-region-AB-selection-in-progress',
                         });
 
-                        mouseUp(POINT_B);
+                        await mouseUp(POINT_B);
                         await strictCompare({
                             customSnapshotIdentifier: 'drag-modifiers-bubble-region-AB-selected-only',
                         });
 
-                        mouseDown(POINT_C);
-                        mouseMove(POINT_D);
+                        await mouseDown(POINT_C);
+                        await mouseMove(POINT_D);
                         await strictCompare({
                             customSnapshotIdentifier: 'drag-modifiers-bubble-region-CD-selection-in-progress',
                         });
 
-                        mouseUp(POINT_D);
+                        await mouseUp(POINT_D);
                         await strictCompare({
                             customSnapshotIdentifier: 'drag-modifiers-bubble-region-CD-selected-only',
                         });
                     });
                     test('getSelection', async () => {
-                        mouseDown(POINT_A);
-                        mouseMove(POINT_B);
+                        await mouseDown(POINT_A);
+                        await mouseMove(POINT_B);
                         expect(getChartSelectionArray()).toEqual([]);
 
-                        mouseUp(POINT_B);
+                        await mouseUp(POINT_B);
                         expect(getChartSelectionArray()).toEqual(SELECTION_AB);
 
-                        mouseDown(POINT_C);
-                        mouseMove(POINT_D);
+                        await mouseDown(POINT_C);
+                        await mouseMove(POINT_D);
                         expect(getChartSelectionArray()).toEqual(SELECTION_AB);
 
-                        mouseUp(POINT_D);
+                        await mouseUp(POINT_D);
                         expect(getChartSelectionArray()).toEqual(SELECTION_CD);
                     });
                     test('selectionChange', async () => {
-                        mouseDown(POINT_A);
-                        mouseMove(POINT_B);
+                        await mouseDown(POINT_A);
+                        await mouseMove(POINT_B);
                         expect(selectionChange.popEvents()).toEqual([]);
 
-                        mouseUp(POINT_B);
+                        await mouseUp(POINT_B);
                         expect(selectionChange.popEvents()).toEqual([AB_ADDED]);
 
-                        mouseDown(POINT_C);
-                        mouseMove(POINT_D);
+                        await mouseDown(POINT_C);
+                        await mouseMove(POINT_D);
                         expect(selectionChange.popEvents()).toEqual([]);
 
-                        mouseUp(POINT_D);
+                        await mouseUp(POINT_D);
                         expect(selectionChange.popEvents()).toEqual([AB_REMOVED_CD_ADDED]);
                     });
                 });
 
                 describe('ctrl-modifier adds to selection', () => {
                     test('screenshot', async () => {
-                        mouseDown(POINT_A, { ctrlKey });
-                        mouseMove(POINT_B, { ctrlKey });
+                        await mouseDown(POINT_A, { ctrlKey });
+                        await mouseMove(POINT_B, { ctrlKey });
                         await strictCompare({
                             customSnapshotIdentifier: 'drag-modifiers-bubble-region-AB-selection-in-progress',
                         });
 
-                        mouseUp(POINT_B, { ctrlKey });
+                        await mouseUp(POINT_B, { ctrlKey });
                         await strictCompare({
                             customSnapshotIdentifier: 'drag-modifiers-bubble-region-AB-selected-only',
                         });
 
-                        mouseDown(POINT_C, { ctrlKey });
-                        mouseMove(POINT_D, { ctrlKey });
+                        await mouseDown(POINT_C, { ctrlKey });
+                        await mouseMove(POINT_D, { ctrlKey });
                         await strictCompare({
                             customSnapshotIdentifier: 'drag-modifiers-bubble-region-CD-selection-in-progress',
                         });
 
-                        mouseUp(POINT_D, { ctrlKey });
+                        await mouseUp(POINT_D, { ctrlKey });
                         await strictCompare({
                             customSnapshotIdentifier: 'drag-modifiers-bubble-regions-ABCD-selected',
                         });
                     });
                     test('getSelection', async () => {
-                        mouseDown(POINT_A, { ctrlKey });
-                        mouseMove(POINT_B, { ctrlKey });
+                        await mouseDown(POINT_A, { ctrlKey });
+                        await mouseMove(POINT_B, { ctrlKey });
                         expect(getChartSelectionArray()).toEqual([]);
 
-                        mouseUp(POINT_B, { ctrlKey });
+                        await mouseUp(POINT_B, { ctrlKey });
                         expect(getChartSelectionArray()).toEqual(SELECTION_AB);
 
-                        mouseDown(POINT_C, { ctrlKey });
-                        mouseMove(POINT_D, { ctrlKey });
+                        await mouseDown(POINT_C, { ctrlKey });
+                        await mouseMove(POINT_D, { ctrlKey });
                         expect(getChartSelectionArray()).toEqual(SELECTION_AB);
 
-                        mouseUp(POINT_D, { ctrlKey });
+                        await mouseUp(POINT_D, { ctrlKey });
                         expect(getChartSelectionArray()).toEqual(SELECTION_ABCD);
                     });
                     test('selectionChange', async () => {
-                        mouseDown(POINT_A, { ctrlKey });
-                        mouseMove(POINT_B, { ctrlKey });
+                        await mouseDown(POINT_A, { ctrlKey });
+                        await mouseMove(POINT_B, { ctrlKey });
                         expect(selectionChange.popEvents()).toEqual([]);
 
-                        mouseUp(POINT_B, { ctrlKey });
+                        await mouseUp(POINT_B, { ctrlKey });
                         expect(selectionChange.popEvents()).toEqual([AB_ADDED]);
 
-                        mouseDown(POINT_C, { ctrlKey });
-                        mouseMove(POINT_D, { ctrlKey });
+                        await mouseDown(POINT_C, { ctrlKey });
+                        await mouseMove(POINT_D, { ctrlKey });
                         expect(selectionChange.popEvents()).toEqual([]);
 
-                        mouseUp(POINT_D, { ctrlKey });
+                        await mouseUp(POINT_D, { ctrlKey });
                         expect(selectionChange.popEvents()).toEqual([CD_ADDED]);
                     });
                 });
 
                 describe('meta-modifier adds to selection', () => {
                     test('screenshot', async () => {
-                        mouseDown(POINT_A, { metaKey });
-                        mouseMove(POINT_B, { metaKey });
+                        await mouseDown(POINT_A, { metaKey });
+                        await mouseMove(POINT_B, { metaKey });
                         await strictCompare({
                             customSnapshotIdentifier: 'drag-modifiers-bubble-region-AB-selection-in-progress',
                         });
 
-                        mouseUp(POINT_B, { metaKey });
+                        await mouseUp(POINT_B, { metaKey });
                         await strictCompare({
                             customSnapshotIdentifier: 'drag-modifiers-bubble-region-AB-selected-only',
                         });
 
-                        mouseDown(POINT_C, { metaKey });
-                        mouseMove(POINT_D, { metaKey });
+                        await mouseDown(POINT_C, { metaKey });
+                        await mouseMove(POINT_D, { metaKey });
                         await strictCompare({
                             customSnapshotIdentifier: 'drag-modifiers-bubble-region-CD-selection-in-progress',
                         });
 
-                        mouseUp(POINT_D, { metaKey });
+                        await mouseUp(POINT_D, { metaKey });
                         await strictCompare({
                             customSnapshotIdentifier: 'drag-modifiers-bubble-regions-ABCD-selected',
                         });
                     });
                     test('getSelection', async () => {
-                        mouseDown(POINT_A, { metaKey });
-                        mouseMove(POINT_B, { metaKey });
+                        await mouseDown(POINT_A, { metaKey });
+                        await mouseMove(POINT_B, { metaKey });
                         expect(getChartSelectionArray()).toEqual([]);
 
-                        mouseUp(POINT_B, { metaKey });
+                        await mouseUp(POINT_B, { metaKey });
                         expect(getChartSelectionArray()).toEqual(SELECTION_AB);
 
-                        mouseDown(POINT_C, { metaKey });
-                        mouseMove(POINT_D, { metaKey });
+                        await mouseDown(POINT_C, { metaKey });
+                        await mouseMove(POINT_D, { metaKey });
                         expect(getChartSelectionArray()).toEqual(SELECTION_AB);
 
-                        mouseUp(POINT_D, { metaKey });
+                        await mouseUp(POINT_D, { metaKey });
                         expect(getChartSelectionArray()).toEqual(SELECTION_ABCD);
                     });
                     test('selectionChange', async () => {
-                        mouseDown(POINT_A, { metaKey });
-                        mouseMove(POINT_B, { metaKey });
+                        await mouseDown(POINT_A, { metaKey });
+                        await mouseMove(POINT_B, { metaKey });
                         expect(selectionChange.popEvents()).toEqual([]);
 
-                        mouseUp(POINT_B, { metaKey });
+                        await mouseUp(POINT_B, { metaKey });
                         expect(selectionChange.popEvents()).toEqual([AB_ADDED]);
 
-                        mouseDown(POINT_C, { metaKey });
-                        mouseMove(POINT_D, { metaKey });
+                        await mouseDown(POINT_C, { metaKey });
+                        await mouseMove(POINT_D, { metaKey });
                         expect(selectionChange.popEvents()).toEqual([]);
 
-                        mouseUp(POINT_D, { metaKey });
+                        await mouseUp(POINT_D, { metaKey });
                         expect(selectionChange.popEvents()).toEqual([CD_ADDED]);
                     });
                 });
 
                 describe('alt-modifier ignored', () => {
                     test('screenshot', async () => {
-                        mouseDown(POINT_A, { altKey });
-                        mouseMove(POINT_B, { altKey });
+                        await mouseDown(POINT_A, { altKey });
+                        await mouseMove(POINT_B, { altKey });
                         await strictCompare({
                             customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
                         });
 
-                        mouseUp(POINT_B, { altKey });
+                        await mouseUp(POINT_B, { altKey });
                         await strictCompare({
                             customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
                         });
 
-                        mouseDown(POINT_C, { altKey });
-                        mouseMove(POINT_D, { altKey });
+                        await mouseDown(POINT_C, { altKey });
+                        await mouseMove(POINT_D, { altKey });
                         await strictCompare({
                             customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
                         });
 
-                        mouseUp(POINT_D, { altKey });
+                        await mouseUp(POINT_D, { altKey });
                         await strictCompare({
                             customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
                         });
                     });
                     test('getSelection', async () => {
-                        mouseDown(POINT_A, { altKey });
-                        mouseMove(POINT_B, { altKey });
+                        await mouseDown(POINT_A, { altKey });
+                        await mouseMove(POINT_B, { altKey });
                         expect(getChartSelectionArray()).toEqual([]);
 
-                        mouseUp(POINT_B, { altKey });
+                        await mouseUp(POINT_B, { altKey });
                         expect(getChartSelectionArray()).toEqual([]);
 
-                        mouseDown(POINT_C, { altKey });
-                        mouseMove(POINT_D, { altKey });
+                        await mouseDown(POINT_C, { altKey });
+                        await mouseMove(POINT_D, { altKey });
                         expect(getChartSelectionArray()).toEqual([]);
 
-                        mouseUp(POINT_D, { altKey });
+                        await mouseUp(POINT_D, { altKey });
                         expect(getChartSelectionArray()).toEqual([]);
                     });
                     test('selectionChange', async () => {
-                        mouseDown(POINT_A, { altKey });
-                        mouseMove(POINT_B, { altKey });
+                        await mouseDown(POINT_A, { altKey });
+                        await mouseMove(POINT_B, { altKey });
                         expect(selectionChange.popEvents()).toEqual([]);
 
-                        mouseUp(POINT_B, { altKey });
+                        await mouseUp(POINT_B, { altKey });
                         expect(selectionChange.popEvents()).toEqual([]);
 
-                        mouseDown(POINT_C, { altKey });
-                        mouseMove(POINT_D, { altKey });
+                        await mouseDown(POINT_C, { altKey });
+                        await mouseMove(POINT_D, { altKey });
                         expect(selectionChange.popEvents()).toEqual([]);
 
-                        mouseUp(POINT_D, { altKey });
+                        await mouseUp(POINT_D, { altKey });
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
 
                 describe('shift-modifier ignored', () => {
                     test('screenshot', async () => {
-                        mouseDown(POINT_A, { shiftKey });
-                        mouseMove(POINT_B, { shiftKey });
+                        await mouseDown(POINT_A, { shiftKey });
+                        await mouseMove(POINT_B, { shiftKey });
                         await strictCompare({
                             customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
                         });
 
-                        mouseUp(POINT_B, { shiftKey });
+                        await mouseUp(POINT_B, { shiftKey });
                         await strictCompare({
                             customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
                         });
 
-                        mouseDown(POINT_C, { shiftKey });
-                        mouseMove(POINT_D, { shiftKey });
+                        await mouseDown(POINT_C, { shiftKey });
+                        await mouseMove(POINT_D, { shiftKey });
                         await strictCompare({
                             customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
                         });
 
-                        mouseUp(POINT_D, { shiftKey });
+                        await mouseUp(POINT_D, { shiftKey });
                         await strictCompare({
                             customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
                         });
                     });
                     test('getSelection', async () => {
-                        mouseDown(POINT_A, { shiftKey });
-                        mouseMove(POINT_B, { shiftKey });
+                        await mouseDown(POINT_A, { shiftKey });
+                        await mouseMove(POINT_B, { shiftKey });
                         expect(getChartSelectionArray()).toEqual([]);
 
-                        mouseUp(POINT_B, { shiftKey });
+                        await mouseUp(POINT_B, { shiftKey });
                         expect(getChartSelectionArray()).toEqual([]);
 
-                        mouseDown(POINT_C, { shiftKey });
-                        mouseMove(POINT_D, { shiftKey });
+                        await mouseDown(POINT_C, { shiftKey });
+                        await mouseMove(POINT_D, { shiftKey });
                         expect(getChartSelectionArray()).toEqual([]);
 
-                        mouseUp(POINT_D, { shiftKey });
+                        await mouseUp(POINT_D, { shiftKey });
                         expect(getChartSelectionArray()).toEqual([]);
                     });
                     test('selectionChange', async () => {
-                        mouseDown(POINT_A, { shiftKey });
-                        mouseMove(POINT_B, { shiftKey });
+                        await mouseDown(POINT_A, { shiftKey });
+                        await mouseMove(POINT_B, { shiftKey });
                         expect(selectionChange.popEvents()).toEqual([]);
 
-                        mouseUp(POINT_B, { shiftKey });
+                        await mouseUp(POINT_B, { shiftKey });
                         expect(selectionChange.popEvents()).toEqual([]);
 
-                        mouseDown(POINT_C, { shiftKey });
-                        mouseMove(POINT_D, { shiftKey });
+                        await mouseDown(POINT_C, { shiftKey });
+                        await mouseMove(POINT_D, { shiftKey });
                         expect(selectionChange.popEvents()).toEqual([]);
 
-                        mouseUp(POINT_D, { shiftKey });
+                        await mouseUp(POINT_D, { shiftKey });
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
