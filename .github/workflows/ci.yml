@@ -618,10 +618,19 @@ jobs:
                 include:
                     - name: treeshake
                       target: bundle-treeshake-tests:test:bundle-treeshake
-                    - name: render
+                      bundlers: ''
+                    - name: render-esbuild
                       target: bundle-render-tests:test:bundle-render
+                      bundlers: 'esbuild'
+                    - name: render-vite
+                      target: bundle-render-tests:test:bundle-render
+                      bundlers: 'vite'
+                    - name: render-webpack
+                      target: bundle-render-tests:test:bundle-render
+                      bundlers: 'webpack'
         env:
             NX_BASE: ${{ needs.init.outputs.nx_base }}
+            BUNDLE_RENDER_BUNDLERS: ${{ matrix.bundlers }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -641,7 +650,7 @@ jobs:
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx test:bundle-${{ matrix.name }}
-              run: yarn nx run ${{ matrix.target }}
+              run: yarn nx run ${{ matrix.target }} --skip-nx-cache
 
     report:
         runs-on: ubuntu-24.04

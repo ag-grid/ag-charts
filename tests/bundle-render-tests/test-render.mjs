@@ -18,11 +18,23 @@ import { scenarios } from './scenarios.mjs';
 const NodeCanvas = ConfiguredCanvasMixin(Canvas);
 applySkiaPatches(SkiaCanvas.CanvasRenderingContext2D, DOMMatrix);
 
-const bundlers = [
+const allBundlers = [
     { name: 'esbuild', fn: bundleWithEsbuild },
     { name: 'vite', fn: bundleWithVite },
     { name: 'webpack', fn: bundleWithWebpack },
 ];
+
+// BUNDLE_RENDER_BUNDLERS env var (comma-separated) selects a subset for CI sharding.
+const bundlerFilter = process.env.BUNDLE_RENDER_BUNDLERS?.split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+const bundlers = bundlerFilter?.length ? allBundlers.filter((b) => bundlerFilter.includes(b.name)) : allBundlers;
+if (bundlers.length === 0) {
+    throw new Error(
+        `BUNDLE_RENDER_BUNDLERS=${process.env.BUNDLE_RENDER_BUNDLERS} matched no bundlers (known: ${allBundlers.map((b) => b.name).join(', ')})`
+    );
+}
+console.log(`>>> running bundlers: ${bundlers.map((b) => b.name).join(', ')}`);
 
 const outputDir = resolve('output');
 const workDir = resolve('.entries');
