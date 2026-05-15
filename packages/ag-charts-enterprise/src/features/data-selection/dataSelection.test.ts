@@ -683,8 +683,8 @@ describe('DataSelection', () => {
                             enableClick: false,
                         },
                         axes: {
-                            x: { crosshair: { enabled: false } },
-                            y: { crosshair: { enabled: false } },
+                            x: { crosshair: { enabled: false }, gridLine: { enabled: false } },
+                            y: { crosshair: { enabled: false }, gridLine: { enabled: false } },
                         },
                         navigator: { enabled: false },
                         scrollbar: { enabled: false },
