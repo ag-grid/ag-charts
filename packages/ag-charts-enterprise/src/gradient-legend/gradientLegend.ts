@@ -127,9 +127,7 @@ export class GradientLegend extends AbstractModuleInstance {
         shrinkRect: _ModuleSupport.BBox,
         colorStops: GradientColorStop[]
     ) {
-        const g = this.opts.gradient ?? {};
-        const thickness = g.thickness ?? 16;
-        const preferredLength = g.preferredLength ?? 100;
+        const { thickness, preferredLength } = this.opts.gradient;
         const gradientRectBBox = new BBox(0, 0, 0, 0);
 
         let angle: number;
@@ -165,9 +163,9 @@ export class GradientLegend extends AbstractModuleInstance {
         gradientRectBBox: _ModuleSupport.BBox
     ) {
         const opts = this.opts;
-        const scale = opts.scale ?? {};
-        const scalePadding = scale.padding ?? 0;
-        const gradientThickness = opts.gradient?.thickness ?? 16;
+        const scale = opts.scale;
+        const scalePadding = scale.padding;
+        const gradientThickness = opts.gradient.thickness;
 
         axisTicks.labelOptions = scale.label;
         axisTicks.intervalOptions = scale.interval;
@@ -333,15 +331,11 @@ export class GradientLegend extends AbstractModuleInstance {
 
     private getContainerStyles() {
         const opts = this.opts;
-        const b = opts.border ?? {};
-        const borderEnabled = b.enabled ?? false;
-        const stroke = b.stroke;
-        const strokeOpacity = b.strokeOpacity ?? 1;
-        const strokeWidth = b.strokeWidth ?? 1;
+        const { enabled: borderEnabled, stroke, strokeOpacity, strokeWidth } = opts.border;
         const cornerRadius = opts.cornerRadius;
         const fill = opts.fill as string | undefined;
         const fillOpacity = opts.fillOpacity;
-        const padding = opts.padding ?? 4;
+        const padding = opts.padding;
         const isPaddingNumber = typeof padding === 'number';
 
         return {
