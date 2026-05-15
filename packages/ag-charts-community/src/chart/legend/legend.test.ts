@@ -1144,4 +1144,70 @@ describe('Legend', () => {
             expect(isTooltipVisible(chart)).toBe(true);
         });
     });
+
+    describe('AG-17126 aria-describedby', () => {
+        type NullableString = string | null;
+        type NullableStringTrouple = [NullableString, NullableString, NullableString];
+
+        const options: AgChartOptions = {
+            data: [
+                { year: '2016', gold: 26, silver: 18, bronze: 26 },
+                { year: '2020', gold: 38, silver: 32, bronze: 19 },
+                { year: '2024', gold: 40, silver: 27, bronze: 24 },
+            ],
+            series: [
+                { type: 'bar', xKey: 'year', yKey: 'gold' },
+                { type: 'bar', xKey: 'year', yKey: 'silver' },
+                { type: 'bar', xKey: 'year', yKey: 'bronze' },
+            ],
+        };
+
+        function findAriaDescribedByIds(): NullableStringTrouple {
+            const elems = document.querySelectorAll('.ag-charts-proxy-legend-toolbar button');
+            expect(elems.length).toBe(3);
+            return [
+                elems.item(0).getAttribute('aria-describedby'),
+                elems.item(1).getAttribute('aria-describedby'),
+                elems.item(2).getAttribute('aria-describedby'),
+            ];
+        }
+
+        function findAriaDescribedByTextContent([id0, id1, id2]: NullableStringTrouple): NullableStringTrouple {
+            function readTextContent(id: NullableString): NullableString {
+                if (id === null) return null;
+                const elem = document.getElementById(id);
+                expect(elem).not.toBeNull();
+                return elem!.textContent;
+            }
+            return [readTextContent(id0), readTextContent(id1), readTextContent(id2)];
+        }
+
+        test('interactions enabled', async () => {
+            chart = await createChart({ ...options });
+            await waitForChartStability(chart);
+
+            const EXPECTED_ID = 'ag-charts-3';
+            const ids = findAriaDescribedByIds();
+            const [ariaDescribedById0, ariaDescribedById1, ariaDescribedById2] = ids;
+            expect(ariaDescribedById0).toBe(EXPECTED_ID);
+            expect(ariaDescribedById1).toBe(EXPECTED_ID);
+            expect(ariaDescribedById2).toBe(EXPECTED_ID);
+
+            const EXPECTED_TEXT = 'Press Space or Enter to toggle visibility';
+            const [ariaDescribedBy0, ariaDescribedBy1, ariaDescribedBy2] = findAriaDescribedByTextContent(ids);
+            expect(ariaDescribedBy0).toBe(EXPECTED_TEXT);
+            expect(ariaDescribedBy1).toBe(EXPECTED_TEXT);
+            expect(ariaDescribedBy2).toBe(EXPECTED_TEXT);
+        });
+
+        test('interactions disabled', async () => {
+            chart = await createChart({ ...options, legend: { toggleSeries: false } });
+            await waitForChartStability(chart);
+
+            const [ariaDescribedById0, ariaDescribedById1, ariaDescribedById2] = findAriaDescribedByIds();
+            expect(ariaDescribedById0).toBeNull();
+            expect(ariaDescribedById1).toBeNull();
+            expect(ariaDescribedById2).toBeNull();
+        });
+    });
 });
