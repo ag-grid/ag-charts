@@ -598,12 +598,15 @@ describe('DataSelection', () => {
 
         async function mouseDown(point: CanvasPoint, modifiers?: Modifiers) {
             await mouseDownAction(point.canvasX, point.canvasY, modifiers)(chart);
+            await waitForChartStability(chart);
         }
         async function mouseMove(point: CanvasPoint, modifiers?: Modifiers) {
             await mouseMoveAction(point.canvasX, point.canvasY, modifiers)(chart);
+            await waitForChartStability(chart);
         }
         async function mouseUp(point: CanvasPoint, modifiers?: Modifiers) {
             await mouseUpAction(point.canvasX, point.canvasY, modifiers)(chart);
+            await waitForChartStability(chart);
         }
 
         async function createChartInstance<T extends AgChartOptions<any, any>>(opts: T) {
