@@ -431,7 +431,11 @@ const checkTargetValid = ({ target }: MockEvent) => {
     if (!target.isConnected) throw new Error('Chart must be configured with a container for event testing to work');
 };
 
-export function hoverAction(canvasX: number, canvasY: number): (chart: ChartOrProxy) => Promise<void> {
+export function hoverAction(
+    canvasX: number,
+    canvasY: number,
+    modifiers?: EventModifierInit
+): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const testTarget = findChartTarget(chart, canvasX, canvasY);
@@ -457,33 +461,41 @@ export function hoverAction(canvasX: number, canvasY: number): (chart: ChartOrPr
         const enterTarget: MockEvent = { ...testTarget, bubbleChain: enterChain };
         testChart.testLastMouseMoveBubbleChain = testTarget.bubbleChain;
 
-        dispatchEvent(leaveTarget, mouseLeaveEvent(leaveTarget, canvasX, canvasY));
-        dispatchEvent(enterTarget, mouseEnterEvent(enterTarget, canvasX, canvasY));
-        dispatchEvent(testTarget, mouseMoveEvent(testTarget, canvasX, canvasY));
+        dispatchEvent(leaveTarget, mouseLeaveEvent(leaveTarget, canvasX, canvasY, modifiers));
+        dispatchEvent(enterTarget, mouseEnterEvent(enterTarget, canvasX, canvasY, modifiers));
+        dispatchEvent(testTarget, mouseMoveEvent(testTarget, canvasX, canvasY, modifiers));
         return delay(50);
     };
 }
 
 export const mouseMoveAction = hoverAction;
 
-export function mouseDownAction(canvasX: number, canvasY: number): (chart: ChartOrProxy) => Promise<void> {
+export function mouseDownAction(
+    canvasX: number,
+    canvasY: number,
+    modifiers?: EventModifierInit
+): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const testTarget = findChartTarget(chart, canvasX, canvasY);
         checkTargetValid(testTarget);
 
-        dispatchEvent(testTarget, mouseDownEvent(testTarget, canvasX, canvasY));
+        dispatchEvent(testTarget, mouseDownEvent(testTarget, canvasX, canvasY, modifiers));
         return delay(50);
     };
 }
 
-export function mouseUpAction(canvasX: number, canvasY: number): (chart: ChartOrProxy) => Promise<void> {
+export function mouseUpAction(
+    canvasX: number,
+    canvasY: number,
+    modifiers?: EventModifierInit
+): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const testTarget = findChartTarget(chart, canvasX, canvasY);
         checkTargetValid(testTarget);
 
-        dispatchEvent(testTarget, mouseUpEvent(testTarget, canvasX, canvasY));
+        dispatchEvent(testTarget, mouseUpEvent(testTarget, canvasX, canvasY, modifiers));
         return delay(50);
     };
 }
