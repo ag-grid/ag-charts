@@ -122,6 +122,9 @@ export type MockAnnotationsListener<TDatum, TContext> = NonNullable<
     AgBaseChartListeners<TDatum, TContext>['annotations']
 >;
 export type MockZoomListener<TDatum, TContext> = NonNullable<AgBaseChartListeners<TDatum, TContext>['zoom']>;
+export type MockSelectionChangeListener<TDatum, TContext> = NonNullable<
+    AgBaseChartListeners<TDatum, TContext>['selectionChange']
+>;
 export type MockGetDataCallback<TDatum, TContext> = NonNullable<
     AgBaseThemeableChartOptions<TDatum, TContext>['dataSource']
 >['getData'];
@@ -194,6 +197,7 @@ export type MockAPICallback<TDatum, TContext> =
     | MockActiveChangeListener<TDatum, TContext>
     | MockAnnotationsListener<TDatum, TContext>
     | MockZoomListener<TDatum, TContext>
+    | MockSelectionChangeListener<TDatum, TContext>
     | MockGetDataCallback<TDatum, TContext>
     | MockChartClickListener<TDatum, TContext>
     | MockChartDblClickListener<TDatum, TContext>

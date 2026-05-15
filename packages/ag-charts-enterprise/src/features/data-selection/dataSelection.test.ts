@@ -1,24 +1,104 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import {
+    AgBubbleSeriesOptions,
     type AgCartesianChartOptions,
     type AgChartInstance,
     type AgChartOptions,
     AgCharts,
     type AgErrorBarItemStylerParams,
+    AgSelectionChangeEvent,
+    AgSelectionItem,
 } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    MockSelectionChangeListener,
     deproxy,
     dragAction,
     extractImageData,
     getSeriesAggregationInternals,
+    mouseDownAction,
+    mouseMoveAction,
+    mouseUpAction,
+    newFreezableMockInferred,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
+    withPreventDefault,
 } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
+
+type SelectionChangeRecorder<D, C> = {
+    (ev: AgSelectionChangeEvent<D, C>): void;
+    popEvents(): AgSelectionChangeEvent<D, C>[];
+};
+
+function createSelectionChangeRecorder<D, C>(): SelectionChangeRecorder<D, C> {
+    let events: AgSelectionChangeEvent<D, C>[] = [];
+
+    const freezeable = newFreezableMockInferred<MockSelectionChangeListener<D, C>>(
+        (ev: AgSelectionChangeEvent<D, C>) => {
+            events.push(ev);
+        }
+    );
+
+    const recorder: SelectionChangeRecorder<D, C> = (ev) => freezeable.mock(ev);
+    recorder.popEvents = () => {
+        const result = events;
+        events = [];
+        return result;
+    };
+
+    return recorder;
+}
+
+type BioDatum = { height: number; weight: number; age: number };
+function createBubbleBioStatOptions(): { data: BioDatum[]; series: [AgBubbleSeriesOptions<BioDatum>] } {
+    return {
+        data: [
+            { height: 152, weight: 48, age: 22 },
+            { height: 158, weight: 50, age: 19 },
+            { height: 161, weight: 58, age: 42 },
+            { height: 163, weight: 60, age: 31 },
+            { height: 165, weight: 62, age: 48 },
+            { height: 166, weight: 65, age: 55 },
+            { height: 168, weight: 63, age: 39 },
+            { height: 169, weight: 68, age: 45 },
+            { height: 170, weight: 72, age: 52 },
+            { height: 172, weight: 64, age: 30 },
+            { height: 173, weight: 70, age: 41 },
+            { height: 174, weight: 68, age: 34 },
+            { height: 176, weight: 60, age: 21 },
+            { height: 177, weight: 67, age: 28 },
+            { height: 178, weight: 80, age: 53 },
+            { height: 179, weight: 85, age: 59 },
+            { height: 180, weight: 66, age: 22 },
+            { height: 181, weight: 78, age: 46 },
+            { height: 182, weight: 76, age: 38 },
+            { height: 183, weight: 73, age: 27 },
+            { height: 188, weight: 76, age: 26 },
+            { height: 189, weight: 78, age: 33 },
+            { height: 190, weight: 95, age: 65 },
+            { height: 191, weight: 86, age: 47 },
+            { height: 192, weight: 80, age: 31 },
+            { height: 193, weight: 98, age: 64 },
+            { height: 160, weight: 75, age: 58 },
+            { height: 170, weight: 58, age: 19 },
+            { height: 180, weight: 60, age: 18 },
+            { height: 190, weight: 70, age: 21 },
+        ],
+        series: [
+            {
+                type: 'bubble',
+                xKey: 'height',
+                yKey: 'weight',
+                sizeKey: 'age',
+                highlight: { enabled: false },
+            },
+        ],
+    };
+}
 
 describe('DataSelection', () => {
     setupMockConsole();
@@ -28,6 +108,15 @@ describe('DataSelection', () => {
         const imageData = extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot(defaults);
     };
+
+    const strictCompare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
+        await compare({ ...defaults, customDiffConfig: { threshold: 0 } });
+    };
+
+    function getChartSelectionArray() {
+        expect(chart).toBeDefined();
+        return Array.from(chart.getSelection());
+    }
 
     let chart: AgChartInstance;
     const ctx = setupMockCanvas();
@@ -495,6 +584,384 @@ describe('DataSelection', () => {
             expect(selected).toHaveLength(1);
             expect(selected[0].seriesId).toBe(seriesB.id);
             await compare();
+        });
+    });
+
+    describe('drag modifiers', () => {
+        type CanvasPoint = { readonly canvasX: number; readonly canvasY: number };
+        type Modifiers = { altKey?: true; shiftKey?: true; ctrlKey?: true; metaKey?: true };
+        const [altKey, shiftKey, ctrlKey, metaKey] = [true, true, true, true] as const;
+
+        async function mouseDown(point: CanvasPoint, modifiers?: Modifiers) {
+            await mouseDownAction(point.canvasX, point.canvasY, modifiers)(chart);
+        }
+        async function mouseMove(point: CanvasPoint, modifiers?: Modifiers) {
+            await mouseMoveAction(point.canvasX, point.canvasY, modifiers)(chart);
+        }
+        async function mouseUp(point: CanvasPoint, modifiers?: Modifiers) {
+            await mouseUpAction(point.canvasX, point.canvasY, modifiers)(chart);
+        }
+
+        async function createChartInstance<T extends AgChartOptions<any, any>>(opts: T) {
+            opts = prepareEnterpriseTestOptions(opts);
+            const chart = AgCharts.create(opts);
+            await waitForChartStability(chart);
+            return chart;
+        }
+
+        describe('bubble', () => {
+            describe('without module clash', () => {
+                type D = BioDatum;
+                type C = unknown;
+                let selectionChange: SelectionChangeRecorder<D, C>;
+
+                const POINT_A = { canvasX: 196, canvasY: 428 } as const;
+                const POINT_B = { canvasX: 341, canvasY: 244 } as const;
+                const POINT_C = { canvasX: 678, canvasY: 74 } as const;
+                const POINT_D = { canvasX: 520, canvasY: 241 } as const;
+
+                const SELECTION_AB: AgSelectionItem<D>[] = [
+                    { datum: { age: 42, height: 161, weight: 58 }, itemId: 2, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 31, height: 163, weight: 60 }, itemId: 3, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 48, height: 165, weight: 62 }, itemId: 4, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 55, height: 166, weight: 65 }, itemId: 5, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 39, height: 168, weight: 63 }, itemId: 6, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 45, height: 169, weight: 68 }, itemId: 7, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 52, height: 170, weight: 72 }, itemId: 8, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 58, height: 160, weight: 75 }, itemId: 26, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 19, height: 170, weight: 58 }, itemId: 27, seriesId: 'BubbleSeries-1' },
+                ];
+                const SELECTION_CD: AgSelectionItem<D>[] = [
+                    { datum: { age: 38, height: 182, weight: 76 }, itemId: 18, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 26, height: 188, weight: 76 }, itemId: 20, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 33, height: 189, weight: 78 }, itemId: 21, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 65, height: 190, weight: 95 }, itemId: 22, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 47, height: 191, weight: 86 }, itemId: 23, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 31, height: 192, weight: 80 }, itemId: 24, seriesId: 'BubbleSeries-1' },
+                ];
+                const SELECTION_ABCD: AgSelectionItem<D>[] = [...SELECTION_AB, ...SELECTION_CD].sort(
+                    (a, b) => (a.itemId as number) - (b.itemId as number)
+                );
+
+                const AB_ADDED = withPreventDefault<AgSelectionChangeEvent<D, C>>({
+                    type: 'selectionChange',
+                    source: 'user-interaction',
+                    removed: [],
+                    added: SELECTION_AB,
+                });
+                const CD_ADDED = withPreventDefault<AgSelectionChangeEvent<D, C>>({
+                    type: 'selectionChange',
+                    source: 'user-interaction',
+                    removed: [],
+                    added: SELECTION_CD,
+                });
+                const AB_REMOVED_CD_ADDED = withPreventDefault<AgSelectionChangeEvent<D, C>>({
+                    type: 'selectionChange',
+                    source: 'user-interaction',
+                    removed: SELECTION_AB,
+                    added: SELECTION_CD,
+                });
+
+                beforeEach(async () => {
+                    const { data, series } = createBubbleBioStatOptions();
+                    selectionChange = createSelectionChangeRecorder();
+
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        selection: {
+                            containment: 'any',
+                            enabled: true,
+                            enableDrag: true,
+                            enableClick: false,
+                        },
+                        navigator: { enabled: false },
+                        scrollbar: { enabled: false },
+                        zoom: { enabled: false },
+                        listeners: { selectionChange },
+                    });
+                });
+
+                describe('no-modifier clears and selects', () => {
+                    test('screenshot', async () => {
+                        mouseDown(POINT_A);
+                        mouseMove(POINT_B);
+                        await strictCompare({
+                            customSnapshotIdentifier: 'drag-modifiers-bubble-region-AB-selection-in-progress',
+                        });
+
+                        mouseUp(POINT_B);
+                        await strictCompare({
+                            customSnapshotIdentifier: 'drag-modifiers-bubble-region-AB-selected-only',
+                        });
+
+                        mouseDown(POINT_C);
+                        mouseMove(POINT_D);
+                        await strictCompare({
+                            customSnapshotIdentifier: 'drag-modifiers-bubble-region-CD-selection-in-progress',
+                        });
+
+                        mouseUp(POINT_D);
+                        await strictCompare({
+                            customSnapshotIdentifier: 'drag-modifiers-bubble-region-CD-selected-only',
+                        });
+                    });
+                    test('getSelection', async () => {
+                        mouseDown(POINT_A);
+                        mouseMove(POINT_B);
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        mouseUp(POINT_B);
+                        expect(getChartSelectionArray()).toEqual(SELECTION_AB);
+
+                        mouseDown(POINT_C);
+                        mouseMove(POINT_D);
+                        expect(getChartSelectionArray()).toEqual(SELECTION_AB);
+
+                        mouseUp(POINT_D);
+                        expect(getChartSelectionArray()).toEqual(SELECTION_CD);
+                    });
+                    test('selectionChange', async () => {
+                        mouseDown(POINT_A);
+                        mouseMove(POINT_B);
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        mouseUp(POINT_B);
+                        expect(selectionChange.popEvents()).toEqual([AB_ADDED]);
+
+                        mouseDown(POINT_C);
+                        mouseMove(POINT_D);
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        mouseUp(POINT_D);
+                        expect(selectionChange.popEvents()).toEqual([AB_REMOVED_CD_ADDED]);
+                    });
+                });
+
+                describe('ctrl-modifier adds to selection', () => {
+                    test('screenshot', async () => {
+                        mouseDown(POINT_A, { ctrlKey });
+                        mouseMove(POINT_B, { ctrlKey });
+                        await strictCompare({
+                            customSnapshotIdentifier: 'drag-modifiers-bubble-region-AB-selection-in-progress',
+                        });
+
+                        mouseUp(POINT_B, { ctrlKey });
+                        await strictCompare({
+                            customSnapshotIdentifier: 'drag-modifiers-bubble-region-AB-selected-only',
+                        });
+
+                        mouseDown(POINT_C, { ctrlKey });
+                        mouseMove(POINT_D, { ctrlKey });
+                        await strictCompare({
+                            customSnapshotIdentifier: 'drag-modifiers-bubble-region-CD-selection-in-progress',
+                        });
+
+                        mouseUp(POINT_D, { ctrlKey });
+                        await strictCompare({
+                            customSnapshotIdentifier: 'drag-modifiers-bubble-regions-ABCD-selected',
+                        });
+                    });
+                    test('getSelection', async () => {
+                        mouseDown(POINT_A, { ctrlKey });
+                        mouseMove(POINT_B, { ctrlKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        mouseUp(POINT_B, { ctrlKey });
+                        expect(getChartSelectionArray()).toEqual(SELECTION_AB);
+
+                        mouseDown(POINT_C, { ctrlKey });
+                        mouseMove(POINT_D, { ctrlKey });
+                        expect(getChartSelectionArray()).toEqual(SELECTION_AB);
+
+                        mouseUp(POINT_D, { ctrlKey });
+                        expect(getChartSelectionArray()).toEqual(SELECTION_ABCD);
+                    });
+                    test('selectionChange', async () => {
+                        mouseDown(POINT_A, { ctrlKey });
+                        mouseMove(POINT_B, { ctrlKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        mouseUp(POINT_B, { ctrlKey });
+                        expect(selectionChange.popEvents()).toEqual([AB_ADDED]);
+
+                        mouseDown(POINT_C, { ctrlKey });
+                        mouseMove(POINT_D, { ctrlKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        mouseUp(POINT_D, { ctrlKey });
+                        expect(selectionChange.popEvents()).toEqual([CD_ADDED]);
+                    });
+                });
+
+                describe('meta-modifier adds to selection', () => {
+                    test('screenshot', async () => {
+                        mouseDown(POINT_A, { metaKey });
+                        mouseMove(POINT_B, { metaKey });
+                        await strictCompare({
+                            customSnapshotIdentifier: 'drag-modifiers-bubble-region-AB-selection-in-progress',
+                        });
+
+                        mouseUp(POINT_B, { metaKey });
+                        await strictCompare({
+                            customSnapshotIdentifier: 'drag-modifiers-bubble-region-AB-selected-only',
+                        });
+
+                        mouseDown(POINT_C, { metaKey });
+                        mouseMove(POINT_D, { metaKey });
+                        await strictCompare({
+                            customSnapshotIdentifier: 'drag-modifiers-bubble-region-CD-selection-in-progress',
+                        });
+
+                        mouseUp(POINT_D, { metaKey });
+                        await strictCompare({
+                            customSnapshotIdentifier: 'drag-modifiers-bubble-regions-ABCD-selected',
+                        });
+                    });
+                    test('getSelection', async () => {
+                        mouseDown(POINT_A, { metaKey });
+                        mouseMove(POINT_B, { metaKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        mouseUp(POINT_B, { metaKey });
+                        expect(getChartSelectionArray()).toEqual(SELECTION_AB);
+
+                        mouseDown(POINT_C, { metaKey });
+                        mouseMove(POINT_D, { metaKey });
+                        expect(getChartSelectionArray()).toEqual(SELECTION_AB);
+
+                        mouseUp(POINT_D, { metaKey });
+                        expect(getChartSelectionArray()).toEqual(SELECTION_ABCD);
+                    });
+                    test('selectionChange', async () => {
+                        mouseDown(POINT_A, { metaKey });
+                        mouseMove(POINT_B, { metaKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        mouseUp(POINT_B, { metaKey });
+                        expect(selectionChange.popEvents()).toEqual([AB_ADDED]);
+
+                        mouseDown(POINT_C, { metaKey });
+                        mouseMove(POINT_D, { metaKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        mouseUp(POINT_D, { metaKey });
+                        expect(selectionChange.popEvents()).toEqual([CD_ADDED]);
+                    });
+                });
+
+                describe('alt-modifier ignored', () => {
+                    test('screenshot', async () => {
+                        mouseDown(POINT_A, { altKey });
+                        mouseMove(POINT_B, { altKey });
+                        await strictCompare({
+                            customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
+                        });
+
+                        mouseUp(POINT_B, { altKey });
+                        await strictCompare({
+                            customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
+                        });
+
+                        mouseDown(POINT_C, { altKey });
+                        mouseMove(POINT_D, { altKey });
+                        await strictCompare({
+                            customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
+                        });
+
+                        mouseUp(POINT_D, { altKey });
+                        await strictCompare({
+                            customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
+                        });
+                    });
+                    test('getSelection', async () => {
+                        mouseDown(POINT_A, { altKey });
+                        mouseMove(POINT_B, { altKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        mouseUp(POINT_B, { altKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        mouseDown(POINT_C, { altKey });
+                        mouseMove(POINT_D, { altKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        mouseUp(POINT_D, { altKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', async () => {
+                        mouseDown(POINT_A, { altKey });
+                        mouseMove(POINT_B, { altKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        mouseUp(POINT_B, { altKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        mouseDown(POINT_C, { altKey });
+                        mouseMove(POINT_D, { altKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        mouseUp(POINT_D, { altKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+
+                describe('shift-modifier ignored', () => {
+                    test('screenshot', async () => {
+                        mouseDown(POINT_A, { shiftKey });
+                        mouseMove(POINT_B, { shiftKey });
+                        await strictCompare({
+                            customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
+                        });
+
+                        mouseUp(POINT_B, { shiftKey });
+                        await strictCompare({
+                            customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
+                        });
+
+                        mouseDown(POINT_C, { shiftKey });
+                        mouseMove(POINT_D, { shiftKey });
+                        await strictCompare({
+                            customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
+                        });
+
+                        mouseUp(POINT_D, { shiftKey });
+                        await strictCompare({
+                            customSnapshotIdentifier: 'drag-modifiers-bubble-no-selection',
+                        });
+                    });
+                    test('getSelection', async () => {
+                        mouseDown(POINT_A, { shiftKey });
+                        mouseMove(POINT_B, { shiftKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        mouseUp(POINT_B, { shiftKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        mouseDown(POINT_C, { shiftKey });
+                        mouseMove(POINT_D, { shiftKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        mouseUp(POINT_D, { shiftKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', async () => {
+                        mouseDown(POINT_A, { shiftKey });
+                        mouseMove(POINT_B, { shiftKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        mouseUp(POINT_B, { shiftKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        mouseDown(POINT_C, { shiftKey });
+                        mouseMove(POINT_D, { shiftKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        mouseUp(POINT_D, { shiftKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+            });
         });
     });
 });
