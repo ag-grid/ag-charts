@@ -992,9 +992,18 @@ describe('DataSelection', () => {
                     ratioX: { end: 0.8, start: 0.2 },
                     ratioY: { end: 0.8, start: 0.2 },
                 };
-
-                const AB_ZOOM: AgInitialStateZoomOptions = {};
-                const CD_ZOOM: AgInitialStateZoomOptions = {};
+                const AB_ZOOM: AgInitialStateZoomOptions = {
+                    rangeX: { end: 181.59183673469389, start: 151.59183673469389 },
+                    rangeY: { end: 76, start: 40 },
+                    ratioX: { end: 0.6318367346938776, start: 0.03183673469387757 },
+                    ratioY: { end: 0.6, start: 0 },
+                };
+                const CD_ZOOM: AgInitialStateZoomOptions = {
+                    rangeX: { end: 188.73469387755102, start: 158.73469387755102 },
+                    rangeY: { end: 89.59252336448597, start: 53.59252336448598 },
+                    ratioX: { end: 0.7746938775510204, start: 0.17469387755102042 },
+                    ratioY: { end: 0.8265420560747663, start: 0.22654205607476632 },
+                };
 
                 beforeEach(async () => {
                     const { data, series } = createBubbleBioStatOptions();
@@ -1138,18 +1147,18 @@ describe('DataSelection', () => {
                         expect(selectionChange.popEvents()).toEqual([CD_ADDED]);
                     });
                     test('zoomState', async () => {
-                        await mouseDown(POINT_A);
-                        await mouseMove(POINT_B);
+                        await mouseDown(POINT_A, { ctrlKey });
+                        await mouseMove(POINT_B, { ctrlKey });
                         expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
 
-                        await mouseUp(POINT_B);
+                        await mouseUp(POINT_B, { ctrlKey });
                         expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
 
-                        await mouseDown(POINT_C);
-                        await mouseMove(POINT_D);
+                        await mouseDown(POINT_C, { ctrlKey });
+                        await mouseMove(POINT_D, { ctrlKey });
                         expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
 
-                        await mouseUp(POINT_D);
+                        await mouseUp(POINT_D, { ctrlKey });
                         expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
                     });
                 });
@@ -1201,18 +1210,18 @@ describe('DataSelection', () => {
                         expect(selectionChange.popEvents()).toEqual([CD_ADDED]);
                     });
                     test('zoomState', async () => {
-                        await mouseDown(POINT_A);
-                        await mouseMove(POINT_B);
+                        await mouseDown(POINT_A, { metaKey });
+                        await mouseMove(POINT_B, { metaKey });
                         expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
 
-                        await mouseUp(POINT_B);
+                        await mouseUp(POINT_B, { metaKey });
                         expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
 
-                        await mouseDown(POINT_C);
-                        await mouseMove(POINT_D);
+                        await mouseDown(POINT_C, { metaKey });
+                        await mouseMove(POINT_D, { metaKey });
                         expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
 
-                        await mouseUp(POINT_D);
+                        await mouseUp(POINT_D, { metaKey });
                         expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
                     });
                 });
@@ -1264,18 +1273,18 @@ describe('DataSelection', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                     test('zoomState', async () => {
-                        await mouseDown(POINT_A);
-                        await mouseMove(POINT_B);
+                        await mouseDown(POINT_A, { altKey });
+                        await mouseMove(POINT_B, { altKey });
                         expect(getChartZoomState()).toEqual(AB_ZOOM);
 
-                        await mouseUp(POINT_B);
+                        await mouseUp(POINT_B, { altKey });
                         expect(getChartZoomState()).toEqual(AB_ZOOM);
 
-                        await mouseDown(POINT_C);
-                        await mouseMove(POINT_D);
+                        await mouseDown(POINT_C, { altKey });
+                        await mouseMove(POINT_D, { altKey });
                         expect(getChartZoomState()).toEqual(CD_ZOOM);
 
-                        await mouseUp(POINT_D);
+                        await mouseUp(POINT_D, { altKey });
                         expect(getChartZoomState()).toEqual(CD_ZOOM);
                     });
                 });
