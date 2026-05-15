@@ -285,7 +285,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         let left = 0;
         let offsetTop: number;
         let textVAlign: CanvasTextBaseline = 'alphabetic';
-        if ((opts.layoutStyle ?? 'block') === 'block') {
+        if (opts.layoutStyle === 'block') {
             layoutBox.shrink(spacingAbove + lineHeight + spacingBelow, 'top');
             offsetTop = maxFontSize + (lineHeight - maxFontSize) / 2;
         } else {
@@ -355,7 +355,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
 
     private updateHighlight(activeHighlight: _ModuleSupport.HighlightNodeDatum | undefined) {
         const opts = this.opts;
-        if (!opts?.enabled) return;
+        if (!opts.enabled) return;
 
         // Get fallback from chart data when nothing is highlighted
         const datum = activeHighlight?.datum ?? this.chartData?.data?.at(-1);
