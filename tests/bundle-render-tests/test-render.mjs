@@ -36,6 +36,23 @@ if (bundlers.length === 0) {
 }
 console.log(`>>> running bundlers: ${bundlers.map((b) => b.name).join(', ')}`);
 
+// BUNDLE_RENDER_SHARD env var of form "N/M" runs only scenario indices where (i % M === N-1).
+function shardScenarios(scenarios, envValue) {
+    if (!envValue) return scenarios;
+    const match = /^(\d+)\/(\d+)$/.exec(envValue.trim());
+    if (!match) throw new Error(`BUNDLE_RENDER_SHARD must be N/M (got '${envValue}')`);
+    const [, n, m] = match.map(Number);
+    if (n < 1 || n > m) throw new Error(`BUNDLE_RENDER_SHARD ${envValue}: N must be in 1..M`);
+    return scenarios.filter((_, i) => i % m === n - 1);
+}
+
+const shardedScenarios = shardScenarios(scenarios, process.env.BUNDLE_RENDER_SHARD);
+if (process.env.BUNDLE_RENDER_SHARD) {
+    console.log(
+        `>>> shard ${process.env.BUNDLE_RENDER_SHARD}: ${shardedScenarios.length}/${scenarios.length} scenarios`
+    );
+}
+
 const outputDir = resolve('output');
 const workDir = resolve('.entries');
 
@@ -204,7 +221,7 @@ const FULL_MODULES = {
 // Track per-bundler entry counters to avoid import() cache collisions
 let entryCounter = 0;
 
-for (const scenario of scenarios) {
+for (const scenario of shardedScenarios) {
     const safeName = scenario.name.replace(/\//g, '_');
     const isFullScenario = scenario.name.endsWith('/full');
 

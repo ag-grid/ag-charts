@@ -636,13 +636,20 @@ jobs:
                       target: bundle-render-tests:test:bundle-render
                       render_bundlers: 'vite'
                       treeshake_bundlers: ''
-                    - name: render-webpack
+                    - name: render-webpack-1of2
                       target: bundle-render-tests:test:bundle-render
                       render_bundlers: 'webpack'
+                      render_shard: '1/2'
+                      treeshake_bundlers: ''
+                    - name: render-webpack-2of2
+                      target: bundle-render-tests:test:bundle-render
+                      render_bundlers: 'webpack'
+                      render_shard: '2/2'
                       treeshake_bundlers: ''
         env:
             NX_BASE: ${{ needs.init.outputs.nx_base }}
             BUNDLE_RENDER_BUNDLERS: ${{ matrix.render_bundlers }}
+            BUNDLE_RENDER_SHARD: ${{ matrix.render_shard }}
             BUNDLE_TREESHAKE_BUNDLERS: ${{ matrix.treeshake_bundlers }}
         steps:
             - name: Checkout
