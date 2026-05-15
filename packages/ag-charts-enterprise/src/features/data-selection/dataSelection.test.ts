@@ -604,9 +604,9 @@ describe('DataSelection', () => {
 
         async function createChartInstance<T extends AgChartOptions<any, any>>(opts: T) {
             opts = prepareEnterpriseTestOptions(opts);
-            const chart = AgCharts.create(opts);
-            await waitForChartStability(chart);
-            return chart;
+            const result = AgCharts.create(opts);
+            await waitForChartStability(result);
+            return result;
         }
 
         describe('bubble', () => {
