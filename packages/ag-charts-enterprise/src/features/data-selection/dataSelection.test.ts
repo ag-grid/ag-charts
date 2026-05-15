@@ -1340,18 +1340,18 @@ describe('DataSelection', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                     test('zoomState', async () => {
-                        await mouseDown(POINT_A);
-                        await mouseMove(POINT_B);
+                        await mouseDown(POINT_A, { shiftKey });
+                        await mouseMove(POINT_B, { shiftKey });
                         expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
 
-                        await mouseUp(POINT_B);
+                        await mouseUp(POINT_B, { shiftKey });
                         expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
 
-                        await mouseDown(POINT_C);
-                        await mouseMove(POINT_D);
+                        await mouseDown(POINT_C, { shiftKey });
+                        await mouseMove(POINT_D, { shiftKey });
                         expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
 
-                        await mouseUp(POINT_D);
+                        await mouseUp(POINT_D, { shiftKey });
                         expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
                     });
                 });
