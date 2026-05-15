@@ -218,64 +218,76 @@ const FULL_MODULES = {
     'ag-charts-enterprise': ['AllEnterpriseModule'],
 };
 
-// Track per-bundler entry counters to avoid import() cache collisions
-let entryCounter = 0;
+// Build a flat list of (scenario, bundler) tasks and run them with bounded
+// concurrency. Within a shard, scenarios are independent — each writes to its
+// own work directory and produces an independent result entry. Running in
+// parallel cuts wall-clock time on heavy bundlers (e.g. webpack).
+const concurrency = Math.max(1, Number(process.env.BUNDLE_RENDER_CONCURRENCY ?? 4));
+const tasks = shardedScenarios.flatMap((scenario, scenarioIndex) =>
+    bundlers.map((bundler) => ({ scenario, scenarioIndex, bundler }))
+);
 
-for (const scenario of shardedScenarios) {
+async function runTask({ scenario, scenarioIndex, bundler }) {
     const safeName = scenario.name.replace(/\//g, '_');
     const isFullScenario = scenario.name.endsWith('/full');
+    const testName = `${scenario.name} [${bundler.name}]`;
 
-    for (const bundler of bundlers) {
-        const testName = `${scenario.name} [${bundler.name}]`;
+    try {
+        if (isFullScenario) {
+            const dir = join(workDir, safeName, bundler.name);
+            mkdirSync(dir, { recursive: true });
+            const entry = join(dir, `entry_${scenarioIndex}.mjs`);
+            const out = join(dir, `output_${scenarioIndex}.mjs`);
 
-        try {
-            if (isFullScenario) {
-                // Full scenarios: just assert non-blank render
-                const dir = join(workDir, safeName, bundler.name);
-                mkdirSync(dir, { recursive: true });
-                const entry = join(dir, `entry_${entryCounter++}.mjs`);
-                const out = join(dir, `output_${entryCounter}.mjs`);
+            const code = generateEntry(scenario.package, scenario.modules, scenario.chartOptions);
+            const buffer = await bundleAndRender(code, entry, bundler, out);
+            writeFileSync(join(outputDir, `${safeName}_${bundler.name}.png`), buffer);
 
-                const code = generateEntry(scenario.package, scenario.modules, scenario.chartOptions);
-                const buffer = await bundleAndRender(code, entry, bundler, out);
-                writeFileSync(join(outputDir, `${safeName}_${bundler.name}.png`), buffer);
-
-                const blankErr = assertNonBlank(buffer);
-                results.push({ name: testName, status: blankErr ? 'FAIL' : 'pass', error: blankErr });
-            } else {
-                // Partial scenarios: render with full bundle, then with partial, compare
-                const fullModules = FULL_MODULES[scenario.package];
-                const dir = join(workDir, safeName, bundler.name);
-                mkdirSync(dir, { recursive: true });
-
-                // Baseline: full bundle, same chart options
-                const fullEntry = join(dir, `full_${entryCounter++}.mjs`);
-                const fullOut = join(dir, `full_output_${entryCounter}.mjs`);
-                const fullCode = generateEntry(scenario.package, fullModules, scenario.chartOptions);
-                const fullBuffer = await bundleAndRender(fullCode, fullEntry, bundler, fullOut);
-                writeFileSync(join(outputDir, `${safeName}_${bundler.name}_full.png`), fullBuffer);
-
-                // Partial bundle, same chart options
-                const partialEntry = join(dir, `partial_${entryCounter++}.mjs`);
-                const partialOut = join(dir, `partial_output_${entryCounter}.mjs`);
-                const partialCode = generateEntry(scenario.package, scenario.modules, scenario.chartOptions);
-                const partialBuffer = await bundleAndRender(partialCode, partialEntry, bundler, partialOut);
-                writeFileSync(join(outputDir, `${safeName}_${bundler.name}_partial.png`), partialBuffer);
-
-                // Compare
-                const blankErr = assertNonBlank(partialBuffer);
-                if (blankErr) {
-                    results.push({ name: testName, status: 'FAIL', error: blankErr });
-                    continue;
-                }
-                const diffErr = compareBuffers(partialBuffer, fullBuffer, `${safeName}_${bundler.name}`);
-                results.push({ name: testName, status: diffErr ? 'FAIL' : 'pass', error: diffErr });
-            }
-        } catch (err) {
-            results.push({ name: testName, status: 'ERROR', error: err.stack || err.message });
+            const blankErr = assertNonBlank(buffer);
+            return { name: testName, status: blankErr ? 'FAIL' : 'pass', error: blankErr };
         }
+
+        // Partial scenarios: render with full bundle, then with partial, compare.
+        const fullModules = FULL_MODULES[scenario.package];
+        const dir = join(workDir, safeName, bundler.name);
+        mkdirSync(dir, { recursive: true });
+
+        const fullEntry = join(dir, `full_${scenarioIndex}.mjs`);
+        const fullOut = join(dir, `full_output_${scenarioIndex}.mjs`);
+        const fullCode = generateEntry(scenario.package, fullModules, scenario.chartOptions);
+        const fullBuffer = await bundleAndRender(fullCode, fullEntry, bundler, fullOut);
+        writeFileSync(join(outputDir, `${safeName}_${bundler.name}_full.png`), fullBuffer);
+
+        const partialEntry = join(dir, `partial_${scenarioIndex}.mjs`);
+        const partialOut = join(dir, `partial_output_${scenarioIndex}.mjs`);
+        const partialCode = generateEntry(scenario.package, scenario.modules, scenario.chartOptions);
+        const partialBuffer = await bundleAndRender(partialCode, partialEntry, bundler, partialOut);
+        writeFileSync(join(outputDir, `${safeName}_${bundler.name}_partial.png`), partialBuffer);
+
+        const blankErr = assertNonBlank(partialBuffer);
+        if (blankErr) return { name: testName, status: 'FAIL', error: blankErr };
+        const diffErr = compareBuffers(partialBuffer, fullBuffer, `${safeName}_${bundler.name}`);
+        return { name: testName, status: diffErr ? 'FAIL' : 'pass', error: diffErr };
+    } catch (err) {
+        return { name: testName, status: 'ERROR', error: err.stack || err.message };
     }
 }
+
+async function runWithConcurrency(items, limit, fn) {
+    const out = new Array(items.length);
+    let next = 0;
+    const worker = async () => {
+        while (true) {
+            const i = next++;
+            if (i >= items.length) return;
+            out[i] = await fn(items[i]);
+        }
+    };
+    await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+    return out;
+}
+
+results.push(...(await runWithConcurrency(tasks, concurrency, runTask)));
 
 // ---------------------------------------------------------------------------
 // Results table
