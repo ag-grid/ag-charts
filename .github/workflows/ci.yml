@@ -616,14 +616,10 @@ jobs:
             fail-fast: false
             matrix:
                 include:
-                    - name: treeshake-esbuild
+                    - name: treeshake-fast
                       target: bundle-treeshake-tests:test:bundle-treeshake
                       render_bundlers: ''
-                      treeshake_bundlers: 'esbuild'
-                    - name: treeshake-vite
-                      target: bundle-treeshake-tests:test:bundle-treeshake
-                      render_bundlers: ''
-                      treeshake_bundlers: 'vite'
+                      treeshake_bundlers: 'esbuild,vite'
                     - name: treeshake-webpack-1of2
                       target: bundle-treeshake-tests:test:bundle-treeshake
                       render_bundlers: ''
@@ -634,13 +630,9 @@ jobs:
                       render_bundlers: ''
                       treeshake_bundlers: 'webpack'
                       treeshake_shard: '2/2'
-                    - name: render-esbuild
+                    - name: render-fast
                       target: bundle-render-tests:test:bundle-render
-                      render_bundlers: 'esbuild'
-                      treeshake_bundlers: ''
-                    - name: render-vite
-                      target: bundle-render-tests:test:bundle-render
-                      render_bundlers: 'vite'
+                      render_bundlers: 'esbuild,vite'
                       treeshake_bundlers: ''
                     - name: render-webpack-1of2
                       target: bundle-render-tests:test:bundle-render
