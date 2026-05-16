@@ -456,47 +456,15 @@ jobs:
                       reports/
                       packages/**/__diff_output__/*
 
-    playwright_image:
-        runs-on: ubuntu-latest
-        name: Playwright Image
-        needs: [detect-changes]
-        if: needs.detect-changes.outputs.run_full_ci == 'true'
-        env:
-            PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
-            PLAYWRIGHT_CACHE_KEY: playwright-image-v1.60.0-jammy-v1
-        steps:
-            - name: Restore Playwright Image Cache
-              id: pw_cache
-              uses: actions/cache@v4
-              with:
-                  path: /tmp/playwright-docker-image.tar
-                  key: ${{ env.PLAYWRIGHT_CACHE_KEY }}
-
-            - name: Pull Playwright Image
-              if: steps.pw_cache.outputs.cache-hit != 'true'
-              run: |
-                  pull_attempts=4
-                  for attempt in $(seq 1 ${pull_attempts}) ; do
-                    if docker pull ${PLAYWRIGHT_IMAGE} ; then
-                      break
-                    fi
-                    if [[ ${attempt} -eq ${pull_attempts} ]] ; then
-                      echo "Failed to pull ${PLAYWRIGHT_IMAGE} after ${pull_attempts} attempts."
-                      exit 1
-                    fi
-                    backoff=$((attempt * 15))
-                    jitter=$((RANDOM % 10))
-                    echo "Pull attempt ${attempt} failed, retrying in $((backoff + jitter))s..."
-                    sleep $((backoff + jitter))
-                  done
-                  docker save ${PLAYWRIGHT_IMAGE} -o /tmp/playwright-docker-image.tar
-
     e2e:
         runs-on: ubuntu-latest
+        container:
+            image: mcr.microsoft.com/playwright:v1.60.0-jammy
+            options: --ipc=host
         name: E2E Tests (${{ matrix.shard }}/${{ strategy.job-total }})
         permissions:
             contents: write
-        needs: [detect-changes, init, playwright_image]
+        needs: [detect-changes, init]
         if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.e2e_count > 0
         strategy:
             fail-fast: false
@@ -523,22 +491,12 @@ jobs:
                   cache_mode: ro
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
-            - name: Restore Playwright Image Cache
-              uses: actions/cache/restore@v4
-              with:
-                  path: /tmp/playwright-docker-image.tar
-                  key: playwright-image-v1.60.0-jammy-v1
-                  fail-on-cache-miss: true
-
-            - name: Load Playwright Image
-              run: docker load -i /tmp/playwright-docker-image.tar
-
             - name: nx test:e2e
               id: test
               run: |
                   cd packages/ag-charts-website/
 
-                  ./playwright.sh --host test -u changed --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+                  ./playwright.sh --in-runner test -u changed --shard=${{ matrix.shard }}/${{ strategy.job-total }}
               timeout-minutes: 15
 
             - name: Snapshot Branch
@@ -690,7 +648,6 @@ jobs:
                 sonarqube,
                 fw_pkg_test,
                 bundle_tests,
-                playwright_image,
             ]
         if: cancelled() != true
         steps:
@@ -764,8 +721,6 @@ jobs:
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.fw_pkg_test.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
-                  elif [ "${{ needs.playwright_image.result }}" == "failure" ] ; then
-                    WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.sonarqube.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="partial"
                   fi
@@ -824,7 +779,6 @@ jobs:
                       ${{ needs.test.result == 'failure' && '- ❌ Test' || '' }}
                       ${{ needs.e2e.result == 'failure' && '- ❌ E2E' || '' }}
                       ${{ needs.fw_pkg_test.result == 'failure' && '- ❌ FW Pkg' || '' }}
-                      ${{ needs.playwright_image.result == 'failure' && '- ❌ Playwright Image' || '' }}
                       ${{ needs.sonarqube.result == 'failure' && '- ❌ Sonar' || '' }}
 
                       *Changes:*

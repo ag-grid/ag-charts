@@ -29,6 +29,36 @@ function report_flaky_tests {
 }
 
 
+if [ "${1:-}" == "--in-runner" ] ; then
+  # Running inside a CI job that is already executing inside the Playwright
+  # container (e.g. via GitHub Actions `container:` on the job). Start astro
+  # in the same container, wait for it, then run playwright. No docker dance.
+  shift
+
+  export $(cat .env.test:e2e | grep -v '^#' | xargs)
+
+  npx astro dev --port=4601 --host 127.0.0.1 &
+  astro_pid=$!
+
+  function cleanup_in_runner {
+    kill -9 ${astro_pid} 2>/dev/null || true
+  }
+  trap cleanup_in_runner SIGINT SIGTERM ERR EXIT
+
+  echo "Waiting for connection to ${PUBLIC_SITE_URL}..."
+  npx wait-on ${PUBLIC_SITE_URL}
+  echo "Connected to ${PUBLIC_SITE_URL}!"
+
+  exit_code=0
+  npx playwright $@ || exit_code=$?
+
+  if [[ "${CI:-}" != "" ]] ; then
+    report_flaky_tests
+  fi
+
+  exit ${exit_code}
+fi
+
 export $(cat .env.test:e2e.docker | grep -v '^#' | xargs)
 EXTRA_DOCKER_ARGS=
 if [ "${CI:-}" != "" ] ; then
