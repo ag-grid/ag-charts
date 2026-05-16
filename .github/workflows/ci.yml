@@ -482,6 +482,12 @@ jobs:
               with:
                   name: e2e-init-outputs
 
+            - name: Allow Git in Container
+              # The workspace is owned by the host runner user but the container
+              # runs as root, which trips git's dubious-ownership check on every
+              # subsequent git invocation. Whitelist the workspace globally.
+              run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
             - name: Setup
               id: setup
               uses: ./.github/actions/setup-nx
