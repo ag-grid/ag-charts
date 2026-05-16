@@ -669,7 +669,7 @@ jobs:
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx test:bundle-${{ matrix.name }}
-              run: yarn nx run ${{ matrix.target }} --skip-nx-cache
+              run: yarn nx run ${{ matrix.target }}
 
     report:
         runs-on: ubuntu-24.04

@@ -7,6 +7,18 @@
     "test:bundle-treeshake": {
       "dependsOn": ["^pack"],
       "command": "{projectRoot}/run.sh",
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/run.sh",
+        "{projectRoot}/test-treeshake.mjs",
+        "{projectRoot}/scenarios.mjs",
+        "{projectRoot}/bundlers/**/*",
+        "allTransitiveOutputs",
+        { "env": "BUNDLE_TREESHAKE_BUNDLERS" },
+        { "env": "BUNDLE_TREESHAKE_SHARD" },
+        { "env": "BUNDLE_TREESHAKE_CONCURRENCY" }
+      ],
+      "outputs": [],
       "configurations": {
         "update": { "args": "-u" }
       }
