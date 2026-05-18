@@ -1576,11 +1576,11 @@ describe('Chart destroy() / performUpdate() race condition', () => {
         const innerChart = deproxy(proxy);
         await waitForChartStability(innerChart);
 
-        // Spy on the prototype so jest can restore it after the test even if the chart
+        // Spy on the prototype so vitest can restore it after the test even if the chart
         // instance gets frozen by Object.freeze(this) inside performTeardown.
         const chartProto = Object.getPrototypeOf(innerChart);
         const origProcessData = chartProto.processData;
-        jest.spyOn(chartProto, 'processData').mockImplementationOnce(function (this: any) {
+        vi.spyOn(chartProto, 'processData').mockImplementationOnce(function (this: any) {
             // Fire destroy() while the pipeline is paused on the processData await.
             innerChart.destroy();
             return origProcessData.call(this) as Promise<void>;
