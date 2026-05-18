@@ -811,7 +811,7 @@ describe('DataSelection', () => {
                     });
                     describe('initial', () => {
                         test('screenshot', async () => {
-                            await compareExact('stack-mix-selected-s2a-s3c-s4e');
+                            await compareExact('stack-mix-highlighted-s4e-selected-s2a-s3c-s4e');
                         });
                         test('getSelection', () => {
                             expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
