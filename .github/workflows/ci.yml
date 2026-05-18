@@ -33,7 +33,7 @@ env:
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
     AG_LIBRARY: charts
     AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
-    AG_E2E_SHARD_COUNT: 16
+    AG_E2E_SHARD_COUNT: 32
 
 permissions:
     contents: read
@@ -461,17 +461,27 @@ jobs:
         name: Playwright Image
         needs: [detect-changes]
         if: needs.detect-changes.outputs.run_full_ci == 'true'
+        env:
+            PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
+            PLAYWRIGHT_CACHE_KEY: playwright-image-v1.60.0-jammy-v1
         steps:
+            - name: Restore Playwright Image Cache
+              id: pw_cache
+              uses: actions/cache@v4
+              with:
+                  path: /tmp/playwright-docker-image.tar
+                  key: ${{ env.PLAYWRIGHT_CACHE_KEY }}
+
             - name: Pull Playwright Image
+              if: steps.pw_cache.outputs.cache-hit != 'true'
               run: |
-                  playwright_image=mcr.microsoft.com/playwright:v1.60.0-jammy
                   pull_attempts=4
                   for attempt in $(seq 1 ${pull_attempts}) ; do
-                    if docker pull ${playwright_image} ; then
+                    if docker pull ${PLAYWRIGHT_IMAGE} ; then
                       break
                     fi
                     if [[ ${attempt} -eq ${pull_attempts} ]] ; then
-                      echo "Failed to pull ${playwright_image} after ${pull_attempts} attempts."
+                      echo "Failed to pull ${PLAYWRIGHT_IMAGE} after ${pull_attempts} attempts."
                       exit 1
                     fi
                     backoff=$((attempt * 15))
@@ -479,15 +489,7 @@ jobs:
                     echo "Pull attempt ${attempt} failed, retrying in $((backoff + jitter))s..."
                     sleep $((backoff + jitter))
                   done
-                  docker save ${playwright_image} -o /tmp/playwright-docker-image.tar
-
-            - name: Upload Playwright Image
-              uses: actions/upload-artifact@v4
-              with:
-                  name: playwright-docker-image
-                  path: /tmp/playwright-docker-image.tar
-                  retention-days: 1
-                  compression-level: 1
+                  docker save ${PLAYWRIGHT_IMAGE} -o /tmp/playwright-docker-image.tar
 
     e2e:
         runs-on: ubuntu-latest
@@ -521,13 +523,15 @@ jobs:
                   cache_mode: ro
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
-            - name: Restore Playwright Docker Image
-              uses: actions/download-artifact@v4
+            - name: Restore Playwright Image Cache
+              uses: actions/cache/restore@v4
               with:
-                  name: playwright-docker-image
+                  path: /tmp/playwright-docker-image.tar
+                  key: playwright-image-v1.60.0-jammy-v1
+                  fail-on-cache-miss: true
 
             - name: Load Playwright Image
-              run: docker load -i playwright-docker-image.tar
+              run: docker load -i /tmp/playwright-docker-image.tar
 
             - name: nx test:e2e
               id: test
@@ -612,12 +616,40 @@ jobs:
             fail-fast: false
             matrix:
                 include:
-                    - name: treeshake
+                    - name: treeshake-fast
                       target: bundle-treeshake-tests:test:bundle-treeshake
-                    - name: render
+                      render_bundlers: ''
+                      treeshake_bundlers: 'esbuild,vite'
+                    - name: treeshake-webpack-1of2
+                      target: bundle-treeshake-tests:test:bundle-treeshake
+                      render_bundlers: ''
+                      treeshake_bundlers: 'webpack'
+                      treeshake_shard: '1/2'
+                    - name: treeshake-webpack-2of2
+                      target: bundle-treeshake-tests:test:bundle-treeshake
+                      render_bundlers: ''
+                      treeshake_bundlers: 'webpack'
+                      treeshake_shard: '2/2'
+                    - name: render-fast
                       target: bundle-render-tests:test:bundle-render
+                      render_bundlers: 'esbuild,vite'
+                      treeshake_bundlers: ''
+                    - name: render-webpack-1of2
+                      target: bundle-render-tests:test:bundle-render
+                      render_bundlers: 'webpack'
+                      render_shard: '1/2'
+                      treeshake_bundlers: ''
+                    - name: render-webpack-2of2
+                      target: bundle-render-tests:test:bundle-render
+                      render_bundlers: 'webpack'
+                      render_shard: '2/2'
+                      treeshake_bundlers: ''
         env:
             NX_BASE: ${{ needs.init.outputs.nx_base }}
+            BUNDLE_RENDER_BUNDLERS: ${{ matrix.render_bundlers }}
+            BUNDLE_RENDER_SHARD: ${{ matrix.render_shard }}
+            BUNDLE_TREESHAKE_BUNDLERS: ${{ matrix.treeshake_bundlers }}
+            BUNDLE_TREESHAKE_SHARD: ${{ matrix.treeshake_shard }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
