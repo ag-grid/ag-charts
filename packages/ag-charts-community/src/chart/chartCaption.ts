@@ -58,6 +58,7 @@ export class ChartCaption implements CaptionLike {
 
     readonly id = createId(this);
     readonly node = new RotatableText<CaptionNodeDatum>({ zIndex: 1 }).setProperties({
+        visible: false,
         textAlign: 'center',
         pointerEvents: PointerEvents.None,
     });

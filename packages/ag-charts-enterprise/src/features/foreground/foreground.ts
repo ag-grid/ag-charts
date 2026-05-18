@@ -5,13 +5,15 @@ import { Image } from '../image/image';
 
 export class Foreground extends _ModuleSupport.Background {
     private readonly image = new Image();
+    private imageInScene = false;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(ctx);
-        this.node.appendChild(this.image.node);
         this.image.onLoad = () => this.onImageLoad();
         this.cleanup.register(() => {
-            this.image.node.remove();
+            if (this.imageInScene) {
+                this.image.node.remove();
+            }
             this.image.onLoad = undefined;
         });
     }
@@ -25,6 +27,10 @@ export class Foreground extends _ModuleSupport.Background {
         this.rectNode.fill = opts?.fill ?? 'transparent';
         this.rectNode.fillOpacity = opts?.fillOpacity ?? 1;
         if (opts?.image != null) {
+            if (!this.imageInScene) {
+                this.node.appendChild(this.image.node);
+                this.imageInScene = true;
+            }
             this.image.set(opts.image);
         }
         this.textNode.text = opts?.text;
