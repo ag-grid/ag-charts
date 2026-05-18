@@ -64,7 +64,7 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
         node: {
             cornerRadius: 4,
             fill: { $foregroundBackgroundMix: 0.02 },
-            padding: 8,
+            padding: { $applyPadding: 8 },
             stroke: { $foregroundBackgroundMix: 0.2 },
             strokeOpacity: 1,
             strokeWidth: 1,
