@@ -1456,12 +1456,18 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         const drawingMode = this.getDrawingMode(isHighlight, opts.drawingMode);
+        // resolveMarkerDrawingMode only inspects `style` when the base mode is 'cutout'; for every
+        // other mode it returns the input unchanged. Hoist that constant out of the per-marker loop.
+        const constantDrawingMode = drawingMode !== 'cutout' ? drawingMode : undefined;
 
         datumSelection.each((node, datum) => {
             const state = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
             const style = datum.style ?? contextNodeData.styles[state];
             this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
-            node.drawingMode = this.resolveMarkerDrawingModeForState(drawingMode, style);
+            const nextDrawingMode = constantDrawingMode ?? this.resolveMarkerDrawingModeForState(drawingMode, style);
+            if (node.__drawingMode !== nextDrawingMode) {
+                node.drawingMode = nextDrawingMode;
+            }
         });
 
         if (!isHighlight) {

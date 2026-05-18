@@ -871,6 +871,9 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         const drawingMode = this.getDrawingMode(isHighlight, opts.drawingMode);
+        // resolveMarkerDrawingMode only inspects `style` when the base mode is 'cutout'; for every
+        // other mode it returns the input unchanged. Hoist that constant out of the per-marker loop.
+        const constantDrawingMode = drawingMode !== 'cutout' ? drawingMode : undefined;
 
         const thisSeries = this;
         datumSelection.each(function datumSelectionUpdate(node, datum) {
@@ -882,7 +885,13 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                 applyPosition,
                 selected: datum.selected,
             });
-            node.drawingMode = thisSeries.resolveMarkerDrawingModeForState(drawingMode, style);
+            const nextDrawingMode =
+                constantDrawingMode ?? thisSeries.resolveMarkerDrawingModeForState(drawingMode, style);
+            // Short-circuit the change-detection setter when the value already matches — avoids
+            // the accessor call + dirty mark across every marker on every re-render.
+            if (node.__drawingMode !== nextDrawingMode) {
+                node.drawingMode = nextDrawingMode;
+            }
         });
 
         if (!isHighlight) {

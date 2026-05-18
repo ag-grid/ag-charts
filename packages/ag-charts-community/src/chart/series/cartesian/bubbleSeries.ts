@@ -1114,6 +1114,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const aggregated = this.dataAggregation != null;
 
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+        // resolveMarkerDrawingMode only inspects `style` when the base mode is 'cutout'; for every
+        // other mode it returns the input unchanged. Hoist that constant out of the per-marker loop.
+        const constantDrawingMode = drawingMode !== 'cutout' ? drawingMode : undefined;
 
         datumSelection.each((node, datum, index) => {
             const {
@@ -1139,7 +1142,10 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             }
 
             this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
-            node.drawingMode = this.resolveMarkerDrawingModeForState(drawingMode, style);
+            const nextDrawingMode = constantDrawingMode ?? this.resolveMarkerDrawingModeForState(drawingMode, style);
+            if (node.__drawingMode !== nextDrawingMode) {
+                node.drawingMode = nextDrawingMode;
+            }
             node.zIndex = aggregated ? [-count, index] : 0;
         });
 
