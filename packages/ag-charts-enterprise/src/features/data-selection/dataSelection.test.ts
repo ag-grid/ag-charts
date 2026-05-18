@@ -141,6 +141,21 @@ function createBarStackMixOptions(): AgCartesianChartOptions<StackMixDatum, unkn
                 selection: { enabled: false },
             },
         ],
+        axes: {
+            // Disable the axes features that we are not testing:
+            x: {
+                crosshair: { enabled: false },
+                gridLine: { enabled: false },
+                label: { enabled: false },
+            },
+            y: {
+                crosshair: { enabled: false },
+                gridLine: { enabled: false },
+                label: { enabled: false },
+            },
+        },
+        // Disable the legend (we're not testing that):
+        legend: { enabled: false },
         theme: {
             overrides: {
                 bar: {
@@ -784,20 +799,17 @@ describe('DataSelection', () => {
 
             describe('single', () => {
                 beforeEach(async () => {
-                    const { data, series, theme } = createBarStackMixOptions();
+                    const { data, series, axes, theme, legend } = createBarStackMixOptions();
                     selectionChange = createSelectionChangeRecorder();
                     chart = await createChartInstance({
                         data,
                         series,
+                        axes,
                         theme,
-                        legend: { enabled: false },
+                        legend,
                         selection: {
                             enabled: true,
                             clickMode: 'single',
-                        },
-                        axes: {
-                            x: { crosshair: { enabled: false }, label: { enabled: false } },
-                            y: { crosshair: { enabled: false }, label: { enabled: false } },
                         },
                         listeners: { selectionChange },
                     });
