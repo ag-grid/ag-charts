@@ -453,6 +453,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             root,
             container,
             styleContainer,
+            styleNonce: options.processedOptions.styleNonce,
             skipCss,
             agDocument,
             domMode: options.optionMetadata.domMode,

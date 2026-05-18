@@ -136,7 +136,7 @@ export class DOMManager extends BaseManager {
 
     constructor(
         private readonly eventsHub: EventsHub,
-        private readonly getStyleNonce: () => string | undefined,
+        private readonly styleNonce: string | undefined,
         private readonly agDocument: AgDocument,
         initialContainer?: HTMLElement,
         private readonly styleContainer?: HTMLElement,
@@ -647,9 +647,8 @@ export class DOMManager extends BaseManager {
             }
 
             const styleEl = createElement('style');
-            const styleNonce = this.getStyleNonce();
-            if (styleNonce != null) {
-                styleEl.nonce = styleNonce;
+            if (this.styleNonce != null) {
+                styleEl.nonce = this.styleNonce;
             }
             if (insertAfterEl == null) {
                 el.prepend(styleEl);
@@ -742,11 +741,8 @@ export class DOMManager extends BaseManager {
             newChild.addEventListener(type, fn as any, opts);
         }
         children.set(id, newChild);
-        if (childElementType === 'style') {
-            const styleNonce = this.getStyleNonce();
-            if (styleNonce != null) {
-                newChild.nonce = styleNonce;
-            }
+        if (childElementType === 'style' && this.styleNonce != null) {
+            newChild.nonce = this.styleNonce;
         }
         if (insert) {
             const queryResult = element.querySelector(insert.query);
