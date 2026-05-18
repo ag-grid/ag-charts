@@ -89,7 +89,6 @@ export abstract class AgCharts {
             if (licenseManager?.isDisplayWatermark()) {
                 enterpriseRegistry.injectWatermark?.(chart.chart!.ctx.domManager, licenseManager.getWatermarkMessage());
             }
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
             return chart as unknown as AgChartInstance<O>;
         });
     }

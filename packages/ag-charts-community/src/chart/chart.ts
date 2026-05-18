@@ -1725,7 +1725,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.overrideDevicePixelRatio = deltaOptions.overrideDevicePixelRatio as number | undefined;
         }
         if ('width' in deltaOptions) this.width = deltaOptions.width;
-        if ('loading' in deltaOptions) this.loading = deltaOptions.loading as boolean | undefined;
+        if ('loading' in deltaOptions) this.loading = deltaOptions.loading;
         if ('context' in deltaOptions) this.context = (deltaOptions as any).context;
 
         // tooltip/highlight/seriesArea/overlays subtrees are applied via chartState observers

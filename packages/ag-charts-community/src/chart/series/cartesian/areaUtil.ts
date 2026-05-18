@@ -129,7 +129,6 @@ export function prepareAreaPathAnimation(newData: AreaSeriesNodeDataContext, old
         // Not comparable.
         return;
     }
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     let status: NodeUpdateState = 'updated' as NodeUpdateState;
     if (oldData.visible && !newData.visible) {
         status = 'removed';

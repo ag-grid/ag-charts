@@ -669,7 +669,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             false
         );
 
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         const color = format.fill as InternalAgColorType;
 
         const markerStyle = {

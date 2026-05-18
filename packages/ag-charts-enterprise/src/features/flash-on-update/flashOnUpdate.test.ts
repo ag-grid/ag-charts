@@ -124,7 +124,7 @@ const PHASE_RATIOS = [0.05, 0.31, 0.68];
 // and at a known mid-animation ratio where we can guarantee the flash is visible.
 
 function getFlashModule(chartInstance: AgChartInstance) {
-    return deproxy(chartInstance).modulesManager.getModule('flashOnUpdate') as any;
+    return deproxy(chartInstance).modulesManager.getModule<any>('flashOnUpdate');
 }
 
 /** Assert the chart flash rect was configured: correct fill colour and non-zero area. */

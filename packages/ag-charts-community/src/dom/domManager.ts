@@ -332,7 +332,6 @@ export class DOMManager extends BaseManager {
         const height = this.containerSize ? `${this.containerSize.height ?? 0}px` : '';
 
         const last = this._lastCenterSize;
-        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
         if (last == null || last.visibility !== visibility || last.width !== width || last.height !== height) {
             this._lastCenterSize = { visibility, width, height };
             const { style: centerStyle } = this.rootElements['canvas-center'].element;

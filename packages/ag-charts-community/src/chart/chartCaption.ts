@@ -169,11 +169,10 @@ export class ChartCaption implements CaptionLike {
 
         const { lastProxyBBox } = this;
         if (
-            lastProxyBBox == null ||
-            bbox.x !== lastProxyBBox.x ||
-            bbox.y !== lastProxyBBox.y ||
-            bbox.width !== lastProxyBBox.width ||
-            bbox.height !== lastProxyBBox.height
+            bbox.x !== lastProxyBBox?.x ||
+            bbox.y !== lastProxyBBox?.y ||
+            bbox.width !== lastProxyBBox?.width ||
+            bbox.height !== lastProxyBBox?.height
         ) {
             this.proxyText.setBounds(bbox);
             this.lastProxyBBox = { x: bbox.x, y: bbox.y, width: bbox.width, height: bbox.height };
