@@ -1029,8 +1029,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         if (pathLeaf in OptionsGraph.TRANSFORM_USER_KEY_OPERATION_PAIRS) {
             const expectedOperation = OptionsGraph.TRANSFORM_USER_KEY_OPERATION_PAIRS[pathLeaf];
             const operation = getOperation(this.findNeighbourValue(vertex, DEFAULTS_EDGE));
-            if (operation?.operation === expectedOperation) {
-                edgePriority = [DEFAULTS_EDGE];
+            if (operation?.operation.valueOf() === expectedOperation) {
+                edgePriority = [OVERRIDES_EDGE, DEFAULTS_EDGE];
             }
         }
 
@@ -1328,7 +1328,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             if (depth < maxDepth) {
                 this.diagramVertex(diagram, neighbour as any, depth + 1, maxDepth);
             }
-            this.diagramChild(diagram, PATH_EDGE, path, vertex, neighbourPath, vertex);
+            this.diagramChild(diagram, PATH_EDGE, path, vertex, neighbourPath, neighbour as any);
         }
 
         const userValues = this.neighboursWithEdgeValue(vertex, USER_OPTIONS_EDGE) ?? [];

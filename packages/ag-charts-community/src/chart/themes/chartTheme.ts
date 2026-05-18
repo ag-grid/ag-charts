@@ -212,9 +212,7 @@ export class ChartTheme {
             minHeight: 300,
             minWidth: 300,
             background: { visible: true, fill: { $ref: 'chartBackgroundColor' } },
-            padding: {
-                $applyPadding: { $ref: 'chartPadding' },
-            },
+            padding: { $applyPadding: { $ref: 'chartPadding' } },
             seriesArea: {
                 border: {
                     enabled: false,

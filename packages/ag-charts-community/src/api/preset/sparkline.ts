@@ -90,12 +90,7 @@ const SPARKLINE_THEME: WithThemeParams<AgChartTheme> = {
             keyboard: { enabled: false },
             background: { visible: false },
             navigator: { enabled: false },
-            padding: {
-                top: 0,
-                right: 0,
-                bottom: 0,
-                left: 0,
-            },
+            padding: { $applyPadding: 0 },
             axes: {
                 number: {
                     ...numericAxisProperties,
@@ -136,12 +131,7 @@ const SPARKLINE_THEME: WithThemeParams<AgChartTheme> = {
         },
         line: {
             seriesArea: {
-                padding: {
-                    top: 2,
-                    right: 2,
-                    bottom: 2,
-                    left: 2,
-                },
+                padding: { $applyPadding: 2 },
             },
             series: {
                 // @ts-expect-error undocumented option
@@ -157,10 +147,12 @@ const SPARKLINE_THEME: WithThemeParams<AgChartTheme> = {
         area: {
             seriesArea: {
                 padding: {
-                    top: 1,
-                    right: 0,
-                    bottom: 1,
-                    left: 0,
+                    $applyPadding: {
+                        top: 1,
+                        right: 0,
+                        bottom: 1,
+                        left: 0,
+                    },
                 },
             },
             series: {

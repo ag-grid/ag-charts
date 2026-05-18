@@ -83,6 +83,7 @@ import {
     shapeSelectionOptionsDef,
     strokeOptionsDef,
     textWrap,
+    themeOperator,
 } from './optionsDefaults';
 
 const legendPlacementLiterals: readonly AgChartLegendPlacement[] = [
@@ -345,17 +346,12 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     title: chartCaptionOptionsDefs,
     subtitle: chartCaptionOptionsDefs,
     footnote: chartCaptionOptionsDefs,
-    padding: {
-        top: positiveNumber,
-        right: positiveNumber,
-        bottom: positiveNumber,
-        left: positiveNumber,
-    },
+    padding: or(themeOperator, padding),
     seriesArea: {
         border: borderOptionsDef,
         clip: boolean,
         cornerRadius: number,
-        padding: padding,
+        padding: or(themeOperator, padding),
     },
     legend: {
         enabled: boolean,
