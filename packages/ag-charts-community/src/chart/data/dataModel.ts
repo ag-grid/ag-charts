@@ -330,10 +330,18 @@ export class DataModel<
     ): DomainWithMetadata<any> {
         const domain = this.resolvers.getDomain(scope, searchId, type, processedData);
 
-        // Attach sort metadata for key domains when available
-        if (type === 'key' && domain.length > 0) {
-            const sortMetadata = this.getKeySortMetadata(scope, searchId, processedData);
-            return { domain, sortMetadata };
+        // Attach sort metadata so downstream consumers (e.g. aggregationDomain) can take the
+        // O(1) sorted-domain fast path. Key columns expose richer metadata (including
+        // uniqueness); value columns expose only their sort order.
+        if (domain.length > 0) {
+            if (type === 'key') {
+                const sortMetadata = this.getKeySortMetadata(scope, searchId, processedData);
+                return { domain, sortMetadata };
+            }
+            const sortOrder = this.getColumnSortOrder(scope, searchId, processedData);
+            if (sortOrder != null) {
+                return { domain, sortMetadata: { sortOrder } };
+            }
         }
         return { domain };
     }
