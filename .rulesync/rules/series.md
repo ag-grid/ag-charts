@@ -133,10 +133,10 @@ export const MySeriesModule: SeriesModule = {
 
 ```bash
 # Test specific series
-yarn nx test ag-charts-community --testPathPattern="barSeries"
+npx vitest run --config packages/ag-charts-community/vitest.config.ts barSeries
 
 # Test all series
-yarn nx test ag-charts-community --testPathPattern="series"
+npx vitest run --config packages/ag-charts-community/vitest.config.ts series
 ```
 
 ## Common Tasks
