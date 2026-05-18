@@ -6,7 +6,7 @@ export async function extractTypeMap(inputFiles: Iterable<string>) {
     const waitFor = new Map<string, Promise<string>>();
 
     for (const file of inputFiles) {
-        parseFileContents(file).forEachChild((node: ts.Node) => {
+        parseFileContents(file).forEachChild((node: ts.Node): undefined => {
             if (ts.isEnumDeclaration(node) || ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node)) {
                 waitFor.set(node.name.text, printNode(node));
             }

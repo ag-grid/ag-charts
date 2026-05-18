@@ -9,7 +9,7 @@ export class TypeMapper {
 
     constructor(inputFiles: Iterable<string>) {
         for (const file of inputFiles) {
-            parseFileContents(file).forEachChild((node: ts.Node) => {
+            parseFileContents(file).forEachChild((node: ts.Node): undefined => {
                 if (ts.isEnumDeclaration(node) || ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node)) {
                     this.nodeMap.set(node.name.text, formatNode(node));
                 }
