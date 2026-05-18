@@ -771,7 +771,7 @@ describe('DataSelection', () => {
                         beforeEach(async () => {
                             selectionChange.popEvents(); // pop event of initial selection.
                         });
-                        describe('miss1', async () => {
+                        describe('miss1', () => {
                             test('screenshot', async () => {
                                 await mouseClick(POINT_MISS1);
                                 await compareExact('stack-mix-no-selection');
@@ -785,7 +785,7 @@ describe('DataSelection', () => {
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S3C_S4E]);
                             });
                         });
-                        describe('ctrl-miss2', async () => {
+                        describe('ctrl-miss2', () => {
                             test('screenshot', async () => {
                                 await mouseClick(POINT_MISS2, { ctrlKey });
                                 await compareExact('stack-mix-selected-s2a-s3c-s4e');
@@ -799,7 +799,7 @@ describe('DataSelection', () => {
                                 expect(selectionChange.popEvents()).toEqual([]);
                             });
                         });
-                        describe('meta-miss2', async () => {
+                        describe('meta-miss2', () => {
                             test('screenshot', async () => {
                                 await mouseClick(POINT_MISS2, { metaKey });
                                 await compareExact('stack-mix-selected-s2a-s3c-s4e');
@@ -827,7 +827,7 @@ describe('DataSelection', () => {
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S3C_S4E]);
                             });
                         });
-                        describe('ctrl-click selection-disabled series', async () => {
+                        describe('ctrl-click selection-disabled series', () => {
                             test('screenshot', async () => {
                                 await mouseClick(POINT_S6C, { ctrlKey });
                                 await compareExact('stack-mix-selected-s2a-s3c-s4e');
@@ -841,7 +841,7 @@ describe('DataSelection', () => {
                                 expect(selectionChange.popEvents()).toEqual([]);
                             });
                         });
-                        describe('meta-click selection-disabled series', async () => {
+                        describe('meta-click selection-disabled series', () => {
                             test('screenshot', async () => {
                                 await mouseClick(POINT_S6B, { metaKey });
                                 await compareExact('stack-mix-selected-s2a-s3c-s4e');
@@ -855,7 +855,7 @@ describe('DataSelection', () => {
                                 expect(selectionChange.popEvents()).toEqual([]);
                             });
                         });
-                        describe('click selection-enabled series', async () => {
+                        describe('click selection-enabled series', () => {
                             test('screenshot', async () => {
                                 await mouseClick(POINT_S1D);
                                 await compareExact('stack-mix-selected-s1d');
@@ -869,7 +869,7 @@ describe('DataSelection', () => {
                                 expect(selectionChange.popEvents()).toEqual([ADDED_S1D_REMOVED_S2A_S3C_S4E]);
                             });
                         });
-                        describe('ctrl-click selection-enabled series', async () => {
+                        describe('ctrl-click selection-enabled series', () => {
                             test('screenshot', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
                                 await compareExact('stack-mix-selected-s1d-s2a-s3c-s4e');
@@ -883,7 +883,7 @@ describe('DataSelection', () => {
                                 expect(selectionChange.popEvents()).toEqual([ADDED_S1D]);
                             });
                         });
-                        describe('meta-click selection-enabled series', async () => {
+                        describe('meta-click selection-enabled series', () => {
                             test('screenshot', async () => {
                                 await mouseClick(POINT_S5D, { metaKey });
                                 await compareExact('stack-mix-selected-s2a-s3c-s4e-s5d');
