@@ -641,22 +641,23 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     protected override makeLayoutUpdateOptions(): NetworkTreeLayoutUpdateOptions<OrganizationVertex, OrganizationEdge> {
+        const {
+            properties: { node, expander, innerSpacing, outerSpacing, verticalSpacing },
+        } = this;
+
         return {
             ...super.makeLayoutUpdateOptions(),
-            nodeHeight: this.properties.node.height,
-            nodeWidth: this.properties.node.width,
-            nodeMaxHeight: this.properties.node.maxHeight,
-            nodeMaxWidth: this.properties.node.maxWidth,
+            nodeHeight: node.height,
+            nodeWidth: node.width,
+            nodeMaxHeight: node.maxHeight,
+            nodeMaxWidth: node.maxWidth,
             regularDimensions: true,
             hiddenOnCollapse: true,
-            innerSpacing: this.properties.innerSpacing ?? 0,
-            outerSpacing: this.properties.outerSpacing ?? 0,
-            verticalSpacing: this.properties.verticalSpacing ?? 0,
-            verticalSpacingExtra: this.properties.expander.enabled
-                ? this.properties.expander.text.fontSize / 2 +
-                  this.properties.expander.padding.top +
-                  this.properties.expander.padding.bottom +
-                  this.properties.expander.strokeWidth
+            innerSpacing: innerSpacing ?? 0,
+            outerSpacing: outerSpacing ?? 0,
+            verticalSpacing: verticalSpacing ?? 0,
+            verticalSpacingExtra: expander.enabled
+                ? (expander.text.fontSize + expander.padding.top + expander.padding.bottom + expander.strokeWidth) / 2
                 : 0,
         };
     }
