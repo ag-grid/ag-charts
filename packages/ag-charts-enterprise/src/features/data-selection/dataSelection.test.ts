@@ -31,6 +31,16 @@ import {
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
+function uiChangeEvent<D, C>(partial: { added: AgSelectionItem<D>[]; removed: AgSelectionItem<D>[] }) {
+    const { added, removed } = partial;
+    return withPreventDefault<AgSelectionChangeEvent<D, C>>({
+        added,
+        removed,
+        source: 'user-interaction',
+        type: 'selectionChange',
+    });
+}
+
 type SelectionChangeRecorder<D, C> = {
     (ev: AgSelectionChangeEvent<D, C>): void;
     popEvents(): AgSelectionChangeEvent<D, C>[];
@@ -56,70 +66,76 @@ function createSelectionChangeRecorder<D, C>(): SelectionChangeRecorder<D, C> {
 }
 
 type StackMixDatum =
-    | { category: 'A' | 'B' | 'C' | 'D' | 'E'; s1: number; s2: number; s3: number; s4?: never; s5?: never; s6: number }
-    | { category: 'A' | 'B' | 'C' | 'D' | 'E'; s1?: never; s2?: never; s3?: never; s4: number; s5?: never; s6?: never }
-    | { category: 'A' | 'B' | 'C' | 'D' | 'E'; s1?: never; s2?: never; s3?: never; s4?: never; s5: number; s6?: never };
+    | { cat: 'A' | 'B' | 'C' | 'D' | 'E'; s1: number; s2: number; s3: number; s4?: never; s5?: never; s6: number }
+    | { cat: 'A' | 'B' | 'C' | 'D' | 'E'; s1?: never; s2?: never; s3?: never; s4: number; s5?: never; s6?: never }
+    | { cat: 'A' | 'B' | 'C' | 'D' | 'E'; s1?: never; s2?: never; s3?: never; s4?: never; s5: number; s6?: never };
 function createBarStackMixOptions(): AgCartesianChartOptions<StackMixDatum, unknown> {
     return {
         data: [
-            { category: 'A', s1: 5, s2: 3, s3: 7, s6: 3 },
-            { category: 'B', s1: 6, s2: 4, s3: 2, s6: 4 },
-            { category: 'C', s1: 4, s2: 2, s3: 6, s6: 5 },
-            { category: 'D', s1: 7, s2: 5, s3: 3, s6: 3 },
-            { category: 'E', s1: 3, s2: 6, s3: 4, s6: 2 },
+            { cat: 'A', s1: 5, s2: 3, s3: 7, s6: 3 },
+            { cat: 'B', s1: 6, s2: 4, s3: 2, s6: 4 },
+            { cat: 'C', s1: 4, s2: 2, s3: 6, s6: 5 },
+            { cat: 'D', s1: 7, s2: 5, s3: 3, s6: 3 },
+            { cat: 'E', s1: 3, s2: 6, s3: 4, s6: 2 },
         ],
         series: [
             // First 2 series (stacked, using root data)
             {
+                id: 's1id',
                 type: 'bar',
-                xKey: 'category',
+                xKey: 'cat',
                 yKey: 's1',
                 stacked: true,
             },
             {
+                id: 's2id',
                 type: 'bar',
-                xKey: 'category',
+                xKey: 'cat',
                 yKey: 's2',
                 stacked: true,
             },
             // Third series (solo, using root data)
             {
+                id: 's3id',
                 type: 'bar',
-                xKey: 'category',
+                xKey: 'cat',
                 yKey: 's3',
                 stacked: false,
             },
             // Fourth & Fifth series (stacked together, own data)
             {
+                id: 's4id',
                 type: 'bar',
-                xKey: 'category',
+                xKey: 'cat',
                 yKey: 's4',
                 stacked: true,
                 data: [
-                    { category: 'A', s4: 2 },
-                    { category: 'B', s4: 3 },
-                    { category: 'C', s4: 1 },
-                    { category: 'D', s4: 4 },
-                    { category: 'E', s4: 2 },
+                    { cat: 'A', s4: 2 },
+                    { cat: 'B', s4: 3 },
+                    { cat: 'C', s4: 1 },
+                    { cat: 'D', s4: 4 },
+                    { cat: 'E', s4: 2 },
                 ],
             },
             {
+                id: 's5id',
                 type: 'bar',
-                xKey: 'category',
+                xKey: 'cat',
                 yKey: 's5',
                 stacked: true,
                 data: [
-                    { category: 'A', s5: 1 },
-                    { category: 'B', s5: 2 },
-                    { category: 'C', s5: 3 },
-                    { category: 'D', s5: 2 },
-                    { category: 'E', s5: 1 },
+                    { cat: 'A', s5: 1 },
+                    { cat: 'B', s5: 2 },
+                    { cat: 'C', s5: 3 },
+                    { cat: 'D', s5: 2 },
+                    { cat: 'E', s5: 1 },
                 ],
             },
             // Sixth series (non-selectable)
             {
+                id: 's6id',
                 type: 'bar',
-                xKey: 'category',
+                xKey: 'cat',
                 yKey: 's6',
                 stacked: true,
                 selection: { enabled: false },
@@ -717,18 +733,30 @@ describe('DataSelection', () => {
             const POINT_S6B: CanvasPoint = { canvasX: 219, canvasY: 203 };
             const POINT_S6C: CanvasPoint = { canvasX: 371, canvasY: 299 };
 
-            const SELECTION_S1D: never[] = [];
-            const SELECTION_S1D_S2A_S3C_S4E: never[] = [];
-            const SELECTION_S2A_S3C_S4E: never[] = [];
-            const SELECTION_S2A_S3C_S4E_S5D: never[] = [];
+            const DATUM_S1D: D = { cat: 'D', s1: 7, s2: 5, s3: 3, s6: 3 };
+            const DATUM_S2A: D = { cat: 'A', s1: 5, s2: 3, s3: 7, s6: 3 };
+            const DATUM_S3C: D = { cat: 'C', s1: 4, s2: 2, s3: 6, s6: 5 };
+            const DATUM_S4E: D = { cat: 'E', s4: 2 };
+            const DATUM_S5D: D = { cat: 'D', s5: 2 };
+            const SELECTION_S1D: [AgSelectionItem<D>] = [{ itemId: 3, seriesId: 's1id', datum: DATUM_S1D }];
+            const SELECTION_S2A: [AgSelectionItem<D>] = [{ itemId: 0, seriesId: 's2id', datum: DATUM_S2A }];
+            const SELECTION_S3C: [AgSelectionItem<D>] = [{ itemId: 2, seriesId: 's3id', datum: DATUM_S3C }];
+            const SELECTION_S4E: [AgSelectionItem<D>] = [{ itemId: 4, seriesId: 's4id', datum: DATUM_S4E }];
+            const SELECTION_S5D: [AgSelectionItem<D>] = [{ itemId: 3, seriesId: 's5id', datum: DATUM_S5D }];
+            const SELECTION_S2A_S3C_S4E = [SELECTION_S2A[0], SELECTION_S3C[0], SELECTION_S4E[0]];
+            const SELECTION_S2A_S3C_S1D_S4E = [SELECTION_S2A[0], SELECTION_S3C[0], SELECTION_S1D[0], SELECTION_S4E[0]];
+            const SELECTION_S2A_S3C_S4E_S5D = [SELECTION_S2A[0], SELECTION_S3C[0], SELECTION_S4E[0], SELECTION_S5D[0]];
 
-            const ADDED_S1D: never[] = [];
-            const ADDED_S1D_REMOVED_S2A_S3C_S4E: never[] = [];
-            const ADDED_S2A: never[] = [];
-            const ADDED_S3C: never[] = [];
-            const ADDED_S4E: never[] = [];
-            const ADDED_S5D: never[] = [];
-            const REMOVED_S2A_S3C_S4E: never[] = [];
+            const ADDED_S1D = uiChangeEvent<D, C>({ added: SELECTION_S1D, removed: [] });
+            const ADDED_S2A = uiChangeEvent<D, C>({ added: SELECTION_S2A, removed: [] });
+            const ADDED_S3C = uiChangeEvent<D, C>({ added: SELECTION_S3C, removed: [] });
+            const ADDED_S4E = uiChangeEvent<D, C>({ added: SELECTION_S4E, removed: [] });
+            const ADDED_S5D = uiChangeEvent<D, C>({ added: SELECTION_S5D, removed: [] });
+            const REMOVED_S2A_S3C_S4E = uiChangeEvent<D, C>({ added: [], removed: SELECTION_S2A_S3C_S4E });
+            const ADDED_S1D_REMOVED_S2A_S3C_S4E = uiChangeEvent<D, C>({
+                added: SELECTION_S1D,
+                removed: SELECTION_S2A_S3C_S4E,
+            });
 
             describe('single', () => {
                 beforeEach(async () => {
@@ -876,7 +904,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S1D_S2A_S3C_S4E);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S1D_S4E);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S1D, { metaKey });
@@ -938,24 +966,9 @@ describe('DataSelection', () => {
                     (a, b) => (a.itemId as number) - (b.itemId as number)
                 );
 
-                const AB_ADDED = withPreventDefault<AgSelectionChangeEvent<D, C>>({
-                    type: 'selectionChange',
-                    source: 'user-interaction',
-                    removed: [],
-                    added: SELECTION_AB,
-                });
-                const CD_ADDED = withPreventDefault<AgSelectionChangeEvent<D, C>>({
-                    type: 'selectionChange',
-                    source: 'user-interaction',
-                    removed: [],
-                    added: SELECTION_CD,
-                });
-                const AB_REMOVED_CD_ADDED = withPreventDefault<AgSelectionChangeEvent<D, C>>({
-                    type: 'selectionChange',
-                    source: 'user-interaction',
-                    removed: SELECTION_AB,
-                    added: SELECTION_CD,
-                });
+                const AB_ADDED = uiChangeEvent<D, C>({ removed: [], added: SELECTION_AB });
+                const CD_ADDED = uiChangeEvent<D, C>({ removed: [], added: SELECTION_CD });
+                const AB_REMOVED_CD_ADDED = uiChangeEvent<D, C>({ removed: SELECTION_AB, added: SELECTION_CD });
 
                 beforeEach(async () => {
                     const { data, series } = createBubbleBioStatOptions();
