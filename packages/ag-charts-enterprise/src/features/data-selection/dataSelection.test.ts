@@ -839,7 +839,7 @@ describe('DataSelection', () => {
                         describe('miss1', () => {
                             test('screenshot', async () => {
                                 await mouseClick(POINT_MISS1);
-                                await compareExact('stack-mix-no-selection');
+                                await compareExact('stack-mix-highlighted-none-selected-none');
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_MISS1);
@@ -854,7 +854,7 @@ describe('DataSelection', () => {
                             // Skipped: it's unclear what the required are when clicking outside series-area
                             test('screenshot', async () => {
                                 await mouseClick(POINT_MISS2);
-                                await compareExact('stack-mix-no-selection');
+                                await compareExact('stack-mix-highlighted-none-selected-none');
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_MISS2);
@@ -868,14 +868,13 @@ describe('DataSelection', () => {
                         describe('ctrl-miss1', () => {
                             test('screenshot', async () => {
                                 await mouseClick(POINT_MISS1, { ctrlKey });
-                                await compareExact('stack-mix-selected-s2a-s3c-s4e');
+                                await compareExact('stack-mix-highlighted-none-selected-s2a-s3c-s4e');
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_MISS1, { ctrlKey });
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
                             });
                             test('selectionChange', async () => {
-                                await mouseMove(POINT_MISS1);
                                 await mouseClick(POINT_MISS1, { ctrlKey });
                                 expect(selectionChange.popEvents()).toEqual([]);
                             });
@@ -883,7 +882,7 @@ describe('DataSelection', () => {
                         describe('meta-miss1', () => {
                             test('screenshot', async () => {
                                 await mouseClick(POINT_MISS1, { metaKey });
-                                await compareExact('stack-mix-selected-s2a-s3c-s4e');
+                                await compareExact('stack-mix-highlighted-none-selected-s2a-s3c-s4e');
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_MISS1, { metaKey });
@@ -897,7 +896,7 @@ describe('DataSelection', () => {
                         describe('click selection-disabled series', () => {
                             test('screenshot', async () => {
                                 await mouseClick(POINT_S6B);
-                                await compareExact('stack-mix-highlighted-s6b');
+                                await compareExact('stack-mix-highlighted-s6b-selected-none');
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S6B);
@@ -910,6 +909,7 @@ describe('DataSelection', () => {
                         });
                         describe('ctrl-click selection-disabled series', () => {
                             test('screenshot', async () => {
+                                await mouseMove(POINT_S6C);
                                 await mouseClick(POINT_S6C, { ctrlKey });
                                 await compareExact('stack-mix-highlighted-s6c-selected-s2a-s3c-s4e');
                             });
@@ -924,6 +924,7 @@ describe('DataSelection', () => {
                         });
                         describe('meta-click selection-disabled series', () => {
                             test('screenshot', async () => {
+                                await mouseMove(POINT_S6B);
                                 await mouseClick(POINT_S6B, { metaKey });
                                 await compareExact('stack-mix-highlighted-s6b-selected-s2a-s3c-s4e');
                             });
