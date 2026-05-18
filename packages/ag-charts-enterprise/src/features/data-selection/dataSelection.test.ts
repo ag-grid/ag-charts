@@ -948,7 +948,7 @@ describe('DataSelection', () => {
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S1D_S4E);
                             });
                             test('selectionChange', async () => {
-                                await mouseClick(POINT_S1D, { metaKey });
+                                await mouseClick(POINT_S1D, { ctrlKey });
                                 expect(selectionChange.popEvents()).toEqual([ADDED_S1D]);
                             });
                         });
