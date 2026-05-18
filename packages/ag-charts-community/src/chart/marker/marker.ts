@@ -187,22 +187,12 @@ class InternalMarker<D = any> extends Path<D> {
 }
 
 // Needed to ensure correct order of operations WRT computeBBox().
-export class Marker<D = unknown> extends Rotatable(Scalable(Translatable(InternalMarker<any>))) {
+export class Marker<_D = unknown> extends Rotatable(Scalable(Translatable(InternalMarker<any>))) {
     // Type-only re-declarations of Scalable backing fields, exposed for the optimised hot-path writes.
     declare __scalingCenterX: number;
     declare __scalingCenterY: number;
     declare __translationX: number;
     declare __translationY: number;
-
-    override get datum(): D | undefined {
-        return super.datum;
-    }
-    override set datum(d: D | undefined) {
-        super.datum = d;
-    }
-    override get previousDatum(): D | undefined {
-        return super.previousDatum;
-    }
 
     static anchor(shape: AgMarkerShape | undefined): Point {
         if (shape === 'pin') {
