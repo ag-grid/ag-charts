@@ -805,23 +805,23 @@ describe('DataSelection', () => {
 
                 describe('select 3 points', () => {
                     beforeEach(async () => {
-                        mouseClick(POINT_S2A);
-                        mouseClick(POINT_S3C, { ctrlKey });
-                        mouseClick(POINT_S4E, { ctrlKey });
+                        await mouseClick(POINT_S2A);
+                        await mouseClick(POINT_S3C, { ctrlKey });
+                        await mouseClick(POINT_S4E, { ctrlKey });
                     });
                     describe('initial', () => {
                         test('screenshot', async () => {
                             await compareExact('stack-mix-selected-s2a-s3c-s4e');
                         });
-                        test('getSelection', async () => {
+                        test('getSelection', () => {
                             expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
                         });
-                        test('selectionChange', async () => {
+                        test('selectionChange', () => {
                             expect(selectionChange.popEvents()).toEqual([ADDED_S2A, ADDED_S3C, ADDED_S4E]);
                         });
                     });
                     describe('follow-up', () => {
-                        beforeEach(async () => {
+                        beforeEach(() => {
                             selectionChange.popEvents(); // pop event of initial selection.
                         });
                         describe('miss1', () => {
