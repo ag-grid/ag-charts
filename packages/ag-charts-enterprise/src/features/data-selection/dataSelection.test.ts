@@ -14,6 +14,7 @@ import {
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MockSelectionChangeListener,
+    clickAction,
     deproxy,
     dragAction,
     extractImageData,
@@ -52,6 +53,79 @@ function createSelectionChangeRecorder<D, C>(): SelectionChangeRecorder<D, C> {
     };
 
     return recorder;
+}
+
+type StackMixDatum =
+    | { category: 'A' | 'B' | 'C' | 'D' | 'E'; s1: number; s2: number; s3: number; s4?: never; s5?: never; s6: number }
+    | { category: 'A' | 'B' | 'C' | 'D' | 'E'; s1?: never; s2?: never; s3?: never; s4: number; s5?: never; s6?: never }
+    | { category: 'A' | 'B' | 'C' | 'D' | 'E'; s1?: never; s2?: never; s3?: never; s4?: never; s5: number; s6?: never };
+function createBarStackMixOptions(): AgCartesianChartOptions<StackMixDatum, unknown> {
+    return {
+        data: [
+            { category: 'A', s1: 5, s2: 3, s3: 7, s6: 3 },
+            { category: 'B', s1: 6, s2: 4, s3: 2, s6: 4 },
+            { category: 'C', s1: 4, s2: 2, s3: 6, s6: 5 },
+            { category: 'D', s1: 7, s2: 5, s3: 3, s6: 3 },
+            { category: 'E', s1: 3, s2: 6, s3: 4, s6: 2 },
+        ],
+        series: [
+            // First 2 series (stacked, using root data)
+            {
+                type: 'bar',
+                xKey: 'category',
+                yKey: 's1',
+                stacked: true,
+            },
+            {
+                type: 'bar',
+                xKey: 'category',
+                yKey: 's2',
+                stacked: true,
+            },
+            // Third series (solo, using root data)
+            {
+                type: 'bar',
+                xKey: 'category',
+                yKey: 's3',
+                stacked: false,
+            },
+            // Fourth & Fifth series (stacked together, own data)
+            {
+                type: 'bar',
+                xKey: 'category',
+                yKey: 's4',
+                stacked: true,
+                data: [
+                    { category: 'A', s4: 2 },
+                    { category: 'B', s4: 3 },
+                    { category: 'C', s4: 1 },
+                    { category: 'D', s4: 4 },
+                    { category: 'E', s4: 2 },
+                ],
+            },
+            {
+                type: 'bar',
+                xKey: 'category',
+                yKey: 's5',
+                stacked: true,
+                data: [
+                    { category: 'A', s5: 1 },
+                    { category: 'B', s5: 2 },
+                    { category: 'C', s5: 3 },
+                    { category: 'D', s5: 2 },
+                    { category: 'E', s5: 1 },
+                ],
+            },
+            // Sixth series (non-selectable)
+            {
+                type: 'bar',
+                xKey: 'category',
+                yKey: 's6',
+                stacked: true,
+                selection: { enabled: false },
+            },
+        ],
+    };
 }
 
 type BioDatum = { height: number; weight: number; age: number };
@@ -118,6 +192,27 @@ describe('DataSelection', () => {
         });
     };
 
+    type CanvasPoint = { readonly canvasX: number; readonly canvasY: number };
+    type Modifiers = { altKey?: true; shiftKey?: true; ctrlKey?: true; metaKey?: true };
+    const [altKey, shiftKey, ctrlKey, metaKey] = [true, true, true, true] as const;
+
+    async function mouseClick(point: CanvasPoint, modifiers?: Modifiers) {
+        await clickAction(point.canvasX, point.canvasY, modifiers)(chart);
+        await waitForChartStability(chart);
+    }
+    async function mouseDown(point: CanvasPoint, modifiers?: Modifiers) {
+        await mouseDownAction(point.canvasX, point.canvasY, modifiers)(chart);
+        await waitForChartStability(chart);
+    }
+    async function mouseMove(point: CanvasPoint, modifiers?: Modifiers) {
+        await mouseMoveAction(point.canvasX, point.canvasY, modifiers)(chart);
+        await waitForChartStability(chart);
+    }
+    async function mouseUp(point: CanvasPoint, modifiers?: Modifiers) {
+        await mouseUpAction(point.canvasX, point.canvasY, modifiers)(chart);
+        await waitForChartStability(chart);
+    }
+
     function getChartSelectionArray() {
         expect(chart).toBeDefined();
         return Array.from(chart.getSelection());
@@ -128,6 +223,13 @@ describe('DataSelection', () => {
         const { zoom } = chart.getState();
         expect(zoom).toBeDefined();
         return zoom!;
+    }
+
+    async function createChartInstance<T extends AgChartOptions<any, any>>(opts: T) {
+        opts = prepareEnterpriseTestOptions(opts);
+        const result = AgCharts.create(opts);
+        await waitForChartStability(result);
+        return result;
     }
 
     let chart: AgChartInstance;
@@ -599,31 +701,209 @@ describe('DataSelection', () => {
         });
     });
 
+    describe('click', () => {
+        describe('bar', () => {
+            type D = StackMixDatum;
+            type C = unknown;
+            let selectionChange: SelectionChangeRecorder<D, C>;
+
+            const POINT_MISS1: CanvasPoint = { canvasX: 141, canvasY: 120 };
+            const POINT_MISS2: CanvasPoint = { canvasX: 681, canvasY: 594 };
+            const POINT_S1D: CanvasPoint = { canvasX: 521, canvasY: 497 };
+            const POINT_S2A: CanvasPoint = { canvasX: 74, canvasY: 430 };
+            const POINT_S3C: CanvasPoint = { canvasX: 433, canvasY: 520 };
+            const POINT_S4E: CanvasPoint = { canvasX: 680, canvasY: 355 };
+            const POINT_S5D: CanvasPoint = { canvasX: 531, canvasY: 196 };
+            const POINT_S6B: CanvasPoint = { canvasX: 219, canvasY: 203 };
+            const POINT_S6C: CanvasPoint = { canvasX: 371, canvasY: 299 };
+
+            const SELECTION_S1D: never[] = [];
+            const SELECTION_S1D_S2A_S3C_S4E: never[] = [];
+            const SELECTION_S2A_S3C_S4E: never[] = [];
+            const SELECTION_S2A_S3C_S4E_S5D: never[] = [];
+
+            const ADDED_S1D: never[] = [];
+            const ADDED_S1D_REMOVED_S2A_S3C_S4E: never[] = [];
+            const ADDED_S2A: never[] = [];
+            const ADDED_S3C: never[] = [];
+            const ADDED_S4E: never[] = [];
+            const ADDED_S5D: never[] = [];
+            const REMOVED_S2A_S3C_S4E: never[] = [];
+
+            describe('single', () => {
+                beforeEach(async () => {
+                    const { data, series } = createBarStackMixOptions();
+                    selectionChange = createSelectionChangeRecorder();
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        legend: { enabled: false },
+                        selection: {
+                            enabled: true,
+                            clickMode: 'single',
+                        },
+                        axes: {
+                            x: { crosshair: { enabled: false }, label: { enabled: false } },
+                            y: { crosshair: { enabled: false }, label: { enabled: false } },
+                        },
+                        listeners: { selectionChange },
+                    });
+                });
+
+                describe('select 3 points', () => {
+                    beforeEach(async () => {
+                        mouseClick(POINT_S2A);
+                        mouseClick(POINT_S3C, { ctrlKey });
+                        mouseClick(POINT_S4E, { ctrlKey });
+                    });
+                    describe('initial', () => {
+                        test('screenshot', async () => {
+                            await compareExact('stack-mix-selected-s2a-s3c-s4e');
+                        });
+                        test('getSelection', async () => {
+                            expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
+                        });
+                        test('selectionChange', async () => {
+                            expect(selectionChange.popEvents()).toEqual([ADDED_S2A, ADDED_S3C, ADDED_S4E]);
+                        });
+                    });
+                    describe('follow-up', () => {
+                        beforeEach(async () => {
+                            selectionChange.popEvents(); // pop event of initial selection.
+                        });
+                        describe('miss1', async () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_MISS1);
+                                await compareExact('stack-mix-no-selection');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_MISS1);
+                                expect(getChartSelectionArray()).toEqual([]);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_MISS1);
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S3C_S4E]);
+                            });
+                        });
+                        describe('ctrl-miss2', async () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_MISS2, { ctrlKey });
+                                await compareExact('stack-mix-selected-s2a-s3c-s4e');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_MISS2, { ctrlKey });
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_MISS2, { ctrlKey });
+                                expect(selectionChange.popEvents()).toEqual([]);
+                            });
+                        });
+                        describe('meta-miss2', async () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_MISS2, { metaKey });
+                                await compareExact('stack-mix-selected-s2a-s3c-s4e');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_MISS2, { metaKey });
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_MISS2, { metaKey });
+                                expect(selectionChange.popEvents()).toEqual([]);
+                            });
+                        });
+                        describe('click selection-disabled series', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_S6B);
+                                await compareExact('stack-mix-highlighted-s6b');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_S6B);
+                                expect(getChartSelectionArray()).toEqual([]);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_S6B);
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S3C_S4E]);
+                            });
+                        });
+                        describe('ctrl-click selection-disabled series', async () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_S6C, { ctrlKey });
+                                await compareExact('stack-mix-selected-s2a-s3c-s4e');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_S6C, { ctrlKey });
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_S6C, { ctrlKey });
+                                expect(selectionChange.popEvents()).toEqual([]);
+                            });
+                        });
+                        describe('meta-click selection-disabled series', async () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_S6B, { metaKey });
+                                await compareExact('stack-mix-selected-s2a-s3c-s4e');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_S6B, { metaKey });
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_S6B, { metaKey });
+                                expect(selectionChange.popEvents()).toEqual([]);
+                            });
+                        });
+                        describe('click selection-enabled series', async () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_S1D);
+                                await compareExact('stack-mix-selected-s1d');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_S1D);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S1D);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_S1D);
+                                expect(selectionChange.popEvents()).toEqual([ADDED_S1D_REMOVED_S2A_S3C_S4E]);
+                            });
+                        });
+                        describe('ctrl-click selection-enabled series', async () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_S1D, { ctrlKey });
+                                await compareExact('stack-mix-selected-s1d-s2a-s3c-s4e');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_S1D, { ctrlKey });
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S1D_S2A_S3C_S4E);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_S1D, { metaKey });
+                                expect(selectionChange.popEvents()).toEqual([ADDED_S1D]);
+                            });
+                        });
+                        describe('meta-click selection-enabled series', async () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_S5D, { metaKey });
+                                await compareExact('stack-mix-selected-s2a-s3c-s4e-s5d');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_S5D, { metaKey });
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E_S5D);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_S5D, { metaKey });
+                                expect(selectionChange.popEvents()).toEqual([ADDED_S5D]);
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    });
+
     describe('drag modifiers', () => {
-        type CanvasPoint = { readonly canvasX: number; readonly canvasY: number };
-        type Modifiers = { altKey?: true; shiftKey?: true; ctrlKey?: true; metaKey?: true };
-        const [altKey, shiftKey, ctrlKey, metaKey] = [true, true, true, true] as const;
-
-        async function mouseDown(point: CanvasPoint, modifiers?: Modifiers) {
-            await mouseDownAction(point.canvasX, point.canvasY, modifiers)(chart);
-            await waitForChartStability(chart);
-        }
-        async function mouseMove(point: CanvasPoint, modifiers?: Modifiers) {
-            await mouseMoveAction(point.canvasX, point.canvasY, modifiers)(chart);
-            await waitForChartStability(chart);
-        }
-        async function mouseUp(point: CanvasPoint, modifiers?: Modifiers) {
-            await mouseUpAction(point.canvasX, point.canvasY, modifiers)(chart);
-            await waitForChartStability(chart);
-        }
-
-        async function createChartInstance<T extends AgChartOptions<any, any>>(opts: T) {
-            opts = prepareEnterpriseTestOptions(opts);
-            const result = AgCharts.create(opts);
-            await waitForChartStability(result);
-            return result;
-        }
-
         describe('bubble', () => {
             type D = BioDatum;
             type C = unknown;
