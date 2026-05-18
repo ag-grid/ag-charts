@@ -251,10 +251,9 @@ export class Ranges extends AbstractModuleInstance {
         const numericKeys = ['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'strokeWidth'];
         const button = resolveStyles(opts.button);
         const dropdown = resolveStyles(opts.dropdown);
-        this.ctx.domManager.setModuleCSSVariables('ranges', undefined, undefined, { gap, minSize: 0 }, [
-            'gap',
-            'minSize',
-        ]);
+        // `minSize` is undocumented but emitted by rangesTheme/priceVolumePreset (theme: 0, preset: 34).
+        const minSize = (opts as { minSize?: number }).minSize ?? 0;
+        this.ctx.domManager.setModuleCSSVariables('ranges', undefined, undefined, { gap, minSize }, ['gap', 'minSize']);
         this.ctx.domManager.setModuleCSSVariables(
             'ranges',
             'button',
