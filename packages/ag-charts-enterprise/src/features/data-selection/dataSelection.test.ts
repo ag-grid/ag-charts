@@ -15,6 +15,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MockSelectionChangeListener,
     clickAction,
+    delay,
     deproxy,
     dragAction,
     extractImageData,
@@ -30,6 +31,12 @@ import {
 } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
+
+async function waitForUnhighlight() {
+    // FIXME: SeriesAreaManager.handleHoverHighlight clears highlight with delay = true, but Chart.waitForUpdate
+    // does not wait for this update.
+    await delay(200);
+}
 
 function uiChangeEvent<D, C>(partial: { added: AgSelectionItem<D>[]; removed: AgSelectionItem<D>[] }) {
     const { added, removed } = partial;
@@ -868,6 +875,7 @@ describe('DataSelection', () => {
                         describe('ctrl-miss1', () => {
                             test('screenshot', async () => {
                                 await mouseClick(POINT_MISS1, { ctrlKey });
+                                await waitForUnhighlight();
                                 await compareExact('stack-mix-highlighted-none-selected-s2a-s3c-s4e');
                             });
                             test('getSelection', async () => {
@@ -882,6 +890,7 @@ describe('DataSelection', () => {
                         describe('meta-miss1', () => {
                             test('screenshot', async () => {
                                 await mouseClick(POINT_MISS1, { metaKey });
+                                await waitForUnhighlight();
                                 await compareExact('stack-mix-highlighted-none-selected-s2a-s3c-s4e');
                             });
                             test('getSelection', async () => {
