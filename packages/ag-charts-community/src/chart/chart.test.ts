@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ChartAxisDirection } from 'ag-charts-core';
+import { ChartAxisDirection, ChartUpdateType } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgPolarChartOptions, InteractionRange } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
@@ -1555,4 +1555,51 @@ describe('Chart', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
+});
+
+describe('Chart destroy() / performUpdate() race condition', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    const data = [
+        { x: 'A', y: 10 },
+        { x: 'B', y: 20 },
+        { x: 'C', y: 30 },
+    ];
+
+    async function testDestroyRace(seriesType: 'bar' | 'area' | 'line') {
+        const proxy = AgCharts.create({
+            container: document.body,
+            data,
+            series: [{ type: seriesType, xKey: 'x', yKey: 'y' }],
+        }) as AgChartProxy;
+        const innerChart = deproxy(proxy);
+        await waitForChartStability(innerChart);
+
+        // Spy on the prototype so jest can restore it after the test even if the chart
+        // instance gets frozen by Object.freeze(this) inside performTeardown.
+        const chartProto = Object.getPrototypeOf(innerChart);
+        const origProcessData = chartProto.processData;
+        jest.spyOn(chartProto, 'processData').mockImplementationOnce(function (this: any) {
+            // Fire destroy() while the pipeline is paused on the processData await.
+            innerChart.destroy();
+            return origProcessData.call(this) as Promise<void>;
+        });
+
+        innerChart.update(ChartUpdateType.FULL);
+
+        // waitForChartStability returns as soon as `destroyed` is true; the deferred
+        // performTeardown (queued behind the mutex by destroy()) still needs to drain.
+        await waitForChartStability(innerChart);
+        await (innerChart as any).updateMutex.waitForClearAcquireQueue();
+
+        // Implicit assertion: if assembleResult threw TypeError (this.chart!.seriesRect!
+        // on a cleared series), tryPerformUpdate's catch block would call Logger.error
+        // → console.error. setupMockConsole's afterEach asserts console.error is never called.
+    }
+
+    it.each(['bar', 'area', 'line'] as const)(
+        'does not throw TypeError when destroy() races with a %s series update',
+        testDestroyRace
+    );
 });
