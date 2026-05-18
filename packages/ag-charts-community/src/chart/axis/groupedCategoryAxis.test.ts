@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, test } from '@jest/globals';
+import { afterEach, describe, expect, it, test } from 'vitest';
 
 import { mapValues } from 'ag-charts-core';
 import type {

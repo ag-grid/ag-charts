@@ -1,4 +1,4 @@
-import { describe, expect, test } from '@jest/globals';
+import { describe, expect, test } from 'vitest';
 
 import { expectWarningMessages, setupMockConsole } from '../test/utils';
 import { DataSet } from './dataSet';
@@ -1011,19 +1011,19 @@ describe('DataSet', () => {
                 {
                     name: 'append',
                     size: 10000,
-                    transaction: { append: [10001, 10002, 10003] } as DataTransaction<number>,
+                    transaction: { append: [10001, 10002, 10003] },
                     expected: (initial: number[]) => [...initial, 10001, 10002, 10003],
                 },
                 {
                     name: 'prepend',
                     size: 10000,
-                    transaction: { prepend: [-3, -2, -1] } as DataTransaction<number>,
+                    transaction: { prepend: [-3, -2, -1] },
                     expected: (initial: number[]) => [-3, -2, -1, ...initial],
                 },
                 {
                     name: 'prepend and append',
                     size: 10000,
-                    transaction: { prepend: [-1], append: [10001] } as DataTransaction<number>,
+                    transaction: { prepend: [-1], append: [10001] },
                     expected: (initial: number[]) => [-1, ...initial, 10001],
                 },
             ])('$name: avoids scanning original data', ({ size, transaction, expected }) => {

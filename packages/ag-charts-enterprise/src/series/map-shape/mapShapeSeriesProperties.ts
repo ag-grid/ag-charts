@@ -66,9 +66,6 @@ export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesO
     colorName?: string;
 
     @Property
-    colorRange: string[] | undefined = undefined;
-
-    @Property
     readonly colorScale = new ColorScaleProperties();
 
     @Property

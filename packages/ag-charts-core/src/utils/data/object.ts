@@ -186,7 +186,7 @@ export function assignIfNotStrictlyEqual<T extends object>(target: T, source: T,
 export function assignIfNotStrictlyEqual<T extends object>(target: T, source: T, keys?: readonly string[]): T {
     // Object.keys() + indexed loop is faster than for-in (avoids prototype chain traversal)
     // When keys are provided, skip Object.keys() allocation entirely
-    const sourceKeys = keys ?? (Object.keys(source) as (keyof T & string)[]);
+    const sourceKeys = keys ?? Object.keys(source);
     for (let i = 0, len = sourceKeys.length; i < len; i++) {
         const key = sourceKeys[i] as keyof T;
         const newValue = source[key];

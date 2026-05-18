@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 
 import { deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from './json';
 import { mergeDefaults } from './object';
@@ -296,7 +296,7 @@ describe('json module', () => {
     describe('#jsonWalk', () => {
         it('should visit no nodes for no object', () => {
             for (const test of [undefined, null, 'a', 1, FIXED_DATE]) {
-                const cb = jest.fn();
+                const cb = vi.fn();
                 jsonWalk(test, cb, undefined, test);
                 expect(cb).toHaveBeenCalledTimes(0);
             }
@@ -306,7 +306,7 @@ describe('json module', () => {
             for (const test of [undefined, null, 'a', 1, FIXED_DATE]) {
                 const wrappedTest = { test };
 
-                const cb = jest.fn();
+                const cb = vi.fn();
                 jsonWalk(wrappedTest, cb, undefined, wrappedTest);
                 expect(cb).toHaveBeenCalledWith(wrappedTest, wrappedTest, undefined, undefined);
                 expect(cb).toHaveBeenCalledTimes(1);
@@ -317,7 +317,7 @@ describe('json module', () => {
             const walked1 = { a: 1, b: 2, c: 'c', d: FIXED_DATE };
             const walked2 = { a: 2, b: 3, c: 'd', d: FIXED_DATE };
 
-            const cb = jest.fn();
+            const cb = vi.fn();
             jsonWalk(walked1, cb, undefined, walked2);
             expect(cb).toHaveBeenCalledTimes(1);
             expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined, undefined);
@@ -334,7 +334,7 @@ describe('json module', () => {
             };
             const walked2 = { a: 2, b: 3, c: 'd', d: FIXED_DATE, child1: { foo: 'bar' } };
 
-            const cb = jest.fn();
+            const cb = vi.fn();
             jsonWalk(walked1, cb, undefined, walked2);
             expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined, undefined);
             expect(cb).toHaveBeenCalledWith(walked1.child1, walked2.child1, undefined, undefined);
@@ -355,7 +355,7 @@ describe('json module', () => {
             const walked2 = { a: 2, b: 3, c: 'd', d: FIXED_DATE, child1: { foo: 'bar' } };
 
             const ctx = {};
-            const cb = jest.fn((_a, _b, _c, acc: number = -1) => acc + 1);
+            const cb = vi.fn((_a, _b, _c, acc: number = -1) => acc + 1);
             const result = jsonWalk(walked1, cb, undefined, walked2, ctx, 0);
             expect(cb).toHaveBeenCalledWith(walked1, walked2, ctx, 0);
             expect(cb).toHaveBeenCalledWith(walked1.child1, walked2.child1, ctx, 1);
@@ -369,7 +369,7 @@ describe('json module', () => {
             const walked1 = [{ a: 1 }, { b: 2 }, { c: 3 }, { d: 4 }];
             const walked2 = [{ x: 1 }, { y: 2 }, { z: 3 }];
 
-            const cb = jest.fn();
+            const cb = vi.fn();
             jsonWalk(walked1, cb, undefined, walked2);
             expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined, undefined);
             expect(cb).toHaveBeenCalledWith(walked1[0], walked2[0], undefined, undefined);
@@ -383,7 +383,7 @@ describe('json module', () => {
             const walked1 = { prop1: [{ a: 1 }, { b: 2 }, { c: 3 }, { d: 4 }] };
             const walked2 = { prop1: [{ x: 1 }, { y: 2 }, { z: 3 }] };
 
-            const cb = jest.fn();
+            const cb = vi.fn();
             jsonWalk(walked1, cb, undefined, walked2);
             expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined, undefined);
             expect(cb).toHaveBeenCalledWith(walked1.prop1, walked2.prop1, undefined, undefined);
@@ -405,7 +405,7 @@ describe('json module', () => {
             };
             const walked2 = { a: 2, b: 3, c: 'd', d: FIXED_DATE, child1: { foo: 'bar' } };
 
-            const cb = jest.fn();
+            const cb = vi.fn();
             jsonWalk(walked1, cb, new Set(['child1', 'child3']), walked2);
             expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined, undefined);
             expect(cb).toHaveBeenCalledWith(walked1.child2, undefined, undefined, undefined);

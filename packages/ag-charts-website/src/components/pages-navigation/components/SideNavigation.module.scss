@@ -108,7 +108,6 @@
 
     // Active items: show full 2px line using pseudo-element
     &:has(:global(.active))::before {
-        width: 2px;
         background-color: var(--active-border);
     }
 }
@@ -118,7 +117,6 @@
     background-color: var(--active-background);
 
     &::before {
-        width: 2px;
         background-color: var(--active-border);
     }
 

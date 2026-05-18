@@ -6,7 +6,7 @@ Most skills, agents, commands, and shared rules come from the [`ag-grid/ag-dev-p
 
 | Channel                                                              | Claude Code                          | Cursor / Codex / Gemini / Copilot                           |
 | -------------------------------------------------------------------- | ------------------------------------ | ----------------------------------------------------------- |
-| Plugin marketplace (`ag-dev` → `ag-charts`, `ag-prodeng`, `ag-core`) | Loaded directly as a plugin          | N/A                                                         |
+| Plugin marketplace (`ag-dev` → `ag-charts`, `ag-prodeng`, `ag-core`, `ag-eng`, `ag-product`) | Loaded directly as a plugin          | N/A                                                         |
 | `.rulesync/` (this directory)                                        | Rules + a few product-specific items | Everything — staged from ag-dev-prompts by `rulesync-fetch` |
 
 Plugin content is mirrored into `.rulesync/` by `external/ag-shared/scripts/rulesync-fetch/stage.py` so non-Claude tools receive the same surface via `rulesync generate`. Staged items are gitignored (`.rulesync/.gitignore`); only the AG Charts-local items below are tracked here.

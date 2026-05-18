@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 
 import { AgDocument, EventEmitter, getDocument } from 'ag-charts-core';
 
@@ -57,8 +57,8 @@ describe('DOMManager', () => {
     });
 
     describe('when connecting after initialisation', () => {
-        beforeEach(() => jest.useFakeTimers());
-        afterEach(() => jest.useRealTimers());
+        beforeEach(() => vi.useFakeTimers());
+        afterEach(() => vi.useRealTimers());
 
         it('should move styles to head when the container is attached to the document', () => {
             const container = doc.createElement('div');
@@ -70,7 +70,7 @@ describe('DOMManager', () => {
 
             doc.body.append(container);
             dm.setDeferring(false);
-            jest.runAllTimers();
+            vi.runAllTimers();
 
             expect(container.querySelector('style[data-ag-charts="late-test"]')).toBeNull();
             expect(doc.head.querySelector('style[data-ag-charts="late-test"]')).not.toBeNull();
@@ -88,7 +88,7 @@ describe('DOMManager', () => {
 
             shadow.appendChild(container);
             dm.setDeferring(false);
-            jest.runAllTimers();
+            vi.runAllTimers();
 
             expect(shadow.querySelector('style[data-ag-charts="late-test"]')).not.toBeNull();
             expect(shadow.querySelector('style[data-ag-charts="ag-charts-community"]')).not.toBeNull();
@@ -114,7 +114,7 @@ describe('DOMManager', () => {
             const dm = new DOMManager(eventsHub, () => undefined, doc, container);
 
             const canvasEl = dm.getParent('canvas');
-            const spy = jest.spyOn(canvasEl, 'getBoundingClientRect');
+            const spy = vi.spyOn(canvasEl, 'getBoundingClientRect');
 
             // First call populates cache
             dm.getBoundingClientRect();
@@ -158,7 +158,7 @@ describe('DOMManager', () => {
             // Populate cache first
             dm.getBoundingClientRect();
 
-            const spy = jest.spyOn(canvasEl, 'getBoundingClientRect');
+            const spy = vi.spyOn(canvasEl, 'getBoundingClientRect');
 
             // Invalidate
             doc.window.dispatchEvent(new Event('scroll'));
@@ -196,7 +196,7 @@ describe('DOMManager', () => {
         });
 
         it('should apply buffered writes after setDeferring(false)', () => {
-            jest.useFakeTimers();
+            vi.useFakeTimers();
             const container = doc.createElement('div');
             doc.body.append(container);
             const dm = new DOMManager(eventsHub, () => undefined, doc, container);
@@ -206,8 +206,8 @@ describe('DOMManager', () => {
             proxy.setProperty('left', '10px');
 
             dm.setDeferring(false);
-            jest.runAllTimers();
-            jest.useRealTimers();
+            vi.runAllTimers();
+            vi.useRealTimers();
 
             const childEl = dm.getParent('canvas-overlay').querySelector('div');
             expect(childEl!.style.getPropertyValue('left')).toBe('10px');
@@ -247,7 +247,7 @@ describe('DOMManager', () => {
             // Spy on the element style cursor setter after the first write
             const element = (dm as any).element as HTMLElement;
             const descriptor = Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'cursor')!;
-            const setter = jest.fn(descriptor.set!.bind(element.style));
+            const setter = vi.fn(descriptor.set!.bind(element.style));
             Object.defineProperty(element.style, 'cursor', {
                 get: descriptor.get!.bind(element.style),
                 set: setter,

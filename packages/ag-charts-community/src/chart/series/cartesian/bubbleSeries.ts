@@ -350,10 +350,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             const domain = extent(rawDomain);
 
             if (domain != null) {
-                // `colorRange` is the palette-bound fallback used when `colorScale.fills` is
-                // empty — see BubbleSeriesProperties.colorRange for why this can't live inside
-                // the `colorScale` sub-tree.
-                configureColorScale(this.colorScale, this.properties.colorScale, domain, this.properties.colorRange);
+                configureColorScale(this.colorScale, this.properties.colorScale, domain);
                 this.colorScaleValid = true;
             }
         }
@@ -935,7 +932,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         mutableNode.placement = ctx.labelPlacement;
 
         // Update point in-place
-        const mutablePoint = mutableNode.point as Mutable<SizedPoint>;
+        const mutablePoint = mutableNode.point;
         mutablePoint.x = x;
         mutablePoint.y = y;
         mutablePoint.size = Math.sqrt(dilation) * markerSize;

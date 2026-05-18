@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -537,7 +537,7 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
 }
 `;
 
-exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "__AXIS_ID_2": {
@@ -1106,7 +1106,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
 }
 `;
 
-exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -1901,7 +1901,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
 }
 `;
 
-exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -2833,7 +2833,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
 }
 `;
 
-exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -3171,7 +3171,7 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
 }
 `;
 
-exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -3754,7 +3754,7 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
 }
 `;
 
-exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -4454,7 +4454,7 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
 }
 `;
 
-exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -4810,7 +4810,7 @@ by Occupation",
 }
 `;
 
-exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -5170,7 +5170,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
 }
 `;
 
-exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -5517,7 +5517,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
 }
 `;
 
-exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -5859,7 +5859,7 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
 }
 `;
 
-exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -6292,7 +6292,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
 }
 `;
 
-exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -6735,7 +6735,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
 }
 `;
 
-exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -7613,7 +7613,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
 }
 `;
 
-exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -9092,7 +9092,7 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
 }
 `;
 
-exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -9433,7 +9433,7 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
 }
 `;
 
-exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -10360,7 +10360,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
 }
 `;
 
-exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -10892,7 +10892,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
 }
 `;
 
-exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -11660,7 +11660,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
 }
 `;
 
-exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -12292,7 +12292,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
 }
 `;
 
-exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -12649,7 +12649,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
 }
 `;
 
-exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {},
   "background": {
@@ -12972,7 +12972,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
 }
 `;
 
-exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -13422,7 +13422,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
 }
 `;
 
-exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {},
   "background": {
@@ -13710,7 +13710,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
 }
 `;
 
-exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -14038,7 +14038,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
 }
 `;
 
-exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -14874,7 +14874,7 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
 }
 `;
 
-exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -15486,7 +15486,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
 }
 `;
 
-exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should prepare options as expected 1`] = `
+exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
     "x": {
@@ -16183,7 +16183,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false' for series type [nightingale] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false' for series type [nightingale] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
@@ -16193,7 +16193,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false' for series type [nightingale] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false' for series type [nightingale] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
@@ -16203,7 +16203,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [area] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [area] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
@@ -16213,7 +16213,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [area] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [area] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
@@ -16223,7 +16223,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [area] appropriately 3`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [area] appropriately 3`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
@@ -16233,7 +16233,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [area] appropriately 4`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [area] appropriately 4`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
@@ -16243,7 +16243,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [bar] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
@@ -16253,7 +16253,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [bar] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [bar] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
@@ -16263,7 +16263,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [bar] appropriately 3`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [bar] appropriately 3`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
@@ -16273,7 +16273,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [bar] appropriately 4`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [bar] appropriately 4`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
@@ -16283,7 +16283,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [line] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [line] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "line-quarter-stacked",
@@ -16293,7 +16293,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [line] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [line] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "line-quarter-stacked",
@@ -16303,7 +16303,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [nightingale] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [nightingale] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
@@ -16313,7 +16313,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'false', stacked property 'true' for series type [nightingale] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [nightingale] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
@@ -16323,7 +16323,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true' for series type [bar] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true' for series type [bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16333,7 +16333,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true' for series type [bar] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true' for series type [bar] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16343,7 +16343,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true' for series type [bar] appropriately 3`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true' for series type [bar] appropriately 3`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16353,7 +16353,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true' for series type [bar] appropriately 4`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true' for series type [bar] appropriately 4`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16363,7 +16363,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true' for series type [nightingale] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true' for series type [nightingale] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-grouped",
@@ -16373,7 +16373,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true' for series type [nightingale] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true' for series type [nightingale] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-grouped",
@@ -16383,7 +16383,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true' for series type [range-bar] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true' for series type [range-bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
@@ -16393,7 +16393,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true' for series type [range-bar] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true' for series type [range-bar] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
@@ -16403,7 +16403,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'false' for series type [bar] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'false' for series type [bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16413,7 +16413,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'false' for series type [bar] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'false' for series type [bar] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16423,7 +16423,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'false' for series type [bar] appropriately 3`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'false' for series type [bar] appropriately 3`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16433,7 +16433,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'false' for series type [bar] appropriately 4`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'false' for series type [bar] appropriately 4`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16443,7 +16443,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'false' for series type [nightingale] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'false' for series type [nightingale] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-grouped",
@@ -16453,7 +16453,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'false' for series type [nightingale] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'false' for series type [nightingale] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-grouped",
@@ -16463,7 +16463,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'false' for series type [range-bar] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'false' for series type [range-bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
@@ -16473,7 +16473,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'false' for series type [range-bar] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'false' for series type [range-bar] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
@@ -16483,7 +16483,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [area] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [area] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
@@ -16493,7 +16493,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [area] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [area] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
@@ -16503,7 +16503,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [area] appropriately 3`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [area] appropriately 3`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
@@ -16513,7 +16513,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [area] appropriately 4`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [area] appropriately 4`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
@@ -16523,7 +16523,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [bar] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
@@ -16533,7 +16533,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [bar] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [bar] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
@@ -16543,7 +16543,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [bar] appropriately 3`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [bar] appropriately 3`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
@@ -16553,7 +16553,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [bar] appropriately 4`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [bar] appropriately 4`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
@@ -16563,7 +16563,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [line] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [line] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "line-quarter-stacked",
@@ -16573,7 +16573,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [line] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [line] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "line-quarter-stacked",
@@ -16583,7 +16583,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [nightingale] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [nightingale] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
@@ -16593,7 +16593,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [nightingale] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [nightingale] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
@@ -16603,7 +16603,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [range-bar] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [range-bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
@@ -16613,7 +16613,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle grouped property 'true', stacked property 'true' for series type [range-bar] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [range-bar] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
@@ -16623,7 +16623,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped and stacked properties for series type [bar] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped and stacked properties for series type [bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16633,7 +16633,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped and stacked properties for series type [bar] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped and stacked properties for series type [bar] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16643,7 +16643,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped and stacked properties for series type [bar] appropriately 3`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped and stacked properties for series type [bar] appropriately 3`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16653,7 +16653,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped and stacked properties for series type [bar] appropriately 4`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped and stacked properties for series type [bar] appropriately 4`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16663,7 +16663,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped and stacked properties for series type [nightingale] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped and stacked properties for series type [nightingale] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
@@ -16673,7 +16673,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped and stacked properties for series type [nightingale] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped and stacked properties for series type [nightingale] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
@@ -16683,7 +16683,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped and stacked properties for series type [range-bar] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped and stacked properties for series type [range-bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
@@ -16693,7 +16693,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped and stacked properties for series type [range-bar] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped and stacked properties for series type [range-bar] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
@@ -16703,7 +16703,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped property for series type [bar] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped property for series type [bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16713,7 +16713,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped property for series type [bar] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped property for series type [bar] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16723,7 +16723,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped property for series type [bar] appropriately 3`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped property for series type [bar] appropriately 3`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16733,7 +16733,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped property for series type [bar] appropriately 4`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped property for series type [bar] appropriately 4`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16743,7 +16743,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped property for series type [nightingale] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped property for series type [nightingale] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
@@ -16753,7 +16753,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped property for series type [nightingale] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped property for series type [nightingale] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
@@ -16763,7 +16763,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped property for series type [range-bar] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped property for series type [range-bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
@@ -16773,7 +16773,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted grouped property for series type [range-bar] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped property for series type [range-bar] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
@@ -16783,7 +16783,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted stacked property for series type [bar] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted stacked property for series type [bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16793,7 +16793,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted stacked property for series type [bar] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted stacked property for series type [bar] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16803,7 +16803,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted stacked property for series type [bar] appropriately 3`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted stacked property for series type [bar] appropriately 3`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16813,7 +16813,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted stacked property for series type [bar] appropriately 4`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted stacked property for series type [bar] appropriately 4`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16823,7 +16823,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted stacked property for series type [nightingale] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted stacked property for series type [nightingale] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
@@ -16833,7 +16833,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted stacked property for series type [nightingale] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted stacked property for series type [nightingale] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
@@ -16843,7 +16843,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted stacked property for series type [range-bar] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted stacked property for series type [range-bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
@@ -16853,7 +16853,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle omitted stacked property for series type [range-bar] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted stacked property for series type [range-bar] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
@@ -16863,7 +16863,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'false' for series type [bar] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'false' for series type [bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16873,7 +16873,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'false' for series type [bar] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'false' for series type [bar] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16883,7 +16883,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'false' for series type [bar] appropriately 3`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'false' for series type [bar] appropriately 3`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16893,7 +16893,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'false' for series type [bar] appropriately 4`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'false' for series type [bar] appropriately 4`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
@@ -16903,7 +16903,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'false' for series type [nightingale] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'false' for series type [nightingale] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-grouped",
@@ -16913,7 +16913,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'false' for series type [nightingale] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'false' for series type [nightingale] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-grouped",
@@ -16923,7 +16923,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'false' for series type [range-bar] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'false' for series type [range-bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
@@ -16933,7 +16933,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'false' for series type [range-bar] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'false' for series type [range-bar] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
@@ -16943,7 +16943,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [area] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [area] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
@@ -16953,7 +16953,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [area] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [area] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
@@ -16963,7 +16963,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [area] appropriately 3`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [area] appropriately 3`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
@@ -16973,7 +16973,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [area] appropriately 4`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [area] appropriately 4`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
@@ -16983,7 +16983,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [bar] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
@@ -16993,7 +16993,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [bar] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [bar] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
@@ -17003,7 +17003,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [bar] appropriately 3`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [bar] appropriately 3`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
@@ -17013,7 +17013,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [bar] appropriately 4`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [bar] appropriately 4`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
@@ -17023,7 +17023,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [line] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [line] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "line-quarter-stacked",
@@ -17033,7 +17033,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [line] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [line] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "line-quarter-stacked",
@@ -17043,7 +17043,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [nightingale] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [nightingale] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
@@ -17053,7 +17053,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [nightingale] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [nightingale] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
@@ -17063,7 +17063,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [range-bar] appropriately 1`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [range-bar] appropriately 1`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
@@ -17073,7 +17073,7 @@ exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration 
 }
 `;
 
-exports[`ChartOptions #processSeriesOptions Stacking and grouping configuration combinations handle stacked property 'true' for series type [range-bar] appropriately 2`] = `
+exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [range-bar] appropriately 2`] = `
 {
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",

@@ -439,7 +439,6 @@ export abstract class CartesianAxis<
     override update() {
         this.updateDirection();
 
-        // eslint-disable-next-line sonarjs/deprecation
         const previousTicksIds = Array.from(this.tickLabelGroupSelection.nodes(), (node) => node.unsafeDatum.tickId);
 
         super.update();
@@ -910,7 +909,6 @@ export abstract class CartesianAxis<
             animationManager,
             [this.tickLabelGroupSelection],
             fns.label,
-            // eslint-disable-next-line sonarjs/deprecation
             (node) => node.unsafeDatum.tickId,
             diff
         );
@@ -920,7 +918,6 @@ export abstract class CartesianAxis<
             animationManager,
             [this.caption.node],
             fns.label,
-            // eslint-disable-next-line sonarjs/deprecation
             (node) => node.unsafeDatum.tickId,
             diff
         );

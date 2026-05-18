@@ -37,12 +37,19 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
                 ],
             }),
             stroke: { $ref: 'chartBackgroundColor' },
-            colorRange: {
-                $if: [
-                    { $eq: [{ $mapPalette: 'type' }, 'inbuilt'] },
-                    { $mapPalette: 'divergingColors' },
-                    applyMapPalette(SAFE_RANGE2_OPERATION),
-                ],
+            colorScale: {
+                fills: {
+                    $map: [
+                        { color: { $value: '$1' } },
+                        {
+                            $if: [
+                                { $eq: [{ $mapPalette: 'type' }, 'inbuilt'] },
+                                { $mapPalette: 'divergingColors' },
+                                applyMapPalette(SAFE_RANGE2_OPERATION),
+                            ],
+                        },
+                    ],
+                },
             },
             fillOpacity: 1,
             strokeWidth: 1,

@@ -181,7 +181,11 @@ export class Navigator extends AbstractModuleInstance {
 
         const { panStart, x, width } = this;
         const { minRange } = this.domProxy;
-        let { _min: min, _max: max } = this.domProxy;
+
+        // Retrieve the zoom from the chart state directly to ensure we are always using the latest value.
+        const zoom = this.ctx.chartState.getValue('zoom');
+        if (!zoom?.x) return;
+        let { min, max } = zoom.x;
 
         const ratio = (offsetX - x) / width;
 

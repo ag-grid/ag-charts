@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { expectWarningsCalls } from 'ag-charts-test';
 import type { AgChartInstance, AgSparklineOptions } from 'ag-charts-types';
@@ -23,7 +23,7 @@ describe('Sparkline Preset', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 
     const ctx = setupMockCanvas({ height: 150 });

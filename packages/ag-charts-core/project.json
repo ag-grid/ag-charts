@@ -28,21 +28,26 @@
       }
     },
     "test": {
-      "executor": "@nx/jest:jest",
+      "executor": "nx:run-commands",
+      "inputs": ["default", "buildOutputExcludes", "^production"],
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-core.xml"],
+      "cache": true,
       "options": {
-        "jestConfig": "{projectRoot}/jest.config.ts",
-        "passWithNoTests": false
+        "commands": [
+          "npx vitest run --config {projectRoot}/vitest.config.ts",
+          "npx vitest run --config {projectRoot}/vitest.config.tz.ts"
+        ],
+        "parallel": false
       },
       "configurations": {
         "ci": {
-          "updateSnapshot": true
+          "args": "--update"
         },
         "watch": {
-          "watch": true
+          "command": "npx vitest --config {projectRoot}/vitest.config.ts"
         },
         "update": {
-          "updateSnapshot": true
+          "args": "--update"
         }
       },
       "dependsOn": ["build:test", "build:package"]
@@ -63,7 +68,9 @@
       "dependsOn": ["pack"],
       "inputs": ["allOutputs"],
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-core/"],
-      "options": { "command": "tools/package/extract-contents.sh {projectRoot}" }
+      "options": {
+        "command": "tools/package/extract-contents.sh {projectRoot}"
+      }
     },
     "pack:verify": {
       "executor": "nx:run-commands",

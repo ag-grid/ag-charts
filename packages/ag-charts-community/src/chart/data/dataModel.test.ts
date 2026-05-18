@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';
 import * as examples from '../test/examples';
@@ -1154,7 +1154,7 @@ describe('DataModel', () => {
     });
 
     describe('multiple data sources', () => {
-        it.failing('should generate the expected results', () => {
+        it.fails('should generate the expected results', () => {
             const dataModel = new DataModel<any, any>({
                 props: [
                     {

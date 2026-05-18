@@ -41,6 +41,7 @@ export function groupBy<T, R extends string | number | symbol>(array: T[], itera
  * @returns `true` if the arrays are equal, otherwise `false`.
  */
 export function arraysEqual(a: readonly any[], b: readonly any[]): boolean {
+    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
     if (a == null || b == null || a.length !== b.length) {
         return false;
     }

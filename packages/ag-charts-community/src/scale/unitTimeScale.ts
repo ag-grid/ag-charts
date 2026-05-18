@@ -319,7 +319,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
     override convert(value: Date, options?: { clamp?: boolean; alignment?: ScaleAlignment }): number {
         this.refresh();
 
-        if (!(value instanceof Date)) value = new Date(value as any);
+        if (!(value instanceof Date)) value = new Date(value);
 
         const { domain, interval } = this;
         if (domain.length < 2) return Number.NaN;

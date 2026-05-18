@@ -1,4 +1,4 @@
-import { describe, expect, test } from '@jest/globals';
+import { describe, expect, test } from 'vitest';
 
 import { BBox } from '../scene/bbox';
 import { gridLayout } from './gridLayout';

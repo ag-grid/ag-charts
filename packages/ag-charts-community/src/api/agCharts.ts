@@ -89,6 +89,7 @@ export abstract class AgCharts {
             if (licenseManager?.isDisplayWatermark()) {
                 enterpriseRegistry.injectWatermark?.(chart.chart!.ctx.domManager, licenseManager.getWatermarkMessage());
             }
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
             return chart as unknown as AgChartInstance<O>;
         });
     }
@@ -259,9 +260,11 @@ class AgChartsInternal {
         if (data != null) {
             chart.ctx.dataService.restoreData(data);
         }
-        if ('loading' in chartOptions.processedOptions) {
-            chart.ctx.dataService.setForcedLoading((chartOptions.processedOptions as { loading?: boolean }).loading);
-        }
+        const loading =
+            'loading' in chartOptions.processedOptions
+                ? (chartOptions.processedOptions as { loading?: boolean }).loading
+                : undefined;
+        chart.ctx.dataService.setForcedLoading(loading);
 
         if (proxy == null) {
             proxy = new AgChartInstanceProxy(chart, AgChartsInternal.callbackApi, licenseManager);

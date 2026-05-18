@@ -139,4 +139,50 @@ test.describe('tooltip', () => {
             });
         });
     });
+
+    test.describe('AG-16619 some series disable tooltip', () => {
+        const x = 410;
+        const y = 263;
+
+        async function hoverCenter(page: Page) {
+            await page.mouse.move(x, y);
+        }
+
+        async function clickCenter(page: Page) {
+            await page.mouse.click(x, y);
+        }
+
+        async function getHTMLTextContent(page: Page) {
+            const elements = page.locator('.ag-charts-tooltip-footer');
+            await expect(elements).toHaveCount(1);
+            return await elements.first().textContent();
+        }
+
+        test.beforeEach(async ({ page }) => {
+            const { url } = toExamplePageUrl('tooltips-test', 'e2e-tooltip-pagination-disabled-series', 'vanilla');
+            await gotoExample(page, url);
+        });
+
+        test('screenshots', async ({ page }) => {
+            await hoverCenter(page);
+            await expect(page).toHaveScreenshot('AG-16619-candidate-1st-series.png');
+
+            await clickCenter(page);
+            await expect(page).toHaveScreenshot('AG-16619-candidate-3rd-series.png');
+
+            await clickCenter(page);
+            await expect(page).toHaveScreenshot('AG-16619-candidate-1st-series.png');
+        });
+
+        test('textContent', async ({ page }) => {
+            await hoverCenter(page);
+            expect(await getHTMLTextContent(page)).toEqual('1 of 2');
+
+            await clickCenter(page);
+            expect(await getHTMLTextContent(page)).toEqual('2 of 2');
+
+            await clickCenter(page);
+            expect(await getHTMLTextContent(page)).toEqual('1 of 2');
+        });
+    });
 });

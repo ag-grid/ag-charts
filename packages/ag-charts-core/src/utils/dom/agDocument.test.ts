@@ -1,3 +1,5 @@
+import { vi } from 'vitest';
+
 import { AgDocument } from './agDocument';
 
 type Listener = EventListenerOrEventListenerObject;
@@ -88,7 +90,7 @@ describe('AgDocument', () => {
         const doc1 = createMockDocument(win1);
         const doc2 = createMockDocument(win2);
         const agDocument = new AgDocument(doc1, win1 as unknown as Window);
-        const listener = jest.fn();
+        const listener = vi.fn();
 
         agDocument.attachListener('click', listener, { capture: true });
         expect(win1.hasEventListener('click', listener, { capture: true })).toBe(true);
@@ -103,7 +105,7 @@ describe('AgDocument', () => {
         const win = new MockWindow();
         const doc = createMockDocument(win);
         const agDocument = new AgDocument(doc, win as unknown as Window);
-        const listener = jest.fn();
+        const listener = vi.fn();
 
         const removeListener = agDocument.attachListener('pointerdown', listener, { capture: true });
         expect(win.hasEventListener('pointerdown', listener, { capture: true })).toBe(true);
@@ -119,7 +121,7 @@ describe('AgDocument', () => {
         const doc1 = createMockDocument(win1);
         const doc2 = createMockDocument(win2);
         const agDocument = new AgDocument(doc1, win1 as unknown as Window);
-        const listener = jest.fn();
+        const listener = vi.fn();
 
         agDocument.attachListener('pointerup', listener, { once: true });
         win1.dispatch('pointerup');

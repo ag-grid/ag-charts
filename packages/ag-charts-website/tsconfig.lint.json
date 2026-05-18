@@ -3,7 +3,7 @@
   "compilerOptions": {
     "composite": true,
     "module": "commonjs",
-    "types": ["jest", "node"]
+    "types": ["vitest", "node"]
   },
   "include": [
     "*.ts",

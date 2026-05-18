@@ -501,7 +501,7 @@ export class CartesianChart extends Chart {
         }
         // Reduce cross-line padding to account for overlap with axes.
         for (const [side, padding = 0] of entries(crossLinePadding)) {
-            crossLinePadding[side] = Math.max(padding - (axisAreaSize.get(side as AgCartesianAxisPosition) ?? 0), 0);
+            crossLinePadding[side] = Math.max(padding - (axisAreaSize.get(side) ?? 0), 0);
         }
 
         return crossLinePadding;

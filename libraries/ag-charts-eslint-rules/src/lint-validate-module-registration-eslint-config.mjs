@@ -13,7 +13,6 @@ export default [
             globals: globals.browser,
             parserOptions: {
                 projectService: true,
-                project: './src/lint-validate-module-registration-tsconfig.json',
             },
         },
         plugins: {

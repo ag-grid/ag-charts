@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 1`] = `
+exports[`RangeBarSeries > AG-15782 styler > highlights > sequenced > 1 1`] = `
 [
   [
     {
@@ -45,7 +45,7 @@ exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 1`] = `
 ]
 `;
 
-exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 2`] = `
+exports[`RangeBarSeries > AG-15782 styler > highlights > sequenced > 1 2`] = `
 [
   [
     {
@@ -110,9 +110,9 @@ exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 2`] = `
 ]
 `;
 
-exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 3`] = `[]`;
+exports[`RangeBarSeries > AG-15782 styler > highlights > sequenced > 1 3`] = `[]`;
 
-exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 4`] = `
+exports[`RangeBarSeries > AG-15782 styler > highlights > sequenced > 1 4`] = `
 [
   [
     {
@@ -217,9 +217,9 @@ exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 4`] = `
 ]
 `;
 
-exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 5`] = `[]`;
+exports[`RangeBarSeries > AG-15782 styler > highlights > sequenced > 1 5`] = `[]`;
 
-exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 6`] = `
+exports[`RangeBarSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
 [
   [
     {
@@ -344,9 +344,9 @@ exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 6`] = `
 ]
 `;
 
-exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 7`] = `[]`;
+exports[`RangeBarSeries > AG-15782 styler > highlights > sequenced > 1 7`] = `[]`;
 
-exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 8`] = `
+exports[`RangeBarSeries > AG-15782 styler > highlights > sequenced > 1 8`] = `
 [
   [
     {
@@ -431,7 +431,7 @@ exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 8`] = `
 ]
 `;
 
-exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 9`] = `
+exports[`RangeBarSeries > AG-15782 styler > highlights > sequenced > 1 9`] = `
 [
   [
     {
@@ -516,7 +516,7 @@ exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 9`] = `
 ]
 `;
 
-exports[`RangeBarSeries AG-15782 styler highlights single legendItem[0] 1`] = `
+exports[`RangeBarSeries > AG-15782 styler > highlights > single > legendItem[0] 1`] = `
 [
   [
     {
@@ -601,7 +601,7 @@ exports[`RangeBarSeries AG-15782 styler highlights single legendItem[0] 1`] = `
 ]
 `;
 
-exports[`RangeBarSeries AG-15782 styler highlights single legendItem[1] 1`] = `
+exports[`RangeBarSeries > AG-15782 styler > highlights > single > legendItem[1] 1`] = `
 [
   [
     {
@@ -686,7 +686,7 @@ exports[`RangeBarSeries AG-15782 styler highlights single legendItem[1] 1`] = `
 ]
 `;
 
-exports[`RangeBarSeries AG-15782 styler highlights single miss 1`] = `
+exports[`RangeBarSeries > AG-15782 styler > highlights > single > miss 1`] = `
 [
   [
     {
@@ -731,7 +731,7 @@ exports[`RangeBarSeries AG-15782 styler highlights single miss 1`] = `
 ]
 `;
 
-exports[`RangeBarSeries AG-15782 styler highlights single series[0].datum[0] 1`] = `
+exports[`RangeBarSeries > AG-15782 styler > highlights > single > series[0].datum[0] 1`] = `
 [
   [
     {
@@ -836,7 +836,7 @@ exports[`RangeBarSeries AG-15782 styler highlights single series[0].datum[0] 1`]
 ]
 `;
 
-exports[`RangeBarSeries AG-15782 styler highlights single series[0].datum[2] 1`] = `
+exports[`RangeBarSeries > AG-15782 styler > highlights > single > series[0].datum[2] 1`] = `
 [
   [
     {
@@ -941,7 +941,7 @@ exports[`RangeBarSeries AG-15782 styler highlights single series[0].datum[2] 1`]
 ]
 `;
 
-exports[`RangeBarSeries AG-15782 styler highlights single series[1].datum[0] 1`] = `
+exports[`RangeBarSeries > AG-15782 styler > highlights > single > series[1].datum[0] 1`] = `
 [
   [
     {
@@ -1046,7 +1046,7 @@ exports[`RangeBarSeries AG-15782 styler highlights single series[1].datum[0] 1`]
 ]
 `;
 
-exports[`RangeBarSeries AG-15782 styler init callbacks params 1`] = `
+exports[`RangeBarSeries > AG-15782 styler > init > callbacks > params 1`] = `
 [
   [
     {

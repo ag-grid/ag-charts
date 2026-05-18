@@ -434,7 +434,7 @@ export class Crosshair
 
         for (const unsafeKey of seriesKeyProperties) {
             // `getKeyProperties()` should return keys of series.properties members of type `string | undefined`:
-            type AssertedKey = Exclude<keyof typeof series.properties, 'context' | 'selection'>;
+            type AssertedKey = Exclude<keyof typeof series.properties, 'context' | 'selection' | 'tooltip'>;
             const key = unsafeKey as AssertedKey;
 
             const keyValue = series.properties[key];

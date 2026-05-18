@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ChartAxisDirection, deepClone } from 'ag-charts-core';
 import type {
@@ -351,14 +351,14 @@ describe('AreaSeries', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        jest.resetAllMocks();
+        vi.resetAllMocks();
     });
 
     const ctx = setupMockCanvas();
 
     describe('#create', () => {
         beforeEach(() => {
-            console.warn = jest.fn();
+            console.warn = vi.fn();
         });
 
         test('no data', async () => {
@@ -590,7 +590,7 @@ describe('AreaSeries', () => {
 
     describe('invalid data domain', () => {
         beforeEach(() => {
-            console.warn = jest.fn();
+            console.warn = vi.fn();
         });
 
         it.each(Object.entries(INVALID_DATA_EXAMPLES))(
@@ -626,7 +626,7 @@ describe('AreaSeries', () => {
 
     describe('multiple overlapping areas', () => {
         beforeEach(() => {
-            console.warn = jest.fn();
+            console.warn = vi.fn();
         });
 
         it('should render area series with the correct relative Z-index', async () => {

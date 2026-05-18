@@ -4,6 +4,7 @@ import {
     canvasToPageTransformer,
     gotoExample,
     locateCanvas,
+    repeat,
     setupIntrinsicAssertions,
     toExamplePageUrl,
 } from './util';
@@ -201,5 +202,18 @@ test.describe('toolbar', () => {
         await page.mouse.down({ button: 'left' });
         await page.mouse.move(dragX, dragY, { steps: 10 });
         await expect(page).toHaveScreenshot('settings-button-ignored-hover-event.png', { animations: 'disabled' });
+    });
+
+    test('AG-16815 chart responds to arrow keys after axis-button click and mouseleave', async ({ page }) => {
+        await gotoExample(page, url);
+
+        await page.mouse.click(714, 154, { button: 'left' });
+        await expect(page).toHaveScreenshot('AG-16815-new-horizontal-line-annotation.png', { animations: 'disabled' });
+
+        await page.mouse.move(393, 128);
+        await expect(page).toHaveScreenshot('AG-16815-line-dash-button-hovered.png', { animations: 'disabled' });
+
+        await repeat(12, async () => await page.keyboard.press('ArrowDown'));
+        await expect(page).toHaveScreenshot('AG-16815-horizontal-line-moved-down.png', { animations: 'disabled' });
     });
 });

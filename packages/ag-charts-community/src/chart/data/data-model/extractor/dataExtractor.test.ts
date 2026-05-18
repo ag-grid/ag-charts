@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import { isFiniteNumber } from 'ag-charts-core';
 
@@ -214,7 +214,7 @@ describe('DataExtractor', () => {
                 };
 
                 expect(() => new DataModel<any, any, true>(config)).toThrowErrorMatchingInlineSnapshot(
-                    `"AG Charts - scopes missing key for grouping, illegal configuration: scope-1,scope-2"`
+                    `[Error: AG Charts - scopes missing key for grouping, illegal configuration: scope-1,scope-2]`
                 );
             });
         });

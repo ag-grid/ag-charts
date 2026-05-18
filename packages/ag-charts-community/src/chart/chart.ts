@@ -504,7 +504,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             );
 
         this.processors = [
-            new DataWindowProcessor(this, ctx.eventsHub, ctx.chartState, ctx.dataService, ctx.animationManager),
+            new DataWindowProcessor(this, ctx),
             new OverlaysProcessor(
                 this,
                 this.overlays,

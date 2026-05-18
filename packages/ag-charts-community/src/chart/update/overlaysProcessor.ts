@@ -77,7 +77,13 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
 
         // Always update the overlay to reposition it if the rect changes.
         const next = this.getOverlayFromState(this.overlayState);
-        if (next) this.showOverlay(next, rect);
+        if (next) {
+            if (next.enabled) {
+                this.showOverlay(next, rect);
+            } else {
+                this.hideOverlay(next);
+            }
+        }
 
         this.overlayElem.setAttr('aria-hidden', String(this.overlayState == null));
     }
@@ -96,8 +102,6 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     }
 
     private showOverlay(overlay: Overlay, seriesRect: BBox) {
-        if (!overlay.enabled) return;
-
         const element = overlay.getElement(this.chartLike, this.animationManager, this.localeManager, seriesRect);
         this.overlayElem.appendChild(element);
     }

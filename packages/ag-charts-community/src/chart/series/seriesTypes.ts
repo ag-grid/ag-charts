@@ -107,6 +107,7 @@ export interface ISeriesProperties {
     yKey?: string;
     context?: unknown;
     selection: { enabled: boolean };
+    tooltip: { enabled?: boolean };
 }
 
 export interface ISeries<

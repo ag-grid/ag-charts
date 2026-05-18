@@ -1,12 +1,9 @@
 import { type AgHeatmapSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
-    arrayOf,
-    color,
     colorScaleOptionsDef,
     commonSeriesOptionsDefs,
     constant,
-    deprecated,
     required,
     string,
     without,
@@ -26,6 +23,5 @@ export const heatmapSeriesOptionsDef: OptionsDefs<AgHeatmapSeriesOptions> = {
     xName: string,
     yName: string,
     colorName: string,
-    colorRange: deprecated(arrayOf(color), 'Use `colorScale.fills` instead.'),
     colorScale: colorScaleOptionsDef,
 };

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions, AgGaugeOptions } from 'ag-charts-community';
 import {
@@ -76,7 +76,7 @@ describe('Gallery Examples', () => {
         const ctx = setupMockCanvas();
 
         beforeEach(() => {
-            console.warn = jest.fn();
+            console.warn = vi.fn();
         });
 
         afterEach(() => {

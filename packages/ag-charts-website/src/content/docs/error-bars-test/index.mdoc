@@ -3,11 +3,25 @@ title: 'Error Bars Test'
 enterprise: true
 ---
 
+## Temperatures
+
+What to test:
+
+- Switch between line and other series types and confirm error bars stay attached to each datum.
+- Hover a datum and confirm the item styler turns the highlighted error bar red while other series dim.
+
 {% chartExampleRunner
   title="Temperatures"
   name="temperatures"
   type="generated"
 /%}
+
+## Boyle's Law
+
+What to test:
+
+- Confirm scatter datums show both x and y error bars sized from the lower/upper keys.
+- Hover across series and confirm error bars highlight alongside their markers.
 
 {% chartExampleRunner
   title="Boyle's Law"

@@ -708,6 +708,7 @@ export class Annotations extends AbstractModuleInstance {
             this.annotationData.length === annotations.length &&
             annotations.every((annotation, index) => {
                 const current = this.annotationData.at(index);
+                // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
                 return current != null && current.type === (annotation.type as AnnotationType);
             });
 
@@ -1000,6 +1001,9 @@ export class Annotations extends AbstractModuleInstance {
         const { state } = this;
 
         this.pushAnnotationState(InteractionState.Annotations);
+        // AG-16815 Keep the focus on the series-area element. The axis button can disappear on 'mouseleave' events,
+        // which clears the current focus as a consequence.
+        this.ctx.widgets.seriesWidget.focus({ preventScroll: true });
 
         const isHorizontal = direction === 'horizontal';
         state.transition(isHorizontal ? AnnotationType.HorizontalLine : AnnotationType.VerticalLine);
@@ -1144,9 +1148,6 @@ export class Annotations extends AbstractModuleInstance {
 
         if (translation.x || translation.y) {
             state.transition('translate', { translation });
-
-            // eslint-disable-next-line no-restricted-properties
-            sourceEvent.stopPropagation();
             sourceEvent.preventDefault();
         }
 

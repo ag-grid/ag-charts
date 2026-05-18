@@ -1,11 +1,9 @@
-/**
- * @timezone US/Pacific
- */
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
+import './test/_setup-tz-us-pacific';
 import { EXAMPLES } from './test/examples-gallery';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,

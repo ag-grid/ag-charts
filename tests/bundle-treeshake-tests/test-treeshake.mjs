@@ -8,11 +8,40 @@ import { bundleWithVite } from './bundlers/vite.mjs';
 import { bundleWithWebpack } from './bundlers/webpack.mjs';
 import { scenarios } from './scenarios.mjs';
 
-const bundlers = [
+const allBundlers = [
     { name: 'esbuild', fn: bundleWithEsbuild },
     { name: 'vite', fn: bundleWithVite },
     { name: 'webpack', fn: bundleWithWebpack },
 ];
+
+// BUNDLE_TREESHAKE_BUNDLERS env var (comma-separated) selects a subset for CI sharding.
+const bundlerFilter = process.env.BUNDLE_TREESHAKE_BUNDLERS?.split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+const bundlers = bundlerFilter?.length ? allBundlers.filter((b) => bundlerFilter.includes(b.name)) : allBundlers;
+if (bundlers.length === 0) {
+    throw new Error(
+        `BUNDLE_TREESHAKE_BUNDLERS=${process.env.BUNDLE_TREESHAKE_BUNDLERS} matched no bundlers (known: ${allBundlers.map((b) => b.name).join(', ')})`
+    );
+}
+console.log(`>>> running bundlers: ${bundlers.map((b) => b.name).join(', ')}`);
+
+// BUNDLE_TREESHAKE_SHARD env var of form "N/M" runs only scenario indices where (i % M === N-1).
+function shardScenarios(scenarios, envValue) {
+    if (!envValue) return scenarios;
+    const match = /^(\d+)\/(\d+)$/.exec(envValue.trim());
+    if (!match) throw new Error(`BUNDLE_TREESHAKE_SHARD must be N/M (got '${envValue}')`);
+    const [, n, m] = match.map(Number);
+    if (n < 1 || n > m) throw new Error(`BUNDLE_TREESHAKE_SHARD ${envValue}: N must be in 1..M`);
+    return scenarios.filter((_, i) => i % m === n - 1);
+}
+
+const shardedScenarios = shardScenarios(scenarios, process.env.BUNDLE_TREESHAKE_SHARD);
+if (process.env.BUNDLE_TREESHAKE_SHARD) {
+    console.log(
+        `>>> shard ${process.env.BUNDLE_TREESHAKE_SHARD}: ${shardedScenarios.length}/${scenarios.length} scenarios`
+    );
+}
 
 const { values: args } = parseArgs({
     options: {
@@ -21,10 +50,14 @@ const { values: args } = parseArgs({
     },
 });
 
-const results = [];
 const workDir = resolve('.entries');
 
-for (const scenario of scenarios) {
+// Run scenarios with bounded concurrency. Each scenario's per-bundler work is
+// CPU-bound (webpack especially); on a 4-vCPU runner, running several
+// scenarios in parallel meaningfully reduces wall-clock time.
+const concurrency = Math.max(1, Number(process.env.BUNDLE_TREESHAKE_CONCURRENCY ?? 4));
+
+async function runScenario(scenario) {
     const scenarioResults = { scenario: scenario.name, limit: scenario.limit, sizes: {} };
 
     for (const bundler of bundlers) {
@@ -51,8 +84,24 @@ for (const scenario of scenarios) {
         }
     }
 
-    results.push(scenarioResults);
+    return scenarioResults;
 }
+
+async function runWithConcurrency(items, limit, fn) {
+    const out = new Array(items.length);
+    let next = 0;
+    const worker = async () => {
+        while (true) {
+            const i = next++;
+            if (i >= items.length) return;
+            out[i] = await fn(items[i]);
+        }
+    };
+    await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+    return out;
+}
+
+const results = await runWithConcurrency(shardedScenarios, concurrency, runScenario);
 
 // Print results table
 const pad = (s, n) => String(s).padEnd(n);

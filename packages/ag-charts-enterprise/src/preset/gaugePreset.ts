@@ -91,13 +91,13 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions): GaugeChartResult {
         label,
         secondaryLabel,
         spacing,
-        // eslint-disable-next-line sonarjs/no-unused-vars
+
         withinStudio: _withinStudio, // unused within gauge itself
         ...seriesRest
     } = opts as AgRadialGaugeOptions & UndocumentedProperties;
 
     const hasTooltip = tooltipInput != null;
-    const tooltip = (tooltipInput ?? {}) as GaugeTooltip;
+    const tooltip = tooltipInput ?? {};
     const { chartTooltipOptions, seriesTooltipOptions } = tooltipOptions(tooltip);
 
     const seriesOpts: AgRadialGaugePreset = {
@@ -190,13 +190,13 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): GaugeChartResult {
         cornerRadius,
         cornerMode,
         label,
-        // eslint-disable-next-line sonarjs/no-unused-vars
+
         withinStudio: _withinStudio, // unused within gauge itself
         ...seriesRest
     } = opts as AgLinearGaugeOptions & UndocumentedProperties;
 
     const hasTooltip = tooltipInput != null;
-    const tooltip = (tooltipInput ?? {}) as GaugeTooltip;
+    const tooltip = tooltipInput ?? {};
     const { chartTooltipOptions, seriesTooltipOptions } = tooltipOptions(tooltip);
 
     const seriesOpts: AgLinearGaugePreset = {

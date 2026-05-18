@@ -6,7 +6,19 @@
   "targets": {
     "test:bundle-render": {
       "dependsOn": ["^pack"],
-      "command": "{projectRoot}/run.sh"
+      "command": "{projectRoot}/run.sh",
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/run.sh",
+        "{projectRoot}/test-render.mjs",
+        "{projectRoot}/scenarios.mjs",
+        "{projectRoot}/bundlers/**/*",
+        "allTransitiveOutputs",
+        { "env": "BUNDLE_RENDER_BUNDLERS" },
+        { "env": "BUNDLE_RENDER_SHARD" },
+        { "env": "BUNDLE_RENDER_CONCURRENCY" }
+      ],
+      "outputs": []
     }
   },
   "implicitDependencies": [

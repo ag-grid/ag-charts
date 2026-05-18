@@ -132,11 +132,6 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = DatumDefault, TContext
     fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the groups and tiles. */
     strokes?: CssColor[];
-    /**
-     * The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into.
-     * @deprecated v13.3.0 Use `colorScale.fills` instead.
-     */
-    colorRange?: CssColor[];
     /** Configuration for colour scale with fills, domain, and mode. */
     colorScale?: AgColorScale;
     /** Options for group nodes (i.e. nodes WITH children). */

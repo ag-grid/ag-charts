@@ -1,3 +1,5 @@
+import { vi } from 'vitest';
+
 import type { AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
@@ -19,7 +21,7 @@ describe('Labels', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 
     async function compare() {

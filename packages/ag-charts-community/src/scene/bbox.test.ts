@@ -1,4 +1,4 @@
-import { describe, expect, test } from '@jest/globals';
+import { describe, expect, test } from 'vitest';
 
 import { BBox } from './bbox';
 
@@ -42,9 +42,12 @@ describe('BBox', () => {
             new BBox(1, 1, 3, 3),
             new BBox(1, 6, 5, 5),
         ];
-        expect(BBox.nearestBox(0, 0, boxes).nearest).toBe(boxes[0]);
-        expect(BBox.nearestBox(6000, 6000, boxes).nearest).toBe(boxes[1]);
-        expect(BBox.nearestBox(7, 0, boxes).nearest).toBe(boxes[3]);
-        expect(BBox.nearestBox(0, 20, boxes).nearest).toBe(boxes[4]);
+
+        test('should find nearest box', () => {
+            expect(BBox.nearestBox(0, 0, boxes).nearest).toBe(boxes[0]);
+            expect(BBox.nearestBox(6000, 6000, boxes).nearest).toBe(boxes[1]);
+            expect(BBox.nearestBox(7, 0, boxes).nearest).toBe(boxes[3]);
+            expect(BBox.nearestBox(0, 20, boxes).nearest).toBe(boxes[4]);
+        });
     });
 });

@@ -65,6 +65,7 @@ export const FrameworkSelectorInsideDocs = ({ path, currentFramework, menuItems 
                     isPopper
                     options={frameworkOptions}
                     value={frameworkOption}
+                    className={styles.select}
                     onChange={(newValue) => handleFrameworkChange(newValue.value)}
                     renderItem={(o) => {
                         return (

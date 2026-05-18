@@ -152,7 +152,7 @@ export class BBox implements BoxBounds, DistantObject, Interpolating<BBox> {
             for (const key of Object.keys(amount) as (keyof Padding)[]) {
                 const value = amount[key];
                 if (typeof value === 'number') {
-                    this.applyMargin(value, key as ShrinkOrGrowPosition);
+                    this.applyMargin(value, key);
                 }
             }
         }
@@ -177,7 +177,7 @@ export class BBox implements BoxBounds, DistantObject, Interpolating<BBox> {
             for (const key of Object.keys(amount) as (keyof Padding)[]) {
                 const value = amount[key];
                 if (typeof value === 'number') {
-                    this.applyMargin(-value, key as ShrinkOrGrowPosition);
+                    this.applyMargin(-value, key);
                 }
             }
         }
