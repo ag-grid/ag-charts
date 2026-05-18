@@ -1008,7 +1008,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             strokeWidth: props.strokeWidth,
             strokeOpacity: props.strokeOpacity,
             cornerRadius: props.cornerRadius,
-            padding: props.padding,
+            padding: {
+                top: props.padding.top,
+                right: props.padding.right,
+                bottom: props.padding.bottom,
+                left: props.padding.left,
+            },
         };
     }
 
