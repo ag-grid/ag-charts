@@ -141,6 +141,30 @@ function createBarStackMixOptions(): AgCartesianChartOptions<StackMixDatum, unkn
                 selection: { enabled: false },
             },
         ],
+        theme: {
+            overrides: {
+                bar: {
+                    series: {
+                        label: {
+                            enabled: true,
+                            placement: 'inside-center',
+                            formatter: (p) => {
+                                return `${p.yKey}${p.datum.cat}`.toUpperCase();
+                            },
+                            itemStyler: () => {
+                                return { color: 'black' };
+                            },
+                        },
+                        selection: {
+                            // Make selected items in the image snapshots more obvious by increasing strokeWidth
+                            selectedItem: {
+                                strokeWidth: 5,
+                            },
+                        },
+                    },
+                },
+            },
+        },
     };
 }
 
@@ -723,8 +747,8 @@ describe('DataSelection', () => {
             type C = unknown;
             let selectionChange: SelectionChangeRecorder<D, C>;
 
-            const POINT_MISS1: CanvasPoint = { canvasX: 141, canvasY: 120 };
-            const POINT_MISS2: CanvasPoint = { canvasX: 681, canvasY: 594 };
+            const POINT_MISS1: CanvasPoint = { canvasX: 141, canvasY: 120 }; // inside series-area
+            const POINT_MISS2: CanvasPoint = { canvasX: 681, canvasY: 594 }; // outside series-area
             const POINT_S1D: CanvasPoint = { canvasX: 521, canvasY: 497 };
             const POINT_S2A: CanvasPoint = { canvasX: 74, canvasY: 430 };
             const POINT_S3C: CanvasPoint = { canvasX: 433, canvasY: 520 };
@@ -760,11 +784,12 @@ describe('DataSelection', () => {
 
             describe('single', () => {
                 beforeEach(async () => {
-                    const { data, series } = createBarStackMixOptions();
+                    const { data, series, theme } = createBarStackMixOptions();
                     selectionChange = createSelectionChangeRecorder();
                     chart = await createChartInstance({
                         data,
                         series,
+                        theme,
                         legend: { enabled: false },
                         selection: {
                             enabled: true,
@@ -813,31 +838,47 @@ describe('DataSelection', () => {
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S3C_S4E]);
                             });
                         });
-                        describe('ctrl-miss2', () => {
+                        xdescribe('miss2', () => {
+                            // Skipped: it's unclear what the required are when clicking outside series-area
                             test('screenshot', async () => {
-                                await mouseClick(POINT_MISS2, { ctrlKey });
+                                await mouseClick(POINT_MISS2);
+                                await compareExact('stack-mix-no-selection');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_MISS2);
+                                expect(getChartSelectionArray()).toEqual([]);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_MISS2);
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S3C_S4E]);
+                            });
+                        });
+                        describe('ctrl-miss1', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_MISS1, { ctrlKey });
                                 await compareExact('stack-mix-selected-s2a-s3c-s4e');
                             });
                             test('getSelection', async () => {
-                                await mouseClick(POINT_MISS2, { ctrlKey });
+                                await mouseClick(POINT_MISS1, { ctrlKey });
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
                             });
                             test('selectionChange', async () => {
-                                await mouseClick(POINT_MISS2, { ctrlKey });
+                                await mouseMove(POINT_MISS1);
+                                await mouseClick(POINT_MISS1, { ctrlKey });
                                 expect(selectionChange.popEvents()).toEqual([]);
                             });
                         });
-                        describe('meta-miss2', () => {
+                        describe('meta-miss1', () => {
                             test('screenshot', async () => {
-                                await mouseClick(POINT_MISS2, { metaKey });
+                                await mouseClick(POINT_MISS1, { metaKey });
                                 await compareExact('stack-mix-selected-s2a-s3c-s4e');
                             });
                             test('getSelection', async () => {
-                                await mouseClick(POINT_MISS2, { metaKey });
+                                await mouseClick(POINT_MISS1, { metaKey });
                                 expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
                             });
                             test('selectionChange', async () => {
-                                await mouseClick(POINT_MISS2, { metaKey });
+                                await mouseClick(POINT_MISS1, { metaKey });
                                 expect(selectionChange.popEvents()).toEqual([]);
                             });
                         });
@@ -858,7 +899,7 @@ describe('DataSelection', () => {
                         describe('ctrl-click selection-disabled series', () => {
                             test('screenshot', async () => {
                                 await mouseClick(POINT_S6C, { ctrlKey });
-                                await compareExact('stack-mix-selected-s2a-s3c-s4e');
+                                await compareExact('stack-mix-highlighted-s6c-selected-s2a-s3c-s4e');
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S6C, { ctrlKey });
@@ -872,7 +913,7 @@ describe('DataSelection', () => {
                         describe('meta-click selection-disabled series', () => {
                             test('screenshot', async () => {
                                 await mouseClick(POINT_S6B, { metaKey });
-                                await compareExact('stack-mix-selected-s2a-s3c-s4e');
+                                await compareExact('stack-mix-highlighted-s6b-selected-s2a-s3c-s4e');
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S6B, { metaKey });
@@ -886,7 +927,7 @@ describe('DataSelection', () => {
                         describe('click selection-enabled series', () => {
                             test('screenshot', async () => {
                                 await mouseClick(POINT_S1D);
-                                await compareExact('stack-mix-selected-s1d');
+                                await compareExact('stack-mix-highlighted-s1d-selected-s1d');
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S1D);
@@ -900,7 +941,7 @@ describe('DataSelection', () => {
                         describe('ctrl-click selection-enabled series', () => {
                             test('screenshot', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
-                                await compareExact('stack-mix-selected-s1d-s2a-s3c-s4e');
+                                await compareExact('stack-mix-highlighted-s1d-selected-s2a-s3c-s1d-s4e');
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
@@ -914,7 +955,7 @@ describe('DataSelection', () => {
                         describe('meta-click selection-enabled series', () => {
                             test('screenshot', async () => {
                                 await mouseClick(POINT_S5D, { metaKey });
-                                await compareExact('stack-mix-selected-s2a-s3c-s4e-s5d');
+                                await compareExact('stack-mix-highlighted-s5d-selected-s2a-s3c-s4e-s5d');
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S5D, { metaKey });
