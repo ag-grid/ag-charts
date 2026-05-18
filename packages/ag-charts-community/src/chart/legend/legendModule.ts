@@ -145,7 +145,7 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
         listeners: {},
         toggleSeries: true,
         item: {
-            padding: { top: 4, right: 8, bottom: 4, left: 8 },
+            padding: { $applyPadding: { top: 4, right: 8, bottom: 4, left: 8 } },
             marker: { size: 15, padding: 8 },
             line: { length: 25 },
             showSeriesStroke: true,

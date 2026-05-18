@@ -241,7 +241,7 @@ export interface AgOrganizationSeriesExpanderItemStylerParams<TDatum = DatumDefa
     extends
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
-        Omit<AgOrganizationSeriesExpanderStyle, 'padding'> {
+        AgOrganizationSeriesExpanderStyle {
     /** The depth of the data point within the organization. */
     depth: number;
     /** `true` when the node is collapsed (its descendants are hidden); `false` otherwise. */
