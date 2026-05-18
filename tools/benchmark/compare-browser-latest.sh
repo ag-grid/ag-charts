@@ -15,6 +15,7 @@
 # Examples:
 #   ./tools/benchmark/compare-browser-latest.sh origin/b13.2.0
 #   ./tools/benchmark/compare-browser-latest.sh -j origin/latest
+#   ./tools/benchmark/compare-browser-latest.sh origin/latest -- --examples data-selection-zoom --test-cases line
 
 set -euo pipefail
 
@@ -37,7 +38,22 @@ while getopts "j" opt; do
 done
 shift $((OPTIND - 1))
 
-base_ref=${1:?Usage: compare-browser-latest.sh [-j] <base-ref>}
+base_ref=${1:?Usage: compare-browser-latest.sh [-j] <base-ref> [-- <browser-benchmark.ts args>]}
+shift
+
+# Anything after a `--` separator is forwarded verbatim to browser-benchmark.ts on both
+# the head and base runs (e.g. --examples data-selection-zoom --test-cases line).
+benchmark_args=()
+if [[ $# -gt 0 ]]; then
+    if [[ "$1" == "--" ]]; then
+        shift
+        benchmark_args=("$@")
+    else
+        echo "Unexpected extra arguments: $*" >&2
+        echo "Use '--' to separate forwarded browser-benchmark.ts args." >&2
+        exit 1
+    fi
+fi
 
 # --- Derived variables ---
 
@@ -237,7 +253,8 @@ run_benchmarks() {
     local exit_code=0
     npx tsx "${tools_dir}/browser-benchmark.ts" \
         --base-url "$base_url" \
-        --output "$output" || exit_code=$?
+        --output "$output" \
+        "${benchmark_args[@]+"${benchmark_args[@]}"}" || exit_code=$?
 
     if [[ $exit_code -ne 0 ]]; then
         if [[ "${AG_BENCHMARK_SOFT_FAIL:-}" == "true" ]]; then
