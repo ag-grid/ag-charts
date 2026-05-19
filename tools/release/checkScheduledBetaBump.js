@@ -70,7 +70,19 @@ function getReleaseVersion(version) {
 }
 
 function parseVersion(version) {
-    return version.split('.').map((part) => Number(part));
+    const parts = version.split('.');
+    if (parts.length !== 3) {
+        throw new Error(`Invalid release version: ${version}`);
+    }
+
+    return parts.map((part) => {
+        const parsedPart = Number(part);
+        if (!Number.isInteger(parsedPart) || parsedPart < 0) {
+            throw new Error(`Invalid release version: ${version}`);
+        }
+
+        return parsedPart;
+    });
 }
 
 function compareVersions(a, b) {
@@ -111,6 +123,7 @@ function skipBump(reason) {
 
 const currentVersion = getPackageVersion();
 const currentReleaseVersion = getReleaseVersion(currentVersion);
+parseVersion(currentReleaseVersion);
 const isBetaVersion =
     currentVersion !== currentReleaseVersion && currentVersion.startsWith(`${currentReleaseVersion}-beta.`);
 
@@ -133,6 +146,8 @@ for (const branch of getReleaseBranches()) {
     ensureRemoteBranchFetched(branch);
 
     const branchPackageReleaseVersion = getReleaseVersion(getPackageVersion(`origin/${branch}`));
+    parseVersion(branchPackageReleaseVersion);
+
     if (branchPackageReleaseVersion === releaseVersion) {
         blockingReleaseBranches.push(branch);
     }
