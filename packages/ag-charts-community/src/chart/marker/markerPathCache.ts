@@ -63,9 +63,12 @@ export function getSharedMarkerPath(shape: AgMarkerShape, size: number): Extende
         return entry.path;
     }
     // Fallback for unset/invalid shape — build a one-off square so rendering doesn't crash.
+    // Intentionally not cached: this branch is only hit by misconfigured options that should
+    // already have failed validation, so the one-off allocation cost is acceptable.
     return buildEntry('square', size).path;
 }
 
+/** @internal — test-only escape hatch. The runtime never needs to clear the cache. */
 export function clearMarkerPathCache(): void {
     stringShapeCache.clear();
 }

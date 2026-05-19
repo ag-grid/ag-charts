@@ -166,11 +166,14 @@ class InternalMarker<D = any> extends Path<D> {
         if (this._sharedPath === undefined) {
             this.updatePath();
         }
+        // updatePath returns without populating `_sharedPath` for shape == null or size <= 0,
+        // so emit an empty path rather than dereferencing.
+        if (this._sharedPath === undefined) return '';
         const { shape, x, y, size } = this;
         const anchor = Marker.anchor(shape);
         const ax = x - (anchor.x - 0.5) * size;
         const ay = y - (anchor.y - 0.5) * size;
-        return this._sharedPath!.toSVG((px, py) => ({ x: px + ax, y: py + ay }));
+        return this._sharedPath.toSVG((px, py) => ({ x: px + ax, y: py + ay }));
     }
 
     protected override executeFill(ctx: CanvasContext, path?: Path2D): void {
