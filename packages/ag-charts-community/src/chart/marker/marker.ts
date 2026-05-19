@@ -82,6 +82,20 @@ class InternalMarker<D = any> extends Path<D> {
         return this.distanceSquared(x, y) <= 0;
     }
 
+    /**
+     * Exact hit-test against the shared origin-centred path. Subclasses (e.g. AnnotationShape)
+     * that need geometry-accurate picking — rather than the default radius approximation used by
+     * {@link isPointInPath} — call this so they pick up the same translate/anchor maths the
+     * draw path applies. Returns false when no shared path is populated.
+     */
+    protected isPointInSharedPath(x: number, y: number): boolean {
+        if (!this._sharedPath?.closedPath) return false;
+        const anchor = Marker.anchor(this.shape);
+        const tx = x - this.x + (anchor.x - 0.5) * this.size;
+        const ty = y - this.y + (anchor.y - 0.5) * this.size;
+        return this._sharedPath.isPointInPath(tx, ty);
+    }
+
     get midPoint(): { x: number; y: number } {
         return { x: this.x, y: this.y };
     }
