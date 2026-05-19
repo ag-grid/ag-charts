@@ -55,7 +55,7 @@ import {
 } from '../state/validation';
 import { isObject } from '../utils/types/typeGuards';
 
-// TODO set description once operators are officially released
+// Validator for internal theme operators.
 export const themeOperator = (value: unknown) => {
     if (!isObject(value)) return false;
     const keys = Object.keys(value);
