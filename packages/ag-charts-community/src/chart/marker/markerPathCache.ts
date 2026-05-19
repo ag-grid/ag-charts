@@ -4,50 +4,57 @@ import { ExtendedPath2D } from '../../scene/extendedPath2D';
 import { MARKER_SHAPES } from './shapes';
 
 /**
- * Origin-centred {@link ExtendedPath2D} authored once per `(shape, size)` and shared across all
- * markers using those parameters. Callers apply a per-marker `ctx.translate(x, y)` (with anchor
- * offset) at draw time, so the same Path2D is reused across every marker and every render pass.
+ * Origin-centred {@link ExtendedPath2D} authored once per `(shape, size [, pixelRatio])` and
+ * shared across all markers using those parameters. Callers apply a per-marker
+ * `ctx.translate(x, y)` (with anchor offset) at draw time, so the same Path2D is reused across
+ * every marker and every render pass.
  *
- * Pixel-alignment for `square` is performed on the translate target — not baked into the path —
- * so the cache is independent of `pixelRatio`.
+ * **Built-in shapes** are pixel-ratio independent (they author at the origin; pixel-alignment
+ * happens at the per-marker translate target — see `Marker.drawPath`). They are cached by
+ * `(shape, size)` only.
  *
- * Custom shape functions are cached by function identity; we assume they are pure for a given
- * `size` (the built-in shape generators in `shapes.ts` are all pure).
+ * **Custom shape functions** receive `pixelRatio` in `AgMarkerShapeFnParams` and may use it for
+ * HiDPI-aware drawing, so they are cached by `(shape, size, pixelRatio)` to avoid serving a
+ * path authored for the wrong DPR.
+ *
+ * Custom shape functions are cached by function identity (we assume them pure for a given
+ * `(size, pixelRatio)`); reused identities across different captured state will see stale
+ * geometry — same trade-off the built-in shape generators take.
+ *
+ * Each shape cache is soft-capped at {@link MAX_CACHE_ENTRIES} entries; on overflow the cache
+ * is cleared wholesale. This handles pathological workloads (e.g. bubble series with thousands
+ * of continuous distinct sizes) without unbounded memory growth, while keeping the steady-state
+ * hit rate near 100% for any reasonable rendering session.
  */
 
-interface CacheEntry {
-    path: ExtendedPath2D;
-}
+// Soft cap per shape entry. Sized to cover realistic axis/legend/series usage across multiple
+// distinct shapes while preventing unbounded growth from continuous-size series.
+const MAX_CACHE_ENTRIES = 1024;
 
-const stringShapeCache = new Map<string, CacheEntry>();
-const functionShapeCache = new WeakMap<AgMarkerShapeFn, Map<number, CacheEntry>>();
+const stringShapeCache = new Map<string, ExtendedPath2D>();
+const functionShapeCache = new WeakMap<AgMarkerShapeFn, Map<string, ExtendedPath2D>>();
 
-function buildEntry(shape: AgMarkerShape, size: number): CacheEntry {
+function buildPath(shape: AgMarkerShape, size: number, pixelRatio: number): ExtendedPath2D {
     const path = new ExtendedPath2D();
-    const drawParams: AgMarkerShapeFnParams = {
-        path,
-        x: 0,
-        y: 0,
-        size,
-        pixelRatio: 1,
-    };
+    const drawParams: AgMarkerShapeFnParams = { path, x: 0, y: 0, size, pixelRatio };
     if (typeof shape === 'string') {
         MARKER_SHAPES[shape](drawParams);
     } else {
         shape(drawParams);
     }
-    return { path };
+    return path;
 }
 
-export function getSharedMarkerPath(shape: AgMarkerShape, size: number): ExtendedPath2D {
+export function getSharedMarkerPath(shape: AgMarkerShape, size: number, pixelRatio: number = 1): ExtendedPath2D {
     if (typeof shape === 'string') {
         const key = `${shape}:${size}`;
-        let entry = stringShapeCache.get(key);
-        if (entry === undefined) {
-            entry = buildEntry(shape, size);
-            stringShapeCache.set(key, entry);
+        let path = stringShapeCache.get(key);
+        if (path === undefined) {
+            if (stringShapeCache.size >= MAX_CACHE_ENTRIES) stringShapeCache.clear();
+            path = buildPath(shape, size, 1);
+            stringShapeCache.set(key, path);
         }
-        return entry.path;
+        return path;
     }
     if (typeof shape === 'function') {
         let sizeMap = functionShapeCache.get(shape);
@@ -55,17 +62,19 @@ export function getSharedMarkerPath(shape: AgMarkerShape, size: number): Extende
             sizeMap = new Map();
             functionShapeCache.set(shape, sizeMap);
         }
-        let entry = sizeMap.get(size);
-        if (entry === undefined) {
-            entry = buildEntry(shape, size);
-            sizeMap.set(size, entry);
+        const key = `${size}:${pixelRatio}`;
+        let path = sizeMap.get(key);
+        if (path === undefined) {
+            if (sizeMap.size >= MAX_CACHE_ENTRIES) sizeMap.clear();
+            path = buildPath(shape, size, pixelRatio);
+            sizeMap.set(key, path);
         }
-        return entry.path;
+        return path;
     }
     // Fallback for unset/invalid shape — build a one-off square so rendering doesn't crash.
     // Intentionally not cached: this branch is only hit by misconfigured options that should
     // already have failed validation, so the one-off allocation cost is acceptable.
-    return buildEntry('square', size).path;
+    return buildPath('square', size, pixelRatio);
 }
 
 /** @internal — test-only escape hatch. The runtime never needs to clear the cache. */

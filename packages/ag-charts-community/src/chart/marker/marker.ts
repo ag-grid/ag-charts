@@ -125,7 +125,11 @@ class InternalMarker<D = any> extends Path<D> {
             this._sharedPath = undefined;
             return;
         }
-        this._sharedPath = getSharedMarkerPath(shape, size);
+        // Pass pixelRatio so custom function shapes that use it for HiDPI-aware drawing get a
+        // separate cache entry per DPR; built-in shapes ignore the value (origin-centred geometry,
+        // pixel alignment is applied at the per-marker translate in drawPath).
+        const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
+        this._sharedPath = getSharedMarkerPath(shape, size, pixelRatio);
     }
 
     protected override computeBBox(): BBox {
@@ -177,9 +181,10 @@ class InternalMarker<D = any> extends Path<D> {
     }
 
     override svgPathData(): string {
-        if (this._sharedPath === undefined) {
-            this.updatePath();
-        }
+        // Honour dirtyPath rather than only repopulating when undefined — shape/size mutations
+        // mark the path dirty but leave the stale `_sharedPath` reference in place, which would
+        // otherwise emit the previous geometry on next export.
+        this.updatePathIfDirty();
         // updatePath returns without populating `_sharedPath` for shape == null or size <= 0,
         // so emit an empty path rather than dereferencing.
         if (this._sharedPath === undefined) return '';
@@ -320,9 +325,17 @@ export class Marker<_D = unknown> extends Rotatable(Scalable(Translatable(Intern
 // `translationX`/`translationY`. A previous experiment moved positioning to those fields and
 // caused hit-testing and other regressions; warn (once) if anyone reaches for them again.
 function installMarkerTranslationGuard(key: 'translationX' | 'translationY') {
-    const proto = Marker.prototype as any;
-    const descriptor = Object.getOwnPropertyDescriptor(proto, key);
-    if (!descriptor?.set) return;
+    // `translationX/Y` come from the Translatable mixin and live further up the prototype chain,
+    // not on Marker.prototype itself. Walk the chain to find the actual definer so the guard
+    // can wrap the real setter rather than silently no-op'ing.
+    let proto: object | null = Marker.prototype;
+    let descriptor: PropertyDescriptor | undefined;
+    while (proto && !descriptor) {
+        descriptor = Object.getOwnPropertyDescriptor(proto, key);
+        if (descriptor) break;
+        proto = Object.getPrototypeOf(proto);
+    }
+    if (!proto || !descriptor?.set) return;
     // eslint-disable-next-line @typescript-eslint/unbound-method -- intentional prototype rebinding
     const originalSet: (this: Marker, value: number) => void = descriptor.set;
     Object.defineProperty(proto, key, {
