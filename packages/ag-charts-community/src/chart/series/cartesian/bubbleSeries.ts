@@ -1116,7 +1116,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         // resolveMarkerDrawingMode only inspects `style` when the base mode is 'cutout'; for every
         // other mode it returns the input unchanged. Hoist that constant out of the per-marker loop.
-        const constantDrawingMode = drawingMode !== 'cutout' ? drawingMode : undefined;
+        const constantDrawingMode = drawingMode === 'cutout' ? undefined : drawingMode;
 
         datumSelection.each((node, datum, index) => {
             const {
