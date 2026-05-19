@@ -1727,7 +1727,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
         if ('width' in deltaOptions) this.width = deltaOptions.width;
         if ('loading' in deltaOptions) this.loading = deltaOptions.loading;
-        if ('context' in deltaOptions) this.context = (deltaOptions as any).context;
+        if ('context' in deltaOptions) this.context = deltaOptions.context;
 
         // tooltip/highlight/seriesArea/overlays subtrees are applied via chartState observers
         // registered in the constructor — no explicit cascade needed here.
