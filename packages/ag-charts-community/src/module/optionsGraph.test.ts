@@ -271,6 +271,34 @@ describe('OptionsGraph', () => {
         });
     });
 
+    describe('color operations', () => {
+        it('should resolve `$mix` operations', () => {
+            const themeConfig = {
+                line: {
+                    fill: { $mix: ['#ffffff', '#000000', 0.5] },
+                },
+            };
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            expect(options).toStrictEqual({
+                fill: '#808080',
+                axes: expect.any(Object),
+            });
+        });
+
+        it('should resolve `$opacity` operations ', () => {
+            const themeConfig = {
+                line: {
+                    fill: { $opacity: ['#ff0000', 0.5] },
+                },
+            };
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            expect(options).toStrictEqual({
+                fill: 'rgba(255, 0, 0, 0.5)',
+                axes: expect.any(Object),
+            });
+        });
+    });
+
     describe('location operations', () => {
         describe('$circular', () => {
             // See AG-16931
@@ -1143,6 +1171,64 @@ describe('OptionsGraph', () => {
                     third: 'third-value',
                 },
                 axes: expect.any(Object),
+            });
+        });
+    });
+
+    describe('public api', () => {
+        describe('ref', () => {
+            it('should resolve public `ref` operations', () => {
+                const themeConfig = { line: { one: { ref: 'key' } } };
+                const params = { key: 'value' };
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                expect(options).toStrictEqual({
+                    one: 'value',
+                    axes: expect.any(Object),
+                });
+            });
+
+            it('should resolve public `ref` operation on `$ref` operation', () => {
+                const themeConfig = { line: { one: { ref: 'second' } } };
+                const params = { first: 'value', second: { $ref: 'first' } };
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                expect(options).toStrictEqual({
+                    one: 'value',
+                    axes: expect.any(Object),
+                });
+            });
+
+            it('should resolve public `ref` operation with `mix` and default onto transparent', () => {
+                const themeConfig = { line: { fill: { ref: 'accentColor', mix: 0.25 } } };
+                const params = { accentColor: 'rgba(255, 0, 0, 1)' };
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                expect(options).toStrictEqual({
+                    fill: 'rgba(255, 0, 0, 0.25)',
+                    axes: expect.any(Object),
+                });
+            });
+
+            it('should resolve public `ref` operation with `mix` and `onto` color', () => {
+                const themeConfig = { line: { fill: { ref: 'accentColor', mix: 0.25, onto: 'backgroundColor' } } };
+                const params = { accentColor: '#ff0000', backgroundColor: '#00ff00' };
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                expect(options).toStrictEqual({
+                    fill: '#40bf00',
+                    axes: expect.any(Object),
+                });
+            });
+
+            it('should resolve public `ref` operation on params', () => {
+                const themeConfig = { line: { fill: { $ref: 'accentColor' } } };
+                const params = {
+                    accentColor: { ref: 'foregroundColor', mix: 0.25, onto: 'backgroundColor' },
+                    foregroundColor: '#ff0000',
+                    backgroundColor: '#00ff00',
+                };
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                expect(options).toStrictEqual({
+                    fill: '#40bf00',
+                    axes: expect.any(Object),
+                });
             });
         });
     });
