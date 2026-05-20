@@ -40,20 +40,20 @@ describe('DataSelection', () => {
         }
     });
 
-    const bubbleData = [
-        { x: 10, y: 20, size: 5 },
-        { x: 20, y: 10, size: 8 },
-        { x: 30, y: 40, size: 3 },
-        { x: 40, y: 30, size: 6 },
-        { x: 50, y: 50, size: 10 },
-        { x: 60, y: 15, size: 4 },
-        { x: 70, y: 35, size: 7 },
-        { x: 80, y: 25, size: 9 },
-        { x: 90, y: 45, size: 2 },
-        { x: 15, y: 55, size: 11 },
-    ];
-
     describe('bubble series — non-aggregated selection', () => {
+        const bubbleData = [
+            { x: 10, y: 20, size: 5 },
+            { x: 20, y: 10, size: 8 },
+            { x: 30, y: 40, size: 3 },
+            { x: 40, y: 30, size: 6 },
+            { x: 50, y: 50, size: 10 },
+            { x: 60, y: 15, size: 4 },
+            { x: 70, y: 35, size: 7 },
+            { x: 80, y: 25, size: 9 },
+            { x: 90, y: 45, size: 2 },
+            { x: 15, y: 55, size: 11 },
+        ];
+
         it('should render selected markers with distinct styling after setSelection', async () => {
             const options: AgChartOptions = {
                 data: bubbleData,
