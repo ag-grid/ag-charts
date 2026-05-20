@@ -1,10 +1,9 @@
-import type { DeepRequired, RequireOptional } from 'ag-charts-core';
-import type { AgChartInstance, AgSelectionChangeEvent, AgTouchOptions } from 'ag-charts-types';
+import type { RequireOptional } from 'ag-charts-core';
+import type { AgChartInstance, AgSelectionChangeEvent } from 'ag-charts-types';
 
 import { Group } from '../scene/group';
 import type { CaptionLike } from './captionLike';
 import type { ChartHighlight } from './chartHighlight';
-import type { ChartMode } from './chartMode';
 import type { ChartType } from './chartType';
 import type { SeriesProperties } from './series/seriesProperties';
 import type { DatumIndexType, ISeries, SeriesNodeDatum } from './series/seriesTypes';
@@ -17,14 +16,11 @@ type BaseSeries = ISeries<DatumIndexType, SeriesNodeDatum<DatumIndexType>, Serie
 // Subset of chart.ts exposed in the module context:
 export interface ChartService {
     readonly id: string;
-    readonly mode: ChartMode;
-    readonly styleNonce?: string;
     readonly title: CaptionLike;
     readonly series: BaseSeries[];
     readonly seriesRoot: Group;
     readonly selectionRoot: Group;
     readonly publicApi?: AgChartInstance;
-    readonly touch: DeepRequired<AgTouchOptions>;
     readonly context?: unknown;
     readonly highlight?: ChartHighlight;
     getChartType(): ChartType;

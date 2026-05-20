@@ -257,7 +257,7 @@ export function prepareLinePathAnimation(
         // Line drawing fast-path - not animatable
         return;
     }
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- widen literal so callers can still narrow against the full NodeUpdateState (incl. 'no-op')
     let status: NodeUpdateState = 'updated' as NodeUpdateState;
     if (oldData.visible && !newData.visible) {
         status = 'removed';

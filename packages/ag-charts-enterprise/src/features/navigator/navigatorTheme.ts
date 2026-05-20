@@ -104,6 +104,7 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
 export const NAVIGATOR_THEME: WithThemeParams<AgNavigatorOptions> = {
     enabled: false,
     height: { $if: [{ $path: './miniChart/enabled' }, 40, 18] },
+    spacing: 10,
     cornerRadius: 4,
     mask: {
         fill: { $ref: 'foregroundColor' },

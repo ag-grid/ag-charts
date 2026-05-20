@@ -4,7 +4,6 @@ import {
     ChartAxisDirection,
     ChartUpdateType,
     type DynamicContext,
-    Property,
     UNIT_MAX,
     UNIT_MIN,
     ZIndexMap,
@@ -14,12 +13,6 @@ import {
 
 import { ZoomScrollPanner } from '../zoom-interaction/zoomScrollPanner';
 import { ScrollbarDOMProxy } from './scrollbarDOMProxy';
-import {
-    HorizontalScrollbarProperties,
-    ScrollbarThumb,
-    ScrollbarTrack,
-    VerticalScrollbarProperties,
-} from './scrollbarProperties';
 
 const { BBox, Group, Rect, LayoutElement, InteractionState } = _ModuleSupport;
 
@@ -31,7 +24,7 @@ interface ScrollbarOrientationState {
     track: _ModuleSupport.Rect;
     thumb: _ModuleSupport.Rect;
     dom: ScrollbarDOMProxy;
-    properties: HorizontalScrollbarProperties | VerticalScrollbarProperties;
+    properties: _ModuleSupport.NormalisedScrollbarOrientationOptions;
     layoutRect?: _ModuleSupport.BBox;
     position: AgCartesianAxisPosition;
     positionHasAxis: boolean;
@@ -43,46 +36,17 @@ const SCROLLING_STEP = 0.1;
 const SCROLLING_MODE = 'pan';
 
 export class Scrollbar extends AbstractModuleInstance {
-    @Property
-    public enabled: boolean = false;
-
-    @Property
-    public enableAxisScrolling: boolean = false;
-
-    @Property
-    public enableSeriesAreaScrolling: boolean = false;
-
-    @Property
-    public thickness?: number;
-
-    @Property
-    public spacing?: number;
-
-    @Property
-    public tickSpacing?: number;
-
-    @Property
-    public placement?: 'inner' | 'outer';
-
-    @Property
-    public visible?: 'auto' | 'always' | 'never';
-
-    @Property
-    public track = new ScrollbarTrack();
-
-    @Property
-    public thumb = new ScrollbarThumb();
-
-    @Property
-    public horizontal = new HorizontalScrollbarProperties();
-
-    @Property
-    public vertical = new VerticalScrollbarProperties();
-
     private readonly state: Record<ScrollbarOrientation, ScrollbarOrientationState>;
     private seriesRect?: _ModuleSupport.BBox;
 
     private readonly scrollPanner = new ZoomScrollPanner();
+
+    // Scrollbar is only created when the `scrollbar` subtree is configured, so assert presence
+    // here and rely on SCROLLBAR_THEME for field-level defaults (including horizontal/vertical
+    // sub-objects, which the theme always populates via SCROLLBAR_ORIENTATION_THEME).
+    private get opts(): _ModuleSupport.NormalisedScrollbarOptions {
+        return this.ctx.chartState.getValue('options', 'scrollbar')!;
+    }
 
     public constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
@@ -133,9 +97,8 @@ export class Scrollbar extends AbstractModuleInstance {
         };
     }
 
-    private resolveProperties(orientation: ScrollbarOrientation) {
-        // base properties are merged with orientation-specific properties in theme processing
-        return orientation === 'horizontal' ? this.horizontal : this.vertical;
+    private resolveProperties(orientation: ScrollbarOrientation): _ModuleSupport.NormalisedScrollbarOrientationOptions {
+        return orientation === 'horizontal' ? this.opts.horizontal : this.opts.vertical;
     }
 
     private getDefaultPosition(orientation: ScrollbarOrientation): AgCartesianAxisPosition {
@@ -211,12 +174,13 @@ export class Scrollbar extends AbstractModuleInstance {
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
+        const opts = this.opts;
         this.ctx.eventsHub.emit('axis-dom-proxy:update', {
             source: 'scrollbar',
-            enabled: this.enabled,
+            enabled: opts.enabled,
             enableDoubleClick: false,
             enableDragging: false,
-            enableScrolling: this.enableAxisScrolling,
+            enableScrolling: opts.enableAxisScrolling,
         });
 
         this.seriesRect = event.series.rect;
@@ -277,12 +241,12 @@ export class Scrollbar extends AbstractModuleInstance {
 
     private updateStyles({ track, thumb, properties, hovered }: ScrollbarOrientationState) {
         track.setStyleProperties(properties.track);
-        track.cornerRadius = properties.track.cornerRadius ?? 0;
-        track.opacity = properties.track.opacity ?? 1;
+        track.cornerRadius = properties.track.cornerRadius;
+        track.opacity = properties.track.opacity;
 
         thumb.setStyleProperties(properties.thumb);
-        thumb.cornerRadius = properties.thumb.cornerRadius ?? 0;
-        thumb.opacity = properties.thumb.opacity ?? 1;
+        thumb.cornerRadius = properties.thumb.cornerRadius;
+        thumb.opacity = properties.thumb.opacity;
 
         const hoverStyle = properties.thumb.hoverStyle;
 
@@ -308,7 +272,7 @@ export class Scrollbar extends AbstractModuleInstance {
             return;
         }
 
-        const minSize = state.properties.thumb.minSize ?? 0;
+        const minSize = state.properties.thumb.minSize;
         let thumbSpan: number;
         if (state.orientation === 'horizontal') {
             const thumbWidth = Math.min(Math.max(minSize, track.width * span), track.width);
@@ -409,12 +373,12 @@ export class Scrollbar extends AbstractModuleInstance {
     }
 
     private onWheel(baseEvent: _ModuleSupport.ZoomInteractionWheelEvent) {
-        if (!this.enableSeriesAreaScrolling) return;
+        if (!this.opts.enableSeriesAreaScrolling) return;
         return this.handleWheel(baseEvent);
     }
 
     private onAxisWheel(baseEvent: _ModuleSupport.ZoomInteractionAxisWheelEvent) {
-        if (!this.enableAxisScrolling) return;
+        if (!this.opts.enableAxisScrolling) return;
         return this.handleWheel(baseEvent);
     }
 
@@ -429,8 +393,10 @@ export class Scrollbar extends AbstractModuleInstance {
 
         const isHorizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY);
 
-        if (isHorizontal && !this.horizontal.enabled) return;
-        if (!isHorizontal && !this.vertical.enabled) return;
+        const horizontalEnabled = this.opts.horizontal.enabled;
+        const verticalEnabled = this.opts.vertical.enabled;
+        if (isHorizontal && !horizontalEnabled) return;
+        if (!isHorizontal && !verticalEnabled) return;
 
         baseEvent.stopProcessing();
 

@@ -6,6 +6,7 @@ import { VERSION } from '../version';
 import type { TransferableResources } from './chart';
 import { polarChartOptionsDefs } from './chartOptionsDefs';
 import { PolarChart } from './polarChart';
+import { commonChartThemeTemplate } from './themes/chartThemeTemplate';
 
 export const PolarChartModule: ChartModuleDefinition<AgPolarChartOptions> = {
     type: 'chart',
@@ -13,6 +14,8 @@ export const PolarChartModule: ChartModuleDefinition<AgPolarChartOptions> = {
     version: VERSION,
 
     options: polarChartOptionsDefs,
+
+    themeTemplate: commonChartThemeTemplate,
 
     create(options: ChartOptions, resources?: TransferableResources) {
         return new PolarChart(options, resources);

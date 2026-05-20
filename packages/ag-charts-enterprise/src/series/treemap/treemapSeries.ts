@@ -935,13 +935,13 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         }
 
         const format: Required<ItemStyle> = this.getItemStyle(
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- spread loses TreemapNode brand; restore for getItemStyle's parameter type
             { ...nodeDatum, colorValue: datumColor ?? nodeDatum.colorValue } as TreemapNode,
             isLeaf,
             false
         );
 
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- widen AgColor to InternalAgColorType so downstream gradient props are typeable
         const color = format.fill as InternalAgColorType;
 
         const markerStyle = {

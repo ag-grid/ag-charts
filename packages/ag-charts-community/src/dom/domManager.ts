@@ -136,7 +136,7 @@ export class DOMManager extends BaseManager {
 
     constructor(
         private readonly eventsHub: EventsHub,
-        private readonly chart: { styleNonce?: string },
+        private readonly styleNonce: string | undefined,
         private readonly agDocument: AgDocument,
         initialContainer?: HTMLElement,
         private readonly styleContainer?: HTMLElement,
@@ -332,8 +332,7 @@ export class DOMManager extends BaseManager {
         const height = this.containerSize ? `${this.containerSize.height ?? 0}px` : '';
 
         const last = this._lastCenterSize;
-        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-        if (last == null || last.visibility !== visibility || last.width !== width || last.height !== height) {
+        if (last?.visibility !== visibility || last?.width !== width || last?.height !== height) {
             this._lastCenterSize = { visibility, width, height };
             const { style: centerStyle } = this.rootElements['canvas-center'].element;
             centerStyle.visibility = visibility;
@@ -648,8 +647,8 @@ export class DOMManager extends BaseManager {
             }
 
             const styleEl = createElement('style');
-            if (this.chart.styleNonce != null) {
-                styleEl.nonce = this.chart.styleNonce;
+            if (this.styleNonce != null) {
+                styleEl.nonce = this.styleNonce;
             }
             if (insertAfterEl == null) {
                 el.prepend(styleEl);
@@ -742,8 +741,8 @@ export class DOMManager extends BaseManager {
             newChild.addEventListener(type, fn as any, opts);
         }
         children.set(id, newChild);
-        if (childElementType === 'style' && this.chart.styleNonce != null) {
-            newChild.nonce = this.chart.styleNonce;
+        if (childElementType === 'style' && this.styleNonce != null) {
+            newChild.nonce = this.styleNonce;
         }
         if (insert) {
             const queryResult = element.querySelector(insert.query);

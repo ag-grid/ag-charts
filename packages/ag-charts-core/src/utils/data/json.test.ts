@@ -1,30 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import {
-    BaseProperties,
-    Property,
-    deepClone,
-    jsonApply,
-    jsonDiff,
-    jsonPropertyCompare,
-    jsonWalk,
-    mergeDefaults,
-} from 'ag-charts-core';
+import { deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from './json';
+import { mergeDefaults } from './object';
 
 const FIXED_DATE = new Date('2022-01-27T00:00:00.000+00:00');
-
-class TestApply {
-    num?: number = undefined;
-    str?: string = undefined;
-    date?: Date = undefined;
-    array?: number[] = undefined;
-    recurse?: TestApply = undefined;
-    _declarationOrder?: number = undefined;
-
-    constructor(params: { [K in keyof TestApply]?: TestApply[K] } = {}) {
-        Object.assign(this, params);
-    }
-}
 
 describe('json module', () => {
     describe('#jsonDiff', () => {
@@ -431,96 +410,6 @@ describe('json module', () => {
             expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined, undefined);
             expect(cb).toHaveBeenCalledWith(walked1.child2, undefined, undefined, undefined);
             expect(cb).toHaveBeenCalledTimes(2);
-        });
-    });
-
-    describe('#jsonApply', () => {
-        beforeEach(() => {
-            console.warn = vi.fn();
-        });
-
-        const json: any = {
-            str: 'test-string',
-            num: 123,
-            date: FIXED_DATE,
-            array: [1, 2, 3, 4],
-            recurse: { str: 'test-string2', num: 789, date: FIXED_DATE, array: [1, 2, 3, 4] },
-        };
-
-        it('should be able to populate an existing object graph', () => {
-            const target = new TestApply({ recurse: new TestApply() });
-            jsonApply(target, json);
-            expect(target.str).toEqual(json.str);
-            expect(target.num).toEqual(json.num);
-            expect(target.date).toEqual(json.date);
-            expect(target.array).toEqual(json.array);
-            expect(target.recurse).toBeInstanceOf(TestApply);
-            expect(target.recurse?.str).toEqual(json.recurse.str);
-            expect(target.recurse?.num).toEqual(json.recurse.num);
-            expect(target.recurse?.date).toEqual(json.recurse.date);
-            expect(target.recurse?.array).toEqual(json.recurse.array);
-        });
-
-        it('should skip specified properties', () => {
-            const target = new TestApply();
-            jsonApply(target, json, { skip: ['recurse', 'recurse.str', 'str'] });
-            expect(target.str).toEqual(undefined);
-            expect((target as any).recurse?.str).toEqual(undefined);
-        });
-
-        it('should error on unrecognised properties', () => {
-            const badJson = { foo: 'bar' };
-            const target = new TestApply();
-
-            jsonApply(target, badJson as any);
-            expect(console.warn).toHaveBeenCalledWith(
-                'AG Charts - unable to set [foo] in TestApply - property is unknown'
-            );
-        });
-
-        it('should error on undefined objects', () => {
-            const target = new TestApply();
-            delete target.recurse;
-
-            jsonApply(target, json);
-            expect(console.warn).toHaveBeenCalledWith(
-                'AG Charts - unable to set [recurse] in TestApply - property is unknown'
-            );
-        });
-
-        it('should error on incompatible properties', () => {
-            const badJson = { recurse: 'foo' };
-            const target = new TestApply({ recurse: new TestApply() });
-
-            jsonApply(target, badJson as any);
-            expect(console.warn).toHaveBeenCalledWith(
-                "AG Charts - unable to set [recurse] in TestApply - can't apply type of [primitive], allowed types are: [class-instance]"
-            );
-        });
-
-        it('should clear BaseProperties when applying undefined value', () => {
-            class NestedProps extends BaseProperties<{ value: string }> {
-                @Property
-                value!: string;
-            }
-
-            class TestProps extends BaseProperties<{ nested?: NestedProps }> {
-                @Property
-                nested = new NestedProps();
-            }
-
-            const target = new TestProps();
-
-            // Set initial values
-            jsonApply(target, { nested: { value: 'test' } });
-            expect(target.nested.value).toBe('test');
-
-            // Apply undefined - should clear the nested properties
-            jsonApply(target, { nested: undefined });
-            expect(target.nested.value).toBeUndefined();
-
-            // Verify no console warnings
-            expect(console.warn).not.toHaveBeenCalled();
         });
     });
 

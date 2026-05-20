@@ -1,20 +1,23 @@
-import { Property, cachedTextMeasurer, isArray, measureTextSegments, toTextString } from 'ag-charts-core';
+import type { DynamicContext } from 'ag-charts-core';
+import { cachedTextMeasurer, isArray, measureTextSegments, toTextString } from 'ag-charts-core';
 import type { TextAlign } from 'ag-charts-types';
 
 import type { LayoutCompleteEvent } from '../core/eventsHub';
+import type { ChartRegistry } from '../module/moduleContext';
 import type { BBox } from '../scene/bbox';
-import { Caption } from './caption';
+import { ChartCaption, captionFont } from './chartCaption';
 import type { LayoutContext } from './layout/layoutManager';
 
 export class ChartCaptions {
-    @Property
-    readonly title = new Caption();
+    readonly title: ChartCaption;
+    readonly subtitle: ChartCaption;
+    readonly footnote: ChartCaption;
 
-    @Property
-    readonly subtitle = new Caption();
-
-    @Property
-    readonly footnote = new Caption();
+    constructor(ctx: DynamicContext<ChartRegistry>) {
+        this.title = new ChartCaption(ctx, 'title');
+        this.subtitle = new ChartCaption(ctx, 'subtitle');
+        this.footnote = new ChartCaption(ctx, 'footnote');
+    }
 
     positionCaptions({ layoutBox }: LayoutContext) {
         const { title, subtitle, footnote } = this;
@@ -39,11 +42,13 @@ export class ChartCaptions {
         const { rect } = ctx.series;
 
         for (const caption of [title, subtitle, footnote]) {
-            if (caption.layoutStyle !== 'overlay') continue;
+            const opts = caption.opts;
+            if ((opts.layoutStyle ?? 'block') !== 'overlay') continue;
 
-            if (caption.textAlign === 'left') {
+            const textAlign = opts.textAlign ?? 'center';
+            if (textAlign === 'left') {
                 caption.node.x = rect.x + caption.padding;
-            } else if (caption.textAlign === 'right') {
+            } else if (textAlign === 'right') {
                 const bbox = caption.node.getBBox();
                 caption.node.x = rect.x + rect.width - bbox.width - caption.padding;
             }
@@ -59,34 +64,39 @@ export class ChartCaptions {
         return layoutBox.x + layoutBox.width / 2;
     }
 
-    private positionCaption(vAlign: 'top' | 'bottom', caption: Caption, layoutBox: BBox, maxHeight: number) {
+    private positionCaption(vAlign: 'top' | 'bottom', caption: ChartCaption, layoutBox: BBox, maxHeight: number) {
+        caption.applyToNode();
+        const opts = caption.opts;
+        const font = captionFont(opts);
+        const text = opts.text;
         // Position the node even when text is empty so its bbox reserves a line of space —
         // an `enabled: true` caption with `text: ''` should still occupy layout (AG-16511).
-        caption.node.x = this.computeX(caption.textAlign, layoutBox) + caption.padding;
+        caption.node.x = this.computeX(opts.textAlign ?? 'center', layoutBox) + caption.padding;
         caption.node.y = layoutBox.y + (vAlign === 'top' ? 0 : layoutBox.height) + caption.padding;
         caption.node.textBaseline = vAlign;
-        if (!caption.text) return;
-        const { lineMetrics } = isArray(caption.text)
-            ? measureTextSegments(caption.text, caption)
-            : cachedTextMeasurer(caption).measureLines(toTextString(caption.text));
+        if (!text) return;
+        const { lineMetrics } = isArray(text)
+            ? measureTextSegments(text, font)
+            : cachedTextMeasurer(font).measureLines(toTextString(text));
         const containerHeight = Math.max(lineMetrics[0].height, maxHeight);
         caption.computeTextWrap(layoutBox.width, containerHeight);
     }
 
-    private shrinkLayoutByCaption(vAlign: 'top' | 'bottom', caption: Caption, layoutBox: BBox) {
-        if (caption.layoutStyle !== 'block') return;
+    private shrinkLayoutByCaption(vAlign: 'top' | 'bottom', caption: ChartCaption, layoutBox: BBox) {
+        const opts = caption.opts;
+        if ((opts.layoutStyle ?? 'block') !== 'block') return;
 
         const bbox = caption.node.getBBox().clone();
-        const { spacing = 0 } = caption;
+        const spacing = opts.spacing ?? 0;
 
         // Empty text yields a zero-height bbox from the Text node; reserve one line of font
         // height so an enabled caption with `text: ''` still occupies layout space (AG-16511).
         if (bbox.height === 0) {
-            bbox.height = cachedTextMeasurer(caption).lineHeight();
+            bbox.height = cachedTextMeasurer(captionFont(opts)).lineHeight();
             if (vAlign === 'bottom') bbox.y -= bbox.height;
         }
 
-        if (vAlign === 'bottom' && isArray(caption.text)) {
+        if (vAlign === 'bottom' && isArray(opts.text)) {
             bbox.y -= bbox.height;
         }
         layoutBox.shrink(

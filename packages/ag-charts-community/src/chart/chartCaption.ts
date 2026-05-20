@@ -1,9 +1,6 @@
-import type { DynamicContext } from 'ag-charts-core';
+import type { DynamicContext, NormalisedChartCaptionOptions } from 'ag-charts-core';
 import {
-    BaseProperties,
     FONT_SIZE,
-    Property,
-    ProxyPropertyOnWrite,
     callWithContext,
     createId,
     isArray,
@@ -14,15 +11,7 @@ import {
     wrapText,
     wrapTextSegments,
 } from 'ag-charts-core';
-import type {
-    AgCaptionTooltipRendererParams,
-    FontStyle,
-    FontWeight,
-    Renderer,
-    TextAlign,
-    TextOrSegments,
-    TextWrap,
-} from 'ag-charts-types';
+import type { AgCaptionTooltipOptions, AgCaptionTooltipRendererParams, TextOrSegments } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
@@ -44,81 +33,52 @@ type CaptionNodeDatum = {
     rotation: number;
 };
 
-class CaptionTooltipProperties extends BaseProperties {
-    @Property
-    visible?: 'auto' | 'always' | 'never';
+export type ChartCaptionKey = 'title' | 'subtitle' | 'footnote';
 
-    @Property
-    text?: string;
-
-    @Property
-    renderer?: Renderer<AgCaptionTooltipRendererParams, never>;
+/** Build the font spec (FontOptions shape) consumed by text measurers from a caption's options. */
+export function captionFont(opts: NormalisedChartCaptionOptions) {
+    return {
+        fontSize: opts.fontSize ?? FONT_SIZE.SMALLER,
+        fontStyle: opts.fontStyle,
+        fontWeight: opts.fontWeight,
+        fontFamily: opts.fontFamily ?? 'sans-serif',
+    };
 }
 
-export class Caption extends BaseProperties implements CaptionLike {
-    static readonly className = 'Caption';
+/**
+ * Chart-level caption (title/subtitle/footnote). Reads its option subtree from
+ * `ctx.chartState.getValue('options', key)` and applies values to its scene node
+ * during layout. Mirrors the Legend/Zoom pattern.
+ *
+ * For axis/series titles (which use `Caption`), the BaseProperties-based
+ * `Caption` class continues to be used.
+ */
+export class ChartCaption implements CaptionLike {
+    static readonly className = 'ChartCaption';
 
     readonly id = createId(this);
     readonly node = new RotatableText<CaptionNodeDatum>({ zIndex: 1 }).setProperties({
+        visible: false,
         textAlign: 'center',
         pointerEvents: PointerEvents.None,
     });
 
-    @Property
-    @ProxyPropertyOnWrite('node', 'visible')
-    enabled: boolean = false;
+    get opts(): NormalisedChartCaptionOptions {
+        return this.ctx.chartState.getValue('options', this.key) ?? {};
+    }
 
-    @Property
-    @ProxyPropertyOnWrite('node')
-    text?: TextOrSegments;
+    // Members required by CaptionLike. Other field reads go through `opts` at the call site.
+    get enabled(): boolean {
+        return this.opts.enabled ?? false;
+    }
 
-    @Property
-    @ProxyPropertyOnWrite('node')
-    textAlign: TextAlign = 'center';
+    get text(): TextOrSegments | undefined {
+        return this.opts.text;
+    }
 
-    @Property
-    @ProxyPropertyOnWrite('node')
-    fontStyle?: FontStyle;
-
-    @Property
-    @ProxyPropertyOnWrite('node')
-    fontWeight?: FontWeight;
-
-    @Property
-    @ProxyPropertyOnWrite('node')
-    fontSize: number = FONT_SIZE.SMALLER;
-
-    @Property
-    @ProxyPropertyOnWrite('node')
-    fontFamily: string = 'sans-serif';
-
-    @Property
-    @ProxyPropertyOnWrite('node', 'fill')
-    color?: string;
-
-    @Property
-    spacing?: number;
-
-    @Property
-    maxWidth?: number;
-
-    @Property
-    maxHeight?: number;
-
-    @Property
-    wrapping: TextWrap = 'always';
-
-    @Property
-    truncate: boolean = true;
-
-    @Property
-    padding: number = 0;
-
-    @Property
-    layoutStyle: 'block' | 'overlay' = 'block';
-
-    @Property
-    readonly tooltip = new CaptionTooltipProperties();
+    get padding(): number {
+        return this.opts.padding ?? 0;
+    }
 
     private truncated = false;
     private proxyText?: BoundedTextWidget;
@@ -126,18 +86,45 @@ export class Caption extends BaseProperties implements CaptionLike {
     private lastProxyTextContent?: string;
     private lastProxyBBox?: { x: number; y: number; width: number; height: number };
 
+    constructor(
+        private readonly ctx: DynamicContext<ChartRegistry>,
+        private readonly key: ChartCaptionKey
+    ) {}
+
+    /**
+     * Apply the current options subtree to the scene node. Called from
+     * `ChartCaptions.positionCaption` before each layout so visible/text/font
+     * properties land before render.
+     */
+    applyToNode() {
+        const opts = this.opts;
+        const { node } = this;
+        node.visible = opts.enabled ?? false;
+        node.text = opts.text;
+        node.textAlign = opts.textAlign ?? 'center';
+        node.fontStyle = opts.fontStyle;
+        node.fontWeight = opts.fontWeight;
+        node.fontSize = opts.fontSize ?? FONT_SIZE.SMALLER;
+        node.fontFamily = opts.fontFamily ?? 'sans-serif';
+        node.fill = opts.color;
+    }
+
     registerInteraction(moduleCtx: DynamicContext<ChartRegistry>, where: 'beforebegin' | 'afterend') {
         return moduleCtx.eventsHub.on('layout:complete', () => this.updateA11yText(moduleCtx, where));
     }
 
     computeTextWrap(containerWidth: number, containerHeight: number) {
-        const { text, padding, wrapping, truncate } = this;
+        const opts = this.opts;
+        const wrapping = opts.wrapping ?? 'always';
+        const truncate = opts.truncate ?? true;
+        const padding = opts.padding ?? 0;
         const effectiveContainerWidth = truncate ? containerWidth : Infinity;
         const effectiveContainerHeight = truncate ? containerHeight : Infinity;
-        const maxWidth = Math.min(this.maxWidth ?? Infinity, effectiveContainerWidth) - padding * 2;
-        const maxHeight = this.maxHeight ?? effectiveContainerHeight - padding * 2;
-        const options = { maxWidth, maxHeight, font: this, textWrap: wrapping };
+        const maxWidth = Math.min(opts.maxWidth ?? Infinity, effectiveContainerWidth) - padding * 2;
+        const maxHeight = opts.maxHeight ?? effectiveContainerHeight - padding * 2;
+        const options = { maxWidth, maxHeight, font: captionFont(opts), textWrap: wrapping };
 
+        const text = opts.text;
         if (!Number.isFinite(maxWidth) && !Number.isFinite(maxHeight)) {
             this.node.text = text;
             return;
@@ -175,14 +162,12 @@ export class Caption extends BaseProperties implements CaptionLike {
             ];
         }
 
-        // Only update DOM if content changed - avoids unnecessary DOM operations
         const textContent = toPlainText(this.text);
         if (textContent !== this.lastProxyTextContent) {
             this.proxyText.textContent = textContent;
             this.lastProxyTextContent = textContent;
         }
 
-        // Only update bounds if they changed
         const { lastProxyBBox } = this;
         if (
             bbox.x !== lastProxyBBox?.x ||
@@ -196,23 +181,23 @@ export class Caption extends BaseProperties implements CaptionLike {
     }
 
     private getEffectiveTooltipVisible(): 'auto' | 'always' | 'never' {
-        const { visible, text, renderer } = this.tooltip;
-        if (visible != null) return visible;
-        return text != null || renderer != null ? 'always' : 'auto';
+        const tooltip: AgCaptionTooltipOptions = this.opts.tooltip ?? {};
+        if (tooltip.visible != null) return tooltip.visible;
+        return tooltip.text != null || tooltip.renderer != null ? 'always' : 'auto';
     }
 
     private getTooltipContent(moduleCtx: DynamicContext<ChartRegistry>): TooltipContent | undefined {
         const captionText = toPlainText(this.text);
-        const { renderer, text } = this.tooltip;
+        const tooltip: AgCaptionTooltipOptions = this.opts.tooltip ?? {};
 
-        if (renderer != null) {
+        if (tooltip.renderer != null) {
             const params: AgCaptionTooltipRendererParams = { text: captionText };
-            const result = callWithContext(moduleCtx.chartService, renderer, params);
+            const result = callWithContext(moduleCtx.chartService, tooltip.renderer, params);
             if (result === '') return undefined;
             if (result != null) return { type: 'raw', rawHtmlString: toTextString(result) };
         }
 
-        const displayText = text ?? captionText;
+        const displayText = tooltip.text ?? captionText;
         return { type: 'structured', title: displayText };
     }
 

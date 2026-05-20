@@ -89,7 +89,7 @@ export abstract class AgCharts {
             if (licenseManager?.isDisplayWatermark()) {
                 enterpriseRegistry.injectWatermark?.(chart.chart!.ctx.domManager, licenseManager.getWatermarkMessage());
             }
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- TS2589 without it: O cannot be inferred through AgChartInstanceProxy
             return chart as unknown as AgChartInstance<O>;
         });
     }

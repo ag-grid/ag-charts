@@ -1,22 +1,17 @@
-import { AbstractModuleInstance, type DynamicContext, ObserveChanges, Property } from 'ag-charts-core';
-import type { Formatter, MessageFormatterParams } from 'ag-charts-types';
+import { AbstractModuleInstance, type DynamicContext } from 'ag-charts-core';
 
 import type { ChartRegistry } from '../module/moduleContext';
 
 export class Locale extends AbstractModuleInstance {
-    @ObserveChanges<Locale>((target) => {
-        target.ctx.localeManager.setLocaleText(target.localeText);
-    })
-    @Property
-    localeText: Record<string, string> | undefined = undefined;
-
-    @ObserveChanges<Locale>((target) => {
-        target.ctx.localeManager.setLocaleTextFormatter(target.getLocaleText);
-    })
-    @Property
-    getLocaleText: Formatter<MessageFormatterParams> | undefined;
-
-    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
+    constructor(ctx: DynamicContext<ChartRegistry>) {
         super();
+        this.cleanup.register(
+            ctx.chartState.observe((get) => {
+                ctx.localeManager.setLocaleText(get('options', 'locale.localeText'));
+            }),
+            ctx.chartState.observe((get) => {
+                ctx.localeManager.setLocaleTextFormatter(get('options', 'locale.getLocaleText'));
+            })
+        );
     }
 }

@@ -190,6 +190,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -260,6 +261,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -509,6 +511,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#162c53",
     "enabled": true,
@@ -527,6 +530,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
     "enabled": true,
     "mode": "shared",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -735,6 +741,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -805,6 +812,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -1072,6 +1080,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -1090,6 +1099,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
     "enabled": true,
     "mode": "shared",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -1242,6 +1254,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -1310,6 +1323,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -1861,6 +1875,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -1879,6 +1894,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -2030,6 +2048,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -2098,6 +2117,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -2787,6 +2807,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -2805,6 +2826,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -2949,6 +2973,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -3017,6 +3042,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -3119,6 +3145,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -3137,6 +3164,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -3306,6 +3336,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -3375,6 +3406,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -3696,6 +3728,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -3714,6 +3747,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -3864,6 +3900,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -3932,6 +3969,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -4390,6 +4428,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -4408,6 +4447,9 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -4558,6 +4600,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -4626,6 +4669,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -4739,6 +4783,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -4758,6 +4803,9 @@ by Occupation",
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -4908,6 +4956,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -4976,6 +5025,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -5093,6 +5143,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -5112,6 +5163,9 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -5269,6 +5323,7 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -5337,6 +5392,7 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -5435,6 +5491,7 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -5453,6 +5510,9 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -5603,6 +5663,7 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -5671,6 +5732,7 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -5771,6 +5833,7 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -5789,6 +5852,9 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -5939,6 +6005,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -6007,6 +6074,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -6198,6 +6266,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -6216,6 +6285,9 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
     "enabled": true,
     "mode": "shared",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -6366,6 +6438,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -6434,6 +6507,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -6635,6 +6709,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -6653,6 +6728,9 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
     "enabled": true,
     "mode": "shared",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -6804,6 +6882,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -6872,6 +6951,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -7507,6 +7587,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -7525,6 +7606,9 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -7679,6 +7763,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -7747,6 +7832,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -8980,6 +9066,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -8998,6 +9085,9 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -9144,6 +9234,7 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -9212,6 +9303,7 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -9315,6 +9407,7 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -9333,6 +9426,9 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -9484,6 +9580,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -9552,6 +9649,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -10236,6 +10334,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -10254,6 +10353,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -10406,6 +10508,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -10474,6 +10577,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -10762,6 +10866,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -10780,6 +10885,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
     "enabled": true,
     "mode": "shared",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -10931,6 +11039,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -10999,6 +11108,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -11524,6 +11634,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -11542,6 +11653,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -11721,6 +11835,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -11789,6 +11904,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -12150,6 +12266,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -12168,6 +12285,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -12319,6 +12439,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -12387,6 +12508,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -12501,6 +12623,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -12519,6 +12642,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -12550,6 +12676,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -12618,6 +12745,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -12818,6 +12946,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -12836,6 +12965,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -13015,6 +13147,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -13083,6 +13216,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -13262,6 +13396,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -13280,6 +13415,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
     "enabled": true,
     "mode": "shared",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -13310,6 +13448,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -13378,6 +13517,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -13544,6 +13684,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -13562,6 +13703,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -13706,6 +13850,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -13774,6 +13919,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -13866,6 +14012,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -13884,6 +14031,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -14061,6 +14211,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -14129,6 +14280,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -14696,6 +14848,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -14714,6 +14867,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -14865,6 +15021,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -14933,6 +15090,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -15302,6 +15460,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -15320,6 +15479,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;
@@ -15472,6 +15634,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
   },
   "keyboard": {
     "enabled": true,
+    "initialFocus": "data-start",
   },
   "legend": {
     "border": {
@@ -15540,6 +15703,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
   "listeners": {},
   "minHeight": 300,
   "minWidth": 300,
+  "mode": "standalone",
   "overlays": {
     "darkTheme": false,
   },
@@ -15993,6 +16157,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
+  "suppressFieldDotNotation": false,
   "title": {
     "color": "#181d1f",
     "enabled": true,
@@ -16011,6 +16176,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
   },
 }
 `;

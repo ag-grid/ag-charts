@@ -134,10 +134,11 @@ describe('AgChart', () => {
         expect(chart.width).toBe(500);
         expect(chart.height).toBe(500);
         expect(chart.data.data.length).toBe(4);
-        expect(chart.padding.top).toBe(30);
-        expect(chart.padding.right).toBe(40);
-        expect(chart.padding.bottom).toBe(50);
-        expect(chart.padding.left).toBe(60);
+        const padding = chart.ctx.chartState.getValue('options', 'padding');
+        expect(padding.top).toBe(30);
+        expect(padding.right).toBe(40);
+        expect(padding.bottom).toBe(50);
+        expect(padding.left).toBe(60);
         expect(chart.title?.enabled).toBe(theme.config.line.title.enabled);
         expect(chart.title?.text).toBe(theme.config.line.title.text);
 
@@ -148,11 +149,11 @@ describe('AgChart', () => {
         // expect(chart.title?.fontWeight).toBe(theme.config.line.title.fontWeight);
         // expect(chart.subtitle?.fontSize).toBe(theme.config.line.subtitle.fontSize);
 
-        expect(chart.title?.fontStyle).toBe(theme.config.line.title.fontStyle);
+        expect(chart.title?.opts.fontStyle).toBe(theme.config.line.title.fontStyle);
         expect(chart.subtitle?.text).toBe(theme.config.line.subtitle.text);
         expect(chart.subtitle?.enabled).toBe(false);
-        expect((chart as any).background.fill).toBe('red');
-        expect((chart as any).background.visible).toBe(false);
+        expect(chart.ctx.chartState.getValue('options', 'background').fill).toBe('red');
+        expect(chart.ctx.chartState.getValue('options', 'background').visible).toBe(false);
         expect((chart.series[0] as any).properties.marker.shape).toBe('plus');
 
         await chartProxy.updateDelta({
@@ -189,7 +190,7 @@ describe('AgChart', () => {
         // expect(chart.title?.fontWeight).toBe(theme.config.line.title.fontWeight);
         // expect(chart.subtitle?.fontSize).toBe(theme.config.line.subtitle.fontSize);
 
-        expect(chart.title?.fontStyle).toBe(theme.config.line.title.fontStyle);
+        expect(chart.title?.opts.fontStyle).toBe(theme.config.line.title.fontStyle);
 
         expect(chart.subtitle?.enabled).toBe(false);
         expect(chart.subtitle?.text).toBe(theme.config.line.subtitle.text);

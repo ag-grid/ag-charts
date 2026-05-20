@@ -304,7 +304,7 @@ export class CartesianChart extends Chart {
 
             const chartLayout = {
                 sizeLimit: axisWidth - axis.options.label.spacing,
-                padding: this.padding,
+                padding: this.ctx.chartState.getValue('options', 'padding'),
                 scrollbars,
             };
 
@@ -424,10 +424,10 @@ export class CartesianChart extends Chart {
         seriesRect: BBox,
         visible: boolean
     ): void {
-        const crosshairModule = axis.getModuleMap().getModule('crosshair') as { enabled: boolean } | undefined;
+        const crosshairModule = axis.getModuleMap().getModule<{ enabled: boolean }>('crosshair');
         if (crosshairModule?.enabled) return;
 
-        const annotationsModule = this.modulesManager.getModule('annotations') as { enabled: boolean } | undefined;
+        const annotationsModule = this.modulesManager.getModule('annotations');
         const hasAnnotations =
             annotationsModule?.enabled === true ||
             this.ctx.annotationManager?.createMemento().some((annotation) => {
@@ -515,13 +515,13 @@ export class CartesianChart extends Chart {
     }
 
     private async getSyncedDomain(axis: CartesianAxis) {
-        const syncModule = this.modulesManager.getModule('sync') as SyncModule;
+        const syncModule = this.modulesManager.getModule<SyncModule>('sync');
         if (!syncModule?.enabled) return;
         return await syncModule.getSyncedDomain(axis);
     }
 
     private syncAxisChanges(newValue: CartesianAxis[], oldValue: CartesianAxis[] | undefined) {
-        const syncModule = this.modulesManager.getModule('sync') as SyncModule;
+        const syncModule = this.modulesManager.getModule<SyncModule>('sync');
         if (!syncModule?.enabled) return;
 
         const removed = new Set(oldValue ?? []);

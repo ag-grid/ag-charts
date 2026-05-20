@@ -6,6 +6,7 @@ import { VERSION } from '../version';
 import { CartesianChart } from './cartesianChart';
 import type { TransferableResources } from './chart';
 import { cartesianChartOptionsDefs } from './chartOptionsDefs';
+import { commonChartThemeTemplate } from './themes/chartThemeTemplate';
 
 const histogramAxisTypes = new Set(['number', 'log', 'time']);
 const invalidHistogramAxis = (axis: any) => isObject(axis) && axis.type != null && !histogramAxisTypes.has(axis.type);
@@ -16,6 +17,8 @@ export const CartesianChartModule: ChartModuleDefinition<AgCartesianChartOptions
     version: VERSION,
 
     options: cartesianChartOptionsDefs,
+
+    themeTemplate: commonChartThemeTemplate,
 
     create(options: ChartOptions, resources?: TransferableResources) {
         return new CartesianChart(options, resources);
