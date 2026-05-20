@@ -15,6 +15,11 @@ import { getSharedMarkerPath } from './markerPathCache';
 const PIN_ANCHOR: Point = Object.freeze({ x: 0.5, y: 1 });
 const CENTRE_ANCHOR: Point = Object.freeze({ x: 0.5, y: 0.5 });
 
+// Scratch BBoxes shared across all markers — drawPath is synchronous and markers don't
+// render recursively, so only one marker is mid-draw at any time.
+const DRAW_BBOX_SCRATCH = new BBox(0, 0, 0, 0);
+const FILL_BBOX_SCRATCH = new BBox(0, 0, 0, 0);
+
 class InternalMarker<D = any> extends Path<D> {
     @DeclaredSceneObjectChangeDetection({ equals: TRIPLE_EQ })
     shape: AgMarkerShape = 'square';
@@ -35,11 +40,6 @@ class InternalMarker<D = any> extends Path<D> {
     // Origin-centred Path2D shared across all markers with the same (shape, size, pixelRatio).
     // Per-marker position is applied via ctx.translate in drawPath, not baked into the path.
     private _sharedPath?: ExtendedPath2D;
-
-    // Scratch BBoxes reused across draws to avoid per-frame allocations during drawPath —
-    // one for the shifted fillBBox swap, one for the bboxOverride passed to fillStroke.
-    private readonly _scratchFillBBox: BBox = new BBox(0, 0, 0, 0);
-    private readonly _scratchDrawBBox: BBox = new BBox(0, 0, 0, 0);
 
     // Path geometry is invariant to x/y (applied as a render-time translate), so x/y mutations
     // dirty the scene but not the path.
@@ -119,32 +119,29 @@ class InternalMarker<D = any> extends Path<D> {
 
         // fillStroke configures gradients/patterns/strokes before ctx.translate is applied, so
         // any bbox they reference must be expressed in origin (post-translate) coordinates.
-        // Shift the marker bbox and (if present) fillBBox by (-tx, -ty); pass the marker bbox
-        // through as bboxOverride, swap __fillBBox in via the existing decorator setter.
+        // Shift the marker bbox (and fillBBox, if present) by (-tx, -ty) and pass them through.
         const baseBBox = super.getBBox();
-        const drawBBox = this._scratchDrawBBox;
-        drawBBox.x = baseBBox.x - tx;
-        drawBBox.y = baseBBox.y - ty;
-        drawBBox.width = baseBBox.width;
-        drawBBox.height = baseBBox.height;
+        DRAW_BBOX_SCRATCH.x = baseBBox.x - tx;
+        DRAW_BBOX_SCRATCH.y = baseBBox.y - ty;
+        DRAW_BBOX_SCRATCH.width = baseBBox.width;
+        DRAW_BBOX_SCRATCH.height = baseBBox.height;
 
+        let fillBBoxOverride: BBox | undefined;
         const originalFillBBox = this.__fillBBox;
         if (originalFillBBox) {
-            const shifted = this._scratchFillBBox;
-            shifted.x = originalFillBBox.x - tx;
-            shifted.y = originalFillBBox.y - ty;
-            shifted.width = originalFillBBox.width;
-            shifted.height = originalFillBBox.height;
-            this.__fillBBox = shifted;
+            FILL_BBOX_SCRATCH.x = originalFillBBox.x - tx;
+            FILL_BBOX_SCRATCH.y = originalFillBBox.y - ty;
+            FILL_BBOX_SCRATCH.width = originalFillBBox.width;
+            FILL_BBOX_SCRATCH.height = originalFillBBox.height;
+            fillBBoxOverride = FILL_BBOX_SCRATCH;
         }
 
         ctx.save();
         ctx.translate(tx, ty);
         try {
-            this.fillStroke(ctx, this._sharedPath.getPath2D(), drawBBox);
+            this.fillStroke(ctx, this._sharedPath.getPath2D(), DRAW_BBOX_SCRATCH, fillBBoxOverride);
         } finally {
             ctx.restore();
-            this.__fillBBox = originalFillBBox;
         }
     }
 

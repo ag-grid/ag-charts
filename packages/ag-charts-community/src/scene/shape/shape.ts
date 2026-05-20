@@ -209,18 +209,18 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         this.cachedDefaultGradientFillBBox = undefined;
     }
 
-    protected fillStroke(ctx: CanvasContext, path?: Path2D, bboxOverride?: BBox) {
+    protected fillStroke(ctx: CanvasContext, path?: Path2D, bboxOverride?: BBox, fillBBoxOverride?: BBox) {
         if (this.__drawingMode === 'cutout') {
             ctx.globalCompositeOperation = 'destination-out';
             this.executeFill(ctx, path);
             ctx.globalCompositeOperation = 'source-over';
         }
 
-        this.renderFill(ctx, path, bboxOverride);
+        this.renderFill(ctx, path, bboxOverride, fillBBoxOverride);
         this.renderStroke(ctx, path, bboxOverride);
     }
 
-    protected renderFill(ctx: CanvasContext, path?: Path2D, bboxOverride?: BBox) {
+    protected renderFill(ctx: CanvasContext, path?: Path2D, bboxOverride?: BBox, fillBBoxOverride?: BBox) {
         const { __fill: fill, __fillOpacity: fillOpacity = 1, fillImage } = this;
         if (fill != null && fill !== 'none' && fillOpacity > 0) {
             const globalAlpha = ctx.globalAlpha;
@@ -232,7 +232,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
                 ctx.globalAlpha = globalAlpha;
             }
 
-            this.applyFillAndAlpha(ctx, bboxOverride);
+            this.applyFillAndAlpha(ctx, bboxOverride, fillBBoxOverride);
             this.applyShadow(ctx);
             this.executeFill(ctx, path);
             ctx.globalAlpha = globalAlpha;
@@ -250,7 +250,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         }
     }
 
-    protected applyFillAndAlpha(ctx: CanvasContext, bboxOverride?: BBox) {
+    protected applyFillAndAlpha(ctx: CanvasContext, bboxOverride?: BBox, fillBBoxOverride?: BBox) {
         const {
             __fill: fill,
             fillGradient,
@@ -266,7 +266,13 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         }
 
         if (fillGradient) {
-            const { fillBBox = this.getDefaultGradientFillBBox() ?? bboxOverride ?? this.getBBox(), fillParams } = this;
+            const fillBBox =
+                fillBBoxOverride ??
+                this.fillBBox ??
+                this.getDefaultGradientFillBBox() ??
+                bboxOverride ??
+                this.getBBox();
+            const { fillParams } = this;
             ctx.fillStyle = fillGradient.createGradient(ctx as any, fillBBox, fillParams) ?? 'black';
         } else if (fillPattern) {
             const { x, y } = bboxOverride ?? this.getBBox();
