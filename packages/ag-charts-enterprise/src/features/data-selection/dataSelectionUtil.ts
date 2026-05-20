@@ -1,10 +1,11 @@
-import type { AgSelectionChangeEvent, AgSelectionItem, AgSelectionItemIds } from 'ag-charts-community';
+import type { AgSelectionItemIds } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type AreExact, Logger, type RequireOptional } from 'ag-charts-core';
+import { type AreExact, Logger } from 'ag-charts-core';
 
-type ChangeItem = AgSelectionItem<unknown>;
-type SelectionChangesWithItems = { countDelta: number; added: ChangeItem[]; removed: ChangeItem[] };
-type SelectionChangesDeltaOnly = { countDelta: number; added?: never; removed?: never };
+import type { DataSelectionChangeMap } from './dataSelectionChangeMap';
+
+type SelectionChangesWithItems = { countDelta: number; items: DataSelectionChangeMap };
+type SelectionChangesDeltaOnly = { countDelta: number; items?: never };
 type Changes = SelectionChanges;
 
 type Series = NonNullable<ClickedNode['series']>;
@@ -16,14 +17,6 @@ type DataSetSelection = _ModuleSupport.DataSetSelection;
 type DragWidgetEvent = _ModuleSupport.DragWidgetEvent;
 
 export type SelectionChanges = SelectionChangesWithItems | SelectionChangesDeltaOnly;
-
-function makeChangeItem(seriesId: string, data: DataSet, datumIndex: number): ChangeItem {
-    const itemId = data.getItemIdFromIndex(datumIndex);
-    const datum = data.data[datumIndex];
-    type Rules1 = RequireOptional<AgSelectionChangeEvent<unknown, unknown>['added'][number]>;
-    type Rules2 = RequireOptional<AgSelectionChangeEvent<unknown, unknown>['removed'][number]>;
-    return { seriesId, itemId, datum } satisfies Rules1 satisfies Rules2;
-}
 
 export function toStartAndLength(start: number, end: number): [number, number] {
     if (start > end) {
@@ -52,7 +45,7 @@ export function rollbackChanges(changes: SelectionChangesWithItems, allSeries: S
         }
     }
 
-    for (const change of changes.added) {
+    for (const change of changes.items.toAdded()) {
         const entry = seriesMap.get(change.seriesId);
         if (entry === undefined) return undefined;
 
@@ -62,7 +55,7 @@ export function rollbackChanges(changes: SelectionChangesWithItems, allSeries: S
         entry.selection.deselect(datumIndex);
     }
 
-    for (const change of changes.removed) {
+    for (const change of changes.items.toRemoved()) {
         const entry = seriesMap.get(change.seriesId);
         if (entry === undefined) continue;
 
@@ -86,12 +79,11 @@ export function getAllDataSets(allSeries: Series[]): Set<DataSet> {
 export function toggleSelection(changes: Changes, series: Series, data: DataSet, datumIndex: number): void {
     const selections = data.enableSelection(series.id);
     const wasSelected = selections.isSelected(datumIndex);
-    if (changes?.removed !== undefined) {
-        const item = makeChangeItem(series.id, data, datumIndex);
+    if (changes?.items !== undefined) {
         if (wasSelected) {
-            changes.removed.push(item);
+            changes.items.markRemoved(series.id, data, datumIndex);
         } else {
-            changes.added.push(item);
+            changes.items.markAdded(series.id, data, datumIndex);
         }
     }
     changes.countDelta += selections.toggle(datumIndex);
@@ -100,8 +92,8 @@ export function toggleSelection(changes: Changes, series: Series, data: DataSet,
 export function setSelected(changes: Changes, series: Series, data: DataSet, datumIndex: number): void {
     const selections = data.enableSelection(series.id);
     const wasSelected = selections.isSelected(datumIndex);
-    if (changes.added !== undefined && !wasSelected) {
-        changes.added.push(makeChangeItem(series.id, data, datumIndex));
+    if (changes.items !== undefined && !wasSelected) {
+        changes.items.markAdded(series.id, data, datumIndex);
     }
     changes.countDelta += selections.select(datumIndex);
 }
@@ -121,12 +113,12 @@ function* iterateSelections(dataSets: ReturnType<typeof getAllDataSets>) {
 
 export function clearAllSelections(changes: Changes, state: State, allSeries: Series[]): void {
     const dataSets = getAllDataSets(allSeries);
-    if (changes.removed !== undefined) {
+    if (changes.items !== undefined) {
         for (const { data, seriesId, selection } of iterateSelections(dataSets)) {
             const n = selection.getLength();
             for (let datumIndex = 0; datumIndex < n; datumIndex++) {
                 if (selection.isSelected(datumIndex)) {
-                    changes.removed.push(makeChangeItem(seriesId, data, datumIndex));
+                    changes.items.markRemoved(seriesId, data, datumIndex);
                 }
             }
         }

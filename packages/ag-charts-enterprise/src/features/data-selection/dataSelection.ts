@@ -8,6 +8,7 @@ import {
     type NormalisedSelectionOptions,
 } from 'ag-charts-core';
 
+import { DataSelectionChangeMap } from './dataSelectionChangeMap';
 import {
     SELECTION_FILLOPACITY,
     SELECTION_FILL_VALID,
@@ -355,9 +356,10 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private dispatchExternalSelectionChange(source: AgSelectionChangeEventSource, changes: SelectionChanges): void {
-        if (changes.added === undefined) return;
+        if (changes.items === undefined) return;
 
-        const { added, removed } = changes;
+        const added = changes.items.toAdded();
+        const removed = changes.items.toRemoved();
 
         if (added.length === 0 && removed.length === 0) {
             // No selection changes to emit.
@@ -385,7 +387,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
     private allocSelectionChanges(): SelectionChanges {
         if (!this.ctx.chartService.hasListener('selectionChange')) return { countDelta: 0 };
-        return { countDelta: 0, added: [], removed: [] };
+        return { countDelta: 0, items: new DataSelectionChangeMap() };
     }
 
     private hasUnknownModifier(event: _Widget.DragWidgetEvent): boolean {
