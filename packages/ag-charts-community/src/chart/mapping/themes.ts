@@ -94,7 +94,7 @@ export const themes: ThemeMap = {
 
 const chartThemeCache = new Map<unknown, ChartTheme>();
 let chartThemeCacheRevision = -1;
-const themeCacheDebug = Debug.create(true, 'perf');
+const themeCacheDebug = Debug.create(true, 'perf', 'theme');
 
 export const getChartTheme: typeof createChartTheme = (value) => {
     chartThemeCacheRevision = ModuleRegistry.ifRegistryChanged(chartThemeCacheRevision, () => {
