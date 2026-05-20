@@ -84,7 +84,7 @@ module.exports = {
                 "That's problematic as the package either (1) won't be available on live (2 - worse) will be " +
                 'available on live with an non-guaranteed version. Fix it by adding the package to the dependencies ' +
                 'in your package.json.',
-            from: {},
+            from: { pathNot: ['^benchmarks/'] },
             to: {
                 dependencyTypes: ['npm-no-pkg', 'npm-unknown'],
             },
@@ -142,7 +142,7 @@ module.exports = {
                 'from.pathNot re of the not-to-dev-dep rule in the dependency-cruiser configuration',
             from: {
                 path: '^(src)',
-                pathNot: '(src/chart/test)|(.(spec|test).(js|mjs|cjs|ts|ls|coffee|litcoffee|coffee.md)$)',
+                pathNot: '(src/chart/test)|(.(spec|test).(js|mjs|cjs|ts|ls|coffee|litcoffee|coffee.md)$)|(.test.d.ts$)',
             },
             to: {
                 dependencyTypes: ['npm-dev'],
@@ -179,7 +179,21 @@ module.exports = {
             comment: 'Benchmarks should be isolated.',
             severity: 'error',
             from: { path: '^benchmarks/' },
-            to: { pathNot: ['benchmarks/', 'ag-charts-test', 'ag-charts-types', 'node_modules', 'src/main'] },
+            to: {
+                pathNot: [
+                    'benchmarks/',
+                    'ag-charts-test',
+                    'ag-charts-types',
+                    'node_modules',
+                    'src/main',
+                    'src/setup',
+                    'src/license',
+                    'path',
+                    'fs',
+                    'url',
+                    'util',
+                ],
+            },
         },
         {
             name: 'ag-avoid-bundles',

@@ -19,7 +19,7 @@ import {
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import { readDatum } from '../../utils/datum';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
-import { getItemStyle, getStyle } from '../util/radialUtil';
+import { type RadialSeriesStyleResult, getItemStyle, getStyle } from '../util/radialUtil';
 import { RadialBarSeriesProperties } from './radialBarSeriesProperties';
 import { prepareRadialBarSeriesAnimationFunctions, resetRadialBarSelectionsFn } from './radialBarUtil';
 
@@ -420,6 +420,11 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const fillBBox = this.getShapeFillBBox();
         const hasItemStylers = this.hasItemStylers();
+        // No itemStyler: style is a pure function of (highlightState, selectionState); cache by state.
+        const styleCache =
+            hasItemStylers && this.properties.itemStyler == null
+                ? new Map<string, RadialSeriesStyleResult>()
+                : undefined;
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
@@ -430,7 +435,19 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 if (hasItemStylers) {
                     const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
                     const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);
-                    nodeDatum.style = getItemStyle(this, nodeDatum, isHighlight, highlightState, selectionState);
+
+                    if (styleCache == null) {
+                        nodeDatum.style = getItemStyle(this, nodeDatum, isHighlight, highlightState, selectionState);
+                    } else {
+                        const stateKey = `${highlightState}:${selectionState ?? '-'}`;
+                        let cached = styleCache.get(stateKey);
+                        if (cached === undefined) {
+                            // Concrete nodeDatum required: getStyle treats `undefined` as "ignore styler".
+                            cached = getItemStyle(this, nodeDatum, isHighlight, highlightState, selectionState);
+                            styleCache.set(stateKey, cached);
+                        }
+                        nodeDatum.style = cached;
+                    }
                 }
 
                 const style =

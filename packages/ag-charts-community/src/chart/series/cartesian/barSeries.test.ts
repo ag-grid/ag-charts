@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type {
     AgBarSeriesItemStylerParams,
@@ -347,7 +347,7 @@ describe('BarSeries', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 
     const ctx = setupMockCanvas();
@@ -361,7 +361,7 @@ describe('BarSeries', () => {
 
     describe('#create', () => {
         beforeEach(() => {
-            console.warn = jest.fn();
+            console.warn = vi.fn();
         });
 
         test('no data', async () => {
@@ -820,13 +820,11 @@ describe('BarSeries', () => {
                 await waitForChartStability(chart);
                 await example.assertions(chart);
 
-                expectWarningsCalls().toMatchInlineSnapshot(`
-[
-  [
-    "AG Charts - The log axis domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.",
-  ],
-]
-`);
+                expectWarningsCalls().toEqual([
+                    [
+                        'AG Charts - The log axis domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.',
+                    ],
+                ]);
             }
         );
 
@@ -844,13 +842,11 @@ describe('BarSeries', () => {
                     await compare();
                 }
 
-                expectWarningsCalls().toMatchInlineSnapshot(`
-[
-  [
-    "AG Charts - The log axis domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.",
-  ],
-]
-`);
+                expectWarningsCalls().toEqual([
+                    [
+                        'AG Charts - The log axis domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.',
+                    ],
+                ]);
             }
         );
     });
@@ -2431,22 +2427,13 @@ describe('BarSeries', () => {
             await waitForChartStability(chart);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
-[
-  [
-    "AG Charts - Unknown option \`axes.x.paddingInner\`, ignoring.",
-  ],
-  [
-    "AG Charts - Unknown option \`axes.x.paddingOuter\`, ignoring.",
-  ],
-  [
-    "AG Charts - Unknown option \`axes.x.groupPaddingInner\`, ignoring.",
-  ],
-  [
-    "AG Charts - invalid value of type [object] for [BarSeries-1 / xValue] ignored:",
-    "[null]",
-  ],
-]
-`);
+              [
+                [
+                  "AG Charts - invalid value of type [object] for [BarSeries-1 / xValue] ignored:",
+                  "[null]",
+                ],
+              ]
+            `);
             await compare();
         });
 

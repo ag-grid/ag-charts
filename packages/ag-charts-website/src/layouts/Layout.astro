@@ -212,7 +212,7 @@ const isHomepage = Astro.url.pathname.replaceAll('/', '') === SITE_BASE_URL.repl
             <slot />
         </div>
         {!hideFooter && <Footer client:load footerItems={footerItems} />}
-        <DevTools client:only />
+        <DevTools client:only="react" />
 
         <style lang="scss">
             @use 'design-system' as *;

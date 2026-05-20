@@ -1,11 +1,4 @@
-import {
-    DeclaredSceneChangeDetection,
-    Logger,
-    assignIfNotStrictlyEqual,
-    createId,
-    createSvgElement,
-    objectsEqual,
-} from 'ag-charts-core';
+import { DeclaredSceneChangeDetection, Logger, createId, createSvgElement, objectsEqual } from 'ag-charts-core';
 
 import { BBox } from './bbox';
 import type { ImageLoader } from './image/imageLoader';
@@ -71,7 +64,6 @@ export abstract class Node<TDatum = unknown> {
     static readonly className: string = 'AbstractNode';
 
     private static _nextSerialNumber = 0;
-    // eslint-disable-next-line sonarjs/public-static-readonly
     public static _debugEnabled = false;
 
     static toSVG(node: Node, width: number, height: number) {
@@ -327,7 +319,14 @@ export abstract class Node<TDatum = unknown> {
     setProperties<T extends Node>(this: T, styles: { [K in keyof T]?: T[K] }) {
         this.batchLevel++;
         try {
-            assignIfNotStrictlyEqual(this, styles);
+            // Direct assignment beats assignIfNotStrictlyEqual: change-detection setters already short-circuit unchanged values.
+            const target = this as unknown as Record<string, unknown>;
+            const source = styles as Record<string, unknown>;
+            const keys = Object.keys(source);
+            for (let i = 0, n = keys.length; i < n; i++) {
+                const key = keys[i];
+                target[key] = source[key];
+            }
         } finally {
             this.batchLevel--;
             if (this.batchLevel === 0 && this.batchDirty) {
@@ -341,7 +340,13 @@ export abstract class Node<TDatum = unknown> {
     setPropertiesWithKeys<T extends Node>(this: T, styles: { [K in keyof T]?: T[K] }, keys: readonly string[]) {
         this.batchLevel++;
         try {
-            assignIfNotStrictlyEqual(this, styles, keys);
+            // Direct assignment — see setProperties for rationale.
+            const target = this as unknown as Record<string, unknown>;
+            const source = styles as Record<string, unknown>;
+            for (let i = 0, n = keys.length; i < n; i++) {
+                const key = keys[i];
+                target[key] = source[key];
+            }
         } finally {
             this.batchLevel--;
             if (this.batchLevel === 0 && this.batchDirty) {

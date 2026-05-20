@@ -135,7 +135,7 @@ export const FILL_GRADIENT_LINEAR_HIERARCHY_DEFAULTS: WithThemeParams<RequiredIn
                 },
             },
         ],
-    } as any,
+    },
 };
 
 export const FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS: WithThemeParams<RequiredInternalAgGradientColor> = {
@@ -366,7 +366,7 @@ export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
                     { $isUserOption: ['./fill/backgroundFill', false, true] },
                 ],
             },
-            { backgroundFill: 'transparent' } as any,
+            { backgroundFill: 'transparent' },
             undefined,
         ],
     },
@@ -415,7 +415,6 @@ export const SERIES_SELECTION_THEME: WithThemeParams<AgSelectionOptions<AgSelect
     enabled: { $path: ['/selection/enabled', false] },
     containment: { $path: '/selection/containment' },
     selectedItem: {
-        stroke: { $palette: 'stroke' },
         strokeWidth: 2,
     },
     unselectedItem: {

@@ -1,4 +1,4 @@
-import { expect, test } from '@jest/globals';
+import { expect, test } from 'vitest';
 
 import { calculateNiceSecondaryAxis } from './secondaryAxisTicks';
 
@@ -77,6 +77,19 @@ describe('secondaryAxisTicks', () => {
     test('Generates ticks for a single primary axis tick when zoomed', () => {
         const { ticks } = calculateNiceSecondaryAxis(scale, [5, 10], { unzoomed: 1, zoomed: 1 }, false, [0.4, 0.6]);
         expect(ticks).toEqual([7, 7.5, 8]);
+    });
+
+    test('CRT-1116: heavy primary-axis zoom does not produce fractional steps on secondary axis', () => {
+        const { ticks } = calculateNiceSecondaryAxis(
+            scale,
+            [27385, 31348],
+            { unzoomed: 7, zoomed: 700 },
+            false,
+            [0, 0.01]
+        );
+
+        expect(ticks.every(Number.isInteger)).toBe(true);
+        expect(ticks.length).toBeGreaterThan(7);
     });
 
     test.each([

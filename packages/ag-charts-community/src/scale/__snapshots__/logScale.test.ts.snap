@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`LogScale should create ticks for interval: -1 domain: [-10000000, -0.1] case 1`] = `
+exports[`LogScale > should create ticks > for interval: -1 domain: [ -10000000, -0.1 ] case 1`] = `
 {
   "count": 9,
   "firstTickIndex": 0,
@@ -18,7 +18,7 @@ exports[`LogScale should create ticks for interval: -1 domain: [-10000000, -0.1]
 }
 `;
 
-exports[`LogScale should create ticks for interval: -2 domain: [-10000000, -0.1] case 1`] = `
+exports[`LogScale > should create ticks > for interval: -2 domain: [ -10000000, -0.1 ] case 1`] = `
 {
   "count": 5,
   "firstTickIndex": 0,
@@ -32,7 +32,7 @@ exports[`LogScale should create ticks for interval: -2 domain: [-10000000, -0.1]
 }
 `;
 
-exports[`LogScale should create ticks for interval: -10 domain: [-10000000, -0.1] case 1`] = `
+exports[`LogScale > should create ticks > for interval: -10 domain: [ -10000000, -0.1 ] case 1`] = `
 {
   "count": 2,
   "firstTickIndex": 0,
@@ -43,7 +43,7 @@ exports[`LogScale should create ticks for interval: -10 domain: [-10000000, -0.1
 }
 `;
 
-exports[`LogScale should create ticks for interval: 0.1 domain: [0.1, 10000000] case 1`] = `
+exports[`LogScale > should create ticks > for interval: 0.1 domain: [ 0.1, 10000000 ] case 1`] = `
 {
   "count": 81,
   "firstTickIndex": 0,
@@ -133,7 +133,7 @@ exports[`LogScale should create ticks for interval: 0.1 domain: [0.1, 10000000] 
 }
 `;
 
-exports[`LogScale should create ticks for interval: 0.5 domain: [0.1, 10000000] case 1`] = `
+exports[`LogScale > should create ticks > for interval: 0.5 domain: [ 0.1, 10000000 ] case 1`] = `
 {
   "count": 17,
   "firstTickIndex": 0,
@@ -159,7 +159,7 @@ exports[`LogScale should create ticks for interval: 0.5 domain: [0.1, 10000000] 
 }
 `;
 
-exports[`LogScale should create ticks for interval: 1 domain: [-10000000, -0.1] case 1`] = `
+exports[`LogScale > should create ticks > for interval: 1 domain: [ -10000000, -0.1 ] case 1`] = `
 {
   "count": 9,
   "firstTickIndex": 0,
@@ -177,7 +177,7 @@ exports[`LogScale should create ticks for interval: 1 domain: [-10000000, -0.1] 
 }
 `;
 
-exports[`LogScale should create ticks for interval: 1 domain: [0.1, 10000000] case 1`] = `
+exports[`LogScale > should create ticks > for interval: 1 domain: [ 0.1, 10000000 ] case 1`] = `
 {
   "count": 9,
   "firstTickIndex": 0,
@@ -195,7 +195,7 @@ exports[`LogScale should create ticks for interval: 1 domain: [0.1, 10000000] ca
 }
 `;
 
-exports[`LogScale should create ticks for interval: 2 domain: [-10000000, -0.1] case 1`] = `
+exports[`LogScale > should create ticks > for interval: 2 domain: [ -10000000, -0.1 ] case 1`] = `
 {
   "count": 5,
   "firstTickIndex": 0,
@@ -209,7 +209,7 @@ exports[`LogScale should create ticks for interval: 2 domain: [-10000000, -0.1] 
 }
 `;
 
-exports[`LogScale should create ticks for interval: 2 domain: [0.1, 10000000] case 1`] = `
+exports[`LogScale > should create ticks > for interval: 2 domain: [ 0.1, 10000000 ] case 1`] = `
 {
   "count": 5,
   "firstTickIndex": 0,
@@ -223,7 +223,7 @@ exports[`LogScale should create ticks for interval: 2 domain: [0.1, 10000000] ca
 }
 `;
 
-exports[`LogScale should create ticks for interval: 3 domain: [0.1, 10000000] case 1`] = `
+exports[`LogScale > should create ticks > for interval: 3 domain: [ 0.1, 10000000 ] case 1`] = `
 {
   "count": 3.6666666666666665,
   "firstTickIndex": 0,
@@ -235,7 +235,7 @@ exports[`LogScale should create ticks for interval: 3 domain: [0.1, 10000000] ca
 }
 `;
 
-exports[`LogScale should create ticks for interval: 4 domain: [0.1, 10000000] case 1`] = `
+exports[`LogScale > should create ticks > for interval: 4 domain: [ 0.1, 10000000 ] case 1`] = `
 {
   "count": 3,
   "firstTickIndex": 0,
@@ -247,7 +247,7 @@ exports[`LogScale should create ticks for interval: 4 domain: [0.1, 10000000] ca
 }
 `;
 
-exports[`LogScale should create ticks for interval: 5 domain: [0.1, 10000000] case 1`] = `
+exports[`LogScale > should create ticks > for interval: 5 domain: [ 0.1, 10000000 ] case 1`] = `
 {
   "count": 2.6,
   "firstTickIndex": 0,
@@ -258,7 +258,7 @@ exports[`LogScale should create ticks for interval: 5 domain: [0.1, 10000000] ca
 }
 `;
 
-exports[`LogScale should create ticks for interval: 6 domain: [0.1, 10000000] case 1`] = `
+exports[`LogScale > should create ticks > for interval: 6 domain: [ 0.1, 10000000 ] case 1`] = `
 {
   "count": 2.333333333333333,
   "firstTickIndex": 0,
@@ -269,7 +269,7 @@ exports[`LogScale should create ticks for interval: 6 domain: [0.1, 10000000] ca
 }
 `;
 
-exports[`LogScale should create ticks for interval: 7 domain: [0.1, 10000000] case 1`] = `
+exports[`LogScale > should create ticks > for interval: 7 domain: [ 0.1, 10000000 ] case 1`] = `
 {
   "count": 2.142857142857143,
   "firstTickIndex": 0,
@@ -280,7 +280,7 @@ exports[`LogScale should create ticks for interval: 7 domain: [0.1, 10000000] ca
 }
 `;
 
-exports[`LogScale should create ticks for interval: 10 domain: [-10000000, -0.1] case 1`] = `
+exports[`LogScale > should create ticks > for interval: 10 domain: [ -10000000, -0.1 ] case 1`] = `
 {
   "count": 2,
   "firstTickIndex": 0,
@@ -291,7 +291,7 @@ exports[`LogScale should create ticks for interval: 10 domain: [-10000000, -0.1]
 }
 `;
 
-exports[`LogScale should create ticks for interval: 10 domain: [0.1, 10000000] case 1`] = `
+exports[`LogScale > should create ticks > for interval: 10 domain: [ 0.1, 10000000 ] case 1`] = `
 {
   "count": 2,
   "firstTickIndex": 0,

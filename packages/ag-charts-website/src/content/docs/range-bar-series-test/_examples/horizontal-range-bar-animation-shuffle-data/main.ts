@@ -1,6 +1,7 @@
 import { AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
+import { random } from './randomHelpers';
 
 const data = getData();
 
@@ -30,7 +31,7 @@ function shuffleValues() {
     let randomIndex;
 
     while (currentIndex > 0) {
-        randomIndex = Math.floor(Math.random() * currentIndex);
+        randomIndex = Math.floor(random() * currentIndex);
         currentIndex--;
 
         [data[currentIndex], data[randomIndex]] = [data[randomIndex], data[currentIndex]];

@@ -5,5 +5,5 @@
     "types": ["node"],
     "noEmit": true
   },
-  "include": ["src/**/*.ts", "benchmarks/**/*.ts", "jest.config.ts", "jest.setup.ts"]
+  "include": ["src/**/*.ts", "benchmarks/**/*.ts", "vitest.setup.ts"]
 }

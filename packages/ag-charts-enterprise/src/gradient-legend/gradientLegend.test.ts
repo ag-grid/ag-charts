@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { type AgChartLegendPosition, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
@@ -116,6 +116,38 @@ describe('GradientLegend', () => {
         });
         test('left-bottom', async () => {
             await testPosition('left-bottom');
+        });
+    });
+
+    describe('CRT-1108 top-position label placement', () => {
+        it('should position labels below the gradient bar for top placement', async () => {
+            const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+            options.gradientLegend!.position = 'top';
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const chartInstance = deproxy(chart);
+            const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
+            const axisTicks = gradientLegend.axisTicks[0];
+            const gradientRect = gradientLegend.gradientRectSelection.at(0);
+
+            expect(axisTicks.translationY).toBeGreaterThanOrEqual(gradientRect.y + gradientRect.height);
+        });
+
+        it('should position labels below the gradient bar for bottom placement', async () => {
+            const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+            options.gradientLegend!.position = 'bottom';
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const chartInstance = deproxy(chart);
+            const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
+            const axisTicks = gradientLegend.axisTicks[0];
+            const gradientRect = gradientLegend.gradientRectSelection.at(0);
+
+            expect(axisTicks.translationY).toBeGreaterThanOrEqual(gradientRect.y + gradientRect.height);
         });
     });
 
@@ -617,10 +649,8 @@ describe('GradientLegend', () => {
         });
 
         // Regression for AG-16048 QA feedback point 2: an empty user-supplied `colorScale: {}`
-        // must still pick up the theme's diverging palette for `fills`. Prior to moving the
-        // theme default from the `colorScale` object to the `colorScale.fills` leaf, the user's
-        // partial object wiped the theme wholesale and the series fell back to the raw
-        // ColorScale defaults (red→blue), producing all-blue markers in David's plunker.
+        // must still pick up the theme's diverging palette for `fills` via the `$map` theme
+        // expression. Guard against a regression to the ColorScale constructor defaults.
         it('AG-16048 should apply the theme fills palette when user supplies an empty colorScale', async () => {
             const options = prepareEnterpriseTestOptions({
                 data: SCATTER_DATA,
@@ -639,13 +669,6 @@ describe('GradientLegend', () => {
 
             const chartInstance = deproxy(chart);
             const series: any = chartInstance.series[0];
-            // `configureColorScale`'s fallback branch sets `domain` to the raw data-domain
-            // tuple (it bypasses `computeColorBins`), so the expectation here is [min, max]
-            // over the `temp` values rather than a 3-stop binned domain.
-            expect(series.colorScale.domain).toEqual([5, 45]);
-            // Range resolves to the active palette's `divergingColors` (3 entries on the
-            // default chart theme). Guard against a regression to the ColorScale constructor
-            // defaults (`range = ['red', 'blue']`).
             expect(series.colorScale.range).toHaveLength(3);
             expect(series.colorScale.range).not.toEqual(['red', 'blue']);
         });

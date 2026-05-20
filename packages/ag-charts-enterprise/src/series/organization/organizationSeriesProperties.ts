@@ -13,8 +13,8 @@ import {
     type FontSize,
     type FontStyle,
     type FontWeight,
-    type Formatter,
     type OverflowStrategy,
+    type RichFormatter,
     type Styler,
     type TextAlign,
     type TextWrap,
@@ -110,7 +110,7 @@ class OrganizationSeriesExpanderTextProperties extends BaseProperties {
     fontWeight!: FontWeight;
 
     @Property
-    formatter?: Formatter<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;
+    formatter?: RichFormatter<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;
 
     @Property
     textAlign: TextAlign = 'left';
@@ -249,7 +249,7 @@ export class OrganizationSeriesNodeTextProperties extends BaseProperties {
     fontWeight!: FontWeight;
 
     @Property
-    formatter?: Formatter<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;
+    formatter?: RichFormatter<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;
 
     @Property
     itemStyler?: Styler<AgOrganizationSeriesNodeTextStylerParams<unknown>, AgOrganizationSeriesNodeTextStyle>;

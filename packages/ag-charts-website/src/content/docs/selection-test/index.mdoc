@@ -7,15 +7,32 @@ hidden: true
 
 Placeholder
 
-# Click-To-Select
+## Click-To-Select
+
+What to test:
+
+- Click a line marker and confirm it grows to indicate selection.
+- Click a different marker and confirm the previous selection clears.
+- Click an empty area and confirm selection clears.
 
 {% chartExampleRunner title="Click-To-Select" name="click-to-select" type="generated" /%}
 
-# Drag Selection
+## Drag Selection
+
+What to test:
+
+- Drag a rectangle across markers and bars; every item inside is selected.
+- Confirm selected items adopt the configured selected style across line, bar, area and range series.
 
 {% chartExampleRunner title="Drag Selection" name="drag-selection" type="generated" /%}
 
-# Multiple Series Selection
+## Multiple Series Selection
+
+What to test:
+
+- Drag-select across several series and confirm items from each series are tracked independently.
+- Save the current selection, change data or series, then restore and confirm selection persists.
+- Confirm selection styling survives zoom and navigator interactions.
 
 {% chartExampleRunner
     title="Multiple Series"
@@ -24,10 +41,21 @@ Placeholder
     options={ "exampleHeight": 1000 }
 /%}
 
-# Error Bars
+## Error Bars
+
+What to test:
+
+- Click or drag to select datums and confirm error bars adopt the selected stroke.
+- Hover a different datum and confirm highlight styling overrides selection without clearing it.
 
 {% chartExampleRunner title="Error Bars" name="error-bars" type="generated" /%}
 
-# Pie Selection
+## Pie Selection
+
+What to test:
+
+- Click a sector and confirm it offsets outward.
+- Click another sector and confirm only one sector is offset at a time.
+- Click outside the sectors to clear selection.
 
 {% chartExampleRunner title="Pie Selection" name="pie-selection" type="generated" /%}

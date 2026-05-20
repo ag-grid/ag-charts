@@ -1,6 +1,8 @@
 // @ag-skip-fws
 import { type AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
+import { random } from './randomHelpers';
+
 // Configuration
 let refreshRateInMilliseconds = 50;
 const millisecondsOfData = 60 * 1000; // 1 minute of data
@@ -34,10 +36,10 @@ function getData(inputData: DataPoint[] = []): [DataPoint[], DataPoint[], DataPo
             timestamp += refreshRateInMilliseconds;
             data.push({
                 time: timestamp,
-                series1: 10 + Math.random() * 20,
-                series2: 15 + Math.random() * 25,
-                series3: 20 + Math.random() * 30,
-                series4: 25 + Math.random() * 35,
+                series1: 10 + random() * 20,
+                series2: 15 + random() * 25,
+                series3: 20 + random() * 30,
+                series4: 25 + random() * 35,
             });
         }
         added.push(...data);
@@ -47,10 +49,10 @@ function getData(inputData: DataPoint[] = []): [DataPoint[], DataPoint[], DataPo
         const lastTime = data[data.length - 1].time;
         data.push({
             time: lastTime + refreshRateInMilliseconds,
-            series1: 10 + Math.random() * 20,
-            series2: 15 + Math.random() * 25,
-            series3: 20 + Math.random() * 30,
-            series4: 25 + Math.random() * 35,
+            series1: 10 + random() * 20,
+            series2: 15 + random() * 25,
+            series3: 20 + random() * 30,
+            series4: 25 + random() * 35,
         });
         added.push(data.at(-1)!);
     }

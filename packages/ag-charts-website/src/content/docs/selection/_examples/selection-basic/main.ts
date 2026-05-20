@@ -37,16 +37,11 @@ const options: AgCartesianChartOptions = {
     },
     listeners: {
         selectionChange: () => {
-            updateStatus();
+            const count = Array.from(chart.getSelection()).length;
+            document.getElementById('selectionStatus')!.textContent =
+                count === 0 ? 'No items selected' : `${count} item${count === 1 ? '' : 's'} selected`;
         },
     },
 };
 
 const chart = AgCharts.create(options);
-
-/** inScope */
-function updateStatus() {
-    const count = Array.from(chart.getSelection()).length;
-    document.getElementById('selectionStatus')!.textContent =
-        count === 0 ? 'No items selected' : `${count} item${count === 1 ? '' : 's'} selected`;
-}

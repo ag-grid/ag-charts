@@ -126,13 +126,11 @@ export function fromToMotion<
             if (!isLive) {
                 status = 'removed';
             } else if (getDatumId && diff) {
-                // eslint-disable-next-line sonarjs/deprecation
                 status = calculateStatus(node, node.unsafeDatum as D, getDatumId, diff);
             }
 
             node.transitionOut = status === 'removed';
 
-            // eslint-disable-next-line sonarjs/deprecation
             const { phase, start, finish, delay, duration, ...from } = fromFn(node, node.unsafeDatum as D, status, ctx);
             const {
                 phase: toPhase,
@@ -141,7 +139,6 @@ export function fromToMotion<
                 delay: toDelay,
                 duration: toDuration,
                 ...to
-                // eslint-disable-next-line sonarjs/deprecation
             } = toFn(node, node.unsafeDatum as D, status, ctx);
 
             const collapsable = finish == null;
@@ -250,40 +247,47 @@ export function staticFromToMotion<D, N extends Node<D>, T extends AnimationValu
         onPlay: () => {
             if (!start) return;
 
+            // Hoist Object.keys() out of the per-node loop: same `start` object for every node.
+            const startKeys = Object.keys(start);
             for (const node of nodes) {
-                node.setProperties(start);
+                node.setPropertiesWithKeys(start, startKeys);
             }
             for (const selection of selections) {
                 const selectionNodes = selection.nodes();
                 selection.batchedUpdate(function staticMotionPlay() {
                     for (const node of selectionNodes) {
-                        node.setProperties(start);
+                        node.setPropertiesWithKeys(start, startKeys);
                     }
                 });
             }
         },
         onUpdate(props) {
+            // Hoist Object.keys() out of the per-node loop — same `props` for every node.
+            const propKeys = Object.keys(props);
             for (const node of nodes) {
-                node.setProperties(props);
+                node.setPropertiesWithKeys(props, propKeys);
             }
             for (const selection of selections) {
                 const selectionNodes = selection.nodes();
                 selection.batchedUpdate(function staticMotionUpdate() {
                     for (const node of selectionNodes) {
-                        node.setProperties(props);
+                        node.setPropertiesWithKeys(props, propKeys);
                     }
                 });
             }
         },
         onStop: () => {
+            // Hoist Object.keys() and the spread — every node gets the same end-state.
+            const endProps = { ...to, ...finish };
+            const endKeys = Object.keys(endProps);
             for (const node of nodes) {
-                node.setProperties({ ...to, ...finish });
+                node.setPropertiesWithKeys(endProps, endKeys);
             }
             for (const selection of selections) {
                 const selectionNodes = selection.nodes();
                 selection.batchedUpdate(function staticMotionStop() {
                     for (const node of selectionNodes) {
-                        node.setProperties({ ...to, ...finish });
+                        node.setPropertiesWithKeys(endProps, endKeys);
                     }
                     selection.cleanup();
                 });

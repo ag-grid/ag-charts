@@ -3,6 +3,8 @@ __diff_output__
 # Ignore .rulesync symlinks as nx format doesn't handle these well.
 packages/ag-charts-website/src/content/docs/*/_examples/*/benchmarkHarness.ts
 packages/ag-charts-website/src/content/docs/*/_examples/*/benchmarkUtils.ts
+packages/ag-charts-website/src/content/docs/*/_examples/*/seededRandom.ts
+packages/ag-charts-website/src/content/docs/*/_examples/*/randomHelpers.ts
 .rulesync/**
 !.rulesync/README.md
 .patches/

@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import { buildDateFormatter } from './timeFormat';
 
@@ -46,7 +46,7 @@ describe('Date/Time Formatting', () => {
     ];
 
     it('should be using Europe/London timezone', () => {
-        // If this test fails, check that process.env.TZ is set to Europe/London in jest.setup.js.
+        // If this test fails, check that process.env.TZ is set to Europe/London in vitest.setup.ts.
         expect(DEFAULT_DATE.getTimezoneOffset()).toEqual(-60);
     });
 

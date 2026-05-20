@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { AgChartOptions, AgDonutSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
 
@@ -273,7 +273,7 @@ describe('DonutSeries', () => {
         });
 
         it('should call calloutLabel formatter with null value when allowNullKeys is true', async () => {
-            const calloutLabelFormatter = jest.fn((params: any) =>
+            const calloutLabelFormatter = vi.fn((params: any) =>
                 params.value === null ? 'Unknown' : String(params.value)
             );
             const opts: AgChartOptions = {
@@ -769,7 +769,7 @@ describe('DonutSeries', () => {
                     },
                 ],
             });
-            chartProxy = AgCharts.create(transactionOptions) as AgChartProxy;
+            chartProxy = AgCharts.create(transactionOptions);
             chart = deproxy(chartProxy);
             await waitForChartStability(chart);
 
@@ -1166,6 +1166,6 @@ describe('DonutSeries', () => {
     });
 
     afterEach(() => {
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 });

@@ -349,4 +349,6 @@ export interface AgBaseChartOptions<
     container?: HTMLElement | null;
     /** The initial state of the chart. This must be a serialisable value. */
     initialState?: AgInitialStateOptions;
+    /** Set to show or hide the loading overlay. */
+    loading?: boolean;
 }

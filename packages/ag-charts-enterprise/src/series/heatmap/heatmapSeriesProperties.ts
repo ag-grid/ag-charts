@@ -37,9 +37,6 @@ export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmap
     colorName?: string;
 
     @Property
-    colorRange: string[] = ['black', 'black'];
-
-    @Property
     readonly colorScale = new ColorScaleProperties();
 
     @Property

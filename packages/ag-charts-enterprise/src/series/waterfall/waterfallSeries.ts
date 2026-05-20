@@ -390,7 +390,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         yAxis: _ModuleSupport.ChartAxis
     ): WaterfallSeriesNodeDatumContext | undefined {
         const { dataModel, processedData } = this;
-        if (!dataModel || !processedData || processedData.type !== 'ungrouped') return undefined;
+        if (!dataModel || processedData?.type !== 'ungrouped') return undefined;
 
         const categoryAxis = this.getCategoryAxis();
         const valueAxis = this.getValueAxis();
@@ -777,7 +777,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         nodeDatum: Pick<WaterfallNodeDatum, 'datum' | 'datumIndex'> | undefined,
         isHighlight: boolean,
         highlightState?: _ModuleSupport.HighlightState,
-        itemType: AgWaterfallSeriesItemType = 'total'
+        itemType: AgWaterfallSeriesItemType = 'total',
+        selectionState?: _ModuleSupport.SelectionState
     ): Required<AgWaterfallSeriesStyle> {
         const { properties } = this;
         const { datumIndex = 0, datum } = nodeDatum ?? {};
@@ -785,7 +786,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const propertyItemId = itemType === 'subtotal' ? 'total' : itemType;
         const item = properties.item[propertyItemId];
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        const selectionStyle = this.getSelectionStyle(datumIndex);
+        const resolvedSelectionState = selectionState ?? this.getDataSelectionState(datumIndex);
+        const selectionStyle = this.getSelectionStyle(datumIndex, resolvedSelectionState);
         const baseStyle = mergeDefaults(selectionStyle, highlightStyle, properties.getStyle(itemType));
 
         const { itemStyler } = item;
@@ -846,6 +848,35 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         datumSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Rect<WaterfallNodeDatum>>;
         isHighlight: boolean;
     }) {
+        const { positive, negative, total } = this.properties.item;
+        const hasItemStyler = positive.itemStyler != null || negative.itemStyler != null || total.itemStyler != null;
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
+        if (!hasItemStyler) {
+            // No itemStyler: style is a pure function of (itemType, highlightState, selectionState).
+            const styleByState = new Map<string, Required<AgWaterfallSeriesStyle>>();
+            const thisSeries = this;
+
+            datumSelection.each(function updateDatumSelectionStyles(_, datum) {
+                const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+                const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
+                const stateKey = `${datum.itemType}:${highlightState}:${selectionState ?? '-'}`;
+                let style = styleByState.get(stateKey);
+                if (style === undefined) {
+                    style = thisSeries.getItemStyle(
+                        undefined,
+                        isHighlight,
+                        highlightState,
+                        datum.itemType,
+                        selectionState
+                    );
+                    styleByState.set(stateKey, style);
+                }
+                datum.style = style;
+            });
+            return;
+        }
+
         datumSelection.each((_, datum) => {
             datum.style = this.getItemStyle(datum, isHighlight, undefined, datum.itemType);
         });

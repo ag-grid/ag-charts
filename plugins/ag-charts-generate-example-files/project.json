@@ -17,17 +17,19 @@
       }
     },
     "test": {
-      "executor": "@nx/jest:jest",
-      "dependsOn": ["ag-charts-community:build"],
+      "executor": "nx:run-commands",
+      "inputs": ["default", "buildOutputExcludes"],
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "cache": true,
       "options": {
-        "jestConfig": "plugins/ag-charts-generate-example-files/jest.config.ts"
+        "command": "npx vitest run --config {projectRoot}/vitest.config.ts"
       },
       "configurations": {
         "update": {
-          "updateSnapshot": true
+          "args": "--update"
         }
-      }
+      },
+      "dependsOn": ["ag-charts-community:build"]
     }
   },
   "tags": ["plugin"]

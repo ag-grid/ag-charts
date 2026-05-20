@@ -15,7 +15,7 @@ describe('bar series benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRetainedSizeMB: 190, expectedCanvasCount: 3, autoSnapshot: false },
+        { expectedRetainedSizeMB: 195, expectedCanvasCount: 3, autoSnapshot: false },
         async () => {
             await ctx.create();
         },

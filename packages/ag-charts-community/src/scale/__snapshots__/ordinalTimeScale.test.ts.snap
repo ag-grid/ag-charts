@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`OrdinalTimeScale should create nice ticks 1`] = `
+exports[`OrdinalTimeScale > should create nice ticks 1`] = `
 {
   "count": undefined,
   "firstTickIndex": 0,
@@ -13,7 +13,7 @@ exports[`OrdinalTimeScale should create nice ticks 1`] = `
 }
 `;
 
-exports[`OrdinalTimeScale should create nice ticks when reversed 1`] = `
+exports[`OrdinalTimeScale > should create nice ticks when reversed 1`] = `
 {
   "count": undefined,
   "firstTickIndex": 0,
@@ -26,7 +26,7 @@ exports[`OrdinalTimeScale should create nice ticks when reversed 1`] = `
 }
 `;
 
-exports[`OrdinalTimeScale should create ticks matching the data domain if the domain length is smaller than maxTickCount 1`] = `
+exports[`OrdinalTimeScale > should create ticks matching the data domain if the domain length is smaller than maxTickCount 1`] = `
 {
   "count": undefined,
   "firstTickIndex": 0,
@@ -43,7 +43,7 @@ exports[`OrdinalTimeScale should create ticks matching the data domain if the do
 }
 `;
 
-exports[`OrdinalTimeScale should create ticks with configured milliseconds interval for every 2 days case 1`] = `
+exports[`OrdinalTimeScale > should create ticks with configured > milliseconds interval > for 'every 2 days' case 1`] = `
 {
   "count": undefined,
   "firstTickIndex": undefined,
@@ -57,7 +57,7 @@ exports[`OrdinalTimeScale should create ticks with configured milliseconds inter
 }
 `;
 
-exports[`OrdinalTimeScale should create ticks with configured milliseconds interval for every 2 weeks case 1`] = `
+exports[`OrdinalTimeScale > should create ticks with configured > milliseconds interval > for 'every 2 weeks' case 1`] = `
 {
   "count": undefined,
   "firstTickIndex": undefined,
@@ -68,7 +68,7 @@ exports[`OrdinalTimeScale should create ticks with configured milliseconds inter
 }
 `;
 
-exports[`OrdinalTimeScale should create ticks with configured milliseconds interval for every half day case 1`] = `
+exports[`OrdinalTimeScale > should create ticks with configured > milliseconds interval > for 'every half day' case 1`] = `
 {
   "count": undefined,
   "firstTickIndex": undefined,
@@ -80,7 +80,7 @@ exports[`OrdinalTimeScale should create ticks with configured milliseconds inter
 }
 `;
 
-exports[`OrdinalTimeScale should create ticks with configured milliseconds interval for every hour case 1`] = `
+exports[`OrdinalTimeScale > should create ticks with configured > milliseconds interval > for 'every hour' case 1`] = `
 {
   "count": undefined,
   "firstTickIndex": undefined,
@@ -97,7 +97,7 @@ exports[`OrdinalTimeScale should create ticks with configured milliseconds inter
 }
 `;
 
-exports[`OrdinalTimeScale should create ticks with configured milliseconds interval for every minute case 1`] = `
+exports[`OrdinalTimeScale > should create ticks with configured > milliseconds interval > for 'every minute' case 1`] = `
 {
   "count": undefined,
   "firstTickIndex": undefined,
@@ -110,7 +110,7 @@ exports[`OrdinalTimeScale should create ticks with configured milliseconds inter
 }
 `;
 
-exports[`OrdinalTimeScale should create ticks with configured milliseconds interval for every month case 1`] = `
+exports[`OrdinalTimeScale > should create ticks with configured > milliseconds interval > for 'every month' case 1`] = `
 {
   "count": undefined,
   "firstTickIndex": undefined,
@@ -120,7 +120,7 @@ exports[`OrdinalTimeScale should create ticks with configured milliseconds inter
 }
 `;
 
-exports[`OrdinalTimeScale should create ticks with configured milliseconds interval for every year case 1`] = `
+exports[`OrdinalTimeScale > should create ticks with configured > milliseconds interval > for 'every year' case 1`] = `
 {
   "count": undefined,
   "firstTickIndex": undefined,
@@ -134,7 +134,7 @@ exports[`OrdinalTimeScale should create ticks with configured milliseconds inter
 }
 `;
 
-exports[`OrdinalTimeScale should create ticks with configured time interval for every 2 months case 1`] = `
+exports[`OrdinalTimeScale > should create ticks with configured > time interval > for 'every 2 months' case 1`] = `
 {
   "count": undefined,
   "firstTickIndex": undefined,
@@ -149,7 +149,7 @@ exports[`OrdinalTimeScale should create ticks with configured time interval for 
 }
 `;
 
-exports[`OrdinalTimeScale should create ticks with configured time interval for every 3 days case 1`] = `
+exports[`OrdinalTimeScale > should create ticks with configured > time interval > for 'every 3 days' case 1`] = `
 {
   "count": undefined,
   "firstTickIndex": undefined,
@@ -161,7 +161,7 @@ exports[`OrdinalTimeScale should create ticks with configured time interval for 
 }
 `;
 
-exports[`OrdinalTimeScale should create ticks with configured time interval for every 3 year case 1`] = `
+exports[`OrdinalTimeScale > should create ticks with configured > time interval > for 'every 3 year' case 1`] = `
 {
   "count": undefined,
   "firstTickIndex": undefined,
@@ -172,7 +172,7 @@ exports[`OrdinalTimeScale should create ticks with configured time interval for 
 }
 `;
 
-exports[`OrdinalTimeScale should create ticks with configured time interval for every 6 months case 1`] = `
+exports[`OrdinalTimeScale > should create ticks with configured > time interval > for 'every 6 months' case 1`] = `
 {
   "count": undefined,
   "firstTickIndex": undefined,
@@ -183,7 +183,7 @@ exports[`OrdinalTimeScale should create ticks with configured time interval for 
 }
 `;
 
-exports[`OrdinalTimeScale should create ticks with configured time interval for every day case 1`] = `
+exports[`OrdinalTimeScale > should create ticks with configured > time interval > for 'every day' case 1`] = `
 {
   "count": undefined,
   "firstTickIndex": undefined,
@@ -194,7 +194,7 @@ exports[`OrdinalTimeScale should create ticks with configured time interval for 
 }
 `;
 
-exports[`OrdinalTimeScale should create ticks with configured time interval for every hour case 1`] = `
+exports[`OrdinalTimeScale > should create ticks with configured > time interval > for 'every hour' case 1`] = `
 {
   "count": undefined,
   "firstTickIndex": undefined,
@@ -208,7 +208,7 @@ exports[`OrdinalTimeScale should create ticks with configured time interval for 
 }
 `;
 
-exports[`OrdinalTimeScale should create ticks with configured time interval for every minute case 1`] = `
+exports[`OrdinalTimeScale > should create ticks with configured > time interval > for 'every minute' case 1`] = `
 {
   "count": undefined,
   "firstTickIndex": undefined,
@@ -224,7 +224,7 @@ exports[`OrdinalTimeScale should create ticks with configured time interval for 
 }
 `;
 
-exports[`OrdinalTimeScale should create ticks with configured time interval for every month case 1`] = `
+exports[`OrdinalTimeScale > should create ticks with configured > time interval > for 'every month' case 1`] = `
 {
   "count": undefined,
   "firstTickIndex": undefined,
@@ -236,7 +236,7 @@ exports[`OrdinalTimeScale should create ticks with configured time interval for 
 }
 `;
 
-exports[`OrdinalTimeScale should create ticks with configured time interval for every year case 1`] = `
+exports[`OrdinalTimeScale > should create ticks with configured > time interval > for 'every year' case 1`] = `
 {
   "count": undefined,
   "firstTickIndex": undefined,
@@ -250,7 +250,7 @@ exports[`OrdinalTimeScale should create ticks with configured time interval for 
 }
 `;
 
-exports[`OrdinalTimeScale should extend the domain to create nice ticks matching the data domain 1`] = `
+exports[`OrdinalTimeScale > should extend the domain to create nice ticks matching the data domain 1`] = `
 {
   "count": undefined,
   "firstTickIndex": NaN,

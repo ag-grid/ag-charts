@@ -15,24 +15,15 @@ export class MouseDragger {
         myCallbacks: MouseDragCallbacks,
         downEvent: MouseEvent
     ) {
-        const { mousegeneral, mousemove, mouseup } = this;
+        const { mousemove, mouseup } = this;
         const eventView = downEvent.view!;
         this.cleanup.register(
-            attachListener(eventView, 'mousedown', mousegeneral, { capture: true }),
-            attachListener(eventView, 'mouseenter', mousegeneral, { capture: true }),
-            attachListener(eventView, 'mouseleave', mousegeneral, { capture: true }),
-            attachListener(eventView, 'mouseout', mousegeneral, { capture: true }),
-            attachListener(eventView, 'mouseover', mousegeneral, { capture: true }),
             attachListener(eventView, 'mousemove', mousemove, { capture: true }),
             attachListener(eventView, 'mouseup', mouseup, { capture: true })
         );
         self.mouseDragger = this;
         glob.globalMouseDragCallbacks = myCallbacks;
         glob.globalMouseDragCallbacks.mousedown(downEvent);
-        // eslint-disable-next-line no-restricted-properties
-        downEvent.stopPropagation();
-        // eslint-disable-next-line no-restricted-properties
-        downEvent.stopImmediatePropagation();
     }
 
     destroy(): void {
@@ -41,27 +32,12 @@ export class MouseDragger {
         this.self.mouseDragger = undefined;
     }
 
-    private readonly mousegeneral = (generalEvent: MouseEvent) => {
-        // eslint-disable-next-line no-restricted-properties
-        generalEvent.stopPropagation();
-        // eslint-disable-next-line no-restricted-properties
-        generalEvent.stopImmediatePropagation();
-    };
-
     private readonly mousemove = (moveEvent: MouseEvent) => {
-        // eslint-disable-next-line no-restricted-properties
-        moveEvent.stopPropagation();
-        // eslint-disable-next-line no-restricted-properties
-        moveEvent.stopImmediatePropagation();
         this.glob.globalMouseDragCallbacks?.mousemove(moveEvent);
     };
 
     private readonly mouseup = (upEvent: MouseEvent) => {
         if (upEvent.button === 0) {
-            // eslint-disable-next-line no-restricted-properties
-            upEvent.stopPropagation();
-            // eslint-disable-next-line no-restricted-properties
-            upEvent.stopImmediatePropagation();
             this.glob.globalMouseDragCallbacks?.mouseup(upEvent);
             this.destroy();
         }

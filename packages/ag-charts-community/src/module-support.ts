@@ -191,6 +191,7 @@ export {
     SeriesProperties,
     toHighlightString,
     toSelectionString,
+    isUnselected,
 } from './chart/series/seriesProperties';
 export { SeriesMarker } from './chart/series/seriesMarker';
 export { makeSeriesTooltip, SeriesTooltip } from './chart/series/seriesTooltip';
@@ -420,3 +421,4 @@ export { BaseToolbar, Toolbar } from './components/toolbar/toolbar';
 export type { ToolbarButtonOptions, ToolbarEventMap } from './components/toolbar/toolbar';
 export { FloatingToolbar } from './components/toolbar/floatingToolbar';
 export type { FloatingToolbarAnchor } from './components/toolbar/floatingToolbar';
+export type { LocaleManager } from './locale/localeManager';

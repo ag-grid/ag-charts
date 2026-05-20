@@ -102,7 +102,6 @@ export const heatmapIgnoredMiniChartProperties: HeatmapIgnoredProperties[] = [
     'textAlign',
     'verticalAlign',
     'itemPadding',
-    'colorRange',
 ];
 export const histogramIgnoredMiniChartProperties: HistogramIgnoredProperties[] = [
     ...commonIgnoredMiniChartProperties,

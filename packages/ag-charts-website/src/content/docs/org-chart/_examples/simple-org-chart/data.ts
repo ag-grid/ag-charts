@@ -5,7 +5,9 @@ export function getData() {
             parentId: null,
             name: 'Ashley Rivers',
             job: 'CEO',
+            department: 'Executive',
             location: 'France',
+            status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/19.webp',
         },
         {
@@ -13,7 +15,9 @@ export function getData() {
             parentId: 'Ashley Rivers',
             name: 'Joseph Howe',
             job: 'CTO',
+            department: 'Technology',
             location: 'United States',
+            status: 'Remote',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/20.webp',
         },
         {
@@ -21,7 +25,9 @@ export function getData() {
             parentId: 'Joseph Howe',
             name: 'Mr. Jeffrey Brown',
             job: 'Design',
+            department: 'Technology',
             location: 'France',
+            status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/22.webp',
         },
         {
@@ -29,7 +35,9 @@ export function getData() {
             parentId: 'Mr. Jeffrey Brown',
             name: 'Melissa Vazquez',
             job: 'Design',
+            department: 'Technology',
             location: 'France',
+            status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/2.webp',
         },
         {
@@ -37,7 +45,9 @@ export function getData() {
             parentId: 'Mr. Jeffrey Brown',
             name: 'John Thomas',
             job: 'Design',
+            department: 'Technology',
             location: 'Netherlands',
+            status: 'Remote',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/5.webp',
         },
         {
@@ -45,7 +55,9 @@ export function getData() {
             parentId: 'Joseph Howe',
             name: 'Nicole Jones',
             job: 'Exec. Vice President',
+            department: 'Technology',
             location: 'Portugal',
+            status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/29.webp',
         },
         {
@@ -53,7 +65,9 @@ export function getData() {
             parentId: 'Nicole Jones',
             name: 'James Long',
             job: 'Design',
+            department: 'Technology',
             location: 'Netherlands',
+            status: 'Remote',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/25.webp',
         },
         {
@@ -61,7 +75,9 @@ export function getData() {
             parentId: 'Nicole Jones',
             name: 'Susan Hernandez',
             job: 'Design',
+            department: 'Technology',
             location: 'Ireland',
+            status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/7.webp',
         },
         {
@@ -69,7 +85,9 @@ export function getData() {
             parentId: 'Joseph Howe',
             name: 'Justin Contreras',
             job: 'Design',
+            department: 'Technology',
             location: 'Italy',
+            status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/10.webp',
         },
         {
@@ -77,7 +95,9 @@ export function getData() {
             parentId: 'Justin Contreras',
             name: 'Rachel Ibarra',
             job: 'Design',
+            department: 'Technology',
             location: 'Italy',
+            status: 'Remote',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/2.webp',
         },
         {
@@ -85,7 +105,9 @@ export function getData() {
             parentId: 'Justin Contreras',
             name: 'John Gomez',
             job: 'Design',
+            department: 'Technology',
             location: 'France',
+            status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/17.webp',
         },
         {
@@ -93,7 +115,9 @@ export function getData() {
             parentId: 'Ashley Rivers',
             name: 'Gary Garcia',
             job: 'Head of Department',
+            department: 'Operations',
             location: 'Netherlands',
+            status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/18.webp',
         },
         {
@@ -101,7 +125,9 @@ export function getData() {
             parentId: 'Gary Garcia',
             name: 'Lawrence Martinez',
             job: 'Design',
+            department: 'Operations',
             location: 'United States',
+            status: 'Remote',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/33.webp',
         },
         {
@@ -109,7 +135,9 @@ export function getData() {
             parentId: 'Lawrence Martinez',
             name: 'Devin Pittman',
             job: 'Design',
+            department: 'Operations',
             location: 'United Kingdom',
+            status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/18.webp',
         },
         {
@@ -117,7 +145,9 @@ export function getData() {
             parentId: 'Lawrence Martinez',
             name: 'Emily Barajas',
             job: 'Design',
+            department: 'Operations',
             location: 'Italy',
+            status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/28.webp',
         },
         {
@@ -125,7 +155,9 @@ export function getData() {
             parentId: 'Gary Garcia',
             name: 'Eric Jensen',
             job: 'Design',
+            department: 'Operations',
             location: 'Spain',
+            status: 'Remote',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/35.webp',
         },
         {
@@ -133,7 +165,9 @@ export function getData() {
             parentId: 'Eric Jensen',
             name: 'Michael Morris',
             job: 'Design',
+            department: 'Operations',
             location: 'France',
+            status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/10.webp',
         },
         {
@@ -141,7 +175,9 @@ export function getData() {
             parentId: 'Eric Jensen',
             name: 'Jodi Miller',
             job: 'Design',
+            department: 'Operations',
             location: 'Italy',
+            status: 'Remote',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/30.webp',
         },
     ];

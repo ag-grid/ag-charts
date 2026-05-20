@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
     AgChartOptions,
@@ -406,6 +406,10 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         options: SIMPLE_ORG_CHART_THEMED,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
+    SIMPLE_ORG_CHART_RTL: {
+        options: { ...SIMPLE_ORG_CHART, enableRtl: true },
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
     LINKS_ROUNDED_INTERPOLATION: {
         options: LINKS_ROUNDED_INTERPOLATION,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
@@ -731,8 +735,9 @@ describe('OrganizationSeries', () => {
     setupMockConsole();
     let chart: any;
 
-    afterEach(() => {
+    afterEach(async () => {
         if (chart) {
+            await waitForChartStability(chart);
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -1140,6 +1145,10 @@ describe('OrganizationSeries', () => {
                     { id: 'd', name: 'Child D', job: 'Report', parentId: 'a' },
                     { id: 'e', name: 'Child E', job: 'Report', parentId: 'b' },
                     { id: 'f', name: 'Child F', job: 'Report', parentId: 'b' },
+                    { id: 'g', name: 'Parent G', job: 'Manager', parentId: 'root' },
+                    { id: 'h', name: 'Child H', job: 'Report', parentId: 'g' },
+                    { id: 'i', name: 'Child I', job: 'Report', parentId: 'h' },
+                    { id: 'j', name: 'Child J', job: 'Report', parentId: 'i' },
                 ],
                 series: [
                     {
@@ -1445,7 +1454,7 @@ describe('OrganizationSeries', () => {
             await waitForChartStability(chart);
 
             const zoomManager = deproxy(chart).ctx.zoomManager;
-            const panSpy = zoomManager ? jest.spyOn(zoomManager, 'panToBBox') : undefined;
+            const panSpy = zoomManager ? vi.spyOn(zoomManager, 'panToBBox') : undefined;
 
             const seriesId = deproxy(chart).series[0].id;
             await chart.setState({
@@ -1469,7 +1478,7 @@ describe('OrganizationSeries', () => {
             await waitForChartStability(chart);
 
             const zoomManager = deproxy(chart).ctx.zoomManager;
-            const panSpy = zoomManager ? jest.spyOn(zoomManager, 'panToBBox') : undefined;
+            const panSpy = zoomManager ? vi.spyOn(zoomManager, 'panToBBox') : undefined;
 
             const seriesId = deproxy(chart).series[0].id;
             await chart.setState({
@@ -1494,7 +1503,7 @@ describe('OrganizationSeries', () => {
 
             // Spy after the initial zoom so only hover-induced pans count.
             const zoomManager = deproxy(chart).ctx.zoomManager;
-            const panSpy = zoomManager ? jest.spyOn(zoomManager, 'panToBBox') : undefined;
+            const panSpy = zoomManager ? vi.spyOn(zoomManager, 'panToBBox') : undefined;
             const ratiosBefore = getZoomRatios(chart);
 
             // `activeManager.update` is the canonical hover simulation — JSDOM canvas

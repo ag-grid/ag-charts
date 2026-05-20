@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ParallelStateMachine, StateMachine, StateMachineProperty } from './stateMachine';
 
@@ -9,8 +9,8 @@ describe('State Machine', () => {
 
     describe('Simple', () => {
         beforeEach(() => {
-            initialEventNext = jest.fn();
-            nextEnter = jest.fn();
+            initialEventNext = vi.fn();
+            nextEnter = vi.fn();
             state = new StateMachine<'initial' | 'next', { event: undefined }>('initial', {
                 initial: {
                     event: {

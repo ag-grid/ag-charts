@@ -115,7 +115,6 @@ export function getPathComponents(path: string): string[] | undefined {
     const components: string[] = [];
     let matchIndex = 0;
     let matchGroup: RegExpExecArray | null;
-    // eslint-disable-next-line sonarjs/regex-complexity
     const regExp = /((?:(?:^|\.)\s*\w+|\[\s*(?:'(?:[^']|(?<!\\)\\')*'|"(?:[^"]|(?<!\\)\\")*"|-?\d+)\s*\])\s*)/g;
     /**              ^                         ^                      ^                      ^
      *               |                         |                      |                      |

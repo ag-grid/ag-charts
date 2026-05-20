@@ -257,6 +257,7 @@ export function prepareLinePathAnimation(
         // Line drawing fast-path - not animatable
         return;
     }
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     let status: NodeUpdateState = 'updated' as NodeUpdateState;
     if (oldData.visible && !newData.visible) {
         status = 'removed';

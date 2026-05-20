@@ -91,9 +91,6 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     colorName?: string;
 
     @Property
-    colorRange: string[] | undefined = undefined;
-
-    @Property
     readonly colorScale = new ColorScaleProperties();
 
     /** One of the predefined marker names, or a marker shape function (for user-defined markers). */

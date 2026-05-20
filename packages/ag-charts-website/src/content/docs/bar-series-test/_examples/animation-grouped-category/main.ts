@@ -11,6 +11,7 @@ import {
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
+import { random } from './randomHelpers';
 
 ModuleRegistry.registerModules([
     BarSeriesModule,
@@ -105,7 +106,7 @@ function randomise() {
     options.data = [
         ...data.map((d: any) => ({
             ...d,
-            iphone: d.iphone + Math.floor(Math.random() * 50 - 25),
+            iphone: d.iphone + Math.floor(random() * 50 - 25),
         })),
     ];
     chart.update(options);

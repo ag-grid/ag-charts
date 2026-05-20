@@ -70,7 +70,7 @@ function findCircularLinks<N extends Node, L extends Link<N>>(links: L[], link: 
     const stackIndex = stack.indexOf(link);
     if (stackIndex !== -1) {
         for (let i = stackIndex; i < stack.length; i += 1) {
-            into.add(stack[i] as any);
+            into.add(stack[i]);
         }
         return;
     }

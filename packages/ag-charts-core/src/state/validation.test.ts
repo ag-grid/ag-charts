@@ -1,4 +1,5 @@
-import { afterEach, beforeEach, describe, expect, jest } from '@jest/globals';
+import type { Mock } from 'vitest';
+import { afterEach, beforeEach, describe, expect, vi } from 'vitest';
 
 import { reset as resetLogger } from '../logging/logger';
 import { RegistryMode, reset as resetRegistry, setRegistryMode } from '../modules/moduleRegistry';
@@ -48,7 +49,7 @@ describe('Validation utils', () => {
         isValidatorResultValid(validator(value, context));
 
     beforeEach(() => {
-        console.warn = jest.fn();
+        console.warn = vi.fn();
         resetLogger();
     });
 
@@ -159,8 +160,8 @@ describe('Validation utils', () => {
                 // invalid array (avoids repeat logging across update cycles).
                 expect(invalid).toEqual([]);
                 expect(console.warn).toHaveBeenCalledTimes(1);
-                expect((console.warn as jest.Mock).mock.calls[0][0]).toContain('AG Charts Enterprise');
-                expect((console.warn as jest.Mock).mock.calls[0][0]).toContain('series[0].key');
+                expect((console.warn as Mock).mock.calls[0][0]).toContain('AG Charts Enterprise');
+                expect((console.warn as Mock).mock.calls[0][0]).toContain('series[0].key');
             });
 
             test('dedupes repeat validations of the same path', () => {
@@ -186,7 +187,7 @@ describe('Validation utils', () => {
                 expect(cleared).toEqual({ scale: null });
                 expect(invalid).toEqual([]);
                 expect(console.warn).toHaveBeenCalledTimes(1);
-                expect((console.warn as jest.Mock).mock.calls[0][0]).toContain('AG Charts Enterprise');
+                expect((console.warn as Mock).mock.calls[0][0]).toContain('AG Charts Enterprise');
             });
 
             test('throws when composed with required() in either order', () => {
@@ -260,7 +261,7 @@ describe('Validation utils', () => {
             ]);
 
             expect(console.warn).toHaveBeenCalledTimes(1);
-            expect((console.warn as jest.Mock).mock.calls[0][0]).toContain('returned an invalid value');
+            expect((console.warn as Mock).mock.calls[0][0]).toContain('returned an invalid value');
         });
     });
 

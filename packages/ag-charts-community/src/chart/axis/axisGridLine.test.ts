@@ -1,4 +1,4 @@
-import { afterEach, describe, expect } from '@jest/globals';
+import { afterEach, describe, expect } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 

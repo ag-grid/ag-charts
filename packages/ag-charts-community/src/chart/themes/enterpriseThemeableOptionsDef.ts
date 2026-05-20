@@ -11,7 +11,6 @@ import {
     colorUnion,
     commonSeriesThemeableOptionsDefs,
     defined,
-    deprecated,
     fillOptionsDef,
     highlightOptionsDef,
     interpolationOptionsDefs,
@@ -284,6 +283,7 @@ export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemea
     showInMiniChart: boolean,
     label: autoSizedLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
+    colorScale: colorScaleOptionsDef,
     ...commonSeriesThemeableOptionsDefs,
     ...strokeOptionsDef,
 };
@@ -331,7 +331,6 @@ export const mapLineBackgroundSeriesThemeableOptionsDef: OptionsDefs<AgMapLineBa
 };
 
 export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesThemeableOptions> = {
-    colorRange: deprecated(arrayOf(color), 'Use `colorScale.fills` instead.'),
     colorScale: colorScaleOptionsDef,
     maxSize: positiveNumber,
     sizeDomain: arrayOf(positiveNumber),
@@ -346,7 +345,6 @@ export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesTh
 };
 
 export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThemeableOptions> = {
-    colorRange: deprecated(arrayOf(color), 'Use `colorScale.fills` instead.'),
     colorScale: colorScaleOptionsDef,
     padding: positiveNumber,
     itemStyler: callbackDefs<AgMapShapeSeriesStyle>({
@@ -619,7 +617,6 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
 export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThemeableOptions> = {
     fills: arrayOf(colorUnion),
     strokes: arrayOf(color),
-    colorRange: deprecated(arrayOf(color), 'Use `colorScale.fills` instead.'),
     colorScale: colorScaleOptionsDef,
     sectorSpacing: positiveNumber,
     cornerRadius: positiveNumber,
@@ -648,7 +645,6 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
 export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemeableOptions> = {
     fills: arrayOf(colorUnion),
     strokes: arrayOf(color),
-    colorRange: deprecated(arrayOf(color), 'Use `colorScale.fills` instead.'),
     colorScale: colorScaleOptionsDef,
     itemStyler: callbackDefs<AgTreemapSeriesStyle>({
         ...fillOptionsDef,

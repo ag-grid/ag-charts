@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
     AgCartesianChartOptions,
@@ -98,7 +98,7 @@ describe('MapMarkerSeries', () => {
             const node = seriesImpl?.['contextNodeData']?.nodeData[i];
 
             const highlightManager = (chart as Chart).ctx.highlightManager;
-            highlightManager.updateHighlight(chart.id, node as any);
+            highlightManager.updateHighlight(chart.id, node);
             await compare();
         });
     });
@@ -260,7 +260,7 @@ describe('MapMarkerSeries', () => {
         });
 
         it(`should handle nodeClick event`, async () => {
-            const onNodeClick = jest.fn();
+            const onNodeClick = vi.fn();
             chart = await createChart({ hasTooltip: true, onNodeClick });
             await checkNodeClick(chart, onNodeClick);
         });
@@ -271,19 +271,19 @@ describe('MapMarkerSeries', () => {
         });
 
         it(`should handle nodeClick event when tooltip is disabled`, async () => {
-            const onNodeClick = jest.fn();
+            const onNodeClick = vi.fn();
             chart = await createChart({ hasTooltip: false, onNodeClick });
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should handle nodeClick event with offset click when range is 'nearest'`, async () => {
-            const onNodeClick = jest.fn();
+            const onNodeClick = vi.fn();
             chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
             await checkNodeClick(chart, onNodeClick, { x: 5, y: 5 });
         });
 
         it(`should handle nodeClick event with offset click when range is within pixel distance`, async () => {
-            const onNodeClick = jest.fn();
+            const onNodeClick = vi.fn();
             chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 6 });
             await checkNodeClick(chart, onNodeClick, { x: 0, y: 5 });
         });
@@ -505,7 +505,7 @@ describe('MapMarkerSeries', () => {
             expect(targetNode).toBeDefined();
 
             const highlightManager = (chart as Chart).ctx.highlightManager;
-            highlightManager.updateHighlight(chart.id, targetNode as any);
+            highlightManager.updateHighlight(chart.id, targetNode);
             await compare();
         });
 
@@ -545,7 +545,7 @@ describe('MapMarkerSeries', () => {
             expect(missingNode).toBeDefined();
 
             const highlightManager = (chart as Chart).ctx.highlightManager;
-            highlightManager.updateHighlight(chart.id, missingNode as any);
+            highlightManager.updateHighlight(chart.id, missingNode);
             await compare();
         });
     });

@@ -31,17 +31,26 @@
     "lint": {
       "executor": "nx:noop",
       "dependsOn": ["lint:eslint"],
-      "configurations": { "fix": {} }
+      "configurations": {
+        "fix": {}
+      }
     },
     "lint:eslint": {},
     "test": {
       "executor": "nx:run-commands",
+      "inputs": ["default", "buildOutputExcludes", "^production"],
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-server-side.xml"],
+      "cache": true,
       "options": {
-        "command": "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts"
+        "command": "npx vitest run --config {projectRoot}/vitest.config.ts"
       },
       "configurations": {
-        "ci": { "args": "-u --passWithNoTests" },
-        "update": { "args": "-u" }
+        "ci": {
+          "args": "--update"
+        },
+        "update": {
+          "args": "--update"
+        }
       }
     },
     "pack": {
@@ -60,7 +69,9 @@
       "dependsOn": ["pack"],
       "inputs": ["allOutputs"],
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-server-side/"],
-      "options": { "command": "tools/package/extract-contents.sh {projectRoot}" }
+      "options": {
+        "command": "tools/package/extract-contents.sh {projectRoot}"
+      }
     },
     "pack:verify": {
       "executor": "nx:run-commands",

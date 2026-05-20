@@ -20,7 +20,15 @@ export const testDefaults = {
     files: ['**/*.test.ts', '**/*.test.tsx', '**/*.test.js', '**/*.test.jsx'],
     languageOptions: {
         globals: {
-            ...globals.jest,
+            afterAll: 'readonly',
+            afterEach: 'readonly',
+            beforeAll: 'readonly',
+            beforeEach: 'readonly',
+            describe: 'readonly',
+            expect: 'readonly',
+            it: 'readonly',
+            test: 'readonly',
+            vi: 'readonly',
         },
     },
     rules: {
@@ -30,10 +38,12 @@ export const testDefaults = {
         '@typescript-eslint/no-unsafe-argument': 0,
         '@typescript-eslint/no-unsafe-call': 0,
         '@typescript-eslint/no-unsafe-member-access': 0,
+        'sonarjs/assertions-in-tests': 0,
+        'sonarjs/no-empty-test-file': 0,
+        'sonarjs/stable-tests': 0,
         'sonarjs/slow-regex': 0,
         'sonarjs/no-duplicate-string': 0,
         'sonarjs/no-nested-functions': 0,
-        'sonarjs/use-type-alias': 0,
         'sonarjs/pseudo-random': 0,
     },
 };
@@ -57,9 +67,15 @@ export const sonarjsConfig = [
 
             // We don't really care about these.
             'sonarjs/new-cap': 0,
+            'sonarjs/deprecation': 1,
+            'sonarjs/use-type-alias': 1,
+            'sonarjs/different-types-comparison': 1,
+            'sonarjs/public-static-readonly': 1,
+            'sonarjs/regex-complexity': 1,
 
             // Duplicates @typescript-eslint
             'sonarjs/sonar-no-unused-vars': 0,
+            'sonarjs/no-unused-vars': 0,
             'sonarjs/no-redundant-type-constituents': 0,
             'sonarjs/sonar-prefer-optional-chain': 0,
             'sonarjs/no-base-to-string': 0,
@@ -88,7 +104,8 @@ export default [
             '**/dist',
             '**/typings',
             '**/eslint.config.mjs',
-            '**/jest.*.{cjs,js}',
+            '**/vitest.*.{cjs,js,ts}',
+            '**/benchmarks/*.cjs',
             '**/.dependency-cruiser.js',
             '**/.size-limit.js',
         ],

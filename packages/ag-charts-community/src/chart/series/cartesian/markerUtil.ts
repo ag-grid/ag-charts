@@ -199,14 +199,15 @@ export function cartesianMarkerDrawMode(
     processedData: { input: { count: number } },
     axes: { [ChartAxisDirection.X]?: { scale: Scale<unknown, number, unknown> } },
     marker: { enabled: boolean },
-    markerStyle: { enabled?: boolean } = marker
+    markerStyle: { enabled?: boolean } = marker,
+    isMiniChart: boolean = false
 ): CartesianMarkerDrawMode {
     const markersEnabled =
         contextNodeData?.crossFiltering === true ||
         markerEnabled(processedData.input.count, axes[ChartAxisDirection.X]!.scale, marker, markerStyle);
 
-    if (properties.selection.enabled) {
-        // selection.enabled needs NodeData for selected-style overrides to function.
+    if (properties.selection.enabled && !isMiniChart) {
+        // selection.enabled needs NodeData for the selected-style overrides; mini-charts never render selection.
         return { needsNodeData: true, hideWithSize0: !markersEnabled };
     } else {
         return { needsNodeData: markersEnabled, hideWithSize0: false };

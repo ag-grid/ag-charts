@@ -3,8 +3,29 @@ title: 'Org Chart Test'
 enterprise: true
 ---
 
+## Org Chart Many Nodes
+
+What to test:
+
+- The organisation series lays out a large default dataset without overlapping nodes or clipped labels.
+- Hover nodes; tooltips appear at the correct positions.
+
 {% chartExampleRunner title="Org Chart Many Nodes" name="org-chart-many-nodes" type="generated" /%}
 
+## Org Chart Tudor
+
+What to test:
+
+- Custom `idKey`, `parentIdKey` and `node` mapping render the Tudor hierarchy with title, subtitle and reign label per node.
+- Parent/child connectors join the correct nodes.
+
 {% chartExampleRunner title="Org Chart Tudor" name="org-chart-tudor" type="generated" /%}
+
+## Org Chart Zoom Scale
+
+What to test:
+
+- Switch between 100, 1K, 10K and 100K node scales; the chart regenerates and resets zoom for each.
+- Wheel/pinch zoom and drag pan stay responsive at the larger scales.
 
 {% chartExampleRunner title="Org Chart Zoom Scale" name="org-chart-zoom-scale" type="generated" /%}

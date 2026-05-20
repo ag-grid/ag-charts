@@ -66,11 +66,6 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContex
     strokeOpacity?: Opacity;
     /** The width in pixels of the stroke for the sectors. */
     strokeWidth?: PixelSize;
-    /**
-     * The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into.
-     * @deprecated v13.3.0 Use `colorScale.fills` instead.
-     */
-    colorRange?: CssColor[];
     /** Configuration for colour scale with fills, domain, and mode. */
     colorScale?: AgColorScale;
     /** Series-specific tooltip configuration. */

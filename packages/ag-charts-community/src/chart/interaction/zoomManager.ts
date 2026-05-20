@@ -53,6 +53,7 @@ export type SimpleAxis = {
 };
 
 export type CartesianAxisLike = SimpleAxis & {
+    type: string;
     visibleRange: [number, number];
     scale: Scale<any, any>;
     range: [number, number];
@@ -135,8 +136,7 @@ function areEqualCoreZooms(p: CoreZoomStateSafeRetrieval, q: CoreZoomStateSafeRe
             continue;
         } else if (
             pVal == undefined ||
-            qVal == undefined ||
-            pVal.direction !== qVal.direction ||
+            pVal.direction !== qVal?.direction ||
             pVal.min !== qVal.min ||
             pVal.max !== qVal.max
         ) {
@@ -377,6 +377,13 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         // recreates axes with the same IDs.
         const oldState = this.state;
 
+        // Saved {min,max} ratios don't translate across a scale-type change; preserving them lets
+        // downstream `preserveDomain` collapse to a degenerate zoom.
+        const previousTypeByAxisId = new Map<AxisID, string>();
+        for (const axis of this.axes) {
+            previousTypeByAxisId.set(axis.id, axis.type);
+        }
+
         const { axes, allAxes } = this;
         axes.length = 0;
         allAxes.length = 0;
@@ -387,7 +394,15 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             }
         }
 
-        const changes = refreshCoreState(nextAxes, oldState);
+        const adjustedOldState: Record<AxisID, CoreZoomEntry | undefined> = { ...oldState };
+        for (const axis of axes) {
+            const prevType = previousTypeByAxisId.get(axis.id);
+            if (prevType !== undefined && prevType !== axis.type) {
+                delete adjustedOldState[axis.id];
+            }
+        }
+
+        const changes = refreshCoreState(nextAxes, adjustedOldState);
         this.state = changes;
 
         this.updateChanges({ source: 'chart-update', sourceDetail: 'internal-setAxes', changes, isReset: false });
@@ -424,11 +439,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         for (const id of strictObjectKeys(newState)) {
             const newAxisState = newState[id] ?? { min: 0, max: 1 };
             const oldAxisState = oldState[id];
-            if (
-                oldAxisState == undefined ||
-                oldAxisState.min !== newAxisState.min ||
-                oldAxisState.max !== newAxisState.max
-            ) {
+            if (oldAxisState?.min !== newAxisState.min || oldAxisState.max !== newAxisState.max) {
                 result.push(id);
             }
         }
@@ -765,21 +776,23 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     private constrainZoomToRequiredWidth(event: ZoomChangeRequestEvent) {
         if (this.lastRestoredRequiredRange == null || this.lastRestoredRequiredRangeDirection == null) return;
 
-        const axis = this.lastRestoredRequiredRangeDirection;
-
         const crossAxisId = this.getPrimaryAxisId(this.lastRestoredRequiredRangeDirection);
         if (!crossAxisId) return;
 
-        const zoom = event.stateAsDefinedZoom();
-        const oldState = event.oldState[crossAxisId]!;
+        const zoom = event.state[crossAxisId];
+        const oldState = event.oldState[crossAxisId];
+        if (!zoom || !oldState) return;
 
-        const delta = zoom[axis].max - zoom[axis].min;
+        const delta = zoom.max - zoom.min;
         const minDelta = 1 / this.lastRestoredRequiredRange;
         if (Math.abs(delta - minDelta) < 1e-12 || delta <= minDelta) return;
 
-        event.constrainZoom({
-            ...zoom,
-            [axis]: { min: oldState.min, max: oldState.min + minDelta },
+        event.constrainChanges({
+            [crossAxisId]: {
+                direction: this.lastRestoredRequiredRangeDirection,
+                min: oldState.min,
+                max: oldState.min + minDelta,
+            },
         });
     }
 

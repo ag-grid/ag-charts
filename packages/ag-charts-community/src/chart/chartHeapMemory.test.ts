@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { memoryUsage } from 'process';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { AgCharts } from '../api/agCharts';
 import type { Chart } from './chart';
@@ -7,10 +7,8 @@ import type { AgChartProxy } from './chartProxy';
 import { deproxy, prepareTestOptions, setupMockCanvas, setupMockConsole, waitForChartStability } from './test/utils';
 
 // Heap size comparisons can be flaky - let's be sure any failure is consistent.
-// eslint-disable-next-line sonarjs/stable-tests
-jest.retryTimes(5);
 
-describe('Chart Heap Memory', () => {
+describe('Chart Heap Memory', { retry: 5 }, () => {
     setupMockConsole();
 
     let chart: Chart;

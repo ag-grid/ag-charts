@@ -1,3 +1,5 @@
+import { random } from './randomHelpers';
+
 export function getData() {
     const startDate = new Date('2024-01-01');
     const data = [];
@@ -7,7 +9,7 @@ export function getData() {
         date.setDate(startDate.getDate() + i);
         data.push({
             date,
-            price: 100 + Math.sin(i / 5) * 20 + Math.random() * 10,
+            price: 100 + Math.sin(i / 5) * 20 + random() * 10,
         });
     }
 
@@ -21,7 +23,7 @@ export function getDataPointAtStart(currentData: { date: Date; price: number }[]
 
     return {
         date: prevDate,
-        price: firstPoint.price + (Math.random() - 0.5) * 10,
+        price: firstPoint.price + (random() - 0.5) * 10,
     };
 }
 
@@ -32,7 +34,7 @@ export function getDataPointAtEnd(currentData: { date: Date; price: number }[]) 
 
     return {
         date: nextDate,
-        price: lastPoint.price + (Math.random() - 0.5) * 10,
+        price: lastPoint.price + (random() - 0.5) * 10,
     };
 }
 
@@ -46,6 +48,6 @@ export function getDataPointAtMiddle(currentData: { date: Date; price: number }[
 
     return {
         date: midDate,
-        price: (prevPoint.price + midPoint.price) / 2 + (Math.random() - 0.5) * 5,
+        price: (prevPoint.price + midPoint.price) / 2 + (random() - 0.5) * 5,
     };
 }

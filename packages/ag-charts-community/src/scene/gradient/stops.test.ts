@@ -1,4 +1,4 @@
-import { describe, expect, test } from '@jest/globals';
+import { describe, expect, test } from 'vitest';
 
 import { discreteColorStops, resolveStopPositions } from 'ag-charts-core';
 
@@ -210,9 +210,8 @@ describe('stops', () => {
             const scale = new ColorScale();
             configureColorScale(
                 scale,
-                { fills: [], domain: undefined, mode: 'continuous' },
-                [0, 100],
-                ['red', 'green']
+                { fills: [{ color: 'red' }, { color: 'green' }], domain: undefined, mode: 'continuous' },
+                [0, 100]
             );
 
             const datum = buildGradientLegendDatum(scale, [], 'series-1', true, [

@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ChartAxisDirection } from 'ag-charts-core';
+import { ChartAxisDirection, ChartUpdateType } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgPolarChartOptions, InteractionRange } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
@@ -216,7 +216,7 @@ describe('Chart', () => {
         });
 
         it(`should handle nodeClick event`, async () => {
-            const onNodeClick = jest.fn();
+            const onNodeClick = vi.fn();
             chart = await createChartPreset({ hasTooltip: true, onNodeClick });
             await checkNodeClick(chart, onNodeClick);
         });
@@ -227,26 +227,26 @@ describe('Chart', () => {
         });
 
         it(`should handle nodeClick event when tooltip is disabled`, async () => {
-            const onNodeClick = jest.fn();
+            const onNodeClick = vi.fn();
             chart = await createChartPreset({ hasTooltip: false, onNodeClick });
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should handle nodeClick event with offset click when range is 'nearest'`, async () => {
-            const onNodeClick = jest.fn();
+            const onNodeClick = vi.fn();
             chart = await createChartPreset({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
             await checkNodeClick(chart, onNodeClick, true, true);
         });
 
         it(`should handle nodeClick event with offset click when range is within pixel distance`, async () => {
-            const onNodeClick = jest.fn();
+            const onNodeClick = vi.fn();
             chart = await createChartPreset({ hasTooltip: true, onNodeClick, nodeClickRange: 6 });
             await waitForChartStability(chart);
             await checkNodeClick(chart, onNodeClick, false, true);
         });
 
         it(`should trigger nodeClick event only on mousedown and mouseup`, async () => {
-            const onNodeClick = jest.fn();
+            const onNodeClick = vi.fn();
             chart = await createChartPreset({ hasTooltip: true });
             await waitForChartStability(chart);
             await checkMouseUpOnlyClick(chart, onNodeClick, testParams.getNodeExitPoint);
@@ -861,10 +861,10 @@ describe('Chart', () => {
 
     describe('node click event types', () => {
         it('has correct types for click events', async () => {
-            const nodeClick = jest.fn();
-            const nodeDoubleClick = jest.fn();
-            const seriesNodeClick = jest.fn();
-            const seriesNodeDoubleClick = jest.fn();
+            const nodeClick = vi.fn();
+            const nodeDoubleClick = vi.fn();
+            const seriesNodeClick = vi.fn();
+            const seriesNodeDoubleClick = vi.fn();
             const options = prepareTestOptions<AgCartesianChartOptions>({
                 data: [
                     {
@@ -916,7 +916,7 @@ describe('Chart', () => {
 
     describe('AG-16337 listeners undefined update', () => {
         it('should handle chart-level listeners set to undefined', async () => {
-            const chartClick = jest.fn();
+            const chartClick = vi.fn();
             const options = prepareTestOptions<AgCartesianChartOptions>({
                 data: [
                     {
@@ -962,7 +962,7 @@ describe('Chart', () => {
         });
 
         it('should handle series-level listeners set to undefined', async () => {
-            const seriesNodeClick = jest.fn();
+            const seriesNodeClick = vi.fn();
             const options = prepareTestOptions<AgCartesianChartOptions>({
                 data: [
                     {
@@ -1005,8 +1005,8 @@ describe('Chart', () => {
         });
 
         it('should handle both chart and series listeners set to undefined', async () => {
-            const chartClick = jest.fn();
-            const seriesNodeClick = jest.fn();
+            const chartClick = vi.fn();
+            const seriesNodeClick = vi.fn();
             const options = prepareTestOptions<AgCartesianChartOptions>({
                 data: [
                     {
@@ -1065,8 +1065,8 @@ describe('Chart', () => {
         });
 
         it('should preserve internal listeners after clearing user series listeners', async () => {
-            const seriesNodeClick = jest.fn();
-            const seriesVisibilityChange = jest.fn();
+            const seriesNodeClick = vi.fn();
+            const seriesVisibilityChange = vi.fn();
             const options = prepareTestOptions<AgCartesianChartOptions>({
                 data: [
                     {
@@ -1555,4 +1555,51 @@ describe('Chart', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
+});
+
+describe('Chart destroy() / performUpdate() race condition', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    const data = [
+        { x: 'A', y: 10 },
+        { x: 'B', y: 20 },
+        { x: 'C', y: 30 },
+    ];
+
+    async function testDestroyRace(seriesType: 'bar' | 'area' | 'line') {
+        const proxy = AgCharts.create({
+            container: document.body,
+            data,
+            series: [{ type: seriesType, xKey: 'x', yKey: 'y' }],
+        }) as AgChartProxy;
+        const innerChart = deproxy(proxy);
+        await waitForChartStability(innerChart);
+
+        // Spy on the prototype so vitest can restore it after the test even if the chart
+        // instance gets frozen by Object.freeze(this) inside performTeardown.
+        const chartProto = Object.getPrototypeOf(innerChart);
+        const origProcessData = chartProto.processData;
+        vi.spyOn(chartProto, 'processData').mockImplementationOnce(function (this: any) {
+            // Fire destroy() while the pipeline is paused on the processData await.
+            innerChart.destroy();
+            return origProcessData.call(this) as Promise<void>;
+        });
+
+        innerChart.update(ChartUpdateType.FULL);
+
+        // waitForChartStability returns as soon as `destroyed` is true; the deferred
+        // performTeardown (queued behind the mutex by destroy()) still needs to drain.
+        await waitForChartStability(innerChart);
+        await (innerChart as any).updateMutex.waitForClearAcquireQueue();
+
+        // Implicit assertion: if assembleResult threw TypeError (this.chart!.seriesRect!
+        // on a cleared series), tryPerformUpdate's catch block would call Logger.error
+        // → console.error. setupMockConsole's afterEach asserts console.error is never called.
+    }
+
+    it.each(['bar', 'area', 'line'] as const)(
+        'does not throw TypeError when destroy() races with a %s series update',
+        testDestroyRace
+    );
 });

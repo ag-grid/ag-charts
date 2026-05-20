@@ -5,12 +5,27 @@ enterprise: true
 
 ## Styler
 
+What to test:
+
+- Confirm each radius key picks up its styler fill, stroke and dash settings.
+- Confirm the series-level `fill` is overridden by the styler return value.
+
 {% chartExampleRunner title="Styler" name="styler" type="generated" /%}
 
 ## Styler & Item Styler
 
+What to test:
+
+- Confirm series styling applies to all segments and the item styler overrides only the targeted quarters.
+- Confirm item-styler overrides compose with the base styler (fields not returned fall through).
+
 {% chartExampleRunner title="Styler & Item Styler" name="styler-and-itemstyler" type="generated" /%}
 
 ## Styler Highlight State
+
+What to test:
+
+- Hover a segment and confirm `highlighted-item` and `unhighlighted-item` styles apply to that series.
+- Hover the legend entry and confirm `highlighted-series` and `unhighlighted-series` styles apply across segments.
 
 {% chartExampleRunner title="Styler Highlight State" name="styler-highlight-state" type="generated" /%}

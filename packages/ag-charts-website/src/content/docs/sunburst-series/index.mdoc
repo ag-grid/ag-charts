@@ -81,8 +81,6 @@ The `sizeKey` can be used to provide a numeric value to adjust the relative sizi
 
 Use `colorScale` to control how `colorKey` values map to colours.
 
-In this example, discrete mode bins GDP changes into Decline, Flat and Growth categories shown in a category legend.
-
 {% chartExampleRunner title="Colour Scale" name="gradient-legend" type="generated" /%}
 
 ```js format="snippet"
@@ -105,6 +103,10 @@ In this example, discrete mode bins GDP changes into Decline, Flat and Growth ca
     ],
 }
 ```
+
+In this example:
+
+- Use the toggle to switch between discrete mode with named stops shown in a category legend, and a continuous gradient shown in a gradient legend.
 
 See the [Colour Scale](./colour-scale/) page for the full range of colour scale options including discrete mode, named stops, fixed domains, missing data, and gradient legend customisation.
 
@@ -131,7 +133,7 @@ In this configuration:
 - `fills` and `strokes` are an array of colours to use for the fills and strokes, where each node receives the colour indexed by the index of its root node
 
 {% note %}
-When a `colorRange` is used, the `fills` and `strokes` arrays are ignored
+When `colorScale.fills` is used, the `fills` and `strokes` arrays are ignored.
 {% /note %}
 
 ## Labels

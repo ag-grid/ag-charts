@@ -33,7 +33,7 @@ env:
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
     AG_LIBRARY: charts
     AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
-    AG_E2E_SHARD_COUNT: 16
+    AG_E2E_SHARD_COUNT: 32
 
 permissions:
     contents: read
@@ -82,7 +82,8 @@ jobs:
                         - 'yarn.lock'
                         - 'nx.json'
                         - 'tsconfig.*.json'
-                        - 'jest.preset.js'
+                        - '**/vitest.config.ts'
+                        - '**/vitest.setup.ts'
                       ci:
                         - '.github/**'
 
@@ -455,12 +456,47 @@ jobs:
                       reports/
                       packages/**/__diff_output__/*
 
+    playwright_image:
+        runs-on: ubuntu-latest
+        name: Playwright Image
+        needs: [detect-changes]
+        if: needs.detect-changes.outputs.run_full_ci == 'true'
+        env:
+            PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
+            PLAYWRIGHT_CACHE_KEY: playwright-image-v1.60.0-jammy-v1
+        steps:
+            - name: Restore Playwright Image Cache
+              id: pw_cache
+              uses: actions/cache@v4
+              with:
+                  path: /tmp/playwright-docker-image.tar
+                  key: ${{ env.PLAYWRIGHT_CACHE_KEY }}
+
+            - name: Pull Playwright Image
+              if: steps.pw_cache.outputs.cache-hit != 'true'
+              run: |
+                  pull_attempts=4
+                  for attempt in $(seq 1 ${pull_attempts}) ; do
+                    if docker pull ${PLAYWRIGHT_IMAGE} ; then
+                      break
+                    fi
+                    if [[ ${attempt} -eq ${pull_attempts} ]] ; then
+                      echo "Failed to pull ${PLAYWRIGHT_IMAGE} after ${pull_attempts} attempts."
+                      exit 1
+                    fi
+                    backoff=$((attempt * 15))
+                    jitter=$((RANDOM % 10))
+                    echo "Pull attempt ${attempt} failed, retrying in $((backoff + jitter))s..."
+                    sleep $((backoff + jitter))
+                  done
+                  docker save ${PLAYWRIGHT_IMAGE} -o /tmp/playwright-docker-image.tar
+
     e2e:
         runs-on: ubuntu-latest
         name: E2E Tests (${{ matrix.shard }}/${{ strategy.job-total }})
         permissions:
             contents: write
-        needs: [detect-changes, init]
+        needs: [detect-changes, init, playwright_image]
         if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.e2e_count > 0
         strategy:
             fail-fast: false
@@ -486,6 +522,16 @@ jobs:
                   nx_restore: false # Restored in previous step.
                   cache_mode: ro
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+
+            - name: Restore Playwright Image Cache
+              uses: actions/cache/restore@v4
+              with:
+                  path: /tmp/playwright-docker-image.tar
+                  key: playwright-image-v1.60.0-jammy-v1
+                  fail-on-cache-miss: true
+
+            - name: Load Playwright Image
+              run: docker load -i /tmp/playwright-docker-image.tar
 
             - name: nx test:e2e
               id: test
@@ -561,13 +607,49 @@ jobs:
 
     bundle_tests:
         runs-on: ubuntu-24.04
-        name: Bundle Tests
+        name: Bundle Tests (${{ matrix.name }})
         permissions:
             contents: write
         needs: [detect-changes, init]
         if: needs.detect-changes.outputs.run_full_ci == 'true'
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - name: treeshake-fast
+                      target: bundle-treeshake-tests:test:bundle-treeshake
+                      render_bundlers: ''
+                      treeshake_bundlers: 'esbuild,vite'
+                    - name: treeshake-webpack-1of2
+                      target: bundle-treeshake-tests:test:bundle-treeshake
+                      render_bundlers: ''
+                      treeshake_bundlers: 'webpack'
+                      treeshake_shard: '1/2'
+                    - name: treeshake-webpack-2of2
+                      target: bundle-treeshake-tests:test:bundle-treeshake
+                      render_bundlers: ''
+                      treeshake_bundlers: 'webpack'
+                      treeshake_shard: '2/2'
+                    - name: render-fast
+                      target: bundle-render-tests:test:bundle-render
+                      render_bundlers: 'esbuild,vite'
+                      treeshake_bundlers: ''
+                    - name: render-webpack-1of2
+                      target: bundle-render-tests:test:bundle-render
+                      render_bundlers: 'webpack'
+                      render_shard: '1/2'
+                      treeshake_bundlers: ''
+                    - name: render-webpack-2of2
+                      target: bundle-render-tests:test:bundle-render
+                      render_bundlers: 'webpack'
+                      render_shard: '2/2'
+                      treeshake_bundlers: ''
         env:
             NX_BASE: ${{ needs.init.outputs.nx_base }}
+            BUNDLE_RENDER_BUNDLERS: ${{ matrix.render_bundlers }}
+            BUNDLE_RENDER_SHARD: ${{ matrix.render_shard }}
+            BUNDLE_TREESHAKE_BUNDLERS: ${{ matrix.treeshake_bundlers }}
+            BUNDLE_TREESHAKE_SHARD: ${{ matrix.treeshake_shard }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -586,13 +668,8 @@ jobs:
                   cache_mode: ro
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
-            - name: nx test:bundle-treeshake
-              id: treeshake
-              run: yarn nx run bundle-treeshake-tests:test:bundle-treeshake
-
-            - name: nx test:bundle-render
-              id: render
-              run: yarn nx run bundle-render-tests:test:bundle-render
+            - name: nx test:bundle-${{ matrix.name }}
+              run: yarn nx run ${{ matrix.target }}
 
     report:
         runs-on: ubuntu-24.04
@@ -613,6 +690,7 @@ jobs:
                 sonarqube,
                 fw_pkg_test,
                 bundle_tests,
+                playwright_image,
             ]
         if: cancelled() != true
         steps:
@@ -686,6 +764,8 @@ jobs:
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.fw_pkg_test.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
+                  elif [ "${{ needs.playwright_image.result }}" == "failure" ] ; then
+                    WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.sonarqube.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="partial"
                   fi
@@ -744,6 +824,7 @@ jobs:
                       ${{ needs.test.result == 'failure' && '- ❌ Test' || '' }}
                       ${{ needs.e2e.result == 'failure' && '- ❌ E2E' || '' }}
                       ${{ needs.fw_pkg_test.result == 'failure' && '- ❌ FW Pkg' || '' }}
+                      ${{ needs.playwright_image.result == 'failure' && '- ❌ Playwright Image' || '' }}
                       ${{ needs.sonarqube.result == 'failure' && '- ❌ Sonar' || '' }}
 
                       *Changes:*

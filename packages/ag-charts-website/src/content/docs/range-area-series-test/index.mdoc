@@ -7,20 +7,43 @@ enterprise: true
 
 ### Styler
 
+What to test:
+
+- Hover and toggle each series; the series `styler` applies fill, stroke and line dash for both low and high items.
+- Marker overrides from the styler take effect on low/high markers.
+
 {% chartExampleRunner title="Styler" name="styler" type="generated" /%}
 
 ### Styler & Item Styler
+
+What to test:
+
+- Series `styler` and marker `itemStyler` co-exist; February markers recolour via `itemStyler` while the series styler keeps its fill and stroke.
+- Low/high marker size overrides apply on top of styler output.
 
 {% chartExampleRunner title="Styler & Item Styler" name="styler-and-itemstyler" type="generated" /%}
 
 ### Styler Highlight State
 
+What to test:
+
+- Hover a single marker; the `highlighted-item` and `unhighlighted-item` branches change marker shape, fill and size.
+- Hover a legend entry; the `highlighted-series` and `unhighlighted-series` branches dim other series and recolour the active one.
+
 {% chartExampleRunner title="Styler Highlight State" name="styler-highlight-state" type="generated" /%}
 
 ## Low/High Styling
 
-### Match Shared
+The "Shared" and "Low/High" charts should render identically.
 
-The "Shared" and "Low/High" charts should be identical.
+## E2E Tested
+
+### shared-low-high-match
+
+_Auto-tested via Playwright._
+
+What to test:
+
+- Each row in the "Shared" chart matches its counterpart in the "Low/High" chart for markers, strokes, gradients, patterns and image fills.
 
 {% chartExampleRunner title="Shared - Low/High Matching" name="shared-low-high-match" type="generated" options={ "exampleHeight": 1000 } /%}

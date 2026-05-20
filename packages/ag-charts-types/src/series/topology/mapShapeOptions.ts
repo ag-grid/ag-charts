@@ -1,7 +1,7 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { ContextDefault, CssColor, DatumDefault, DatumKey, GeoJSON, PixelSize } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey, GeoJSON, PixelSize } from '../../chart/types';
 import type { AgColorScale, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
@@ -52,11 +52,6 @@ export interface AgMapShapeSeriesThemeableOptions<TDatum = DatumDefault, TContex
     extends
         AgMapShapeSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'> {
-    /**
-     * The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into.
-     * @deprecated v13.3.0 Use `colorScale.fills` instead.
-     */
-    colorRange?: CssColor[];
     /** Configuration for colour scale with fills, domain, and mode. */
     colorScale?: AgColorScale;
     /** Configuration for the labels shown inside the shape. */

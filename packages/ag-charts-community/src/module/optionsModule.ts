@@ -390,15 +390,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         removeIncompatibleModuleOptions(this.chartDef.name, processedOptions);
         processModuleOptions(this.chartDef.name, processedOptions, missingSeriesModules);
 
-        // Post-theme validation: suppress advisory warnings (e.g. deprecation) so we don't
-        // re-emit them for theme-injected values that the user did not supply themselves.
-        this.validateSeriesOptions(processedOptions, { silentAdvisories: true });
+        this.validateSeriesOptions(processedOptions);
 
         // The second pass validation of the axes, after they have been processed and the keys remapped. Any missing
         // `type` properties are now inferred and those axes can be validated.
-        this.validateAxesOptions(processedOptions, unmappedAxisKeys, { silentAdvisories: true });
+        this.validateAxesOptions(processedOptions, unmappedAxisKeys);
 
-        this.validatePluginOptions(processedOptions, { silentAdvisories: true });
+        this.validatePluginOptions(processedOptions);
         this.processMiniChartSeriesOptions(processedOptions);
 
         if (!processedOptions.loadGoogleFonts) {

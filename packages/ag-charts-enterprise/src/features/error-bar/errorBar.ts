@@ -298,7 +298,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
 
     private updateNode(node: ErrorBarNode, datum: ErrorBarNodeDatum, _index: number) {
         const active = this.ctx.highlightManager.getActiveHighlight();
-        const isHighlight = active && active.series.id === datum.series.id && active.datumIndex === datum.datumIndex;
+        const isHighlight = active?.series.id === datum.series.id && active.datumIndex === datum.datumIndex;
 
         const highlightState = this.cartesianSeries.getHighlightStateString(active, isHighlight, datum.datumIndex);
         const selectionState = this.cartesianSeries.getSelectionStateString(datum.datumIndex);

@@ -55,8 +55,8 @@ function setPosition(position: 'bottom' | 'right' | 'left' | 'top') {
     chart.update(options);
 }
 
-function setThickness(value: string) {
-    const thickness = Number(value);
+function setThickness(event: Event) {
+    const thickness = Number((event.target as HTMLInputElement).value);
     options.gradientLegend = {
         ...options.gradientLegend,
         gradient: { ...options.gradientLegend?.gradient, thickness },
@@ -65,8 +65,8 @@ function setThickness(value: string) {
     chart.update(options);
 }
 
-function setLength(value: string) {
-    const preferredLength = Number(value);
+function setLength(event: Event) {
+    const preferredLength = Number((event.target as HTMLInputElement).value);
     options.gradientLegend = {
         ...options.gradientLegend,
         gradient: { ...options.gradientLegend?.gradient, preferredLength },
@@ -75,8 +75,8 @@ function setLength(value: string) {
     chart.update(options);
 }
 
-function setPadding(value: string) {
-    const padding = Number(value);
+function setPadding(event: Event) {
+    const padding = Number((event.target as HTMLInputElement).value);
     options.gradientLegend = {
         ...options.gradientLegend,
         scale: { ...options.gradientLegend?.scale, padding },

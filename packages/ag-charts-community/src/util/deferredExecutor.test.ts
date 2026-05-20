@@ -1,19 +1,21 @@
+import { vi } from 'vitest';
+
 import { DeferredExecutor } from './deferredExecutor';
 
 describe('DeferredExecutor', () => {
     beforeEach(() => {
-        jest.useFakeTimers();
+        vi.useFakeTimers();
     });
 
     afterEach(() => {
-        jest.useRealTimers();
+        vi.useRealTimers();
     });
 
     describe('schedule', () => {
         it('should schedule computation for deferred execution', () => {
             const executor = new DeferredExecutor<number>();
-            const computation = jest.fn(() => 42);
-            const onComplete = jest.fn();
+            const computation = vi.fn(() => 42);
+            const onComplete = vi.fn();
 
             executor.schedule(computation, onComplete);
 
@@ -24,11 +26,11 @@ describe('DeferredExecutor', () => {
 
         it('should execute scheduled computation after timeout', () => {
             const executor = new DeferredExecutor<number>();
-            const computation = jest.fn(() => 42);
-            const onComplete = jest.fn();
+            const computation = vi.fn(() => 42);
+            const onComplete = vi.fn();
 
             executor.schedule(computation, onComplete);
-            jest.runAllTimers();
+            vi.runAllTimers();
 
             expect(executor.isPending()).toBe(false);
             expect(computation).toHaveBeenCalledTimes(1);
@@ -37,14 +39,14 @@ describe('DeferredExecutor', () => {
 
         it('should cancel previous pending work when scheduling new work', () => {
             const executor = new DeferredExecutor<number>();
-            const computation1 = jest.fn(() => 1);
-            const onComplete1 = jest.fn();
-            const computation2 = jest.fn(() => 2);
-            const onComplete2 = jest.fn();
+            const computation1 = vi.fn(() => 1);
+            const onComplete1 = vi.fn();
+            const computation2 = vi.fn(() => 2);
+            const onComplete2 = vi.fn();
 
             executor.schedule(computation1, onComplete1);
             executor.schedule(computation2, onComplete2);
-            jest.runAllTimers();
+            vi.runAllTimers();
 
             expect(computation1).not.toHaveBeenCalled();
             expect(onComplete1).not.toHaveBeenCalled();
@@ -56,8 +58,8 @@ describe('DeferredExecutor', () => {
     describe('demand', () => {
         it('should force immediate execution of pending computation', () => {
             const executor = new DeferredExecutor<number>();
-            const computation = jest.fn(() => 42);
-            const onComplete = jest.fn();
+            const computation = vi.fn(() => 42);
+            const onComplete = vi.fn();
 
             executor.schedule(computation, onComplete);
             const result = executor.demand();
@@ -78,12 +80,12 @@ describe('DeferredExecutor', () => {
 
         it('should not execute again after demand', () => {
             const executor = new DeferredExecutor<number>();
-            const computation = jest.fn(() => 42);
-            const onComplete = jest.fn();
+            const computation = vi.fn(() => 42);
+            const onComplete = vi.fn();
 
             executor.schedule(computation, onComplete);
             executor.demand();
-            jest.runAllTimers();
+            vi.runAllTimers();
 
             expect(computation).toHaveBeenCalledTimes(1);
             expect(onComplete).toHaveBeenCalledTimes(1);
@@ -93,12 +95,12 @@ describe('DeferredExecutor', () => {
     describe('cancel', () => {
         it('should cancel pending computation', () => {
             const executor = new DeferredExecutor<number>();
-            const computation = jest.fn(() => 42);
-            const onComplete = jest.fn();
+            const computation = vi.fn(() => 42);
+            const onComplete = vi.fn();
 
             executor.schedule(computation, onComplete);
             executor.cancel();
-            jest.runAllTimers();
+            vi.runAllTimers();
 
             expect(executor.isPending()).toBe(false);
             expect(computation).not.toHaveBeenCalled();
@@ -137,7 +139,7 @@ describe('DeferredExecutor', () => {
                 () => 42,
                 () => {}
             );
-            jest.runAllTimers();
+            vi.runAllTimers();
 
             expect(executor.isPending()).toBe(false);
         });

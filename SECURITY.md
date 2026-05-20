@@ -7,7 +7,7 @@ We currently provide security updates for the following versions:
 | Version | Supported          |
 | ------- | ------------------ |
 | 10.x    | :white_check_mark: |
-| 12.x    | :white_check_mark: |
+| 13.x    | :white_check_mark: |
 
 ## Reporting a Vulnerability
 

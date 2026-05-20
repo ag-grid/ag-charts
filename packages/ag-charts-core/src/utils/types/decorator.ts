@@ -73,30 +73,40 @@ function initialiseConfig(target: any, propertyKeyOrSymbol: string | symbol) {
         };
     }
 
-    const getter = function (this: any) {
-        let value = prevGet.call(this);
-        for (const transformFn of config[propertyKey].getters) {
-            value = transformFn(this, propertyKeyOrSymbol, value);
+    // Hoist the per-property config lookup out of the hot getter/setter path; the array contents mutate but the object identity is stable.
+    const propertyConfig = config[propertyKey];
 
+    const getter = function (this: any) {
+        const baseValue = prevGet.call(this);
+        // Fast path: most decorated properties have no get-transform configured.
+        const getters = propertyConfig.getters;
+        if (getters.length === 0) {
+            return baseValue;
+        }
+        let value = baseValue;
+        for (let i = 0, n = getters.length; i < n; i++) {
+            value = getters[i](this, propertyKeyOrSymbol, value);
             if (value === BREAK_TRANSFORM_CHAIN) {
                 return;
             }
         }
-
         return value;
     };
     const setter = function (this: any, value: unknown) {
-        const { setters, observers } = config[propertyKey];
+        const setters = propertyConfig.setters;
+        const observers = propertyConfig.observers;
 
+        // Only resolve oldValue if a setter declares the `oldValue` parameter (arity > 2).
         let oldValue;
-        if (setters.some((f) => f.length > 2)) {
-            // Lazily retrieve old value.
-            oldValue = prevGet.call(this);
+        for (let i = 0, n = setters.length; i < n; i++) {
+            if (setters[i].length > 2) {
+                oldValue = prevGet.call(this);
+                break;
+            }
         }
 
-        for (const transformFn of setters) {
-            value = transformFn(this, propertyKeyOrSymbol, value, oldValue);
-
+        for (let i = 0, n = setters.length; i < n; i++) {
+            value = setters[i](this, propertyKeyOrSymbol, value, oldValue);
             if (value === BREAK_TRANSFORM_CHAIN) {
                 return;
             }
@@ -104,8 +114,8 @@ function initialiseConfig(target: any, propertyKeyOrSymbol: string | symbol) {
 
         prevSet.call(this, value);
 
-        for (const observerFn of observers) {
-            observerFn(this, value, oldValue);
+        for (let i = 0, n = observers.length; i < n; i++) {
+            observers[i](this, value, oldValue);
         }
     };
 

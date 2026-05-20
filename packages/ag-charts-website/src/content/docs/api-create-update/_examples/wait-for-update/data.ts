@@ -1,7 +1,9 @@
+import { random } from './seededRandom';
+
 let count = 0;
 
 export function generateDatum() {
-    return { count: count++, value: Math.random() * 100 };
+    return { count: count++, value: random() * 100 };
 }
 
 export function getData() {

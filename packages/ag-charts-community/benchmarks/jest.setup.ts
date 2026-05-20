@@ -1,0 +1,80 @@
+import { expect } from '@jest/globals';
+import { type MatchImageSnapshotOptions, toMatchImageSnapshot } from 'jest-image-snapshot';
+import { URL } from 'node:url';
+import { TextDecoder, TextEncoder } from 'node:util';
+import { DOMMatrix, Image, Path2D } from 'skia-canvas';
+
+import { mockCanvas, toMatchImage } from 'ag-charts-test';
+
+import { isAtOrAfterVersion } from './compatibility';
+
+// Bridge vitest's `vi` global to Jest equivalents so ag-charts-test's
+// mock-console.ts (which was migrated to vitest APIs) works under Jest.
+(globalThis as any).vi = {
+    fn: (...args: any[]) => jest.fn(...args),
+    isMockFunction: (fn: any) => jest.isMockFunction(fn),
+};
+
+// ModuleRegistry was introduced in pre-13.0.0
+if (isAtOrAfterVersion(12, 4, 0)) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { ModuleRegistry } = require('ag-charts-core');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { AllCommunityModule } = require('../src/module-bundles/all');
+    ModuleRegistry.registerModules(AllCommunityModule);
+}
+
+// @ts-expect-error types don't exactly align
+globalThis.Canvas = mockCanvas.ConfiguredCanvas;
+
+// @ts-expect-error types don't exactly align
+globalThis.OffscreenCanvas = mockCanvas.ConfiguredCanvas;
+
+// @ts-expect-error types don't exactly align
+globalThis.DOMMatrix = DOMMatrix;
+
+// @ts-expect-error types don't exactly align
+globalThis.Image = Image;
+
+// @ts-expect-error types don't exactly align
+globalThis.Path2D = Path2D;
+
+// @ts-expect-error types don't exactly align
+globalThis.TextDecoder = TextDecoder;
+globalThis.TextEncoder = TextEncoder;
+
+// @ts-expect-error types don't exactly align
+globalThis.URL = URL;
+
+const TOGGLE_POPOVER_ATTRIBUTE = 'data-presented-as-popover';
+globalThis.HTMLElement.prototype.togglePopover = function (visible) {
+    visible ??= !this.hasAttribute(TOGGLE_POPOVER_ATTRIBUTE);
+
+    if (visible) {
+        this.setAttribute(TOGGLE_POPOVER_ATTRIBUTE, '');
+    } else {
+        this.removeAttribute(TOGGLE_POPOVER_ATTRIBUTE);
+    }
+
+    return visible;
+};
+
+globalThis.HTMLElement.prototype.matches = function (selector: string): boolean {
+    if (selector === ':focus-visible') {
+        return false;
+    }
+    try {
+        return HTMLElement.prototype.matches.call(this, selector);
+    } catch {
+        return false;
+    }
+};
+
+declare module 'expect' {
+    interface Matchers<R> {
+        toMatchImage(expected: ImageData, options?: { writeDiff: boolean }): R;
+        toMatchImageSnapshot(options?: MatchImageSnapshotOptions): R;
+    }
+}
+
+expect.extend({ toMatchImageSnapshot, toMatchImage });

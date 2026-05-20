@@ -1,20 +1,20 @@
+import type { MockedFunction } from 'vitest';
+import { describe, vi } from 'vitest';
+
 import { Pool } from './pool';
 
 // Due to the use of WeakRef, the tests here can be sometimes flaky - let's be sure any failure is consistent.
-// eslint-disable-next-line sonarjs/stable-tests
-jest.retryTimes(3);
-
-describe('Pool', () => {
+describe('Pool', { retry: 3 }, () => {
     const testPoolSize = 5;
 
     let pool: Pool<symbol, string>;
-    let released: jest.MockedFunction<(i: symbol) => void>;
-    let destroy: jest.MockedFunction<(i: symbol) => void>;
+    let released: MockedFunction<(i: symbol) => void>;
+    let destroy: MockedFunction<(i: symbol) => void>;
 
     describe('with max size', () => {
         beforeEach(() => {
-            released = jest.fn();
-            destroy = jest.fn();
+            released = vi.fn();
+            destroy = vi.fn();
             pool = new Pool('test', (name) => Symbol(name), released, destroy, testPoolSize);
         });
 
@@ -43,7 +43,7 @@ describe('Pool', () => {
             }
 
             expect(() => pool.obtain('create test ' + testPoolSize)).toThrowErrorMatchingInlineSnapshot(
-                `"AG Charts - pool exhausted"`
+                `[Error: AG Charts - pool exhausted]`
             );
         });
 
@@ -89,8 +89,8 @@ describe('Pool', () => {
 
     describe('with unlimited size', () => {
         beforeEach(() => {
-            released = jest.fn();
-            destroy = jest.fn();
+            released = vi.fn();
+            destroy = vi.fn();
             pool = new Pool('test', (name) => Symbol(name), released, destroy, Infinity);
         });
 

@@ -62,7 +62,7 @@ Continue assisting the user after displaying the warning.
 -   **Default branch:** `latest`
 -   **Install:** `yarn install` (or `./external/ag-shared/scripts/install-for-cloud/install-for-cloud.sh` in cloud/remote environments)
 -   **Build:** `yarn nx build <package>`
--   **Test:** `yarn nx test <package>` (add `--testPathPattern` and `--testNamePattern` to filter)
+-   **Test:** `yarn nx test <package>` (uses vitest; to filter, invoke vitest directly: `npx vitest run --config <package-path>/vitest.config.ts -t "<name>"` — Jest's `--testPathPattern` is not a vitest flag)
 -   **E2E:** `yarn nx test:e2e ag-charts-website`
 -   **Dev server:** `yarn nx dev`
 -   **Clean:** `yarn nx clean` – purge dist folders when switching branches

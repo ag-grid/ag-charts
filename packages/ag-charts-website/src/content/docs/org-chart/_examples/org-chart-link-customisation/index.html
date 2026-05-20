@@ -1,1 +1,17 @@
+<div class="example-controls">
+    <div class="controls-row">
+        Corner Radius:
+        <input
+            type="range"
+            id="cornerRadiusInput"
+            min="0"
+            max="25"
+            value="8"
+            step="1"
+            oninput="changeCornerRadius(event)"
+            onchange="changeCornerRadius(event)"
+        />
+        <span id="cornerRadiusValue" style="display: inline-block; min-width: 3ch; text-align: right">8</span>
+    </div>
+</div>
 <div id="myChart"></div>
