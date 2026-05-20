@@ -94,7 +94,10 @@ class InternalMarker<D = any> extends Path<D> {
         // Custom function shapes may bake pixelRatio into their geometry → cache per DPR.
         // Built-in shapes ignore it (pixel alignment is applied at draw-time translate).
         const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
-        this._sharedPath = getSharedMarkerPath(shape, size, pixelRatio);
+        // Squares snap to an integer device-pixel width so both edges land on device pixels at
+        // draw time (see drawPath). Other shapes use the requested size verbatim.
+        const pathSize = shape === 'square' ? align(pixelRatio, size) : size;
+        this._sharedPath = getSharedMarkerPath(shape, pathSize, pixelRatio);
     }
 
     protected override computeBBox(): BBox {
@@ -111,11 +114,12 @@ class InternalMarker<D = any> extends Path<D> {
         const anchor = Marker.anchor(shape);
         const ax = x - (anchor.x - 0.5) * size;
         const ay = y - (anchor.y - 0.5) * size;
-        // Pixel-snap axis-aligned squares so all four edges land on device pixels.
+        // Pixel-snap axis-aligned squares so all four edges land on device pixels. updatePath()
+        // authored the shared path with this snapped size, so both edges align at draw time.
         const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
-        const hs = size / 2;
-        const tx = shape === 'square' ? align(pixelRatio, ax - hs) + hs : ax;
-        const ty = shape === 'square' ? align(pixelRatio, ay - hs) + hs : ay;
+        const pathHalfSize = (shape === 'square' ? align(pixelRatio, size) : size) / 2;
+        const tx = shape === 'square' ? align(pixelRatio, ax - pathHalfSize) + pathHalfSize : ax;
+        const ty = shape === 'square' ? align(pixelRatio, ay - pathHalfSize) + pathHalfSize : ay;
 
         // fillStroke configures gradients/patterns/strokes before ctx.translate is applied, so
         // any bbox they reference must be expressed in origin (post-translate) coordinates.
