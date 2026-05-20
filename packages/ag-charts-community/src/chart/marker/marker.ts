@@ -36,25 +36,10 @@ class InternalMarker<D = any> extends Path<D> {
     // Per-marker position is applied via ctx.translate in drawPath, not baked into the path.
     private _sharedPath?: ExtendedPath2D;
 
-    // Tracks the active drawPath translate so getBBox/fillBBox can be re-expressed in origin
-    // coordinates while fills/strokes are configured before ctx.translate is applied. Scratch
-    // BBoxes are reused across draws to avoid per-frame allocations.
-    private _drawTranslateActive: boolean = false;
-    private _drawTranslateX: number = 0;
-    private _drawTranslateY: number = 0;
+    // Scratch BBoxes reused across draws to avoid per-frame allocations during drawPath —
+    // one for the shifted fillBBox swap, one for the bboxOverride passed to fillStroke.
     private readonly _scratchFillBBox: BBox = new BBox(0, 0, 0, 0);
     private readonly _scratchDrawBBox: BBox = new BBox(0, 0, 0, 0);
-
-    override getBBox(): BBox {
-        const bbox = super.getBBox();
-        if (!this._drawTranslateActive) return bbox;
-        const out = this._scratchDrawBBox;
-        out.x = bbox.x - this._drawTranslateX;
-        out.y = bbox.y - this._drawTranslateY;
-        out.width = bbox.width;
-        out.height = bbox.height;
-        return out;
-    }
 
     // Path geometry is invariant to x/y (applied as a render-time translate), so x/y mutations
     // dirty the scene but not the path.
@@ -132,8 +117,17 @@ class InternalMarker<D = any> extends Path<D> {
         const tx = shape === 'square' ? align(pixelRatio, ax - hs) + hs : ax;
         const ty = shape === 'square' ? align(pixelRatio, ay - hs) + hs : ay;
 
-        // fillBBox is configured before ctx.translate → shift it into origin coordinates so
-        // axis-bounded gradients stay anchored on screen.
+        // fillStroke configures gradients/patterns/strokes before ctx.translate is applied, so
+        // any bbox they reference must be expressed in origin (post-translate) coordinates.
+        // Shift the marker bbox and (if present) fillBBox by (-tx, -ty); pass the marker bbox
+        // through as bboxOverride, swap __fillBBox in via the existing decorator setter.
+        const baseBBox = super.getBBox();
+        const drawBBox = this._scratchDrawBBox;
+        drawBBox.x = baseBBox.x - tx;
+        drawBBox.y = baseBBox.y - ty;
+        drawBBox.width = baseBBox.width;
+        drawBBox.height = baseBBox.height;
+
         const originalFillBBox = this.__fillBBox;
         if (originalFillBBox) {
             const shifted = this._scratchFillBBox;
@@ -143,17 +137,13 @@ class InternalMarker<D = any> extends Path<D> {
             shifted.height = originalFillBBox.height;
             this.__fillBBox = shifted;
         }
-        this._drawTranslateActive = true;
-        this._drawTranslateX = tx;
-        this._drawTranslateY = ty;
 
         ctx.save();
         ctx.translate(tx, ty);
         try {
-            this.fillStroke(ctx, this._sharedPath.getPath2D());
+            this.fillStroke(ctx, this._sharedPath.getPath2D(), drawBBox);
         } finally {
             ctx.restore();
-            this._drawTranslateActive = false;
             this.__fillBBox = originalFillBBox;
         }
     }
@@ -294,11 +284,3 @@ export class Marker<_D = unknown> extends Rotatable(Scalable(Translatable(Intern
         }
     }
 }
-
-// Series plot markers must use `x`/`y` for positioning, never the `Translatable` mixin's
-// `translationX`/`translationY`. A previous experiment moved positioning to those fields and
-// caused hit-testing regressions — `distanceSquared` and `computeBBox` are expressed in `x`/`y`
-// space, so translating the node shifts the visual without updating the hit-target.
-// UI markers (pagination arrows, gauge needles, gradient legend arrows) legitimately use
-// `translationX`/`translationY` when they also apply rotation, because the `drawPath` translate
-// runs in the already-rotated canvas coordinate frame and would produce wrong positions.
