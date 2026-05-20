@@ -42,11 +42,12 @@ function makeMouseEvent<T extends TMouseEvent>(
     testTarget: MockEvent,
     clientX: number,
     clientY: number,
-    bubbles = true
+    bubbles: boolean,
+    modifiers: EventModifierInit | undefined
 ): MouseEvent {
     const { offsetX, offsetY, target } = testTarget;
     const view = target.ownerDocument.defaultView!;
-    const event = new MouseEvent(type, { bubbles, clientX, clientY, view });
+    const event = new MouseEvent(type, { ...modifiers, bubbles, clientX, clientY, view });
     Object.defineProperty(event, 'offsetX', { value: offsetX, enumerable: true, configurable: true });
     Object.defineProperty(event, 'offsetY', { value: offsetY, enumerable: true, configurable: true });
     Object.defineProperty(event, 'pageX', { value: clientX, enumerable: true, configurable: true });
@@ -54,36 +55,76 @@ function makeMouseEvent<T extends TMouseEvent>(
     return event;
 }
 
-export function mouseDownEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
-    return makeMouseEvent('mousedown', offsets, clientX, clientY);
+export function mouseDownEvent(
+    offsets: MockEvent,
+    clientX: number,
+    clientY: number,
+    modifiers?: EventModifierInit
+): MouseEvent {
+    return makeMouseEvent('mousedown', offsets, clientX, clientY, true, modifiers);
 }
 
-export function mouseUpEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
-    return makeMouseEvent('mouseup', offsets, clientX, clientY);
+export function mouseUpEvent(
+    offsets: MockEvent,
+    clientX: number,
+    clientY: number,
+    modifiers?: EventModifierInit
+): MouseEvent {
+    return makeMouseEvent('mouseup', offsets, clientX, clientY, true, modifiers);
 }
 
-export function mouseEnterEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
-    return makeMouseEvent('mouseenter', offsets, clientX, clientY);
+export function mouseEnterEvent(
+    offsets: MockEvent,
+    clientX: number,
+    clientY: number,
+    modifiers?: EventModifierInit
+): MouseEvent {
+    return makeMouseEvent('mouseenter', offsets, clientX, clientY, true, modifiers);
 }
 
-export function mouseLeaveEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
-    return makeMouseEvent('mouseleave', offsets, clientX, clientY);
+export function mouseLeaveEvent(
+    offsets: MockEvent,
+    clientX: number,
+    clientY: number,
+    modifiers?: EventModifierInit
+): MouseEvent {
+    return makeMouseEvent('mouseleave', offsets, clientX, clientY, true, modifiers);
 }
 
-export function mouseMoveEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
-    return makeMouseEvent('mousemove', offsets, clientX, clientY);
+export function mouseMoveEvent(
+    offsets: MockEvent,
+    clientX: number,
+    clientY: number,
+    modifiers?: EventModifierInit
+): MouseEvent {
+    return makeMouseEvent('mousemove', offsets, clientX, clientY, true, modifiers);
 }
 
-export function clickEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
-    return makeMouseEvent('click', offsets, clientX, clientY);
+export function clickEvent(
+    offsets: MockEvent,
+    clientX: number,
+    clientY: number,
+    modifiers?: EventModifierInit
+): MouseEvent {
+    return makeMouseEvent('click', offsets, clientX, clientY, true, modifiers);
 }
 
-export function doubleClickEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
-    return makeMouseEvent('dblclick', offsets, clientX, clientY);
+export function doubleClickEvent(
+    offsets: MockEvent,
+    clientX: number,
+    clientY: number,
+    modifiers?: EventModifierInit
+): MouseEvent {
+    return makeMouseEvent('dblclick', offsets, clientX, clientY, true, modifiers);
 }
 
-export function contextMenuEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
-    return makeMouseEvent('contextmenu', offsets, clientX, clientY, false);
+export function contextMenuEvent(
+    offsets: MockEvent,
+    clientX: number,
+    clientY: number,
+    modifiers?: EventModifierInit
+): MouseEvent {
+    return makeMouseEvent('contextmenu', offsets, clientX, clientY, false, modifiers);
 }
 
 export function dispatchEvent({ bubbleChain, target }: MockEvent, event: Event) {
