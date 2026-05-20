@@ -1,5 +1,5 @@
 import type { Point } from 'ag-charts-core';
-import { DeclaredSceneChangeDetection, DeclaredSceneObjectChangeDetection, Logger, TRIPLE_EQ } from 'ag-charts-core';
+import { DeclaredSceneChangeDetection, DeclaredSceneObjectChangeDetection, TRIPLE_EQ } from 'ag-charts-core';
 import type { AgMarkerShape } from 'ag-charts-types';
 
 import { BBox } from '../../scene/bbox';
@@ -321,32 +321,10 @@ export class Marker<_D = unknown> extends Rotatable(Scalable(Translatable(Intern
     }
 }
 
-// Lock-in: markers must use `x`/`y` for positioning, never the `Translatable` mixin's
+// Series plot markers must use `x`/`y` for positioning, never the `Translatable` mixin's
 // `translationX`/`translationY`. A previous experiment moved positioning to those fields and
-// caused hit-testing and other regressions; warn (once) if anyone reaches for them again.
-function installMarkerTranslationGuard(key: 'translationX' | 'translationY') {
-    // `translationX/Y` come from the Translatable mixin and live further up the prototype chain,
-    // not on Marker.prototype itself. Walk the chain to find the actual definer so the guard
-    // can wrap the real setter rather than silently no-op'ing.
-    let proto: object | null = Marker.prototype;
-    let descriptor: PropertyDescriptor | undefined;
-    while (proto && !descriptor) {
-        descriptor = Object.getOwnPropertyDescriptor(proto, key);
-        if (descriptor) break;
-        proto = Object.getPrototypeOf(proto);
-    }
-    if (!proto || !descriptor?.set) return;
-    // eslint-disable-next-line @typescript-eslint/unbound-method -- intentional prototype rebinding
-    const originalSet: (this: Marker, value: number) => void = descriptor.set;
-    Object.defineProperty(proto, key, {
-        ...descriptor,
-        set(this: Marker, value: number) {
-            if (value !== 0) {
-                Logger.warnOnce(`Marker.${key} must not be used for positioning — assign Marker.x/y instead.`);
-            }
-            originalSet.call(this, value);
-        },
-    });
-}
-installMarkerTranslationGuard('translationX');
-installMarkerTranslationGuard('translationY');
+// caused hit-testing regressions — `distanceSquared` and `computeBBox` are expressed in `x`/`y`
+// space, so translating the node shifts the visual without updating the hit-target.
+// UI markers (pagination arrows, gauge needles, gradient legend arrows) legitimately use
+// `translationX`/`translationY` when they also apply rotation, because the `drawPath` translate
+// runs in the already-rotated canvas coordinate frame and would produce wrong positions.
