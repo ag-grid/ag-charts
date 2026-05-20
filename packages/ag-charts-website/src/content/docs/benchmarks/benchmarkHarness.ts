@@ -8,7 +8,7 @@
 import { isVersionInRange } from './benchmarkUtils';
 
 // Type declarations for the benchmark system
-declare const agCharts: { VERSION?: string } | undefined;
+declare const agCharts: { VERSION?: string; AgCharts?: { optionsMutationFn?: unknown } } | undefined;
 
 /**
  * A benchmark variant represents one permutation to test within a test case.
@@ -1583,6 +1583,10 @@ class BenchmarkRunner {
             return;
         }
 
+        const chartApi = agCharts?.AgCharts;
+        const savedOptionsMutationFn = chartApi?.optionsMutationFn;
+        if (chartApi) (chartApi as any).optionsMutationFn = undefined;
+
         this.cleanupClipboardListeners();
         this.isRunning = true;
         this.results = [];
@@ -1642,6 +1646,8 @@ class BenchmarkRunner {
             this.ui.showError(`Benchmark failed: ${error}`);
             (window as any).__benchmarkError = String(error);
         } finally {
+            if (chartApi) (chartApi as any).optionsMutationFn = savedOptionsMutationFn;
+
             this.isRunning = false;
             (window as any).__benchmarkComplete = true;
             this.currentTestCase = null;
