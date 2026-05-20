@@ -9,7 +9,6 @@ import type { AgCategoryAxisOptions } from 'ag-charts-types';
 import { categoryAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { CategoryAxis } from '../../chart/axis/categoryAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
-import { CrossLinesModule } from '../../chart/crossline/crossLinesModule';
 import { commonAxisThemeTemplate, titleAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
 import { CategoryScale } from '../../scale/categoryScale';
 import { VERSION } from '../../version';
@@ -20,7 +19,7 @@ export const CategoryAxisModule: AxisModuleDefinition<AgCategoryAxisOptions, Cat
     name: 'category',
     chartType: 'cartesian',
     version: VERSION,
-    dependencies: [CartesianChartModule, CrossLinesModule],
+    dependencies: [CartesianChartModule],
 
     options: categoryAxisOptionsDefs,
     themeTemplate: mergeDefaults(

@@ -9,7 +9,6 @@ import type { AgNumberAxisOptions } from 'ag-charts-types';
 import { numberAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { NumberAxis } from '../../chart/axis/numberAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
-import { CrossLinesModule } from '../../chart/crossline/crossLinesModule';
 import { commonAxisThemeTemplate, titleAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
@@ -19,7 +18,7 @@ export const NumberAxisModule: AxisModuleDefinition<AgNumberAxisOptions, NumberA
     name: 'number',
     chartType: 'cartesian',
     version: VERSION,
-    dependencies: [CartesianChartModule, CrossLinesModule],
+    dependencies: [CartesianChartModule],
 
     options: numberAxisOptionsDefs,
     themeTemplate: mergeDefaults(

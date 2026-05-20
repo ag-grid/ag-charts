@@ -9,7 +9,6 @@ import type { AgUnitTimeAxisOptions } from 'ag-charts-types';
 import { unitTimeAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { UnitTimeAxis } from '../../chart/axis/unitTimeAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
-import { CrossLinesModule } from '../../chart/crossline/crossLinesModule';
 import {
     commonAxisThemeTemplate,
     parentLevelAxisThemeTemplate,
@@ -23,7 +22,7 @@ export const UnitTimeAxisModule: AxisModuleDefinition<AgUnitTimeAxisOptions, Uni
     name: 'unit-time',
     chartType: 'cartesian',
     version: VERSION,
-    dependencies: [CartesianChartModule, CrossLinesModule],
+    dependencies: [CartesianChartModule],
 
     options: unitTimeAxisOptionsDefs,
     themeTemplate: mergeDefaults(

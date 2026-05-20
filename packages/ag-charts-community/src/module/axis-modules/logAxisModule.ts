@@ -9,7 +9,6 @@ import type { AgLogAxisOptions } from 'ag-charts-types';
 import { logAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { LogAxis } from '../../chart/axis/logAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
-import { CrossLinesModule } from '../../chart/crossline/crossLinesModule';
 import { commonAxisThemeTemplate, titleAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
@@ -19,7 +18,7 @@ export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions, LogAxis> = {
     name: 'log',
     chartType: 'cartesian',
     version: VERSION,
-    dependencies: [CartesianChartModule, CrossLinesModule],
+    dependencies: [CartesianChartModule],
 
     options: logAxisOptionsDefs,
     themeTemplate: mergeDefaults(
