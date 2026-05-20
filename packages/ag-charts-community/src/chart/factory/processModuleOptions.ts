@@ -21,7 +21,22 @@ import { ExpectedModules, type ModulePlaceholder } from './expectedModules';
 
 const SkippedModules = new Set<string>(['foreground']);
 
+let sanitizedThemeCache = new WeakMap<ChartTheme, ChartTheme>();
+let sanitizedThemeCacheRevision = -1;
+
 export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
+    sanitizedThemeCacheRevision = ModuleRegistry.ifRegistryChanged(sanitizedThemeCacheRevision, () => {
+        sanitizedThemeCache = new WeakMap();
+    });
+    const cached = sanitizedThemeCache.get(theme);
+    if (cached !== undefined) return cached;
+
+    const result = sanitizeThemeModulesUncached(theme);
+    sanitizedThemeCache.set(theme, result);
+    return result;
+}
+
+function sanitizeThemeModulesUncached(theme: ChartTheme): ChartTheme {
     const missingModules = new Map<string, Set<string>>();
 
     for (const [name, { type }] of ExpectedModules) {
