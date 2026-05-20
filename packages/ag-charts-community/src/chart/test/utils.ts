@@ -503,7 +503,7 @@ export function mouseUpAction(
 export function clickAction(
     canvasX: number,
     canvasY: number,
-    opts?: { mousedown?: { offsetX: number; offsetY: number } }
+    opts?: { mousedown?: { offsetX: number; offsetY: number } } & EventModifierInit
 ): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
@@ -515,9 +515,9 @@ export function clickAction(
         checkTargetValid(testTarget);
 
         const mousedownOffset = opts?.mousedown ? { ...testTarget, ...opts.mousedown } : testTarget;
-        dispatchEvent(testTarget, mouseDownEvent(mousedownOffset, canvasX, canvasY));
-        dispatchEvent(testTarget, mouseUpEvent(testTarget, canvasX, canvasY));
-        dispatchEvent(testTarget, clickEvent(testTarget, canvasX, canvasY));
+        dispatchEvent(testTarget, mouseDownEvent(mousedownOffset, canvasX, canvasY, opts));
+        dispatchEvent(testTarget, mouseUpEvent(testTarget, canvasX, canvasY, opts));
+        dispatchEvent(testTarget, clickEvent(testTarget, canvasX, canvasY, opts));
         return delay(50);
     };
 }
