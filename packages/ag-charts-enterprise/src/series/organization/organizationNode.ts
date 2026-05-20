@@ -22,7 +22,7 @@ function computeTextMaxWidth(styles: RequiredOrganizationNodeStyle): number {
             ? styles.image.width + styles.image.spacing
             : 0;
 
-    return cardWidth - 2 * styles.padding - imageHorizontalSpace;
+    return cardWidth - 2 * (styles.padding.left + styles.padding.right) - imageHorizontalSpace;
 }
 
 function wrapTextTier(
@@ -30,7 +30,7 @@ function wrapTextTier(
     tierStyles: RequiredOrganizationNodeTextStyle,
     maxWidth: number
 ): TextOrSegments {
-    const tierWidth = Math.max(maxWidth - 2 * tierStyles.padding, 1);
+    const tierWidth = Math.max(maxWidth - (tierStyles.padding.left + tierStyles.padding.right), 1);
     if (!Number.isFinite(tierWidth)) return text;
 
     return wrapTextOrSegments(text, {
@@ -82,7 +82,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         const columnGaps: number[] = [];
 
         if (this.imageNode && styles.image.position === 'top') {
-            this.imageNode.x = styles.padding;
+            this.imageNode.x = styles.padding.left;
             columnScenes.push(this.imageNode);
             columnGaps.push(styles.image.spacing);
         }
@@ -109,25 +109,25 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
 
         if (this.imageNode && styles.image.position === 'bottom') {
-            this.imageNode.x = styles.padding;
+            this.imageNode.x = styles.padding.left;
             columnScenes.push(this.imageNode);
             columnGaps.push(styles.image.spacing);
         }
 
         if (this.imageNode && styles.image.position === 'left') {
-            this.imageNode.y = styles.padding;
+            this.imageNode.y = styles.padding.top;
             rowScenes = [this.imageNode, columnScenes];
             rowGaps = [styles.image.spacing];
         } else if (this.imageNode && styles.image.position === 'right') {
-            this.imageNode.y = styles.padding;
+            this.imageNode.y = styles.padding.top;
             rowScenes = [columnScenes, this.imageNode];
             rowGaps = [styles.image.spacing];
         } else {
             rowScenes = [columnScenes];
         }
 
-        layoutScenesColumn(columnScenes, styles.padding, columnGaps);
-        layoutScenesRow(rowScenes, styles.padding, rowGaps);
+        layoutScenesColumn(columnScenes, styles.padding.top, columnGaps);
+        layoutScenesRow(rowScenes, styles.padding.left, rowGaps);
 
         let lastElementSpacing = this.subtitleNode ? styles.subtitle.spacing : styles.title.spacing;
         if (this.imageNode && styles.image.position === 'bottom') {
@@ -137,14 +137,12 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
 
         const bottomPadding = this.expanderNode
-            ? Math.max(styles.padding, this.expanderNode.getBBox().height / 2 + lastElementSpacing)
-            : styles.padding;
+            ? Math.max(styles.padding.bottom, this.expanderNode.getBBox().height / 2 + lastElementSpacing)
+            : styles.padding.bottom;
 
         const bbox = _ModuleSupport.Group.computeChildrenBBox(rowScenes.flat()).grow({
-            top: styles.padding,
-            right: styles.padding,
+            ...styles.padding,
             bottom: bottomPadding,
-            left: styles.padding,
         }); // TODO: add stroke width by side
 
         this.shapeNode.x = 0;
@@ -195,13 +193,15 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             }
 
             if (styles.image.position === 'right') {
-                imageNode.x = bbox.width - imageNode.width - styles.padding;
+                imageNode.x = bbox.width - imageNode.width - styles.padding.right;
             }
         }
 
-        const textAreaLeft = styles.image.position === 'left' ? styles.padding + imageOffset : styles.padding;
+        const textAreaLeft = styles.image.position === 'left' ? styles.padding.left + imageOffset : styles.padding.left;
         const textAreaRight =
-            styles.image.position === 'right' ? bbox.width - styles.padding - imageOffset : bbox.width - styles.padding;
+            styles.image.position === 'right'
+                ? bbox.width - styles.padding.right - imageOffset
+                : bbox.width - styles.padding.right;
 
         const alignTextNode = (node: _ModuleSupport.Text, textAlign: TextAlign) => {
             switch (textAlign) {
@@ -370,7 +370,7 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         this.shapeNode ??= this.appendChild(new _ModuleSupport.Rect());
 
         this.countNode ??= this.appendChild(new _ModuleSupport.Text());
-        this.countNode.y = styles.expander.padding;
+        this.countNode.y = styles.expander.padding.top;
         this.countNode.text = `${descendantsCount}`;
         applyTextStyles(this.countNode, styles.expander.text);
 
@@ -381,20 +381,17 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
             isCollapsed,
             styles
         );
-        this.chevronNode.translationY = styles.expander.padding + styles.expander.text.fontSize / 2;
+        this.chevronNode.translationY = styles.expander.padding.top + styles.expander.text.fontSize / 2;
 
         layoutScenesRow(
             isRtl ? [this.chevronNode, this.countNode] : [this.countNode, this.chevronNode],
-            styles.expander.padding * 1.5,
+            styles.expander.padding.left,
             [styles.expander.text.fontSize]
         );
 
-        const bbox = _ModuleSupport.Group.computeChildrenBBox([this.countNode, this.chevronNode]).grow({
-            top: styles.expander.padding,
-            right: styles.expander.padding * 1.5,
-            bottom: styles.expander.padding,
-            left: styles.expander.padding * 1.5,
-        });
+        const bbox = _ModuleSupport.Group.computeChildrenBBox([this.countNode, this.chevronNode]).grow(
+            styles.expander.padding
+        );
 
         this.shapeNode.x = 0;
         this.shapeNode.y = 0;
@@ -416,7 +413,7 @@ class ChevronPath extends _ModuleSupport.Rotatable(_ModuleSupport.Translatable(_
         path.lineTo(width / 2, height);
         path.lineTo(width, 0);
 
-        this.translationY = styles.expander.padding;
+        this.translationY = styles.expander.padding.top;
         this.rotationCenterX = width / 2;
         this.rotationCenterY = height / 2;
         this.rotation = isCollapsed ? 0 : Math.PI;

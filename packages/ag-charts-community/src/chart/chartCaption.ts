@@ -1,0 +1,255 @@
+import type { DynamicContext, NormalisedChartCaptionOptions } from 'ag-charts-core';
+import {
+    FONT_SIZE,
+    callWithContext,
+    createId,
+    isArray,
+    isSegmentTruncated,
+    isTextTruncated,
+    toPlainText,
+    toTextString,
+    wrapText,
+    wrapTextSegments,
+} from 'ag-charts-core';
+import type { AgCaptionTooltipOptions, AgCaptionTooltipRendererParams, TextOrSegments } from 'ag-charts-types';
+
+import type { ChartRegistry } from '../module/moduleContext';
+import { PointerEvents } from '../scene/node';
+import { RotatableText } from '../scene/shape/text';
+import { Transformable } from '../scene/transformable';
+import type { BoundedTextWidget } from '../widget/boundedTextWidget';
+import type { MouseWidgetEvent } from '../widget/widgetEvents';
+import type { CaptionLike } from './captionLike';
+import type { TooltipContent } from './tooltip/tooltipContent';
+
+type CaptionNodeDatum = {
+    visible: boolean;
+    text: TextOrSegments | undefined;
+    textBaseline: string;
+    x: number;
+    y: number;
+    rotationCenterX: number;
+    rotationCenterY: number;
+    rotation: number;
+};
+
+export type ChartCaptionKey = 'title' | 'subtitle' | 'footnote';
+
+/** Build the font spec (FontOptions shape) consumed by text measurers from a caption's options. */
+export function captionFont(opts: NormalisedChartCaptionOptions) {
+    return {
+        fontSize: opts.fontSize ?? FONT_SIZE.SMALLER,
+        fontStyle: opts.fontStyle,
+        fontWeight: opts.fontWeight,
+        fontFamily: opts.fontFamily ?? 'sans-serif',
+    };
+}
+
+/**
+ * Chart-level caption (title/subtitle/footnote). Reads its option subtree from
+ * `ctx.chartState.getValue('options', key)` and applies values to its scene node
+ * during layout. Mirrors the Legend/Zoom pattern.
+ *
+ * For axis/series titles (which use `Caption`), the BaseProperties-based
+ * `Caption` class continues to be used.
+ */
+export class ChartCaption implements CaptionLike {
+    static readonly className = 'ChartCaption';
+
+    readonly id = createId(this);
+    readonly node = new RotatableText<CaptionNodeDatum>({ zIndex: 1 }).setProperties({
+        visible: false,
+        textAlign: 'center',
+        pointerEvents: PointerEvents.None,
+    });
+
+    get opts(): NormalisedChartCaptionOptions {
+        return this.ctx.chartState.getValue('options', this.key) ?? {};
+    }
+
+    // Members required by CaptionLike. Other field reads go through `opts` at the call site.
+    get enabled(): boolean {
+        return this.opts.enabled ?? false;
+    }
+
+    get text(): TextOrSegments | undefined {
+        return this.opts.text;
+    }
+
+    get padding(): number {
+        return this.opts.padding ?? 0;
+    }
+
+    private truncated = false;
+    private proxyText?: BoundedTextWidget;
+    private proxyTextListeners?: Array<() => void>;
+    private lastProxyTextContent?: string;
+    private lastProxyBBox?: { x: number; y: number; width: number; height: number };
+
+    constructor(
+        private readonly ctx: DynamicContext<ChartRegistry>,
+        private readonly key: ChartCaptionKey
+    ) {}
+
+    /**
+     * Apply the current options subtree to the scene node. Called from
+     * `ChartCaptions.positionCaption` before each layout so visible/text/font
+     * properties land before render.
+     */
+    applyToNode() {
+        const opts = this.opts;
+        const { node } = this;
+        node.visible = opts.enabled ?? false;
+        node.text = opts.text;
+        node.textAlign = opts.textAlign ?? 'center';
+        node.fontStyle = opts.fontStyle;
+        node.fontWeight = opts.fontWeight;
+        node.fontSize = opts.fontSize ?? FONT_SIZE.SMALLER;
+        node.fontFamily = opts.fontFamily ?? 'sans-serif';
+        node.fill = opts.color;
+    }
+
+    registerInteraction(moduleCtx: DynamicContext<ChartRegistry>, where: 'beforebegin' | 'afterend') {
+        return moduleCtx.eventsHub.on('layout:complete', () => this.updateA11yText(moduleCtx, where));
+    }
+
+    computeTextWrap(containerWidth: number, containerHeight: number) {
+        const opts = this.opts;
+        const wrapping = opts.wrapping ?? 'always';
+        const truncate = opts.truncate ?? true;
+        const padding = opts.padding ?? 0;
+        const effectiveContainerWidth = truncate ? containerWidth : Infinity;
+        const effectiveContainerHeight = truncate ? containerHeight : Infinity;
+        const maxWidth = Math.min(opts.maxWidth ?? Infinity, effectiveContainerWidth) - padding * 2;
+        const maxHeight = opts.maxHeight ?? effectiveContainerHeight - padding * 2;
+        const options = { maxWidth, maxHeight, font: captionFont(opts), textWrap: wrapping };
+
+        const text = opts.text;
+        if (!Number.isFinite(maxWidth) && !Number.isFinite(maxHeight)) {
+            this.node.text = text;
+            return;
+        }
+
+        let wrappedText;
+        if (isArray(text)) {
+            wrappedText = wrapTextSegments(text, options);
+            this.truncated = wrappedText.some(isSegmentTruncated);
+        } else {
+            wrappedText = wrapText(toTextString(text), options);
+            this.truncated = isTextTruncated(wrappedText);
+        }
+        this.node.text = wrappedText;
+    }
+
+    private updateA11yText(moduleCtx: DynamicContext<ChartRegistry>, where: 'beforebegin' | 'afterend') {
+        const { proxyInteractionService } = moduleCtx;
+        if (!this.enabled || !this.text) {
+            this.destroyProxyText();
+            return;
+        }
+
+        const bbox = Transformable.toCanvas(this.node);
+        if (!bbox) return;
+
+        const { id: domManagerId } = this;
+        if (this.proxyText == null) {
+            this.proxyText = proxyInteractionService.createProxyElement({ type: 'text', domManagerId, where });
+            this.proxyTextListeners = [
+                this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev)),
+                this.proxyText.addListener('mouseleave', () => this.handleTooltipHide(moduleCtx)),
+                this.proxyText.addListener('focus', () => this.handleFocus(moduleCtx)),
+                this.proxyText.addListener('blur', () => this.handleTooltipHide(moduleCtx)),
+            ];
+        }
+
+        const textContent = toPlainText(this.text);
+        if (textContent !== this.lastProxyTextContent) {
+            this.proxyText.textContent = textContent;
+            this.lastProxyTextContent = textContent;
+        }
+
+        const { lastProxyBBox } = this;
+        if (
+            bbox.x !== lastProxyBBox?.x ||
+            bbox.y !== lastProxyBBox?.y ||
+            bbox.width !== lastProxyBBox?.width ||
+            bbox.height !== lastProxyBBox?.height
+        ) {
+            this.proxyText.setBounds(bbox);
+            this.lastProxyBBox = { x: bbox.x, y: bbox.y, width: bbox.width, height: bbox.height };
+        }
+    }
+
+    private getEffectiveTooltipVisible(): 'auto' | 'always' | 'never' {
+        const tooltip: AgCaptionTooltipOptions = this.opts.tooltip ?? {};
+        if (tooltip.visible != null) return tooltip.visible;
+        return tooltip.text != null || tooltip.renderer != null ? 'always' : 'auto';
+    }
+
+    private getTooltipContent(moduleCtx: DynamicContext<ChartRegistry>): TooltipContent | undefined {
+        const captionText = toPlainText(this.text);
+        const tooltip: AgCaptionTooltipOptions = this.opts.tooltip ?? {};
+
+        if (tooltip.renderer != null) {
+            const params: AgCaptionTooltipRendererParams = { text: captionText };
+            const result = callWithContext(moduleCtx.chartService, tooltip.renderer, params);
+            if (result === '') return undefined;
+            if (result != null) return { type: 'raw', rawHtmlString: toTextString(result) };
+        }
+
+        const displayText = tooltip.text ?? captionText;
+        return { type: 'structured', title: displayText };
+    }
+
+    private showTooltip(moduleCtx: DynamicContext<ChartRegistry>, canvasX: number, canvasY: number) {
+        if (!this.enabled) return;
+
+        const effectiveVisible = this.getEffectiveTooltipVisible();
+        if (effectiveVisible === 'never') return;
+        if (effectiveVisible === 'auto' && !this.truncated) return;
+
+        const content = this.getTooltipContent(moduleCtx);
+        if (content == null) return;
+
+        moduleCtx.tooltipManager.updateTooltip(this.id, { canvasX, canvasY, showArrow: false }, [content]);
+    }
+
+    private handleMouseMove(moduleCtx: DynamicContext<ChartRegistry>, event?: MouseWidgetEvent<'mousemove'>) {
+        if (event == null) return;
+
+        const { x, y } = Transformable.toCanvas(this.node);
+        const canvasX = event.sourceEvent.offsetX + x;
+        const canvasY = event.sourceEvent.offsetY + y;
+        this.showTooltip(moduleCtx, canvasX, canvasY);
+    }
+
+    private handleFocus(moduleCtx: DynamicContext<ChartRegistry>) {
+        const bbox = Transformable.toCanvas(this.node);
+        if (!bbox) return;
+
+        const canvasX = bbox.x + bbox.width / 2;
+        const canvasY = bbox.y + bbox.height / 2;
+        this.showTooltip(moduleCtx, canvasX, canvasY);
+    }
+
+    private handleTooltipHide(moduleCtx: DynamicContext<ChartRegistry>) {
+        moduleCtx.tooltipManager.removeTooltip(this.id, undefined, true);
+    }
+
+    destroy() {
+        this.destroyProxyText();
+    }
+
+    private destroyProxyText() {
+        if (this.proxyText == null) return;
+
+        for (const cleanup of this.proxyTextListeners ?? []) {
+            cleanup();
+        }
+        this.proxyTextListeners = undefined;
+        this.proxyText.destroy();
+        this.proxyText = undefined;
+        this.lastProxyTextContent = undefined;
+        this.lastProxyBBox = undefined;
+    }
+}

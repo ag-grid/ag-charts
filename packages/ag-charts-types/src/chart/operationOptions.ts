@@ -85,7 +85,8 @@ type ColorOperation =
     | { $isGradient: AnyLeaf } // Target vertex
     | { $isImage: AnyLeaf } // Target vertex
     | { $isPattern: AnyLeaf } // Target vertex
-    | { $mix: [Leaf<string>, Leaf<string>, Leaf<number>] }; // Colour A | Colour B | Ratio of Colour B (0 to 1)
+    | { $mix: [Leaf<string>, Leaf<string>, Leaf<number>] } // Colour A | Colour B | Ratio of Colour B (0 to 1)
+    | { $opacity: [Leaf<string>, Leaf<number>] }; // Colour A | Opacity of Colour A (0 to 1)
 
 type FontOperation = { $rem: Leaf<number> | [Leaf<number>, Leaf<ThemeParam>] }; // Ratio of base font size
 
@@ -114,6 +115,7 @@ type NumericOperation = { $even: Leaf<number> }; // Number
 
 type TransformOperation =
     | { $apply: Leaf<object> | [Leaf<object>, Leaf<object[]>] } // Object to merge with each item in the array | Default if no user options supplied
+    | { $applyPadding: Leaf<number> | Leaf<{ top: number; right: number; bottom: number; left: number }> }
     | { $applySwitch: any[] }
     | { $applyCycle: any[] }
     | { $findFirstSiblingNotOperation: AnyLeaf } // Default value if no non-operation sibling found

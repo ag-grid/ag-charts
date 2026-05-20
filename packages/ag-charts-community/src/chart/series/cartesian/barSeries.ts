@@ -1252,11 +1252,15 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         ctx: BarSeriesNodeDatumContext,
         result: BarSeriesNodeDataContext
     ): BarSeriesNodeDataContext {
+        // seriesRect may be unset during early-layout races or pool recycling (AG-17361).
+        const seriesRect = this.chart?.seriesRect;
+        if (seriesRect == null) return result;
+
         result.segments = calculateSegments(
             this.properties.segmentation,
             ctx.xAxis,
             ctx.yAxis,
-            this.chart!.seriesRect!,
+            seriesRect,
             this.ctx.scene
         );
         return result;
@@ -1743,7 +1747,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             this.ctx.animationManager,
             [datumSelection, phantomSelection],
             fns,
-            // eslint-disable-next-line sonarjs/deprecation
             (node) => this.getDatumId(node.unsafeDatum),
             dataDiff
         );

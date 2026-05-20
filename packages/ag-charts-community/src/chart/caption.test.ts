@@ -1,10 +1,10 @@
-import { describe, expect, test } from '@jest/globals';
+import { describe, expect, test } from 'vitest';
 
 import type { TextAlign } from 'ag-charts-types';
 
 import { Transformable } from '../scene/transformable';
-import type { Caption } from './caption';
 import type { Chart } from './chart';
+import type { ChartCaption } from './chartCaption';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
@@ -211,7 +211,7 @@ describe('Caption', () => {
     // CRT-1041: Footnote caption with multi-line rich text should have correct bounding box
     // for the accessibility proxy element.
     describe('CRT-1041 footnote caption bounds', () => {
-        function assertProxyBoundsMatchCanvas(caption: Caption) {
+        function assertProxyBoundsMatchCanvas(caption: ChartCaption) {
             const canvasBBox = Transformable.toCanvas(caption.node);
             const proxyBBox = (caption as any).lastProxyBBox as
                 | { x: number; y: number; width: number; height: number }

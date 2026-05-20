@@ -15,9 +15,6 @@ import {
     type ModuleInstance,
     ModuleRegistry,
     ModuleType,
-    Padding,
-    Property,
-    ProxyProperty,
     ZIndexMap,
     callWithContext,
     createId,
@@ -26,7 +23,6 @@ import {
     getWindow,
     isFiniteNumber,
     isInputPending,
-    jsonApply,
     mergeDefaults,
     pause,
     roundTo,
@@ -39,11 +35,9 @@ import type {
     AgColorType,
     AgDataTransaction,
     AgInitialStateLegendOptions,
-    AgLocaleOptions,
     AgMiniChartSeriesOptions,
     AgSelectionItem,
     AgSelectionItemIds,
-    FormatterConfiguration,
     SeriesOptionsTypes,
     SeriesType,
     TextOrSegments,
@@ -61,13 +55,12 @@ import type { TypedEvent, TypedEventListener } from '../util/observable';
 import { Observable } from '../util/observable';
 import { debouncedCallback } from '../util/render';
 import { Background } from './background/background';
-import { Caption } from './caption';
 import { ChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
+import type { ChartCaption } from './chartCaption';
 import { ChartCaptions } from './chartCaptions';
 import { createChartContext } from './chartContext';
 import { ChartHighlight } from './chartHighlight';
-import type { ChartMode } from './chartMode';
 import type { ChartService, ChartServiceEvent, ChartServiceEventType } from './chartService';
 import type { ChartState } from './chartState';
 import type { ChartType } from './chartType';
@@ -75,7 +68,6 @@ import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
 import { DataSet } from './data/dataSet';
 import { SyncManager, type SyncStatus } from './interaction/syncManager';
-import { Keyboard } from './keyboard';
 import { type LayoutContext, LayoutElement } from './layout/layoutManager';
 import type { ChartLegend } from './legend/legendDatum';
 import { guessInvalidPositions } from './mapping/prepareAxis';
@@ -90,7 +82,6 @@ import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
 import type { DatumIndexType, ISeries, ISeriesProperties } from './series/seriesTypes';
 import { Tooltip, type TooltipContent } from './tooltip/tooltip';
-import { Touch } from './touch';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
@@ -285,9 +276,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     readonly tooltip: Tooltip;
     readonly overlays: ChartOverlays;
     readonly highlight: ChartHighlight;
-    readonly background: Background<any>;
+    readonly background: Background;
     readonly seriesArea: SeriesArea;
-    foreground?: Background<any>;
+    foreground?: Background;
 
     protected readonly debug = Debug.create(true, 'chart');
 
@@ -367,51 +358,23 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     toSVG() {
         return this.ctx.scene.toSVG();
     }
-    private readonly chartCaptions = new ChartCaptions();
-
-    @Property
-    readonly padding = new Padding(20);
+    private readonly chartCaptions: ChartCaptions;
 
     get seriesAreaBoundingBox() {
         return this.seriesAreaManager.bbox;
     }
 
-    @Property
-    readonly keyboard = new Keyboard();
+    get title(): ChartCaption {
+        return this.chartCaptions.title;
+    }
 
-    @Property
-    readonly touch = new Touch();
+    get subtitle(): ChartCaption {
+        return this.chartCaptions.subtitle;
+    }
 
-    @Property
-    mode: ChartMode = 'standalone';
-
-    // undocumented property for studio
-    @Property
-    withinStudio: boolean | undefined = undefined;
-
-    @Property
-    styleNonce: string | undefined = undefined;
-
-    @ProxyProperty('chartCaptions.title')
-    readonly title!: Caption;
-
-    @ProxyProperty('chartCaptions.subtitle')
-    readonly subtitle!: Caption;
-
-    @ProxyProperty('chartCaptions.footnote')
-    readonly footnote!: Caption;
-
-    @Property
-    formatter: FormatterConfiguration<any> | undefined = undefined;
-
-    @Property
-    suppressFieldDotNotation: boolean = false;
-
-    @Property
-    loadGoogleFonts: boolean = false;
-
-    @Property
-    dataIdKey: string | undefined = undefined;
+    get footnote(): ChartCaption {
+        return this.chartCaptions.footnote;
+    }
 
     context?: unknown;
 
@@ -454,7 +417,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     protected createDataSet(data: unknown[]): DataSet {
-        return DataSet.replaceWith(this.data, data, this.dataIdKey);
+        return DataSet.replaceWith(this.data, data, this.ctx.chartState.getValue('options', 'dataIdKey'));
     }
 
     constructor(options: ChartOptions, resources?: TransferableResources) {
@@ -480,22 +443,17 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         root.append(this.selectionRoot);
         root.append(this.titleGroup);
 
-        this.titleGroup.append(this.title.node);
-        this.titleGroup.append(this.subtitle.node);
-        this.titleGroup.append(this.footnote.node);
-
         const agDocument = new AgDocument(options.specialOverrides.document, options.specialOverrides.window);
 
         this.tooltip = new Tooltip(agDocument);
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
-        this.mode = (options.userOptions as { mode?: ChartMode }).mode ?? this.mode;
-        this.styleNonce = options.processedOptions.styleNonce;
         const ctx = (this.ctx = createChartContext(this, {
             chartType: this.getChartType(),
             scene,
             root,
             container,
             styleContainer,
+            styleNonce: options.processedOptions.styleNonce,
             skipCss,
             agDocument,
             domMode: options.optionMetadata.domMode,
@@ -504,6 +462,15 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             fireEvent: (event) => this.fireEvent(event),
             updateMutex: this.updateMutex,
         }));
+        // Publish processed options to chartState immediately so option-derived reads
+        // (mode, padding, etc.) work for the rest of construction. `applyOptions` will
+        // refresh this on each subsequent update.
+        ctx.chartState.setValue('options', options.processedOptions as ChartState['options']);
+
+        this.chartCaptions = new ChartCaptions(ctx);
+        this.titleGroup.append(this.title.node);
+        this.titleGroup.append(this.subtitle.node);
+        this.titleGroup.append(this.footnote.node);
 
         // Disable delayed unhighlight + tooltip removal for sparklines to avoid laggy tooltips when quickly
         // moving between charts (CRT-1012)
@@ -565,8 +532,27 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         this.seriesAreaManager = new SeriesAreaManager(this.initSeriesAreaDependencies());
         this.cleanup.register(
+            // Observers that re-apply BaseProperties subtrees when their option subtree
+            // changes. Replaces the explicit `.set()` cascade previously in Chart.applyOptions
+            // (Phase 12.7 migration off the BaseProperties cascade).
+            ctx.chartState.observe((get) => {
+                const opts = get('options', 'tooltip');
+                if (opts != null) this.tooltip.set(opts);
+            }),
+            ctx.chartState.observe((get) => {
+                const opts = get('options', 'highlight');
+                if (opts != null) this.highlight.set(opts);
+            }),
+            ctx.chartState.observe((get) => {
+                const opts = get('options', 'seriesArea');
+                if (opts != null) this.seriesArea.set(opts);
+            }),
+            ctx.chartState.observe((get) => {
+                const opts = get('options', 'overlays');
+                if (opts != null) this.overlays.set(opts);
+            }),
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
-                e.layoutBox.shrink(this.padding.toJson());
+                e.layoutBox.shrink(ctx.chartState.getValue('options', 'padding'));
                 this.chartCaptions.positionCaptions(e);
             }),
             ctx.eventsHub.on('layout:complete', (e) => this.chartCaptions.positionAbsoluteCaptions(e)),
@@ -637,7 +623,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     private initSeriesAreaDependencies(): SeriesAreaChartDependencies {
-        const { ctx, tooltip, highlight, keyboard, overlays, seriesRoot, mode } = this;
+        const { ctx, tooltip, highlight, overlays, seriesRoot } = this;
         const chartType = this.getChartType();
         const hasViewportSupport: () => boolean = () => this.hasViewportSupport();
         const hasPgUpPgDownSupport: () => boolean = () => this.hasPgUpPgDownSupport();
@@ -660,10 +646,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             ctx,
             tooltip,
             highlight,
-            keyboard,
             overlays,
             seriesRoot,
-            mode,
         };
     }
 
@@ -772,13 +756,33 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     destroy(opts?: { keepTransferableResources: boolean }): TransferableResources | undefined {
         if (this.destroyed) return;
-        // Set the flag before `this.ctx.destroy()` so any event emitted or callback fired
+        // Set the flag before any further work so any event emitted or callback fired
         // during the cascade sees a destroyed chart and early-exits via this guard.
         this.destroyed = true;
 
         const keepTransferableResources = opts?.keepTransferableResources;
         let result: TransferableResources | undefined;
 
+        if (keepTransferableResources) {
+            // Strip synchronously so the scene is safe to hand to a replacement chart
+            // even while the rest of the teardown is queued behind any in-flight update.
+            this.ctx.scene.strip();
+            result = {
+                container: this.container,
+                scene: this.ctx.scene,
+            };
+        }
+
+        // Queue teardown behind any in-flight update so we don't mutate shared state
+        // (e.g. clear `series.chart`) mid-render-cycle.
+        this.updateMutex
+            .acquire(() => this.performTeardown(!!keepTransferableResources))
+            .catch((e) => Logger.errorOnce(e));
+
+        return result;
+    }
+
+    private performTeardown(keepTransferableResources: boolean): void {
         this.performUpdateType = ChartUpdateType.NONE;
 
         this.cleanup.flush();
@@ -791,14 +795,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.foreground?.destroy();
         this.seriesArea.destroy();
 
-        if (keepTransferableResources) {
-            this.ctx.scene.strip();
-            // The wrapper object is going to get destroyed. So to be safe, copy its properties.
-            result = {
-                container: this.container,
-                scene: this.ctx.scene,
-            };
-        } else {
+        if (!keepTransferableResources) {
             this.ctx.scene.destroy();
             this.container = undefined;
         }
@@ -814,8 +811,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.ctx.destroy();
 
         Object.freeze(this);
-
-        return result;
     }
 
     requestFactoryUpdate(cb: (chart: Chart) => Promise<void> | void) {
@@ -843,7 +838,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     private apiUpdate = false;
-    private pendingLocaleText?: AgLocaleOptions['localeText'];
     private _pendingFactoryUpdatesCount = 0;
     private _performUpdateSkipAnimations: boolean = false;
     private readonly _performUpdateNotify = new AsyncAwaitQueue();
@@ -873,7 +867,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         } = opts ?? {};
 
         this.apiUpdate = apiUpdate;
-        this.ctx.widgets.seriesWidget.setDragTouchEnabled(this.touch.dragAction !== 'none');
+        this.ctx.widgets.seriesWidget.setDragTouchEnabled(
+            this.ctx.chartState.getValue('options', 'touch').dragAction !== 'none'
+        );
 
         if (forceNodeDataRefresh) {
             for (const series of this.series) {
@@ -1001,14 +997,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
                 await this.processData();
                 this.seriesAreaManager.dataChanged();
-                if (this.pendingLocaleText) {
-                    type LocaleModule = ModuleInstance & { localeText?: Record<string, string> };
-                    const localeModule: LocaleModule | undefined = this.modulesManager.getModule('locale');
-                    if (localeModule && 'localeText' in localeModule) {
-                        localeModule.localeText = this.pendingLocaleText;
-                    }
-                    this.pendingLocaleText = undefined;
-                }
 
                 this.updateSplits('📊');
             // fallthrough
@@ -1151,7 +1139,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     private updateDOM() {
         this.updateThemeClassName();
 
-        const { enabled, tabIndex } = this.keyboard;
+        const { enabled, tabIndex } = this.ctx.chartState.getValue('options', 'keyboard');
         this.ctx.domManager.setTabGuardIndex(enabled ? (tabIndex ?? 0) : -1);
         this.ctx.domManager.setThemeParameters(this.chartOptions.themeParameters);
     }
@@ -1245,7 +1233,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
             series.chart = {} as any;
             Object.defineProperty(series.chart, 'mode', {
-                get: () => this.mode,
+                get: () => this.ctx.chartState.getValue('options', 'mode'),
             });
             Object.defineProperty(series.chart, 'isMiniChart', {
                 get: () => false,
@@ -1404,7 +1392,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.assignSeriesToAxes();
         }
 
-        const dataController = new DataController(this.mode, this.suppressFieldDotNotation, this.ctx.eventsHub);
+        const dataController = new DataController(
+            this.ctx.chartState.getValue('options', 'mode'),
+            this.ctx.chartState.getValue('options', 'suppressFieldDotNotation'),
+            this.ctx.eventsHub
+        );
 
         const promises: Promise<void>[] = [];
         for (const series of this.series) {
@@ -1484,7 +1476,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                     break;
 
                 case 'gradientLegend':
-                    const moduleInstance = this.modulesManager.getModule('gradientLegend') as ChartLegend;
+                    const moduleInstance = this.modulesManager.getModule<ChartLegend>('gradientLegend')!;
                     moduleInstance.data = this.series
                         .filter((s) => s.properties.showInLegend)
                         .flatMap((s) => s.getLegendData('gradient'));
@@ -1514,7 +1506,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             return;
         }
 
-        if (this.mode !== 'integrated') {
+        if (this.ctx.chartState.getValue('options', 'mode') !== 'integrated') {
             // Validate each series that shares a legend item label uses the same fill colour
             const seriesMarkerFills: { [key: string]: Map<TextOrSegments, AgColorType | undefined> } = {};
             const seriesMap = new Map(this.series.map((s) => [s.id, s]));
@@ -1567,7 +1559,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     protected animationRect?: BBox;
 
     protected getDebugColors(): { background?: string; foreground?: string } | undefined {
-        const bg = this.background.fill;
+        const bg = this.ctx.chartState.getValue('options', 'background').fill;
         if (!bg) return undefined;
         try {
             const color = Color.fromString(bg);
@@ -1604,7 +1596,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         this.ctx.seriesLabelLayoutManager.updateLabels(
             this.series.filter((s) => s.visible && s.usesPlacedLabels),
-            this.padding,
+            this.ctx.chartState.getValue('options', 'padding'),
             this.seriesRect
         );
     }
@@ -1726,29 +1718,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         const modulesChanged = this.applyModules();
 
-        const skip = [
-            'type',
-            'data',
-            'series',
-            'listeners',
-            'preset',
-            'theme',
-            'legend',
-            'zoom',
-            'navigator.miniChart.series',
-            'navigator.miniChart.label',
-            'locale.localeText',
-            'axes',
-            'topology',
-            'nodes',
-            'initialState',
-            'styleContainer',
-            'formatter',
-            'displayNullData',
-            'enableRtl',
-            'selection',
-        ];
-
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
         if ('listeners' in deltaOptions) {
             this.registerListeners(this, deltaOptions.listeners as Record<string, TypedEventListener> | undefined);
@@ -1758,7 +1727,21 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.ctx.domManager.setEnableRtl(deltaOptions.enableRtl);
         }
 
-        jsonApply<any, any>(this, deltaOptions, { skip });
+        // Chart-level fields not yet migrated to chartState-driven consumption.
+        // Their @ActionOnSet decorators trigger resize / DOM setup on assignment.
+        if ('container' in deltaOptions) this.container = deltaOptions.container ?? undefined;
+        if ('height' in deltaOptions) this.height = deltaOptions.height;
+        if ('minHeight' in deltaOptions) this.minHeight = deltaOptions.minHeight;
+        if ('minWidth' in deltaOptions) this.minWidth = deltaOptions.minWidth;
+        if ('overrideDevicePixelRatio' in deltaOptions) {
+            this.overrideDevicePixelRatio = deltaOptions.overrideDevicePixelRatio as number | undefined;
+        }
+        if ('width' in deltaOptions) this.width = deltaOptions.width;
+        if ('loading' in deltaOptions) this.loading = deltaOptions.loading;
+        if ('context' in deltaOptions) this.context = deltaOptions.context;
+
+        // tooltip/highlight/seriesArea/overlays subtrees are applied via chartState observers
+        // registered in the constructor — no explicit cascade needed here.
 
         let forceNodeDataRefresh = false;
         let seriesStatus: SeriesChangeType = 'no-op';
@@ -1790,7 +1773,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         if (
             'dataIdKey' in deltaOptions &&
             !(deltaOptions.data && userExplicitlyPassedData) &&
-            this.data.dataIdKey !== this.dataIdKey
+            this.data.dataIdKey !== this.ctx.chartState.getValue('options', 'dataIdKey')
         ) {
             this.data = this.createDataSet(this.data.data);
             dataSetRecreated = true;
@@ -1801,13 +1784,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.data = this.createDataSet(this.data.data);
         }
 
-        if (deltaOptions.locale?.localeText) {
-            this.pendingLocaleText = deltaOptions.locale?.localeText;
-        }
-
         this.chartOptions = newChartOptions;
 
-        const navigatorModule: any = this.modulesManager.getModule('navigator');
+        const navigatorModule = this.modulesManager.getModule<{
+            miniChart?: { enabled?: boolean; series: unknown[]; axes: unknown[] };
+        }>('navigator');
 
         if (!this.hasViewportSupport()) {
             // reset zoom to initial state
@@ -1909,7 +1890,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     private maybeResetAnimations(seriesStatus: SeriesChangeType) {
-        if (this.mode !== 'standalone') return;
+        if (this.ctx.chartState.getValue('options', 'mode') !== 'standalone') return;
 
         switch (seriesStatus) {
             case 'series-grouping-change':
@@ -1995,10 +1976,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 module.register?.(this.getModuleContext());
                 const moduleInstance = module.create(this.getModuleContext());
                 this.modulesManager.addModule(module.name, moduleInstance);
-                (this as any)[module.name] = moduleInstance; // TODO remove
             } else {
                 this.modulesManager.removeModule(module.name);
-                delete (this as any)[module.name]; // TODO remove
             }
 
             modulesChanged = true;

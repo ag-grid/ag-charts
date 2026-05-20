@@ -6,6 +6,7 @@ import { VERSION } from '../version';
 import { CartesianChart } from './cartesianChart';
 import type { TransferableResources } from './chart';
 import { cartesianChartOptionsDefs } from './chartOptionsDefs';
+import { commonChartThemeTemplate } from './themes/chartThemeTemplate';
 
 const histogramAxisTypes = new Set(['number', 'log', 'time']);
 const invalidHistogramAxis = (axis: any) => isObject(axis) && axis.type != null && !histogramAxisTypes.has(axis.type);
@@ -17,10 +18,12 @@ export const CartesianChartModule: ChartModuleDefinition<AgCartesianChartOptions
 
     options: cartesianChartOptionsDefs,
 
+    themeTemplate: commonChartThemeTemplate,
+
     create(options: ChartOptions, resources?: TransferableResources) {
         return new CartesianChart(options, resources);
     },
-    validate(options: any, optionsDefs, path, opts) {
+    validate(options: any, optionsDefs, path, params) {
         const additionalErrors: ValidationError[] = [];
         if (options?.series?.[0]?.type === 'histogram') {
             if (Object.values(options?.axes ?? {}).some(invalidHistogramAxis)) {
@@ -37,7 +40,7 @@ export const CartesianChartModule: ChartModuleDefinition<AgCartesianChartOptions
             }
         }
 
-        const result = validate(options, optionsDefs, path, opts);
+        const result = validate(options, optionsDefs, path, params);
         result.invalid.push(...additionalErrors);
         return result;
     },

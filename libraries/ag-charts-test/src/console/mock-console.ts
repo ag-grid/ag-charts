@@ -1,3 +1,7 @@
+import type { Mock, vi as Vi } from 'vitest';
+
+declare const vi: typeof Vi;
+
 const ERROR_METHODS: (keyof typeof console)[] = ['warn', 'error'];
 const NORMAL_METHODS: (keyof typeof console)[] = ['trace', 'debug', 'info', 'log'];
 const ALL_METHODS = [...NORMAL_METHODS, ...ERROR_METHODS];
@@ -11,14 +15,14 @@ const ALL_METHODS = [...NORMAL_METHODS, ...ERROR_METHODS];
 // This makes it more difficult to debug genuine failures. Therefore, we provide an optional
 // debug option to disable the message suppression.
 export function setupMockConsole(debugShowOutput?: boolean, { includeAllLevels = false } = {}) {
-    const mocks = new Map<string, [jest.Mock, Function]>();
+    const mocks = new Map<string, [Mock, Function]>();
     const consoleMethods = [...ERROR_METHODS];
     if (includeAllLevels) {
         consoleMethods.push(...NORMAL_METHODS);
     }
 
     function createConsoleMock(consoleMethod: Function) {
-        return jest.fn().mockImplementation((...args: any[]) => {
+        return vi.fn().mockImplementation((...args: any[]) => {
             if (debugShowOutput) {
                 consoleMethod(...args);
             }
@@ -56,21 +60,21 @@ export function setupMockConsole(debugShowOutput?: boolean, { includeAllLevels =
 export function resetMockConsole() {
     for (const method of ALL_METHODS) {
         const methodFn = console[method];
-        if (jest.isMockFunction(methodFn)) {
+        if (vi.isMockFunction(methodFn)) {
             methodFn.mockClear();
         }
     }
 }
 
 export function expectWarningsCalls() {
-    const warnMock = console.warn as jest.Mock;
+    const warnMock = console.warn as Mock;
     const mockCalls = warnMock.mock.calls;
     warnMock.mockClear();
     return expect(mockCalls);
 }
 
 export function expectWarningMessages(messages: any) {
-    const warnMock = console.warn as jest.Mock;
+    const warnMock = console.warn as Mock;
     try {
         for (let i = 0; i < messages.length; i++) {
             expect(warnMock).toHaveBeenNthCalledWith(i + 1, messages[i]);

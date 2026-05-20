@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
     type AgCartesianChartOptions,
@@ -1225,7 +1225,7 @@ describe('Zoom', () => {
             const stateBefore = chart.getState().zoom;
             const target = findChartTarget(deproxy(chart), 30, cy);
             const event = wheelEvent(target, { deltaX: 0, deltaY: -100, deltaMode: WheelDeltaMode.Pixels });
-            const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
+            const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
             dispatchEvent(target, event);
             await delay(50);
             await waitForChartStability(chart);
@@ -1248,7 +1248,7 @@ describe('Zoom', () => {
             const stateBefore = chart.getState().zoom;
             const target = findChartTarget(deproxy(chart), cx, cy * 2 - 30);
             const event = wheelEvent(target, { deltaX: 0, deltaY: -100, deltaMode: WheelDeltaMode.Pixels });
-            const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
+            const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
             dispatchEvent(target, event);
             await delay(50);
             await waitForChartStability(chart);
@@ -1276,7 +1276,7 @@ describe('Zoom', () => {
                 deltaMode: WheelDeltaMode.Pixels,
                 cancelable: false,
             });
-            const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
+            const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
             dispatchEvent(target, event);
             await delay(50);
             await waitForChartStability(chart);

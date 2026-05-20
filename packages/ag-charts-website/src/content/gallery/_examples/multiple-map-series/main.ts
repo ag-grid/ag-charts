@@ -150,8 +150,7 @@ const options: AgTopologyChartOptions<DataType> = {
         enabled: true,
         position: 'bottom',
         item: {
-            paddingX: 15,
-            paddingY: 10,
+            padding: { top: 5, right: 7.5, bottom: 5, left: 7.5 },
             marker: {
                 size: 18,
                 strokeWidth: 2,

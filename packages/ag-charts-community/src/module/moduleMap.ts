@@ -32,8 +32,8 @@ export class ModuleMap<T extends ModuleInstance = ModuleInstance> {
         this._version++;
     }
 
-    getModule(moduleName: string) {
-        return this.moduleMap.get(moduleName);
+    getModule<R = T>(moduleName: string): R | undefined {
+        return this.moduleMap.get(moduleName) as R | undefined;
     }
 
     isEnabled(moduleName: string) {

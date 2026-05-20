@@ -1185,12 +1185,15 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         ctx: AreaSeriesCreateNodeDatumContext,
         result: AreaSeriesNodeDataContext
     ): AreaSeriesNodeDataContext {
+        const seriesRect = this.chart?.seriesRect;
+        if (seriesRect == null) return result;
+
         // Calculate segments (only computed field needed beyond what initializeResult provides)
         result.segments = calculateSegments(
             this.properties.segmentation,
             ctx.xAxis,
             ctx.yAxis,
-            this.chart!.seriesRect!,
+            seriesRect,
             this.ctx.scene,
             false
         );
@@ -1570,7 +1573,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
-        if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
+        if (xValue === undefined && !allowNullKeys) return;
 
         const stylerStyle = this.getStyle(undefined);
         const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);

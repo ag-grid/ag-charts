@@ -13,13 +13,13 @@ import {
     type FontSize,
     type FontStyle,
     type FontWeight,
-    type Formatter,
     type OverflowStrategy,
+    type RichFormatter,
     type Styler,
     type TextAlign,
     type TextWrap,
 } from 'ag-charts-community';
-import { BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
+import { BaseProperties, Padding, PropertiesArray, Property } from 'ag-charts-core';
 
 import { NetworkSeriesProperties } from '../network/networkSeries';
 
@@ -78,7 +78,7 @@ class OrganizationSeriesExpanderProperties extends BaseProperties {
     lineDashOffset?: number;
 
     @Property
-    padding: number = 6;
+    padding = new Padding(6);
 
     @Property
     stroke: CssColor = 'black';
@@ -110,7 +110,7 @@ class OrganizationSeriesExpanderTextProperties extends BaseProperties {
     fontWeight!: FontWeight;
 
     @Property
-    formatter?: Formatter<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;
+    formatter?: RichFormatter<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;
 
     @Property
     textAlign: TextAlign = 'left';
@@ -179,7 +179,7 @@ class OrganizationSeriesNodeProperties extends BaseProperties {
     maxWidth?: number;
 
     @Property
-    padding: number = 0;
+    padding = new Padding(0);
 
     @Property
     stroke: CssColor = 'black';
@@ -249,7 +249,7 @@ export class OrganizationSeriesNodeTextProperties extends BaseProperties {
     fontWeight!: FontWeight;
 
     @Property
-    formatter?: Formatter<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;
+    formatter?: RichFormatter<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;
 
     @Property
     itemStyler?: Styler<AgOrganizationSeriesNodeTextStylerParams<unknown>, AgOrganizationSeriesNodeTextStyle>;
@@ -285,5 +285,5 @@ export class OrganizationSeriesNodeTextProperties extends BaseProperties {
     cornerRadius: number = 0;
 
     @Property
-    padding: number = 0;
+    padding = new Padding(0);
 }

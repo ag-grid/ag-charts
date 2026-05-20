@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 
 import { AgDocument, EventEmitter, getDocument } from 'ag-charts-core';
 
@@ -21,7 +21,7 @@ describe('DOMManager', () => {
             const container = doc.createElement('div');
             doc.body.append(container);
 
-            const dm = new DOMManager(eventsHub, { styleNonce: '416d1177' }, doc, container);
+            const dm = new DOMManager(eventsHub, '416d1177', doc, container);
             dm.addStyles('test', '.test { width: 100% }');
 
             expect(container).toMatchSnapshot();
@@ -32,7 +32,7 @@ describe('DOMManager', () => {
     describe('for disconnected container cases', () => {
         it('should initialize the expected DOM', () => {
             const container = doc.createElement('div');
-            const dm = new DOMManager(eventsHub, { styleNonce: '416d1171' }, doc, container);
+            const dm = new DOMManager(eventsHub, '416d1171', doc, container);
             dm.addStyles('test', '.test { width: 100% }');
 
             expect(container).toMatchSnapshot();
@@ -48,7 +48,7 @@ describe('DOMManager', () => {
             const shadow = component.attachShadow({ mode: 'open' });
             shadow.appendChild(container);
 
-            const dm = new DOMManager(eventsHub, { styleNonce: '416d1177' }, doc, container);
+            const dm = new DOMManager(eventsHub, '416d1177', doc, container);
             dm.addStyles('test', '.test { width: 100% }');
 
             expect(container).toMatchSnapshot();
@@ -57,12 +57,12 @@ describe('DOMManager', () => {
     });
 
     describe('when connecting after initialisation', () => {
-        beforeEach(() => jest.useFakeTimers());
-        afterEach(() => jest.useRealTimers());
+        beforeEach(() => vi.useFakeTimers());
+        afterEach(() => vi.useRealTimers());
 
         it('should move styles to head when the container is attached to the document', () => {
             const container = doc.createElement('div');
-            const dm = new DOMManager(eventsHub, { styleNonce: 'late-416d' }, doc, container);
+            const dm = new DOMManager(eventsHub, 'late-416d', doc, container);
             dm.addStyles('late-test', '.test { width: 100% }');
 
             expect(container.querySelector('style[data-ag-charts="late-test"]')).not.toBeNull();
@@ -70,7 +70,7 @@ describe('DOMManager', () => {
 
             doc.body.append(container);
             dm.setDeferring(false);
-            jest.runAllTimers();
+            vi.runAllTimers();
 
             expect(container.querySelector('style[data-ag-charts="late-test"]')).toBeNull();
             expect(doc.head.querySelector('style[data-ag-charts="late-test"]')).not.toBeNull();
@@ -83,12 +83,12 @@ describe('DOMManager', () => {
             doc.body.append(component);
             const shadow = component.attachShadow({ mode: 'open' });
 
-            const dm = new DOMManager(eventsHub, { styleNonce: 'late-416d' }, doc, container);
+            const dm = new DOMManager(eventsHub, 'late-416d', doc, container);
             dm.addStyles('late-test', '.test { width: 100% }');
 
             shadow.appendChild(container);
             dm.setDeferring(false);
-            jest.runAllTimers();
+            vi.runAllTimers();
 
             expect(shadow.querySelector('style[data-ag-charts="late-test"]')).not.toBeNull();
             expect(shadow.querySelector('style[data-ag-charts="ag-charts-community"]')).not.toBeNull();
@@ -101,7 +101,7 @@ describe('DOMManager', () => {
         it('should return the same object reference on repeated calls', () => {
             const container = doc.createElement('div');
             doc.body.append(container);
-            const dm = new DOMManager(eventsHub, {}, doc, container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
 
             const rect1 = dm.getBoundingClientRect();
             const rect2 = dm.getBoundingClientRect();
@@ -111,10 +111,10 @@ describe('DOMManager', () => {
         it('should not call element getBoundingClientRect on cache hit', () => {
             const container = doc.createElement('div');
             doc.body.append(container);
-            const dm = new DOMManager(eventsHub, {}, doc, container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
 
             const canvasEl = dm.getParent('canvas');
-            const spy = jest.spyOn(canvasEl, 'getBoundingClientRect');
+            const spy = vi.spyOn(canvasEl, 'getBoundingClientRect');
 
             // First call populates cache
             dm.getBoundingClientRect();
@@ -128,7 +128,7 @@ describe('DOMManager', () => {
         it('should invalidate cache after scroll event', () => {
             const container = doc.createElement('div');
             doc.body.append(container);
-            const dm = new DOMManager(eventsHub, {}, doc, container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
 
             const rect1 = dm.getBoundingClientRect();
             doc.window.dispatchEvent(new Event('scroll'));
@@ -140,7 +140,7 @@ describe('DOMManager', () => {
         it('should invalidate cache after resize event', () => {
             const container = doc.createElement('div');
             doc.body.append(container);
-            const dm = new DOMManager(eventsHub, {}, doc, container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
 
             const rect1 = dm.getBoundingClientRect();
             doc.window.dispatchEvent(new Event('resize'));
@@ -152,13 +152,13 @@ describe('DOMManager', () => {
         it('should only make one real getBoundingClientRect call after invalidation', () => {
             const container = doc.createElement('div');
             doc.body.append(container);
-            const dm = new DOMManager(eventsHub, {}, doc, container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
 
             const canvasEl = dm.getParent('canvas');
             // Populate cache first
             dm.getBoundingClientRect();
 
-            const spy = jest.spyOn(canvasEl, 'getBoundingClientRect');
+            const spy = vi.spyOn(canvasEl, 'getBoundingClientRect');
 
             // Invalidate
             doc.window.dispatchEvent(new Event('scroll'));
@@ -176,7 +176,7 @@ describe('DOMManager', () => {
         it('should create a proxy tracked for deferred flushing', () => {
             const container = doc.createElement('div');
             doc.body.append(container);
-            const dm = new DOMManager(eventsHub, {}, doc, container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
 
             const proxy = dm.addDeferredProxyChild('canvas-overlay', 'test-proxy');
             expect(proxy).toBeDefined();
@@ -185,7 +185,7 @@ describe('DOMManager', () => {
         it('should not apply buffered writes to DOM before flush', () => {
             const container = doc.createElement('div');
             doc.body.append(container);
-            const dm = new DOMManager(eventsHub, {}, doc, container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
 
             const proxy = dm.addDeferredProxyChild('canvas-overlay', 'test-proxy');
             dm.setDeferring(true); // simulate being inside performUpdate()
@@ -196,18 +196,18 @@ describe('DOMManager', () => {
         });
 
         it('should apply buffered writes after setDeferring(false)', () => {
-            jest.useFakeTimers();
+            vi.useFakeTimers();
             const container = doc.createElement('div');
             doc.body.append(container);
-            const dm = new DOMManager(eventsHub, {}, doc, container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
 
             const proxy = dm.addDeferredProxyChild('canvas-overlay', 'test-proxy');
             dm.setDeferring(true); // simulate being inside performUpdate()
             proxy.setProperty('left', '10px');
 
             dm.setDeferring(false);
-            jest.runAllTimers();
-            jest.useRealTimers();
+            vi.runAllTimers();
+            vi.useRealTimers();
 
             const childEl = dm.getParent('canvas-overlay').querySelector('div');
             expect(childEl!.style.getPropertyValue('left')).toBe('10px');
@@ -216,7 +216,7 @@ describe('DOMManager', () => {
         it('should remove proxy from deferredProxies map on removeChild', () => {
             const container = doc.createElement('div');
             doc.body.append(container);
-            const dm = new DOMManager(eventsHub, {}, doc, container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
 
             dm.addDeferredProxyChild('canvas-overlay', 'test-proxy');
             dm.removeChild('canvas-overlay', 'test-proxy');
@@ -231,7 +231,7 @@ describe('DOMManager', () => {
         it('should set cursor style on first call', () => {
             const container = doc.createElement('div');
             doc.body.append(container);
-            const dm = new DOMManager(eventsHub, {}, doc, container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
 
             dm.updateCursor('test', 'pointer');
             expect(dm.getCursor()).toBe('pointer');
@@ -240,14 +240,14 @@ describe('DOMManager', () => {
         it('should skip DOM write when cursor is unchanged', () => {
             const container = doc.createElement('div');
             doc.body.append(container);
-            const dm = new DOMManager(eventsHub, {}, doc, container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
 
             dm.updateCursor('test', 'pointer');
 
             // Spy on the element style cursor setter after the first write
             const element = (dm as any).element as HTMLElement;
             const descriptor = Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'cursor')!;
-            const setter = jest.fn(descriptor.set!.bind(element.style));
+            const setter = vi.fn(descriptor.set!.bind(element.style));
             Object.defineProperty(element.style, 'cursor', {
                 get: descriptor.get!.bind(element.style),
                 set: setter,

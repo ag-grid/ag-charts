@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     DebugSelectors,
@@ -10,14 +10,14 @@ import {
 
 describe('sceneDebug stats lifecycle', () => {
     beforeEach(() => {
-        jest.useFakeTimers();
+        vi.useFakeTimers();
         cleanupDebugStats(true);
     });
 
     afterEach(() => {
         cleanupDebugStats(true);
         delete (globalThis as any).agChartsDebug;
-        jest.useRealTimers();
+        vi.useRealTimers();
     });
 
     it('cleans up global stats accumulator when last consumer releases', () => {
@@ -41,31 +41,30 @@ describe('sceneDebug stats lifecycle', () => {
 });
 
 function createMockContext(): CanvasRenderingContext2D {
-    const measureText: CanvasRenderingContext2D['measureText'] = () =>
-        ({
-            width: 10,
-            actualBoundingBoxAscent: 5,
-            actualBoundingBoxDescent: 5,
-            actualBoundingBoxLeft: 0,
-            actualBoundingBoxRight: 10,
-            emHeightAscent: 5,
-            emHeightDescent: 5,
-            alphabeticBaseline: 0,
-            fontBoundingBoxAscent: 5,
-            fontBoundingBoxDescent: 5,
-            hangingBaseline: 0,
-            ideographicBaseline: 0,
-        }) as TextMetrics;
+    const measureText: CanvasRenderingContext2D['measureText'] = () => ({
+        width: 10,
+        actualBoundingBoxAscent: 5,
+        actualBoundingBoxDescent: 5,
+        actualBoundingBoxLeft: 0,
+        actualBoundingBoxRight: 10,
+        emHeightAscent: 5,
+        emHeightDescent: 5,
+        alphabeticBaseline: 0,
+        fontBoundingBoxAscent: 5,
+        fontBoundingBoxDescent: 5,
+        hangingBaseline: 0,
+        ideographicBaseline: 0,
+    });
 
     let fillStyleValue = '';
     let textBaselineValue: CanvasTextBaseline = 'alphabetic';
 
     const ctx: Partial<CanvasRenderingContext2D> = {
         measureText,
-        save: jest.fn(),
-        restore: jest.fn(),
-        fillRect: jest.fn(),
-        fillText: jest.fn(),
+        save: vi.fn(),
+        restore: vi.fn(),
+        fillRect: vi.fn(),
+        fillText: vi.fn(),
     };
 
     Object.defineProperty(ctx, 'fillStyle', {

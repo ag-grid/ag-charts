@@ -14,7 +14,7 @@ describe('extent module', () => {
                 expect(result?.[1]).toBe(19);
             }
             {
-                const result = extent([null as any, 0, 13, 10, 19]);
+                const result = extent([null, 0, 13, 10, 19]);
                 expect(result?.[0]).toBe(0);
                 expect(result?.[1]).toBe(19);
             }
@@ -37,13 +37,13 @@ describe('extent module', () => {
         });
 
         test('returns valid lowest and highest number from mixed values', () => {
-            const result = extent([undefined, 4, 3, 7, null, {}, 1, 5] as any);
+            const result = extent([undefined, 4, 3, 7, null, {}, 1, 5]);
             expect(result?.[0]).toBe(1);
             expect(result?.[1]).toBe(7);
         });
 
         test('does not coerce objects', () => {
-            const result = extent([{ toString: () => '2' }, { toString: () => '1' }] as any);
+            const result = extent([{ toString: () => '2' }, { toString: () => '1' }]);
             expect(result).toBe(null);
         });
 

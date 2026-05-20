@@ -1,5 +1,5 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, ActionOnSet, type DynamicContext, Logger, Property } from 'ag-charts-core';
+import { AbstractModuleInstance, type DynamicContext, Logger } from 'ag-charts-core';
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
 
@@ -15,34 +15,34 @@ const menuItems: _ModuleSupport.MenuItem<AgPriceVolumeChartType>[] = [
 ];
 
 export class ChartToolbar extends AbstractModuleInstance {
-    @Property
-    @ActionOnSet<ChartToolbar>({
-        changeValue(enabled) {
-            this.toolbar?.setHidden(!enabled);
-        },
-    })
-    enabled: boolean = false;
-
     private readonly menuMargin: number = 6;
     private readonly toolbar: SharedToolbarWithSection;
-    private readonly menu = new Menu(this.ctx, 'chart-toolbar');
+    private readonly menu: _ModuleSupport.Menu;
     private menuShowing = false;
 
+    // The ChartToolbar module is registered for cartesian charts but the option subtree is
+    // optional. ChartToolbarModule.themeTemplate emits `enabled: false` so the subtree is
+    // present once any chart applies the theme; the fallbacks here remain only because the
+    // observer can fire during transient absent-subtree windows (deltaOptions removal).
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
+        this.menu = new Menu(ctx, 'chart-toolbar');
         this.toolbar = ((ctx as any).sharedToolbar as SharedToolbar).getSharedToolbar('chartToolbar');
 
         this.cleanup.register(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPressed.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.ToolbarLeft, this.onLayoutStart.bind(this)),
             ctx.eventsHub.on('series-area:click', () => this.hidePopover()),
+            ctx.chartState.observe((get) => {
+                this.toolbar.setHidden(!get('options', 'chartToolbar')?.enabled);
+            }),
             () => this.toolbar.destroy()
         );
     }
 
     private onLayoutStart(ctx: _ModuleSupport.LayoutContext) {
-        if (!this.enabled) return;
+        if (!this.ctx.chartState.getValue('options', 'chartToolbar')?.enabled) return;
         this.updateButton();
         this.toolbar.layout(ctx.layoutBox);
     }

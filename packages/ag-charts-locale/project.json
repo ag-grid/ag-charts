@@ -35,21 +35,22 @@
     },
     "lint:eslint": {},
     "test": {
-      "executor": "@nx/jest:jest",
+      "executor": "nx:run-commands",
+      "inputs": ["default", "buildOutputExcludes", "^production"],
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-locale.xml"],
+      "cache": true,
       "options": {
-        "jestConfig": "{projectRoot}/jest.config.ts",
-        "passWithNoTests": false
+        "command": "npx vitest run --config {projectRoot}/vitest.config.ts"
       },
       "configurations": {
         "ci": {
-          "updateSnapshot": true
+          "args": "--update"
         },
         "watch": {
-          "watch": true
+          "command": "npx vitest --config {projectRoot}/vitest.config.ts"
         },
         "update": {
-          "updateSnapshot": true
+          "args": "--update"
         }
       },
       "dependsOn": ["build:test"]
@@ -70,7 +71,9 @@
       "dependsOn": ["pack"],
       "inputs": ["allOutputs"],
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-locale/"],
-      "options": { "command": "tools/package/extract-contents.sh {projectRoot}" }
+      "options": {
+        "command": "tools/package/extract-contents.sh {projectRoot}"
+      }
     },
     "pack:verify": {
       "executor": "nx:run-commands",

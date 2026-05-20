@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
+exports[`RadarLineSeries > AG-15782 styler > highlights > sequenced > 1 1`] = `
 [
   [
     {
@@ -92,304 +92,7 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
 ]
 `;
 
-exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 2`] = `
-[
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#f3622d",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#aa4520",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "healer",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-1",
-      "stroke": "#f3622d",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "highlighted-series",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#f3622d",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#aa4520",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "healer",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-1",
-      "stroke": "#f3622d",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "unhighlighted-item",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#f3622d",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#aa4520",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "healer",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-1",
-      "stroke": "#f3622d",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "highlighted-item",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#f3622d",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#aa4520",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "healer",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-1",
-      "stroke": "#f3622d",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#fba71b",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#b07513",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "tank",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-2",
-      "stroke": "#fba71b",
-      "strokeOpacity": 0.9,
-      "strokeWidth": 3,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "unhighlighted-series",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#fba71b",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#b07513",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "tank",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-2",
-      "stroke": "#fba71b",
-      "strokeOpacity": 0.9,
-      "strokeWidth": 3,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "highlighted-item",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#fba71b",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#b07513",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "tank",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-2",
-      "stroke": "#fba71b",
-      "strokeOpacity": 0.9,
-      "strokeWidth": 3,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#57b757",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#3d803d",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "damage",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-3",
-      "stroke": "#57b757",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "unhighlighted-series",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#57b757",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#3d803d",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "damage",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-3",
-      "stroke": "#57b757",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "highlighted-item",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#57b757",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#3d803d",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "damage",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-3",
-      "stroke": "#57b757",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-]
-`;
-
-exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 3`] = `[]`;
-
-exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 4`] = `
+exports[`RadarLineSeries > AG-15782 styler > highlights > sequenced > 1 2`] = `
 [
   [
     {
@@ -507,12 +210,309 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 4`] = `
       "strokeWidth": 2,
     },
   ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#fba71b",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#b07513",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "tank",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-2",
+      "stroke": "#fba71b",
+      "strokeOpacity": 0.9,
+      "strokeWidth": 3,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "unhighlighted-series",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#fba71b",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#b07513",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "tank",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-2",
+      "stroke": "#fba71b",
+      "strokeOpacity": 0.9,
+      "strokeWidth": 3,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "highlighted-item",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#fba71b",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#b07513",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "tank",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-2",
+      "stroke": "#fba71b",
+      "strokeOpacity": 0.9,
+      "strokeWidth": 3,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#57b757",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#3d803d",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "damage",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-3",
+      "stroke": "#57b757",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "unhighlighted-series",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#57b757",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#3d803d",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "damage",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-3",
+      "stroke": "#57b757",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "highlighted-item",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#57b757",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#3d803d",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "damage",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-3",
+      "stroke": "#57b757",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
 ]
 `;
 
-exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 5`] = `[]`;
+exports[`RadarLineSeries > AG-15782 styler > highlights > sequenced > 1 3`] = `[]`;
 
-exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 6`] = `
+exports[`RadarLineSeries > AG-15782 styler > highlights > sequenced > 1 4`] = `
+[
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#f3622d",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#aa4520",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "healer",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-1",
+      "stroke": "#f3622d",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "highlighted-series",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#f3622d",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#aa4520",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "healer",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-1",
+      "stroke": "#f3622d",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "unhighlighted-item",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#f3622d",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#aa4520",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "healer",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-1",
+      "stroke": "#f3622d",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "highlighted-item",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#f3622d",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#aa4520",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "healer",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-1",
+      "stroke": "#f3622d",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+]
+`;
+
+exports[`RadarLineSeries > AG-15782 styler > highlights > sequenced > 1 5`] = `[]`;
+
+exports[`RadarLineSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
 [
   [
     {
@@ -778,9 +778,9 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 6`] = `
 ]
 `;
 
-exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 7`] = `[]`;
+exports[`RadarLineSeries > AG-15782 styler > highlights > sequenced > 1 7`] = `[]`;
 
-exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 8`] = `
+exports[`RadarLineSeries > AG-15782 styler > highlights > sequenced > 1 8`] = `
 [
   [
     {
@@ -901,540 +901,8 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 8`] = `
 ]
 `;
 
-exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 9`] = `
+exports[`RadarLineSeries > AG-15782 styler > highlights > sequenced > 1 9`] = `
 [
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#f3622d",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#aa4520",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "healer",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-1",
-      "stroke": "#f3622d",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "unhighlighted-series",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#f3622d",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#aa4520",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "healer",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-1",
-      "stroke": "#f3622d",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#fba71b",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#b07513",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "tank",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-2",
-      "stroke": "#fba71b",
-      "strokeOpacity": 0.9,
-      "strokeWidth": 3,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "highlighted-series",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#fba71b",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#b07513",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "tank",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-2",
-      "stroke": "#fba71b",
-      "strokeOpacity": 0.9,
-      "strokeWidth": 3,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#57b757",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#3d803d",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "damage",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-3",
-      "stroke": "#57b757",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "unhighlighted-series",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#57b757",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#3d803d",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "damage",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-3",
-      "stroke": "#57b757",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-]
-`;
-
-exports[`RadarLineSeries AG-15782 styler highlights single legendItem[0] 1`] = `
-[
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#f3622d",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#aa4520",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "healer",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-1",
-      "stroke": "#f3622d",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#fba71b",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#b07513",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "tank",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-2",
-      "stroke": "#fba71b",
-      "strokeOpacity": 0.9,
-      "strokeWidth": 3,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#57b757",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#3d803d",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "damage",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-3",
-      "stroke": "#57b757",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#f3622d",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#aa4520",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "healer",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-1",
-      "stroke": "#f3622d",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "highlighted-series",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#f3622d",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#aa4520",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "healer",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-1",
-      "stroke": "#f3622d",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#fba71b",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#b07513",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "tank",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-2",
-      "stroke": "#fba71b",
-      "strokeOpacity": 0.9,
-      "strokeWidth": 3,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "unhighlighted-series",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#fba71b",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#b07513",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "tank",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-2",
-      "stroke": "#fba71b",
-      "strokeOpacity": 0.9,
-      "strokeWidth": 3,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#57b757",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#3d803d",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "damage",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-3",
-      "stroke": "#57b757",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "unhighlighted-series",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#57b757",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#3d803d",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "damage",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-3",
-      "stroke": "#57b757",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-]
-`;
-
-exports[`RadarLineSeries AG-15782 styler highlights single legendItem[1] 1`] = `
-[
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#f3622d",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#aa4520",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "healer",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-1",
-      "stroke": "#f3622d",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#fba71b",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#b07513",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "tank",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-2",
-      "stroke": "#fba71b",
-      "strokeOpacity": 0.9,
-      "strokeWidth": 3,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#57b757",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#3d803d",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "damage",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-3",
-      "stroke": "#57b757",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
   [
     {
       "angleKey": "trait",
@@ -1612,99 +1080,7 @@ exports[`RadarLineSeries AG-15782 styler highlights single legendItem[1] 1`] = `
 ]
 `;
 
-exports[`RadarLineSeries AG-15782 styler highlights single miss 1`] = `
-[
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#f3622d",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#aa4520",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "healer",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-1",
-      "stroke": "#f3622d",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#fba71b",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#b07513",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "tank",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-2",
-      "stroke": "#fba71b",
-      "strokeOpacity": 0.9,
-      "strokeWidth": 3,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#57b757",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#3d803d",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "damage",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-3",
-      "stroke": "#57b757",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-]
-`;
-
-exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[0] 1`] = `
+exports[`RadarLineSeries > AG-15782 styler > highlights > single > legendItem[0] 1`] = `
 [
   [
     {
@@ -1854,64 +1230,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[0] 1`
   [
     {
       "angleKey": "trait",
-      "highlightState": "unhighlighted-item",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#f3622d",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#aa4520",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "healer",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-1",
-      "stroke": "#f3622d",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "highlighted-item",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#f3622d",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#aa4520",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "healer",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-1",
-      "stroke": "#f3622d",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
       "highlightState": "none",
       "lineDash": [
         0,
@@ -1970,35 +1288,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[0] 1`
   [
     {
       "angleKey": "trait",
-      "highlightState": "highlighted-item",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#fba71b",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#b07513",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "tank",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-2",
-      "stroke": "#fba71b",
-      "strokeOpacity": 0.9,
-      "strokeWidth": 3,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
       "highlightState": "none",
       "lineDash": [
         0,
@@ -2029,35 +1318,6 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[0] 1`
     {
       "angleKey": "trait",
       "highlightState": "unhighlighted-series",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "marker": {
-        "fill": "#57b757",
-        "fillOpacity": 1,
-        "lineDash": [
-          0,
-        ],
-        "lineDashOffset": 0,
-        "shape": "circle",
-        "size": 6,
-        "stroke": "#3d803d",
-        "strokeOpacity": 1,
-        "strokeWidth": 0,
-      },
-      "radiusKey": "damage",
-      "selectionState": undefined,
-      "seriesId": "RadarLineSeries-3",
-      "stroke": "#57b757",
-      "strokeOpacity": 1,
-      "strokeWidth": 2,
-    },
-  ],
-  [
-    {
-      "angleKey": "trait",
-      "highlightState": "highlighted-item",
       "lineDash": [
         0,
       ],
@@ -2086,7 +1346,365 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[0] 1`
 ]
 `;
 
-exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[2] 1`] = `
+exports[`RadarLineSeries > AG-15782 styler > highlights > single > legendItem[1] 1`] = `
+[
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#f3622d",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#aa4520",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "healer",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-1",
+      "stroke": "#f3622d",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#fba71b",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#b07513",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "tank",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-2",
+      "stroke": "#fba71b",
+      "strokeOpacity": 0.9,
+      "strokeWidth": 3,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#57b757",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#3d803d",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "damage",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-3",
+      "stroke": "#57b757",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#f3622d",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#aa4520",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "healer",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-1",
+      "stroke": "#f3622d",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "unhighlighted-series",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#f3622d",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#aa4520",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "healer",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-1",
+      "stroke": "#f3622d",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#fba71b",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#b07513",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "tank",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-2",
+      "stroke": "#fba71b",
+      "strokeOpacity": 0.9,
+      "strokeWidth": 3,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "highlighted-series",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#fba71b",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#b07513",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "tank",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-2",
+      "stroke": "#fba71b",
+      "strokeOpacity": 0.9,
+      "strokeWidth": 3,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#57b757",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#3d803d",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "damage",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-3",
+      "stroke": "#57b757",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "unhighlighted-series",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#57b757",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#3d803d",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "damage",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-3",
+      "stroke": "#57b757",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+]
+`;
+
+exports[`RadarLineSeries > AG-15782 styler > highlights > single > miss 1`] = `
+[
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#f3622d",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#aa4520",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "healer",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-1",
+      "stroke": "#f3622d",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#fba71b",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#b07513",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "tank",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-2",
+      "stroke": "#fba71b",
+      "strokeOpacity": 0.9,
+      "strokeWidth": 3,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#57b757",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#3d803d",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "damage",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-3",
+      "stroke": "#57b757",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+]
+`;
+
+exports[`RadarLineSeries > AG-15782 styler > highlights > single > series[0].datum[0] 1`] = `
 [
   [
     {
@@ -2468,7 +2086,389 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[0].datum[2] 1`
 ]
 `;
 
-exports[`RadarLineSeries AG-15782 styler highlights single series[1].datum[0] 1`] = `
+exports[`RadarLineSeries > AG-15782 styler > highlights > single > series[0].datum[2] 1`] = `
+[
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#f3622d",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#aa4520",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "healer",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-1",
+      "stroke": "#f3622d",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#fba71b",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#b07513",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "tank",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-2",
+      "stroke": "#fba71b",
+      "strokeOpacity": 0.9,
+      "strokeWidth": 3,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#57b757",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#3d803d",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "damage",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-3",
+      "stroke": "#57b757",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#f3622d",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#aa4520",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "healer",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-1",
+      "stroke": "#f3622d",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "highlighted-series",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#f3622d",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#aa4520",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "healer",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-1",
+      "stroke": "#f3622d",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "unhighlighted-item",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#f3622d",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#aa4520",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "healer",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-1",
+      "stroke": "#f3622d",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "highlighted-item",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#f3622d",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#aa4520",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "healer",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-1",
+      "stroke": "#f3622d",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#fba71b",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#b07513",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "tank",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-2",
+      "stroke": "#fba71b",
+      "strokeOpacity": 0.9,
+      "strokeWidth": 3,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "unhighlighted-series",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#fba71b",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#b07513",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "tank",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-2",
+      "stroke": "#fba71b",
+      "strokeOpacity": 0.9,
+      "strokeWidth": 3,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "highlighted-item",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#fba71b",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#b07513",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "tank",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-2",
+      "stroke": "#fba71b",
+      "strokeOpacity": 0.9,
+      "strokeWidth": 3,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#57b757",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#3d803d",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "damage",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-3",
+      "stroke": "#57b757",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "unhighlighted-series",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#57b757",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#3d803d",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "damage",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-3",
+      "stroke": "#57b757",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+  [
+    {
+      "angleKey": "trait",
+      "highlightState": "highlighted-item",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "fill": "#57b757",
+        "fillOpacity": 1,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "shape": "circle",
+        "size": 6,
+        "stroke": "#3d803d",
+        "strokeOpacity": 1,
+        "strokeWidth": 0,
+      },
+      "radiusKey": "damage",
+      "selectionState": undefined,
+      "seriesId": "RadarLineSeries-3",
+      "stroke": "#57b757",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  ],
+]
+`;
+
+exports[`RadarLineSeries > AG-15782 styler > highlights > single > series[1].datum[0] 1`] = `
 [
   [
     {
@@ -2850,7 +2850,7 @@ exports[`RadarLineSeries AG-15782 styler highlights single series[1].datum[0] 1`
 ]
 `;
 
-exports[`RadarLineSeries AG-15782 styler init callbacks params 1`] = `
+exports[`RadarLineSeries > AG-15782 styler > init > callbacks > params 1`] = `
 [
   [
     {

@@ -72,8 +72,7 @@ const options: AgCartesianChartOptions = {
         padding: 12,
         item: {
             marker: { size: 12 },
-            paddingX: 8,
-            paddingY: 4,
+            padding: { top: 2, right: 4, bottom: 2, left: 4 },
         },
     },
     series: [

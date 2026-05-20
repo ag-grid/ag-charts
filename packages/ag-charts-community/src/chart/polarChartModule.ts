@@ -6,6 +6,7 @@ import { VERSION } from '../version';
 import type { TransferableResources } from './chart';
 import { polarChartOptionsDefs } from './chartOptionsDefs';
 import { PolarChart } from './polarChart';
+import { commonChartThemeTemplate } from './themes/chartThemeTemplate';
 
 export const PolarChartModule: ChartModuleDefinition<AgPolarChartOptions> = {
     type: 'chart',
@@ -14,10 +15,12 @@ export const PolarChartModule: ChartModuleDefinition<AgPolarChartOptions> = {
 
     options: polarChartOptionsDefs,
 
+    themeTemplate: commonChartThemeTemplate,
+
     create(options: ChartOptions, resources?: TransferableResources) {
         return new PolarChart(options, resources);
     },
-    validate(options: any, optionsDefs, path, opts) {
+    validate(options: any, optionsDefs, path, params) {
         const additionalErrors: ValidationError[] = [];
         const baseType = options?.series?.[0]?.type;
         if (baseType === 'pie' || baseType === 'donut') {
@@ -27,7 +30,7 @@ export const PolarChartModule: ChartModuleDefinition<AgPolarChartOptions> = {
             }
         }
 
-        const result = validate(options, optionsDefs, path, opts);
+        const result = validate(options, optionsDefs, path, params);
         result.invalid.push(...additionalErrors);
         return result;
     },

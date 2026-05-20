@@ -1,4 +1,4 @@
-import { afterEach, describe } from '@jest/globals';
+import { afterEach, describe } from 'vitest';
 
 import type { AgCartesianChartOptions } from 'ag-charts-community';
 import { type AgChartInstance, type AgChartState, AgCharts } from 'ag-charts-community';
@@ -66,12 +66,12 @@ describe('ZoomAutoScale', () => {
         await createChart<D>(options);
         state = chart.getState();
         expect(state.zoom?.autoScaledAxes).toBeUndefined();
-        expect(zoomListener.mock).toBeCalledTimes(0);
+        expect(zoomListener.mock).toHaveBeenCalledTimes(0);
 
         await wheelZoomIn();
         state = chart.getState();
         expect(state.zoom?.autoScaledAxes).toBeUndefined();
-        expect(zoomListener.mock).toBeCalledTimes(1);
+        expect(zoomListener.mock).toHaveBeenCalledTimes(1);
         expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ autoScaledAxes: undefined });
     });
 
@@ -105,12 +105,12 @@ describe('ZoomAutoScale', () => {
         await createChart<D>(options);
         state = chart.getState();
         expect(state.zoom?.autoScaledAxes).toMatchObject(['y']);
-        expect(zoomListener.mock).toBeCalledTimes(0);
+        expect(zoomListener.mock).toHaveBeenCalledTimes(0);
 
         await wheelZoomIn();
         state = chart.getState();
         expect(state.zoom?.autoScaledAxes).toMatchObject(['y']);
-        expect(zoomListener.mock).toBeCalledTimes(1);
+        expect(zoomListener.mock).toHaveBeenCalledTimes(1);
         expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ autoScaledAxes: ['y'] });
     });
 
@@ -150,12 +150,12 @@ describe('ZoomAutoScale', () => {
         await createChart<D>(options);
         state = chart.getState();
         expect(state.zoom?.autoScaledAxes).toMatchObject(['y']);
-        expect(zoomListener.mock).toBeCalledTimes(0);
+        expect(zoomListener.mock).toHaveBeenCalledTimes(0);
 
         await wheelZoomIn();
         state = chart.getState();
         expect(state.zoom?.autoScaledAxes).toMatchObject(['y']);
-        expect(zoomListener.mock).toBeCalledTimes(1);
+        expect(zoomListener.mock).toHaveBeenCalledTimes(1);
         expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ autoScaledAxes: ['y'] });
     });
 
@@ -192,7 +192,7 @@ describe('ZoomAutoScale', () => {
         expect(state.zoom?.autoScaledAxes).toBeUndefined();
         expect(state.zoom?.ratioX).toMatchObject({ start: 0, end: 1 });
         expect(state.zoom?.ratioY).toMatchObject({ start: 0, end: 1 });
-        expect(zoomListener.mock).toBeCalledTimes(0);
+        expect(zoomListener.mock).toHaveBeenCalledTimes(0);
 
         // Zoom In; Expect zoom on X-axis only (no autoScaling).
         await wheelZoomIn();
@@ -200,7 +200,7 @@ describe('ZoomAutoScale', () => {
         expect(state.zoom?.autoScaledAxes).toBeUndefined();
         expect(state.zoom?.ratioX).not.toMatchObject({ start: 0, end: 1 });
         expect(state.zoom?.ratioY).toMatchObject({ start: 0, end: 1 });
-        expect(zoomListener.mock).toBeCalledTimes(1);
+        expect(zoomListener.mock).toHaveBeenCalledTimes(1);
         expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject({ ratioX: { start: 0, end: 1 } });
         expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioY: { start: 0, end: 1 } });
         expect(zoomListener.mock.mock.calls[0][0]?.autoScaledAxes).toBeUndefined();
@@ -212,7 +212,7 @@ describe('ZoomAutoScale', () => {
         expect(state.zoom?.autoScaledAxes).toMatchObject(['y']);
         expect(state.zoom?.ratioX).not.toMatchObject({ start: 0, end: 1 });
         expect(state.zoom?.ratioY).not.toMatchObject({ start: 0, end: 1 });
-        expect(zoomListener.mock).toBeCalledTimes(1);
+        expect(zoomListener.mock).toHaveBeenCalledTimes(1);
         expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject({ ratioX: { start: 0, end: 1 } });
         expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject({ ratioY: { start: 0, end: 1 } });
         expect(zoomListener.mock.mock.calls[0][0].autoScaledAxes).toMatchObject(['y']);
@@ -251,7 +251,7 @@ describe('ZoomAutoScale', () => {
         expect(state.zoom?.autoScaledAxes).toBeUndefined();
         expect(state.zoom?.ratioX).toMatchObject({ start: 0, end: 1 });
         expect(state.zoom?.ratioY).toMatchObject({ start: 0, end: 1 });
-        expect(zoomListener.mock).toBeCalledTimes(0);
+        expect(zoomListener.mock).toHaveBeenCalledTimes(0);
 
         // Zoom In; Expect zoom on X-axis only (no autoScaling).
         await wheelZoomIn();
@@ -259,7 +259,7 @@ describe('ZoomAutoScale', () => {
         expect(state.zoom?.autoScaledAxes).toBeUndefined();
         expect(state.zoom?.ratioX).not.toMatchObject({ start: 0, end: 1 });
         expect(state.zoom?.ratioY).toMatchObject({ start: 0, end: 1 });
-        expect(zoomListener.mock).toBeCalledTimes(1);
+        expect(zoomListener.mock).toHaveBeenCalledTimes(1);
         expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject({ ratioX: { start: 0, end: 1 } });
         expect(zoomListener.mock.mock.calls[0][0]).toMatchObject({ ratioY: { start: 0, end: 1 } });
         expect(zoomListener.mock.mock.calls[0][0]?.autoScaledAxes).toBeUndefined();
@@ -277,7 +277,7 @@ describe('ZoomAutoScale', () => {
         expect(state.zoom?.autoScaledAxes).toMatchObject(['y']);
         expect(state.zoom?.ratioX).not.toMatchObject({ start: 0, end: 1 });
         expect(state.zoom?.ratioY).not.toMatchObject({ start: 0, end: 1 });
-        expect(zoomListener.mock).toBeCalledTimes(1);
+        expect(zoomListener.mock).toHaveBeenCalledTimes(1);
         expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject({ ratioX: { start: 0, end: 1 } });
         expect(zoomListener.mock.mock.calls[0][0]).not.toMatchObject({ ratioY: { start: 0, end: 1 } });
         expect(zoomListener.mock.mock.calls[0][0].autoScaledAxes).toMatchObject(['y']);

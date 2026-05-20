@@ -1,5 +1,5 @@
 import type { Scale } from 'ag-charts-core';
-import { ChartAxisDirection, Padding, ZIndexMap, iterate } from 'ag-charts-core';
+import { ChartAxisDirection, ZIndexMap, iterate } from 'ag-charts-core';
 
 import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
@@ -17,8 +17,6 @@ export class PolarChart extends Chart {
     override createChartAxes() {
         return new PolarChartAxes();
     }
-
-    override padding = new Padding(40);
 
     constructor(options: ChartOptions, resources?: TransferableResources) {
         super(options, resources);

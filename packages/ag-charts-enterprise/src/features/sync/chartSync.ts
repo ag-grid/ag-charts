@@ -1,15 +1,13 @@
-import { type AgChartSyncOptions, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import {
+    AbstractModuleInstance,
     AsyncAwaitQueue,
-    BaseProperties,
     ChartAxisDirection,
     ChartUpdateType,
     Debug,
+    type DefinedZoomState,
     type DynamicContext,
     Logger,
-    type ModuleInstance,
-    ObserveChanges,
-    Property,
     type Scale,
     arraysEqual,
     definedZoomState,
@@ -62,37 +60,85 @@ function domainChanged(scale: Scale<unknown, unknown>, a: unknown[], b: unknown[
     }
 }
 
-export class ChartSync extends BaseProperties implements ModuleInstance, AgChartSyncOptions {
-    static readonly className = 'Sync';
-
-    @Property
-    @ObserveChanges<ChartSync>((target) => target.onEnabledChange())
-    enabled: boolean = false;
-
-    @Property
-    @ObserveChanges<ChartSync>((target, newValue, oldValue) => target.onGroupIdChange(newValue, oldValue))
-    groupId?: string;
-
-    @Property
-    @ObserveChanges<ChartSync>((target) => target.onAxesChange())
-    axes: 'x' | 'y' | 'xy' = 'x';
-
-    @Property
-    @ObserveChanges<ChartSync>((target) => target.onNodeInteractionChange())
-    nodeInteraction: boolean = true;
-
-    @Property
-    @ObserveChanges<ChartSync>((target) => target.onZoomChange())
-    zoom: boolean = true;
-
-    @Property
-    @ObserveChanges<ChartSync>((target) => target.onAxesChange())
-    domainMode: 'direction' | 'position' | 'id' = 'id';
-
+export class ChartSync extends AbstractModuleInstance {
     private readonly domainSync = new AsyncAwaitQueue();
+    private disabledByValidation = false;
+
+    // ChartSync is only created when the `sync` subtree is configured, so we
+    // assert the subtree's presence here and rely on theme defaults for fields.
+    private get opts(): _ModuleSupport.NormalisedChartSyncOptions {
+        return this.moduleContext.chartState.getValue('options', 'sync')!;
+    }
+
+    get enabled(): boolean {
+        return !this.disabledByValidation && this.opts.enabled;
+    }
+
+    get groupId(): string | undefined {
+        return this.opts.groupId;
+    }
+
+    get axes(): 'x' | 'y' | 'xy' {
+        return this.opts.axes;
+    }
+
+    get nodeInteraction(): boolean {
+        return this.opts.nodeInteraction;
+    }
+
+    get zoom(): boolean {
+        return this.opts.zoom;
+    }
 
     constructor(protected moduleContext: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
+
+        let prevEnabled: boolean | undefined;
+        let prevGroupId: string | undefined;
+        let prevAxes: 'x' | 'y' | 'xy' | undefined;
+        let prevNodeInteraction: boolean | undefined;
+        let prevZoom: boolean | undefined;
+
+        this.cleanup.register(
+            moduleContext.chartState.observe((get) => {
+                const sync = get('options', 'sync');
+                const enabled = !this.disabledByValidation && (sync?.enabled ?? false);
+                const groupId = sync?.groupId;
+                const axes = sync?.axes ?? 'x';
+                const nodeInteraction = sync?.nodeInteraction ?? true;
+                const zoom = sync?.zoom ?? true;
+
+                if (enabled !== prevEnabled) {
+                    this.onEnabledChange();
+                    prevEnabled = enabled;
+                    prevGroupId = groupId;
+                    prevAxes = axes;
+                    prevNodeInteraction = nodeInteraction;
+                    prevZoom = zoom;
+                    return;
+                }
+
+                if (groupId !== prevGroupId) {
+                    this.onGroupIdChange(groupId, prevGroupId);
+                    prevGroupId = groupId;
+                }
+
+                if (axes !== prevAxes) {
+                    this.onAxesChange();
+                    prevAxes = axes;
+                }
+
+                if (nodeInteraction !== prevNodeInteraction) {
+                    this.onNodeInteractionChange();
+                    prevNodeInteraction = nodeInteraction;
+                }
+
+                if (zoom !== prevZoom) {
+                    this.onZoomChange();
+                    prevZoom = zoom;
+                }
+            })
+        );
     }
 
     updateSiblings(groupId?: string) {
@@ -118,16 +164,18 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     private disableZoomSync?: () => void;
     private enabledZoomSync() {
         const { eventsHub } = this.moduleContext;
-        this.disableZoomSync?.(); // Cleanup any existing listeners.
+        this.disableZoomSync?.();
         this.disableZoomSync = eventsHub.on('zoom:change-complete', (e) => this.onZoom(e));
     }
 
     private onZoom(e: _ModuleSupport.ZoomChangeCompleteEvent) {
         const { syncManager } = this.moduleContext;
         for (const chart of syncManager.getGroupSiblings(this.groupId)) {
-            const syncModule: any = chart.modulesManager.getModule('sync');
+            const syncModule = chart.modulesManager.getModule<ChartSync>('sync');
             if (!syncModule?.zoom) continue;
-            const zoomModule: any = chart.modulesManager.getModule('zoom');
+            const zoomModule = chart.modulesManager.getModule<{
+                updateSyncZoom(zoom: DefinedZoomState): void;
+            }>('zoom');
             if (!zoomModule) continue;
 
             const zoom = this.prepareZoomUpdate();
@@ -151,7 +199,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
 
     private disableNodeInteractionSync?: () => void;
     private enabledNodeInteractionSync() {
-        this.disableNodeInteractionSync?.(); // Cleanup any existing listeners.
+        this.disableNodeInteractionSync?.();
         const offHighlightChange = this.moduleContext.eventsHub.on(
             'highlight:change',
             this.onHighlightChange.bind(this)
@@ -175,7 +223,8 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
 
         const series = event.currentHighlight?.series;
 
-        const [mainDirection] = syncedDirections(this.axes);
+        const opts = this.opts;
+        const [mainDirection] = syncedDirections(opts.axes);
         const secondaryDirection = mainDirection === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
 
         const [primaryKeys, secondaryKeys] = series ? getDirectionKeys(series, mainDirection, secondaryDirection) : [];
@@ -188,17 +237,17 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
         }
 
         if (!event.currentHighlight?.datum) {
-            for (const chart of syncManager.getGroupSiblings(this.groupId)) {
-                const syncModule: any = chart.modulesManager.getModule('sync');
+            for (const chart of syncManager.getGroupSiblings(opts.groupId)) {
+                const syncModule = chart.modulesManager.getModule<ChartSync>('sync');
                 if (!syncModule?.nodeInteraction) continue;
 
-                chart.ctx.highlightManager.updateHighlight(`${chart.id}-sync`, undefined, true); // true = delayed
-                chart.ctx.tooltipManager.removeTooltip(`${chart.id}-sync`, undefined, true); // true = delayed
+                chart.ctx.highlightManager.updateHighlight(`${chart.id}-sync`, undefined, true);
+                chart.ctx.tooltipManager.removeTooltip(`${chart.id}-sync`, undefined, true);
             }
             return;
         }
 
-        const useSecondaryDirectionKey = syncManager.getGroupSyncMode(this.groupId) === 'multi-series';
+        const useSecondaryDirectionKey = syncManager.getGroupSyncMode(opts.groupId) === 'multi-series';
         this.findMatchingHighlightNodes(
             mainDirection,
             secondaryDirection,
@@ -236,19 +285,17 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
         });
 
         for (const chart of syncManager.getGroupSiblings(this.groupId)) {
-            const syncModule: any = chart.modulesManager.getModule('sync');
+            const syncModule = chart.modulesManager.getModule<ChartSync>('sync');
             if (!syncModule?.nodeInteraction) continue;
 
             let dispatched = false;
             for (const axis of chart.axes) {
                 if (!CartesianAxis.is(axis) || axis.direction !== primaryDirection) continue;
 
-                // Find matching nodes for the main direction.
                 const matchingNodes = chart.series
                     .filter((s) => {
                         if (!s.visible) return false;
 
-                        // Narrow matches by matching the secondary direction keys of series, if multiple series are present.
                         if (secondaryKeys.length > 0) {
                             const [, seriesKeys] = getDirectionKeys(s, primaryDirection, secondaryDirection);
                             return secondaryKeys.every((key) => seriesKeys.includes(key));
@@ -309,7 +356,6 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     ) {
         debug('ChartSync.dispatchHighlightUpdate()', chart.id, nodeDatum);
 
-        // Use delayed unhighlight when clearing (nodeDatum is undefined)
         const delayed = nodeDatum == null;
         chart.ctx.highlightManager.updateHighlight(`${chart.id}-sync`, nodeDatum, delayed);
 
@@ -331,14 +377,16 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
                 chart.getTooltipContent(nodeDatum.series, nodeDatum.datumIndex, nodeDatum, 'tooltip')
             );
         } else {
-            chart.ctx.tooltipManager.removeTooltip(`${chart.id}-sync`, undefined, true); // true = delayed
+            chart.ctx.tooltipManager.removeTooltip(`${chart.id}-sync`, undefined, true);
         }
 
         this.updateChart(chart, ChartUpdateType.SERIES_UPDATE);
     }
 
     async getSyncedDomain(axis: unknown) {
-        if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== (axis.direction as string))) {
+        const opts = this.opts;
+        const axes = opts.axes;
+        if (!CartesianAxis.is(axis) || (axes !== 'xy' && axes !== (axis.direction as string))) {
             return;
         }
 
@@ -347,11 +395,12 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
 
         await this.waitForDomainsToBeReady();
 
-        if (this.domainMode === 'position') {
+        const domainMode = opts.domainMode ?? 'id';
+        if (domainMode === 'position') {
             return this.calculateDerivedDomain(axis, positionDomains);
         }
 
-        if (this.domainMode === 'direction') {
+        if (domainMode === 'direction') {
             return this.calculateDerivedDomain(axis, directionDomains);
         }
 
@@ -360,12 +409,12 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
 
     private updateDomainState(axis: _ModuleSupport.CartesianAxis<any, any>) {
         const { syncManager } = this.moduleContext;
+        const groupId = this.opts.groupId;
         const chartId = syncManager.getChart().id;
         const axisId = axis.id;
-        const groupState = syncManager.getGroupState(this.groupId);
-        if (!groupState) throw new Error('AG Charts - no GroupState for groupId: ' + this.groupId);
+        const groupState = syncManager.getGroupState(groupId);
+        if (!groupState) throw new Error('AG Charts - no GroupState for groupId: ' + groupId);
 
-        // Update shared state of synced axis domain.
         const domainsByDirection = (groupState.domains ??= {});
         const directionDomains = (domainsByDirection[axis.direction] ??= { derived: [], sources: {}, dirty: true });
         const chartDirectionDomains = (directionDomains.sources[chartId] ??= {});
@@ -388,9 +437,10 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     }
 
     private validateAxis(axis: _ModuleSupport.CartesianAxis<any, any>, groupState: _ModuleSupport.SyncGroupState) {
-        const multiSeries = this.moduleContext.syncManager.getGroupSyncMode(this.groupId) === 'multi-series';
+        const opts = this.opts;
+        const multiSeries = this.moduleContext.syncManager.getGroupSyncMode(opts.groupId) === 'multi-series';
 
-        if (!syncedDirections(this.axes).includes(axis.direction)) return;
+        if (!syncedDirections(opts.axes).includes(axis.direction)) return;
 
         if (multiSeries) {
             this.validateMultiSeries(axis, groupState);
@@ -408,7 +458,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
 
         for (const member of groupState.members) {
             const { axes, modulesManager } = member;
-            const syncModule: any = modulesManager.getModule('sync');
+            const syncModule = modulesManager.getModule<ChartSync>('sync');
             const memberSyncDirections = syncedDirections(syncModule?.axes);
 
             const keyMatchedAxes = axes
@@ -426,7 +476,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
                 Logger.warnOnce(
                     'To allow synchronization, ensure that all synchronized axes with matching keys have matching min, max, nice, and reverse properties.'
                 );
-                this.enabled = false;
+                this.disableSelf();
                 return;
             }
         }
@@ -452,10 +502,16 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
                 Logger.warnOnce(
                     'To allow synchronization, ensure that all charts have matching min, max, nice, and reverse properties on the synchronized axes.'
                 );
-                this.enabled = false;
+                this.disableSelf();
                 return;
             }
         }
+    }
+
+    private disableSelf() {
+        if (this.disabledByValidation) return;
+        this.disabledByValidation = true;
+        this.onEnabledChange();
     }
 
     private calculateDerivedDomain(
@@ -470,8 +526,6 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
         if (ContinuousScale.is(axis.scale)) {
             newDerived = newDerivedBySource.flat(2);
         } else {
-            // Sort category scale sources by their length, largest to smallest, so missing datums are not appended
-            // to the end.
             newDerived = newDerivedBySource
                 .flat()
                 .toSorted((a, b) => (a.length > b.length ? -1 : 1))
@@ -494,12 +548,14 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     }
 
     removeAxis(axis: unknown) {
-        if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== (axis.direction as string))) {
+        const opts = this.opts;
+        const axes = opts.axes;
+        if (!CartesianAxis.is(axis) || (axes !== 'xy' && axes !== (axis.direction as string))) {
             return;
         }
 
         const { syncManager } = this.moduleContext;
-        const syncGroup = syncManager.getGroupState(this.groupId);
+        const syncGroup = syncManager.getGroupState(opts.groupId);
 
         const chartId = syncManager.getChart().id;
         const axisId = axis.id;
@@ -510,9 +566,10 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
 
     private async waitForDomainsToBeReady() {
         const { syncManager } = this.moduleContext;
+        const groupId = this.opts.groupId;
         let count = 0;
-        while (syncManager.getGroupMembers(this.groupId).some((c) => c.syncStatus === 'init')) {
-            debug('ChartSync.waitForDomainsToBeReady() - waiting for all domains to be calculated', this.groupId);
+        while (syncManager.getGroupMembers(groupId).some((c) => c.syncStatus === 'init')) {
+            debug('ChartSync.waitForDomainsToBeReady() - waiting for all domains to be calculated', groupId);
             await this.domainSync.waitForCompletion();
             count++;
         }
@@ -524,9 +581,10 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
 
     private prepareZoomUpdate() {
         const zoom = { ...this.moduleContext.chartState.getValue('zoom') };
-        if (this.axes === 'x') {
+        const axes = this.opts.axes;
+        if (axes === 'x') {
             delete zoom?.y;
-        } else if (this.axes === 'y') {
+        } else if (axes === 'y') {
             delete zoom?.x;
         }
 
@@ -535,12 +593,14 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
 
     private onEnabledChange() {
         const { syncManager, highlightManager } = this.moduleContext;
-        if (this.enabled) {
-            syncManager.subscribe(this.groupId);
-            highlightManager.unhighlightDelay = 0; // Workaround for AG-16398
+        const opts = this.opts;
+        const enabled = !this.disabledByValidation && opts.enabled;
+        if (enabled) {
+            syncManager.subscribe(opts.groupId);
+            highlightManager.unhighlightDelay = 0;
         } else {
-            syncManager.unsubscribe(this.groupId);
-            highlightManager.unhighlightDelay = 100; // Workaround for AG-16398
+            syncManager.unsubscribe(opts.groupId);
+            highlightManager.unhighlightDelay = 100;
         }
         this.updateSiblings();
         this.onNodeInteractionChange();
@@ -563,7 +623,9 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     }
 
     private onNodeInteractionChange() {
-        if (this.enabled && this.nodeInteraction) {
+        const opts = this.opts;
+        const enabled = !this.disabledByValidation && opts.enabled;
+        if (enabled && opts.nodeInteraction) {
             this.enabledNodeInteractionSync();
         } else {
             this.disableNodeInteractionSync?.();
@@ -571,17 +633,20 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     }
 
     private onZoomChange() {
-        if (this.enabled && this.zoom) {
+        const opts = this.opts;
+        const enabled = !this.disabledByValidation && opts.enabled;
+        if (enabled && opts.zoom) {
             this.enabledZoomSync();
         } else {
             this.disableZoomSync?.();
         }
     }
 
-    destroy() {
+    override destroy() {
         const { syncManager } = this.moduleContext;
         syncManager.unsubscribe(this.groupId);
         this.updateSiblings();
         this.disableZoomSync?.();
+        super.destroy();
     }
 }

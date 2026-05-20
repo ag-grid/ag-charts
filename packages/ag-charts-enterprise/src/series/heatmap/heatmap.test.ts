@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { type AgChartOptions, AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
@@ -581,7 +581,7 @@ describe('HeatmapSeries', () => {
             // Drive Legend.onHover directly rather than simulating canvas coordinates — the
             // legend's own markerLabel nodes already carry the datum association, and the
             // MouseEvent argument is only used for tooltip positioning, not highlight state.
-            const legendModule = (chart as Chart).modulesManager.getModule('legend') as any;
+            const legendModule = (chart as Chart).modulesManager.getModule<any>('legend');
             const items: any[] = [];
             legendModule.itemSelection.each((item: any) => items.push(item));
             // 1 toggleable Series A + 3 bin items from Series B.

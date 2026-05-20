@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import { BBox } from './bbox';
 import type { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';

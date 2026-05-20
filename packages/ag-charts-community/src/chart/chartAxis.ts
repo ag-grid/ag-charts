@@ -6,7 +6,6 @@ import type {
     DomainWithMetadata,
     DynamicContext,
     NormalisedBaseAxisOptions,
-    Padding,
     Scale,
 } from 'ag-charts-core';
 import type {
@@ -14,6 +13,7 @@ import type {
     AgAxisLabelStylerParams,
     AgBaseAxisLabelStyleOptions,
     AgCartesianAxisPosition,
+    AgChartPaddingOptions,
     Padding as AgPadding,
     AgTimeAxisFormattableLabelUnitFormat,
     AgTimeIntervalUnit,
@@ -62,7 +62,7 @@ export interface AxisGroups {
 export type FormatDatumParams = Omit<FormatterParams<any>, 'type' | 'value'>;
 
 export interface ChartLayout {
-    padding: Padding;
+    padding: Required<AgChartPaddingOptions>;
     sizeLimit: number;
     scrollbars?: ScrollbarLayoutMap;
 }

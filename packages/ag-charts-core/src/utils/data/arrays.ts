@@ -41,7 +41,7 @@ export function groupBy<T, R extends string | number | symbol>(array: T[], itera
  * @returns `true` if the arrays are equal, otherwise `false`.
  */
 export function arraysEqual(a: readonly any[], b: readonly any[]): boolean {
-    if (a == null || b == null || a.length !== b.length) {
+    if (a.length !== b.length) {
         return false;
     }
 

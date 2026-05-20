@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
     type AgBarSeriesItemStylerParams,
@@ -817,10 +817,10 @@ describe('ErrorBars', () => {
 
     it('AG-14263 should set itemStyler seriesId', async () => {
         type TDatum = { x: string; y: number; yLower: number; yUpper: number };
-        const barSeriesItemStyler = jest.fn((_p: AgBarSeriesItemStylerParams<TDatum>): AgBarSeriesStyle => {
+        const barSeriesItemStyler = vi.fn((_p: AgBarSeriesItemStylerParams<TDatum>): AgBarSeriesStyle => {
             return {};
         });
-        const errorBarItemStyler = jest.fn((_p: AgErrorBarItemStylerParams<TDatum>): AgErrorBarThemeableOptions => {
+        const errorBarItemStyler = vi.fn((_p: AgErrorBarItemStylerParams<TDatum>): AgErrorBarThemeableOptions => {
             return {};
         });
         const opts: AgCartesianChartOptions<TDatum> = {
@@ -845,12 +845,12 @@ describe('ErrorBars', () => {
         };
         chart = await createEnterpriseChart(opts);
 
-        expect(errorBarItemStyler).toBeCalledTimes(3);
+        expect(errorBarItemStyler).toHaveBeenCalledTimes(3);
         expect(errorBarItemStyler.mock.calls[0][0]).toMatchObject({ seriesId: 'BarSeries-1' });
         expect(errorBarItemStyler.mock.calls[1][0]).toMatchObject({ seriesId: 'BarSeries-1' });
         expect(errorBarItemStyler.mock.calls[2][0]).toMatchObject({ seriesId: 'BarSeries-1' });
 
-        expect(barSeriesItemStyler).toBeCalledTimes(3);
+        expect(barSeriesItemStyler).toHaveBeenCalledTimes(3);
         expect(barSeriesItemStyler.mock.calls[0][0]).toMatchObject({ seriesId: 'BarSeries-1' });
         expect(barSeriesItemStyler.mock.calls[2][0]).toMatchObject({ seriesId: 'BarSeries-1' });
         expect(barSeriesItemStyler.mock.calls[1][0]).toMatchObject({ seriesId: 'BarSeries-1' });
@@ -940,7 +940,7 @@ describe('ErrorBars', () => {
                         errorBar: {
                             yLowerKey: 'salesLower',
                             yUpperKey: 'salesUpper',
-                            itemStyler: itemStyler.frozen as any,
+                            itemStyler: itemStyler.frozen,
                         },
                         context: seriesContext,
                     },

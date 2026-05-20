@@ -18,8 +18,7 @@ const options: AgPolarChartOptions = {
         maxHeight: 200,
         item: {
             maxWidth: 130,
-            paddingX: 32,
-            paddingY: 8,
+            padding: { top: 4, right: 16, bottom: 4, left: 16 },
             marker: {
                 padding: 8,
             },
@@ -29,26 +28,52 @@ const options: AgPolarChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function updateLegendItemPaddingX(event: any) {
-    var value = +event.target.value;
+function updateLegendItemPaddingLeft(event: any) {
+    const value = Number(event.target.value);
 
-    options.legend!.item!.paddingX = value;
+    if (typeof options.legend!.item!.padding === 'object') {
+        options.legend!.item!.padding!.left = value;
+    }
     chart.update(options);
 
-    document.getElementById('xPaddingValue')!.innerHTML = String(value);
+    document.getElementById('leftPaddingValue')!.innerHTML = String(value);
 }
 
-function updateLegendItemPaddingY(event: any) {
-    var value = event.target.value;
+function updateLegendItemPaddingRight(event: any) {
+    const value = Number(event.target.value);
 
-    options.legend!.item!.paddingY = +event.target.value;
+    if (typeof options.legend!.item!.padding === 'object') {
+        options.legend!.item!.padding!.right = value;
+    }
     chart.update(options);
 
-    document.getElementById('yPaddingValue')!.innerHTML = String(value);
+    document.getElementById('rightPaddingValue')!.innerHTML = String(value);
+}
+
+function updateLegendItemPaddingTop(event: any) {
+    const value = Number(event.target.value);
+
+    if (typeof options.legend!.item!.padding === 'object') {
+        options.legend!.item!.padding!.top = value;
+    }
+    chart.update(options);
+
+    document.getElementById('topPaddingValue')!.innerHTML = String(value);
+}
+
+function updateLegendItemPaddingBottom(event: any) {
+    const value = Number(event.target.value);
+
+    if (typeof options.legend!.item!.padding === 'object') {
+        options.legend!.item!.padding!.bottom = value;
+    }
+    chart.update(options);
+
+    document.getElementById('bottomPaddingValue')!.innerHTML = String(value);
 }
 
 function updateLegendItemSpacing(event: any) {
-    var value = +event.target.value;
+    const value = Number(event.target.value);
 
     options.legend!.item!.marker!.padding = value;
     chart.update(options);
@@ -57,7 +82,7 @@ function updateLegendItemSpacing(event: any) {
 }
 
 function updateLegendItemMaxWidth(event: any) {
-    var value = +event.target.value;
+    const value = Number(event.target.value);
 
     options.legend!.item!.maxWidth = value;
     chart.update(options);

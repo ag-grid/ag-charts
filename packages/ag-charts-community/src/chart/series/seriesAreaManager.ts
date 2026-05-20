@@ -34,12 +34,10 @@ import type {
     WheelWidgetEvent,
 } from '../../widget/widgetEvents';
 import type { ChartHighlight } from '../chartHighlight';
-import type { ChartMode } from '../chartMode';
 import type { ChartType } from '../chartType';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
 import { TooltipManager } from '../interaction/tooltipManager';
-import type { Keyboard } from '../keyboard';
 import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import {
@@ -105,9 +103,7 @@ export interface SeriesAreaChartDependencies {
     ctx: DynamicContext<ChartRegistry>;
     tooltip: Tooltip;
     highlight: ChartHighlight;
-    keyboard: Keyboard;
     overlays: ChartOverlays;
-    mode: ChartMode;
 }
 
 function computeHighlightInViewport(
@@ -232,7 +228,9 @@ export class SeriesAreaManager extends BaseManager {
         this.swapChain.addListener('focus', () => this.onFocus());
         if (chart.ctx.domManager.mode === 'normal') {
             this.focusIndicator = new FocusIndicator(this.swapChain);
-            this.focusIndicator.overrideFocusVisible(chart.mode === 'integrated' ? false : undefined); // AG-13197
+            this.focusIndicator.overrideFocusVisible(
+                chart.ctx.chartState.getValue('options', 'mode') === 'integrated' ? false : undefined // AG-13197
+            );
         }
 
         const { seriesDragInterpreter, seriesWidget, containerWidget } = chart.ctx.widgets;
@@ -314,9 +312,11 @@ export class SeriesAreaManager extends BaseManager {
 
     private isIgnoredTouch(event: HoverLikeEvent) {
         if (event.device !== 'touch' || event.type === 'click') return false;
-        if (this.chart.ctx.chartService.touch.dragAction === 'hover') return false;
 
-        if (this.chart.ctx.chartService.touch.dragAction === 'drag') {
+        const { dragAction } = this.chart.ctx.chartState.getValue('options', 'touch');
+        if (dragAction === 'hover') return false;
+
+        if (dragAction === 'drag') {
             if (this.isState(InteractionState.AnnotationsMoveable)) {
                 return false;
             }
@@ -538,7 +538,7 @@ export class SeriesAreaManager extends BaseManager {
     private onHoverLikeEvent(event: HoverLikeEvent, current: Widget): void {
         if (this.isIgnoredTouch(event)) return;
 
-        if (event.device === 'touch' && this.chart.ctx.chartService.touch.dragAction === 'hover') {
+        if (event.device === 'touch' && this.chart.ctx.chartState.getValue('options', 'touch').dragAction === 'hover') {
             event.sourceEvent.preventDefault();
         }
 
@@ -661,7 +661,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private onFocus(): void {
         if (!this.isState(InteractionState.Focusable) || !this.focusIndicator) return;
-        this.initFocus(this.chart.keyboard.initialFocus);
+        this.initFocus(this.chart.ctx.chartState.getValue('options', 'keyboard').initialFocus);
         const focusVisibleStyle: boolean = this.focusIndicator.onFocus();
         this.setHoverDevice(focusVisibleStyle ? 'keyboard' : 'pointer');
 

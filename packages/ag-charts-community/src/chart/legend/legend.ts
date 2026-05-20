@@ -274,8 +274,7 @@ export class Legend {
     private calcLayout(width: number, height: number) {
         const { item } = this.opts;
         const {
-            paddingX,
-            paddingY,
+            padding,
             label,
             maxWidth: itemMaxWidth,
             label: { maxLength = Infinity, fontStyle, fontWeight, fontSize, fontFamily },
@@ -331,7 +330,7 @@ export class Legend {
         const { pages, maxPageHeight, maxPageWidth } = this.updatePagination(bboxes, width, height);
         const oldPages = this.pages;
         this.pages = pages;
-        this.maxPageSize = [maxPageWidth - paddingX, maxPageHeight - paddingY];
+        this.maxPageSize = [maxPageWidth - padding.left - padding.right, maxPageHeight - padding.top - padding.bottom];
 
         const pageNumber = this.pagination.currentPage;
         const page = this.pages[pageNumber];
@@ -418,9 +417,9 @@ export class Legend {
         anyLineEnabled: boolean,
         itemOpts: NormalisedLegendOptions['item']
     ): number {
-        const { marker: itemMarker, paddingX, showSeriesStroke } = itemOpts;
+        const { marker: itemMarker, padding, showSeriesStroke } = itemOpts;
         const { symbol } = datum;
-        let paddedSymbolWidth = paddingX;
+        let paddedSymbolWidth = padding.left + padding.right;
 
         const { markerEnabled, isCustomMarker } = this.calcSymbolsEnabled(symbol, showSeriesStroke);
 
@@ -525,10 +524,10 @@ export class Legend {
         const newCurrentPage = pages.findIndex((p) => p.endIndex >= trackingIndex);
         this.pagination.currentPage = clamp(0, newCurrentPage, Math.max(0, pages.length - 1));
 
-        const { marker, paddingX: itemPaddingX, paddingY: itemPaddingY } = item;
+        const { marker, padding } = item;
         const paginationComponentPadding = 8;
-        const legendItemsWidth = maxPageWidth - itemPaddingX;
-        const legendItemsHeight = maxPageHeight - itemPaddingY;
+        const legendItemsWidth = maxPageWidth - padding.left - padding.right;
+        const legendItemsHeight = maxPageHeight - padding.top - padding.bottom;
 
         let paginationX = 0;
         let paginationY = -paginationBBox.y - marker.size / 2;
@@ -574,7 +573,7 @@ export class Legend {
         paginationOpts: NormalisedLegendPaginationOptions
     ) {
         const { item, maxWidth, maxHeight, position, orientation } = this.opts;
-        const { paddingX: itemPaddingX, paddingY: itemPaddingY } = item;
+        const { padding } = item;
 
         const vertPositions: readonly string[] = [
             'left',
@@ -615,8 +614,8 @@ export class Legend {
                 bboxes,
                 maxWidth: width - (paginationVertical ? 0 : paginationBBox.width),
                 maxHeight: height - (paginationVertical ? paginationBBox.height : 0),
-                itemPaddingY,
-                itemPaddingX,
+                itemPaddingY: padding.top + padding.bottom,
+                itemPaddingX: padding.left + padding.right,
                 forceResult,
             });
 
@@ -643,7 +642,7 @@ export class Legend {
     private updatePositions(pageNumber: number = 0) {
         const {
             opts: {
-                item: { paddingY },
+                item: { padding },
             },
             itemSelection,
             pages,
@@ -663,7 +662,7 @@ export class Legend {
         const rowCount = columns[0].indices.length;
         const horizontal = this.opts.orientation === 'horizontal';
 
-        const itemHeight = columns[0].bboxes[0].height + paddingY;
+        const itemHeight = columns[0].bboxes[0].height + padding.top + padding.bottom;
 
         const { isRtl } = this.ctx.domManager;
         const rowSumColumnWidths: number[] = [];
@@ -870,7 +869,6 @@ export class Legend {
     onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel) {
         if (this.checkInteractionState()) return;
         const { sourceEvent } = widgetEvent;
-        // eslint-disable-next-line sonarjs/deprecation
         const legendItem: CategoryLegendDatum = node.unsafeNonNullDatum;
 
         this.clearHighlight();

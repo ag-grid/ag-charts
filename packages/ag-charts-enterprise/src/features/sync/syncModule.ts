@@ -17,7 +17,7 @@ export const SyncModule: PluginModuleDefinition<AgChartSyncOptions> = {
         nodeInteraction: boolean,
         zoom: boolean,
     },
-    themeTemplate: { enabled: false },
+    themeTemplate: { enabled: false, axes: 'x', nodeInteraction: true, zoom: true },
 
     create: (ctx) => new ChartSync(ctx),
 };

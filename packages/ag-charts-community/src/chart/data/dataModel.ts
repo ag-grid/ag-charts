@@ -768,7 +768,7 @@ export class DataModel<
         }> = [];
 
         for (const def of this.reducers) {
-            const bandManager = reducerBands.get(def.property as ReducerBandKey);
+            const bandManager = reducerBands.get(def.property);
             const isBanded = this.shouldUseReducerBanding(def, processedData) && bandManager != null;
 
             let reason: string | undefined;

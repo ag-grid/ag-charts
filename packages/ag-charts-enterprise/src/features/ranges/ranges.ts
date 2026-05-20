@@ -1,23 +1,16 @@
 import {
+    type AgRangesButton,
     type AgRangesButtonValue,
-    type AgRangesPosition,
-    type CssColor,
-    type FontFamily,
-    type FontWeight,
-    type Padding,
+    type AgRangesStateStyles,
+    type AgRangesStyles,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
-    ActionOnSet,
-    BaseProperties,
+    AbstractModuleInstance,
     type BoxBounds,
     ChartAxisDirection,
-    CleanupRegistry,
     Color,
     type DynamicContext,
-    type ModuleInstance,
-    PropertiesArray,
-    Property,
     clamp,
     intervalAgo,
     isTimeInterval,
@@ -25,100 +18,54 @@ import {
     isValidDate,
 } from 'ag-charts-core';
 
-import {
-    RangesButtonProperties,
-    RangesDropdownProperties,
-    RangesStateStylesProperties,
-    RangesStylesProperties,
-} from './rangesProperties';
-
 const { userInteraction, LayoutElement, Toolbar } = _ModuleSupport;
 
 const DEFAULT_DROPDOWN_LABEL = 'toolbarRangeSelectRange';
 
-/**
- * Ranges extends BaseProperties to ensure the `padding` property can be correctly modified by jsonApply() when it
- * changes between a number and an object. So it manually implements ModuleInstance, instead of extending the
- * default AbstractModuleInstance class.
- */
-export class Ranges extends BaseProperties implements ModuleInstance {
-    @ActionOnSet<Ranges, boolean>({
-        newValue(value) {
-            // Reset `isDropdown` state when the ranges module is disabled, to ensure the buttons are correctly
-            // re-shown if the module is re-enabled.
-            if (!value) {
-                this.isDropdown = undefined;
-            }
-        },
-    })
-    @Property
-    public enabled = false;
+type ResolvedStyles = AgRangesStyles & {
+    cornerRadius: number;
+    fill: string;
+    fillOpacity: number;
+    fontSize: number;
+    fontFamily: string;
+    fontWeight: string | number;
+    stroke: string;
+    strokeWidth: number;
+    textColor: string;
+    padding: number | { top?: number; right?: number; bottom?: number; left?: number };
+    active: Required<AgRangesStateStyles>;
+    disabled: Required<AgRangesStateStyles>;
+    hover: Required<AgRangesStateStyles>;
+};
 
-    @Property
-    public buttons = new PropertiesArray(RangesButtonProperties);
+const EMPTY_STATE_STYLES: Required<AgRangesStateStyles> = {
+    fill: 'black',
+    fillOpacity: 1,
+    stroke: 'black',
+    textColor: 'black',
+};
 
-    @Property
-    public button = new RangesStylesProperties();
+const EMPTY_STYLES: ResolvedStyles = {
+    cornerRadius: 0,
+    fill: 'black',
+    fillOpacity: 1,
+    fontSize: 12,
+    fontFamily: 'sans-serif',
+    fontWeight: 'normal',
+    stroke: 'black',
+    strokeWidth: 1,
+    textColor: 'black',
+    padding: 0,
+    active: { ...EMPTY_STATE_STYLES },
+    disabled: { ...EMPTY_STATE_STYLES },
+    hover: { ...EMPTY_STATE_STYLES },
+};
 
-    @Property
-    public dropdown = new RangesDropdownProperties();
+function resolveStyles(styles: AgRangesStyles | undefined): ResolvedStyles {
+    return { ...EMPTY_STYLES, ...(styles ?? {}) } as ResolvedStyles;
+}
 
-    @Property
-    public active = new RangesStateStylesProperties();
-
-    @Property
-    public disabled = new RangesStateStylesProperties();
-
-    @Property
-    public hover = new RangesStateStylesProperties();
-
-    @Property
-    public enableOutOfRange = false;
-
-    @Property
-    public gap = 0;
-
-    @Property
-    public cornerRadius = 0;
-
-    @Property
-    public fill: CssColor = 'black';
-
-    @Property
-    public fillOpacity = 1;
-
-    @Property
-    public fontSize = 12;
-
-    @Property
-    public fontFamily: FontFamily = 'sans-serif';
-
-    @Property
-    public fontWeight: FontWeight = 'normal';
-
-    @Property
-    public stroke: CssColor = 'black';
-
-    @Property
-    public strokeWidth = 1;
-
-    @Property
-    public textColor: CssColor = 'black';
-
-    @Property
-    public padding: Padding = 0;
-
-    @Property
-    public position: AgRangesPosition = 'top-right';
-
-    @Property
-    public spacing: number = 0;
-
-    @Property
-    public minSize: number = 0;
-
-    protected readonly cleanup = new CleanupRegistry();
-
+export class Ranges extends AbstractModuleInstance {
     private container?: HTMLElement;
     private dropdownMenu?: _ModuleSupport.Menu;
     private buttonsToolbar?: _ModuleSupport.BaseToolbar;
@@ -128,6 +75,12 @@ export class Ranges extends BaseProperties implements ModuleInstance {
     private dropdownLabel = DEFAULT_DROPDOWN_LABEL;
     private dropdownMinWidth?: number;
 
+    // Ranges is only created when the `ranges` subtree is configured, so assert
+    // presence here and rely on rangesTheme for field-level defaults.
+    private get opts(): _ModuleSupport.NormalisedRangesOptions {
+        return this.ctx.chartState.getValue('options', 'ranges')!;
+    }
+
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
@@ -136,12 +89,14 @@ export class Ranges extends BaseProperties implements ModuleInstance {
             ctx.eventsHub.on('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.widgets.chartWidget.addListener('click', this.onChartWidgetClick.bind(this)),
             ctx.eventsHub.on('zoom:change-complete', this.onZoomChanged.bind(this)),
+            ctx.chartState.observe((get) => {
+                const enabled = get('options', 'ranges.enabled') ?? false;
+                // Reset `isDropdown` state when the ranges module is disabled, to ensure the buttons are
+                // correctly re-shown if the module is re-enabled.
+                if (!enabled) this.isDropdown = undefined;
+            }),
             this.teardown.bind(this)
         );
-    }
-
-    destroy() {
-        this.cleanup.flush();
     }
 
     private setup() {
@@ -175,7 +130,9 @@ export class Ranges extends BaseProperties implements ModuleInstance {
     }
 
     private onLayoutStart({ layoutBox }: _ModuleSupport.LayoutContext) {
-        const { dropdown, enabled, position, spacing } = this;
+        const opts = this.opts;
+        const { enabled, position, spacing } = opts;
+        const dropdownVisible = opts.dropdown.visible;
 
         if (!enabled) {
             this.buttonsToolbar?.setHidden(true);
@@ -188,12 +145,12 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         const { buttonsToolbar, dropdownToolbar } = this;
         if (!buttonsToolbar || !dropdownToolbar) return;
 
-        buttonsToolbar.updateButtons(this.buttons);
+        buttonsToolbar.updateButtons(opts.buttons);
         dropdownToolbar.updateButtons([this.getDropdownButtonOptions(this.dropdownLabel)]);
 
         this.updateCSSVariables();
 
-        if (dropdown.visible === 'always') {
+        if (dropdownVisible === 'always') {
             this.swapDropdownIn();
         } else {
             this.swapDropdownOut();
@@ -214,12 +171,16 @@ export class Ranges extends BaseProperties implements ModuleInstance {
     }
 
     private onLayoutComplete({ series: { rect: seriesRect }, layoutBox }: _ModuleSupport.LayoutCompleteEvent) {
-        const { buttons, buttonsToolbar, ctx, dropdown, dropdownMenu, dropdownToolbar, enabled } = this;
-        if (!enabled || !buttonsToolbar || !dropdownToolbar || !dropdownMenu) return;
+        const { buttonsToolbar, ctx, dropdownMenu, dropdownToolbar } = this;
+        const opts = this.opts;
+        if (!opts.enabled || !buttonsToolbar || !dropdownToolbar || !dropdownMenu) return;
+
+        const dropdownVisible = opts.dropdown.visible;
+        const buttons = opts.buttons;
 
         let bounds: BoxBounds | undefined;
 
-        if (dropdown.visible === 'auto') {
+        if (dropdownVisible === 'auto') {
             bounds = buttonsToolbar.getBounds();
             if (bounds.width > seriesRect.width) {
                 this.swapDropdownIn();
@@ -263,7 +224,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         layoutBox: Readonly<_ModuleSupport.BBox>,
         cachedBounds?: BoxBounds
     ) {
-        const { position } = this;
+        const position = this.opts.position;
         const bounds = cachedBounds ?? toolbar.getBounds();
 
         if (position === 'top-right' || position === 'bottom-right') {
@@ -279,79 +240,89 @@ export class Ranges extends BaseProperties implements ModuleInstance {
     }
 
     private updateCSSVariables() {
-        if (this.gap > 0) {
+        const opts = this.opts;
+        const gap = opts.gap;
+        if (gap > 0) {
             this.buttonsToolbar?.addClass('ag-charts-range-buttons--gapped');
         } else {
             this.buttonsToolbar?.removeClass('ag-charts-range-buttons--gapped');
         }
 
         const numericKeys = ['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'strokeWidth'];
-        this.ctx.domManager.setModuleCSSVariables(
-            'ranges',
-            undefined,
-            undefined,
-            { gap: this.gap, minSize: this.minSize },
-            ['gap', 'minSize']
-        );
+        const button = resolveStyles(opts.button);
+        const dropdown = resolveStyles(opts.dropdown);
+        // `minSize` is undocumented but emitted by rangesTheme/priceVolumePreset (theme: 0, preset: 34).
+        const minSize = (opts as { minSize?: number }).minSize ?? 0;
+        this.ctx.domManager.setModuleCSSVariables('ranges', undefined, undefined, { gap, minSize }, ['gap', 'minSize']);
         this.ctx.domManager.setModuleCSSVariables(
             'ranges',
             'button',
             undefined,
-            this.getComponentVariables(this.button),
+            this.getComponentVariables(button),
             numericKeys
         );
         this.ctx.domManager.setModuleCSSVariables(
             'ranges',
             'button',
             'active',
-            this.getComponentStateVariables(this.button, 'active'),
+            this.getComponentStateVariables(button, 'active'),
             numericKeys
         );
         this.ctx.domManager.setModuleCSSVariables(
             'ranges',
             'button',
             'disabled',
-            this.getComponentStateVariables(this.button, 'disabled'),
+            this.getComponentStateVariables(button, 'disabled'),
             numericKeys
         );
         this.ctx.domManager.setModuleCSSVariables(
             'ranges',
             'button',
             'hover',
-            this.getComponentStateVariables(this.button, 'hover'),
+            this.getComponentStateVariables(button, 'hover'),
             numericKeys
         );
         this.ctx.domManager.setModuleCSSVariables(
             'ranges',
             'dropdown',
             undefined,
-            this.getComponentVariables(this.dropdown),
+            this.getComponentVariables(dropdown),
             numericKeys
         );
         this.ctx.domManager.setModuleCSSVariables(
             'ranges',
             'dropdown',
             'active',
-            this.getComponentStateVariables(this.dropdown, 'active'),
+            this.getComponentStateVariables(dropdown, 'active'),
             numericKeys
         );
         this.ctx.domManager.setModuleCSSVariables(
             'ranges',
             'dropdown',
             'disabled',
-            this.getComponentStateVariables(this.dropdown, 'disabled'),
+            this.getComponentStateVariables(dropdown, 'disabled'),
             numericKeys
         );
         this.ctx.domManager.setModuleCSSVariables(
             'ranges',
             'dropdown',
             'hover',
-            this.getComponentStateVariables(this.dropdown, 'hover'),
+            this.getComponentStateVariables(dropdown, 'hover'),
             numericKeys
         );
     }
 
-    private getComponentVariables(component: Ranges | RangesStylesProperties) {
+    private getComponentVariables(component: ResolvedStyles) {
+        const padding = component.padding;
+        const padToObj =
+            typeof padding === 'number'
+                ? { top: padding, right: padding, bottom: padding, left: padding }
+                : {
+                      top: padding.top ?? 0,
+                      right: padding.right ?? 0,
+                      bottom: padding.bottom ?? 0,
+                      left: padding.left ?? 0,
+                  };
         return {
             cornerRadius: component.cornerRadius,
             fill: this.getComponentFill(component.fill, component.fillOpacity),
@@ -361,19 +332,20 @@ export class Ranges extends BaseProperties implements ModuleInstance {
             stroke: component.stroke,
             strokeWidth: component.strokeWidth,
             textColor: component.textColor,
-            paddingTop: typeof component.padding === 'number' ? component.padding : (component.padding.top ?? 0),
-            paddingRight: typeof component.padding === 'number' ? component.padding : (component.padding.right ?? 0),
-            paddingBottom: typeof component.padding === 'number' ? component.padding : (component.padding.bottom ?? 0),
-            paddingLeft: typeof component.padding === 'number' ? component.padding : (component.padding.left ?? 0),
+            paddingTop: padToObj.top,
+            paddingRight: padToObj.right,
+            paddingBottom: padToObj.bottom,
+            paddingLeft: padToObj.left,
         };
     }
 
-    private getComponentStateVariables(component: RangesStylesProperties, state: 'active' | 'disabled' | 'hover') {
+    private getComponentStateVariables(component: ResolvedStyles, state: 'active' | 'disabled' | 'hover') {
+        const stateStyles = component[state];
         return {
-            fill: this.getComponentFill(component[state].fill, component[state].fillOpacity),
-            fillOpacity: component[state].fillOpacity,
-            stroke: component[state].stroke,
-            textColor: component[state].textColor,
+            fill: this.getComponentFill(stateStyles.fill, stateStyles.fillOpacity),
+            fillOpacity: stateStyles.fillOpacity,
+            stroke: stateStyles.stroke,
+            textColor: stateStyles.textColor,
         };
     }
 
@@ -433,7 +405,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
 
         this.dropdownToolbar.toggleActiveButtonByIndex(0);
 
-        const menuItems = this.buttons.map((button, index) => {
+        const menuItems = this.opts.buttons.map((button, index) => {
             return {
                 ariaLabel: button.ariaLabel,
                 enabled: this.getButtonEnabled(button),
@@ -465,7 +437,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         const zoomManager = this.ctx.zoomManager;
         if (!zoomManager) return;
 
-        const button = this.buttons.at(index);
+        const button = this.opts.buttons.at(index);
         if (!button) return;
 
         const { value } = button;
@@ -515,9 +487,9 @@ export class Ranges extends BaseProperties implements ModuleInstance {
         return { valid: true };
     }
 
-    private getButtonEnabled(button: RangesButtonProperties) {
-        const { enableOutOfRange, ctx } = this;
-        const zoomManager = ctx.zoomManager;
+    private getButtonEnabled(button: AgRangesButton) {
+        const enableOutOfRange = this.opts.enableOutOfRange;
+        const zoomManager = this.ctx.zoomManager;
 
         let buttonEnabled = button.enabled ?? enableOutOfRange;
 

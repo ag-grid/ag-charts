@@ -1,3 +1,5 @@
+import type { Mock } from 'vitest';
+
 import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
 import { setupMockConsole } from 'ag-charts-test';
 
@@ -13,10 +15,12 @@ const IMAGE_SNAPSHOT_OPTIONS = {
 };
 
 describe('AgChartsServerSide', () => {
+    setupMockConsole();
+
     afterEach(() => {
         // Allow expected license messages (start with *), fail on unexpected errors/warnings
         for (const method of ['error', 'warn'] as const) {
-            const mock = console[method] as jest.Mock;
+            const mock = console[method] as Mock;
             const unexpected = mock.mock.calls
                 .map((args) => String(args[0] ?? ''))
                 .filter((msg) => !msg.startsWith('*'));
@@ -24,8 +28,6 @@ describe('AgChartsServerSide', () => {
             expect(unexpected).toEqual([]);
         }
     });
-
-    setupMockConsole();
 
     describe('render', () => {
         it('should render a simple line chart to buffer', async () => {
@@ -344,11 +346,12 @@ describe('AgChartsServerSide', () => {
 // and throw `Cannot read properties of undefined (reading 'enabled')` during axis layout. The
 // `afterEach` console assertions on every block fail loudly if that regression returns.
 describe('AgChartsServerSide enterprise licensing', () => {
-    // Define afterEach BEFORE setupMockConsole so it runs first (Jest runs afterEach in registration order)
+    setupMockConsole();
+
     afterEach(() => {
         // Allow expected license messages (start with *), fail on unexpected errors/warnings
         for (const method of ['error', 'warn'] as const) {
-            const mock = console[method] as jest.Mock;
+            const mock = console[method] as Mock;
             const unexpected = mock.mock.calls
                 .map((args) => String(args[0] ?? ''))
                 .filter((msg) => !msg.startsWith('*'));
@@ -356,8 +359,6 @@ describe('AgChartsServerSide enterprise licensing', () => {
             expect(unexpected).toEqual([]);
         }
     });
-
-    setupMockConsole();
 
     beforeAll(async () => {
         // Dynamic import required: static import would cause enterprise module registration
@@ -548,11 +549,13 @@ describe('AgChartsServerSide community-only watermark', () => {
     // (no AllEnterpriseModule). The enterpriseRegistry is still populated from the
     // side-effect import of ag-charts-enterprise in the SSR package.
 
-    // Define afterEach BEFORE setupMockConsole so it runs first
+    // setupMockConsole must be called BEFORE afterEach because vitest runs afterEach in LIFO order
+    setupMockConsole();
+
     afterEach(() => {
         // Allow expected license messages (start with *), fail on unexpected errors/warnings
         for (const method of ['error', 'warn'] as const) {
-            const mock = console[method] as jest.Mock;
+            const mock = console[method] as Mock;
             const unexpected = mock.mock.calls
                 .map((args) => String(args[0] ?? ''))
                 .filter((msg) => !msg.startsWith('*'));
@@ -560,8 +563,6 @@ describe('AgChartsServerSide community-only watermark', () => {
             expect(unexpected).toEqual([]);
         }
     });
-
-    setupMockConsole();
 
     beforeEach(async () => {
         // Reset license state — no license key set means watermark should appear

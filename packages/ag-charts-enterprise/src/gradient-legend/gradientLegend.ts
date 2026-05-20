@@ -1,22 +1,9 @@
+import { _ModuleSupport } from 'ag-charts-community';
 import {
-    type AgAxisContinuousIntervalOptions,
-    type AgChartLegendPosition,
-    type AgGradientLegendLabelOptions,
-    type AgGradientLegendOptions,
-    type AgGradientLegendScaleOptions,
-    type Padding,
-    _ModuleSupport,
-} from 'ag-charts-community';
-import {
-    BaseProperties,
-    Border,
-    CleanupRegistry,
+    AbstractModuleInstance,
     type DynamicContext,
     type GradientColorStop,
-    type NormalisedGradientLegendIntervalOptions,
-    type NormalisedGradientLegendLabelOptions,
-    Property,
-    ProxyProperty,
+    type NormalisedGradientLegendOptions,
     ZIndexMap,
     createId,
     expandLegendPosition,
@@ -28,41 +15,7 @@ const { LayoutElement, Group, Rect, Marker, TranslatableGroup, Selection, BBox }
 
 const ITEM_SPACING = 16;
 
-class GradientBar extends BaseProperties {
-    @Property
-    thickness = 16;
-
-    @Property
-    preferredLength = 100;
-}
-
-class GradientLegendScale
-    extends BaseProperties<AgGradientLegendScaleOptions>
-    implements Omit<AgGradientLegendScaleOptions, 'label'>
-{
-    constructor(
-        protected config: {
-            label: NormalisedGradientLegendLabelOptions | undefined;
-            interval: NormalisedGradientLegendIntervalOptions | undefined;
-            padding: number;
-        }
-    ) {
-        super();
-    }
-
-    @ProxyProperty('config.label')
-    label?: AgGradientLegendLabelOptions;
-
-    @ProxyProperty('config.interval')
-    interval?: AgAxisContinuousIntervalOptions<number>;
-
-    @ProxyProperty('config.padding')
-    padding?: number;
-}
-
-export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
-    static readonly className = 'GradientLegend';
-
+export class GradientLegend extends AbstractModuleInstance {
     readonly id = createId(this);
 
     private readonly legendGroup = new TranslatableGroup({ name: 'legend', zIndex: ZIndexMap.LEGEND });
@@ -74,67 +27,29 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
         () => new Group({ name: 'legend-axis-group' })
     );
 
-    private readonly scaleConfig: {
-        label: NormalisedGradientLegendLabelOptions | undefined;
-        interval: NormalisedGradientLegendIntervalOptions | undefined;
-        padding: number;
-    } = {
-        label: undefined,
-        interval: undefined,
-        padding: 0,
-    };
     private readonly axisTicks: AxisTicks[] = [];
     private enabledData: _ModuleSupport.GradientLegendDatum[] = [];
 
-    private readonly cleanup = new CleanupRegistry();
+    data: _ModuleSupport.GradientLegendDatum[] = [];
 
-    @Property
-    enabled = false;
+    // GradientLegend is only created when the `gradientLegend` subtree is configured,
+    // so assert presence here and rely on the module's themeTemplate (which spreads
+    // LEGEND_CONTAINER_THEME) for field-level defaults.
+    private get opts(): NormalisedGradientLegendOptions {
+        return this.ctx.chartState.getValue('options', 'gradientLegend')!;
+    }
 
-    @Property
-    position: AgChartLegendPosition = 'bottom';
-
-    @Property
-    reverseOrder: boolean = false;
-
-    @Property
-    readonly gradient = new GradientBar();
+    get enabled(): boolean {
+        return this.opts.enabled;
+    }
 
     private isVertical(): boolean {
-        const { placement } = expandLegendPosition(this.position);
+        const { placement } = expandLegendPosition(this.opts.position);
         return placement.startsWith('right') || placement.startsWith('left');
     }
 
-    /**
-     * Spacing between the legend and the edge of the chart's element.
-     */
-    @Property
-    spacing = 20;
-
-    @Property
-    border = new Border(this.containerNode);
-
-    @Property
-    cornerRadius: number = 0;
-
-    @Property
-    fill?: string;
-
-    @Property
-    fillOpacity: number = 1;
-
-    @Property
-    padding: Padding = 4;
-
-    @Property
-    scale: GradientLegendScale;
-
-    data: _ModuleSupport.GradientLegendDatum[] = [];
-
     constructor(readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
-
-        this.scale = new GradientLegendScale(this.scaleConfig);
 
         this.cleanup.register(
             ctx.chartState.observe((get) => {
@@ -146,10 +61,6 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.onStartLayout(e)),
             () => this.legendGroup.remove()
         );
-    }
-
-    destroy() {
-        this.cleanup.flush();
     }
 
     attachLegend(scene: _ModuleSupport.Scene) {
@@ -184,12 +95,10 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
             const gradientRect = this.gradientRectSelection.at(i)!;
             const axisTicks = this.axisTicks[i];
 
-            // Layout in local coordinates (origin at 0,0).
             const gradientRectBBox = this.updateGradientRect(gradientRect, layoutBox, data.colorStops);
             const axisBBox = this.updateAxis(axisTicks, data, gradientRectBBox) ?? new BBox(0, 0, 0, 0);
             const localBBox = BBox.merge([gradientRectBBox, axisBBox]);
 
-            // Shift nodes by the accumulated offset.
             const dx = vertical ? 0 : offset;
             const dy = vertical ? offset : 0;
             gradientRect.x += dx;
@@ -218,7 +127,7 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
         shrinkRect: _ModuleSupport.BBox,
         colorStops: GradientColorStop[]
     ) {
-        const { preferredLength, thickness } = this.gradient;
+        const { thickness, preferredLength } = this.opts.gradient;
         const gradientRectBBox = new BBox(0, 0, 0, 0);
 
         let angle: number;
@@ -253,18 +162,21 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
         data: _ModuleSupport.GradientLegendDatum,
         gradientRectBBox: _ModuleSupport.BBox
     ) {
-        const { scaleConfig, gradient, scale } = this;
+        const opts = this.opts;
+        const scale = opts.scale;
+        const scalePadding = scale.padding;
+        const gradientThickness = opts.gradient.thickness;
 
-        axisTicks.labelOptions = scaleConfig.label;
-        axisTicks.intervalOptions = scaleConfig.interval;
-        axisTicks.padding = scaleConfig.padding;
-        const { placement } = expandLegendPosition(this.position);
-        const vertical = this.isVertical();
-        const positiveAxis = this.reverseOrder !== vertical;
+        axisTicks.labelOptions = scale.label;
+        axisTicks.intervalOptions = scale.interval;
+        axisTicks.padding = scalePadding;
+        const { placement } = expandLegendPosition(opts.position);
+        const vertical = placement.startsWith('right') || placement.startsWith('left');
+        const positiveAxis = opts.reverseOrder !== vertical;
 
         axisTicks.placement = placement;
         axisTicks.boundSeries = data.series;
-        const tickOffset = gradient.thickness + (scale.padding ?? 0);
+        const tickOffset = gradientThickness + scalePadding;
         axisTicks.translationX = vertical ? tickOffset : gradientRectBBox.x;
         axisTicks.translationY = vertical ? gradientRectBBox.y : tickOffset;
         axisTicks.namedLabels = data.namedLabels;
@@ -339,9 +251,11 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
             return undefined as never;
         };
 
+        const opts = this.opts;
+        const spacing = opts.spacing;
         let { x: left, y: top } = shrinkRect;
         const { width, height } = legendBBox;
-        const { placement, floating, xOffset, yOffset } = expandLegendPosition(this.position);
+        const { placement, floating, xOffset, yOffset } = expandLegendPosition(opts.position);
 
         const containerStyles = this.getContainerStyles();
 
@@ -388,22 +302,22 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
                 case 'left':
                 case 'left-top':
                 case 'left-bottom':
-                    shrinkRect.shrink(width + this.spacing, 'left');
+                    shrinkRect.shrink(width + spacing, 'left');
                     break;
                 case 'right':
                 case 'right-top':
                 case 'right-bottom':
-                    shrinkRect.shrink(width + this.spacing, 'right');
+                    shrinkRect.shrink(width + spacing, 'right');
                     break;
                 case 'top':
                 case 'top-left':
                 case 'top-right':
-                    shrinkRect.shrink(height + this.spacing, 'top');
+                    shrinkRect.shrink(height + spacing, 'top');
                     break;
                 case 'bottom':
                 case 'bottom-left':
                 case 'bottom-right':
-                    shrinkRect.shrink(height + this.spacing, 'bottom');
+                    shrinkRect.shrink(height + spacing, 'bottom');
                     break;
                 default:
                     unreachable(placement);
@@ -416,8 +330,12 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
     }
 
     private getContainerStyles() {
-        const { stroke, strokeOpacity, strokeWidth } = this.border;
-        const { cornerRadius, fill, fillOpacity, padding } = this;
+        const opts = this.opts;
+        const { enabled: borderEnabled, stroke, strokeOpacity, strokeWidth } = opts.border;
+        const cornerRadius = opts.cornerRadius;
+        const fill = opts.fill as string | undefined;
+        const fillOpacity = opts.fillOpacity;
+        const padding = opts.padding;
         const isPaddingNumber = typeof padding === 'number';
 
         return {
@@ -432,7 +350,7 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
             },
             stroke,
             strokeOpacity,
-            strokeWidth: this.border.enabled ? strokeWidth : 0,
+            strokeWidth: borderEnabled ? strokeWidth : 0,
         };
     }
 }

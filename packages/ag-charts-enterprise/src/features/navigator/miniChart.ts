@@ -6,7 +6,6 @@ import {
     type DynamicContext,
     Logger,
     Padding,
-    Property,
     ProxyProperty,
     ZIndexMap,
     calcLineHeight,
@@ -15,25 +14,17 @@ import {
 import { MiniChartGroup } from './shapes/miniChartGroup';
 
 const { CategoryAxis, Group, BBox, stackCartesianSeries } = _ModuleSupport;
-class MiniChartPadding {
-    @Property
-    top: number = 0;
-
-    @Property
-    bottom: number = 0;
-}
 
 export class MiniChart extends AbstractModuleInstance {
-    @Property
-    enabled: boolean = false;
+    get enabled(): boolean {
+        return this.ctx.chartState.getValue('options', 'navigator.miniChart.enabled') ?? false;
+    }
 
     @ProxyProperty(['seriesRoot', 'inset'])
     inset!: number;
 
     @ProxyProperty(['seriesRoot', 'cornerRadius'])
     cornerRadius!: number;
-
-    readonly padding = new MiniChartPadding();
 
     readonly root = new Group({ name: 'root' });
     readonly seriesRoot = this.root.appendChild(
@@ -252,15 +243,18 @@ export class MiniChart extends AbstractModuleInstance {
     }
 
     async layout(width: number, height: number) {
-        const { padding } = this;
+        const { top: paddingTop, bottom: paddingBottom } = this.ctx.chartState.getValue(
+            'options',
+            'navigator.miniChart.padding'
+        );
         const animated = this.seriesRect != null;
-        const seriesRect = new BBox(0, 0, width, height - (padding.top + padding.bottom));
+        const seriesRect = new BBox(0, 0, width, height - (paddingTop + paddingBottom));
 
         const resized = this.seriesRect?.width !== width || this.seriesRect?.height !== height;
 
         this.seriesRect = seriesRect;
-        this.seriesRoot.translationY = padding.top;
-        this.seriesRoot.setClipRectCanvasSpace(new BBox(0, -padding.top, width, height));
+        this.seriesRoot.translationY = paddingTop;
+        this.seriesRoot.setClipRectCanvasSpace(new BBox(0, -paddingTop, width, height));
 
         for (const axis of this.axes) {
             const { position = 'left' } = axis;

@@ -2,7 +2,25 @@ import * as fromToMotion from './motion/fromToMotion';
 import * as resetMotion from './motion/resetMotion';
 
 export { Chart } from './chart/chart';
-export type { ChartState } from './chart/chartState';
+export type {
+    ChartState,
+    NormalisedAnimationOptions,
+    NormalisedAnnotationsOptions,
+    NormalisedBackgroundOptions,
+    NormalisedChartSyncOptions,
+    NormalisedFlashOnUpdateOptions,
+    NormalisedForegroundOptions,
+    NormalisedNavigatorOptions,
+    NormalisedRangesDropdown,
+    NormalisedRangesOptions,
+    NormalisedScrollbarOptions,
+    NormalisedScrollbarOrientationOptions,
+    NormalisedScrollbarThumbStyle,
+    NormalisedScrollbarTrackStyle,
+    NormalisedStatusBarLabelOptions,
+    NormalisedStatusBarOptions,
+    ResolvedChartOptions,
+} from './chart/chartState';
 export { FormatManager } from './chart/formatter/formatManager';
 export type { TransferableResources } from './chart/chart';
 export {
@@ -39,6 +57,7 @@ export {
     parentLevelAxisThemeTemplate,
     titleAxisThemeTemplate,
 } from './chart/themes/axisThemeTemplate';
+export { commonChartThemeTemplate } from './chart/themes/chartThemeTemplate';
 export {
     boxPlotSeriesThemeableOptionsDef,
     candlestickSeriesThemeableOptionsDef,

@@ -51,6 +51,7 @@ export interface ChartContextVars {
     container?: HTMLElement;
     agDocument: AgDocument;
     styleContainer?: HTMLElement;
+    styleNonce?: string;
     skipCss?: boolean;
     domMode?: 'normal' | 'minimal';
     withDragInterpretation: boolean;
@@ -78,7 +79,7 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
 
     const domManager = new DOMManager(
         eventsHub,
-        chart,
+        vars.styleNonce,
         vars.agDocument,
         vars.container,
         vars.styleContainer,

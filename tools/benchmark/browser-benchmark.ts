@@ -118,7 +118,13 @@ async function main() {
     console.log(`Timeout: ${argv.timeout}ms per example`);
     console.log();
 
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({
+        headless: true,
+        // --enable-precise-memory-info gives byte-accurate `performance.memory` (vs. default ~5MB
+        // quantisation) so the harness can detect GCs reliably. --js-flags=--expose-gc is harmless
+        // here but useful if examples want to call `gc()` manually during teardown.
+        args: ['--enable-precise-memory-info', '--js-flags=--expose-gc'],
+    });
     const context = await browser.newContext({
         viewport: { width: vpWidth, height: vpHeight },
         deviceScaleFactor: argv.dpr,

@@ -15,7 +15,7 @@ on:
                 type: choice
                 options:
                     - all
-                    - jest
+                    - vitest
                     - browser
                 default: all
                 required: true
@@ -55,7 +55,7 @@ jobs:
 
     benchmark:
         runs-on: macos-benchmark
-        timeout-minutes: 60 # Jest ~25m + browser ~25m + setup ~5m; selective runs via benchmark-type input
+        timeout-minutes: 60 # Vitest ~25m + browser ~25m + setup ~5m; selective runs via benchmark-type input
         permissions:
             pull-requests: write
         needs: check-permissions
@@ -219,7 +219,7 @@ jobs:
               if: |
                   github.event_name != 'issue_comment' &&
                   (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped') &&
-                  (inputs.benchmark-type || 'all') != 'jest'
+                  (inputs.benchmark-type || 'all') != 'vitest'
               timeout-minutes: 25
               run: |
                   ./tools/benchmark/compare-browser-latest.sh -j origin/${{ steps.get-branch.outputs.base }}
@@ -229,7 +229,7 @@ jobs:
               continue-on-error: true
               if: success() && github.event_name == 'issue_comment'
               env:
-                  JEST_CONTENT: ${{ steps.benchmark-table.outputs.report }}
+                  VITEST_CONTENT: ${{ steps.benchmark-table.outputs.report }}
                   BROWSER_CONTENT: ${{ steps.browser-benchmark-table.outputs.report }}
               with:
                   script: |
@@ -237,8 +237,8 @@ jobs:
                       if (process.env.BROWSER_CONTENT) {
                         body += `**Browser Benchmarks**\n\`\`\`\n${process.env.BROWSER_CONTENT}\n\`\`\`\n\n`;
                       }
-                      if (process.env.JEST_CONTENT) {
-                        body += `<details><summary>Jest Benchmarks</summary>\n\n\`\`\`\n${process.env.JEST_CONTENT}\n\`\`\`\n</details>`;
+                      if (process.env.VITEST_CONTENT) {
+                        body += `<details><summary>Vitest Benchmarks</summary>\n\n\`\`\`\n${process.env.VITEST_CONTENT}\n\`\`\`\n</details>`;
                       }
                       github.rest.issues.updateComment({
                         owner: context.repo.owner,
@@ -261,7 +261,7 @@ jobs:
                         body,
                       })
 
-            - name: Slack Notification (Jest)
+            - name: Slack Notification (Vitest)
               if: success() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true)) && (inputs.benchmark-type || 'all') != 'browser'
               continue-on-error: true
               env:
@@ -274,7 +274,7 @@ jobs:
                   curl -X POST -H 'Content-type: application/json' ${{ secrets.SLACK_WEBHOOK }} --data @./reports/benchmark-slack.json
 
             - name: Slack Notification (Browser)
-              if: success() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true)) && (inputs.benchmark-type || 'all') != 'jest'
+              if: success() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true)) && (inputs.benchmark-type || 'all') != 'vitest'
               continue-on-error: true
               env:
                   SLACK_CHANNEL: '#charts-performance'

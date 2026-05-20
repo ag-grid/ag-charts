@@ -61,11 +61,17 @@ type OperationResolver = (
     values: Array<VertexInterface>
 ) => unknown;
 
-export function getOperation(value: unknown, keys?: Array<string>) {
+export function getOperation(
+    value: unknown,
+    keys?: Array<string>
+): { operation: Operation; values: Array<any> } | undefined {
     if (value == null || typeof value !== 'object' || Array.isArray(value)) return;
 
     keys ??= Object.keys(value);
     if (keys.length === 0) return;
+
+    const publicOperation = getPublicOperation(value, keys);
+    if (publicOperation) return publicOperation;
 
     const operation = keys[0] as Operation;
     if (!operationTypes.has(operation)) return;
@@ -75,6 +81,32 @@ export function getOperation(value: unknown, keys?: Array<string>) {
             ? (value as PlainObject)[operation]
             : [(value as PlainObject)[operation]],
     };
+}
+
+// Translate public-facing Grid compatible operations into Charts options graph operations.
+function getPublicOperation(
+    value: object,
+    keys: Array<string>
+): { operation: Operation; values: Array<any> } | undefined {
+    //  `{ ref: string; mix?: number; onto?: string }`
+    if ('ref' in value && typeof value.ref === 'string') {
+        if (keys.length === 1) {
+            return { operation: LocationOperation.Ref, values: [value.ref] };
+        }
+
+        if ('mix' in value && typeof value.mix === 'number') {
+            if (keys.length === 2) {
+                return { operation: ColorOperation.Opacity, values: [{ $ref: value.ref }, value.mix] };
+            }
+
+            if ('onto' in value && typeof value.onto === 'string' && keys.length === 3) {
+                return {
+                    operation: ColorOperation.Mix,
+                    values: [{ $ref: value.ref }, { $ref: value.onto }, 1 - value.mix],
+                };
+            }
+        }
+    }
 }
 
 function getOperationTargetVertex(graph: OptionsGraphInterface, vertex: VertexInterface, valueVertex: VertexInterface) {
@@ -209,6 +241,7 @@ enum ColorOperation {
     IsImage = '$isImage',
     IsPattern = '$isPattern',
     Mix = '$mix',
+    Opacity = '$opacity',
 }
 
 const colorOperations: Record<ColorOperation, OperationFns> = {
@@ -219,6 +252,7 @@ const colorOperations: Record<ColorOperation, OperationFns> = {
     $isImage: isImageOperation,
     $isPattern: isPatternOperation,
     $mix: mixOperation,
+    $opacity: opacityOperation,
 };
 
 function foregroundBackgroundMixOperation(
@@ -344,6 +378,24 @@ function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
     }
 
     return { ...colorA, colorStops };
+}
+
+function opacityOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [colorVertex, opacityVertex] = values;
+    const colorValue = graph.resolveVertexValue(vertex, colorVertex);
+    const opacity = graph.resolveVertexValue(vertex, opacityVertex);
+
+    if (typeof colorValue === 'string' && isRatio(opacity)) {
+        const color = Color.fromString(colorValue);
+        return new Color(color.r, color.g, color.b, opacity).toString();
+    }
+
+    Debug.inDevelopmentMode(() =>
+        Logger.warnOnce(
+            `\`$opacity\` operation failed on [${String(colorValue)}, ${String(opacity)}}}] at ` +
+                `[${graph.getPathArray(vertex).join('.')}], expecting a color and a number between 0 and 1.`
+        )
+    );
 }
 
 // --- FONT ---
@@ -777,6 +829,7 @@ function refOperation(graph: OptionsGraphInterface, _vertex: VertexInterface, va
 enum TransformOperation {
     Apply = '$apply',
     ApplyCycle = '$applyCycle',
+    ApplyPadding = '$applyPadding',
     ApplySwitch = '$applySwitch',
     ApplyTheme = '$applyTheme',
     Clone = '$clone',
@@ -793,6 +846,7 @@ enum TransformOperation {
 const transformOperations: Record<TransformOperation, OperationFns> = {
     $apply: applyOperation,
     $applyCycle: applyCycleOperation,
+    $applyPadding: applyPaddingOperation,
     $applySwitch: applySwitchOperation,
     $applyTheme: applyThemeOperation,
     $clone: cloneOperation,
@@ -881,6 +935,34 @@ function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
             graph.graftValue(vertex, `${index}`, operation, value, graftEdge);
         }
     }
+
+    return RESOLVED_TO_BRANCH;
+}
+
+function applyPaddingOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [defaultValueVertex] = values;
+
+    const pathArray = graph.getPathArray(vertex);
+    const userOption = graph.dangerouslyGetUserOption(pathArray);
+
+    const defaultValue = graph.resolveVertexValue(vertex, defaultValueVertex);
+    const expandedDefaultValue =
+        typeof defaultValue === 'number'
+            ? { top: defaultValue, right: defaultValue, bottom: defaultValue, left: defaultValue }
+            : defaultValue;
+
+    if (typeof expandedDefaultValue !== 'object') return;
+
+    if (typeof userOption !== 'number' && typeof userOption !== 'object') {
+        return expandedDefaultValue;
+    }
+
+    const expandedUserOption =
+        typeof userOption === 'number'
+            ? { top: userOption, right: userOption, bottom: userOption, left: userOption }
+            : userOption;
+
+    graph.graftObject(vertex, { ...expandedDefaultValue, ...expandedUserOption });
 
     return RESOLVED_TO_BRANCH;
 }

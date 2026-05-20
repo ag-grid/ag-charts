@@ -4,6 +4,7 @@ src
 .prettierignore
 .swcrc
 jest.*
+vitest.*
 tsconfig.*
 project.json
 .esbuild.*

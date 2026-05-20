@@ -390,7 +390,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         yAxis: _ModuleSupport.ChartAxis
     ): WaterfallSeriesNodeDatumContext | undefined {
         const { dataModel, processedData } = this;
-        if (!dataModel || !processedData || processedData.type !== 'ungrouped') return undefined;
+        if (!dataModel || processedData?.type !== 'ungrouped') return undefined;
 
         const categoryAxis = this.getCategoryAxis();
         const valueAxis = this.getValueAxis();

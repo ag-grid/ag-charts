@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import {
     type AgCartesianChartOptions,
@@ -32,8 +32,9 @@ describe('DataSelection', () => {
     let chart: AgChartInstance;
     const ctx = setupMockCanvas();
 
-    afterEach(() => {
+    afterEach(async () => {
         if (chart) {
+            await waitForChartStability(chart);
             chart.destroy();
             (chart as unknown) = undefined;
         }

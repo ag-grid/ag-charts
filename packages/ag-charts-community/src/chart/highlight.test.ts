@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartOptions, AgPolarChartOptions } from 'ag-charts-types';
 
@@ -667,7 +667,7 @@ describe('Chart highlighting', () => {
 
     describe('Delayed unhighlight', () => {
         afterEach(() => {
-            jest.useRealTimers();
+            vi.useRealTimers();
         });
 
         it('highlighting is immediate with no delay', async () => {
@@ -685,7 +685,7 @@ describe('Chart highlighting', () => {
             await waitForChartStability(chart);
 
             // Enable fake timers
-            jest.useFakeTimers();
+            vi.useFakeTimers();
 
             const highlightManager = chart.ctx.highlightManager;
             const callerId = chart.id;
@@ -721,7 +721,7 @@ describe('Chart highlighting', () => {
             await waitForChartStability(chart);
 
             // Enable fake timers
-            jest.useFakeTimers();
+            vi.useFakeTimers();
 
             const highlightManager = chart.ctx.highlightManager;
             const callerId = chart.id;
@@ -744,11 +744,11 @@ describe('Chart highlighting', () => {
             expect(highlightManager.getActiveHighlight()).toBeDefined();
 
             // Advance timer by 50ms - still highlighted (delay is 100ms)
-            jest.advanceTimersByTime(50);
+            vi.advanceTimersByTime(50);
             expect(highlightManager.getActiveHighlight()).toBeDefined();
 
             // Advance timer by another 60ms (total 110ms) - now unhighlighted
-            jest.advanceTimersByTime(60);
+            vi.advanceTimersByTime(60);
             expect(highlightManager.getActiveHighlight()).toBeUndefined();
         });
 
@@ -767,7 +767,7 @@ describe('Chart highlighting', () => {
             await waitForChartStability(chart);
 
             // Enable fake timers after chart creation
-            jest.useFakeTimers();
+            vi.useFakeTimers();
 
             const highlightManager = chart.ctx.highlightManager;
             const callerId = chart.id;
@@ -790,7 +790,7 @@ describe('Chart highlighting', () => {
             highlightManager.updateHighlight(callerId, undefined, true);
 
             // Advance timer by 30ms (less than 100ms delay)
-            jest.advanceTimersByTime(30);
+            vi.advanceTimersByTime(30);
 
             // Re-highlight before unhighlight completes - should cancel pending unhighlight
             highlightManager.updateHighlight(callerId, datum);
@@ -801,7 +801,7 @@ describe('Chart highlighting', () => {
             expect(secondHighlight).toBe(datum);
 
             // Advance timer by remaining 70ms (total 100ms) - should still be highlighted
-            jest.advanceTimersByTime(70);
+            vi.advanceTimersByTime(70);
             expect(highlightManager.getActiveHighlight()).toBeDefined();
             expect(highlightManager.getActiveHighlight()).toBe(datum);
         });
@@ -821,7 +821,7 @@ describe('Chart highlighting', () => {
             await waitForChartStability(chart);
 
             // Enable fake timers after chart creation
-            jest.useFakeTimers();
+            vi.useFakeTimers();
 
             const highlightManager = chart.ctx.highlightManager;
             const callerA = 'callerA';
@@ -857,7 +857,7 @@ describe('Chart highlighting', () => {
             expect(highlightManager.getActiveHighlight()).toBe(datumB);
 
             // Advance timer by 100ms - A's unhighlight fires, clearing A's entry
-            jest.advanceTimersByTime(100);
+            vi.advanceTimersByTime(100);
             // B should still be active (only A's entry was cleared)
             expect(highlightManager.getActiveHighlight()).toBe(datumB);
 
@@ -867,7 +867,7 @@ describe('Chart highlighting', () => {
             expect(highlightManager.getActiveHighlight()).toBe(datumB);
 
             // Advance timer by 100ms - B's unhighlight fires
-            jest.advanceTimersByTime(100);
+            vi.advanceTimersByTime(100);
             // Now should be unhighlighted
             expect(highlightManager.getActiveHighlight()).toBeUndefined();
         });
@@ -887,7 +887,7 @@ describe('Chart highlighting', () => {
             await waitForChartStability(chart);
 
             // Enable fake timers after chart creation
-            jest.useFakeTimers();
+            vi.useFakeTimers();
 
             const highlightManager = chart.ctx.highlightManager;
             const callerA = 'callerA';
@@ -918,14 +918,14 @@ describe('Chart highlighting', () => {
             expect(highlightManager.getActiveHighlight()).toBe(datumA); // Still active due to delay
 
             // Advance timer by 30ms
-            jest.advanceTimersByTime(30);
+            vi.advanceTimersByTime(30);
 
             // Caller B highlights (should NOT cancel A's pending unhighlight)
             highlightManager.updateHighlight(callerB, datumB);
             expect(highlightManager.getActiveHighlight()).toBe(datumB);
 
             // Advance timer by 70ms (total 100ms) - A's unhighlight should fire
-            jest.advanceTimersByTime(70);
+            vi.advanceTimersByTime(70);
             // B should still be active (A's entry cleared, but B remains)
             expect(highlightManager.getActiveHighlight()).toBe(datumB);
         });
@@ -945,7 +945,7 @@ describe('Chart highlighting', () => {
             await waitForChartStability(chart);
 
             // Enable fake timers
-            jest.useFakeTimers();
+            vi.useFakeTimers();
 
             const highlightManager = chart.ctx.highlightManager;
             const callerId = chart.id;
@@ -983,7 +983,7 @@ describe('Chart highlighting', () => {
             await waitForChartStability(chart);
 
             // Enable fake timers
-            jest.useFakeTimers();
+            vi.useFakeTimers();
 
             const highlightManager = chart.ctx.highlightManager;
             const callerId = chart.id;
@@ -1003,7 +1003,7 @@ describe('Chart highlighting', () => {
             highlightManager.updateHighlight(callerId, undefined, true);
 
             // Wait 50ms
-            jest.advanceTimersByTime(50);
+            vi.advanceTimersByTime(50);
             expect(highlightManager.getActiveHighlight()).toBeDefined();
 
             // Trigger immediate unhighlight before delay completes
@@ -1013,7 +1013,7 @@ describe('Chart highlighting', () => {
             expect(highlightManager.getActiveHighlight()).toBeUndefined();
 
             // Wait for original delay period
-            jest.advanceTimersByTime(100);
+            vi.advanceTimersByTime(100);
 
             // Should still be unhighlighted (no double-unhighlight)
             expect(highlightManager.getActiveHighlight()).toBeUndefined();
@@ -1034,7 +1034,7 @@ describe('Chart highlighting', () => {
             await waitForChartStability(chart);
 
             // Enable fake timers
-            jest.useFakeTimers();
+            vi.useFakeTimers();
 
             const highlightManager = chart.ctx.highlightManager;
             const callerId = chart.id;
@@ -1054,20 +1054,20 @@ describe('Chart highlighting', () => {
             highlightManager.updateHighlight(callerId, undefined, true);
 
             // Wait 50ms (halfway through 100ms countdown)
-            jest.advanceTimersByTime(50);
+            vi.advanceTimersByTime(50);
             expect(highlightManager.getActiveHighlight()).toBeDefined();
 
             // Second delayed unhighlight call - should NOT reset countdown
             highlightManager.updateHighlight(callerId, undefined, true);
 
             // Wait another 30ms (total 80ms from first call, 30ms from second call)
-            jest.advanceTimersByTime(30);
+            vi.advanceTimersByTime(30);
 
             // Third delayed unhighlight call - should still NOT reset countdown
             highlightManager.updateHighlight(callerId, undefined, true);
 
             // Wait another 25ms (total 105ms from first call, 55ms from second, 25ms from third)
-            jest.advanceTimersByTime(25);
+            vi.advanceTimersByTime(25);
 
             // Should be unhighlighted now (100ms from FIRST call has elapsed)
             expect(highlightManager.getActiveHighlight()).toBeUndefined();
@@ -1088,7 +1088,7 @@ describe('Chart highlighting', () => {
             await waitForChartStability(chart);
 
             // Enable fake timers after chart creation
-            jest.useFakeTimers();
+            vi.useFakeTimers();
 
             const highlightManager = chart.ctx.highlightManager;
             const callerId = chart.id;
@@ -1105,18 +1105,18 @@ describe('Chart highlighting', () => {
             expect(highlightManager.getActiveHighlight()).toBeDefined();
 
             highlightManager.updateHighlight(callerId, undefined, true); // Unhighlight with delayed=true
-            jest.advanceTimersByTime(50);
+            vi.advanceTimersByTime(50);
             highlightManager.updateHighlight(callerId, datum); // Re-hover before delay completes
             expect(highlightManager.getActiveHighlight()).toBeDefined();
 
             highlightManager.updateHighlight(callerId, undefined, true); // Unhover again with delayed=true
-            jest.advanceTimersByTime(50);
+            vi.advanceTimersByTime(50);
             highlightManager.updateHighlight(callerId, datum); // Re-hover again
             expect(highlightManager.getActiveHighlight()).toBeDefined();
 
             // Final unhover with delayed=true and advance timer
             highlightManager.updateHighlight(callerId, undefined, true);
-            jest.advanceTimersByTime(150);
+            vi.advanceTimersByTime(150);
             expect(highlightManager.getActiveHighlight()).toBeUndefined();
         });
     });

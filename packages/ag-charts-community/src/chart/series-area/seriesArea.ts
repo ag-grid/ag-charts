@@ -3,11 +3,11 @@ import {
     Border,
     CleanupRegistry,
     type DynamicContext,
+    Padding,
     Property,
     ProxyPropertyOnWrite,
     ZIndexMap,
 } from 'ag-charts-core';
-import type { Padding } from 'ag-charts-types';
 
 import type { LayoutCompleteEvent } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
@@ -29,7 +29,7 @@ export class SeriesArea extends BaseProperties {
     cornerRadius: number = 0;
 
     @Property
-    padding: Padding = 0;
+    padding = new Padding(0);
 
     protected readonly cleanup = new CleanupRegistry();
 
@@ -54,15 +54,11 @@ export class SeriesArea extends BaseProperties {
     public getPadding() {
         const { border, padding } = this;
         const strokeWidth = border.enabled ? border.strokeWidth : 0;
-        if (typeof padding === 'number') {
-            const total = padding + strokeWidth;
-            return { top: total, right: total, bottom: total, left: total };
-        }
         return {
-            top: (padding.top ?? 0) + strokeWidth,
-            right: (padding.right ?? 0) + strokeWidth,
-            bottom: (padding.bottom ?? 0) + strokeWidth,
-            left: (padding.left ?? 0) + strokeWidth,
+            top: padding.top + strokeWidth,
+            right: padding.right + strokeWidth,
+            bottom: padding.bottom + strokeWidth,
+            left: padding.left + strokeWidth,
         };
     }
 

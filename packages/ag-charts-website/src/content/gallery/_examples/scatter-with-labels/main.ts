@@ -163,7 +163,7 @@ const options: AgCartesianChartOptions<NameData> = {
                 size: 12,
                 strokeWidth: 2,
             },
-            paddingY: 8,
+            padding: { top: 4, bottom: 4 },
         },
     },
     tooltip: {

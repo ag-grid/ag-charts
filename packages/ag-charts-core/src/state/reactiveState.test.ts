@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ReactiveState } from './reactiveState';
 
@@ -29,13 +29,13 @@ describe('ReactiveState', () => {
 
     describe('observe', () => {
         it('calls observer on registration', () => {
-            const observer = jest.fn();
+            const observer = vi.fn();
             state.observe(observer);
             expect(observer).toHaveBeenCalledTimes(1);
         });
 
         it('notifies observer when an observed key changes', () => {
-            const observer = jest.fn((get: (key: keyof TestState) => unknown) => get('count'));
+            const observer = vi.fn((get: (key: keyof TestState) => unknown) => get('count'));
             state.observe(observer);
             observer.mockClear();
 
@@ -46,7 +46,7 @@ describe('ReactiveState', () => {
         });
 
         it('does not notify observer for unobserved keys', () => {
-            const observer = jest.fn((get: (key: keyof TestState) => unknown) => get('count'));
+            const observer = vi.fn((get: (key: keyof TestState) => unknown) => get('count'));
             state.observe(observer);
             observer.mockClear();
 
@@ -60,7 +60,7 @@ describe('ReactiveState', () => {
             state.setValue('count', 5);
             state.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof TestState) => unknown) => get('count'));
+            const observer = vi.fn((get: (key: keyof TestState) => unknown) => get('count'));
             state.observe(observer);
             observer.mockClear();
 
@@ -71,7 +71,7 @@ describe('ReactiveState', () => {
         });
 
         it('unsubscribe stops notifications', () => {
-            const observer = jest.fn((get: (key: keyof TestState) => unknown) => get('count'));
+            const observer = vi.fn((get: (key: keyof TestState) => unknown) => get('count'));
             const unsubscribe = state.observe(observer);
             observer.mockClear();
 
@@ -85,7 +85,7 @@ describe('ReactiveState', () => {
         it('deduplicates notifications per flush when multiple observed keys change', () => {
             type MultiState = { a: number; b: number };
             const multiState = new ReactiveState<MultiState>();
-            const observer = jest.fn((get: (key: keyof MultiState) => unknown) => {
+            const observer = vi.fn((get: (key: keyof MultiState) => unknown) => {
                 get('a');
                 get('b');
             });
@@ -114,7 +114,7 @@ describe('ReactiveState', () => {
 
     describe('flushChanges', () => {
         it('preserves setValue calls made during flush for the next flush', () => {
-            const observer = jest.fn((get: (key: keyof TestState) => unknown) => {
+            const observer = vi.fn((get: (key: keyof TestState) => unknown) => {
                 const value = get('count');
                 if (value === 1) {
                     state.setValue('count', 2);
@@ -137,7 +137,7 @@ describe('ReactiveState', () => {
 
         it('re-entrant flushChanges is a no-op', () => {
             let innerFlushCalled = false;
-            const observer = jest.fn((get: (key: keyof TestState) => unknown) => {
+            const observer = vi.fn((get: (key: keyof TestState) => unknown) => {
                 get('count');
                 if (!innerFlushCalled) {
                     innerFlushCalled = true;
@@ -179,7 +179,7 @@ describe('ReactiveState', () => {
         });
 
         it('stops observer notifications after destroy', () => {
-            const observer = jest.fn((get: (key: keyof TestState) => unknown) => get('count'));
+            const observer = vi.fn((get: (key: keyof TestState) => unknown) => get('count'));
             state.observe(observer);
             observer.mockClear();
 
@@ -202,7 +202,7 @@ describe('ReactiveState', () => {
     describe('errors', () => {
         it('propagates observer errors instead of swallowing them', () => {
             const error = new Error('observer error');
-            const observer = jest.fn((get: (key: keyof TestState) => unknown) => {
+            const observer = vi.fn((get: (key: keyof TestState) => unknown) => {
                 get('count');
             });
             state.observe(observer);
@@ -261,7 +261,7 @@ describe('ReactiveState — nested path observation', () => {
             state.setValue('options', { legend: { enabled: true }, title: { text: 'hello' } });
             state.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
+            const observer = vi.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
                 get('options', 'legend.enabled');
             });
             state.observe(observer);
@@ -278,7 +278,7 @@ describe('ReactiveState — nested path observation', () => {
             state.setValue('options', initialOptions);
             state.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
+            const observer = vi.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
                 get('options', 'legend.enabled');
             });
             state.observe(observer);
@@ -295,7 +295,7 @@ describe('ReactiveState — nested path observation', () => {
             state.setValue('options', { legend: { enabled: true }, title: { text: 'hello' } });
             state.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof NestedState) => unknown) => {
+            const observer = vi.fn((get: (key: keyof NestedState) => unknown) => {
                 get('options');
             });
             state.observe(observer);
@@ -311,7 +311,7 @@ describe('ReactiveState — nested path observation', () => {
             state.setValue('options', { legend: { enabled: true }, title: { text: 'hello' } });
             state.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
+            const observer = vi.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
                 get('options', 'legend.enabled');
             });
             state.observe(observer);
@@ -328,7 +328,7 @@ describe('ReactiveState — nested path observation', () => {
             state.setValue('options', { legend: { enabled: true }, title: { text: 'hello' } });
             state.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
+            const observer = vi.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
                 get('options', 'legend.enabled');
             });
             state.observe(observer);
@@ -345,7 +345,7 @@ describe('ReactiveState — nested path observation', () => {
             state.setValue('options', { legend: { enabled: true }, title: { text: 'hello' } });
             state.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
+            const observer = vi.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
                 get('options', 'legend.enabled');
                 get('options', 'title.text');
             });
@@ -363,7 +363,7 @@ describe('ReactiveState — nested path observation', () => {
             state.setValue('width', 800);
             state.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
+            const observer = vi.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
                 get('width');
                 get('options', 'legend.enabled');
             });
@@ -387,7 +387,7 @@ describe('ReactiveState — nested path observation', () => {
             state.setValue('options', { legend: { enabled: true }, title: { text: 'hello' } });
             state.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
+            const observer = vi.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
                 get('options', 'legend.enabled');
             });
             const unsubscribe = state.observe(observer);
@@ -405,7 +405,7 @@ describe('ReactiveState — nested path observation', () => {
             state.setValue('options', { legend: { enabled: true }, title: { text: 'hello' } });
             state.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
+            const observer = vi.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
                 get('options', 'legend.enabled');
             });
             state.observe(observer);
@@ -425,7 +425,7 @@ describe('ReactiveState — nested path observation', () => {
             arrState.setValue('data', { items: [1, 2, 3] });
             arrState.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof ArrayState, subPath?: string) => unknown) => {
+            const observer = vi.fn((get: (key: keyof ArrayState, subPath?: string) => unknown) => {
                 get('data', 'items');
             });
             arrState.observe(observer);
@@ -444,7 +444,7 @@ describe('ReactiveState — nested path observation', () => {
             arrState.setValue('data', { items });
             arrState.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof ArrayState, subPath?: string) => unknown) => {
+            const observer = vi.fn((get: (key: keyof ArrayState, subPath?: string) => unknown) => {
                 get('data', 'items');
             });
             arrState.observe(observer);

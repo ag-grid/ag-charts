@@ -12,6 +12,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
+import type { NormalisedPaddingOptions } from './normalisedCommonOptions';
 
 // --- Leaf normalised types ---
 
@@ -45,11 +46,12 @@ export type NormalisedPaginationLabelOptions = Normalised<
 
 export type NormalisedLegendItemOptions = Normalised<
     AgChartLegendItemOptions,
-    'marker' | 'line' | 'label' | 'paddingX' | 'paddingY' | 'showSeriesStroke',
+    'marker' | 'line' | 'label' | 'padding' | 'showSeriesStroke',
     {
         marker: NormalisedLegendMarkerOptions;
         line: NormalisedLegendLineOptions;
         label: NormalisedLegendLabelOptions;
+        padding: NormalisedPaddingOptions;
     }
 >;
 

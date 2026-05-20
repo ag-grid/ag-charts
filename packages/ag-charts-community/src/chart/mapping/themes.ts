@@ -4,6 +4,7 @@ import {
     ModuleRegistry,
     type OptionsDefs,
     arrayOf,
+    attachDescription,
     boolean,
     color,
     colorUnion,
@@ -14,7 +15,10 @@ import {
     mergeDefaults,
     number,
     object,
+    optionsDefs,
     or,
+    ratio,
+    required,
     string,
     union,
     validate,
@@ -25,6 +29,8 @@ import type {
     AgChartThemeOverrides,
     AgChartThemePalette,
     AgChartThemeParams,
+    AgColorRef,
+    AgColorRefMixOnto,
 } from 'ag-charts-types';
 
 import { ChartTheme } from '../themes/chartTheme';
@@ -152,58 +158,67 @@ function reduceThemeOptions(options: AgChartTheme): AgChartTheme {
     };
 }
 
+const colorRef = attachDescription(
+    or(
+        optionsDefs<AgColorRefMixOnto>({ ref: required(string), mix: required(ratio), onto: required(string) }),
+        optionsDefs<AgColorRef>({ ref: required(string), mix: ratio })
+    ),
+    'a color ref'
+);
+const colorOrRef = or(colorRef, color);
+
 export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
     baseTheme: or(string, object),
     overrides: themeOverridesOptionsWithOperatorsDef,
     params: {
-        accentColor: color,
-        axisColor: color,
-        backgroundColor: color,
-        borderColor: color,
+        accentColor: colorOrRef,
+        axisColor: colorOrRef,
+        backgroundColor: colorOrRef,
+        borderColor: colorOrRef,
         borderRadius: number,
-        chartBackgroundColor: color,
+        chartBackgroundColor: colorOrRef,
         chartPadding: number,
         focusShadow: string,
-        foregroundColor: color,
+        foregroundColor: colorOrRef,
         fontFamily: fontFamilyFull,
         fontSize: number,
         fontWeight: fontWeight,
-        gridLineColor: color,
+        gridLineColor: colorOrRef,
         popupShadow: string,
-        subtleTextColor: color,
-        textColor: color,
-        separationLinesColor: color,
+        subtleTextColor: colorOrRef,
+        textColor: colorOrRef,
+        separationLinesColor: colorOrRef,
 
-        chromeBackgroundColor: color,
+        chromeBackgroundColor: colorOrRef,
         chromeFontFamily: fontFamilyFull,
         chromeFontSize: number,
         chromeFontWeight: fontWeight,
-        chromeSubtleTextColor: color,
-        chromeTextColor: color,
+        chromeSubtleTextColor: colorOrRef,
+        chromeTextColor: colorOrRef,
 
-        buttonBackgroundColor: color,
+        buttonBackgroundColor: colorOrRef,
         buttonBorder: boolean,
         buttonFontWeight: fontWeight,
-        buttonTextColor: color,
+        buttonTextColor: colorOrRef,
 
-        inputBackgroundColor: color,
+        inputBackgroundColor: colorOrRef,
         inputBorder: boolean,
-        inputTextColor: color,
+        inputTextColor: colorOrRef,
 
-        menuBackgroundColor: color,
+        menuBackgroundColor: colorOrRef,
         menuBorder: boolean,
-        menuTextColor: color,
+        menuTextColor: colorOrRef,
 
-        panelBackgroundColor: color,
-        panelSubtleTextColor: color,
+        panelBackgroundColor: colorOrRef,
+        panelSubtleTextColor: colorOrRef,
 
-        tooltipBackgroundColor: color,
+        tooltipBackgroundColor: colorOrRef,
         tooltipBorder: boolean,
-        tooltipTextColor: color,
-        tooltipSubtleTextColor: color,
+        tooltipTextColor: colorOrRef,
+        tooltipSubtleTextColor: colorOrRef,
 
-        crosshairLabelBackgroundColor: color,
-        crosshairLabelTextColor: color,
+        crosshairLabelBackgroundColor: colorOrRef,
+        crosshairLabelTextColor: colorOrRef,
     },
     palette: {
         fills: arrayOf(colorUnion),

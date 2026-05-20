@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import type { PlainObject } from 'ag-charts-core';
 
@@ -236,7 +236,7 @@ describe('OptionsGraph', () => {
         });
     });
 
-    it.failing('fails to handle merging objects with operations that resolve to objects', () => {
+    it.fails('fails to handle merging objects with operations that resolve to objects', () => {
         const themeConfig = {
             line: {
                 item: {
@@ -268,6 +268,34 @@ describe('OptionsGraph', () => {
                 three: 'other-three',
             },
             axes: expect.any(Object),
+        });
+    });
+
+    describe('color operations', () => {
+        it('should resolve `$mix` operations', () => {
+            const themeConfig = {
+                line: {
+                    fill: { $mix: ['#ffffff', '#000000', 0.5] },
+                },
+            };
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            expect(options).toStrictEqual({
+                fill: '#808080',
+                axes: expect.any(Object),
+            });
+        });
+
+        it('should resolve `$opacity` operations ', () => {
+            const themeConfig = {
+                line: {
+                    fill: { $opacity: ['#ff0000', 0.5] },
+                },
+            };
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            expect(options).toStrictEqual({
+                fill: 'rgba(255, 0, 0, 0.5)',
+                axes: expect.any(Object),
+            });
         });
     });
 
@@ -571,7 +599,7 @@ describe('OptionsGraph', () => {
             });
         });
 
-        it.failing('should resolve `$and` operations with `$map`', () => {
+        it.fails('should resolve `$and` operations with `$map`', () => {
             const themeConfig = {
                 line: {
                     one: { $and: { $map: [{ $value: '$1' }, { $path: './two' }] } },
@@ -670,7 +698,7 @@ describe('OptionsGraph', () => {
 
         // TODO: This test is failing since the $or operation does not operate on the resolved value of the $map
         // operation. The precise reason for this is elusive.
-        it.failing('should resolve `$or` operations with `$map`', () => {
+        it.fails('should resolve `$or` operations with `$map`', () => {
             const themeConfig = {
                 line: {
                     one: { $or: { $map: [{ $value: '$1' }, { $path: './two' }] } },
@@ -786,6 +814,56 @@ describe('OptionsGraph', () => {
                             ],
                         },
                     ],
+                });
+            });
+        });
+
+        describe('$applyPadding', () => {
+            it('should apply theme defaults', () => {
+                const themeConfig = {
+                    line: {
+                        padding: {
+                            $applyPadding: 4,
+                        },
+                    },
+                };
+                const userOptions = prepareOptions({});
+                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                expect(options).toStrictEqual({
+                    padding: { top: 4, right: 4, bottom: 4, left: 4 },
+                    axes: expect.any(Object),
+                });
+            });
+
+            it('should expand single user number to every side', () => {
+                const themeConfig = {
+                    line: {
+                        padding: {
+                            $applyPadding: { top: 4, right: 8, bottom: 12, left: 16 },
+                        },
+                    },
+                };
+                const userOptions = prepareOptions({ padding: 3 });
+                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                expect(options).toStrictEqual({
+                    padding: { top: 3, right: 3, bottom: 3, left: 3 },
+                    axes: expect.any(Object),
+                });
+            });
+
+            it('should apply theme defaults to partial user sides', () => {
+                const themeConfig = {
+                    line: {
+                        padding: {
+                            $applyPadding: { top: 4, right: 8, bottom: 12, left: 16 },
+                        },
+                    },
+                };
+                const userOptions = prepareOptions({ padding: { top: 3, bottom: 3 } });
+                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                expect(options).toStrictEqual({
+                    padding: { top: 3, right: 8, bottom: 3, left: 16 },
+                    axes: expect.any(Object),
                 });
             });
         });
@@ -1093,6 +1171,64 @@ describe('OptionsGraph', () => {
                     third: 'third-value',
                 },
                 axes: expect.any(Object),
+            });
+        });
+    });
+
+    describe('public api', () => {
+        describe('ref', () => {
+            it('should resolve public `ref` operations', () => {
+                const themeConfig = { line: { one: { ref: 'key' } } };
+                const params = { key: 'value' };
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                expect(options).toStrictEqual({
+                    one: 'value',
+                    axes: expect.any(Object),
+                });
+            });
+
+            it('should resolve public `ref` operation on `$ref` operation', () => {
+                const themeConfig = { line: { one: { ref: 'second' } } };
+                const params = { first: 'value', second: { $ref: 'first' } };
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                expect(options).toStrictEqual({
+                    one: 'value',
+                    axes: expect.any(Object),
+                });
+            });
+
+            it('should resolve public `ref` operation with `mix` and default onto transparent', () => {
+                const themeConfig = { line: { fill: { ref: 'accentColor', mix: 0.25 } } };
+                const params = { accentColor: 'rgba(255, 0, 0, 1)' };
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                expect(options).toStrictEqual({
+                    fill: 'rgba(255, 0, 0, 0.25)',
+                    axes: expect.any(Object),
+                });
+            });
+
+            it('should resolve public `ref` operation with `mix` and `onto` color', () => {
+                const themeConfig = { line: { fill: { ref: 'accentColor', mix: 0.25, onto: 'backgroundColor' } } };
+                const params = { accentColor: '#ff0000', backgroundColor: '#00ff00' };
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                expect(options).toStrictEqual({
+                    fill: '#40bf00',
+                    axes: expect.any(Object),
+                });
+            });
+
+            it('should resolve public `ref` operation on params', () => {
+                const themeConfig = { line: { fill: { $ref: 'accentColor' } } };
+                const params = {
+                    accentColor: { ref: 'foregroundColor', mix: 0.25, onto: 'backgroundColor' },
+                    foregroundColor: '#ff0000',
+                    backgroundColor: '#00ff00',
+                };
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                expect(options).toStrictEqual({
+                    fill: '#40bf00',
+                    axes: expect.any(Object),
+                });
             });
         });
     });

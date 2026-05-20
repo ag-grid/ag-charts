@@ -1,18 +1,16 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { BoxBounds, DynamicContext, ModuleInstance } from 'ag-charts-core';
 import {
-    BaseProperties,
+    AbstractModuleInstance,
+    type BoxBounds,
     ChartAxisDirection,
-    CleanupRegistry,
+    type DynamicContext,
     Logger,
-    Property,
     ZIndexMap,
     createId,
     easeOut,
 } from 'ag-charts-core';
-import type { CssColor, DurationMs, Opacity } from 'ag-charts-types';
 
-import type { AgFlashOnUpdateItem, AgFlashOnUpdateOptions } from './flashOnUpdateTypes';
+type NormalisedFlashOnUpdateOptions = _ModuleSupport.NormalisedFlashOnUpdateOptions;
 
 const { Group, Rect, Selection, TranslatableGroup } = _ModuleSupport;
 
@@ -116,30 +114,17 @@ export function mergeBands(data: BandFlashDatum[], isHorizontal: boolean, axisSp
     return result;
 }
 
-export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgFlashOnUpdateOptions {
-    static readonly className = 'FlashOnUpdate';
-
+export class FlashOnUpdate extends AbstractModuleInstance {
     private readonly id = createId(this);
 
-    @Property
-    enabled: boolean = false;
+    private get opts(): NormalisedFlashOnUpdateOptions {
+        return this.ctx.chartState.getValue('options', 'flashOnUpdate')!;
+    }
 
-    @Property
-    item: AgFlashOnUpdateItem = 'chart';
+    get enabled(): boolean {
+        return this.opts.enabled;
+    }
 
-    @Property
-    fill: CssColor = '#cfeeff';
-
-    @Property
-    fillOpacity: Opacity = 1;
-
-    @Property
-    flashDuration?: DurationMs;
-
-    @Property
-    fadeOutDuration?: DurationMs;
-
-    private readonly cleanup = new CleanupRegistry();
     private readonly flashGroup = new Group({ name: 'flash-on-update', zIndex: ZIndexMap.AXIS_BAND_HIGHLIGHT });
     private readonly chartFlashRect: _ModuleSupport.Rect<BandFlashDatum>;
     private readonly bandGroup: _ModuleSupport.TranslatableGroup;
@@ -169,13 +154,13 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         );
     }
 
-    destroy() {
+    override destroy() {
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
-        this.cleanup.flush();
+        super.destroy();
     }
 
     private onLayoutComplete({ chart, series }: _ModuleSupport.LayoutCompleteEvent): void {
-        if (!this.enabled) return;
+        if (!this.opts.enabled) return;
 
         this.chartFlashRect.x = 0;
         this.chartFlashRect.y = 0;
@@ -203,19 +188,21 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     }
 
     private onDataModelDiff({ diff }: _ModuleSupport.DataModelDiffEvent): void {
-        if (!this.enabled) return;
+        const opts = this.opts;
+        if (!opts.enabled) return;
 
         this.pendingDiffs.push(diff);
 
-        if (this.item === 'category') {
+        if (opts.item === 'category') {
             this.cachePreviousBounds(diff);
         }
     }
 
     private onPreSceneRender({ apiUpdate }: _ModuleSupport.PreSceneRenderEvent): void {
+        const opts = this.opts;
         const hasDiffs = this.pendingDiffs.length > 0;
 
-        if (!this.enabled || !apiUpdate) {
+        if (!opts.enabled || !apiUpdate) {
             this.pendingDiffs.length = 0;
             return;
         }
@@ -235,7 +222,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         this.stopFlash();
 
         const hasCategoryChanges = categoryPhases != null && categoryPhases.size > 0;
-        if (this.item === 'category' && hasCategoryChanges) {
+        if (opts.item === 'category' && hasCategoryChanges) {
             this.flashCategoryBands(categoryPhases);
         } else {
             this.flashChart();
@@ -245,7 +232,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     private flashChart(): void {
         if (!this.chartFlashRect.width || !this.chartFlashRect.height) return;
 
-        this.chartFlashRect.fill = this.fill;
+        this.chartFlashRect.fill = this.opts.fill;
         this.chartFlashRect.fillOpacity = 0;
         this.animate([this.chartFlashRect], 'update');
     }
@@ -389,9 +376,10 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     private updateSelection(data: BandFlashDatum[], useNewBounds: boolean): void {
         this.bandSelection.update(data);
 
+        const { fill } = this.opts;
         this.bandSelection.each((rect, datum) => {
             const b = useNewBounds ? datum.bounds : (datum.prevBounds ?? datum.bounds);
-            rect.fill = this.fill;
+            rect.fill = fill;
             rect.fillOpacity = 0;
             rect.x = b.x;
             rect.y = b.y;
@@ -445,7 +433,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
             phase,
             duration,
             ease,
-            from: { fillOpacity: this.fillOpacity },
+            from: { fillOpacity: this.opts.fillOpacity },
             to: { fillOpacity: 0 },
             onUpdate: ({ fillOpacity }, preInit) => {
                 if (preInit) return;
@@ -490,7 +478,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     private getCustomTiming(
         phase: _ModuleSupport.AnimationPhase
     ): { duration: number; ease: (t: number) => number } | undefined {
-        const { flashDuration, fadeOutDuration } = this;
+        const { flashDuration, fadeOutDuration } = this.opts;
         if (flashDuration == null && fadeOutDuration == null) return undefined;
 
         const { animationManager } = this.ctx;

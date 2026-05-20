@@ -46,6 +46,65 @@ export interface BenchmarkConfig {
     onComplete?: () => Promise<void>;
 }
 
+interface LongFrameScript {
+    duration: number;
+    invoker: string;
+    sourceURL?: string;
+    sourceFunctionName?: string;
+}
+
+interface LongFrameSample {
+    startTime: number;
+    duration: number;
+    blockingDuration: number;
+    renderStart: number;
+    styleAndLayoutStart: number;
+    scriptCount: number;
+    longestScript?: LongFrameScript;
+}
+
+interface FrameStats {
+    /** Number of `requestAnimationFrame` callbacks observed during measurement. */
+    frameCount: number;
+    /** Wall-clock duration of the measurement window in ms. */
+    wallTimeMs: number;
+    /** Average ms between consecutive animation frames. */
+    avgFrameIntervalMs: number;
+    /** Number of long-animation-frame entries (>50ms) observed (Chromium 123+ only). */
+    longFrameCount: number;
+    /** Longest single animation-frame duration in ms (0 if none observed). */
+    longFrameMaxDurationMs: number;
+    /** Sum of `blockingDuration` across all long frames (ms). */
+    longFrameTotalBlockingMs: number;
+    /** Detailed long-frame samples, capped to keep export size sensible. */
+    longFrames: LongFrameSample[];
+    /** True when PerformanceObserver for long-animation-frame is unavailable. */
+    longFramesUnsupported: boolean;
+}
+
+interface GcStats {
+    /** False when `performance.memory` is unavailable (non-Chromium). */
+    supported: boolean;
+    /** True when `--enable-precise-memory-info` (or equivalent) provided byte-precise samples. */
+    precise: boolean;
+    /** Number of heap samples collected. */
+    sampleCount: number;
+    /** `usedJSHeapSize` at the start of the measurement window (bytes). */
+    startUsedBytes: number;
+    /** `usedJSHeapSize` at the end of the measurement window (bytes). */
+    endUsedBytes: number;
+    /** Peak `usedJSHeapSize` observed (bytes). */
+    peakUsedBytes: number;
+    /** Average `usedJSHeapSize` across all samples (bytes). */
+    avgUsedBytes: number;
+    /** Number of detected GC events (heap-size drops larger than the noise threshold). */
+    detectedGcCount: number;
+    /** Sum of bytes reclaimed across detected GCs. */
+    totalReclaimedBytes: number;
+    /** Estimated allocation rate (bytes/sec), excluding bytes reclaimed by GC. */
+    allocationRateBytesPerSec: number;
+}
+
 interface BenchmarkResult {
     testCase: string;
     params: Record<string, string>;
@@ -54,6 +113,8 @@ interface BenchmarkResult {
     maxTime: number;
     sampleCount: number;
     timings: number[];
+    frameStats?: FrameStats;
+    gcStats?: GcStats;
 }
 
 interface CompactResult {
@@ -63,6 +124,8 @@ interface CompactResult {
     minTime: number;
     maxTime: number;
     sampleCount: number;
+    frameStats?: FrameStats;
+    gcStats?: GcStats;
 }
 
 interface CompactExportData {
@@ -327,11 +390,15 @@ class BenchmarkUI {
     resultsElement: HTMLDivElement | null = null;
     errorElement: HTMLDivElement | null = null;
     runButton: HTMLButtonElement | null = null;
+    runDropdownButton: HTMLButtonElement | null = null;
+    runDropdownMenu: HTMLDivElement | null = null;
+    runControlWrapper: HTMLDivElement | null = null;
     panelCollapsed: boolean = false;
     panelToggleButton: HTMLButtonElement | null = null;
     panelContent: HTMLDivElement | null = null;
     isFloatingMode: boolean = false;
     private compareMode = false;
+    private dropdownDocumentClickHandler: ((e: MouseEvent) => void) | null = null;
 
     setCompareMode(value: boolean): void {
         this.compareMode = value;
@@ -434,30 +501,148 @@ class BenchmarkUI {
             }
         }
 
-        // Create run benchmark button (non-floating mode)
-        this.runButton = document.createElement('button');
-        this.runButton.id = 'runBenchmarkBtn';
-        this.runButton.textContent = 'Run Benchmark';
-        this.runButton.style.cssText =
-            'margin-left: auto; background-color: var(--bm-run-button-bg); color: white; border: none; padding: 5px 15px; cursor: pointer; border-radius: 4px;';
-        controlsRow.appendChild(this.runButton);
+        this.runControlWrapper = this.buildRunControl({ floating: false });
+        controlsRow.appendChild(this.runControlWrapper);
     }
 
     private createFloatingButton(): void {
         const chartParent = this.getChartParentWithPositioning();
 
-        // Create floating button
+        this.runControlWrapper = this.buildRunControl({ floating: true });
+
+        if (chartParent) {
+            chartParent.appendChild(this.runControlWrapper);
+        } else {
+            document.body.appendChild(this.runControlWrapper);
+        }
+    }
+
+    /**
+     * Builds a split run button: a primary "Run Benchmark" button to run everything,
+     * paired with a caret button that opens a dropdown for running a single test case.
+     */
+    private buildRunControl({ floating }: { floating: boolean }): HTMLDivElement {
+        const wrapper = document.createElement('div');
+        wrapper.id = 'runBenchmarkControl';
+        const wrapperBase = 'display: inline-flex; align-items: stretch;';
+        wrapper.style.cssText = floating
+            ? `position: absolute; top: 10px; right: 10px; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); border-radius: 4px; ${wrapperBase}`
+            : `margin-left: auto; ${wrapperBase}`;
+
+        const buttonBase = `background-color: var(--bm-run-button-bg); color: white; border: none; cursor: pointer; ${
+            floating ? 'font-weight: 500;' : ''
+        }`;
+        const padding = floating ? 'padding: 8px 16px;' : 'padding: 5px 15px;';
+
         this.runButton = document.createElement('button');
         this.runButton.id = 'runBenchmarkBtn';
         this.runButton.textContent = 'Run Benchmark';
-        this.runButton.style.cssText =
-            'position: absolute; top: 10px; right: 10px; z-index: 100; background-color: var(--bm-run-button-bg); color: white; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); font-weight: 500;';
+        this.runButton.style.cssText = `${buttonBase} ${padding} border-radius: 4px 0 0 4px; border-right: 1px solid rgba(255,255,255,0.25);`;
 
-        // Insert button relative to chart element
-        if (chartParent) {
-            chartParent.appendChild(this.runButton);
+        this.runDropdownButton = document.createElement('button');
+        this.runDropdownButton.id = 'runBenchmarkDropdownBtn';
+        this.runDropdownButton.type = 'button';
+        this.runDropdownButton.title = 'Run a single test case';
+        this.runDropdownButton.setAttribute('aria-haspopup', 'true');
+        this.runDropdownButton.setAttribute('aria-expanded', 'false');
+        this.runDropdownButton.textContent = '▾';
+        this.runDropdownButton.style.cssText = `${buttonBase} ${
+            floating ? 'padding: 8px 10px;' : 'padding: 5px 10px;'
+        } border-radius: 0 4px 4px 0;`;
+        this.runDropdownButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleRunDropdown();
+        });
+
+        this.runDropdownMenu = document.createElement('div');
+        this.runDropdownMenu.id = 'runBenchmarkDropdownMenu';
+        this.runDropdownMenu.setAttribute('role', 'menu');
+        this.runDropdownMenu.style.cssText =
+            'display: none; position: absolute; top: 100%; right: 0; margin-top: 4px; background: var(--bm-container-bg); color: var(--bm-table-text); border: 1px solid var(--bm-container-border); border-radius: 4px; box-shadow: 0 4px 12px var(--bm-container-shadow); min-width: 220px; max-height: 60vh; overflow-y: auto; z-index: 101; font-size: 13px;';
+
+        // Positioning context for the absolutely positioned menu
+        wrapper.style.position = wrapper.style.position || 'relative';
+        wrapper.appendChild(this.runButton);
+        wrapper.appendChild(this.runDropdownButton);
+        wrapper.appendChild(this.runDropdownMenu);
+
+        return wrapper;
+    }
+
+    /**
+     * Populate dropdown menu items for running individual test cases.
+     */
+    setTestCases(testCases: NormalizedTestCase[], onRunSingle: (testCaseId: string) => void): void {
+        if (!this.runDropdownMenu) return;
+
+        this.runDropdownMenu.innerHTML = '';
+
+        if (testCases.length === 0) {
+            const empty = document.createElement('div');
+            empty.style.cssText = 'padding: 8px 12px; color: var(--bm-badge-text); font-style: italic;';
+            empty.textContent = 'No test cases available';
+            this.runDropdownMenu.appendChild(empty);
+            if (this.runDropdownButton) this.runDropdownButton.disabled = true;
+            return;
+        }
+
+        const header = document.createElement('div');
+        header.style.cssText =
+            'padding: 8px 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--bm-badge-text); border-bottom: 1px solid var(--bm-table-border);';
+        header.textContent = 'Run single test case';
+        this.runDropdownMenu.appendChild(header);
+
+        for (const tc of testCases) {
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.setAttribute('role', 'menuitem');
+            item.dataset.testCaseId = tc.id;
+            item.style.cssText =
+                'display: block; width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; cursor: pointer; color: inherit; font: inherit;';
+            item.textContent = tc.label || tc.id;
+            item.addEventListener('mouseenter', () => {
+                item.style.background = 'var(--bm-table-row-hover)';
+            });
+            item.addEventListener('mouseleave', () => {
+                item.style.background = 'none';
+            });
+            item.addEventListener('click', () => {
+                this.closeRunDropdown();
+                onRunSingle(tc.id);
+            });
+            this.runDropdownMenu.appendChild(item);
+        }
+    }
+
+    private toggleRunDropdown(): void {
+        if (!this.runDropdownMenu) return;
+        if (this.runDropdownMenu.style.display === 'block') {
+            this.closeRunDropdown();
         } else {
-            document.body.appendChild(this.runButton);
+            this.openRunDropdown();
+        }
+    }
+
+    private openRunDropdown(): void {
+        if (!this.runDropdownMenu || !this.runDropdownButton) return;
+        this.runDropdownMenu.style.display = 'block';
+        this.runDropdownButton.setAttribute('aria-expanded', 'true');
+
+        this.dropdownDocumentClickHandler = (e: MouseEvent) => {
+            const target = e.target as Node | null;
+            if (target && this.runControlWrapper?.contains(target)) return;
+            this.closeRunDropdown();
+        };
+        document.addEventListener('click', this.dropdownDocumentClickHandler);
+    }
+
+    private closeRunDropdown(): void {
+        if (!this.runDropdownMenu || !this.runDropdownButton) return;
+        this.runDropdownMenu.style.display = 'none';
+        this.runDropdownButton.setAttribute('aria-expanded', 'false');
+        if (this.dropdownDocumentClickHandler) {
+            document.removeEventListener('click', this.dropdownDocumentClickHandler);
+            this.dropdownDocumentClickHandler = null;
         }
     }
 
@@ -477,17 +662,17 @@ class BenchmarkUI {
     }
 
     hideControls(): void {
-        // Only hide the run button, not the entire controls row
+        // Only hide the run control, not the entire controls row
         // This preserves the original example controls
-        if (this.runButton) {
-            this.runButton.style.display = 'none';
+        if (this.runControlWrapper) {
+            this.runControlWrapper.style.display = 'none';
         }
+        this.closeRunDropdown();
     }
 
     showControls(): void {
-        // Show the run button
-        if (this.runButton) {
-            this.runButton.style.display = this.isFloatingMode ? 'block' : '';
+        if (this.runControlWrapper) {
+            this.runControlWrapper.style.display = this.isFloatingMode ? 'inline-flex' : '';
         }
     }
 
@@ -704,6 +889,9 @@ class BenchmarkUI {
 
         html += '<div class="benchmark-table-wrapper">';
         html += '<div class="benchmark-table-container">';
+        const hasFrameStats = results.some((r) => r.frameStats != null);
+        const hasGcStats = results.some((r) => r.gcStats != null && r.gcStats.supported);
+
         html += '<table class="benchmark-table"><thead><tr>';
         if (onRerun) html += '<th style="width: 32px;"></th>';
         html += '<th>Test Case</th>';
@@ -712,6 +900,12 @@ class BenchmarkUI {
         html += '<th>Min (ms)</th>';
         html += '<th>Max (ms)</th>';
         html += '<th>Samples</th>';
+        if (hasFrameStats) {
+            html += '<th title="Average frame interval (rAF cadence) — click for detail">Frame (ms)</th>';
+        }
+        if (hasGcStats) {
+            html += '<th title="Peak usedJSHeapSize during measurement; badge shows detected GC events">Heap</th>';
+        }
         html += '</tr></thead><tbody>';
 
         results.forEach((result, resultIndex) => {
@@ -747,6 +941,39 @@ class BenchmarkUI {
             html += `<td>${result.minTime.toFixed(3)}</td>`;
             html += `<td>${result.maxTime.toFixed(3)}</td>`;
             html += `<td>${result.sampleCount}</td>`;
+            if (hasFrameStats) {
+                const fs = result.frameStats;
+                if (!fs || fs.frameCount === 0) {
+                    html += `<td>—</td>`;
+                } else {
+                    const interval = fs.avgFrameIntervalMs.toFixed(2);
+                    const badgeBg = fs.longFrameCount > 0 ? 'var(--bm-change-slower)' : 'var(--bm-badge-bg)';
+                    const badgeText = fs.longFrameCount > 0 ? 'white' : 'var(--bm-badge-text)';
+                    const badgeBorder = fs.longFrameCount > 0 ? 'var(--bm-change-slower)' : 'var(--bm-badge-border)';
+                    const badge = fs.longFramesUnsupported
+                        ? `<div class="benchmark-change" style="color: var(--bm-badge-text);" title="long-animation-frame requires Chromium 123+">no LoAF</div>`
+                        : `<div class="benchmark-change"><span style="display:inline-block; background:${badgeBg}; color:${badgeText}; border:1px solid ${badgeBorder}; border-radius:10px; padding:1px 8px; font-weight:600;">${fs.longFrameCount} long</span></div>`;
+                    html += `<td><a class="bm-stats-cell" data-result-index="${resultIndex}" href="javascript:void(0)" style="color: inherit; text-decoration: none; cursor: pointer;" title="${fs.frameCount} frames in ${fs.wallTimeMs.toFixed(0)}ms — click for detail">${interval}${badge}</a></td>`;
+                }
+            }
+            if (hasGcStats) {
+                const gc = result.gcStats;
+                if (!gc || !gc.supported) {
+                    html += `<td title="performance.memory unavailable (non-Chromium)">—</td>`;
+                } else {
+                    const peakMB = (gc.peakUsedBytes / (1024 * 1024)).toFixed(1);
+                    const gcCount = gc.detectedGcCount;
+                    const gcBadgeBg = gcCount > 0 ? 'var(--bm-warning-bg)' : 'var(--bm-badge-bg)';
+                    const gcBadgeText = gcCount > 0 ? 'var(--bm-warning-text)' : 'var(--bm-badge-text)';
+                    const gcBadgeBorder = gcCount > 0 ? 'var(--bm-warning-border)' : 'var(--bm-badge-border)';
+                    const precisionNote = gc.precise
+                        ? `precise mode`
+                        : `coarse (~5MB quantised; launch with --enable-precise-memory-info for byte-precision)`;
+                    const badgeLabel = gc.precise ? `${gcCount} GC` : `${gcCount} GC?`;
+                    const gcBadge = `<div class="benchmark-change" title="${precisionNote}"><span style="display:inline-block; background:${gcBadgeBg}; color:${gcBadgeText}; border:1px solid ${gcBadgeBorder}; border-radius:10px; padding:1px 8px; font-weight:600;">${badgeLabel}</span></div>`;
+                    html += `<td><a class="bm-stats-cell" data-result-index="${resultIndex}" href="javascript:void(0)" style="color: inherit; text-decoration: none; cursor: pointer;" title="Peak ${peakMB}MB; click for detail">${peakMB} MB${gcBadge}</a></td>`;
+                }
+            }
             html += '</tr>';
         });
 
@@ -766,6 +993,17 @@ class BenchmarkUI {
             });
         }
 
+        // Wire up stats-cell click handlers (frame and/or GC detail)
+        this.resultsElement.querySelectorAll('.bm-stats-cell').forEach((cell) => {
+            cell.addEventListener('click', (e) => {
+                const idx = Number((e.currentTarget as HTMLElement).dataset.resultIndex);
+                if (Number.isNaN(idx)) return;
+                const result = results[idx];
+                if (!result?.frameStats && !result?.gcStats) return;
+                this.showStatsModal(result, formatTestCase);
+            });
+        });
+
         // Inject main action buttons as floating overlay in the chart area
         this.injectActionButtons(onExport);
 
@@ -783,8 +1021,170 @@ class BenchmarkUI {
             minMs: r.minTime.toFixed(3),
             maxMs: r.maxTime.toFixed(3),
             samples: r.sampleCount,
+            frameMs: r.frameStats ? r.frameStats.avgFrameIntervalMs.toFixed(2) : undefined,
+            longFrames: r.frameStats?.longFrameCount,
+            peakHeapMB: r.gcStats?.supported ? (r.gcStats.peakUsedBytes / (1024 * 1024)).toFixed(1) : undefined,
+            detectedGCs: r.gcStats?.supported ? r.gcStats.detectedGcCount : undefined,
         }));
         console.table(consoleData);
+    }
+
+    private showStatsModal(result: BenchmarkResult, formatTestCase: (testCase: string) => string): void {
+        const fs = result.frameStats;
+        const gc = result.gcStats;
+        if (!fs && !gc) return;
+
+        // Remove any existing modal
+        document.getElementById('benchmarkFrameModal')?.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'benchmarkFrameModal';
+        overlay.style.cssText =
+            'position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; padding: 24px;';
+
+        const close = () => overlay.remove();
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) close();
+        });
+        const escHandler = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                close();
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
+
+        const panel = document.createElement('div');
+        panel.style.cssText =
+            'background: var(--bm-container-bg); color: var(--bm-table-text); border: 1px solid var(--bm-container-border); border-radius: 8px; box-shadow: 0 12px 32px var(--bm-container-shadow); max-width: 880px; width: 100%; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; font-family: system-ui, -apple-system, sans-serif;';
+
+        const paramSummary = formatParams(result.params);
+        const headerHtml = `
+            <div style="padding: 14px 18px; border-bottom: 1px solid var(--bm-table-border); display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                    <strong style="font-size: 14px;">${escapeHtml(formatTestCase(result.testCase))}</strong>
+                    ${paramSummary ? `<span style="font-size: 12px; color: var(--bm-badge-text);">${escapeHtml(paramSummary)}</span>` : ''}
+                </div>
+                <button id="bmFrameModalClose" style="background: none; border: none; color: inherit; font-size: 22px; line-height: 1; cursor: pointer; padding: 0 6px;">×</button>
+            </div>
+        `;
+
+        const stat = (label: string, value: string) =>
+            `<div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--bm-badge-text);">${label}</span><span style="font-weight: 600; font-family: 'SF Mono', Monaco, monospace; font-size: 14px;">${value}</span></div>`;
+
+        const sectionHeader = (title: string, note?: string) =>
+            `<div style="padding: 12px 18px 4px; display: flex; align-items: baseline; gap: 10px;"><span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--bm-badge-text); font-weight: 600;">${title}</span>${note ? `<span style="font-size: 11px; color: var(--bm-badge-text);">${note}</span>` : ''}</div>`;
+
+        let frameSectionHtml = '';
+        if (fs) {
+            const summaryHtml = `
+                <div style="padding: 4px 18px 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; border-bottom: 1px solid var(--bm-table-border);">
+                    ${stat('Avg frame', `${fs.avgFrameIntervalMs.toFixed(2)} ms`)}
+                    ${stat('Frames', `${fs.frameCount}`)}
+                    ${stat('Wall time', `${fs.wallTimeMs.toFixed(0)} ms`)}
+                    ${stat('Long frames', `${fs.longFrameCount}`)}
+                    ${stat('Longest', `${fs.longFrameMaxDurationMs.toFixed(1)} ms`)}
+                    ${stat('Total blocking', `${fs.longFrameTotalBlockingMs.toFixed(1)} ms`)}
+                </div>
+            `;
+            frameSectionHtml = sectionHeader('Frame timing') + summaryHtml;
+        }
+
+        let gcSectionHtml = '';
+        if (gc) {
+            if (!gc.supported) {
+                gcSectionHtml =
+                    sectionHeader('GC & memory') +
+                    `<div style="padding: 4px 18px 14px; color: var(--bm-badge-text); font-size: 13px; border-bottom: 1px solid var(--bm-table-border);"><code>performance.memory</code> is unavailable in this browser (Chromium only).</div>`;
+            } else {
+                const mb = (b: number) => `${(b / (1024 * 1024)).toFixed(1)} MB`;
+                const note = gc.precise
+                    ? 'byte-precise (precise-memory-info enabled)'
+                    : '~5MB quantised — launch Chromium with <code>--enable-precise-memory-info</code> for byte precision';
+                const heapDelta = gc.endUsedBytes - gc.startUsedBytes;
+                const allocRate = gc.allocationRateBytesPerSec / (1024 * 1024);
+                const summaryHtml = `
+                    <div style="padding: 4px 18px 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; border-bottom: 1px solid var(--bm-table-border);">
+                        ${stat('Peak heap', mb(gc.peakUsedBytes))}
+                        ${stat('Avg heap', mb(gc.avgUsedBytes))}
+                        ${stat('Start → end', `${mb(gc.startUsedBytes)} → ${mb(gc.endUsedBytes)}`)}
+                        ${stat('Net delta', `${heapDelta >= 0 ? '+' : ''}${mb(heapDelta)}`)}
+                        ${stat('Detected GCs', `${gc.detectedGcCount}`)}
+                        ${stat('Reclaimed', mb(gc.totalReclaimedBytes))}
+                        ${stat('Alloc rate', `${allocRate.toFixed(1)} MB/s`)}
+                        ${stat('Samples', `${gc.sampleCount}`)}
+                    </div>
+                `;
+                gcSectionHtml = sectionHeader('GC & memory', note) + summaryHtml;
+            }
+        }
+
+        let longFrameSectionHtml = '';
+        if (fs) {
+            if (fs.longFramesUnsupported) {
+                longFrameSectionHtml = `
+                    <div style="padding: 18px; color: var(--bm-badge-text); font-size: 13px;">
+                        The <code>long-animation-frame</code> Performance entry type is not available in this browser
+                        (requires Chromium 123+). Average frame interval was still captured via
+                        <code>requestAnimationFrame</code>.
+                    </div>
+                `;
+            } else if (fs.longFrameCount === 0) {
+                longFrameSectionHtml = `
+                    <div style="padding: 18px; color: var(--bm-badge-text); font-size: 13px;">
+                        No long animation frames (>50ms) observed during the measurement window.
+                    </div>
+                `;
+            } else {
+                const rows = [...fs.longFrames]
+                    .sort((a, b) => b.duration - a.duration)
+                    .map((f) => {
+                        const script = f.longestScript;
+                        const scriptCell = script
+                            ? `<div style="font-family: 'SF Mono', Monaco, monospace; font-size: 12px;">${escapeHtml(script.invoker || script.sourceFunctionName || '(anonymous)')}</div>${script.sourceURL ? `<div style="font-size: 11px; color: var(--bm-badge-text); overflow: hidden; text-overflow: ellipsis;">${escapeHtml(script.sourceURL)}</div>` : ''}`
+                            : '<span style="color: var(--bm-badge-text);">—</span>';
+                        return `
+                            <tr>
+                                <td style="font-family: 'SF Mono', Monaco, monospace;">${f.duration.toFixed(1)}</td>
+                                <td style="font-family: 'SF Mono', Monaco, monospace;">${f.blockingDuration.toFixed(1)}</td>
+                                <td style="font-family: 'SF Mono', Monaco, monospace;">${(f.renderStart > 0 ? f.renderStart - f.startTime : 0).toFixed(1)}</td>
+                                <td style="font-family: 'SF Mono', Monaco, monospace;">${f.scriptCount}</td>
+                                <td style="max-width: 360px;">${scriptCell}</td>
+                            </tr>
+                        `;
+                    })
+                    .join('');
+                const cappedNote =
+                    fs.longFrameCount > fs.longFrames.length
+                        ? `<div style="padding: 8px 18px; font-size: 12px; color: var(--bm-badge-text);">Showing the longest ${fs.longFrames.length} of ${fs.longFrameCount} long frames.</div>`
+                        : '';
+                longFrameSectionHtml =
+                    sectionHeader('Long animation frames') +
+                    `
+                    <div style="overflow: auto; flex: 1 1 auto;">
+                        ${cappedNote}
+                        <table class="benchmark-table" style="width: 100%; border: none; margin: 0;">
+                            <thead>
+                                <tr>
+                                    <th>Duration (ms)</th>
+                                    <th>Blocking (ms)</th>
+                                    <th>Until render (ms)</th>
+                                    <th>Scripts</th>
+                                    <th style="text-align: left;">Longest script</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                `;
+            }
+        }
+
+        panel.innerHTML = headerHtml + frameSectionHtml + gcSectionHtml + longFrameSectionHtml;
+        overlay.appendChild(panel);
+        document.body.appendChild(overlay);
+
+        panel.querySelector('#bmFrameModalClose')?.addEventListener('click', close);
     }
 
     private injectActionButtons(onExport?: () => void): void {
@@ -834,6 +1234,12 @@ class BenchmarkUI {
         if (this.runButton) {
             this.runButton.disabled = !enabled;
         }
+        if (this.runDropdownButton) {
+            this.runDropdownButton.disabled = !enabled;
+        }
+        if (!enabled) {
+            this.closeRunDropdown();
+        }
     }
 
     togglePanelCollapsed(): void {
@@ -877,6 +1283,237 @@ class BenchmarkUI {
     }
 }
 
+/** Max number of long-frame samples retained per result (keeps export size bounded). */
+const MAX_LONG_FRAME_SAMPLES = 50;
+
+/**
+ * Minimum heap drop (bytes) counted as a GC. With the default Chromium quantisation of
+ * `performance.memory` (~5MB), drops are inherently coarse; with `--enable-precise-memory-info`
+ * we can detect much smaller reclaims. 256KB is the floor before noise dominates either way.
+ */
+const GC_DROP_THRESHOLD_BYTES = 256 * 1024;
+
+interface MemoryInfo {
+    jsHeapSizeLimit: number;
+    totalJSHeapSize: number;
+    usedJSHeapSize: number;
+}
+
+function readPerformanceMemory(): MemoryInfo | null {
+    const mem = (performance as Performance & { memory?: MemoryInfo }).memory;
+    if (!mem || typeof mem.usedJSHeapSize !== 'number') return null;
+    return mem;
+}
+
+/**
+ * Samples frame cadence, long-animation-frame entries, and JS heap usage during a measurement
+ * window. The rAF counter is portable. Long-frame detail requires Chromium 123+. GC stats require
+ * `performance.memory` (Chromium-only); for byte-precise GC detection in CI, launch Chromium with
+ * `--enable-precise-memory-info`.
+ */
+class RuntimeSampler {
+    private rafId: number | null = null;
+    private observer: PerformanceObserver | null = null;
+    private startTs = 0;
+    private lastTs = 0;
+    private frameCount = 0;
+    private longFrames: LongFrameSample[] = [];
+    private heapSamples: number[] = [];
+    private heapSampleSum = 0;
+    private heapPeak = 0;
+    private heapStart = 0;
+    private heapLast = 0;
+    private heapPrev = 0;
+    private detectedGcCount = 0;
+    private totalReclaimedBytes = 0;
+    private allocatedSinceStart = 0;
+    private memorySupported = false;
+    private memoryPrecise = false;
+
+    static isLongFrameSupported(): boolean {
+        if (typeof PerformanceObserver === 'undefined') return false;
+        const supported = (PerformanceObserver as unknown as { supportedEntryTypes?: string[] }).supportedEntryTypes;
+        return Array.isArray(supported) && supported.includes('long-animation-frame');
+    }
+
+    static isMemorySupported(): boolean {
+        return readPerformanceMemory() !== null;
+    }
+
+    start(): void {
+        this.startTs = performance.now();
+        this.lastTs = this.startTs;
+        this.frameCount = 0;
+        this.longFrames = [];
+        this.heapSamples = [];
+        this.heapSampleSum = 0;
+        this.heapPeak = 0;
+        this.heapStart = 0;
+        this.heapLast = 0;
+        this.heapPrev = 0;
+        this.detectedGcCount = 0;
+        this.totalReclaimedBytes = 0;
+        this.allocatedSinceStart = 0;
+
+        const initialMem = readPerformanceMemory();
+        if (initialMem) {
+            this.memorySupported = true;
+            // Heuristic: precise mode quantises to bytes; without the flag, Chromium rounds to
+            // ~5MB buckets. If the value isn't a multiple of 100k, treat as precise.
+            this.memoryPrecise = initialMem.usedJSHeapSize % 100_000 !== 0;
+            this.heapStart = initialMem.usedJSHeapSize;
+            this.heapLast = initialMem.usedJSHeapSize;
+            this.heapPrev = initialMem.usedJSHeapSize;
+            this.heapPeak = initialMem.usedJSHeapSize;
+            this.recordHeapSample(initialMem.usedJSHeapSize);
+        } else {
+            this.memorySupported = false;
+            this.memoryPrecise = false;
+        }
+
+        const tick = (ts: number) => {
+            this.frameCount++;
+            this.lastTs = ts;
+            this.sampleMemory();
+            this.rafId = requestAnimationFrame(tick);
+        };
+        this.rafId = requestAnimationFrame(tick);
+
+        if (RuntimeSampler.isLongFrameSupported()) {
+            try {
+                this.observer = new PerformanceObserver((list) => this.recordEntries(list.getEntries()));
+                this.observer.observe({ type: 'long-animation-frame', buffered: false } as PerformanceObserverInit);
+            } catch {
+                this.observer = null;
+            }
+        }
+    }
+
+    stop(): { frameStats: FrameStats; gcStats: GcStats } {
+        if (this.rafId !== null) {
+            cancelAnimationFrame(this.rafId);
+            this.rafId = null;
+        }
+        const longFramesUnsupported = !RuntimeSampler.isLongFrameSupported();
+        if (this.observer) {
+            try {
+                const pending = this.observer.takeRecords?.() ?? [];
+                if (pending.length > 0) this.recordEntries(pending);
+            } catch {
+                /* takeRecords is optional */
+            }
+            this.observer.disconnect();
+            this.observer = null;
+        }
+
+        // Take a final heap sample to capture state at end of measurement.
+        this.sampleMemory();
+
+        const wallTimeMs = this.lastTs - this.startTs;
+        const avgFrameIntervalMs = this.frameCount > 1 ? wallTimeMs / (this.frameCount - 1) : 0;
+        const longFrameCount = this.longFrames.length;
+        const longFrameMaxDurationMs =
+            longFrameCount > 0 ? this.longFrames.reduce((m, f) => Math.max(m, f.duration), 0) : 0;
+        const longFrameTotalBlockingMs = this.longFrames.reduce((s, f) => s + f.blockingDuration, 0);
+
+        const longFrames =
+            longFrameCount > MAX_LONG_FRAME_SAMPLES
+                ? [...this.longFrames].sort((a, b) => b.duration - a.duration).slice(0, MAX_LONG_FRAME_SAMPLES)
+                : this.longFrames;
+
+        const frameStats: FrameStats = {
+            frameCount: this.frameCount,
+            wallTimeMs,
+            avgFrameIntervalMs,
+            longFrameCount,
+            longFrameMaxDurationMs,
+            longFrameTotalBlockingMs,
+            longFrames,
+            longFramesUnsupported,
+        };
+
+        const sampleCount = this.heapSamples.length;
+        const avgUsedBytes = sampleCount > 0 ? this.heapSampleSum / sampleCount : 0;
+        const allocationRateBytesPerSec = wallTimeMs > 0 ? (this.allocatedSinceStart / wallTimeMs) * 1000 : 0;
+
+        const gcStats: GcStats = {
+            supported: this.memorySupported,
+            precise: this.memoryPrecise,
+            sampleCount,
+            startUsedBytes: this.heapStart,
+            endUsedBytes: this.heapLast,
+            peakUsedBytes: this.heapPeak,
+            avgUsedBytes,
+            detectedGcCount: this.detectedGcCount,
+            totalReclaimedBytes: this.totalReclaimedBytes,
+            allocationRateBytesPerSec,
+        };
+
+        return { frameStats, gcStats };
+    }
+
+    private sampleMemory(): void {
+        if (!this.memorySupported) return;
+        const mem = readPerformanceMemory();
+        if (!mem) return;
+        const used = mem.usedJSHeapSize;
+        this.recordHeapSample(used);
+        const delta = used - this.heapPrev;
+        if (delta < 0 && -delta >= GC_DROP_THRESHOLD_BYTES) {
+            this.detectedGcCount++;
+            this.totalReclaimedBytes += -delta;
+        } else if (delta > 0) {
+            this.allocatedSinceStart += delta;
+        }
+        this.heapPrev = used;
+    }
+
+    private recordHeapSample(used: number): void {
+        this.heapSamples.push(used);
+        this.heapSampleSum += used;
+        if (used > this.heapPeak) this.heapPeak = used;
+        this.heapLast = used;
+    }
+
+    private recordEntries(entries: PerformanceEntryList): void {
+        for (const entry of entries) {
+            if (entry.startTime < this.startTs) continue;
+            const raw = entry as PerformanceEntry & {
+                blockingDuration?: number;
+                renderStart?: number;
+                styleAndLayoutStart?: number;
+                scripts?: Array<{
+                    duration: number;
+                    invoker?: string;
+                    sourceURL?: string;
+                    sourceFunctionName?: string;
+                }>;
+            };
+            const scripts = raw.scripts ?? [];
+            let longestScript: LongFrameScript | undefined;
+            for (const s of scripts) {
+                if (!longestScript || s.duration > longestScript.duration) {
+                    longestScript = {
+                        duration: s.duration,
+                        invoker: s.invoker ?? '',
+                        sourceURL: s.sourceURL,
+                        sourceFunctionName: s.sourceFunctionName,
+                    };
+                }
+            }
+            this.longFrames.push({
+                startTime: entry.startTime,
+                duration: entry.duration,
+                blockingDuration: raw.blockingDuration ?? 0,
+                renderStart: raw.renderStart ?? 0,
+                styleAndLayoutStart: raw.styleAndLayoutStart ?? 0,
+                scriptCount: scripts.length,
+                longestScript,
+            });
+        }
+    }
+}
+
 /**
  * BenchmarkRunner - Executes benchmark tests based on declarative config
  */
@@ -911,13 +1548,17 @@ class BenchmarkRunner {
         return 'unknown';
     }
 
-    private calculateTotalUpdates(): number {
+    private calculateTotalUpdates(testCases: NormalizedTestCase[]): number {
         let total = 0;
-        for (const testCase of this.config.testCases) {
+        for (const testCase of testCases) {
             const availableVariants = testCase.variants.filter((v) => v.available);
             total += availableVariants.length * this.config.config.updatesPerTest;
         }
         return total;
+    }
+
+    getTestCases(): NormalizedTestCase[] {
+        return this.config.testCases;
     }
 
     private cleanupClipboardListeners(): void {
@@ -931,18 +1572,23 @@ class BenchmarkRunner {
         }
     }
 
-    async run(): Promise<void> {
+    async run(opts?: { testCaseId?: string }): Promise<void> {
         if (this.isRunning) return;
+
+        const testCases = opts?.testCaseId
+            ? this.config.testCases.filter((tc) => tc.id === opts.testCaseId)
+            : this.config.testCases;
+        if (testCases.length === 0) {
+            console.warn(`Benchmark: no test case matched id "${opts?.testCaseId}"`);
+            return;
+        }
 
         this.cleanupClipboardListeners();
         this.isRunning = true;
         this.results = [];
         this.updateIndex = 0;
-        this.totalUpdates = this.calculateTotalUpdates();
-        this.totalTests = this.config.testCases.reduce(
-            (sum, tc) => sum + tc.variants.filter((v) => v.available).length,
-            0
-        );
+        this.totalUpdates = this.calculateTotalUpdates(testCases);
+        this.totalTests = testCases.reduce((sum, tc) => sum + tc.variants.filter((v) => v.available).length, 0);
 
         this.ui.clearResults();
         this.ui.hideControls();
@@ -953,7 +1599,7 @@ class BenchmarkRunner {
         this.updateProgress();
 
         try {
-            for (const testCase of this.config.testCases) {
+            for (const testCase of testCases) {
                 this.currentTestCase = testCase;
 
                 // Setup the test case
@@ -1020,6 +1666,8 @@ class BenchmarkRunner {
         let updateInFlight = false;
         let startTime: number | null = null;
         let isWarmupComplete = false;
+        const runtimeSampler = new RuntimeSampler();
+        let runtimeSamplerStarted = false;
 
         const { updatesPerTest, maxCollectionTimeMs, warmupUpdates } = this.config.config;
 
@@ -1030,6 +1678,8 @@ class BenchmarkRunner {
                     if (warmupCount >= warmupUpdates) {
                         isWarmupComplete = true;
                         startTime = performance.now();
+                        runtimeSampler.start();
+                        runtimeSamplerStarted = true;
                     } else {
                         if (!updateInFlight) {
                             updateInFlight = true;
@@ -1055,6 +1705,7 @@ class BenchmarkRunner {
                         timings.length > 0 ? timings.reduce((sum, t) => sum + t, 0) / timings.length : 0;
                     const minTime = timings.length > 0 ? Math.min(...timings) : 0;
                     const maxTime = timings.length > 0 ? Math.max(...timings) : 0;
+                    const samplerResult = runtimeSamplerStarted ? runtimeSampler.stop() : undefined;
 
                     resolve({
                         testCase: testCase.id,
@@ -1064,6 +1715,8 @@ class BenchmarkRunner {
                         maxTime,
                         sampleCount: timings.length,
                         timings: [...timings],
+                        frameStats: samplerResult?.frameStats,
+                        gcStats: samplerResult?.gcStats,
                     });
                     return;
                 }
@@ -1183,6 +1836,8 @@ class BenchmarkRunner {
                 minTime: r.minTime,
                 maxTime: r.maxTime,
                 sampleCount: r.sampleCount,
+                frameStats: r.frameStats,
+                gcStats: r.gcStats,
             })),
         };
     }
@@ -1228,6 +1883,8 @@ class BenchmarkRunner {
                 maxTime: r.maxTime,
                 sampleCount: r.sampleCount,
                 timings: r.timings,
+                frameStats: r.frameStats,
+                gcStats: r.gcStats,
             })),
         };
     }
@@ -1429,6 +2086,10 @@ export function initBenchmark(config: BenchmarkConfig): void {
     // Set up run button handler
     ui.setRunButtonHandler(() => {
         void runner.run();
+    });
+
+    ui.setTestCases(runner.getTestCases(), (testCaseId) => {
+        void runner.run({ testCaseId });
     });
 
     // Check for auto-run URL parameter

@@ -23,7 +23,7 @@ export const fibonacciRetracementTrendBasedConfig: AnnotationTypeConfig<
             FibonacciRetracementTrendBasedProperties.is(copiedDatum) &&
             FibonacciRetracementTrendBasedScene.is(node)
         ) {
-            return node.copy(datum, copiedDatum, context) as FibonacciRetracementTrendBasedProperties;
+            return node.copy(datum, copiedDatum, context);
         }
     },
     update: (node, datum, context) => {

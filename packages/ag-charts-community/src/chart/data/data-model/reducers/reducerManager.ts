@@ -102,7 +102,7 @@ export class ReducerManager {
         processedData[REDUCER_BANDS] ??= new Map<ReducerBandKey, BandedReducer>();
         const reducerBands = processedData[REDUCER_BANDS];
 
-        const property = def.property as ReducerBandKey;
+        const property = def.property;
         let bandManager = reducerBands.get(property);
         if (!bandManager) {
             bandManager = new BandedReducer(this.bandingConfig);

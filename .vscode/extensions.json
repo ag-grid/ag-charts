@@ -8,7 +8,7 @@
     "github.vscode-github-actions",
     "eamodio.gitlens",
     "stripe.markdoc-language-support",
-    "firsttris.vscode-jest-runner",
+    "vitest.explorer",
     "naumovs.color-highlight",
     "raywiis.png-image-diff",
     "redhat.vscode-yaml"

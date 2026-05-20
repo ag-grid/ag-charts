@@ -6,7 +6,23 @@ import { DOMMatrix, Image, Path2D } from 'skia-canvas';
 
 import { mockCanvas, toMatchImage } from 'ag-charts-test';
 
-import { isAtOrAfterVersion } from './benchmarks/benchmark';
+import { isAtOrAfterVersion } from './compatibility';
+
+// Bridge vitest's `vi` global to Jest equivalents so ag-charts-test's
+// mock-console.ts (which was migrated to vitest APIs) works under Jest.
+(globalThis as any).vi = {
+    fn: (...args: any[]) => jest.fn(...args),
+    isMockFunction: (fn: any) => jest.isMockFunction(fn),
+};
+
+// ModuleRegistry was introduced in pre-13.0.0
+if (isAtOrAfterVersion(12, 4, 0)) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { ModuleRegistry } = require('ag-charts-core');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { AllCommunityModule } = require('../src/module-bundles/all');
+    ModuleRegistry.registerModules(AllCommunityModule);
+}
 
 // @ts-expect-error types don't exactly align
 globalThis.Canvas = mockCanvas.ConfiguredCanvas;
@@ -15,17 +31,17 @@ globalThis.Canvas = mockCanvas.ConfiguredCanvas;
 globalThis.OffscreenCanvas = mockCanvas.ConfiguredCanvas;
 
 // @ts-expect-error types don't exactly align
-globalThis.DOMMatrix ??= DOMMatrix;
+globalThis.DOMMatrix = DOMMatrix;
 
 // @ts-expect-error types don't exactly align
 globalThis.Image = Image;
 
 // @ts-expect-error types don't exactly align
-globalThis.Path2D ??= Path2D;
+globalThis.Path2D = Path2D;
 
 // @ts-expect-error types don't exactly align
 globalThis.TextDecoder = TextDecoder;
-globalThis.TextEncoder = TextEncoder as any;
+globalThis.TextEncoder = TextEncoder;
 
 // @ts-expect-error types don't exactly align
 globalThis.URL = URL;
@@ -62,12 +78,3 @@ declare module 'expect' {
 }
 
 expect.extend({ toMatchImageSnapshot, toMatchImage });
-
-jest.mock('./src/license/licenseManager');
-
-// ModuleRegistry was introduced in pre-13.0.0
-if (isAtOrAfterVersion(12, 4, 0)) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { setupEnterpriseModules } = require('./src/setup');
-    setupEnterpriseModules();
-}

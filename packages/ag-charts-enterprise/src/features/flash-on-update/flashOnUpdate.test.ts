@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
@@ -124,7 +124,7 @@ const PHASE_RATIOS = [0.05, 0.31, 0.68];
 // and at a known mid-animation ratio where we can guarantee the flash is visible.
 
 function getFlashModule(chartInstance: AgChartInstance) {
-    return deproxy(chartInstance).modulesManager.getModule('flashOnUpdate') as any;
+    return deproxy(chartInstance).modulesManager.getModule<any>('flashOnUpdate');
 }
 
 /** Assert the chart flash rect was configured: correct fill colour and non-zero area. */
