@@ -7,6 +7,7 @@ import {
     type AgChartOptions,
     AgCharts,
     type AgErrorBarItemStylerParams,
+    AgInitialStateZoomOptions,
     AgSelectionChangeEvent,
     AgSelectionItem,
 } from 'ag-charts-community';
@@ -120,6 +121,13 @@ describe('DataSelection', () => {
     function getChartSelectionArray() {
         expect(chart).toBeDefined();
         return Array.from(chart.getSelection());
+    }
+
+    function getChartZoomState() {
+        expect(chart).toBeDefined();
+        const { zoom } = chart.getState();
+        expect(zoom).toBeDefined();
+        return zoom!;
     }
 
     let chart: AgChartInstance;
@@ -618,11 +626,11 @@ describe('DataSelection', () => {
         }
 
         describe('bubble', () => {
-            describe('without module clash', () => {
-                type D = BioDatum;
-                type C = unknown;
-                let selectionChange: SelectionChangeRecorder<D, C>;
+            type D = BioDatum;
+            type C = unknown;
+            let selectionChange: SelectionChangeRecorder<D, C>;
 
+            describe('without module clash', () => {
                 const POINT_A = { canvasX: 196, canvasY: 428 } as const;
                 const POINT_B = { canvasX: 341, canvasY: 244 } as const;
                 const POINT_C = { canvasX: 678, canvasY: 74 } as const;
@@ -931,6 +939,421 @@ describe('DataSelection', () => {
 
                         await mouseUp(POINT_D, { shiftKey });
                         expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+            });
+            describe('with zoom panning clash', () => {
+                const POINT_A = { canvasX: 169, canvasY: 473 } as const;
+                const POINT_B = { canvasX: 375, canvasY: 237 } as const;
+                const POINT_C = { canvasX: 667, canvasY: 42 } as const;
+                const POINT_D = { canvasX: 492, canvasY: 244 } as const;
+
+                const SELECTION_AB: AgSelectionItem<D>[] = [
+                    { datum: { age: 48, height: 165, weight: 62 }, itemId: 4, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 55, height: 166, weight: 65 }, itemId: 5, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 39, height: 168, weight: 63 }, itemId: 6, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 45, height: 169, weight: 68 }, itemId: 7, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 52, height: 170, weight: 72 }, itemId: 8, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 30, height: 172, weight: 64 }, itemId: 9, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 41, height: 173, weight: 70 }, itemId: 10, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 19, height: 170, weight: 58 }, itemId: 27, seriesId: 'BubbleSeries-1' },
+                ];
+                const SELECTION_CD: AgSelectionItem<D>[] = [
+                    { datum: { age: 53, height: 178, weight: 80 }, itemId: 14, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 59, height: 179, weight: 85 }, itemId: 15, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 46, height: 181, weight: 78 }, itemId: 17, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 38, height: 182, weight: 76 }, itemId: 18, seriesId: 'BubbleSeries-1' },
+                    { datum: { age: 27, height: 183, weight: 73 }, itemId: 19, seriesId: 'BubbleSeries-1' },
+                ];
+                const SELECTION_ABCD: AgSelectionItem<D>[] = [...SELECTION_AB, ...SELECTION_CD].sort(
+                    (a, b) => (a.itemId as number) - (b.itemId as number)
+                );
+
+                const AB_ADDED = withPreventDefault<AgSelectionChangeEvent<D, C>>({
+                    type: 'selectionChange',
+                    source: 'user-interaction',
+                    removed: [],
+                    added: SELECTION_AB,
+                });
+                const CD_ADDED = withPreventDefault<AgSelectionChangeEvent<D, C>>({
+                    type: 'selectionChange',
+                    source: 'user-interaction',
+                    removed: [],
+                    added: SELECTION_CD,
+                });
+                const AB_REMOVED_CD_ADDED = withPreventDefault<AgSelectionChangeEvent<D, C>>({
+                    type: 'selectionChange',
+                    source: 'user-interaction',
+                    removed: SELECTION_AB,
+                    added: SELECTION_CD,
+                });
+                const INITIAL_ZOOM: AgInitialStateZoomOptions = {
+                    rangeX: { end: 190, start: 160 },
+                    rangeY: { end: 88, start: 52 },
+                    ratioX: { end: 0.8, start: 0.2 },
+                    ratioY: { end: 0.8, start: 0.2 },
+                };
+                const AB_ZOOM: AgInitialStateZoomOptions = {
+                    rangeX: { end: 181.59183673469389, start: 151.59183673469389 },
+                    rangeY: { end: 76, start: 40 },
+                    ratioX: { end: 0.6318367346938776, start: 0.03183673469387757 },
+                    ratioY: { end: 0.6, start: 0 },
+                };
+                const CD_ZOOM: AgInitialStateZoomOptions = {
+                    rangeX: { end: 188.73469387755102, start: 158.73469387755102 },
+                    rangeY: { end: 89.59252336448597, start: 53.59252336448598 },
+                    ratioX: { end: 0.7746938775510204, start: 0.17469387755102042 },
+                    ratioY: { end: 0.8265420560747663, start: 0.22654205607476632 },
+                };
+
+                beforeEach(async () => {
+                    const { data, series } = createBubbleBioStatOptions();
+                    selectionChange = createSelectionChangeRecorder();
+
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        selection: {
+                            containment: 'any',
+                            enabled: true,
+                            enableDrag: true,
+                            enableClick: false,
+                        },
+                        axes: {
+                            x: { crosshair: { enabled: false }, gridLine: { enabled: false } },
+                            y: { crosshair: { enabled: false }, gridLine: { enabled: false } },
+                        },
+                        navigator: { enabled: false },
+                        scrollbar: { enabled: false },
+                        zoom: {
+                            enabled: true,
+                            autoScaling: { enabled: false },
+                            enablePanning: true,
+                            enableScrolling: true,
+                            enableSelecting: true,
+                        },
+                        initialState: {
+                            zoom: {
+                                ratioX: { start: 0.2, end: 0.8 },
+                                ratioY: { start: 0.2, end: 0.8 },
+                            },
+                        },
+                        listeners: { selectionChange },
+                    });
+                });
+
+                describe('no-modifier clears and selects', () => {
+                    test('screenshot', async () => {
+                        await mouseDown(POINT_A);
+                        await mouseMove(POINT_B);
+                        await compareExact('drag-modifiers-bubble-with-zoom-panning-region-AB-selection-in-progress');
+
+                        await mouseUp(POINT_B);
+                        await compareExact('drag-modifiers-bubble-with-zoom-panning-region-AB-selected-only');
+
+                        await mouseDown(POINT_C);
+                        await mouseMove(POINT_D);
+                        await compareExact('drag-modifiers-bubble-with-zoom-panning-region-CD-selection-in-progress');
+
+                        await mouseUp(POINT_D);
+                        await compareExact('drag-modifiers-bubble-with-zoom-panning-region-CD-selected-only');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(POINT_A);
+                        await mouseMove(POINT_B);
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(POINT_B);
+                        expect(getChartSelectionArray()).toEqual(SELECTION_AB);
+
+                        await mouseDown(POINT_C);
+                        await mouseMove(POINT_D);
+                        expect(getChartSelectionArray()).toEqual(SELECTION_AB);
+
+                        await mouseUp(POINT_D);
+                        expect(getChartSelectionArray()).toEqual(SELECTION_CD);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(POINT_A);
+                        await mouseMove(POINT_B);
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(POINT_B);
+                        expect(selectionChange.popEvents()).toEqual([AB_ADDED]);
+
+                        await mouseDown(POINT_C);
+                        await mouseMove(POINT_D);
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(POINT_D);
+                        expect(selectionChange.popEvents()).toEqual([AB_REMOVED_CD_ADDED]);
+                    });
+                    test('zoomState', async () => {
+                        await mouseDown(POINT_A);
+                        await mouseMove(POINT_B);
+                        expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
+
+                        await mouseUp(POINT_B);
+                        expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
+
+                        await mouseDown(POINT_C);
+                        await mouseMove(POINT_D);
+                        expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
+
+                        await mouseUp(POINT_D);
+                        expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
+                    });
+                });
+
+                describe('ctrl-modifier adds to selection', () => {
+                    test('screenshot', async () => {
+                        await mouseDown(POINT_A, { ctrlKey });
+                        await mouseMove(POINT_B, { ctrlKey });
+                        await compareExact('drag-modifiers-bubble-with-zoom-panning-region-AB-selection-in-progress');
+
+                        await mouseUp(POINT_B, { ctrlKey });
+                        await compareExact('drag-modifiers-bubble-with-zoom-panning-region-AB-selected-only');
+
+                        await mouseDown(POINT_C, { ctrlKey });
+                        await mouseMove(POINT_D, { ctrlKey });
+                        await compareExact('drag-modifiers-bubble-with-zoom-panning-region-CD-selection-in-progress');
+
+                        await mouseUp(POINT_D, { ctrlKey });
+                        await compareExact('drag-modifiers-bubble-with-zoom-panning-regions-ABCD-selected');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(POINT_A, { ctrlKey });
+                        await mouseMove(POINT_B, { ctrlKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(POINT_B, { ctrlKey });
+                        expect(getChartSelectionArray()).toEqual(SELECTION_AB);
+
+                        await mouseDown(POINT_C, { ctrlKey });
+                        await mouseMove(POINT_D, { ctrlKey });
+                        expect(getChartSelectionArray()).toEqual(SELECTION_AB);
+
+                        await mouseUp(POINT_D, { ctrlKey });
+                        expect(getChartSelectionArray()).toEqual(SELECTION_ABCD);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(POINT_A, { ctrlKey });
+                        await mouseMove(POINT_B, { ctrlKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(POINT_B, { ctrlKey });
+                        expect(selectionChange.popEvents()).toEqual([AB_ADDED]);
+
+                        await mouseDown(POINT_C, { ctrlKey });
+                        await mouseMove(POINT_D, { ctrlKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(POINT_D, { ctrlKey });
+                        expect(selectionChange.popEvents()).toEqual([CD_ADDED]);
+                    });
+                    test('zoomState', async () => {
+                        await mouseDown(POINT_A, { ctrlKey });
+                        await mouseMove(POINT_B, { ctrlKey });
+                        expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
+
+                        await mouseUp(POINT_B, { ctrlKey });
+                        expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
+
+                        await mouseDown(POINT_C, { ctrlKey });
+                        await mouseMove(POINT_D, { ctrlKey });
+                        expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
+
+                        await mouseUp(POINT_D, { ctrlKey });
+                        expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
+                    });
+                });
+
+                describe('meta-modifier adds to selection', () => {
+                    test('screenshot', async () => {
+                        await mouseDown(POINT_A, { metaKey });
+                        await mouseMove(POINT_B, { metaKey });
+                        await compareExact('drag-modifiers-bubble-with-zoom-panning-region-AB-selection-in-progress');
+
+                        await mouseUp(POINT_B, { metaKey });
+                        await compareExact('drag-modifiers-bubble-with-zoom-panning-region-AB-selected-only');
+
+                        await mouseDown(POINT_C, { metaKey });
+                        await mouseMove(POINT_D, { metaKey });
+                        await compareExact('drag-modifiers-bubble-with-zoom-panning-region-CD-selection-in-progress');
+
+                        await mouseUp(POINT_D, { metaKey });
+                        await compareExact('drag-modifiers-bubble-with-zoom-panning-regions-ABCD-selected');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(POINT_A, { metaKey });
+                        await mouseMove(POINT_B, { metaKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(POINT_B, { metaKey });
+                        expect(getChartSelectionArray()).toEqual(SELECTION_AB);
+
+                        await mouseDown(POINT_C, { metaKey });
+                        await mouseMove(POINT_D, { metaKey });
+                        expect(getChartSelectionArray()).toEqual(SELECTION_AB);
+
+                        await mouseUp(POINT_D, { metaKey });
+                        expect(getChartSelectionArray()).toEqual(SELECTION_ABCD);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(POINT_A, { metaKey });
+                        await mouseMove(POINT_B, { metaKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(POINT_B, { metaKey });
+                        expect(selectionChange.popEvents()).toEqual([AB_ADDED]);
+
+                        await mouseDown(POINT_C, { metaKey });
+                        await mouseMove(POINT_D, { metaKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(POINT_D, { metaKey });
+                        expect(selectionChange.popEvents()).toEqual([CD_ADDED]);
+                    });
+                    test('zoomState', async () => {
+                        await mouseDown(POINT_A, { metaKey });
+                        await mouseMove(POINT_B, { metaKey });
+                        expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
+
+                        await mouseUp(POINT_B, { metaKey });
+                        expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
+
+                        await mouseDown(POINT_C, { metaKey });
+                        await mouseMove(POINT_D, { metaKey });
+                        expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
+
+                        await mouseUp(POINT_D, { metaKey });
+                        expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
+                    });
+                });
+
+                describe('alt-modifier pans viewport', () => {
+                    test('screenshot', async () => {
+                        await mouseDown(POINT_A, { altKey });
+                        await mouseMove(POINT_B, { altKey });
+                        await compareExact('drag-modifiers-bubble-with-zoom-panning-pan-AB');
+
+                        await mouseUp(POINT_B, { altKey });
+                        await compareExact('drag-modifiers-bubble-with-zoom-panning-pan-AB');
+
+                        await mouseDown(POINT_C, { altKey });
+                        await mouseMove(POINT_D, { altKey });
+                        await compareExact('drag-modifiers-bubble-with-zoom-panning-pan-CD');
+
+                        await mouseUp(POINT_D, { altKey });
+                        await compareExact('drag-modifiers-bubble-with-zoom-panning-pan-CD');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(POINT_A, { altKey });
+                        await mouseMove(POINT_B, { altKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(POINT_B, { altKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseDown(POINT_C, { altKey });
+                        await mouseMove(POINT_D, { altKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(POINT_D, { altKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(POINT_A, { altKey });
+                        await mouseMove(POINT_B, { altKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(POINT_B, { altKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseDown(POINT_C, { altKey });
+                        await mouseMove(POINT_D, { altKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(POINT_D, { altKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                    test('zoomState', async () => {
+                        await mouseDown(POINT_A, { altKey });
+                        await mouseMove(POINT_B, { altKey });
+                        expect(getChartZoomState()).toEqual(AB_ZOOM);
+
+                        await mouseUp(POINT_B, { altKey });
+                        expect(getChartZoomState()).toEqual(AB_ZOOM);
+
+                        await mouseDown(POINT_C, { altKey });
+                        await mouseMove(POINT_D, { altKey });
+                        expect(getChartZoomState()).toEqual(CD_ZOOM);
+
+                        await mouseUp(POINT_D, { altKey });
+                        expect(getChartZoomState()).toEqual(CD_ZOOM);
+                    });
+                });
+
+                describe('shift-modifier ignored', () => {
+                    test('screenshot', async () => {
+                        await mouseDown(POINT_A, { shiftKey });
+                        await mouseMove(POINT_B, { shiftKey });
+                        await compareExact('drag-modifiers-bubble-with-zoom-panning-no-selection');
+
+                        await mouseUp(POINT_B, { shiftKey });
+                        await compareExact('drag-modifiers-bubble-with-zoom-panning-no-selection');
+
+                        await mouseDown(POINT_C, { shiftKey });
+                        await mouseMove(POINT_D, { shiftKey });
+                        await compareExact('drag-modifiers-bubble-with-zoom-panning-no-selection');
+
+                        await mouseUp(POINT_D, { shiftKey });
+                        await compareExact('drag-modifiers-bubble-with-zoom-panning-no-selection');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(POINT_A, { shiftKey });
+                        await mouseMove(POINT_B, { shiftKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(POINT_B, { shiftKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseDown(POINT_C, { shiftKey });
+                        await mouseMove(POINT_D, { shiftKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(POINT_D, { shiftKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(POINT_A, { shiftKey });
+                        await mouseMove(POINT_B, { shiftKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(POINT_B, { shiftKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseDown(POINT_C, { shiftKey });
+                        await mouseMove(POINT_D, { shiftKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(POINT_D, { shiftKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                    test('zoomState', async () => {
+                        await mouseDown(POINT_A, { shiftKey });
+                        await mouseMove(POINT_B, { shiftKey });
+                        expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
+
+                        await mouseUp(POINT_B, { shiftKey });
+                        expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
+
+                        await mouseDown(POINT_C, { shiftKey });
+                        await mouseMove(POINT_D, { shiftKey });
+                        expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
+
+                        await mouseUp(POINT_D, { shiftKey });
+                        expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
                     });
                 });
             });
