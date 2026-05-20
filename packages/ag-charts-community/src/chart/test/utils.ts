@@ -857,5 +857,12 @@ export function getCursor(chart: Chart | AgChartProxy): string {
     return ctx.domManager.getCursor();
 }
 
+export function withPreventDefault<E>(partial: Omit<E, 'preventDefault'> & { preventDefault?: never }) {
+    return expect.objectContaining({
+        ...partial,
+        preventDefault: expect.any(Function),
+    });
+}
+
 export { toMatchImage } from 'ag-charts-test';
 export { CANVAS_TO_BUFFER_DEFAULTS, extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
