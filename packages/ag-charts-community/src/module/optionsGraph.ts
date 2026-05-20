@@ -120,6 +120,12 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     // If any of these keys are present in the resolved object then calling `clearSafe()` will not clear the graph.
     private static readonly UNSAFE_CLEAR_KEYS = new Set(['itemStyler', 'styler']);
 
+    // These key–operation pairs are always resolved through the default operation, even when a user option is
+    // supplied, allowing the operation to transform the user option.
+    private static readonly TRANSFORM_USER_KEY_OPERATION_PAIRS: Record<string, string> = {
+        padding: '$applyPadding',
+    };
+
     // A cache of values that persists between chart updates, use sparingly.
     private static readonly valueCache = new Map();
 
@@ -1013,10 +1019,26 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         pathArray: Array<string>,
         prune?: unknown
     ) {
+        const pathLeaf = pathArray.at(-1)!;
         const children = this.neighboursWithEdgeValue(vertex, PATH_EDGE);
-        const [highestPriority] = this.edgePriority;
 
-        for (const edgeValue of this.edgePriority) {
+        let edgePriority = this.edgePriority;
+
+        // If this path leaf matches the expected "transform user" operation, change the edge priority to resolve only
+        // the default operation.
+        if (pathLeaf in OptionsGraph.TRANSFORM_USER_KEY_OPERATION_PAIRS) {
+            const expectedOperation = OptionsGraph.TRANSFORM_USER_KEY_OPERATION_PAIRS[pathLeaf];
+            const operation =
+                getOperation(this.findNeighbourValue(vertex, OVERRIDES_EDGE)) ??
+                getOperation(this.findNeighbourValue(vertex, DEFAULTS_EDGE));
+            if (operation?.operation.valueOf() === expectedOperation) {
+                edgePriority = [OVERRIDES_EDGE, DEFAULTS_EDGE];
+            }
+        }
+
+        const [highestPriority] = edgePriority;
+
+        for (const edgeValue of edgePriority) {
             const valueVertex = this.findNeighbour(vertex, edgeValue);
             if (valueVertex == null) continue;
 
@@ -1031,7 +1053,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             // Do not resolve edges that have been pruned
             if (Array.isArray(prune) && prune.includes(edgeValue)) continue;
 
-            this.hasUnsafeClearKeys ||= value != null && OptionsGraph.UNSAFE_CLEAR_KEYS.has(pathArray.at(-1)!);
+            this.hasUnsafeClearKeys ||= value != null && OptionsGraph.UNSAFE_CLEAR_KEYS.has(pathLeaf);
 
             if (pathArray.length === 0) {
                 if (value == null) continue;
@@ -1308,7 +1330,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             if (depth < maxDepth) {
                 this.diagramVertex(diagram, neighbour as any, depth + 1, maxDepth);
             }
-            this.diagramChild(diagram, PATH_EDGE, path, vertex, neighbourPath, vertex);
+            this.diagramChild(diagram, PATH_EDGE, path, vertex, neighbourPath, neighbour as any);
         }
 
         const userValues = this.neighboursWithEdgeValue(vertex, USER_OPTIONS_EDGE) ?? [];

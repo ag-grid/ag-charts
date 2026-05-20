@@ -777,6 +777,7 @@ function refOperation(graph: OptionsGraphInterface, _vertex: VertexInterface, va
 enum TransformOperation {
     Apply = '$apply',
     ApplyCycle = '$applyCycle',
+    ApplyPadding = '$applyPadding',
     ApplySwitch = '$applySwitch',
     ApplyTheme = '$applyTheme',
     Clone = '$clone',
@@ -793,6 +794,7 @@ enum TransformOperation {
 const transformOperations: Record<TransformOperation, OperationFns> = {
     $apply: applyOperation,
     $applyCycle: applyCycleOperation,
+    $applyPadding: applyPaddingOperation,
     $applySwitch: applySwitchOperation,
     $applyTheme: applyThemeOperation,
     $clone: cloneOperation,
@@ -881,6 +883,34 @@ function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
             graph.graftValue(vertex, `${index}`, operation, value, graftEdge);
         }
     }
+
+    return RESOLVED_TO_BRANCH;
+}
+
+function applyPaddingOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [defaultValueVertex] = values;
+
+    const pathArray = graph.getPathArray(vertex);
+    const userOption = graph.dangerouslyGetUserOption(pathArray);
+
+    const defaultValue = graph.resolveVertexValue(vertex, defaultValueVertex);
+    const expandedDefaultValue =
+        typeof defaultValue === 'number'
+            ? { top: defaultValue, right: defaultValue, bottom: defaultValue, left: defaultValue }
+            : defaultValue;
+
+    if (typeof expandedDefaultValue !== 'object') return;
+
+    if (typeof userOption !== 'number' && typeof userOption !== 'object') {
+        return expandedDefaultValue;
+    }
+
+    const expandedUserOption =
+        typeof userOption === 'number'
+            ? { top: userOption, right: userOption, bottom: userOption, left: userOption }
+            : userOption;
+
+    graph.graftObject(vertex, { ...expandedDefaultValue, ...expandedUserOption });
 
     return RESOLVED_TO_BRANCH;
 }

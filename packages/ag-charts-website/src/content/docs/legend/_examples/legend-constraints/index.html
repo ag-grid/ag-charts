@@ -1,27 +1,51 @@
 <div class="example-controls">
     <div class="controls-row">
-        <label for="xPaddingLabel"><code>item.paddingX:</code></label>
+        <label for="leftPaddingLabel"><code>item.padding.left:</code></label>
         <input
             type="range"
-            id="xPaddingLabel"
+            id="leftPaddingLabel"
             min="0"
-            max="50"
-            value="32"
-            oninput="updateLegendItemPaddingX(event)"
-            onchange="updateLegendItemPaddingX(event)"
+            max="25"
+            value="16"
+            oninput="updateLegendItemPaddingLeft(event)"
+            onchange="updateLegendItemPaddingLeft(event)"
         />
-        <span id="xPaddingValue" class="gap-right">32</span>
-        <label for="yPaddingLabel"><code>item.paddingY:</code></label>
+        <span id="leftPaddingValue" class="gap-right">16</span>
+        <label for="rightPaddingLabel"><code>item.padding.right:</code></label>
         <input
             type="range"
-            id="yPaddingLabel"
+            id="rightPaddingLabel"
             min="0"
-            max="30"
-            value="8"
-            oninput="updateLegendItemPaddingY(event)"
-            onchange="updateLegendItemPaddingY(event)"
+            max="25"
+            value="16"
+            oninput="updateLegendItemPaddingRight(event)"
+            onchange="updateLegendItemPaddingRight(event)"
         />
-        <span id="yPaddingValue">8</span>
+        <span id="rightPaddingValue" class="gap-right">16</span>
+    </div>
+    <div class="controls-row">
+        <label for="topPaddingLabel"><code>item.padding.top:</code></label>
+        <input
+            type="range"
+            id="topPaddingLabel"
+            min="0"
+            max="15"
+            value="4"
+            oninput="updateLegendItemPaddingTop(event)"
+            onchange="updateLegendItemPaddingTop(event)"
+        />
+        <span id="topPaddingValue">4</span>
+        <label for="bottomPaddingLabel"><code>item.padding.bottom:</code></label>
+        <input
+            type="range"
+            id="bottomPaddingLabel"
+            min="0"
+            max="15"
+            value="4"
+            oninput="updateLegendItemPaddingBottom(event)"
+            onchange="updateLegendItemPaddingBottom(event)"
+        />
+        <span id="bottomPaddingValue">4</span>
     </div>
     <div class="controls-row">
         <label for="markerPaddingLabel"><code>item.marker.padding:</code></label>

@@ -114,6 +114,7 @@ type NumericOperation = { $even: Leaf<number> }; // Number
 
 type TransformOperation =
     | { $apply: Leaf<object> | [Leaf<object>, Leaf<object[]>] } // Object to merge with each item in the array | Default if no user options supplied
+    | { $applyPadding: Leaf<number> | Leaf<{ top: number; right: number; bottom: number; left: number }> }
     | { $applySwitch: any[] }
     | { $applyCycle: any[] }
     | { $findFirstSiblingNotOperation: AnyLeaf } // Default value if no non-operation sibling found

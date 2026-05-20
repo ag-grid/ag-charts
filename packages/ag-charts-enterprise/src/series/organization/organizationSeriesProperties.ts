@@ -19,7 +19,7 @@ import {
     type TextAlign,
     type TextWrap,
 } from 'ag-charts-community';
-import { BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
+import { BaseProperties, Padding, PropertiesArray, Property } from 'ag-charts-core';
 
 import { NetworkSeriesProperties } from '../network/networkSeries';
 
@@ -78,7 +78,7 @@ class OrganizationSeriesExpanderProperties extends BaseProperties {
     lineDashOffset?: number;
 
     @Property
-    padding: number = 6;
+    padding = new Padding(6);
 
     @Property
     stroke: CssColor = 'black';
@@ -179,7 +179,7 @@ class OrganizationSeriesNodeProperties extends BaseProperties {
     maxWidth?: number;
 
     @Property
-    padding: number = 0;
+    padding = new Padding(0);
 
     @Property
     stroke: CssColor = 'black';
@@ -285,5 +285,5 @@ export class OrganizationSeriesNodeTextProperties extends BaseProperties {
     cornerRadius: number = 0;
 
     @Property
-    padding: number = 0;
+    padding = new Padding(0);
 }

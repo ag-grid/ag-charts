@@ -4,6 +4,7 @@ import type {
     AgOrganizationSeriesNodeStyle,
     AgOrganizationSeriesNodeTextStyle,
     CssColor,
+    PaddingOptions,
     TextOrSegments,
 } from 'ag-charts-types';
 
@@ -42,15 +43,24 @@ export type OrganizationLinkDatum = NetworkLinkDatum<OrganizationVertex, Organiz
 // itemStyler params as `fill: undefined` (instead of an empty-string sentinel).
 export type RequiredOrganizationNodeTextStyle = Omit<
     DeepRequired<AgOrganizationSeriesNodeTextStyle>,
-    'fill' | 'stroke'
+    'fill' | 'stroke' | 'padding'
 > & {
     fill: CssColor | undefined;
     stroke: CssColor | undefined;
+    padding: Required<PaddingOptions>;
 };
 
-export type RequiredOrganizationNodeStyle = DeepRequired<AgOrganizationSeriesNodeStyle> & {
+export type RequiredOrganizationSeriesExpanderStyle = Omit<
+    DeepRequired<AgOrganizationSeriesExpanderStyle>,
+    'padding'
+> & {
+    padding: Required<PaddingOptions>;
+};
+
+export type RequiredOrganizationNodeStyle = Omit<DeepRequired<AgOrganizationSeriesNodeStyle>, 'padding'> & {
     title: RequiredOrganizationNodeTextStyle;
     subtitle: RequiredOrganizationNodeTextStyle;
     labels: RequiredOrganizationNodeTextStyle[];
-    expander: DeepRequired<AgOrganizationSeriesExpanderStyle>;
+    expander: DeepRequired<RequiredOrganizationSeriesExpanderStyle>;
+    padding: Required<PaddingOptions>;
 };

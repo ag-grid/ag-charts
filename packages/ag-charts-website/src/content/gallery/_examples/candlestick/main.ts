@@ -205,8 +205,7 @@ const options: AgChartOptions = {
             yOffset: 20,
         },
         item: {
-            paddingX: 16,
-            paddingY: 8,
+            padding: { top: 4, right: 8, bottom: 4, left: 8 },
             marker: {
                 shape: 'square',
                 size: 12,

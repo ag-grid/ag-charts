@@ -9,6 +9,7 @@ import {
     type AgOrganizationSeriesNodeStyle,
     type AgOrganizationSeriesNodeTextStyle,
     type AgOrganizationSeriesNodeTextStylerParams,
+    type PaddingOptions,
     type RichFormatter,
     type Styler,
     type TextOrSegments,
@@ -42,6 +43,7 @@ import type {
     OrganizationVertex,
     RequiredOrganizationNodeStyle,
     RequiredOrganizationNodeTextStyle,
+    RequiredOrganizationSeriesExpanderStyle,
 } from './organizationTypes';
 
 const { keyProperty, valueProperty } = _ModuleSupport;
@@ -639,21 +641,23 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     protected override makeLayoutUpdateOptions(): NetworkTreeLayoutUpdateOptions<OrganizationVertex, OrganizationEdge> {
+        const {
+            properties: { node, expander, innerSpacing, outerSpacing, verticalSpacing },
+        } = this;
+
         return {
             ...super.makeLayoutUpdateOptions(),
-            nodeHeight: this.properties.node.height,
-            nodeWidth: this.properties.node.width,
-            nodeMaxHeight: this.properties.node.maxHeight,
-            nodeMaxWidth: this.properties.node.maxWidth,
+            nodeHeight: node.height,
+            nodeWidth: node.width,
+            nodeMaxHeight: node.maxHeight,
+            nodeMaxWidth: node.maxWidth,
             regularDimensions: true,
             hiddenOnCollapse: true,
-            innerSpacing: this.properties.innerSpacing ?? 0,
-            outerSpacing: this.properties.outerSpacing ?? 0,
-            verticalSpacing: this.properties.verticalSpacing ?? 0,
-            verticalSpacingExtra: this.properties.expander.enabled
-                ? this.properties.expander.text.fontSize / 2 +
-                  this.properties.expander.padding +
-                  this.properties.expander.strokeWidth
+            innerSpacing: innerSpacing ?? 0,
+            outerSpacing: outerSpacing ?? 0,
+            verticalSpacing: verticalSpacing ?? 0,
+            verticalSpacingExtra: expander.enabled
+                ? (expander.text.fontSize + expander.padding.top + expander.padding.bottom + expander.strokeWidth) / 2
                 : 0,
         };
     }
@@ -884,7 +888,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return style;
     }
 
-    private getNodeDefaultStyle(): DeepRequired<AgOrganizationSeriesNodeStyle> {
+    private getNodeDefaultStyle(): DeepRequired<
+        Omit<AgOrganizationSeriesNodeStyle, 'padding'> & { padding: PaddingOptions }
+    > {
         const {
             cornerRadius,
             fill,
@@ -919,7 +925,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             lineDashOffset: lineDashOffset ?? 0,
             maxHeight: maxHeight ?? Infinity,
             maxWidth: maxWidth ?? Infinity,
-            padding,
+            padding: {
+                top: padding.top,
+                right: padding.right,
+                bottom: padding.bottom,
+                left: padding.left,
+            },
             stroke,
             strokeOpacity,
             strokeWidth,
@@ -927,7 +938,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         };
     }
 
-    private getExpanderDefaultStyle(): DeepRequired<AgOrganizationSeriesExpanderStyle> {
+    private getExpanderDefaultStyle(): RequiredOrganizationSeriesExpanderStyle {
         const {
             cornerRadius,
             enabled,
@@ -948,7 +959,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             fillOpacity,
             lineDash,
             lineDashOffset: lineDashOffset ?? 0,
-            padding,
+            padding: {
+                top: padding.top,
+                right: padding.right,
+                bottom: padding.bottom,
+                left: padding.left,
+            },
             stroke,
             strokeWidth,
             strokeOpacity,
@@ -993,7 +1009,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             strokeWidth: props.strokeWidth,
             strokeOpacity: props.strokeOpacity,
             cornerRadius: props.cornerRadius,
-            padding: props.padding,
+            padding: {
+                top: props.padding.top,
+                right: props.padding.right,
+                bottom: props.padding.bottom,
+                left: props.padding.left,
+            },
         };
     }
 
@@ -1043,7 +1064,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         styler:
             | Styler<AgOrganizationSeriesExpanderItemStylerParams<unknown, unknown>, AgOrganizationSeriesExpanderStyle>
             | undefined,
-        style: DeepRequired<AgOrganizationSeriesExpanderStyle>,
+        style: RequiredOrganizationSeriesExpanderStyle,
         dataModel: _ModuleSupport.DataModel<any, any, any> | undefined,
         processedData: _ModuleSupport.ProcessedData<any> | undefined,
         datumIndex: number | undefined,
@@ -1176,7 +1197,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         depth: number,
         highlightState: _ModuleSupport.HighlightState | undefined,
         isCollapsed: boolean,
-        style: Required<AgOrganizationSeriesExpanderStyle>
+        style: RequiredOrganizationSeriesExpanderStyle
     ): AgOrganizationSeriesExpanderItemStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
 

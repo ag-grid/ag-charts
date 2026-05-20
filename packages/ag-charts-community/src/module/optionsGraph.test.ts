@@ -790,6 +790,56 @@ describe('OptionsGraph', () => {
             });
         });
 
+        describe('$applyPadding', () => {
+            it('should apply theme defaults', () => {
+                const themeConfig = {
+                    line: {
+                        padding: {
+                            $applyPadding: 4,
+                        },
+                    },
+                };
+                const userOptions = prepareOptions({});
+                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                expect(options).toStrictEqual({
+                    padding: { top: 4, right: 4, bottom: 4, left: 4 },
+                    axes: expect.any(Object),
+                });
+            });
+
+            it('should expand single user number to every side', () => {
+                const themeConfig = {
+                    line: {
+                        padding: {
+                            $applyPadding: { top: 4, right: 8, bottom: 12, left: 16 },
+                        },
+                    },
+                };
+                const userOptions = prepareOptions({ padding: 3 });
+                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                expect(options).toStrictEqual({
+                    padding: { top: 3, right: 3, bottom: 3, left: 3 },
+                    axes: expect.any(Object),
+                });
+            });
+
+            it('should apply theme defaults to partial user sides', () => {
+                const themeConfig = {
+                    line: {
+                        padding: {
+                            $applyPadding: { top: 4, right: 8, bottom: 12, left: 16 },
+                        },
+                    },
+                };
+                const userOptions = prepareOptions({ padding: { top: 3, bottom: 3 } });
+                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                expect(options).toStrictEqual({
+                    padding: { top: 3, right: 8, bottom: 3, left: 16 },
+                    axes: expect.any(Object),
+                });
+            });
+        });
+
         describe('$applySwitch', () => {
             it('should resolve to default if no user option', () => {
                 const themeConfig = {

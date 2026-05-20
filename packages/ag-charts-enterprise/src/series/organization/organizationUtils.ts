@@ -1,6 +1,7 @@
 import {
     type CssColor,
     type FillOptions,
+    type PaddingOptions,
     type StrokeOptions,
     type TextAlign,
     _ModuleSupport,
@@ -45,7 +46,7 @@ export function applyTextBoxingStyles(
         strokeWidth?: number;
         strokeOpacity?: number;
         cornerRadius?: number;
-        padding?: number;
+        padding?: PaddingOptions;
     }
 ) {
     const hasStroke = styles.stroke != null && (styles.strokeWidth ?? 0) > 0;
