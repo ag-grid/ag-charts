@@ -9,7 +9,7 @@ import {
     type AgOrganizationSeriesNodeStyle,
     type AgOrganizationSeriesNodeTextStyle,
     type AgOrganizationSeriesNodeTextStylerParams,
-    type Formatter,
+    type RichFormatter,
     type Styler,
     type TextOrSegments,
     _ModuleSupport,
@@ -732,7 +732,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     private formatText(
         text: TextOrSegments | undefined,
-        formatter: Formatter<AgOrganizationNodeTextFormatterParams> | undefined,
+        formatter: RichFormatter<AgOrganizationNodeTextFormatterParams> | undefined,
         datumIndex: number | undefined,
         isCollapsed: boolean
     ) {
