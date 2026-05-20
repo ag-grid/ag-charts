@@ -1,3 +1,5 @@
+import { afterEach } from 'vitest';
+
 import { Logger } from 'ag-charts-core';
 import * as agChartsTest from 'ag-charts-test';
 

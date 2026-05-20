@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, describe, it } from 'vitest';
 
 import {
     type AgBubbleSeriesOptions,

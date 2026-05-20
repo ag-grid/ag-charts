@@ -707,6 +707,7 @@ export class Annotations extends AbstractModuleInstance {
             this.annotationData.length === annotations.length &&
             annotations.every((annotation, index) => {
                 const current = this.annotationData.at(index);
+                // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
                 return current != null && current.type === (annotation.type as AnnotationType);
             });
 
@@ -1142,9 +1143,6 @@ export class Annotations extends AbstractModuleInstance {
 
         if (translation.x || translation.y) {
             state.transition('translate', { translation });
-
-            // eslint-disable-next-line no-restricted-properties
-            sourceEvent.stopPropagation();
             sourceEvent.preventDefault();
         }
 

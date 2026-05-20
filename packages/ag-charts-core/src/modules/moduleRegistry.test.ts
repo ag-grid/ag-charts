@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from '@jest/globals';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import {
     type AxisModuleDefinition,
@@ -39,7 +39,7 @@ const createChartModule = (
 ): ChartModuleDefinition<any> => ({
     type: ModuleType.Chart,
     name,
-    options: {} as any,
+    options: {},
     ...everyModuleDefaults,
     ...overrides,
 });
@@ -51,7 +51,7 @@ const createAxisModule = (
     type: ModuleType.Axis,
     name,
     chartType: 'cartesian',
-    options: {} as any,
+    options: {},
     ...everyModuleDefaults,
     ...overrides,
 });
@@ -63,7 +63,7 @@ const createSeriesModule = (
     type: ModuleType.Series,
     name,
     chartType: 'cartesian',
-    options: {} as any,
+    options: {},
     ...everyModuleDefaults,
     ...overrides,
 });
@@ -74,7 +74,7 @@ const createPresetModule = (
 ): PresetModuleDefinition<any> => ({
     type: ModuleType.Preset,
     name,
-    options: {} as any,
+    options: {},
     ...everyModuleDefaults,
     ...overrides,
 });
@@ -177,7 +177,7 @@ describe('moduleRegistry', () => {
 
             expect(getChartModule('chart-module')).toBe(chart);
             expect(() => getChartModule('axis-module')).toThrowErrorMatchingInlineSnapshot(
-                `"AG Charts - Unknown chart type; Check options are correctly structured and series types are specified"`
+                `[Error: AG Charts - Unknown chart type; Check options are correctly structured and series types are specified]`
             );
 
             expect(getPresetModule('preset-module')).toBe(preset);
@@ -225,7 +225,7 @@ describe('moduleRegistry', () => {
 
     describe('ifRegistryChanged', () => {
         test('runs the callback the first time and returns the current revision', () => {
-            const callback = jest.fn();
+            const callback = vi.fn();
             const revision = ifRegistryChanged(-1, callback);
 
             expect(callback).toHaveBeenCalledTimes(1);
@@ -235,7 +235,7 @@ describe('moduleRegistry', () => {
         test('skips the callback when the revision is unchanged', () => {
             const initialRevision = ifRegistryChanged(-1, () => {});
 
-            const callback = jest.fn();
+            const callback = vi.fn();
             const revision = ifRegistryChanged(initialRevision, callback);
 
             expect(callback).not.toHaveBeenCalled();
@@ -247,7 +247,7 @@ describe('moduleRegistry', () => {
 
             register(createSeriesModule('after-cache-module'));
 
-            const callback = jest.fn();
+            const callback = vi.fn();
             const newRevision = ifRegistryChanged(initialRevision, callback);
 
             expect(callback).toHaveBeenCalledTimes(1);
@@ -260,7 +260,7 @@ describe('moduleRegistry', () => {
 
             reset();
 
-            const callback = jest.fn();
+            const callback = vi.fn();
             const revisionAfterReset = ifRegistryChanged(revisionBeforeReset, callback);
 
             expect(callback).toHaveBeenCalledTimes(1);

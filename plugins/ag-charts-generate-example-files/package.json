@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-generate-example-files",
-  "version": "13.3.0-beta.20260512.1138",
+  "version": "13.3.0-beta.20260519",
   "private": true,
   "dependencies": {
     "ag-shared": "0.0.1",
@@ -10,11 +10,11 @@
     "sucrase": "^3.35.1",
     "json5": "2.2.3",
     "@nx/devkit": "^18.3.4",
-    "@swc/helpers": "0.5.3",
+    "@swc/helpers": "0.5.21",
     "jscodeshift": "^0.16.1",
-    "prettier": "^3.2.5",
-    "ag-charts-community": "13.3.0-beta.20260512.1138",
-    "ag-charts-test": "13.3.0-beta.20260512.1138"
+    "prettier": "3.8.3",
+    "ag-charts-community": "13.3.0-beta.20260519",
+    "ag-charts-test": "13.3.0-beta.20260519"
   },
   "type": "commonjs",
   "main": "./dist/src/index.js",

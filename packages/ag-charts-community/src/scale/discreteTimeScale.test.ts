@@ -1,4 +1,4 @@
-import { describe, expect, test } from '@jest/globals';
+import { describe, expect, test } from 'vitest';
 
 import { checkUniformityBySampling } from './discreteTimeScale';
 
@@ -31,7 +31,7 @@ describe('checkUniformityBySampling', () => {
 
     test('returns non-uniform for fewer than 2 elements', () => {
         expect(checkUniformityBySampling([new Date('2024-01-01')] as const)).toEqual({ isUniform: false });
-        expect(checkUniformityBySampling([] as unknown as readonly Date[])).toEqual({ isUniform: false });
+        expect(checkUniformityBySampling([])).toEqual({ isUniform: false });
     });
 
     test('AG-16912: returns non-uniform for out-of-bounds startIdx', () => {

@@ -23,13 +23,13 @@ export interface DocumentPatchResult {
  * redirecting them to skia-canvas implementations.
  */
 export function patchDocumentCreateElement(document: Document, options: DocumentPatchOptions): DocumentPatchResult {
-    const doc = document as MockableDocument;
+    const doc = document;
     const realCreateElement = doc.createElement.bind(doc);
 
     doc.createElement = (tag: string, opts?: ElementCreationOptions): HTMLElement => {
         if (tag === 'canvas') {
             const canvas = options.getCanvas();
-            const mockElement = realCreateElement(tag, opts) as HTMLCanvasElement;
+            const mockElement = realCreateElement(tag, opts);
 
             const originalGetContext = mockElement.getContext.bind(mockElement);
             Object.defineProperty(mockElement, 'getContext', {

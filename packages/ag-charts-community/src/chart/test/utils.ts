@@ -1,7 +1,7 @@
-import { afterEach, beforeEach, expect, jest } from '@jest/globals';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
+import { afterEach, beforeEach, expect, vi } from 'vitest';
 
-import { type AnyFn, fromPairs, getDocument, mapValues } from 'ag-charts-core';
+import { fromPairs, getDocument, mapValues } from 'ag-charts-core';
 import {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
@@ -176,7 +176,7 @@ export function prepareTestOptions<T extends AgChartOptions<any, any> | AgGaugeO
 }
 
 function isChartInstance(chartOrProxy: ChartOrProxy): chartOrProxy is Chart {
-    return chartOrProxy.constructor.name !== 'AgChartInstanceProxy' || (chartOrProxy as Chart).className != null;
+    return !chartOrProxy.constructor.name.endsWith('AgChartInstanceProxy') || (chartOrProxy as Chart).className != null;
 }
 
 export function deproxy(chartOrProxy: ChartOrProxy<any>): Chart {
@@ -358,7 +358,7 @@ export function cartesianChartAssertions(params?: {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toEqual('CartesianChart');
+        expect(chart?.constructor?.name).toContain('CartesianChart');
         expect(chart.axes).toHaveLength(Object.keys(axisTypes).length);
         expect(fromPairs(chart.axes.map((a) => [a.id, a.type]))).toEqual(axisTypes);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
@@ -370,7 +370,7 @@ export function polarChartAssertions(params?: { seriesTypes?: string[] }) {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toEqual('PolarChart');
+        expect(chart?.constructor?.name).toContain('PolarChart');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -381,7 +381,7 @@ export function hierarchyChartAssertions(params?: { seriesTypes?: string[] }) {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toEqual('StandaloneChart');
+        expect(chart?.constructor?.name).toContain('StandaloneChart');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -392,7 +392,7 @@ export function topologyChartAssertions(params?: { seriesTypes?: string[] }) {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toEqual('TopologyChart');
+        expect(chart?.constructor?.name).toContain('TopologyChart');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -403,7 +403,7 @@ export function flowProportionChartAssertions(params?: { seriesTypes?: string[] 
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toEqual('StandaloneChart');
+        expect(chart?.constructor?.name).toContain('StandaloneChart');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -414,7 +414,7 @@ export function standaloneChartAssertions(params?: { seriesTypes?: string[] }) {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toEqual('StandaloneChart');
+        expect(chart?.constructor?.name).toContain('StandaloneChart');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -423,7 +423,7 @@ export function standaloneChartAssertions(params?: { seriesTypes?: string[] }) {
 export function gaugeAssertions() {
     return (chartOrProxy: ChartOrProxy<AgGaugeOptions>) => {
         const chart = deproxy(chartOrProxy);
-        expect(chart?.constructor?.name).toEqual('StandaloneChart');
+        expect(chart?.constructor?.name).toContain('StandaloneChart');
     };
 }
 
@@ -744,7 +744,7 @@ export const MIN_TOOLTIP_HIDE_DELAY = 150;
 
 let activeAnimateCb: ((totalDuration: number, ratio: number) => void) | undefined;
 export function spyOnAnimationManager() {
-    const mocks: jest.SpiedFunction<AnyFn>[] = [];
+    const mocks: { mockRestore: () => void }[] = [];
     const rafCbs: Map<number, Parameters<typeof requestAnimationFrame>[0]> = new Map();
     let nextRafId = 1;
     const animateParameters = [0, 0];
@@ -761,10 +761,10 @@ export function spyOnAnimationManager() {
     };
 
     beforeEach(() => {
-        const skippedMock = jest.spyOn(AnimationManager.prototype, 'isSkipped');
+        const skippedMock = vi.spyOn(AnimationManager.prototype, 'isSkipped');
         skippedMock.mockImplementation(() => false);
 
-        const forceTimeJumpMock = jest.spyOn(AnimationManager.prototype, 'forceTimeJump');
+        const forceTimeJumpMock = vi.spyOn(AnimationManager.prototype, 'forceTimeJump');
         forceTimeJumpMock.mockImplementation((controller: IAnimation, defaultDuration: number) => {
             if (!controller.isComplete) {
                 // Convert test timing info to phase-relative execution timing.
@@ -779,10 +779,10 @@ export function spyOnAnimationManager() {
             }
             return true;
         });
-        const skippingFramesMock = jest.spyOn(AnimationManager.prototype, 'isSkippingFrames');
+        const skippingFramesMock = vi.spyOn(AnimationManager.prototype, 'isSkippingFrames');
         skippingFramesMock.mockImplementation(() => false);
 
-        const safMock = jest.spyOn(AnimationManager.prototype, 'scheduleAnimationFrame');
+        const safMock = vi.spyOn(AnimationManager.prototype, 'scheduleAnimationFrame');
         safMock.mockImplementation(function (this: AnimationManager, cb) {
             (this as any).requestId = nextRafId++;
 

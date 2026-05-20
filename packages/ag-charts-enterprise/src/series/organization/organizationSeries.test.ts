@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
     AgChartOptions,
@@ -735,8 +735,9 @@ describe('OrganizationSeries', () => {
     setupMockConsole();
     let chart: any;
 
-    afterEach(() => {
+    afterEach(async () => {
         if (chart) {
+            await waitForChartStability(chart);
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -1453,7 +1454,7 @@ describe('OrganizationSeries', () => {
             await waitForChartStability(chart);
 
             const zoomManager = deproxy(chart).ctx.zoomManager;
-            const panSpy = zoomManager ? jest.spyOn(zoomManager, 'panToBBox') : undefined;
+            const panSpy = zoomManager ? vi.spyOn(zoomManager, 'panToBBox') : undefined;
 
             const seriesId = deproxy(chart).series[0].id;
             await chart.setState({
@@ -1477,7 +1478,7 @@ describe('OrganizationSeries', () => {
             await waitForChartStability(chart);
 
             const zoomManager = deproxy(chart).ctx.zoomManager;
-            const panSpy = zoomManager ? jest.spyOn(zoomManager, 'panToBBox') : undefined;
+            const panSpy = zoomManager ? vi.spyOn(zoomManager, 'panToBBox') : undefined;
 
             const seriesId = deproxy(chart).series[0].id;
             await chart.setState({
@@ -1502,7 +1503,7 @@ describe('OrganizationSeries', () => {
 
             // Spy after the initial zoom so only hover-induced pans count.
             const zoomManager = deproxy(chart).ctx.zoomManager;
-            const panSpy = zoomManager ? jest.spyOn(zoomManager, 'panToBBox') : undefined;
+            const panSpy = zoomManager ? vi.spyOn(zoomManager, 'panToBBox') : undefined;
             const ratiosBefore = getZoomRatios(chart);
 
             // `activeManager.update` is the canonical hover simulation — JSDOM canvas

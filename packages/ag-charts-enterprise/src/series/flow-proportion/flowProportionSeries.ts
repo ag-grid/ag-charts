@@ -468,8 +468,7 @@ export abstract class FlowProportionSeries<
             seriesRectHeight: seriesRect?.height ?? 0,
         };
         if (
-            this._nodeDataDependencies == null ||
-            this._nodeDataDependencies.seriesRectWidth !== newNodeDataDependencies.seriesRectWidth ||
+            this._nodeDataDependencies?.seriesRectWidth !== newNodeDataDependencies.seriesRectWidth ||
             this._nodeDataDependencies.seriesRectHeight !== newNodeDataDependencies.seriesRectHeight
         ) {
             this._nodeDataDependencies = newNodeDataDependencies;
@@ -736,10 +735,7 @@ export abstract class FlowProportionSeries<
     public override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
         const { datumIndexDelta: childDelta, otherIndexDelta: depthDelta } = opts;
 
-        const currentNodeDatum = this.contextNodeData?.nodeData[opts.datumIndex - opts.datumIndexDelta] as
-            | TNodeDatum
-            | TLinkDatum
-            | undefined;
+        const currentNodeDatum = this.contextNodeData?.nodeData[opts.datumIndex - opts.datumIndexDelta];
         let nextNodeDatum: TNodeDatum | TLinkDatum | undefined = currentNodeDatum;
 
         if (depthDelta !== 0 || childDelta === 0) return;

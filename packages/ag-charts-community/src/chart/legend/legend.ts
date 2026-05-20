@@ -869,7 +869,6 @@ export class Legend {
     onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel) {
         if (this.checkInteractionState()) return;
         const { sourceEvent } = widgetEvent;
-        // eslint-disable-next-line sonarjs/deprecation
         const legendItem: CategoryLegendDatum = node.unsafeNonNullDatum;
 
         this.clearHighlight();

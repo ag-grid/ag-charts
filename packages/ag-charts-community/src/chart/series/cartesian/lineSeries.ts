@@ -641,11 +641,14 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
 
         result.crossFiltering = this.properties.selectedKey != null;
 
+        const seriesRect = this.chart?.seriesRect;
+        if (seriesRect == null) return result;
+
         result.segments = calculateSegments(
             this.properties.segmentation,
             ctx.xAxis,
             ctx.yAxis,
-            this.chart!.seriesRect!,
+            seriesRect,
             this.ctx.scene,
             false
         );

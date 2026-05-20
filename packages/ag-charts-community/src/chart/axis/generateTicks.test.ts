@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { estimateScaleTickCount } from './generateTicks';
