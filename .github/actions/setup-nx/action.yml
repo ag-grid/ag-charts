@@ -74,17 +74,27 @@ runs:
           run: |
               set -x
 
+              fetch_success_tag() {
+                local tag=$1
+                if git show-ref --verify --quiet "refs/tags/${tag}" ; then
+                  echo "Using already-fetched ${tag} tag"
+                  return 0
+                fi
+
+                git fetch origin -f --depth 1 tag "${tag}"
+              }
+
               branch=$(git branch --show-current)
               if [[ ${branch} == 'latest' || ${branch} == 'next' ]] ; then
                 # Latest
                 echo "base=${branch}-success" >> $GITHUB_OUTPUT
                 echo "NX_BASE=${branch}-success" >> $GITHUB_ENV
                 echo "type=latest" >> $GITHUB_OUTPUT
-                git fetch origin -f --depth 1 tag ${branch}-success
+                fetch_success_tag "${branch}-success"
               elif [[ ${branch} =~ b[0-9][0-9]\..+ ]] ; then
                 # Release
                 # Try to use the -success tag if it exists, otherwise fall back to branch name
-                if git fetch origin -f --depth 1 tag ${branch}-success 2>/dev/null; then
+                if fetch_success_tag "${branch}-success" 2>/dev/null; then
                   echo "base=${branch}-success" >> $GITHUB_OUTPUT
                   echo "NX_BASE=${branch}-success" >> $GITHUB_ENV
                 else
