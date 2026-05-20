@@ -39,8 +39,14 @@ jobs:
             - name: Fetch Refs
               run: git fetch origin --depth 1 latest-success latest
 
+            - name: Check for In-Progress Release Branch
+              id: release_guard
+              if: ${{ github.event_name == 'schedule' }}
+              run: node ./tools/release/checkScheduledBetaBump.js
+
             - name: Setup
               id: setup
+              if: ${{ github.event_name != 'schedule' || steps.release_guard.outputs.can_bump == 'true' }}
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ro
@@ -49,6 +55,7 @@ jobs:
 
             - name: Calculate Next Beta Version
               id: next_version
+              if: ${{ github.event_name != 'schedule' || steps.release_guard.outputs.can_bump == 'true' }}
               run: |
                   NEW_VERSION=$(node ./tools/calculate-next-version.js)
                   echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
@@ -56,25 +63,26 @@ jobs:
                   echo "tag=b${NEW_VERSION}" >> $GITHUB_OUTPUT
 
             - name: Bump Beta Package Version
+              if: ${{ github.event_name != 'schedule' || steps.release_guard.outputs.can_bump == 'true' }}
               run: ./tools/bump-versions.sh ${NEW_VERSION}
 
             - name: Commit Changes
               uses: EndBug/add-and-commit@v9
-              if: success()
+              if: ${{ success() && (github.event_name != 'schedule' || steps.release_guard.outputs.can_bump == 'true') }}
               with:
                   default_author: github_actions
                   message: Automated package version bump to ${{ steps.next_version.outputs.version }}.
 
             - name: Tag Latest Successful Commit
               uses: EndBug/latest-tag@latest
-              if: success()
+              if: ${{ success() && (github.event_name != 'schedule' || steps.release_guard.outputs.can_bump == 'true') }}
               with:
                   ref: ${{ steps.next_version.outputs.tag }}
                   description: Latest commit to pass GitHub Actions workflow on latest branch.
 
             - name: Tag Latest Successful Commit
               uses: EndBug/latest-tag@latest
-              if: success()
+              if: ${{ success() && (github.event_name != 'schedule' || steps.release_guard.outputs.can_bump == 'true') }}
               with:
                   ref: latest-beta-version
                   description: Latest commit to pass GitHub Actions workflow on latest branch.
