@@ -17,9 +17,9 @@ function makeChangeItem(seriesId: SeriesId, data: DataSet, datumIndex: number): 
 }
 
 export class DataSelectionChangeMap {
-    private added = new Set<Hash>();
-    private removed = new Set<Hash>();
-    private memory = new Map<Hash, Entry>();
+    private readonly added = new Set<Hash>();
+    private readonly removed = new Set<Hash>();
+    private readonly memory = new Map<Hash, Entry>();
 
     private difference(self: Set<Hash>, other: Set<Hash>): Entry[] {
         // FIXME(2026-05-20): Consider using `Set.difference` (available in June 2024) once es-target is upgraded.
