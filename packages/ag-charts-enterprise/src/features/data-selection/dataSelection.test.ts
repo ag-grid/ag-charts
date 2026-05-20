@@ -858,7 +858,7 @@ describe('DataSelection', () => {
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S3C_S4E]);
                             });
                         });
-                        xdescribe('miss2', () => {
+                        describe.skip('miss2', () => {
                             // Skipped: it's unclear what the required are when clicking outside series-area
                             test('screenshot', async () => {
                                 await mouseClick(POINT_MISS2);
