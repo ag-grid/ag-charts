@@ -145,7 +145,7 @@ class InternalMarker<D = any> extends Path<D> {
         }
     }
 
-    override svgPathData(): string {
+    override svgPathData(transform?: (x: number, y: number) => { x: number; y: number }): string {
         // Honour dirtyPath so shape/size mutations re-export fresh geometry instead of a stale cache hit.
         this.updatePathIfDirty();
         if (this._sharedPath === undefined) return '';
@@ -153,6 +153,9 @@ class InternalMarker<D = any> extends Path<D> {
         const anchor = Marker.anchor(shape);
         const ax = x - (anchor.x - 0.5) * size;
         const ay = y - (anchor.y - 0.5) * size;
+        if (transform) {
+            return this._sharedPath.toSVG((px, py) => transform(px + ax, py + ay));
+        }
         return this._sharedPath.toSVG((px, py) => ({ x: px + ax, y: py + ay }));
     }
 
