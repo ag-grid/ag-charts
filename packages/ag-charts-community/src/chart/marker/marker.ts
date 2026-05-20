@@ -11,8 +11,7 @@ import { Rotatable, Scalable, Translatable } from '../../scene/transformable';
 import { align } from '../../scene/util/pixel';
 import { getSharedMarkerPath } from './markerPathCache';
 
-// Anchor lookups happen in the per-frame hot path (drawPath, computeBBox, distanceSquared,
-// svgPathData). Returning shared frozen literals keeps the call allocation-free.
+// Frozen anchor literals returned from Marker.anchor() — avoids per-frame object allocation in hot paths.
 const PIN_ANCHOR: Point = Object.freeze({ x: 0.5, y: 1 });
 const CENTRE_ANCHOR: Point = Object.freeze({ x: 0.5, y: 0.5 });
 
@@ -33,43 +32,32 @@ class InternalMarker<D = any> extends Path<D> {
     size: number = 12;
     declare __size: number; // optimised field accessor
 
-    /**
-     * Origin-centred Path2D shared across all markers using the same `(shape, size)`. Populated
-     * by {@link updatePath} from the global cache; the per-marker position is applied by
-     * {@link drawPath} via `ctx.translate` rather than baked into the path geometry.
-     */
+    // Origin-centred Path2D shared across all markers with the same (shape, size, pixelRatio).
+    // Per-marker position is applied via ctx.translate in drawPath, not baked into the path.
     private _sharedPath?: ExtendedPath2D;
 
-    // While drawing, fills/strokes/gradients/patterns are configured against the canvas context
-    // *before* the per-marker translate is applied. Their bboxes must therefore be expressed in
-    // pre-translate (origin) coordinates so they line up with the origin-centred shared path.
-    // We track the active draw translation here and shift {@link getBBox} accordingly.
+    // Tracks the active drawPath translate so getBBox/fillBBox can be re-expressed in origin
+    // coordinates while fills/strokes are configured before ctx.translate is applied. Scratch
+    // BBoxes are reused across draws to avoid per-frame allocations.
     private _drawTranslateActive: boolean = false;
     private _drawTranslateX: number = 0;
     private _drawTranslateY: number = 0;
-    // Scratch BBoxes reused across draws to avoid per-frame allocations. Only ever read inside
-    // the synchronous span of {@link drawPath}, so a single instance per marker is safe.
     private readonly _scratchFillBBox: BBox = new BBox(0, 0, 0, 0);
     private readonly _scratchDrawBBox: BBox = new BBox(0, 0, 0, 0);
 
     override getBBox(): BBox {
         const bbox = super.getBBox();
-        if (this._drawTranslateActive) {
-            const out = this._scratchDrawBBox;
-            out.x = bbox.x - this._drawTranslateX;
-            out.y = bbox.y - this._drawTranslateY;
-            out.width = bbox.width;
-            out.height = bbox.height;
-            return out;
-        }
-        return bbox;
+        if (!this._drawTranslateActive) return bbox;
+        const out = this._scratchDrawBBox;
+        out.x = bbox.x - this._drawTranslateX;
+        out.y = bbox.y - this._drawTranslateY;
+        out.width = bbox.width;
+        out.height = bbox.height;
+        return out;
     }
 
-    /**
-     * Path geometry depends only on `shape` and `size` — `x` and `y` are applied as a render-time
-     * translation. Treat position changes as a dirty scene but not a dirty path so the shared
-     * Path2D is reused across zoom/pan frames.
-     */
+    // Path geometry is invariant to x/y (applied as a render-time translate), so x/y mutations
+    // dirty the scene but not the path.
     override onChangeDetection(property: string): void {
         if (property === '__x' || property === '__y') {
             this.markDirty(property);
@@ -82,12 +70,8 @@ class InternalMarker<D = any> extends Path<D> {
         return this.distanceSquared(x, y) <= 0;
     }
 
-    /**
-     * Exact hit-test against the shared origin-centred path. Subclasses (e.g. AnnotationShape)
-     * that need geometry-accurate picking — rather than the default radius approximation used by
-     * {@link isPointInPath} — call this so they pick up the same translate/anchor maths the
-     * draw path applies. Returns false when no shared path is populated.
-     */
+    // Exact hit-test against the shared origin-centred path; for subclasses (e.g. AnnotationShape)
+    // that need geometry-accurate picking instead of the radius approximation in isPointInPath.
     protected isPointInSharedPath(x: number, y: number): boolean {
         if (!this._sharedPath?.closedPath) return false;
         const anchor = Marker.anchor(this.shape);
@@ -108,26 +92,22 @@ class InternalMarker<D = any> extends Path<D> {
         return Math.max(dx * dx + dy * dy - radius * radius, 0);
     }
 
-    /**
-     * Marker geometry lives on the shared cache via {@link _sharedPath}; the inherited
-     * `this.path` is unused for built-in markers. Override the complexity hook so
-     * {@link Path.preRender} never lazy-allocates an unused `ExtendedPath2D` per marker.
-     */
+    // this.path is unused — geometry lives on _sharedPath. Override so Path.preRender doesn't
+    // lazy-allocate an unused ExtendedPath2D per marker.
     protected override pathComplexity(): number {
         return this._sharedPath?.commands.length ?? 0;
     }
 
     override updatePath(): void {
         const { shape, size } = this;
-        // `!(size > 0)` rather than `size <= 0` so `NaN` size is treated as no path.
+        // `!(size > 0)` rather than `size <= 0` so NaN size is treated as no path.
         // eslint-disable-next-line sonarjs/no-inverted-boolean-check
         if (shape == null || !(size > 0)) {
             this._sharedPath = undefined;
             return;
         }
-        // Pass pixelRatio so custom function shapes that use it for HiDPI-aware drawing get a
-        // separate cache entry per DPR; built-in shapes ignore the value (origin-centred geometry,
-        // pixel alignment is applied at the per-marker translate in drawPath).
+        // Custom function shapes may bake pixelRatio into their geometry → cache per DPR.
+        // Built-in shapes ignore it (pixel alignment is applied at draw-time translate).
         const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
         this._sharedPath = getSharedMarkerPath(shape, size, pixelRatio);
     }
@@ -146,18 +126,16 @@ class InternalMarker<D = any> extends Path<D> {
         const anchor = Marker.anchor(shape);
         const ax = x - (anchor.x - 0.5) * size;
         const ay = y - (anchor.y - 0.5) * size;
-        // Apply pixel-snapping for crisp axis-aligned squares by aligning the left/top edge to
-        // the device-pixel grid; with an integer `size` this leaves all four edges crisp. The
-        // shared path stays pixel-ratio independent.
+        // Pixel-snap axis-aligned squares so all four edges land on device pixels.
         const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
         const hs = size / 2;
         const tx = shape === 'square' ? align(pixelRatio, ax - hs) + hs : ax;
         const ty = shape === 'square' ? align(pixelRatio, ay - hs) + hs : ay;
 
+        // fillBBox is configured before ctx.translate → shift it into origin coordinates so
+        // axis-bounded gradients stay anchored on screen.
         const originalFillBBox = this.__fillBBox;
         if (originalFillBBox) {
-            // fillBBox bounds (e.g. axis-bounded gradients) must follow the translate to stay
-            // anchored on screen.
             const shifted = this._scratchFillBBox;
             shifted.x = originalFillBBox.x - tx;
             shifted.y = originalFillBBox.y - ty;
@@ -181,12 +159,8 @@ class InternalMarker<D = any> extends Path<D> {
     }
 
     override svgPathData(): string {
-        // Honour dirtyPath rather than only repopulating when undefined — shape/size mutations
-        // mark the path dirty but leave the stale `_sharedPath` reference in place, which would
-        // otherwise emit the previous geometry on next export.
+        // Honour dirtyPath so shape/size mutations re-export fresh geometry instead of a stale cache hit.
         this.updatePathIfDirty();
-        // updatePath returns without populating `_sharedPath` for shape == null or size <= 0,
-        // so emit an empty path rather than dereferencing.
         if (this._sharedPath === undefined) return '';
         const { shape, x, y, size } = this;
         const anchor = Marker.anchor(shape);
