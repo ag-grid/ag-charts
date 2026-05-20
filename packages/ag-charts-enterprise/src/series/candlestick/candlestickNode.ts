@@ -139,8 +139,8 @@ export class CandlestickNode<D> extends OhlcBaseNode<D> {
         }
     }
 
-    override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
-        super.drawPath(ctx);
+    override drawPath(renderCtx: _ModuleSupport.RenderContext) {
+        super.drawPath(renderCtx);
 
         const { wickPath } = this;
         if (wickPath.isEmpty()) return;
@@ -157,6 +157,7 @@ export class CandlestickNode<D> extends OhlcBaseNode<D> {
             wickLineDash = lineDash,
             __wickLineDashOffset: wickLineDashOffset = lineDashOffset,
         } = this;
+        const { ctx } = renderCtx;
 
         if (wickStrokeWidth === 0) return;
 

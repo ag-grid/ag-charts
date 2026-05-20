@@ -55,7 +55,7 @@ export class Range<D = any> extends Shape<D> {
         const { globalAlpha } = ctx;
 
         if (fill != null) {
-            this.applyFillAndAlpha(ctx);
+            this.applyFillAndAlpha(renderCtx);
 
             ctx.beginPath();
             ctx.moveTo(x1, y1);
@@ -75,7 +75,7 @@ export class Range<D = any> extends Shape<D> {
         if (strokeActive) {
             const { lineDash, lineDashOffset, lineCap, lineJoin } = this;
 
-            this.applyStrokeAndAlpha(ctx);
+            this.applyStrokeAndAlpha(renderCtx);
 
             ctx.lineWidth = strokeWidth;
             if (lineDash) {

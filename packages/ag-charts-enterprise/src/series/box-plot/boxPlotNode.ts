@@ -213,8 +213,8 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
         }
     }
 
-    override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
-        super.drawPath(ctx);
+    override drawPath(renderCtx: _ModuleSupport.RenderContext) {
+        super.drawPath(renderCtx);
 
         const { wickPath } = this;
         if (wickPath.isEmpty()) return;
@@ -231,6 +231,7 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
             wickLineDash = lineDash,
             wickLineDashOffset = lineDashOffset,
         } = this;
+        const { ctx } = renderCtx;
 
         if (wickStrokeWidth === 0) return;
 

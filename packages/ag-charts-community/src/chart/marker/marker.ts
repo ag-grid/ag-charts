@@ -4,7 +4,7 @@ import type { AgMarkerShape } from 'ag-charts-types';
 
 import { BBox } from '../../scene/bbox';
 import type { ExtendedPath2D } from '../../scene/extendedPath2D';
-import { type NodeOptions } from '../../scene/node';
+import { type NodeOptions, type RenderContext } from '../../scene/node';
 import { Path } from '../../scene/shape/path';
 import type { CanvasContext } from '../../scene/shape/shape';
 import { Rotatable, Scalable, Translatable } from '../../scene/transformable';
@@ -107,10 +107,11 @@ class InternalMarker<D = any> extends Path<D> {
         return new BBox(x - size * anchor.x, y - size * anchor.y, size, size);
     }
 
-    override drawPath(ctx: CanvasContext): void {
+    override drawPath(renderCtx: RenderContext): void {
         if (this._sharedPath === undefined) return;
 
         const { shape, x, y, size } = this;
+        const { ctx } = renderCtx;
         const anchor = Marker.anchor(shape);
         const ax = x - (anchor.x - 0.5) * size;
         const ay = y - (anchor.y - 0.5) * size;
@@ -143,7 +144,7 @@ class InternalMarker<D = any> extends Path<D> {
         ctx.save();
         ctx.translate(tx, ty);
         try {
-            this.fillStroke(ctx, this._sharedPath.getPath2D(), DRAW_BBOX_SCRATCH, fillBBoxOverride);
+            this.fillStroke(renderCtx, this._sharedPath.getPath2D(), DRAW_BBOX_SCRATCH, fillBBoxOverride);
         } finally {
             ctx.restore();
         }

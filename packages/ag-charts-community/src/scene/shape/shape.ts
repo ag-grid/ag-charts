@@ -32,7 +32,7 @@ import { LinearGradient } from '../gradient/linearGradient';
 import { RadialGradient } from '../gradient/radialGradient';
 import { getColorStops } from '../gradient/stops';
 import { Image } from '../image/image';
-import { Node } from '../node';
+import { Node, type RenderContext } from '../node';
 import { Pattern } from '../pattern/pattern';
 import { align } from '../util/pixel';
 import { setSvgLineDashAttributes, setSvgStrokeAttributes } from './svgUtils';
@@ -209,18 +209,20 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         this.cachedDefaultGradientFillBBox = undefined;
     }
 
-    protected fillStroke(ctx: CanvasContext, path?: Path2D, bboxOverride?: BBox, fillBBoxOverride?: BBox) {
+    protected fillStroke(renderCtx: RenderContext, path?: Path2D, bboxOverride?: BBox, fillBBoxOverride?: BBox) {
+        const { ctx } = renderCtx;
         if (this.__drawingMode === 'cutout') {
             ctx.globalCompositeOperation = 'destination-out';
             this.executeFill(ctx, path);
             ctx.globalCompositeOperation = 'source-over';
         }
 
-        this.renderFill(ctx, path, bboxOverride, fillBBoxOverride);
-        this.renderStroke(ctx, path, bboxOverride);
+        this.renderFill(renderCtx, path, bboxOverride, fillBBoxOverride);
+        this.renderStroke(renderCtx, path, bboxOverride);
     }
 
-    protected renderFill(ctx: CanvasContext, path?: Path2D, bboxOverride?: BBox, fillBBoxOverride?: BBox) {
+    protected renderFill(renderCtx: RenderContext, path?: Path2D, bboxOverride?: BBox, fillBBoxOverride?: BBox) {
+        const { ctx } = renderCtx;
         const { __fill: fill, __fillOpacity: fillOpacity = 1, fillImage } = this;
         if (fill != null && fill !== 'none' && fillOpacity > 0) {
             const globalAlpha = ctx.globalAlpha;
@@ -232,7 +234,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
                 ctx.globalAlpha = globalAlpha;
             }
 
-            this.applyFillAndAlpha(ctx, bboxOverride, fillBBoxOverride);
+            this.applyFillAndAlpha(renderCtx, bboxOverride, fillBBoxOverride);
             this.applyShadow(ctx);
             this.executeFill(ctx, path);
             ctx.globalAlpha = globalAlpha;
@@ -250,7 +252,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         }
     }
 
-    protected applyFillAndAlpha(ctx: CanvasContext, bboxOverride?: BBox, fillBBoxOverride?: BBox) {
+    protected applyFillAndAlpha(renderCtx: RenderContext, bboxOverride?: BBox, fillBBoxOverride?: BBox) {
+        const { ctx } = renderCtx;
         const {
             __fill: fill,
             fillGradient,
@@ -291,22 +294,32 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             fillImage.setImageTransform(image, bbox);
             ctx.fillStyle = image ?? 'transparent';
         } else {
-            ctx.fillStyle = typeof fill === 'string' ? fill : 'black';
+            ctx.fillStyle = this.getComputedValue(renderCtx, fill);
         }
     }
 
-    protected applyStrokeAndAlpha(ctx: CanvasContext, bboxOverride?: BBox) {
+    protected applyStrokeAndAlpha(renderCtx: RenderContext, bboxOverride?: BBox) {
         const { __stroke: stroke, __strokeOpacity: strokeOpacity = 1, strokeGradient, __opacity: opacity = 1 } = this;
 
+        const { ctx } = renderCtx;
         ctx.strokeStyle =
             strokeGradient?.createGradient(ctx as any, bboxOverride ?? this.getBBox()) ??
-            (typeof stroke === 'string' ? stroke : undefined) ??
-            'black';
+            this.getComputedValue(renderCtx, stroke);
 
         const combinedOpacity = opacity * strokeOpacity;
         if (combinedOpacity !== 1) {
             ctx.globalAlpha *= combinedOpacity;
         }
+    }
+
+    protected getComputedValue(renderCtx: RenderContext, value: ShapeColor | undefined, fallback = 'black') {
+        if (!(typeof value === 'string')) return fallback;
+
+        if (value.startsWith('var(--')) {
+            return getComputedStyle(renderCtx.canvas).getPropertyValue(value.slice(4, -1));
+        }
+
+        return value;
     }
 
     protected applyShadow(ctx: CanvasContext) {
@@ -323,11 +336,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         }
     }
 
-    protected renderStroke(
-        ctx: CanvasContext & { setLineDash(lineDash: readonly number[]): void },
-        path?: Path2D,
-        bboxOverride?: BBox
-    ) {
+    protected renderStroke(renderCtx: RenderContext, path?: Path2D, bboxOverride?: BBox) {
         const {
             __stroke: stroke,
             __strokeWidth: strokeWidth = 0,
@@ -339,12 +348,14 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             __miterLimit: miterLimit,
         } = this;
         if (stroke != null && stroke !== 'none' && strokeWidth > 0 && strokeOpacity > 0) {
+            const { ctx } = renderCtx;
             const { globalAlpha } = ctx;
-            this.applyStrokeAndAlpha(ctx, bboxOverride);
+
+            this.applyStrokeAndAlpha(renderCtx, bboxOverride);
 
             ctx.lineWidth = strokeWidth;
             if (lineDash) {
-                ctx.setLineDash(lineDash);
+                ctx.setLineDash(lineDash as number[]);
             }
             if (lineDashOffset) {
                 ctx.lineDashOffset = lineDashOffset;

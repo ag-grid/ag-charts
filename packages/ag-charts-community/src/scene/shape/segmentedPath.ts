@@ -1,6 +1,7 @@
 import { SceneRefChangeDetection, getPath2D } from 'ag-charts-core';
 import type { FillOptions, LineDashOptions, StrokeOptions } from 'ag-charts-types';
 
+import type { RenderContext } from '../node';
 import { Path } from './path';
 
 export interface ClipRect {
@@ -20,11 +21,13 @@ export class SegmentedPath<D = any> extends Path<D> {
 
     private readonly segmentPath = new Path();
 
-    override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D): void {
+    override drawPath(renderCtx: RenderContext): void {
         if (!this.segments || this.segments.length === 0) {
-            super.drawPath(ctx);
+            super.drawPath(renderCtx);
             return;
         }
+
+        const { ctx } = renderCtx;
 
         // Draw the gaps
         ctx.save();
@@ -35,7 +38,7 @@ export class SegmentedPath<D = any> extends Path<D> {
             rect(inverse, s.clipRect);
         }
         ctx.clip(inverse);
-        super.drawPath(ctx);
+        super.drawPath(renderCtx);
         ctx.restore();
 
         // Draw the segments
@@ -61,7 +64,7 @@ export class SegmentedPath<D = any> extends Path<D> {
             rect(clipPath, clipRect);
             ctx.clip(clipPath);
 
-            segmentPath.drawPath(ctx);
+            segmentPath.drawPath(renderCtx);
 
             ctx.restore();
         }

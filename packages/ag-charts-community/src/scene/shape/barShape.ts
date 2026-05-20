@@ -2,6 +2,7 @@ import { DeclaredSceneChangeDetection } from 'ag-charts-core';
 import type { AgDrawingMode } from 'ag-charts-types';
 
 import type { DropShadow } from '../dropShadow';
+import type { RenderContext } from '../node';
 import { Rect } from './rect';
 
 export const FEATHERED_THRESHOLD = 1e-3;
@@ -126,9 +127,11 @@ export class BarShape<D = any> extends Rect<D> {
         }
     }
 
-    override renderStroke(ctx: CanvasRenderingContext2D & { setLineDash(lineDash: readonly number[]): void }) {
+    override renderStroke(
+        renderCtx: RenderContext // & { setLineDash(lineDash: readonly number[]): void }
+    ) {
         if (!this.feathered) {
-            super.renderStroke(ctx);
+            super.renderStroke(renderCtx);
             return;
         }
 
@@ -143,13 +146,14 @@ export class BarShape<D = any> extends Rect<D> {
         } = this;
 
         if (stroke && strokeWidth) {
+            const { ctx } = renderCtx;
             const { globalAlpha } = ctx;
 
-            this.applyStrokeAndAlpha(ctx);
+            this.applyStrokeAndAlpha(renderCtx);
             ctx.lineWidth = strokeWidth;
 
             if (lineDash) {
-                ctx.setLineDash(lineDash);
+                ctx.setLineDash(lineDash as number[]);
             }
             if (lineDashOffset) {
                 ctx.lineDashOffset = lineDashOffset;

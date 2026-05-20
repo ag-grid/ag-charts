@@ -13,6 +13,7 @@ export enum PointerEvents {
 }
 
 export type RenderContext = {
+    canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
     direction: CanvasDirection;
     width: number;

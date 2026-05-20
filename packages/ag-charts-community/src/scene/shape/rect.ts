@@ -4,9 +4,9 @@ import type { AgDrawingMode } from 'ag-charts-types';
 import { BBox } from '../bbox';
 import type { DropShadow } from '../dropShadow';
 import { ExtendedPath2D } from '../extendedPath2D';
+import type { RenderContext } from '../node';
 import { type Corner, drawCorner } from '../util/corner';
 import { Path } from './path';
-import { type CanvasContext } from './shape';
 
 export interface CornerRadii {
     topLeft: number;
@@ -533,22 +533,21 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         return this.distanceCalculator(x, y);
     }
 
-    protected override applyFillAndAlpha(ctx: CanvasRenderingContext2D) {
-        super.applyFillAndAlpha(ctx);
-        ctx.globalAlpha *= this.microPixelEffectOpacity;
+    protected override applyFillAndAlpha(renderCtx: RenderContext) {
+        super.applyFillAndAlpha(renderCtx);
+        renderCtx.ctx.globalAlpha *= this.microPixelEffectOpacity;
     }
 
-    protected override applyStrokeAndAlpha(ctx: CanvasContext): void {
-        super.applyStrokeAndAlpha(ctx);
-        ctx.globalAlpha *= this.microPixelEffectOpacity;
+    protected override applyStrokeAndAlpha(renderCtx: RenderContext): void {
+        super.applyStrokeAndAlpha(renderCtx);
+        renderCtx.ctx.globalAlpha *= this.microPixelEffectOpacity;
     }
 
-    protected override renderStroke(
-        ctx: CanvasRenderingContext2D & { setLineDash(lineDash: readonly number[]): void }
-    ) {
+    protected override renderStroke(renderCtx: RenderContext) {
         const { stroke, effectiveStrokeWidth } = this;
 
         if (stroke && effectiveStrokeWidth) {
+            const { ctx } = renderCtx;
             const { globalAlpha } = ctx;
             const { lineDash, lineDashOffset, lineCap, lineJoin, borderPath, borderClipPath } = this;
 
@@ -556,11 +555,11 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
                 ctx.clip(borderClipPath.getPath2D());
             }
 
-            this.applyStrokeAndAlpha(ctx);
+            this.applyStrokeAndAlpha(renderCtx);
             ctx.lineWidth = effectiveStrokeWidth;
 
             if (lineDash) {
-                ctx.setLineDash(lineDash);
+                ctx.setLineDash(lineDash as number[]);
             }
             if (lineDashOffset) {
                 ctx.lineDashOffset = lineDashOffset;

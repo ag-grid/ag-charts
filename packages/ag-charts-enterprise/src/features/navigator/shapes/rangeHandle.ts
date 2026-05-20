@@ -102,11 +102,11 @@ export class RangeHandle extends _ModuleSupport.Path {
         }
     }
 
-    protected override renderFill(ctx: _ModuleSupport.CanvasContext, path?: Path2D): void {
+    protected override renderFill(renderCtx: _ModuleSupport.RenderContext, path?: Path2D): void {
         const { stroke } = this;
-        super.renderFill(ctx, path);
+        super.renderFill(renderCtx, path);
 
-        ctx.fillStyle = typeof stroke === 'string' ? stroke : 'black';
-        ctx.fill(this.gripPath.getPath2D());
+        renderCtx.ctx.fillStyle = typeof stroke === 'string' ? stroke : 'black';
+        renderCtx.ctx.fill(this.gripPath.getPath2D());
     }
 }

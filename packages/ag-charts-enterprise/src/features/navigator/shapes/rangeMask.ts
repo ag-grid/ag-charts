@@ -87,8 +87,8 @@ export class RangeMask<D = unknown> extends Path<D> {
         drawRect(visiblePath, minX, maxX);
     }
 
-    protected override renderStroke(ctx: _ModuleSupport.CanvasContext, path?: Path2D): void {
-        super.renderStroke(ctx, path);
-        super.renderStroke(ctx, this.visiblePath.getPath2D());
+    protected override renderStroke(renderCtx: _ModuleSupport.RenderContext, path?: Path2D): void {
+        super.renderStroke(renderCtx, path);
+        super.renderStroke(renderCtx, this.visiblePath.getPath2D());
     }
 }

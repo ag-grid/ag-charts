@@ -240,6 +240,7 @@ export class Scene extends EventEmitter<EventMap> {
         }
 
         const renderCtx: RenderContext = {
+            canvas: canvas.element,
             ctx,
             direction: this.direction,
             width,

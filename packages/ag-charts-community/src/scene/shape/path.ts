@@ -173,7 +173,7 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
                 ctx.clip(this._clipPath?.getPath2D());
 
                 if (this._clipX > 0 && this._clipY > 0) {
-                    this.drawPath(ctx);
+                    this.drawPath(renderCtx);
                 }
             } finally {
                 ctx.restore();
@@ -181,15 +181,15 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
         } else {
             this._clipPath = undefined;
 
-            this.drawPath(ctx);
+            this.drawPath(renderCtx);
         }
 
         this.fillShadow?.markClean();
         super.render(renderCtx);
     }
 
-    drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D): void {
-        this.fillStroke(ctx, this.path.getPath2D());
+    drawPath(renderCtx: RenderContext): void {
+        this.fillStroke(renderCtx, this.path.getPath2D());
     }
 
     override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {

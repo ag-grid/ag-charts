@@ -92,7 +92,7 @@ export class Line<D = unknown> extends Shape<D> implements DistantObject {
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
 
-        this.fillStroke(ctx);
+        this.fillStroke(renderCtx);
 
         this.fillShadow?.markClean();
         super.render(renderCtx);
