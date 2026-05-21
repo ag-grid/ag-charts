@@ -7,23 +7,15 @@ type ChartRegistry = _ModuleSupport.ChartRegistry;
 type DataSelectionService = _ModuleSupport.DataSelectionService;
 type DataSetSelection = _ModuleSupport.DataSetSelection;
 type SelectionStateEnum = _ModuleSupport.SelectionState;
-type SeriesLike = Parameters<DataSelectionService['getSeriesSelectedCount']>[0];
+type SeriesLike = Parameters<DataSelectionService['getDataSelectionState']>[0];
 
 export class DataSelectionServiceImp implements DataSelectionService {
     public totalSelectedCount = 0;
 
     constructor(private readonly ctx: DynamicContext<ChartRegistry>) {}
 
-    private getDataSetSelection(series: SeriesLike): DataSetSelection | undefined {
+    getDataSetSelection(series: SeriesLike): DataSetSelection | undefined {
         return series.data?.selections?.get(series.id);
-    }
-
-    getSelectionBuffer(series: SeriesLike): Uint8Array | undefined {
-        return this.getDataSetSelection(series)?.getSelection();
-    }
-
-    getSeriesSelectedCount(series: SeriesLike): number {
-        return this.getDataSetSelection(series)?.getSelectedCount() ?? 0;
     }
 
     getDataSelectionState(series: SeriesLike, datumIndex: number | undefined): SelectionStateEnum | undefined {
@@ -41,7 +33,7 @@ export class DataSelectionServiceImp implements DataSelectionService {
         // underlying datums is selected, regardless of which one happens to
         // be the bucket's representative index. Fall back to the per-datum
         // bitset when no aggregation level applies.
-        const selectionBuffer = series.data?.selections.get(series.id);
+        const selectionBuffer = this.getDataSetSelection(series);
         if (typeof datumIndex === 'number') {
             const aggregated = series.ensureBucketLookupFeature()?.isBucketSelected(datumIndex);
             const isItem = aggregated ?? selectionBuffer?.isSelected(datumIndex) ?? false;

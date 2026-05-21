@@ -164,7 +164,7 @@ abstract class AbstractBucketLookupManager<TFilter extends AggregationFilterBase
      */
     refresh(): void {
         this.selectionEpoch += 1;
-        const selection = this.opts.dataSelectionService?.getDataSetSelection(this.opts.series).getSelection();
+        const selection = this.opts.dataSelectionService?.getDataSetSelection(this.opts.series)?.getSelection();
         this.sparseSelection = selection ? collectSparseSelection(selection) : undefined;
         this.populateStaleFilters();
     }
@@ -478,7 +478,7 @@ export class IndexSetBucketLookupManager implements BucketLookupFeature {
         if (map === undefined) return undefined;
         const indices = map.get(datumIndex);
         if (indices === undefined) return undefined;
-        const selection = this.opts.dataSelectionService?.getDataSetSelection(this.opts.series).getSelection();
+        const selection = this.opts.dataSelectionService?.getDataSetSelection(this.opts.series)?.getSelection();
         if (selection === undefined) return false;
         for (let i = 0; i < indices.length; i++) {
             if (selection[indices[i]] === 1) return true;
