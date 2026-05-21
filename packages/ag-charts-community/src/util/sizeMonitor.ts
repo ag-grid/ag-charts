@@ -23,7 +23,7 @@ export class SizeMonitor {
     private queuedObserveRequests: [HTMLElement, OnSizeChange, { skipInitialRead?: boolean }?][] = [];
     private removeLoadListener: (() => void) | undefined;
 
-    constructor(agDocument: AgDocument) {
+    constructor(agDocument: AgDocument, mode: 'normal' | 'minimal' = 'normal') {
         this.resizeObserver = agDocument.createResizeObserver((entries) => {
             for (const {
                 target,
@@ -39,10 +39,14 @@ export class SizeMonitor {
         // The resize observer will re-read the pixel ratio
         // so make sure this fires after the resize observer to avoid double rendering
         let animationFrame: NodeJS.Timeout;
-        this.pixelRatioObserver = new PixelRatioObserver(agDocument, () => {
-            clearTimeout(animationFrame);
-            animationFrame = setTimeout(() => this.checkPixelRatio(), 0);
-        });
+        this.pixelRatioObserver = new PixelRatioObserver(
+            agDocument,
+            () => {
+                clearTimeout(animationFrame);
+                animationFrame = setTimeout(() => this.checkPixelRatio(), 0);
+            },
+            mode === 'minimal'
+        );
 
         this.documentReady = agDocument.isReady();
         if (this.documentReady) {
