@@ -16,9 +16,9 @@ import {
 import type { ChartAxis } from '../chartAxis';
 import type { DataModel } from '../data/dataModel';
 import type { ProcessedData, ScopeProvider } from '../data/dataModelTypes';
+import type { DataSelectionService } from '../data/dataSelectionService';
 import { type AggregationFilterBase, type AggregationManager } from './aggregationManager';
 import type { BucketLookupFeature, DatumRangeReader } from './seriesTypes';
-import type { DataSelectionService } from '../data/dataSelectionService';
 
 export type { BucketLookupFeature } from './seriesTypes';
 
