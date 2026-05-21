@@ -1,4 +1,5 @@
 import type { DataChangeDescription } from './dataChangeDescription';
+import type { IDataSetSelection } from './dataSelectionServiceTypes';
 
 /**
  * Per-series selection state backed by a `Uint8Array` indexed by datum index.
@@ -7,7 +8,7 @@ import type { DataChangeDescription } from './dataChangeDescription';
  * structure to keep in sync. Series identity scoping is managed by `DataSet`'s
  * `selections: Map<string, DataSetSelection>`.
  */
-export class DataSetSelection {
+export class DataSetSelection implements IDataSetSelection {
     private selection: Uint8Array;
     private count = 0;
 

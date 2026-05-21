@@ -17,7 +17,7 @@ import {
     SELECTION_STROKEOPACITY,
     SELECTION_STROKEWIDTH,
 } from './dataSelectionConstants';
-import { DataSelectionServiceImp } from './dataSelectionServiceImp';
+import { DataSelectionService } from './dataSelectionService';
 import {
     type SelectionChanges,
     asNumericDatumIndex,
@@ -35,19 +35,19 @@ import {
 import { IntervalSet } from './intervalSet';
 
 type Series = NonNullable<NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>['series']>;
-type DataSelectionService = _ModuleSupport.DataSelectionService;
+type IDataSelectionService = _ModuleSupport.IDataSelectionService;
 
 const UNSUPPORTED_CARTESIANS = ['histogram', 'waterfall', 'funnel', 'cone-funnel'];
 
-function upcastDataSelectionService(service: DataSelectionService | undefined): DataSelectionServiceImp {
-    if (service && service instanceof DataSelectionServiceImp) return service;
+function upcastDataSelectionService(service: IDataSelectionService | undefined): DataSelectionService {
+    if (service && service instanceof DataSelectionService) return service;
     throw new Error('FATAL ERROR - cannot upcast DataSelectionService');
 }
 
 export class DataSelection extends AbstractModuleInstance implements _ModuleSupport.SelectionModuleFns {
     private dragStartEvent?: _Widget.DragWidgetEvent<'drag-start'>;
     private readonly dragRect: _ModuleSupport.Rect;
-    private readonly service: DataSelectionServiceImp;
+    private readonly service: DataSelectionService;
 
     private get opts(): NormalisedSelectionOptions {
         return this.ctx.chartState.getValue('options', 'selection')!;

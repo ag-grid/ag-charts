@@ -8,12 +8,12 @@ import type {
 
 type SeriesLike = ISeries<DatumIndexType, SeriesNodeDatum<DatumIndexType>, ISeriesProperties, unknown>;
 
-interface IDataSetSelection {
+export interface IDataSetSelection {
     getSelectedCount(): number;
     getSelection(): Uint8Array;
 }
 
-export interface DataSelectionService {
+export interface IDataSelectionService {
     getDataSetSelection(series: SeriesLike): IDataSetSelection | undefined;
     getDataSelectionState(series: SeriesLike, datumIndex: number | undefined): SelectionState | undefined;
 }

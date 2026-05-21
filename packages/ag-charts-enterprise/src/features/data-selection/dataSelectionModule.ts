@@ -3,7 +3,7 @@ import { VERSION } from 'ag-charts-community';
 import { type PluginModuleDefinition, boolean, selectionContainmentValidator, strictUnion } from 'ag-charts-core';
 
 import { DataSelection } from './dataSelection';
-import { DataSelectionServiceImp } from './dataSelectionServiceImp';
+import { DataSelectionService } from './dataSelectionService';
 
 export const SelectionModule: PluginModuleDefinition<AgChartSelectionOptions, _ModuleSupport.ChartRegistry> = {
     type: 'plugin',
@@ -32,6 +32,6 @@ export const SelectionModule: PluginModuleDefinition<AgChartSelectionOptions, _M
     create: (ctx) => new DataSelection(ctx),
     register: (ctx) => {
         if (ctx.has('dataSelectionService')) return;
-        ctx.service('dataSelectionService', (c) => new DataSelectionServiceImp(c));
+        ctx.service('dataSelectionService', (c) => new DataSelectionService(c));
     },
 };
