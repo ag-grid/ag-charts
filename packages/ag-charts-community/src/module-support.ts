@@ -192,6 +192,8 @@ export { PanToBBoxScalingModeEnum } from './util/panToBBox';
 export { getItemId } from './chart/series/pickManager';
 export { Series, SeriesNodeEvent, SeriesNodePickMode } from './chart/series/series';
 export type {
+    MarkerStyleApply,
+    MarkerStyleCompute,
     PickFocusInputs,
     PickFocusOutputs,
     SeriesNodeDataContext,

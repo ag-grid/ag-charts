@@ -87,6 +87,13 @@ export class ZoomToolbar extends BaseProperties {
 
     private previousZoom?: DefinedZoomState;
 
+    // Cached container height to avoid an offsetHeight read (sync layout/reflow) on every
+    // layout:complete. Invalidated when the button count changes; the height otherwise depends
+    // only on theme/CSS, which is static for the lifetime of a button set.
+    private cachedContainerHeight: number | undefined;
+    private cachedButtonCount: number | undefined;
+    private lastBottomY: number | undefined;
+
     constructor(
         private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>,
         private readonly getModuleProperties: () => ZoomProperties,
@@ -163,8 +170,31 @@ export class ZoomToolbar extends BaseProperties {
         this.toolbar.updateButtons(buttons);
         this.toggleButtonsDebounced();
 
-        const height = container.getBounds().height;
-        container.setBounds({ y: rect.y + rect.height - height });
+        if (this.cachedButtonCount !== buttons.length) {
+            this.cachedButtonCount = buttons.length;
+            this.cachedContainerHeight = undefined;
+            this.container.getElement().style.height = '';
+            this.lastBottomY = undefined;
+        }
+
+        const height = this.getContainerHeight();
+        const bottomY = rect.y + rect.height - height;
+        if (this.lastBottomY === bottomY) return;
+        this.lastBottomY = bottomY;
+        container.setBounds({ y: bottomY });
+    }
+
+    private getContainerHeight(): number {
+        if (this.cachedContainerHeight !== undefined) return this.cachedContainerHeight;
+        const height = this.container.getBounds().height;
+        // Don't cache a zero-height measurement — it indicates the toolbar isn't laid out yet
+        // (e.g. called before the first layout:complete) and would pin the cache to 0.
+        if (height === 0) return height;
+        this.cachedContainerHeight = height;
+        // Write the measured height as inline style so future getElementBBox() calls take the
+        // style fast-path instead of falling back to offsetHeight (which forces a sync reflow).
+        this.container.getElement().style.height = `${height}px`;
+        return height;
     }
 
     private onHover(event: _Widget.MouseWidgetEvent<'mousemove'>) {
@@ -193,7 +223,7 @@ export class ZoomToolbar extends BaseProperties {
     }
 
     private toggleVisibility(visible: boolean, immediate: boolean = false) {
-        const { container, toolbar, verticalSpacing } = this;
+        const { toolbar, verticalSpacing } = this;
 
         toolbar.toggleClass('ag-charts-zoom-buttons__toolbar--hidden', !visible);
 
@@ -201,7 +231,7 @@ export class ZoomToolbar extends BaseProperties {
         element.style.transitionDuration = immediate ? '0s' : '';
         element.style.transform = visible
             ? 'translateY(0)'
-            : `translateY(${container.getBounds().height + verticalSpacing}px)`;
+            : `translateY(${this.getContainerHeight() + verticalSpacing}px)`;
     }
 
     private readonly toggleButtonsDebounced = debounce(this.toggleButtons.bind(this), ZOOM_VALID_CHECK_DEBOUNCE, {

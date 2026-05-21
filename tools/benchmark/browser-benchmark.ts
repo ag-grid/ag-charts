@@ -74,6 +74,14 @@ async function main() {
             default: '',
             describe: 'Comma-separated list of example names to run (default: all)',
         })
+        .option('test-cases', {
+            type: 'string',
+            default: '',
+            describe:
+                'Comma-separated list of test-case IDs to run within each example (default: all). ' +
+                'Forwarded to the in-page harness via ?testCases=... — only IDs that exist in a given ' +
+                "example's getBenchmarkConfig() are executed; unmatched IDs are reported as warnings.",
+        })
         .option('timeout', {
             type: 'number',
             default: 300_000,
@@ -143,8 +151,10 @@ async function main() {
 
     const overallStart = Date.now();
 
+    const testCasesQuery = argv['test-cases'] ? `&testCases=${encodeURIComponent(argv['test-cases'])}` : '';
+
     for (const name of exampleNames) {
-        const url = `${argv['base-url']}/vanilla/benchmarks/examples/${name}?benchmark=true`;
+        const url = `${argv['base-url']}/vanilla/benchmarks/examples/${name}?benchmark=true${testCasesQuery}`;
         console.log(`[${name}] Navigating to ${url}`);
 
         const page = await context.newPage();

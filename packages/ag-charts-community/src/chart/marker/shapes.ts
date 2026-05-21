@@ -1,8 +1,6 @@
 import { toRadians } from 'ag-charts-core';
 import type { AgMarkerShape, AgMarkerShapeFn, AgMarkerShapeFnParams } from 'ag-charts-types';
 
-import { align } from '../../scene/util/pixel';
-
 export type MarkerPathMove = { x: number; y: number; t?: 'move' };
 
 export function drawMarkerUnitPolygon(params: AgMarkerShapeFnParams, moves: Array<readonly [number, number]>) {
@@ -128,13 +126,15 @@ export const MARKER_SHAPES: Record<Exclude<AgMarkerShape, AgMarkerShapeFn>, AgMa
             [1 / 3, 1 / 3],
         ]);
     },
-    square({ path, x, y, size, pixelRatio }) {
+    square({ path, x, y, size }) {
         const hs = size / 2;
 
-        path.moveTo(align(pixelRatio, x - hs), align(pixelRatio, y - hs));
-        path.lineTo(align(pixelRatio, x + hs), align(pixelRatio, y - hs));
-        path.lineTo(align(pixelRatio, x + hs), align(pixelRatio, y + hs));
-        path.lineTo(align(pixelRatio, x - hs), align(pixelRatio, y + hs));
+        // Pixel-alignment for crisp edges is applied at the per-marker translate target
+        // (see Marker.drawPath); the shape geometry stays origin-relative for cache sharing.
+        path.moveTo(x - hs, y - hs);
+        path.lineTo(x + hs, y - hs);
+        path.lineTo(x + hs, y + hs);
+        path.lineTo(x - hs, y + hs);
         path.closePath();
     },
     star({ path, x, y, size }) {

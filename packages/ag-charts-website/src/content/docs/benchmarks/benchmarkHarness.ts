@@ -1572,14 +1572,15 @@ class BenchmarkRunner {
         }
     }
 
-    async run(opts?: { testCaseId?: string }): Promise<void> {
+    async run(opts?: { testCaseId?: string; testCaseIds?: string[] }): Promise<void> {
         if (this.isRunning) return;
 
-        const testCases = opts?.testCaseId
-            ? this.config.testCases.filter((tc) => tc.id === opts.testCaseId)
+        const filterIds = opts?.testCaseIds ?? (opts?.testCaseId != null ? [opts.testCaseId] : undefined);
+        const testCases = filterIds
+            ? this.config.testCases.filter((tc) => filterIds.includes(tc.id))
             : this.config.testCases;
         if (testCases.length === 0) {
-            console.warn(`Benchmark: no test case matched id "${opts?.testCaseId}"`);
+            console.warn(`Benchmark: no test case matched ${JSON.stringify(filterIds)}`);
             return;
         }
 
@@ -2092,11 +2093,19 @@ export function initBenchmark(config: BenchmarkConfig): void {
         void runner.run({ testCaseId });
     });
 
-    // Check for auto-run URL parameter
+    // Check for auto-run URL parameter. Optional `?testCases=line,area` narrows the run to a
+    // subset — useful when bisecting a regression or comparing a single series type.
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('benchmark') === 'true') {
+        const testCasesParam = urlParams.get('testCases');
+        const testCaseIds = testCasesParam
+            ? testCasesParam
+                  .split(',')
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+            : undefined;
         setTimeout(() => {
-            void runner.run();
+            void runner.run(testCaseIds ? { testCaseIds } : undefined);
         }, 1000);
     }
 

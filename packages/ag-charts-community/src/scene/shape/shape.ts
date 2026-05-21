@@ -209,18 +209,18 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         this.cachedDefaultGradientFillBBox = undefined;
     }
 
-    protected fillStroke(ctx: CanvasContext, path?: Path2D) {
+    protected fillStroke(ctx: CanvasContext, path?: Path2D, bboxOverride?: BBox, fillBBoxOverride?: BBox) {
         if (this.__drawingMode === 'cutout') {
             ctx.globalCompositeOperation = 'destination-out';
             this.executeFill(ctx, path);
             ctx.globalCompositeOperation = 'source-over';
         }
 
-        this.renderFill(ctx, path);
-        this.renderStroke(ctx, path);
+        this.renderFill(ctx, path, bboxOverride, fillBBoxOverride);
+        this.renderStroke(ctx, path, bboxOverride);
     }
 
-    protected renderFill(ctx: CanvasContext, path?: Path2D) {
+    protected renderFill(ctx: CanvasContext, path?: Path2D, bboxOverride?: BBox, fillBBoxOverride?: BBox) {
         const { __fill: fill, __fillOpacity: fillOpacity = 1, fillImage } = this;
         if (fill != null && fill !== 'none' && fillOpacity > 0) {
             const globalAlpha = ctx.globalAlpha;
@@ -232,7 +232,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
                 ctx.globalAlpha = globalAlpha;
             }
 
-            this.applyFillAndAlpha(ctx);
+            this.applyFillAndAlpha(ctx, bboxOverride, fillBBoxOverride);
             this.applyShadow(ctx);
             this.executeFill(ctx, path);
             ctx.globalAlpha = globalAlpha;
@@ -250,7 +250,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         }
     }
 
-    protected applyFillAndAlpha(ctx: CanvasContext) {
+    protected applyFillAndAlpha(ctx: CanvasContext, bboxOverride?: BBox, fillBBoxOverride?: BBox) {
         const {
             __fill: fill,
             fillGradient,
@@ -266,10 +266,16 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         }
 
         if (fillGradient) {
-            const { fillBBox = this.getDefaultGradientFillBBox() ?? this.getBBox(), fillParams } = this;
+            const fillBBox =
+                fillBBoxOverride ??
+                this.fillBBox ??
+                this.getDefaultGradientFillBBox() ??
+                bboxOverride ??
+                this.getBBox();
+            const { fillParams } = this;
             ctx.fillStyle = fillGradient.createGradient(ctx as any, fillBBox, fillParams) ?? 'black';
         } else if (fillPattern) {
-            const { x, y } = this.getBBox();
+            const { x, y } = bboxOverride ?? this.getBBox();
             const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
             const pattern = fillPattern.createPattern(ctx as any, pixelRatio);
             fillPattern.setPatternTransform(pattern, pixelRatio, x, y);
@@ -280,7 +286,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
                 ctx.globalAlpha *= fillPattern.fillOpacity;
             }
         } else if (fillImage) {
-            const bbox = this.getBBox();
+            const bbox = bboxOverride ?? this.getBBox();
             const image = fillImage.createPattern(ctx as any, bbox.width, bbox.height, this);
             fillImage.setImageTransform(image, bbox);
             ctx.fillStyle = image ?? 'transparent';
@@ -289,11 +295,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         }
     }
 
-    protected applyStrokeAndAlpha(ctx: CanvasContext) {
+    protected applyStrokeAndAlpha(ctx: CanvasContext, bboxOverride?: BBox) {
         const { __stroke: stroke, __strokeOpacity: strokeOpacity = 1, strokeGradient, __opacity: opacity = 1 } = this;
 
         ctx.strokeStyle =
-            strokeGradient?.createGradient(ctx as any, this.getBBox()) ??
+            strokeGradient?.createGradient(ctx as any, bboxOverride ?? this.getBBox()) ??
             (typeof stroke === 'string' ? stroke : undefined) ??
             'black';
 
@@ -317,7 +323,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         }
     }
 
-    protected renderStroke(ctx: CanvasContext & { setLineDash(lineDash: readonly number[]): void }, path?: Path2D) {
+    protected renderStroke(
+        ctx: CanvasContext & { setLineDash(lineDash: readonly number[]): void },
+        path?: Path2D,
+        bboxOverride?: BBox
+    ) {
         const {
             __stroke: stroke,
             __strokeWidth: strokeWidth = 0,
@@ -330,7 +340,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         } = this;
         if (stroke != null && stroke !== 'none' && strokeWidth > 0 && strokeOpacity > 0) {
             const { globalAlpha } = ctx;
-            this.applyStrokeAndAlpha(ctx);
+            this.applyStrokeAndAlpha(ctx, bboxOverride);
 
             ctx.lineWidth = strokeWidth;
             if (lineDash) {
