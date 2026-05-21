@@ -1,6 +1,12 @@
-import type { ISeries, ISeriesProperties, SelectionState, SeriesNodeDatum } from '../series/seriesTypes';
+import type {
+    DatumIndexType,
+    ISeries,
+    ISeriesProperties,
+    SelectionState,
+    SeriesNodeDatum,
+} from '../series/seriesTypes';
 
-type SeriesLike = ISeries<number, SeriesNodeDatum<number>, ISeriesProperties, unknown>;
+type SeriesLike = ISeries<DatumIndexType, SeriesNodeDatum<DatumIndexType>, ISeriesProperties, unknown>;
 
 export interface DataSelectionService {
     getSeriesSelectedCount(series: SeriesLike): number;
