@@ -56,7 +56,7 @@ import {
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
-import { type OptionsGraphAccessor, createOptionsGraph } from './optionsGraph';
+import { type OptionsGraphAccessor, createOptionsGraph, createOptionsGraphFn } from './optionsGraph';
 
 export interface ChartSpecialOverrides {
     document: Document;
@@ -147,7 +147,110 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }; // AG-16360
     userDeltaKeys?: Set<string>; // AG-16389: Track keys the user passed in deltaOptions
 
+    // Set to true whenever slowSetup emits a validation warning. The structural-output cache
+    // refuses to store entries that warned, because the warnings are an observable side
+    // effect of slowSetup that we cannot replay from cached structural outputs alone — a
+    // cache hit would silently suppress them on subsequent calls with the same options.
+    private slowSetupWarned = false;
+    private readonly trackedLoggerWarn = (message: any, ...args: any[]) => {
+        this.slowSetupWarned = true;
+        const log = Logger;
+        log.warn(message, ...args);
+    };
+    private readonly trackedLoggerWarnOnce = (message: unknown, ...args: any[]) => {
+        this.slowSetupWarned = true;
+        const log = Logger;
+        log.warnOnce(message, ...args);
+    };
+
     private static readonly debug = Debug.create(true, 'opts');
+
+    // Structural-output cache for slowSetup, gated on `optionMetadata.domMode === 'minimal'`
+    // (sparkline preset). Caches ONLY chart-independent outputs — never `activeTheme`,
+    // `annotationThemes` raw refs, or `optionsGraph` (those retain chart-bound state via
+    // resolution closures and previously caused heap leaks under cumulative worker-test load).
+    //
+    // Cache entries hold deep-frozen plain-object outputs of slowSetup keyed by a signature of
+    // the user options excluding `data` and `container`. The interned `ChartTheme` instances
+    // referenced transitively by `processedOptions` are owned by the `sanitizeThemeModules`
+    // cache (not chart-instance scoped), so retaining them here does not pin charts.
+    private static readonly STRUCTURAL_CACHE_MAX = 8;
+    private static readonly structuralCache = new Map<
+        string,
+        {
+            processedOptions: unknown;
+            themeParameters: AgChartThemeParams;
+            googleFonts: Set<string> | undefined;
+            annotationThemes: any;
+            chartDef: ChartModuleDefinition<any>;
+        }
+    >();
+
+    // Signature ignores chart-instance-scoped inputs. Returns undefined when the options
+    // contain values we can't safely hash (functions, etc.) so that we fall through to the
+    // uncached path rather than risk false-positive cache hits.
+    //
+    // The sparkline preset's `processData`/`create` paths derive series and axis config
+    // from the data shape (e.g. tuples vs scalars vs `{x, y}` objects), so the signature
+    // includes a coarse data-shape descriptor — same options + same data shape produce
+    // identical structural outputs.
+    private static computeStructuralCacheKey(options: object): string | undefined {
+        let unsafe = false;
+        const ignored = new Set(['data', 'container', 'document', 'window', 'styleContainer', 'context']);
+        const replacer = (key: string, value: unknown) => {
+            if (ignored.has(key)) return undefined;
+            if (typeof value === 'function') {
+                unsafe = true;
+                return undefined;
+            }
+            return value;
+        };
+        try {
+            const key = JSON.stringify(options, replacer);
+            if (unsafe || !key) return undefined;
+            const dataShape = ChartOptions.describeDataShape((options as { data?: unknown }).data);
+            return `${key}|${dataShape}`;
+        } catch {
+            return undefined;
+        }
+    }
+
+    // Coarse data-shape descriptor — enough to distinguish the preset-relevant cases (scalar,
+    // tuple, object, mixed/empty/null-leading) without inspecting every datum.
+    private static describeDataShape(data: unknown): string {
+        if (!Array.isArray(data)) return data == null ? 'null' : typeof data;
+        if (data.length === 0) return 'empty';
+        // Inspect the first few entries to detect mixed/null-leading variants.
+        const sample = data.slice(0, Math.min(4, data.length));
+        return sample.map((d) => ChartOptions.describeDatumShape(d)).join(',');
+    }
+
+    private static describeDatumShape(datum: unknown): string {
+        if (datum == null) return 'null';
+        if (Array.isArray(datum)) return `tuple${datum.length}`;
+        const t = typeof datum;
+        if (t !== 'object') return t;
+        return 'obj';
+    }
+
+    private static lruGet<K, V>(cache: Map<K, V>, key: K): V | undefined {
+        if (!cache.has(key)) return undefined;
+        const value = cache.get(key)!;
+        // Re-insert to mark as most-recently-used.
+        cache.delete(key);
+        cache.set(key, value);
+        return value;
+    }
+
+    private static lruSet<K, V>(cache: Map<K, V>, max: number, key: K, value: V) {
+        if (cache.has(key)) cache.delete(key);
+        cache.set(key, value);
+        while (cache.size > max) {
+            const oldest = cache.keys().next().value;
+            if (oldest === undefined) break;
+            cache.delete(oldest);
+        }
+    }
 
     constructor(
         currentUserOptions: T | ChartOptions<T> | undefined,
@@ -297,6 +400,31 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private slowSetup(processedOverrides: Partial<T>, deltaOptions?: DeepPartial<T> | null, stripSymbols = false) {
+        // Minimal-mode (sparkline preset) structural-output cache fast path. Skips
+        // deepClone/mergeDefaults/validate/processFonts/processSeriesOptions on
+        // structurally-identical-modulo-data-container option payloads.
+        const cacheKey = this.computeStructuralCacheKeyForSlowSetup(deltaOptions, stripSymbols);
+        if (cacheKey !== undefined) {
+            const cached = ChartOptions.lruGet(ChartOptions.structuralCache, cacheKey);
+            if (cached) {
+                const activeTheme = sanitizeThemeModules(getChartTheme((this.userOptions as any).theme));
+                this.chartDef = cached.chartDef;
+                // Build a fresh, un-memoized optionsGraph so its chart-bound resolution
+                // state is not shared across chart instances. `resolvePartial` is invoked
+                // later by stylers; passing the already-resolved `processedOptions` as the
+                // user-edge input means user values resolve to themselves immediately.
+                const optionsGraph = createOptionsGraphFn(activeTheme, cached.processedOptions as PlainObject);
+                return {
+                    activeTheme,
+                    processedOptions: cached.processedOptions as T,
+                    themeParameters: cached.themeParameters,
+                    annotationThemes: cached.annotationThemes,
+                    googleFonts: cached.googleFonts ? new Set(cached.googleFonts) : undefined,
+                    optionsGraph,
+                };
+            }
+        }
+
         let options = deepClone(this.userOptions, ChartOptions.OPTIONS_CLONE_OPTS_FAST) as T & { type?: string };
 
         if (deltaOptions) {
@@ -323,7 +451,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
                 const { cleared, invalid } = validatePreset(presetParams, presetDef.options, '');
                 for (const error of invalid) {
-                    Logger.warn(error);
+                    this.trackedLoggerWarn(error);
                 }
 
                 if (hasRequiredInPath(invalid, '')) {
@@ -356,7 +484,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const { validate: validateChart = validate } = this.chartDef;
             const { cleared, invalid } = validateChart(options, this.chartDef.options, '');
             for (const error of invalid) {
-                Logger.warn(error);
+                this.trackedLoggerWarn(error);
             }
             options = cleared as T;
         }
@@ -405,7 +533,33 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
+        if (cacheKey !== undefined && !this.slowSetupWarned) {
+            ChartOptions.lruSet(ChartOptions.structuralCache, ChartOptions.STRUCTURAL_CACHE_MAX, cacheKey, {
+                processedOptions,
+                themeParameters,
+                googleFonts: googleFonts.size > 0 ? new Set(googleFonts) : undefined,
+                annotationThemes,
+                chartDef: this.chartDef,
+            });
+        }
+
         return { activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts, optionsGraph };
+    }
+
+    // Returns a stable signature for the structural-output cache, or undefined when caching
+    // is unsafe / disabled. Gated on `domMode === 'minimal'` (sparkline preset).
+    private computeStructuralCacheKeyForSlowSetup(
+        deltaOptions: DeepPartial<T> | null | undefined,
+        stripSymbols: boolean
+    ): string | undefined {
+        if (this.optionMetadata.domMode !== 'minimal') return undefined;
+        if (stripSymbols) return undefined;
+        // Delta updates take a different code path through the constructor; this cache only
+        // targets cold creation. `deltaOptions` is non-null in the minimal-mode delta case
+        // (e.g. data-only update), but those should hit `fastSetup` not `slowSetup`. Guard
+        // here to keep the contract simple.
+        if (deltaOptions) return undefined;
+        return ChartOptions.computeStructuralCacheKey(this.userOptions);
     }
 
     private validatePluginOptions(options: T, params: ValidateParams = {}) {
@@ -418,7 +572,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             ) {
                 const { cleared, invalid } = validate(options[pluginKey], pluginDef.options, pluginDef.name, params);
                 for (const error of invalid) {
-                    Logger.warn(error);
+                    this.trackedLoggerWarn(error);
                 }
                 options[pluginKey] = cleared as T[keyof T];
             }
@@ -458,14 +612,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     continue;
                 }
 
-                Logger.warn(
+                this.trackedLoggerWarn(
                     seriesOptions.type == null
                         ? `Option \`${keyPath}.type\` is required and has not been provided; expecting ${validSeriesTypes}, ignoring.`
                         : `Unknown type \`${seriesOptions.type}\` at \`${keyPath}.type\`; expecting ${validSeriesTypes}, ignoring.`
                 );
                 continue;
             } else if (chartType && seriesDef.chartType !== chartType) {
-                Logger.warn(
+                this.trackedLoggerWarn(
                     `Series type \`${seriesDef.name}\` at \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
                 );
                 continue;
@@ -480,7 +634,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const { cleared, invalid } = validateSeries(seriesOptions, seriesDef.options, keyPath, params);
 
             for (const error of invalid) {
-                Logger.warn(error);
+                this.trackedLoggerWarn(error);
             }
 
             if (!hasRequiredInPath(invalid, keyPath)) {
@@ -529,13 +683,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
                 const modulePlaceholder = ExpectedModules.get(axisOptions.type);
                 if (modulePlaceholder?.type !== ModuleType.Axis) {
-                    Logger.warn(
+                    this.trackedLoggerWarn(
                         `Unknown type \`${axisOptions.type}\` at \`${keyPath}.type\`; expecting one of ${validAxesTypes}, ignoring.`
                     );
                 }
                 continue;
             } else if (axisDef.chartType !== chartType) {
-                Logger.warn(
+                this.trackedLoggerWarn(
                     `Axis type \`${axisDef.name}\` at  \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
                 );
                 break;
@@ -545,7 +699,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const { cleared, invalid } = validateAxis(axisOptions, axisDef.options, keyPath, params);
 
             for (const error of invalid) {
-                Logger.warn(error);
+                this.trackedLoggerWarn(error);
             }
 
             if (!hasRequiredInPath(invalid, keyPath)) {
@@ -1097,10 +1251,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const { groupable, stackable, stackedByDefault = false } = ModuleRegistry.getSeriesModule(series.type)!;
 
         if (series.grouped && !groupable) {
-            Logger.warnOnce(`unsupported grouping of series type "${series.type}".`);
+            this.trackedLoggerWarnOnce(`unsupported grouping of series type "${series.type}".`);
         }
         if ((series.stacked || series.stackGroup) && !stackable) {
-            Logger.warnOnce(`unsupported stacking of series type "${series.type}".`);
+            this.trackedLoggerWarnOnce(`unsupported stacking of series type "${series.type}".`);
         }
 
         let { grouped, stacked } = series;
@@ -1202,14 +1356,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (allSeries && allSeries.length > 1 && allSeries.some((series) => isSolo(series.type))) {
             const mainSeriesType = this.optionsType(options);
             if (isSolo(mainSeriesType)) {
-                Logger.warn(
+                this.trackedLoggerWarn(
                     `series[0] of type '${mainSeriesType}' is incompatible with other series types. Only processing series[0]`
                 );
                 options.series = allSeries.slice(0, 1) as T['series'];
             } else {
                 const { solo, nonSolo } = groupBy(allSeries, (s) => (isSolo(s.type) ? 'solo' : 'nonSolo'));
                 const rejects = unique(solo!.map((s) => s.type)).join(', ');
-                Logger.warn(`Unable to mix these series types with the lead series type: ${rejects}`);
+                this.trackedLoggerWarn(`Unable to mix these series types with the lead series type: ${rejects}`);
                 options.series = nonSolo as T['series'];
             }
         }
