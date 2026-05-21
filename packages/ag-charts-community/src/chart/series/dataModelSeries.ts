@@ -261,34 +261,6 @@ export abstract class DataModelSeries<
     }
 
     protected override getDataSelectionState(datumIndex: number | undefined): SelectionState | undefined {
-        if (!this.properties.selection.enabled) return undefined;
-
-        const selectionState = this.ctx.chartState.getValue('selectionState');
-        if (selectionState === undefined) return undefined;
-
-        const options = this.ctx.chartState.getValue('options');
-        if (!options?.selection?.enabled) return undefined;
-
-        const totalNumberOfSelection = selectionState.selectedCount;
-        if (totalNumberOfSelection === 0) {
-            return SelectionState.None;
-        }
-
-        // When aggregation is active, a rendered marker stands in for an
-        // entire bucket. The bucket is considered selected if any of its
-        // underlying datums is selected, regardless of which one happens to
-        // be the bucket's representative index. Fall back to the per-datum
-        // bitset when no aggregation level applies.
-        const selectionBuffer = this.data?.selections.get(this.id);
-        if (typeof datumIndex === 'number') {
-            const aggregated = this.ensureBucketLookupFeature()?.isBucketSelected(datumIndex);
-            const isItem = aggregated ?? selectionBuffer?.isSelected(datumIndex) ?? false;
-            if (isItem) {
-                return SelectionState.Item;
-            } else {
-                return SelectionState.OtherItem;
-            }
-        }
-        return SelectionState.OtherSeries;
+        return this.ctx.dataSelectionService?.getDataSelectionState(this, datumIndex);
     }
 }
