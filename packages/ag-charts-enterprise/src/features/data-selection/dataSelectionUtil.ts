@@ -10,7 +10,7 @@ type Changes = SelectionChanges;
 
 type Series = NonNullable<ClickedNode['series']>;
 type DataSet = _ModuleSupport.DataSet<unknown>;
-type State = _ModuleSupport.DataSelectionState;
+type State = { selectedCount: number };
 
 type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
 type DataSetSelection = _ModuleSupport.DataSetSelection;

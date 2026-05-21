@@ -32,15 +32,22 @@ import {
     toggleSelection,
 } from './dataSelectionUtil';
 import { IntervalSet } from './intervalSet';
+import { DataSelectionServiceImp } from './dataSelectionServiceImp';
 
 type Series = NonNullable<NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>['series']>;
+type DataSelectionService=_ModuleSupport.DataSelectionService;
 
 const UNSUPPORTED_CARTESIANS = ['histogram', 'waterfall', 'funnel', 'cone-funnel'];
+
+function upcastDataSelectionService(service: DataSelectionService | undefined): DataSelectionServiceImp {
+    if (service && service instanceof DataSelectionServiceImp)         return service;
+    throw new Error('FATAL ERROR - cannot upcast DataSelectionService');
+}
 
 export class DataSelection extends AbstractModuleInstance implements _ModuleSupport.SelectionModuleFns {
     private dragStartEvent?: _Widget.DragWidgetEvent<'drag-start'>;
     private readonly dragRect: _ModuleSupport.Rect;
-    private readonly state: _ModuleSupport.DataSelectionState;
+    private readonly service: DataSelectionServiceImp;
 
     private get opts(): NormalisedSelectionOptions {
         return this.ctx.chartState.getValue('options', 'selection')!;
@@ -66,9 +73,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
-        this.state = { selectedCount: 0 };
-        ctx.chartState.setValue('selectionState', this.state);
-
+        this.service = upcastDataSelectionService(ctx.dataSelectionService);
         this.dragRect = new _ModuleSupport.Rect();
         this.dragRect.fill = SELECTION_FILL_VALID;
         this.dragRect.fillOpacity = SELECTION_FILLOPACITY;
@@ -86,7 +91,6 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             ctx.widgets.seriesDragInterpreter?.events.on('drag-move', (ev) => this.onSeriesAreaDragMove(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-end', (ev) => this.onSeriesAreaDragEnd(ev)),
             ctx.widgets.seriesWidget.addListener('keydown', (ev) => this.onKeyDown(ev)),
-            () => ctx.chartState.setValue('selectionState', undefined)
         );
     }
 
@@ -116,7 +120,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const { chartService } = this.ctx;
 
         const changes = this.allocSelectionChanges();
-        clearAllSelections(changes, this.state, chartService.series);
+        clearAllSelections(changes, this.service, chartService.series);
 
         if (!isUnknownIterable(items)) {
             Logger.warn('Selection items is not iterable');
@@ -162,7 +166,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const { chartService } = this.ctx;
 
         const changes = this.allocSelectionChanges();
-        clearAllSelections(changes, this.state, chartService.series);
+        clearAllSelections(changes, this.service, chartService.series);
 
         this.dispatchExternalSelectionChange('api-call', changes);
         this.dispatchInternalSelectionChange(chartService.series, changes);
@@ -191,7 +195,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const changes = this.allocSelectionChanges();
         let internalRefreshTargets: Iterable<Series>;
         if (clickMiss) {
-            clearAllSelections(changes, this.state, this.ctx.chartService.series);
+            clearAllSelections(changes, this.service, this.ctx.chartService.series);
             internalRefreshTargets = this.ctx.chartService.series;
         } else {
             const { data } = clickedNode.series;
@@ -208,7 +212,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
                 internalRefreshTargets = [series];
             } else {
                 clickMode satisfies 'single';
-                clearAllSelections(changes, this.state, this.ctx.chartService.series);
+                clearAllSelections(changes, this.service, this.ctx.chartService.series);
                 setSelected(changes, series, data, datumIndex);
                 internalRefreshTargets = this.ctx.chartService.series;
             }
@@ -275,7 +279,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         // selected series.
         const changedSeries = new Set<Series>(shouldClearSelections ? this.ctx.chartService.series : undefined);
         if (shouldClearSelections) {
-            clearAllSelections(changes, this.state, this.ctx.chartService.series);
+            clearAllSelections(changes, this.service, this.ctx.chartService.series);
         }
 
         const bbox = toBBox(dragStartEvent, dragEndEvent);
@@ -349,7 +353,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private dispatchInternalSelectionChange(changedSeries: Iterable<Series>, changes: SelectionChanges): void {
-        this.state.selectedCount += changes.countDelta;
+        this.service.selectedCount += changes.countDelta;
         for (const series of changedSeries) {
             series.events.emit('data-selection-change', null);
         }
@@ -381,7 +385,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         if (defaultPrevented) {
             rollbackChanges(changes, this.ctx.chartService.series);
-            this.state.selectedCount -= changes.countDelta;
+            this.service.selectedCount -= changes.countDelta;
         }
     }
 

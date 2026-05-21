@@ -9,6 +9,8 @@ type SelectionStateEnum = _ModuleSupport.SelectionState;
 type SeriesLike = Parameters<DataSelectionService['getSeriesSelectedCount']>[0];
 
 export class DataSelectionServiceImp implements DataSelectionService {
+    public selectedCount = 0;
+
     constructor(private readonly ctx: DynamicContext<ChartRegistry>) {}
 
     getSeriesSelectedCount(series: SeriesLike): number {
@@ -18,14 +20,10 @@ export class DataSelectionServiceImp implements DataSelectionService {
     getDataSelectionState(series: SeriesLike, datumIndex: number | undefined): SelectionStateEnum | undefined {
         if (!series.properties.selection.enabled) return undefined;
 
-        const selectionState = this.ctx.chartState.getValue('selectionState');
-        if (selectionState === undefined) return undefined;
-
         const options = this.ctx.chartState.getValue('options');
         if (!options?.selection?.enabled) return undefined;
 
-        const totalNumberOfSelection = selectionState.selectedCount;
-        if (totalNumberOfSelection === 0) {
+        if (this.selectedCount === 0) {
             return SelectionState.None;
         }
 
