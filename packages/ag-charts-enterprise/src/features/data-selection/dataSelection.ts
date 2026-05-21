@@ -17,6 +17,7 @@ import {
     SELECTION_STROKEOPACITY,
     SELECTION_STROKEWIDTH,
 } from './dataSelectionConstants';
+import { DataSelectionServiceImp } from './dataSelectionServiceImp';
 import {
     type SelectionChanges,
     asNumericDatumIndex,
@@ -32,15 +33,14 @@ import {
     toggleSelection,
 } from './dataSelectionUtil';
 import { IntervalSet } from './intervalSet';
-import { DataSelectionServiceImp } from './dataSelectionServiceImp';
 
 type Series = NonNullable<NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>['series']>;
-type DataSelectionService=_ModuleSupport.DataSelectionService;
+type DataSelectionService = _ModuleSupport.DataSelectionService;
 
 const UNSUPPORTED_CARTESIANS = ['histogram', 'waterfall', 'funnel', 'cone-funnel'];
 
 function upcastDataSelectionService(service: DataSelectionService | undefined): DataSelectionServiceImp {
-    if (service && service instanceof DataSelectionServiceImp)         return service;
+    if (service && service instanceof DataSelectionServiceImp) return service;
     throw new Error('FATAL ERROR - cannot upcast DataSelectionService');
 }
 
@@ -90,7 +90,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             ctx.widgets.seriesDragInterpreter?.events.on('drag-start', (ev) => this.onSeriesAreaDragStart(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-move', (ev) => this.onSeriesAreaDragMove(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-end', (ev) => this.onSeriesAreaDragEnd(ev)),
-            ctx.widgets.seriesWidget.addListener('keydown', (ev) => this.onKeyDown(ev)),
+            ctx.widgets.seriesWidget.addListener('keydown', (ev) => this.onKeyDown(ev))
         );
     }
 
