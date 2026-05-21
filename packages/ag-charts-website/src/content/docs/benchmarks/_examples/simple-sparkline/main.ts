@@ -8,8 +8,6 @@ import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
 import { getData } from './data';
 import { random } from './randomHelpers';
 
-(window as any).agChartsDebug = 'scene:stats';
-
 const options: AgSparklineOptions = {
     container: document.getElementById('myChart'),
     background: {
