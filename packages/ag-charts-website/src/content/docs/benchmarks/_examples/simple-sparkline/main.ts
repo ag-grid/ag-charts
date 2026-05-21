@@ -55,6 +55,53 @@ async function performSingleCreation(): Promise<number> {
     return performance.now() - start;
 }
 
+// Grid-realistic batch size — represents a typical viewport of ~50 sparkline cells
+// rendered in a single Grid frame (Grid calls createSparkline() synchronously per cell
+// with no per-cell rAF; see plans/AG-17227-sparkline-performance.md item 9 and the
+// Item 3 post-mortem for context).
+const GRID_BATCH_SIZE = 50;
+
+/** inScope */
+async function performGridBatchCreation(): Promise<number> {
+    // Mirror Grid's pattern: N synchronous createSparkline() calls in one tick, no per-call
+    // await, no per-call rAF. Wall-time runs from the first synchronous call until the next
+    // rAF callback fires — that is when all sparklines in the batch are visible.
+    const containers: HTMLElement[] = [];
+    for (let i = 0; i < GRID_BATCH_SIZE; i++) {
+        containers.push(document.createElement('div'));
+    }
+    const created: AgChartInstance<AgSparklineOptions>[] = [];
+
+    const start = performance.now();
+    performance.mark('grid-batch:create:start');
+
+    for (let i = 0; i < GRID_BATCH_SIZE; i++) {
+        created.push(
+            AgCharts.__createSparkline({
+                ...options,
+                container: containers[i],
+            })
+        );
+    }
+
+    performance.mark('grid-batch:create:end');
+    try {
+        performance.measure('grid-batch:create', 'grid-batch:create:start', 'grid-batch:create:end');
+    } catch {
+        // ignore — measure can throw if marks were cleared mid-run
+    }
+
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+    const elapsed = performance.now() - start;
+
+    // Destroy per-iteration so the harness measures fresh cold creation each time, not
+    // accumulated retained memory pressure across iterations.
+    created.forEach((c) => c.destroy());
+
+    return elapsed;
+}
+
 /** inScope */
 async function performPooledCreation(): Promise<number> {
     const start = performance.now();
@@ -96,7 +143,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
         testCases: [
             {
                 id: 'cold-creation',
-                label: 'Cold Creation',
+                label: 'Cold Creation (per-instance micro-benchmark — not a Grid proxy)',
                 variants: [
                     {
                         params: { Operation: 'Create Sparkline' },
@@ -107,6 +154,16 @@ function getBenchmarkConfig(): BenchmarkConfig {
                     charts.forEach((chart) => chart.destroy());
                     charts.length = 0;
                 },
+            },
+            {
+                id: 'grid-batch-creation',
+                label: `Grid Batch Creation (${GRID_BATCH_SIZE} sparklines / tick)`,
+                variants: [
+                    {
+                        params: { Operation: `Create ${GRID_BATCH_SIZE} sparklines synchronously` },
+                        run: performGridBatchCreation,
+                    },
+                ],
             },
             {
                 id: 'pooled-creation',
