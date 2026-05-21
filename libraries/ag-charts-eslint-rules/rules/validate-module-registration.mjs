@@ -290,27 +290,38 @@ export default {
          * Process a single axis object
          */
         function processAxisObject(axisObj, parentNode) {
+            let axisType;
+            for (const prop of axisObj.properties) {
+                if (prop.type !== 'Property') continue;
+                const keyName = prop.key.type === 'Identifier' ? prop.key.name : getStringValue(prop.key);
+                if (keyName === 'type') {
+                    axisType = getStringValue(prop.value);
+                    break;
+                }
+            }
+            const isPolarAxis = axisType?.startsWith('angle-') || axisType?.startsWith('radius-');
+
             for (const prop of axisObj.properties) {
                 if (prop.type !== 'Property') continue;
                 const keyName = prop.key.type === 'Identifier' ? prop.key.name : getStringValue(prop.key);
 
-                if (keyName === 'type') {
-                    const axisType = getStringValue(prop.value);
-                    if (axisType) {
-                        const moduleId = axisTypeToModule.get(axisType);
-                        if (moduleId) {
-                            requireModule(moduleId, `axis type '${axisType}'`, prop);
-                        }
+                if (keyName === 'type' && axisType) {
+                    const moduleId = axisTypeToModule.get(axisType);
+                    if (moduleId) {
+                        requireModule(moduleId, `axis type '${axisType}'`, prop);
                     }
                 }
 
-                // Check for axis plugins (crosshair, bandHighlight)
+                // Check for axis plugins (crosshair, bandHighlight, crossLines)
                 if (keyName && axisPluginToModule.has(keyName)) {
                     // Skip if feature is explicitly disabled (e.g., crosshair: { enabled: false })
                     if (isFeatureDisabled(prop.value)) {
                         continue;
                     }
-                    const moduleId = axisPluginToModule.get(keyName);
+                    const moduleId =
+                        keyName === 'crossLines' && isPolarAxis
+                            ? 'PolarCrossLinesModule'
+                            : axisPluginToModule.get(keyName);
                     requireModule(moduleId, `axis option '${keyName}'`, prop);
                 }
             }

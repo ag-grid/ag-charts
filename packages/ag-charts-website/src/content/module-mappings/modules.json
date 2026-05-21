@@ -362,7 +362,7 @@
                     "path": "axes-cross-lines"
                 },
                 {
-                    "moduleName": "CrossLinesModule",
+                    "moduleName": "PolarCrossLinesModule",
                     "name": "Polar Cross Lines",
                     "path": "axes-cross-lines/#polar-axes-cross-lines",
                     "isEnterprise": true

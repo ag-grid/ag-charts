@@ -172,6 +172,7 @@ export interface AxisPluginModuleDefinition<TOptions> extends ModuleDefinition<
 > {
     readonly chartType?: string;
     readonly axisTypes?: string[];
+    readonly optionsKey?: string;
 }
 
 export interface SeriesPluginModuleDefinition<TOptions> extends ModuleDefinition<

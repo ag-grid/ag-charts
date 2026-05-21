@@ -1116,8 +1116,9 @@ export abstract class Axis<
     createModuleContext(): DynamicContext<ChartAxisRegistry<AxisContext>> {
         this.axisContext ??= this.createAxisContext();
         // `crossLine` is declared on the typed registry but not registered here — it's installed
-        // later by `CrossLinesModule.register` (community-cartesian or enterprise-polar variant)
-        // before the cross-lines plugin's first read. The type just reserves the slot.
+        // later by the owning cross-lines module's `register` hook (`CrossLinesModule` on cartesian
+        // axes, `PolarCrossLinesModule` on polar axes) before the cross-lines plugin's first read.
+        // The type just reserves the slot.
         this.moduleContext ??= this.moduleCtx
             .child<{ parent: AxisContext; crossLine: CrossLine }>()
             .constant('parent', this.axisContext);

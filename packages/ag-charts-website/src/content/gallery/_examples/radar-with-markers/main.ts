@@ -2,9 +2,9 @@ import {
     AgChartOptions,
     AgCharts,
     AngleNumberAxisModule,
-    CrossLinesModule,
     LegendModule,
     ModuleRegistry,
+    PolarCrossLinesModule,
     RadarLineSeriesModule,
     RadiusNumberAxisModule,
 } from 'ag-charts-enterprise';
@@ -13,8 +13,8 @@ import { getData } from './data';
 
 ModuleRegistry.registerModules([
     AngleNumberAxisModule,
-    CrossLinesModule,
     LegendModule,
+    PolarCrossLinesModule,
     RadarLineSeriesModule,
     RadiusNumberAxisModule,
 ]);

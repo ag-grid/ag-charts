@@ -544,7 +544,8 @@ function getAxisThemeTemplate(axisType: string) {
     let themeTemplate = ModuleRegistry.getAxisModule(axisType)?.themeTemplate ?? {};
     for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
         if (module.axisTypes?.includes(axisType) ?? true) {
-            themeTemplate = mergeDefaults({ [module.name]: module.themeTemplate }, themeTemplate);
+            const optionsKey = module.optionsKey ?? module.name;
+            themeTemplate = mergeDefaults({ [optionsKey]: module.themeTemplate }, themeTemplate);
         }
     }
     return themeTemplate;
