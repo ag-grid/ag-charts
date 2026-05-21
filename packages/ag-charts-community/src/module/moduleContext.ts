@@ -8,6 +8,7 @@ import type { AxisManager } from '../chart/axis/axisManager';
 import type { ChartService } from '../chart/chartService';
 import type { ChartState } from '../chart/chartState';
 import type { CrossLine } from '../chart/crossline/crossLine';
+import type { DataSelectionService } from '../chart/data/dataSelectionService';
 import type { DataService } from '../chart/data/dataService';
 import type { FontManager } from '../chart/fonts/fontManager';
 import type { FormatManager } from '../chart/formatter/formatManager';
@@ -62,6 +63,7 @@ export interface ChartRegistry {
     readonly chartService: ChartService;
     readonly chartTypeOriginator: ChartTypeOriginator;
     readonly dataService: DataService<any>;
+    readonly dataSelectionService?: DataSelectionService;
     readonly layoutManager: LayoutManager;
     readonly optionsGraphService: OptionsGraphService;
 
