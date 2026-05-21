@@ -1677,6 +1677,27 @@ class BenchmarkRunner {
 
         const { updatesPerTest, maxCollectionTimeMs, warmupUpdates } = this.config.config;
 
+        // Per-iteration performance.mark boundaries make it trivial to slice Chrome DevTools
+        // profiles by test case and iteration without scanning frame timestamps manually.
+        // Naming: "<testCaseId>:warmup-<N>" and "<testCaseId>:iter-<N>"; measure names match.
+        const phase = testCase.id;
+        const markIteration = async (label: string, index: number, run: () => Promise<number>): Promise<number> => {
+            const startMark = `${phase}:${label}-${index}:start`;
+            const endMark = `${phase}:${label}-${index}:end`;
+            const measureName = `${phase}:${label}-${index}`;
+            performance.mark(startMark);
+            try {
+                return await run();
+            } finally {
+                performance.mark(endMark);
+                try {
+                    performance.measure(measureName, startMark, endMark);
+                } catch {
+                    // Swallow — measure can throw if marks were cleared mid-run; harmless.
+                }
+            }
+        };
+
         return new Promise((resolve) => {
             const runFrame = async () => {
                 // Warmup phase
@@ -1690,7 +1711,7 @@ class BenchmarkRunner {
                         if (!updateInFlight) {
                             updateInFlight = true;
                             try {
-                                await variant.run();
+                                await markIteration('warmup', warmupCount, variant.run);
                                 warmupCount++;
                             } finally {
                                 updateInFlight = false;
@@ -1730,7 +1751,7 @@ class BenchmarkRunner {
                 if (!updateInFlight) {
                     updateInFlight = true;
                     try {
-                        const elapsed = await variant.run();
+                        const elapsed = await markIteration('iter', updateCount, variant.run);
                         if (elapsed > 0) {
                             timings.push(elapsed);
                             updateCount++;
