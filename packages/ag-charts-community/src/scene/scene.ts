@@ -245,6 +245,7 @@ export class Scene extends EventEmitter<EventMap> {
             height,
             devicePixelRatio,
             debugNodes: {},
+            currentFont: this._contextFont,
         };
 
         if (Debug.check(DebugSelectors.SCENE_STATS_VERBOSE)) {

@@ -29,6 +29,12 @@ export type RenderContext = {
     };
     debugNodeSearch?: (string | RegExp)[];
     debugNodes: Record<string, Node>;
+    // Tracks the most-recently-written font string on `ctx`. Set by ancestors (Group pre-set,
+    // Scene.updateBaseFont) and consumed by descendants to skip redundant `ctx.font = ...` writes
+    // AND the canonicalising `ctx.font` getter. Shallow-cloning RenderContext per child render
+    // gives correct save/restore semantics: a child mutating its own copy does not pollute the
+    // parent's state, which matches what the actual canvas save/restore preserves.
+    currentFont?: string;
 };
 
 export interface NodeOptions {
@@ -227,6 +233,9 @@ export abstract class Node<TDatum = unknown> {
 
     /** Guaranteed isolated render - if there is any failure, the Canvas2D context is returned to its prior state. */
     isolatedRender(renderCtx: RenderContext): void {
+        // Snapshot currentFont alongside ctx.save() so any font mutation inside this scope is
+        // reverted in lockstep with the actual on-context font.
+        const savedFont = renderCtx.currentFont;
         renderCtx.ctx.save();
         try {
             this.render(renderCtx);
@@ -243,6 +252,7 @@ export abstract class Node<TDatum = unknown> {
             Logger.warnOnce('Error during rendering', e, e.stack);
         } finally {
             renderCtx.ctx.restore();
+            renderCtx.currentFont = savedFont;
         }
     }
 
