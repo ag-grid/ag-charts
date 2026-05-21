@@ -22,7 +22,7 @@ import type { BucketLookupFeature, DatumRangeReader } from './seriesTypes';
 
 export type { BucketLookupFeature } from './seriesTypes';
 
-type SeriesLike = Parameters<DataSelectionService['getSelectionBuffer']>[0];
+type SeriesLike = Parameters<DataSelectionService['getDataSetSelection']>[0];
 
 interface ExtremesFilter extends AggregationFilterBase {
     indexData: Uint32Array;
@@ -164,7 +164,7 @@ abstract class AbstractBucketLookupManager<TFilter extends AggregationFilterBase
      */
     refresh(): void {
         this.selectionEpoch += 1;
-        const selection = this.opts.dataSelectionService?.getSelectionBuffer(this.opts.series);
+        const selection = this.opts.dataSelectionService?.getDataSetSelection(this.opts.series).getSelection();
         this.sparseSelection = selection ? collectSparseSelection(selection) : undefined;
         this.populateStaleFilters();
     }
@@ -478,7 +478,7 @@ export class IndexSetBucketLookupManager implements BucketLookupFeature {
         if (map === undefined) return undefined;
         const indices = map.get(datumIndex);
         if (indices === undefined) return undefined;
-        const selection = this.opts.dataSelectionService?.getSelectionBuffer(this.opts.series);
+        const selection = this.opts.dataSelectionService?.getDataSetSelection(this.opts.series).getSelection();
         if (selection === undefined) return false;
         for (let i = 0; i < indices.length; i++) {
             if (selection[indices[i]] === 1) return true;

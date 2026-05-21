@@ -907,7 +907,7 @@ export abstract class Series<
     }
 
     private hasDataSelection(): boolean {
-        const count: number = this.ctx.dataSelectionService?.getSeriesSelectedCount(this) ?? 0;
+        const count: number = this.ctx.dataSelectionService?.getDataSetSelection(this)?.getSelectedCount() ?? 0;
         return count > 0;
     }
 
