@@ -1,5 +1,25 @@
 [
     {
+        "version": "14.0.0",
+        "date": "June 24th, 2026",
+        "highlights": [
+            {
+                "text": "Async Data"
+            },
+            {
+                "text": "Image in Label"
+            },
+            {
+                "text": "Improved Colour Options",
+                "path": "./themes/"
+            },
+            {
+                "text": "Improved Data Types"
+            }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-14"
+    },
+    {
         "version": "13.3.0",
         "date": "May 12th, 2026",
         "highlights": [
