@@ -353,7 +353,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private dispatchInternalSelectionChange(changedSeries: Iterable<Series>, changes: SelectionChanges): void {
-        this.service.selectedCount += changes.countDelta;
+        this.service.totalSelectedCount += changes.countDelta;
         for (const series of changedSeries) {
             series.events.emit('data-selection-change', null);
         }
@@ -385,7 +385,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         if (defaultPrevented) {
             rollbackChanges(changes, this.ctx.chartService.series);
-            this.service.selectedCount -= changes.countDelta;
+            this.service.totalSelectedCount -= changes.countDelta;
         }
     }
 

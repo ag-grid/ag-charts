@@ -10,7 +10,7 @@ type Changes = SelectionChanges;
 
 type Series = NonNullable<ClickedNode['series']>;
 type DataSet = _ModuleSupport.DataSet<unknown>;
-type State = { selectedCount: number };
+type State = { totalSelectedCount: number };
 
 type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
 type DataSetSelection = _ModuleSupport.DataSetSelection;
@@ -126,7 +126,7 @@ export function clearAllSelections(changes: Changes, state: State, allSeries: Se
     for (const data of dataSets) {
         data.selections.clear();
     }
-    state.selectedCount = 0;
+    state.totalSelectedCount = 0;
 }
 
 export function isUnknownIterable(value: unknown): value is Iterable<unknown> {
