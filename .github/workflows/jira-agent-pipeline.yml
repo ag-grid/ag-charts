@@ -113,6 +113,20 @@ jobs:
               with:
                   fetch-depth: 1
 
+            - name: Validate issue key
+              id: validate-issue-key
+              run: |
+                  set -euo pipefail
+                  if [[ -z "${ISSUE_KEY:-}" ]]; then
+                      echo "ISSUE_KEY is empty — dispatch payload missing issue_key" >&2
+                      exit 1
+                  fi
+                  if ! [[ "$ISSUE_KEY" =~ ^[A-Z][A-Z0-9]+-[0-9]+$ ]]; then
+                      echo "ISSUE_KEY '$ISSUE_KEY' does not match expected JIRA key shape (e.g. AG-12345)" >&2
+                      exit 1
+                  fi
+                  echo "Validated ISSUE_KEY=$ISSUE_KEY"
+
             - name: Mint GitHub App installation token
               id: app-token
               uses: actions/create-github-app-token@v1
@@ -147,21 +161,23 @@ jobs:
                   : "${JIRA_EMAIL:?missing}"
                   : "${JIRA_API_TOKEN:?missing}"
                   : "${JIRA_SITE_URL:?missing}"
-                  cat > "${RUNNER_TEMP}/mcp.json" <<JSON
-                  {
-                    "mcpServers": {
-                      "atlassian": {
-                        "command": "npx",
-                        "args": ["-y", "@atlassian/mcp-server"],
-                        "env": {
-                          "JIRA_USER_EMAIL": "${JIRA_EMAIL}",
-                          "JIRA_API_TOKEN": "${JIRA_API_TOKEN}",
-                          "JIRA_SITE_URL": "${JIRA_SITE_URL}"
-                        }
-                      }
-                    }
-                  }
-                  JSON
+                  jq -n \
+                      --arg email "$JIRA_EMAIL" \
+                      --arg token "$JIRA_API_TOKEN" \
+                      --arg site "$JIRA_SITE_URL" \
+                      '{
+                          mcpServers: {
+                              atlassian: {
+                                  command: "npx",
+                                  args: ["-y", "@atlassian/mcp-server"],
+                                  env: {
+                                      JIRA_USER_EMAIL: $email,
+                                      JIRA_API_TOKEN: $token,
+                                      JIRA_SITE_URL: $site
+                                  }
+                              }
+                          }
+                      }' > "${RUNNER_TEMP}/mcp.json"
                   echo "ok=true" >> "$GITHUB_OUTPUT"
 
             - name: Run Claude triage agent
@@ -208,6 +224,7 @@ jobs:
             - name: Summary — per-surface PASS/FAIL
               if: always()
               env:
+                  ISSUE_KEY_OK: ${{ steps.validate-issue-key.outcome }}
                   TOKEN_OK: ${{ steps.app-token.outcome }}
                   VALIDATE_OK: ${{ steps.validate-token.outcome }}
                   MCP_OK: ${{ steps.mcp-config.outcome }}
@@ -220,6 +237,7 @@ jobs:
                     echo ""
                     echo "| Surface                             | Result |"
                     echo "|-------------------------------------|--------|"
+                    echo "| Issue key validated                 | $(marker "$ISSUE_KEY_OK") |"
                     echo "| GitHub App token mint               | $(marker "$TOKEN_OK") |"
                     echo "| Token covers both repos             | $(marker "$VALIDATE_OK") |"
                     echo "| Atlassian MCP config written        | $(marker "$MCP_OK") |"
