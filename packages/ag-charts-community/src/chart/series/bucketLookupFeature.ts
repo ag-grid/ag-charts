@@ -18,8 +18,11 @@ import type { DataModel } from '../data/dataModel';
 import type { ProcessedData, ScopeProvider } from '../data/dataModelTypes';
 import { type AggregationFilterBase, type AggregationManager } from './aggregationManager';
 import type { BucketLookupFeature, DatumRangeReader } from './seriesTypes';
+import type { DataSelectionService } from '../data/dataSelectionService';
 
 export type { BucketLookupFeature } from './seriesTypes';
+
+type SeriesLike = Parameters<DataSelectionService['getSelectionBuffer']>[0];
 
 interface ExtremesFilter extends AggregationFilterBase {
     indexData: Uint32Array;
@@ -31,15 +34,15 @@ interface SplitFilter extends AggregationFilterBase {
 }
 
 interface BucketLookupManagerOpts<TFilter extends AggregationFilterBase> {
-    series: ScopeProvider;
+    series: SeriesLike;
     /** Resolved at lookup time — accessor pattern lets the series mutate axis/data references freely. */
     getXAxis: () => ChartAxis | undefined;
     getDataModel: () => DataModel<any, any, any> | undefined;
     getProcessedData: () => ProcessedData<any> | undefined;
+    dataSelectionService: DataSelectionService | undefined;
     aggregationManager: AggregationManager<TFilter>;
     /** `'value'` for series whose xValue column is the X coordinate (line); `'key'` for keyed series (bar/area/ohlc/range-*). */
     domainKey: 'value' | 'key';
-    getSelection: () => Uint8Array | undefined;
     /**
      * AGGREGATION_INDEX_* slots whose stored datum index is treated as the
      * canonical "selected" representative for its bucket. When set, the
@@ -161,7 +164,7 @@ abstract class AbstractBucketLookupManager<TFilter extends AggregationFilterBase
      */
     refresh(): void {
         this.selectionEpoch += 1;
-        const selection = this.opts.getSelection();
+        const selection = this.opts.dataSelectionService?.getSelectionBuffer(this.opts.series);
         this.sparseSelection = selection ? collectSparseSelection(selection) : undefined;
         this.populateStaleFilters();
     }
@@ -448,9 +451,10 @@ export class SplitBucketLookupManager<TFilter extends SplitFilter>
 }
 
 interface IndexSetBucketLookupManagerOpts {
+    series: SeriesLike;
+    dataSelectionService: DataSelectionService | undefined;
     /** Cluster-keyed map of representative datum index to underlying datum indices. */
     getIndexSetMap: () => Map<number, number[]> | undefined;
-    getSelection: () => Uint8Array | undefined;
 }
 
 /**
@@ -474,7 +478,7 @@ export class IndexSetBucketLookupManager implements BucketLookupFeature {
         if (map === undefined) return undefined;
         const indices = map.get(datumIndex);
         if (indices === undefined) return undefined;
-        const selection = this.opts.getSelection();
+        const selection = this.opts.dataSelectionService?.getSelectionBuffer(this.opts.series);
         if (selection === undefined) return false;
         for (let i = 0; i < indices.length; i++) {
             if (selection[indices[i]] === 1) return true;

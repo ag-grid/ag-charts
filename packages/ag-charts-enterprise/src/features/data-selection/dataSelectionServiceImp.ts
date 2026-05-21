@@ -5,6 +5,7 @@ const { SelectionState } = _ModuleSupport;
 
 type ChartRegistry = _ModuleSupport.ChartRegistry;
 type DataSelectionService = _ModuleSupport.DataSelectionService;
+type DataSetSelection = _ModuleSupport.DataSetSelection;
 type SelectionStateEnum = _ModuleSupport.SelectionState;
 type SeriesLike = Parameters<DataSelectionService['getSeriesSelectedCount']>[0];
 
@@ -13,8 +14,16 @@ export class DataSelectionServiceImp implements DataSelectionService {
 
     constructor(private readonly ctx: DynamicContext<ChartRegistry>) {}
 
+    private getDataSetSelection(series: SeriesLike): DataSetSelection | undefined {
+        return series.data?.selections?.get(series.id);
+    }
+
+    getSelectionBuffer(series: SeriesLike): Uint8Array | undefined {
+        return this.getDataSetSelection(series)?.getSelection();
+    }
+
     getSeriesSelectedCount(series: SeriesLike): number {
-        return series.data?.selections?.get(series.id)?.getSelectedCount() ?? 0;
+        return this.getDataSetSelection(series)?.getSelectedCount() ?? 0;
     }
 
     getDataSelectionState(series: SeriesLike, datumIndex: number | undefined): SelectionStateEnum | undefined {

@@ -321,8 +321,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             getDataModel: () => this.dataModel,
             getProcessedData: () => this.processedData,
             aggregationManager: this.aggregationManager,
+            dataSelectionService: this.ctx.dataSelectionService,
             domainKey: 'key',
-            getSelection: () => this.data?.selections.get(this.id)?.getSelection(),
             canonicalExtremaSlots: [AGGREGATION_INDEX_Y_MAX, AGGREGATION_INDEX_Y_MIN],
         });
     }

@@ -431,8 +431,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
     protected override createBucketLookupFeature(): BucketLookupFeature {
         return new IndexSetBucketLookupManager({
+            series: this,
+            dataSelectionService: this.ctx.dataSelectionService,
             getIndexSetMap: () => this.aggregateIndexSet,
-            getSelection: () => this.data?.selections.get(this.id)?.getSelection(),
         });
     }
 
