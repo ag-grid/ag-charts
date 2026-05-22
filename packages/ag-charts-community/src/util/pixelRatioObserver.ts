@@ -1,5 +1,7 @@
 import type { AgDocument } from 'ag-charts-core';
 
+import { type PerWindowEntry, createPerWindowRegistry } from './perWindowRegistry';
+
 /**
  * Chrome & FireFox reports devicePixelRatio as the pixel ratio of the screen multiplied by the browser zoom.
  * Safari reports this as just the screen pixel ratio.
@@ -7,45 +9,17 @@ import type { AgDocument } from 'ag-charts-core';
  * Therefore, this works as intended in Chrome & FireFox, and doesn't make things worse in Safari.
  */
 
-// Shared singleton registry — one MediaQueryList per Window, shared across observers.
-
 type SharedCallback = (pixelRatio: number) => void;
 
-interface SharedEntry {
+interface SharedEntry extends PerWindowEntry<SharedCallback> {
+    win: Window;
     pixelRatio: number;
     mql: MediaQueryList | undefined;
-    readonly subscribers: Set<SharedCallback>;
-    readonly mqlListener: (e: MediaQueryListEvent) => void;
+    mqlListener: (e: MediaQueryListEvent) => void;
 }
 
-const sharedRegistry = new Map<Window, SharedEntry>();
-
-function getOrCreateSharedEntry(win: Window, initialRatio: number): SharedEntry {
-    let entry = sharedRegistry.get(win);
-    if (entry == null) {
-        // Named function so the listener is identifiable in flame graphs.
-        function onPixelRatioChange(e: MediaQueryListEvent) {
-            if (e.matches) return;
-            entry!.pixelRatio = win.devicePixelRatio;
-            detachMql(entry!);
-            attachMql(win, entry!);
-            for (const cb of entry!.subscribers) {
-                cb(entry!.pixelRatio);
-            }
-        }
-        entry = {
-            pixelRatio: initialRatio,
-            mql: undefined,
-            subscribers: new Set(),
-            mqlListener: onPixelRatioChange,
-        };
-        sharedRegistry.set(win, entry);
-    }
-    return entry;
-}
-
-function attachMql(win: Window, entry: SharedEntry) {
-    const mql = win.matchMedia?.(`(resolution: ${entry.pixelRatio}dppx)`);
+function attachMql(entry: SharedEntry) {
+    const mql = entry.win.matchMedia?.(`(resolution: ${entry.pixelRatio}dppx)`);
     entry.mql = mql;
     mql?.addEventListener('change', entry.mqlListener);
 }
@@ -55,23 +29,37 @@ function detachMql(entry: SharedEntry) {
     entry.mql = undefined;
 }
 
-function sharedSubscribe(win: Window, initialRatio: number, cb: SharedCallback): () => void {
-    const entry = getOrCreateSharedEntry(win, initialRatio);
-    if (entry.subscribers.size === 0) {
-        attachMql(win, entry);
-    }
-    entry.subscribers.add(cb);
-    return () => sharedUnsubscribe(win, cb);
-}
+const sharedRegistry = createPerWindowRegistry<SharedCallback, SharedEntry>((win) => {
+    const entry: SharedEntry = {
+        win,
+        pixelRatio: win.devicePixelRatio,
+        mql: undefined,
+        subscribers: new Set(),
+        // Named function so the listener is identifiable in flame graphs.
+        mqlListener: function onPixelRatioChange(e: MediaQueryListEvent) {
+            if (e.matches) return;
+            entry.pixelRatio = win.devicePixelRatio;
+            detachMql(entry);
+            attachMql(entry);
+            for (const cb of sharedRegistry.snapshot(entry)) {
+                cb(entry.pixelRatio);
+            }
+        },
+    };
+    attachMql(entry);
+    return entry;
+}, detachMql);
 
-function sharedUnsubscribe(win: Window, cb: SharedCallback) {
-    const entry = sharedRegistry.get(win);
-    if (entry == null) return;
-    entry.subscribers.delete(cb);
-    if (entry.subscribers.size === 0) {
-        detachMql(entry);
-        sharedRegistry.delete(win);
+function sharedSubscribe(win: Window, currentRatio: number, cb: SharedCallback): () => void {
+    // Late-arriving subscribers may see a different DPR than the entry was created with
+    // (e.g. user zoom between charts). Refresh the entry + MQL before adding.
+    const existing = sharedRegistry.get(win);
+    if (existing != null && existing.pixelRatio !== currentRatio) {
+        existing.pixelRatio = currentRatio;
+        detachMql(existing);
+        attachMql(existing);
     }
+    return sharedRegistry.subscribe(win, cb);
 }
 
 export class PixelRatioObserver {

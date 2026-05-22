@@ -18,6 +18,7 @@ import { BBox } from '../scene/bbox';
 import STYLES from '../styles.css';
 import { BaseManager } from '../util/baseManager';
 import { GuardedElement } from '../util/guardedElement';
+import { type PerWindowEntry, createPerWindowRegistry } from '../util/perWindowRegistry';
 import { type Size, SizeMonitor } from '../util/sizeMonitor';
 import { StateTracker } from '../util/stateTracker';
 import { DOMElementProxy, type DeferredMode } from './domElementProxy';
@@ -104,46 +105,40 @@ interface GlobalListenerSubscriber {
     invalidateAll: () => void;
 }
 
-interface GlobalListenerEntry {
-    readonly subscribers: Set<GlobalListenerSubscriber>;
-    readonly onScrollResize: EventListener;
-    readonly onFullscreen: EventListener;
+interface GlobalListenerEntry extends PerWindowEntry<GlobalListenerSubscriber> {
+    win: Window;
+    doc: Document;
+    onScrollResize: EventListener;
+    onFullscreen: EventListener;
 }
 
-const globalListenerRegistry = new Map<Window, GlobalListenerEntry>();
-
-function registerGlobalListeners(win: Window, doc: Document, subscriber: GlobalListenerSubscriber): () => void {
-    let entry = globalListenerRegistry.get(win);
-    if (entry == null) {
-        const onScrollResize: EventListener = function invalidateRectsGlobal() {
-            for (const s of entry!.subscribers) s.invalidateRects();
+const globalListenerRegistry = createPerWindowRegistry<GlobalListenerSubscriber, GlobalListenerEntry>(
+    (win) => {
+        const doc = win.document;
+        const entry: GlobalListenerEntry = {
+            win,
+            doc,
+            subscribers: new Set(),
+            // Named functions so the fan-out is identifiable in flame graphs.
+            onScrollResize: function invalidateRectsGlobal() {
+                for (const s of globalListenerRegistry.snapshot(entry)) s.invalidateRects();
+            },
+            onFullscreen: function invalidateAllGlobal() {
+                for (const s of globalListenerRegistry.snapshot(entry)) s.invalidateAll();
+            },
         };
-        const onFullscreen: EventListener = function invalidateAllGlobal() {
-            for (const s of entry!.subscribers) s.invalidateAll();
-        };
-        entry = { subscribers: new Set(), onScrollResize, onFullscreen };
-        globalListenerRegistry.set(win, entry);
         // capture: true catches scroll on descendants (scroll does not bubble).
-        win.addEventListener('scroll', onScrollResize, { capture: true, passive: true });
-        win.addEventListener('resize', onScrollResize, { capture: true, passive: true });
-        doc.addEventListener('fullscreenchange', onFullscreen);
+        win.addEventListener('scroll', entry.onScrollResize, { capture: true, passive: true });
+        win.addEventListener('resize', entry.onScrollResize, { capture: true, passive: true });
+        doc.addEventListener('fullscreenchange', entry.onFullscreen);
+        return entry;
+    },
+    (entry) => {
+        entry.win.removeEventListener('scroll', entry.onScrollResize, { capture: true });
+        entry.win.removeEventListener('resize', entry.onScrollResize, { capture: true });
+        entry.doc.removeEventListener('fullscreenchange', entry.onFullscreen);
     }
-    entry.subscribers.add(subscriber);
-
-    return () => unregisterGlobalListeners(win, doc, subscriber);
-}
-
-function unregisterGlobalListeners(win: Window, doc: Document, subscriber: GlobalListenerSubscriber) {
-    const entry = globalListenerRegistry.get(win);
-    if (entry == null) return;
-    entry.subscribers.delete(subscriber);
-    if (entry.subscribers.size === 0) {
-        win.removeEventListener('scroll', entry.onScrollResize, { capture: true });
-        win.removeEventListener('resize', entry.onScrollResize, { capture: true });
-        doc.removeEventListener('fullscreenchange', entry.onFullscreen);
-        globalListenerRegistry.delete(win);
-    }
-}
+);
 
 export class DOMManager extends BaseManager {
     static readonly className = 'DOMManager';
@@ -873,7 +868,7 @@ export class DOMManager extends BaseManager {
         if (win == null) return;
 
         if (this.mode === 'minimal') {
-            const unregister = registerGlobalListeners(win, doc, {
+            const unregister = globalListenerRegistry.subscribe(win, {
                 invalidateRects: () => this.invalidateRectCaches(),
                 invalidateAll: () => this.invalidateAllCaches(),
             });
