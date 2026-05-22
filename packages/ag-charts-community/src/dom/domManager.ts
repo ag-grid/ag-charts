@@ -96,13 +96,8 @@ function createTabGuardElement(guardedElem: HTMLElement, where: 'beforebegin' | 
     return div;
 }
 
-// ---------------------------------------------------------------------------
-// Singleton global-listener registry for domMode: 'minimal'.
-//
-// Registers scroll, resize, and fullscreenchange exactly once per Window/Document
-// pair and fans out to all minimal-mode chart subscribers. The real DOM listeners
-// are torn down when the last subscriber unregisters.
-// ---------------------------------------------------------------------------
+// Singleton global-listener registry for minimal-mode charts — one DOM listener set per
+// Window, fanned out to all subscribers. Torn down when the last subscriber unregisters.
 
 interface GlobalListenerSubscriber {
     invalidateRects: () => void;
@@ -111,7 +106,6 @@ interface GlobalListenerSubscriber {
 
 interface GlobalListenerEntry {
     readonly subscribers: Set<GlobalListenerSubscriber>;
-    // Bound listener functions kept so we can remove them by reference.
     readonly onScrollResize: EventListener;
     readonly onFullscreen: EventListener;
 }
@@ -129,7 +123,7 @@ function registerGlobalListeners(win: Window, doc: Document, subscriber: GlobalL
         };
         entry = { subscribers: new Set(), onScrollResize, onFullscreen };
         globalListenerRegistry.set(win, entry);
-        // capture: true — scroll doesn't bubble; capture phase catches events on any descendant.
+        // capture: true catches scroll on descendants (scroll does not bubble).
         win.addEventListener('scroll', onScrollResize, { capture: true, passive: true });
         win.addEventListener('resize', onScrollResize, { capture: true, passive: true });
         doc.addEventListener('fullscreenchange', onFullscreen);

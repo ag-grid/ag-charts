@@ -57,17 +57,12 @@ async function performSingleCreation(): Promise<number> {
     return performance.now() - start;
 }
 
-// Grid-realistic batch size — represents a typical viewport of ~50 sparkline cells
-// rendered in a single Grid frame (Grid calls createSparkline() synchronously per cell
-// with no per-cell rAF; see plans/AG-17227-sparkline-performance.md item 9 and the
-// Item 3 post-mortem for context).
+// Typical viewport for a Grid sparkline column. Grid calls createSparkline() synchronously
+// per cell with no per-cell rAF, so all N charts batch into a single frame.
 const GRID_BATCH_SIZE = 50;
 
 /** inScope */
 async function performGridBatchCreation(): Promise<number> {
-    // Mirror Grid's pattern: N synchronous createSparkline() calls in one tick, no per-call
-    // await, no per-call rAF. Wall-time runs from the first synchronous call until the next
-    // rAF callback fires — that is when all sparklines in the batch are visible.
     const containers: HTMLElement[] = [];
     for (let i = 0; i < GRID_BATCH_SIZE; i++) {
         containers.push(document.createElement('div'));
@@ -90,15 +85,14 @@ async function performGridBatchCreation(): Promise<number> {
     try {
         performance.measure('grid-batch:create', 'grid-batch:create:start', 'grid-batch:create:end');
     } catch {
-        // ignore — measure can throw if marks were cleared mid-run
+        // measure can throw if marks were cleared mid-run
     }
 
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
     const elapsed = performance.now() - start;
 
-    // Destroy per-iteration so the harness measures fresh cold creation each time, not
-    // accumulated retained memory pressure across iterations.
+    // Destroy per-iteration so each iter measures fresh cold creation.
     created.forEach((c) => c.destroy());
 
     return elapsed;

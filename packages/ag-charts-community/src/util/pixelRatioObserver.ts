@@ -7,10 +7,7 @@ import type { AgDocument } from 'ag-charts-core';
  * Therefore, this works as intended in Chrome & FireFox, and doesn't make things worse in Safari.
  */
 
-// ---------------------------------------------------------------------------
-// Shared singleton registry — one MediaQueryList per (Window, pixelRatio).
-// Used only when PixelRatioObserver is constructed with shared: true.
-// ---------------------------------------------------------------------------
+// Shared singleton registry — one MediaQueryList per Window, shared across observers.
 
 type SharedCallback = (pixelRatio: number) => void;
 
@@ -26,8 +23,7 @@ const sharedRegistry = new Map<Window, SharedEntry>();
 function getOrCreateSharedEntry(win: Window, initialRatio: number): SharedEntry {
     let entry = sharedRegistry.get(win);
     if (entry == null) {
-        // mqlListener is defined as a named function so it appears in flame graphs.
-        // It closes over `entry` via the outer variable, which is assigned below.
+        // Named function so the listener is identifiable in flame graphs.
         function onPixelRatioChange(e: MediaQueryListEvent) {
             if (e.matches) return;
             entry!.pixelRatio = win.devicePixelRatio;
@@ -77,8 +73,6 @@ function sharedUnsubscribe(win: Window, cb: SharedCallback) {
         sharedRegistry.delete(win);
     }
 }
-
-// ---------------------------------------------------------------------------
 
 export class PixelRatioObserver {
     get pixelRatio(): number {

@@ -1754,9 +1754,7 @@ class BenchmarkRunner {
 
         const { updatesPerTest, maxCollectionTimeMs, warmupUpdates } = this.config.config;
 
-        // Per-iteration performance.mark boundaries make it trivial to slice Chrome DevTools
-        // profiles by test case and iteration without scanning frame timestamps manually.
-        // Naming: "<testCaseId>:warmup-<N>" and "<testCaseId>:iter-<N>"; measure names match.
+        // Emit `<testCaseId>:<warmup|iter>-<N>:start|end` marks so Chrome traces slice cleanly per iter.
         const phase = testCase.id;
         const markIteration = async (label: string, index: number, run: () => Promise<number>): Promise<number> => {
             const startMark = `${phase}:${label}-${index}:start`;
@@ -1770,7 +1768,7 @@ class BenchmarkRunner {
                 try {
                     performance.measure(measureName, startMark, endMark);
                 } catch {
-                    // Swallow — measure can throw if marks were cleared mid-run; harmless.
+                    // measure can throw if marks were cleared mid-run
                 }
             }
         };

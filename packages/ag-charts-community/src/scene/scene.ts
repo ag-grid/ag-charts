@@ -165,8 +165,7 @@ export class Scene extends EventEmitter<EventMap> {
         const baseFont = this.root?.resolveFont();
         if (baseFont == null || baseFont === this._contextFont) return;
         this._baseFont = baseFont;
-        // If a resize is pending, the impending applyPendingResize() will reset
-        // the canvas context and re-apply _baseFont — skip the redundant write here.
+        // Pending resize will reset the context and re-apply _baseFont — skip redundant write.
         if (this.pendingSize) return;
         this.canvas.context.font = baseFont;
         this._contextFont = baseFont;

@@ -24,8 +24,7 @@ const undocumentedSymbol = Symbol('undocumented');
 const enterpriseSymbol = Symbol('enterprise');
 export const unionSymbol = Symbol('union');
 
-// Cached key list for a static OptionsDefs node. Populated on first validate() traversal
-// and reused on every subsequent call — avoids repeated Object.keys() on immutable schema objects.
+// Memoised Object.keys per immutable OptionsDefs node.
 const cachedKeysSymbol = Symbol('cachedKeys');
 
 const similarOptionsMap = [

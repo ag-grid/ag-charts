@@ -379,9 +379,7 @@ export class Text<D = unknown> extends Shape<D> {
         }
 
         const { ctx } = renderCtx;
-        // Try to avoid this assignment, which typically always incurs a font switch cost. We
-        // compare against the tracked `currentFont` instead of `ctx.font` — the getter canonicalises
-        // and can spuriously fail `!==` on the original written string.
+        // Compare against tracker — ctx.font getter canonicalises and spuriously fails !==.
         if (renderCtx.currentFont !== font) {
             ctx.font = font;
             renderCtx.currentFont = font;

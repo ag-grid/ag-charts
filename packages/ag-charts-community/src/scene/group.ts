@@ -341,8 +341,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 const offscreenCtx = offscreenCanvas.context;
                 offscreenCtx.direction = childRenderCtx.direction;
                 childRenderCtx.ctx = offscreenCtx;
-                // The offscreen canvas has its own font state; reset the cache so descendants
-                // don't skip a real `ctx.font = ...` write against the wrong tracker.
+                // Offscreen canvas has its own font state — clear tracker.
                 childRenderCtx.currentFont = undefined;
 
                 offscreenCanvas.clear();
@@ -421,13 +420,9 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         try {
             ctx.globalAlpha *= this.opacity;
 
-            // Pre-set ctx.font for this group's children. Each child Text node is wrapped in
-            // save/restore (via isolatedRender), so restore() reverts the font — causing Chrome
-            // to re-resolve the CSS font string on every subsequent ctx.font assignment. By setting
-            // the font once here, child Text nodes see the matching font in `currentFont` and skip
-            // the assignment entirely. We compare against the tracked `currentFont` rather than
-            // reading `ctx.font`, because the getter canonicalises the string and can spuriously
-            // trip a re-parse on assignment.
+            // Pre-set the font so children's isolatedRender save/restore doesn't force Chrome
+            // to re-resolve it per Text node. Comparing against the tracker avoids the
+            // ctx.font getter's canonicalisation re-parse.
             const childFont = this.resolveChildFont();
             if (childFont != null && childRenderCtx.currentFont !== childFont) {
                 ctx.font = childFont;

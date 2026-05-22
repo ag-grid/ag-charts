@@ -296,8 +296,7 @@ describe('themes.ts', () => {
             const opts1 = sparkline({ type: 'line', data: [1, 2, 3], theme });
             const opts2 = sparkline({ type: 'line', data: [4, 5, 6], theme });
 
-            // The sparkline preset memoises setInitialBaseTheme by input reference, so both calls
-            // with the same theme object produce the same wrapped theme reference.
+            // sparkline() memoises setInitialBaseTheme by input reference.
             expect(opts1.theme).toBe(opts2.theme);
 
             getChartTheme(opts1.theme);

@@ -2,15 +2,8 @@ import type { ChartModuleDefinition } from 'ag-charts-core';
 import type { AgChartThemeParams } from 'ag-charts-types';
 
 // Structural-output cache for `ChartOptions.slowSetup`, gated by callers on
-// `optionMetadata.domMode === 'minimal'` (sparkline preset). Holds ONLY
-// chart-independent outputs — never `activeTheme`, `annotationThemes` raw
-// refs, or `optionsGraph`. Those retain chart-bound state via resolution
-// closures and previously caused heap leaks under cumulative worker-test load.
-//
-// Entries are keyed by a signature of the user options excluding `data` and
-// `container`. `ChartTheme` instances transitively referenced by
-// `processedOptions` are owned by the `sanitizeThemeModules` cache (not chart-
-// instance scoped), so retaining them here does not pin charts.
+// `domMode: 'minimal'`. Excludes `activeTheme` / `optionsGraph` etc. — those retain
+// chart-bound state via resolution closures and would pin chart instances.
 
 export interface StructuralCacheEntry {
     processedOptions: unknown;
@@ -25,15 +18,10 @@ const structuralCache = new Map<string, StructuralCacheEntry>();
 
 const IGNORED_SIGNATURE_KEYS = new Set(['data', 'container', 'document', 'window', 'styleContainer', 'context']);
 
-// Returns a stable signature for the structural-output cache, or undefined
-// when the options contain values we can't safely hash (functions, etc.) so
-// callers fall through to the uncached path rather than risk false-positive
-// cache hits.
-//
-// The sparkline preset's `processData` / `create` paths derive series and
-// axis config from the data shape (tuples vs scalars vs `{x, y}` objects),
-// so the signature includes a coarse data-shape descriptor — same options +
-// same data shape produce identical structural outputs.
+// Returns undefined when options contain unhashable values (functions) so callers fall
+// through to the uncached path. Data shape is part of the key — preset `processData`/`create`
+// branch on tuple-vs-scalar-vs-object datums, so the same options + different shape are not
+// structurally equivalent.
 export function computeStructuralCacheKey(options: object): string | undefined {
     let unsafe = false;
     const replacer = (key: string, value: unknown) => {
@@ -54,9 +42,6 @@ export function computeStructuralCacheKey(options: object): string | undefined {
     }
 }
 
-// Coarse data-shape descriptor — enough to distinguish the preset-relevant
-// cases (scalar, tuple, object, mixed/empty/null-leading) without inspecting
-// every datum.
 function describeDataShape(data: unknown): string {
     if (!Array.isArray(data)) return data == null ? 'null' : typeof data;
     if (data.length === 0) return 'empty';
@@ -75,7 +60,6 @@ function describeDatumShape(datum: unknown): string {
 export function getStructuralCacheEntry(key: string): StructuralCacheEntry | undefined {
     if (!structuralCache.has(key)) return undefined;
     const value = structuralCache.get(key)!;
-    // Re-insert to mark as most-recently-used.
     structuralCache.delete(key);
     structuralCache.set(key, value);
     return value;

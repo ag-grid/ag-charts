@@ -298,19 +298,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private slowSetup(processedOverrides: Partial<T>, deltaOptions?: DeepPartial<T> | null, stripSymbols = false) {
-        // Minimal-mode (sparkline preset) structural-output cache fast path. Skips
-        // deepClone/mergeDefaults/validate/processFonts/processSeriesOptions on
-        // structurally-identical-modulo-data-container option payloads.
+        // Minimal-mode structural-output cache fast path.
         const cacheKey = this.computeStructuralCacheKeyForSlowSetup(deltaOptions, stripSymbols);
         if (cacheKey !== undefined) {
             const cached = getStructuralCacheEntry(cacheKey);
             if (cached) {
                 const activeTheme = sanitizeThemeModules(getChartTheme((this.userOptions as any).theme));
                 this.chartDef = cached.chartDef;
-                // Build a fresh, un-memoized optionsGraph so its chart-bound resolution
-                // state is not shared across chart instances. `resolvePartial` is invoked
-                // later by stylers; passing the already-resolved `processedOptions` as the
-                // user-edge input means user values resolve to themselves immediately.
+                // Un-memoized graph — each chart needs its own resolution state for stylers' resolvePartial.
                 const optionsGraph = createOptionsGraphFn(activeTheme, cached.processedOptions as PlainObject);
                 return {
                     activeTheme,
@@ -444,18 +439,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return { activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts, optionsGraph };
     }
 
-    // Returns a stable signature for the structural-output cache, or undefined when caching
-    // is unsafe / disabled. Gated on `domMode === 'minimal'` (sparkline preset).
     private computeStructuralCacheKeyForSlowSetup(
         deltaOptions: DeepPartial<T> | null | undefined,
         stripSymbols: boolean
     ): string | undefined {
         if (this.optionMetadata.domMode !== 'minimal') return undefined;
         if (stripSymbols) return undefined;
-        // Delta updates take a different code path through the constructor; this cache only
-        // targets cold creation. `deltaOptions` is non-null in the minimal-mode delta case
-        // (e.g. data-only update), but those should hit `fastSetup` not `slowSetup`. Guard
-        // here to keep the contract simple.
+        // Delta updates take a different path (fastSetup); cache targets cold creation only.
         if (deltaOptions) return undefined;
         return computeStructuralCacheKey(this.userOptions);
     }
