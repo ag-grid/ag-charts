@@ -5,13 +5,9 @@ import type {
     SelectionState,
     SeriesNodeDatum,
 } from '../series/seriesTypes';
+import type { IDataSetSelection } from './dataSetSelectionTypes';
 
 type SeriesLike = ISeries<DatumIndexType, SeriesNodeDatum<DatumIndexType>, ISeriesProperties, unknown>;
-
-export interface IDataSetSelection {
-    getSelectedCount(): number;
-    getSelection(): Uint8Array;
-}
 
 export interface IDataSelectionService {
     getDataSetSelection(series: SeriesLike): IDataSetSelection | undefined;

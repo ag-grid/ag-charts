@@ -1,5 +1,5 @@
 import type { DataChangeDescription } from './dataChangeDescription';
-import type { IDataSetSelection } from './dataSelectionServiceTypes';
+import type { IDataSetSelection } from './dataSetSelectionTypes';
 
 /**
  * Per-series selection state backed by a `Uint8Array` indexed by datum index.
