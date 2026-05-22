@@ -75,13 +75,18 @@ runs:
 
               # MD <-> ADF converters live in the jira skill of ag-dev-prompts
               # (cloned to $HOME/.cache/ag-dev-prompts/repo by setup-prompts.sh).
+              # md-to-adf is invoked via the resilient wrapper which splits on
+              # blank lines and converts per-block so a single malformed chunk
+              # doesn't degrade the whole file to a codeBlock.
               JIRA_SKILL_ROOT="${HOME}/.cache/ag-dev-prompts/repo/plugins/ag-product/skills/jira"
               MD_TO_ADF="$JIRA_SKILL_ROOT/md-to-adf.js"
               ADF_TO_MD="$JIRA_SKILL_ROOT/adf-to-md.js"
-              if [[ ! -f "$MD_TO_ADF" || ! -f "$ADF_TO_MD" ]]; then
-                  echo "[state-sync] converter scripts missing under $JIRA_SKILL_ROOT" >&2
-                  echo "[state-sync]   md-to-adf: $([[ -f "$MD_TO_ADF" ]] && echo OK || echo MISSING)" >&2
-                  echo "[state-sync]   adf-to-md: $([[ -f "$ADF_TO_MD" ]] && echo OK || echo MISSING)" >&2
+              MD_TO_ADF_RESILIENT="$GITHUB_WORKSPACE/.github/scripts/md-adf/md-to-adf-resilient.mjs"
+              if [[ ! -f "$MD_TO_ADF" || ! -f "$ADF_TO_MD" || ! -f "$MD_TO_ADF_RESILIENT" ]]; then
+                  echo "[state-sync] converter scripts missing:" >&2
+                  echo "[state-sync]   md-to-adf:           $([[ -f "$MD_TO_ADF" ]] && echo OK || echo MISSING)" >&2
+                  echo "[state-sync]   adf-to-md:           $([[ -f "$ADF_TO_MD" ]] && echo OK || echo MISSING)" >&2
+                  echo "[state-sync]   md-to-adf-resilient: $([[ -f "$MD_TO_ADF_RESILIENT" ]] && echo OK || echo MISSING)" >&2
                   exit 1
               fi
 
@@ -164,16 +169,18 @@ runs:
                       # Convert markdown -> ADF before PUT. Jira v3 requires ADF
                       # for textarea fields; sending a plain string falls back
                       # to Jira's wiki-text auto-conversion, which mangles
-                      # markdown. If the converter rejects the file (unterminated
-                      # delimiter, etc.) wrap the raw markdown in a codeBlock so
-                      # the content still lands on the ticket — degraded
-                      # rendering, but no data loss.
+                      # markdown. Use the resilient wrapper: it splits the file
+                      # on blank lines and falls back to codeBlock per-block, so
+                      # one malformed chunk (unterminated delimiter, table the
+                      # parser doesn't like, etc.) doesn't degrade the whole
+                      # file. The wrapper writes its own warning to stderr and
+                      # exits 0 even when blocks fall back.
                       ADF_FILE="$P.adf.json"
                       FALLBACK="no"
-                      if ! node "$MD_TO_ADF" < "$P" > "$ADF_FILE" 2>/tmp/md-to-adf.err; then
-                          echo "[state-sync push] md-to-adf failed for $NAME (using codeBlock fallback):" >&2
+                      if ! node "$MD_TO_ADF_RESILIENT" "$MD_TO_ADF" < "$P" > "$ADF_FILE" 2>/tmp/md-to-adf.err; then
+                          echo "[state-sync push] md-to-adf-resilient hard-failed for $NAME (using whole-file codeBlock fallback):" >&2
                           cat /tmp/md-to-adf.err >&2 || true
-                          FALLBACK="yes"
+                          FALLBACK="hard"
                           jq -n --rawfile body "$P" '{
                               version: 1, type: "doc",
                               content: [{
@@ -182,6 +189,11 @@ runs:
                                   content: [{ type: "text", text: $body }]
                               }]
                           }' > "$ADF_FILE"
+                      elif grep -q 'block fell back' /tmp/md-to-adf.err 2>/dev/null; then
+                          FALLBACK="partial"
+                          # Forward the wrapper's stderr to the workflow log so
+                          # block-level fallbacks are visible.
+                          cat /tmp/md-to-adf.err >&2 || true
                       fi
                       jq --arg f "$FIELD_ID" --slurpfile body "$ADF_FILE" \
                           '. + { ($f): $body[0] }' "$TMP_BODY" > "$TMP_BODY.next"
