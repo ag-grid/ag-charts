@@ -3,10 +3,13 @@ description: |
     Round-trip the `/fr --ci` state files (`intent.md` / `research.md` / `plan.md`)
     between the Jira textarea custom fields and `${RUNNER_TEMP}/fr-state/`.
 
-    Field mapping:
-      customfield_10943 — AI research <-> research.md
-      customfield_10944 — AI intent   <-> intent.md
-      customfield_10945 — AI plan     <-> plan.md
+    Field mapping (matches `/fr --ci`'s six state files):
+      customfield_10943 — AI research           <-> research.md
+      customfield_10944 — AI intent             <-> intent.md
+      customfield_10945 — AI plan               <-> plan.md
+      customfield_10949 — AI decisions          <-> decisions.md
+      customfield_10950 — AI progress           <-> progress.md
+      customfield_10951 — AI Review Feedback    <-> review-feedback.md
 
     Modes:
       `pull` — pre-job. Read the three fields from Jira; for each non-null value,
@@ -75,13 +78,21 @@ runs:
                   "customfield_10943 research.md"
                   "customfield_10944 intent.md"
                   "customfield_10945 plan.md"
+                  "customfield_10949 decisions.md"
+                  "customfield_10950 progress.md"
+                  "customfield_10951 review-feedback.md"
               )
 
               if [[ "$MODE" == "pull" ]]; then
+                  PULL_FIELDS=""
+                  for row in "${FIELDS[@]}"; do
+                      [[ -n "$PULL_FIELDS" ]] && PULL_FIELDS+=","
+                      PULL_FIELDS+="${row%% *}"
+                  done
                   HTTP=$(curl -sS -o /tmp/state-pull.json -w '%{http_code}' \
                       -H "authorization: Basic $AUTH" \
                       -H 'accept: application/json' \
-                      "$SITE/rest/api/3/issue/$ISSUE_KEY?fields=customfield_10943,customfield_10944,customfield_10945")
+                      "$SITE/rest/api/3/issue/$ISSUE_KEY?fields=$PULL_FIELDS")
                   if [[ "$HTTP" != "200" ]]; then
                       echo "[state-sync pull] GET failed: HTTP $HTTP" >&2
                       cat /tmp/state-pull.json >&2 || true

@@ -33,7 +33,10 @@ FIELDS_JSON='{"fields":{
     "customfield_10945": null,
     "customfield_10946": null,
     "customfield_10947": null,
-    "customfield_10948": null
+    "customfield_10948": null,
+    "customfield_10949": null,
+    "customfield_10950": null,
+    "customfield_10951": null
 }}'
 if [[ "${KEEP_COST:-1}" == "0" ]]; then
     FIELDS_JSON=$(echo "$FIELDS_JSON" | jq '.fields.customfield_10941 = 0')
