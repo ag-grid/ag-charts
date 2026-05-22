@@ -104,6 +104,34 @@ runs:
 
               if [[ "$MODE" == "post-job" ]]; then
                   if [[ "$OUTCOME" == "success" ]]; then
+                      # job.status=success doesn't always mean the stage's intent
+                      # was achieved — claude-code-action exits 0 even when /fr's
+                      # CI failure-mode rule kicked in (e.g. Phase 5 escalation
+                      # on auth blocker). For the build stage the strong signal
+                      # is whether AI PR URL was written this run. If empty,
+                      # leave AI status at `building` and record the gap in
+                      # AI failure so retry-action gates don't see a false
+                      # `draft-pr-open`.
+                      if [[ "$STAGE" == "build" ]]; then
+                          HTTP=$(curl -sS -o /tmp/status-read.json -w '%{http_code}' \
+                              -H "authorization: Basic $AUTH" \
+                              -H 'accept: application/json' \
+                              "$SITE/rest/api/2/issue/$ISSUE_KEY?fields=customfield_10947")
+                          if [[ "$HTTP" != "200" ]]; then
+                              echo "[status-writeback] GET failed: HTTP $HTTP" >&2
+                              cat /tmp/status-read.json >&2 || true
+                              exit 1
+                          fi
+                          PR_URL=$(jq -r '.fields.customfield_10947 // empty' /tmp/status-read.json)
+                          if [[ -z "$PR_URL" ]]; then
+                              REASON="[build] workflow succeeded but no PR URL was written — agent likely escalated mid-Phase-5; see Jira comments. run $RUN_URL"
+                              echo "[status-writeback] $ISSUE_KEY: stage=build outcome=success but AI PR URL empty -> AI failure='$REASON' (AI status untouched at 'building')"
+                              BODY=$(jq -n --arg r "$REASON" '{ fields: { customfield_10948: $r } }')
+                              put_fields "$BODY"
+                              exit 0
+                          fi
+                      fi
+
                       VAL="$(next_for "$STAGE")"
                       echo "[status-writeback] $ISSUE_KEY: stage=$STAGE mode=post-job outcome=success -> AI status='$VAL', AI failure=cleared"
                       # advance status + clear failure field in one PUT
