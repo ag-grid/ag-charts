@@ -208,14 +208,17 @@ runs:
                       exit 0
                   fi
 
-                  PUT_BODY=$(jq -n --slurpfile f "$TMP_BODY" '{ fields: $f[0] }')
-                  # v3 with ADF objects in the body — textarea fields require ADF.
+                  # ADF for several state files easily exceeds Linux ARG_MAX
+                  # when passed via `--data "$BODY"`. Write to a file and use
+                  # `--data @file` instead.
+                  PUT_BODY_FILE=$(mktemp)
+                  jq -n --slurpfile f "$TMP_BODY" '{ fields: $f[0] }' > "$PUT_BODY_FILE"
                   HTTP=$(curl -sS -o /tmp/state-push.out -w '%{http_code}' \
                       -X PUT \
                       -H "authorization: Basic $AUTH" \
                       -H 'accept: application/json' \
                       -H 'content-type: application/json' \
-                      --data "$PUT_BODY" \
+                      --data "@$PUT_BODY_FILE" \
                       "$SITE/rest/api/3/issue/$ISSUE_KEY")
                   if [[ "$HTTP" != "204" && "$HTTP" != "200" ]]; then
                       echo "[state-sync push] PUT failed: HTTP $HTTP" >&2
