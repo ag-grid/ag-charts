@@ -3,7 +3,7 @@ description: |
     Stream the agent's step-by-step progress to two JIRA fields while
     the agent is running:
 
-      customfield_10987 — AI progress (number)    — step / total * 100
+      customfield_10987 — AI progress (number, 0..1) — step / total (Jira renders ×100 as a %)
       customfield_10988 — AI activity (short text) — short human-readable label
 
     Contract: the agent (skill side, in ag-dev-prompts) appends one
@@ -139,12 +139,14 @@ runs:
                       STEP=$(echo "$LATEST_RAW"  | jq -r '.step  // empty')
                       TOTAL=$(echo "$LATEST_RAW" | jq -r '.total // empty')
                       LABEL=$(echo "$LATEST_RAW" | jq -r '.label // empty')
-                      # Compute % if step+total present; otherwise leave null.
+                      # Compute fraction (0..1) if step+total present; the
+                      # AI progress custom field is a number rendered as a
+                      # percentage by Jira (raw 0.83 → "83%"), so do NOT
+                      # multiply by 100 here.
                       PCT=""
                       if [[ -n "$STEP" && -n "$TOTAL" && "$TOTAL" != "0" ]]; then
-                          PCT=$(( STEP * 100 / TOTAL ))
-                          if (( PCT > 100 )); then PCT=100; fi
-                          if (( PCT < 0   )); then PCT=0;   fi
+                          PCT=$(jq -n --argjson s "$STEP" --argjson t "$TOTAL" \
+                              '([$s / $t, 1] | min) | [., 0] | max')
                       fi
                       # Trim activity label to 250 chars (short-text field cap).
                       if [[ -n "$LABEL" ]]; then
