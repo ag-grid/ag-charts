@@ -234,21 +234,36 @@ jobs:
                           AI research / AI plan) after you exit. Do not call
                           addAttachmentToJiraIssue for these files — the
                           textareas are the durable form.
-                        - Comment style: keep Jira comments tight, but post
-                          them. Open questions / ambiguity escalation:
-                          MANDATORY whenever ambiguities exist — one bullet
-                          per question, max one line of context per bullet.
-                          The AI* state files are NOT a substitute for the
-                          comment; humans read comments, not textareas.
-                          Per-thread review-feedback audit comments: one
-                          line per thread (`thread <id>: <action>`). Status
-                          / audit comments: a single line; for these only,
-                          do not duplicate what is already in the AI* state
-                          files. If a comment runs past ~10 lines you are
-                          being verbose — cut it.
+                        - MANDATORY triage-completion comment. Before exit,
+                          post exactly one Jira comment using this template
+                          verbatim (substitute the bracketed placeholders;
+                          do not add preamble, do not omit sections):
+
+                              **Triage complete.** Confidence to proceed without HITL: <0..1>
+                              Decision: **<proceed|proceed-with-watch|blocked-on-clarity|escalate-to-human>** — <one-line rationale>
+
+                              # Decisions
+                              - <material judgement call 1 with one-line rationale>
+                              - <...>
+
+                              # Open Questions
+                              - <one bullet per question, max one line of context>
+                              - _None._  (use this literal when there are no open questions)
+
+                          Confidence is your own honest read (0..1). Decision
+                          values: `proceed` = ready for `--phase 2..5`;
+                          `proceed-with-watch` = ready but flagged for human
+                          eyeballs; `blocked-on-clarity` = open questions
+                          must be answered first; `escalate-to-human` = the
+                          ticket is fundamentally unclear or out of scope.
+                          The Decisions section lifts the material entries
+                          from `decisions.md` into a humans-can-skim form —
+                          summarise, do not paste. Other Jira comment
+                          styles (per-thread audit / status) do not apply
+                          here.
                         - The Atlassian MCP server is the in-repo shim — it
                           exposes the operation names referenced in modes/ci.md
-                          (getJiraIssue, addCommentToJiraIssue,
+                          (getJiraIssue, addCommentToJiraIssue, editJiraIssue,
                           getTransitionsForJiraIssue, transitionJiraIssue,
                           addAttachmentToJiraIssue). No other Jira tools are
                           available. Phases 2..5 are out of scope.
