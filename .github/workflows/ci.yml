@@ -361,6 +361,7 @@ jobs:
         if: needs.detect-changes.outputs.run_full_ci == 'true'
         outputs:
             build: ${{ steps.build.outcome || '' }}
+            docs_deployed: ${{ steps.deploy_to_staging.outcome }}
         steps:
             - name: Checkout
               id: checkout
@@ -385,6 +386,21 @@ jobs:
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
                   yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude='*,!ag-charts-website'
+
+            - name: Deploy to Staging
+              id: deploy_to_staging
+              if: ${{ github.ref == 'refs/heads/latest' && steps.build.outcome == 'success' }}
+              env:
+                  SSH_PRIVATE_KEY: |
+                      ${{ secrets.STAGING_SSH_KEY }}
+                  SSH_HOST: ${{ secrets.STAGING_HOST }}
+                  SSH_USER: ubuntu
+                  SSH_KEY_LOCATION: ${{ github.workspace }}/staging.pem
+                  WWW_ROOT_DIR: ${{ vars.WWW_ROOT_DIR }}
+              run: |
+                  echo "$SSH_PRIVATE_KEY" > $SSH_KEY_LOCATION
+                  chmod 400 $SSH_KEY_LOCATION
+                  ./tools/staging/createAndDeployDocsToTCGH.sh
 
     test:
         runs-on: ubuntu-24.04
