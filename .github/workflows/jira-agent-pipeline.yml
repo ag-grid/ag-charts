@@ -205,15 +205,18 @@ jobs:
               # Local-dev settings include hooks that reference scripts whose
               # side effects are inappropriate for a triage job (SessionStart
               # → install-for-cloud.sh, PostToolUse → yarn nx format on every
-              # edit, WorktreeCreate/Remove). Strip them. Keep env (NX_DAEMON
-              # off), the ag-dev marketplace + enabledPlugins (so /fr et al
-              # load), and a minimal permissions block (claude-code-action
-              # manages its own permissions for the agent surface).
+              # edit, WorktreeCreate/Remove). Strip the hooks block; keep
+              # env, the ag-dev marketplace, enabledPlugins (filtered to
+              # ag-dev only — codex/skill-creator marketplaces add cold-
+              # start latency we don't need), and the permissions allow
+              # list (covers Bash/Edit/Write/WebFetch/Skill — needed by
+              # /fr et al).
               run: |
                   set -euo pipefail
                   cp .claude/settings.json /tmp/orig-settings.json
                   jq '{
                       env,
+                      permissions,
                       extraKnownMarketplaces: { "ag-dev": .extraKnownMarketplaces."ag-dev" },
                       enabledPlugins: (
                           .enabledPlugins
@@ -284,26 +287,19 @@ jobs:
                       --mcp-config ${{ runner.temp }}/mcp.json
                       --max-turns 12
                       --debug
-                      --allowed-tools mcp__atlassian__jira_get_issue,mcp__atlassian__jira_add_comment
+                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue,mcp__atlassian__addAttachmentToJiraIssue
                   prompt: |
-                      You are validating the Jira-driven agent pipeline on ag-charts.
-                      The JIRA ticket key is: ${{ env.ISSUE_KEY }}.
-                      The Actions run URL is: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
+                      Invoke /fr --ci --phase 0..1 ${{ env.ISSUE_KEY }}
 
-                      Do exactly these steps and stop:
-
-                        1. Confirm a skill from the ag-dev-prompts marketplace loaded.
-                           Name one skill you can see from the ag-eng or
-                           ag-product plugin (e.g. /jira, /pr-review, /fr).
-                        2. Call the MCP tool `mcp__atlassian__jira_get_issue`
-                           with `issueKey="${{ env.ISSUE_KEY }}"`. Report the
-                           returned summary and status.
-                        3. Call `mcp__atlassian__jira_add_comment` with
-                           `issueKey="${{ env.ISSUE_KEY }}"` and `body` set
-                           exactly to:
-                             "ag-charts triage pipeline E2E test — run ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}. Marketplace loaded; MCP authenticated."
-                        4. Do not transition the ticket. Do not change any other
-                           state. Stop.
+                      Context:
+                        - JIRA ticket: ${{ env.ISSUE_KEY }}
+                        - Actions run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                        - The Atlassian MCP server is the in-repo shim — it
+                          exposes the operation names referenced in modes/ci.md
+                          (getJiraIssue, addCommentToJiraIssue,
+                          getTransitionsForJiraIssue, transitionJiraIssue,
+                          addAttachmentToJiraIssue). No other Jira tools are
+                          available. Phases 2..5 are out of scope.
 
             - name: Upload Claude trace artefact
               if: always()
