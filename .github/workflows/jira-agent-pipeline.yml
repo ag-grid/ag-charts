@@ -284,6 +284,7 @@ jobs:
                       --mcp-config ${{ runner.temp }}/mcp.json
                       --max-turns 12
                       --debug
+                      --allowed-tools mcp__atlassian__jira_get_issue,mcp__atlassian__jira_add_comment
                   prompt: |
                       You are validating the Jira-driven agent pipeline on ag-charts.
                       The JIRA ticket key is: ${{ env.ISSUE_KEY }}.
