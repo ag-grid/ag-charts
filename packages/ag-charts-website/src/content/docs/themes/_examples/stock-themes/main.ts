@@ -51,3 +51,9 @@ function setThemeMaterial() {
 
     chart.update(options);
 }
+
+function setThemeRainbow() {
+    options.theme = 'ag-rainbow';
+
+    chart.update(options);
+}

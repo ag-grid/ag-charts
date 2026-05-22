@@ -41,6 +41,8 @@ import { MaterialDark } from '../themes/materialDark';
 import { MaterialLight } from '../themes/materialLight';
 import { PolychromaDark } from '../themes/polychromaDark';
 import { PolychromaLight } from '../themes/polychromaLight';
+import { RainbowDark } from '../themes/rainbowDark';
+import { RainbowLight } from '../themes/rainbowLight';
 import { SheetsDark } from '../themes/sheetsDark';
 import { SheetsLight } from '../themes/sheetsLight';
 import { themeOverridesOptionsWithOperatorsDef } from '../themes/themeOptionsDef';
@@ -82,6 +84,7 @@ export const themes: ThemeMap = {
     'ag-vivid-dark': memoizeByRegistry(() => new VividDark()),
     'ag-material-dark': memoizeByRegistry(() => new MaterialDark()),
     'ag-financial-dark': memoizeByRegistry(() => new FinancialDark()),
+    'ag-rainbow-dark': memoizeByRegistry(() => new RainbowDark()),
 
     // lightThemes,
     'ag-default': lightTheme,
@@ -90,6 +93,7 @@ export const themes: ThemeMap = {
     'ag-vivid': memoizeByRegistry(() => new VividLight()),
     'ag-material': memoizeByRegistry(() => new MaterialLight()),
     'ag-financial': memoizeByRegistry(() => new FinancialLight()),
+    'ag-rainbow': memoizeByRegistry(() => new RainbowLight()),
 };
 
 const chartThemeCache = new Map<unknown, ChartTheme>();
@@ -241,7 +245,9 @@ const themeNameValidator = union(
     'ag-material',
     'ag-material-dark',
     'ag-financial',
-    'ag-financial-dark'
+    'ag-financial-dark',
+    'ag-rainbow',
+    'ag-rainbow-dark'
 );
 
 function validateStructure(value: unknown) {

@@ -52,6 +52,8 @@ export function getGalleryExampleThemePages({ galleryData }: { galleryData: Gall
         'ag-vivid-dark',
         'ag-material',
         'ag-material-dark',
+        'ag-rainbow',
+        'ag-rainbow-dark',
     ];
     const galleryExamplePages = galleryExamples.flatMap(({ exampleName }) => {
         return themes.map((theme) => {

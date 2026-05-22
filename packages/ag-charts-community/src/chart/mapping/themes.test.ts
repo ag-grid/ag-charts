@@ -82,7 +82,7 @@ describe('themes module', () => {
         expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - Option \`theme\` cannot be set to \`true\`; expecting a keyword such as 'ag-default', 'ag-default-dark', 'ag-sheets', 'ag-sheets-dark', 'ag-polychroma', 'ag-polychroma-dark', 'ag-vivid', 'ag-vivid-dark', 'ag-material', 'ag-material-dark', 'ag-financial' or 'ag-financial-dark' or an object, ignoring.",
+    "AG Charts - Option \`theme\` cannot be set to \`true\`; expecting a keyword such as 'ag-default', 'ag-default-dark', 'ag-sheets', 'ag-sheets-dark', 'ag-polychroma', 'ag-polychroma-dark', 'ag-vivid', 'ag-vivid-dark', 'ag-material', 'ag-material-dark', 'ag-financial', 'ag-financial-dark', 'ag-rainbow' or 'ag-rainbow-dark' or an object, ignoring.",
   ],
 ]
 `);
@@ -142,6 +142,24 @@ describe('themes module', () => {
   ],
 ]
 `);
+    });
+
+    test.each(['ag-rainbow', 'ag-rainbow-dark'] as const)('%s theme palette applies to series', async (themeName) => {
+        const chart = AgCharts.create({
+            ...opts,
+            theme: themeName,
+        });
+        await waitForChartStability(chart);
+
+        const expectedPalette = getPalette(themeName);
+        const actualPalette = getActualPalette(chart);
+
+        // The rainbow palette has 7 stops; the test config uses 10 series. Compare the
+        // first N entries against the registered palette, where N is the palette length.
+        const paletteLength = expectedPalette?.fills?.length ?? 0;
+        expect(paletteLength).toBeGreaterThan(0);
+        expect(actualPalette?.fills.slice(0, paletteLength)).toEqual(expectedPalette?.fills);
+        expect(actualPalette?.strokes.slice(0, paletteLength)).toEqual(expectedPalette?.strokes);
     });
 
     it('should show 2 warnings for invalid types - palette', async () => {
