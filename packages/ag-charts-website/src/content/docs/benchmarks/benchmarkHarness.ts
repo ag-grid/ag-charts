@@ -207,6 +207,14 @@ function formatParams(params: Record<string, string>): string {
     return keys.map((k) => `${k}: ${params[k]}`).join(', ');
 }
 
+function computeCI95(timings: number[]): number {
+    if (timings.length < 2) return 0;
+    const mean = timings.reduce((s, t) => s + t, 0) / timings.length;
+    const variance = timings.reduce((s, t) => s + (t - mean) ** 2, 0) / (timings.length - 1);
+    const stddev = Math.sqrt(variance);
+    return (1.96 * stddev) / Math.sqrt(timings.length);
+}
+
 function resultKey(result: { testCase: string; params: Record<string, string> }): string {
     const sortedParams = Object.entries(result.params)
         .sort(([a], [b]) => a.localeCompare(b))
@@ -399,6 +407,13 @@ class BenchmarkUI {
     isFloatingMode: boolean = false;
     private compareMode = false;
     private dropdownDocumentClickHandler: ((e: MouseEvent) => void) | null = null;
+    private selectedTestCaseId: string = 'all';
+    private testCaseLabels = new Map<string, string>();
+    private readonly selectionStorageKey: string = `ag-charts-benchmark-selection:${typeof location !== 'undefined' ? location.pathname : ''}`;
+
+    getSelectedTestCaseId(): string {
+        return this.selectedTestCaseId;
+    }
 
     setCompareMode(value: boolean): void {
         this.compareMode = value;
@@ -529,7 +544,7 @@ class BenchmarkUI {
             ? `position: absolute; top: 10px; right: 10px; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); border-radius: 4px; ${wrapperBase}`
             : `margin-left: auto; ${wrapperBase}`;
 
-        const buttonBase = `background-color: var(--bm-run-button-bg); color: white; border: none; cursor: pointer; ${
+        const buttonBase = `background-color: var(--bm-run-button-bg); color: white; border: none; cursor: pointer; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 13px; ${
             floating ? 'font-weight: 500;' : ''
         }`;
         const padding = floating ? 'padding: 8px 16px;' : 'padding: 5px 15px;';
@@ -558,7 +573,7 @@ class BenchmarkUI {
         this.runDropdownMenu.id = 'runBenchmarkDropdownMenu';
         this.runDropdownMenu.setAttribute('role', 'menu');
         this.runDropdownMenu.style.cssText =
-            'display: none; position: absolute; top: 100%; right: 0; margin-top: 4px; background: var(--bm-container-bg); color: var(--bm-table-text); border: 1px solid var(--bm-container-border); border-radius: 4px; box-shadow: 0 4px 12px var(--bm-container-shadow); min-width: 220px; max-height: 60vh; overflow-y: auto; z-index: 101; font-size: 13px;';
+            "display: none; position: absolute; top: 100%; right: 0; margin-top: 4px; background: var(--bm-container-bg); color: var(--bm-table-text); border: 1px solid var(--bm-container-border); border-radius: 4px; box-shadow: 0 4px 12px var(--bm-container-shadow); min-width: 220px; max-height: 60vh; overflow-y: auto; z-index: 101; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 13px;";
 
         // Positioning context for the absolutely positioned menu
         wrapper.style.position = wrapper.style.position || 'relative';
@@ -570,10 +585,30 @@ class BenchmarkUI {
     }
 
     /**
-     * Populate dropdown menu items for running individual test cases.
+     * Populate dropdown menu items. Selecting an item updates the sticky selection
+     * (persisted to localStorage) and the main run button label — it does not run.
+     * The user clicks the main button to execute the current selection.
      */
-    setTestCases(testCases: NormalizedTestCase[], onRunSingle: (testCaseId: string) => void): void {
+    setTestCases(testCases: NormalizedTestCase[]): void {
         if (!this.runDropdownMenu) return;
+
+        this.testCaseLabels.clear();
+        for (const tc of testCases) {
+            this.testCaseLabels.set(tc.id, tc.label || tc.id);
+        }
+
+        // Restore sticky selection if it still matches a known test case
+        let stored: string | null = null;
+        try {
+            stored = localStorage.getItem(this.selectionStorageKey);
+        } catch {
+            /* localStorage unavailable — fall back to default */
+        }
+        if (stored === 'all' || (stored && this.testCaseLabels.has(stored))) {
+            this.selectedTestCaseId = stored;
+        } else {
+            this.selectedTestCaseId = 'all';
+        }
 
         this.runDropdownMenu.innerHTML = '';
 
@@ -583,23 +618,35 @@ class BenchmarkUI {
             empty.textContent = 'No test cases available';
             this.runDropdownMenu.appendChild(empty);
             if (this.runDropdownButton) this.runDropdownButton.disabled = true;
+            this.updateRunButtonLabel();
             return;
         }
 
         const header = document.createElement('div');
         header.style.cssText =
             'padding: 8px 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--bm-badge-text); border-bottom: 1px solid var(--bm-table-border);';
-        header.textContent = 'Run single test case';
+        header.textContent = 'Select test case to run';
         this.runDropdownMenu.appendChild(header);
 
-        for (const tc of testCases) {
+        const entries: Array<{ id: string; label: string }> = [
+            { id: 'all', label: 'All test cases' },
+            ...testCases.map((tc) => ({ id: tc.id, label: tc.label || tc.id })),
+        ];
+
+        for (const entry of entries) {
             const item = document.createElement('button');
             item.type = 'button';
-            item.setAttribute('role', 'menuitem');
-            item.dataset.testCaseId = tc.id;
+            item.setAttribute('role', 'menuitemradio');
+            item.dataset.testCaseId = entry.id;
             item.style.cssText =
-                'display: block; width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; cursor: pointer; color: inherit; font: inherit;';
-            item.textContent = tc.label || tc.id;
+                'display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; cursor: pointer; color: inherit; font: inherit;';
+            const check = document.createElement('span');
+            check.style.cssText = 'width: 14px; display: inline-block; color: var(--bm-badge-accent);';
+            check.textContent = entry.id === this.selectedTestCaseId ? '✓' : '';
+            const labelEl = document.createElement('span');
+            labelEl.textContent = entry.label;
+            item.appendChild(check);
+            item.appendChild(labelEl);
             item.addEventListener('mouseenter', () => {
                 item.style.background = 'var(--bm-table-row-hover)';
             });
@@ -607,10 +654,38 @@ class BenchmarkUI {
                 item.style.background = 'none';
             });
             item.addEventListener('click', () => {
+                this.selectTestCase(entry.id);
                 this.closeRunDropdown();
-                onRunSingle(tc.id);
             });
             this.runDropdownMenu.appendChild(item);
+        }
+
+        this.updateRunButtonLabel();
+    }
+
+    private selectTestCase(id: string): void {
+        this.selectedTestCaseId = id;
+        try {
+            localStorage.setItem(this.selectionStorageKey, id);
+        } catch {
+            /* ignore quota / privacy mode failures */
+        }
+        if (this.runDropdownMenu) {
+            this.runDropdownMenu.querySelectorAll('button[data-test-case-id]').forEach((btn) => {
+                const check = btn.firstElementChild as HTMLElement | null;
+                if (check) check.textContent = (btn as HTMLElement).dataset.testCaseId === id ? '✓' : '';
+            });
+        }
+        this.updateRunButtonLabel();
+    }
+
+    private updateRunButtonLabel(): void {
+        if (!this.runButton) return;
+        if (this.selectedTestCaseId === 'all') {
+            this.runButton.textContent = 'Run Benchmark';
+        } else {
+            const label = this.testCaseLabels.get(this.selectedTestCaseId) ?? this.selectedTestCaseId;
+            this.runButton.textContent = `Run: ${label}`;
         }
     }
 
@@ -897,9 +972,9 @@ class BenchmarkUI {
         html += '<th>Test Case</th>';
         html += '<th>Parameters</th>';
         html += '<th>Avg (ms)</th>';
+        html += '<th title="95% confidence interval for the mean (±)">95% CI (ms)</th>';
         html += '<th>Min (ms)</th>';
         html += '<th>Max (ms)</th>';
-        html += '<th>Samples</th>';
         if (hasFrameStats) {
             html += '<th title="Average frame interval (rAF cadence) — click for detail">Frame (ms)</th>';
         }
@@ -935,12 +1010,14 @@ class BenchmarkUI {
             if (onRerun) {
                 html += `<td><button class="bm-rerun-btn" data-result-index="${resultIndex}" title="Re-run this test" style="background: none; border: 1px solid var(--bm-badge-border, #555); border-radius: 4px; cursor: pointer; padding: 2px 6px; font-size: 12px; color: inherit; line-height: 1;">▶</button></td>`;
             }
+            const ci95 = computeCI95(result.timings);
+            const samplesLine = `<div class="benchmark-change" style="color: var(--bm-badge-text);">${result.sampleCount} samples</div>`;
             html += `<td>${formatTestCase(result.testCase)}</td>`;
             html += `<td><span class="benchmark-param">${formatParams(result.params)}</span></td>`;
-            html += `<td>${avgCell}</td>`;
+            html += `<td>${avgCell}${samplesLine}</td>`;
+            html += `<td title="95% confidence interval for the mean">${ci95 > 0 ? `±${ci95.toFixed(3)}` : '—'}</td>`;
             html += `<td>${result.minTime.toFixed(3)}</td>`;
             html += `<td>${result.maxTime.toFixed(3)}</td>`;
-            html += `<td>${result.sampleCount}</td>`;
             if (hasFrameStats) {
                 const fs = result.frameStats;
                 if (!fs || fs.frameCount === 0) {
@@ -2110,13 +2187,12 @@ export function initBenchmark(config: BenchmarkConfig): void {
 
     const runner = new BenchmarkRunner(normalizedConfig, ui);
 
-    // Set up run button handler
-    ui.setRunButtonHandler(() => {
-        void runner.run();
-    });
+    ui.setTestCases(runner.getTestCases());
 
-    ui.setTestCases(runner.getTestCases(), (testCaseId) => {
-        void runner.run({ testCaseId });
+    // Set up run button handler — uses the sticky selection
+    ui.setRunButtonHandler(() => {
+        const selected = ui.getSelectedTestCaseId();
+        void runner.run(selected === 'all' ? undefined : { testCaseId: selected });
     });
 
     // Check for auto-run URL parameter
