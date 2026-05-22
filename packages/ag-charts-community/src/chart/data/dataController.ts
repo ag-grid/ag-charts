@@ -3,6 +3,7 @@ import { Debug, Logger, getWindow, jsonDiff } from 'ag-charts-core';
 import type { EventsHub } from '../../core/eventsHub';
 import type { ChartMode } from '../chartMode';
 import { type CachedData, canReuseCachedData } from './caching';
+import type { DataChangeDescription } from './dataChangeDescription';
 import {
     DataModel,
     type DataModelOptions,
@@ -11,7 +12,7 @@ import {
     type UngroupedData,
 } from './dataModel';
 import type { PropertyDefinition } from './dataModelTypes';
-import type { DataChangeDescription, DataSet } from './dataSet';
+import type { DataSet } from './dataSet';
 
 interface RequestedProcessing<
     D extends object,

@@ -1,5 +1,7 @@
-import type { DataChangeDescription } from './dataChangeDescription';
-import type { IDataSetSelection } from './dataSetSelectionTypes';
+import type { _ModuleSupport } from 'ag-charts-community';
+
+type IDataSetSelection = _ModuleSupport.IDataSetSelection;
+type DataChangeDescription = _ModuleSupport.DataChangeDescription;
 
 /**
  * Per-series selection state backed by a `Uint8Array` indexed by datum index.

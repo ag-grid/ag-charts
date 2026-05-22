@@ -2,6 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
 type TransactionCollectionState<T> = _ModuleSupport.TransactionCollectionState<T>;
+type IDataSelectionService = _ModuleSupport.IDataSelectionService;
 
 const { DataSet } = _ModuleSupport;
 
@@ -12,10 +13,11 @@ const { DataSet } = _ModuleSupport;
 export class HierarchyDataSet<T = unknown> extends DataSet<T> {
     constructor(
         data: T[],
+        dataSelectionService: IDataSelectionService | undefined,
         dataIdKey: string | undefined,
         private readonly childrenKey: string
     ) {
-        super(data, dataIdKey);
+        super(data, dataSelectionService, dataIdKey);
     }
 
     /**

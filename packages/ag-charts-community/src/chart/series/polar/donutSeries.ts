@@ -73,6 +73,7 @@ import { type TooltipContent } from '../../tooltip/tooltip';
 import type { DataModelSeriesNodeDatum } from '../dataModelSeries';
 import { SeriesNodeEvent, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
+import { isUnselected } from '../seriesProperties';
 import type { HighlightState, SeriesNodeEventTypes } from '../seriesTypes';
 import type { DonutInnerLabel, DonutTitle } from './donutSeriesProperties';
 import { DonutSeriesProperties } from './donutSeriesProperties';
@@ -83,7 +84,6 @@ import {
     type PolarAnimationData,
     PolarSeries,
 } from './polarSeries';
-import { isUnselected } from '../seriesProperties';
 
 class PieDonutSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<
     PieDonutNodeDatum,

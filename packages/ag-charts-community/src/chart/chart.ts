@@ -297,7 +297,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     })
     container?: HTMLElement;
 
-    public data: DataSet = DataSet.empty();
+    public data: DataSet = DataSet.empty(undefined);
 
     public loading: boolean | undefined = undefined;
 
@@ -2143,7 +2143,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         target.properties.set(seriesOptions);
 
         if ('data' in options) {
-            target.setOptionsData(data == null ? undefined : DataSet.wrap(data));
+            const dataSelectionService = this.getModuleContext().dataSelectionService;
+            target.setOptionsData(data == null ? undefined : DataSet.wrap(data, dataSelectionService));
         }
 
         if ('listeners' in options) {
