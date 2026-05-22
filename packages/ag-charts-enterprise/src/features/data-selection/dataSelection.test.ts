@@ -72,6 +72,74 @@ function createSelectionChangeRecorder<D, C>(): SelectionChangeRecorder<D, C> {
     return recorder;
 }
 
+type AccountingYear = '2020' | '2021' | '2022' | '2023';
+type AccountingDatum =
+    | { year: AccountingYear; assets: number; liabilities: number; cash: number; networth?: never }
+    | { year: AccountingYear; assets?: never; liabilities?: never; cash?: never; networth: number };
+function createLineAccountingOptions(): AgCartesianChartOptions<AccountingDatum, unknown> {
+    const data: { year: AccountingYear; assets: number; liabilities: number; cash: number }[] = [
+        { year: '2020', assets: 120, liabilities: -80, cash: 40 },
+        { year: '2021', assets: 150, liabilities: -90, cash: 60 },
+        { year: '2022', assets: 170, liabilities: -110, cash: 30 },
+        { year: '2023', assets: 200, liabilities: -130, cash: 90 },
+    ];
+    return {
+        data,
+        series: [
+            // Three line series (shared data)
+            {
+                id: 's1id',
+                type: 'line',
+                xKey: 'year',
+                yKey: 'assets',
+            },
+            {
+                id: 's2id',
+                type: 'line',
+                xKey: 'year',
+                yKey: 'liabilities',
+            },
+            {
+                id: 's3id',
+                type: 'line',
+                xKey: 'year',
+                yKey: 'cash',
+                selection: { enabled: false },
+            },
+            // Fourth (own data)
+            {
+                id: 's4id',
+                type: 'line',
+                xKey: 'year',
+                yKey: 'networth',
+                data: data.map(({ year, assets, liabilities, cash }) => {
+                    return { year, networth: assets + liabilities + cash };
+                }),
+            },
+        ],
+        theme: {
+            overrides: {
+                line: {
+                    series: {
+                        label: {
+                            enabled: true,
+                            formatter: (params) => {
+                                return `${params.yKey.at(0)}${params.datum.year.at(3)}`;
+                            },
+                        },
+                        selection: {
+                            // Make selected items in the image snapshots more obvious by increasing strokeWidth
+                            selectedItem: {
+                                strokeWidth: 5,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    };
+}
+
 type StackMixDatum =
     | { cat: 'A' | 'B' | 'C' | 'D' | 'E'; s1: number; s2: number; s3: number; s4?: never; s5?: never; s6: number }
     | { cat: 'A' | 'B' | 'C' | 'D' | 'E'; s1?: never; s2?: never; s3?: never; s4: number; s5?: never; s6?: never }
@@ -1955,6 +2023,199 @@ describe('DataSelection', () => {
 
                         await mouseUp(POINT_D, { shiftKey });
                         expect(getChartZoomState()).toEqual(INITIAL_ZOOM);
+                    });
+                });
+            });
+        });
+
+        describe('line', () => {
+            type D = AccountingDatum;
+            type C = unknown;
+            type I = AgSelectionItem<D>;
+            let selectionChange: SelectionChangeRecorder<D, C>;
+
+            describe('without module clash', () => {
+                const { data = [], series = [], theme = {} } = createLineAccountingOptions();
+
+                const POINT_A = { canvasX: 262.5, canvasY: 440 };
+                const POINT_B = { canvasX: 582.5, canvasY: 21 };
+                const POINT_C = { canvasX: 41.5, canvasY: 142 };
+
+                const a0: I = { datum: data[0], itemId: 0, seriesId: 's1id' };
+                const a1: I = { datum: data[1], itemId: 1, seriesId: 's1id' };
+                const a2: I = { datum: data[2], itemId: 2, seriesId: 's1id' };
+                const l1: I = { datum: data[1], itemId: 1, seriesId: 's2id' };
+                const l2: I = { datum: data[2], itemId: 2, seriesId: 's2id' };
+                const n1: I = { datum: series[3].data![1], itemId: 1, seriesId: 's4id' };
+                const n2: I = { datum: series[3].data![2], itemId: 2, seriesId: 's4id' };
+                const SELECTION_a0a1a2l1l2n1n2: I[] = [a0, a1, a2, l1, l2, n1, n2];
+                const SELECTION_a1a2l1l2n1n2: I[] = [a1, a2, l1, l2, n1, n2];
+                const SELECTION_a0a1a2n1: I[] = [a0, a1, a2, n1];
+                const ADDED_a0 = uiChangeEvent<D, C>({ added: [a0], removed: [] });
+                const ADDED_a1a2l1l2n1n2 = uiChangeEvent<D, C>({ added: [a1, a2, l1, l2, n1, n2], removed: [] });
+                const ADDED_a0_REMOVED_l1l2n2 = uiChangeEvent<D, C>({ added: [a0], removed: [l1, l2, n2] });
+
+                beforeEach(async () => {
+                    selectionChange = createSelectionChangeRecorder();
+
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        theme,
+                        selection: {
+                            containment: 'any',
+                            enabled: true,
+                            enableDrag: true,
+                            enableClick: false,
+                        },
+                        axes: {
+                            x: { crosshair: { enabled: false }, gridLine: { enabled: false } },
+                            y: { crosshair: { enabled: false }, gridLine: { enabled: false } },
+                        },
+                        navigator: { enabled: false },
+                        scrollbar: { enabled: false },
+                        zoom: { enabled: false },
+                        listeners: { selectionChange },
+                    });
+                });
+                describe('no-modifier two drags', () => {
+                    test('screenshot', async () => {
+                        await mouseDown(POINT_A);
+                        await mouseMove(POINT_B);
+                        await mouseUp(POINT_B);
+                        await compareExact('drag-modifiers-line-highlighted-a2-selected-a1a2l1l2n1n2');
+
+                        await mouseDown(POINT_B);
+                        await mouseMove(POINT_C);
+                        await mouseUp(POINT_C);
+                        await compareExact('drag-modifiers-line-highlighted-none-selected-a0a1a2n1');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(POINT_A);
+                        await mouseMove(POINT_B);
+                        await mouseUp(POINT_B);
+                        expect(getChartSelectionArray()).toEqual(SELECTION_a1a2l1l2n1n2);
+
+                        await mouseDown(POINT_B);
+                        await mouseMove(POINT_C);
+                        await mouseUp(POINT_C);
+                        expect(getChartSelectionArray()).toEqual(SELECTION_a0a1a2n1);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(POINT_A);
+                        await mouseMove(POINT_B);
+                        await mouseUp(POINT_B);
+                        expect(selectionChange.popEvents()).toEqual([ADDED_a1a2l1l2n1n2]);
+
+                        await mouseDown(POINT_B);
+                        await mouseMove(POINT_C);
+                        await mouseUp(POINT_C);
+                        expect(selectionChange.popEvents()).toEqual([ADDED_a0_REMOVED_l1l2n2]);
+                    });
+                });
+                describe('alt-modifier two drags', () => {
+                    test('screenshot', async () => {
+                        await mouseDown(POINT_A, { altKey });
+                        await mouseMove(POINT_B, { altKey });
+                        await mouseUp(POINT_B, { altKey });
+                        await compareExact('drag-modifiers-line-highlighted-a2-selected-none');
+
+                        await mouseDown(POINT_B, { altKey });
+                        await mouseMove(POINT_C, { altKey });
+                        await mouseUp(POINT_C, { altKey });
+                        await compareExact('drag-modifiers-line-highlighted-none-selected-none');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(POINT_A, { altKey });
+                        await mouseMove(POINT_B, { altKey });
+                        await mouseUp(POINT_B, { altKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseDown(POINT_B, { altKey });
+                        await mouseMove(POINT_C, { altKey });
+                        await mouseUp(POINT_C, { altKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(POINT_A, { altKey });
+                        await mouseMove(POINT_B, { altKey });
+                        await mouseUp(POINT_B, { altKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseDown(POINT_B, { altKey });
+                        await mouseMove(POINT_C, { altKey });
+                        await mouseUp(POINT_C, { altKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+                describe('ctrl-modifier two drags', () => {
+                    test('screenshot', async () => {
+                        await mouseDown(POINT_A, { ctrlKey });
+                        await mouseMove(POINT_B, { ctrlKey });
+                        await mouseUp(POINT_B, { ctrlKey });
+                        await compareExact('drag-modifiers-line-highlighted-a2-selected-a1a2l1l2n1n2');
+
+                        await mouseDown(POINT_B, { ctrlKey });
+                        await mouseMove(POINT_C, { ctrlKey });
+                        await mouseUp(POINT_C, { ctrlKey });
+                        await compareExact('drag-modifiers-line-highlighted-none-selected-a0a1a2l1l2n1n2');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(POINT_A, { ctrlKey });
+                        await mouseMove(POINT_B, { ctrlKey });
+                        await mouseUp(POINT_B, { ctrlKey });
+                        expect(getChartSelectionArray()).toEqual(SELECTION_a1a2l1l2n1n2);
+
+                        await mouseDown(POINT_B, { ctrlKey });
+                        await mouseMove(POINT_C, { ctrlKey });
+                        await mouseUp(POINT_C, { ctrlKey });
+                        expect(getChartSelectionArray()).toEqual(SELECTION_a0a1a2l1l2n1n2);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(POINT_A, { ctrlKey });
+                        await mouseMove(POINT_B, { ctrlKey });
+                        await mouseUp(POINT_B, { ctrlKey });
+                        expect(selectionChange.popEvents()).toEqual([ADDED_a1a2l1l2n1n2]);
+
+                        await mouseDown(POINT_B, { ctrlKey });
+                        await mouseMove(POINT_C, { ctrlKey });
+                        await mouseUp(POINT_C, { ctrlKey });
+                        expect(selectionChange.popEvents()).toEqual([ADDED_a0]);
+                    });
+                });
+                describe('meta-modifier two drags', () => {
+                    test('screenshot', async () => {
+                        await mouseDown(POINT_A, { metaKey });
+                        await mouseMove(POINT_B, { metaKey });
+                        await mouseUp(POINT_B, { metaKey });
+                        await compareExact('drag-modifiers-line-highlighted-a2-selected-a1a2l1l2n1n2');
+
+                        await mouseDown(POINT_B, { metaKey });
+                        await mouseMove(POINT_C, { metaKey });
+                        await mouseUp(POINT_C, { metaKey });
+                        await compareExact('drag-modifiers-line-highlighted-none-selected-a0a1a2l1l2n1n2');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(POINT_A, { metaKey });
+                        await mouseMove(POINT_B, { metaKey });
+                        await mouseUp(POINT_B, { metaKey });
+                        expect(getChartSelectionArray()).toEqual(SELECTION_a1a2l1l2n1n2);
+
+                        await mouseDown(POINT_B, { metaKey });
+                        await mouseMove(POINT_C, { metaKey });
+                        await mouseUp(POINT_C, { metaKey });
+                        expect(getChartSelectionArray()).toEqual(SELECTION_a0a1a2l1l2n1n2);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(POINT_A, { metaKey });
+                        await mouseMove(POINT_B, { metaKey });
+                        await mouseUp(POINT_B, { metaKey });
+                        expect(selectionChange.popEvents()).toEqual([ADDED_a1a2l1l2n1n2]);
+
+                        await mouseDown(POINT_B, { metaKey });
+                        await mouseMove(POINT_C, { metaKey });
+                        await mouseUp(POINT_C, { metaKey });
+                        expect(selectionChange.popEvents()).toEqual([ADDED_a0]);
                     });
                 });
             });
