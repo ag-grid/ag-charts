@@ -1,6 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { DynamicContext } from 'ag-charts-core';
 
+import type { DataSetSelectionsIterator } from './dataSelectionUtil';
 import { DataSetSelection } from './dataSetSelection';
 
 const { SelectionState } = _ModuleSupport;
@@ -12,19 +13,20 @@ type IDataSelectionService = _ModuleSupport.IDataSelectionService;
 type SelectionStateEnum = _ModuleSupport.SelectionState;
 type SeriesLike = Parameters<IDataSelectionService['getDataSelectionState']>[0];
 
-type DataSetSelectionsIterator = {
-    seriesId: string,
-    dataSet: DataSet<unknown>;
-    selection: DataSetSelection;
-}
-
 export class DataSelectionService implements IDataSelectionService {
     public totalSelectedCount = 0;
 
     /** Per-series selection state. Keyed by `seriesId`. */
-    readonly selections = new Map<string, DataSetSelection>();
+    private readonly selections = new Map<string, DataSetSelection>();
 
     constructor(private readonly ctx: DynamicContext<ChartRegistry>) {}
+
+    clear(): void {
+        for (const [_, selection] of this.selections) {
+            selection.clear();
+        }
+        this.totalSelectedCount = 0;
+    }
 
     /** Lazy-create a per-series selection backed by a Uint8Array of `data.length`. */
     enableSelection(seriesId: string, data: DataSet<unknown>): DataSetSelection {
