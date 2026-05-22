@@ -17,8 +17,8 @@ inputs:
         required: true
     outcome:
         description: |
-            For `mode: post-job` only. The `${{ job.status }}` value from the surrounding job
-            (`success` | `failure` | `cancelled`).
+            For `mode: post-job` only. The job.status value from the surrounding
+            job (`success` | `failure` | `cancelled`).
         required: false
         default: success
     jira_email:
