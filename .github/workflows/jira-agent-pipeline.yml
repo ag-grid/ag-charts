@@ -201,6 +201,30 @@ jobs:
                   test -f .claude/settings.json
                   jq -e '.extraKnownMarketplaces."ag-dev"' .claude/settings.json >/dev/null
 
+            - name: Sanitise .claude/settings.json for CI
+              # Local-dev settings include hooks that reference scripts whose
+              # side effects are inappropriate for a triage job (SessionStart
+              # → install-for-cloud.sh, PostToolUse → yarn nx format on every
+              # edit, WorktreeCreate/Remove). Strip them. Keep env (NX_DAEMON
+              # off), the ag-dev marketplace + enabledPlugins (so /fr et al
+              # load), and a minimal permissions block (claude-code-action
+              # manages its own permissions for the agent surface).
+              run: |
+                  set -euo pipefail
+                  cp .claude/settings.json /tmp/orig-settings.json
+                  jq '{
+                      env,
+                      extraKnownMarketplaces: { "ag-dev": .extraKnownMarketplaces."ag-dev" },
+                      enabledPlugins: (
+                          .enabledPlugins
+                          | to_entries
+                          | map(select(.key | endswith("@ag-dev")))
+                          | from_entries
+                      )
+                  }' /tmp/orig-settings.json > .claude/settings.json
+                  echo "--- sanitised settings ---"
+                  cat .claude/settings.json
+
             - name: Write Atlassian MCP config
               id: mcp-config
               env:
