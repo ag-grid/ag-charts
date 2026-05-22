@@ -7,24 +7,25 @@ import {
 import { ChartTheme } from './chartTheme';
 
 const RAINBOW_LIGHT_FILLS = {
-    RED: '#e23636',
-    ORANGE: '#f08a24',
-    YELLOW: '#f0c419',
-    GREEN: '#2fa84f',
-    BLUE: '#2a7fdb',
-    INDIGO: '#4b3ea3',
-    VIOLET: '#8a3a9f',
+    RED: '#e40303',
+    ORANGE: '#ff8c00',
+    YELLOW: '#ffed00',
+    GREEN: '#008026',
+    BLUE: '#004cff',
+    INDIGO: '#732982',
+    VIOLET: '#9b59b6',
+    GRAY: '#bbbbbb',
 };
 
-/** Hand-derived from `RAINBOW_LIGHT_FILLS`: each stroke is roughly 30% darker than its matching fill. Update both in lockstep. */
 const RAINBOW_LIGHT_STROKES = {
-    RED: '#9e2626',
-    ORANGE: '#a8601a',
-    YELLOW: '#a88912',
-    GREEN: '#217637',
-    BLUE: '#1d5999',
-    INDIGO: '#352c72',
-    VIOLET: '#60286f',
+    RED: '#b00202',
+    ORANGE: '#c66c00',
+    YELLOW: '#c2b300',
+    GREEN: '#005e1c',
+    BLUE: '#0036b8',
+    INDIGO: '#561e62',
+    VIOLET: '#71438a',
+    GRAY: '#888888',
 };
 
 export class RainbowLight extends ChartTheme {
@@ -35,7 +36,7 @@ export class RainbowLight extends ChartTheme {
             fillsFallback: Object.values(RAINBOW_LIGHT_FILLS),
             strokes: RAINBOW_LIGHT_STROKES,
             sequentialColors: getSequentialColors(RAINBOW_LIGHT_FILLS),
-            divergingColors: [RAINBOW_LIGHT_FILLS.RED, RAINBOW_LIGHT_FILLS.YELLOW, RAINBOW_LIGHT_FILLS.BLUE],
+            divergingColors: [RAINBOW_LIGHT_FILLS.BLUE, RAINBOW_LIGHT_FILLS.RED],
             hierarchyColors: [],
             secondSequentialColors: [
                 RAINBOW_LIGHT_FILLS.RED,
@@ -46,22 +47,22 @@ export class RainbowLight extends ChartTheme {
                 RAINBOW_LIGHT_FILLS.INDIGO,
                 RAINBOW_LIGHT_FILLS.VIOLET,
             ],
-            secondDivergingColors: [RAINBOW_LIGHT_FILLS.RED, RAINBOW_LIGHT_FILLS.YELLOW, RAINBOW_LIGHT_FILLS.BLUE],
+            secondDivergingColors: [RAINBOW_LIGHT_FILLS.BLUE, RAINBOW_LIGHT_FILLS.RED],
             secondHierarchyColors: [],
             up: { fill: RAINBOW_LIGHT_FILLS.GREEN, stroke: RAINBOW_LIGHT_STROKES.GREEN },
             down: { fill: RAINBOW_LIGHT_FILLS.RED, stroke: RAINBOW_LIGHT_STROKES.RED },
-            neutral: { fill: RAINBOW_LIGHT_FILLS.YELLOW, stroke: RAINBOW_LIGHT_STROKES.YELLOW },
+            neutral: { fill: RAINBOW_LIGHT_FILLS.GRAY, stroke: RAINBOW_LIGHT_STROKES.GRAY },
             altUp: { fill: RAINBOW_LIGHT_FILLS.BLUE, stroke: RAINBOW_LIGHT_STROKES.BLUE },
-            altDown: { fill: RAINBOW_LIGHT_FILLS.ORANGE, stroke: RAINBOW_LIGHT_STROKES.ORANGE },
-            altNeutral: { fill: RAINBOW_LIGHT_FILLS.INDIGO, stroke: RAINBOW_LIGHT_STROKES.INDIGO },
+            altDown: { fill: RAINBOW_LIGHT_FILLS.RED, stroke: RAINBOW_LIGHT_STROKES.RED },
+            altNeutral: { fill: RAINBOW_LIGHT_FILLS.GRAY, stroke: RAINBOW_LIGHT_STROKES.GRAY },
         };
     }
 
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
 
-        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, RAINBOW_LIGHT_FILLS.RED);
-        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, RAINBOW_LIGHT_FILLS.RED);
+        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, RAINBOW_LIGHT_FILLS.BLUE);
+        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, RAINBOW_LIGHT_FILLS.BLUE);
 
         return params;
     }

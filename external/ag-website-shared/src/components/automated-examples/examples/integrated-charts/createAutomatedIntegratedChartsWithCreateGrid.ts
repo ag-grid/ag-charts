@@ -151,8 +151,15 @@ const gridOptions: GridOptions = {
 
 function getDarkModeChartThemes(darkMode: boolean) {
     return darkMode
-        ? ['ag-default-dark', 'ag-material-dark', 'ag-sheets-dark', 'ag-polychroma-dark', 'ag-vivid-dark']
-        : ['ag-default', 'ag-material', 'ag-sheets', 'ag-polychroma', 'ag-vivid'];
+        ? [
+              'ag-default-dark',
+              'ag-material-dark',
+              'ag-sheets-dark',
+              'ag-polychroma-dark',
+              'ag-vivid-dark',
+              'ag-rainbow-dark',
+          ]
+        : ['ag-default', 'ag-material', 'ag-sheets', 'ag-polychroma', 'ag-vivid', 'ag-rainbow'];
 }
 
 export function createAutomatedIntegratedChartsWithCreateGrid({
