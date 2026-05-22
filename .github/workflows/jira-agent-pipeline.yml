@@ -216,7 +216,7 @@ jobs:
                       ag-product@ag-dev
                   claude_args: |
                       --mcp-config ${{ steps.setup.outputs.mcp_config }}
-                      --max-turns 12
+                      --max-turns 20
                       --debug
                       --permission-mode acceptEdits
                       --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__editJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue,mcp__atlassian__addAttachmentToJiraIssue
