@@ -96,8 +96,13 @@ runs:
 
               if [[ "$MODE" == "pre-job" ]]; then
                   VAL="$(in_progress_for "$STAGE")"
-                  echo "[status-writeback] $ISSUE_KEY: stage=$STAGE mode=pre-job -> AI status='$VAL'"
-                  BODY=$(jq -n --arg v "$VAL" '{ fields: { customfield_10942: { value: $v } } }')
+                  echo "[status-writeback] $ISSUE_KEY: stage=$STAGE mode=pre-job -> AI status='$VAL', AI GHA Job='$RUN_URL'"
+                  # Set AI status (in-progress for this stage) AND AI GHA Job
+                  # (run URL) in the same PUT so the ticket points at the
+                  # running job for the duration of the run. customfield_10984
+                  # is a URL-type field — accepts a plain string.
+                  BODY=$(jq -n --arg v "$VAL" --arg url "$RUN_URL" \
+                      '{ fields: { customfield_10942: { value: $v }, customfield_10984: $url } }')
                   put_fields "$BODY"
                   exit 0
               fi
