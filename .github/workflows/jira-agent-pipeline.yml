@@ -237,6 +237,7 @@ jobs:
               with:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.app-token.outputs.token }}
+                  show_full_output: 'true'
                   # Plugins are declared in .claude/settings.json
                   # (rendered by setup-prompts.sh during yarn install) — no
                   # plugin_marketplaces/plugins inputs needed here. Claude
