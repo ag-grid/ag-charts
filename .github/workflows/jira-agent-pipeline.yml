@@ -216,6 +216,7 @@ jobs:
                       ag-product@ag-dev
                   claude_args: |
                       --mcp-config ${{ steps.setup.outputs.mcp_config }}
+                      --add-dir /home/runner/.claude/plugins
                       --max-turns 20
                       --debug
                       --permission-mode acceptEdits
@@ -419,6 +420,7 @@ jobs:
                       ag-product@ag-dev
                   claude_args: |
                       --mcp-config ${{ steps.setup.outputs.mcp_config }}
+                      --add-dir /home/runner/.claude/plugins
                       --max-turns 60
                       --debug
                       --permission-mode acceptEdits
@@ -625,6 +627,7 @@ jobs:
                       ag-product@ag-dev
                   claude_args: |
                       --mcp-config ${{ steps.setup.outputs.mcp_config }}
+                      --add-dir /home/runner/.claude/plugins
                       --max-turns 60
                       --debug
                       --permission-mode acceptEdits
@@ -899,6 +902,7 @@ jobs:
                       ag-product@ag-dev
                   claude_args: |
                       --mcp-config ${{ steps.setup.outputs.mcp_config }}
+                      --add-dir /home/runner/.claude/plugins
                       --max-turns 60
                       --debug
                       --permission-mode acceptEdits
