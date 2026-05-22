@@ -257,12 +257,12 @@ describe('themes.ts', () => {
         let logSpy: ReturnType<typeof vi.spyOn>;
 
         beforeEach(() => {
-            (window as any).agChartsDebug = 'theme';
+            (globalThis as any).agChartsDebug = 'theme';
             logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
         });
 
         afterEach(() => {
-            delete (window as any).agChartsDebug;
+            delete (globalThis as any).agChartsDebug;
             vi.restoreAllMocks();
         });
 
