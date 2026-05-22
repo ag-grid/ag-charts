@@ -386,7 +386,11 @@ jobs:
               id: build
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
-                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude='*,!ag-charts-website'
+                  if [[ "${{ github.ref }}" == "refs/heads/latest" ]]; then
+                      yarn nx run ag-charts-website:build
+                  else
+                      yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude='*,!ag-charts-website'
+                  fi
 
             - name: Deploy to Staging
               id: deploy_to_staging
