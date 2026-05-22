@@ -12,6 +12,12 @@ type IDataSelectionService = _ModuleSupport.IDataSelectionService;
 type SelectionStateEnum = _ModuleSupport.SelectionState;
 type SeriesLike = Parameters<IDataSelectionService['getDataSelectionState']>[0];
 
+type DataSetSelectionsIterator = {
+    seriesId: string,
+    dataSet: DataSet<unknown>;
+    selection: DataSetSelection;
+}
+
 export class DataSelectionService implements IDataSelectionService {
     public totalSelectedCount = 0;
 
@@ -28,6 +34,22 @@ export class DataSelectionService implements IDataSelectionService {
             this.selections.set(seriesId, sel);
         }
         return sel;
+    }
+
+    *iterateDataSetSelections(): Generator<DataSetSelectionsIterator> {
+        const it: DataSetSelectionsIterator = {} as any;
+
+        for (const series of this.ctx.chartService.series) {
+            const seriesId = series.id;
+            const dataSet = series.data;
+            const selection = this.selections.get(series.id);
+            if (dataSet !== undefined && selection !== undefined) {
+                it.seriesId = seriesId;
+                it.dataSet = dataSet;
+                it.selection = selection;
+                yield it;
+            }
+        }
     }
 
     //------------------------------------------------------------------------------
