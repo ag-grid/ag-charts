@@ -16,6 +16,7 @@ const RAINBOW_DARK_FILLS = {
     VIOLET: '#8a3a9f',
 };
 
+/** Hand-derived from `RAINBOW_DARK_FILLS`: each stroke is roughly 30% brighter than its matching fill. Update both in lockstep. */
 const RAINBOW_DARK_STROKES = {
     RED: '#ff6e6e',
     ORANGE: '#ffb466',

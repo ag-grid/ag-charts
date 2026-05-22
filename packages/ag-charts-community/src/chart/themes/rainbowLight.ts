@@ -16,6 +16,7 @@ const RAINBOW_LIGHT_FILLS = {
     VIOLET: '#8a3a9f',
 };
 
+/** Hand-derived from `RAINBOW_LIGHT_FILLS`: each stroke is roughly 30% darker than its matching fill. Update both in lockstep. */
 const RAINBOW_LIGHT_STROKES = {
     RED: '#9e2626',
     ORANGE: '#a8601a',
