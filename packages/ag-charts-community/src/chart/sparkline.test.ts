@@ -130,4 +130,26 @@ describe('Sparkline', () => {
             await compare(chart);
         });
     });
+
+    describe('structural cache (AG-17227)', () => {
+        it('does not alias data across cache-hit instances with same shape, different values', async () => {
+            const baseOptions = { type: 'line' as const, width: 200, height: 100 };
+            const instanceA = AgCharts.__createSparkline({ ...baseOptions, data: [1, 2, 3, 4, 5] });
+            const chartA = deproxy(instanceA);
+            await waitForChartStability(chartA);
+
+            const instanceB = AgCharts.__createSparkline({ ...baseOptions, data: [10, 20, 30, 40, 50] });
+            const chartB = deproxy(instanceB);
+            await waitForChartStability(chartB);
+
+            const aData = chartA.chartOptions.processedOptions.data as Array<{ y: number }>;
+            const bData = chartB.chartOptions.processedOptions.data as Array<{ y: number }>;
+            expect(aData).not.toBe(bData);
+            expect(aData.map((d) => d.y)).toEqual([1, 2, 3, 4, 5]);
+            expect(bData.map((d) => d.y)).toEqual([10, 20, 30, 40, 50]);
+
+            chartB.destroy();
+            chart = chartA;
+        });
+    });
 });

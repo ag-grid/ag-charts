@@ -305,11 +305,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (cached) {
                 const activeTheme = sanitizeThemeModules(getChartTheme((this.userOptions as any).theme));
                 this.chartDef = cached.chartDef;
+                // Re-run the preset's data transform on this chart's data — the cached
+                // processedOptions has `data` stripped to prevent aliasing.
+                const presetDef =
+                    this.optionMetadata.presetType == null
+                        ? undefined
+                        : ModuleRegistry.getPresetModule(this.optionMetadata.presetType);
+                const userData = (this.userOptions as any).data;
+                const resolvedData = presetDef?.processData ? presetDef.processData(userData).data : userData;
+                const processedOptions = { ...(cached.processedOptions as object), data: resolvedData } as T;
                 // Un-memoized graph — each chart needs its own resolution state for stylers' resolvePartial.
-                const optionsGraph = createOptionsGraphFn(activeTheme, cached.processedOptions as PlainObject);
+                const optionsGraph = createOptionsGraphFn(activeTheme, processedOptions as PlainObject);
                 return {
                     activeTheme,
-                    processedOptions: cached.processedOptions as T,
+                    processedOptions,
                     themeParameters: cached.themeParameters,
                     annotationThemes: cached.annotationThemes,
                     googleFonts: cached.googleFonts ? new Set(cached.googleFonts) : undefined,
@@ -427,8 +436,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
         if (cacheKey !== undefined) {
+            const { data: _cachedData, ...processedOptionsWithoutData } = processedOptions as Record<string, unknown>;
             setStructuralCacheEntry(cacheKey, {
-                processedOptions,
+                processedOptions: processedOptionsWithoutData,
                 themeParameters,
                 googleFonts: googleFonts.size > 0 ? new Set(googleFonts) : undefined,
                 annotationThemes,
