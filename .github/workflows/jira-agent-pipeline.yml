@@ -186,8 +186,10 @@ jobs:
               with:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.app-token.outputs.token }}
-                  plugin_marketplaces: ag-grid/ag-dev-prompts@latest
-                  plugins: ag-eng@ag-dev-prompts ag-product@ag-dev-prompts
+                  plugin_marketplaces: https://github.com/ag-grid/ag-dev-prompts.git
+                  plugins: |
+                      ag-eng@ag-dev-prompts
+                      ag-product@ag-dev-prompts
                   claude_args: |
                       --mcp-config ${{ runner.temp }}/mcp.json
                       --max-turns 12
