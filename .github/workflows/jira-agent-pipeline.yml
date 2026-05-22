@@ -52,6 +52,12 @@ name: Jira Agent Pipeline
 #   customfield_10945  AI plan      textarea  <-> plan.md
 #   customfield_10946  AI branch    textfield    (build job populates)
 #   customfield_10947  AI PR URL    textfield    (build job populates)
+#   customfield_10985  AI model         textfield  (triage writes recommendation;
+#                                                    build/pr-iterate/ci-failure
+#                                                    read as override, fall back
+#                                                    to per-stage default)
+#   customfield_10986  AI model effort  textfield  (same flow as AI model;
+#                                                    valid: low|medium|high|xhigh|max)
 #
 # ----------------------------------------------------------------------------
 # Per-job step skeleton
@@ -176,6 +182,14 @@ jobs:
             - name: Run /fr --ci --phase 0..1 (triage)
               id: claude
               uses: anthropics/claude-code-action@v1
+              env:
+                  # Triage always runs at the highest tier — its job is
+                  # to draft intent / research / plan and recommend the
+                  # model + effort downstream stages should use. That
+                  # recommendation is only trustworthy if triage itself
+                  # has full capability headroom.
+                  ANTHROPIC_MODEL: 'claude-opus-4-7[1m]'
+                  CLAUDE_CODE_EFFORT_LEVEL: high
               with:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.setup.outputs.app_token }}
@@ -322,6 +336,16 @@ jobs:
             # composite actions after the agent step (which typically
             # checks out a fresh topic branch that lacks them — see the
             # restore step below for the full rationale).
+            - id: model-pick
+              uses: ./.github/actions/jira-model-pick
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  default_model: 'claude-opus-4-7[1m]'
+                  default_effort: medium
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
             - name: Snapshot .github/ before agent
               shell: bash
               run: cp -a .github "${RUNNER_TEMP}/gha-snapshot"
@@ -329,6 +353,9 @@ jobs:
             - name: Run /fr --ci --phase 2..5 --resume --draft-pr (build)
               id: claude
               uses: anthropics/claude-code-action@v1
+              env:
+                  ANTHROPIC_MODEL: ${{ steps.model-pick.outputs.model }}
+                  CLAUDE_CODE_EFFORT_LEVEL: ${{ steps.model-pick.outputs.effort }}
               with:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.setup.outputs.app_token }}
@@ -491,6 +518,16 @@ jobs:
                   jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
+            - id: model-pick
+              uses: ./.github/actions/jira-model-pick
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  default_model: 'claude-opus-4-7[1m]'
+                  default_effort: high
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
             # See note in the build job — snapshot .github/ so the
             # post-agent composites resolve regardless of branch state.
             - name: Snapshot .github/ before agent
@@ -500,6 +537,9 @@ jobs:
             - name: Run /fr --ci --pr-iterate (pr-iterate)
               id: claude
               uses: anthropics/claude-code-action@v1
+              env:
+                  ANTHROPIC_MODEL: ${{ steps.model-pick.outputs.model }}
+                  CLAUDE_CODE_EFFORT_LEVEL: ${{ steps.model-pick.outputs.effort }}
               with:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.setup.outputs.app_token }}
@@ -732,6 +772,16 @@ jobs:
                   jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
+            - id: model-pick
+              uses: ./.github/actions/jira-model-pick
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  default_model: 'claude-opus-4-7[1m]'
+                  default_effort: medium
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
             - name: Snapshot .github/ before agent
               shell: bash
               run: cp -a .github "${RUNNER_TEMP}/gha-snapshot"
@@ -739,6 +789,9 @@ jobs:
             - name: Run /fr --ci --pr-iterate --ci-failure (ci-failure-iterate)
               id: claude
               uses: anthropics/claude-code-action@v1
+              env:
+                  ANTHROPIC_MODEL: ${{ steps.model-pick.outputs.model }}
+                  CLAUDE_CODE_EFFORT_LEVEL: ${{ steps.model-pick.outputs.effort }}
               with:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.setup.outputs.app_token }}
