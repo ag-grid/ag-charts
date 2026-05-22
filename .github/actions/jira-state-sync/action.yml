@@ -140,15 +140,15 @@ runs:
                   ANY_PUSHED=0
                   echo "## AI state push" >> "$GITHUB_STEP_SUMMARY"
                   echo "" >> "$GITHUB_STEP_SUMMARY"
-                  echo "| File | Bytes | Truncated |" >> "$GITHUB_STEP_SUMMARY"
-                  echo "|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
+                  echo "| File | Bytes | Truncated | Fallback |" >> "$GITHUB_STEP_SUMMARY"
+                  echo "|---|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
                   for row in "${FIELDS[@]}"; do
                       FIELD_ID="${row%% *}"
                       NAME="${row##* }"
                       P="$STATE_DIR/$NAME"
                       if [[ ! -f "$P" ]]; then
                           echo "[state-sync push] $NAME absent — leaving $FIELD_ID untouched"
-                          echo "| \`$NAME\` | _(absent)_ | - |" >> "$GITHUB_STEP_SUMMARY"
+                          echo "| \`$NAME\` | _(absent)_ | - | - |" >> "$GITHUB_STEP_SUMMARY"
                           continue
                       fi
                       SIZE=$(wc -c < "$P" | tr -d ' ')
@@ -164,19 +164,31 @@ runs:
                       # Convert markdown -> ADF before PUT. Jira v3 requires ADF
                       # for textarea fields; sending a plain string falls back
                       # to Jira's wiki-text auto-conversion, which mangles
-                      # markdown.
+                      # markdown. If the converter rejects the file (unterminated
+                      # delimiter, etc.) wrap the raw markdown in a codeBlock so
+                      # the content still lands on the ticket — degraded
+                      # rendering, but no data loss.
                       ADF_FILE="$P.adf.json"
+                      FALLBACK="no"
                       if ! node "$MD_TO_ADF" < "$P" > "$ADF_FILE" 2>/tmp/md-to-adf.err; then
-                          echo "[state-sync push] md-to-adf failed for $NAME:" >&2
+                          echo "[state-sync push] md-to-adf failed for $NAME (using codeBlock fallback):" >&2
                           cat /tmp/md-to-adf.err >&2 || true
-                          exit 1
+                          FALLBACK="yes"
+                          jq -n --rawfile body "$P" '{
+                              version: 1, type: "doc",
+                              content: [{
+                                  type: "codeBlock",
+                                  attrs: { language: "markdown" },
+                                  content: [{ type: "text", text: $body }]
+                              }]
+                          }' > "$ADF_FILE"
                       fi
                       jq --arg f "$FIELD_ID" --slurpfile body "$ADF_FILE" \
                           '. + { ($f): $body[0] }' "$TMP_BODY" > "$TMP_BODY.next"
                       mv "$TMP_BODY.next" "$TMP_BODY"
                       ANY_PUSHED=1
-                      echo "[state-sync push] $NAME ($SIZE bytes, truncated=$TRUNC) -> $FIELD_ID"
-                      echo "| \`$NAME\` | $SIZE | $TRUNC |" >> "$GITHUB_STEP_SUMMARY"
+                      echo "[state-sync push] $NAME ($SIZE bytes, truncated=$TRUNC, fallback=$FALLBACK) -> $FIELD_ID"
+                      echo "| \`$NAME\` | $SIZE | $TRUNC | $FALLBACK |" >> "$GITHUB_STEP_SUMMARY"
                   done
 
                   if (( ANY_PUSHED == 0 )); then
