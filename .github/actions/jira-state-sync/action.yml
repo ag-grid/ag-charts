@@ -73,6 +73,18 @@ runs:
               AUTH="$(printf '%s:%s' "$JIRA_USER_EMAIL" "$JIRA_API_TOKEN" | base64 | tr -d '\n')"
               MAX_CHARS=32767
 
+              # MD <-> ADF converters live in the jira skill of ag-dev-prompts
+              # (cloned to $HOME/.cache/ag-dev-prompts/repo by setup-prompts.sh).
+              JIRA_SKILL_ROOT="${HOME}/.cache/ag-dev-prompts/repo/plugins/ag-product/skills/jira"
+              MD_TO_ADF="$JIRA_SKILL_ROOT/md-to-adf.js"
+              ADF_TO_MD="$JIRA_SKILL_ROOT/adf-to-md.js"
+              if [[ ! -f "$MD_TO_ADF" || ! -f "$ADF_TO_MD" ]]; then
+                  echo "[state-sync] converter scripts missing under $JIRA_SKILL_ROOT" >&2
+                  echo "[state-sync]   md-to-adf: $([[ -f "$MD_TO_ADF" ]] && echo OK || echo MISSING)" >&2
+                  echo "[state-sync]   adf-to-md: $([[ -f "$ADF_TO_MD" ]] && echo OK || echo MISSING)" >&2
+                  exit 1
+              fi
+
               # field_id  filename
               FIELDS=(
                   "customfield_10943 research.md"
@@ -105,9 +117,11 @@ runs:
                   for row in "${FIELDS[@]}"; do
                       FIELD_ID="${row%% *}"
                       NAME="${row##* }"
-                      VAL=$(jq -r --arg f "$FIELD_ID" '.fields[$f] // empty' /tmp/state-pull.json)
-                      if [[ -n "$VAL" ]]; then
-                          printf '%s' "$VAL" > "$STATE_DIR/$NAME"
+                      # v3 returns textarea field values as ADF JSON objects.
+                      # Pipe through adf-to-md to recover markdown for the skill.
+                      ADF=$(jq -c --arg f "$FIELD_ID" '.fields[$f] // empty' /tmp/state-pull.json)
+                      if [[ -n "$ADF" && "$ADF" != "null" ]]; then
+                          printf '%s' "$ADF" | node "$ADF_TO_MD" > "$STATE_DIR/$NAME"
                           SIZE=$(wc -c < "$STATE_DIR/$NAME" | tr -d ' ')
                           echo "[state-sync pull] $NAME ($SIZE bytes) <- $FIELD_ID"
                           echo "| \`$NAME\` | $SIZE |" >> "$GITHUB_STEP_SUMMARY"
@@ -147,8 +161,18 @@ runs:
                           mv "$P.trunc" "$P"
                           SIZE=$(wc -c < "$P" | tr -d ' ')
                       fi
-                      jq --arg f "$FIELD_ID" --rawfile body "$P" \
-                          '. + { ($f): $body }' "$TMP_BODY" > "$TMP_BODY.next"
+                      # Convert markdown -> ADF before PUT. Jira v3 requires ADF
+                      # for textarea fields; sending a plain string falls back
+                      # to Jira's wiki-text auto-conversion, which mangles
+                      # markdown.
+                      ADF_FILE="$P.adf.json"
+                      if ! node "$MD_TO_ADF" < "$P" > "$ADF_FILE" 2>/tmp/md-to-adf.err; then
+                          echo "[state-sync push] md-to-adf failed for $NAME:" >&2
+                          cat /tmp/md-to-adf.err >&2 || true
+                          exit 1
+                      fi
+                      jq --arg f "$FIELD_ID" --slurpfile body "$ADF_FILE" \
+                          '. + { ($f): $body[0] }' "$TMP_BODY" > "$TMP_BODY.next"
                       mv "$TMP_BODY.next" "$TMP_BODY"
                       ANY_PUSHED=1
                       echo "[state-sync push] $NAME ($SIZE bytes, truncated=$TRUNC) -> $FIELD_ID"
@@ -161,13 +185,14 @@ runs:
                   fi
 
                   PUT_BODY=$(jq -n --slurpfile f "$TMP_BODY" '{ fields: $f[0] }')
+                  # v3 with ADF objects in the body — textarea fields require ADF.
                   HTTP=$(curl -sS -o /tmp/state-push.out -w '%{http_code}' \
                       -X PUT \
                       -H "authorization: Basic $AUTH" \
                       -H 'accept: application/json' \
                       -H 'content-type: application/json' \
                       --data "$PUT_BODY" \
-                      "$SITE/rest/api/2/issue/$ISSUE_KEY")
+                      "$SITE/rest/api/3/issue/$ISSUE_KEY")
                   if [[ "$HTTP" != "204" && "$HTTP" != "200" ]]; then
                       echo "[state-sync push] PUT failed: HTTP $HTTP" >&2
                       cat /tmp/state-push.out >&2 || true
