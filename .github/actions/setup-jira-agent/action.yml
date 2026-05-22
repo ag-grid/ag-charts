@@ -80,6 +80,37 @@ runs:
               grep -qx 'ag-grid/ag-charts' /tmp/repos.txt
               grep -qx 'ag-grid/ag-dev-prompts' /tmp/repos.txt
 
+              # Assert the App installation actually grants the write
+              # permissions the build / pr-iterate stages need on ag-charts.
+              # `gh api repos/<owner>/<repo>` returns .permissions on the
+              # authenticated user, which for an App token is the installation
+              # itself. push=true requires `Contents: Read & write` on the App
+              # permissions page AND the installation owner must have approved
+              # any pending permission update. We assert here so any stage
+              # fails fast (≈30s) instead of running for 25min and 403ing on
+              # the final `git push`.
+              echo "Checking ag-charts installation permissions:"
+              PERMS=$(gh api repos/ag-grid/ag-charts --jq '.permissions')
+              echo "$PERMS"
+              PUSH=$(echo "$PERMS" | jq -r '.push')
+              if [[ "$PUSH" != "true" ]]; then
+                  cat >&2 <<EOF
+              [validate-token] ag-charts installation token is missing 'push'.
+                permissions snapshot: $PERMS
+                Cause: the GitHub App's permission update is pending acceptance,
+                  or the App was never granted Contents: Read & write.
+                Fix: an org admin must visit the installation page and click
+                  "Review and accept new permissions" (or "Update access"):
+                  https://github.com/organizations/ag-grid/settings/installations
+                  -> ag-jira-agent-ci -> Permissions
+                Stages affected: build, pr-iterate (anything that pushes a branch
+                  or opens a PR). Triage is read-only and could still run, but
+                  we fail fast here so the gap is visible at job start.
+              EOF
+                  exit 1
+              fi
+              echo "[validate-token] ag-charts push permission OK"
+
         - name: Configure git credentials for ag-dev-prompts clones
           # claude-code-action does NOT forward github_token to its plugin
           # marketplace clone (OQ#1 — confirmed empirically). A global git URL
