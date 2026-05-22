@@ -34,6 +34,7 @@ env:
     AG_LIBRARY: charts
     AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
     AG_E2E_SHARD_COUNT: 32
+    LIBRARY_WEBSITE_STATUS_CHANNEL: '#charts-website-status'
 
 permissions:
     contents: read
@@ -361,6 +362,7 @@ jobs:
         if: needs.detect-changes.outputs.run_full_ci == 'true'
         outputs:
             build: ${{ steps.build.outcome || '' }}
+            docs_deployed: ${{ steps.deploy_to_staging.outcome }}
         steps:
             - name: Checkout
               id: checkout
@@ -385,6 +387,21 @@ jobs:
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
                   yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude='*,!ag-charts-website'
+
+            - name: Deploy to Staging
+              id: deploy_to_staging
+              if: ${{ github.ref == 'refs/heads/latest' && steps.build.outcome == 'success' }}
+              env:
+                  SSH_PRIVATE_KEY: |
+                      ${{ secrets.STAGING_SSH_KEY }}
+                  SSH_HOST: ${{ secrets.STAGING_HOST }}
+                  SSH_USER: ubuntu
+                  SSH_KEY_LOCATION: ${{ github.workspace }}/staging.pem
+                  WWW_ROOT_DIR: ${{ vars.WWW_ROOT_DIR }}
+              run: |
+                  echo "$SSH_PRIVATE_KEY" > $SSH_KEY_LOCATION
+                  chmod 400 $SSH_KEY_LOCATION
+                  ./tools/staging/createAndDeployDocsToTCGH.sh
 
     test:
         runs-on: ubuntu-24.04
@@ -802,6 +819,31 @@ jobs:
               with:
                   ref: ${{ github.ref_name }}-success
                   description: Latest commit to pass GitHub Actions workflow on ${{ github.ref_name }} branch.
+
+            - name: Find matching workflow
+              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && needs.website_build.outputs.docs_deployed == 'success'
+              id: find_latest_sha
+              uses: SamhammerAG/last-successful-build-action@v4
+              with:
+                  branch: 'latest'
+                  workflow: 'ci'
+                  verify: false
+
+            - name: Notify staging deploy
+              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && needs.website_build.outputs.docs_deployed == 'success'
+              shell: bash
+              env:
+                  SLACK_BOT_OAUTH_TOKEN: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
+                  NOTION_API_TOKEN: ${{ secrets.SLACK_USER_CONFIG_NOTION_API_TOKEN }}
+                  NOTION_DATA_SOURCE_ID: ${{ secrets.SLACK_USER_CONFIG_NOTION_DATA_SOURCE_ID }}
+                  AG_PROJECT: AgCharts
+                  RUN_ID: ${{ github.run_id }}
+                  CURRENT_SHA: ${{ github.sha }}
+                  LAST_SUCCESSFUL_SHA: ${{ steps.find_latest_sha.outputs.sha }}
+                  WEBSITE_STATUS_CHANNEL: ${{ secrets.WEBSITE_STATUS_CHANNEL }}
+                  LIBRARY_WEBSITE_STATUS_CHANNEL: ${{ env.LIBRARY_WEBSITE_STATUS_CHANNEL }}
+                  DEPLOY_TO_STAGING: 'true'
+              run: node ./external/ag-shared/scripts/slack/notify-staging-deploy.mjs
 
             - name: Slack Notification
               uses: rtCamp/action-slack-notify@v2
