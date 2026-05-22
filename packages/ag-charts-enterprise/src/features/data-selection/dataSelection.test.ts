@@ -790,6 +790,7 @@ describe('DataSelection', () => {
             const SELECTION_S3C: [AgSelectionItem<D>] = [{ itemId: 2, seriesId: 's3id', datum: DATUM_S3C }];
             const SELECTION_S4E: [AgSelectionItem<D>] = [{ itemId: 4, seriesId: 's4id', datum: DATUM_S4E }];
             const SELECTION_S5D: [AgSelectionItem<D>] = [{ itemId: 3, seriesId: 's5id', datum: DATUM_S5D }];
+            const SELECTION_S3C_S4E = [SELECTION_S3C[0], SELECTION_S4E[0]];
             const SELECTION_S2A_S3C_S4E = [SELECTION_S2A[0], SELECTION_S3C[0], SELECTION_S4E[0]];
             const SELECTION_S2A_S3C_S1D_S4E = [SELECTION_S2A[0], SELECTION_S3C[0], SELECTION_S1D[0], SELECTION_S4E[0]];
             const SELECTION_S2A_S3C_S4E_S5D = [SELECTION_S2A[0], SELECTION_S3C[0], SELECTION_S4E[0], SELECTION_S5D[0]];
@@ -799,6 +800,8 @@ describe('DataSelection', () => {
             const ADDED_S3C = uiChangeEvent<D, C>({ added: SELECTION_S3C, removed: [] });
             const ADDED_S4E = uiChangeEvent<D, C>({ added: SELECTION_S4E, removed: [] });
             const ADDED_S5D = uiChangeEvent<D, C>({ added: SELECTION_S5D, removed: [] });
+            const REMOVED_S2A = uiChangeEvent<D, C>({ added: [], removed: SELECTION_S2A });
+            const REMOVED_S3C_S4E = uiChangeEvent<D, C>({ added: [], removed: SELECTION_S3C_S4E });
             const REMOVED_S2A_S3C_S4E = uiChangeEvent<D, C>({ added: [], removed: SELECTION_S2A_S3C_S4E });
             const ADDED_S1D_REMOVED_S2A_S3C_S4E = uiChangeEvent<D, C>({
                 added: SELECTION_S1D,
@@ -989,6 +992,48 @@ describe('DataSelection', () => {
                                 expect(selectionChange.popEvents()).toEqual([ADDED_S5D]);
                             });
                         });
+                        describe('click selected', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_S2A);
+                                await compareExact('stack-mix-highlighted-s2a-selected-s2a');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_S2A);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_S2A);
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_S3C_S4E]);
+                            });
+                        });
+                        describe('ctrl-click selected', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_S2A, { ctrlKey });
+                                await compareExact('stack-mix-highlighted-s2a-selected-s3c-s4e');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_S2A, { ctrlKey });
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S3C_S4E);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_S2A, { ctrlKey });
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_S2A]);
+                            });
+                        });
+                        describe('meta-click selected', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_S2A, { metaKey });
+                                await compareExact('stack-mix-highlighted-s2a-selected-s3c-s4e');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_S2A, { metaKey });
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S3C_S4E);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_S2A, { metaKey });
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_S2A]);
+                            });
+                        });
                     });
                 });
             });
@@ -1145,6 +1190,48 @@ describe('DataSelection', () => {
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S5D, { metaKey });
                                 expect(selectionChange.popEvents()).toEqual([ADDED_S5D]);
+                            });
+                        });
+                        describe('click selected', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_S2A, { ctrlKey });
+                                await compareExact('stack-mix-highlighted-s2a-selected-s3c-s4e');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_S2A, { ctrlKey });
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S3C_S4E);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_S2A, { ctrlKey });
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_S2A]);
+                            });
+                        });
+                        describe('ctrl-click selected', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_S2A, { ctrlKey });
+                                await compareExact('stack-mix-highlighted-s2a-selected-s3c-s4e');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_S2A, { ctrlKey });
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S3C_S4E);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_S2A, { ctrlKey });
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_S2A]);
+                            });
+                        });
+                        describe('meta-click selected', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_S2A, { metaKey });
+                                await compareExact('stack-mix-highlighted-s2a-selected-s3c-s4e');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_S2A, { metaKey });
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S3C_S4E);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_S2A, { metaKey });
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_S2A]);
                             });
                         });
                     });
