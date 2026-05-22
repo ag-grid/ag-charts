@@ -58,11 +58,10 @@ name: Jira Agent Pipeline
 #                                                    to per-stage default)
 #   customfield_10986  AI model effort  textfield  (same flow as AI model;
 #                                                    valid: low|medium|high|xhigh|max)
-#   <vars.JIRA_PROGRESS_FIELD_ID>  AI progress %   number     (live %-of-current-stage;
-#                                                              written by progress-tail
-#                                                              from heartbeat.jsonl)
-#   <vars.JIRA_ACTIVITY_FIELD_ID>  AI activity     short text (live "what is it doing"
-#                                                              label; same source)
+#   customfield_10987  AI progress      number     (live %-of-current-stage; written by
+#                                                    jira-progress-tail from heartbeat.jsonl)
+#   customfield_10988  AI activity      short text (live "what is it doing" label;
+#                                                    same source as AI progress)
 #
 # ----------------------------------------------------------------------------
 # Per-job step skeleton
@@ -189,8 +188,6 @@ jobs:
               with:
                   issue_key: ${{ env.ISSUE_KEY }}
                   mode: start
-                  progress_field_id: ${{ vars.JIRA_PROGRESS_FIELD_ID }}
-                  activity_field_id: ${{ vars.JIRA_ACTIVITY_FIELD_ID }}
                   jira_email: ${{ secrets.JIRA_EMAIL }}
                   jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
@@ -381,8 +378,6 @@ jobs:
               with:
                   issue_key: ${{ env.ISSUE_KEY }}
                   mode: start
-                  progress_field_id: ${{ vars.JIRA_PROGRESS_FIELD_ID }}
-                  activity_field_id: ${{ vars.JIRA_ACTIVITY_FIELD_ID }}
                   jira_email: ${{ secrets.JIRA_EMAIL }}
                   jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
@@ -586,8 +581,6 @@ jobs:
               with:
                   issue_key: ${{ env.ISSUE_KEY }}
                   mode: start
-                  progress_field_id: ${{ vars.JIRA_PROGRESS_FIELD_ID }}
-                  activity_field_id: ${{ vars.JIRA_ACTIVITY_FIELD_ID }}
                   jira_email: ${{ secrets.JIRA_EMAIL }}
                   jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
@@ -859,8 +852,6 @@ jobs:
               with:
                   issue_key: ${{ env.ISSUE_KEY }}
                   mode: start
-                  progress_field_id: ${{ vars.JIRA_PROGRESS_FIELD_ID }}
-                  activity_field_id: ${{ vars.JIRA_ACTIVITY_FIELD_ID }}
                   jira_email: ${{ secrets.JIRA_EMAIL }}
                   jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
