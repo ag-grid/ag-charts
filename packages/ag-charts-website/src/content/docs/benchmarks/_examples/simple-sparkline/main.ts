@@ -8,6 +8,8 @@ import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
 import { getData } from './data';
 import { random } from './randomHelpers';
 
+// (window as any).agChartsDebug = 'scene:stats';
+
 const options: AgSparklineOptions = {
     container: document.getElementById('myChart'),
     background: {
@@ -143,7 +145,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
         testCases: [
             {
                 id: 'cold-creation',
-                label: 'Cold Creation (per-instance micro-benchmark — not a Grid proxy)',
+                label: 'Cold Creation (single, per-frame)',
                 variants: [
                     {
                         params: { Operation: 'Create Sparkline' },
@@ -157,10 +159,10 @@ function getBenchmarkConfig(): BenchmarkConfig {
             },
             {
                 id: 'grid-batch-creation',
-                label: `Grid Batch Creation (${GRID_BATCH_SIZE} sparklines / tick)`,
+                label: `Cold Creation (batch of ${GRID_BATCH_SIZE})`,
                 variants: [
                     {
-                        params: { Operation: `Create ${GRID_BATCH_SIZE} sparklines synchronously` },
+                        params: { Operation: `Create ${GRID_BATCH_SIZE} Sparklines` },
                         run: performGridBatchCreation,
                     },
                 ],
