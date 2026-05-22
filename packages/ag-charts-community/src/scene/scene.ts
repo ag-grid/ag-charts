@@ -163,11 +163,13 @@ export class Scene extends EventEmitter<EventMap> {
 
     updateBaseFont() {
         const baseFont = this.root?.resolveFont();
-        if (baseFont != null && baseFont !== this._contextFont) {
-            this._baseFont = baseFont;
-            this.canvas.context.font = baseFont;
-            this._contextFont = baseFont;
-        }
+        if (baseFont == null || baseFont === this._contextFont) return;
+        this._baseFont = baseFont;
+        // If a resize is pending, the impending applyPendingResize() will reset
+        // the canvas context and re-apply _baseFont — skip the redundant write here.
+        if (this.pendingSize) return;
+        this.canvas.context.font = baseFont;
+        this._contextFont = baseFont;
     }
 
     applyPendingResize(): boolean {
