@@ -55,11 +55,15 @@ runs:
               : "${ISSUE_KEY:?}" "${MODE:?}"
               : "${JIRA_USER_EMAIL:?}" "${JIRA_API_TOKEN:?}" "${JIRA_SITE_URL:?}"
 
-              # /fr --ci writes to ${RUNNER_TEMP}/fr-state/<KEY>/ per modes/ci.md.
-              # Mirror that layout here so pull and push agree, and so the
-              # skill's --resume path picks up what we pre-staged.
+              # /fr --ci writes to $GITHUB_WORKSPACE/tmp/fr-state/<KEY>/.
+              # (modes/ci.md documents $RUNNER_TEMP but the skill's actual
+              # behaviour is workspace-relative — the Claude Code sandbox
+              # restricts writes to within the working directory regardless
+              # of --permission-mode. Mirror what the skill actually does so
+              # pull pre-stages where the skill reads on --resume, and push
+              # reads from where the skill wrote.)
               STATE_DIR="$STATE_DIR_IN"
-              if [[ -z "$STATE_DIR" ]]; then STATE_DIR="${RUNNER_TEMP}/fr-state/${ISSUE_KEY}"; fi
+              if [[ -z "$STATE_DIR" ]]; then STATE_DIR="${GITHUB_WORKSPACE}/tmp/fr-state/${ISSUE_KEY}"; fi
               mkdir -p "$STATE_DIR"
 
               SITE="${JIRA_SITE_URL%/}"

@@ -173,12 +173,14 @@ jobs:
                       Context:
                         - JIRA ticket: ${{ env.ISSUE_KEY }}
                         - Actions run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-                        - Prior-run state (if any) is in ${{ runner.temp }}/fr-state/
-                          as intent.md / research.md / plan.md. Write any updated
-                          state files to that same directory before exiting; the
-                          workflow round-trips them to Jira textarea custom fields
-                          (AI intent / AI research / AI plan) after you finish.
-                          Do not call addAttachmentToJiraIssue for these files.
+                        - Prior-run state (if any) is at the skill's default
+                          location: ${{ github.workspace }}/tmp/fr-state/${{ env.ISSUE_KEY }}/
+                          (intent.md / research.md / plan.md). Write state to
+                          that directory normally; the workflow round-trips it
+                          to the Jira textarea custom fields (AI intent /
+                          AI research / AI plan) after you exit. Do not call
+                          addAttachmentToJiraIssue for these files — the
+                          textareas are the durable form.
                         - The Atlassian MCP server is the in-repo shim — it
                           exposes the operation names referenced in modes/ci.md
                           (getJiraIssue, addCommentToJiraIssue,
@@ -223,7 +225,7 @@ jobs:
                       ${{ runner.temp }}/trace.json
                       ${{ runner.temp }}/claude-execution-output.json
                       ${{ runner.temp }}/claude-prompts/
-                      ${{ runner.temp }}/fr-state/
+                      ${{ github.workspace }}/tmp/fr-state/
                   if-no-files-found: warn
                   retention-days: 14
 
@@ -291,11 +293,12 @@ jobs:
                       Context:
                         - JIRA ticket: ${{ env.ISSUE_KEY }}
                         - Actions run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-                        - Prior-run state is in ${{ runner.temp }}/fr-state/
+                        - Prior-run state is in ${{ github.workspace }}/tmp/fr-state/${{ env.ISSUE_KEY }}/
                           (intent.md / research.md / plan.md). Use --resume.
                           Write any updates to the same files; the workflow
                           round-trips them to Jira after you exit. Do not call
-                          addAttachmentToJiraIssue for these files.
+                          addAttachmentToJiraIssue for these files — the
+                          textareas are the durable form.
                         - Phase 4 is skipped; --draft-pr opens the PR in draft.
 
             - if: always()
@@ -344,7 +347,7 @@ jobs:
                       ${{ runner.temp }}/trace.json
                       ${{ runner.temp }}/claude-execution-output.json
                       ${{ runner.temp }}/claude-prompts/
-                      ${{ runner.temp }}/fr-state/
+                      ${{ github.workspace }}/tmp/fr-state/
                   if-no-files-found: warn
                   retention-days: 14
 
@@ -412,11 +415,11 @@ jobs:
                       Context:
                         - JIRA ticket: ${{ env.ISSUE_KEY }}
                         - Actions run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-                        - Prior-run state is in ${{ runner.temp }}/fr-state/
+                        - Prior-run state is in ${{ github.workspace }}/tmp/fr-state/${{ env.ISSUE_KEY }}/
                           (intent.md / research.md / plan.md). Write any updates
                           to the same files; the workflow round-trips them to
                           Jira after you exit. Do not call addAttachmentToJiraIssue
-                          for these files.
+                          for these files — the textareas are the durable form.
 
             - if: always()
               uses: ./.github/actions/jira-state-sync
@@ -464,6 +467,6 @@ jobs:
                       ${{ runner.temp }}/trace.json
                       ${{ runner.temp }}/claude-execution-output.json
                       ${{ runner.temp }}/claude-prompts/
-                      ${{ runner.temp }}/fr-state/
+                      ${{ github.workspace }}/tmp/fr-state/
                   if-no-files-found: warn
                   retention-days: 14
