@@ -11,6 +11,10 @@ export class Bitfield {
         this.buffer = new Uint32Array(Math.ceil(length / 32));
     }
 
+    clear(): void {
+        this.buffer.fill(0);
+    }
+
     getBit(index: number): Bit {
         return ((this.buffer[index >>> 5] >>> (index & 31)) & 1) as Bit;
     }
