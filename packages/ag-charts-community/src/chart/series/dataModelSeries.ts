@@ -100,7 +100,7 @@ export abstract class DataModelSeries<
 
         const { dataModel, processedData } = await dataController.request<D, K, G>(
             this.id,
-            dataSet ?? DataSet.empty(),
+            dataSet ?? DataSet.empty(this.ctx.dataSelectionService),
             opts
         );
 

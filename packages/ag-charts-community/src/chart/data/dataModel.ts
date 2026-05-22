@@ -14,6 +14,7 @@ import { ReducerManager } from './data-model/reducers/reducerManager';
 import { isScoped, uniqueChangeDescriptions } from './data-model/utils/helpers';
 import { DataModelResolvers } from './data-model/utils/resolvers';
 import { ScopeCacheManager } from './data-model/utils/scopeCache';
+import type { DataChangeDescription } from './dataChangeDescription';
 import type {
     AggregatePropertyDefinition,
     BandedReducerStats,
@@ -38,7 +39,7 @@ import type {
     UngroupedData,
 } from './dataModelTypes';
 import { REDUCER_BANDS } from './dataModelTypes';
-import type { DataChangeDescription, DataSet } from './dataSet';
+import type { DataSet } from './dataSet';
 import { type SortOrder } from './sortOrder';
 
 export * from './dataModelTypes';
