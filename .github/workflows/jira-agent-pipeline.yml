@@ -227,6 +227,14 @@ jobs:
 
             - name: Write Atlassian MCP config
               id: mcp-config
+              # Use the in-repo Jira MCP shim (.github/scripts/jira-mcp-shim/
+              # server.mjs) — a zero-dep Node stdio server scoped to the
+              # tools the triage agent calls. Atlassian's hosted remote MCP
+              # uses OAuth which we don't have a CI-friendly story for; the
+              # community npm packages we'd otherwise use add cold-start
+              # latency that made the agent give up before the server was
+              # ready. The shim authenticates with the basic-auth credentials
+              # we already provision (JIRA_EMAIL + JIRA_API_TOKEN).
               env:
                   JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
                   JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
@@ -237,14 +245,15 @@ jobs:
                   : "${JIRA_API_TOKEN:?missing}"
                   : "${JIRA_SITE_URL:?missing}"
                   jq -n \
+                      --arg shim "$GITHUB_WORKSPACE/.github/scripts/jira-mcp-shim/server.mjs" \
                       --arg email "$JIRA_EMAIL" \
                       --arg token "$JIRA_API_TOKEN" \
                       --arg site "$JIRA_SITE_URL" \
                       '{
                           mcpServers: {
                               atlassian: {
-                                  command: "npx",
-                                  args: ["-y", "@atlassian/mcp-server"],
+                                  command: "node",
+                                  args: [$shim],
                                   env: {
                                       JIRA_USER_EMAIL: $email,
                                       JIRA_API_TOKEN: $token,
@@ -262,11 +271,15 @@ jobs:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.app-token.outputs.token }}
                   show_full_output: 'true'
-                  # Plugins are declared in .claude/settings.json
-                  # (rendered by setup-prompts.sh during yarn install) — no
-                  # plugin_marketplaces/plugins inputs needed here. Claude
-                  # Code resolves the ag-dev marketplace itself using the
-                  # git credential rewrite configured earlier.
+                  # The SDK doesn't auto-install plugins declared in
+                  # .claude/settings.json — it only loads them once
+                  # installed. Use the action's explicit install inputs;
+                  # the git URL rewrite step above gives the marketplace
+                  # clone the App-token credential it needs.
+                  plugin_marketplaces: https://github.com/ag-grid/ag-dev-prompts.git
+                  plugins: |
+                      ag-eng@ag-dev-prompts
+                      ag-product@ag-dev-prompts
                   claude_args: |
                       --mcp-config ${{ runner.temp }}/mcp.json
                       --max-turns 12
@@ -279,12 +292,14 @@ jobs:
                       Do exactly these steps and stop:
 
                         1. Confirm a skill from the ag-dev-prompts marketplace loaded.
-                           Name one skill you can see (e.g. /jira, /pr-review).
-                        2. Using the Atlassian MCP tool, fetch the JIRA issue
-                           ${{ env.ISSUE_KEY }}. Report its summary and status in
-                           your response.
-                        3. Using the Atlassian MCP tool, post a comment to the
-                           issue containing exactly this line:
+                           Name one skill you can see from the ag-eng or
+                           ag-product plugin (e.g. /jira, /pr-review, /fr).
+                        2. Call the MCP tool `mcp__atlassian__jira_get_issue`
+                           with `issueKey="${{ env.ISSUE_KEY }}"`. Report the
+                           returned summary and status.
+                        3. Call `mcp__atlassian__jira_add_comment` with
+                           `issueKey="${{ env.ISSUE_KEY }}"` and `body` set
+                           exactly to:
                              "ag-charts triage pipeline E2E test — run ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}. Marketplace loaded; MCP authenticated."
                         4. Do not transition the ticket. Do not change any other
                            state. Stop.
