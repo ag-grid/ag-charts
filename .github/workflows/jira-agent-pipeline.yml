@@ -67,14 +67,27 @@ name: Jira Agent Pipeline (Triage E2E)
 #     - ag-dev-prompts missing from the repo list  -> App not installed on
 #       the marketplace repo. Install it.
 #
+#   Step: Configure git credentials for ag-dev-prompts clones
+#     - Step succeeds independently; failures here usually mean a downstream
+#       clone surfaces "HTTPS authentication failed" (App token lacks
+#       contents:read on ag-dev-prompts).
+#
+#   Step: Install dependencies
+#     - rulesync-fetch failure cloning ag-dev-prompts  -> App-token git
+#       rewrite missing or App lacks contents:read on the marketplace repo.
+#     - Missing .claude/settings.json  -> setup-prompts.sh did not render
+#       (check $AG_PRODUCT / package.json .name).
+#     - yarn install times out / dependency resolution errors  -> usually
+#       transient registry; re-run.
+#
 #   Step: Write MCP config
 #     - JIRA_* env vars empty  -> secret/variable not set on this repo.
 #
 #   Step: claude-code-action
-#     - "Could not clone ag-grid/ag-dev-prompts"  -> App token lacks
-#       contents:read on the marketplace, OR the action does not forward
-#       github_token to its marketplace clone (claude-code-action #664).
-#     - "401 from api.anthropic.com"  -> ANTHROPIC_API_KEY missing/revoked.
+#     - "401 from api.anthropic.com"  -> ANTHROPIC_API_KEY missing/revoked,
+#       or org-secret repo-access policy excludes ag-charts (public repo).
+#     - Plugin marketplace clone fails inside Claude Code  -> git URL
+#       rewrite step did not run, or App token expired mid-run.
 #     - Agent reports MCP fetch failed  -> JIRA_API_TOKEN scope, or wrong
 #       JIRA_EMAIL, or @atlassian/mcp-server package name wrong.
 #
@@ -150,6 +163,49 @@ jobs:
                   grep -qx 'ag-grid/ag-dev-prompts' /tmp/repos.txt
                   echo "ok=true" >> "$GITHUB_OUTPUT"
 
+            - name: Configure git credentials for ag-dev-prompts clones
+              # claude-code-action does NOT forward github_token to its plugin
+              # marketplace clone (OQ#1 — confirmed empirically by an earlier
+              # dry-run that hit "HTTPS authentication failed"). A global git
+              # URL rewrite installs the App-installation token as the
+              # credential for any github.com HTTPS clone — covers both
+              # setup-prompts.sh's fetch.sh (postinstall) and Claude Code's
+              # marketplace resolver at agent runtime, without leaking the
+              # token into env vars consumed by other steps.
+              env:
+                  APP_TOKEN: ${{ steps.app-token.outputs.token }}
+              run: |
+                  set -euo pipefail
+                  git config --global \
+                      "url.https://x-access-token:${APP_TOKEN}@github.com/.insteadOf" \
+                      https://github.com/
+
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version-file: package.json
+                  cache: yarn
+
+            - name: Install dependencies (runs setup-prompts.sh postinstall)
+              id: install
+              # AG_WORKTREE_FAST_PATH=1 skips the heavy postinstall steps
+              # (apply-patches, nx daemon shuffles, plugin build) while still
+              # running postinstall:setup-prompts — that script renders
+              # .claude/settings.json (with the ag-dev marketplace declared)
+              # and invokes rulesync. We rely on the in-tree settings for
+              # claude-code-action to pick up project skills at runtime; the
+              # marketplace clone Claude Code performs is authenticated by
+              # the git URL rewrite configured above.
+              env:
+                  GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+                  AG_WORKTREE_FAST_PATH: '1'
+                  AG_PRODUCT: ag-charts
+              run: |
+                  set -euo pipefail
+                  yarn install --immutable
+                  test -f .claude/settings.json
+                  jq -e '.extraKnownMarketplaces."ag-dev"' .claude/settings.json >/dev/null
+
             - name: Write Atlassian MCP config
               id: mcp-config
               env:
@@ -186,10 +242,11 @@ jobs:
               with:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.app-token.outputs.token }}
-                  plugin_marketplaces: https://github.com/ag-grid/ag-dev-prompts.git
-                  plugins: |
-                      ag-eng@ag-dev-prompts
-                      ag-product@ag-dev-prompts
+                  # Plugins are declared in .claude/settings.json
+                  # (rendered by setup-prompts.sh during yarn install) — no
+                  # plugin_marketplaces/plugins inputs needed here. Claude
+                  # Code resolves the ag-dev marketplace itself using the
+                  # git credential rewrite configured earlier.
                   claude_args: |
                       --mcp-config ${{ runner.temp }}/mcp.json
                       --max-turns 12
@@ -228,6 +285,7 @@ jobs:
                   ISSUE_KEY_OK: ${{ steps.validate-issue-key.outcome }}
                   TOKEN_OK: ${{ steps.app-token.outcome }}
                   VALIDATE_OK: ${{ steps.validate-token.outcome }}
+                  INSTALL_OK: ${{ steps.install.outcome }}
                   MCP_OK: ${{ steps.mcp-config.outcome }}
                   CLAUDE_OK: ${{ steps.claude.outcome }}
               run: |
@@ -241,6 +299,7 @@ jobs:
                     echo "| Issue key validated                 | $(marker "$ISSUE_KEY_OK") |"
                     echo "| GitHub App token mint               | $(marker "$TOKEN_OK") |"
                     echo "| Token covers both repos             | $(marker "$VALIDATE_OK") |"
+                    echo "| yarn install + setup-prompts        | $(marker "$INSTALL_OK") |"
                     echo "| Atlassian MCP config written        | $(marker "$MCP_OK") |"
                     echo "| Claude run (marketplace + MCP call) | $(marker "$CLAUDE_OK") |"
                     echo ""
