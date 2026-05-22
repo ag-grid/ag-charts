@@ -127,7 +127,7 @@ runs:
                   ANY_PUSHED=0
                   echo "## AI state push" >> "$GITHUB_STEP_SUMMARY"
                   echo "" >> "$GITHUB_STEP_SUMMARY"
-                  echo "| File | Bytes | Truncated |" >> "$GITHUB_STEP_SUMMARY"
+                  echo "| File | Chars | Truncated |" >> "$GITHUB_STEP_SUMMARY"
                   echo "|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
                   for row in "${FIELDS[@]}"; do
                       FIELD_ID="${row%% *}"
@@ -138,22 +138,34 @@ runs:
                           echo "| \`$NAME\` | _(absent)_ | - |" >> "$GITHUB_STEP_SUMMARY"
                           continue
                       fi
+                      # Jira's textarea limit is 32,767 *characters* (Unicode
+                      # code points), not bytes. wc -m / head -c on UTF-8 can
+                      # disagree and head -c can also split a multi-byte
+                      # sequence mid-character. Measure and truncate in Node
+                      # so non-ASCII state files round-trip correctly.
+                      CHARS=$(node -e 'process.stdout.write(String(require("fs").readFileSync(process.argv[1],"utf8").length))' "$P")
                       SIZE=$(wc -c < "$P" | tr -d ' ')
                       TRUNC="no"
-                      if (( SIZE > MAX_CHARS )); then
+                      if (( CHARS > MAX_CHARS )); then
                           TRUNC="yes"
-                          ORIG="$SIZE"
-                          head -c $((MAX_CHARS - 120)) "$P" > "$P.trunc"
-                          printf '\n\n---\n[truncated: original was %s chars]\n' "$ORIG" >> "$P.trunc"
+                          ORIG="$CHARS"
+                          KEEP=$((MAX_CHARS - 120))
+                          node -e '
+                              const fs = require("fs");
+                              const [src, dst, keep, orig] = process.argv.slice(1);
+                              const head = fs.readFileSync(src, "utf8").slice(0, Number(keep));
+                              fs.writeFileSync(dst, head + `\n\n---\n[truncated: original was ${orig} chars]\n`);
+                          ' "$P" "$P.trunc" "$KEEP" "$ORIG"
                           mv "$P.trunc" "$P"
+                          CHARS=$(node -e 'process.stdout.write(String(require("fs").readFileSync(process.argv[1],"utf8").length))' "$P")
                           SIZE=$(wc -c < "$P" | tr -d ' ')
                       fi
                       jq --arg f "$FIELD_ID" --rawfile body "$P" \
                           '. + { ($f): $body }' "$TMP_BODY" > "$TMP_BODY.next"
                       mv "$TMP_BODY.next" "$TMP_BODY"
                       ANY_PUSHED=1
-                      echo "[state-sync push] $NAME ($SIZE bytes, truncated=$TRUNC) -> $FIELD_ID"
-                      echo "| \`$NAME\` | $SIZE | $TRUNC |" >> "$GITHUB_STEP_SUMMARY"
+                      echo "[state-sync push] $NAME ($CHARS chars / $SIZE bytes, truncated=$TRUNC) -> $FIELD_ID"
+                      echo "| \`$NAME\` | $CHARS | $TRUNC |" >> "$GITHUB_STEP_SUMMARY"
                   done
 
                   if (( ANY_PUSHED == 0 )); then

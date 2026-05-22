@@ -45,22 +45,30 @@ runs:
               AUTH="$(printf '%s:%s' "$JIRA_USER_EMAIL" "$JIRA_API_TOKEN" | base64 | tr -d '\n')"
 
               DELTA="0"
-              TRACE_MISSING=false
-              if [[ -f "$EXEC_OUT" ]]; then
+              TRACE_STATUS="OK"
+              if [[ ! -f "$EXEC_OUT" ]]; then
+                  TRACE_STATUS="MISSING"
+                  echo "[cost-writeback] trace file not found at $EXEC_OUT — writing \$0 delta + note comment"
+              else
                   # claude-execution-output is a JSON array of events. Sum
                   # total_cost_usd across all events that carry it (typically
                   # one {type:"result"} record per session, but be defensive
                   # in case the schema changes or multiple sessions land in
-                  # one file).
-                  DELTA=$(jq '
+                  # one file). Distinguish a malformed/unparseable trace from
+                  # a genuine zero-cost run — a corrupt trace is a telemetry
+                  # failure and should not silently drop spend.
+                  if ! DELTA=$(jq -e '
                       [ .[] | (.total_cost_usd // .usage.total_cost_usd // empty) ]
                       | map(select(type == "number"))
                       | add // 0
-                  ' "$EXEC_OUT" 2>/dev/null || echo "0")
-                  if [[ -z "$DELTA" || "$DELTA" == "null" ]]; then DELTA="0"; fi
-              else
-                  TRACE_MISSING=true
-                  echo "[cost-writeback] trace file not found at $EXEC_OUT — writing \$0 delta + note comment"
+                  ' "$EXEC_OUT" 2>/tmp/cost-jq.err); then
+                      TRACE_STATUS="MALFORMED"
+                      DELTA="0"
+                      echo "[cost-writeback] failed to parse $EXEC_OUT:" >&2
+                      cat /tmp/cost-jq.err >&2 || true
+                  elif [[ -z "$DELTA" || "$DELTA" == "null" ]]; then
+                      DELTA="0"
+                  fi
               fi
 
               echo "[cost-writeback] $ISSUE_KEY: delta=\$$DELTA"
@@ -99,11 +107,16 @@ runs:
                   echo ""
                   echo "| Issue | Delta (USD) | Total (USD) | Trace |"
                   echo "|---|---|---|---|"
-                  echo "| \`$ISSUE_KEY\` | $DELTA | $NEW | $([[ "$TRACE_MISSING" == "true" ]] && echo 'MISSING' || echo 'OK') |"
+                  echo "| \`$ISSUE_KEY\` | $DELTA | $NEW | $TRACE_STATUS |"
               } >> "$GITHUB_STEP_SUMMARY"
 
-              if [[ "$TRACE_MISSING" == "true" ]]; then
+              if [[ "$TRACE_STATUS" == "MISSING" ]]; then
                   COMMENT="[cost-writeback] No claude-execution-output.json found for $RUN_URL — recorded delta = \$0 to keep the audit trail unbroken."
+              elif [[ "$TRACE_STATUS" == "MALFORMED" ]]; then
+                  COMMENT="[cost-writeback] Malformed claude-execution-output.json for $RUN_URL — could not parse cost. Recorded delta = \$0, actual spend is unknown. See workflow logs."
+              fi
+
+              if [[ "$TRACE_STATUS" != "OK" ]]; then
                   CBODY=$(jq -n --arg c "$COMMENT" '{
                       body: {
                           type: "doc",
