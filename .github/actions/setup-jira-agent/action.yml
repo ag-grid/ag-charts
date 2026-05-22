@@ -82,34 +82,61 @@ runs:
 
               # Assert the App installation actually grants the write
               # permissions the build / pr-iterate stages need on ag-charts.
-              # `gh api repos/<owner>/<repo>` returns .permissions on the
-              # authenticated user, which for an App token is the installation
-              # itself. push=true requires `Contents: Read & write` on the App
-              # permissions page AND the installation owner must have approved
-              # any pending permission update. We assert here so any stage
-              # fails fast (≈30s) instead of running for 25min and 403ing on
-              # the final `git push`.
-              echo "Checking ag-charts installation permissions:"
-              PERMS=$(gh api repos/ag-grid/ag-charts --jq '.permissions')
-              echo "$PERMS"
-              PUSH=$(echo "$PERMS" | jq -r '.push')
-              if [[ "$PUSH" != "true" ]]; then
-                  cat >&2 <<EOF
+              #
+              # We can't reliably read this via `gh api repos/<owner>/<repo>`
+              # .permissions — for App-installation tokens on public repos that
+              # response consistently reports `push:false / pull:false / ...`
+              # regardless of the actual grant. Instead we do a deterministic
+              # write probe: POST a deliberately-invalid ref to the git/refs
+              # endpoint. The auth check happens before the validation check,
+              # so:
+              #   - 403  → no write permission (App perm update pending /
+              #            not approved / App lacks Contents: Read & write)
+              #   - 422  → write permission OK, body rejected on validation
+              #            (sha doesn't exist / ref is empty) — this is what
+              #            we want to see
+              #   - 201  → would be surprising but means the ref was created;
+              #            we'd want to delete it. Won't happen with our body.
+              echo "Probing ag-charts push permission:"
+              PROBE_HTTP=$(curl -sS -o /tmp/perm-probe.out -w '%{http_code}' \
+                  -X POST \
+                  -H "Authorization: Bearer ${GH_TOKEN}" \
+                  -H "Accept: application/vnd.github+json" \
+                  -H "X-GitHub-Api-Version: 2022-11-28" \
+                  -d '{"ref":"refs/heads/__perm_probe_will_fail__","sha":"0000000000000000000000000000000000000000"}' \
+                  https://api.github.com/repos/ag-grid/ag-charts/git/refs)
+              echo "probe response: HTTP $PROBE_HTTP"
+              echo "probe body:"; cat /tmp/perm-probe.out
+              echo
+              case "$PROBE_HTTP" in
+                  422)
+                      echo "[validate-token] ag-charts push permission OK (write reached validation layer)"
+                      ;;
+                  403)
+                      cat >&2 <<EOF
               [validate-token] ag-charts installation token is missing 'push'.
-                permissions snapshot: $PERMS
+                Probe: POST /repos/ag-grid/ag-charts/git/refs returned 403
+                  (Resource not accessible by integration).
                 Cause: the GitHub App's permission update is pending acceptance,
                   or the App was never granted Contents: Read & write.
                 Fix: an org admin must visit the installation page and click
                   "Review and accept new permissions" (or "Update access"):
                   https://github.com/organizations/ag-grid/settings/installations
                   -> ag-jira-agent-ci -> Permissions
-                Stages affected: build, pr-iterate (anything that pushes a branch
-                  or opens a PR). Triage is read-only and could still run, but
-                  we fail fast here so the gap is visible at job start.
+                Note: if the "Update access" button is greyed out and you ARE
+                  an org admin, it likely means GitHub is enforcing the
+                  no-self-approval rule on App permission expansions — ask a
+                  different admin to approve.
+                Stages affected: build, pr-iterate. Triage is read-only and
+                  could run, but we fail fast for visibility.
               EOF
-                  exit 1
-              fi
-              echo "[validate-token] ag-charts push permission OK"
+                      exit 1
+                      ;;
+                  *)
+                      echo "[validate-token] unexpected probe response HTTP $PROBE_HTTP — failing closed" >&2
+                      exit 1
+                      ;;
+              esac
 
         - name: Configure git credentials for ag-dev-prompts clones
           # claude-code-action does NOT forward github_token to its plugin
