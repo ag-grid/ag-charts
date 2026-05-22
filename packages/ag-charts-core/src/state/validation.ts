@@ -24,8 +24,9 @@ const undocumentedSymbol = Symbol('undocumented');
 const enterpriseSymbol = Symbol('enterprise');
 export const unionSymbol = Symbol('union');
 
-// Memoised Object.keys per immutable OptionsDefs node.
-const cachedKeysSymbol = Symbol('cachedKeys');
+// Memoised Object.keys per OptionsDefs node. WeakMap avoids mutating (and thus
+// failing on) frozen / sealed / proxied schema objects.
+const schemaKeyCache = new WeakMap<object, string[]>();
 
 const similarOptionsMap = [
     ['placement', 'position'],
@@ -185,12 +186,12 @@ export function validate<T>(
     const optionsKeys = new Set(Object.keys(options));
     const unusedKeys = [];
 
-    const defsAny = optionsDefs as any;
-    let schemaKeys: string[] = defsAny[cachedKeysSymbol];
+    let schemaKeys = schemaKeyCache.get(optionsDefs);
     if (schemaKeys === undefined) {
         schemaKeys = Object.keys(optionsDefs);
-        defsAny[cachedKeysSymbol] = schemaKeys;
+        schemaKeyCache.set(optionsDefs, schemaKeys);
     }
+    const defsAny = optionsDefs as any;
 
     if (unionSymbol in optionsDefs) {
         const validTypes = schemaKeys;

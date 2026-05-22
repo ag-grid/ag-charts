@@ -313,6 +313,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                         : ModuleRegistry.getPresetModule(this.optionMetadata.presetType);
                 const userData = (this.userOptions as any).data;
                 const resolvedData = presetDef?.processData ? presetDef.processData(userData).data : userData;
+                // Shallow-clone the top level only — the existing dev-mode deepFreeze on
+                // ChartOptions has confirmed no path mutates nested processedOptions, and
+                // sharing frozen nested refs across charts is the whole point of the cache.
                 const processedOptions = { ...(cached.processedOptions as object), data: resolvedData } as T;
                 // Un-memoized graph — each chart needs its own resolution state for stylers' resolvePartial.
                 const optionsGraph = createOptionsGraphFn(activeTheme, processedOptions as PlainObject);

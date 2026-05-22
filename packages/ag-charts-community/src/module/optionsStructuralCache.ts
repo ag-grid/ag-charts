@@ -42,6 +42,8 @@ export function computeStructuralCacheKey(options: object): string | undefined {
 
 // Keep in sync with sparklineDataPreset() in api/preset/sparkline.ts — the preset
 // branches on the type of the first non-null datum, so the cache key must too.
+// For plain-object datums, top-level keys are appended so {x,y} doesn't collide with
+// {date,value} (downstream paths can infer config from datum field names).
 function describeDataShape(data: unknown): string {
     if (!Array.isArray(data)) return data == null ? 'no-data' : 'object';
     if (data.length === 0) return 'empty';
@@ -49,7 +51,12 @@ function describeDataShape(data: unknown): string {
     if (firstNonNull == null) return 'null';
     if (typeof firstNonNull === 'number') return 'number';
     if (Array.isArray(firstNonNull)) return 'tuple';
-    return 'object';
+    if (typeof firstNonNull === 'object') {
+        return `object:${Object.keys(firstNonNull)
+            .sort((a, b) => a.localeCompare(b))
+            .join(',')}`;
+    }
+    return typeof firstNonNull;
 }
 
 function invalidateIfRegistryChanged() {
