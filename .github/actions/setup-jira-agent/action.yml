@@ -179,7 +179,10 @@ runs:
               CI_EXTRA_ALLOW='[
                   "Bash(git commit:*)",
                   "Bash(git push:*)",
-                  "Bash(gh pr create:*)"
+                  "Bash(gh pr create:*)",
+                  "Read(/home/runner/.claude/plugins/**)",
+                  "Bash(cat /home/runner/.claude/plugins/**)",
+                  "Bash(ls /home/runner/.claude/plugins/**)"
               ]'
 
               # Stage the heartbeat hook script to a path that survives the
