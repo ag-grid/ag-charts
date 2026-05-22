@@ -191,6 +191,7 @@ export abstract class FlowProportionSeries<
 
         const { fromKey, toKey, sizeKey, idKey, labelKey } = this.properties;
 
+        const { dataSelectionService } = this.ctx;
         const nodesDataController = new DataController(
             'standalone',
             dataController.suppressFieldDotNotation,
@@ -201,7 +202,8 @@ export abstract class FlowProportionSeries<
                 ? null
                 : nodesDataController.request<any, any, true>(
                       this.id,
-                      _ModuleSupport.DataSet.wrap(nodes) ?? _ModuleSupport.DataSet.empty(),
+                      _ModuleSupport.DataSet.wrap(nodes, dataSelectionService) ??
+                          _ModuleSupport.DataSet.empty(dataSelectionService),
                       {
                           props: [
                               keyProperty(idKey, undefined, { id: 'idValue', includeProperty: false }),
