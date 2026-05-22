@@ -24,7 +24,7 @@ function runCommitScenario<T>({
     steps: CommitStep<T>[];
     dataIdKey?: string;
 }) {
-    const dataSet = new DataSet<T>([...initial], dataIdKey);
+    const dataSet = new DataSet<T>([...initial], undefined, dataIdKey);
 
     for (const step of steps) {
         for (const transaction of step.transactions) {
@@ -1853,6 +1853,7 @@ describe('DataSet', () => {
                     { id: 'a', value: 2 },
                     { id: 'b', value: 3 },
                 ],
+                undefined,
                 'id'
             );
             dataSet.commitPendingTransactions();
@@ -1866,6 +1867,7 @@ describe('DataSet', () => {
                     { id: 'a', value: 2 },
                     { id: 'b', value: 3 },
                 ],
+                undefined,
                 'id'
             );
             dataSet.addTransaction({ remove: [{ id: 'a' } as Item] });
@@ -1936,7 +1938,7 @@ describe('DataSet', () => {
         });
 
         test('missing ID field: dataIdKey set but datum lacks the field, falls through with warning', () => {
-            const dataSet = new DataSet<any>([{ id: 'a', value: 1 }], 'id');
+            const dataSet = new DataSet<any>([{ id: 'a', value: 1 }], undefined, 'id');
             dataSet.addTransaction({ remove: [{ value: 1 }] });
             dataSet.commitPendingTransactions();
             // Item should not be removed because it has no 'id' field
@@ -1950,6 +1952,7 @@ describe('DataSet', () => {
                     { id: 123, value: 1 },
                     { id: 'other', value: 2 },
                 ],
+                undefined,
                 'id'
             );
             dataSet.addTransaction({ remove: [{ id: '123' }] });
@@ -1965,7 +1968,7 @@ describe('DataSet', () => {
         });
 
         test('update with non-existent ID: warning logged, item ignored', () => {
-            const dataSet = new DataSet<Item>([{ ...a }, { ...b }], 'id');
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }], undefined, 'id');
             dataSet.addTransaction({ update: [{ id: 'nonexistent', value: 99 }] });
             dataSet.commitPendingTransactions();
             expect(dataSet.data).toEqual([a, b]);
@@ -2104,6 +2107,7 @@ describe('DataSet', () => {
                     { id: Number.NaN, value: 2 },
                     { id: 'c', value: 3 },
                 ],
+                undefined,
                 'id'
             );
             // NaN-id item should not be in ID index, so update targeting NaN has no effect
@@ -2141,7 +2145,7 @@ describe('DataSet', () => {
         });
 
         test('warns when dataIdKey field is not found on any data item', () => {
-            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'nonExistent');
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], undefined, 'nonExistent');
             dataSet.addTransaction({ remove: [{ nonExistent: 'x' } as any] });
             dataSet.commitPendingTransactions();
             expectWarningMessages([
@@ -2152,7 +2156,7 @@ describe('DataSet', () => {
 
         test('does not warn when dataIdKey field exists on data items', () => {
             const newA: Item = { id: 'a', value: 10 };
-            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'id');
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], undefined, 'id');
             dataSet.addTransaction({ update: [newA] });
             dataSet.commitPendingTransactions();
             expect(dataSet.data[0]).toBe(newA);
@@ -2160,7 +2164,7 @@ describe('DataSet', () => {
         });
 
         test('does not warn when data is empty', () => {
-            const dataSet = new DataSet<Item>([], 'id');
+            const dataSet = new DataSet<Item>([], undefined, 'id');
             dataSet.addTransaction({ append: [{ id: 'a', value: 10 }] });
             dataSet.commitPendingTransactions();
             expectWarningMessages([]);
@@ -2175,7 +2179,7 @@ describe('DataSet', () => {
         });
 
         test('prepend duplicate ID: cache maps to prepended (first) occurrence after warm cache', () => {
-            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'id');
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], undefined, 'id');
 
             // Warm the ID cache with an update
             const newC: Item = { id: 'c', value: 30 };
