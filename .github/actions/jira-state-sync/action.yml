@@ -1,7 +1,12 @@
 name: Jira AI-state sync
 description: |
-    Round-trip the `/fr --ci` state files (`intent.md` / `research.md` / `plan.md`)
-    between the Jira textarea custom fields and `${RUNNER_TEMP}/fr-state/`.
+    Round-trip the `/fr --ci` state files between Jira textarea custom fields
+    and `${GITHUB_WORKSPACE}/tmp/fr-state/<KEY>/`. The textareas are
+    `customfieldtypes:textarea` with `schema.type: string` — Jira's update
+    endpoint expects a plain string for those, so this action writes/reads
+    the markdown verbatim. No ADF conversion: the Jira UI renders the field
+    as plain text but the round-trip is exact and the skill's --resume path
+    reads back the same bytes the agent wrote.
 
     Field mapping (matches `/fr --ci`'s six state files):
       customfield_10943 — AI research           <-> research.md
@@ -12,13 +17,11 @@ description: |
       customfield_10951 — AI Review Feedback    <-> review-feedback.md
 
     Modes:
-      `pull` — pre-job. Read the three fields from Jira; for each non-null value,
-               write a file under ${RUNNER_TEMP}/fr-state/. Creates the dir if
-               needed.
-      `push` — post-job (use with `if: always()`). Read whichever of the three
-               files exist under ${RUNNER_TEMP}/fr-state/, build a single PUT
-               body, and write all three fields in one request. Files the agent
-               did not write this run are left untouched on the ticket.
+      `pull` — read each field; for every non-null value, write a file under
+               the state dir.
+      `push` — read whichever files exist under the state dir; build a single
+               PUT body; write all fields in one request. Files the agent did
+               not write this run are left untouched on the ticket.
 
     Truncation: textarea fields are bounded at 32,767 chars in Jira. Any file
     above that limit is truncated with a tail marker before upload.
@@ -31,7 +34,7 @@ inputs:
         description: '`pull` or `push`.'
         required: true
     state_dir:
-        description: Directory used for state files. Defaults to $RUNNER_TEMP/fr-state.
+        description: Directory used for state files. Defaults to $GITHUB_WORKSPACE/tmp/fr-state/<KEY>.
         required: false
         default: ''
     jira_email:
@@ -58,13 +61,6 @@ runs:
               : "${ISSUE_KEY:?}" "${MODE:?}"
               : "${JIRA_USER_EMAIL:?}" "${JIRA_API_TOKEN:?}" "${JIRA_SITE_URL:?}"
 
-              # /fr --ci writes to $GITHUB_WORKSPACE/tmp/fr-state/<KEY>/.
-              # (modes/ci.md documents $RUNNER_TEMP but the skill's actual
-              # behaviour is workspace-relative — the Claude Code sandbox
-              # restricts writes to within the working directory regardless
-              # of --permission-mode. Mirror what the skill actually does so
-              # pull pre-stages where the skill reads on --resume, and push
-              # reads from where the skill wrote.)
               STATE_DIR="$STATE_DIR_IN"
               if [[ -z "$STATE_DIR" ]]; then STATE_DIR="${GITHUB_WORKSPACE}/tmp/fr-state/${ISSUE_KEY}"; fi
               mkdir -p "$STATE_DIR"
@@ -72,23 +68,6 @@ runs:
               SITE="${JIRA_SITE_URL%/}"
               AUTH="$(printf '%s:%s' "$JIRA_USER_EMAIL" "$JIRA_API_TOKEN" | base64 | tr -d '\n')"
               MAX_CHARS=32767
-
-              # MD <-> ADF converters live in the jira skill of ag-dev-prompts
-              # (cloned to $HOME/.cache/ag-dev-prompts/repo by setup-prompts.sh).
-              # md-to-adf is invoked via the resilient wrapper which splits on
-              # blank lines and converts per-block so a single malformed chunk
-              # doesn't degrade the whole file to a codeBlock.
-              JIRA_SKILL_ROOT="${HOME}/.cache/ag-dev-prompts/repo/plugins/ag-product/skills/jira"
-              MD_TO_ADF="$JIRA_SKILL_ROOT/md-to-adf.js"
-              ADF_TO_MD="$JIRA_SKILL_ROOT/adf-to-md.js"
-              MD_TO_ADF_RESILIENT="$GITHUB_WORKSPACE/.github/scripts/md-adf/md-to-adf-resilient.mjs"
-              if [[ ! -f "$MD_TO_ADF" || ! -f "$ADF_TO_MD" || ! -f "$MD_TO_ADF_RESILIENT" ]]; then
-                  echo "[state-sync] converter scripts missing:" >&2
-                  echo "[state-sync]   md-to-adf:           $([[ -f "$MD_TO_ADF" ]] && echo OK || echo MISSING)" >&2
-                  echo "[state-sync]   adf-to-md:           $([[ -f "$ADF_TO_MD" ]] && echo OK || echo MISSING)" >&2
-                  echo "[state-sync]   md-to-adf-resilient: $([[ -f "$MD_TO_ADF_RESILIENT" ]] && echo OK || echo MISSING)" >&2
-                  exit 1
-              fi
 
               # field_id  filename
               FIELDS=(
@@ -122,11 +101,9 @@ runs:
                   for row in "${FIELDS[@]}"; do
                       FIELD_ID="${row%% *}"
                       NAME="${row##* }"
-                      # v3 returns textarea field values as ADF JSON objects.
-                      # Pipe through adf-to-md to recover markdown for the skill.
-                      ADF=$(jq -c --arg f "$FIELD_ID" '.fields[$f] // empty' /tmp/state-pull.json)
-                      if [[ -n "$ADF" && "$ADF" != "null" ]]; then
-                          printf '%s' "$ADF" | node "$ADF_TO_MD" > "$STATE_DIR/$NAME"
+                      VALUE=$(jq -r --arg f "$FIELD_ID" '.fields[$f] // empty' /tmp/state-pull.json)
+                      if [[ -n "$VALUE" ]]; then
+                          printf '%s' "$VALUE" > "$STATE_DIR/$NAME"
                           SIZE=$(wc -c < "$STATE_DIR/$NAME" | tr -d ' ')
                           echo "[state-sync pull] $NAME ($SIZE bytes) <- $FIELD_ID"
                           echo "| \`$NAME\` | $SIZE |" >> "$GITHUB_STEP_SUMMARY"
@@ -139,21 +116,20 @@ runs:
               fi
 
               if [[ "$MODE" == "push" ]]; then
-                  # Build a fields object with only the keys for files that exist.
                   TMP_BODY=$(mktemp)
                   echo '{}' > "$TMP_BODY"
                   ANY_PUSHED=0
                   echo "## AI state push" >> "$GITHUB_STEP_SUMMARY"
                   echo "" >> "$GITHUB_STEP_SUMMARY"
-                  echo "| File | Bytes | Truncated | Fallback |" >> "$GITHUB_STEP_SUMMARY"
-                  echo "|---|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
+                  echo "| File | Bytes | Truncated |" >> "$GITHUB_STEP_SUMMARY"
+                  echo "|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
                   for row in "${FIELDS[@]}"; do
                       FIELD_ID="${row%% *}"
                       NAME="${row##* }"
                       P="$STATE_DIR/$NAME"
                       if [[ ! -f "$P" ]]; then
                           echo "[state-sync push] $NAME absent — leaving $FIELD_ID untouched"
-                          echo "| \`$NAME\` | _(absent)_ | - | - |" >> "$GITHUB_STEP_SUMMARY"
+                          echo "| \`$NAME\` | _(absent)_ | - |" >> "$GITHUB_STEP_SUMMARY"
                           continue
                       fi
                       SIZE=$(wc -c < "$P" | tr -d ' ')
@@ -166,41 +142,12 @@ runs:
                           mv "$P.trunc" "$P"
                           SIZE=$(wc -c < "$P" | tr -d ' ')
                       fi
-                      # Convert markdown -> ADF before PUT. Jira v3 requires ADF
-                      # for textarea fields; sending a plain string falls back
-                      # to Jira's wiki-text auto-conversion, which mangles
-                      # markdown. Use the resilient wrapper: it splits the file
-                      # on blank lines and falls back to codeBlock per-block, so
-                      # one malformed chunk (unterminated delimiter, table the
-                      # parser doesn't like, etc.) doesn't degrade the whole
-                      # file. The wrapper writes its own warning to stderr and
-                      # exits 0 even when blocks fall back.
-                      ADF_FILE="$P.adf.json"
-                      FALLBACK="no"
-                      if ! node "$MD_TO_ADF_RESILIENT" "$MD_TO_ADF" < "$P" > "$ADF_FILE" 2>/tmp/md-to-adf.err; then
-                          echo "[state-sync push] md-to-adf-resilient hard-failed for $NAME (using whole-file codeBlock fallback):" >&2
-                          cat /tmp/md-to-adf.err >&2 || true
-                          FALLBACK="hard"
-                          jq -n --rawfile body "$P" '{
-                              version: 1, type: "doc",
-                              content: [{
-                                  type: "codeBlock",
-                                  attrs: { language: "markdown" },
-                                  content: [{ type: "text", text: $body }]
-                              }]
-                          }' > "$ADF_FILE"
-                      elif grep -q 'block fell back' /tmp/md-to-adf.err 2>/dev/null; then
-                          FALLBACK="partial"
-                          # Forward the wrapper's stderr to the workflow log so
-                          # block-level fallbacks are visible.
-                          cat /tmp/md-to-adf.err >&2 || true
-                      fi
-                      jq --arg f "$FIELD_ID" --slurpfile body "$ADF_FILE" \
-                          '. + { ($f): $body[0] }' "$TMP_BODY" > "$TMP_BODY.next"
+                      jq --arg f "$FIELD_ID" --rawfile body "$P" \
+                          '. + { ($f): $body }' "$TMP_BODY" > "$TMP_BODY.next"
                       mv "$TMP_BODY.next" "$TMP_BODY"
                       ANY_PUSHED=1
-                      echo "[state-sync push] $NAME ($SIZE bytes, truncated=$TRUNC, fallback=$FALLBACK) -> $FIELD_ID"
-                      echo "| \`$NAME\` | $SIZE | $TRUNC | $FALLBACK |" >> "$GITHUB_STEP_SUMMARY"
+                      echo "[state-sync push] $NAME ($SIZE bytes, truncated=$TRUNC) -> $FIELD_ID"
+                      echo "| \`$NAME\` | $SIZE | $TRUNC |" >> "$GITHUB_STEP_SUMMARY"
                   done
 
                   if (( ANY_PUSHED == 0 )); then
@@ -208,9 +155,9 @@ runs:
                       exit 0
                   fi
 
-                  # ADF for several state files easily exceeds Linux ARG_MAX
-                  # when passed via `--data "$BODY"`. Write to a file and use
-                  # `--data @file` instead.
+                  # Several state files at 32 KiB each easily exceed Linux
+                  # ARG_MAX when passed via `--data "$BODY"`. Write the JSON
+                  # body to a file and use `--data @file` instead.
                   PUT_BODY_FILE=$(mktemp)
                   jq -n --slurpfile f "$TMP_BODY" '{ fields: $f[0] }' > "$PUT_BODY_FILE"
                   HTTP=$(curl -sS -o /tmp/state-push.out -w '%{http_code}' \
