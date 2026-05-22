@@ -72,13 +72,16 @@ name: Jira Agent Pipeline (Triage E2E)
 #       clone surfaces "HTTPS authentication failed" (App token lacks
 #       contents:read on ag-dev-prompts).
 #
-#   Step: Install dependencies
+#   Step: Setup Nx (yarn install + postinstall)
 #     - rulesync-fetch failure cloning ag-dev-prompts  -> App-token git
 #       rewrite missing or App lacks contents:read on the marketplace repo.
-#     - Missing .claude/settings.json  -> setup-prompts.sh did not render
-#       (check $AG_PRODUCT / package.json .name).
-#     - yarn install times out / dependency resolution errors  -> usually
-#       transient registry; re-run.
+#     - node_modules cache miss + slow install on cold runners is normal;
+#       subsequent runs hit the shared cache populated by ci.yml.
+#
+#   Step: Verify setup-prompts rendered .claude/settings.json
+#     - Missing file / missing ag-dev marketplace key -> setup-prompts.sh
+#       did not run or failed silently (check $AG_PRODUCT / package.json
+#       .name resolution inside the script).
 #
 #   Step: Write MCP config
 #     - JIRA_* env vars empty  -> secret/variable not set on this repo.
@@ -180,29 +183,21 @@ jobs:
                       "url.https://x-access-token:${APP_TOKEN}@github.com/.insteadOf" \
                       https://github.com/
 
-            - name: Setup Node
-              uses: actions/setup-node@v4
-              with:
-                  node-version-file: package.json
-                  cache: yarn
-
-            - name: Install dependencies (runs setup-prompts.sh postinstall)
+            - name: Setup Nx (yarn install + node_modules cache + postinstall)
               id: install
-              # AG_WORKTREE_FAST_PATH=1 skips the heavy postinstall steps
-              # (apply-patches, nx daemon shuffles, plugin build) while still
-              # running postinstall:setup-prompts — that script renders
-              # .claude/settings.json (with the ag-dev marketplace declared)
-              # and invokes rulesync. We rely on the in-tree settings for
-              # claude-code-action to pick up project skills at runtime; the
-              # marketplace clone Claude Code performs is authenticated by
-              # the git URL rewrite configured above.
-              env:
-                  GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-                  AG_WORKTREE_FAST_PATH: '1'
-                  AG_PRODUCT: ag-charts
+              # setup-nx handles node_modules cache, nx cache, node setup, and
+              # `yarn postinstall` — which runs setup-prompts.sh and renders
+              # .claude/settings.json (with the ag-dev marketplace declared).
+              # cache_mode: ro because we only consume the shared cache here;
+              # rebuilding it is the CI workflow's job.
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
+                  fetch_base: skip
+
+            - name: Verify setup-prompts rendered .claude/settings.json
               run: |
                   set -euo pipefail
-                  yarn install --immutable
                   test -f .claude/settings.json
                   jq -e '.extraKnownMarketplaces."ag-dev"' .claude/settings.json >/dev/null
 
