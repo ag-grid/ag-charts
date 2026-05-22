@@ -29,26 +29,30 @@ function detachMql(entry: SharedEntry) {
     entry.mql = undefined;
 }
 
-const sharedRegistry = createPerWindowRegistry<SharedCallback, SharedEntry>((win) => {
-    const entry: SharedEntry = {
-        win,
-        pixelRatio: win.devicePixelRatio,
-        mql: undefined,
-        subscribers: new Set(),
-        // Named function so the listener is identifiable in flame graphs.
-        mqlListener: function onPixelRatioChange(e: MediaQueryListEvent) {
-            if (e.matches) return;
-            entry.pixelRatio = win.devicePixelRatio;
-            detachMql(entry);
-            attachMql(entry);
-            for (const cb of sharedRegistry.snapshot(entry)) {
-                cb(entry.pixelRatio);
-            }
-        },
-    };
-    attachMql(entry);
-    return entry;
-}, detachMql);
+const sharedRegistry = createPerWindowRegistry<SharedCallback, SharedEntry>(
+    (win) => {
+        const entry: SharedEntry = {
+            win,
+            pixelRatio: win.devicePixelRatio,
+            mql: undefined,
+            subscribers: new Set(),
+            // Named function so the listener is identifiable in flame graphs.
+            mqlListener: function onPixelRatioChange(e: MediaQueryListEvent) {
+                if (e.matches) return;
+                entry.pixelRatio = win.devicePixelRatio;
+                detachMql(entry);
+                attachMql(entry);
+                for (const cb of sharedRegistry.snapshot(entry)) {
+                    cb(entry.pixelRatio);
+                }
+            },
+        };
+        attachMql(entry);
+        return entry;
+    },
+    detachMql,
+    'PixelRatioObserver.shared'
+);
 
 function sharedSubscribe(win: Window, currentRatio: number, cb: SharedCallback): () => void {
     // Late-arriving subscribers may see a different DPR than the entry was created with

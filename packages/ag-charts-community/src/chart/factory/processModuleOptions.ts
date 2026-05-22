@@ -1,5 +1,6 @@
 import {
     type AxisPluginModuleDefinition,
+    Debug,
     Logger,
     ModuleRegistry,
     ModuleType,
@@ -23,17 +24,28 @@ const SkippedModules = new Set<string>(['foreground']);
 
 let sanitizedThemeCache = new WeakMap<ChartTheme, ChartTheme>();
 let sanitizedThemeCacheRevision = -1;
+const sanitizedThemeCacheDebug = Debug.create(true, 'perf', 'theme');
 
 export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
     sanitizedThemeCacheRevision = ModuleRegistry.ifRegistryChanged(sanitizedThemeCacheRevision, () => {
         sanitizedThemeCache = new WeakMap();
     });
     const cached = sanitizedThemeCache.get(theme);
-    if (cached !== undefined) return cached;
+    if (cached !== undefined) {
+        sanitizedThemeCacheDebug('[CACHE] SanitizedTheme', 'hit');
+        return cached;
+    }
 
+    sanitizedThemeCacheDebug('[CACHE] SanitizedTheme', 'miss');
     const result = sanitizeThemeModulesUncached(theme);
     sanitizedThemeCache.set(theme, result);
     return result;
+}
+
+/** Test-only: drop all cached entries so cases start from a known cold state. */
+export function __clearSanitizedThemeCacheForTests() {
+    sanitizedThemeCache = new WeakMap();
+    sanitizedThemeCacheRevision = -1;
 }
 
 function sanitizeThemeModulesUncached(theme: ChartTheme): ChartTheme {

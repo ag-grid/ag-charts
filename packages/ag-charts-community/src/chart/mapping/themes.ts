@@ -111,6 +111,12 @@ export const getChartTheme: typeof createChartTheme = (value) => {
     return theme;
 };
 
+/** Test-only: drop all cached entries so cases start from a known cold state. */
+export function __clearChartThemeCacheForTests() {
+    chartThemeCache.clear();
+    chartThemeCacheRevision = -1;
+}
+
 function createChartTheme(value: unknown): ChartTheme {
     if (value instanceof ChartTheme) {
         return value;

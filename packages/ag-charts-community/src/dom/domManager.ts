@@ -137,7 +137,8 @@ const globalListenerRegistry = createPerWindowRegistry<GlobalListenerSubscriber,
         entry.win.removeEventListener('scroll', entry.onScrollResize, { capture: true });
         entry.win.removeEventListener('resize', entry.onScrollResize, { capture: true });
         entry.doc.removeEventListener('fullscreenchange', entry.onFullscreen);
-    }
+    },
+    'DOMManager.globalListeners'
 );
 
 export class DOMManager extends BaseManager {

@@ -1,4 +1,4 @@
-import { type ChartModuleDefinition, LRUCache, ModuleRegistry, deepFreeze } from 'ag-charts-core';
+import { type ChartModuleDefinition, Debug, LRUCache, ModuleRegistry, deepFreeze } from 'ag-charts-core';
 import type { AgChartThemeParams } from 'ag-charts-types';
 
 // Structural-output cache for `ChartOptions.slowSetup`, gated by callers on
@@ -18,6 +18,7 @@ export interface StructuralCacheEntry {
 const STRUCTURAL_CACHE_MAX = 8;
 const structuralCache = new LRUCache<StructuralCacheEntry>(STRUCTURAL_CACHE_MAX);
 let structuralCacheRevision = -1;
+const structuralCacheDebug = Debug.create(true, 'perf', 'opts');
 
 const IGNORED_SIGNATURE_KEYS = new Set(['data', 'container', 'document', 'window', 'styleContainer', 'context']);
 
@@ -67,10 +68,18 @@ function invalidateIfRegistryChanged() {
 
 export function getStructuralCacheEntry(key: string): StructuralCacheEntry | undefined {
     invalidateIfRegistryChanged();
-    return structuralCache.get(key);
+    const entry = structuralCache.get(key);
+    structuralCacheDebug('[CACHE] StructuralOptions', entry ? 'hit' : 'miss');
+    return entry;
 }
 
 export function setStructuralCacheEntry(key: string, value: StructuralCacheEntry) {
     invalidateIfRegistryChanged();
     structuralCache.set(key, deepFreeze(value));
+}
+
+/** Test-only: drop all cached entries so cases start from a known cold state. */
+export function __clearStructuralCacheForTests() {
+    structuralCache.clear();
+    structuralCacheRevision = -1;
 }
