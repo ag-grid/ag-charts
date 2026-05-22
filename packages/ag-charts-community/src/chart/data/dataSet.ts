@@ -81,25 +81,21 @@ export class DataSet<T = unknown> {
 
     constructor(
         public data: T[],
-        private dataSelectionService: DataSelectionMixin | undefined,
+        private dataSelectionService?: DataSelectionMixin,
         public readonly dataIdKey?: string
     ) {}
 
     /**
      * Creates an empty DataSet.
      */
-    static empty<U = unknown>(dataSelectionService: DataSelectionMixin | undefined, dataIdKey?: string): DataSet<U> {
+    static empty<U = unknown>(dataSelectionService?: DataSelectionMixin, dataIdKey?: string): DataSet<U> {
         return new DataSet<U>([], dataSelectionService, dataIdKey);
     }
 
     /**
      * Wraps existing data in a DataSet.
      */
-    static wrap<U = unknown>(
-        data: U[],
-        dataSelectionService: DataSelectionMixin | undefined,
-        dataIdKey?: string
-    ): DataSet<U> {
+    static wrap<U = unknown>(data: U[], dataSelectionService?: DataSelectionMixin, dataIdKey?: string): DataSet<U> {
         return new DataSet<U>(data, dataSelectionService, dataIdKey);
     }
 
