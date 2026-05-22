@@ -22,7 +22,6 @@ import {
     type SelectionChanges,
     asNumericDatumIndex,
     clearAllSelections,
-    getAllDataSets,
     hasAddToSelectionModifier,
     isAgSelectionItem,
     isUnknownIterable,
@@ -99,14 +98,13 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         if (!enabled || !this.supportsSelection()) return [];
 
         return function* getSelectionIterator(this: DataSelection) {
-            for (const dataSet of getAllDataSets(this.ctx.chartService.series)) {
-                for (const [seriesId, selection] of dataSet.selections) {
-                    for (let datumIndex = 0; datumIndex < selection.getLength(); datumIndex++) {
-                        if (selection.isSelected(datumIndex)) {
-                            const itemId = dataSet.getItemIdFromIndex(datumIndex);
-                            const datum = dataSet.data[datumIndex];
-                            yield { seriesId, itemId, datum };
-                        }
+            for (const it of this.service.iterateDataSetSelections()) {
+                for (let datumIndex = 0; datumIndex < it.selection.getLength(); datumIndex++) {
+                    if (it.selection.isSelected(datumIndex)) {
+                        const itemId = it.dataSet.getItemIdFromIndex(datumIndex);
+                        const datum = it.dataSet.data[datumIndex];
+                        const seriesId = it.seriesId;
+                        yield { seriesId, itemId, datum };
                     }
                 }
             }
