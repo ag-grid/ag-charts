@@ -386,7 +386,7 @@ jobs:
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
                   if [[ "${{ github.ref }}" == "refs/heads/latest" ]]; then
-                      yarn nx run ag-charts-website:build
+                      yarn nx run ag-charts-website:build -c staging
                   else
                       yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude='*,!ag-charts-website'
                   fi
