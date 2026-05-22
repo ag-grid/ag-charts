@@ -112,7 +112,6 @@ export class DataSelectionService implements IDataSelectionService {
 
     *iterateDataSetSelections(): Generator<DataSetSelectionsIterator> {
         const it: DataSetSelectionsIterator = {} as any;
-        8;
         for (const series of this.ctx.chartService.series) {
             const seriesId = series.id;
             const dataSet = series.data;
