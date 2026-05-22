@@ -270,8 +270,7 @@ jobs:
                   claude_args: |
                       --mcp-config ${{ runner.temp }}/mcp.json
                       --max-turns 12
-                      --output-format stream-json
-                      --output-format-file ${{ runner.temp }}/trace.json
+                      --debug
                   prompt: |
                       You are validating the Jira-driven agent pipeline on ag-charts.
                       The JIRA ticket key is: ${{ env.ISSUE_KEY }}.
