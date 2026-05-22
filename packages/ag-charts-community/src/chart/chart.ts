@@ -297,7 +297,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     })
     container?: HTMLElement;
 
-    public data: DataSet = DataSet.empty(undefined);
+    public data: DataSet = DataSet.empty();
 
     public loading: boolean | undefined = undefined;
 
