@@ -271,7 +271,10 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                   name: claude-trace-${{ env.ISSUE_KEY }}-${{ github.run_id }}
-                  path: ${{ runner.temp }}/trace.json
+                  path: |
+                      ${{ runner.temp }}/trace.json
+                      ${{ runner.temp }}/claude-execution-output.json
+                      ${{ runner.temp }}/claude-prompts/
                   if-no-files-found: warn
                   retention-days: 14
 
