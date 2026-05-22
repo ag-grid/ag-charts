@@ -1,0 +1,159 @@
+name: Setup Jira agent runner
+description: |
+    Common access-chain setup for the Jira → GHA agent pipeline jobs. Wraps:
+        1. Validate issue key against the JIRA key regex.
+        2. Mint GitHub App installation token (covers ag-charts + ag-dev-prompts).
+        3. Validate the token sees both repos.
+        4. Configure a global git URL rewrite so any github.com HTTPS clone uses
+           the App-installation token (covers setup-prompts.sh's fetch.sh AND
+           Claude Code's plugin-marketplace resolver at agent runtime).
+        5. Setup Nx (yarn install + node_modules cache + postinstall, which
+           renders .claude/settings.json with the ag-dev marketplace).
+        6. Verify .claude/settings.json rendered with the expected marketplace.
+        7. Sanitise .claude/settings.json for CI: strip hooks; keep env,
+           permissions.allow, ag-dev marketplace, ag-dev-only plugins.
+        8. Render the Atlassian MCP config pointing at the in-repo shim.
+
+inputs:
+    issue_key:
+        description: JIRA issue key (e.g. AG-12345).
+        required: true
+    jira_agent_app_id:
+        required: true
+    jira_agent_app_private_key:
+        required: true
+    jira_email:
+        required: true
+    jira_api_token:
+        required: true
+    jira_site_url:
+        required: true
+
+outputs:
+    app_token:
+        description: The minted GitHub App installation token (for downstream steps that need it).
+        value: ${{ steps.app-token.outputs.token }}
+    mcp_config:
+        description: Path to the rendered MCP config (passed to claude-code-action via --mcp-config).
+        value: ${{ steps.mcp-config.outputs.path }}
+
+runs:
+    using: composite
+    steps:
+        - name: Validate issue key
+          id: validate-issue-key
+          shell: bash
+          env:
+              ISSUE_KEY: ${{ inputs.issue_key }}
+          run: |
+              set -euo pipefail
+              if [[ -z "${ISSUE_KEY:-}" ]]; then
+                  echo "ISSUE_KEY is empty — dispatch payload missing issue_key" >&2
+                  exit 1
+              fi
+              if ! [[ "$ISSUE_KEY" =~ ^[A-Z][A-Z0-9]+-[0-9]+$ ]]; then
+                  echo "ISSUE_KEY '$ISSUE_KEY' does not match expected JIRA key shape (e.g. AG-12345)" >&2
+                  exit 1
+              fi
+              echo "Validated ISSUE_KEY=$ISSUE_KEY"
+
+        - name: Mint GitHub App installation token
+          id: app-token
+          uses: actions/create-github-app-token@v1
+          with:
+              app-id: ${{ inputs.jira_agent_app_id }}
+              private-key: ${{ inputs.jira_agent_app_private_key }}
+              owner: ${{ github.repository_owner }}
+              repositories: |
+                  ag-charts
+                  ag-dev-prompts
+
+        - name: Validate token covers ag-charts and ag-dev-prompts
+          id: validate-token
+          shell: bash
+          env:
+              GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          run: |
+              set -euo pipefail
+              echo "Repositories visible to installation token:"
+              gh api /installation/repositories --jq '.repositories[].full_name' | tee /tmp/repos.txt
+              grep -qx 'ag-grid/ag-charts' /tmp/repos.txt
+              grep -qx 'ag-grid/ag-dev-prompts' /tmp/repos.txt
+
+        - name: Configure git credentials for ag-dev-prompts clones
+          # claude-code-action does NOT forward github_token to its plugin
+          # marketplace clone (OQ#1 — confirmed empirically). A global git URL
+          # rewrite installs the App-installation token as the credential for
+          # any github.com HTTPS clone.
+          shell: bash
+          env:
+              APP_TOKEN: ${{ steps.app-token.outputs.token }}
+          run: |
+              set -euo pipefail
+              git config --global \
+                  "url.https://x-access-token:${APP_TOKEN}@github.com/.insteadOf" \
+                  https://github.com/
+
+        - name: Setup Nx (yarn install + node_modules cache + postinstall)
+          id: install
+          uses: ./.github/actions/setup-nx
+          with:
+              cache_mode: ro
+              fetch_base: skip
+
+        - name: Verify setup-prompts rendered .claude/settings.json
+          shell: bash
+          run: |
+              set -euo pipefail
+              test -f .claude/settings.json
+              jq -e '.extraKnownMarketplaces."ag-dev"' .claude/settings.json >/dev/null
+
+        - name: Sanitise .claude/settings.json for CI
+          shell: bash
+          run: |
+              set -euo pipefail
+              cp .claude/settings.json /tmp/orig-settings.json
+              jq '{
+                  env,
+                  permissions,
+                  extraKnownMarketplaces: { "ag-dev": .extraKnownMarketplaces."ag-dev" },
+                  enabledPlugins: (
+                      .enabledPlugins
+                      | to_entries
+                      | map(select(.key | endswith("@ag-dev")))
+                      | from_entries
+                  )
+              }' /tmp/orig-settings.json > .claude/settings.json
+              echo "--- sanitised settings ---"
+              cat .claude/settings.json
+
+        - name: Write Atlassian MCP config
+          id: mcp-config
+          shell: bash
+          env:
+              JIRA_EMAIL: ${{ inputs.jira_email }}
+              JIRA_API_TOKEN: ${{ inputs.jira_api_token }}
+              JIRA_SITE_URL: ${{ inputs.jira_site_url }}
+          run: |
+              set -euo pipefail
+              : "${JIRA_EMAIL:?missing}" "${JIRA_API_TOKEN:?missing}" "${JIRA_SITE_URL:?missing}"
+              MCP_PATH="${RUNNER_TEMP}/mcp.json"
+              jq -n \
+                  --arg shim "$GITHUB_WORKSPACE/.github/scripts/jira-mcp-shim/server.mjs" \
+                  --arg email "$JIRA_EMAIL" \
+                  --arg token "$JIRA_API_TOKEN" \
+                  --arg site "$JIRA_SITE_URL" \
+                  '{
+                      mcpServers: {
+                          atlassian: {
+                              command: "node",
+                              args: [$shim],
+                              env: {
+                                  JIRA_USER_EMAIL: $email,
+                                  JIRA_API_TOKEN: $token,
+                                  JIRA_SITE_URL: $site
+                              }
+                          }
+                      }
+                  }' > "$MCP_PATH"
+              echo "path=$MCP_PATH" >> "$GITHUB_OUTPUT"

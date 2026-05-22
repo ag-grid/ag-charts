@@ -1,0 +1,162 @@
+name: Jira AI-state sync
+description: |
+    Round-trip the `/fr --ci` state files (`intent.md` / `research.md` / `plan.md`)
+    between the Jira textarea custom fields and `${RUNNER_TEMP}/fr-state/`.
+
+    Field mapping:
+      customfield_10943 — AI research <-> research.md
+      customfield_10944 — AI intent   <-> intent.md
+      customfield_10945 — AI plan     <-> plan.md
+
+    Modes:
+      `pull` — pre-job. Read the three fields from Jira; for each non-null value,
+               write a file under ${RUNNER_TEMP}/fr-state/. Creates the dir if
+               needed.
+      `push` — post-job (use with `if: always()`). Read whichever of the three
+               files exist under ${RUNNER_TEMP}/fr-state/, build a single PUT
+               body, and write all three fields in one request. Files the agent
+               did not write this run are left untouched on the ticket.
+
+    Truncation: textarea fields are bounded at 32,767 chars in Jira. Any file
+    above that limit is truncated with a tail marker before upload.
+
+inputs:
+    issue_key:
+        description: JIRA issue key (e.g. AG-12345).
+        required: true
+    mode:
+        description: '`pull` or `push`.'
+        required: true
+    state_dir:
+        description: Directory used for state files. Defaults to $RUNNER_TEMP/fr-state.
+        required: false
+        default: ''
+    jira_email:
+        required: true
+    jira_api_token:
+        required: true
+    jira_site_url:
+        required: true
+
+runs:
+    using: composite
+    steps:
+        - name: Sync AI state
+          shell: bash
+          env:
+              ISSUE_KEY: ${{ inputs.issue_key }}
+              MODE: ${{ inputs.mode }}
+              STATE_DIR_IN: ${{ inputs.state_dir }}
+              JIRA_USER_EMAIL: ${{ inputs.jira_email }}
+              JIRA_API_TOKEN: ${{ inputs.jira_api_token }}
+              JIRA_SITE_URL: ${{ inputs.jira_site_url }}
+          run: |
+              set -euo pipefail
+              : "${ISSUE_KEY:?}" "${MODE:?}"
+              : "${JIRA_USER_EMAIL:?}" "${JIRA_API_TOKEN:?}" "${JIRA_SITE_URL:?}"
+
+              STATE_DIR="$STATE_DIR_IN"
+              if [[ -z "$STATE_DIR" ]]; then STATE_DIR="${RUNNER_TEMP}/fr-state"; fi
+              mkdir -p "$STATE_DIR"
+
+              SITE="${JIRA_SITE_URL%/}"
+              AUTH="$(printf '%s:%s' "$JIRA_USER_EMAIL" "$JIRA_API_TOKEN" | base64 | tr -d '\n')"
+              MAX_CHARS=32767
+
+              # field_id  filename
+              FIELDS=(
+                  "customfield_10943 research.md"
+                  "customfield_10944 intent.md"
+                  "customfield_10945 plan.md"
+              )
+
+              if [[ "$MODE" == "pull" ]]; then
+                  HTTP=$(curl -sS -o /tmp/state-pull.json -w '%{http_code}' \
+                      -H "authorization: Basic $AUTH" \
+                      -H 'accept: application/json' \
+                      "$SITE/rest/api/3/issue/$ISSUE_KEY?fields=customfield_10943,customfield_10944,customfield_10945")
+                  if [[ "$HTTP" != "200" ]]; then
+                      echo "[state-sync pull] GET failed: HTTP $HTTP" >&2
+                      cat /tmp/state-pull.json >&2 || true
+                      exit 1
+                  fi
+                  echo "## AI state pull" >> "$GITHUB_STEP_SUMMARY"
+                  echo "" >> "$GITHUB_STEP_SUMMARY"
+                  echo "| File | Bytes |" >> "$GITHUB_STEP_SUMMARY"
+                  echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+                  for row in "${FIELDS[@]}"; do
+                      FIELD_ID="${row%% *}"
+                      NAME="${row##* }"
+                      VAL=$(jq -r --arg f "$FIELD_ID" '.fields[$f] // empty' /tmp/state-pull.json)
+                      if [[ -n "$VAL" ]]; then
+                          printf '%s' "$VAL" > "$STATE_DIR/$NAME"
+                          SIZE=$(wc -c < "$STATE_DIR/$NAME" | tr -d ' ')
+                          echo "[state-sync pull] $NAME ($SIZE bytes) <- $FIELD_ID"
+                          echo "| \`$NAME\` | $SIZE |" >> "$GITHUB_STEP_SUMMARY"
+                      else
+                          echo "[state-sync pull] $FIELD_ID empty — skipping $NAME"
+                          echo "| \`$NAME\` | _(empty)_ |" >> "$GITHUB_STEP_SUMMARY"
+                      fi
+                  done
+                  exit 0
+              fi
+
+              if [[ "$MODE" == "push" ]]; then
+                  # Build a fields object with only the keys for files that exist.
+                  TMP_BODY=$(mktemp)
+                  echo '{}' > "$TMP_BODY"
+                  ANY_PUSHED=0
+                  echo "## AI state push" >> "$GITHUB_STEP_SUMMARY"
+                  echo "" >> "$GITHUB_STEP_SUMMARY"
+                  echo "| File | Bytes | Truncated |" >> "$GITHUB_STEP_SUMMARY"
+                  echo "|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
+                  for row in "${FIELDS[@]}"; do
+                      FIELD_ID="${row%% *}"
+                      NAME="${row##* }"
+                      P="$STATE_DIR/$NAME"
+                      if [[ ! -f "$P" ]]; then
+                          echo "[state-sync push] $NAME absent — leaving $FIELD_ID untouched"
+                          echo "| \`$NAME\` | _(absent)_ | - |" >> "$GITHUB_STEP_SUMMARY"
+                          continue
+                      fi
+                      SIZE=$(wc -c < "$P" | tr -d ' ')
+                      TRUNC="no"
+                      if (( SIZE > MAX_CHARS )); then
+                          TRUNC="yes"
+                          ORIG="$SIZE"
+                          head -c $((MAX_CHARS - 120)) "$P" > "$P.trunc"
+                          printf '\n\n---\n[truncated: original was %s chars]\n' "$ORIG" >> "$P.trunc"
+                          mv "$P.trunc" "$P"
+                          SIZE=$(wc -c < "$P" | tr -d ' ')
+                      fi
+                      jq --arg f "$FIELD_ID" --rawfile body "$P" \
+                          '. + { ($f): $body }' "$TMP_BODY" > "$TMP_BODY.next"
+                      mv "$TMP_BODY.next" "$TMP_BODY"
+                      ANY_PUSHED=1
+                      echo "[state-sync push] $NAME ($SIZE bytes, truncated=$TRUNC) -> $FIELD_ID"
+                      echo "| \`$NAME\` | $SIZE | $TRUNC |" >> "$GITHUB_STEP_SUMMARY"
+                  done
+
+                  if (( ANY_PUSHED == 0 )); then
+                      echo "[state-sync push] no state files to upload"
+                      exit 0
+                  fi
+
+                  PUT_BODY=$(jq -n --slurpfile f "$TMP_BODY" '{ fields: $f[0] }')
+                  HTTP=$(curl -sS -o /tmp/state-push.out -w '%{http_code}' \
+                      -X PUT \
+                      -H "authorization: Basic $AUTH" \
+                      -H 'accept: application/json' \
+                      -H 'content-type: application/json' \
+                      --data "$PUT_BODY" \
+                      "$SITE/rest/api/3/issue/$ISSUE_KEY")
+                  if [[ "$HTTP" != "204" && "$HTTP" != "200" ]]; then
+                      echo "[state-sync push] PUT failed: HTTP $HTTP" >&2
+                      cat /tmp/state-push.out >&2 || true
+                      exit 1
+                  fi
+                  exit 0
+              fi
+
+              echo "[state-sync] unknown mode: $MODE" >&2
+              exit 1

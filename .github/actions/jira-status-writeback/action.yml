@@ -1,0 +1,113 @@
+name: Jira AI-status writeback
+description: |
+    Sets the `AI status` (customfield_10942) select option on a Jira issue.
+    On `mode: post-job` + `outcome: failure`, also posts a comment recording
+    which stage failed and the workflow-run URL.
+
+inputs:
+    issue_key:
+        description: JIRA issue key (e.g. AG-12345).
+        required: true
+    mode:
+        description: '`pre-job` (set the in-progress value for this stage) or `post-job` (set the terminal value).'
+        required: true
+    stage:
+        description: |
+            Stage name — `triage` | `build` | `pr-iterate`. Drives the value-mapping table.
+        required: true
+    outcome:
+        description: |
+            For `mode: post-job` only. The `${{ job.status }}` value from the surrounding job
+            (`success` | `failure` | `cancelled`).
+        required: false
+        default: success
+    jira_email:
+        required: true
+    jira_api_token:
+        required: true
+    jira_site_url:
+        required: true
+
+runs:
+    using: composite
+    steps:
+        - name: Write AI status
+          shell: bash
+          env:
+              ISSUE_KEY: ${{ inputs.issue_key }}
+              MODE: ${{ inputs.mode }}
+              STAGE: ${{ inputs.stage }}
+              OUTCOME: ${{ inputs.outcome }}
+              JIRA_USER_EMAIL: ${{ inputs.jira_email }}
+              JIRA_API_TOKEN: ${{ inputs.jira_api_token }}
+              JIRA_SITE_URL: ${{ inputs.jira_site_url }}
+              RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          run: |
+              set -euo pipefail
+              : "${ISSUE_KEY:?}" "${MODE:?}" "${STAGE:?}"
+              : "${JIRA_USER_EMAIL:?}" "${JIRA_API_TOKEN:?}" "${JIRA_SITE_URL:?}"
+
+              # stage × mode → AI status select value
+              status_for() {
+                  local stage="$1" mode="$2" outcome="${3:-success}"
+                  if [[ "$mode" == "pre-job" ]]; then
+                      case "$stage" in
+                          triage)     echo "triaging" ;;
+                          build)      echo "building" ;;
+                          pr-iterate) echo "pr-iterating" ;;
+                          *) echo "[status-writeback] unknown stage: $stage" >&2; return 1 ;;
+                      esac
+                      return
+                  fi
+                  # post-job
+                  if [[ "$outcome" != "success" ]]; then
+                      echo "failed"
+                      return
+                  fi
+                  case "$stage" in
+                      triage)     echo "awaiting-clarity" ;;
+                      build)      echo "draft-pr-open" ;;
+                      pr-iterate) echo "done" ;;
+                      *) echo "[status-writeback] unknown stage: $stage" >&2; return 1 ;;
+                  esac
+              }
+
+              VALUE="$(status_for "$STAGE" "$MODE" "$OUTCOME")"
+              echo "[status-writeback] $ISSUE_KEY: stage=$STAGE mode=$MODE outcome=$OUTCOME -> $VALUE"
+
+              SITE="${JIRA_SITE_URL%/}"
+              AUTH="$(printf '%s:%s' "$JIRA_USER_EMAIL" "$JIRA_API_TOKEN" | base64 | tr -d '\n')"
+
+              BODY=$(jq -n --arg v "$VALUE" '{ fields: { customfield_10942: { value: $v } } }')
+              HTTP=$(curl -sS -o /tmp/status-write.out -w '%{http_code}' \
+                  -X PUT \
+                  -H "authorization: Basic $AUTH" \
+                  -H 'accept: application/json' \
+                  -H 'content-type: application/json' \
+                  --data "$BODY" \
+                  "$SITE/rest/api/3/issue/$ISSUE_KEY")
+              if [[ "$HTTP" != "204" && "$HTTP" != "200" ]]; then
+                  echo "[status-writeback] PUT failed: HTTP $HTTP" >&2
+                  cat /tmp/status-write.out >&2 || true
+                  exit 1
+              fi
+
+              # On failure, also post a comment so the stage detail isn't lost
+              # (the select field only carries the bare 'failed' value).
+              if [[ "$MODE" == "post-job" && "$VALUE" == "failed" ]]; then
+                  COMMENT="[$STAGE] failed (outcome=$OUTCOME). See $RUN_URL"
+                  CBODY=$(jq -n --arg c "$COMMENT" '{
+                      body: {
+                          type: "doc",
+                          version: 1,
+                          content: [{ type: "paragraph", content: [{ type: "text", text: $c }] }]
+                      }
+                  }')
+                  curl -sS -o /dev/null -w 'comment HTTP %{http_code}\n' \
+                      -X POST \
+                      -H "authorization: Basic $AUTH" \
+                      -H 'accept: application/json' \
+                      -H 'content-type: application/json' \
+                      --data "$CBODY" \
+                      "$SITE/rest/api/3/issue/$ISSUE_KEY/comment"
+              fi
