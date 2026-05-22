@@ -181,7 +181,17 @@ runs:
                   "Bash(git push:*)",
                   "Bash(gh pr create:*)"
               ]'
-              jq --argjson extra "$CI_EXTRA_ALLOW" '{
+
+              # Stage the heartbeat hook script to a path that survives the
+              # build job's branch switch — the agent typically checks out
+              # a fresh topic branch (forked from `latest`) which may not
+              # carry `.github/scripts/`, so we copy to RUNNER_TEMP and
+              # reference an absolute path in the hook config.
+              HEARTBEAT_HOOK="${RUNNER_TEMP}/heartbeat-from-tasks.sh"
+              cp .github/scripts/heartbeat-from-tasks.sh "$HEARTBEAT_HOOK"
+              chmod +x "$HEARTBEAT_HOOK"
+
+              jq --argjson extra "$CI_EXTRA_ALLOW" --arg hook "$HEARTBEAT_HOOK" '{
                   env,
                   permissions: (
                       .permissions
@@ -193,7 +203,17 @@ runs:
                       | to_entries
                       | map(select(.key | endswith("@ag-dev")))
                       | from_entries
-                  )
+                  ),
+                  hooks: {
+                      PostToolUse: [
+                          {
+                              matcher: "TaskCreate|TaskUpdate",
+                              hooks: [
+                                  { type: "command", command: $hook }
+                              ]
+                          }
+                      ]
+                  }
               }' /tmp/orig-settings.json > .claude/settings.json
               echo "--- sanitised settings ---"
               cat .claude/settings.json

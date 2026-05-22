@@ -203,6 +203,7 @@ jobs:
                   # has full capability headroom.
                   ANTHROPIC_MODEL: 'claude-opus-4-7[1m]'
                   CLAUDE_CODE_EFFORT_LEVEL: high
+                  HEARTBEAT_STATE_DIR: ${{ github.workspace }}/tmp/fr-state/${{ env.ISSUE_KEY }}
               with:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.setup.outputs.app_token }}
@@ -388,6 +389,7 @@ jobs:
               env:
                   ANTHROPIC_MODEL: ${{ steps.model-pick.outputs.model }}
                   CLAUDE_CODE_EFFORT_LEVEL: ${{ steps.model-pick.outputs.effort }}
+                  HEARTBEAT_STATE_DIR: ${{ github.workspace }}/tmp/fr-state/${{ env.ISSUE_KEY }}
               with:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.setup.outputs.app_token }}
@@ -591,6 +593,7 @@ jobs:
               env:
                   ANTHROPIC_MODEL: ${{ steps.model-pick.outputs.model }}
                   CLAUDE_CODE_EFFORT_LEVEL: ${{ steps.model-pick.outputs.effort }}
+                  HEARTBEAT_STATE_DIR: ${{ github.workspace }}/tmp/fr-state/${{ env.ISSUE_KEY }}
               with:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.setup.outputs.app_token }}
@@ -862,6 +865,7 @@ jobs:
               env:
                   ANTHROPIC_MODEL: ${{ steps.model-pick.outputs.model }}
                   CLAUDE_CODE_EFFORT_LEVEL: ${{ steps.model-pick.outputs.effort }}
+                  HEARTBEAT_STATE_DIR: ${{ github.workspace }}/tmp/fr-state/${{ env.ISSUE_KEY }}
               with:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.setup.outputs.app_token }}
