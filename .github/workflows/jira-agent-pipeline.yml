@@ -58,6 +58,11 @@ name: Jira Agent Pipeline
 #                                                    to per-stage default)
 #   customfield_10986  AI model effort  textfield  (same flow as AI model;
 #                                                    valid: low|medium|high|xhigh|max)
+#   <vars.JIRA_PROGRESS_FIELD_ID>  AI progress %   number     (live %-of-current-stage;
+#                                                              written by progress-tail
+#                                                              from heartbeat.jsonl)
+#   <vars.JIRA_ACTIVITY_FIELD_ID>  AI activity     short text (live "what is it doing"
+#                                                              label; same source)
 #
 # ----------------------------------------------------------------------------
 # Per-job step skeleton
@@ -179,6 +184,17 @@ jobs:
                   jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
+            - name: Start progress heartbeat tail
+              uses: ./.github/actions/jira-progress-tail
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: start
+                  progress_field_id: ${{ vars.JIRA_PROGRESS_FIELD_ID }}
+                  activity_field_id: ${{ vars.JIRA_ACTIVITY_FIELD_ID }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
             - name: Run /fr --ci --phase 0..1 (triage)
               id: claude
               uses: anthropics/claude-code-action@v1
@@ -236,6 +252,16 @@ jobs:
                           getTransitionsForJiraIssue, transitionJiraIssue,
                           addAttachmentToJiraIssue). No other Jira tools are
                           available. Phases 2..5 are out of scope.
+
+            - name: Stop progress heartbeat tail
+              if: always()
+              uses: ./.github/actions/jira-progress-tail
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: stop
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
             - name: Human-readable trace digest
               if: always()
@@ -350,6 +376,17 @@ jobs:
               shell: bash
               run: cp -a .github "${RUNNER_TEMP}/gha-snapshot"
 
+            - name: Start progress heartbeat tail
+              uses: ./.github/actions/jira-progress-tail
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: start
+                  progress_field_id: ${{ vars.JIRA_PROGRESS_FIELD_ID }}
+                  activity_field_id: ${{ vars.JIRA_ACTIVITY_FIELD_ID }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
             - name: Run /fr --ci --phase 2..5 --resume --draft-pr (build)
               id: claude
               uses: anthropics/claude-code-action@v1
@@ -413,6 +450,16 @@ jobs:
                   else
                       echo "[restore] no snapshot found at ${RUNNER_TEMP}/gha-snapshot" >&2
                   fi
+
+            - name: Stop progress heartbeat tail
+              if: always()
+              uses: ./.github/actions/jira-progress-tail
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: stop
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
             - name: Human-readable trace digest
               if: always()
@@ -534,6 +581,17 @@ jobs:
               shell: bash
               run: cp -a .github "${RUNNER_TEMP}/gha-snapshot"
 
+            - name: Start progress heartbeat tail
+              uses: ./.github/actions/jira-progress-tail
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: start
+                  progress_field_id: ${{ vars.JIRA_PROGRESS_FIELD_ID }}
+                  activity_field_id: ${{ vars.JIRA_ACTIVITY_FIELD_ID }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
             - name: Run /fr --ci --pr-iterate (pr-iterate)
               id: claude
               uses: anthropics/claude-code-action@v1
@@ -590,6 +648,16 @@ jobs:
                   else
                       echo "[restore] no snapshot found at ${RUNNER_TEMP}/gha-snapshot" >&2
                   fi
+
+            - name: Stop progress heartbeat tail
+              if: always()
+              uses: ./.github/actions/jira-progress-tail
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: stop
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
             - name: Human-readable trace digest
               if: always()
@@ -786,6 +854,17 @@ jobs:
               shell: bash
               run: cp -a .github "${RUNNER_TEMP}/gha-snapshot"
 
+            - name: Start progress heartbeat tail
+              uses: ./.github/actions/jira-progress-tail
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: start
+                  progress_field_id: ${{ vars.JIRA_PROGRESS_FIELD_ID }}
+                  activity_field_id: ${{ vars.JIRA_ACTIVITY_FIELD_ID }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
             - name: Run /fr --ci --pr-iterate --ci-failure (ci-failure-iterate)
               id: claude
               uses: anthropics/claude-code-action@v1
@@ -847,6 +926,16 @@ jobs:
                   else
                       echo "[restore] no snapshot found at ${RUNNER_TEMP}/gha-snapshot" >&2
                   fi
+
+            - name: Stop progress heartbeat tail
+              if: always()
+              uses: ./.github/actions/jira-progress-tail
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: stop
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
             - name: Human-readable trace digest
               if: always()
