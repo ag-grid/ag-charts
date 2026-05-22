@@ -156,7 +156,7 @@ runs:
                       -H 'accept: application/json' \
                       -H 'content-type: application/json' \
                       --data "$PUT_BODY" \
-                      "$SITE/rest/api/3/issue/$ISSUE_KEY")
+                      "$SITE/rest/api/2/issue/$ISSUE_KEY")
                   if [[ "$HTTP" != "204" && "$HTTP" != "200" ]]; then
                       echo "[state-sync push] PUT failed: HTTP $HTTP" >&2
                       cat /tmp/state-push.out >&2 || true

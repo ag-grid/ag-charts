@@ -86,7 +86,7 @@ runs:
                       -H 'accept: application/json' \
                       -H 'content-type: application/json' \
                       --data "$body" \
-                      "$SITE/rest/api/3/issue/$ISSUE_KEY")
+                      "$SITE/rest/api/2/issue/$ISSUE_KEY")
                   if [[ "$http" != "204" && "$http" != "200" ]]; then
                       echo "[status-writeback] PUT failed: HTTP $http" >&2
                       cat /tmp/status-write.out >&2 || true
