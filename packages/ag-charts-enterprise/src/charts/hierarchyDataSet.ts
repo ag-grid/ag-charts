@@ -66,7 +66,7 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
     }
 
     /** Recursively indexes all items (root and nested) by ID, mapping each to the root ancestor's index. */
-    protected override getIdToIndexMap(): Map<string | number, number> {
+    public override getIdToIndexMap(): Map<string | number, number> {
         if (this.idToIndexCache === undefined) {
             this.idToIndexCache = new Map();
             for (let i = 0; i < this.data.length; i++) {

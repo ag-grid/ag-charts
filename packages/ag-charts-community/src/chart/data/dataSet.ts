@@ -872,7 +872,7 @@ export class DataSet<T = unknown> {
     }
 
     /** Lazy ID→index map for O(1) lookups when `dataIdKey` is set. */
-    protected getIdToIndexMap(): Map<string | number, number> {
+    public getIdToIndexMap(): Map<string | number, number> {
         if (this.idToIndexCache === undefined) {
             this.idToIndexCache = new Map();
             for (let i = 0; i < this.data.length; i++) {
