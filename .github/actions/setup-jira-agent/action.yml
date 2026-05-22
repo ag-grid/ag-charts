@@ -113,9 +113,22 @@ runs:
           run: |
               set -euo pipefail
               cp .claude/settings.json /tmp/orig-settings.json
-              jq '{
+              # CI-only additions to permissions.allow. The base template
+              # (external/ag-shared/.claude-settings.template.json) deliberately
+              # omits these — they are write actions humans normally confirm
+              # per git-conventions. In CI we are non-interactive and the agent
+              # needs them to land Phase 5 (commit, push, open draft PR).
+              CI_EXTRA_ALLOW='[
+                  "Bash(git commit:*)",
+                  "Bash(git push:*)",
+                  "Bash(gh pr create:*)"
+              ]'
+              jq --argjson extra "$CI_EXTRA_ALLOW" '{
                   env,
-                  permissions,
+                  permissions: (
+                      .permissions
+                      | .allow = ((.allow // []) + $extra | unique)
+                  ),
                   extraKnownMarketplaces: { "ag-dev": .extraKnownMarketplaces."ag-dev" },
                   enabledPlugins: (
                       .enabledPlugins
