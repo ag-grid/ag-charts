@@ -270,6 +270,14 @@ jobs:
                   jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
+            # Snapshot .github/ to runner temp so we can restore the
+            # composite actions after the agent step (which typically
+            # checks out a fresh topic branch that lacks them — see the
+            # restore step below for the full rationale).
+            - name: Snapshot .github/ before agent
+              shell: bash
+              run: cp -a .github "${RUNNER_TEMP}/gha-snapshot"
+
             - name: Run /fr --ci --phase 2..5 --resume --draft-pr (build)
               id: claude
               uses: anthropics/claude-code-action@v1
@@ -300,6 +308,24 @@ jobs:
                           addAttachmentToJiraIssue for these files — the
                           textareas are the durable form.
                         - Phase 4 is skipped; --draft-pr opens the PR in draft.
+
+            # Restore .github/ from the runner-temp snapshot taken before
+            # the agent step. The agent typically checks out a new topic
+            # branch to commit its changes; that branch (forked from
+            # `latest`) does not contain `.github/actions/*` until this
+            # workflow's PR merges, so local-path `uses: ./...` invocations
+            # below would otherwise fail with "Can't find action.yml". The
+            # snapshot is unconditional so the restore is safe even if the
+            # agent step exited early.
+            - name: Restore .github/ snapshot (agent may have switched branches)
+              if: always()
+              shell: bash
+              run: |
+                  if [[ -d "${RUNNER_TEMP}/gha-snapshot" ]]; then
+                      cp -a "${RUNNER_TEMP}/gha-snapshot/." .github/
+                  else
+                      echo "[restore] no snapshot found at ${RUNNER_TEMP}/gha-snapshot" >&2
+                  fi
 
             - if: always()
               uses: ./.github/actions/jira-state-sync
@@ -392,6 +418,12 @@ jobs:
                   jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
+            # See note in the build job — snapshot .github/ so the
+            # post-agent composites resolve regardless of branch state.
+            - name: Snapshot .github/ before agent
+              shell: bash
+              run: cp -a .github "${RUNNER_TEMP}/gha-snapshot"
+
             - name: Run /fr --ci --pr-iterate (pr-iterate)
               id: claude
               uses: anthropics/claude-code-action@v1
@@ -420,6 +452,19 @@ jobs:
                           to the same files; the workflow round-trips them to
                           Jira after you exit. Do not call addAttachmentToJiraIssue
                           for these files — the textareas are the durable form.
+
+            # See note in the build job: restore .github/ from the snapshot
+            # so local-path composites resolve regardless of which branch
+            # the agent left checked out.
+            - name: Restore .github/ snapshot (agent may have switched branches)
+              if: always()
+              shell: bash
+              run: |
+                  if [[ -d "${RUNNER_TEMP}/gha-snapshot" ]]; then
+                      cp -a "${RUNNER_TEMP}/gha-snapshot/." .github/
+                  else
+                      echo "[restore] no snapshot found at ${RUNNER_TEMP}/gha-snapshot" >&2
+                  fi
 
             - if: always()
               uses: ./.github/actions/jira-state-sync
