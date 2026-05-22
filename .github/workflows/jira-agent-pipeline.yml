@@ -1,0 +1,248 @@
+name: Jira Agent Pipeline (Triage E2E)
+
+# ============================================================================
+# Triage-only end-to-end validation of the Jira -> GHA agent pipeline.
+#
+# Goal: flush out every access / authorisation / secrets-management /
+# plugin-loading issue on a single workflow stage BEFORE adding scope (build,
+# pr-iterate, cost writeback, transitions). See the design doc at
+# docs/design-decisions/dev-tooling/jira-gha-agent-pipeline.md (Phase 0).
+#
+# This PR deliberately does NOT do:
+#   - The build or pr-iterate stages.
+#   - The /fr --ci marketplace work in ag-dev-prompts (does not exist yet).
+#   - Jira state transitions on success / failure.
+#   - Cost writeback to customfield_ai_cost_usd_total.
+#   - Plunker prereq enforcement or ai-retrigger automation.
+#
+# ----------------------------------------------------------------------------
+# Operator pre-requisites (cannot be done from this PR)
+# ----------------------------------------------------------------------------
+#
+# 1. GitHub App `ag-grid-jira-agents` (or equivalent) installed on BOTH:
+#       - ag-grid/ag-charts        (this repo; needs contents:write,
+#                                   issues:write, pull-requests:write,
+#                                   actions:write)
+#       - ag-grid/ag-dev-prompts   (marketplace; needs contents:read)
+#
+# 2. Repository secrets on ag-grid/ag-charts:
+#       JIRA_AGENT_APP_PRIVATE_KEY  - PEM private key for the App above
+#       ANTHROPIC_API_KEY           - Anthropic Enterprise admin key
+#                                     (label: ci-jira-agents-ag-charts)
+#       JIRA_API_TOKEN              - Atlassian API token for the service
+#                                     account
+#       JIRA_EMAIL                  - Service-account email (basic-auth pair
+#                                     Atlassian Cloud requires)
+#
+# 3. Repository variables on ag-grid/ag-charts:
+#       JIRA_AGENT_APP_ID           - GitHub App ID (not secret)
+#       JIRA_SITE_URL               - https://ag-grid.atlassian.net
+#
+# 4. Jira Automation rule (Atlassian side):
+#       Trigger:  label `ai-eligible` added to an issue.
+#       Action:   POST https://api.github.com/repos/ag-grid/ag-charts/dispatches
+#                 Authorization: Bearer <installation-token>
+#                 Body: {"event_type":"jira-triage",
+#                        "client_payload":{"issue_key":"{{issue.key}}"}}
+#       Note:     out of scope for this PR's dry run; use workflow_dispatch
+#                 to exercise the workflow without the Jira side wired.
+#
+# ----------------------------------------------------------------------------
+# Dry-run command (no Jira Automation required)
+# ----------------------------------------------------------------------------
+#
+#   gh workflow run jira-agent-pipeline.yml -f issue_key=AG-XXXXX
+#
+# Pick a low-value test ticket; the agent will post one comment to it.
+#
+# ----------------------------------------------------------------------------
+# Failure mode crib sheet
+# ----------------------------------------------------------------------------
+#
+#   Step: Mint App token
+#     - "Resource not accessible by integration"  -> App not installed on
+#       this repo, or private key wrong, or APP_ID variable unset.
+#
+#   Step: Validate token covers both repos
+#     - ag-dev-prompts missing from the repo list  -> App not installed on
+#       the marketplace repo. Install it.
+#
+#   Step: Write MCP config
+#     - JIRA_* env vars empty  -> secret/variable not set on this repo.
+#
+#   Step: claude-code-action
+#     - "Could not clone ag-grid/ag-dev-prompts"  -> App token lacks
+#       contents:read on the marketplace, OR the action does not forward
+#       github_token to its marketplace clone (claude-code-action #664).
+#     - "401 from api.anthropic.com"  -> ANTHROPIC_API_KEY missing/revoked.
+#     - Agent reports MCP fetch failed  -> JIRA_API_TOKEN scope, or wrong
+#       JIRA_EMAIL, or @atlassian/mcp-server package name wrong.
+#
+#   Step: Summary
+#     - Final PASS/FAIL panel surfaces exactly which surface failed.
+# ============================================================================
+
+on:
+    repository_dispatch:
+        types: [jira-triage]
+    workflow_dispatch:
+        inputs:
+            issue_key:
+                description: 'JIRA issue key (e.g. AG-12345)'
+                type: string
+                required: true
+
+permissions:
+    contents: read
+
+concurrency:
+    group: claude-${{ github.event.client_payload.issue_key || inputs.issue_key }}
+    cancel-in-progress: false
+
+jobs:
+    triage:
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        permissions:
+            contents: read
+        env:
+            ISSUE_KEY: ${{ github.event.client_payload.issue_key || inputs.issue_key }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Validate issue key
+              id: validate-issue-key
+              run: |
+                  set -euo pipefail
+                  if [[ -z "${ISSUE_KEY:-}" ]]; then
+                      echo "ISSUE_KEY is empty — dispatch payload missing issue_key" >&2
+                      exit 1
+                  fi
+                  if ! [[ "$ISSUE_KEY" =~ ^[A-Z][A-Z0-9]+-[0-9]+$ ]]; then
+                      echo "ISSUE_KEY '$ISSUE_KEY' does not match expected JIRA key shape (e.g. AG-12345)" >&2
+                      exit 1
+                  fi
+                  echo "Validated ISSUE_KEY=$ISSUE_KEY"
+
+            - name: Mint GitHub App installation token
+              id: app-token
+              uses: actions/create-github-app-token@v1
+              with:
+                  app-id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  owner: ${{ github.repository_owner }}
+                  repositories: |
+                      ag-charts
+                      ag-dev-prompts
+
+            - name: Validate token covers ag-charts and ag-dev-prompts
+              id: validate-token
+              env:
+                  GH_TOKEN: ${{ steps.app-token.outputs.token }}
+              run: |
+                  set -euo pipefail
+                  echo "Repositories visible to installation token:"
+                  gh api /installation/repositories --jq '.repositories[].full_name' | tee /tmp/repos.txt
+                  grep -qx 'ag-grid/ag-charts' /tmp/repos.txt
+                  grep -qx 'ag-grid/ag-dev-prompts' /tmp/repos.txt
+                  echo "ok=true" >> "$GITHUB_OUTPUT"
+
+            - name: Write Atlassian MCP config
+              id: mcp-config
+              env:
+                  JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+                  JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+                  JIRA_SITE_URL: ${{ vars.JIRA_SITE_URL }}
+              run: |
+                  set -euo pipefail
+                  : "${JIRA_EMAIL:?missing}"
+                  : "${JIRA_API_TOKEN:?missing}"
+                  : "${JIRA_SITE_URL:?missing}"
+                  jq -n \
+                      --arg email "$JIRA_EMAIL" \
+                      --arg token "$JIRA_API_TOKEN" \
+                      --arg site "$JIRA_SITE_URL" \
+                      '{
+                          mcpServers: {
+                              atlassian: {
+                                  command: "npx",
+                                  args: ["-y", "@atlassian/mcp-server"],
+                                  env: {
+                                      JIRA_USER_EMAIL: $email,
+                                      JIRA_API_TOKEN: $token,
+                                      JIRA_SITE_URL: $site
+                                  }
+                              }
+                          }
+                      }' > "${RUNNER_TEMP}/mcp.json"
+                  echo "ok=true" >> "$GITHUB_OUTPUT"
+
+            - name: Run Claude triage agent
+              id: claude
+              uses: anthropics/claude-code-action@v1
+              env:
+                  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+              with:
+                  github_token: ${{ steps.app-token.outputs.token }}
+                  plugin_marketplaces: ag-grid/ag-dev-prompts@latest
+                  plugins: ag-eng@ag-dev-prompts ag-product@ag-dev-prompts
+                  claude_args: |
+                      --mcp-config ${{ runner.temp }}/mcp.json
+                      --max-turns 12
+                      --output-format stream-json
+                      --output-format-file ${{ runner.temp }}/trace.json
+                  prompt: |
+                      You are validating the Jira-driven agent pipeline on ag-charts.
+                      The JIRA ticket key is: ${{ env.ISSUE_KEY }}.
+                      The Actions run URL is: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
+
+                      Do exactly these steps and stop:
+
+                        1. Confirm a skill from the ag-dev-prompts marketplace loaded.
+                           Name one skill you can see (e.g. /jira, /pr-review).
+                        2. Using the Atlassian MCP tool, fetch the JIRA issue
+                           ${{ env.ISSUE_KEY }}. Report its summary and status in
+                           your response.
+                        3. Using the Atlassian MCP tool, post a comment to the
+                           issue containing exactly this line:
+                             "ag-charts triage pipeline E2E test — run ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}. Marketplace loaded; MCP authenticated."
+                        4. Do not transition the ticket. Do not change any other
+                           state. Stop.
+
+            - name: Upload Claude trace artefact
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: claude-trace-${{ env.ISSUE_KEY }}-${{ github.run_id }}
+                  path: ${{ runner.temp }}/trace.json
+                  if-no-files-found: warn
+                  retention-days: 14
+
+            - name: Summary — per-surface PASS/FAIL
+              if: always()
+              env:
+                  ISSUE_KEY_OK: ${{ steps.validate-issue-key.outcome }}
+                  TOKEN_OK: ${{ steps.app-token.outcome }}
+                  VALIDATE_OK: ${{ steps.validate-token.outcome }}
+                  MCP_OK: ${{ steps.mcp-config.outcome }}
+                  CLAUDE_OK: ${{ steps.claude.outcome }}
+              run: |
+                  set -euo pipefail
+                  marker() { [ "$1" = "success" ] && echo "PASS" || echo "FAIL ($1)"; }
+                  {
+                    echo "## Jira agent pipeline — access-surface summary"
+                    echo ""
+                    echo "| Surface                             | Result |"
+                    echo "|-------------------------------------|--------|"
+                    echo "| Issue key validated                 | $(marker "$ISSUE_KEY_OK") |"
+                    echo "| GitHub App token mint               | $(marker "$TOKEN_OK") |"
+                    echo "| Token covers both repos             | $(marker "$VALIDATE_OK") |"
+                    echo "| Atlassian MCP config written        | $(marker "$MCP_OK") |"
+                    echo "| Claude run (marketplace + MCP call) | $(marker "$CLAUDE_OK") |"
+                    echo ""
+                    echo "Issue: \`${ISSUE_KEY}\`"
+                    echo "Trace artefact: \`claude-trace-${ISSUE_KEY}-${{ github.run_id }}\`"
+                  } >> "$GITHUB_STEP_SUMMARY"
