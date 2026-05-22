@@ -278,8 +278,8 @@ jobs:
                   # clone the App-token credential it needs.
                   plugin_marketplaces: https://github.com/ag-grid/ag-dev-prompts.git
                   plugins: |
-                      ag-eng@ag-dev-prompts
-                      ag-product@ag-dev-prompts
+                      ag-eng@ag-dev
+                      ag-product@ag-dev
                   claude_args: |
                       --mcp-config ${{ runner.temp }}/mcp.json
                       --max-turns 12
