@@ -67,14 +67,30 @@ name: Jira Agent Pipeline (Triage E2E)
 #     - ag-dev-prompts missing from the repo list  -> App not installed on
 #       the marketplace repo. Install it.
 #
+#   Step: Configure git credentials for ag-dev-prompts clones
+#     - Step succeeds independently; failures here usually mean a downstream
+#       clone surfaces "HTTPS authentication failed" (App token lacks
+#       contents:read on ag-dev-prompts).
+#
+#   Step: Setup Nx (yarn install + postinstall)
+#     - rulesync-fetch failure cloning ag-dev-prompts  -> App-token git
+#       rewrite missing or App lacks contents:read on the marketplace repo.
+#     - node_modules cache miss + slow install on cold runners is normal;
+#       subsequent runs hit the shared cache populated by ci.yml.
+#
+#   Step: Verify setup-prompts rendered .claude/settings.json
+#     - Missing file / missing ag-dev marketplace key -> setup-prompts.sh
+#       did not run or failed silently (check $AG_PRODUCT / package.json
+#       .name resolution inside the script).
+#
 #   Step: Write MCP config
 #     - JIRA_* env vars empty  -> secret/variable not set on this repo.
 #
 #   Step: claude-code-action
-#     - "Could not clone ag-grid/ag-dev-prompts"  -> App token lacks
-#       contents:read on the marketplace, OR the action does not forward
-#       github_token to its marketplace clone (claude-code-action #664).
-#     - "401 from api.anthropic.com"  -> ANTHROPIC_API_KEY missing/revoked.
+#     - "401 from api.anthropic.com"  -> ANTHROPIC_API_KEY missing/revoked,
+#       or org-secret repo-access policy excludes ag-charts (public repo).
+#     - Plugin marketplace clone fails inside Claude Code  -> git URL
+#       rewrite step did not run, or App token expired mid-run.
 #     - Agent reports MCP fetch failed  -> JIRA_API_TOKEN scope, or wrong
 #       JIRA_EMAIL, or @atlassian/mcp-server package name wrong.
 #
@@ -150,8 +166,78 @@ jobs:
                   grep -qx 'ag-grid/ag-dev-prompts' /tmp/repos.txt
                   echo "ok=true" >> "$GITHUB_OUTPUT"
 
+            - name: Configure git credentials for ag-dev-prompts clones
+              # claude-code-action does NOT forward github_token to its plugin
+              # marketplace clone (OQ#1 — confirmed empirically by an earlier
+              # dry-run that hit "HTTPS authentication failed"). A global git
+              # URL rewrite installs the App-installation token as the
+              # credential for any github.com HTTPS clone — covers both
+              # setup-prompts.sh's fetch.sh (postinstall) and Claude Code's
+              # marketplace resolver at agent runtime, without leaking the
+              # token into env vars consumed by other steps.
+              env:
+                  APP_TOKEN: ${{ steps.app-token.outputs.token }}
+              run: |
+                  set -euo pipefail
+                  git config --global \
+                      "url.https://x-access-token:${APP_TOKEN}@github.com/.insteadOf" \
+                      https://github.com/
+
+            - name: Setup Nx (yarn install + node_modules cache + postinstall)
+              id: install
+              # setup-nx handles node_modules cache, nx cache, node setup, and
+              # `yarn postinstall` — which runs setup-prompts.sh and renders
+              # .claude/settings.json (with the ag-dev marketplace declared).
+              # cache_mode: ro because we only consume the shared cache here;
+              # rebuilding it is the CI workflow's job.
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
+                  fetch_base: skip
+
+            - name: Verify setup-prompts rendered .claude/settings.json
+              run: |
+                  set -euo pipefail
+                  test -f .claude/settings.json
+                  jq -e '.extraKnownMarketplaces."ag-dev"' .claude/settings.json >/dev/null
+
+            - name: Sanitise .claude/settings.json for CI
+              # Local-dev settings include hooks that reference scripts whose
+              # side effects are inappropriate for a triage job (SessionStart
+              # → install-for-cloud.sh, PostToolUse → yarn nx format on every
+              # edit, WorktreeCreate/Remove). Strip the hooks block; keep
+              # env, the ag-dev marketplace, enabledPlugins (filtered to
+              # ag-dev only — codex/skill-creator marketplaces add cold-
+              # start latency we don't need), and the permissions allow
+              # list (covers Bash/Edit/Write/WebFetch/Skill — needed by
+              # /fr et al).
+              run: |
+                  set -euo pipefail
+                  cp .claude/settings.json /tmp/orig-settings.json
+                  jq '{
+                      env,
+                      permissions,
+                      extraKnownMarketplaces: { "ag-dev": .extraKnownMarketplaces."ag-dev" },
+                      enabledPlugins: (
+                          .enabledPlugins
+                          | to_entries
+                          | map(select(.key | endswith("@ag-dev")))
+                          | from_entries
+                      )
+                  }' /tmp/orig-settings.json > .claude/settings.json
+                  echo "--- sanitised settings ---"
+                  cat .claude/settings.json
+
             - name: Write Atlassian MCP config
               id: mcp-config
+              # Use the in-repo Jira MCP shim (.github/scripts/jira-mcp-shim/
+              # server.mjs) — a zero-dep Node stdio server scoped to the
+              # tools the triage agent calls. Atlassian's hosted remote MCP
+              # uses OAuth which we don't have a CI-friendly story for; the
+              # community npm packages we'd otherwise use add cold-start
+              # latency that made the agent give up before the server was
+              # ready. The shim authenticates with the basic-auth credentials
+              # we already provision (JIRA_EMAIL + JIRA_API_TOKEN).
               env:
                   JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
                   JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
@@ -162,14 +248,15 @@ jobs:
                   : "${JIRA_API_TOKEN:?missing}"
                   : "${JIRA_SITE_URL:?missing}"
                   jq -n \
+                      --arg shim "$GITHUB_WORKSPACE/.github/scripts/jira-mcp-shim/server.mjs" \
                       --arg email "$JIRA_EMAIL" \
                       --arg token "$JIRA_API_TOKEN" \
                       --arg site "$JIRA_SITE_URL" \
                       '{
                           mcpServers: {
                               atlassian: {
-                                  command: "npx",
-                                  args: ["-y", "@atlassian/mcp-server"],
+                                  command: "node",
+                                  args: [$shim],
                                   env: {
                                       JIRA_USER_EMAIL: $email,
                                       JIRA_API_TOKEN: $token,
@@ -183,41 +270,46 @@ jobs:
             - name: Run Claude triage agent
               id: claude
               uses: anthropics/claude-code-action@v1
-              env:
-                  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
               with:
+                  anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.app-token.outputs.token }}
-                  plugin_marketplaces: ag-grid/ag-dev-prompts@latest
-                  plugins: ag-eng@ag-dev-prompts ag-product@ag-dev-prompts
+                  show_full_output: 'true'
+                  # The SDK doesn't auto-install plugins declared in
+                  # .claude/settings.json — it only loads them once
+                  # installed. Use the action's explicit install inputs;
+                  # the git URL rewrite step above gives the marketplace
+                  # clone the App-token credential it needs.
+                  plugin_marketplaces: https://github.com/ag-grid/ag-dev-prompts.git
+                  plugins: |
+                      ag-eng@ag-dev
+                      ag-product@ag-dev
                   claude_args: |
                       --mcp-config ${{ runner.temp }}/mcp.json
                       --max-turns 12
-                      --output-format stream-json
-                      --output-format-file ${{ runner.temp }}/trace.json
+                      --debug
+                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue,mcp__atlassian__addAttachmentToJiraIssue
                   prompt: |
-                      You are validating the Jira-driven agent pipeline on ag-charts.
-                      The JIRA ticket key is: ${{ env.ISSUE_KEY }}.
-                      The Actions run URL is: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
+                      Invoke /fr --ci --phase 0..1 ${{ env.ISSUE_KEY }}
 
-                      Do exactly these steps and stop:
-
-                        1. Confirm a skill from the ag-dev-prompts marketplace loaded.
-                           Name one skill you can see (e.g. /jira, /pr-review).
-                        2. Using the Atlassian MCP tool, fetch the JIRA issue
-                           ${{ env.ISSUE_KEY }}. Report its summary and status in
-                           your response.
-                        3. Using the Atlassian MCP tool, post a comment to the
-                           issue containing exactly this line:
-                             "ag-charts triage pipeline E2E test — run ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}. Marketplace loaded; MCP authenticated."
-                        4. Do not transition the ticket. Do not change any other
-                           state. Stop.
+                      Context:
+                        - JIRA ticket: ${{ env.ISSUE_KEY }}
+                        - Actions run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                        - The Atlassian MCP server is the in-repo shim — it
+                          exposes the operation names referenced in modes/ci.md
+                          (getJiraIssue, addCommentToJiraIssue,
+                          getTransitionsForJiraIssue, transitionJiraIssue,
+                          addAttachmentToJiraIssue). No other Jira tools are
+                          available. Phases 2..5 are out of scope.
 
             - name: Upload Claude trace artefact
               if: always()
               uses: actions/upload-artifact@v4
               with:
                   name: claude-trace-${{ env.ISSUE_KEY }}-${{ github.run_id }}
-                  path: ${{ runner.temp }}/trace.json
+                  path: |
+                      ${{ runner.temp }}/trace.json
+                      ${{ runner.temp }}/claude-execution-output.json
+                      ${{ runner.temp }}/claude-prompts/
                   if-no-files-found: warn
                   retention-days: 14
 
@@ -227,6 +319,7 @@ jobs:
                   ISSUE_KEY_OK: ${{ steps.validate-issue-key.outcome }}
                   TOKEN_OK: ${{ steps.app-token.outcome }}
                   VALIDATE_OK: ${{ steps.validate-token.outcome }}
+                  INSTALL_OK: ${{ steps.install.outcome }}
                   MCP_OK: ${{ steps.mcp-config.outcome }}
                   CLAUDE_OK: ${{ steps.claude.outcome }}
               run: |
@@ -240,6 +333,7 @@ jobs:
                     echo "| Issue key validated                 | $(marker "$ISSUE_KEY_OK") |"
                     echo "| GitHub App token mint               | $(marker "$TOKEN_OK") |"
                     echo "| Token covers both repos             | $(marker "$VALIDATE_OK") |"
+                    echo "| yarn install + setup-prompts        | $(marker "$INSTALL_OK") |"
                     echo "| Atlassian MCP config written        | $(marker "$MCP_OK") |"
                     echo "| Claude run (marketplace + MCP call) | $(marker "$CLAUDE_OK") |"
                     echo ""
