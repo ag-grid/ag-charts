@@ -55,8 +55,11 @@ runs:
               : "${ISSUE_KEY:?}" "${MODE:?}"
               : "${JIRA_USER_EMAIL:?}" "${JIRA_API_TOKEN:?}" "${JIRA_SITE_URL:?}"
 
+              # /fr --ci writes to ${RUNNER_TEMP}/fr-state/<KEY>/ per modes/ci.md.
+              # Mirror that layout here so pull and push agree, and so the
+              # skill's --resume path picks up what we pre-staged.
               STATE_DIR="$STATE_DIR_IN"
-              if [[ -z "$STATE_DIR" ]]; then STATE_DIR="${RUNNER_TEMP}/fr-state"; fi
+              if [[ -z "$STATE_DIR" ]]; then STATE_DIR="${RUNNER_TEMP}/fr-state/${ISSUE_KEY}"; fi
               mkdir -p "$STATE_DIR"
 
               SITE="${JIRA_SITE_URL%/}"

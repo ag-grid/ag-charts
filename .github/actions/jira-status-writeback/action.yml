@@ -1,8 +1,18 @@
 name: Jira AI-status writeback
 description: |
-    Sets the `AI status` (customfield_10942) select option on a Jira issue.
-    On `mode: post-job` + `outcome: failure`, also posts a comment recording
-    which stage failed and the workflow-run URL.
+    Owns the `AI status` (customfield_10942) and `AI failure` (customfield_10948)
+    fields. Semantics:
+
+    - `mode: pre-job` — set `AI status` to the in-progress value for the stage
+      (`triaging` / `building` / `pr-iterating`). Doesn't touch `AI failure`.
+    - `mode: post-job` + `outcome: success` — advance `AI status` to the next
+      stable value (`awaiting-clarity` / `draft-pr-open` / `done`) AND clear
+      `AI failure`.
+    - `mode: post-job` + `outcome: failure | cancelled` — **leave `AI status`
+      untouched** (stays at the in-progress value the pre-job step set), and
+      write a failure reason into `AI failure`. Jira-side retry-action
+      gating can read either field — failure detail is in `AI failure`, the
+      stage discriminator is in `AI status`.
 
 inputs:
     issue_key:
@@ -47,67 +57,70 @@ runs:
               : "${ISSUE_KEY:?}" "${MODE:?}" "${STAGE:?}"
               : "${JIRA_USER_EMAIL:?}" "${JIRA_API_TOKEN:?}" "${JIRA_SITE_URL:?}"
 
-              # stage × mode → AI status select value
-              status_for() {
-                  local stage="$1" mode="$2" outcome="${3:-success}"
-                  if [[ "$mode" == "pre-job" ]]; then
-                      case "$stage" in
-                          triage)     echo "triaging" ;;
-                          build)      echo "building" ;;
-                          pr-iterate) echo "pr-iterating" ;;
-                          *) echo "[status-writeback] unknown stage: $stage" >&2; return 1 ;;
-                      esac
-                      return
-                  fi
-                  # post-job
-                  if [[ "$outcome" != "success" ]]; then
-                      echo "failed"
-                      return
-                  fi
-                  case "$stage" in
+              in_progress_for() {
+                  case "$1" in
+                      triage)     echo "triaging" ;;
+                      build)      echo "building" ;;
+                      pr-iterate) echo "pr-iterating" ;;
+                      *) echo "[status-writeback] unknown stage: $1" >&2; return 1 ;;
+                  esac
+              }
+              next_for() {
+                  case "$1" in
                       triage)     echo "awaiting-clarity" ;;
                       build)      echo "draft-pr-open" ;;
                       pr-iterate) echo "done" ;;
-                      *) echo "[status-writeback] unknown stage: $stage" >&2; return 1 ;;
+                      *) echo "[status-writeback] unknown stage: $1" >&2; return 1 ;;
                   esac
               }
-
-              VALUE="$(status_for "$STAGE" "$MODE" "$OUTCOME")"
-              echo "[status-writeback] $ISSUE_KEY: stage=$STAGE mode=$MODE outcome=$OUTCOME -> $VALUE"
 
               SITE="${JIRA_SITE_URL%/}"
               AUTH="$(printf '%s:%s' "$JIRA_USER_EMAIL" "$JIRA_API_TOKEN" | base64 | tr -d '\n')"
 
-              BODY=$(jq -n --arg v "$VALUE" '{ fields: { customfield_10942: { value: $v } } }')
-              HTTP=$(curl -sS -o /tmp/status-write.out -w '%{http_code}' \
-                  -X PUT \
-                  -H "authorization: Basic $AUTH" \
-                  -H 'accept: application/json' \
-                  -H 'content-type: application/json' \
-                  --data "$BODY" \
-                  "$SITE/rest/api/3/issue/$ISSUE_KEY")
-              if [[ "$HTTP" != "204" && "$HTTP" != "200" ]]; then
-                  echo "[status-writeback] PUT failed: HTTP $HTTP" >&2
-                  cat /tmp/status-write.out >&2 || true
-                  exit 1
-              fi
-
-              # On failure, also post a comment so the stage detail isn't lost
-              # (the select field only carries the bare 'failed' value).
-              if [[ "$MODE" == "post-job" && "$VALUE" == "failed" ]]; then
-                  COMMENT="[$STAGE] failed (outcome=$OUTCOME). See $RUN_URL"
-                  CBODY=$(jq -n --arg c "$COMMENT" '{
-                      body: {
-                          type: "doc",
-                          version: 1,
-                          content: [{ type: "paragraph", content: [{ type: "text", text: $c }] }]
-                      }
-                  }')
-                  curl -sS -o /dev/null -w 'comment HTTP %{http_code}\n' \
-                      -X POST \
+              put_fields() {
+                  local body="$1"
+                  local http
+                  http=$(curl -sS -o /tmp/status-write.out -w '%{http_code}' \
+                      -X PUT \
                       -H "authorization: Basic $AUTH" \
                       -H 'accept: application/json' \
                       -H 'content-type: application/json' \
-                      --data "$CBODY" \
-                      "$SITE/rest/api/3/issue/$ISSUE_KEY/comment"
+                      --data "$body" \
+                      "$SITE/rest/api/3/issue/$ISSUE_KEY")
+                  if [[ "$http" != "204" && "$http" != "200" ]]; then
+                      echo "[status-writeback] PUT failed: HTTP $http" >&2
+                      cat /tmp/status-write.out >&2 || true
+                      return 1
+                  fi
+              }
+
+              if [[ "$MODE" == "pre-job" ]]; then
+                  VAL="$(in_progress_for "$STAGE")"
+                  echo "[status-writeback] $ISSUE_KEY: stage=$STAGE mode=pre-job -> AI status='$VAL'"
+                  BODY=$(jq -n --arg v "$VAL" '{ fields: { customfield_10942: { value: $v } } }')
+                  put_fields "$BODY"
+                  exit 0
               fi
+
+              if [[ "$MODE" == "post-job" ]]; then
+                  if [[ "$OUTCOME" == "success" ]]; then
+                      VAL="$(next_for "$STAGE")"
+                      echo "[status-writeback] $ISSUE_KEY: stage=$STAGE mode=post-job outcome=success -> AI status='$VAL', AI failure=cleared"
+                      # advance status + clear failure field in one PUT
+                      BODY=$(jq -n --arg v "$VAL" '{ fields: { customfield_10942: { value: $v }, customfield_10948: null } }')
+                      put_fields "$BODY"
+                      exit 0
+                  fi
+
+                  # failure / cancelled — do NOT touch AI status (it stays at the
+                  # in-progress value pre-job set, so retry-action gates work).
+                  # Write the failure reason into AI failure (textarea).
+                  REASON="[$STAGE] outcome=$OUTCOME on run $RUN_URL"
+                  echo "[status-writeback] $ISSUE_KEY: stage=$STAGE mode=post-job outcome=$OUTCOME -> AI failure='$REASON' (AI status untouched)"
+                  BODY=$(jq -n --arg r "$REASON" '{ fields: { customfield_10948: $r } }')
+                  put_fields "$BODY"
+                  exit 0
+              fi
+
+              echo "[status-writeback] unknown mode: $MODE" >&2
+              exit 1

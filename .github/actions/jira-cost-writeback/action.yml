@@ -47,9 +47,12 @@ runs:
               DELTA="0"
               TRACE_MISSING=false
               if [[ -f "$EXEC_OUT" ]]; then
-                  # claude-execution-output is JSONL — accept either total_cost_usd
-                  # at the root or nested under .usage. Sum any numeric occurrences.
-                  DELTA=$(jq -s '
+                  # claude-execution-output is a JSON array of events. Sum
+                  # total_cost_usd across all events that carry it (typically
+                  # one {type:"result"} record per session, but be defensive
+                  # in case the schema changes or multiple sessions land in
+                  # one file).
+                  DELTA=$(jq '
                       [ .[] | (.total_cost_usd // .usage.total_cost_usd // empty) ]
                       | map(select(type == "number"))
                       | add // 0
