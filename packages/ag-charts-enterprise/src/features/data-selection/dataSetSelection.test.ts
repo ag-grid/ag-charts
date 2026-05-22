@@ -1,6 +1,31 @@
 import { describe, expect, it } from 'vitest';
 
-import { DataSet, DataSetSelection } from './dataSet';
+import { _ModuleSupport } from 'ag-charts-community';
+
+import { applyDataChange, enableSelection, transferDataSet } from './dataSelectionService';
+import { DataSetSelection } from './dataSetSelection';
+
+type DataSet<T> = _ModuleSupport.DataSet<T>;
+type DataSelectionMixin = NonNullable<ConstructorParameters<typeof _ModuleSupport.DataSet<unknown>>[1]>;
+type DataChangeDescription = _ModuleSupport.DataChangeDescription;
+
+class TestDataSelectionService implements DataSelectionMixin {
+    readonly selections = new Map<string, DataSetSelection>();
+
+    enableSelection(seriesId: string, data: DataSet<unknown>): DataSetSelection {
+        return enableSelection(this.selections, seriesId, data);
+    }
+    transferDataSet<T>(newDataSet: DataSet<T>, oldDataSet: DataSet<T>): void {
+        return transferDataSet(this.selections, newDataSet, oldDataSet);
+    }
+    applyDataChange(changeDescription: DataChangeDescription): void {
+        return applyDataChange(this.selections, changeDescription);
+    }
+}
+
+function newDataSet<T = unknown>(data: T[], service: DataSelectionMixin, dataIdKey?: string): DataSet<T> {
+    return new _ModuleSupport.DataSet(data, service, dataIdKey);
+}
 
 function getSelectedCount(sel: DataSetSelection): number {
     const arr = sel.getSelection();
@@ -109,9 +134,10 @@ describe('DataSetSelection', () => {
     describe('applyDataChange', () => {
         it('should handle rolling window (remove head, append tail)', () => {
             const data = [{ id: 0 }, { id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }];
-            const ds = new DataSet(data);
+            const service = new TestDataSelectionService();
+            const ds = newDataSet(data, service);
 
-            const sel = ds.enableSelection('series-1');
+            const sel = service.enableSelection('series-1', ds);
             sel.select(1); // id=1
             sel.select(3); // id=3
 
@@ -126,9 +152,10 @@ describe('DataSetSelection', () => {
 
         it('should handle append-only', () => {
             const data = [{ id: 0 }, { id: 1 }];
-            const ds = new DataSet(data);
+            const service = new TestDataSelectionService();
+            const ds = newDataSet(data, service);
 
-            const sel = ds.enableSelection('s1');
+            const sel = service.enableSelection('s1', ds);
             sel.select(0);
             sel.select(1);
 
@@ -141,9 +168,10 @@ describe('DataSetSelection', () => {
 
         it('should handle prepend', () => {
             const data = [{ id: 0 }, { id: 1 }];
-            const ds = new DataSet(data);
+            const service = new TestDataSelectionService();
+            const ds = newDataSet(data, service);
 
-            const sel = ds.enableSelection('s1');
+            const sel = service.enableSelection('s1', ds);
             sel.select(1);
 
             ds.addTransaction({ prepend: [{ id: -1 }] });
@@ -155,9 +183,10 @@ describe('DataSetSelection', () => {
 
         it('should handle full removal', () => {
             const data = [{ id: 0 }, { id: 1 }, { id: 2 }];
-            const ds = new DataSet(data);
+            const service = new TestDataSelectionService();
+            const ds = newDataSet(data, service);
 
-            const sel = ds.enableSelection('s1');
+            const sel = service.enableSelection('s1', ds);
             sel.selectRange(0, 3);
 
             ds.addTransaction({ remove: [data[0], data[1], data[2]] });
@@ -168,10 +197,11 @@ describe('DataSetSelection', () => {
 
         it('should apply to multiple series selections', () => {
             const data = [{ id: 0 }, { id: 1 }, { id: 2 }];
-            const ds = new DataSet(data);
+            const service = new TestDataSelectionService();
+            const ds = newDataSet(data, service);
 
-            const sel1 = ds.enableSelection('line-1');
-            const sel2 = ds.enableSelection('bar-1');
+            const sel1 = service.enableSelection('line-1', ds);
+            const sel2 = service.enableSelection('bar-1', ds);
             sel1.select(0);
             sel2.select(2);
 
@@ -189,75 +219,85 @@ describe('DataSetSelection', () => {
 describe('DataSet selection transfer', () => {
     describe('replaceWith', () => {
         it('should transfer selections via dataIdKey', () => {
-            const old = new DataSet([{ k: 'A' }, { k: 'B' }, { k: 'C' }], 'k');
-            const sel = old.enableSelection('s1');
+            const service = new TestDataSelectionService();
+            const old = newDataSet([{ k: 'A' }, { k: 'B' }, { k: 'C' }], service, 'k');
+            const sel = service.enableSelection('s1', old);
             sel.select(0); // A
             sel.select(2); // C
 
-            const next = DataSet.replaceWith(old, [{ k: 'B' }, { k: 'C' }, { k: 'D' }], 'k');
+            const next = _ModuleSupport.DataSet.replaceWith(old, [{ k: 'B' }, { k: 'C' }, { k: 'D' }], 'k');
+            expect(next).not.toBe(old);
 
-            const nextSel = next.selections.get('s1');
+            const nextSel = service.selections.get('s1');
             expect(nextSel).toBeDefined();
             expect(getSelectedIndices(nextSel!)).toEqual([1]); // C is at index 1 in new data
         });
 
         it('should drop stale keys', () => {
-            const old = new DataSet([{ k: 'A' }, { k: 'B' }], 'k');
-            old.enableSelection('s1').select(0); // A
+            const service = new TestDataSelectionService();
+            const old = newDataSet([{ k: 'A' }, { k: 'B' }], service, 'k');
+            service.enableSelection('s1', old).select(0); // A
 
-            const next = DataSet.replaceWith(old, [{ k: 'C' }, { k: 'D' }], 'k');
+            const next = _ModuleSupport.DataSet.replaceWith(old, [{ k: 'C' }, { k: 'D' }], 'k');
+            expect(next).not.toBe(old);
 
-            const nextSel = next.selections.get('s1');
+            const nextSel = service.selections.get('s1');
             expect(nextSel).toBeDefined();
             expect(getSelectedCount(nextSel!)).toBe(0); // A not in new data
         });
 
         it('should not clear selections without dataIdKey (same lengths)', () => {
-            const old = new DataSet([{ v: 1 }, { v: 2 }]);
-            old.enableSelection('s1').select(0);
+            const service = new TestDataSelectionService();
+            const old = newDataSet([{ v: 1 }, { v: 2 }], service);
+            service.enableSelection('s1', old).select(0);
 
-            const next = DataSet.replaceWith(old, [{ v: 3 }, { v: 4 }]);
-            expect(next.selections.size).toBe(1);
+            const next = _ModuleSupport.DataSet.replaceWith(old, [{ v: 3 }, { v: 4 }]);
+            expect(next).not.toBe(old);
+            expect(service.selections.size).toBe(1);
         });
 
         it('should clear selections without dataIdKey (different lengths)', () => {
-            const old = new DataSet([{ v: 1 }, { v: 2 }]);
-            old.enableSelection('s1').select(0);
+            const service = new TestDataSelectionService();
+            const old = newDataSet([{ v: 1 }, { v: 2 }], service);
+            service.enableSelection('s1', old).select(0);
 
-            const next = DataSet.replaceWith(old, [{ v: 3 }, { v: 4 }, { v: 5 }]);
-            expect(next.selections.size).toBe(0);
+            const next = _ModuleSupport.DataSet.replaceWith(old, [{ v: 3 }, { v: 4 }, { v: 5 }]);
+            expect(next).not.toBe(old);
+            expect(service.selections.size).toBe(0);
         });
 
         it('should transfer multiple series independently', () => {
-            const old = new DataSet([{ k: 'A' }, { k: 'B' }, { k: 'C' }], 'k');
-            old.enableSelection('line-1').select(0); // A
-            old.enableSelection('bar-1').select(2); // C
+            const service = new TestDataSelectionService();
+            const old = newDataSet([{ k: 'A' }, { k: 'B' }, { k: 'C' }], service, 'k');
+            service.enableSelection('line-1', old).select(0); // A
+            service.enableSelection('bar-1', old).select(2); // C
 
-            const next = DataSet.replaceWith(old, [{ k: 'A' }, { k: 'C' }], 'k');
+            const next = _ModuleSupport.DataSet.replaceWith(old, [{ k: 'A' }, { k: 'C' }], 'k');
+            expect(next).not.toBe(old);
 
-            expect(getSelectedIndices(next.selections.get('line-1')!)).toEqual([0]); // A at idx 0
-            expect(getSelectedIndices(next.selections.get('bar-1')!)).toEqual([1]); // C at idx 1
-        });
-
-        it('should handle no predecessor', () => {
-            const next = DataSet.replaceWith(undefined, [{ k: 'A' }], 'k');
-            expect(next.selections.size).toBe(0);
+            expect(getSelectedIndices(service.selections.get('line-1')!)).toEqual([0]); // A at idx 0
+            expect(getSelectedIndices(service.selections.get('bar-1')!)).toEqual([1]); // C at idx 1
         });
 
         it('should handle predecessor with no selections', () => {
-            const old = new DataSet([{ k: 'A' }], 'k');
-            const next = DataSet.replaceWith(old, [{ k: 'A' }], 'k');
-            expect(next.selections.size).toBe(0);
+            const service = new TestDataSelectionService();
+            const old = newDataSet([{ k: 'A' }], service, 'k');
+            const next = _ModuleSupport.DataSet.replaceWith(old, [{ k: 'A' }], 'k');
+            expect(next).not.toBe(old);
+            expect(service.selections.size).toBe(0);
         });
     });
 
     describe('deepClone', () => {
         it('should preserve selection state', () => {
-            const ds = new DataSet([{ k: 'X' }, { k: 'Y' }], 'k');
-            ds.enableSelection('s1').select(1);
+            const service = new TestDataSelectionService();
+            const ds = newDataSet([{ k: 'X' }, { k: 'Y' }], service, 'k');
+            service.enableSelection('s1', ds).select(1);
 
             const clone = ds.deepClone();
-            const cloneSel = clone.selections.get('s1');
+            expect(clone).not.toBe(ds);
+
+            const cloneSel = service.selections.get('s1');
             expect(cloneSel).toBeDefined();
             expect(getSelectedIndices(cloneSel!)).toEqual([1]);
         });
@@ -265,24 +305,27 @@ describe('DataSet selection transfer', () => {
 
     describe('enableSelection', () => {
         it('should create a new selection on first call', () => {
-            const ds = new DataSet([{ v: 1 }, { v: 2 }]);
-            const sel = ds.enableSelection('s1');
+            const service = new TestDataSelectionService();
+            const ds = newDataSet([{ v: 1 }, { v: 2 }], service);
+            const sel = service.enableSelection('s1', ds);
             expect(sel).toBeInstanceOf(DataSetSelection);
             expect(sel.getSelection().length).toBe(2);
         });
 
         it('should return existing selection on subsequent calls', () => {
-            const ds = new DataSet([{ v: 1 }]);
-            const sel1 = ds.enableSelection('s1');
-            const sel2 = ds.enableSelection('s1');
+            const service = new TestDataSelectionService();
+            const ds = newDataSet([{ v: 1 }], service);
+            const sel1 = service.enableSelection('s1', ds);
+            const sel2 = service.enableSelection('s1', ds);
             expect(sel1).toBe(sel2);
         });
     });
 
     describe('idArray after ID-changing update', () => {
         it('should refresh idArrayCache when a datum ID changes via update transaction', () => {
-            const ds = new DataSet([{ k: 'A' }, { k: 'B' }, { k: 'C' }], 'k');
-            ds.enableSelection('s1').select(0); // Select A
+            const service = new TestDataSelectionService();
+            const ds = newDataSet([{ k: 'A' }, { k: 'B' }, { k: 'C' }], service, 'k');
+            service.enableSelection('s1', ds).select(0); // Select A
 
             // Warm the idArray cache
             expect(ds.getIdArray()).toEqual(['A', 'B', 'C']);
@@ -297,21 +340,25 @@ describe('DataSet selection transfer', () => {
             expect(ds.getIdArray()).toEqual(['A', 'C']);
 
             // Now do a replaceWith — selection for A should transfer correctly
-            const next = DataSet.replaceWith(ds, [{ k: 'A' }, { k: 'D' }], 'k');
-            const sel = next.selections.get('s1');
+            const next = _ModuleSupport.DataSet.replaceWith(ds, [{ k: 'A' }, { k: 'D' }], 'k');
+            expect(next).not.toBe(ds);
+
+            const sel = service.selections.get('s1');
             expect(sel).toBeDefined();
             expect(getSelectedIndices(sel!)).toEqual([0]); // A is at index 0
         });
 
         it('should refresh idArrayCache for in-place ID updates via pendingReplacements', () => {
-            const ds = new DataSet(
+            const service = new TestDataSelectionService();
+            const ds = newDataSet(
                 [
                     { k: 'A', v: 1 },
                     { k: 'B', v: 2 },
                 ],
+                service,
                 'k'
             );
-            ds.enableSelection('s1').select(1); // Select B
+            service.enableSelection('s1', ds).select(1); // Select B
 
             // Warm the idArray cache
             expect(ds.getIdArray()).toEqual(['A', 'B']);
@@ -330,36 +377,42 @@ describe('DataSet selection transfer', () => {
 
     describe('getIdArray', () => {
         it('should return undefined without dataIdKey', () => {
-            const ds = new DataSet([{ v: 1 }]);
+            const service = new TestDataSelectionService();
+            const ds = newDataSet([{ v: 1 }], service);
             expect(ds.getIdArray()).toBeUndefined();
         });
 
         it('should return id values with dataIdKey', () => {
-            const ds = new DataSet([{ k: 'A' }, { k: 'B' }, { k: 'C' }], 'k');
+            const service = new TestDataSelectionService();
+            const ds = newDataSet([{ k: 'A' }, { k: 'B' }, { k: 'C' }], service, 'k');
             expect(ds.getIdArray()).toEqual(['A', 'B', 'C']);
         });
 
         it('should support numeric keys', () => {
-            const ds = new DataSet([{ id: 1 }, { id: 2 }, { id: 3 }], 'id');
+            const service = new TestDataSelectionService();
+            const ds = newDataSet([{ id: 1 }, { id: 2 }, { id: 3 }], service, 'id');
             expect(ds.getIdArray()).toEqual([1, 2, 3]);
         });
 
         it('should use undefined for missing keys (not empty string)', () => {
-            const ds = new DataSet([{ k: 'A' }, { v: 1 }, { k: 'C' }], 'k');
+            const service = new TestDataSelectionService();
+            const ds = newDataSet([{ k: 'A' }, { v: 1 }, { k: 'C' }], service, 'k');
             expect(ds.getIdArray()).toEqual(['A', undefined, 'C']);
         });
     });
 
     describe('transferFrom with missing IDs', () => {
         it('should not transfer selection from a datum with missing ID', () => {
-            const old = new DataSet([{ k: 'A' }, { v: 1 }, { k: 'C' }], 'k');
-            const sel = old.enableSelection('s1');
+            const service = new TestDataSelectionService();
+            const old = newDataSet([{ k: 'A' }, { v: 1 }, { k: 'C' }], service, 'k');
+            const sel = service.enableSelection('s1', old);
             sel.select(0); // A — has ID
             sel.select(1); // missing ID — should NOT transfer
 
-            const next = DataSet.replaceWith(old, [{ k: 'A' }, { k: '' }, { k: 'C' }], 'k');
+            const next = _ModuleSupport.DataSet.replaceWith(old, [{ k: 'A' }, { k: '' }, { k: 'C' }], 'k');
+            expect(next).not.toBe(old);
 
-            const nextSel = next.selections.get('s1');
+            const nextSel = service.selections.get('s1');
             expect(nextSel).toBeDefined();
             // Only A should transfer; the missing-ID datum must not collide with ''
             expect(getSelectedIndices(nextSel!)).toEqual([0]);
@@ -368,14 +421,16 @@ describe('DataSet selection transfer', () => {
 
     describe('transferFrom with mismatched dataIdKey', () => {
         it('should drop selections when dataIdKey changes between datasets', () => {
-            const old = new DataSet([{ k: 'A', id: 1 }], 'k');
-            old.enableSelection('s1').select(0);
+            const service = new TestDataSelectionService();
+            const old = newDataSet([{ k: 'A', id: 1 }], service, 'k');
+            service.enableSelection('s1', old).select(0);
 
             // New dataset uses a different dataIdKey
-            const next = DataSet.replaceWith(old, [{ k: 'A', id: 1 }], 'id');
+            const next = _ModuleSupport.DataSet.replaceWith(old, [{ k: 'A', id: 1 }], 'id');
+            expect(next).not.toBe(old);
 
             // Selections should NOT transfer — key schema changed
-            expect(next.selections.size).toBe(0);
+            expect(service.selections.size).toBe(0);
         });
     });
 });

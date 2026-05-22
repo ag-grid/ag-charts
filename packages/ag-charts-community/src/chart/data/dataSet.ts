@@ -10,6 +10,8 @@ import type { IDataSelectionService } from './dataSelectionServiceTypes';
 
 type DataIdValue = string | number | undefined;
 
+type DataSelectionMixin = Pick<IDataSelectionService, 'transferDataSet' | 'applyDataChange'>;
+
 /**
  * Encapsulates a single transaction to be applied to a DataSet.
  * Supports both the AG Grid-compatible API (add/addIndex) and the internal format (prepend/append/insertions).
@@ -79,14 +81,14 @@ export class DataSet<T = unknown> {
 
     constructor(
         public data: T[],
-        private dataSelectionService: IDataSelectionService | undefined,
+        private dataSelectionService: DataSelectionMixin | undefined,
         public readonly dataIdKey?: string
     ) {}
 
     /**
      * Creates an empty DataSet.
      */
-    static empty<U = unknown>(dataSelectionService: IDataSelectionService | undefined, dataIdKey?: string): DataSet<U> {
+    static empty<U = unknown>(dataSelectionService: DataSelectionMixin | undefined, dataIdKey?: string): DataSet<U> {
         return new DataSet<U>([], dataSelectionService, dataIdKey);
     }
 
@@ -95,7 +97,7 @@ export class DataSet<T = unknown> {
      */
     static wrap<U = unknown>(
         data: U[],
-        dataSelectionService: IDataSelectionService | undefined,
+        dataSelectionService: DataSelectionMixin | undefined,
         dataIdKey?: string
     ): DataSet<U> {
         return new DataSet<U>(data, dataSelectionService, dataIdKey);
