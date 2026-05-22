@@ -81,7 +81,7 @@ export class DataSet<T = unknown> {
 
     constructor(
         public data: T[],
-        private dataSelectionService?: DataSelectionMixin,
+        private readonly dataSelectionService?: DataSelectionMixin,
         public readonly dataIdKey?: string
     ) {}
 
