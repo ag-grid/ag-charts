@@ -65,6 +65,12 @@ runs:
               if [[ -z "$STATE_DIR" ]]; then STATE_DIR="${GITHUB_WORKSPACE}/tmp/fr-state/${ISSUE_KEY}"; fi
               mkdir -p "$STATE_DIR"
 
+              # Use /rest/api/2 for both GET and PUT. v3's update endpoint
+              # requires ADF objects for textarea fields ("Operation value
+              # must be an Atlassian Document") even though the field's own
+              # schema declares type=string; v2 accepts plain strings, which
+              # is what we want here. The Jira UI applies its own renderer
+              # on display so markdown still shows styled.
               SITE="${JIRA_SITE_URL%/}"
               AUTH="$(printf '%s:%s' "$JIRA_USER_EMAIL" "$JIRA_API_TOKEN" | base64 | tr -d '\n')"
               MAX_CHARS=32767
@@ -88,7 +94,7 @@ runs:
                   HTTP=$(curl -sS -o /tmp/state-pull.json -w '%{http_code}' \
                       -H "authorization: Basic $AUTH" \
                       -H 'accept: application/json' \
-                      "$SITE/rest/api/3/issue/$ISSUE_KEY?fields=$PULL_FIELDS")
+                      "$SITE/rest/api/2/issue/$ISSUE_KEY?fields=$PULL_FIELDS")
                   if [[ "$HTTP" != "200" ]]; then
                       echo "[state-sync pull] GET failed: HTTP $HTTP" >&2
                       cat /tmp/state-pull.json >&2 || true
@@ -166,7 +172,7 @@ runs:
                       -H 'accept: application/json' \
                       -H 'content-type: application/json' \
                       --data "@$PUT_BODY_FILE" \
-                      "$SITE/rest/api/3/issue/$ISSUE_KEY")
+                      "$SITE/rest/api/2/issue/$ISSUE_KEY")
                   if [[ "$HTTP" != "204" && "$HTTP" != "200" ]]; then
                       echo "[state-sync push] PUT failed: HTTP $HTTP" >&2
                       cat /tmp/state-push.out >&2 || true
