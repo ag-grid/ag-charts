@@ -179,7 +179,9 @@ jobs:
               with:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.setup.outputs.app_token }}
-                  show_full_output: 'true'
+                  # The action's raw JSON event stream dumped inline is unreadable; we
+                  # parse the captured artefact into a human digest in a separate step below.
+                  show_full_output: 'false'
                   plugin_marketplaces: https://github.com/ag-grid/ag-dev-prompts.git
                   plugins: |
                       ag-eng@ag-dev
@@ -204,12 +206,35 @@ jobs:
                           AI research / AI plan) after you exit. Do not call
                           addAttachmentToJiraIssue for these files — the
                           textareas are the durable form.
+                        - Comment style: keep Jira comments tight. One short
+                          paragraph or a 3–5 bullet list; no preamble, no
+                          restating the user's request. Open questions: one
+                          bullet per question, max one line of context per
+                          bullet. Per-thread review-feedback audit comments:
+                          one line per thread (`thread <id>: <action>`).
+                          Status / audit comments: a single line. Do not
+                          repeat content already written to the AI* state
+                          files. If a comment runs past ~10 lines you are
+                          being verbose — cut it.
                         - The Atlassian MCP server is the in-repo shim — it
                           exposes the operation names referenced in modes/ci.md
                           (getJiraIssue, addCommentToJiraIssue,
                           getTransitionsForJiraIssue, transitionJiraIssue,
                           addAttachmentToJiraIssue). No other Jira tools are
                           available. Phases 2..5 are out of scope.
+
+            - name: Human-readable trace digest
+              if: always()
+              shell: bash
+              run: |
+                  TRACE="${RUNNER_TEMP}/claude-execution-output.json"
+                  if [[ ! -f "$TRACE" ]]; then
+                      echo "[trace-digest] no trace file at $TRACE (agent may have aborted before any output)"
+                      exit 0
+                  fi
+                  echo "::group::Claude execution digest"
+                  node .github/scripts/claude-trace-pretty/tail.mjs --once "$TRACE" | tee -a "$GITHUB_STEP_SUMMARY"
+                  echo "::endgroup::"
 
             - if: always()
               uses: ./.github/actions/jira-state-sync
@@ -307,7 +332,9 @@ jobs:
               with:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.setup.outputs.app_token }}
-                  show_full_output: 'true'
+                  # The action's raw JSON event stream dumped inline is unreadable; we
+                  # parse the captured artefact into a human digest in a separate step below.
+                  show_full_output: 'false'
                   plugin_marketplaces: https://github.com/ag-grid/ag-dev-prompts.git
                   plugins: |
                       ag-eng@ag-dev
@@ -330,6 +357,16 @@ jobs:
                           round-trips them to Jira after you exit. Do not call
                           addAttachmentToJiraIssue for these files — the
                           textareas are the durable form.
+                        - Comment style: keep Jira comments tight. One short
+                          paragraph or a 3–5 bullet list; no preamble, no
+                          restating the user's request. Open questions: one
+                          bullet per question, max one line of context per
+                          bullet. Per-thread review-feedback audit comments:
+                          one line per thread (`thread <id>: <action>`).
+                          Status / audit comments: a single line. Do not
+                          repeat content already written to the AI* state
+                          files. If a comment runs past ~10 lines you are
+                          being verbose — cut it.
                         - Phase 4 is skipped; --draft-pr opens the PR in draft.
 
             # Restore .github/ from the runner-temp snapshot taken before
@@ -349,6 +386,19 @@ jobs:
                   else
                       echo "[restore] no snapshot found at ${RUNNER_TEMP}/gha-snapshot" >&2
                   fi
+
+            - name: Human-readable trace digest
+              if: always()
+              shell: bash
+              run: |
+                  TRACE="${RUNNER_TEMP}/claude-execution-output.json"
+                  if [[ ! -f "$TRACE" ]]; then
+                      echo "[trace-digest] no trace file at $TRACE (agent may have aborted before any output)"
+                      exit 0
+                  fi
+                  echo "::group::Claude execution digest"
+                  node .github/scripts/claude-trace-pretty/tail.mjs --once "$TRACE" | tee -a "$GITHUB_STEP_SUMMARY"
+                  echo "::endgroup::"
 
             - if: always()
               uses: ./.github/actions/jira-state-sync
@@ -453,7 +503,9 @@ jobs:
               with:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.setup.outputs.app_token }}
-                  show_full_output: 'true'
+                  # The action's raw JSON event stream dumped inline is unreadable; we
+                  # parse the captured artefact into a human digest in a separate step below.
+                  show_full_output: 'false'
                   plugin_marketplaces: https://github.com/ag-grid/ag-dev-prompts.git
                   plugins: |
                       ag-eng@ag-dev
@@ -475,6 +527,16 @@ jobs:
                           to the same files; the workflow round-trips them to
                           Jira after you exit. Do not call addAttachmentToJiraIssue
                           for these files — the textareas are the durable form.
+                        - Comment style: keep Jira comments tight. One short
+                          paragraph or a 3–5 bullet list; no preamble, no
+                          restating the user's request. Open questions: one
+                          bullet per question, max one line of context per
+                          bullet. Per-thread review-feedback audit comments:
+                          one line per thread (`thread <id>: <action>`).
+                          Status / audit comments: a single line. Do not
+                          repeat content already written to the AI* state
+                          files. If a comment runs past ~10 lines you are
+                          being verbose — cut it.
 
             # See note in the build job: restore .github/ from the snapshot
             # so local-path composites resolve regardless of which branch
@@ -488,6 +550,19 @@ jobs:
                   else
                       echo "[restore] no snapshot found at ${RUNNER_TEMP}/gha-snapshot" >&2
                   fi
+
+            - name: Human-readable trace digest
+              if: always()
+              shell: bash
+              run: |
+                  TRACE="${RUNNER_TEMP}/claude-execution-output.json"
+                  if [[ ! -f "$TRACE" ]]; then
+                      echo "[trace-digest] no trace file at $TRACE (agent may have aborted before any output)"
+                      exit 0
+                  fi
+                  echo "::group::Claude execution digest"
+                  node .github/scripts/claude-trace-pretty/tail.mjs --once "$TRACE" | tee -a "$GITHUB_STEP_SUMMARY"
+                  echo "::endgroup::"
 
             - if: always()
               uses: ./.github/actions/jira-state-sync
@@ -667,7 +742,9 @@ jobs:
               with:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.setup.outputs.app_token }}
-                  show_full_output: 'true'
+                  # The action's raw JSON event stream dumped inline is unreadable; we
+                  # parse the captured artefact into a human digest in a separate step below.
+                  show_full_output: 'false'
                   plugin_marketplaces: https://github.com/ag-grid/ag-dev-prompts.git
                   plugins: |
                       ag-eng@ag-dev
@@ -695,6 +772,16 @@ jobs:
                           them to Jira after you exit. Do not call
                           addAttachmentToJiraIssue for these files — the
                           textareas are the durable form.
+                        - Comment style: keep Jira comments tight. One short
+                          paragraph or a 3–5 bullet list; no preamble, no
+                          restating the user's request. Open questions: one
+                          bullet per question, max one line of context per
+                          bullet. Per-thread review-feedback audit comments:
+                          one line per thread (`thread <id>: <action>`).
+                          Status / audit comments: a single line. Do not
+                          repeat content already written to the AI* state
+                          files. If a comment runs past ~10 lines you are
+                          being verbose — cut it.
                         - Do NOT re-request review under --ci-failure; push only.
                           The next main-CI run is the verification.
 
@@ -707,6 +794,19 @@ jobs:
                   else
                       echo "[restore] no snapshot found at ${RUNNER_TEMP}/gha-snapshot" >&2
                   fi
+
+            - name: Human-readable trace digest
+              if: always()
+              shell: bash
+              run: |
+                  TRACE="${RUNNER_TEMP}/claude-execution-output.json"
+                  if [[ ! -f "$TRACE" ]]; then
+                      echo "[trace-digest] no trace file at $TRACE (agent may have aborted before any output)"
+                      exit 0
+                  fi
+                  echo "::group::Claude execution digest"
+                  node .github/scripts/claude-trace-pretty/tail.mjs --once "$TRACE" | tee -a "$GITHUB_STEP_SUMMARY"
+                  echo "::endgroup::"
 
             - if: always()
               uses: ./.github/actions/jira-state-sync
