@@ -992,6 +992,164 @@ describe('DataSelection', () => {
                     });
                 });
             });
+
+            describe('multiple', () => {
+                beforeEach(async () => {
+                    const { data, series, axes, theme, legend } = createBarStackMixOptions();
+                    selectionChange = createSelectionChangeRecorder();
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        axes,
+                        theme,
+                        legend,
+                        selection: {
+                            enabled: true,
+                            clickMode: 'multiple',
+                        },
+                        listeners: { selectionChange },
+                    });
+                });
+
+                describe('select 3 points', () => {
+                    beforeEach(async () => {
+                        await mouseClick(POINT_S2A);
+                        await mouseClick(POINT_S3C);
+                        await mouseClick(POINT_S4E);
+                    });
+                    describe('initial', () => {
+                        test('screenshot', async () => {
+                            await compareExact('stack-mix-highlighted-s4e-selected-s2a-s3c-s4e');
+                        });
+                        test('getSelection', () => {
+                            expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
+                        });
+                        test('selectionChange', () => {
+                            expect(selectionChange.popEvents()).toEqual([ADDED_S2A, ADDED_S3C, ADDED_S4E]);
+                        });
+                    });
+                    describe('follow-up', () => {
+                        beforeEach(() => {
+                            selectionChange.popEvents(); // pop event of initial selection.
+                        });
+                        describe('miss1', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_MISS1);
+                                await compareExact('stack-mix-highlighted-none-selected-none');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_MISS1);
+                                expect(getChartSelectionArray()).toEqual([]);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_MISS1);
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S3C_S4E]);
+                            });
+                        });
+                        describe('ctrl-miss1', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_MISS1, { ctrlKey });
+                                await waitForUnhighlight();
+                                await compareExact('stack-mix-highlighted-none-selected-s2a-s3c-s4e');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_MISS1, { ctrlKey });
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_MISS1, { ctrlKey });
+                                expect(selectionChange.popEvents()).toEqual([]);
+                            });
+                        });
+                        describe('meta-miss1', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_MISS1, { metaKey });
+                                await waitForUnhighlight();
+                                await compareExact('stack-mix-highlighted-none-selected-s2a-s3c-s4e');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_MISS1, { metaKey });
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_MISS1, { metaKey });
+                                expect(selectionChange.popEvents()).toEqual([]);
+                            });
+                        });
+                        describe('click selection-disabled series', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_S6B);
+                                await compareExact('stack-mix-highlighted-s6b-selected-none');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_S6B);
+                                expect(getChartSelectionArray()).toEqual([]);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_S6B);
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S3C_S4E]);
+                            });
+                        });
+                        describe('ctrl-click selection-disabled series', () => {
+                            test('screenshot', async () => {
+                                await mouseMove(POINT_S6C);
+                                await mouseClick(POINT_S6C, { ctrlKey });
+                                await compareExact('stack-mix-highlighted-s6c-selected-s2a-s3c-s4e');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_S6C, { ctrlKey });
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_S6C, { ctrlKey });
+                                expect(selectionChange.popEvents()).toEqual([]);
+                            });
+                        });
+                        describe('click selection-enabled series', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_S1D, { ctrlKey });
+                                await compareExact('stack-mix-highlighted-s1d-selected-s2a-s3c-s1d-s4e');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_S1D, { ctrlKey });
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S1D_S4E);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_S1D, { ctrlKey });
+                                expect(selectionChange.popEvents()).toEqual([ADDED_S1D]);
+                            });
+                        });
+                        describe('ctrl-click selection-enabled series', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_S1D, { ctrlKey });
+                                await compareExact('stack-mix-highlighted-s1d-selected-s2a-s3c-s1d-s4e');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_S1D, { ctrlKey });
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S1D_S4E);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_S1D, { ctrlKey });
+                                expect(selectionChange.popEvents()).toEqual([ADDED_S1D]);
+                            });
+                        });
+                        describe('meta-click selection-enabled series', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_S5D, { metaKey });
+                                await compareExact('stack-mix-highlighted-s5d-selected-s2a-s3c-s4e-s5d');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_S5D, { metaKey });
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E_S5D);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_S5D, { metaKey });
+                                expect(selectionChange.popEvents()).toEqual([ADDED_S5D]);
+                            });
+                        });
+                    });
+                });
+            });
         });
     });
 
