@@ -547,6 +547,7 @@ describe('ChartOptions', () => {
       },
     },
     "seriesGrouping": {
+      "declarationOrder": 0,
       "groupCount": 4,
       "groupId": "bar-quarter-grouped",
       "groupIndex": 0,
@@ -627,6 +628,7 @@ describe('ChartOptions', () => {
       },
     },
     "seriesGrouping": {
+      "declarationOrder": 2,
       "groupCount": 4,
       "groupId": "bar-quarter-grouped",
       "groupIndex": 1,
@@ -707,6 +709,7 @@ describe('ChartOptions', () => {
       },
     },
     "seriesGrouping": {
+      "declarationOrder": 4,
       "groupCount": 4,
       "groupId": "bar-quarter-grouped",
       "groupIndex": 2,
@@ -787,6 +790,7 @@ describe('ChartOptions', () => {
       },
     },
     "seriesGrouping": {
+      "declarationOrder": 5,
       "groupCount": 4,
       "groupId": "bar-quarter-grouped",
       "groupIndex": 3,
@@ -1016,6 +1020,7 @@ describe('ChartOptions', () => {
       },
     },
     "seriesGrouping": {
+      "declarationOrder": 0,
       "groupCount": 4,
       "groupId": "bar-quarter-grouped",
       "groupIndex": 0,
@@ -1096,6 +1101,7 @@ describe('ChartOptions', () => {
       },
     },
     "seriesGrouping": {
+      "declarationOrder": 2,
       "groupCount": 4,
       "groupId": "bar-quarter-grouped",
       "groupIndex": 1,
@@ -1176,6 +1182,7 @@ describe('ChartOptions', () => {
       },
     },
     "seriesGrouping": {
+      "declarationOrder": 4,
       "groupCount": 4,
       "groupId": "bar-quarter-grouped",
       "groupIndex": 2,
@@ -1256,6 +1263,7 @@ describe('ChartOptions', () => {
       },
     },
     "seriesGrouping": {
+      "declarationOrder": 5,
       "groupCount": 4,
       "groupId": "bar-quarter-grouped",
       "groupIndex": 3,
@@ -1485,6 +1493,7 @@ describe('ChartOptions', () => {
       },
     },
     "seriesGrouping": {
+      "declarationOrder": 0,
       "groupCount": 1,
       "groupId": "bar-quarter-stacked",
       "groupIndex": 0,
@@ -1565,6 +1574,7 @@ describe('ChartOptions', () => {
       },
     },
     "seriesGrouping": {
+      "declarationOrder": 2,
       "groupCount": 1,
       "groupId": "bar-quarter-stacked",
       "groupIndex": 0,
@@ -1645,6 +1655,7 @@ describe('ChartOptions', () => {
       },
     },
     "seriesGrouping": {
+      "declarationOrder": 4,
       "groupCount": 1,
       "groupId": "bar-quarter-stacked",
       "groupIndex": 0,
@@ -1725,6 +1736,7 @@ describe('ChartOptions', () => {
       },
     },
     "seriesGrouping": {
+      "declarationOrder": 5,
       "groupCount": 1,
       "groupId": "bar-quarter-stacked",
       "groupIndex": 0,
