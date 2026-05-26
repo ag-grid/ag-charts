@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import type { Mock } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import type { InternalAgColorType } from 'ag-charts-core';
 import type {
@@ -11,6 +12,8 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
+import { sparkline } from '../../api/preset/sparkline';
+import { sanitizeThemeModules } from '../factory/processModuleOptions';
 import {
     deproxy,
     expectWarningsCalls,
@@ -19,117 +22,166 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
-import { themes } from './themes';
+import { getChartTheme, themes } from './themes';
 
-describe('themes module', () => {
-    setupMockConsole();
-    setupMockCanvas();
+describe('themes.ts', () => {
+    describe('theme validation', () => {
+        setupMockConsole();
+        setupMockCanvas();
 
-    const getPalette = (themeName: AgChartThemeName): AgChartThemePalette | undefined => {
-        const ctr = themes[themeName];
-        if (ctr !== undefined) {
-            return ctr().palette;
-        }
-    };
-
-    const getActualPalette = (chart: AgChartInstance) => {
-        let result = undefined;
-        for (const series of deproxy(chart).chartOptions.processedOptions.series ?? []) {
-            result ??= { fills: [] as InternalAgColorType[], strokes: [] as string[] };
-
-            expect(series.type).toEqual('bar');
-            const barseries = series as AgBarSeriesOptions;
-            if (barseries.fill !== undefined) {
-                result.fills.push(barseries.fill);
+        const getPalette = (themeName: AgChartThemeName): AgChartThemePalette | undefined => {
+            const ctr = themes[themeName];
+            if (ctr !== undefined) {
+                return ctr().palette;
             }
-            if (barseries.stroke !== undefined) {
-                result.strokes.push(barseries.stroke);
+        };
+
+        const getActualPalette = (chart: AgChartInstance) => {
+            let result = undefined;
+            for (const series of deproxy(chart).chartOptions.processedOptions.series ?? []) {
+                result ??= { fills: [] as InternalAgColorType[], strokes: [] as string[] };
+
+                expect(series.type).toEqual('bar');
+                const barseries = series as AgBarSeriesOptions;
+                if (barseries.fill !== undefined) {
+                    result.fills.push(barseries.fill);
+                }
+                if (barseries.stroke !== undefined) {
+                    result.strokes.push(barseries.stroke);
+                }
             }
-        }
-        return result;
-    };
+            return result;
+        };
 
-    const opts: AgChartOptions = {
-        ...prepareTestOptions({}),
-        data: [
-            { n: 'A', v0: 4.2, v1: 5.6, v2: 8.6, v3: 8.1, v4: 6.4, v5: 1.3, v6: 6.4, v7: 1.3, v8: 2.2, v9: 8.7 },
-            { n: 'B', v0: 1.8, v1: 7.1, v2: 8.4, v3: 1.3, v4: 6.8, v5: 5.5, v6: 2.7, v7: 4.8, v8: 4.8, v9: 5.2 },
-            { n: 'C', v0: 7.1, v1: 7.4, v2: 1.9, v3: 9.8, v4: 1.3, v5: 4.4, v6: 8.3, v7: 9.5, v8: 1.3, v9: 0.9 },
-            { n: 'D', v0: 3.5, v1: 9.2, v2: 4.2, v3: 2.5, v4: 6.3, v5: 4.4, v6: 5.9, v7: 2.2, v8: 6.8, v9: 0.1 },
-            { n: 'E', v0: 9, v1: 2.8, v2: 1.9, v3: 7.4, v4: 5.9, v5: 8.1, v6: 0.6, v7: 7.6, v8: 3, v9: 3.4 },
-        ],
-        series: [
-            { type: 'bar', xKey: 'n', yKey: 'v0', stacked: true },
-            { type: 'bar', xKey: 'n', yKey: 'v1', stacked: true },
-            { type: 'bar', xKey: 'n', yKey: 'v2', stacked: true },
-            { type: 'bar', xKey: 'n', yKey: 'v3', stacked: true },
-            { type: 'bar', xKey: 'n', yKey: 'v4', stacked: true },
-            { type: 'bar', xKey: 'n', yKey: 'v5', stacked: true },
-            { type: 'bar', xKey: 'n', yKey: 'v6', stacked: true },
-            { type: 'bar', xKey: 'n', yKey: 'v7', stacked: true },
-            { type: 'bar', xKey: 'n', yKey: 'v8', stacked: true },
-            { type: 'bar', xKey: 'n', yKey: 'v9', stacked: true },
-        ],
-    };
+        const opts: AgChartOptions = {
+            ...prepareTestOptions({}),
+            data: [
+                {
+                    n: 'A',
+                    v0: 4.2,
+                    v1: 5.6,
+                    v2: 8.6,
+                    v3: 8.1,
+                    v4: 6.4,
+                    v5: 1.3,
+                    v6: 6.4,
+                    v7: 1.3,
+                    v8: 2.2,
+                    v9: 8.7,
+                },
+                {
+                    n: 'B',
+                    v0: 1.8,
+                    v1: 7.1,
+                    v2: 8.4,
+                    v3: 1.3,
+                    v4: 6.8,
+                    v5: 5.5,
+                    v6: 2.7,
+                    v7: 4.8,
+                    v8: 4.8,
+                    v9: 5.2,
+                },
+                {
+                    n: 'C',
+                    v0: 7.1,
+                    v1: 7.4,
+                    v2: 1.9,
+                    v3: 9.8,
+                    v4: 1.3,
+                    v5: 4.4,
+                    v6: 8.3,
+                    v7: 9.5,
+                    v8: 1.3,
+                    v9: 0.9,
+                },
+                {
+                    n: 'D',
+                    v0: 3.5,
+                    v1: 9.2,
+                    v2: 4.2,
+                    v3: 2.5,
+                    v4: 6.3,
+                    v5: 4.4,
+                    v6: 5.9,
+                    v7: 2.2,
+                    v8: 6.8,
+                    v9: 0.1,
+                },
+                { n: 'E', v0: 9, v1: 2.8, v2: 1.9, v3: 7.4, v4: 5.9, v5: 8.1, v6: 0.6, v7: 7.6, v8: 3, v9: 3.4 },
+            ],
+            series: [
+                { type: 'bar', xKey: 'n', yKey: 'v0', stacked: true },
+                { type: 'bar', xKey: 'n', yKey: 'v1', stacked: true },
+                { type: 'bar', xKey: 'n', yKey: 'v2', stacked: true },
+                { type: 'bar', xKey: 'n', yKey: 'v3', stacked: true },
+                { type: 'bar', xKey: 'n', yKey: 'v4', stacked: true },
+                { type: 'bar', xKey: 'n', yKey: 'v5', stacked: true },
+                { type: 'bar', xKey: 'n', yKey: 'v6', stacked: true },
+                { type: 'bar', xKey: 'n', yKey: 'v7', stacked: true },
+                { type: 'bar', xKey: 'n', yKey: 'v8', stacked: true },
+                { type: 'bar', xKey: 'n', yKey: 'v9', stacked: true },
+            ],
+        };
 
-    it('should show 1 warning for invalid theme type', async () => {
-        const chart = AgCharts.create({
-            ...opts,
-            theme: true as unknown as AgChartTheme,
-        });
-        await waitForChartStability(chart);
+        it('should show 1 warning for invalid theme type', async () => {
+            const chart = AgCharts.create({
+                ...opts,
+                theme: true as unknown as AgChartTheme,
+            });
+            await waitForChartStability(chart);
 
-        expectWarningsCalls().toMatchInlineSnapshot(`
+            expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
     "AG Charts - Option \`theme\` cannot be set to \`true\`; expecting a keyword such as 'ag-default', 'ag-default-dark', 'ag-sheets', 'ag-sheets-dark', 'ag-polychroma', 'ag-polychroma-dark', 'ag-vivid', 'ag-vivid-dark', 'ag-material', 'ag-material-dark', 'ag-financial' or 'ag-financial-dark' or an object, ignoring.",
   ],
 ]
 `);
-    });
+        });
 
-    test('missing strokes', async () => {
-        const chart = AgCharts.create({
-            ...opts,
-            theme: {
-                baseTheme: 'ag-default-dark',
-                palette: {
-                    fills: ['#5C2983', '#0076C5', '#21B372', '#FDDE02', '#F76700', '#D30018'],
+        test('missing strokes', async () => {
+            const chart = AgCharts.create({
+                ...opts,
+                theme: {
+                    baseTheme: 'ag-default-dark',
+                    palette: {
+                        fills: ['#5C2983', '#0076C5', '#21B372', '#FDDE02', '#F76700', '#D30018'],
+                    },
                 },
-            },
+            });
+            await waitForChartStability(chart);
+
+            expect(getActualPalette(chart)?.strokes).toEqual(getPalette('ag-default-dark')?.strokes);
         });
-        await waitForChartStability(chart);
 
-        expect(getActualPalette(chart)?.strokes).toEqual(getPalette('ag-default-dark')?.strokes);
-    });
-
-    test('missing fills', async () => {
-        const chart = AgCharts.create({
-            ...opts,
-            theme: {
-                baseTheme: 'ag-default-dark',
-                palette: {
-                    strokes: ['black'],
+        test('missing fills', async () => {
+            const chart = AgCharts.create({
+                ...opts,
+                theme: {
+                    baseTheme: 'ag-default-dark',
+                    palette: {
+                        strokes: ['black'],
+                    },
                 },
-            },
+            });
+            await waitForChartStability(chart);
+
+            expect(getActualPalette(chart)?.fills).toEqual(getPalette('ag-default-dark')?.fills);
         });
-        await waitForChartStability(chart);
 
-        expect(getActualPalette(chart)?.fills).toEqual(getPalette('ag-default-dark')?.fills);
-    });
+        it('should show 3 warnings for invalid types', async () => {
+            const chart = AgCharts.create({
+                ...opts,
+                theme: {
+                    baseTheme: Number.NaN,
+                    palette: 'foobar',
+                    overrides: true,
+                } as unknown as AgChartTheme,
+            });
+            await waitForChartStability(chart);
 
-    it('should show 3 warnings for invalid types', async () => {
-        const chart = AgCharts.create({
-            ...opts,
-            theme: {
-                baseTheme: Number.NaN,
-                palette: 'foobar',
-                overrides: true,
-            } as unknown as AgChartTheme,
-        });
-        await waitForChartStability(chart);
-
-        expectWarningsCalls().toMatchInlineSnapshot(`
+            expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
     "AG Charts - Option \`theme.baseTheme\` cannot be set to \`NaN\`; expecting a string or an object, ignoring.",
@@ -142,22 +194,22 @@ describe('themes module', () => {
   ],
 ]
 `);
-    });
-
-    it('should show 2 warnings for invalid types - palette', async () => {
-        const chart = AgCharts.create({
-            ...opts,
-            theme: {
-                baseTheme: 'ag-default-dark',
-                palette: {
-                    fills: 'red',
-                    strokes: 'black',
-                } as unknown as AgChartThemePalette,
-            },
         });
-        await waitForChartStability(chart);
 
-        expectWarningsCalls().toMatchInlineSnapshot(`
+        it('should show 2 warnings for invalid types - palette', async () => {
+            const chart = AgCharts.create({
+                ...opts,
+                theme: {
+                    baseTheme: 'ag-default-dark',
+                    palette: {
+                        fills: 'red',
+                        strokes: 'black',
+                    } as unknown as AgChartThemePalette,
+                },
+            });
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
     "AG Charts - Option \`theme.palette.fills\` cannot be set to \`"red"\`; expecting a color string or a color object array, ignoring.",
@@ -167,5 +219,102 @@ describe('themes module', () => {
   ],
 ]
 `);
+        });
+    });
+
+    describe('theme caching across repeat chart creates', () => {
+        it('returns the same ChartTheme instance for repeated identical option references', () => {
+            const themeOptions = {
+                overrides: {
+                    line: { series: { stroke: 'rgb(124, 255, 178)', strokeWidth: 2 } },
+                },
+            };
+
+            const first = getChartTheme(themeOptions);
+            const second = getChartTheme(themeOptions);
+            const third = getChartTheme(themeOptions);
+
+            expect(second).toBe(first);
+            expect(third).toBe(first);
+        });
+
+        it('returns the same sanitized ChartTheme instance for repeated calls with the same theme', () => {
+            const theme = getChartTheme({
+                overrides: {
+                    line: { series: { stroke: 'rgb(124, 255, 178)', strokeWidth: 2 } },
+                },
+            });
+
+            const first = sanitizeThemeModules(theme);
+            const second = sanitizeThemeModules(theme);
+            const third = sanitizeThemeModules(theme);
+
+            expect(second).toBe(first);
+            expect(third).toBe(first);
+        });
+    });
+
+    describe('theme cache debug logging with "theme" selector', () => {
+        setupMockConsole({ includeAllLevels: true });
+
+        beforeEach(() => {
+            (globalThis as any).agChartsDebug = 'theme';
+        });
+
+        afterEach(() => {
+            delete (globalThis as any).agChartsDebug;
+        });
+
+        function themeCacheLogs() {
+            return (console.log as Mock).mock.calls.filter((args) => args[0] === '[CACHE] ChartTheme');
+        }
+
+        it('logs a cache miss on first access and a cache hit on the second access for the same reference', () => {
+            const themeOptions = {
+                overrides: {
+                    line: { series: { stroke: 'rgb(10, 20, 30)', strokeWidth: 3 } },
+                },
+            };
+
+            getChartTheme(themeOptions);
+            getChartTheme(themeOptions);
+
+            const logs = themeCacheLogs();
+            expect(logs).toHaveLength(2);
+            expect(logs[0][1]).toBe('miss');
+            expect(logs[1][1]).toBe('hit');
+        });
+
+        it('logs a cache hit when sparklines sharing the same theme reference resolve to the same cached instance', () => {
+            const theme = {
+                overrides: {
+                    line: { series: { stroke: 'rgb(20, 100, 255)' } },
+                },
+            };
+
+            const opts1 = sparkline({ type: 'line', data: [1, 2, 3], theme });
+            const opts2 = sparkline({ type: 'line', data: [4, 5, 6], theme });
+
+            // sparkline() memoises setInitialBaseTheme by input reference.
+            expect(opts1.theme).toBe(opts2.theme);
+
+            getChartTheme(opts1.theme);
+            getChartTheme(opts2.theme);
+
+            const logs = themeCacheLogs();
+            expect(logs).toHaveLength(2);
+            expect(logs[0][1]).toBe('miss');
+            expect(logs[1][1]).toBe('hit');
+        });
+
+        it('does not log a cache hit when different theme object references are used', () => {
+            getChartTheme({ overrides: { line: { series: { stroke: 'red' } } } });
+            getChartTheme({ overrides: { line: { series: { stroke: 'red' } } } });
+
+            const logs = themeCacheLogs();
+            expect(logs).toHaveLength(2);
+            expect(logs[0][1]).toBe('miss');
+            expect(logs[1][1]).toBe('miss');
+        });
     });
 });

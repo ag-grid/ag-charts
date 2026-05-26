@@ -8,7 +8,7 @@ import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
 import { getData } from './data';
 import { random } from './randomHelpers';
 
-(window as any).agChartsDebug = 'scene:stats';
+// (window as any).agChartsDebug = 'scene:stats';
 
 const options: AgSparklineOptions = {
     container: document.getElementById('myChart'),
@@ -57,6 +57,47 @@ async function performSingleCreation(): Promise<number> {
     return performance.now() - start;
 }
 
+// Typical viewport for a Grid sparkline column. Grid calls createSparkline() synchronously
+// per cell with no per-cell rAF, so all N charts batch into a single frame.
+const GRID_BATCH_SIZE = 50;
+
+/** inScope */
+async function performGridBatchCreation(): Promise<number> {
+    const containers: HTMLElement[] = [];
+    for (let i = 0; i < GRID_BATCH_SIZE; i++) {
+        containers.push(document.createElement('div'));
+    }
+    const created: AgChartInstance<AgSparklineOptions>[] = [];
+
+    const start = performance.now();
+    performance.mark('grid-batch:create:start');
+
+    for (let i = 0; i < GRID_BATCH_SIZE; i++) {
+        created.push(
+            AgCharts.__createSparkline({
+                ...options,
+                container: containers[i],
+            })
+        );
+    }
+
+    performance.mark('grid-batch:create:end');
+    try {
+        performance.measure('grid-batch:create', 'grid-batch:create:start', 'grid-batch:create:end');
+    } catch {
+        // measure can throw if marks were cleared mid-run
+    }
+
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+    const elapsed = performance.now() - start;
+
+    // Destroy per-iteration so each iter measures fresh cold creation.
+    created.forEach((c) => c.destroy());
+
+    return elapsed;
+}
+
 /** inScope */
 async function performPooledCreation(): Promise<number> {
     const start = performance.now();
@@ -98,7 +139,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
         testCases: [
             {
                 id: 'cold-creation',
-                label: 'Cold Creation',
+                label: 'Cold Creation (single, per-frame)',
                 variants: [
                     {
                         params: { Operation: 'Create Sparkline' },
@@ -109,6 +150,16 @@ function getBenchmarkConfig(): BenchmarkConfig {
                     charts.forEach((chart) => chart.destroy());
                     charts.length = 0;
                 },
+            },
+            {
+                id: 'grid-batch-creation',
+                label: `Cold Creation (batch of ${GRID_BATCH_SIZE})`,
+                variants: [
+                    {
+                        params: { Operation: `Create ${GRID_BATCH_SIZE} Sparklines` },
+                        run: performGridBatchCreation,
+                    },
+                ],
             },
             {
                 id: 'pooled-creation',

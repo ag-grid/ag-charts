@@ -94,7 +94,7 @@ export const themes: ThemeMap = {
 
 const chartThemeCache = new Map<unknown, ChartTheme>();
 let chartThemeCacheRevision = -1;
-const themeCacheDebug = Debug.create(true, 'perf');
+const themeCacheDebug = Debug.create(true, 'perf', 'theme');
 
 export const getChartTheme: typeof createChartTheme = (value) => {
     chartThemeCacheRevision = ModuleRegistry.ifRegistryChanged(chartThemeCacheRevision, () => {
@@ -110,6 +110,12 @@ export const getChartTheme: typeof createChartTheme = (value) => {
     }
     return theme;
 };
+
+/** Test-only: drop all cached entries so cases start from a known cold state. */
+export function __clearChartThemeCacheForTests() {
+    chartThemeCache.clear();
+    chartThemeCacheRevision = -1;
+}
 
 function createChartTheme(value: unknown): ChartTheme {
     if (value instanceof ChartTheme) {

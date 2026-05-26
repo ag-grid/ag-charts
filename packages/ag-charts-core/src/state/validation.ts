@@ -24,6 +24,10 @@ const undocumentedSymbol = Symbol('undocumented');
 const enterpriseSymbol = Symbol('enterprise');
 export const unionSymbol = Symbol('union');
 
+// Memoised Object.keys per OptionsDefs node. WeakMap avoids mutating (and thus
+// failing on) frozen / sealed / proxied schema objects.
+const schemaKeyCache = new WeakMap<object, string[]>();
+
 const similarOptionsMap = [
     ['placement', 'position'],
     ['padding', 'spacing', 'gap'],
@@ -182,15 +186,22 @@ export function validate<T>(
     const optionsKeys = new Set(Object.keys(options));
     const unusedKeys = [];
 
+    let schemaKeys = schemaKeyCache.get(optionsDefs);
+    if (schemaKeys === undefined) {
+        schemaKeys = Object.keys(optionsDefs);
+        schemaKeyCache.set(optionsDefs, schemaKeys);
+    }
+    const defsAny = optionsDefs as any;
+
     if (unionSymbol in optionsDefs) {
-        const validTypes = Object.keys(optionsDefs);
+        const validTypes = schemaKeys;
         const defaultType = optionsDefs[unionSymbol];
         if (
             (options.type != null && validTypes.includes(options.type)) ||
             (options.type == null && defaultType != null)
         ) {
             const { type = defaultType, ...rest } = options;
-            const nestedResult = validate(rest, (optionsDefs as any)[type], path, params);
+            const nestedResult = validate(rest, defsAny[type], path, params);
             Object.assign(cleared, { type }, nestedResult.cleared);
             for (const error of nestedResult.invalid) {
                 error.setUnionType(type, path);
@@ -205,7 +216,7 @@ export function validate<T>(
         return { cleared, invalid };
     }
 
-    for (const key of Object.keys(optionsDefs)) {
+    for (const key of schemaKeys) {
         const validatorOrDefs: Validator | OptionsDefs<any> = optionsDefs[key as keyof T];
         const required = validatorOrDefs[requiredSymbol];
         const value = options[key as keyof object];

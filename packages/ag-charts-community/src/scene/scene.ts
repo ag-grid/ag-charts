@@ -36,6 +36,8 @@ export class Scene extends EventEmitter<EventMap> {
     private isDirty: boolean = false;
     private direction: CanvasDirection = 'ltr';
     private _baseFont: string | undefined;
+    // Tracks what is actually written to the canvas context — cleared on resize (which resets context state).
+    private _contextFont: string | undefined;
 
     private readonly cleanup = new CleanupRegistry();
     private releaseDebugStats?: () => void;
@@ -161,19 +163,23 @@ export class Scene extends EventEmitter<EventMap> {
 
     updateBaseFont() {
         const baseFont = this.root?.resolveFont();
-        if (baseFont != null && baseFont !== this._baseFont) {
-            this._baseFont = baseFont;
-            this.canvas.context.font = baseFont;
-        }
+        if (baseFont == null || baseFont === this._contextFont) return;
+        this._baseFont = baseFont;
+        // Pending resize will reset the context and re-apply _baseFont — skip redundant write.
+        if (this.pendingSize) return;
+        this.canvas.context.font = baseFont;
+        this._contextFont = baseFont;
     }
 
     applyPendingResize(): boolean {
         if (this.pendingSize) {
             this.layersManager.resize(...this.pendingSize);
             this.pendingSize = null;
-            // Resize resets canvas context state — re-apply the cached base font.
+            // Resize resets canvas context state — re-apply the cached base font if one was established.
+            this._contextFont = undefined;
             if (this._baseFont != null) {
                 this.canvas.context.font = this._baseFont;
+                this._contextFont = this._baseFont;
             }
             return true;
         }
@@ -240,6 +246,7 @@ export class Scene extends EventEmitter<EventMap> {
             height,
             devicePixelRatio,
             debugNodes: {},
+            currentFont: this._contextFont,
         };
 
         if (Debug.check(DebugSelectors.SCENE_STATS_VERBOSE)) {

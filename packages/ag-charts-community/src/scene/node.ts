@@ -29,6 +29,8 @@ export type RenderContext = {
     };
     debugNodeSearch?: (string | RegExp)[];
     debugNodes: Record<string, Node>;
+    // Tracks the last `ctx.font` written, to avoid the canonicalising getter.
+    currentFont?: string;
 };
 
 export interface NodeOptions {
@@ -227,6 +229,8 @@ export abstract class Node<TDatum = unknown> {
 
     /** Guaranteed isolated render - if there is any failure, the Canvas2D context is returned to its prior state. */
     isolatedRender(renderCtx: RenderContext): void {
+        // Snapshot alongside ctx.save() — restore() reverts ctx.font, so tracker must too.
+        const savedFont = renderCtx.currentFont;
         renderCtx.ctx.save();
         try {
             this.render(renderCtx);
@@ -243,6 +247,7 @@ export abstract class Node<TDatum = unknown> {
             Logger.warnOnce('Error during rendering', e, e.stack);
         } finally {
             renderCtx.ctx.restore();
+            renderCtx.currentFont = savedFont;
         }
     }
 

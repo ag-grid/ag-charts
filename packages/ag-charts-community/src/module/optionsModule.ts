@@ -56,7 +56,8 @@ import {
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
-import { type OptionsGraphAccessor, createOptionsGraph } from './optionsGraph';
+import { type OptionsGraphAccessor, createOptionsGraph, createOptionsGraphFn } from './optionsGraph';
+import { computeStructuralCacheKey, getStructuralCacheEntry, setStructuralCacheEntry } from './optionsStructuralCache';
 
 export interface ChartSpecialOverrides {
     document: Document;
@@ -297,6 +298,38 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private slowSetup(processedOverrides: Partial<T>, deltaOptions?: DeepPartial<T> | null, stripSymbols = false) {
+        // Minimal-mode structural-output cache fast path.
+        const cacheKey = this.computeStructuralCacheKeyForSlowSetup(deltaOptions, stripSymbols);
+        if (cacheKey !== undefined) {
+            const cached = getStructuralCacheEntry(cacheKey);
+            if (cached) {
+                const activeTheme = sanitizeThemeModules(getChartTheme((this.userOptions as any).theme));
+                this.chartDef = cached.chartDef;
+                // Re-run the preset's data transform on this chart's data — the cached
+                // processedOptions has `data` stripped to prevent aliasing.
+                const presetDef =
+                    this.optionMetadata.presetType == null
+                        ? undefined
+                        : ModuleRegistry.getPresetModule(this.optionMetadata.presetType);
+                const userData = (this.userOptions as any).data;
+                const resolvedData = presetDef?.processData ? presetDef.processData(userData).data : userData;
+                // Shallow-clone the top level only — the existing dev-mode deepFreeze on
+                // ChartOptions has confirmed no path mutates nested processedOptions, and
+                // sharing frozen nested refs across charts is the whole point of the cache.
+                const processedOptions = { ...(cached.processedOptions as object), data: resolvedData } as T;
+                // Un-memoized graph — each chart needs its own resolution state for stylers' resolvePartial.
+                const optionsGraph = createOptionsGraphFn(activeTheme, processedOptions as PlainObject);
+                return {
+                    activeTheme,
+                    processedOptions,
+                    themeParameters: cached.themeParameters,
+                    annotationThemes: cached.annotationThemes,
+                    googleFonts: cached.googleFonts ? new Set(cached.googleFonts) : undefined,
+                    optionsGraph,
+                };
+            }
+        }
+
         let options = deepClone(this.userOptions, ChartOptions.OPTIONS_CLONE_OPTS_FAST) as T & { type?: string };
 
         if (deltaOptions) {
@@ -405,7 +438,29 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
+        if (cacheKey !== undefined) {
+            const { data: _cachedData, ...processedOptionsWithoutData } = processedOptions as Record<string, unknown>;
+            setStructuralCacheEntry(cacheKey, {
+                processedOptions: processedOptionsWithoutData,
+                themeParameters,
+                googleFonts: googleFonts.size > 0 ? new Set(googleFonts) : undefined,
+                annotationThemes,
+                chartDef: this.chartDef,
+            });
+        }
+
         return { activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts, optionsGraph };
+    }
+
+    private computeStructuralCacheKeyForSlowSetup(
+        deltaOptions: DeepPartial<T> | null | undefined,
+        stripSymbols: boolean
+    ): string | undefined {
+        if (this.optionMetadata.domMode !== 'minimal') return undefined;
+        if (stripSymbols) return undefined;
+        // Delta updates take a different path (fastSetup); cache targets cold creation only.
+        if (deltaOptions) return undefined;
+        return computeStructuralCacheKey(this.userOptions);
     }
 
     private validatePluginOptions(options: T, params: ValidateParams = {}) {
