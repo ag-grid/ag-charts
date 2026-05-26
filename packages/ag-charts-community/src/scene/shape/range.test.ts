@@ -93,6 +93,7 @@ describe('Range', () => {
                     // Render.
                     ctx.save();
                     range.render({
+                        getPropertyValue: (property: string) => property,
                         ctx,
                         direction: 'ltr' as const,
                         width: canvasCtx.nodeCanvas.width,

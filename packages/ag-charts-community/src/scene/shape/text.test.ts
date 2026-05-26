@@ -241,6 +241,7 @@ describe('Text', () => {
 
                     ctx.save();
                     textNode.render({
+                        getPropertyValue: (property: string) => property,
                         ctx,
                         direction: 'ltr' as const,
                         width: canvasCtx.nodeCanvas.width,
@@ -300,6 +301,7 @@ describe('Text', () => {
 
                     ctx.save();
                     textNode.render({
+                        getPropertyValue: (property: string) => property,
                         ctx,
                         direction: 'ltr' as const,
                         width: canvasCtx.nodeCanvas.width,
