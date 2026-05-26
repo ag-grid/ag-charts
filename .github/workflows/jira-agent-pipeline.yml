@@ -1,16 +1,18 @@
 name: Jira Agent Pipeline
 
 # ============================================================================
-# End-to-end Jira -> GHA agent pipeline. Three stages, one workflow:
+# End-to-end Jira -> GHA agent pipeline. Four stages, one workflow:
 #
-#   triage      — /fr --ci --phase 0..1 <KEY>            (intent / research / plan)
-#   build       — /fr --ci --phase 2..5 --resume --draft-pr <KEY>
-#   pr-iterate  — /fr --ci --pr-iterate <KEY>
+#   triage              — /fr --ci --phase 0..1 <KEY>            (intent / research / plan)
+#   build               — /fr --ci --phase 2..5 --resume --draft-pr <KEY>
+#   pr-iterate          — /fr --ci --pr-iterate <KEY>                              (review-comment driven)
+#   ci-failure-iterate  — /fr --ci --pr-iterate --ci-failure <run_url> <KEY>       (main-CI failure driven)
 #
-# Each stage is its own job, gated on the dispatch event_type or the
-# workflow_dispatch `stage` input. All three share the same access-chain
-# setup (.github/actions/setup-jira-agent) and the same writeback wiring
-# (status / state / cost / branch-PR).
+# Each stage is its own job, gated on the dispatch event_type, the
+# workflow_dispatch `stage` input, or — for ci-failure-iterate — the
+# `workflow_run.completed` event on the main CI workflow. All four share
+# the same access-chain setup (.github/actions/setup-jira-agent) and the
+# same writeback wiring (status / state / cost / branch-PR).
 #
 # ----------------------------------------------------------------------------
 # Trigger envelopes
@@ -26,6 +28,16 @@ name: Jira Agent Pipeline
 #         {"event_type":"jira-triage",     "client_payload":{"issue_key":"AG-XXXXX"}}
 #         {"event_type":"jira-build",      "client_payload":{"issue_key":"AG-XXXXX"}}
 #         {"event_type":"jira-pr-iterate", "client_payload":{"issue_key":"AG-XXXXX"}}
+#
+#   workflow_run (auto — fires when the main CI workflow completes):
+#       Gates inside the preflight job:
+#         - workflow_run.conclusion == 'failure'
+#         - workflow_run.head_branch starts with 'ag-'             (agent branch shape)
+#         - PR author == 'ag-jira-agent-ci[bot]'                   (agent-authored)
+#         - issue's AI status ∈ {draft-pr-open, iterating}
+#       On a non-eligible run the preflight job exits 0 with no-op output and
+#       the ci-failure-iterate job is skipped. No red Xs on unrelated CI
+#       failures.
 #
 # ----------------------------------------------------------------------------
 # Custom-field mapping (operator-side already created)
@@ -92,12 +104,23 @@ on:
                     - triage
                     - build
                     - pr-iterate
+    workflow_run:
+        # Auto-iterate when the main CI workflow fails on an agent-authored
+        # draft PR. The ci-failure-preflight job applies the actual gates;
+        # this trigger is intentionally wide so we don't miss eligible runs.
+        workflows: [CI]
+        types: [completed]
 
 permissions:
     contents: read
 
 concurrency:
-    group: claude-${{ github.event.client_payload.issue_key || inputs.issue_key }}
+    # For workflow_run events the dispatch payloads are empty, so fall back
+    # to the failing run's head branch (which encodes the issue key:
+    # `ag-NNNNN/...`). Same group as the dispatch-driven jobs so a fresh
+    # CI-failure iteration queues behind any in-flight pr-iterate for the
+    # same ticket instead of interleaving.
+    group: claude-${{ github.event.client_payload.issue_key || inputs.issue_key || github.event.workflow_run.head_branch }}
     cancel-in-progress: false
 
 env:
@@ -508,6 +531,225 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                   name: claude-trace-${{ env.ISSUE_KEY }}-pr-iterate-${{ github.run_id }}
+                  path: |
+                      ${{ runner.temp }}/trace.json
+                      ${{ runner.temp }}/claude-execution-output.json
+                      ${{ runner.temp }}/claude-prompts/
+                      ${{ github.workspace }}/tmp/fr-state/
+                  if-no-files-found: warn
+                  retention-days: 14
+
+    # -------------------------------------------------- ci-failure-iterate
+    # Preflight is intentionally cheap: parse the branch, look up the PR
+    # author via the default token, query AI status via Jira REST. No App
+    # token mint, no checkout, no agent invocation. Skipped runs cost ~2s.
+    ci-failure-preflight:
+        if: |
+            github.event_name == 'workflow_run' &&
+            github.event.workflow_run.conclusion == 'failure' &&
+            startsWith(github.event.workflow_run.head_branch, 'ag-')
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
+            pull-requests: read
+        outputs:
+            eligible: ${{ steps.gate.outputs.eligible }}
+            issue_key: ${{ steps.gate.outputs.issue_key }}
+            run_url: ${{ steps.gate.outputs.run_url }}
+            head_sha: ${{ steps.gate.outputs.head_sha }}
+        env:
+            HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+            HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+            RUN_URL: ${{ github.event.workflow_run.html_url }}
+            JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+            JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+            JIRA_SITE_URL: ${{ vars.JIRA_SITE_URL }}
+            GH_TOKEN: ${{ github.token }}
+            EXPECTED_AUTHOR: ag-jira-agent-ci[bot]
+        steps:
+            - id: gate
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  emit() { echo "$1=$2" >> "$GITHUB_OUTPUT"; }
+                  noop() { echo "[preflight] not eligible: $1"; emit eligible false; exit 0; }
+
+                  # Parse `ag-NNNNN/...` -> `AG-NNNNN`. The build job creates
+                  # branches like `ag-17421/add-rainbow-theme`; case-fold the
+                  # leading segment to the canonical Jira key shape.
+                  FIRST_SEG="${HEAD_BRANCH%%/*}"
+                  ISSUE_KEY="$(echo "$FIRST_SEG" | tr '[:lower:]' '[:upper:]')"
+                  if ! [[ "$ISSUE_KEY" =~ ^[A-Z][A-Z0-9]+-[0-9]+$ ]]; then
+                      noop "branch '$HEAD_BRANCH' does not encode a Jira key"
+                  fi
+                  emit issue_key "$ISSUE_KEY"
+                  emit head_sha "$HEAD_SHA"
+                  emit run_url "$RUN_URL"
+
+                  # PR lookup (open OR closed — agent draft might be in either state).
+                  PR_JSON=$(gh api -X GET "repos/${GITHUB_REPOSITORY}/pulls" \
+                      -f "head=${GITHUB_REPOSITORY%%/*}:${HEAD_BRANCH}" \
+                      -f "state=all" -f "per_page=1") || noop "PR lookup failed"
+                  PR_AUTHOR=$(echo "$PR_JSON" | jq -r '.[0].user.login // empty')
+                  PR_NUMBER=$(echo "$PR_JSON" | jq -r '.[0].number // empty')
+                  [[ -z "$PR_NUMBER" ]] && noop "no PR found for head '$HEAD_BRANCH'"
+                  echo "[preflight] PR #$PR_NUMBER by '$PR_AUTHOR'"
+                  # GitHub returns bot logins without the `[bot]` suffix in the API.
+                  EXPECTED_BARE="${EXPECTED_AUTHOR%\[bot\]}"
+                  [[ "$PR_AUTHOR" == "$EXPECTED_AUTHOR" || "$PR_AUTHOR" == "$EXPECTED_BARE" ]] \
+                      || noop "PR author '$PR_AUTHOR' not the agent bot"
+
+                  # AI status gate. customfield_10942 is a select; .value carries
+                  # the option label. Eligible labels match the ticket's spec.
+                  AUTH_HEADER="Authorization: Basic $(printf '%s:%s' "$JIRA_EMAIL" "$JIRA_API_TOKEN" | base64 -w0 2>/dev/null || printf '%s:%s' "$JIRA_EMAIL" "$JIRA_API_TOKEN" | base64)"
+                  AI_STATUS=$(curl -fsS -H "$AUTH_HEADER" -H 'Accept: application/json' \
+                      "$JIRA_SITE_URL/rest/api/3/issue/$ISSUE_KEY?fields=customfield_10942" \
+                      | jq -r '.fields.customfield_10942.value // empty') || noop "Jira AI status lookup failed"
+                  echo "[preflight] AI status='$AI_STATUS'"
+                  case "$AI_STATUS" in
+                      draft-pr-open|iterating|pr-iterating) ;;
+                      *) noop "AI status '$AI_STATUS' not in {draft-pr-open, iterating, pr-iterating}" ;;
+                  esac
+
+                  echo "[preflight] eligible: issue=$ISSUE_KEY pr=#$PR_NUMBER run=$RUN_URL"
+                  emit eligible true
+
+    ci-failure-iterate:
+        needs: ci-failure-preflight
+        if: needs.ci-failure-preflight.outputs.eligible == 'true'
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+        permissions:
+            contents: read
+        env:
+            ISSUE_KEY: ${{ needs.ci-failure-preflight.outputs.issue_key }}
+            CI_RUN_URL: ${{ needs.ci-failure-preflight.outputs.run_url }}
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - id: setup
+              uses: ./.github/actions/setup-jira-agent
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  jira_agent_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  jira_agent_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - uses: ./.github/actions/jira-status-writeback
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: pre-job
+                  stage: pr-iterate
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - uses: ./.github/actions/jira-state-sync
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: pull
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - name: Snapshot .github/ before agent
+              shell: bash
+              run: cp -a .github "${RUNNER_TEMP}/gha-snapshot"
+
+            - name: Run /fr --ci --pr-iterate --ci-failure (ci-failure-iterate)
+              id: claude
+              uses: anthropics/claude-code-action@v1
+              with:
+                  anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+                  github_token: ${{ steps.setup.outputs.app_token }}
+                  show_full_output: 'true'
+                  plugin_marketplaces: https://github.com/ag-grid/ag-dev-prompts.git
+                  plugins: |
+                      ag-eng@ag-dev
+                      ag-product@ag-dev
+                  claude_args: |
+                      --mcp-config ${{ steps.setup.outputs.mcp_config }}
+                      --max-turns 60
+                      --debug
+                      --permission-mode acceptEdits
+                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue,mcp__atlassian__addAttachmentToJiraIssue
+                  prompt: |
+                      Invoke /fr --ci --pr-iterate --ci-failure ${{ env.CI_RUN_URL }} ${{ env.ISSUE_KEY }}
+
+                      Context:
+                        - JIRA ticket: ${{ env.ISSUE_KEY }}
+                        - This iteration is driven by a failing main-CI run,
+                          not by human review comments. The failing run is:
+                              ${{ env.CI_RUN_URL }}
+                          Use `gh run view <id> --log-failed` to fetch the
+                          failure excerpts (see modes/pr-iterate.md).
+                        - Actions run URL (this job): ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                        - Prior-run state is in ${{ github.workspace }}/tmp/fr-state/${{ env.ISSUE_KEY }}/
+                          (intent.md / research.md / plan.md / review-feedback.md).
+                          Write updates to the same files; the workflow round-trips
+                          them to Jira after you exit. Do not call
+                          addAttachmentToJiraIssue for these files — the
+                          textareas are the durable form.
+                        - Do NOT re-request review under --ci-failure; push only.
+                          The next main-CI run is the verification.
+
+            - name: Restore .github/ snapshot (agent may have switched branches)
+              if: always()
+              shell: bash
+              run: |
+                  if [[ -d "${RUNNER_TEMP}/gha-snapshot" ]]; then
+                      cp -a "${RUNNER_TEMP}/gha-snapshot/." .github/
+                  else
+                      echo "[restore] no snapshot found at ${RUNNER_TEMP}/gha-snapshot" >&2
+                  fi
+
+            - if: always()
+              uses: ./.github/actions/jira-state-sync
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: push
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - if: always()
+              uses: ./.github/actions/jira-pr-writeback
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  github_token: ${{ steps.setup.outputs.app_token }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - if: always()
+              uses: ./.github/actions/jira-cost-writeback
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - if: always()
+              uses: ./.github/actions/jira-status-writeback
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: post-job
+                  stage: pr-iterate
+                  outcome: ${{ job.status }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - name: Upload Claude trace artefact
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: claude-trace-${{ env.ISSUE_KEY }}-ci-failure-iterate-${{ github.run_id }}
                   path: |
                       ${{ runner.temp }}/trace.json
                       ${{ runner.temp }}/claude-execution-output.json
