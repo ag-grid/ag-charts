@@ -860,7 +860,7 @@ describe('DataSelection', () => {
             const SELECTION_S5D: [AgSelectionItem<D>] = [{ itemId: 3, seriesId: 's5id', datum: DATUM_S5D }];
             const SELECTION_S3C_S4E = [SELECTION_S3C[0], SELECTION_S4E[0]];
             const SELECTION_S2A_S3C_S4E = [SELECTION_S2A[0], SELECTION_S3C[0], SELECTION_S4E[0]];
-            const SELECTION_S2A_S3C_S1D_S4E = [SELECTION_S2A[0], SELECTION_S3C[0], SELECTION_S1D[0], SELECTION_S4E[0]];
+            const SELECTION_S1D_S2A_S3C_S4E = [SELECTION_S1D[0], SELECTION_S2A[0], SELECTION_S3C[0], SELECTION_S4E[0]];
             const SELECTION_S2A_S3C_S4E_S5D = [SELECTION_S2A[0], SELECTION_S3C[0], SELECTION_S4E[0], SELECTION_S5D[0]];
 
             const ADDED_S1D = uiChangeEvent<D, C>({ added: SELECTION_S1D, removed: [] });
@@ -1039,7 +1039,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S1D_S4E);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S1D_S2A_S3C_S4E);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
@@ -1225,7 +1225,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S1D_S4E);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S1D_S2A_S3C_S4E);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
@@ -1239,7 +1239,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S1D_S4E);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S1D_S2A_S3C_S4E);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
