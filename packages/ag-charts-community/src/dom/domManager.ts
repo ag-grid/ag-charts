@@ -1,5 +1,6 @@
 import {
     AgDocument,
+    ChartUpdateType,
     type StrictHTMLElement,
     attachListener,
     createElement,
@@ -33,6 +34,7 @@ const DOM_ELEMENT_CLASSES = [
     'canvas-overlay',
     'canvas-proxy',
     'series-area',
+    'style-sensors',
     'tooltip-container',
 ] as const;
 const MINIMAL_DOM_ELEMENT_ROLES = new Set(['styles', 'canvas-container', 'canvas', 'tooltip-container']);
@@ -178,6 +180,8 @@ export class DOMManager extends BaseManager {
     private _cachedScrollableContainer: HTMLElement | null | undefined;
     private _pendingFlush?: ReturnType<typeof setTimeout>;
     private _deferring: boolean = false;
+
+    private propertyValueCache: Record<string, string> = {};
 
     constructor(
         private readonly eventsHub: EventsHub,
@@ -507,6 +511,39 @@ export class DOMManager extends BaseManager {
             formattedKey = `${prefix}${component ? '__' : ''}${component ?? ''}-${kebabCase(formattedKey)}${modifier ? '--' : ''}${modifier ?? ''}`;
             this.element.style.setProperty(formattedKey, formattedValue);
         }
+    }
+
+    getPropertyValue(property: string) {
+        if (this.propertyValueCache[property] != null) {
+            return this.propertyValueCache[property];
+        }
+
+        this.propertyValueCache[property] ??= getComputedStyle(this.element).getPropertyValue(property);
+
+        // Only watch external css variables.
+        if (property.startsWith('--ag-charts')) {
+            return this.propertyValueCache[property];
+        }
+
+        const styleElement = createElement('style');
+        styleElement.textContent = `@property ${property} { syntax: '<color>'; inherits: true; initial-value: transparent; }`;
+        this.element.prepend(styleElement);
+
+        const sensorElement = createElement('div', { transition: `${property} 1ms` });
+        this.rootElements['style-sensors'].element.appendChild(sensorElement);
+
+        const handleTransitionEnd = () => {
+            this.propertyValueCache[property] = getComputedStyle(this.element).getPropertyValue(property);
+            this.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
+        };
+        sensorElement.addEventListener('transitionend', handleTransitionEnd);
+        this.cleanup.register(() => {
+            sensorElement.removeEventListener('transitionend', handleTransitionEnd);
+            sensorElement.remove();
+            styleElement.remove();
+        });
+
+        return this.propertyValueCache[property];
     }
 
     updateCanvasLabel(ariaLabel: string) {

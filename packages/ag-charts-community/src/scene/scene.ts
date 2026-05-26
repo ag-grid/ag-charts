@@ -1,5 +1,6 @@
 import { CleanupRegistry, Debug, EventEmitter, Logger, createId, downloadUrl } from 'ag-charts-core';
 
+import type { DOMManager } from '../dom/domManager';
 import type { BBox } from './bbox';
 import { type CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
 import { Group } from './group';
@@ -42,7 +43,10 @@ export class Scene extends EventEmitter<EventMap> {
     private readonly cleanup = new CleanupRegistry();
     private releaseDebugStats?: () => void;
 
-    constructor(canvasOptions: CanvasOptions) {
+    constructor(
+        canvasOptions: CanvasOptions,
+        private readonly domManager: DOMManager
+    ) {
         super();
 
         this.updateDebugFlags();
@@ -240,7 +244,12 @@ export class Scene extends EventEmitter<EventMap> {
         }
 
         const renderCtx: RenderContext = {
-            canvas: canvas.element,
+            getPropertyValue: (property: string) => {
+                if (property.startsWith('var(--')) {
+                    return this.domManager.getPropertyValue(property.slice(4, -1));
+                }
+                return property;
+            },
             ctx,
             direction: this.direction,
             width,

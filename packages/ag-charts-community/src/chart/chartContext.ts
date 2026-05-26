@@ -91,7 +91,9 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         'scene-canvas',
         vars.scene?.canvas.element
     ) as HTMLCanvasElement & StrictHTMLElement;
-    const scene = vars.scene ?? new Scene({ canvasElement, pixelRatio: vars.agDocument.window.devicePixelRatio ?? 1 });
+    const scene =
+        vars.scene ??
+        new Scene({ canvasElement, pixelRatio: vars.agDocument.window.devicePixelRatio ?? 1 }, domManager);
     scene.setRoot(vars.root);
 
     ctx.constant('eventsHub', eventsHub)

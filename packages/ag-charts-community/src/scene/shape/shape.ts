@@ -294,7 +294,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             fillImage.setImageTransform(image, bbox);
             ctx.fillStyle = image ?? 'transparent';
         } else {
-            ctx.fillStyle = this.getComputedValue(renderCtx, fill);
+            ctx.fillStyle = typeof fill === 'string' ? renderCtx.getPropertyValue(fill) : 'black';
         }
     }
 
@@ -304,22 +304,12 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const { ctx } = renderCtx;
         ctx.strokeStyle =
             strokeGradient?.createGradient(ctx as any, bboxOverride ?? this.getBBox()) ??
-            this.getComputedValue(renderCtx, stroke);
+            (typeof stroke === 'string' ? renderCtx.getPropertyValue(stroke) : 'black');
 
         const combinedOpacity = opacity * strokeOpacity;
         if (combinedOpacity !== 1) {
             ctx.globalAlpha *= combinedOpacity;
         }
-    }
-
-    protected getComputedValue(renderCtx: RenderContext, value: ShapeColor | undefined, fallback = 'black') {
-        if (!(typeof value === 'string')) return fallback;
-
-        if (value.startsWith('var(--')) {
-            return getComputedStyle(renderCtx.canvas).getPropertyValue(value.slice(4, -1));
-        }
-
-        return value;
     }
 
     protected applyShadow(ctx: CanvasContext) {
