@@ -13,13 +13,15 @@
 //   - addCommentToJiraIssue       — POST /rest/api/3/issue/{key}/comment
 //   - getTransitionsForJiraIssue  — GET  /rest/api/3/issue/{key}/transitions
 //   - transitionJiraIssue         — POST /rest/api/3/issue/{key}/transitions
-//   - addAttachmentToJiraIssue    — POST /rest/api/3/issue/{key}/attachments (multipart)
 //   - listAttachmentsForJiraIssue — GET  /rest/api/3/issue/{key}?fields=attachment
+//
+// Attachment uploads are deliberately not exposed: the /fr --ci pipeline
+// round-trips state files (intent / research / plan / decisions / progress /
+// review-feedback) via Jira textarea custom fields, so the agent has no
+// reason to attach them as files.
 //
 // Auth: basic auth from env: JIRA_USER_EMAIL + JIRA_API_TOKEN.
 // Site: JIRA_SITE_URL (e.g. https://ag-grid.atlassian.net).
-import { readFile } from 'node:fs/promises';
-import { basename } from 'node:path';
 import { createInterface } from 'node:readline';
 
 const PROTOCOL_VERSION = '2025-06-18';
@@ -116,24 +118,6 @@ const TOOLS = [
             required: ['issueIdOrKey'],
         },
     },
-    {
-        name: 'addAttachmentToJiraIssue',
-        description:
-            'Attach a file to a Jira issue. Provide either filePath (read from disk) or fileContent (string body).',
-        inputSchema: {
-            type: 'object',
-            properties: {
-                issueIdOrKey: { type: 'string', description: 'JIRA issue key or id.' },
-                filePath: { type: 'string', description: 'Absolute path to a file on the runner.' },
-                fileContent: { type: 'string', description: 'Alternative to filePath: inline content.' },
-                fileName: {
-                    type: 'string',
-                    description: 'Filename to record on the attachment. Defaults to basename(filePath).',
-                },
-            },
-            required: ['issueIdOrKey'],
-        },
-    },
 ];
 
 const HANDLERS = {
@@ -198,37 +182,6 @@ const HANDLERS = {
             transition: { id: transitionId },
         });
         return `Transition ${transitionId} applied to ${issueIdOrKey}`;
-    },
-    async addAttachmentToJiraIssue({ issueIdOrKey, filePath, fileContent, fileName }) {
-        let buf;
-        let name = fileName;
-        if (filePath) {
-            buf = await readFile(filePath);
-            if (!name) name = basename(filePath);
-        } else if (typeof fileContent === 'string') {
-            buf = Buffer.from(fileContent, 'utf8');
-            if (!name) throw new Error('fileName is required when using fileContent');
-        } else {
-            throw new Error('Provide filePath or fileContent');
-        }
-        const form = new FormData();
-        form.append('file', new Blob([buf]), name);
-        const res = await fetch(`${SITE}/rest/api/3/issue/${encodeURIComponent(issueIdOrKey)}/attachments`, {
-            method: 'POST',
-            headers: {
-                authorization: AUTH,
-                accept: 'application/json',
-                'x-atlassian-token': 'no-check',
-            },
-            body: form,
-        });
-        if (!res.ok) {
-            const text = await res.text().catch(() => '');
-            throw new Error(`Attachment upload HTTP ${res.status}: ${text.slice(0, 500)}`);
-        }
-        const data = await res.json();
-        const ids = Array.isArray(data) ? data.map((d) => d.id).join(',') : data.id;
-        return `Attached ${name} (id: ${ids})`;
     },
 };
 

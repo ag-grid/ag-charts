@@ -220,7 +220,7 @@ jobs:
                       --max-turns 20
                       --debug
                       --permission-mode acceptEdits
-                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__editJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue,mcp__atlassian__addAttachmentToJiraIssue
+                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__editJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue
                   prompt: |
                       Invoke /fr --ci --phase 0..1 ${{ env.ISSUE_KEY }}
 
@@ -424,7 +424,7 @@ jobs:
                       --max-turns 60
                       --debug
                       --permission-mode acceptEdits
-                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__editJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue,mcp__atlassian__addAttachmentToJiraIssue
+                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__editJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue
                   prompt: |
                       Invoke /fr --ci --phase 2..5 --resume --draft-pr ${{ env.ISSUE_KEY }}
 
@@ -631,7 +631,7 @@ jobs:
                       --max-turns 60
                       --debug
                       --permission-mode acceptEdits
-                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__editJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue,mcp__atlassian__addAttachmentToJiraIssue
+                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__editJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue
                   prompt: |
                       Invoke /fr --ci --pr-iterate ${{ env.ISSUE_KEY }}
 
@@ -906,7 +906,7 @@ jobs:
                       --max-turns 60
                       --debug
                       --permission-mode acceptEdits
-                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__editJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue,mcp__atlassian__addAttachmentToJiraIssue
+                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__editJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue
                   prompt: |
                       Invoke /fr --ci --pr-iterate --ci-failure ${{ env.CI_RUN_URL }} ${{ env.ISSUE_KEY }}
 
