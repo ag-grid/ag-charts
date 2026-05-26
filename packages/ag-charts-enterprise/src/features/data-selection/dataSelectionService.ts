@@ -39,7 +39,7 @@ export class DataSelectionService implements IDataSelectionService {
     }
 
     *iterateDataSetSelections(): Generator<DataSetSelectionsIterator> {
-        if (this.ctx === undefined)return
+        if (this.ctx === undefined) return;
 
         const it: DataSetSelectionsIterator = {} as any;
 
