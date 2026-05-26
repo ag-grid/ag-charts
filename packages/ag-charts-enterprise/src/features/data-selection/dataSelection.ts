@@ -34,9 +34,7 @@ import {
 import { IntervalSet } from './intervalSet';
 
 type BBox = _ModuleSupport.BBox;
-type DatumIndexType = _ModuleSupport.DatumIndexType;
 type Series = NonNullable<NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>['series']>;
-type SeriesNodeDatum<D extends DatumIndexType> = _ModuleSupport.SeriesNodeDatum<D>;
 type IDataSelectionService = _ModuleSupport.IDataSelectionService;
 
 const UNSUPPORTED_CARTESIANS = ['histogram', 'waterfall', 'funnel', 'cone-funnel'];
