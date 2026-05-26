@@ -401,6 +401,7 @@ describe('Sector', () => {
 
                     // Render.
                     const renderCtx = {
+                        getPropertyValue: (property: string) => property,
                         ctx,
                         direction: 'ltr' as const,
                         width: canvasCtx.nodeCanvas.width,

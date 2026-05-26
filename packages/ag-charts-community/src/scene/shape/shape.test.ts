@@ -424,6 +424,7 @@ describe('Shape', () => {
 
                     // Render.
                     const renderCtx = {
+                        getPropertyValue: (property: string) => property,
                         ctx,
                         direction: 'ltr' as const,
                         width: canvasCtx.nodeCanvas.width,
@@ -473,6 +474,7 @@ describe('Shape', () => {
 
                     // Render.
                     const renderCtx = {
+                        getPropertyValue: (property: string) => property,
                         ctx,
                         direction: 'ltr' as const,
                         width: canvasCtx.nodeCanvas.width,
@@ -522,6 +524,7 @@ describe('Shape', () => {
 
                     // Render.
                     const renderCtx = {
+                        getPropertyValue: (property: string) => property,
                         ctx,
                         direction: 'ltr' as const,
                         width: canvasCtx.nodeCanvas.width,
@@ -571,6 +574,7 @@ describe('Shape', () => {
 
                     // Render.
                     const renderCtx = {
+                        getPropertyValue: (property: string) => property,
                         ctx,
                         direction: 'ltr' as const,
                         width: canvasCtx.nodeCanvas.width,
@@ -620,6 +624,7 @@ describe('Shape', () => {
 
                     // Render.
                     const renderCtx = {
+                        getPropertyValue: (property: string) => property,
                         ctx,
                         direction: 'ltr' as const,
                         width: canvasCtx.nodeCanvas.width,
@@ -669,6 +674,7 @@ describe('Shape', () => {
 
                     // Render.
                     const renderCtx = {
+                        getPropertyValue: (property: string) => property,
                         ctx,
                         direction: 'ltr' as const,
                         width: canvasCtx.nodeCanvas.width,
@@ -718,6 +724,7 @@ describe('Shape', () => {
 
                     // Render.
                     const renderCtx = {
+                        getPropertyValue: (property: string) => property,
                         ctx,
                         direction: 'ltr' as const,
                         width: canvasCtx.nodeCanvas.width,

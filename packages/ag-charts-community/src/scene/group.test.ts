@@ -151,6 +151,7 @@ describe('Group', () => {
 
                 // Create a render context and call preRender to trigger layer creation
                 const renderCtx: RenderContext = {
+                    getPropertyValue: () => 'black',
                     ctx: {} as any,
                     direction: 'ltr',
                     width: 100,
@@ -190,6 +191,7 @@ describe('Group', () => {
                 group.setScene(scene1);
 
                 const renderCtx: RenderContext = {
+                    getPropertyValue: () => 'black',
                     ctx: {} as any,
                     direction: 'ltr',
                     width: 100,
@@ -223,6 +225,7 @@ describe('Group', () => {
                 group.setScene(scene);
 
                 const renderCtx: RenderContext = {
+                    getPropertyValue: () => 'black',
                     ctx: {} as any,
                     direction: 'ltr',
                     width: 100,
