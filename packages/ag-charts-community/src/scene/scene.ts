@@ -1,6 +1,5 @@
 import { CleanupRegistry, Debug, EventEmitter, Logger, createId, downloadUrl } from 'ag-charts-core';
 
-import type { DOMManager } from '../dom/domManager';
 import type { BBox } from './bbox';
 import { type CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
 import { Group } from './group';
@@ -45,7 +44,7 @@ export class Scene extends EventEmitter<EventMap> {
 
     constructor(
         canvasOptions: CanvasOptions,
-        private readonly domManager: DOMManager
+        private readonly domManager: { getPropertyValue: (property: string) => string }
     ) {
         super();
 
