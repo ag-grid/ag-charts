@@ -106,7 +106,7 @@ export class RangeHandle extends _ModuleSupport.Path {
         const { stroke } = this;
         super.renderFill(renderCtx, path);
 
-        renderCtx.ctx.fillStyle = typeof stroke === 'string' ? stroke : 'black';
+        renderCtx.ctx.fillStyle = typeof stroke === 'string' ? renderCtx.getPropertyValue(stroke) : 'black';
         renderCtx.ctx.fill(this.gripPath.getPath2D());
     }
 }
