@@ -80,7 +80,6 @@ import { mergeMarkerStyles, mergeMarkerStylesPair } from './seriesMarker';
 import type { SeriesMarker } from './seriesMarker';
 import { isUnselected, toHighlightString, toSelectionString } from './seriesProperties';
 import type { SeriesProperties } from './seriesProperties';
-import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import {
     type BucketLookupFeature,
@@ -96,6 +95,7 @@ import {
 } from './seriesTypes';
 import { type ShapeFillBBox } from './shapeUtil';
 import { hasDimmedOpacity, resolveMarkerDrawingMode } from './util';
+import type { SeriesGrouping } from '../../module/seriesGrouping';
 
 export interface SeriesDataEvent {
     readonly dataModel: DataModel<any, any, any>;
