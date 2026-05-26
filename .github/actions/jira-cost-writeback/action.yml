@@ -1,0 +1,134 @@
+name: Jira AI-cost writeback
+description: |
+    Parses `total_cost_usd` from claude-execution-output.json and adds it to the
+    `AI Cost` (customfield_10941) field on a Jira issue (read-modify-write).
+    Runs unconditionally — on `if: always()` so failed jobs still record sunk cost.
+    If the trace file is missing, writes a $0 delta and posts a note comment so
+    the audit trail stays unbroken.
+
+inputs:
+    issue_key:
+        description: JIRA issue key (e.g. AG-12345).
+        required: true
+    execution_output:
+        description: Path to claude-execution-output.json (defaults to $RUNNER_TEMP/claude-execution-output.json).
+        required: false
+        default: ''
+    jira_email:
+        required: true
+    jira_api_token:
+        required: true
+    jira_site_url:
+        required: true
+
+runs:
+    using: composite
+    steps:
+        - name: Write AI cost
+          shell: bash
+          env:
+              ISSUE_KEY: ${{ inputs.issue_key }}
+              EXEC_OUT: ${{ inputs.execution_output }}
+              JIRA_USER_EMAIL: ${{ inputs.jira_email }}
+              JIRA_API_TOKEN: ${{ inputs.jira_api_token }}
+              JIRA_SITE_URL: ${{ inputs.jira_site_url }}
+              RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          run: |
+              set -euo pipefail
+              : "${ISSUE_KEY:?}" "${JIRA_USER_EMAIL:?}" "${JIRA_API_TOKEN:?}" "${JIRA_SITE_URL:?}"
+
+              if [[ -z "$EXEC_OUT" ]]; then
+                  EXEC_OUT="${RUNNER_TEMP}/claude-execution-output.json"
+              fi
+
+              SITE="${JIRA_SITE_URL%/}"
+              AUTH="$(printf '%s:%s' "$JIRA_USER_EMAIL" "$JIRA_API_TOKEN" | base64 | tr -d '\n')"
+
+              DELTA="0"
+              TRACE_STATUS="OK"
+              if [[ ! -f "$EXEC_OUT" ]]; then
+                  TRACE_STATUS="MISSING"
+                  echo "[cost-writeback] trace file not found at $EXEC_OUT — writing \$0 delta + note comment"
+              else
+                  # claude-execution-output is a JSON array of events. Sum
+                  # total_cost_usd across all events that carry it (typically
+                  # one {type:"result"} record per session, but be defensive
+                  # in case the schema changes or multiple sessions land in
+                  # one file). Distinguish a malformed/unparseable trace from
+                  # a genuine zero-cost run — a corrupt trace is a telemetry
+                  # failure and should not silently drop spend.
+                  if ! DELTA=$(jq -e '
+                      [ .[] | (.total_cost_usd // .usage.total_cost_usd // empty) ]
+                      | map(select(type == "number"))
+                      | add // 0
+                  ' "$EXEC_OUT" 2>/tmp/cost-jq.err); then
+                      TRACE_STATUS="MALFORMED"
+                      DELTA="0"
+                      echo "[cost-writeback] failed to parse $EXEC_OUT:" >&2
+                      cat /tmp/cost-jq.err >&2 || true
+                  elif [[ -z "$DELTA" || "$DELTA" == "null" ]]; then
+                      DELTA="0"
+                  fi
+              fi
+
+              echo "[cost-writeback] $ISSUE_KEY: delta=\$$DELTA"
+
+              # Read current value
+              HTTP=$(curl -sS -o /tmp/issue-read.json -w '%{http_code}' \
+                  -H "authorization: Basic $AUTH" \
+                  -H 'accept: application/json' \
+                  "$SITE/rest/api/3/issue/$ISSUE_KEY?fields=customfield_10941")
+              if [[ "$HTTP" != "200" ]]; then
+                  echo "[cost-writeback] GET failed: HTTP $HTTP" >&2
+                  cat /tmp/issue-read.json >&2 || true
+                  exit 1
+              fi
+              CURRENT=$(jq '.fields.customfield_10941 // 0' /tmp/issue-read.json)
+
+              NEW=$(jq -n --argjson c "$CURRENT" --argjson d "$DELTA" '$c + $d')
+              echo "[cost-writeback] $CURRENT + $DELTA = $NEW"
+
+              BODY=$(jq -n --argjson v "$NEW" '{ fields: { customfield_10941: $v } }')
+              HTTP=$(curl -sS -o /tmp/cost-write.out -w '%{http_code}' \
+                  -X PUT \
+                  -H "authorization: Basic $AUTH" \
+                  -H 'accept: application/json' \
+                  -H 'content-type: application/json' \
+                  --data "$BODY" \
+                  "$SITE/rest/api/3/issue/$ISSUE_KEY")
+              if [[ "$HTTP" != "204" && "$HTTP" != "200" ]]; then
+                  echo "[cost-writeback] PUT failed: HTTP $HTTP" >&2
+                  cat /tmp/cost-write.out >&2 || true
+                  exit 1
+              fi
+
+              {
+                  echo "## AI cost writeback"
+                  echo ""
+                  echo "| Issue | Delta (USD) | Total (USD) | Trace |"
+                  echo "|---|---|---|---|"
+                  echo "| \`$ISSUE_KEY\` | $DELTA | $NEW | $TRACE_STATUS |"
+              } >> "$GITHUB_STEP_SUMMARY"
+
+              if [[ "$TRACE_STATUS" == "MISSING" ]]; then
+                  COMMENT="[cost-writeback] No claude-execution-output.json found for $RUN_URL — recorded delta = \$0 to keep the audit trail unbroken."
+              elif [[ "$TRACE_STATUS" == "MALFORMED" ]]; then
+                  COMMENT="[cost-writeback] Malformed claude-execution-output.json for $RUN_URL — could not parse cost. Recorded delta = \$0, actual spend is unknown. See workflow logs."
+              fi
+
+              if [[ "$TRACE_STATUS" != "OK" ]]; then
+                  CBODY=$(jq -n --arg c "$COMMENT" '{
+                      body: {
+                          type: "doc",
+                          version: 1,
+                          content: [{ type: "paragraph", content: [{ type: "text", text: $c }] }]
+                      }
+                  }')
+                  curl -sS -o /dev/null -w 'comment HTTP %{http_code}\n' \
+                      -X POST \
+                      -H "authorization: Basic $AUTH" \
+                      -H 'accept: application/json' \
+                      -H 'content-type: application/json' \
+                      --data "$CBODY" \
+                      "$SITE/rest/api/3/issue/$ISSUE_KEY/comment"
+              fi

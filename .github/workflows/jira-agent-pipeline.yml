@@ -1,112 +1,97 @@
-name: Jira Agent Pipeline (Triage E2E)
+name: Jira Agent Pipeline
 
 # ============================================================================
-# Triage-only end-to-end validation of the Jira -> GHA agent pipeline.
+# End-to-end Jira -> GHA agent pipeline. Three stages, one workflow:
 #
-# Goal: flush out every access / authorisation / secrets-management /
-# plugin-loading issue on a single workflow stage BEFORE adding scope (build,
-# pr-iterate, cost writeback, transitions). See the design doc at
-# docs/design-decisions/dev-tooling/jira-gha-agent-pipeline.md (Phase 0).
+#   triage      — /fr --ci --phase 0..1 <KEY>            (intent / research / plan)
+#   build       — /fr --ci --phase 2..5 --resume --draft-pr <KEY>
+#   pr-iterate  — /fr --ci --pr-iterate <KEY>
 #
-# This PR deliberately does NOT do:
-#   - The build or pr-iterate stages.
-#   - The /fr --ci marketplace work in ag-dev-prompts (does not exist yet).
-#   - Jira state transitions on success / failure.
-#   - Cost writeback to customfield_ai_cost_usd_total.
-#   - Plunker prereq enforcement or ai-retrigger automation.
+# Each stage is its own job, gated on the dispatch event_type or the
+# workflow_dispatch `stage` input. All three share the same access-chain
+# setup (.github/actions/setup-jira-agent) and the same writeback wiring
+# (status / state / cost / branch-PR).
 #
 # ----------------------------------------------------------------------------
-# Operator pre-requisites (cannot be done from this PR)
+# Trigger envelopes
 # ----------------------------------------------------------------------------
 #
-# 1. GitHub App `ag-grid-jira-agents` (or equivalent) installed on BOTH:
-#       - ag-grid/ag-charts        (this repo; needs contents:write,
-#                                   issues:write, pull-requests:write,
-#                                   actions:write)
-#       - ag-grid/ag-dev-prompts   (marketplace; needs contents:read)
+#   workflow_dispatch:
+#       gh workflow run jira-agent-pipeline.yml -f issue_key=AG-XXXXX -f stage=triage
 #
-# 2. Repository secrets on ag-grid/ag-charts:
-#       JIRA_AGENT_APP_PRIVATE_KEY  - PEM private key for the App above
+#   repository_dispatch (from Jira Automation):
+#       POST /repos/ag-grid/ag-charts/dispatches
+#       Authorization: Bearer <installation-token>
+#       Body:
+#         {"event_type":"jira-triage",     "client_payload":{"issue_key":"AG-XXXXX"}}
+#         {"event_type":"jira-build",      "client_payload":{"issue_key":"AG-XXXXX"}}
+#         {"event_type":"jira-pr-iterate", "client_payload":{"issue_key":"AG-XXXXX"}}
+#
+# ----------------------------------------------------------------------------
+# Custom-field mapping (operator-side already created)
+# ----------------------------------------------------------------------------
+#
+#   customfield_10941  AI Cost      number       (read-modify-write per job)
+#   customfield_10942  AI status    select       (triaging | awaiting-clarity |
+#                                                  building | draft-pr-open  |
+#                                                  pr-iterating | done | failed)
+#   customfield_10943  AI research  textarea  <-> research.md
+#   customfield_10944  AI intent    textarea  <-> intent.md
+#   customfield_10945  AI plan      textarea  <-> plan.md
+#   customfield_10946  AI branch    textfield    (build job populates)
+#   customfield_10947  AI PR URL    textfield    (build job populates)
+#
+# ----------------------------------------------------------------------------
+# Per-job step skeleton
+# ----------------------------------------------------------------------------
+#
+#   setup-jira-agent            (composite — checkout + token + Nx + MCP)
+#   jira-status-writeback       (mode: pre-job → triaging|building|pr-iterating)
+#   jira-state-sync             (mode: pull   ← textarea fields → fr-state/)
+#   anthropics/claude-code-action@v1
+#   jira-state-sync             (mode: push   → fr-state/ → textarea fields; always)
+#   jira-pr-writeback           (build only; always — branch + PR URL)
+#   jira-cost-writeback         (always — total_cost_usd from trace)
+#   jira-status-writeback       (mode: post-job → next-state OR failed; always)
+#   upload-artifact             (claude trace; always)
+#
+# ----------------------------------------------------------------------------
+# Operator pre-requisites
+# ----------------------------------------------------------------------------
+#
+#   Repository secrets:
+#       JIRA_AGENT_APP_PRIVATE_KEY  - GitHub App PEM
 #       ANTHROPIC_API_KEY           - Anthropic Enterprise admin key
-#                                     (label: ci-jira-agents-ag-charts)
-#       JIRA_API_TOKEN              - Atlassian API token for the service
-#                                     account
-#       JIRA_EMAIL                  - Service-account email (basic-auth pair
-#                                     Atlassian Cloud requires)
+#       JIRA_API_TOKEN              - Atlassian API token (service account)
+#       JIRA_EMAIL                  - Service-account email
 #
-# 3. Repository variables on ag-grid/ag-charts:
-#       JIRA_AGENT_APP_ID           - GitHub App ID (not secret)
+#   Repository variables:
+#       JIRA_AGENT_APP_ID           - GitHub App ID
 #       JIRA_SITE_URL               - https://ag-grid.atlassian.net
 #
-# 4. Jira Automation rule (Atlassian side):
-#       Trigger:  label `ai-eligible` added to an issue.
-#       Action:   POST https://api.github.com/repos/ag-grid/ag-charts/dispatches
-#                 Authorization: Bearer <installation-token>
-#                 Body: {"event_type":"jira-triage",
-#                        "client_payload":{"issue_key":"{{issue.key}}"}}
-#       Note:     out of scope for this PR's dry run; use workflow_dispatch
-#                 to exercise the workflow without the Jira side wired.
-#
-# ----------------------------------------------------------------------------
-# Dry-run command (no Jira Automation required)
-# ----------------------------------------------------------------------------
-#
-#   gh workflow run jira-agent-pipeline.yml -f issue_key=AG-XXXXX
-#
-# Pick a low-value test ticket; the agent will post one comment to it.
-#
-# ----------------------------------------------------------------------------
-# Failure mode crib sheet
-# ----------------------------------------------------------------------------
-#
-#   Step: Mint App token
-#     - "Resource not accessible by integration"  -> App not installed on
-#       this repo, or private key wrong, or APP_ID variable unset.
-#
-#   Step: Validate token covers both repos
-#     - ag-dev-prompts missing from the repo list  -> App not installed on
-#       the marketplace repo. Install it.
-#
-#   Step: Configure git credentials for ag-dev-prompts clones
-#     - Step succeeds independently; failures here usually mean a downstream
-#       clone surfaces "HTTPS authentication failed" (App token lacks
-#       contents:read on ag-dev-prompts).
-#
-#   Step: Setup Nx (yarn install + postinstall)
-#     - rulesync-fetch failure cloning ag-dev-prompts  -> App-token git
-#       rewrite missing or App lacks contents:read on the marketplace repo.
-#     - node_modules cache miss + slow install on cold runners is normal;
-#       subsequent runs hit the shared cache populated by ci.yml.
-#
-#   Step: Verify setup-prompts rendered .claude/settings.json
-#     - Missing file / missing ag-dev marketplace key -> setup-prompts.sh
-#       did not run or failed silently (check $AG_PRODUCT / package.json
-#       .name resolution inside the script).
-#
-#   Step: Write MCP config
-#     - JIRA_* env vars empty  -> secret/variable not set on this repo.
-#
-#   Step: claude-code-action
-#     - "401 from api.anthropic.com"  -> ANTHROPIC_API_KEY missing/revoked,
-#       or org-secret repo-access policy excludes ag-charts (public repo).
-#     - Plugin marketplace clone fails inside Claude Code  -> git URL
-#       rewrite step did not run, or App token expired mid-run.
-#     - Agent reports MCP fetch failed  -> JIRA_API_TOKEN scope, or wrong
-#       JIRA_EMAIL, or @atlassian/mcp-server package name wrong.
-#
-#   Step: Summary
-#     - Final PASS/FAIL panel surfaces exactly which surface failed.
+#   GitHub App `ag-grid-jira-agents` installed on:
+#       ag-grid/ag-charts            (contents:write, issues:write, pull-requests:write, actions:write)
+#       ag-grid/ag-dev-prompts       (contents:read)
 # ============================================================================
 
 on:
     repository_dispatch:
-        types: [jira-triage]
+        types: [jira-triage, jira-build, jira-pr-iterate]
     workflow_dispatch:
         inputs:
             issue_key:
                 description: 'JIRA issue key (e.g. AG-12345)'
                 type: string
                 required: true
+            stage:
+                description: 'Pipeline stage to run'
+                type: choice
+                required: true
+                default: triage
+                options:
+                    - triage
+                    - build
+                    - pr-iterate
 
 permissions:
     contents: read
@@ -115,178 +100,72 @@ concurrency:
     group: claude-${{ github.event.client_payload.issue_key || inputs.issue_key }}
     cancel-in-progress: false
 
+env:
+    ISSUE_KEY: ${{ github.event.client_payload.issue_key || inputs.issue_key }}
+    # Single source of truth for the stage discriminator used by `if:` gates
+    # below. `repository_dispatch.action` is the event type name; workflow
+    # dispatch has its own `stage` input. We can't compute this once into
+    # a job-level output without an upstream job, so each gate evaluates
+    # the same expression directly.
+
 jobs:
+    # -------------------------------------------------------------------- triage
     triage:
+        if: |
+            (github.event_name == 'repository_dispatch' && github.event.action == 'jira-triage') ||
+            (github.event_name == 'workflow_dispatch'   && inputs.stage == 'triage')
         runs-on: ubuntu-latest
         timeout-minutes: 30
         permissions:
             contents: read
-        env:
-            ISSUE_KEY: ${{ github.event.client_payload.issue_key || inputs.issue_key }}
         steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+            - uses: actions/checkout@v4
               with:
                   fetch-depth: 1
 
-            - name: Validate issue key
-              id: validate-issue-key
-              run: |
-                  set -euo pipefail
-                  if [[ -z "${ISSUE_KEY:-}" ]]; then
-                      echo "ISSUE_KEY is empty — dispatch payload missing issue_key" >&2
-                      exit 1
-                  fi
-                  if ! [[ "$ISSUE_KEY" =~ ^[A-Z][A-Z0-9]+-[0-9]+$ ]]; then
-                      echo "ISSUE_KEY '$ISSUE_KEY' does not match expected JIRA key shape (e.g. AG-12345)" >&2
-                      exit 1
-                  fi
-                  echo "Validated ISSUE_KEY=$ISSUE_KEY"
-
-            - name: Mint GitHub App installation token
-              id: app-token
-              uses: actions/create-github-app-token@v1
+            - id: setup
+              uses: ./.github/actions/setup-jira-agent
               with:
-                  app-id: ${{ vars.JIRA_AGENT_APP_ID }}
-                  private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
-                  owner: ${{ github.repository_owner }}
-                  repositories: |
-                      ag-charts
-                      ag-dev-prompts
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  jira_agent_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  jira_agent_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
-            - name: Validate token covers ag-charts and ag-dev-prompts
-              id: validate-token
-              env:
-                  GH_TOKEN: ${{ steps.app-token.outputs.token }}
-              run: |
-                  set -euo pipefail
-                  echo "Repositories visible to installation token:"
-                  gh api /installation/repositories --jq '.repositories[].full_name' | tee /tmp/repos.txt
-                  grep -qx 'ag-grid/ag-charts' /tmp/repos.txt
-                  grep -qx 'ag-grid/ag-dev-prompts' /tmp/repos.txt
-                  echo "ok=true" >> "$GITHUB_OUTPUT"
-
-            - name: Configure git credentials for ag-dev-prompts clones
-              # claude-code-action does NOT forward github_token to its plugin
-              # marketplace clone (OQ#1 — confirmed empirically by an earlier
-              # dry-run that hit "HTTPS authentication failed"). A global git
-              # URL rewrite installs the App-installation token as the
-              # credential for any github.com HTTPS clone — covers both
-              # setup-prompts.sh's fetch.sh (postinstall) and Claude Code's
-              # marketplace resolver at agent runtime, without leaking the
-              # token into env vars consumed by other steps.
-              env:
-                  APP_TOKEN: ${{ steps.app-token.outputs.token }}
-              run: |
-                  set -euo pipefail
-                  git config --global \
-                      "url.https://x-access-token:${APP_TOKEN}@github.com/.insteadOf" \
-                      https://github.com/
-
-            - name: Setup Nx (yarn install + node_modules cache + postinstall)
-              id: install
-              # setup-nx handles node_modules cache, nx cache, node setup, and
-              # `yarn postinstall` — which runs setup-prompts.sh and renders
-              # .claude/settings.json (with the ag-dev marketplace declared).
-              # cache_mode: ro because we only consume the shared cache here;
-              # rebuilding it is the CI workflow's job.
-              uses: ./.github/actions/setup-nx
+            - uses: ./.github/actions/jira-status-writeback
               with:
-                  cache_mode: ro
-                  fetch_base: skip
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: pre-job
+                  stage: triage
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
-            - name: Verify setup-prompts rendered .claude/settings.json
-              run: |
-                  set -euo pipefail
-                  test -f .claude/settings.json
-                  jq -e '.extraKnownMarketplaces."ag-dev"' .claude/settings.json >/dev/null
+            - uses: ./.github/actions/jira-state-sync
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: pull
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
-            - name: Sanitise .claude/settings.json for CI
-              # Local-dev settings include hooks that reference scripts whose
-              # side effects are inappropriate for a triage job (SessionStart
-              # → install-for-cloud.sh, PostToolUse → yarn nx format on every
-              # edit, WorktreeCreate/Remove). Strip the hooks block; keep
-              # env, the ag-dev marketplace, enabledPlugins (filtered to
-              # ag-dev only — codex/skill-creator marketplaces add cold-
-              # start latency we don't need), and the permissions allow
-              # list (covers Bash/Edit/Write/WebFetch/Skill — needed by
-              # /fr et al).
-              run: |
-                  set -euo pipefail
-                  cp .claude/settings.json /tmp/orig-settings.json
-                  jq '{
-                      env,
-                      permissions,
-                      extraKnownMarketplaces: { "ag-dev": .extraKnownMarketplaces."ag-dev" },
-                      enabledPlugins: (
-                          .enabledPlugins
-                          | to_entries
-                          | map(select(.key | endswith("@ag-dev")))
-                          | from_entries
-                      )
-                  }' /tmp/orig-settings.json > .claude/settings.json
-                  echo "--- sanitised settings ---"
-                  cat .claude/settings.json
-
-            - name: Write Atlassian MCP config
-              id: mcp-config
-              # Use the in-repo Jira MCP shim (.github/scripts/jira-mcp-shim/
-              # server.mjs) — a zero-dep Node stdio server scoped to the
-              # tools the triage agent calls. Atlassian's hosted remote MCP
-              # uses OAuth which we don't have a CI-friendly story for; the
-              # community npm packages we'd otherwise use add cold-start
-              # latency that made the agent give up before the server was
-              # ready. The shim authenticates with the basic-auth credentials
-              # we already provision (JIRA_EMAIL + JIRA_API_TOKEN).
-              env:
-                  JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
-                  JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
-                  JIRA_SITE_URL: ${{ vars.JIRA_SITE_URL }}
-              run: |
-                  set -euo pipefail
-                  : "${JIRA_EMAIL:?missing}"
-                  : "${JIRA_API_TOKEN:?missing}"
-                  : "${JIRA_SITE_URL:?missing}"
-                  jq -n \
-                      --arg shim "$GITHUB_WORKSPACE/.github/scripts/jira-mcp-shim/server.mjs" \
-                      --arg email "$JIRA_EMAIL" \
-                      --arg token "$JIRA_API_TOKEN" \
-                      --arg site "$JIRA_SITE_URL" \
-                      '{
-                          mcpServers: {
-                              atlassian: {
-                                  command: "node",
-                                  args: [$shim],
-                                  env: {
-                                      JIRA_USER_EMAIL: $email,
-                                      JIRA_API_TOKEN: $token,
-                                      JIRA_SITE_URL: $site
-                                  }
-                              }
-                          }
-                      }' > "${RUNNER_TEMP}/mcp.json"
-                  echo "ok=true" >> "$GITHUB_OUTPUT"
-
-            - name: Run Claude triage agent
+            - name: Run /fr --ci --phase 0..1 (triage)
               id: claude
               uses: anthropics/claude-code-action@v1
               with:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-                  github_token: ${{ steps.app-token.outputs.token }}
+                  github_token: ${{ steps.setup.outputs.app_token }}
                   show_full_output: 'true'
-                  # The SDK doesn't auto-install plugins declared in
-                  # .claude/settings.json — it only loads them once
-                  # installed. Use the action's explicit install inputs;
-                  # the git URL rewrite step above gives the marketplace
-                  # clone the App-token credential it needs.
                   plugin_marketplaces: https://github.com/ag-grid/ag-dev-prompts.git
                   plugins: |
                       ag-eng@ag-dev
                       ag-product@ag-dev
                   claude_args: |
-                      --mcp-config ${{ runner.temp }}/mcp.json
+                      --mcp-config ${{ steps.setup.outputs.mcp_config }}
                       --max-turns 12
                       --debug
+                      --permission-mode acceptEdits
                       --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue,mcp__atlassian__addAttachmentToJiraIssue
                   prompt: |
                       Invoke /fr --ci --phase 0..1 ${{ env.ISSUE_KEY }}
@@ -294,6 +173,14 @@ jobs:
                       Context:
                         - JIRA ticket: ${{ env.ISSUE_KEY }}
                         - Actions run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                        - Prior-run state (if any) is at the skill's default
+                          location: ${{ github.workspace }}/tmp/fr-state/${{ env.ISSUE_KEY }}/
+                          (intent.md / research.md / plan.md). Write state to
+                          that directory normally; the workflow round-trips it
+                          to the Jira textarea custom fields (AI intent /
+                          AI research / AI plan) after you exit. Do not call
+                          addAttachmentToJiraIssue for these files — the
+                          textareas are the durable form.
                         - The Atlassian MCP server is the in-repo shim — it
                           exposes the operation names referenced in modes/ci.md
                           (getJiraIssue, addCommentToJiraIssue,
@@ -301,42 +188,330 @@ jobs:
                           addAttachmentToJiraIssue). No other Jira tools are
                           available. Phases 2..5 are out of scope.
 
+            - if: always()
+              uses: ./.github/actions/jira-state-sync
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: push
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - if: always()
+              uses: ./.github/actions/jira-cost-writeback
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - if: always()
+              uses: ./.github/actions/jira-status-writeback
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: post-job
+                  stage: triage
+                  outcome: ${{ job.status }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
             - name: Upload Claude trace artefact
               if: always()
               uses: actions/upload-artifact@v4
               with:
-                  name: claude-trace-${{ env.ISSUE_KEY }}-${{ github.run_id }}
+                  name: claude-trace-${{ env.ISSUE_KEY }}-triage-${{ github.run_id }}
                   path: |
                       ${{ runner.temp }}/trace.json
                       ${{ runner.temp }}/claude-execution-output.json
                       ${{ runner.temp }}/claude-prompts/
+                      ${{ github.workspace }}/tmp/fr-state/
                   if-no-files-found: warn
                   retention-days: 14
 
-            - name: Summary — per-surface PASS/FAIL
+    # -------------------------------------------------------------------- build
+    build:
+        if: |
+            (github.event_name == 'repository_dispatch' && github.event.action == 'jira-build') ||
+            (github.event_name == 'workflow_dispatch'   && inputs.stage == 'build')
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - id: setup
+              uses: ./.github/actions/setup-jira-agent
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  jira_agent_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  jira_agent_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - uses: ./.github/actions/jira-status-writeback
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: pre-job
+                  stage: build
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - uses: ./.github/actions/jira-state-sync
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: pull
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            # Snapshot .github/ to runner temp so we can restore the
+            # composite actions after the agent step (which typically
+            # checks out a fresh topic branch that lacks them — see the
+            # restore step below for the full rationale).
+            - name: Snapshot .github/ before agent
+              shell: bash
+              run: cp -a .github "${RUNNER_TEMP}/gha-snapshot"
+
+            - name: Run /fr --ci --phase 2..5 --resume --draft-pr (build)
+              id: claude
+              uses: anthropics/claude-code-action@v1
+              with:
+                  anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+                  github_token: ${{ steps.setup.outputs.app_token }}
+                  show_full_output: 'true'
+                  plugin_marketplaces: https://github.com/ag-grid/ag-dev-prompts.git
+                  plugins: |
+                      ag-eng@ag-dev
+                      ag-product@ag-dev
+                  claude_args: |
+                      --mcp-config ${{ steps.setup.outputs.mcp_config }}
+                      --max-turns 60
+                      --debug
+                      --permission-mode acceptEdits
+                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue,mcp__atlassian__addAttachmentToJiraIssue
+                  prompt: |
+                      Invoke /fr --ci --phase 2..5 --resume --draft-pr ${{ env.ISSUE_KEY }}
+
+                      Context:
+                        - JIRA ticket: ${{ env.ISSUE_KEY }}
+                        - Actions run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                        - Prior-run state is in ${{ github.workspace }}/tmp/fr-state/${{ env.ISSUE_KEY }}/
+                          (intent.md / research.md / plan.md). Use --resume.
+                          Write any updates to the same files; the workflow
+                          round-trips them to Jira after you exit. Do not call
+                          addAttachmentToJiraIssue for these files — the
+                          textareas are the durable form.
+                        - Phase 4 is skipped; --draft-pr opens the PR in draft.
+
+            # Restore .github/ from the runner-temp snapshot taken before
+            # the agent step. The agent typically checks out a new topic
+            # branch to commit its changes; that branch (forked from
+            # `latest`) does not contain `.github/actions/*` until this
+            # workflow's PR merges, so local-path `uses: ./...` invocations
+            # below would otherwise fail with "Can't find action.yml". The
+            # snapshot is unconditional so the restore is safe even if the
+            # agent step exited early.
+            - name: Restore .github/ snapshot (agent may have switched branches)
               if: always()
-              env:
-                  ISSUE_KEY_OK: ${{ steps.validate-issue-key.outcome }}
-                  TOKEN_OK: ${{ steps.app-token.outcome }}
-                  VALIDATE_OK: ${{ steps.validate-token.outcome }}
-                  INSTALL_OK: ${{ steps.install.outcome }}
-                  MCP_OK: ${{ steps.mcp-config.outcome }}
-                  CLAUDE_OK: ${{ steps.claude.outcome }}
+              shell: bash
               run: |
-                  set -euo pipefail
-                  marker() { [ "$1" = "success" ] && echo "PASS" || echo "FAIL ($1)"; }
-                  {
-                    echo "## Jira agent pipeline — access-surface summary"
-                    echo ""
-                    echo "| Surface                             | Result |"
-                    echo "|-------------------------------------|--------|"
-                    echo "| Issue key validated                 | $(marker "$ISSUE_KEY_OK") |"
-                    echo "| GitHub App token mint               | $(marker "$TOKEN_OK") |"
-                    echo "| Token covers both repos             | $(marker "$VALIDATE_OK") |"
-                    echo "| yarn install + setup-prompts        | $(marker "$INSTALL_OK") |"
-                    echo "| Atlassian MCP config written        | $(marker "$MCP_OK") |"
-                    echo "| Claude run (marketplace + MCP call) | $(marker "$CLAUDE_OK") |"
-                    echo ""
-                    echo "Issue: \`${ISSUE_KEY}\`"
-                    echo "Trace artefact: \`claude-trace-${ISSUE_KEY}-${{ github.run_id }}\`"
-                  } >> "$GITHUB_STEP_SUMMARY"
+                  if [[ -d "${RUNNER_TEMP}/gha-snapshot" ]]; then
+                      cp -a "${RUNNER_TEMP}/gha-snapshot/." .github/
+                  else
+                      echo "[restore] no snapshot found at ${RUNNER_TEMP}/gha-snapshot" >&2
+                  fi
+
+            - if: always()
+              uses: ./.github/actions/jira-state-sync
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: push
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - if: always()
+              uses: ./.github/actions/jira-pr-writeback
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  github_token: ${{ steps.setup.outputs.app_token }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - if: always()
+              uses: ./.github/actions/jira-cost-writeback
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - if: always()
+              uses: ./.github/actions/jira-status-writeback
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: post-job
+                  stage: build
+                  outcome: ${{ job.status }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - name: Upload Claude trace artefact
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: claude-trace-${{ env.ISSUE_KEY }}-build-${{ github.run_id }}
+                  path: |
+                      ${{ runner.temp }}/trace.json
+                      ${{ runner.temp }}/claude-execution-output.json
+                      ${{ runner.temp }}/claude-prompts/
+                      ${{ github.workspace }}/tmp/fr-state/
+                  if-no-files-found: warn
+                  retention-days: 14
+
+    # ---------------------------------------------------------------- pr-iterate
+    pr-iterate:
+        if: |
+            (github.event_name == 'repository_dispatch' && github.event.action == 'jira-pr-iterate') ||
+            (github.event_name == 'workflow_dispatch'   && inputs.stage == 'pr-iterate')
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - id: setup
+              uses: ./.github/actions/setup-jira-agent
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  jira_agent_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  jira_agent_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - uses: ./.github/actions/jira-status-writeback
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: pre-job
+                  stage: pr-iterate
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - uses: ./.github/actions/jira-state-sync
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: pull
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            # See note in the build job — snapshot .github/ so the
+            # post-agent composites resolve regardless of branch state.
+            - name: Snapshot .github/ before agent
+              shell: bash
+              run: cp -a .github "${RUNNER_TEMP}/gha-snapshot"
+
+            - name: Run /fr --ci --pr-iterate (pr-iterate)
+              id: claude
+              uses: anthropics/claude-code-action@v1
+              with:
+                  anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+                  github_token: ${{ steps.setup.outputs.app_token }}
+                  show_full_output: 'true'
+                  plugin_marketplaces: https://github.com/ag-grid/ag-dev-prompts.git
+                  plugins: |
+                      ag-eng@ag-dev
+                      ag-product@ag-dev
+                  claude_args: |
+                      --mcp-config ${{ steps.setup.outputs.mcp_config }}
+                      --max-turns 60
+                      --debug
+                      --permission-mode acceptEdits
+                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue,mcp__atlassian__addAttachmentToJiraIssue
+                  prompt: |
+                      Invoke /fr --ci --pr-iterate ${{ env.ISSUE_KEY }}
+
+                      Context:
+                        - JIRA ticket: ${{ env.ISSUE_KEY }}
+                        - Actions run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                        - Prior-run state is in ${{ github.workspace }}/tmp/fr-state/${{ env.ISSUE_KEY }}/
+                          (intent.md / research.md / plan.md). Write any updates
+                          to the same files; the workflow round-trips them to
+                          Jira after you exit. Do not call addAttachmentToJiraIssue
+                          for these files — the textareas are the durable form.
+
+            # See note in the build job: restore .github/ from the snapshot
+            # so local-path composites resolve regardless of which branch
+            # the agent left checked out.
+            - name: Restore .github/ snapshot (agent may have switched branches)
+              if: always()
+              shell: bash
+              run: |
+                  if [[ -d "${RUNNER_TEMP}/gha-snapshot" ]]; then
+                      cp -a "${RUNNER_TEMP}/gha-snapshot/." .github/
+                  else
+                      echo "[restore] no snapshot found at ${RUNNER_TEMP}/gha-snapshot" >&2
+                  fi
+
+            - if: always()
+              uses: ./.github/actions/jira-state-sync
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: push
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - if: always()
+              uses: ./.github/actions/jira-pr-writeback
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  github_token: ${{ steps.setup.outputs.app_token }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - if: always()
+              uses: ./.github/actions/jira-cost-writeback
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - if: always()
+              uses: ./.github/actions/jira-status-writeback
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: post-job
+                  stage: pr-iterate
+                  outcome: ${{ job.status }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - name: Upload Claude trace artefact
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: claude-trace-${{ env.ISSUE_KEY }}-pr-iterate-${{ github.run_id }}
+                  path: |
+                      ${{ runner.temp }}/trace.json
+                      ${{ runner.temp }}/claude-execution-output.json
+                      ${{ runner.temp }}/claude-prompts/
+                      ${{ github.workspace }}/tmp/fr-state/
+                  if-no-files-found: warn
+                  retention-days: 14

@@ -9,10 +9,12 @@
 //
 // Tools exposed:
 //   - getJiraIssue                — GET  /rest/api/3/issue/{key}
+//   - editJiraIssue               — PUT  /rest/api/3/issue/{key}
 //   - addCommentToJiraIssue       — POST /rest/api/3/issue/{key}/comment
 //   - getTransitionsForJiraIssue  — GET  /rest/api/3/issue/{key}/transitions
 //   - transitionJiraIssue         — POST /rest/api/3/issue/{key}/transitions
 //   - addAttachmentToJiraIssue    — POST /rest/api/3/issue/{key}/attachments (multipart)
+//   - listAttachmentsForJiraIssue — GET  /rest/api/3/issue/{key}?fields=attachment
 //
 // Auth: basic auth from env: JIRA_USER_EMAIL + JIRA_API_TOKEN.
 // Site: JIRA_SITE_URL (e.g. https://ag-grid.atlassian.net).
@@ -22,7 +24,7 @@ import { createInterface } from 'node:readline';
 
 const PROTOCOL_VERSION = '2025-06-18';
 const SERVER_NAME = 'jira-mcp-shim';
-const SERVER_VERSION = '0.2.0';
+const SERVER_VERSION = '0.3.0';
 
 const SITE = required('JIRA_SITE_URL').replace(/\/$/, '');
 const EMAIL = required('JIRA_USER_EMAIL');
@@ -32,14 +34,37 @@ const AUTH = 'Basic ' + Buffer.from(`${EMAIL}:${TOKEN}`).toString('base64');
 const TOOLS = [
     {
         name: 'getJiraIssue',
-        description: 'Fetch a Jira issue. Returns summary, status, labels, and description (ADF flattened to text).',
+        description:
+            'Fetch a Jira issue. Default projection returns summary/status/labels/description (ADF flattened to text). ' +
+            'Pass `fields` to fetch a specific projection — the raw `fields` object from the Jira REST response is returned ' +
+            'verbatim (no ADF flattening). Use the raw form to read custom field values.',
         inputSchema: {
             type: 'object',
             properties: {
                 issueIdOrKey: { type: 'string', description: 'JIRA issue key (e.g. AG-12345) or numeric id.' },
+                fields: {
+                    type: 'array',
+                    items: { type: 'string' },
+                    description: 'Optional field-id list (e.g. ["summary", "customfield_10941"]).',
+                },
                 responseContentFormat: { type: 'string', description: 'Accepted for compatibility; ignored.' },
             },
             required: ['issueIdOrKey'],
+        },
+    },
+    {
+        name: 'editJiraIssue',
+        description:
+            'Update fields on a Jira issue. `fields` is the raw fields object accepted by PUT /rest/api/3/issue/{key} — ' +
+            'e.g. { "labels": [...] }, { "customfield_10941": 4.11 }, { "customfield_10942": { "value": "triaging" } }. ' +
+            'The shim does not validate the shape; supply what the REST API expects for each field type.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                issueIdOrKey: { type: 'string', description: 'JIRA issue key or id.' },
+                fields: { type: 'object', description: 'Field-id → value map per Jira REST.' },
+            },
+            required: ['issueIdOrKey', 'fields'],
         },
     },
     {
@@ -80,6 +105,18 @@ const TOOLS = [
         },
     },
     {
+        name: 'listAttachmentsForJiraIssue',
+        description:
+            'List the attachments currently on a Jira issue. Returns id, filename, created, size, mimeType, content URL.',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                issueIdOrKey: { type: 'string', description: 'JIRA issue key or id.' },
+            },
+            required: ['issueIdOrKey'],
+        },
+    },
+    {
         name: 'addAttachmentToJiraIssue',
         description:
             'Attach a file to a Jira issue. Provide either filePath (read from disk) or fileContent (string body).',
@@ -100,7 +137,12 @@ const TOOLS = [
 ];
 
 const HANDLERS = {
-    async getJiraIssue({ issueIdOrKey }) {
+    async getJiraIssue({ issueIdOrKey, fields }) {
+        if (Array.isArray(fields) && fields.length > 0) {
+            const qs = encodeURIComponent(fields.join(','));
+            const data = await jiraFetch(`/rest/api/3/issue/${encodeURIComponent(issueIdOrKey)}?fields=${qs}`);
+            return JSON.stringify({ key: data.key, fields: data.fields ?? {} }, null, 2);
+        }
         const data = await jiraFetch(
             `/rest/api/3/issue/${encodeURIComponent(issueIdOrKey)}?fields=summary,status,labels,description`
         );
@@ -115,6 +157,25 @@ const HANDLERS = {
             null,
             2
         );
+    },
+    async editJiraIssue({ issueIdOrKey, fields }) {
+        if (!fields || typeof fields !== 'object') {
+            throw new Error('fields must be an object');
+        }
+        await jiraFetch(`/rest/api/3/issue/${encodeURIComponent(issueIdOrKey)}`, 'PUT', { fields });
+        return `Updated ${Object.keys(fields).join(', ')} on ${issueIdOrKey}`;
+    },
+    async listAttachmentsForJiraIssue({ issueIdOrKey }) {
+        const data = await jiraFetch(`/rest/api/3/issue/${encodeURIComponent(issueIdOrKey)}?fields=attachment`);
+        const list = (data.fields?.attachment ?? []).map((a) => ({
+            id: a.id,
+            filename: a.filename,
+            created: a.created,
+            size: a.size,
+            mimeType: a.mimeType,
+            content: a.content,
+        }));
+        return JSON.stringify(list, null, 2);
     },
     async addCommentToJiraIssue({ issueIdOrKey, commentBody }) {
         const adf = {
