@@ -1,5 +1,6 @@
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { AgCharts } from '../api/agCharts';
 import { __clearStructuralCacheForTests } from '../module/optionsStructuralCache';
@@ -141,7 +142,8 @@ describe('Sparkline', () => {
         // refactor stops the optimisation from triggering (different cache key shape,
         // wrong mode flag, etc.), the probe count changes and the test fails loudly.
 
-        let logSpy: ReturnType<typeof vi.spyOn>;
+        setupMockConsole({ includeAllLevels: true });
+
         let extraCharts: Chart[];
 
         beforeEach(() => {
@@ -149,18 +151,16 @@ describe('Sparkline', () => {
             __clearSanitizedThemeCacheForTests();
             __clearChartThemeCacheForTests();
             (globalThis as any).agChartsDebug = ['opts', 'theme'];
-            logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
             extraCharts = [];
         });
 
         afterEach(() => {
             for (const c of extraCharts) c.destroy();
             delete (globalThis as any).agChartsDebug;
-            vi.restoreAllMocks();
         });
 
         const probeCalls = (prefix: string, label: string) =>
-            logSpy.mock.calls.filter((args) => args[0] === prefix && args[1] === label);
+            (console.log as Mock).mock.calls.filter((args) => args[0] === prefix && args[1] === label);
 
         const createSparkline = (overrides: object = {}) => {
             const instance = AgCharts.__createSparkline({

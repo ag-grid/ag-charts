@@ -1,4 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import type { InternalAgColorType } from 'ag-charts-core';
 import type {
@@ -254,20 +255,18 @@ describe('themes.ts', () => {
     });
 
     describe('theme cache debug logging with "theme" selector', () => {
-        let logSpy: ReturnType<typeof vi.spyOn>;
+        setupMockConsole({ includeAllLevels: true });
 
         beforeEach(() => {
             (globalThis as any).agChartsDebug = 'theme';
-            logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
         });
 
         afterEach(() => {
             delete (globalThis as any).agChartsDebug;
-            vi.restoreAllMocks();
         });
 
         function themeCacheLogs() {
-            return logSpy.mock.calls.filter((args) => args[0] === '[CACHE] ChartTheme');
+            return (console.log as Mock).mock.calls.filter((args) => args[0] === '[CACHE] ChartTheme');
         }
 
         it('logs a cache miss on first access and a cache hit on the second access for the same reference', () => {

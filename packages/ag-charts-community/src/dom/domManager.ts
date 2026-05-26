@@ -106,18 +106,18 @@ interface GlobalListenerSubscriber {
 }
 
 interface GlobalListenerEntry extends PerWindowEntry<GlobalListenerSubscriber> {
-    win: Window;
-    doc: Document;
+    window: Window;
+    document: Document;
     onScrollResize: EventListener;
     onFullscreen: EventListener;
 }
 
 const globalListenerRegistry = createPerWindowRegistry<GlobalListenerSubscriber, GlobalListenerEntry>(
-    (win) => {
-        const doc = win.document;
+    (window) => {
+        const { document } = window;
         const entry: GlobalListenerEntry = {
-            win,
-            doc,
+            window,
+            document,
             subscribers: new Set(),
             // Named functions so the fan-out is identifiable in flame graphs.
             onScrollResize: function invalidateRectsGlobal() {
@@ -128,15 +128,15 @@ const globalListenerRegistry = createPerWindowRegistry<GlobalListenerSubscriber,
             },
         };
         // capture: true catches scroll on descendants (scroll does not bubble).
-        win.addEventListener('scroll', entry.onScrollResize, { capture: true, passive: true });
-        win.addEventListener('resize', entry.onScrollResize, { capture: true, passive: true });
-        doc.addEventListener('fullscreenchange', entry.onFullscreen);
+        window.addEventListener('scroll', entry.onScrollResize, { capture: true, passive: true });
+        window.addEventListener('resize', entry.onScrollResize, { capture: true, passive: true });
+        document.addEventListener('fullscreenchange', entry.onFullscreen);
         return entry;
     },
     (entry) => {
-        entry.win.removeEventListener('scroll', entry.onScrollResize, { capture: true });
-        entry.win.removeEventListener('resize', entry.onScrollResize, { capture: true });
-        entry.doc.removeEventListener('fullscreenchange', entry.onFullscreen);
+        entry.window.removeEventListener('scroll', entry.onScrollResize, { capture: true });
+        entry.window.removeEventListener('resize', entry.onScrollResize, { capture: true });
+        entry.document.removeEventListener('fullscreenchange', entry.onFullscreen);
     },
     'DOMManager.globalListeners'
 );
@@ -864,12 +864,12 @@ export class DOMManager extends BaseManager {
     }
 
     private setupGlobalListeners() {
-        const doc = this.element.ownerDocument;
-        const win = doc.defaultView;
-        if (win == null) return;
+        const document = this.element.ownerDocument;
+        const window = document.defaultView;
+        if (window == null) return;
 
         if (this.mode === 'minimal') {
-            const unregister = globalListenerRegistry.subscribe(win, {
+            const unregister = globalListenerRegistry.subscribe(window, {
                 invalidateRects: () => this.invalidateRectCaches(),
                 invalidateAll: () => this.invalidateAllCaches(),
             });
@@ -882,15 +882,15 @@ export class DOMManager extends BaseManager {
 
         // capture: true — the scroll event doesn't bubble, but capture-phase listeners
         // fire for scroll events on any descendant, including nested scrollable containers.
-        win.addEventListener('scroll', invalidateRects, { capture: true, passive: true });
+        window.addEventListener('scroll', invalidateRects, { capture: true, passive: true });
         // resize only fires on window itself; capture: true kept for consistency with scroll.
-        win.addEventListener('resize', invalidateRects, { capture: true, passive: true });
-        doc.addEventListener('fullscreenchange', invalidateAll);
+        window.addEventListener('resize', invalidateRects, { capture: true, passive: true });
+        document.addEventListener('fullscreenchange', invalidateAll);
 
         this.cleanup.register(() => {
-            win.removeEventListener('scroll', invalidateRects, { capture: true });
-            win.removeEventListener('resize', invalidateRects, { capture: true });
-            doc.removeEventListener('fullscreenchange', invalidateAll);
+            window.removeEventListener('scroll', invalidateRects, { capture: true });
+            window.removeEventListener('resize', invalidateRects, { capture: true });
+            document.removeEventListener('fullscreenchange', invalidateAll);
         });
     }
 

@@ -14,36 +14,36 @@ export interface PerWindowEntry<S> {
 }
 
 export interface PerWindowRegistry<S, E extends PerWindowEntry<S>> {
-    subscribe(win: Window, subscriber: S): () => void;
+    subscribe(window: Window, subscriber: S): () => void;
     /** Returns a snapshot copy so callers can iterate safely while subscribers self-unsubscribe. */
     snapshot(entry: E): S[];
-    get(win: Window): E | undefined;
+    get(window: Window): E | undefined;
 }
 
 export function createPerWindowRegistry<S, E extends PerWindowEntry<S>>(
-    onFirstSubscribe: (win: Window) => E,
+    onFirstSubscribe: (window: Window) => E,
     onLastUnsubscribe: (entry: E) => void,
     name = 'PerWindowRegistry'
 ): PerWindowRegistry<S, E> {
     const entries = new Map<Window, E>();
 
     return {
-        subscribe(win, subscriber) {
-            let entry = entries.get(win);
+        subscribe(window, subscriber) {
+            let entry = entries.get(window);
             if (entry == null) {
-                entry = onFirstSubscribe(win);
-                entries.set(win, entry);
+                entry = onFirstSubscribe(window);
+                entries.set(window, entry);
                 registryDebug(`[REGISTRY] ${name}`, 'first-subscribe');
             } else {
                 registryDebug(`[REGISTRY] ${name}`, 'shared-subscribe');
             }
             entry.subscribers.add(subscriber);
             return () => {
-                const e = entries.get(win);
+                const e = entries.get(window);
                 if (e == null) return;
                 e.subscribers.delete(subscriber);
                 if (e.subscribers.size === 0) {
-                    entries.delete(win);
+                    entries.delete(window);
                     onLastUnsubscribe(e);
                     registryDebug(`[REGISTRY] ${name}`, 'last-unsubscribe');
                 }
@@ -52,8 +52,8 @@ export function createPerWindowRegistry<S, E extends PerWindowEntry<S>>(
         snapshot(entry) {
             return [...entry.subscribers];
         },
-        get(win) {
-            return entries.get(win);
+        get(window) {
+            return entries.get(window);
         },
     };
 }
