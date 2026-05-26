@@ -56,7 +56,7 @@ import {
     type UnknownSeries,
 } from './series';
 import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
-import { getDatumRefPoint } from './util';
+import { getDatumRefPoint, iterateSeriesByFocusOrder } from './util';
 
 type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
 
@@ -386,20 +386,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     public seriesChanged(series: UnknownSeries[]) {
-        this.focus.sortedSeries = [...series].sort((a, b) => {
-            let fpA = a.properties.focusPriority ?? Infinity;
-            let fpB = b.properties.focusPriority ?? Infinity;
-            if (fpA === fpB) {
-                [fpA, fpB] = [a.declarationOrder, b.declarationOrder];
-            }
-            // Note: `Infinity-Infinity` results in `NaN`, so use `<` comparison instead of `-` subtraction.
-            if (fpA < fpB) {
-                return -1;
-            } else if (fpA > fpB) {
-                return 1;
-            }
-            return 0;
-        });
+        this.focus.sortedSeries = Array.from(iterateSeriesByFocusOrder(series));
         this.series = series;
     }
 

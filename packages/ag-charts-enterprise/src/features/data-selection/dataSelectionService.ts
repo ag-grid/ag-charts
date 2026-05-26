@@ -4,7 +4,7 @@ import type { DynamicContext } from 'ag-charts-core';
 import type { DataSetSelectionsIterator } from './dataSelectionUtil';
 import { DataSetSelection } from './dataSetSelection';
 
-const { SelectionState } = _ModuleSupport;
+const { SelectionState, iterateSeriesByFocusOrder } = _ModuleSupport;
 
 type ChartRegistry = _ModuleSupport.ChartRegistry;
 type DataChangeDescription = _ModuleSupport.DataChangeDescription;
