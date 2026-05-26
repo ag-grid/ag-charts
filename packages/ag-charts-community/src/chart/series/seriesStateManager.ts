@@ -1,13 +1,7 @@
 import type { PlainObject } from 'ag-charts-core';
 
 import { IrregularBandScale } from '../../scale/irregularBandScale';
-
-export type SeriesGrouping = {
-    groupIndex: number;
-    groupCount: number;
-    stackIndex: number;
-    stackCount: number;
-};
+import type { SeriesGrouping } from '../../module/seriesGrouping';
 
 type SeriesGroupingResult = {
     visibleGroupCount: number;

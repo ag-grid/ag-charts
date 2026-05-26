@@ -79,12 +79,12 @@ import { SeriesArea } from './series-area/seriesArea';
 import { Series, SeriesGroupingChangedEvent, SeriesNodeEvent, type UnknownSeries } from './series/series';
 import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
-import type { SeriesGrouping } from './series/seriesStateManager';
 import type { DatumIndexType, ISeries, ISeriesProperties } from './series/seriesTypes';
 import { Tooltip, type TooltipContent } from './tooltip/tooltip';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
+import type { SeriesGrouping } from '../module/seriesGrouping';
 
 const debug = Debug.create(true, 'opts');
 
