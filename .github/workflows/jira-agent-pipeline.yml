@@ -52,6 +52,16 @@ name: Jira Agent Pipeline
 #   customfield_10945  AI plan      textarea  <-> plan.md
 #   customfield_10946  AI branch    textfield    (build job populates)
 #   customfield_10947  AI PR URL    textfield    (build job populates)
+#   customfield_10985  AI model         textfield  (triage writes recommendation;
+#                                                    build/pr-iterate/ci-failure
+#                                                    read as override, fall back
+#                                                    to per-stage default)
+#   customfield_10986  AI model effort  textfield  (same flow as AI model;
+#                                                    valid: low|medium|high|xhigh|max)
+#   customfield_10987  AI progress      number     (live %-of-current-stage; written by
+#                                                    jira-progress-tail from heartbeat.jsonl)
+#   customfield_10988  AI activity      short text (live "what is it doing" label;
+#                                                    same source as AI progress)
 #
 # ----------------------------------------------------------------------------
 # Per-job step skeleton
@@ -173,23 +183,44 @@ jobs:
                   jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
+            - name: Start progress heartbeat tail
+              uses: ./.github/actions/jira-progress-tail
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: start
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
             - name: Run /fr --ci --phase 0..1 (triage)
               id: claude
               uses: anthropics/claude-code-action@v1
+              env:
+                  # Triage always runs at the highest tier — its job is
+                  # to draft intent / research / plan and recommend the
+                  # model + effort downstream stages should use. That
+                  # recommendation is only trustworthy if triage itself
+                  # has full capability headroom.
+                  ANTHROPIC_MODEL: 'claude-opus-4-7[1m]'
+                  CLAUDE_CODE_EFFORT_LEVEL: high
+                  HEARTBEAT_STATE_DIR: ${{ github.workspace }}/tmp/fr-state/${{ env.ISSUE_KEY }}
               with:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.setup.outputs.app_token }}
-                  show_full_output: 'true'
+                  # The action's raw JSON event stream dumped inline is unreadable; we
+                  # parse the captured artefact into a human digest in a separate step below.
+                  show_full_output: 'false'
                   plugin_marketplaces: https://github.com/ag-grid/ag-dev-prompts.git
                   plugins: |
                       ag-eng@ag-dev
                       ag-product@ag-dev
                   claude_args: |
                       --mcp-config ${{ steps.setup.outputs.mcp_config }}
-                      --max-turns 12
+                      --add-dir /home/runner/.claude/plugins
+                      --max-turns 20
                       --debug
                       --permission-mode acceptEdits
-                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue,mcp__atlassian__addAttachmentToJiraIssue
+                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__editJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue
                   prompt: |
                       Invoke /fr --ci --phase 0..1 ${{ env.ISSUE_KEY }}
 
@@ -204,12 +235,62 @@ jobs:
                           AI research / AI plan) after you exit. Do not call
                           addAttachmentToJiraIssue for these files — the
                           textareas are the durable form.
+                        - MANDATORY triage-completion comment. Before exit,
+                          post exactly one Jira comment using this template
+                          verbatim (substitute the bracketed placeholders;
+                          do not add preamble, do not omit sections):
+
+                              **Triage complete.** Confidence to proceed without HITL: <0..1>
+                              Decision: **<proceed|proceed-with-watch|blocked-on-clarity|escalate-to-human>** — <one-line rationale>
+
+                              # Decisions
+                              - <material judgement call 1 with one-line rationale>
+                              - <...>
+
+                              # Open Questions
+                              - <one bullet per question, max one line of context>
+                              - _None._  (use this literal when there are no open questions)
+
+                          Confidence is your own honest read (0..1). Decision
+                          values: `proceed` = ready for `--phase 2..5`;
+                          `proceed-with-watch` = ready but flagged for human
+                          eyeballs; `blocked-on-clarity` = open questions
+                          must be answered first; `escalate-to-human` = the
+                          ticket is fundamentally unclear or out of scope.
+                          The Decisions section lifts the material entries
+                          from `decisions.md` into a humans-can-skim form —
+                          summarise, do not paste. Other Jira comment
+                          styles (per-thread audit / status) do not apply
+                          here.
                         - The Atlassian MCP server is the in-repo shim — it
                           exposes the operation names referenced in modes/ci.md
-                          (getJiraIssue, addCommentToJiraIssue,
+                          (getJiraIssue, addCommentToJiraIssue, editJiraIssue,
                           getTransitionsForJiraIssue, transitionJiraIssue,
                           addAttachmentToJiraIssue). No other Jira tools are
                           available. Phases 2..5 are out of scope.
+
+            - name: Stop progress heartbeat tail
+              if: always()
+              uses: ./.github/actions/jira-progress-tail
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: stop
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - name: Human-readable trace digest
+              if: always()
+              shell: bash
+              run: |
+                  TRACE="${RUNNER_TEMP}/claude-execution-output.json"
+                  if [[ ! -f "$TRACE" ]]; then
+                      echo "[trace-digest] no trace file at $TRACE (agent may have aborted before any output)"
+                      exit 0
+                  fi
+                  echo "::group::Claude execution digest"
+                  node .github/scripts/claude-trace-pretty/tail.mjs --once "$TRACE" | tee -a "$GITHUB_STEP_SUMMARY"
+                  echo "::endgroup::"
 
             - if: always()
               uses: ./.github/actions/jira-state-sync
@@ -297,27 +378,53 @@ jobs:
             # composite actions after the agent step (which typically
             # checks out a fresh topic branch that lacks them — see the
             # restore step below for the full rationale).
+            - id: model-pick
+              uses: ./.github/actions/jira-model-pick
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  default_model: 'claude-opus-4-7[1m]'
+                  default_effort: medium
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
             - name: Snapshot .github/ before agent
               shell: bash
               run: cp -a .github "${RUNNER_TEMP}/gha-snapshot"
 
+            - name: Start progress heartbeat tail
+              uses: ./.github/actions/jira-progress-tail
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: start
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
             - name: Run /fr --ci --phase 2..5 --resume --draft-pr (build)
               id: claude
               uses: anthropics/claude-code-action@v1
+              env:
+                  ANTHROPIC_MODEL: ${{ steps.model-pick.outputs.model }}
+                  CLAUDE_CODE_EFFORT_LEVEL: ${{ steps.model-pick.outputs.effort }}
+                  HEARTBEAT_STATE_DIR: ${{ github.workspace }}/tmp/fr-state/${{ env.ISSUE_KEY }}
               with:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.setup.outputs.app_token }}
-                  show_full_output: 'true'
+                  # The action's raw JSON event stream dumped inline is unreadable; we
+                  # parse the captured artefact into a human digest in a separate step below.
+                  show_full_output: 'false'
                   plugin_marketplaces: https://github.com/ag-grid/ag-dev-prompts.git
                   plugins: |
                       ag-eng@ag-dev
                       ag-product@ag-dev
                   claude_args: |
                       --mcp-config ${{ steps.setup.outputs.mcp_config }}
+                      --add-dir /home/runner/.claude/plugins
                       --max-turns 60
                       --debug
                       --permission-mode acceptEdits
-                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue,mcp__atlassian__addAttachmentToJiraIssue
+                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__editJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue
                   prompt: |
                       Invoke /fr --ci --phase 2..5 --resume --draft-pr ${{ env.ISSUE_KEY }}
 
@@ -330,6 +437,18 @@ jobs:
                           round-trips them to Jira after you exit. Do not call
                           addAttachmentToJiraIssue for these files — the
                           textareas are the durable form.
+                        - Comment style: keep Jira comments tight, but post
+                          them. Open questions / ambiguity escalation:
+                          MANDATORY whenever ambiguities exist — one bullet
+                          per question, max one line of context per bullet.
+                          The AI* state files are NOT a substitute for the
+                          comment; humans read comments, not textareas.
+                          Per-thread review-feedback audit comments: one
+                          line per thread (`thread <id>: <action>`). Status
+                          / audit comments: a single line; for these only,
+                          do not duplicate what is already in the AI* state
+                          files. If a comment runs past ~10 lines you are
+                          being verbose — cut it.
                         - Phase 4 is skipped; --draft-pr opens the PR in draft.
 
             # Restore .github/ from the runner-temp snapshot taken before
@@ -349,6 +468,29 @@ jobs:
                   else
                       echo "[restore] no snapshot found at ${RUNNER_TEMP}/gha-snapshot" >&2
                   fi
+
+            - name: Stop progress heartbeat tail
+              if: always()
+              uses: ./.github/actions/jira-progress-tail
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: stop
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - name: Human-readable trace digest
+              if: always()
+              shell: bash
+              run: |
+                  TRACE="${RUNNER_TEMP}/claude-execution-output.json"
+                  if [[ ! -f "$TRACE" ]]; then
+                      echo "[trace-digest] no trace file at $TRACE (agent may have aborted before any output)"
+                      exit 0
+                  fi
+                  echo "::group::Claude execution digest"
+                  node .github/scripts/claude-trace-pretty/tail.mjs --once "$TRACE" | tee -a "$GITHUB_STEP_SUMMARY"
+                  echo "::endgroup::"
 
             - if: always()
               uses: ./.github/actions/jira-state-sync
@@ -441,29 +583,55 @@ jobs:
                   jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
+            - id: model-pick
+              uses: ./.github/actions/jira-model-pick
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  default_model: 'claude-opus-4-7[1m]'
+                  default_effort: high
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
             # See note in the build job — snapshot .github/ so the
             # post-agent composites resolve regardless of branch state.
             - name: Snapshot .github/ before agent
               shell: bash
               run: cp -a .github "${RUNNER_TEMP}/gha-snapshot"
 
+            - name: Start progress heartbeat tail
+              uses: ./.github/actions/jira-progress-tail
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: start
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
             - name: Run /fr --ci --pr-iterate (pr-iterate)
               id: claude
               uses: anthropics/claude-code-action@v1
+              env:
+                  ANTHROPIC_MODEL: ${{ steps.model-pick.outputs.model }}
+                  CLAUDE_CODE_EFFORT_LEVEL: ${{ steps.model-pick.outputs.effort }}
+                  HEARTBEAT_STATE_DIR: ${{ github.workspace }}/tmp/fr-state/${{ env.ISSUE_KEY }}
               with:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.setup.outputs.app_token }}
-                  show_full_output: 'true'
+                  # The action's raw JSON event stream dumped inline is unreadable; we
+                  # parse the captured artefact into a human digest in a separate step below.
+                  show_full_output: 'false'
                   plugin_marketplaces: https://github.com/ag-grid/ag-dev-prompts.git
                   plugins: |
                       ag-eng@ag-dev
                       ag-product@ag-dev
                   claude_args: |
                       --mcp-config ${{ steps.setup.outputs.mcp_config }}
+                      --add-dir /home/runner/.claude/plugins
                       --max-turns 60
                       --debug
                       --permission-mode acceptEdits
-                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue,mcp__atlassian__addAttachmentToJiraIssue
+                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__editJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue
                   prompt: |
                       Invoke /fr --ci --pr-iterate ${{ env.ISSUE_KEY }}
 
@@ -475,6 +643,18 @@ jobs:
                           to the same files; the workflow round-trips them to
                           Jira after you exit. Do not call addAttachmentToJiraIssue
                           for these files — the textareas are the durable form.
+                        - Comment style: keep Jira comments tight, but post
+                          them. Open questions / ambiguity escalation:
+                          MANDATORY whenever ambiguities exist — one bullet
+                          per question, max one line of context per bullet.
+                          The AI* state files are NOT a substitute for the
+                          comment; humans read comments, not textareas.
+                          Per-thread review-feedback audit comments: one
+                          line per thread (`thread <id>: <action>`). Status
+                          / audit comments: a single line; for these only,
+                          do not duplicate what is already in the AI* state
+                          files. If a comment runs past ~10 lines you are
+                          being verbose — cut it.
 
             # See note in the build job: restore .github/ from the snapshot
             # so local-path composites resolve regardless of which branch
@@ -488,6 +668,29 @@ jobs:
                   else
                       echo "[restore] no snapshot found at ${RUNNER_TEMP}/gha-snapshot" >&2
                   fi
+
+            - name: Stop progress heartbeat tail
+              if: always()
+              uses: ./.github/actions/jira-progress-tail
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: stop
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - name: Human-readable trace digest
+              if: always()
+              shell: bash
+              run: |
+                  TRACE="${RUNNER_TEMP}/claude-execution-output.json"
+                  if [[ ! -f "$TRACE" ]]; then
+                      echo "[trace-digest] no trace file at $TRACE (agent may have aborted before any output)"
+                      exit 0
+                  fi
+                  echo "::group::Claude execution digest"
+                  node .github/scripts/claude-trace-pretty/tail.mjs --once "$TRACE" | tee -a "$GITHUB_STEP_SUMMARY"
+                  echo "::endgroup::"
 
             - if: always()
               uses: ./.github/actions/jira-state-sync
@@ -657,27 +860,53 @@ jobs:
                   jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
+            - id: model-pick
+              uses: ./.github/actions/jira-model-pick
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  default_model: 'claude-opus-4-7[1m]'
+                  default_effort: medium
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
             - name: Snapshot .github/ before agent
               shell: bash
               run: cp -a .github "${RUNNER_TEMP}/gha-snapshot"
 
+            - name: Start progress heartbeat tail
+              uses: ./.github/actions/jira-progress-tail
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: start
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
             - name: Run /fr --ci --pr-iterate --ci-failure (ci-failure-iterate)
               id: claude
               uses: anthropics/claude-code-action@v1
+              env:
+                  ANTHROPIC_MODEL: ${{ steps.model-pick.outputs.model }}
+                  CLAUDE_CODE_EFFORT_LEVEL: ${{ steps.model-pick.outputs.effort }}
+                  HEARTBEAT_STATE_DIR: ${{ github.workspace }}/tmp/fr-state/${{ env.ISSUE_KEY }}
               with:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   github_token: ${{ steps.setup.outputs.app_token }}
-                  show_full_output: 'true'
+                  # The action's raw JSON event stream dumped inline is unreadable; we
+                  # parse the captured artefact into a human digest in a separate step below.
+                  show_full_output: 'false'
                   plugin_marketplaces: https://github.com/ag-grid/ag-dev-prompts.git
                   plugins: |
                       ag-eng@ag-dev
                       ag-product@ag-dev
                   claude_args: |
                       --mcp-config ${{ steps.setup.outputs.mcp_config }}
+                      --add-dir /home/runner/.claude/plugins
                       --max-turns 60
                       --debug
                       --permission-mode acceptEdits
-                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue,mcp__atlassian__addAttachmentToJiraIssue
+                      --allowed-tools mcp__atlassian__getJiraIssue,mcp__atlassian__addCommentToJiraIssue,mcp__atlassian__editJiraIssue,mcp__atlassian__getTransitionsForJiraIssue,mcp__atlassian__transitionJiraIssue
                   prompt: |
                       Invoke /fr --ci --pr-iterate --ci-failure ${{ env.CI_RUN_URL }} ${{ env.ISSUE_KEY }}
 
@@ -695,6 +924,18 @@ jobs:
                           them to Jira after you exit. Do not call
                           addAttachmentToJiraIssue for these files — the
                           textareas are the durable form.
+                        - Comment style: keep Jira comments tight, but post
+                          them. Open questions / ambiguity escalation:
+                          MANDATORY whenever ambiguities exist — one bullet
+                          per question, max one line of context per bullet.
+                          The AI* state files are NOT a substitute for the
+                          comment; humans read comments, not textareas.
+                          Per-thread review-feedback audit comments: one
+                          line per thread (`thread <id>: <action>`). Status
+                          / audit comments: a single line; for these only,
+                          do not duplicate what is already in the AI* state
+                          files. If a comment runs past ~10 lines you are
+                          being verbose — cut it.
                         - Do NOT re-request review under --ci-failure; push only.
                           The next main-CI run is the verification.
 
@@ -707,6 +948,29 @@ jobs:
                   else
                       echo "[restore] no snapshot found at ${RUNNER_TEMP}/gha-snapshot" >&2
                   fi
+
+            - name: Stop progress heartbeat tail
+              if: always()
+              uses: ./.github/actions/jira-progress-tail
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  mode: stop
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+            - name: Human-readable trace digest
+              if: always()
+              shell: bash
+              run: |
+                  TRACE="${RUNNER_TEMP}/claude-execution-output.json"
+                  if [[ ! -f "$TRACE" ]]; then
+                      echo "[trace-digest] no trace file at $TRACE (agent may have aborted before any output)"
+                      exit 0
+                  fi
+                  echo "::group::Claude execution digest"
+                  node .github/scripts/claude-trace-pretty/tail.mjs --once "$TRACE" | tee -a "$GITHUB_STEP_SUMMARY"
+                  echo "::endgroup::"
 
             - if: always()
               uses: ./.github/actions/jira-state-sync
