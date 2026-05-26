@@ -127,9 +127,7 @@ export class BarShape<D = any> extends Rect<D> {
         }
     }
 
-    override renderStroke(
-        renderCtx: RenderContext // & { setLineDash(lineDash: readonly number[]): void }
-    ) {
+    override renderStroke(renderCtx: RenderContext) {
         if (!this.feathered) {
             super.renderStroke(renderCtx);
             return;
@@ -146,14 +144,16 @@ export class BarShape<D = any> extends Rect<D> {
         } = this;
 
         if (stroke && strokeWidth) {
-            const { ctx } = renderCtx;
+            const ctx: (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) & {
+                setLineDash(lineDash: readonly number[]): void;
+            } = renderCtx.ctx;
             const { globalAlpha } = ctx;
 
             this.applyStrokeAndAlpha(renderCtx);
             ctx.lineWidth = strokeWidth;
 
             if (lineDash) {
-                ctx.setLineDash(lineDash as number[]);
+                ctx.setLineDash(lineDash);
             }
             if (lineDashOffset) {
                 ctx.lineDashOffset = lineDashOffset;

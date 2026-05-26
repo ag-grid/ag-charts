@@ -83,7 +83,10 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
         ctx.fill(path2d);
     }
 
-    private createCanvasPattern(ctx: CanvasRenderingContext2D, pixelRatio: number): CanvasPattern | null {
+    private createCanvasPattern(
+        ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+        pixelRatio: number
+    ): CanvasPattern | null {
         const { width, height, scale, backgroundFill, backgroundFillOpacity } = this;
 
         if (width * scale < 1 || height * scale < 1) {
@@ -127,9 +130,16 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
     }
 
     private _cache:
-        | { ctx: CanvasRenderingContext2D; pattern: CanvasPattern | undefined; pixelRatio: number }
+        | {
+              ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+              pattern: CanvasPattern | undefined;
+              pixelRatio: number;
+          }
         | undefined = undefined;
-    createPattern(ctx: CanvasRenderingContext2D, pixelRatio: number): CanvasPattern | undefined {
+    createPattern(
+        ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+        pixelRatio: number
+    ): CanvasPattern | undefined {
         if (this._cache?.ctx === ctx && this._cache.pixelRatio === pixelRatio) {
             return this._cache.pattern;
         }

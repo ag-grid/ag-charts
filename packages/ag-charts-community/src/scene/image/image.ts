@@ -36,7 +36,7 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
     }
 
     private createCanvasImage(
-        ctx: CanvasRenderingContext2D,
+        ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
         image: HTMLImageElement | undefined,
         width: number,
         height: number
@@ -121,14 +121,14 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
 
     private _cache:
         | {
-              ctx: CanvasRenderingContext2D;
+              ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
               pattern: CanvasPattern | undefined;
               width: number;
               height: number;
           }
         | undefined = undefined;
     createPattern(
-        ctx: CanvasRenderingContext2D,
+        ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
         shapeWidth: number,
         shapeHeight: number,
         node: Node

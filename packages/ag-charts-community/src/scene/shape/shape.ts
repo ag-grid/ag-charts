@@ -280,7 +280,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         } else if (fillPattern) {
             const { x, y } = bboxOverride ?? this.getBBox();
             const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
-            const pattern = fillPattern.createPattern(ctx as any, pixelRatio);
+            const pattern = fillPattern.createPattern(ctx, pixelRatio);
             fillPattern.setPatternTransform(pattern, pixelRatio, x, y);
             if (pattern) {
                 ctx.fillStyle = pattern;
@@ -290,7 +290,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             }
         } else if (fillImage) {
             const bbox = bboxOverride ?? this.getBBox();
-            const image = fillImage.createPattern(ctx as any, bbox.width, bbox.height, this);
+            const image = fillImage.createPattern(ctx, bbox.width, bbox.height, this);
             fillImage.setImageTransform(image, bbox);
             ctx.fillStyle = image ?? 'transparent';
         } else {
@@ -338,14 +338,16 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             __miterLimit: miterLimit,
         } = this;
         if (stroke != null && stroke !== 'none' && strokeWidth > 0 && strokeOpacity > 0) {
-            const { ctx } = renderCtx;
+            const ctx: (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) & {
+                setLineDash(lineDash: readonly number[]): void;
+            } = renderCtx.ctx;
             const { globalAlpha } = ctx;
 
             this.applyStrokeAndAlpha(renderCtx, bboxOverride);
 
             ctx.lineWidth = strokeWidth;
             if (lineDash) {
-                ctx.setLineDash(lineDash as number[]);
+                ctx.setLineDash(lineDash);
             }
             if (lineDashOffset) {
                 ctx.lineDashOffset = lineDashOffset;

@@ -547,7 +547,9 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         const { stroke, effectiveStrokeWidth } = this;
 
         if (stroke && effectiveStrokeWidth) {
-            const { ctx } = renderCtx;
+            const ctx: (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) & {
+                setLineDash(lineDash: readonly number[]): void;
+            } = renderCtx.ctx;
             const { globalAlpha } = ctx;
             const { lineDash, lineDashOffset, lineCap, lineJoin, borderPath, borderClipPath } = this;
 
@@ -559,7 +561,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
             ctx.lineWidth = effectiveStrokeWidth;
 
             if (lineDash) {
-                ctx.setLineDash(lineDash as number[]);
+                ctx.setLineDash(lineDash);
             }
             if (lineDashOffset) {
                 ctx.lineDashOffset = lineDashOffset;
