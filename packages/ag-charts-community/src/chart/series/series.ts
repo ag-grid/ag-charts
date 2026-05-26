@@ -439,6 +439,7 @@ export abstract class Series<
             this.ctx.seriesStateManager.deregisterSeries(this);
         }
         if (next) {
+            this.declarationOrder = next.declarationOrder;
             this.ctx.seriesStateManager.registerSeries({
                 internalId,
                 type,
@@ -513,7 +514,7 @@ export abstract class Series<
         const bringToFront = this.bringToFront();
         if (!forceUpdate && index === this.declarationOrder && bringToFront === this._broughtToFront) return false;
 
-        this.declarationOrder = index;
+        this.declarationOrder = this.seriesGrouping?.declarationOrder ?? index;
         this._broughtToFront = bringToFront;
         this.setZIndex(bringToFront ? Number.MAX_VALUE : index);
 
