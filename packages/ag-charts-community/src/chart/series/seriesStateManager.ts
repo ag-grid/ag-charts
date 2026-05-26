@@ -1,7 +1,7 @@
 import type { PlainObject } from 'ag-charts-core';
 
-import { IrregularBandScale } from '../../scale/irregularBandScale';
 import type { SeriesGrouping } from '../../module/seriesGrouping';
+import { IrregularBandScale } from '../../scale/irregularBandScale';
 
 type SeriesGroupingResult = {
     visibleGroupCount: number;
