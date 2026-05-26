@@ -59,6 +59,7 @@ import type {
 import type { AxisFormattableLabel } from '../../module/axisContext';
 import type { ChartRegistry, ChartSeriesRegistry } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
+import type { SeriesGrouping } from '../../module/seriesGrouping';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import { type Node, PointerEvents } from '../../scene/node';
@@ -95,7 +96,6 @@ import {
 } from './seriesTypes';
 import { type ShapeFillBBox } from './shapeUtil';
 import { hasDimmedOpacity, resolveMarkerDrawingMode } from './util';
-import type { SeriesGrouping } from '../../module/seriesGrouping';
 
 export interface SeriesDataEvent {
     readonly dataModel: DataModel<any, any, any>;

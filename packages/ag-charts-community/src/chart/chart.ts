@@ -46,6 +46,7 @@ import type {
 import type { UpdateOpts } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
 import type { ChartOptions } from '../module/optionsModule';
+import type { SeriesGrouping } from '../module/seriesGrouping';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
@@ -84,7 +85,6 @@ import { Tooltip, type TooltipContent } from './tooltip/tooltip';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
-import type { SeriesGrouping } from '../module/seriesGrouping';
 
 const debug = Debug.create(true, 'opts');
 
