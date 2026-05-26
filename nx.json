@@ -209,7 +209,7 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "{projectRoot}",
-        "command": "npx eslint"
+        "command": "npx eslint --cache --cache-location node_modules/.cache/eslint/"
       },
       "cache": true,
       "inputs": [

@@ -10,7 +10,6 @@ function runRuleTest(ruleNameSuffix: string) {
     delete env['FORCE_COLOR'];
 
     try {
-        // eslint-disable-next-line sonarjs/os-command
         stdout = execSync(`npx eslint -c ${eslintConfigFile} ${lintDataFile}`, {
             env,
             encoding: 'utf-8',
