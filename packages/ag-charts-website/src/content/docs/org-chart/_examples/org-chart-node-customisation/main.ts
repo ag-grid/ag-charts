@@ -1,7 +1,6 @@
 import {
     AgChartOptions,
     AgCharts,
-    AgOrganizationSeriesNodeItemStylerParams,
     ContextMenuModule,
     ModuleRegistry,
     OrganizationSeriesModule,
@@ -28,16 +27,13 @@ const options: AgChartOptions = {
                 // height: 120,
                 cornerRadius: 12,
                 image: { key: 'avatar', position: 'left', height: 50, width: 50, cornerRadius: 25 },
-                itemStyler: (params: AgOrganizationSeriesNodeItemStylerParams) => {
-                    if (params.datum.department === 'Executive') {
+                itemStyler: ({ datum }) => {
+                    if (datum.department === 'Executive')
                         return { fill: '#76B2DC', fillOpacity: 0.2, stroke: '#1B65BF', strokeWidth: 2 };
-                    }
-                    if (params.datum.department === 'Technology') {
+                    if (datum.department === 'Technology')
                         return { fill: '#7AE281', fillOpacity: 0.2, stroke: '#327C35', strokeWidth: 2 };
-                    }
-                    if (params.datum.department === 'Operations') {
+                    if (datum.department === 'Operations')
                         return { fill: '#EBB967', fillOpacity: 0.2, stroke: '#A94F1D', strokeWidth: 2 };
-                    }
                 },
                 title: { key: 'name' },
                 subtitle: { key: 'job' },
