@@ -83,16 +83,10 @@ type GroupingOptions = {
     grouped?: boolean;
     stacked?: boolean;
     stackGroup?: string;
-    seriesGrouping?: SeriesGrouping;
+    seriesGrouping? : SeriesGrouping;
 };
 type GroupingSeriesOptions = GroupingOptions & { type: SeriesType; xKey?: string };
-type SeriesGroup = {
-    groupType: GroupingType;
-    seriesType: string;
-    series: GroupingSeriesOptions[];
-    declarationOrder: number[];
-    groupId: string;
-};
+type SeriesGroup = { groupType: GroupingType; seriesType: string; series: GroupingSeriesOptions[]; groupId: string };
 
 enum GroupingType {
     DEFAULT = 'default',
@@ -1225,28 +1219,26 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                         return seriesGroup.series.map((series, stackIndex) =>
                             Object.assign(series, {
                                 seriesGrouping: {
-                                    declarationOrder: seriesGroup.declarationOrder[stackIndex],
                                     groupId: seriesGroup.groupId,
                                     groupIndex,
                                     groupCount: groupCount[seriesGroup.seriesType],
                                     stackIndex,
                                     stackCount: seriesGroup.series.length,
-                                } satisfies GroupingOptions['seriesGrouping'],
+                                },
                             })
                         );
                     }
 
                     case GroupingType.GROUP:
-                        return seriesGroup.series.map((series, index) =>
+                        return seriesGroup.series.map((series) =>
                             Object.assign(series, {
                                 seriesGrouping: {
-                                    declarationOrder: seriesGroup.declarationOrder[index],
                                     groupId: seriesGroup.groupId,
                                     groupIndex: groupIdx[seriesGroup.seriesType]++,
                                     groupCount: groupCount[seriesGroup.seriesType],
                                     stackIndex: 0,
                                     stackCount: 0,
-                                } satisfies GroupingOptions['seriesGrouping'],
+                                },
                             })
                         );
                 }
@@ -1264,26 +1256,19 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private getSeriesGrouping(allSeries: GroupingSeriesOptions[]) {
         const groupMap = new Map<string, SeriesGroup>();
-        return allSeries.reduce<SeriesGroup[]>((result, series, index) => {
+        return allSeries.reduce<SeriesGroup[]>((result, series) => {
             const seriesType = series.type;
             if (!series.stacked && !series.grouped) {
-                result.push({
-                    groupType: GroupingType.DEFAULT,
-                    seriesType,
-                    series: [series],
-                    declarationOrder: [index],
-                    groupId: '__default__',
-                });
+                result.push({ groupType: GroupingType.DEFAULT, seriesType, series: [series], groupId: '__default__' });
             } else {
                 const groupId = this.getSeriesGroupId(series);
                 if (!groupMap.has(groupId)) {
                     const groupType = series.stacked ? GroupingType.STACK : GroupingType.GROUP;
-                    const record: SeriesGroup = { groupType, seriesType, series: [], declarationOrder: [], groupId };
+                    const record = { groupType, seriesType, series: [], groupId };
                     groupMap.set(groupId, record);
                     result.push(record);
                 }
                 groupMap.get(groupId)!.series.push(series);
-                groupMap.get(groupId)!.declarationOrder.push(index);
             }
             return result;
         }, []);
