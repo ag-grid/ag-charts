@@ -83,7 +83,7 @@ type GroupingOptions = {
     grouped?: boolean;
     stacked?: boolean;
     stackGroup?: string;
-    seriesGrouping? : SeriesGrouping;
+    seriesGrouping?: SeriesGrouping;
 };
 type GroupingSeriesOptions = GroupingOptions & { type: SeriesType; xKey?: string };
 type SeriesGroup = { groupType: GroupingType; seriesType: string; series: GroupingSeriesOptions[]; groupId: string };
