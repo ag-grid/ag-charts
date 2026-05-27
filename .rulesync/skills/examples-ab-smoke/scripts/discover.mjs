@@ -1,57 +1,71 @@
 // Discovers the (page, example, framework) matrix for the A/B smoke test.
-// Walks packages/ag-charts-website/src/content/**/_examples/*/main.ts,
-// applies the merged EXAMPLE_OPTIONS config (gallery + docs), and emits a
-// JSON list to stdout.
+// Product-agnostic — loads a product profile to determine content paths,
+// options, and framework lists.
 //
 // Run from repo root:
-//   node plans/examples-ab-smoke/discover.mjs --framework vanilla > matrix.json
-//   node plans/examples-ab-smoke/discover.mjs --filter "page=gallery" --framework reactFunctional
+//   node plans/examples-ab-smoke/discover.mjs --product ag-charts --framework vanilla > matrix.json
+//   node plans/examples-ab-smoke/discover.mjs --product ag-grid --framework vanilla --filter "page=getting-started"
 
-import { readFileSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { glob } from 'node:fs/promises';
 
-import { resolveOptions, IGNORE_PAGES, FRAMEWORKS, isUnsupportedGeneric } from './example-options.mjs';
+import { loadProfile, resolveProduct } from './load-profile.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 function parseArgs(argv) {
-    const args = { filter: null, framework: null };
+    const args = { filter: null, framework: null, product: null };
     for (let i = 0; i < argv.length; i++) {
         const a = argv[i];
         if (a === '--filter') args.filter = argv[++i];
         else if (a === '--framework') args.framework = argv[++i];
+        else if (a === '--product') args.product = argv[++i];
     }
     return args;
 }
 
-function findRepoRoot(start) {
+function findRepoRoot(start, fingerprint) {
     let cur = start;
     while (cur !== '/') {
         try {
             statSync(resolve(cur, 'package.json'));
-            statSync(resolve(cur, 'packages/ag-charts-website'));
+            if (fingerprint) statSync(resolve(cur, fingerprint));
             return cur;
         } catch {}
         cur = dirname(cur);
     }
-    throw new Error('could not locate ag-charts repo root from ' + start);
+    throw new Error(`could not locate repo root from ${start}` +
+        (fingerprint ? ` (looking for ${fingerprint})` : ''));
 }
-
-const ROOT = findRepoRoot(__dirname);
-const CONTENT_DIR = resolve(ROOT, 'packages/ag-charts-website/src/content');
 
 async function main() {
     const args = parseArgs(process.argv.slice(2));
 
-    if (!args.framework) {
-        process.stderr.write('discover.mjs requires --framework <name> (one of: vanilla, typescript, reactFunctional, reactFunctionalTs, angular, vue3)\n');
+    const productSlug = resolveProduct({
+        cliProduct: args.product,
+        envProduct: process.env.PRODUCT,
+    });
+    if (!productSlug) {
+        process.stderr.write('discover.mjs requires --product <name> or PRODUCT env (one of: ag-charts, ag-grid, ag-studio)\n');
         process.exit(2);
     }
-    if (!FRAMEWORKS.includes(args.framework)) {
-        process.stderr.write(`unknown framework "${args.framework}"; expected one of ${FRAMEWORKS.join(', ')}\n`);
+
+    const profile = await loadProfile(productSlug);
+
+    if (!profile.DISCOVERY) {
+        process.stderr.write(`product "${productSlug}" does not support example discovery yet\n`);
+        process.exit(2);
+    }
+
+    if (!args.framework) {
+        process.stderr.write(`discover.mjs requires --framework <name> (one of: ${profile.FRAMEWORKS.join(', ')})\n`);
+        process.exit(2);
+    }
+    if (!profile.FRAMEWORKS.includes(args.framework)) {
+        process.stderr.write(`unknown framework "${args.framework}" for ${productSlug}; expected one of ${profile.FRAMEWORKS.join(', ')}\n`);
         process.exit(2);
     }
 
@@ -65,25 +79,28 @@ async function main() {
         filterRe = new RegExp(`^(${m[1]})$`);
     }
 
-    // Drift check (synchronous part — done inline for simplicity).
-    const sources = [
-        'packages/ag-charts-website/e2e/example-options.ts',
-        'packages/ag-charts-website/e2e/gallery-examples.spec.ts',
-    ];
-    const { DOCS_OPTIONS, GALLERY_OPTIONS } = await import('./example-options.mjs');
-    const mirrorKeys = new Set([...Object.keys(DOCS_OPTIONS), ...Object.keys(GALLERY_OPTIONS)]);
-    for (const rel of sources) {
-        let src;
-        try {
-            src = readFileSync(resolve(ROOT, rel), 'utf8');
-        } catch {
-            continue;
-        }
-        const re = /^ {4}'([a-z0-9-]+)'\s*:\s*\{/gm;
-        let m;
-        while ((m = re.exec(src)) != null) {
-            if (!mirrorKeys.has(m[1])) {
-                process.stderr.write(`drift: ${rel} has '${m[1]}' missing from config/example-options.mjs — please sync.\n`);
+    const ROOT = findRepoRoot(__dirname, profile.DISCOVERY.repoFingerprint);
+    const CONTENT_DIR = profile.DISCOVERY.getContentDir(ROOT);
+
+    // Drift check against upstream e2e configs.
+    if (profile.DOCS_OPTIONS && profile.GALLERY_OPTIONS) {
+        const mirrorKeys = new Set([
+            ...Object.keys(profile.DOCS_OPTIONS),
+            ...Object.keys(profile.GALLERY_OPTIONS),
+        ]);
+        for (const rel of profile.DISCOVERY.driftCheckSources) {
+            let src;
+            try {
+                src = readFileSync(resolve(ROOT, rel), 'utf8');
+            } catch {
+                continue;
+            }
+            const re = /^ {4}'([a-z0-9-]+)'\s*:\s*\{/gm;
+            let m;
+            while ((m = re.exec(src)) != null) {
+                if (!mirrorKeys.has(m[1])) {
+                    process.stderr.write(`drift: ${rel} has '${m[1]}' missing from example-options — please sync.\n`);
+                }
             }
         }
     }
@@ -91,13 +108,12 @@ async function main() {
     const matrix = [];
     const skipped = { hidden: 0, ignored: 0, filtered: 0, unsupported: 0 };
 
-    for await (const file of glob('**/_examples/*/main.ts', { cwd: CONTENT_DIR })) {
-        const astroPath = file; // e.g. 'docs/legend/_examples/legend-position/main.ts'
-        const [pagePath, examplePath] = astroPath.split('/_examples/');
+    for await (const file of glob(profile.DISCOVERY.contentGlob, { cwd: CONTENT_DIR })) {
+        const [pagePath, examplePath] = file.split('/_examples/');
         const example = examplePath.replace(/\/[a-zA-Z-]+\.ts$/, '');
         const page = pagePath.replace(/^docs\//, '');
 
-        if (IGNORE_PAGES.includes(page)) {
+        if (profile.IGNORE_PAGES.includes(page)) {
             skipped.ignored++;
             continue;
         }
@@ -106,22 +122,26 @@ async function main() {
             continue;
         }
 
-        const options = resolveOptions(page, example);
+        const options = profile.resolveOptions(page, example);
         if (options.status === '404') {
             skipped.hidden++;
             continue;
         }
-        if (isUnsupportedGeneric(page, example)) {
+        if (profile.isUnsupportedGeneric(page, example)) {
             skipped.unsupported++;
             continue;
         }
 
-        const allowedFrameworks = page === 'gallery'
-            ? ['vanilla'] // gallery uses vanilla URL only
-            : (options.frameworks?.length ? options.frameworks : FRAMEWORKS);
+        const galleryPage = profile.DISCOVERY.galleryPage;
+        const allowedFrameworks = (galleryPage && page === galleryPage)
+            ? (profile.DISCOVERY.galleryFrameworks ?? [args.framework])
+            : (options.frameworks?.length ? options.frameworks : profile.FRAMEWORKS);
         if (!allowedFrameworks.includes(args.framework)) {
             continue;
         }
+
+        const exampleDir = resolve(CONTENT_DIR, pagePath, '_examples', example);
+        const randomScan = scanForRandomness(exampleDir);
 
         matrix.push({
             page,
@@ -133,14 +153,34 @@ async function main() {
                 skipCanvasUpdateCheck: options.skipCanvasUpdateCheck,
                 ignoreConsoleWarnings: options.ignoreConsoleWarnings,
             },
+            randomData: randomScan,
         });
     }
 
     process.stderr.write(
-        `Discovered ${matrix.length} examples for framework=${args.framework} (skipped ${skipped.hidden} hidden, ${skipped.ignored} ignored, ${skipped.filtered} filtered, ${skipped.unsupported} unsupported-generic).\n`
+        `Discovered ${matrix.length} ${productSlug} examples for framework=${args.framework} ` +
+        `(skipped ${skipped.hidden} hidden, ${skipped.ignored} ignored, ${skipped.filtered} filtered, ${skipped.unsupported} unsupported-generic).\n`
     );
 
     process.stdout.write(JSON.stringify(matrix, null, 2) + '\n');
+}
+
+function scanForRandomness(dir) {
+    const out = { unseeded: false, seeded: false, files: [] };
+    let entries;
+    try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return out; }
+    for (const e of entries) {
+        if (!e.isFile()) continue;
+        if (!/\.(ts|js|mts|mjs|cts|cjs|tsx|jsx)$/.test(e.name)) continue;
+        let src;
+        try { src = readFileSync(resolve(dir, e.name), 'utf8'); } catch { continue; }
+        const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:\/])\/\/[^\n]*/g, '$1');
+        const hits = [];
+        if (/\bMath\.random\s*\(/.test(code)) { out.unseeded = true; hits.push('Math.random'); }
+        if (/\bseededRandom\b/.test(code)) { out.seeded = true; hits.push('seededRandom'); }
+        if (hits.length) out.files.push({ file: e.name, markers: hits });
+    }
+    return out;
 }
 
 main().catch((err) => {
