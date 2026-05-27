@@ -48,6 +48,8 @@ export function getGalleryExampleThemePages({ galleryData }: { galleryData: Gall
         'ag-sheets-dark',
         'ag-polychroma',
         'ag-polychroma-dark',
+        'ag-rainbow',
+        'ag-rainbow-dark',
         'ag-vivid',
         'ag-vivid-dark',
         'ag-material',
