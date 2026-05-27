@@ -17,7 +17,7 @@ export class DataSelectionService implements IDataSelectionService {
     public totalSelectedCount = 0;
 
     /** Per-series selection state. Keyed by `seriesId`. */
-    readonly selections = new Map<string, DataSetSelection>();
+    selections = new Map<string, DataSetSelection>();
 
     constructor(private readonly ctx?: DynamicContext<ChartRegistry>) {}
 
@@ -79,16 +79,21 @@ export class DataSelectionService implements IDataSelectionService {
                 for (const [seriesId, oldSelObj] of this.selections) {
                     this.selections.set(seriesId, oldSelObj);
                 }
+            } else {
+                this.selections.clear();
             }
             return;
         }
 
         if (!newDataSet.dataIdKey || newDataSet.dataIdKey !== oldDataSet.dataIdKey) {
+            this.selections.clear();
             return;
         }
 
         const newIdMap = newDataSet.getIdToIndexMap();
-        for (const [seriesId, oldSelObj] of this.selections) {
+        const oldSelections = this.selections;
+        this.selections = new Map();
+        for (const [seriesId, oldSelObj] of oldSelections) {
             const oldSel = oldSelObj.getSelection();
             // Collect selected keys (transient Set, O(k) where k = selected count)
             const selectedKeys = new Set<string | number>();
