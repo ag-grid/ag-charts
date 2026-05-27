@@ -1989,8 +1989,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     private initSeriesDeclarationOrder(series: UnknownSeries[]) {
         // Ensure declaration order is set, this is used for correct z-index behaviour for combo charts.
         for (let idx = 0; idx < series.length; idx++) {
-            const declaractionOrder = series[idx].seriesGrouping?.declarationOrder ?? idx;
-            series[idx].setSeriesIndex(declaractionOrder);
+            series[idx].setSeriesIndex(idx);
         }
     }
 
