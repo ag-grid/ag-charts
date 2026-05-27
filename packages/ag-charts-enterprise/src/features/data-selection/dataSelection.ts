@@ -6,7 +6,6 @@ import {
     type DynamicContext,
     Logger,
     type NormalisedSelectionOptions,
-    hasNoModifiers,
 } from 'ag-charts-core';
 
 import {
@@ -222,7 +221,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         if (!this.supportsSelectionDrag()) return;
 
         const { enabled, enableDrag } = this.opts;
-        if (!enabled || !enableDrag || !hasNoModifiers(dragStartEvent.sourceEvent)) return;
+        if (!enabled || !enableDrag || this.hasUnknownModifier(dragStartEvent)) return;
 
         this.dragStartEvent = dragStartEvent;
         this.dragRect.x = dragStartEvent.currentX;
@@ -387,5 +386,9 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     private allocSelectionChanges(): SelectionChanges {
         if (!this.ctx.chartService.hasListener('selectionChange')) return { countDelta: 0 };
         return { countDelta: 0, added: [], removed: [] };
+    }
+
+    private hasUnknownModifier(event: _Widget.DragWidgetEvent): boolean {
+        return event.sourceEvent.altKey || event.sourceEvent.shiftKey;
     }
 }

@@ -1,7 +1,5 @@
 import {
-    AgChartOptions,
     AgCharts,
-    AgOrganizationSeriesLinkItemStylerParams,
     AgOrganizationSeriesOptions,
     AgStandaloneChartOptions,
     ContextMenuModule,
@@ -30,10 +28,10 @@ const options: AgStandaloneChartOptions = {
                 strokeWidth: 2,
                 lineDash: [8, 2],
                 interpolation: { type: 'step', cornerRadius: 8 },
-                itemStyler: (params: AgOrganizationSeriesLinkItemStylerParams) => {
-                    if (params.fromDatum.department === 'Technology') {
+                itemStyler: ({ fromDatum }) => {
+                    if (fromDatum.department === 'Technology') {
                         return { stroke: '#00994d' };
-                    } else if (params.fromDatum.job === 'CEO') {
+                    } else if (fromDatum.job === 'CEO') {
                         return { stroke: '#006f9b', strokeWidth: 4, lineDash: [] };
                     }
                 },
