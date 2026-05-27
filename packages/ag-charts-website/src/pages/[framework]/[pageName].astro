@@ -12,13 +12,6 @@ import { agLibraryVersion } from '@constants';
 import { DocsNav } from '@ag-website-shared/components/docs-navigation/DocsNav';
 import styles from '@ag-website-shared/components/page-styles/docs.module.scss';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
-import {
-    buildBreadcrumbList,
-    buildTechArticle,
-    getSoftwareApplicationId,
-    siteRootUrl,
-    type JsonLdObject,
-} from '@ag-website-shared/utils/structuredData';
 import { DOCS_TAB_ITEM_ID_PREFIX, MIGRATION_DOCUMENTATION_NAV_DATA } from '@ag-website-shared/constants';
 
 export async function getStaticPaths() {
@@ -65,7 +58,6 @@ const headings =
 const { data: docsNavData } = (await getEntry('docsNav', 'nav')) as CollectionEntry<'docsNav'>;
 const { data: siteHeaderData } = (await getEntry('siteHeader', 'header')) as CollectionEntry<'siteHeader'>;
 const siteHeaderItems = Object.values(siteHeaderData);
-const { data: metadata } = (await getEntry('metadata', 'metadata')) as CollectionEntry<'metadata'>;
 
 const { data: versionsData } = (await getEntry('versions', 'ag-charts-versions')) as CollectionEntry<'versions'>;
 const version = versionsData[0]?.version;
@@ -75,26 +67,6 @@ const description = page.data.description
     ? page.data.description.replaceAll('$framework', frameworkDisplayText) // Use front-matter description
     : getFirstParagraphText(page.body, currentFramework); // Default to 1st paragraph text
 const descriptionWithSeoTagline = `${description} ${seoTagline}`;
-
-const siteRoot = siteRootUrl(metadata.canonicalUrlBase);
-const pageUrl = `${siteRoot}${currentFramework}/${pageName}/`;
-const pageStructuredData: JsonLdObject[] = [
-    buildTechArticle({
-        canonicalUrlBase: metadata.canonicalUrlBase,
-        pageUrl,
-        title,
-        description: descriptionWithSeoTagline,
-        aboutEntityId: getSoftwareApplicationId(metadata.canonicalUrlBase),
-    }),
-    buildBreadcrumbList({
-        pageUrl,
-        items: [
-            { name: 'Home', url: siteRoot },
-            { name: `${frameworkDisplayText} Charts`, url: `${siteRoot}${currentFramework}/` },
-            { name: title, url: pageUrl },
-        ],
-    }),
-];
 ---
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -107,7 +79,6 @@ const pageStructuredData: JsonLdObject[] = [
     showTopBar={true}
     showSearchBar={true}
     showDocsNav={!hidePageMenu}
-    pageStructuredData={pageStructuredData}
 >
     <div class:list={[hidePageMenu && styles.noLeftMenu, styles.contentViewport, 'layout-grid', { largeExamples }]}>
         {
