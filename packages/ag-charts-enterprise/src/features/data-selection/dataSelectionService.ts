@@ -4,7 +4,7 @@ import type { DynamicContext } from 'ag-charts-core';
 import type { DataSetSelectionsIterator } from './dataSelectionUtil';
 import { DataSetSelection } from './dataSetSelection';
 
-const { SelectionState, iterateSeriesByFocusOrder } = _ModuleSupport;
+const { SelectionState } = _ModuleSupport;
 
 type ChartRegistry = _ModuleSupport.ChartRegistry;
 type DataChangeDescription = _ModuleSupport.DataChangeDescription;
@@ -43,7 +43,7 @@ export class DataSelectionService implements IDataSelectionService {
 
         const it: DataSetSelectionsIterator = {} as any;
 
-        for (const series of iterateSeriesByFocusOrder(this.ctx.chartService.series)) {
+        for (const series of this.ctx.chartService.series) {
             const seriesId = series.id;
             const dataSet = series.data;
             const selection = this.selections.get(series.id);

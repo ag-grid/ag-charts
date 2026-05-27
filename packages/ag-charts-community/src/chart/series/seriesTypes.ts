@@ -117,7 +117,6 @@ export interface ISeries<
     TLabel = TDatum,
 > {
     id: string;
-    readonly declarationOrder: number;
     axes: { [K in ChartAxisDirection]?: ChartAxisLike };
     contentGroup: Group;
     properties: TProps;

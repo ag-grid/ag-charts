@@ -260,22 +260,3 @@ export function findNodeDatumInArray<D extends SeriesNodeDatum<DatumIndexType>>(
     }
     return undefined;
 }
-
-export function iterateSeriesByFocusOrder<
-    T extends { readonly properties: { readonly focusPriority?: number }; readonly declarationOrder: number },
->(series: T[]): Iterable<T> {
-    return series.toSorted((a: T, b: T) => {
-        let fpA = a.properties.focusPriority ?? Infinity;
-        let fpB = b.properties.focusPriority ?? Infinity;
-        if (fpA === fpB) {
-            [fpA, fpB] = [a.declarationOrder, b.declarationOrder];
-        }
-        // Note: `Infinity-Infinity` results in `NaN`, so use `<` comparison instead of `-` subtraction.
-        if (fpA < fpB) {
-            return -1;
-        } else if (fpA > fpB) {
-            return 1;
-        }
-        return 0;
-    });
-}
