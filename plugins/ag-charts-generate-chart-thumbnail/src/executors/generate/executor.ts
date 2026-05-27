@@ -26,6 +26,8 @@ const THEMES: Record<AgChartThemeName, boolean> = {
     'ag-material-dark': true,
     'ag-polychroma': true,
     'ag-polychroma-dark': true,
+    'ag-rainbow': true,
+    'ag-rainbow-dark': true,
     'ag-sheets': true,
     'ag-sheets-dark': true,
     'ag-vivid': true,
