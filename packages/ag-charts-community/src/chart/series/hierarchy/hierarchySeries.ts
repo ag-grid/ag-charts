@@ -379,16 +379,6 @@ export abstract class HierarchySeries<
         return [];
     }
 
-    /*
-    protected getDatumIdFromData(node: Pick<TNodeClass, 'datumIndex'>): string {
-        return node.datumIndex.join(':');
-    }
-
-    protected getDatumId(node: Pick<TNodeClass, 'datumIndex'>): string {
-        return this.getDatumIdFromData(node);
-    }
-    */
-
     private removeMeIndexPathForIndex(index: number): number[] {
         return this.datumSelection.at(index + 1)?.datum.datumIndex ?? [];
     }
@@ -543,7 +533,7 @@ export abstract class HierarchySeries<
         isHighlight: boolean
     ): FillOptions & StrokeOptions;
 
-    private dfsFind(datumIndex: number): TNodeClass | undefined {
+    protected dfsFind(datumIndex: number): TNodeClass | undefined {
         const stack: TNodeClass[] = [];
         let node: TNodeClass | undefined = this.rootNode;
         while (node && node.datumIndex !== datumIndex) {

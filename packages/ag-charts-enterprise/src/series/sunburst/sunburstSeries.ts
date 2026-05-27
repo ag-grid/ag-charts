@@ -146,9 +146,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     updateSelections() {
         const highlightedNode = this.getActiveHighlightNode();
-        this.highlightSelection.update(highlightedNode == null ? [] : [highlightedNode], undefined, (node) =>
-            this.getDatumId(node)
-        );
+        const getDatumId = (node: SunburstNode) => node.datumIndex;
+        this.highlightSelection.update(highlightedNode == null ? [] : [highlightedNode], undefined, getDatumId);
 
         if (!this.nodeDataRefresh) return;
         this.nodeDataRefresh = false;
@@ -168,8 +167,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             ]);
         };
 
-        this.datumSelection.update(descendants, undefined, (node) => this.getDatumId(node));
-        this.labelSelection.update(descendants, updateLabelGroup, (node) => this.getDatumId(node));
+        this.datumSelection.update(descendants, undefined, (node) => node.datumIndex);
+        this.labelSelection.update(descendants, updateLabelGroup, (node) => node.datumIndex);
     }
 
     protected getItemStyle(nodeDatum: SunburstNode, isHighlight: boolean) {
@@ -177,7 +176,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         const { itemStyler, colorKey } = properties;
         const { missingDataFill } = properties.colorScale;
-        const rootIndex = nodeDatum.datumIndex?.[0] ?? 0;
+        const rootIndex = nodeDatum.path?.[0] ?? 0;
 
         const highlightedNode = this.getActiveHighlightNode();
         const highlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
@@ -195,7 +194,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         if (itemStyler != null && nodeDatum != null) {
             const overrides = this.cachedDatumCallback(
-                createDatumId(this.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
+                createDatumId(nodeDatum.datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
                     const params = this.makeItemStylerParams(
                         nodeDatum,
@@ -602,12 +601,12 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         }
     }
 
-    override getTooltipContent(datumIndex: number[]): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: _ModuleSupport.DatumIndex): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, properties, ctx } = this;
         const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } =
             properties;
         const { formatManager } = ctx;
-        const nodeDatum = datumIndex.reduce((n, i) => n?.children[i], this.rootNode);
+        const nodeDatum = this.dfsFind(datumIndex);
         if (nodeDatum == null) return;
         const { datum, depth } = nodeDatum;
         if (datum == null || depth == null) return;
