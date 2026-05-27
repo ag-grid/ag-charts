@@ -20,6 +20,7 @@ const isDebugPage = (page: string) => {
 const isRedirectPage = (page: string) => {
     return (
         page.endsWith('/documentation/') ||
+        page.endsWith('/licensing/') ||
         page.endsWith('/react/') ||
         page.endsWith('/angular/') ||
         page.endsWith('/javascript/') ||
