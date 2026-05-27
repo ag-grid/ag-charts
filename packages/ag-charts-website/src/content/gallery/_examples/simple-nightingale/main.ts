@@ -3,9 +3,9 @@ import {
     AgCharts,
     AngleCategoryAxisModule,
     AnimationModule,
-    CrossLinesModule,
     ModuleRegistry,
     NightingaleSeriesModule,
+    PolarCrossLinesModule,
     RadiusNumberAxisModule,
 } from 'ag-charts-enterprise';
 
@@ -14,8 +14,8 @@ import { getData } from './data';
 ModuleRegistry.registerModules([
     AngleCategoryAxisModule,
     AnimationModule,
-    CrossLinesModule,
     NightingaleSeriesModule,
+    PolarCrossLinesModule,
     RadiusNumberAxisModule,
 ]);
 const data = getData();

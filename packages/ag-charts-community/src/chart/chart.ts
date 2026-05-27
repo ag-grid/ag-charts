@@ -2185,9 +2185,13 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     private applyAxisModules(axis: ChartAxis, options: AgBaseAxisOptions) {
         const moduleContext = axis.createModuleContext();
         const moduleMap = axis.getModuleMap();
+        const { type: chartType } = this.constructor as any;
 
         for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
-            const pluginOpts = (options as any)[module.name];
+            if (module.chartType && module.chartType !== chartType) continue;
+
+            const optionsKey = module.optionsKey ?? module.name;
+            const pluginOpts = (options as any)[optionsKey];
             const shouldBeEnabled = pluginOpts != null;
             const isEnabled = moduleMap.isEnabled(module.name);
 

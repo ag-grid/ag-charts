@@ -2,9 +2,9 @@ import {
     AgCharts,
     AgPolarChartOptions,
     AngleCategoryAxisModule,
-    CrossLinesModule,
     ModuleRegistry,
     NightingaleSeriesModule,
+    PolarCrossLinesModule,
     RadiusNumberAxisModule,
 } from 'ag-charts-enterprise';
 
@@ -12,8 +12,8 @@ import { getData } from './data';
 
 ModuleRegistry.registerModules([
     AngleCategoryAxisModule,
-    CrossLinesModule,
     NightingaleSeriesModule,
+    PolarCrossLinesModule,
     RadiusNumberAxisModule,
 ]);
 const options: AgPolarChartOptions = {

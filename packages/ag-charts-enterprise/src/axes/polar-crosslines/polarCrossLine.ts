@@ -45,9 +45,9 @@ export class PolarCrossLineLabel extends LabelStyle implements AgBaseCrossLineLa
 /**
  * Unified polar cross-line. Branches on `direction` to render either an angle-axis or
  * radius-axis cross-line; the merged class replaces the previous abstract base + `AngleCrossLine`
- * / `RadiusCrossLine` subclass split. The factory in the enterprise `CrossLinesModule` constructs
- * with the appropriate direction; `applyPolarLayout` populates whichever fields the active
- * direction consumes (`ticks` for angle, `gridAngles` for radius).
+ * / `RadiusCrossLine` subclass split. The factory in `PolarCrossLinesModule` constructs with the
+ * appropriate direction; `applyPolarLayout` populates whichever fields the active direction
+ * consumes (`ticks` for angle, `gridAngles` for radius).
  */
 export class PolarCrossLine extends BaseProperties implements _ModuleSupport.PolarCrossLine {
     static readonly className = 'PolarCrossLine';

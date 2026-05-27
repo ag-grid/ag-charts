@@ -272,7 +272,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
 
             case 'axis:plugin':
                 for (const axis of Object.values(optionsAxes)) {
-                    const axisModuleKey = module.name as keyof typeof axis;
+                    const axisModuleKey = (module.optionsKey ?? module.name) as keyof typeof axis;
                     if (axis?.[axisModuleKey]) {
                         if (axis[axisModuleKey].enabled !== false) {
                             addMissingModule(module);
@@ -321,6 +321,16 @@ export function removeIncompatibleModuleOptions<T extends Partial<AgChartOptions
     ) => chartType == null || !module.chartType || module.chartType === chartType;
     const incompatibleModules: string[] = [];
 
+    // Axis-plugin modules can share an `optionsKey` (e.g. `CrossLinesModule` and `PolarCrossLinesModule`
+    // both expose `axis.crossLines`). Only strip an option key if no compatible axis-plugin module
+    // claims it for the current chartType.
+    const supportedAxisPluginKeys = new Set<string>();
+    for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
+        if (matchChartType(module)) {
+            supportedAxisPluginKeys.add(module.optionsKey ?? module.name);
+        }
+    }
+
     for (const module of ModuleRegistry.listModules()) {
         if (ModuleRegistry.isModuleType(ModuleType.Plugin, module)) {
             if (!matchChartType(module)) {
@@ -329,8 +339,10 @@ export function removeIncompatibleModuleOptions<T extends Partial<AgChartOptions
             }
         } else if (ModuleRegistry.isModuleType(ModuleType.AxisPlugin, module)) {
             if (hasAxesOptions && !matchChartType(module)) {
+                const optionsKey = module.optionsKey ?? module.name;
+                if (supportedAxisPluginKeys.has(optionsKey)) continue;
                 for (const axis of Object.values(options.axes as object)) {
-                    delete axis[module.name as keyof typeof axis];
+                    delete axis[optionsKey as keyof typeof axis];
                 }
                 incompatibleModules.push(module.name);
             }

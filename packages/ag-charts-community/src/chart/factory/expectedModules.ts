@@ -8,6 +8,7 @@ export interface ModulePlaceholder {
     moduleId: string;
     chartType?: ChartType;
     enterprise?: boolean;
+    optionsKey?: string;
 }
 
 /**
@@ -460,7 +461,16 @@ export const ExpectedModules = new Map<string, ModulePlaceholder>(
             {
                 type: 'axis:plugin',
                 name: 'crossLines',
+                chartType: 'cartesian',
                 moduleId: 'CrossLinesModule',
+            },
+            {
+                type: 'axis:plugin',
+                name: 'polarCrossLines',
+                chartType: 'polar',
+                optionsKey: 'crossLines',
+                enterprise: true,
+                moduleId: 'PolarCrossLinesModule',
             },
             {
                 type: 'axis:plugin',

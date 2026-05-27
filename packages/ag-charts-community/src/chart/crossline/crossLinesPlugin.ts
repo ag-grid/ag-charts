@@ -22,9 +22,12 @@ import type { CrossLine, PolarCrossLine } from './crossLine';
  *   them to the chart-level scene-graph zones owned by {@link AxisManager}. Those zones already
  *   sit at the correct z-indices for cross-line rendering.
  * - Per-instance `CrossLine` runtime is constructed by reading `ctx.crossLine`, a factory
- *   installed via `DynamicContext.factory()` by `CrossLinesModule.register`. Community installs
- *   the cartesian implementation; the enterprise `CrossLinesModule` overrides with a polar-aware
- *   factory that branches on `axisCtx.axisType`.
+ *   installed via `DynamicContext.factory()` by the owning axis-plugin module's `register` hook.
+ *   The community `CrossLinesModule` (scoped to `chartType: 'cartesian'`) installs the cartesian
+ *   implementation; the enterprise `PolarCrossLinesModule` (scoped to `chartType: 'polar'`) installs
+ *   a polar-aware factory that branches on `axisCtx.axisType` between angle and radius variants.
+ *   The two modules are distinct registry entries that share the same `optionsKey: 'crossLines'`,
+ *   so `axis.crossLines` works uniformly across cartesian and polar axes.
  * - Lifecycle is driven by the generic {@link AxisPluginModuleInstance} hooks
  *   ({@link update}, {@link layout}, {@link onScaleChange}, {@link onGridChange}). The axis
  *   invokes them generically without knowing what cross-lines are.

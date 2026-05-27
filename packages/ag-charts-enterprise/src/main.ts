@@ -15,7 +15,7 @@ export { AngleNumberAxisModule } from './axes/angle-number/angleNumberAxisModule
 export { OrdinalTimeAxisModule } from './axes/ordinal/ordinalTimeAxisModule';
 export { RadiusCategoryAxisModule } from './axes/radius-category/radiusCategoryAxisModule';
 export { RadiusNumberAxisModule } from './axes/radius-number/radiusNumberAxisModule';
-export { CrossLinesModule } from './axes/polar-crosslines/crossLinesModule';
+export { PolarCrossLinesModule } from './axes/polar-crosslines/polarCrossLinesModule';
 export { AnimationModule } from './features/animation/animationModule';
 export { AnnotationsModule } from './features/annotations/annotationsModule';
 export { BandHighlightModule } from './features/band-highlight/bandHighlightModule';

@@ -357,6 +357,17 @@
                     "isEnterprise": true
                 },
                 {
+                    "moduleName": "CrossLinesModule",
+                    "name": "Cross Lines",
+                    "path": "axes-cross-lines"
+                },
+                {
+                    "moduleName": "PolarCrossLinesModule",
+                    "name": "Polar Cross Lines",
+                    "path": "axes-cross-lines/#polar-axes-cross-lines",
+                    "isEnterprise": true
+                },
+                {
                     "moduleName": "CrosshairModule",
                     "name": "Crosshair",
                     "path": "axes-crosshairs",
