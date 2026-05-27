@@ -49,7 +49,7 @@ const { cta, chartHeight = 150 } = section;
                     : null;
 
                 return (
-                    <a href={item.link} id={`chart-example-${item.pageName}`}>
+                    <a href={urlWithBaseUrl(item.link)} id={`chart-example-${item.pageName}`}>
                         <div class={styles.card} style={{ animationDelay: `${index * 0.1}s` }}>
                             <div
                                 class:list={[styles.chartPreview, { [styles.iconPreview]: hasIcon }]}
