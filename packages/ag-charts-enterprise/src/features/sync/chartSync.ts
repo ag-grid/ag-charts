@@ -26,7 +26,7 @@ const { CartesianAxis, ContinuousScale, TimeScale, UnitTimeScale, TooltipManager
 const debug = Debug.create('sync');
 
 function getDirectionKeys(
-    series: _ModuleSupport.ISeries<any, any, any, any>,
+    series: _ModuleSupport.ISeries<any, any, any>,
     primary: ChartAxisDirection,
     secondary: ChartAxisDirection
 ) {

@@ -39,7 +39,7 @@ export type SyncChartLike = {
         zoomManager?: ZoomManager;
     };
     getTooltipContent(
-        series: ISeries<SeriesNodeDatum, ISeriesProperties>,
+        series: ISeries<SeriesNodeDatum, ISeriesProperties, unknown>,
         datumIndex: unknown,
         removeThisDatum: unknown,
         purpose: 'aria-label' | 'tooltip'
