@@ -11,10 +11,18 @@ import { ApiTopBar } from '@components/top-bar/ApiTopBar';
 import { getIsProduction, getIsArchive, getIsStaging, getIsDev } from '@utils/env';
 import { isDynamicFrameworkPath, isDynamicFrameworkPathMatch, replaceDynamicFrameworkPath } from '@utils/framework';
 import Plausible from '../components/Plausible.astro';
-import { FRAMEWORKS, SITE_BASE_URL, PUBLIC_GTM_ID, PUBLIC_GTM_AUTH, PUBLIC_GTM_PREVIEW } from '@constants';
+import { FRAMEWORKS, SITE_BASE_URL, PUBLIC_GTM_ID, PUBLIC_GTM_AUTH, PUBLIC_GTM_PREVIEW, agChartsVersion } from '@constants';
 import { DevTools } from '@ag-website-shared/components/dev-tools/DevTools';
 import GoogleTagManager from '@ag-website-shared/components/google-tag-manager/GoogleTagManager.astro';
 import GoogleTagManagerBody from '@ag-website-shared/components/google-tag-manager/GoogleTagManagerBody.astro';
+import JsonLd from '@ag-website-shared/components/structured-data/JsonLd.astro';
+import {
+    buildOrganization,
+    buildSoftwareApplication,
+    buildWebSite,
+    siteRootUrl,
+    type JsonLdObject,
+} from '@ag-website-shared/utils/structuredData';
 
 export interface Props {
     title?: string;
@@ -24,6 +32,8 @@ export interface Props {
     showDocsNav?: boolean;
     hideHeader?: boolean;
     hideFooter?: boolean;
+    noIndex?: boolean;
+    pageStructuredData?: JsonLdObject[];
 }
 
 const { data: metadata } = await getEntry('metadata', 'metadata') as CollectionEntry<'metadata'>;
@@ -36,7 +46,8 @@ const {
     showDocsNav,
     hideHeader,
     hideFooter,
-    noIndex
+    noIndex,
+    pageStructuredData,
 } = Astro.props;
 
 const path = Astro.url.pathname;
@@ -85,6 +96,49 @@ const lightModeCSSUrl = `url("${urlWithBaseUrl('/images/sun.svg')}")`;
 const darkModeCSSUrl = `url("${urlWithBaseUrl('/images/moon.svg')}")`;
 
 const isHomepage = Astro.url.pathname.replaceAll('/', '') === SITE_BASE_URL.replaceAll('/', '');
+
+const includeStructuredData = !noIndex && !isArchive;
+const sameAsUrls = includeStructuredData
+    ? footerItems.flatMap((group) => group.links.filter((link) => link.iconName).map((link) => link.url))
+    : [];
+const siteRoot = siteRootUrl(metadata.canonicalUrlBase);
+const organizationLogoUrl = `${siteRoot}images/ag-charts-social.png`;
+const licensePricingUrl = `${siteRoot}license-pricing/`;
+const structuredData: JsonLdObject[] = includeStructuredData
+    ? [
+          buildOrganization({
+              canonicalUrlBase: metadata.canonicalUrlBase,
+              name: 'AG Charts',
+              logoUrl: organizationLogoUrl,
+              sameAs: sameAsUrls,
+          }),
+          buildWebSite({
+              canonicalUrlBase: metadata.canonicalUrlBase,
+              name: metadata.title,
+              description: metadata.description,
+          }),
+          buildSoftwareApplication({
+              canonicalUrlBase: metadata.canonicalUrlBase,
+              name: 'AG Charts',
+              version: agChartsVersion.split('-')[0],
+              offers: [
+                  {
+                      '@type': 'Offer',
+                      name: 'AG Charts Community',
+                      price: '0',
+                      priceCurrency: 'USD',
+                      url: licensePricingUrl,
+                  },
+                  {
+                      '@type': 'Offer',
+                      name: 'AG Charts Enterprise',
+                      url: licensePricingUrl,
+                  },
+              ],
+          }),
+          ...(pageStructuredData ?? []),
+      ]
+    : [];
 ---
 
 <!doctype html>
@@ -126,6 +180,8 @@ const isHomepage = Astro.url.pathname.replaceAll('/', '') === SITE_BASE_URL.repl
         <meta name="twitter:title" content={title}>
         <meta name="twitter:description" content={description}>
         <meta name="twitter:image" content={socialImage}>
+
+        {structuredData.length > 0 && <JsonLd data={structuredData} />}
 
         {
             !getIsDev() && (
