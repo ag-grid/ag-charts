@@ -3,12 +3,11 @@
 //      as different files in the same family. Most icons (flag, arrows, star,
 //      chart-line) live only in solid, so segments must set fontWeight: 900.
 //   2. Canvas text rendering does not trigger font downloads — only DOM usage
-//      does. The <link> tag in index.html registers the @font-face rules, but
-//      the woff2 file is not actually fetched until something on the page asks
-//      for it. We force the fetch via document.fonts.load() and wait for it
-//      before creating the chart. The existing `loadGoogleFonts` mechanism in
-//      AG Charts only covers Google Fonts; arbitrary CSS-loaded fonts have no
-//      built-in preload gate today.
+//      does. We inject the FontAwesome stylesheet at runtime (so the example
+//      works identically across frameworks) and then force the woff2 fetch
+//      via document.fonts.load() before creating the chart. The existing
+//      `loadGoogleFonts` mechanism in AG Charts only covers Google Fonts;
+//      arbitrary CSS-loaded fonts have no built-in preload gate today.
 import {
     AgChartOptions,
     AgCharts,
@@ -109,7 +108,17 @@ const options: AgChartOptions = {
     },
 };
 
-Promise.all([
-    document.fonts.load(`${SOLID_WEIGHT} 16px "${ICON_FAMILY_SOLID}"`),
-    document.fonts.load(`400 16px "${ICON_FAMILY_SOLID}"`),
-]).then(() => AgCharts.create(options));
+const fontAwesomeReady = (() => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css';
+    link.crossOrigin = 'anonymous';
+    link.referrerPolicy = 'no-referrer';
+    document.head.appendChild(link);
+    return Promise.all([
+        document.fonts.load(`${SOLID_WEIGHT} 16px "${ICON_FAMILY_SOLID}"`),
+        document.fonts.load(`400 16px "${ICON_FAMILY_SOLID}"`),
+    ]);
+})();
+
+fontAwesomeReady.then(() => AgCharts.create(options));
