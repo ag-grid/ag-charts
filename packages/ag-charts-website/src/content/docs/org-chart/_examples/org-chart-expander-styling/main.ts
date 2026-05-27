@@ -1,8 +1,6 @@
 import {
     AgChartOptions,
     AgCharts,
-    AgOrganizationSeriesExpanderItemStylerParams,
-    AgOrganizationSeriesNodeItemStylerParams,
     ContextMenuModule,
     ModuleRegistry,
     OrganizationSeriesModule,
@@ -33,27 +31,19 @@ const options: AgChartOptions = {
                     fontWeight: 'bold',
                     color: 'red',
                 },
-                itemStyler: (params: AgOrganizationSeriesExpanderItemStylerParams) => {
-                    if (params.datum.department === 'Technology') {
-                        return { fill: '#e8f5e9', stroke: '#2e7d32' };
-                    }
-                    if (params.datum.department === 'Operations') {
-                        return { fill: '#fff3e0', stroke: '#e65100' };
-                    }
+                itemStyler: ({ datum }) => {
+                    if (datum.department === 'Technology') return { fill: '#e8f5e9', stroke: '#2e7d32' };
+                    if (datum.department === 'Operations') return { fill: '#fff3e0', stroke: '#e65100' };
                 },
             },
             node: {
                 image: { key: 'avatar', position: 'left', height: 50, width: 50, cornerRadius: 25 },
-                itemStyler: (params: AgOrganizationSeriesNodeItemStylerParams) => {
-                    if (params.datum.department === 'Executive') {
-                        return { fill: '#e3f2fd', stroke: '#1565C0', strokeWidth: 2 };
-                    }
-                    if (params.datum.department === 'Technology') {
+                itemStyler: ({ datum }) => {
+                    if (datum.department === 'Executive') return { fill: '#e3f2fd', stroke: '#1565C0', strokeWidth: 2 };
+                    if (datum.department === 'Technology')
                         return { fill: '#e8f5e9', stroke: '#2e7d32', strokeWidth: 2 };
-                    }
-                    if (params.datum.department === 'Operations') {
+                    if (datum.department === 'Operations')
                         return { fill: '#fff3e0', stroke: '#e65100', strokeWidth: 2 };
-                    }
                 },
                 title: { key: 'name' },
                 subtitle: { key: 'job' },
