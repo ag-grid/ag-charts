@@ -131,8 +131,23 @@ jobs:
               with:
                   fetch-depth: 1
 
+            # Mint a read token for ag-dev-prompts so setup-nx's postinstall
+            # (rulesync-fetch) can clone the private prompts repo and render
+            # .claude/settings.json. The orchestrator mints its own token for
+            # its own broader scopes; this one is read-only for fetch.sh.
+            - name: Mint ag-dev-prompts read token
+              id: prompts-token
+              uses: actions/create-github-app-token@v1
+              with:
+                  app-id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  owner: ag-grid
+                  repositories: ag-dev-prompts
+
             - name: Setup Nx (renders .claude/settings.json)
               uses: ./.github/actions/setup-nx
+              env:
+                  GITHUB_TOKEN: ${{ steps.prompts-token.outputs.token }}
               with:
                   cache_mode: ro
                   fetch_base: skip
@@ -168,8 +183,19 @@ jobs:
               with:
                   fetch-depth: 1
 
+            - name: Mint ag-dev-prompts read token
+              id: prompts-token
+              uses: actions/create-github-app-token@v1
+              with:
+                  app-id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  owner: ag-grid
+                  repositories: ag-dev-prompts
+
             - name: Setup Nx (renders .claude/settings.json)
               uses: ./.github/actions/setup-nx
+              env:
+                  GITHUB_TOKEN: ${{ steps.prompts-token.outputs.token }}
               with:
                   cache_mode: ro
                   fetch_base: skip
@@ -205,8 +231,19 @@ jobs:
               with:
                   fetch-depth: 1
 
+            - name: Mint ag-dev-prompts read token
+              id: prompts-token
+              uses: actions/create-github-app-token@v1
+              with:
+                  app-id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  owner: ag-grid
+                  repositories: ag-dev-prompts
+
             - name: Setup Nx (renders .claude/settings.json)
               uses: ./.github/actions/setup-nx
+              env:
+                  GITHUB_TOKEN: ${{ steps.prompts-token.outputs.token }}
               with:
                   cache_mode: ro
                   fetch_base: skip
@@ -282,8 +319,19 @@ jobs:
               with:
                   fetch-depth: 1
 
+            - name: Mint ag-dev-prompts read token
+              id: prompts-token
+              uses: actions/create-github-app-token@v1
+              with:
+                  app-id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  owner: ag-grid
+                  repositories: ag-dev-prompts
+
             - name: Setup Nx (renders .claude/settings.json)
               uses: ./.github/actions/setup-nx
+              env:
+                  GITHUB_TOKEN: ${{ steps.prompts-token.outputs.token }}
               with:
                   cache_mode: ro
                   fetch_base: skip
