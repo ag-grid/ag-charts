@@ -1,0 +1,39 @@
+name: 'Install @ag-grid/dev-prompts'
+description: >
+    Install the @ag-grid/dev-prompts npm package from GitHub Packages so the
+    composite actions shipped inside it (jira-pipeline, jira-ci-failure-preflight,
+    etc.) can be consumed via local-path `uses:` references. Required because
+    ag-dev-prompts is a private repo and the runner's GITHUB_TOKEN cannot resolve
+    `uses: ag-grid/ag-dev-prompts/...` cross-repo, but GitHub Packages honours the
+    same token with `packages: read`.
+
+inputs:
+    channel:
+        description: 'npm dist-tag to install (e.g. canary, latest)'
+        required: true
+    github-token:
+        description: 'Token with packages:read scope'
+        required: false
+        default: ${{ github.token }}
+
+runs:
+    using: composite
+    steps:
+        - name: Setup Node (GitHub Packages for @ag-grid scope)
+          uses: actions/setup-node@v4
+          with:
+              node-version: '20'
+              registry-url: https://npm.pkg.github.com
+              scope: '@ag-grid'
+
+        - name: Install @ag-grid/dev-prompts@${{ inputs.channel }}
+          shell: bash
+          env:
+              NODE_AUTH_TOKEN: ${{ inputs.github-token }}
+              DEV_PROMPTS_CHANNEL: ${{ inputs.channel }}
+          run: |
+              set -euo pipefail
+              mkdir -p "$GITHUB_WORKSPACE/.ag-dev-prompts"
+              cd "$GITHUB_WORKSPACE/.ag-dev-prompts"
+              echo '{"name":"ag-dev-prompts-install","private":true}' > package.json
+              npm install --no-save --silent "@ag-grid/dev-prompts@${DEV_PROMPTS_CHANNEL}"

@@ -19,9 +19,11 @@ name: Jira Agent Pipeline
 # gating, and the consumer-local prerequisite (setup-nx, which renders
 # .claude/settings.json for the shared action to verify).
 #
-# Pin track: ag-charts consumes ag-dev-prompts@canary (i.e. AG Charts
-# rolls with the canary track of the prompt repo; ag-grid + ag-studio
-# pin to @latest). See ag-dev-prompts release docs.
+# Consumption channel: ag-dev-prompts is a private repo, so the shared
+# actions are pulled via the @ag-grid/dev-prompts npm package on GitHub
+# Packages (see `install-ag-dev-prompts` and the `pr-review.yml` workflow
+# which uses the same pattern). ag-charts tracks the `canary` dist-tag
+# during the in-flight rollout; ag-grid + ag-studio will pin to `latest`.
 #
 # ----------------------------------------------------------------------------
 # Trigger envelopes
@@ -111,6 +113,7 @@ concurrency:
 
 env:
     ISSUE_KEY: ${{ github.event.client_payload.issue_key || inputs.issue_key }}
+    DEV_PROMPTS_CHANNEL: canary
 
 jobs:
     # -------------------------------------------------------------------- triage
@@ -122,6 +125,7 @@ jobs:
         timeout-minutes: 30
         permissions:
             contents: read
+            packages: read
         steps:
             - uses: actions/checkout@v4
               with:
@@ -133,7 +137,12 @@ jobs:
                   cache_mode: ro
                   fetch_base: skip
 
-            - uses: ag-grid/ag-dev-prompts/.github/actions/jira-pipeline@canary
+            - name: Install @ag-grid/dev-prompts
+              uses: ./.github/actions/install-ag-dev-prompts
+              with:
+                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
+
+            - uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-pipeline
               with:
                   stage: triage
                   issue_key: ${{ env.ISSUE_KEY }}
@@ -153,6 +162,7 @@ jobs:
         timeout-minutes: 60
         permissions:
             contents: read
+            packages: read
         steps:
             - uses: actions/checkout@v4
               with:
@@ -164,7 +174,12 @@ jobs:
                   cache_mode: ro
                   fetch_base: skip
 
-            - uses: ag-grid/ag-dev-prompts/.github/actions/jira-pipeline@canary
+            - name: Install @ag-grid/dev-prompts
+              uses: ./.github/actions/install-ag-dev-prompts
+              with:
+                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
+
+            - uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-pipeline
               with:
                   stage: build
                   issue_key: ${{ env.ISSUE_KEY }}
@@ -184,6 +199,7 @@ jobs:
         timeout-minutes: 60
         permissions:
             contents: read
+            packages: read
         steps:
             - uses: actions/checkout@v4
               with:
@@ -195,7 +211,12 @@ jobs:
                   cache_mode: ro
                   fetch_base: skip
 
-            - uses: ag-grid/ag-dev-prompts/.github/actions/jira-pipeline@canary
+            - name: Install @ag-grid/dev-prompts
+              uses: ./.github/actions/install-ag-dev-prompts
+              with:
+                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
+
+            - uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-pipeline
               with:
                   stage: pr-iterate
                   issue_key: ${{ env.ISSUE_KEY }}
@@ -209,7 +230,9 @@ jobs:
     # -------------------------------------------------- ci-failure-iterate
     # Preflight is intentionally cheap: parse the branch, look up the PR
     # author via the default token, query AI status via Jira REST. No App
-    # token mint, no checkout, no agent invocation. Skipped runs cost ~2s.
+    # token mint, no agent invocation. A shallow checkout + npm install of
+    # @ag-grid/dev-prompts is required to resolve the shared preflight
+    # action; skipped runs (no eligible workflow_run) avoid this entirely.
     ci-failure-preflight:
         if: |
             github.event_name == 'workflow_run' &&
@@ -220,14 +243,24 @@ jobs:
         permissions:
             contents: read
             pull-requests: read
+            packages: read
         outputs:
             eligible: ${{ steps.gate.outputs.eligible }}
             issue_key: ${{ steps.gate.outputs.issue_key }}
             run_url: ${{ steps.gate.outputs.run_url }}
             head_sha: ${{ steps.gate.outputs.head_sha }}
         steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Install @ag-grid/dev-prompts
+              uses: ./.github/actions/install-ag-dev-prompts
+              with:
+                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
+
             - id: gate
-              uses: ag-grid/ag-dev-prompts/.github/actions/jira-ci-failure-preflight@canary
+              uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-ci-failure-preflight
               with:
                   head_branch: ${{ github.event.workflow_run.head_branch }}
                   head_sha: ${{ github.event.workflow_run.head_sha }}
@@ -243,6 +276,7 @@ jobs:
         timeout-minutes: 60
         permissions:
             contents: read
+            packages: read
         steps:
             - uses: actions/checkout@v4
               with:
@@ -254,7 +288,12 @@ jobs:
                   cache_mode: ro
                   fetch_base: skip
 
-            - uses: ag-grid/ag-dev-prompts/.github/actions/jira-pipeline@canary
+            - name: Install @ag-grid/dev-prompts
+              uses: ./.github/actions/install-ag-dev-prompts
+              with:
+                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
+
+            - uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-pipeline
               with:
                   stage: ci-failure-iterate
                   issue_key: ${{ needs.ci-failure-preflight.outputs.issue_key }}
