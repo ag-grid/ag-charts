@@ -858,10 +858,10 @@ describe('DataSelection', () => {
             const SELECTION_S3C: [AgSelectionItem<D>] = [{ itemId: 2, seriesId: 's3id', datum: DATUM_S3C }];
             const SELECTION_S4E: [AgSelectionItem<D>] = [{ itemId: 4, seriesId: 's4id', datum: DATUM_S4E }];
             const SELECTION_S5D: [AgSelectionItem<D>] = [{ itemId: 3, seriesId: 's5id', datum: DATUM_S5D }];
-            const SELECTION_S3C_S4E = [SELECTION_S3C[0], SELECTION_S4E[0]];
-            const SELECTION_S2A_S3C_S4E = [SELECTION_S2A[0], SELECTION_S3C[0], SELECTION_S4E[0]];
-            const SELECTION_S1D_S2A_S3C_S4E = [SELECTION_S1D[0], SELECTION_S2A[0], SELECTION_S3C[0], SELECTION_S4E[0]];
-            const SELECTION_S2A_S3C_S4E_S5D = [SELECTION_S2A[0], SELECTION_S3C[0], SELECTION_S4E[0], SELECTION_S5D[0]];
+            const SELECTION_S4E_S3C = [SELECTION_S4E[0], SELECTION_S3C[0]];
+            const SELECTION_S2A_S4E_S3C = [SELECTION_S2A[0], SELECTION_S4E[0], SELECTION_S3C[0]];
+            const SELECTION_S1D_S2A_S4E_S3C = [SELECTION_S1D[0], SELECTION_S2A[0], SELECTION_S4E[0], SELECTION_S3C[0]];
+            const SELECTION_S2A_S4E_S5D_S3C = [SELECTION_S2A[0], SELECTION_S4E[0], SELECTION_S5D[0], SELECTION_S3C[0]];
 
             const ADDED_S1D = uiChangeEvent<D, C>({ added: SELECTION_S1D, removed: [] });
             const ADDED_S2A = uiChangeEvent<D, C>({ added: SELECTION_S2A, removed: [] });
@@ -869,11 +869,11 @@ describe('DataSelection', () => {
             const ADDED_S4E = uiChangeEvent<D, C>({ added: SELECTION_S4E, removed: [] });
             const ADDED_S5D = uiChangeEvent<D, C>({ added: SELECTION_S5D, removed: [] });
             const REMOVED_S2A = uiChangeEvent<D, C>({ added: [], removed: SELECTION_S2A });
-            const REMOVED_S3C_S4E = uiChangeEvent<D, C>({ added: [], removed: SELECTION_S3C_S4E });
-            const REMOVED_S2A_S3C_S4E = uiChangeEvent<D, C>({ added: [], removed: SELECTION_S2A_S3C_S4E });
-            const ADDED_S1D_REMOVED_S2A_S3C_S4E = uiChangeEvent<D, C>({
+            const REMOVED_S4E_S3C = uiChangeEvent<D, C>({ added: [], removed: SELECTION_S4E_S3C });
+            const REMOVED_S2A_S4E_S3C = uiChangeEvent<D, C>({ added: [], removed: SELECTION_S2A_S4E_S3C });
+            const ADDED_S1D_REMOVED_S2A_S4E_S3C = uiChangeEvent<D, C>({
                 added: SELECTION_S1D,
-                removed: SELECTION_S2A_S3C_S4E,
+                removed: SELECTION_S2A_S4E_S3C,
             });
 
             describe('single', () => {
@@ -905,7 +905,7 @@ describe('DataSelection', () => {
                             await compareExact('stack-mix-highlighted-s4e-selected-s2a-s3c-s4e');
                         });
                         test('getSelection', () => {
-                            expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
+                            expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S3C);
                         });
                         test('selectionChange', () => {
                             expect(selectionChange.popEvents()).toEqual([ADDED_S2A, ADDED_S3C, ADDED_S4E]);
@@ -926,7 +926,7 @@ describe('DataSelection', () => {
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_MISS1);
-                                expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S3C_S4E]);
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S4E_S3C]);
                             });
                         });
                         describe.skip('miss2', () => {
@@ -941,7 +941,7 @@ describe('DataSelection', () => {
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_MISS2);
-                                expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S3C_S4E]);
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S4E_S3C]);
                             });
                         });
                         describe('ctrl-miss1', () => {
@@ -952,7 +952,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_MISS1, { ctrlKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S3C);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_MISS1, { ctrlKey });
@@ -967,7 +967,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_MISS1, { metaKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S3C);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_MISS1, { metaKey });
@@ -985,7 +985,7 @@ describe('DataSelection', () => {
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S6B);
-                                expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S3C_S4E]);
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S4E_S3C]);
                             });
                         });
                         describe('ctrl-click selection-disabled series', () => {
@@ -996,7 +996,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S6C, { ctrlKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S3C);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S6C, { ctrlKey });
@@ -1011,7 +1011,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S6B, { metaKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S3C);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S6B, { metaKey });
@@ -1029,7 +1029,7 @@ describe('DataSelection', () => {
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S1D);
-                                expect(selectionChange.popEvents()).toEqual([ADDED_S1D_REMOVED_S2A_S3C_S4E]);
+                                expect(selectionChange.popEvents()).toEqual([ADDED_S1D_REMOVED_S2A_S4E_S3C]);
                             });
                         });
                         describe('ctrl-click selection-enabled series', () => {
@@ -1039,7 +1039,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S1D_S2A_S3C_S4E);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S1D_S2A_S4E_S3C);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
@@ -1053,7 +1053,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S5D, { metaKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E_S5D);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S5D_S3C);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S5D, { metaKey });
@@ -1071,7 +1071,7 @@ describe('DataSelection', () => {
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S2A);
-                                expect(selectionChange.popEvents()).toEqual([REMOVED_S3C_S4E]);
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_S4E_S3C]);
                             });
                         });
                         describe('ctrl-click selected', () => {
@@ -1081,7 +1081,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S2A, { ctrlKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S3C_S4E);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S4E_S3C);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S2A, { ctrlKey });
@@ -1095,7 +1095,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S2A, { metaKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S3C_S4E);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S4E_S3C);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S2A, { metaKey });
@@ -1135,7 +1135,7 @@ describe('DataSelection', () => {
                             await compareExact('stack-mix-highlighted-s4e-selected-s2a-s3c-s4e');
                         });
                         test('getSelection', () => {
-                            expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
+                            expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S3C);
                         });
                         test('selectionChange', () => {
                             expect(selectionChange.popEvents()).toEqual([ADDED_S2A, ADDED_S3C, ADDED_S4E]);
@@ -1156,7 +1156,7 @@ describe('DataSelection', () => {
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_MISS1);
-                                expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S3C_S4E]);
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S4E_S3C]);
                             });
                         });
                         describe('ctrl-miss1', () => {
@@ -1167,7 +1167,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_MISS1, { ctrlKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S3C);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_MISS1, { ctrlKey });
@@ -1182,7 +1182,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_MISS1, { metaKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S3C);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_MISS1, { metaKey });
@@ -1200,7 +1200,7 @@ describe('DataSelection', () => {
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S6B);
-                                expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S3C_S4E]);
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_S2A_S4E_S3C]);
                             });
                         });
                         describe('ctrl-click selection-disabled series', () => {
@@ -1211,7 +1211,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S6C, { ctrlKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S3C);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S6C, { ctrlKey });
@@ -1225,7 +1225,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S1D_S2A_S3C_S4E);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S1D_S2A_S4E_S3C);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
@@ -1239,7 +1239,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S1D_S2A_S3C_S4E);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S1D_S2A_S4E_S3C);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S1D, { ctrlKey });
@@ -1253,7 +1253,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S5D, { metaKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S3C_S4E_S5D);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S2A_S4E_S5D_S3C);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S5D, { metaKey });
@@ -1267,7 +1267,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S2A, { ctrlKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S3C_S4E);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S4E_S3C);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S2A, { ctrlKey });
@@ -1281,7 +1281,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S2A, { ctrlKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S3C_S4E);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S4E_S3C);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S2A, { ctrlKey });
@@ -1295,7 +1295,7 @@ describe('DataSelection', () => {
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_S2A, { metaKey });
-                                expect(getChartSelectionArray()).toEqual(SELECTION_S3C_S4E);
+                                expect(getChartSelectionArray()).toEqual(SELECTION_S4E_S3C);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_S2A, { metaKey });
