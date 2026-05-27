@@ -1,4 +1,4 @@
-import type { OverflowStrategy, TextOrSegments, TextSegment, TextWrap } from 'ag-charts-types';
+import type { OverflowStrategy, Segment, TextOrSegments, TextWrap } from 'ag-charts-types';
 
 import { cachedTextMeasurer, measureTextSegments } from '../../rendering/textMeasurer';
 import type { ITextMeasurer, MeasuredSegment } from '../../types/text';
@@ -33,7 +33,7 @@ function shouldHideOverflow(clippedResult: string[], options: WrapOptions) {
 }
 
 export function wrapTextOrSegments(text: string, options: WrapOptions): string;
-export function wrapTextOrSegments(segments: TextSegment[], options: WrapOptions): MeasuredSegment[];
+export function wrapTextOrSegments(segments: Segment[], options: WrapOptions): MeasuredSegment[];
 export function wrapTextOrSegments(input: TextOrSegments, options: WrapOptions): string | MeasuredSegment[];
 export function wrapTextOrSegments(input: TextOrSegments, options: WrapOptions) {
     return isArray(input) ? wrapTextSegments(input, options) : wrapLines(toTextString(input), options).join('\n');
@@ -262,7 +262,52 @@ function avoidOrphans(lines: string[], measurer: ITextMeasurer, options: WrapOpt
     }
 }
 
-export function wrapTextSegments(textSegments: TextSegment[], options: WrapOptions): MeasuredSegment[] {
+export function wrapTextSegments(textSegments: Segment[], options: WrapOptions): MeasuredSegment[] {
+    // Fast path: no images, use the text-only fitting pipeline directly.
+    if (!textSegments.some((s) => s.type === 'image')) {
+        return fitMeasuredSegments(textSegments, options);
+    }
+
+    // Drop sequence per AG-15933: (1) shed 'hide' images rightmost-first, (2) truncate text,
+    // (3) shed 'keep' images rightmost-first, (4) hide entire label. Steps 2 and 4 fall out of
+    // the existing fitMeasuredSegments behaviour; image dropping happens here.
+    let working = textSegments;
+    let result = fitMeasuredSegments(working, options);
+
+    for (const strategy of ['hide', 'keep'] as const) {
+        while (!resultFitsAllSegments(working, result)) {
+            const next = dropRightmostImage(working, strategy);
+            if (!next) break;
+            working = next;
+            result = fitMeasuredSegments(working, options);
+        }
+    }
+
+    return result;
+}
+
+function resultFitsAllSegments(input: Segment[], output: MeasuredSegment[]): boolean {
+    // Result is "fit" when no text segment was ellipsis-truncated AND every image in input
+    // is present in the output.
+    for (const seg of output) {
+        if (seg.type !== 'image' && isTextTruncated(seg.text)) return false;
+    }
+    const inputImageCount = input.reduce((n, s) => n + (s.type === 'image' ? 1 : 0), 0);
+    const outputImageCount = output.reduce((n, s) => n + (s.type === 'image' ? 1 : 0), 0);
+    return outputImageCount >= inputImageCount;
+}
+
+function dropRightmostImage(segments: Segment[], strategy: 'hide' | 'keep'): Segment[] | null {
+    for (let i = segments.length - 1; i >= 0; i--) {
+        const s = segments[i];
+        if (s.type === 'image' && (s.overflowStrategy ?? 'hide') === strategy) {
+            return [...segments.slice(0, i), ...segments.slice(i + 1)];
+        }
+    }
+    return null;
+}
+
+function fitMeasuredSegments(textSegments: Segment[], options: WrapOptions): MeasuredSegment[] {
     const { maxHeight = Infinity } = options;
     const result: MeasuredSegment[] = [];
 
@@ -272,6 +317,8 @@ export function wrapTextSegments(textSegments: TextSegment[], options: WrapOptio
     function truncateLastSegment() {
         const lastSegment = result.pop();
         if (!lastSegment) return;
+        // Images cannot be truncated with an ellipsis; drop them entirely.
+        if (lastSegment.type === 'image') return;
         const measurer = cachedTextMeasurer(lastSegment);
         const truncatedText = truncateLine(lastSegment.text, measurer, options.maxWidth, true);
         const textMetrics = measurer.measureText(truncatedText);
@@ -300,6 +347,13 @@ export function wrapTextSegments(textSegments: TextSegment[], options: WrapOptio
                 continue;
             }
 
+            // An image segment that doesn't fit cannot be subdivided. Stop fitting this label;
+            // overflow-strategy-based dropping is handled by the caller (see wrapSegmentsWithOverflow).
+            if (segment.type === 'image') {
+                truncateLastSegment();
+                return result;
+            }
+
             const measurer = cachedTextMeasurer(segment);
             const guardedText = guardTextEdges(segment.text);
             const wrapOptions = { ...options, font: segment, maxHeight: maxHeight - totalHeight };
@@ -311,7 +365,7 @@ export function wrapTextSegments(textSegments: TextSegment[], options: WrapOptio
                 } else {
                     wrappedLines = textWrap(guardedText, wrapOptions);
                     const lastSegment = result.at(-1);
-                    if (lastSegment) {
+                    if (lastSegment && lastSegment.type !== 'image') {
                         lastSegment.text += '\n';
                         lineWidth = 0;
                     }

@@ -130,7 +130,7 @@ export function toPlainText(text?: TextOrSegments, fallback = ''): string {
     if (text == null) {
         return fallback;
     } else if (isArray(text)) {
-        return text.map((segment) => toTextString(segment.text)).join('');
+        return text.map((segment) => (segment.type === 'image' ? '' : toTextString(segment.text))).join('');
     } else if (isString(text)) {
         return text;
     } else {

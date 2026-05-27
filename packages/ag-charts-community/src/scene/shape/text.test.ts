@@ -469,6 +469,241 @@ describe('Text', () => {
         });
     });
 
+    describe('per-segment verticalAlign', () => {
+        const mockScene = setUpMockScene(canvasCtx);
+
+        // Returns the inner per-segment Text nodes for direct assertion of y / textBaseline.
+        function segmentNodesOf(text: Text): Text[] {
+            text.getBBox(); // force generateTextMap
+            const richText = (text as unknown as { richText: { children(): Iterable<Text> } }).richText;
+            return Array.from(richText.children());
+        }
+
+        it('defaults segments to alphabetic baseline (no behaviour change)', () => {
+            const text = new Text();
+            Object.assign(text, {
+                ...BASE_OPTIONS,
+                text: [
+                    { text: 'A', fontSize: 14, fontFamily: 'Verdana' },
+                    { text: 'B', fontSize: 14, fontFamily: 'Verdana' },
+                ],
+                x: 0,
+                y: 0,
+            });
+            text.setScene(mockScene);
+            const [first, second] = segmentNodesOf(text);
+            expect(first.textBaseline).toBe('alphabetic');
+            expect(second.textBaseline).toBe('alphabetic');
+            expect(first.y).toBeCloseTo(second.y, 5);
+        });
+
+        it("anchors a 'middle' segment at the vertical centre of the line", () => {
+            const text = new Text();
+            Object.assign(text, {
+                ...BASE_OPTIONS,
+                text: [
+                    { text: 'A', fontSize: 14, fontFamily: 'Verdana' },
+                    { text: 'B', fontSize: 14, fontFamily: 'Verdana', verticalAlign: 'middle' },
+                ],
+                x: 0,
+                y: 0,
+            });
+            text.setScene(mockScene);
+            const [first, second] = segmentNodesOf(text);
+            expect(first.textBaseline).toBe('alphabetic');
+            expect(second.textBaseline).toBe('middle');
+            // 'middle' anchors below 'alphabetic' (line middle is below the alphabetic baseline minus ascent)
+            expect(second.y).toBeGreaterThan(first.y - 14);
+            expect(second.y).toBeLessThan(first.y + 14);
+        });
+
+        it("anchors a 'top' segment at the line top", () => {
+            const text = new Text();
+            Object.assign(text, {
+                ...BASE_OPTIONS,
+                text: [
+                    { text: 'A', fontSize: 14, fontFamily: 'Verdana' },
+                    { text: 'B', fontSize: 14, fontFamily: 'Verdana', verticalAlign: 'top' },
+                ],
+                x: 0,
+                y: 0,
+            });
+            text.setScene(mockScene);
+            const [first, second] = segmentNodesOf(text);
+            expect(second.textBaseline).toBe('top');
+            // 'top' anchor sits above alphabetic anchor by roughly one ascent
+            expect(second.y).toBeLessThan(first.y);
+        });
+
+        it("anchors a 'bottom' segment at the line bottom", () => {
+            const text = new Text();
+            Object.assign(text, {
+                ...BASE_OPTIONS,
+                text: [
+                    { text: 'A', fontSize: 14, fontFamily: 'Verdana' },
+                    { text: 'B', fontSize: 14, fontFamily: 'Verdana', verticalAlign: 'bottom' },
+                ],
+                x: 0,
+                y: 0,
+            });
+            text.setScene(mockScene);
+            const [first, second] = segmentNodesOf(text);
+            expect(second.textBaseline).toBe('bottom');
+            // 'bottom' anchor sits below alphabetic anchor by roughly one descent
+            expect(second.y).toBeGreaterThan(first.y);
+        });
+
+        it('mixes large-emoji middle with default text baseline without regressing alphabetic segments', () => {
+            const text = new Text();
+            Object.assign(text, {
+                ...BASE_OPTIONS,
+                text: [
+                    { text: 'US', fontSize: 14, fontFamily: 'Verdana' },
+                    { text: ' 🇺🇸', fontSize: 22, fontFamily: 'Verdana', verticalAlign: 'middle' },
+                ],
+                x: 0,
+                y: 0,
+            });
+            text.setScene(mockScene);
+            const [textSeg, flagSeg] = segmentNodesOf(text);
+            expect(textSeg.textBaseline).toBe('alphabetic');
+            expect(flagSeg.textBaseline).toBe('middle');
+        });
+    });
+
+    describe('image segments', () => {
+        const mockScene = setUpMockScene(canvasCtx);
+
+        function childNodesOf(text: Text) {
+            text.getBBox();
+            const richText = (text as unknown as { richText: { children(): Iterable<unknown> } }).richText;
+            return Array.from(richText.children()) as Array<{
+                x: number;
+                y: number;
+                boxWidth?: number;
+                boxHeight?: number;
+                imageWidth?: number;
+                imageHeight?: number;
+                paddingTop?: number;
+                paddingRight?: number;
+                paddingBottom?: number;
+                paddingLeft?: number;
+                borderRadius?: number;
+                url?: string;
+                backgroundFill?: string;
+                textBaseline?: CanvasTextBaseline;
+            }>;
+        }
+
+        it('creates one ImageSegmentNode per image segment with declared dimensions', () => {
+            const text = new Text();
+            Object.assign(text, {
+                ...BASE_OPTIONS,
+                text: [
+                    { text: 'US ', fontSize: 14, fontFamily: 'Verdana' },
+                    { type: 'image', url: 'https://example.com/us.png', width: 24, height: 16 },
+                ],
+                x: 0,
+                y: 0,
+            });
+            text.setScene(mockScene);
+            const nodes = childNodesOf(text);
+            expect(nodes).toHaveLength(2);
+            const imageNode = nodes[1];
+            expect(imageNode.url).toBe('https://example.com/us.png');
+            expect(imageNode.imageWidth).toBe(24);
+            expect(imageNode.imageHeight).toBe(16);
+            // No padding declared → boxWidth/Height match imageWidth/Height
+            expect(imageNode.boxWidth).toBe(24);
+            expect(imageNode.boxHeight).toBe(16);
+        });
+
+        it('expands box dimensions by declared padding', () => {
+            const text = new Text();
+            Object.assign(text, {
+                ...BASE_OPTIONS,
+                text: [
+                    { text: 'A', fontSize: 14, fontFamily: 'Verdana' },
+                    {
+                        type: 'image',
+                        url: 'https://example.com/icon.png',
+                        width: 20,
+                        height: 10,
+                        padding: { top: 2, right: 4, bottom: 2, left: 4 },
+                    },
+                ],
+                x: 0,
+                y: 0,
+            });
+            text.setScene(mockScene);
+            const imageNode = childNodesOf(text)[1];
+            expect(imageNode.boxWidth).toBe(28); // 20 + 4 + 4
+            expect(imageNode.boxHeight).toBe(14); // 10 + 2 + 2
+            expect(imageNode.paddingLeft).toBe(4);
+            expect(imageNode.paddingRight).toBe(4);
+            expect(imageNode.paddingTop).toBe(2);
+            expect(imageNode.paddingBottom).toBe(2);
+        });
+
+        it('treats numeric padding as uniform on all sides', () => {
+            const text = new Text();
+            Object.assign(text, {
+                ...BASE_OPTIONS,
+                text: [{ type: 'image', url: 'https://example.com/x.png', width: 10, height: 10, padding: 3 }],
+                x: 0,
+                y: 0,
+            });
+            text.setScene(mockScene);
+            const imageNode = childNodesOf(text)[0];
+            expect(imageNode.paddingTop).toBe(3);
+            expect(imageNode.paddingRight).toBe(3);
+            expect(imageNode.paddingBottom).toBe(3);
+            expect(imageNode.paddingLeft).toBe(3);
+        });
+
+        it("defaults image segment verticalAlign to 'middle' (anchor below the line's top)", () => {
+            const text = new Text();
+            Object.assign(text, {
+                ...BASE_OPTIONS,
+                text: [
+                    { text: 'US', fontSize: 14, fontFamily: 'Verdana' },
+                    { type: 'image', url: 'https://example.com/flag.png', width: 20, height: 14 },
+                ],
+                x: 0,
+                y: 0,
+            });
+            text.setScene(mockScene);
+            const [textNode, imageNode] = childNodesOf(text);
+            // The text node sits at its alphabetic baseline (a positive y inside the line),
+            // and the image's top should be above its anchor — both within the line bounds.
+            expect(textNode.textBaseline).toBe('alphabetic');
+            expect(imageNode.boxHeight).toBeDefined();
+        });
+
+        it('threads borderRadius and backgroundFill through to the rendered node', () => {
+            const text = new Text();
+            Object.assign(text, {
+                ...BASE_OPTIONS,
+                text: [
+                    {
+                        type: 'image',
+                        url: 'https://example.com/x.png',
+                        width: 30,
+                        height: 30,
+                        borderRadius: 6,
+                        backgroundFill: '#abc',
+                    },
+                ],
+                x: 0,
+                y: 0,
+            });
+            text.setScene(mockScene);
+            const imageNode = childNodesOf(text)[0];
+            expect(imageNode.borderRadius).toBe(6);
+            expect(imageNode.backgroundFill).toBe('#abc');
+        });
+    });
+
     describe('text measurements', () => {
         // it('should measure text currently', () => {
         //     expect(

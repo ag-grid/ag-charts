@@ -1,4 +1,4 @@
-import type { TextSegment } from 'ag-charts-types';
+import type { ImageSegment, Padding, PaddingOptions, Segment } from 'ag-charts-types';
 
 import { LRUCache } from '../structures/lruCache';
 import {
@@ -116,14 +116,39 @@ export function cachedTextMeasurer(font: string | FontOptions): TextMeasurer {
 
 cachedTextMeasurer.clear = () => instanceMap.clear();
 
-export function measureTextSegments(
-    textSegments: TextSegment[],
-    defaultFont: FontOptions
-): MultilineSegmentsMetricsBox {
+function resolvePadding(padding: Padding | undefined): Required<PaddingOptions> {
+    if (padding == null) return { top: 0, right: 0, bottom: 0, left: 0 };
+    if (typeof padding === 'number') return { top: padding, right: padding, bottom: padding, left: padding };
+    return {
+        top: padding.top ?? 0,
+        right: padding.right ?? 0,
+        bottom: padding.bottom ?? 0,
+        left: padding.left ?? 0,
+    };
+}
+
+export function imageSegmentBox(segment: ImageSegment): TextMetricsBox {
+    const pad = resolvePadding(segment.padding);
+    const width = segment.width + pad.left + pad.right;
+    const height = segment.height + pad.top + pad.bottom;
+    return { width, height, ascent: height, descent: 0 };
+}
+
+export function measureTextSegments(textSegments: Segment[], defaultFont: FontOptions): MultilineSegmentsMetricsBox {
     let currentLine: SegmentsLineMetrics = { segments: [], width: 0, height: 0, ascent: 0, descent: 0 };
     const lineMetrics: SegmentsLineMetrics[] = [currentLine];
 
     for (const segment of textSegments) {
+        if (segment.type === 'image') {
+            const textMetrics = imageSegmentBox(segment);
+            currentLine.width += textMetrics.width;
+            currentLine.ascent = Math.max(currentLine.ascent, textMetrics.ascent);
+            currentLine.descent = Math.max(currentLine.descent, textMetrics.descent);
+            currentLine.height = Math.max(currentLine.height, currentLine.ascent + currentLine.descent);
+            currentLine.segments.push({ ...segment, textMetrics });
+            continue;
+        }
+
         const {
             text,
             fontSize = defaultFont.fontSize,

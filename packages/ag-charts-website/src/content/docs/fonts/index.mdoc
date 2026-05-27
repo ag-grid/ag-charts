@@ -76,6 +76,72 @@ In the above example:
 - Each text segment can have independent font styling (size, weight, color, style, family).
 - Newline characters (`\n`) separate segments across multiple lines.
 
+### Aligning Segments Vertically
+
+When a segment uses a larger `fontSize` than the rest of the line — a flag emoji next to a country code, an icon glyph next to text — the segments share an alphabetic baseline by default, which can leave the larger glyph riding high. Set `verticalAlign` on the segment to centre it against the line instead.
+
+```js format="snippet"
+{
+    axes: {
+        x: {
+            type: 'category',
+            label: {
+                formatter: ({ value }) => [
+                    { text: '🇺🇸 ', fontSize: 18, verticalAlign: 'middle' },
+                    { text: String(value), fontWeight: 'bold' },
+                ],
+            },
+        },
+    },
+}
+```
+
+`verticalAlign` accepts `'alphabetic'` (default), `'top'`, `'middle'`, or `'bottom'`. The setting applies per-segment, so a single line can mix baseline-aligned text with centred emoji or icon glyphs.
+
+## Inline Images
+
+Place images alongside text in any label that accepts text segments — axis labels, series labels, captions, and navigator labels. An image segment uses `type: 'image'` and requires `width` and `height` so layout space is reserved before the image finishes loading.
+
+{% chartExampleRunner title="Inline Images" name="inline-images" type="generated" /%}
+
+```js format="snippet"
+{
+    axes: {
+        x: {
+            type: 'category',
+            label: {
+                formatter: ({ value }) => [
+                    {
+                        type: 'image',
+                        url: `https://flagcdn.com/40x30/${value}.png`,
+                        width: 20,
+                        height: 15,
+                        verticalAlign: 'middle',
+                    },
+                    { text: ` ${String(value).toUpperCase()}`, fontWeight: 'bold' },
+                ],
+            },
+        },
+    },
+}
+```
+
+An image segment supports:
+
+- `verticalAlign` — alignment against the line baseline. Defaults to `'middle'`.
+- `padding`, `borderRadius`, `border`, `backgroundFill` — decoration drawn around the image, with the `backgroundFill` also acting as the placeholder while the image loads or if loading fails.
+- `overflowStrategy: 'hide' | 'keep'` — controls drop priority when a label exceeds its allotted width. `'hide'` images are shed before text is truncated; `'keep'` images are preserved until truncated text alone can no longer fit.
+
+## Inline Emoji and Icons
+
+Emoji render through native canvas, no API changes required.
+
+{% chartExampleRunner title="Inline Emoji" name="inline-emoji" type="generated" /%}
+
+Font icons (e.g. FontAwesome) load via a CSS `<link>` in the example's `index.html` and apply per-segment through `fontFamily` and `fontWeight`. Because canvas text rendering does not trigger font downloads, the example also awaits `document.fonts.load(...)` before creating the chart.
+
+{% chartExampleRunner title="Inline Font Icons" name="inline-font-icons" type="generated" /%}
+
 ## Font Theme Parameters
 
 The font options for the whole chart can be set once, by using [theme parameters](./themes/#parameters).

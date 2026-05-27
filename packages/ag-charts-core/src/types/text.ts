@@ -1,4 +1,4 @@
-import type { FontFamily, FontSize, FontStyle, FontWeight, TextSegment } from 'ag-charts-types';
+import type { FontFamily, FontSize, FontStyle, FontWeight, ImageSegment, TextSegment } from 'ag-charts-types';
 
 import type { Writeable } from './global';
 import type { Size } from './scene';
@@ -32,11 +32,18 @@ export interface MultilineTextMetricsBox {
     lineMetrics: LineMetricsBox[];
 }
 
-export interface MeasuredSegment extends Omit<TextSegment, 'text'> {
+export interface MeasuredTextSegment extends Omit<TextSegment, 'text'> {
     text: string;
     fontSize: number;
     textMetrics: TextMetricsBox;
 }
+
+export interface MeasuredImageSegment extends ImageSegment {
+    /** Box equivalent for layout: width + horizontal padding, height + vertical padding, ascent = height. */
+    textMetrics: TextMetricsBox;
+}
+
+export type MeasuredSegment = MeasuredTextSegment | MeasuredImageSegment;
 
 export interface SegmentsLineMetrics extends Size {
     ascent: number;

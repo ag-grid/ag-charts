@@ -44,7 +44,7 @@ function textOrSegmentsIsDefined(value: TextOrSegments | undefined): value is Te
     if (value == null) {
         return false;
     } else if (Array.isArray(value)) {
-        return value.some((segment) => textOrSegmentsIsDefined(segment.text));
+        return value.some((segment) => segment.type !== 'image' && textOrSegmentsIsDefined(segment.text));
     } else {
         return toTextString(value).trim() !== '';
     }

@@ -24,6 +24,8 @@ import {
     type AgTooltipRendererDataRow,
     type AgTooltipRendererResult,
     type FormatterPropertyType,
+    type ImageSegment,
+    type Segment,
     type TextSegment,
     type ToolbarButton,
 } from 'ag-charts-types';
@@ -152,17 +154,43 @@ const tooltipPlacementValidator = union(
 );
 export const rangeValidator = or(positiveNumber, union('exact', 'nearest', 'area'));
 export const seriesTooltipRangeValidator = or(positiveNumber, union('exact', 'nearest'));
+const verticalAlignValidator = union('alphabetic', 'top', 'middle', 'bottom', 'hanging', 'ideographic');
+
+const textSegmentDefs: OptionsDefs<TextSegment> = {
+    type: undocumented(union('text')),
+    text: required(string),
+    verticalAlign: verticalAlignValidator,
+    ...fontOptionsDef,
+};
+
+const imageSegmentDefs: OptionsDefs<ImageSegment> = {
+    type: required(union('image')),
+    url: required(string),
+    width: required(positiveNumber),
+    height: required(positiveNumber),
+    verticalAlign: verticalAlignValidator,
+    overflowStrategy: union('keep', 'hide'),
+    padding,
+    borderRadius: positiveNumber,
+    border: borderOptionsDef,
+    backgroundFill: color,
+};
+
+const textSegmentValidator: Validator = optionsDefs(textSegmentDefs);
+const imageSegmentValidator: Validator = optionsDefs(imageSegmentDefs);
+
+const segmentValidator = attachDescription((value: unknown, context: ValidatorContext): boolean | ValidatorResult => {
+    if (value != null && typeof value === 'object' && (value as Segment).type === 'image') {
+        return imageSegmentValidator(value, context);
+    }
+    return textSegmentValidator(value, context);
+}, 'a text or image segment');
+
 export const textOrSegments = or(
     string,
     number,
     date,
-    arrayOfDefs<TextSegment>(
-        {
-            text: required(string),
-            ...fontOptionsDef,
-        },
-        'text segments array'
-    )
+    arrayOf(segmentValidator, 'text or image segments array', false)
 );
 
 const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {

@@ -14,14 +14,15 @@ import {
     toPlainText,
     toTextString,
 } from 'ag-charts-core';
-import type { FontStyle, FontWeight, Opacity, Padding, PixelSize, TextOrSegments } from 'ag-charts-types';
+import type { FontStyle, FontWeight, Opacity, Padding, PixelSize, Segment, TextOrSegments } from 'ag-charts-types';
 
 import { BBox } from '../bbox';
 import { Group } from '../group';
-import type { IScene, NodeOptions, RenderContext } from '../node';
+import type { IScene, Node, NodeOptions, RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
 import { DebugSelectors } from '../sceneDebug';
 import { Rotatable, type RotatableType, Translatable, type TranslatableType } from '../transformable';
+import { ImageSegmentNode } from './imageSegmentNode';
 import { Rect } from './rect';
 import { Shape, type ShapeColor } from './shape';
 import { setSvgFontAttributes } from './svgUtils';
@@ -53,7 +54,8 @@ export class Text<D = unknown> extends Shape<D> {
     private static readonly defaultFontSize = 10;
 
     private richText?: Group;
-    private textMap?: Map<Text, BoxBounds>;
+    private textMap?: Map<Node, BoxBounds>;
+    private generatingTextMap = false;
 
     @SceneChangeDetection()
     x: number = 0;
@@ -69,13 +71,22 @@ export class Text<D = unknown> extends Shape<D> {
         if (isArray(this.text)) {
             this.lines = [];
             this.richText ??= new Group();
+            // Set parent so markDirty from segment children (e.g. ImageSegmentNode on async
+            // image load) propagates up through Text to any cached parent group; otherwise
+            // a titleGroup with renderToOffscreenCanvas would keep showing its stale bitmap.
+            this.richText.parentNode = this;
             this.richText.setScene(this.scene);
-            this.richText.append(
-                this.text
-                    .flatMap((s) => toTextString(s.text).split(LineSplitter))
-                    .filter(Boolean)
-                    .map(() => new Text({ trimText: false }))
-            );
+            const children: Node[] = [];
+            for (const segment of this.text) {
+                if (segment.type === 'image') {
+                    children.push(new ImageSegmentNode());
+                } else {
+                    for (const line of toTextString(segment.text).split(LineSplitter)) {
+                        if (line) children.push(new Text({ trimText: false }));
+                    }
+                }
+            }
+            this.richText.append(children);
         } else {
             const lines = toTextString(this.text).split(LineSplitter);
             this.lines = this.trimText ? lines.map((line) => line.trim()) : lines;
@@ -222,7 +233,9 @@ export class Text<D = unknown> extends Shape<D> {
                     ? lineMetrics[0].ascent +
                           lineMetrics[0].segments.reduce(
                               (offsetY, segment) =>
-                                  Math.min(offsetY, cachedTextMeasurer(segment).baselineDistance('middle')),
+                                  segment.type === 'image'
+                                      ? offsetY
+                                      : Math.min(offsetY, cachedTextMeasurer(segment).baselineDistance('middle')),
                               0
                           )
                     : height / 2;
@@ -299,21 +312,108 @@ export class Text<D = unknown> extends Shape<D> {
         if (!isArray(this.text) || this.textMap?.size) return;
 
         this.textMap ??= new Map();
+        this.generatingTextMap = true;
+        try {
+            this.buildTextMap(this.text);
+        } finally {
+            this.generatingTextMap = false;
+        }
+    }
 
+    private buildTextMap(text: Segment[]) {
         let offsetY = 0;
-        const textNodes = this.richText!.children();
-        for (const { width, height, ascent, segments } of measureTextSegments(this.text, this).lineMetrics) {
+        const childNodes = this.richText!.children();
+        for (const { width, height, ascent, segments } of measureTextSegments(text, this).lineMetrics) {
             let offsetX = 0;
-            for (const { color, textMetrics, ...segment } of segments) {
-                const textNode = textNodes.next().value as Text;
+            for (const measured of segments) {
+                const node = childNodes.next().value;
+                if (!node) break;
+
+                if (measured.type === 'image') {
+                    const imageNode = node as ImageSegmentNode;
+                    const verticalAlign = measured.verticalAlign ?? 'middle';
+                    const anchorY = Text.calcSegmentY(verticalAlign, offsetY, ascent, height);
+                    const boxWidth = measured.textMetrics.width;
+                    const boxHeight = measured.textMetrics.height;
+                    imageNode.x = this.x - width / 2 + offsetX;
+                    imageNode.y = Text.calcImageTopFromAnchor(verticalAlign, anchorY, boxHeight);
+                    imageNode.boxWidth = boxWidth;
+                    imageNode.boxHeight = boxHeight;
+                    imageNode.imageWidth = measured.width;
+                    imageNode.imageHeight = measured.height;
+                    Text.applyImagePadding(imageNode, measured.padding);
+                    imageNode.borderRadius = measured.borderRadius ?? 0;
+                    imageNode.backgroundFill = measured.backgroundFill;
+                    imageNode.border = measured.border;
+                    imageNode.url = measured.url;
+                    this.textMap!.set(imageNode, imageNode.getBBox());
+                    offsetX += boxWidth;
+                    continue;
+                }
+
+                const { color, textMetrics, verticalAlign, ...segment } = measured;
+                const textNode = node as Text;
+                const segmentBaseline: CanvasTextBaseline = verticalAlign ?? 'alphabetic';
                 textNode.x = this.x - width / 2 + offsetX;
-                textNode.y = ascent + offsetY;
-                textNode.setProperties({ ...segment, fill: color ?? this.fill });
+                textNode.y = Text.calcSegmentY(segmentBaseline, offsetY, ascent, height);
+                textNode.setProperties({ ...segment, textBaseline: segmentBaseline, fill: color ?? this.fill });
                 const textBBox = textNode.getBBox();
-                this.textMap.set(textNode, textBBox);
+                this.textMap!.set(textNode, textBBox);
                 offsetX += textMetrics.width;
             }
             offsetY += height;
+        }
+    }
+
+    // Convert a chosen baseline anchor position into the image box's top-left y.
+    private static calcImageTopFromAnchor(verticalAlign: CanvasTextBaseline, anchorY: number, boxHeight: number) {
+        switch (verticalAlign) {
+            case 'middle':
+                return anchorY - boxHeight / 2;
+            case 'bottom':
+            case 'ideographic':
+            case 'alphabetic':
+                return anchorY - boxHeight;
+            case 'top':
+            case 'hanging':
+            default:
+                return anchorY;
+        }
+    }
+
+    private static applyImagePadding(node: ImageSegmentNode, padding: Padding | undefined) {
+        if (padding == null) {
+            node.paddingTop = node.paddingRight = node.paddingBottom = node.paddingLeft = 0;
+            return;
+        }
+        if (typeof padding === 'number') {
+            node.paddingTop = node.paddingRight = node.paddingBottom = node.paddingLeft = padding;
+            return;
+        }
+        node.paddingTop = padding.top ?? 0;
+        node.paddingRight = padding.right ?? 0;
+        node.paddingBottom = padding.bottom ?? 0;
+        node.paddingLeft = padding.left ?? 0;
+    }
+
+    private static calcSegmentY(
+        verticalAlign: CanvasTextBaseline,
+        lineTop: number,
+        ascent: number,
+        height: number
+    ): number {
+        switch (verticalAlign) {
+            case 'top':
+            case 'hanging':
+                return lineTop;
+            case 'middle':
+                return lineTop + height / 2;
+            case 'bottom':
+            case 'ideographic':
+                return lineTop + height;
+            case 'alphabetic':
+            default:
+                return lineTop + ascent;
         }
     }
 
@@ -366,7 +466,12 @@ export class Text<D = unknown> extends Shape<D> {
     }
 
     override markDirty(property?: string) {
-        this.textMap?.clear();
+        // Skip while generateTextMap is populating textMap — child setters trigger markDirty that
+        // propagates back here through richText.parentNode, which would otherwise wipe entries
+        // mid-iteration and leave only the last segment in textMap.
+        if (!this.generatingTextMap) {
+            this.textMap?.clear();
+        }
         return super.markDirty(property);
     }
 
@@ -503,6 +608,7 @@ export class Text<D = unknown> extends Shape<D> {
 
         if (isArray(text)) {
             for (const segment of text) {
+                if (segment.type === 'image') continue;
                 const segmentElement = createSvgElement('tspan');
 
                 setSvgFontAttributes(segmentElement, {

@@ -263,8 +263,59 @@ export interface Visible {
 export type TextValue = string | number | Date;
 
 export interface TextSegment extends TextOptions {
+    /** Internal discriminator. Always omitted on text segments; image segments set `'image'`. */
+    type?: never;
     /** A segment of text. */
     text: TextValue;
+    /**
+     * Baseline used to align this segment vertically against the rest of the line. Useful when a segment with
+     * a larger `fontSize` (an emoji or an icon glyph) should centre against text rendered at the default size.
+     *
+     * Default: `'alphabetic'`
+     */
+    verticalAlign?: 'alphabetic' | 'top' | 'middle' | 'bottom' | 'hanging' | 'ideographic';
 }
 
-export type TextOrSegments = TextValue | TextSegment[];
+/**
+ * Inline image embedded alongside text segments. Reserves a box of `width` x `height` so that
+ * async image loading does not reflow the surrounding layout.
+ */
+export interface ImageSegment {
+    /** Discriminator marking this entry as an image rather than a text segment. */
+    type: 'image';
+    /** URL of the image. */
+    url: string;
+    /** Box width in pixels. Required to keep layout stable before the image decodes. */
+    width: PixelSize;
+    /** Box height in pixels. Required to keep layout stable before the image decodes. */
+    height: PixelSize;
+    /**
+     * Baseline used to align this image vertically against the rest of the line.
+     *
+     * Default: `'middle'`
+     */
+    verticalAlign?: 'alphabetic' | 'top' | 'middle' | 'bottom' | 'hanging' | 'ideographic';
+    /**
+     * Controls how this image participates in label overflow handling. `'hide'` images are
+     * shed before text is truncated; `'keep'` images are only shed after text truncation has
+     * already happened.
+     *
+     * Default: `'hide'`
+     */
+    overflowStrategy?: 'keep' | 'hide';
+    /** Padding around the image inside its reserved box. */
+    padding?: Padding;
+    /** Rounds the corners of the image and the background/border decoration. */
+    borderRadius?: PixelSize;
+    /** Border drawn around the image box. */
+    border?: BorderOptions;
+    /**
+     * Background colour drawn underneath the image. Also used as the placeholder fill while the
+     * image loads, and as the fallback fill if loading fails.
+     */
+    backgroundFill?: CssColor;
+}
+
+export type Segment = TextSegment | ImageSegment;
+
+export type TextOrSegments = TextValue | Segment[];

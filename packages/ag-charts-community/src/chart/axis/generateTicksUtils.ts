@@ -243,7 +243,13 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
 
             let wrappedLabel: TextOrSegments | null = null;
             if (label.avoidCollisions) {
-                wrappedLabel = wrapTextOrSegments(inputText, wrapOptions) || null;
+                // Per AG-15933: forced wrapping: 'never' when image segments are present, since the
+                // segment-drop pipeline replaces multi-line wrapping for image-bearing labels.
+                const hasImageSegment = isArray(inputText) && inputText.some((s) => s.type === 'image');
+                const tickWrapOptions: WrapOptions = hasImageSegment
+                    ? { ...wrapOptions, textWrap: 'never' }
+                    : wrapOptions;
+                wrappedLabel = wrapTextOrSegments(inputText, tickWrapOptions) || null;
                 if (wrappedLabel === EllipsisChar) {
                     wrappedLabel = null;
                 }
