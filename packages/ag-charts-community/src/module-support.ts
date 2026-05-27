@@ -221,6 +221,7 @@ export {
 export { SeriesMarker } from './chart/series/seriesMarker';
 export { makeSeriesTooltip, SeriesTooltip } from './chart/series/seriesTooltip';
 export type {
+    DatumIndex,
     ErrorBoundSeriesNodeDatum,
     ISeries,
     ISeriesProperties,

@@ -29,6 +29,7 @@ import {
 import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';
 import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
+import { getGaugeTooltipInfo } from '../gauge-util/gaugeTooltip';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
 import { findGaugeNodeDatum, pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
@@ -573,7 +574,7 @@ export class RadialGaugeSeries
                 series: this,
                 itemId: `value`,
                 datum,
-                datumIndex: { type: NodeDataType.Node },
+                datumIndex: 0,
                 type: NodeDataType.Node,
                 centerX,
                 centerY,
@@ -592,7 +593,7 @@ export class RadialGaugeSeries
                 series: this,
                 itemId: `scale`,
                 datum,
-                datumIndex: { type: NodeDataType.Node },
+                datumIndex: 0,
                 type: NodeDataType.Node,
                 centerX,
                 centerY,
@@ -624,7 +625,7 @@ export class RadialGaugeSeries
                     series: this,
                     itemId: `value-${i}`,
                     datum,
-                    datumIndex: { type: NodeDataType.Node },
+                    datumIndex: 0,
                     type: NodeDataType.Node,
                     centerX,
                     centerY,
@@ -643,7 +644,7 @@ export class RadialGaugeSeries
                     series: this,
                     itemId: `scale-${i}`,
                     datum,
-                    datumIndex: { type: NodeDataType.Node },
+                    datumIndex: 0,
                     type: NodeDataType.Node,
                     centerX,
                     centerY,
@@ -752,7 +753,7 @@ export class RadialGaugeSeries
                     y: targetRadius * Math.sin(targetAngle) + centerY,
                 },
                 datum: { value: targetValue },
-                datumIndex: { type: NodeDataType.Target, index: i },
+                datumIndex: i + 1,
                 type: NodeDataType.Target,
                 value: targetValue,
                 text,
@@ -1417,18 +1418,7 @@ export class RadialGaugeSeries
         const { id: seriesId, properties } = this;
         const { tooltip } = properties;
 
-        let value: number | undefined;
-        let text: string | undefined;
-        let fallbackLabel: string;
-        if (datumIndex.type === NodeDataType.Node) {
-            value = properties.value;
-            text = properties.label.text;
-            fallbackLabel = this.ctx.localeManager.t('ariaLabelGaugeValue');
-        } else {
-            ({ value, text } = properties.targets[datumIndex.index]);
-            fallbackLabel = this.ctx.localeManager.t('ariaLabelGaugeTarget');
-        }
-
+        const { value, text, fallbackLabel } = getGaugeTooltipInfo(this, datumIndex);
         if (value == null) return;
 
         return this.formatTooltipWithContext(
