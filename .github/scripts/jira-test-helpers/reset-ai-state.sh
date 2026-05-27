@@ -35,7 +35,7 @@ FIELDS_JSON='{"fields":{
     "customfield_10947": null,
     "customfield_10948": null,
     "customfield_10949": null,
-    "customfield_10950": null,
+    "customfield_11054": null,
     "customfield_10951": null
 }}'
 if [[ "${KEEP_COST:-1}" == "0" ]]; then

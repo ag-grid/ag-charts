@@ -13,7 +13,7 @@ description: |
       customfield_10944 — AI intent             <-> intent.md
       customfield_10945 — AI plan               <-> plan.md
       customfield_10949 — AI decisions          <-> decisions.md
-      customfield_10950 — AI progress           <-> progress.md
+      customfield_11054 — AI progress (md)      <-> progress.md
       customfield_10951 — AI Review Feedback    <-> review-feedback.md
 
     Modes:
@@ -81,7 +81,7 @@ runs:
                   "customfield_10944 intent.md"
                   "customfield_10945 plan.md"
                   "customfield_10949 decisions.md"
-                  "customfield_10950 progress.md"
+                  "customfield_11054 progress.md"
                   "customfield_10951 review-feedback.md"
               )
 
