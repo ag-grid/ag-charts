@@ -1,7 +1,6 @@
 import {
     AgChartOptions,
     AgCharts,
-    AgOrganizationSeriesNodeTextStylerParams,
     ContextMenuModule,
     ModuleRegistry,
     OrganizationSeriesModule,
@@ -32,8 +31,8 @@ const options: AgChartOptions = {
                     {
                         key: 'status',
                         textAlign: 'right',
-                        itemStyler: (params: AgOrganizationSeriesNodeTextStylerParams) => {
-                            const isRemote = params.datum.status === 'Remote';
+                        itemStyler: ({ datum }) => {
+                            const isRemote = datum.status === 'Remote';
                             return {
                                 fill: isRemote ? '#fff3e0' : '#e8f5e9',
                                 stroke: isRemote ? '#ff9800' : '#4caf50',
