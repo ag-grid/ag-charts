@@ -40,10 +40,14 @@ name: Jira Agent Pipeline
 #         {"event_type":"jira-build",      "client_payload":{"issue_key":"AG-XXXXX"}}
 #         {"event_type":"jira-pr-iterate", "client_payload":{"issue_key":"AG-XXXXX"}}
 #
-#   workflow_run (auto — fires when the main CI workflow completes):
-#       Gates inside the ci-failure-preflight job:
-#         - workflow_run.conclusion == 'failure'
-#         - workflow_run.head_branch starts with 'ag-'             (agent branch shape)
+#   workflow_run (auto — fires when the main CI workflow completes on
+#       an agent-shaped branch. The `branches:` filter on the trigger
+#       restricts firings to `ghabot-ag-*` so non-AI PRs don't create
+#       skipped workflow runs in the history):
+#       ci-failure-preflight → ci-failure-iterate (on conclusion=failure)
+#       ci-success-handler                        (on conclusion=success)
+#       Gates inside both jobs:
+#         - workflow_run.head_branch matches 'ghabot-ag-<NNNNN>-<slug>'
 #         - PR author == 'ag-jira-agent-ci[bot]'                   (agent-authored)
 #         - issue's AI status ∈ {draft-pr-open, iterating, pr-iterating}
 #
@@ -93,21 +97,26 @@ on:
                     - build
                     - pr-iterate
     workflow_run:
-        # Auto-iterate when the main CI workflow fails on an agent-authored
-        # draft PR. The ci-failure-preflight job applies the actual gates;
-        # this trigger is intentionally wide so we don't miss eligible runs.
+        # Auto-react when the main CI workflow completes on an agent-authored
+        # branch — failure → ci-failure-iterate, success → ci-success-handler
+        # (Needs-Review transition). The `branches:` filter restricts firings
+        # at the trigger level so non-AI PR completions don't create skipped
+        # workflow runs in the Actions history. The agent branch shape is
+        # `ghabot-ag-<NNNNN>-<slug>` (see ag-dev-prompts modes/ci.md). Globs
+        # are case-sensitive, but the agent always produces lowercase.
         workflows: [CI]
         types: [completed]
+        branches: ['ghabot-ag-*']
 
 permissions:
     contents: read
 
 concurrency:
     # For workflow_run events the dispatch payloads are empty, so fall back
-    # to the failing run's head branch (which encodes the issue key:
-    # `ag-NNNNN/...`). Same group as the dispatch-driven jobs so a fresh
-    # CI-failure iteration queues behind any in-flight pr-iterate for the
-    # same ticket instead of interleaving.
+    # to the failing run's head branch (which encodes the issue key in the
+    # agent branch shape: `ghabot-ag-<NNNNN>-<slug>`). Same group as the
+    # dispatch-driven jobs so a fresh CI-failure iteration queues behind any
+    # in-flight pr-iterate for the same ticket instead of interleaving.
     group: claude-${{ github.event.client_payload.issue_key || inputs.issue_key || github.event.workflow_run.head_branch }}
     cancel-in-progress: false
 
@@ -271,10 +280,13 @@ jobs:
     # @ag-grid/dev-prompts is required to resolve the shared preflight
     # action; skipped runs (no eligible workflow_run) avoid this entirely.
     ci-failure-preflight:
+        # The `branches: ['ghabot-ag-*']` filter on the workflow_run trigger
+        # already constrains the branch shape, so the only gate left here is
+        # the conclusion. The shared preflight action does the full
+        # eligibility walk (PR author + AI status + Jira key extraction).
         if: |
             github.event_name == 'workflow_run' &&
-            github.event.workflow_run.conclusion == 'failure' &&
-            startsWith(github.event.workflow_run.head_branch, 'ag-')
+            github.event.workflow_run.conclusion == 'failure'
         runs-on: ubuntu-latest
         timeout-minutes: 5
         permissions:
@@ -349,6 +361,42 @@ jobs:
                   jira_agent_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
                   jira_agent_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+    # -------------------------------------------------- ci-success-handler
+    # Symmetric counterpart to ci-failure-preflight. Fires on the same
+    # workflow_run trigger but when the upstream CI finished successfully.
+    # No agent invocation — pure REST work: verify the run is still the
+    # PR head, transition the JIRA workflow to Needs Review, mark AI
+    # status: done, clear AI failure, zero the recovery counter. See the
+    # shared action for the full eligibility walk.
+    ci-success-handler:
+        if: |
+            github.event_name == 'workflow_run' &&
+            github.event.workflow_run.conclusion == 'success'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
+            pull-requests: read
+            packages: read
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Install @ag-grid/dev-prompts
+              uses: ./.github/actions/install-ag-dev-prompts
+              with:
+                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
+
+            - uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-ci-success-handler
+              with:
+                  head_branch: ${{ github.event.workflow_run.head_branch }}
+                  head_sha: ${{ github.event.workflow_run.head_sha }}
+                  run_url: ${{ github.event.workflow_run.html_url }}
                   jira_email: ${{ secrets.JIRA_EMAIL }}
                   jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
