@@ -15,6 +15,7 @@ export const GalleryExampleThemeDropdown: FunctionComponent = () => {
             <option value="ag-polychroma">ag-polychroma</option>
             <option value="ag-vivid">ag-vivid</option>
             <option value="ag-material">ag-material</option>
+            <option value="ag-rainbow">ag-rainbow</option>
         </select>
     );
 };

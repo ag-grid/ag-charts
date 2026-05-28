@@ -41,6 +41,8 @@ import { MaterialDark } from '../themes/materialDark';
 import { MaterialLight } from '../themes/materialLight';
 import { PolychromaDark } from '../themes/polychromaDark';
 import { PolychromaLight } from '../themes/polychromaLight';
+import { RainbowDark } from '../themes/rainbowDark';
+import { RainbowLight } from '../themes/rainbowLight';
 import { SheetsDark } from '../themes/sheetsDark';
 import { SheetsLight } from '../themes/sheetsLight';
 import { themeOverridesOptionsWithOperatorsDef } from '../themes/themeOptionsDef';
@@ -79,6 +81,7 @@ export const themes: ThemeMap = {
     'ag-default-dark': memoizeByRegistry(() => new DarkTheme()),
     'ag-sheets-dark': memoizeByRegistry(() => new SheetsDark()),
     'ag-polychroma-dark': memoizeByRegistry(() => new PolychromaDark()),
+    'ag-rainbow-dark': memoizeByRegistry(() => new RainbowDark()),
     'ag-vivid-dark': memoizeByRegistry(() => new VividDark()),
     'ag-material-dark': memoizeByRegistry(() => new MaterialDark()),
     'ag-financial-dark': memoizeByRegistry(() => new FinancialDark()),
@@ -87,6 +90,7 @@ export const themes: ThemeMap = {
     'ag-default': lightTheme,
     'ag-sheets': memoizeByRegistry(() => new SheetsLight()),
     'ag-polychroma': memoizeByRegistry(() => new PolychromaLight()),
+    'ag-rainbow': memoizeByRegistry(() => new RainbowLight()),
     'ag-vivid': memoizeByRegistry(() => new VividLight()),
     'ag-material': memoizeByRegistry(() => new MaterialLight()),
     'ag-financial': memoizeByRegistry(() => new FinancialLight()),
@@ -242,6 +246,8 @@ const themeNameValidator = union(
     'ag-sheets-dark',
     'ag-polychroma',
     'ag-polychroma-dark',
+    'ag-rainbow',
+    'ag-rainbow-dark',
     'ag-vivid',
     'ag-vivid-dark',
     'ag-material',
