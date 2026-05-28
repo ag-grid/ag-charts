@@ -16,7 +16,7 @@ export class PolarChart extends Chart {
     static override readonly className = 'PolarChart';
     static readonly type = 'polar' as const;
 
-    override series: Series<SeriesNodeDatum, any, SeriesProperties<object> & { marker?: { size: number } }>[] = [];
+    override series: Series<SeriesNodeDatum, object, SeriesProperties<object> & { marker?: { size: number } }>[] = [];
 
     override axes = this.createChartAxes();
     override createChartAxes() {
