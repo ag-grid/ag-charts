@@ -885,7 +885,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 0,
         "groupCount": 2,
         "groupId": "bar-year-grouped",
         "groupIndex": 0,
@@ -967,7 +966,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 1,
         "groupCount": 2,
         "groupId": "bar-year-grouped",
         "groupIndex": 1,
@@ -2210,7 +2208,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 0,
         "groupCount": 1,
         "groupId": "bar-quarter-stacked",
         "groupIndex": 0,
@@ -2293,7 +2290,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 1,
         "groupCount": 1,
         "groupId": "bar-quarter-stacked",
         "groupIndex": 0,
@@ -2376,7 +2372,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 2,
         "groupCount": 1,
         "groupId": "bar-quarter-stacked",
         "groupIndex": 0,
@@ -2459,7 +2454,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 3,
         "groupCount": 1,
         "groupId": "bar-quarter-stacked",
         "groupIndex": 0,
@@ -2542,7 +2536,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 4,
         "groupCount": 1,
         "groupId": "bar-quarter-stacked",
         "groupIndex": 0,
@@ -2625,7 +2618,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 5,
         "groupCount": 1,
         "groupId": "bar-quarter-stacked",
         "groupIndex": 0,
@@ -2708,7 +2700,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 6,
         "groupCount": 1,
         "groupId": "bar-quarter-stacked",
         "groupIndex": 0,
@@ -2791,7 +2782,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 7,
         "groupCount": 1,
         "groupId": "bar-quarter-stacked",
         "groupIndex": 0,
@@ -4803,7 +4793,6 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 0,
         "groupCount": 1,
         "groupId": "bar-type-grouped",
         "groupIndex": 0,
@@ -5173,7 +5162,6 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 0,
         "groupCount": 1,
         "groupId": "bar-job-grouped",
         "groupIndex": 0,
@@ -6246,7 +6234,6 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 0,
         "groupCount": 2,
         "groupId": "bar-month-grouped",
         "groupIndex": 0,
@@ -6326,7 +6313,6 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 1,
         "groupCount": 2,
         "groupId": "bar-month-grouped",
         "groupIndex": 1,
@@ -6693,7 +6679,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 0,
         "groupCount": 2,
         "groupId": "bar-type-grouped",
         "groupIndex": 0,
@@ -6778,7 +6763,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 1,
         "groupCount": 2,
         "groupId": "bar-type-grouped",
         "groupIndex": 1,
@@ -7151,7 +7135,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 0,
         "groupCount": 7,
         "groupId": "bar-year-grouped",
         "groupIndex": 0,
@@ -7238,7 +7221,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 1,
         "groupCount": 7,
         "groupId": "bar-year-grouped",
         "groupIndex": 1,
@@ -7325,7 +7307,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 2,
         "groupCount": 7,
         "groupId": "bar-year-grouped",
         "groupIndex": 2,
@@ -7412,7 +7393,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 3,
         "groupCount": 7,
         "groupId": "bar-year-grouped",
         "groupIndex": 3,
@@ -7499,7 +7479,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 4,
         "groupCount": 7,
         "groupId": "bar-year-grouped",
         "groupIndex": 4,
@@ -7586,7 +7565,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 5,
         "groupCount": 7,
         "groupId": "bar-year-grouped",
         "groupIndex": 5,
@@ -7673,7 +7651,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 6,
         "groupCount": 7,
         "groupId": "bar-year-grouped",
         "groupIndex": 6,
@@ -9888,7 +9865,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 0,
         "groupCount": 1,
         "groupId": "area-month-stacked",
         "groupIndex": 0,
@@ -9982,7 +9958,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 1,
         "groupCount": 1,
         "groupId": "area-month-stacked",
         "groupIndex": 0,
@@ -10076,7 +10051,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 2,
         "groupCount": 1,
         "groupId": "area-month-stacked",
         "groupIndex": 0,
@@ -10170,7 +10144,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 3,
         "groupCount": 1,
         "groupId": "area-month-stacked",
         "groupIndex": 0,
@@ -10264,7 +10237,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 4,
         "groupCount": 1,
         "groupId": "area-month-stacked",
         "groupIndex": 0,
@@ -10358,7 +10330,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 5,
         "groupCount": 1,
         "groupId": "area-month-stacked",
         "groupIndex": 0,
@@ -10452,7 +10423,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 6,
         "groupCount": 1,
         "groupId": "area-month-stacked",
         "groupIndex": 0,
@@ -10825,7 +10795,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 0,
         "groupCount": 1,
         "groupId": "bar-area-stacked",
         "groupIndex": 0,
@@ -10911,7 +10880,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 1,
         "groupCount": 1,
         "groupId": "bar-area-stacked",
         "groupIndex": 0,
@@ -10997,7 +10965,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 2,
         "groupCount": 1,
         "groupId": "bar-area-stacked",
         "groupIndex": 0,
@@ -11365,7 +11332,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 0,
         "groupCount": 1,
         "groupId": "bar-type-stacked",
         "groupIndex": 0,
@@ -11448,7 +11414,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 1,
         "groupCount": 1,
         "groupId": "bar-type-stacked",
         "groupIndex": 0,
@@ -11531,7 +11496,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 2,
         "groupCount": 1,
         "groupId": "bar-type-stacked",
         "groupIndex": 0,
@@ -11614,7 +11578,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 3,
         "groupCount": 1,
         "groupId": "bar-type-stacked",
         "groupIndex": 0,
@@ -11697,7 +11660,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 4,
         "groupCount": 1,
         "groupId": "bar-type-stacked",
         "groupIndex": 0,
@@ -11780,7 +11742,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 5,
         "groupCount": 1,
         "groupId": "bar-type-stacked",
         "groupIndex": 0,
@@ -12789,7 +12750,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 0,
         "groupCount": 1,
         "groupId": "bar-year-grouped",
         "groupIndex": 0,
@@ -14613,7 +14573,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 0,
         "groupCount": 1,
         "groupId": "area-date-stacked",
         "groupIndex": 0,
@@ -14703,7 +14662,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 1,
         "groupCount": 1,
         "groupId": "area-date-stacked",
         "groupIndex": 0,
@@ -14793,7 +14751,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 2,
         "groupCount": 1,
         "groupId": "area-date-stacked",
         "groupIndex": 0,
@@ -14883,7 +14840,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 3,
         "groupCount": 1,
         "groupId": "area-date-stacked",
         "groupIndex": 0,
@@ -14973,7 +14929,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 4,
         "groupCount": 1,
         "groupId": "area-date-stacked",
         "groupIndex": 0,
@@ -15063,7 +15018,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 5,
         "groupCount": 1,
         "groupId": "area-date-stacked",
         "groupIndex": 0,
@@ -15434,7 +15388,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 0,
         "groupCount": 1,
         "groupId": "bar-type-stacked",
         "groupIndex": 0,
@@ -15519,7 +15472,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 1,
         "groupCount": 1,
         "groupId": "bar-type-stacked",
         "groupIndex": 0,
@@ -15604,7 +15556,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 2,
         "groupCount": 1,
         "groupId": "bar-type-stacked",
         "groupIndex": 0,
@@ -15689,7 +15640,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 3,
         "groupCount": 1,
         "groupId": "bar-type-stacked",
         "groupIndex": 0,
@@ -16060,7 +16010,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 0,
         "groupCount": 1,
         "groupId": "bar-station-stacked",
         "groupIndex": 0,
@@ -16145,7 +16094,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 1,
         "groupCount": 1,
         "groupId": "bar-station-stacked",
         "groupIndex": 0,
@@ -16230,7 +16178,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 2,
         "groupCount": 1,
         "groupId": "bar-station-stacked",
         "groupIndex": 0,
@@ -16315,7 +16262,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 3,
         "groupCount": 1,
         "groupId": "bar-station-stacked",
         "groupIndex": 0,
@@ -16400,7 +16346,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         },
       },
       "seriesGrouping": {
-        "declarationOrder": 4,
         "groupCount": 1,
         "groupId": "bar-station-stacked",
         "groupIndex": 0,
@@ -16489,7 +16434,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false' for series type [nightingale] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
   "groupIndex": Any<Number>,
@@ -16500,7 +16444,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false' for series type [nightingale] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
   "groupIndex": Any<Number>,
@@ -16511,7 +16454,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [area] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -16522,7 +16464,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [area] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -16533,7 +16474,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [area] appropriately 3`] = `
 {
-  "declarationOrder": 2,
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -16544,7 +16484,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [area] appropriately 4`] = `
 {
-  "declarationOrder": 3,
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -16555,7 +16494,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [bar] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -16566,7 +16504,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [bar] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -16577,7 +16514,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [bar] appropriately 3`] = `
 {
-  "declarationOrder": 2,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -16588,7 +16524,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [bar] appropriately 4`] = `
 {
-  "declarationOrder": 3,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -16599,7 +16534,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [line] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "line-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -16610,7 +16544,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [line] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "line-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -16621,7 +16554,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [nightingale] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
   "groupIndex": Any<Number>,
@@ -16632,7 +16564,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'false', stacked property 'true' for series type [nightingale] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
   "groupIndex": Any<Number>,
@@ -16643,7 +16574,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true' for series type [bar] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -16654,7 +16584,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true' for series type [bar] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -16665,7 +16594,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true' for series type [bar] appropriately 3`] = `
 {
-  "declarationOrder": 2,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -16676,7 +16604,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true' for series type [bar] appropriately 4`] = `
 {
-  "declarationOrder": 3,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -16687,7 +16614,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true' for series type [nightingale] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "nightingale-grouped",
   "groupIndex": Any<Number>,
@@ -16698,7 +16624,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true' for series type [nightingale] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "nightingale-grouped",
   "groupIndex": Any<Number>,
@@ -16709,7 +16634,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true' for series type [range-bar] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
   "groupIndex": Any<Number>,
@@ -16720,7 +16644,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true' for series type [range-bar] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
   "groupIndex": Any<Number>,
@@ -16731,7 +16654,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'false' for series type [bar] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -16742,7 +16664,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'false' for series type [bar] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -16753,7 +16674,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'false' for series type [bar] appropriately 3`] = `
 {
-  "declarationOrder": 2,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -16764,7 +16684,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'false' for series type [bar] appropriately 4`] = `
 {
-  "declarationOrder": 3,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -16775,7 +16694,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'false' for series type [nightingale] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "nightingale-grouped",
   "groupIndex": Any<Number>,
@@ -16786,7 +16704,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'false' for series type [nightingale] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "nightingale-grouped",
   "groupIndex": Any<Number>,
@@ -16797,7 +16714,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'false' for series type [range-bar] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
   "groupIndex": Any<Number>,
@@ -16808,7 +16724,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'false' for series type [range-bar] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
   "groupIndex": Any<Number>,
@@ -16819,7 +16734,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [area] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -16830,7 +16744,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [area] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -16841,7 +16754,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [area] appropriately 3`] = `
 {
-  "declarationOrder": 2,
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -16852,7 +16764,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [area] appropriately 4`] = `
 {
-  "declarationOrder": 3,
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -16863,7 +16774,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [bar] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -16874,7 +16784,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [bar] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -16885,7 +16794,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [bar] appropriately 3`] = `
 {
-  "declarationOrder": 2,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -16896,7 +16804,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [bar] appropriately 4`] = `
 {
-  "declarationOrder": 3,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -16907,7 +16814,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [line] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "line-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -16918,7 +16824,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [line] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "line-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -16929,7 +16834,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [nightingale] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
   "groupIndex": Any<Number>,
@@ -16940,7 +16844,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [nightingale] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
   "groupIndex": Any<Number>,
@@ -16951,7 +16854,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [range-bar] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
   "groupIndex": Any<Number>,
@@ -16962,7 +16864,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle grouped property 'true', stacked property 'true' for series type [range-bar] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
   "groupIndex": Any<Number>,
@@ -16973,7 +16874,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped and stacked properties for series type [bar] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -16984,7 +16884,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped and stacked properties for series type [bar] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -16995,7 +16894,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped and stacked properties for series type [bar] appropriately 3`] = `
 {
-  "declarationOrder": 2,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -17006,7 +16904,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped and stacked properties for series type [bar] appropriately 4`] = `
 {
-  "declarationOrder": 3,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -17017,7 +16914,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped and stacked properties for series type [nightingale] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
   "groupIndex": Any<Number>,
@@ -17028,7 +16924,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped and stacked properties for series type [nightingale] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
   "groupIndex": Any<Number>,
@@ -17039,7 +16934,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped and stacked properties for series type [range-bar] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
   "groupIndex": Any<Number>,
@@ -17050,7 +16944,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped and stacked properties for series type [range-bar] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
   "groupIndex": Any<Number>,
@@ -17061,7 +16954,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped property for series type [bar] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -17072,7 +16964,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped property for series type [bar] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -17083,7 +16974,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped property for series type [bar] appropriately 3`] = `
 {
-  "declarationOrder": 2,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -17094,7 +16984,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped property for series type [bar] appropriately 4`] = `
 {
-  "declarationOrder": 3,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -17105,7 +16994,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped property for series type [nightingale] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
   "groupIndex": Any<Number>,
@@ -17116,7 +17004,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped property for series type [nightingale] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
   "groupIndex": Any<Number>,
@@ -17127,7 +17014,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped property for series type [range-bar] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
   "groupIndex": Any<Number>,
@@ -17138,7 +17024,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted grouped property for series type [range-bar] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
   "groupIndex": Any<Number>,
@@ -17149,7 +17034,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted stacked property for series type [bar] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -17160,7 +17044,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted stacked property for series type [bar] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -17171,7 +17054,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted stacked property for series type [bar] appropriately 3`] = `
 {
-  "declarationOrder": 2,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -17182,7 +17064,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted stacked property for series type [bar] appropriately 4`] = `
 {
-  "declarationOrder": 3,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -17193,7 +17074,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted stacked property for series type [nightingale] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
   "groupIndex": Any<Number>,
@@ -17204,7 +17084,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted stacked property for series type [nightingale] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
   "groupIndex": Any<Number>,
@@ -17215,7 +17094,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted stacked property for series type [range-bar] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
   "groupIndex": Any<Number>,
@@ -17226,7 +17104,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle omitted stacked property for series type [range-bar] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
   "groupIndex": Any<Number>,
@@ -17237,7 +17114,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'false' for series type [bar] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -17248,7 +17124,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'false' for series type [bar] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -17259,7 +17134,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'false' for series type [bar] appropriately 3`] = `
 {
-  "declarationOrder": 2,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -17270,7 +17144,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'false' for series type [bar] appropriately 4`] = `
 {
-  "declarationOrder": 3,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-grouped",
   "groupIndex": Any<Number>,
@@ -17281,7 +17154,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'false' for series type [nightingale] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "nightingale-grouped",
   "groupIndex": Any<Number>,
@@ -17292,7 +17164,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'false' for series type [nightingale] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "nightingale-grouped",
   "groupIndex": Any<Number>,
@@ -17303,7 +17174,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'false' for series type [range-bar] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
   "groupIndex": Any<Number>,
@@ -17314,7 +17184,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'false' for series type [range-bar] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
   "groupIndex": Any<Number>,
@@ -17325,7 +17194,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [area] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -17336,7 +17204,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [area] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -17347,7 +17214,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [area] appropriately 3`] = `
 {
-  "declarationOrder": 2,
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -17358,7 +17224,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [area] appropriately 4`] = `
 {
-  "declarationOrder": 3,
   "groupCount": Any<Number>,
   "groupId": "area-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -17369,7 +17234,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [bar] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -17380,7 +17244,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [bar] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -17391,7 +17254,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [bar] appropriately 3`] = `
 {
-  "declarationOrder": 2,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -17402,7 +17264,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [bar] appropriately 4`] = `
 {
-  "declarationOrder": 3,
   "groupCount": Any<Number>,
   "groupId": "bar-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -17413,7 +17274,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [line] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "line-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -17424,7 +17284,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [line] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "line-quarter-stacked",
   "groupIndex": Any<Number>,
@@ -17435,7 +17294,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [nightingale] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
   "groupIndex": Any<Number>,
@@ -17446,7 +17304,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [nightingale] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "nightingale-stacked",
   "groupIndex": Any<Number>,
@@ -17457,7 +17314,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [range-bar] appropriately 1`] = `
 {
-  "declarationOrder": 0,
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
   "groupIndex": Any<Number>,
@@ -17468,7 +17324,6 @@ exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configurat
 
 exports[`ChartOptions > #processSeriesOptions > Stacking and grouping configuration combinations > handle stacked property 'true' for series type [range-bar] appropriately 2`] = `
 {
-  "declarationOrder": 1,
   "groupCount": Any<Number>,
   "groupId": "range-bar-date-grouped",
   "groupIndex": Any<Number>,
