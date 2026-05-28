@@ -1,0 +1,48 @@
+export function getData() {
+    return [
+        {
+            dolphin: 'Peter',
+            interactionDurationTM: 1.23,
+            interactionDurationTMLower: 0.8,
+            interactionDurationTMUpper: 1.44,
+            interactionDurationYM: 2.85,
+            interactionDurationYMLower: 2.22,
+            interactionDurationYMUpper: 3.61,
+            numberOfLooksTM: 60,
+            numberOfLooksYM: 64,
+        },
+        {
+            dolphin: 'Mary',
+            interactionDurationTM: 1.35,
+            interactionDurationTMLower: 0.9,
+            interactionDurationTMUpper: 1.59,
+            interactionDurationYM: 2.59,
+            interactionDurationYMLower: 2.09,
+            interactionDurationYMUpper: 2.85,
+            numberOfLooksTM: 57,
+            numberOfLooksYM: 93,
+        },
+        {
+            dolphin: 'Mercutio',
+            interactionDurationTM: 1.4,
+            interactionDurationTMLower: 1.32,
+            interactionDurationTMUpper: 1.46,
+            interactionDurationYM: 1.45,
+            interactionDurationYMLower: 1.1,
+            interactionDurationYMUpper: 1.54,
+            numberOfLooksTM: 238,
+            numberOfLooksYM: 217,
+        },
+        {
+            dolphin: 'Ada',
+            interactionDurationTM: 1.1,
+            interactionDurationTMLower: 0.89,
+            interactionDurationTMUpper: 1.45,
+            interactionDurationYM: 1.47,
+            interactionDurationYMLower: 1.35,
+            interactionDurationYMUpper: 1.64,
+            numberOfLooksTM: 237,
+            numberOfLooksYM: 217,
+        },
+    ];
+}
