@@ -400,3 +400,14 @@ jobs:
                   jira_email: ${{ secrets.JIRA_EMAIL }}
                   jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
+                  # Live-test snippet — the ci.yml `pr_preview` job publishes
+                  # per-PR UMD bundles to gh-pages, so the reviewer can paste
+                  # these two <script> tags into a vanilla-JS Plunker to
+                  # exercise the actual built library from this PR.
+                  success_comment_body: |
+                      Live-test this PR in Plunker — paste these into a vanilla-JS sandbox:
+
+                      <script src="https://ag-grid.github.io/ag-charts/pr-{PR_NUMBER}/ag-charts-community.min.js"></script>
+                      <script src="https://ag-grid.github.io/ag-charts/pr-{PR_NUMBER}/ag-charts-enterprise.min.js"></script>
+
+                      Bundles auto-cleanup on PR close. PR: {PR_URL}
