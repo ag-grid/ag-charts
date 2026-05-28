@@ -1,6 +1,12 @@
 import { Bitfield } from './bitfield';
 import type { Bit } from './bitfield';
 
+function getBuffer(bf: Bitfield): Uint32Array {
+    // FIXME: should use `new Caster(bf).accessProperty('buffer').cast(Uint32Array).value`
+    // However, ag-charts-test depends on ag-charts-core.
+    return (bf as any).buffer;
+}
+
 describe('Bitfield (larger scale tests)', () => {
     test('length', () => {
         const bf = new Bitfield(2048);
@@ -106,6 +112,29 @@ describe('Bitfield (larger scale tests)', () => {
             const expected: Bit = i < 300 || i >= 1700 ? 1 : 0;
             expect(bf.getBit(i)).toBe(expected);
         }
+    });
+
+    test('fill full-width word', () => {
+        const bf = new Bitfield(32 * 3);
+
+        bf.fill(1, 32, 64); // fill exactly 1 word
+
+        const buffer = getBuffer(bf);
+        expect(buffer.length).toBe(3);
+        expect(buffer[0]).toBe(0);
+        expect(buffer[1]).toBe(0xffffffff);
+        expect(buffer[2]).toBe(0);
+    });
+
+    test('fill full-width word (ignore out-of-range endIndex)', () => {
+        const bf = new Bitfield(32 * 3);
+
+        bf.fill(1, 64, 2000); // fill exactly 1 word (the last one)
+        const buffer = getBuffer(bf);
+        expect(buffer.length).toBe(3);
+        expect(buffer[0]).toBe(0);
+        expect(buffer[1]).toBe(0);
+        expect(buffer[2]).toBe(0xffffffff);
     });
 
     test('multiple overlapping fills', () => {
