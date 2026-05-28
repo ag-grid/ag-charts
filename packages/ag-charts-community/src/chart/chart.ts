@@ -80,6 +80,7 @@ import { SeriesArea } from './series-area/seriesArea';
 import { Series, SeriesGroupingChangedEvent, SeriesNodeEvent, type UnknownSeries } from './series/series';
 import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
+import type { SeriesProperties } from './series/seriesProperties';
 import type { DatumIndexType, ISeries, ISeriesProperties } from './series/seriesTypes';
 import { Tooltip, type TooltipContent } from './tooltip/tooltip';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
@@ -1212,7 +1213,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.onSeriesChange(newValue, oldValue);
         },
     })
-    series: Series<DatumIndexType, any, any, any>[] = [];
+    series: Series<DatumIndexType, any, any, SeriesProperties<object>>[] = [];
 
     protected onAxisChange(newValue: ChartAxis[], oldValue?: ChartAxis[]) {
         if (oldValue == null && newValue.length === 0) return;
