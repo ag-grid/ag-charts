@@ -28,8 +28,8 @@ describe('Bitfield (larger scale tests)', () => {
         }
 
         for (let i = 0; i < bf.length; i++) {
-            const expected = i % 3 === 0 ? 1 : 0;
-            expect(bf.getBit(i)).toBe(expected as Bit);
+            const expected: Bit = i % 3 === 0 ? 1 : 0;
+            expect(bf.getBit(i)).toBe(expected);
         }
     });
 
@@ -47,8 +47,8 @@ describe('Bitfield (larger scale tests)', () => {
         }
 
         for (let i = 0; i < bf.length; i++) {
-            const expected = i % 4 === 0 ? 0 : 1;
-            expect(bf.getBit(i)).toBe(expected as Bit);
+            const expected: Bit = i % 4 === 0 ? 0 : 1;
+            expect(bf.getBit(i)).toBe(expected);
         }
     });
 
@@ -60,8 +60,8 @@ describe('Bitfield (larger scale tests)', () => {
         }
 
         for (let i = 0; i < bf.length; i++) {
-            const expected = i % 7 === 0 ? 1 : 0;
-            expect(bf.getBit(i)).toBe(expected as Bit);
+            const expected: Bit = i % 7 === 0 ? 1 : 0;
+            expect(bf.getBit(i)).toBe(expected);
         }
 
         // toggle again → should all be zero
@@ -80,8 +80,8 @@ describe('Bitfield (larger scale tests)', () => {
         bf.fill(1, 64, 1024); // aligned on word boundaries
 
         for (let i = 0; i < bf.length; i++) {
-            const expected = i >= 64 && i < 1024 ? 1 : 0;
-            expect(bf.getBit(i)).toBe(expected as Bit);
+            const expected: Bit = i >= 64 && i < 1024 ? 1 : 0;
+            expect(bf.getBit(i)).toBe(expected);
         }
     });
 
@@ -91,8 +91,8 @@ describe('Bitfield (larger scale tests)', () => {
         bf.fill(1, 13, 1900);
 
         for (let i = 0; i < bf.length; i++) {
-            const expected = i >= 13 && i < 1900 ? 1 : 0;
-            expect(bf.getBit(i)).toBe(expected as Bit);
+            const expected: Bit = i >= 13 && i < 1900 ? 1 : 0;
+            expect(bf.getBit(i)).toBe(expected);
         }
     });
 
@@ -103,8 +103,8 @@ describe('Bitfield (larger scale tests)', () => {
         bf.fill(0, 300, 1700);
 
         for (let i = 0; i < bf.length; i++) {
-            const expected = i < 300 || i >= 1700 ? 1 : 0;
-            expect(bf.getBit(i)).toBe(expected as Bit);
+            const expected: Bit = i < 300 || i >= 1700 ? 1 : 0;
+            expect(bf.getBit(i)).toBe(expected);
         }
     });
 
@@ -116,7 +116,7 @@ describe('Bitfield (larger scale tests)', () => {
         bf.fill(0, 1200, 1300);
 
         for (let i = 0; i < bf.length; i++) {
-            let expected = 0;
+            let expected: Bit = 0;
 
             if ((i >= 100 && i < 1500) || (i >= 400 && i < 1800)) {
                 expected = 1;
@@ -126,7 +126,7 @@ describe('Bitfield (larger scale tests)', () => {
                 expected = 0;
             }
 
-            expect(bf.getBit(i)).toBe(expected as Bit);
+            expect(bf.getBit(i)).toBe(expected);
         }
     });
 
@@ -138,8 +138,8 @@ describe('Bitfield (larger scale tests)', () => {
         bf.fill(1, 7, SIZE - 13);
 
         for (let i = 0; i < bf.length; i++) {
-            const expected = i >= 7 && i < SIZE - 13 ? 1 : 0;
-            expect(bf.getBit(i)).toBe(expected as Bit);
+            const expected: Bit = i >= 7 && i < SIZE - 13 ? 1 : 0;
+            expect(bf.getBit(i)).toBe(expected);
         }
     });
 });
