@@ -13,8 +13,8 @@ type IDataSelectionService = _ModuleSupport.IDataSelectionService;
 type SelectionStateEnum = _ModuleSupport.SelectionState;
 type SeriesLike = Parameters<IDataSelectionService['getDataSelectionState']>[0];
 
-const selectionsInserter = (len: number) => new DataSetSelection(len);
-const candidancyInserter = (len: number) => new Bitfield(len);
+const selectionInserter = (len: number) => new DataSetSelection(len);
+const candidacyInserter = (len: number) => new Bitfield(len);
 
 function getOrInsert<T>(map: Map<string, T>, key: string, data: DataSet, inserter: (len: number) => T): T {
     let entry: T | undefined = map.get(key);
@@ -32,25 +32,25 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
     /** Per-series selection state. Keyed by `seriesId`. */
     selections = new Map<string, DataSetSelection>();
 
-    /** Per-series candidancy state. Keyed by `seriesId`. */
-    private readonly candidancy = new Map<string, Bitfield>();
+    /** Per-series candidacy state. Keyed by `seriesId`. */
+    private readonly candidacy = new Map<string, Bitfield>();
 
     constructor(private readonly ctx?: DynamicContext<ChartRegistry>) {
         super();
         this.cleanup.register(
             () => this.clear(),
-            () => this.clearCandidancy(),
+            () => this.clearCandidacy(),
             ctx?.chartState.observe((get) => {
                 const opts = get('options', 'selection');
                 if (opts?.enabled === false) {
-                    this.clearCandidancy();
+                    this.clearCandidacy();
                 }
             })
         );
     }
 
-    private clearCandidancy() {
-        this.candidancy.clear();
+    private clearCandidacy() {
+        this.candidacy.clear();
     }
 
     clear(): void {
@@ -62,11 +62,11 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
 
     /** Lazy-create a per-series selection backed by a Uint8Array of `data.length`. */
     enableSelection(seriesId: string, data: DataSet<unknown>): DataSetSelection {
-        return getOrInsert(this.selections, seriesId, data, selectionsInserter);
+        return getOrInsert(this.selections, seriesId, data, selectionInserter);
     }
 
-    enableCandidancy(seriesId: string, data: DataSet): Bitfield {
-        return getOrInsert(this.candidancy, seriesId, data, candidancyInserter);
+    enableCandidacy(seriesId: string, data: DataSet): Bitfield {
+        return getOrInsert(this.candidacy, seriesId, data, candidacyInserter);
     }
 
     *iterateDataSetSelections(): Generator<DataSetSelectionsIterator> {
@@ -97,7 +97,7 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
      * Without `dataIdKey`, selections cannot be transferred and are dropped.
      */
     transferDataSet<T>(newDataSet: DataSet<T>, oldDataSet: DataSet<T>): void {
-        this.candidancy.clear();
+        this.candidacy.clear();
         if (this.selections.size === 0) return;
 
         const oldIds = oldDataSet.getIdArray();
@@ -146,7 +146,7 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
     }
 
     onDataChange(changeDescription: DataChangeDescription): void {
-        this.candidancy.clear();
+        this.candidacy.clear();
         if (this.selections.size > 0) {
             for (const sel of this.selections.values()) {
                 sel.applyDataChange(changeDescription);
@@ -174,7 +174,7 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
         // be the bucket's representative index. Fall back to the per-datum
         // bitset when no aggregation level applies.
         const selectionBuffer = this.getDataSetSelection(series);
-        const candidacyField = this.candidancy.get(series.id);
+        const candidacyField = this.candidacy.get(series.id);
         if (typeof datumIndex === 'number') {
             if (candidacyField?.getBit(datumIndex) === 1) {
                 return SelectionState.Item;
