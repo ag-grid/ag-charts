@@ -8,7 +8,7 @@ import { themes } from './mapping/themes';
 import { AreaSeries } from './series/cartesian/areaSeries';
 import { BarSeries } from './series/cartesian/barSeries';
 import { LineSeries } from './series/cartesian/lineSeries';
-import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from './test/utils';
+import { Chart, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from './test/utils';
 
 const revenueProfitData = [
     {
@@ -40,6 +40,14 @@ const revenueProfitData = [
         bazqux: 1234,
     },
 ];
+
+function getCartesianSeriesArray(chart: Chart) {
+    type BaseSeries = (typeof chart.series)[number];
+    type UnknownSeries = BaseSeries & {
+        properties: { marker: { shape: unknown; size: unknown }; fill: unknown; xKey: unknown; yKey: unknown };
+    };
+    return chart.series as UnknownSeries[];
+}
 
 describe('AgChart', () => {
     setupMockConsole();
@@ -256,7 +264,7 @@ describe('AgChart', () => {
             ],
         });
         await waitForChartStability(chartProxy);
-        const updatedSeries = chart.series;
+        const updatedSeries = getCartesianSeriesArray(chart);
 
         expect(updatedSeries.length).toEqual(4);
         expect(updatedSeries[0].id).toEqual(createdSeries[0].id);
@@ -334,7 +342,7 @@ describe('AgChart', () => {
             ],
         });
         await waitForChartStability(chartProxy);
-        const updatedSeries3 = chart.series;
+        const updatedSeries3 = getCartesianSeriesArray(chart);
 
         expect(updatedSeries3.length).toEqual(3);
         expect(updatedSeries3[0].id).not.toEqual(updatedSeries2[1].id);

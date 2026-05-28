@@ -141,3 +141,7 @@ export class Caster<T> {
         return new Caster(property);
     }
 }
+
+export function classCast<C extends AnyCtor>(value: unknown, ctor: C) {
+    return new Caster(value).cast(ctor).value;
+}
