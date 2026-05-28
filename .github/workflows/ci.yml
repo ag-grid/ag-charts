@@ -370,7 +370,13 @@ jobs:
         runs-on: ubuntu-24.04
         name: PR Preview (UMD)
         needs: [build]
-        if: github.event_name == 'pull_request' && needs.build.outputs.build == 'success'
+        # Same-repo PRs only — fork PRs get a read-only token from GitHub, so
+        # the deploy-to-gh-pages and sticky-comment steps would fail. Mirrors
+        # the fork-PR gate used in pr-review.yml.
+        if: |
+            github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository &&
+            needs.build.outputs.build == 'success'
         permissions:
             contents: write
             pull-requests: write
@@ -393,16 +399,20 @@ jobs:
               if: steps.download.outcome == 'success'
               run: |
                   set -euo pipefail
-                  COMMUNITY="_umd/packages/ag-charts-community/dist/umd/ag-charts-community.min.js"
-                  ENTERPRISE="_umd/packages/ag-charts-enterprise/dist/umd/ag-charts-enterprise.min.js"
-                  if [ ! -f "$COMMUNITY" ] && [ ! -f "$ENTERPRISE" ]; then
+                  # actions/upload-artifact@v4 strips the least-common-ancestor
+                  # of uploaded paths, so the two bundles land somewhere under
+                  # _umd/ but not at a predictable absolute path. Find them by
+                  # filename instead.
+                  COMMUNITY=$(find _umd -type f -name 'ag-charts-community.min.js' -print -quit)
+                  ENTERPRISE=$(find _umd -type f -name 'ag-charts-enterprise.min.js' -print -quit)
+                  if [ -z "$COMMUNITY" ] && [ -z "$ENTERPRISE" ]; then
                       echo "No UMD bundles in artifact — likely tooling-only PR; skipping publish."
                       echo "publish=false" >> "$GITHUB_OUTPUT"
                       exit 0
                   fi
-                  if [ ! -f "$COMMUNITY" ] || [ ! -f "$ENTERPRISE" ]; then
+                  if [ -z "$COMMUNITY" ] || [ -z "$ENTERPRISE" ]; then
                       echo "ERROR: exactly one UMD bundle present; expected both or neither." >&2
-                      ls -la _umd || true
+                      ls -laR _umd || true
                       exit 1
                   fi
                   DEST="_publish/pr-${PR_NUMBER}"
