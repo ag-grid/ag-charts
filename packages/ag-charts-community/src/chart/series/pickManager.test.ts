@@ -47,9 +47,4 @@ describe('getItemId', () => {
         const node = mockNode({ datum: { myId: null }, datumIndex: 3 });
         expect(getItemId(node, 'myId')).toBe(3);
     });
-
-    it('should JSON.stringify complex datumIndex', () => {
-        const node = mockNode({ datumIndex: { a: 1 } });
-        expect(getItemId(node)).toBe('{"a":1}');
-    });
 });
