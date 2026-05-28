@@ -380,7 +380,7 @@ export abstract class HierarchySeries<
     }
 
     private removeMeIndexPathForIndex(index: number): number[] {
-        return this.datumSelection.at(index + 1)?.datum.datumIndex ?? [];
+        return this.datumSelection.at(index + 1)?.datum?.path ?? [];
     }
 
     private removeMeIndexForIndexPath(indexPath: number[]): number {
@@ -392,7 +392,7 @@ export abstract class HierarchySeries<
         return 0;
     }
 
-    protected abstract datumSelection: Selection<TNodeClass, any>;
+    protected abstract datumSelection: Selection<TNodeClass, TNode>;
 
     protected abstract computeFocusBounds(node: TNode): BBox | Path | undefined;
 
@@ -415,7 +415,10 @@ export abstract class HierarchySeries<
         }
 
         const nextNode = path.reduce((n, childIndex) => n.children[childIndex], this.rootNode);
-        const bounds = this.computeFocusBounds(this.datumSelection.at(index + 1));
+        const focusedNode = this.datumSelection.at(index + 1);
+        if (focusedNode == null) return;
+
+        const bounds = this.computeFocusBounds(focusedNode);
 
         if (bounds == null) return;
 
