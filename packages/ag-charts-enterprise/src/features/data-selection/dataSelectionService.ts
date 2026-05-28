@@ -97,6 +97,7 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
      * Without `dataIdKey`, selections cannot be transferred and are dropped.
      */
     transferDataSet<T>(newDataSet: DataSet<T>, oldDataSet: DataSet<T>): void {
+        this.candidancy.clear();
         if (this.selections.size === 0) return;
 
         const oldIds = oldDataSet.getIdArray();
@@ -145,6 +146,7 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
     }
 
     onDataChange(changeDescription: DataChangeDescription): void {
+        this.candidancy.clear();
         if (this.selections.size > 0) {
             for (const sel of this.selections.values()) {
                 sel.applyDataChange(changeDescription);
