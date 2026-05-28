@@ -16,14 +16,15 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { classCast } from 'ag-charts-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
-import type { HeatmapSeries } from './heatmapSeries';
+import { HeatmapSeries } from './heatmapSeries';
 
 // Drives a hover at the canvas point of the given datum index and waits for chart stability.
 // Resolves nodeData fresh on every call so it stays valid across `proxy.update(...)` rebuilds.
 async function hoverDatumByIndex(chart: Chart, seriesIndex: number, datumIndex: number, hideDelay?: number) {
-    const series = chart.series[seriesIndex] as HeatmapSeries;
+    const series = classCast(chart.series[seriesIndex], HeatmapSeries);
     const nodeData = series.getNodeData();
     expect(nodeData).toBeDefined();
     const datum = nodeData!.find((n) => n.datumIndex === datumIndex);
