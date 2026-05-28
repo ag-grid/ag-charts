@@ -413,7 +413,7 @@ jobs:
                       exit 0
                   fi
                   if [ -z "$COMMUNITY" ] || [ -z "$ENTERPRISE" ]; then
-                      echo "ERROR: exactly one UMD bundle present; expected both or neither." >&2
+                      echo "::error exactly one UMD bundle present; expected both or neither." >&2
                       ls -laR _umd || true
                       exit 1
                   fi
