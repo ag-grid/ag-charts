@@ -276,7 +276,7 @@ function gridLinePreset(
     return gridLineOpts;
 }
 
-const tooltipRendererFn = simpleMemorize((context: any, tooltip?: AgSparklineTooltip<any>, datumKey?: string) => {
+const tooltipRendererFn = simpleMemorize((tooltip?: AgSparklineTooltip<any>, datumKey?: string) => {
     return (
         params: AgBarSeriesTooltipRendererParams | AgLineSeriesTooltipRendererParams | AgAreaSeriesTooltipRendererParams
     ): AgTooltipRendererResult | string => {
@@ -284,7 +284,10 @@ const tooltipRendererFn = simpleMemorize((context: any, tooltip?: AgSparklineToo
         const yValue = params.datum[params.yKey];
         const datum = datumKey == null ? params.datum : params.datum[datumKey];
 
-        const userContent = tooltip?.renderer?.({ context, datum, xValue, yValue });
+        // `params.context` is populated by `callWithContext` from `chart.context`, so
+        // the wrapper does not need to capture context at wrap time. This lets the
+        // structural-options cache share the wrapper across chart instances safely.
+        const userContent = tooltip?.renderer?.({ context: params.context, datum, xValue, yValue });
 
         if (isString(userContent) || isNumber(userContent) || isDate(userContent)) {
             return toTextString(userContent);
@@ -338,6 +341,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     const chartOpts: AgCartesianChartOptions & SparklineUndocumentedProperties = {
         background,
         container,
+        context,
         foreground,
         height,
         listeners: listeners as AgCartesianChartOptions['listeners'],
@@ -358,7 +362,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     }
     seriesConfig.tooltip = {
         ...tooltip,
-        renderer: tooltipRendererFn(context, tooltip, datumKey),
+        renderer: tooltipRendererFn(tooltip, datumKey),
     };
 
     chartOpts.theme = setInitialBaseTheme(baseTheme, SPARKLINE_THEME) as AgChartTheme; // TODO: Remove cast when `WithThemeParams` is public

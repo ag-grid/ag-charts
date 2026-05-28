@@ -241,5 +241,144 @@ describe('Sparkline', () => {
             chartB.destroy();
             chart = chartA;
         });
+
+        it('does not alias context across cache-hit instances with same shape, different context', async () => {
+            const baseOptions = { type: 'line' as const, width: 200, height: 100, data: [1, 2, 3] };
+            const contextA = { row: 1, cellValue: 'A' };
+            const contextB = { row: 2, cellValue: 'B' };
+
+            const instanceA = AgCharts.__createSparkline({ ...baseOptions, context: contextA });
+            const chartA = deproxy(instanceA);
+            await waitForChartStability(chartA);
+
+            const instanceB = AgCharts.__createSparkline({ ...baseOptions, context: contextB });
+            const chartB = deproxy(instanceB);
+            await waitForChartStability(chartB);
+
+            expect(chartA.context).toBe(contextA);
+            expect(chartB.context).toBe(contextB);
+
+            chartB.destroy();
+            chart = chartA;
+        });
+
+        it('does not alias container across cache-hit instances with same shape, different container', async () => {
+            const baseOptions = { type: 'line' as const, width: 200, height: 100, data: [1, 2, 3] };
+            const containerA = document.createElement('div');
+            const containerB = document.createElement('div');
+            document.body.append(containerA, containerB);
+
+            const instanceA = AgCharts.__createSparkline({ ...baseOptions, container: containerA });
+            const chartA = deproxy(instanceA);
+            await waitForChartStability(chartA);
+
+            const instanceB = AgCharts.__createSparkline({ ...baseOptions, container: containerB });
+            const chartB = deproxy(instanceB);
+            await waitForChartStability(chartB);
+
+            expect(chartA.container).toBe(containerA);
+            expect(chartB.container).toBe(containerB);
+
+            chartB.destroy();
+            containerA.remove();
+            containerB.remove();
+            chart = chartA;
+        });
+    });
+
+    describe('chart-level context propagation (AG-17227)', () => {
+        // Verifies that chart-level `context` reaches tooltip renderer params via
+        // `callWithContext`, replacing the per-callback context injection pattern.
+        // Sparkline preset's tooltip wrapper must not capture context at wrap time,
+        // otherwise structural-cache hits would alias context across charts.
+
+        // Invokes the series tooltip path directly. JSDOM cannot canvas-pick, so a
+        // synthesised hover would not reach the renderer; calling formatTooltip
+        // through the public series API mirrors what hover would otherwise trigger.
+        const invokeTooltipRenderer = (c: Chart) => {
+            const series = c.series[0] as any;
+            const tooltip = series.properties.tooltip;
+            const params: any = {
+                datum: { x: 0, y: 1 },
+                xKey: 'x',
+                yKey: 'y',
+                xValue: 0,
+                yValue: 1,
+                seriesId: series.id,
+                title: undefined,
+                color: undefined,
+            };
+            tooltip.formatTooltip([series.properties, series.ctx.chartService], { data: [] }, params);
+        };
+
+        it('passes chart-level context to tooltip.renderer params', async () => {
+            const seen: unknown[] = [];
+            const userContext = { tag: 'row-42' };
+            const instance = AgCharts.__createSparkline({
+                type: 'line',
+                data: [1, 2, 3],
+                width: 200,
+                height: 100,
+                context: userContext,
+                tooltip: {
+                    renderer: (params) => {
+                        seen.push(params.context);
+                        return { content: String(params.yValue) };
+                    },
+                },
+            });
+            chart = deproxy(instance);
+            await waitForChartStability(chart);
+
+            invokeTooltipRenderer(chart);
+
+            expect(seen.length).toBeGreaterThan(0);
+            for (const ctxValue of seen) {
+                expect(ctxValue).toBe(userContext);
+            }
+        });
+
+        it('does not alias context between sparklines sharing a user renderer reference', async () => {
+            const seen: unknown[] = [];
+            const renderer = (params: any) => {
+                seen.push(params.context);
+                return { content: String(params.yValue) };
+            };
+
+            const contextA = { tag: 'row-A' };
+            const contextB = { tag: 'row-B' };
+
+            const baseOptions = {
+                type: 'line' as const,
+                data: [1, 2, 3],
+                width: 200,
+                height: 100,
+                tooltip: { renderer },
+            };
+
+            // Two sparklines share a single user renderer reference but have distinct
+            // chart-level `context` payloads. Each invocation must receive its own
+            // chart's context — never the other's — regardless of whether the
+            // structural cache hits (the user renderer prevents that today) or the
+            // sparkline preset's memoised wrapper happens to be shared.
+            const instanceA = AgCharts.__createSparkline({ ...baseOptions, context: contextA });
+            const chartA = deproxy(instanceA);
+            await waitForChartStability(chartA);
+
+            const instanceB = AgCharts.__createSparkline({ ...baseOptions, context: contextB });
+            const chartB = deproxy(instanceB);
+            await waitForChartStability(chartB);
+
+            invokeTooltipRenderer(chartA);
+            const seenForA = seen.length;
+            invokeTooltipRenderer(chartB);
+
+            expect(seen.length).toBeGreaterThan(seenForA);
+            for (let i = 0; i < seenForA; i++) expect(seen[i]).toBe(contextA);
+            for (let i = seenForA; i < seen.length; i++) expect(seen[i]).toBe(contextB);
+
+            chartB.destroy();
+            chart = chartA;
+        });
     });
 });

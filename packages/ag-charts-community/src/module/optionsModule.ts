@@ -57,7 +57,12 @@ import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
 import { type OptionsGraphAccessor, createOptionsGraph, createOptionsGraphFn } from './optionsGraph';
-import { computeStructuralCacheKey, getStructuralCacheEntry, setStructuralCacheEntry } from './optionsStructuralCache';
+import {
+    VOLATILE_KEYS,
+    computeStructuralCacheKey,
+    getStructuralCacheEntry,
+    setStructuralCacheEntry,
+} from './optionsStructuralCache';
 
 export interface ChartSpecialOverrides {
     document: Document;
@@ -320,7 +325,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 // Shallow-clone the top level only — the existing dev-mode deepFreeze on
                 // ChartOptions has confirmed no path mutates nested processedOptions, and
                 // sharing frozen nested refs across charts is the whole point of the cache.
+                // VOLATILE_KEYS are re-attached from this chart's `userOptions` to avoid
+                // aliasing per-instance values (container, user context payload) across
+                // charts that share the cache entry.
+                const userOpts = this.userOptions as Record<string, unknown>;
                 const processedOptions = { ...(cached.processedOptions as object), data: resolvedData } as T;
+                for (const key of VOLATILE_KEYS) {
+                    if (key in userOpts) {
+                        (processedOptions as any)[key] = userOpts[key];
+                    }
+                }
                 // Un-memoized graph — each chart needs its own resolution state for stylers' resolvePartial.
                 const optionsGraph = createOptionsGraphFn(activeTheme, processedOptions as PlainObject);
                 return {
@@ -443,9 +457,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
         if (cacheKey !== undefined) {
-            const { data: _cachedData, ...processedOptionsWithoutData } = processedOptions as Record<string, unknown>;
+            // Strip `data` and the per-instance VOLATILE_KEYS before caching so cache hits
+            // do not alias them across charts. The read path re-attaches each from this
+            // chart's `userOptions`.
+            const { data: _cachedData, ...rest } = processedOptions as Record<string, unknown>;
+            for (const key of VOLATILE_KEYS) {
+                delete rest[key];
+            }
             setStructuralCacheEntry(cacheKey, {
-                processedOptions: processedOptionsWithoutData,
+                processedOptions: rest,
                 themeParameters,
                 googleFonts: googleFonts.size > 0 ? new Set(googleFonts) : undefined,
                 annotationThemes,
