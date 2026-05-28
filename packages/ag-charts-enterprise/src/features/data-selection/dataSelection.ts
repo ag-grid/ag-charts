@@ -246,7 +246,6 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         const seriesBounds = toBBox(dragStartEvent, dragMoveEvent);
         const canvasBounds = _ModuleSupport.Transformable.toCanvas(this.ctx.chartService.seriesRoot, seriesBounds);
-        const bbox = toBBox(dragStartEvent, dragMoveEvent);
 
         this.service.totalCandidacyCount = 0;
         for (const series of this.iterateSelectableSeries()) {
@@ -256,7 +255,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             const bitfield = this.service.enableCandidancy(series.id, data);
             bitfield.clear();
 
-            for (const datumIndex of this.iterateNumericDatumIndices(bbox, series)) {
+            for (const datumIndex of this.iterateNumericDatumIndices(seriesBounds, series)) {
                 bitfield.setBit(datumIndex);
                 this.service.totalCandidacyCount++;
             }
