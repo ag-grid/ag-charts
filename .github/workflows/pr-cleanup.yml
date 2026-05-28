@@ -45,3 +45,39 @@ jobs:
                   fi
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    gh_pages_cleanup:
+        runs-on: ubuntu-24.04
+        name: Remove PR preview from gh-pages
+        permissions:
+            contents: write
+        concurrency:
+            group: pr-preview-gh-pages
+            cancel-in-progress: false
+        env:
+            PR_NUMBER: ${{ github.event.pull_request.number }}
+        steps:
+            - name: Check out gh-pages branch
+              id: checkout
+              uses: actions/checkout@v4
+              continue-on-error: true
+              with:
+                  ref: gh-pages
+                  fetch-depth: 1
+
+            - name: Remove PR directory
+              if: steps.checkout.outcome == 'success'
+              run: |
+                  set -euo pipefail
+                  DIR="pr-${PR_NUMBER}"
+                  if [ ! -d "$DIR" ]; then
+                      echo "No $DIR directory on gh-pages; nothing to clean up."
+                      exit 0
+                  fi
+                  git config user.name 'github-actions[bot]'
+                  git config user.email 'github-actions[bot]@users.noreply.github.com'
+                  git rm -rf "$DIR"
+                  git commit -m "pr-preview: cleanup pr-${PR_NUMBER}"
+                  # Retry once on push race; the concurrency group should already serialise us,
+                  # but a publish could have landed between our checkout and push.
+                  git push origin gh-pages || (git pull --rebase origin gh-pages && git push origin gh-pages)
