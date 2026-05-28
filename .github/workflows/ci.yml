@@ -333,7 +333,9 @@ jobs:
                   retention-days: 14
                   path: |
                       packages/ag-charts-community/dist/umd/ag-charts-community.min.js
+                      packages/ag-charts-community/dist/umd/ag-charts-community.min.js.map
                       packages/ag-charts-enterprise/dist/umd/ag-charts-enterprise.min.js
+                      packages/ag-charts-enterprise/dist/umd/ag-charts-enterprise.min.js.map
 
     validate:
         runs-on: ubuntu-24.04
@@ -418,6 +420,12 @@ jobs:
                   DEST="_publish/pr-${PR_NUMBER}"
                   mkdir -p "$DEST"
                   cp "$COMMUNITY" "$ENTERPRISE" "$DEST/"
+                  # Sourcemaps are emitted alongside each .min.js by the build:umd
+                  # post-minification plugin (see esbuild.config.cjs). Copy them if
+                  # present so Plunker stack traces resolve to original sources.
+                  for MAP in "${COMMUNITY}.map" "${ENTERPRISE}.map"; do
+                      [ -f "$MAP" ] && cp "$MAP" "$DEST/"
+                  done
                   # .nojekyll at root disables Jekyll on gh-pages; keep_files preserves it across pushes.
                   touch _publish/.nojekyll
                   echo "publish=true" >> "$GITHUB_OUTPUT"
