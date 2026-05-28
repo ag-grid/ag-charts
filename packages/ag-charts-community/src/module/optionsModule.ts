@@ -1334,10 +1334,18 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         jsonWalk(options, ChartOptions.removeLeftoverSymbolsJson, new Set(['data']));
     }
 
-    private static readonly processedCSSVariables: Record<string, string> = {};
+    private static processCSSVariablesJSON(
+        this: void,
+        optionsNode: any,
+        _parallelNode: any,
+        container: HTMLElement | undefined,
+        processedCSSVariables: Record<string, string> | undefined
+    ) {
+        processedCSSVariables ??= {};
 
-    private static processCSSVariablesJSON(this: void, optionsNode: any, _parallelNode: any, container?: HTMLElement) {
-        if (!optionsNode || !isObject(optionsNode)) return;
+        if (!optionsNode || !isObject(optionsNode)) {
+            return processedCSSVariables;
+        }
 
         for (const key of Object.keys(optionsNode)) {
             const value = optionsNode[key];
@@ -1348,11 +1356,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             // Only process external css variables.
             if (propertyKey.startsWith('--ag-charts')) continue;
 
-            ChartOptions.processedCSSVariables[propertyKey] ??= getComputedStyle(container!).getPropertyValue(
-                propertyKey
-            );
-            optionsNode[key] = ChartOptions.processedCSSVariables[propertyKey];
+            processedCSSVariables[propertyKey] ??= getComputedStyle(container!).getPropertyValue(propertyKey);
+            optionsNode[key] = processedCSSVariables[propertyKey];
         }
+
+        return processedCSSVariables;
     }
 
     private processCSSVariables(options: Partial<T>) {
