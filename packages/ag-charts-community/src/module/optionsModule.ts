@@ -122,7 +122,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private static readonly perfDebug = Debug.create(true, 'perf');
 
-    private static readonly FAST_PATH_OPTIONS = new Set<keyof AgChartOptions>(['data', 'width', 'height', 'container']);
+    private static readonly FAST_PATH_OPTIONS = new Set<keyof AgChartOptions>([
+        'data',
+        'width',
+        'height',
+        'container',
+        // `context` is a user pass-through consumed only by `callWithContext` at
+        // callback time — preset/theme processing does not branch on it, so
+        // context-only deltas can take the fast merge path.
+        'context',
+    ]);
     private static isFastPathDelta(deltaOptions: DeepPartial<AgChartOptions> | null) {
         for (const key of Object.keys(deltaOptions ?? {})) {
             if (!this.FAST_PATH_OPTIONS.has(key as keyof AgChartOptions)) {
