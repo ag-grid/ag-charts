@@ -33,6 +33,10 @@ export class Scene extends EventEmitter<EventMap> {
 
     private root: Group | null = null;
     private pendingSize: [number, number, number] | null = null;
+    // AG-17372: HdpiCanvas seeds width/height/pixelRatio at construction without applying
+    // the DPR transform, so the first resize whose dimensions equal those seeds must still
+    // propagate. Flip once applyPendingResize has actually run.
+    private hasAppliedSize: boolean = false;
     private isDirty: boolean = false;
     private direction: CanvasDirection = 'ltr';
     private _baseFont: string | undefined;
@@ -147,7 +151,7 @@ export class Scene extends EventEmitter<EventMap> {
         if (
             width > 0 &&
             height > 0 &&
-            (width !== this.width || height !== this.height || pixelRatio !== this.pixelRatio)
+            (!this.hasAppliedSize || width !== this.width || height !== this.height || pixelRatio !== this.pixelRatio)
         ) {
             this.pendingSize = [width, height, pixelRatio];
             this.isDirty = true;
@@ -175,6 +179,7 @@ export class Scene extends EventEmitter<EventMap> {
         if (this.pendingSize) {
             this.layersManager.resize(...this.pendingSize);
             this.pendingSize = null;
+            this.hasAppliedSize = true;
             // Resize resets canvas context state — re-apply the cached base font if one was established.
             this._contextFont = undefined;
             if (this._baseFont != null) {
