@@ -35,12 +35,12 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
     /** Per-series candidancy state. Keyed by `seriesId`. */
     private readonly candidancy = new Map<string, Bitfield>();
 
-    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
+    constructor(private readonly ctx?: DynamicContext<ChartRegistry>) {
         super();
         this.cleanup.register(
             () => this.clear(),
             () => this.clearCandidancy(),
-            ctx.chartState.observe((get) => {
+            ctx?.chartState.observe((get) => {
                 const opts = get('options', 'selection');
                 if (opts?.enabled === false) {
                     this.clearCandidancy();
