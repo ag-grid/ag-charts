@@ -20,6 +20,7 @@ const isDebugPage = (page: string) => {
 const isRedirectPage = (page: string) => {
     return (
         page.endsWith('/documentation/') ||
+        page.endsWith('/licensing/') ||
         page.endsWith('/react/') ||
         page.endsWith('/angular/') ||
         page.endsWith('/javascript/') ||
@@ -70,8 +71,12 @@ const filterIgnoredPages = (page: string) => {
 export function getSitemapConfig() {
     return {
         filter: filterIgnoredPages,
-        changefreq: 'daily',
-        priority: 0.7,
         lastmod: new Date(),
+        namespaces: {
+            news: false,
+            xhtml: false,
+            image: false,
+            video: false,
+        },
     };
 }
