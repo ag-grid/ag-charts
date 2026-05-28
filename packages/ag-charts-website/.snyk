@@ -33,29 +33,29 @@ ignore:
               expires: 2026-06-08T00:00:00.000Z
               created: 2026-05-01T11:06:41.675Z
     SNYK-JS-H3-15745711:
-        - astro@6.1.8 > unstorage@1.17.5 > h3@1.15.5:
+        - astro@6.1.9 > unstorage@1.17.5 > h3@1.15.5:
               reason: >-
-                  The website is a static site, so server-side vulns are not relevant
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2026-04-24T14:14:06.909Z
+                  Used in build & dev - not included in final production build
+              expires: 2026-08-28T00:00:00.000Z
+              created: 2026-05-28T00:00:00.000Z
     SNYK-JS-H3-15692482:
-        - astro@6.1.8 > unstorage@1.17.5 > h3@1.15.5:
+        - astro@6.1.9 > unstorage@1.17.5 > h3@1.15.5:
               reason: >-
-                  The website is a static site, so server-side vulns are not relevant
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2026-04-24T14:13:52.792Z
+                  Used in build & dev - not included in final production build
+              expires: 2026-08-28T00:00:00.000Z
+              created: 2026-05-28T00:00:00.000Z
     SNYK-JS-H3-15683856:
-        - astro@6.1.8 > unstorage@1.17.5 > h3@1.15.5:
+        - astro@6.1.9 > unstorage@1.17.5 > h3@1.15.5:
               reason: >-
-                  The website is a static site, so server-side vulns are not relevant
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2026-04-24T14:12:57.295Z
+                  Used in build & dev - not included in final production build
+              expires: 2026-08-28T00:00:00.000Z
+              created: 2026-05-28T00:00:00.000Z
     SNYK-JS-DEFU-15914644:
-        - astro@6.1.8 > unstorage@1.17.5 > h3@1.15.5 > defu@6.1.4:
+        - astro@6.1.9 > unstorage@1.17.5 > h3@1.15.5 > defu@6.1.4:
               reason: >-
-                  The website is a static site, so server-side vulns are not relevant
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2026-04-24T14:12:43.512Z
+                  Used in build & dev - not included in final production build
+              expires: 2026-08-28T00:00:00.000Z
+              created: 2026-05-28T00:00:00.000Z
     SNYK-JS-AJV-15274295:
         - '@astrojs/check@0.9.8 > @astrojs/language-server@2.16.6 > volar-service-yaml@0.0.70 > yaml-language-server@1.20.0 > ajv@8.17.1':
               reason: >-
@@ -63,11 +63,11 @@ ignore:
               expires: 2026-06-08T00:00:00.000Z
               created: 2026-04-24T14:12:34.212Z
     SNYK-JS-BASICFTP-16094986:
-        - puppeteer-core@24.13.0 > @puppeteer/browsers@2.10.5 > proxy-agent@6.5.0 > pac-proxy-agent@7.2.0 > get-uri@6.0.5 > basic-ftp@5.0.5:
+        - puppeteer-core@24.42.0 > @puppeteer/browsers@2.13.0 > proxy-agent@6.5.0 > pac-proxy-agent@7.2.0 > get-uri@6.0.5 > basic-ftp@5.0.5:
               reason: >-
-                  Used in dev - not included in final production build
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2026-04-20T10:52:42.711Z
+                  Used in build & dev - not included in final production build
+              expires: 2026-08-28T00:00:00.000Z
+              created: 2026-05-28T00:00:00.000Z
     SNYK-JS-VITE-15922242:
         - vitest@2.1.9 > vite-node@2.1.9 > vite@6.3.5:
               reason: >-
@@ -80,11 +80,11 @@ ignore:
               expires: 2026-06-08T00:00:00.000Z
               created: 2026-04-15T13:33:24.916Z
     SNYK-JS-BASICFTP-15989098:
-        - puppeteer-core@24.13.0 > @puppeteer/browsers@2.10.5 > proxy-agent@6.5.0 > pac-proxy-agent@7.2.0 > get-uri@6.0.5 > basic-ftp@5.0.5:
+        - puppeteer-core@24.42.0 > @puppeteer/browsers@2.13.0 > proxy-agent@6.5.0 > pac-proxy-agent@7.2.0 > get-uri@6.0.5 > basic-ftp@5.0.5:
               reason: >-
                   Used in build & dev - not included in final production build
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2026-04-15T13:08:22.694Z
+              expires: 2026-08-28T00:00:00.000Z
+              created: 2026-05-28T00:00:00.000Z
     SNYK-JS-AXIOS-15969258:
         - vite-plugin-mkcert@1.17.8 > axios@1.9.0:
               reason: >-
@@ -98,11 +98,11 @@ ignore:
               expires: 2026-06-08T00:00:00.000Z
               created: 2026-04-15T11:50:06.527Z
     SNYK-JS-BASICFTP-15953339:
-        - puppeteer-core@24.13.0 > @puppeteer/browsers@2.10.5 > proxy-agent@6.5.0 > pac-proxy-agent@7.2.0 > get-uri@6.0.5 > basic-ftp@5.0.5:
+        - puppeteer-core@24.42.0 > @puppeteer/browsers@2.13.0 > proxy-agent@6.5.0 > pac-proxy-agent@7.2.0 > get-uri@6.0.5 > basic-ftp@5.0.5:
               reason: >-
                   Used in build & dev - not included in final production build
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2026-04-15T11:47:43.325Z
+              expires: 2026-08-28T00:00:00.000Z
+              created: 2026-05-28T00:00:00.000Z
     SNYK-JS-AXIOS-15965856:
         - vite-plugin-mkcert@1.17.8 > axios@1.9.0:
               reason: >-
@@ -115,61 +115,6 @@ ignore:
                   The website is a static site, so server-side vulns are not relevant
               expires: 2026-06-08T00:00:00.000Z
               created: 2026-04-24T14:14:59.537Z
-        - '@astrojs/react@5.0.3 > vite@7.3.2 > tinyglobby@0.2.15 > picomatch@4.0.3':
-              reason: >-
-                  The website is a static site, so server-side vulns are not relevant
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2026-04-24T14:14:59.531Z
-        - '@astrojs/react@5.0.3 > vite@7.3.2 > picomatch@4.0.3':
-              reason: >-
-                  The website is a static site, so server-side vulns are not relevant
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2026-04-24T14:14:59.525Z
-        - '@astrojs/react@5.0.3 > @astrojs/internal-helpers@0.8.0 > picomatch@4.0.3':
-              reason: >-
-                  The website is a static site, so server-side vulns are not relevant
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2026-04-24T14:14:59.505Z
-        - '@astrojs/markdoc@1.0.3 > @astrojs/internal-helpers@0.8.0 > picomatch@4.0.3':
-              reason: >-
-                  The website is a static site, so server-side vulns are not relevant
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2026-04-24T14:14:59.498Z
-        - astro@6.1.8 > unstorage@1.17.5 > anymatch@3.1.3 > picomatch@2.3.1:
-              reason: >-
-                  The website is a static site, so server-side vulns are not relevant
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2026-04-24T14:14:59.489Z
-        - astro@6.1.8 > @rollup/pluginutils@5.3.0 > picomatch@4.0.2:
-              reason: >-
-                  The website is a static site, so server-side vulns are not relevant
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2026-04-24T14:14:59.481Z
-        - astro@6.1.8 > vite@7.3.2 > tinyglobby@0.2.15 > picomatch@4.0.3:
-              reason: >-
-                  The website is a static site, so server-side vulns are not relevant
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2026-04-24T14:14:59.476Z
-        - astro@6.1.8 > vite@7.3.2 > picomatch@4.0.3:
-              reason: >-
-                  The website is a static site, so server-side vulns are not relevant
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2026-04-24T14:14:59.468Z
-        - astro@6.1.8 > @astrojs/internal-helpers@0.8.0 > picomatch@4.0.3:
-              reason: >-
-                  The website is a static site, so server-side vulns are not relevant
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2026-04-24T14:14:59.448Z
-        - astro@6.1.8 > tinyglobby@0.2.15 > picomatch@4.0.3:
-              reason: >-
-                  The website is a static site, so server-side vulns are not relevant
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2026-04-24T14:14:59.439Z
-        - astro@6.1.8 > picomatch@4.0.3:
-              reason: >-
-                  The website is a static site, so server-side vulns are not relevant
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2026-04-24T14:14:59.430Z
         - vite-plugin-svgr@4.5.0 > @rollup/pluginutils@5.2.0 > picomatch@4.0.2:
               reason: >-
                   Used in build & dev - not included in final production build
@@ -185,6 +130,41 @@ ignore:
                   Used in build & dev - not included in final production build
               expires: 2026-06-08T00:00:00.000Z
               created: 2026-03-27T16:19:13.266Z
+        - astro@6.1.9 > tinyglobby@0.2.15 > picomatch@4.0.3:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-08-28T00:00:00.000Z
+              created: 2026-05-28T00:00:00.000Z
+        - '@astrojs/react@5.0.4 > vite@7.3.3 > picomatch@4.0.3':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-08-28T00:00:00.000Z
+              created: 2026-05-28T00:00:00.000Z
+        - astro@6.1.9 > vite@7.3.3 > picomatch@4.0.3:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-08-28T00:00:00.000Z
+              created: 2026-05-28T00:00:00.000Z
+        - '@astrojs/react@5.0.4 > vite@7.3.3 > tinyglobby@0.2.15 > picomatch@4.0.3':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-08-28T00:00:00.000Z
+              created: 2026-05-28T00:00:00.000Z
+        - astro@6.1.9 > vite@7.3.3 > tinyglobby@0.2.15 > picomatch@4.0.3:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-08-28T00:00:00.000Z
+              created: 2026-05-28T00:00:00.000Z
+        - astro@6.1.9 > @rollup/pluginutils@5.3.0 > picomatch@4.0.2:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-08-28T00:00:00.000Z
+              created: 2026-05-28T00:00:00.000Z
+        - astro@6.1.9 > unstorage@1.17.5 > anymatch@3.1.3 > picomatch@2.3.1:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-08-28T00:00:00.000Z
+              created: 2026-05-28T00:00:00.000Z
     SNYK-JS-BRACEEXPANSION-15789759:
         - react-query@3.39.3 > broadcast-channel@3.7.0 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
               reason: >-
@@ -242,15 +222,45 @@ ignore:
               expires: 2026-06-08T00:00:00.000Z
               created: 2026-03-02T16:58:54.276Z
     SNYK-JS-BASICFTP-15366428:
-        - puppeteer-core@24.13.0 > @puppeteer/browsers@2.10.5 > proxy-agent@6.5.0 > pac-proxy-agent@7.2.0 > get-uri@6.0.5 > basic-ftp@5.0.5:
+        - puppeteer-core@24.42.0 > @puppeteer/browsers@2.13.0 > proxy-agent@6.5.0 > pac-proxy-agent@7.2.0 > get-uri@6.0.5 > basic-ftp@5.0.5:
               reason: >-
-                  Test dependency - not included in final production build
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2026-03-02T16:47:21.740Z
+                  Used in build & dev - not included in final production build
+              expires: 2026-08-28T00:00:00.000Z
+              created: 2026-05-28T00:00:00.000Z
     SNYK-JS-AXIOS-15252993:
         - 'vite-plugin-mkcert@1.17.8 > axios@1.9.0':
               reason: >-
                   mkcert is only used during development - it's not used in the final production build
               expires: 2026-06-08T00:00:00.000Z
               created: 2026-02-12T10:10:00.000Z
+    SNYK-JS-AXIOS-16417750:
+        - vite-plugin-mkcert@1.17.8 > axios@1.9.0:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-08-28T00:00:00.000Z
+              created: 2026-05-28T00:00:00.000Z
+    SNYK-JS-BASICFTP-16438941:
+        - puppeteer-core@24.42.0 > @puppeteer/browsers@2.13.0 > proxy-agent@6.5.0 > pac-proxy-agent@7.2.0 > get-uri@6.0.5 > basic-ftp@5.0.5:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-08-28T00:00:00.000Z
+              created: 2026-05-28T00:00:00.000Z
+    SNYK-JS-DEVALUE-16697433:
+        - '@astrojs/react@5.0.4 > devalue@5.7.1':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-08-28T00:00:00.000Z
+              created: 2026-05-28T00:00:00.000Z
+    SNYK-JS-FASTURI-16642394:
+        - '@astrojs/check@0.9.8 > @astrojs/language-server@2.16.6 > volar-service-yaml@0.0.70 > yaml-language-server@1.20.0 > ajv@8.17.1 > fast-uri@3.0.3':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-08-28T00:00:00.000Z
+              created: 2026-05-28T00:00:00.000Z
+    SNYK-JS-FASTURI-16642399:
+        - '@astrojs/check@0.9.8 > @astrojs/language-server@2.16.6 > volar-service-yaml@0.0.70 > yaml-language-server@1.20.0 > ajv@8.17.1 > fast-uri@3.0.3':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-08-28T00:00:00.000Z
+              created: 2026-05-28T00:00:00.000Z
 patch: {}
