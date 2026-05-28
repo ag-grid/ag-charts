@@ -324,6 +324,17 @@ jobs:
               run: |
                   yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude all,ag-charts-website
 
+            - name: Upload UMD bundles for PR preview
+              if: github.event_name == 'pull_request' && steps.build.outcome == 'success'
+              uses: actions/upload-artifact@v4
+              with:
+                  name: pr-preview-umd
+                  if-no-files-found: ignore
+                  retention-days: 14
+                  path: |
+                      packages/ag-charts-community/dist/umd/ag-charts-community.min.js
+                      packages/ag-charts-enterprise/dist/umd/ag-charts-enterprise.min.js
+
     validate:
         runs-on: ubuntu-24.04
         name: Validate Examples
@@ -354,6 +365,81 @@ jobs:
               id: validate
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t validate-examples --exclude all
+
+    pr_preview:
+        runs-on: ubuntu-24.04
+        name: PR Preview (UMD)
+        needs: [build]
+        if: github.event_name == 'pull_request' && needs.build.outputs.build == 'success'
+        permissions:
+            contents: write
+            pull-requests: write
+        concurrency:
+            group: pr-preview-gh-pages
+            cancel-in-progress: false
+        env:
+            PR_NUMBER: ${{ github.event.pull_request.number }}
+        steps:
+            - name: Download UMD artifact
+              id: download
+              uses: actions/download-artifact@v4
+              continue-on-error: true
+              with:
+                  name: pr-preview-umd
+                  path: _umd
+
+            - name: Stage publish tree
+              id: stage
+              if: steps.download.outcome == 'success'
+              run: |
+                  set -euo pipefail
+                  COMMUNITY="_umd/packages/ag-charts-community/dist/umd/ag-charts-community.min.js"
+                  ENTERPRISE="_umd/packages/ag-charts-enterprise/dist/umd/ag-charts-enterprise.min.js"
+                  if [ ! -f "$COMMUNITY" ] && [ ! -f "$ENTERPRISE" ]; then
+                      echo "No UMD bundles in artifact — likely tooling-only PR; skipping publish."
+                      echo "publish=false" >> "$GITHUB_OUTPUT"
+                      exit 0
+                  fi
+                  if [ ! -f "$COMMUNITY" ] || [ ! -f "$ENTERPRISE" ]; then
+                      echo "ERROR: exactly one UMD bundle present; expected both or neither." >&2
+                      ls -la _umd || true
+                      exit 1
+                  fi
+                  DEST="_publish/pr-${PR_NUMBER}"
+                  mkdir -p "$DEST"
+                  cp "$COMMUNITY" "$ENTERPRISE" "$DEST/"
+                  # .nojekyll at root disables Jekyll on gh-pages; keep_files preserves it across pushes.
+                  touch _publish/.nojekyll
+                  echo "publish=true" >> "$GITHUB_OUTPUT"
+
+            - name: Deploy to gh-pages
+              if: steps.stage.outputs.publish == 'true'
+              uses: peaceiris/actions-gh-pages@v3
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_dir: _publish
+                  publish_branch: gh-pages
+                  keep_files: true
+                  commit_message: 'pr-preview: publish pr-${{ env.PR_NUMBER }}'
+                  user_name: 'github-actions[bot]'
+                  user_email: 'github-actions[bot]@users.noreply.github.com'
+
+            - name: Post sticky PR comment
+              if: steps.stage.outputs.publish == 'true'
+              uses: marocchino/sticky-pull-request-comment@v2
+              with:
+                  header: pr-preview-umd
+                  message: |
+                      ### Live-test this PR in Plunker
+
+                      Paste these two `<script>` tags into a Plunker (or any vanilla-JS host) to load the UMD bundles built from this PR:
+
+                      ```html
+                      <script src="https://ag-grid.github.io/ag-charts/pr-${{ env.PR_NUMBER }}/ag-charts-community.min.js"></script>
+                      <script src="https://ag-grid.github.io/ag-charts/pr-${{ env.PR_NUMBER }}/ag-charts-enterprise.min.js"></script>
+                      ```
+
+                      Bundles are removed automatically when the PR is closed. Updated on every push.
 
     website_build:
         runs-on: ubuntu-24.04
