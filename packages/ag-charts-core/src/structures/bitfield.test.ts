@@ -1,5 +1,5 @@
-import { Bitfield } from './Bitfield';
-import type { Bit } from './Bitfield';
+import { Bitfield } from './bitfield';
+import type { Bit } from './bitfield';
 
 describe('Bitfield (larger scale tests)', () => {
     test('length', () => {
