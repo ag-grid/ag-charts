@@ -200,7 +200,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.removeLeftoverSymbols(this.userOptions);
         }
 
-        this.processCSSVariables(this.userOptions);
+        if (metadata.presetType !== 'sparkline') {
+            this.processCSSVariables(this.userOptions);
+        }
 
         const dataChangedLength =
             currentUserOptions instanceof ChartOptions &&
