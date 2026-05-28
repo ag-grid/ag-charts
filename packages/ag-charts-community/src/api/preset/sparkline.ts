@@ -276,6 +276,18 @@ function gridLinePreset(
     return gridLineOpts;
 }
 
+// `datumKey === 'y'` is set by `sparklineDataPreset` for raw number-array input,
+// where the x value is a synthesised index rather than a user-meaningful key.
+// For all other shapes (user-supplied `xKey` on object data, tuple-array input
+// with the original tuple exposed under `'datum'`), the x value is real and
+// belongs in the default tooltip content.
+const shouldShowXValue = (datumKey?: string) => datumKey !== 'y';
+
+const defaultTooltipContent = (xValue: unknown, yValue: unknown, datumKey?: string): string => {
+    const formattedY = typeof yValue === 'number' ? yValue.toFixed(2) : String(yValue);
+    return shouldShowXValue(datumKey) && xValue != null ? `${String(xValue)} ${formattedY}` : formattedY;
+};
+
 const tooltipRendererFn = simpleMemorize((tooltip?: AgSparklineTooltip<any>, datumKey?: string) => {
     return (
         params: AgBarSeriesTooltipRendererParams | AgLineSeriesTooltipRendererParams | AgAreaSeriesTooltipRendererParams
@@ -293,11 +305,13 @@ const tooltipRendererFn = simpleMemorize((tooltip?: AgSparklineTooltip<any>, dat
             return toTextString(userContent);
         }
 
-        // `userContent === undefined` (renderer absent or returning `undefined`) falls through
-        // naturally: optional chaining on `userContent?.content` / `userContent?.title` yields
-        // undefined and the default `yValue.toFixed(2)` content is used. Per the Renderer<P, R>
-        // contract this is the documented "fall through to default" behaviour.
-        const content = userContent?.content ?? yValue.toFixed(2);
+        // `userContent === undefined` (renderer absent or returning `undefined`) falls
+        // through naturally: optional chaining on `userContent?.content` /
+        // `userContent?.title` yields undefined and the default content is used. The
+        // default includes the x value when it is user-meaningful, so callers that
+        // only want yValue formatting don't need to install a custom renderer just to
+        // suppress an auto-synthesised index.
+        const content = userContent?.content ?? defaultTooltipContent(xValue, yValue, datumKey);
 
         return userContent?.title
             ? {

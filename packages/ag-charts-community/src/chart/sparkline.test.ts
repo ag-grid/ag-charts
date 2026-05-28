@@ -381,4 +381,87 @@ describe('Sparkline', () => {
             chart = chartA;
         });
     });
+
+    describe('default tooltip content (AG-17227)', () => {
+        // The chart-side preset must produce a useful default tooltip without the
+        // consumer (e.g. the Grid sparkline cell renderer) needing to install a
+        // function at `tooltip.renderer`. A function in user options poisons the
+        // structural-options cache key, so this default-in-the-preset behaviour is
+        // what lets the cache hit for the common Grid case.
+
+        const renderDefaultTooltip = (c: Chart, datum: any, xKey: string, yKey: string) => {
+            const series = c.series[0] as any;
+            const tooltip = series.properties.tooltip;
+            const xValue = datum[xKey];
+            const yValue = datum[yKey];
+            const params: any = {
+                datum,
+                xKey,
+                yKey,
+                xValue,
+                yValue,
+                seriesId: series.id,
+                title: undefined,
+                color: undefined,
+            };
+            return tooltip.formatTooltip([series.properties, series.ctx.chartService], { data: [] }, params);
+        };
+
+        it('omits the synthesised x index from number-array data', async () => {
+            const instance = AgCharts.__createSparkline({
+                type: 'line',
+                data: [10, 20, 30],
+                width: 200,
+                height: 100,
+            });
+            chart = deproxy(instance);
+            await waitForChartStability(chart);
+
+            // sparklineDataPreset maps numbers to { x: index, y: value } with datumKey: 'y'.
+            const result: any = renderDefaultTooltip(chart, { x: 1, y: 20 }, 'x', 'y');
+            const html = result.rawHtmlString ?? JSON.stringify(result);
+            expect(html).toContain('20.00');
+            expect(html).not.toContain('1 20'); // would indicate the synthesised index leaked through
+        });
+
+        it('includes the x value for tuple-array data', async () => {
+            const instance = AgCharts.__createSparkline({
+                type: 'line',
+                data: [
+                    [0, 10],
+                    [1, 20],
+                ],
+                width: 200,
+                height: 100,
+            });
+            chart = deproxy(instance);
+            await waitForChartStability(chart);
+
+            // tuple data → datumKey: 'datum' (preserved original tuple). xValue is real.
+            const result: any = renderDefaultTooltip(chart, { x: 1, y: 20, datum: [1, 20] }, 'x', 'y');
+            const html = result.rawHtmlString ?? JSON.stringify(result);
+            expect(html).toContain('1 20.00');
+        });
+
+        it('includes the x value for user-supplied xKey on object data', async () => {
+            const instance = AgCharts.__createSparkline({
+                type: 'line',
+                xKey: 'date',
+                yKey: 'value',
+                data: [
+                    { date: 'Jan', value: 10 },
+                    { date: 'Feb', value: 20 },
+                ],
+                width: 200,
+                height: 100,
+            });
+            chart = deproxy(instance);
+            await waitForChartStability(chart);
+
+            // object data with user xKey → datumKey undefined. xValue is real.
+            const result: any = renderDefaultTooltip(chart, { date: 'Feb', value: 20 }, 'date', 'value');
+            const html = result.rawHtmlString ?? JSON.stringify(result);
+            expect(html).toContain('Feb 20.00');
+        });
+    });
 });
