@@ -408,7 +408,7 @@ jobs:
                   COMMUNITY=$(find _umd -type f -name 'ag-charts-community.min.js' -print -quit)
                   ENTERPRISE=$(find _umd -type f -name 'ag-charts-enterprise.min.js' -print -quit)
                   if [ -z "$COMMUNITY" ] && [ -z "$ENTERPRISE" ]; then
-                      echo "No UMD bundles in artifact — likely tooling-only PR; skipping publish."
+                      echo "::warning No UMD bundles in artifact — likely tooling-only PR; skipping publish."
                       echo "publish=false" >> "$GITHUB_OUTPUT"
                       exit 0
                   fi
