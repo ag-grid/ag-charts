@@ -252,7 +252,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             const data = series.data;
             if (!data) continue;
 
-            const bitfield = this.service.enableCandidancy(series.id, data);
+            const bitfield = this.service.enableCandidacy(series.id, data);
             bitfield.clear();
 
             for (const datumIndex of this.iterateNumericDatumIndices(seriesBounds, series)) {
