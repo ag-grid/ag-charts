@@ -8,7 +8,7 @@ import { ColorScale } from '../../../scale/colorScale';
 import { configureColorScale } from '../../../scale/colorScaleUtil';
 import { BBox } from '../../../scene/bbox';
 import type { Node } from '../../../scene/node';
-import type { Selection } from '../../../scene/selection';
+import type { Selection, SelectionInterface } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import { createDatumId } from '../../data/processors';
 import {
@@ -384,7 +384,11 @@ export abstract class HierarchySeries<
     }
 
     private removeMeIndexForIndexPath(indexPath: number[]): number {
-        for (const { index, datum } of this.datumSelection) {
+        const nodes = this.datumSelection.nodes();
+        for (let index = 0; index < nodes.length; index++) {
+            const { datum } = nodes[index];
+            if (datum === undefined) continue;
+
             if (arraysEqual(datum.path, indexPath)) {
                 return index - 1;
             }
@@ -392,7 +396,7 @@ export abstract class HierarchySeries<
         return 0;
     }
 
-    protected abstract datumSelection: Selection<TNodeClass, TNode>;
+    protected abstract datumSelection: SelectionInterface<TNodeClass, TNode>;
 
     protected abstract computeFocusBounds(node: TNode): BBox | Path | undefined;
 

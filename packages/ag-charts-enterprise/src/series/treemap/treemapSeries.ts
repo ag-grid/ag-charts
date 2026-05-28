@@ -13,7 +13,6 @@ import {
 } from 'ag-charts-community';
 import {
     type CallbackParamRules,
-    type DistantObject,
     type InternalAgColorType,
     type Point,
     type RequireOptional,
@@ -101,15 +100,9 @@ const verticalAlignFactors: Record<VerticalAlign, number | undefined> = {
     bottom: 1,
 };
 
-class DistantGroup<D> extends _ModuleSupport.Group<D> implements DistantObject {
-    distanceSquared(x: number, y: number): number {
-        return this.getBBox().distanceSquared(x, y);
-    }
-}
-
 export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     TreemapNode,
-    DistantGroup<TreemapNode>,
+    _ModuleSupport.Rect<TreemapNode>,
     AgTreemapSeriesOptions,
     TreemapSeriesProperties
 > {
@@ -991,7 +984,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         );
     }
 
-    protected computeFocusBounds(node: _ModuleSupport.Group): _ModuleSupport.BBox | undefined {
+    protected computeFocusBounds(node: _ModuleSupport.Rect): _ModuleSupport.BBox | undefined {
         return Transformable.toCanvas(this.contentGroup, node.getBBox());
     }
 
