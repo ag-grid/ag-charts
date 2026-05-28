@@ -419,7 +419,7 @@ describe('Sparkline', () => {
 
             // sparklineDataPreset maps numbers to { x: index, y: value } with datumKey: 'y'.
             const result: any = renderDefaultTooltip(chart, { x: 1, y: 20 }, 'x', 'y');
-            const html = result.rawHtmlString ?? JSON.stringify(result);
+            const html = JSON.stringify(result);
             expect(html).toContain('20.00');
             expect(html).not.toContain('1 20'); // would indicate the synthesised index leaked through
         });
@@ -439,7 +439,7 @@ describe('Sparkline', () => {
 
             // tuple data → datumKey: 'datum' (preserved original tuple). xValue is real.
             const result: any = renderDefaultTooltip(chart, { x: 1, y: 20, datum: [1, 20] }, 'x', 'y');
-            const html = result.rawHtmlString ?? JSON.stringify(result);
+            const html = JSON.stringify(result);
             expect(html).toContain('1 20.00');
         });
 
@@ -460,7 +460,7 @@ describe('Sparkline', () => {
 
             // object data with user xKey → datumKey undefined. xValue is real.
             const result: any = renderDefaultTooltip(chart, { date: 'Feb', value: 20 }, 'date', 'value');
-            const html = result.rawHtmlString ?? JSON.stringify(result);
+            const html = JSON.stringify(result);
             expect(html).toContain('Feb 20.00');
         });
     });

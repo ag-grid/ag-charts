@@ -8,7 +8,7 @@ import type { AgChartThemeParams } from 'ag-charts-types';
 // values do not alias.
 
 export interface StructuralCacheEntry {
-    /** `processedOptions` with `VOLATILE_KEYS` stripped — caller re-attaches them from `userOptions` on read. */
+    /** `processedOptions` with `data` and `VOLATILE_KEYS` stripped — caller re-attaches them on read. */
     processedOptions: unknown;
     themeParameters: AgChartThemeParams;
     googleFonts: Set<string> | undefined;

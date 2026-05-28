@@ -281,11 +281,10 @@ function gridLinePreset(
 // For all other shapes (user-supplied `xKey` on object data, tuple-array input
 // with the original tuple exposed under `'datum'`), the x value is real and
 // belongs in the default tooltip content.
-const shouldShowXValue = (datumKey?: string) => datumKey !== 'y';
-
 const defaultTooltipContent = (xValue: unknown, yValue: unknown, datumKey?: string): string => {
     const formattedY = typeof yValue === 'number' ? yValue.toFixed(2) : String(yValue);
-    return shouldShowXValue(datumKey) && xValue != null ? `${String(xValue)} ${formattedY}` : formattedY;
+    const showXValue = datumKey !== 'y' && xValue != null;
+    return showXValue ? `${String(xValue)} ${formattedY}` : formattedY;
 };
 
 const tooltipRendererFn = simpleMemorize((tooltip?: AgSparklineTooltip<any>, datumKey?: string) => {
