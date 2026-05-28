@@ -5,7 +5,7 @@ export type Bit = 0 | 1;
 // `index & 31` means "bit offset". It's equivalent to a modulo by 32.
 
 export class Bitfield {
-    private buffer: Uint32Array;
+    private readonly buffer: Uint32Array;
 
     constructor(readonly length: number) {
         this.buffer = new Uint32Array(Math.ceil(length / 32));
