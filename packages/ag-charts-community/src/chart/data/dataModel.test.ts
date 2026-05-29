@@ -1692,6 +1692,51 @@ describe('DataModel', () => {
         });
     });
 
+    describe('stacking on a date column (AG-16608)', () => {
+        it('should reject a stacked date-tagged column with a warning and render empty', () => {
+            // AG-16608 AC #14: stacking/accumulation is not meaningful for date data. The date columns
+            // are blanked (empty domain) so the series renders nothing; sibling series are unaffected.
+            const dataModel = new DataModel<any, any, true>({
+                props: [categoryKey('kp'), ...accumulatedGroupValues(['a', 'b'], 'all')],
+                groupByKeys: true,
+            });
+            const data = basicDataSet([
+                { kp: 'Q1', a: new Date(2024, 0, 1), b: new Date(2024, 0, 2) },
+                { kp: 'Q2', a: new Date(2024, 0, 3), b: new Date(2024, 0, 4) },
+            ]);
+
+            const result = dataModel.processData(data)!;
+
+            expect(result.columnValueType).toEqual(['date', 'date']);
+            expect(result.domain.values[0]).toEqual([]);
+            expect(result.domain.values[1]).toEqual([]);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Series "test": column "a" is date-typed; stacking is not meaningful for date data. The series renders empty; other series in this chart are unaffected.",
+  ],
+  [
+    "AG Charts - Series "test": column "b" is date-typed; stacking is not meaningful for date data. The series renders empty; other series in this chart are unaffected.",
+  ],
+]
+`);
+        });
+
+        it('should not reject a stacked number column', () => {
+            const dataModel = new DataModel<any, any, true>({
+                props: [categoryKey('kp'), ...accumulatedGroupValues(['a', 'b'], 'all')],
+                groupByKeys: true,
+            });
+            const data = basicDataSet([{ kp: 'Q1', a: 5, b: 7 }]);
+
+            const result = dataModel.processData(data)!;
+
+            expect(result.columnValueType).toEqual(['number', 'number']);
+            expect(resolveGroupColumn(result, 0, 0)).toEqual([5]);
+            expect(resolveGroupColumn(result, 0, 1)).toEqual([12]); // stacked: 5 + 7
+        });
+    });
+
     describe('update operations', () => {
         describe('ungrouped data', () => {
             it('should process updated items correctly', () => {

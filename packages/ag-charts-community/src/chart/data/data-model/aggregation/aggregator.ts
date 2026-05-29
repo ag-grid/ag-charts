@@ -1,4 +1,4 @@
-import { first } from 'ag-charts-core';
+import { Logger, first } from 'ag-charts-core';
 
 import { ContinuousDomain, DiscreteDomain } from '../../dataDomain';
 import type { GroupedData, PropertySelectors, UngroupedData } from '../../dataModelTypes';
@@ -128,9 +128,16 @@ export class Aggregator<D extends object, K extends keyof D & string> {
     postProcessGroups(processedData: GroupedData<any>) {
         const { groupProcessors } = this.ctx;
 
-        const { columnScopes, columns, invalidData } = processedData;
+        const { columnScopes, columns, invalidData, columnValueType } = processedData;
         for (const processor of groupProcessors) {
-            const valueIndexes = this.valueGroupIdxLookup(processor);
+            // AG-16608: stacking / accumulation is not meaningful for date columns. Reject any such
+            // column (warn once and blank it so the series renders empty) and exclude it from the
+            // accumulation below; sibling columns and series are unaffected.
+            const valueIndexes = this.valueGroupIdxLookup(processor).filter((valueIndex) => {
+                if (columnValueType?.[valueIndex] !== 'date') return true;
+                this.rejectDateStackColumn(processedData, valueIndex);
+                return false;
+            });
             const adjustFn = processor.adjust()();
 
             for (let groupIndex = 0; groupIndex < processedData.groups.length; groupIndex++) {
@@ -154,6 +161,22 @@ export class Aggregator<D extends object, K extends keyof D & string> {
                 processedData.domain.values[valueIndex] = domain.getDomain();
             }
         }
+    }
+
+    private rejectDateStackColumn(processedData: GroupedData<any>, valueIndex: number) {
+        const valueDef = this.ctx.values[valueIndex];
+        const columnScope = first(processedData.columnScopes[valueIndex]);
+        Logger.warnOnce(
+            `Series "${String(columnScope)}": column "${String(valueDef.property)}" is date-typed; ` +
+                `stacking is not meaningful for date data. The series renders empty; ` +
+                `other series in this chart are unaffected.`
+        );
+
+        const column = processedData.columns[valueIndex];
+        for (let datumIndex = 0; datumIndex < column.length; datumIndex += 1) {
+            column[datumIndex] = undefined;
+        }
+        processedData.domain.values[valueIndex] = [];
     }
 
     private valueGroupIdxLookup(selector: PropertySelectors) {
