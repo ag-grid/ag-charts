@@ -52,7 +52,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ append: [{ x: 3, y: 30 }] });
 
                 // Reprocess
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify keys were updated
@@ -92,7 +92,7 @@ describe('DataModel', () => {
                 // Prepend transaction
                 dataSet.addTransaction({ prepend: [{ x: 1, y: 10 }] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify keys were shifted and new key added
@@ -130,7 +130,7 @@ describe('DataModel', () => {
                 // Remove middle item
                 dataSet.addTransaction({ remove: [initialData[1]] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify item was removed
@@ -168,7 +168,7 @@ describe('DataModel', () => {
                     append: [{ x: 4, y: 40 }],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // After remove+append, we expect: [{x:2},{x:3},{x:4}]
@@ -200,7 +200,7 @@ describe('DataModel', () => {
 
                 dataSet.addTransaction({ append: [{ x: 2, y1: 20, y2: 200 }] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 expect(reprocessed.columns).toEqual([
@@ -236,7 +236,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ append: [{ x: 3, y: 30 }] });
 
                 // Reprocess
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify data was updated correctly
@@ -272,7 +272,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ append: [{ x: 3, y: 30 }] });
 
                 // Reprocess
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify data was updated correctly
@@ -307,7 +307,7 @@ describe('DataModel', () => {
                 // No transaction added
 
                 // Reprocess
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Should return same reference (no changes)
@@ -339,7 +339,7 @@ describe('DataModel', () => {
                 // Remove first row
                 dataSet.addTransaction({ remove: [initialData[0]] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Data adjusted
@@ -363,7 +363,7 @@ describe('DataModel', () => {
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Should return same reference
@@ -386,7 +386,7 @@ describe('DataModel', () => {
 
                 dataSet.addTransaction({ append: [{ category: 'C', value: 30 }] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 expect(reprocessed.keys[0].get('test')).toEqual(['A', 'B', 'C']);
@@ -419,7 +419,7 @@ describe('DataModel', () => {
                     append: [{ x: 3, y: 'invalid' as any }],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData);
+                const reprocessed = dataModel.reprocessData(processedData, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // The new invalid value should be tracked
@@ -460,7 +460,7 @@ describe('DataModel', () => {
                     append: [{ x: 3 }], // missing `y`
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData);
+                const reprocessed = dataModel.reprocessData(processedData, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // The new missing value should be tracked
@@ -504,7 +504,7 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ append: [{ x: 3, y: 30 }] });
 
                 // Reprocess
-                const reprocessed = dataModel.reprocessData(processedData!) as GroupedData<any>;
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined) as GroupedData<any>;
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify groups were updated
@@ -542,7 +542,7 @@ describe('DataModel', () => {
                 // Prepend transaction
                 dataSet.addTransaction({ prepend: [{ x: 1, y: 10 }] });
 
-                const reprocessed = dataModel.reprocessData(processedData!) as GroupedData<any>;
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined) as GroupedData<any>;
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify groups were updated and shifted
@@ -586,7 +586,7 @@ describe('DataModel', () => {
                 // Remove middle item
                 dataSet.addTransaction({ remove: [initialData[1]] });
 
-                const reprocessed = dataModel.reprocessData(processedData!) as GroupedData<any>;
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined) as GroupedData<any>;
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify groups updated
@@ -620,7 +620,7 @@ describe('DataModel', () => {
                 // Append to existing group A
                 dataSet.addTransaction({ append: [{ category: 'A', value: 40 }] });
 
-                const reprocessed = dataModel.reprocessData(processedData!) as GroupedData<any>;
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined) as GroupedData<any>;
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify groups structure
@@ -655,7 +655,9 @@ describe('DataModel', () => {
                 dataSet.addTransaction({ append: [{ x: null as any, y: 20 }] });
 
                 // Should throw error about invalid keys
-                expect(() => dataModel.reprocessData(processedData!)).toThrow(/invalid keys not supported/i);
+                expect(() => dataModel.reprocessData(processedData!, undefined, undefined)).toThrow(
+                    /invalid keys not supported/i
+                );
 
                 // Verify warning was logged for the invalid key during processing
                 expectWarningsCalls().toMatchInlineSnapshot(`
@@ -700,7 +702,7 @@ describe('DataModel', () => {
                     append: [{ x: 100, y1: 1000, y2: 500 }],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify banding metadata is present after reprocessing
@@ -758,7 +760,7 @@ describe('DataModel', () => {
                     append: [{ category: 'Cat100', valueA: 1000, valueB: 500 }],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!) as GroupedData<any>;
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined) as GroupedData<any>;
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify groups count is still 100 (removed one, added one)
@@ -824,7 +826,7 @@ describe('DataModel', () => {
                 append: [{ category: 'Cat100', value1: 1000, value2: 10000 }],
             });
 
-            const reprocessed1 = dataModel.reprocessData(processedData!);
+            const reprocessed1 = dataModel.reprocessData(processedData!, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed1, sources);
 
             // Verify the domain is correct (would be wrong if bands were updated twice)
@@ -841,7 +843,7 @@ describe('DataModel', () => {
                 append: [{ category: 'Cat101', value1: 1010, value2: 10100 }],
             });
 
-            const reprocessed2 = dataModel.reprocessData(reprocessed1);
+            const reprocessed2 = dataModel.reprocessData(reprocessed1, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed2, sources);
 
             // Verify the domain is correct
@@ -902,7 +904,7 @@ describe('DataModel', () => {
                 append: [{ category: 'C', seriesA: 200, seriesB: 100 }],
             });
 
-            const reprocessed = dataModel.reprocessData(processedData!);
+            const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
             const columns = reprocessed.columns;
 
@@ -954,7 +956,7 @@ describe('DataModel', () => {
             // Before reprocessing, the DataSet should have pending transactions
             expect(dataSet.getChangeDescription()).toBeTruthy();
 
-            const reprocessed = dataModel.reprocessData(processedData!);
+            const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
             // After reprocessing, transactions should be committed exactly once
@@ -1005,7 +1007,7 @@ describe('DataModel', () => {
                 append: [{ category: 'Cat100', seriesA: 1000, seriesB: 500 }],
             });
 
-            const reprocessed = dataModel.reprocessData(processedData!);
+            const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
             const columns = reprocessed.columns;
 
@@ -1062,7 +1064,7 @@ describe('DataModel', () => {
             });
 
             // This should trigger a full reprocess, not incremental
-            const reprocessed = dataModel.reprocessData(processedData!);
+            const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
             // Data should still be correct even with full reprocessing
@@ -1230,7 +1232,7 @@ describe('DataModel', () => {
                 // Append null datum
                 dataSet.addTransaction({ append: [null as any] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify invalidData tracking
@@ -1253,7 +1255,7 @@ describe('DataModel', () => {
                 // Append undefined datum
                 dataSet.addTransaction({ append: [undefined as any] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify invalidData tracking
@@ -1278,7 +1280,7 @@ describe('DataModel', () => {
                 // Prepend null datum
                 dataSet.addTransaction({ prepend: [null as any] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify index 0 is now invalid, valid data shifted
@@ -1305,7 +1307,7 @@ describe('DataModel', () => {
                     append: [null as any, { x: 2, y: 20 }, null as any],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Index 0: valid, Index 1: null, Index 2: valid, Index 3: null
@@ -1337,7 +1339,7 @@ describe('DataModel', () => {
                     append: [null as any],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Domain should contract (only includes 1 and 3, not the null)
@@ -1364,7 +1366,7 @@ describe('DataModel', () => {
                 // Append datum with valid key but null value
                 dataSet.addTransaction({ append: [{ x: 2, y: null as any }] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
                 // Clear warnings before baseline comparison
                 expectWarningsCalls();
@@ -1399,7 +1401,7 @@ describe('DataModel', () => {
                 // Append datum with y1 valid but y2 null
                 dataSet.addTransaction({ append: [{ x: 2, y1: 20, y2: null as any }] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
                 // Clear warnings
                 expectWarningsCalls();
@@ -1435,7 +1437,7 @@ describe('DataModel', () => {
                 // Append datum with missing y value
                 dataSet.addTransaction({ append: [{ x: 2 } as any] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
                 // Clear warnings
                 expectWarningsCalls();
@@ -1472,7 +1474,7 @@ describe('DataModel', () => {
                 initialData[1].y = null as any;
                 dataSet.addTransaction({ update: [initialData[1]] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Key should still be valid
@@ -1502,7 +1504,7 @@ describe('DataModel', () => {
                 // Remove the null datum
                 dataSet.addTransaction({ remove: [nullDatum] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Should now have only 2 items
@@ -1526,7 +1528,7 @@ describe('DataModel', () => {
                 // Remove the only valid datum
                 dataSet.addTransaction({ remove: [validDatum] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
                 // Should have 1 item (the null)
                 expect(reprocessed.input.count).toBe(1);
@@ -1561,7 +1563,7 @@ describe('DataModel', () => {
                     append: [{ x: 4, y: 40 }],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // First position invalid, last position valid
@@ -1591,7 +1593,7 @@ describe('DataModel', () => {
                     append: [null as any],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Domain should exclude removed value and null
@@ -1623,7 +1625,7 @@ describe('DataModel', () => {
                     append: [null as any, { x: 100, y: 1000 }],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Still 100 items
@@ -1657,7 +1659,7 @@ describe('DataModel', () => {
                     ],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
                 // Clear warnings before baseline comparison
                 expectWarningsCalls();
@@ -1692,7 +1694,7 @@ describe('DataModel', () => {
                     ],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
                 // Clear warnings before baseline comparison
                 expectWarningsCalls();
@@ -1728,7 +1730,7 @@ describe('DataModel', () => {
                 // Append datum with valid key but null value
                 dataSet.addTransaction({ append: [{ x: 3, y: null as any }] });
 
-                const reprocessed = dataModel.reprocessData(processedData!) as GroupedData<any>;
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined) as GroupedData<any>;
 
                 // Clear warnings before baseline comparison
                 expectWarningsCalls();
@@ -1840,7 +1842,7 @@ describe('DataModel', () => {
                     ],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Domain should include A, null, B (category domains deduplicate values)
@@ -1884,7 +1886,7 @@ describe('DataModel', () => {
                 });
 
                 // Reprocess - should NOT emit warnings
-                dataModel.reprocessData(processedData!);
+                dataModel.reprocessData(processedData!, undefined, undefined);
 
                 // Explicitly verify NO warnings were emitted
                 expectWarningsCalls().toEqual([]);
@@ -2017,7 +2019,7 @@ describe('DataModel', () => {
                     append: [null as any, { x: 100, y: 1000 }, null as any],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify banding metadata is present
