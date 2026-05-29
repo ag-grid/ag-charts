@@ -30,7 +30,8 @@ export class LinearAngleScale extends LinearScale {
         const [d0, d1] = domain;
 
         if (interval) {
-            const step = Math.abs(interval);
+            // A custom interval step is a Number concept (AG-16608 AC #17); narrow a bigint step.
+            const step = Math.abs(Number(interval));
             const availableRange = this.getPixelRange();
             if (!isDenseInterval((d1 - d0) / step, availableRange)) {
                 const result = range(d0, d1, step);

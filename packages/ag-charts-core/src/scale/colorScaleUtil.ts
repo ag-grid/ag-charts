@@ -33,6 +33,10 @@ export interface ColorScaleState {
     displayDomain?: [number, number];
 }
 
+function toNumberOrUndefined(stop: number | bigint | undefined): number | undefined {
+    return stop == null ? undefined : Number(stop);
+}
+
 function findNextDefinedStop(fills: Array<{ stop?: number }>, from: number): number {
     for (let j = from + 1; j < fills.length; j++) {
         if (fills[j]?.stop != null) return j;
@@ -56,11 +60,13 @@ export function resolveStopPositions(
             nextDefinedStopIndex = findNextDefinedStop(fills, i);
         }
 
-        const stop = fills[i]?.stop;
+        // A colour stop is a fractional threshold, so a bigint stop (gauge AgGaugeColorStop) narrows
+        // to Number for the interpolation maths below — mixing bigint with the Number domain throws.
+        const stop = toNumberOrUndefined(fills[i]?.stop);
 
         if (stop == null) {
-            const stop0 = fills[previousDefinedStopIndex]?.stop;
-            const stop1 = fills[nextDefinedStopIndex]?.stop;
+            const stop0 = toNumberOrUndefined(fills[previousDefinedStopIndex]?.stop);
+            const stop1 = toNumberOrUndefined(fills[nextDefinedStopIndex]?.stop);
             const value0 = stop0 ?? d0;
             const value1 = stop1 ?? d1;
             const offset = isDiscrete && stop0 == null ? 1 : 0;

@@ -213,6 +213,93 @@ describe('RadialGaugeSeries', () => {
             const caption = chart.series[0].getCaptionText();
             expect(caption).toContain(BIG_VALUE.toLocaleString());
         });
+
+        it('should render with a bigint scale.interval.step without throwing', async () => {
+            const options: AgRadialGaugeOptions = {
+                ...EXAMPLE_OPTIONS,
+                value: BIG_VALUE,
+                scale: { min: 0n, max: BIG_MAX, interval: { step: 2_000_000_000_000_000n } },
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.createGauge(options));
+            await waitForChartStability(chart);
+            expect(chart.series[0].getCaptionText()).toContain(BIG_VALUE.toLocaleString());
+        });
+
+        it('should render with bigint scale.interval.values without throwing', async () => {
+            const options: AgRadialGaugeOptions = {
+                ...EXAMPLE_OPTIONS,
+                value: BIG_VALUE,
+                scale: {
+                    min: 0n,
+                    max: BIG_MAX,
+                    interval: { values: [0n, 3_000_000_000_000_000n, 6_000_000_000_000_000n] },
+                },
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.createGauge(options));
+            await waitForChartStability(chart);
+            expect(chart.series[0].getCaptionText()).toContain(BIG_VALUE.toLocaleString());
+        });
+
+        it('should render with bigint colour stop values without throwing', async () => {
+            const options: AgRadialGaugeOptions = {
+                ...EXAMPLE_OPTIONS,
+                value: BIG_VALUE,
+                scale: { min: 0n, max: BIG_MAX },
+                bar: {
+                    fills: [
+                        { color: '#0f0', stop: 0n },
+                        { color: '#ff0', stop: 4_000_000_000_000_000n },
+                        { color: '#f00', stop: BIG_MAX },
+                    ],
+                    fillMode: 'discrete',
+                },
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.createGauge(options));
+            await waitForChartStability(chart);
+            expect(chart.series[0].getCaptionText()).toContain(BIG_VALUE.toLocaleString());
+        });
+
+        it('should render with a bigint segmentation step without throwing', async () => {
+            const options: AgRadialGaugeOptions = {
+                ...EXAMPLE_OPTIONS,
+                value: BIG_VALUE,
+                scale: { min: 0n, max: BIG_MAX },
+                segmentation: { enabled: true, interval: { step: 2_000_000_000_000_000n } },
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.createGauge(options));
+            await waitForChartStability(chart);
+            expect(chart.series[0].getCaptionText()).toContain(BIG_VALUE.toLocaleString());
+        });
+
+        it('should render with bigint segmentation values without throwing', async () => {
+            const options: AgRadialGaugeOptions = {
+                ...EXAMPLE_OPTIONS,
+                value: BIG_VALUE,
+                scale: { min: 0n, max: BIG_MAX },
+                segmentation: {
+                    enabled: true,
+                    interval: { values: [3_000_000_000_000_000n, 6_000_000_000_000_000n] },
+                },
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.createGauge(options));
+            await waitForChartStability(chart);
+            expect(chart.series[0].getCaptionText()).toContain(BIG_VALUE.toLocaleString());
+        });
     });
 
     it('it should export image as expected (AG-12985)', async () => {

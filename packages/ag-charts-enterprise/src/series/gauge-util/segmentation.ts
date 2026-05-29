@@ -2,10 +2,10 @@ import { BaseProperties, Logger, Property, type Scale } from 'ag-charts-core';
 
 class GaugeSegmentationIntervalProperties extends BaseProperties {
     @Property
-    values?: number[];
+    values?: Array<number | bigint>;
 
     @Property
-    step?: number;
+    step?: number | bigint;
 
     @Property
     count?: number;
@@ -15,13 +15,17 @@ class GaugeSegmentationIntervalProperties extends BaseProperties {
         const d0 = Math.min(...scale.domain);
         const d1 = Math.max(...scale.domain);
 
-        let ticks: number[] | undefined;
+        let ticks: Array<number | bigint> | undefined;
         if (values != null) {
-            const segments = values.filter((v) => v > d0 && v < d1).sort((a, b) => a - b);
+            // Explicit values flow through full-precision as segment boundaries; the bigint-safe scale
+            // positions them. Sort with Number() only for the comparator return value.
+            const segments = values.filter((v) => v > d0 && v < d1).sort((a, b) => Number(a) - Number(b));
             ticks = [d0, ...segments, d1];
         } else if (step != null) {
+            // A custom interval step is a Number concept (AG-16608 AC #17); narrow a bigint step.
+            const numericStep = Number(step);
             const segments: number[] = [];
-            for (let i = d0; i < d1; i += step) {
+            for (let i = d0; i < d1; i += numericStep) {
                 segments.push(i);
             }
             segments.push(d1);

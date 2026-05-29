@@ -104,8 +104,8 @@ export const linearGaugeSeriesThemeableOptionsDef: OptionsDefs<AgLinearGaugeThem
         enabled: boolean,
         spacing: positiveNumber,
         interval: {
-            values: arrayOf(number),
-            step: number,
+            values: arrayOf(numericValue),
+            step: numericValue,
             count: number,
         },
     },
@@ -223,8 +223,8 @@ export const radialGaugeSeriesThemeableOptionsDef: OptionsDefs<AgRadialGaugeThem
         enabled: boolean,
         spacing: positiveNumber,
         interval: {
-            values: arrayOf(number),
-            step: number,
+            values: arrayOf(numericValue),
+            step: numericValue,
             count: number,
         },
     },
