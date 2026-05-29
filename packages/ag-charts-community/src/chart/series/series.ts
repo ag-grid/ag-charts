@@ -927,12 +927,9 @@ export abstract class Series<
         return highlightedDatum.datumIndex === datumIndex;
     }
 
-    private getDataSelectionCount(): number {
-        return this.data?.selections?.get(this.id)?.getSelectedCount() ?? 0;
-    }
-
     private hasDataSelection(): boolean {
-        return this.getDataSelectionCount() > 0;
+        const count: number = this.ctx.dataSelectionService?.getSeriesSelectedCount(this) ?? 0;
+        return count > 0;
     }
 
     public getHighlightStyle(

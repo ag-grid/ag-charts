@@ -52,6 +52,7 @@ export {
     annotationShapeStylesDefs,
     annotationTextStylesDef,
 } from './chart/themes/annotationOptionsDef';
+export type { DataSelectionService } from './chart/data/dataSelectionService';
 export {
     commonAxisThemeTemplate,
     parentLevelAxisThemeTemplate,
