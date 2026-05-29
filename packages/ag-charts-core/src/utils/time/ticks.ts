@@ -223,6 +223,92 @@ export function tickFormat(ticks: any[], format?: string): ((n: number | { value
     return (n) => formatter(Number(n));
 }
 
+function bigIntTickStep(extent: bigint, count: number): bigint {
+    // Sub-step ranges (fewer than 4 bits) fit comfortably in 53 bits, so the float nice-multiplier
+    // picker is exact here; we then convert the chosen step back to BigInt.
+    if (extent.toString(2).length < 4) {
+        return BigInt(Math.max(1, Math.round(tickStep(0, Number(extent), count))));
+    }
+
+    const target = extent / BigInt(Math.max(1, Math.round(count)));
+    let pow10 = 1n;
+    while (pow10 * 10n <= target) {
+        pow10 *= 10n;
+    }
+
+    // Pick the nice multiplier whose resulting tick count is closest to the requested count.
+    let best = pow10;
+    let bestDiff = Infinity;
+    for (const multiplier of TickMultipliers) {
+        const step = BigInt(multiplier) * pow10;
+        const ticks = Number(extent / step) + 1;
+        const diff = Math.abs(ticks - count);
+        if (diff < bestDiff) {
+            bestDiff = diff;
+            best = step;
+        }
+    }
+    return best;
+}
+
+// BigInt division truncates toward zero, so rounding to a step multiple is sign-dependent: a positive
+// remainder rounds up with +step, a negative one rounds down with -step.
+function ceilToStep(value: bigint, step: bigint): bigint {
+    const remainder = value % step;
+    if (remainder === 0n) return value;
+    return value > 0n ? value - remainder + step : value - remainder;
+}
+
+function floorToStep(value: bigint, step: bigint): bigint {
+    const remainder = value % step;
+    if (remainder === 0n) return value;
+    return value < 0n ? value - remainder - step : value - remainder;
+}
+
+/**
+ * Full-precision integer ticks for a BigInt domain, mirroring {@link createTicks} but staying in
+ * BigInt end-to-end so high-magnitude endpoints and spans beyond `Number.MAX_SAFE_INTEGER` keep
+ * exact label values. Descending domains (`start > stop`) are supported; `0n` is always a step
+ * multiple, so it appears whenever the domain crosses zero.
+ */
+export function createBigIntTicks(start: bigint, stop: bigint, count: number): bigint[] {
+    if (start === stop) return [start];
+    if (count < 2) return [start, stop];
+
+    const ascending = start < stop;
+    const lo = ascending ? start : stop;
+    const hi = ascending ? stop : start;
+
+    const step = bigIntTickStep(hi - lo, count);
+    if (step <= 0n) return [start, stop];
+
+    const first = ceilToStep(lo, step);
+    const last = floorToStep(hi, step);
+
+    const ticks: bigint[] = [];
+    for (let tick = first; tick <= last; tick += step) {
+        ticks.push(tick);
+    }
+
+    return ascending ? ticks : ticks.reverse();
+}
+
+/** Nice BigInt domain bounds — extends the endpoints outward to the surrounding step multiples. */
+export function niceBigIntDomain(start: bigint, stop: bigint, count: number): [bigint, bigint] {
+    if (start === stop) return [start, stop];
+
+    const ascending = start < stop;
+    const lo = ascending ? start : stop;
+    const hi = ascending ? stop : start;
+
+    const step = bigIntTickStep(hi - lo, count);
+    if (step <= 0n) return [start, stop];
+
+    const niceLo = floorToStep(lo, step);
+    const niceHi = ceilToStep(hi, step);
+    return ascending ? [niceLo, niceHi] : [niceHi, niceLo];
+}
+
 export function range(
     start: number,
     end: number,

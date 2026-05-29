@@ -375,6 +375,48 @@ describe('LinearScale', () => {
         });
     });
 
+    describe('ticks bigint', () => {
+        const tickParams: ScaleTickParams<number> = {
+            nice: [true, true],
+            interval: undefined,
+            tickCount: undefined,
+            minTickCount: 0,
+            maxTickCount: Infinity,
+        };
+
+        test('generates full-precision BigInt ticks for a BigInt domain', () => {
+            const scale = new LinearScale();
+            scale.range = [0, 600];
+
+            const { ticks } = scale.ticks(tickParams, [0n, 100n] as unknown as number[]);
+            expect(ticks).toEqual([0n, 20n, 40n, 60n, 80n, 100n]);
+        });
+
+        test('nices a BigInt domain outward to step multiples', () => {
+            const scale = new LinearScale();
+            expect(scale.niceDomain(tickParams, [13n, 97n] as unknown as number[])).toEqual([0n, 100n]);
+        });
+
+        // AC AG-16608 #15e / #16: ticks beyond Number.MAX_SAFE_INTEGER keep exact values.
+        test('keeps exact tick values for spans larger than Number.MAX_SAFE_INTEGER', () => {
+            const scale = new LinearScale();
+            scale.range = [0, 600];
+
+            const span = 10n ** 21n;
+            const { ticks } = scale.ticks(tickParams, [0n, span] as unknown as number[]);
+            expect(ticks).toEqual([0n, 2n * 10n ** 20n, 4n * 10n ** 20n, 6n * 10n ** 20n, 8n * 10n ** 20n, span]);
+        });
+
+        test('narrows to the Number path when an interval is supplied', () => {
+            const scale = new LinearScale();
+            scale.range = [0, 100];
+
+            // A custom interval is a Number concept; the bigint domain narrows and the Number path runs.
+            const { ticks } = scale.ticks({ ...tickParams, interval: 25 }, [0n, 100n] as unknown as number[]);
+            expect(ticks).toEqual([0, 25, 50, 75, 100]);
+        });
+    });
+
     describe('empty domain', () => {
         test('convert does not throw', () => {
             const scale = new LinearScale();
