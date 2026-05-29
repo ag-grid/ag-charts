@@ -438,6 +438,9 @@ jobs:
         permissions:
             contents: read
             packages: read
+            # The agent posts a `<!-- pr-plnkr -->` marker comment on the PR
+            # (idempotency guard against single-job re-runs) via the App token.
+            pull-requests: write
         steps:
             - uses: actions/checkout@v4
               with:
