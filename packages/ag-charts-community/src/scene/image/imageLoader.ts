@@ -80,6 +80,9 @@ export class ImageLoader extends EventEmitter<EventMap> {
             this.imageLoadingCount--;
             nextEntry.nodes.clear();
             revokeBlob();
+            // Drop the failed entry so a subsequent loadImage for the same key re-attempts the
+            // fetch instead of binding into a permanently-undefined cache slot.
+            this.cache.delete(cacheKey);
             this.emit('image-error', { uri });
         };
 

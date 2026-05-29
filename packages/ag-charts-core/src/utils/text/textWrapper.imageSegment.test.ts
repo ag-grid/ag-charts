@@ -463,3 +463,75 @@ describe('wrapTextSegments — block-leading image', () => {
         expect(remeasured.lineMetrics[1].blockImages).toBeDefined();
     });
 });
+
+// Regression coverage for the AG-15933 follow-up that removed the speculative
+// `textWrap: 'never'` override on axis-tick labels containing image segments.
+// The wrapper must honour the user-supplied wrap mode (or theme default) when the
+// label mixes text and image segments.
+describe('wrapTextSegments — non-never wrap modes with image segments', () => {
+    it("wraps trailing text to a new line under 'on-space' when image + text overflow the first line", () => {
+        // maxWidth 60. Image is 30px → fits on line 1. Trailing 'AB CD EF' is 80px and cannot
+        // fit on the same line; 'on-space' must wrap it to a new line within the budget.
+        const segments: Segment[] = [image('icon', { width: 30, height: 30 }), text(' AB CD EF')];
+        const result = wrapTextSegments(segments, {
+            font: baseFont,
+            maxWidth: 60,
+            textWrap: 'on-space',
+        });
+
+        expect(imageUrls(result)).toEqual(['https://example.com/icon.png']);
+        // Text should still be readable across the wrap — no '…' truncation, content preserved.
+        expect(textOf(result)).not.toMatch(/…/);
+        expect(textOf(result).replace(/\s+/g, ' ').trim()).toBe('AB CD EF');
+        // And the wrap should have introduced at least one line break in the text output.
+        expect(textOf(result)).toContain('\n');
+    });
+
+    it("hyphenates long words under 'hyphenate' while preserving the inline image", () => {
+        // 'longword' is 8 chars × 10px = 80px; maxWidth (after the image + space) is well below.
+        // 'hyphenate' must break the word with hyphens; the image must still be present.
+        const segments: Segment[] = [image('icon', { width: 30, height: 30 }), text(' longword')];
+        const result = wrapTextSegments(segments, {
+            font: baseFont,
+            maxWidth: 60,
+            textWrap: 'hyphenate',
+        });
+
+        expect(imageUrls(result)).toEqual(['https://example.com/icon.png']);
+        expect(textOf(result)).not.toMatch(/…/);
+        // The 'longword' grapheme content survives the hyphenation; reconstructing without
+        // hyphens recovers the original characters.
+        expect(textOf(result).replace(/[\s-]/g, '')).toContain('longword');
+    });
+
+    it("breaks text at any boundary under 'always' while preserving the inline image", () => {
+        const segments: Segment[] = [image('icon', { width: 30, height: 30 }), text(' AAAAAAAA')];
+        const result = wrapTextSegments(segments, {
+            font: baseFont,
+            maxWidth: 60,
+            textWrap: 'always',
+        });
+
+        expect(imageUrls(result)).toEqual(['https://example.com/icon.png']);
+        expect(textOf(result)).not.toMatch(/…/);
+        // Every 'A' from the input survives — 'always' wraps but does not truncate.
+        const aCount = (textOf(result).match(/A/g) ?? []).length;
+        expect(aCount).toBe(8);
+    });
+
+    it("respects 'on-space' even when overflowStrategy is 'keep' and the line wraps", () => {
+        // Keep image alongside text that needs to wrap: image stays put, text wraps normally.
+        const segments: Segment[] = [
+            image('icon', { width: 30, height: 30, overflowStrategy: 'keep' }),
+            text(' AB CD EF'),
+        ];
+        const result = wrapTextSegments(segments, {
+            font: baseFont,
+            maxWidth: 60,
+            textWrap: 'on-space',
+        });
+
+        expect(imageUrls(result)).toEqual(['https://example.com/icon.png']);
+        expect(textOf(result).replace(/\s+/g, ' ').trim()).toBe('AB CD EF');
+    });
+});
