@@ -25,6 +25,7 @@ const {
     keyProperty,
     valueProperty,
     DataController,
+    DataSet,
     Group,
     HighlightState,
     Selection,
@@ -191,7 +192,6 @@ export abstract class FlowProportionSeries<
 
         const { fromKey, toKey, sizeKey, idKey, labelKey } = this.properties;
 
-        const { dataSelectionService } = this.ctx;
         const nodesDataController = new DataController(
             'standalone',
             dataController.suppressFieldDotNotation,
@@ -200,20 +200,15 @@ export abstract class FlowProportionSeries<
         const nodesDataModelPromise =
             nodes == null
                 ? null
-                : nodesDataController.request<any, any, true>(
-                      this.id,
-                      _ModuleSupport.DataSet.wrap(nodes, dataSelectionService) ??
-                          _ModuleSupport.DataSet.empty(dataSelectionService),
-                      {
-                          props: [
-                              keyProperty(idKey, undefined, { id: 'idValue', includeProperty: false }),
-                              ...(labelKey == null
-                                  ? []
-                                  : [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]),
-                          ],
-                          groupByKeys: true,
-                      }
-                  );
+                : nodesDataController.request<any, any, true>(this.id, DataSet.wrap(nodes) ?? DataSet.empty(), {
+                      props: [
+                          keyProperty(idKey, undefined, { id: 'idValue', includeProperty: false }),
+                          ...(labelKey == null
+                              ? []
+                              : [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]),
+                      ],
+                      groupByKeys: true,
+                  });
 
         const linksDataModelPromise = dataController.request<any, any, false>(this.id, data, {
             props: [
@@ -233,7 +228,7 @@ export abstract class FlowProportionSeries<
         });
 
         if (nodes != null) {
-            nodesDataController.execute();
+            nodesDataController.execute(undefined, this.ctx.dataSelectionService);
         }
 
         const [nodesDataModel, linksDataModel] = await Promise.all([

@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
 type TransactionCollectionState<T> = _ModuleSupport.TransactionCollectionState<T>;
-type IDataSelectionService = _ModuleSupport.IDataSelectionService;
+type DataChangeDescriptionListener = _ModuleSupport.DataChangeDescriptionListener;
 
 const { DataSet } = _ModuleSupport;
 
@@ -13,11 +13,10 @@ const { DataSet } = _ModuleSupport;
 export class HierarchyDataSet<T = unknown> extends DataSet<T> {
     constructor(
         data: T[],
-        dataSelectionService: IDataSelectionService | undefined,
         dataIdKey: string | undefined,
         private readonly childrenKey: string
     ) {
-        super(data, dataSelectionService, dataIdKey);
+        super(data, dataIdKey);
     }
 
     /**
@@ -26,8 +25,8 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
      * to a parent's children array and also calls applyTransaction({ add: [item] }),
      * which would otherwise duplicate the item at root level.
      */
-    override commitPendingTransactions(): boolean {
-        const result = super.commitPendingTransactions();
+    override commitPendingTransactions(changeDescriptionListener: DataChangeDescriptionListener | undefined): boolean {
+        const result = super.commitPendingTransactions(changeDescriptionListener);
         if (result && this.dataIdKey) {
             this.removeNestedDuplicatesFromRoot();
             // Invalidate after structural changes — splice may shift root indices.

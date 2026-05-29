@@ -68,6 +68,7 @@ import type { ChartType } from './chartType';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
 import { DataSet } from './data/dataSet';
+import { replaceDataSet } from './data/dataSetUtil';
 import { SyncManager, type SyncStatus } from './interaction/syncManager';
 import { type LayoutContext, LayoutElement } from './layout/layoutManager';
 import type { ChartLegend } from './legend/legendDatum';
@@ -418,7 +419,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     protected createDataSet(data: unknown[]): DataSet {
-        return DataSet.replaceWith(this.data, data, this.ctx.chartState.getValue('options', 'dataIdKey'));
+        const dataIdKey: string | undefined = this.ctx.chartState.getValue('options', 'dataIdKey');
+        return replaceDataSet(this.ctx.dataSelectionService, this.data, data, dataIdKey);
     }
 
     constructor(options: ChartOptions, resources?: TransferableResources) {
@@ -1409,7 +1411,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             }
         }
 
-        this._cachedData = dataController.execute(this._cachedData);
+        this._cachedData = dataController.execute(this._cachedData, this.ctx.dataSelectionService);
 
         this.updateSplits('🏭');
         await Promise.all(promises);
@@ -2144,8 +2146,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         target.properties.set(seriesOptions);
 
         if ('data' in options) {
-            const dataSelectionService = this.getModuleContext().dataSelectionService;
-            target.setOptionsData(data == null ? undefined : DataSet.wrap(data, dataSelectionService));
+            target.setOptionsData(data == null ? undefined : DataSet.wrap(data));
         }
 
         if ('listeners' in options) {

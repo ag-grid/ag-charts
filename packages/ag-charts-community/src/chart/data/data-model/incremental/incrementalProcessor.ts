@@ -9,6 +9,7 @@ import {
     isRollingWindow,
     isUpdateOnly,
 } from '../../dataChangeDescription';
+import type { DataChangeDescriptionListener } from '../../dataChangeDescription';
 import {
     COLUMN_SORT_ORDERS,
     DOMAIN_BANDS,
@@ -106,7 +107,8 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             scopeChanges: Map<ScopeId, DataChangeDescription>
         ) => void,
         recomputeDomainsFn: (processedData: ProcessedData<D>) => void,
-        collectOptimizationMetadataFn: (processedData: ProcessedData<D>, mode: 'reprocess') => void
+        collectOptimizationMetadataFn: (processedData: ProcessedData<D>, mode: 'reprocess') => void,
+        changeDescriptionListener: DataChangeDescriptionListener | undefined
     ): ProcessedData<D> {
         const start = performance.now();
 
@@ -115,7 +117,7 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             return processedData;
         }
 
-        this.commitPendingTransactions(processedData);
+        this.commitPendingTransactions(processedData, changeDescriptionListener);
         const keyProcessors = this.buildDefinitionProcessors(this.ctx.keys, getProcessValue);
         const valueProcessors = this.buildDefinitionProcessors(this.ctx.values, getProcessValue);
 
@@ -258,11 +260,14 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
      * Deduplicates DataSets to avoid committing the same DataSet multiple times
      * when multiple scopes share the same DataSet.
      */
-    private commitPendingTransactions(processedData: ProcessedData<D>): void {
+    private commitPendingTransactions(
+        processedData: ProcessedData<D>,
+        changeDescriptionListener: DataChangeDescriptionListener | undefined
+    ): void {
         // Deduplicate DataSets before committing (multiple scopes can share same DataSet)
         const uniqueDataSets = this.getUniqueDataSets(processedData);
         for (const dataSet of uniqueDataSets) {
-            dataSet.commitPendingTransactions();
+            dataSet.commitPendingTransactions(changeDescriptionListener);
         }
     }
 
