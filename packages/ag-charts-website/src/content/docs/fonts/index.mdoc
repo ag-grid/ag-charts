@@ -130,7 +130,10 @@ An image segment supports:
 
 - `verticalAlign` — alignment against the line baseline. Defaults to `'middle'`.
 - `padding`, `borderRadius`, `border`, `backgroundFill` — decoration drawn around the image, with the `backgroundFill` also acting as the placeholder while the image loads or if loading fails.
-- `overflowStrategy: 'hide' | 'keep'` — controls drop priority when a label exceeds its allotted width. `'hide'` images are shed before text is truncated; `'keep'` images are preserved until truncated text alone can no longer fit.
+- `overflowStrategy: 'hide' | 'keep'` — drop priority when a label exceeds its allotted box. `'hide'` images are dropped before text is truncated. `'keep'` images take priority over text: trailing text segments are dropped to fit the image, and the image itself is only dropped when it cannot fit the label box on its own.
+- `block: true` — starts a block row anchored to the left of the label, with subsequent segments wrapping into a column to its right. A block row begins at the start of the label or after a `\n` line break in the preceding text segment. Multiple block rows stack vertically.
+
+{% chartExampleRunner title="Block-leading Image" name="inline-images-treemap" type="generated" /%}
 
 ## Inline Emoji and Icons
 

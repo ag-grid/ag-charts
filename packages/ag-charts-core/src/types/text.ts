@@ -49,6 +49,15 @@ export interface SegmentsLineMetrics extends Size {
     ascent: number;
     descent: number;
     segments: MeasuredSegment[];
+    /**
+     * Present on the first line of a block row: the leading block-image strip, anchored to the left
+     * of the row. Multiple images are laid out side-by-side in the order given, separated by
+     * `BLOCK_IMAGE_SPACING`. The next `blockRowSpan` line metrics describe the text column that
+     * wraps to the right of the entire strip.
+     */
+    blockImages?: MeasuredImageSegment[];
+    /** Number of consecutive line-metric entries that belong to this block row. Always ≥ 1 when `blockImages` is set. */
+    blockRowSpan?: number;
 }
 
 export interface MultilineSegmentsMetricsBox {

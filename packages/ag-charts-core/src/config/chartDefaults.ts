@@ -160,6 +160,7 @@ const textSegmentDefs: OptionsDefs<TextSegment> = {
     type: undocumented(union('text')),
     text: required(string),
     verticalAlign: verticalAlignValidator,
+    lineHeight: positiveNumber,
     ...fontOptionsDef,
 };
 
@@ -174,6 +175,7 @@ const imageSegmentDefs: OptionsDefs<ImageSegment> = {
     borderRadius: positiveNumber,
     border: borderOptionsDef,
     backgroundFill: color,
+    block: boolean,
 };
 
 const textSegmentValidator: Validator = optionsDefs(textSegmentDefs);

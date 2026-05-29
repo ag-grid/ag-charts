@@ -1,4 +1,5 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import type {
     AgCartesianChartOptions,
@@ -16,6 +17,7 @@ import {
     assertTooltipPresentForAll,
     clickAction,
     deproxy,
+    expectWarningsCalls,
     extractImageData,
     hierarchyChartAssertions,
     hoverAction,
@@ -129,6 +131,352 @@ describe('TreemapSeries', () => {
             prepareEnterpriseTestOptions(options);
             chart = AgCharts.create(options);
             await compare();
+        });
+
+        it('preserves image segments in tile label formatter output', async () => {
+            const options: AgChartOptions = {
+                animation: { enabled: false },
+                data: [{ name: 'Alpha', size: 100 }],
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'size',
+                        tile: {
+                            label: {
+                                enabled: true,
+                                fontSize: 18,
+                                formatter: ({ datum }) => [
+                                    {
+                                        type: 'image',
+                                        url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22/%3E',
+                                        width: 24,
+                                        height: 24,
+                                        verticalAlign: 'middle',
+                                    },
+                                    { text: ` ${(datum as { name: string }).name}` },
+                                ],
+                            },
+                            secondaryLabel: { enabled: false },
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const seriesImpl = chart.series[0] as TreemapSeries;
+            const tileTexts: Array<{ text: unknown }> = [];
+            for (const labelGroup of (seriesImpl as any).labelSelection.nodes()) {
+                for (const child of labelGroup.children?.() ?? []) {
+                    if (child.text != null) tileTexts.push(child);
+                }
+            }
+
+            const segmentArrays = tileTexts.map((t) => t.text).filter(Array.isArray);
+            expect(segmentArrays.length).toBeGreaterThan(0);
+            const imageSegment = segmentArrays.flat().find((s: any) => s?.type === 'image');
+            expect(imageSegment).toMatchObject({
+                url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22/%3E',
+                width: 24,
+                height: 24,
+            });
+
+            // JSDOM cannot decode images, so the scene logs a single load-failure warning.
+            expectWarningsCalls().toHaveLength(1);
+        });
+
+        describe('block-leading image segments', () => {
+            const iconSvg = (letter: string) =>
+                `data:image/svg+xml;utf8,${encodeURIComponent(
+                    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36">` +
+                        `<circle cx="18" cy="18" r="16" fill="#1f77b4"/>` +
+                        `<text x="18" y="24" text-anchor="middle" font-family="Verdana" font-size="18"` +
+                        ` fill="white" font-weight="bold">${letter}</text></svg>`
+                )}`;
+            const ICONS: Record<string, string> = {
+                Alpha: iconSvg('A'),
+                Beta: iconSvg('B'),
+                Gamma: iconSvg('G'),
+                Delta: iconSvg('D'),
+            };
+
+            let preloaded: Record<string, SkiaImage> = {};
+            beforeAll(async () => {
+                const entries = await Promise.all(
+                    Object.values(ICONS).map(async (url) => [url, await skiaLoadImage(url)] as const)
+                );
+                preloaded = Object.fromEntries(entries);
+            });
+
+            function stubChartImageLoader(chartInstance: any) {
+                const imageLoader = (chartInstance as Chart).ctx.scene.imageLoader as any;
+                imageLoader.loadImage = (uri: string) => preloaded[uri] as unknown as HTMLImageElement;
+            }
+
+            it.each(['top', 'middle', 'bottom'] as const)(
+                'renders block-leading image segments aligned %s of the two-line text column',
+                async (verticalAlign) => {
+                    const options: AgChartOptions = {
+                        animation: { enabled: false },
+                        data: [
+                            { name: 'Alpha', value: 300 },
+                            { name: 'Beta', value: 200 },
+                            { name: 'Gamma', value: 150 },
+                            { name: 'Delta', value: 120 },
+                        ],
+                        series: [
+                            {
+                                type: 'treemap',
+                                labelKey: 'name',
+                                sizeKey: 'value',
+                                tile: {
+                                    label: {
+                                        enabled: true,
+                                        fontSize: 16,
+                                        minimumFontSize: 10,
+                                        formatter: ({ datum }) => {
+                                            const d = datum as { name: string; value: number };
+                                            return [
+                                                {
+                                                    type: 'image',
+                                                    url: ICONS[d.name],
+                                                    width: 36,
+                                                    height: 36,
+                                                    block: true,
+                                                    padding: 6,
+                                                    backgroundFill: 'rgba(0, 0, 0, 0.35)',
+                                                    borderRadius: 8,
+                                                    verticalAlign,
+                                                },
+                                                { text: d.name, fontWeight: 'bold', verticalAlign },
+                                                { text: `\n$${d.value}B`, color: 'rgba(0, 0, 0, 0.6)' },
+                                            ];
+                                        },
+                                    },
+                                    secondaryLabel: { enabled: false },
+                                },
+                            },
+                        ],
+                    };
+                    prepareEnterpriseTestOptions(options);
+                    chart = deproxy(AgCharts.create(options));
+                    stubChartImageLoader(chart);
+                    await compare();
+                    expectWarningsCalls().toHaveLength(0);
+                }
+            );
+
+            it('lays two adjacent block-leading image segments side-by-side and keeps both inside the tile', async () => {
+                // Regression for AG-15933: a formatter returning two `block: true` images at the
+                // start of the label (no `\n` between them) must render both side-by-side as a
+                // leading strip, with text flowing to the right and both images contained inside
+                // their tile.
+                const options: AgChartOptions = {
+                    animation: { enabled: false },
+                    data: [
+                        { name: 'Alpha', value: 300 },
+                        { name: 'Beta', value: 200 },
+                        { name: 'Gamma', value: 150 },
+                        { name: 'Delta', value: 120 },
+                    ],
+                    series: [
+                        {
+                            type: 'treemap',
+                            labelKey: 'name',
+                            sizeKey: 'value',
+                            tile: {
+                                label: {
+                                    enabled: true,
+                                    fontSize: 16,
+                                    minimumFontSize: 10,
+                                    formatter: ({ datum }) => {
+                                        const d = datum as { name: string; value: number };
+                                        const icon = {
+                                            type: 'image' as const,
+                                            url: ICONS[d.name],
+                                            width: 28,
+                                            height: 28,
+                                            block: true,
+                                            padding: 4,
+                                            backgroundFill: 'rgba(0, 0, 0, 0.35)',
+                                            borderRadius: 6,
+                                        };
+                                        return [
+                                            icon,
+                                            icon,
+                                            { text: d.name, fontWeight: 'bold' },
+                                            { text: `\n$${d.value}B` },
+                                        ];
+                                    },
+                                },
+                                secondaryLabel: { enabled: false },
+                            },
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+                chart = deproxy(AgCharts.create(options));
+                stubChartImageLoader(chart);
+                await compare();
+                expectWarningsCalls().toHaveLength(0);
+            });
+
+            it("drops oversized block image under default 'hide' so text still renders inside the tile", async () => {
+                // Test canvas is 800x600 (prepareEnterpriseTestOptions); split into four tiles each
+                // ~400x300 of usable label space. An image declared at 1200x1200 exceeds every tile,
+                // so the default 'hide' strategy must drop the image and keep the text-only label.
+                const options: AgChartOptions = {
+                    animation: { enabled: false },
+                    data: [
+                        { name: 'Alpha', value: 4 },
+                        { name: 'Beta', value: 3 },
+                        { name: 'Gamma', value: 2 },
+                        { name: 'Delta', value: 1 },
+                    ],
+                    series: [
+                        {
+                            type: 'treemap',
+                            labelKey: 'name',
+                            sizeKey: 'value',
+                            tile: {
+                                label: {
+                                    enabled: true,
+                                    fontSize: 16,
+                                    minimumFontSize: 10,
+                                    formatter: ({ datum }) => {
+                                        const d = datum as { name: string };
+                                        return [
+                                            {
+                                                type: 'image',
+                                                url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221200%22 height=%221200%22/%3E',
+                                                width: 1200,
+                                                height: 1200,
+                                                block: true,
+                                                backgroundFill: '#888',
+                                            },
+                                            { text: d.name, fontWeight: 'bold' },
+                                        ];
+                                    },
+                                },
+                                secondaryLabel: { enabled: false },
+                            },
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+                chart = AgCharts.create(options);
+                await compare();
+                // Image is dropped before reaching the renderer, so no image load is attempted.
+                expectWarningsCalls().toHaveLength(0);
+            });
+
+            it('keeps every rendered block-leading image inside its tile across mixed tile sizes', async () => {
+                // Regression: each tile's rendered image-box (including padding/backgroundFill)
+                // must stay within its tile bounds. Repros the docs `inline-images-treemap`
+                // example, mixing very small tiles where the image would otherwise be tight.
+                const options: AgChartOptions = {
+                    animation: { enabled: false },
+                    data: [
+                        {
+                            name: 'Hardware',
+                            children: [
+                                { name: 'Apple', value: 383 },
+                                { name: 'NVIDIA', value: 244 },
+                                { name: 'Intel', value: 87 },
+                                { name: 'Tesla', value: 67 },
+                            ],
+                        },
+                        {
+                            name: 'Software',
+                            children: [
+                                { name: 'Google', value: 333 },
+                                { name: 'Meta', value: 196 },
+                                { name: 'SAP', value: 58 },
+                                { name: 'Shopify', value: 36 },
+                            ],
+                        },
+                        {
+                            name: 'Services',
+                            children: [
+                                { name: 'Netflix', value: 38 },
+                                { name: 'Spotify', value: 21 },
+                                { name: 'Airbnb', value: 24 },
+                                { name: 'Uber', value: 32 },
+                                { name: 'PayPal', value: 27 },
+                                { name: 'Stripe', value: 14 },
+                            ],
+                        },
+                    ],
+                    series: [
+                        {
+                            type: 'treemap',
+                            labelKey: 'name',
+                            sizeKey: 'value',
+                            tile: {
+                                label: {
+                                    enabled: true,
+                                    fontSize: 16,
+                                    minimumFontSize: 10,
+                                    formatter: ({ datum }) => {
+                                        const d = datum as { name: string; value: number };
+                                        return [
+                                            {
+                                                type: 'image',
+                                                url: ICONS[d.name] ?? ICONS.Alpha,
+                                                width: 36,
+                                                height: 36,
+                                                block: true,
+                                                padding: 6,
+                                                backgroundFill: 'rgba(0, 0, 0, 0.35)',
+                                                borderRadius: 8,
+                                            },
+                                            { text: d.name, fontWeight: 'bold' },
+                                            { text: `\n$${d.value}B` },
+                                        ];
+                                    },
+                                },
+                                secondaryLabel: { enabled: false },
+                            },
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+                chart = deproxy(AgCharts.create(options));
+                stubChartImageLoader(chart);
+                await compare();
+
+                const seriesImpl = chart.series[0] as TreemapSeries;
+                const violations: string[] = [];
+                let imageNodesInspected = 0;
+                for (const labelGroup of (seriesImpl as any).labelSelection.nodes()) {
+                    const datum = labelGroup.datum;
+                    const bbox = datum?.bbox;
+                    if (bbox == null) continue;
+                    for (const textNode of labelGroup.children?.() ?? []) {
+                        textNode.getBBox?.();
+                        const richText = (textNode as any).richText;
+                        if (!richText) continue;
+                        for (const child of richText.children?.() ?? []) {
+                            if (typeof child.boxWidth !== 'number' || !child.url) continue;
+                            imageNodesInspected += 1;
+                            const epsilon = 0.5;
+                            const imgLeft = child.x;
+                            const imgRight = child.x + child.boxWidth;
+                            if (imgLeft < bbox.x - epsilon || imgRight > bbox.x + bbox.width + epsilon) {
+                                violations.push(
+                                    `${datum.labelValue ?? '?'}: image x=[${imgLeft.toFixed(1)}, ${imgRight.toFixed(1)}] outside tile x=[${bbox.x.toFixed(1)}, ${(bbox.x + bbox.width).toFixed(1)}]`
+                                );
+                            }
+                        }
+                    }
+                }
+                // Spot-check that the probe actually inspected some images (small tiles drop
+                // them, but the larger tiles should retain them).
+                expect(imageNodesInspected).toBeGreaterThan(0);
+                expect(violations).toEqual([]);
+            });
         });
     });
 

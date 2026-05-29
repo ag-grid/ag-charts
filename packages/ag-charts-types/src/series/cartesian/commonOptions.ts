@@ -274,6 +274,12 @@ export interface TextSegment extends TextOptions {
      * Default: `'alphabetic'`
      */
     verticalAlign?: 'alphabetic' | 'top' | 'middle' | 'bottom' | 'hanging' | 'ideographic';
+    /**
+     * Explicit line height in pixels for the line containing this segment. When several segments on the same
+     * line declare a `lineHeight`, the largest value wins. When omitted, the line uses the natural font line
+     * height of its tallest segment.
+     */
+    lineHeight?: PixelSize;
 }
 
 /**
@@ -296,9 +302,10 @@ export interface ImageSegment {
      */
     verticalAlign?: 'alphabetic' | 'top' | 'middle' | 'bottom' | 'hanging' | 'ideographic';
     /**
-     * Controls how this image participates in label overflow handling. `'hide'` images are
-     * shed before text is truncated; `'keep'` images are only shed after text truncation has
-     * already happened.
+     * Drop priority when the label exceeds its allotted box. `'hide'` images are dropped before
+     * text is truncated. `'keep'` images take priority over text: trailing text segments are
+     * dropped to fit the image, and the image itself is only dropped when it cannot fit the
+     * label box on its own.
      *
      * Default: `'hide'`
      */
@@ -314,6 +321,17 @@ export interface ImageSegment {
      * image loads, and as the fallback fill if loading fails.
      */
     backgroundFill?: CssColor;
+    /**
+     * When `true`, this image starts a block row: it is anchored to the left of the label and
+     * subsequent segments flow into a wrapped column to its right. A block row begins when this
+     * image is the first segment of the label, when the preceding segment is also a block image,
+     * or when the preceding text segment ends with a `\n` line break. Multiple block rows stack
+     * vertically. When the flag appears mid-line (preceded by inline content with no `\n`), it
+     * is ignored and the image renders inline.
+     *
+     * Default: `false`
+     */
+    block?: boolean;
 }
 
 export type Segment = TextSegment | ImageSegment;

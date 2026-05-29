@@ -1,4 +1,5 @@
 import {
+    BLOCK_IMAGE_SPACING,
     type BoxBounds,
     Debug,
     type FontOptions,
@@ -229,16 +230,22 @@ export class Text<D = unknown> extends Shape<D> {
                 return lineMetrics[0]?.ascent ?? 0;
 
             case 'middle':
-                return lineMetrics.length === 1
-                    ? lineMetrics[0].ascent +
-                          lineMetrics[0].segments.reduce(
-                              (offsetY, segment) =>
-                                  segment.type === 'image'
-                                      ? offsetY
-                                      : Math.min(offsetY, cachedTextMeasurer(segment).baselineDistance('middle')),
-                              0
-                          )
-                    : height / 2;
+                // The single-line shortcut uses text-baseline metrics to anchor the row tightly to
+                // the glyph middle. For a strip-only line (block images, no text), there are no
+                // text metrics to consult — fall through to height/2 so the strip box centres on y.
+                if (lineMetrics.length === 1 && lineMetrics[0].segments.length > 0) {
+                    return (
+                        lineMetrics[0].ascent +
+                        lineMetrics[0].segments.reduce(
+                            (offsetY, segment) =>
+                                segment.type === 'image'
+                                    ? offsetY
+                                    : Math.min(offsetY, cachedTextMeasurer(segment).baselineDistance('middle')),
+                            0
+                        )
+                    );
+                }
+                return height / 2;
 
             case 'bottom':
                 return height;
@@ -321,47 +328,153 @@ export class Text<D = unknown> extends Shape<D> {
     }
 
     private buildTextMap(text: Segment[]) {
-        let offsetY = 0;
         const childNodes = this.richText!.children();
-        for (const { width, height, ascent, segments } of measureTextSegments(text, this).lineMetrics) {
-            let offsetX = 0;
-            for (const measured of segments) {
-                const node = childNodes.next().value;
-                if (!node) break;
+        const { width: totalWidth, lineMetrics } = measureTextSegments(text, this);
 
-                if (measured.type === 'image') {
-                    const imageNode = node as ImageSegmentNode;
-                    const verticalAlign = measured.verticalAlign ?? 'middle';
-                    const anchorY = Text.calcSegmentY(verticalAlign, offsetY, ascent, height);
-                    const boxWidth = measured.textMetrics.width;
-                    const boxHeight = measured.textMetrics.height;
-                    imageNode.x = this.x - width / 2 + offsetX;
-                    imageNode.y = Text.calcImageTopFromAnchor(verticalAlign, anchorY, boxHeight);
-                    imageNode.boxWidth = boxWidth;
-                    imageNode.boxHeight = boxHeight;
-                    imageNode.imageWidth = measured.width;
-                    imageNode.imageHeight = measured.height;
-                    Text.applyImagePadding(imageNode, measured.padding);
-                    imageNode.borderRadius = measured.borderRadius ?? 0;
-                    imageNode.backgroundFill = measured.backgroundFill;
-                    imageNode.border = measured.border;
-                    imageNode.url = measured.url;
+        const labelLeft = this.x - totalWidth / 2;
+        let offsetY = 0;
+
+        for (let lineIndex = 0; lineIndex < lineMetrics.length; ) {
+            const line = lineMetrics[lineIndex];
+
+            if (line.blockImages?.length) {
+                const span = line.blockRowSpan ?? 1;
+                const strip = line.blockImages;
+                const stripWidth = strip.reduce(
+                    (w, img, i) => w + img.textMetrics.width + (i > 0 ? BLOCK_IMAGE_SPACING : 0),
+                    0
+                );
+                const stripHeight = strip.reduce((h, img) => Math.max(h, img.textMetrics.height), 0);
+
+                let innerColHeight = 0;
+                for (let k = 0; k < span; k++) {
+                    innerColHeight += lineMetrics[lineIndex + k].height;
+                }
+                const rowHeight = Math.max(stripHeight, innerColHeight);
+
+                // Lay out each image in the strip left-to-right. Each image anchors inside the row
+                // height per its own verticalAlign; the text column anchors independently per the
+                // first text segment's verticalAlign.
+                let stripX = labelLeft;
+                for (let s = 0; s < strip.length; s++) {
+                    const blockSeg = strip[s];
+                    const blockBox = blockSeg.textMetrics;
+                    const imageAlign = blockSeg.verticalAlign ?? 'middle';
+                    const imageOffset = Text.calcAnchoredOffset(imageAlign, rowHeight, blockBox.height);
+
+                    const imageChild = childNodes.next().value;
+                    if (!imageChild) return;
+                    const imageNode = imageChild as ImageSegmentNode;
+                    imageNode.x = stripX;
+                    imageNode.y = offsetY + imageOffset;
+                    imageNode.boxWidth = blockBox.width;
+                    imageNode.boxHeight = blockBox.height;
+                    imageNode.imageWidth = blockSeg.width;
+                    imageNode.imageHeight = blockSeg.height;
+                    Text.applyImagePadding(imageNode, blockSeg.padding);
+                    imageNode.borderRadius = blockSeg.borderRadius ?? 0;
+                    imageNode.backgroundFill = blockSeg.backgroundFill;
+                    imageNode.border = blockSeg.border;
+                    imageNode.url = blockSeg.url;
                     this.textMap!.set(imageNode, imageNode.getBBox());
-                    offsetX += boxWidth;
-                    continue;
+
+                    stripX += blockBox.width + (s < strip.length - 1 ? BLOCK_IMAGE_SPACING : 0);
                 }
 
-                const { color, textMetrics, verticalAlign, ...segment } = measured;
-                const textNode = node as Text;
-                const segmentBaseline: CanvasTextBaseline = verticalAlign ?? 'alphabetic';
-                textNode.x = this.x - width / 2 + offsetX;
-                textNode.y = Text.calcSegmentY(segmentBaseline, offsetY, ascent, height);
-                textNode.setProperties({ ...segment, textBaseline: segmentBaseline, fill: color ?? this.fill });
-                const textBBox = textNode.getBBox();
-                this.textMap!.set(textNode, textBBox);
-                offsetX += textMetrics.width;
+                const firstTextSegment = Text.findFirstTextSegment(lineMetrics, lineIndex, span);
+                const columnLeft = labelLeft + stripWidth + BLOCK_IMAGE_SPACING;
+                let innerOffsetY =
+                    offsetY +
+                    Text.calcAnchoredOffset(firstTextSegment?.verticalAlign ?? 'alphabetic', rowHeight, innerColHeight);
+
+                for (let k = 0; k < span; k++) {
+                    innerOffsetY = this.renderLine(lineMetrics[lineIndex + k], columnLeft, innerOffsetY, childNodes);
+                }
+
+                offsetY += rowHeight;
+                lineIndex += span;
+                continue;
             }
-            offsetY += height;
+
+            offsetY = this.renderLine(line, this.x - line.width / 2, offsetY, childNodes);
+            lineIndex += 1;
+        }
+    }
+
+    private static findFirstTextSegment(
+        lineMetrics: ReturnType<typeof measureTextSegments>['lineMetrics'],
+        startIndex: number,
+        span: number
+    ) {
+        for (let k = 0; k < span; k++) {
+            const seg = lineMetrics[startIndex + k].segments.find((s) => s.type !== 'image');
+            if (seg && seg.type !== 'image') return seg;
+        }
+        return undefined;
+    }
+
+    private renderLine(
+        line: ReturnType<typeof measureTextSegments>['lineMetrics'][number],
+        lineLeft: number,
+        offsetY: number,
+        childNodes: IterableIterator<Node>
+    ): number {
+        const { height, ascent, segments } = line;
+        let offsetX = 0;
+        for (const measured of segments) {
+            const node = childNodes.next().value;
+            if (!node) break;
+
+            if (measured.type === 'image') {
+                const imageNode = node as ImageSegmentNode;
+                const verticalAlign = measured.verticalAlign ?? 'middle';
+                const anchorY = Text.calcSegmentY(verticalAlign, offsetY, ascent, height);
+                const boxWidth = measured.textMetrics.width;
+                const boxHeight = measured.textMetrics.height;
+                imageNode.x = lineLeft + offsetX;
+                imageNode.y = Text.calcImageTopFromAnchor(verticalAlign, anchorY, boxHeight);
+                imageNode.boxWidth = boxWidth;
+                imageNode.boxHeight = boxHeight;
+                imageNode.imageWidth = measured.width;
+                imageNode.imageHeight = measured.height;
+                Text.applyImagePadding(imageNode, measured.padding);
+                imageNode.borderRadius = measured.borderRadius ?? 0;
+                imageNode.backgroundFill = measured.backgroundFill;
+                imageNode.border = measured.border;
+                imageNode.url = measured.url;
+                this.textMap!.set(imageNode, imageNode.getBBox());
+                offsetX += boxWidth;
+                continue;
+            }
+
+            const { color, textMetrics, verticalAlign, ...segment } = measured;
+            const textNode = node as Text;
+            const segmentBaseline: CanvasTextBaseline = verticalAlign ?? 'alphabetic';
+            textNode.x = lineLeft + offsetX;
+            textNode.y = Text.calcSegmentY(segmentBaseline, offsetY, ascent, height);
+            textNode.setProperties({ ...segment, textBaseline: segmentBaseline, fill: color ?? this.fill });
+            const textBBox = textNode.getBBox();
+            this.textMap!.set(textNode, textBBox);
+            offsetX += textMetrics.width;
+        }
+        return offsetY + height;
+    }
+
+    // Anchor a child of `childHeight` inside a container of `totalHeight` according to verticalAlign.
+    // Used to position the block-leading image and its text column independently within the label.
+    private static calcAnchoredOffset(verticalAlign: CanvasTextBaseline, totalHeight: number, childHeight: number) {
+        const slack = Math.max(0, totalHeight - childHeight);
+        switch (verticalAlign) {
+            case 'middle':
+                return slack / 2;
+            case 'bottom':
+            case 'ideographic':
+            case 'alphabetic':
+                return slack;
+            case 'top':
+            case 'hanging':
+            default:
+                return 0;
         }
     }
 

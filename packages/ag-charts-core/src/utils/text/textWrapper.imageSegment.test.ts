@@ -36,40 +36,102 @@ const mockMeasurer: ITextMeasurer = {
     lineHeight: () => LINE_HEIGHT,
 };
 
-// Real measureTextSegments mirror that handles both TextSegment and ImageSegment, producing
-// realistic line metrics so wrapTextSegments can decide what fits and what doesn't.
-function mockMeasureTextSegments(segments: Segment[]) {
-    type LineMetric = { segments: any[]; width: number; height: number; ascent: number; descent: number };
-    let line: LineMetric = { segments: [], width: 0, height: 0, ascent: 0, descent: 0 };
-    const lines: LineMetric[] = [line];
+const BLOCK_IMAGE_SPACING = 4;
 
-    for (const seg of segments) {
-        if (seg.type === 'image') {
-            const pad = typeof seg.padding === 'number' ? seg.padding : 0;
-            const boxWidth = seg.width + pad * 2;
-            const boxHeight = seg.height + pad * 2;
-            line.width += boxWidth;
-            line.ascent = Math.max(line.ascent, boxHeight);
-            line.height = Math.max(line.height, line.ascent + line.descent);
-            line.segments.push({
-                ...seg,
-                textMetrics: { width: boxWidth, height: boxHeight, ascent: boxHeight, descent: 0 },
-            });
+const mockImageSegmentBox = (segment: ImageSegment) => {
+    const pad = typeof segment.padding === 'number' ? segment.padding : 0;
+    const width = segment.width + pad * 2;
+    const height = segment.height + pad * 2;
+    return { width, height, ascent: height, descent: 0 };
+};
+
+// Mirrors `isBlockBoundary` in textMeasurer.ts.
+function mockIsBlockBoundary(segments: Segment[], i: number): boolean {
+    const seg = segments[i];
+    if (seg?.type !== 'image' || seg.block !== true) return false;
+    if (i === 0) return true;
+    const prev = segments[i - 1];
+    if (prev.type === 'image') return prev.block === true;
+    return String(prev.text).endsWith('\n');
+}
+
+// Real measureTextSegments mirror that handles both TextSegment and ImageSegment, producing
+// realistic line metrics (including per-line block markers) so wrapTextSegments can decide
+// what fits and what doesn't.
+function mockMeasureTextSegments(segments: Segment[]) {
+    type LineMetric = {
+        segments: any[];
+        width: number;
+        height: number;
+        ascent: number;
+        descent: number;
+        blockImages?: any[];
+        blockRowSpan?: number;
+    };
+    const emptyLine = (): LineMetric => ({ segments: [], width: 0, height: 0, ascent: 0, descent: 0 });
+    let line: LineMetric = emptyLine();
+    const lines: LineMetric[] = [line];
+    let uncommitted = false;
+    let blockStart: number | null = null;
+
+    function finalizeBlock() {
+        if (blockStart === null) return;
+        let endIndex = lines.length;
+        if (uncommitted && endIndex > blockStart + 1) endIndex -= 1;
+        lines[blockStart].blockRowSpan = endIndex - blockStart;
+        blockStart = null;
+    }
+
+    function openNewLine() {
+        line = emptyLine();
+        lines.push(line);
+        uncommitted = true;
+    }
+
+    for (let i = 0; i < segments.length; i++) {
+        const seg = segments[i];
+
+        if (mockIsBlockBoundary(segments, i)) {
+            const extendsStrip =
+                i > 0 && segments[i - 1].type === 'image' && (segments[i - 1] as ImageSegment).block === true;
+            if (!extendsStrip) {
+                finalizeBlock();
+                if (line.segments.length > 0 || line.blockImages) openNewLine();
+            }
+            const box = mockImageSegmentBox(seg as ImageSegment);
+            line.blockImages ??= [];
+            line.blockImages.push({ ...(seg as ImageSegment), textMetrics: box });
+            if (!extendsStrip) {
+                blockStart = lines.length - 1;
+            }
+            uncommitted = false;
             continue;
         }
+
+        if (seg.type === 'image') {
+            const box = mockImageSegmentBox(seg);
+            line.width += box.width;
+            line.ascent = Math.max(line.ascent, box.height);
+            line.height = Math.max(line.height, line.ascent + line.descent);
+            line.segments.push({ ...seg, textMetrics: { ...box } });
+            uncommitted = false;
+            continue;
+        }
+
         const parts = String(seg.text).split(/\r?\n/);
-        for (let i = 0; i < parts.length; i++) {
-            const t = parts[i];
-            if (i > 0) {
-                line = { segments: [], width: 0, height: 0, ascent: 0, descent: 0 };
-                lines.push(line);
-            }
+        for (let j = 0; j < parts.length; j++) {
+            const t = parts[j];
+            if (j > 0) openNewLine();
             if (t) {
                 const width = [...t].length * CHAR_WIDTH;
                 line.width += width;
                 line.ascent = Math.max(line.ascent, 16);
                 line.descent = Math.max(line.descent, 4);
                 line.height = Math.max(line.height, line.ascent + line.descent);
+                if (typeof seg.lineHeight === 'number' && seg.lineHeight > line.height) {
+                    line.descent = seg.lineHeight - line.ascent;
+                    line.height = seg.lineHeight;
+                }
                 line.segments.push({
                     text: t,
                     fontSize: seg.fontSize ?? 14,
@@ -80,20 +142,68 @@ function mockMeasureTextSegments(segments: Segment[]) {
                     verticalAlign: seg.verticalAlign,
                     textMetrics: { width, height: LINE_HEIGHT, ascent: 16, descent: 4 },
                 });
+                uncommitted = false;
             }
         }
     }
 
-    return {
-        width: Math.max(...lines.map((l) => l.width)),
-        height: lines.reduce((sum, l) => sum + l.height, 0),
-        lineMetrics: lines,
-    };
+    finalizeBlock();
+
+    let maxWidth = 0;
+    let totalHeight = 0;
+    for (let i = 0; i < lines.length; ) {
+        const ln = lines[i];
+        if (ln.blockImages?.length) {
+            const span = ln.blockRowSpan ?? 1;
+            const stripWidth = ln.blockImages.reduce(
+                (w: number, img: any, idx: number) => w + img.textMetrics.width + (idx > 0 ? BLOCK_IMAGE_SPACING : 0),
+                0
+            );
+            const stripHeight = ln.blockImages.reduce((h: number, img: any) => Math.max(h, img.textMetrics.height), 0);
+            let innerColWidth = 0;
+            let innerColHeight = 0;
+            for (let k = 0; k < span; k++) {
+                innerColWidth = Math.max(innerColWidth, lines[i + k].width);
+                innerColHeight += lines[i + k].height;
+            }
+            const rowWidth = stripWidth + (innerColWidth > 0 ? BLOCK_IMAGE_SPACING + innerColWidth : 0);
+            maxWidth = Math.max(maxWidth, rowWidth);
+            totalHeight += Math.max(stripHeight, innerColHeight);
+            i += span;
+        } else {
+            maxWidth = Math.max(maxWidth, ln.width);
+            totalHeight += ln.height;
+            i += 1;
+        }
+    }
+
+    return { width: maxWidth, height: totalHeight, lineMetrics: lines };
+}
+
+function mockBlockStripWidth(images: { textMetrics: { width: number } }[]): number {
+    if (images.length === 0) return 0;
+    let total = 0;
+    for (let i = 0; i < images.length; i++) {
+        total += images[i].textMetrics.width;
+        if (i > 0) total += BLOCK_IMAGE_SPACING;
+    }
+    return total;
+}
+
+function mockBlockStripHeight(images: { textMetrics: { height: number } }[]): number {
+    let max = 0;
+    for (const img of images) max = Math.max(max, img.textMetrics.height);
+    return max;
 }
 
 vi.mock('../../rendering/textMeasurer', () => ({
     cachedTextMeasurer: () => mockMeasurer,
     measureTextSegments: mockMeasureTextSegments,
+    imageSegmentBox: mockImageSegmentBox,
+    isBlockBoundary: mockIsBlockBoundary,
+    BLOCK_IMAGE_SPACING,
+    blockStripWidth: mockBlockStripWidth,
+    blockStripHeight: mockBlockStripHeight,
 }));
 
 // Import after the mock so the function picks up the stubbed measureTextSegments.
@@ -148,8 +258,9 @@ describe('wrapTextSegments — image segment overflow', () => {
         expect(textOf(result)).toBe('AB XYZ');
     });
 
-    it("preserves 'keep' images through text truncation, dropping them only as a last resort", () => {
-        // Width budget: 50px. Keep image at end + long preceding text → drop image to avoid losing all text.
+    it("preserves a 'keep' image by dropping trailing text rather than truncating", () => {
+        // Width budget: 50px. Keep image (30px) fits alone; the long preceding text would force
+        // truncation if kept, so the wrapper drops the text instead and the image survives.
         const segments: Segment[] = [
             text('AAAAAAAAAA'), // 100px
             image('keepMe', { width: 30, height: 30, overflowStrategy: 'keep' }),
@@ -160,8 +271,22 @@ describe('wrapTextSegments — image segment overflow', () => {
             overflow: 'ellipsis',
             textWrap: 'never',
         });
-        // Keep image is dropped only after text truncation isn't sufficient.
+        expect(imageUrls(result)).toEqual(['https://example.com/keepMe.png']);
+        expect(textOf(result)).not.toMatch(/…/);
+    });
+
+    it("drops a 'keep' image when the image alone exceeds the width budget", () => {
+        // Image is 200px wide; maxWidth is 100. No matter what gets dropped the image cannot fit,
+        // so the keep flag yields and the surrounding text takes the full width.
+        const segments: Segment[] = [image('huge', { width: 200, height: 30, overflowStrategy: 'keep' }), text('ABC')];
+        const result = wrapTextSegments(segments, {
+            font: baseFont,
+            maxWidth: 100,
+            overflow: 'ellipsis',
+            textWrap: 'never',
+        });
         expect(imageUrls(result)).toEqual([]);
+        expect(textOf(result)).toBe('ABC');
     });
 
     it("drops 'hide' images before 'keep' images when both are present and content overflows", () => {
@@ -187,5 +312,154 @@ describe('wrapTextSegments — image segment overflow', () => {
         const segments: Segment[] = [text('Hello'), text(' world')];
         const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 500 });
         expect(textOf(result)).toBe('Hello world');
+    });
+
+    it('preserves \\n in trailing text segment so the layout wraps to a new line', () => {
+        const segments: Segment[] = [image('logo', { width: 28, height: 28 }), text(' Apple'), text('\n$2900B')];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 500 });
+
+        // Newline is encoded as a trailing \n on the preceding text segment.
+        const joined = result.map((s) => (s.type === 'image' ? '[img]' : s.text)).join('');
+        expect(joined).toBe('[img] Apple\n$2900B');
+
+        // Sanity check: re-measuring the wrap output sees two lines.
+        const remeasured = mockMeasureTextSegments(result);
+        expect(remeasured.lineMetrics).toHaveLength(2);
+        expect(remeasured.lineMetrics[0].segments).toHaveLength(2);
+        expect(remeasured.lineMetrics[1].segments).toHaveLength(1);
+    });
+
+    it('preserves \\n when previous line ended with an image via a synthetic newline segment', () => {
+        const segments: Segment[] = [text('Title'), image('badge', { width: 20, height: 20 }), text('\nSubtitle')];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 500 });
+
+        // Synthetic newline-only text segment is inserted so the renderer creates a new line.
+        const remeasured = mockMeasureTextSegments(result);
+        expect(remeasured.lineMetrics).toHaveLength(2);
+        expect(remeasured.lineMetrics[1].segments).toHaveLength(1);
+        expect(remeasured.lineMetrics[1].segments[0].text).toBe('Subtitle');
+    });
+});
+
+describe('wrapTextSegments — block-leading image', () => {
+    it('keeps a block image at the front and wraps subsequent segments unchanged when there is room', () => {
+        const segments: Segment[] = [
+            image('logo', { width: 36, height: 36, block: true }),
+            text('Apple', { fontWeight: 'bold' }),
+            text('\n$2900B'),
+        ];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 500 });
+
+        expect(result[0].type).toBe('image');
+        expect((result[0] as MeasuredSegment & { type: 'image' }).block).toBe(true);
+        // The trailing text segments are preserved and the newline survives.
+        expect(textOf(result)).toBe('Apple\n$2900B');
+    });
+
+    it('reduces the wrap width by the block image width + spacing', () => {
+        // maxWidth = 100. Image width = 30 → text column has 100 - 30 - 4 = 66px available.
+        // 'AB CD EF' (8 chars × 10px = 80px) doesn't fit on one line within the column → wraps.
+        const segments: Segment[] = [image('logo', { width: 30, height: 30, block: true }), text('AB CD EF')];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 100 });
+
+        // Text wraps into multiple lines within the reduced column.
+        const textPart = result
+            .filter((s) => s.type !== 'image')
+            .map((s) => (s as { text: string }).text)
+            .join('');
+        expect(textPart).toContain('\n');
+    });
+
+    it("drops an oversized block image under 'hide' (default) and renders the remaining text alone", () => {
+        // Image width = 200 exceeds maxWidth = 100 → with default 'hide', drop the image and
+        // wrap the text segment through the inline path.
+        const segments: Segment[] = [image('huge', { width: 200, height: 50, block: true }), text('label')];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 100 });
+
+        expect(imageUrls(result)).toEqual([]);
+        expect(textOf(result)).toBe('label');
+    });
+
+    it("drops an oversized block image under 'keep' too — the image cannot fit on its own", () => {
+        // Even under 'keep' an image that exceeds the label box on its own cannot be preserved;
+        // the wrapper drops it and renders the text at full width.
+        const segments: Segment[] = [
+            image('huge', { width: 200, height: 50, block: true, overflowStrategy: 'keep' }),
+            text('label'),
+        ];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 100 });
+
+        expect(imageUrls(result)).toEqual([]);
+        expect(textOf(result)).toBe('label');
+    });
+
+    it('honours a per-segment lineHeight when computing total wrap height', () => {
+        // Without lineHeight, two LINE_HEIGHT-tall lines (20px each) fit inside maxHeight = 50.
+        const naturalFit = wrapTextSegments([text('Foo'), text('\nBar')], {
+            font: baseFont,
+            maxWidth: 200,
+            maxHeight: 50,
+        });
+        expect(textOf(naturalFit)).toBe('Foo\nBar');
+
+        // With lineHeight: 40 on the first segment, the first line consumes 40px so the second
+        // line no longer fits in the 50px budget and gets dropped/truncated.
+        const overrideFit = wrapTextSegments([text('Foo', { lineHeight: 40 }), text('\nBar')], {
+            font: baseFont,
+            maxWidth: 200,
+            maxHeight: 50,
+            overflow: 'ellipsis',
+        });
+        expect(textOf(overrideFit)).not.toContain('Bar');
+    });
+
+    it('treats block:true mid-line (no preceding \\n) as inline', () => {
+        // Block boundary requires the image to be at index 0 or the preceding text to end with \n.
+        const segments: Segment[] = [
+            text('Prefix '),
+            image('inline', { width: 20, height: 20, block: true }),
+            text(' suffix'),
+        ];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 500 });
+        expect(result[0].type).not.toBe('image');
+        expect(textOf(result)).toBe('Prefix  suffix');
+    });
+
+    it('opens a new block row when block:true follows a \\n line break', () => {
+        const segments: Segment[] = [
+            image('logo1', { width: 30, height: 30, block: true }),
+            text('Foo\n'),
+            image('logo2', { width: 30, height: 30, block: true }),
+            text('Bar'),
+        ];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 500 });
+
+        // Both block images survive and their text columns ('Foo', 'Bar') sit between them.
+        expect(imageUrls(result)).toEqual(['https://example.com/logo1.png', 'https://example.com/logo2.png']);
+        expect(textOf(result)).toBe('Foo\nBar');
+
+        // Re-measure to confirm the structure: two block rows, one text line each.
+        const remeasured = mockMeasureTextSegments(result);
+        const markers = remeasured.lineMetrics.filter((l) => l.blockImages?.length);
+        expect(markers).toHaveLength(2);
+        expect(markers[0].blockRowSpan).toBe(1);
+        expect(markers[1].blockRowSpan).toBe(1);
+    });
+
+    it('stacks a leading inline group above subsequent block rows', () => {
+        // First segment is non-block text ending with \n → leading inline group; the block image
+        // that follows opens a new row beneath it.
+        const segments: Segment[] = [
+            text('Header\n'),
+            image('logo', { width: 30, height: 30, block: true }),
+            text('Body'),
+        ];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 500 });
+
+        const remeasured = mockMeasureTextSegments(result);
+        // Two rows: line 0 'Header' (no block marker), line 1 block-image + 'Body'.
+        expect(remeasured.lineMetrics).toHaveLength(2);
+        expect(remeasured.lineMetrics[0].blockImages).toBeUndefined();
+        expect(remeasured.lineMetrics[1].blockImages).toBeDefined();
     });
 });

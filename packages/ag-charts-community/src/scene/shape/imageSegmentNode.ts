@@ -57,19 +57,16 @@ export class ImageSegmentNode extends Node {
             }
         }
 
-        const image = this.imageLoader?.loadImage(this.url, this);
+        const image = this.imageLoader?.loadImage(this.url, this, {
+            width: this.imageWidth,
+            height: this.imageHeight,
+        });
         if (image) {
             const imgX = x + this.paddingLeft;
             const imgY = y + this.paddingTop;
-            // SVGs declared only via viewBox have a 0-sized intrinsic box in some browsers;
-            // fall back to the 4-arg drawImage form so the browser scales onto our reserved box.
-            const nw = image.naturalWidth;
-            const nh = image.naturalHeight;
-            if (nw > 0 && nh > 0) {
-                ctx.drawImage(image, 0, 0, nw, nh, imgX, imgY, this.imageWidth, this.imageHeight);
-            } else {
-                ctx.drawImage(image, imgX, imgY, this.imageWidth, this.imageHeight);
-            }
+            // 4-arg drawImage scales the entire image to the destination box. The size hint passed
+            // to the loader ensures SVGs have concrete intrinsic dimensions, so 4-arg is reliable.
+            ctx.drawImage(image, imgX, imgY, this.imageWidth, this.imageHeight);
         }
 
         ctx.globalAlpha = previousAlpha;
