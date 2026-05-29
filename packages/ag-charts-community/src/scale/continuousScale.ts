@@ -22,29 +22,50 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
     private domainNeedsValueOf = true; // Safe default
     private d0Cache: number = Number.NaN;
     private d1Cache: number = Number.NaN;
+    // Exact bigint domain endpoints, retained for the full-precision convert() ratio.
+    // Undefined unless the corresponding endpoint was supplied as a bigint.
+    private d0Big: bigint | undefined = undefined;
+    private d1Big: bigint | undefined = undefined;
 
     get domain(): D[] {
         return this._domain;
     }
 
-    set domain(values: D[]) {
-        this._domain = values;
-
-        // Auto-detect if domain values need valueOf() and cache numeric values
-        if (values && values.length >= 2) {
-            const sample = values[0];
-            this.domainNeedsValueOf = sample != null && typeof sample === 'object';
-
-            if (this.domainNeedsValueOf) {
-                this.d0Cache = (values[0] as Date).valueOf();
-                this.d1Cache = (values[1] as Date).valueOf();
-            } else {
-                this.d0Cache = values[0] as unknown as number;
-                this.d1Cache = values[1] as unknown as number;
-            }
-        } else {
+    set domain(values: readonly (D | bigint)[]) {
+        if (!values || values.length < 2) {
+            this._domain = values as D[];
+            this.d0Big = this.d1Big = undefined;
             this.d0Cache = Number.NaN;
             this.d1Cache = Number.NaN;
+            return;
+        }
+
+        const d0 = values[0];
+        const d1 = values[1];
+
+        if (typeof d0 === 'bigint' || typeof d1 === 'bigint') {
+            // Retain the exact bigint endpoints for the full-precision convert() ratio, but expose a
+            // Number-narrowed domain so every Math.min/max(...domain) consumer stays Number-only.
+            this.d0Big = typeof d0 === 'bigint' ? d0 : undefined;
+            this.d1Big = typeof d1 === 'bigint' ? d1 : undefined;
+            this.domainNeedsValueOf = false;
+            this.d0Cache = Number(d0);
+            this.d1Cache = Number(d1);
+            this._domain = values.map((v) => (typeof v === 'bigint' ? Number(v) : v)) as D[];
+            return;
+        }
+
+        this.d0Big = this.d1Big = undefined;
+        this._domain = values as D[];
+
+        // Auto-detect if domain values need valueOf() and cache numeric values
+        this.domainNeedsValueOf = d0 != null && typeof d0 === 'object';
+        if (this.domainNeedsValueOf) {
+            this.d0Cache = (d0 as Date).valueOf();
+            this.d1Cache = (d1 as Date).valueOf();
+        } else {
+            this.d0Cache = d0 as unknown as number;
+            this.d1Cache = d1 as unknown as number;
         }
     }
 
@@ -84,7 +105,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         return rangeDistance / Math.max(1, bands);
     }
 
-    convert(value: D | number, options?: { clamp?: boolean }) {
+    convert(value: D | number | bigint, options?: { clamp?: boolean }) {
         const { domain } = this;
         if (!domain || domain.length < 2 || value == null) {
             return Number.NaN;
@@ -93,11 +114,26 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         const { range } = this;
         const clamp = options?.clamp ?? this.defaultClamp;
 
+        // Full-precision BigInt ratio for linear scales: keeps adjacent high-magnitude bigints and
+        // domain spans beyond Number.MAX_SAFE_INTEGER monotonic, where a float64 narrow would collapse
+        // them. Log/time scales (transform != null) narrow to Number below (AG-16608 AC #9).
+        if (typeof value === 'bigint' && this.d0Big != null && this.d1Big != null && this.transform == null) {
+            return convertBigInt(value, this.d0Big, this.d1Big, range, clamp);
+        }
+
         // Use cached domain values to avoid valueOf() calls
         let d0: number = this.d0Cache;
         let d1: number = this.d1Cache;
-        // Conditional valueOf() for input value based on domain type detection
-        let x = typeof value === 'number' ? value : value.valueOf();
+        // Conditional valueOf() for input value based on domain type detection; a bigint reaching
+        // here is on a transform (log/time) scale and narrows to Number — see AG-16608 AC #9.
+        let x: number;
+        if (typeof value === 'number') {
+            x = value;
+        } else if (typeof value === 'bigint') {
+            x = Number(value);
+        } else {
+            x = value.valueOf();
+        }
         if (this.transform) {
             d0 = this.transform(d0);
             d1 = this.transform(d1);
@@ -158,6 +194,40 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         const [a, b] = this.range;
         return Math.abs(b - a);
     }
+}
+
+// Scaling factor for the integer ratio: 10^12 yields ~12 significant digits in [0,1] — far finer
+// than the ~3-4 digits pixel positioning needs — while keeping the intermediate product well below
+// Number.MAX_SAFE_INTEGER once narrowed.
+const BIGINT_RATIO_SCALE = 10n ** 12n;
+
+/**
+ * Linear convert() for bigint values, computed end-to-end in BigInt so neither the value-to-domain
+ * difference nor the domain span loses precision when narrowed. Only the final [0,1] ratio crosses
+ * to Number. Mirrors the equality/clamp short-circuits of the Number path.
+ */
+function convertBigInt(value: bigint, d0: bigint, d1: bigint, range: number[], clamp: boolean): number {
+    const r0 = range[0];
+    const r1 = range[1];
+
+    // Same short-circuit order as the Number path: clamp, then zero-width domain, then endpoints.
+    if (clamp) {
+        const lo = d0 < d1 ? d0 : d1;
+        const hi = d0 < d1 ? d1 : d0;
+        if (value < lo) return r0;
+        if (value > hi) return r1;
+    }
+
+    if (d0 === d1) {
+        return (r0 + r1) / 2;
+    }
+
+    if (value === d0) return r0;
+    if (value === d1) return r1;
+
+    const ratioBig = ((value - d0) * BIGINT_RATIO_SCALE) / (d1 - d0);
+    const ratio = Number(ratioBig) / Number(BIGINT_RATIO_SCALE);
+    return r0 + ratio * (r1 - r0);
 }
 
 export function normalizeContinuousDomains<D extends number | Date>(
