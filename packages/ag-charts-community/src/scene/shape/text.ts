@@ -56,6 +56,13 @@ export class Text<D = unknown> extends Shape<D> {
 
     private richText?: Group;
     private textMap?: Map<Node, BoxBounds>;
+    // Cached `measureTextSegments` output for the current `text` array. Invalidated by:
+    //   - `onTextChange` (text reassignment)
+    //   - `markDirty` (any layout-affecting field — all of which use `@SceneChangeDetection`,
+    //     which calls `markDirty` via its onChange hook).
+    // Any future field that affects segment layout must either be `@SceneChangeDetection`-tracked
+    // or invalidate this cache explicitly, otherwise it will silently serve stale metrics.
+    private segmentMetrics?: ReturnType<typeof measureTextSegments>;
     private generatingTextMap = false;
 
     @SceneChangeDetection()
@@ -68,6 +75,7 @@ export class Text<D = unknown> extends Shape<D> {
     private onTextChange() {
         this.richText?.clear();
         this.textMap?.clear();
+        this.segmentMetrics = undefined;
 
         if (isArray(this.text)) {
             this.lines = [];
@@ -89,6 +97,14 @@ export class Text<D = unknown> extends Shape<D> {
             }
             this.richText.append(children);
         } else {
+            // Reverting to plain text: drop the empty richText Group entirely so any external
+            // holder cannot keep it alive and inadvertently mark this Text dirty later. Children
+            // were already detached by `clear()` above.
+            if (this.richText) {
+                this.richText.parentNode = undefined;
+                this.richText.setScene(undefined);
+                this.richText = undefined;
+            }
             const lines = toTextString(this.text).split(LineSplitter);
             this.lines = this.trimText ? lines.map((line) => line.trim()) : lines;
         }
@@ -272,7 +288,7 @@ export class Text<D = unknown> extends Shape<D> {
         const bbox = super.getBBox();
         if (!this.textMap?.size || !isArray(this.text)) return bbox;
 
-        const { height, lineMetrics } = measureTextSegments(this.text, this);
+        const { height, lineMetrics } = this.getSegmentMetrics(this.text);
         const offsetTop = Text.calcSegmentedTopOffset(height, lineMetrics, this.textBaseline);
         const y = this.y - offsetTop;
         if (bbox.y === y) return bbox;
@@ -327,9 +343,14 @@ export class Text<D = unknown> extends Shape<D> {
         }
     }
 
+    private getSegmentMetrics(text: Segment[]): ReturnType<typeof measureTextSegments> {
+        this.segmentMetrics ??= measureTextSegments(text, this);
+        return this.segmentMetrics;
+    }
+
     private buildTextMap(text: Segment[]) {
         const childNodes = this.richText!.children();
-        const { width: totalWidth, lineMetrics } = measureTextSegments(text, this);
+        const { width: totalWidth, lineMetrics } = this.getSegmentMetrics(text);
 
         const labelLeft = this.x - totalWidth / 2;
         let offsetY = 0;
@@ -541,7 +562,7 @@ export class Text<D = unknown> extends Shape<D> {
         if (isArray(this.text) && this.richText) {
             this.generateTextMap();
             const richTextBBox = this.richText.getBBox();
-            const { width, height, lineMetrics } = measureTextSegments(this.text, this);
+            const { width, height, lineMetrics } = this.getSegmentMetrics(this.text);
 
             let translateX = 0;
             switch (this.textAlign) {
@@ -584,6 +605,7 @@ export class Text<D = unknown> extends Shape<D> {
         // mid-iteration and leave only the last segment in textMap.
         if (!this.generatingTextMap) {
             this.textMap?.clear();
+            this.segmentMetrics = undefined;
         }
         return super.markDirty(property);
     }

@@ -313,6 +313,110 @@ function formatSingleAny<Meta>(
     return formatSingleLabel(String(value), props, layoutParams, sizeFittingHeight);
 }
 
+function toBaseFont(props: AutoSizedBaseLabelOptions): FontOptions {
+    return {
+        fontFamily: props.fontFamily,
+        fontStyle: props.fontStyle,
+        fontWeight: props.fontWeight,
+        fontSize: props.fontSize,
+    };
+}
+
+// Inner fittings ignore the (height, canTruncate) arguments because the parent has already
+// apportioned the height — they hand back a fixed frame. The height is `usable + 2*padding`
+// because the consumers (formatSingleLabel / formatSingleSegmentsLabel) subtract their own
+// `2*padding` again to derive their canvas budget; round-tripping the padding here lets the
+// nested call do its standard math without a special case.
+function fixedFitting<Meta>(
+    width: number,
+    usableHeight: number,
+    padding: number,
+    meta: Meta
+): SizeFittingHeightFn<Meta> {
+    return () => ({ width, height: usableHeight + 2 * padding, meta });
+}
+
+// Segments measure once at their declared font (no font-size bin-search), so the stacked
+// plain-text path doesn't apply. Apportion the available height between the two labels and
+// format each independently via formatSingleAny.
+function formatStackedAnyLabels<Meta>(
+    labelValue: TextOrSegments,
+    labelProps: AutoSizedLabelOptions,
+    secondaryLabelValue: TextOrSegments,
+    secondaryLabelProps: AutoSizedSecondaryLabelOptions,
+    layoutParams: LayoutParams,
+    sizeFittingHeight: SizeFittingHeightFn<Meta>
+): StackedLabelFormatting<Meta> | undefined {
+    const { padding } = layoutParams;
+    const { spacing = 0 } = labelProps;
+    const widthAdjust = 2 * padding;
+    const heightAdjust = 2 * padding + spacing;
+
+    const labelBaseFont = toBaseFont(labelProps);
+    const secondaryBaseFont = toBaseFont(secondaryLabelProps);
+
+    const labelNaturalHeight = naturalStackHeight(labelValue, labelBaseFont);
+    const secondaryNaturalHeight = naturalStackHeight(secondaryLabelValue, secondaryBaseFont);
+
+    const sizeFitting = sizeFittingHeight(labelNaturalHeight + secondaryNaturalHeight + heightAdjust, true);
+    const availableWidth = sizeFitting.width - widthAdjust;
+    const availableHeight = sizeFitting.height - heightAdjust;
+
+    if (availableWidth <= 0 || availableHeight <= 0) return;
+
+    const labelOnly = (label: LabelFormatting): StackedLabelFormatting<Meta> => ({
+        width: label.width,
+        height: label.height,
+        meta: sizeFitting.meta,
+        label,
+        secondaryLabel: undefined,
+    });
+
+    const labelAllottedHeight = Math.min(labelNaturalHeight, Math.max(0, availableHeight - secondaryNaturalHeight));
+    // If the secondary's natural height already swallows the budget, fall back to label-only
+    // (give the primary the full availableHeight) rather than starving it to zero.
+    const labelHeightBudget = labelAllottedHeight > 0 ? labelAllottedHeight : availableHeight;
+    const labelFormatted = formatSingleAny(
+        labelValue,
+        labelProps,
+        layoutParams,
+        fixedFitting(sizeFitting.width, labelHeightBudget, padding, sizeFitting.meta)
+    );
+    if (labelFormatted == null) return;
+    const [label] = labelFormatted;
+
+    const remainingHeight = availableHeight - label.height;
+    if (remainingHeight <= 0) return labelOnly(label);
+
+    const secondaryFormatted = formatSingleAny(
+        secondaryLabelValue,
+        secondaryLabelProps,
+        layoutParams,
+        fixedFitting(sizeFitting.width, remainingHeight, padding, sizeFitting.meta)
+    );
+    if (secondaryFormatted == null) return labelOnly(label);
+    const [secondaryLabel] = secondaryFormatted;
+
+    return {
+        width: Math.max(label.width, secondaryLabel.width),
+        height: label.height + secondaryLabel.height + spacing,
+        meta: sizeFitting.meta,
+        label,
+        secondaryLabel,
+    };
+}
+
+// Natural unconstrained height when stacking against a peer. Plain-text strings would wrap to
+// availableWidth in the inner call, but at this point we only need a coarse share for
+// apportionment — line height is a reasonable lower bound; `formatSingleLabel`'s overflow path
+// handles wrapped multi-line text inside the apportioned budget.
+function naturalStackHeight(value: TextOrSegments, font: FontOptions): number {
+    if (isArray(value)) {
+        return measureTextSegments(value, font).height;
+    }
+    return cachedTextMeasurer(font).lineHeight();
+}
+
 export function formatLabels<Meta = never>(
     baseLabelValue: TextOrSegments | undefined,
     labelProps: AutoSizedLabelOptions,
@@ -334,15 +438,26 @@ export function formatLabels<Meta = never>(
 
     // Stacked plain-text path supports font-size bin-search. Segments measure once at the
     // declared font size, so we fall back to formatting each label independently here.
-    if (labelValue != null && secondaryLabelValue != null && !labelIsSegments && !secondaryIsSegments) {
-        value = formatStackedLabels(
-            String(labelValue),
-            labelProps,
-            String(secondaryLabelValue),
-            secondaryLabelProps,
-            layoutParams,
-            sizeFittingHeight
-        );
+    if (labelValue != null && secondaryLabelValue != null) {
+        if (!labelIsSegments && !secondaryIsSegments) {
+            value = formatStackedLabels(
+                String(labelValue),
+                labelProps,
+                String(secondaryLabelValue),
+                secondaryLabelProps,
+                layoutParams,
+                sizeFittingHeight
+            );
+        } else {
+            value = formatStackedAnyLabels(
+                labelValue,
+                labelProps,
+                secondaryLabelValue,
+                secondaryLabelProps,
+                layoutParams,
+                sizeFittingHeight
+            );
+        }
     }
 
     let labelMeta: [LabelFormatting, Meta] | undefined;

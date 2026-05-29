@@ -2,7 +2,6 @@ import type { ImageSegment, OverflowStrategy, Segment, TextOrSegments, TextWrap 
 
 import {
     BLOCK_IMAGE_SPACING,
-    blockStripHeight,
     blockStripWidth,
     cachedTextMeasurer,
     imageSegmentBox,
@@ -431,7 +430,6 @@ function wrapBlockGroup(blockImages: ImageSegment[], segments: Segment[], option
     const allKeep = strip.every((c) => (c.source.overflowStrategy ?? 'hide') === 'keep');
     const measuredStrip = strip.map((c) => c.measured);
     const stripWidth = blockStripWidth(measuredStrip);
-    const stripHeightVal = blockStripHeight(measuredStrip);
 
     if (segments.length === 0) {
         return measuredStrip;
@@ -444,9 +442,10 @@ function wrapBlockGroup(blockImages: ImageSegment[], segments: Segment[], option
         return allKeep ? measuredStrip : wrapInlineSegments(segments, options);
     }
 
-    // The inner column is bounded by the row height, which is at least the tallest strip image.
-    // Constraining `maxHeight` here keeps text from growing the block row past what was allotted.
-    const innerMaxHeight = Math.max(0, Math.min(maxHeight, Math.max(stripHeightVal, maxHeight)));
+    // The inner text column is bounded by the overall block-height budget. Block row height
+    // then becomes max(stripHeight, textColumnHeight) — strip images are already filtered to
+    // fit within maxHeight above, so the row never exceeds the allotted height.
+    const innerMaxHeight = Math.max(0, maxHeight);
     const innerOptions = { ...options, maxWidth: innerMaxWidth, maxHeight: innerMaxHeight };
 
     // Inner wrap can occasionally emit a single ellipsis/orphan segment that itself exceeds the
