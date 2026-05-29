@@ -1,6 +1,6 @@
 // Strict ISO 8601 detection. String parsing is a time-axis concern, not a general one, so this lives
 // alongside the data pipeline rather than in the shared value utilities.
-const ISO_8601 = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?)?$/;
+const ISO_8601 = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})?)?$/;
 
 /**
  * Returns true only for strings that are valid, canonical ISO 8601 date / date-time values.

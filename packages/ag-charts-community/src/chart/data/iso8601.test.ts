@@ -9,6 +9,10 @@ describe('isISO8601', () => {
         '2024-01-15T10:30:00+05:30',
         '2024-01-15T10:30:00.123Z',
         '2024-01-15T10:30:00',
+        // Minute-precision (seconds optional)
+        '2024-01-15T10:30Z',
+        '2024-01-15T10:30',
+        '2024-01-15T10:30+05:30',
     ];
 
     const rejected = [
@@ -21,6 +25,9 @@ describe('isISO8601', () => {
         '20240115',
         '2024-W03',
         '2024-015',
+        // Basic/short offsets are intentionally rejected; only colon offsets (+HH:MM) are accepted.
+        '2024-01-15T10:30:00+0530',
+        '2024-01-15T10:30+05',
     ];
 
     it.each(accepted)('accepts %s', (value) => {
