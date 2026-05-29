@@ -73,6 +73,16 @@ describe('createBigIntTicks', () => {
     test('returns a single tick for a zero-width domain', () => {
         expect(createBigIntTicks(42n, 42n, 5)).toEqual([42n]);
     });
+
+    test('stays bounded for spans far beyond Number.MAX_VALUE', () => {
+        // The nice-step picker keeps step ∝ extent/count, so the tick count never explodes even when
+        // the span dwarfs Number.MAX_VALUE (where a naive Number(extent) would be Infinity).
+        for (const exp of [100, 400]) {
+            const ticks = createBigIntTicks(0n, 10n ** BigInt(exp), 5);
+            expect(ticks.length).toBeGreaterThanOrEqual(5);
+            expect(ticks.length).toBeLessThanOrEqual(15);
+        }
+    });
 });
 
 describe('niceBigIntDomain', () => {

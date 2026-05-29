@@ -397,6 +397,15 @@ describe('LinearScale', () => {
             expect(scale.niceDomain(tickParams, [13n, 97n] as unknown as number[])).toEqual([0n, 100n]);
         });
 
+        test('honours a custom interval when nicing a BigInt domain', () => {
+            const scale = new LinearScale();
+            // With interval 30 the bounds must snap to multiples of 30 (Number path), not the auto
+            // bigint step that would otherwise produce [0, 100].
+            expect(scale.niceDomain({ ...tickParams, interval: 30 }, [13n, 97n] as unknown as number[])).toEqual([
+                0, 120,
+            ]);
+        });
+
         // AC AG-16608 #15e / #16: ticks beyond Number.MAX_SAFE_INTEGER keep exact values.
         test('keeps exact tick values for spans larger than Number.MAX_SAFE_INTEGER', () => {
             const scale = new LinearScale();

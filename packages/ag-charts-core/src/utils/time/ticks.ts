@@ -237,6 +237,8 @@ function bigIntTickStep(extent: bigint, count: number): bigint {
     }
 
     // Pick the nice multiplier whose resulting tick count is closest to the requested count.
+    // `extent / step` is bounded by ~count*10 for any span (pow10 ≈ extent/count by construction),
+    // so the Number() narrowing is exact here regardless of how large `extent` is.
     let best = pow10;
     let bestDiff = Infinity;
     for (const multiplier of TickMultipliers) {

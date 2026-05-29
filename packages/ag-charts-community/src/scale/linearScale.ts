@@ -78,12 +78,18 @@ export class LinearScale extends ContinuousScale<number> {
         const { tickCount = ContinuousScale.defaultTickCount } = ticks;
 
         const [b0, b1] = domain as readonly (number | bigint)[];
-        if (typeof b0 === 'bigint' && typeof b1 === 'bigint') {
+        const isBigIntDomain = typeof b0 === 'bigint' && typeof b1 === 'bigint';
+
+        // Full-precision bigint nicing only for the auto-step path. A custom interval is a Number
+        // concept (matches ticks(), which narrows for intervals), so fall through to the Number path
+        // on the narrowed domain below — otherwise the bounds would snap to an unrelated auto step.
+        if (isBigIntDomain && ticks.interval == null) {
             const [n0, n1] = niceBigIntDomain(b0, b1, tickCount);
             return [ticks.nice[0] ? n0 : b0, ticks.nice[1] ? n1 : b1] as unknown as number[];
         }
 
-        let [start, stop] = domain;
+        const numericDomain = isBigIntDomain ? domain.map(Number) : domain;
+        let [start, stop] = numericDomain;
 
         if (tickCount === 1) {
             [start, stop] = niceTicksDomain(start, stop);
@@ -96,7 +102,7 @@ export class LinearScale extends ContinuousScale<number> {
                 const prev0 = start;
                 const prev1 = stop;
                 const step = LinearScale.getTickStep(start, stop, ticks);
-                const [d0, d1] = domain;
+                const [d0, d1] = numericDomain;
 
                 start = roundStart(d0 / step) * step;
                 stop = roundStop(d1 / step) * step;
@@ -105,6 +111,6 @@ export class LinearScale extends ContinuousScale<number> {
             }
         }
 
-        return [ticks.nice[0] ? start : domain[0], ticks.nice[1] ? stop : domain[1]];
+        return [ticks.nice[0] ? start : numericDomain[0], ticks.nice[1] ? stop : numericDomain[1]];
     }
 }
