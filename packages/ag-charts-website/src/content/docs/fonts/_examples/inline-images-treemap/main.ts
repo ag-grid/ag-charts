@@ -40,7 +40,7 @@ const options: AgChartOptions = {
                                 backgroundFill: 'rgba(0, 0, 0, 0.35)',
                                 borderRadius: 8,
                             },
-                            { text: d.name, fontWeight: 'bold' },
+                            { text: d.name, fontWeight: 'bold', verticalAlign: 'middle' },
                             { text: `\n$${d.value}B`, color: 'rgba(0, 0, 0, 0.6)' },
                         ];
                     },
