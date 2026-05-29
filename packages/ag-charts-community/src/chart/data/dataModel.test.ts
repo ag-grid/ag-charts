@@ -1543,10 +1543,9 @@ describe('DataModel', () => {
             expect(processedData.domain.values[0]).toEqual([10n, 20n]);
         });
 
-        it('should drop bigint keys without throwing on a continuous key', () => {
-            // AG-16608: bigint *keys* remain dropped — a bigint key reaches SORT_DOMAIN_GROUPS (whose
-            // comparator return is ToNumber-coerced by Array.sort, throwing) and needs numeric-axis
-            // prediction (AC #4); both land in a later PR. Bigint *values* are already supported.
+        it('should retain bigint keys in the key column', () => {
+            // AG-16608: bigint *keys* now flow through extraction unchanged (the SORT_DOMAIN_GROUPS
+            // comparator is bigint-safe), matching the existing support for bigint values.
             const dataModel = new DataModel<any, any>({
                 props: [rangeKey('x'), value('y')],
             });
@@ -1559,7 +1558,27 @@ describe('DataModel', () => {
             const sources = basicDataSet(data).set('test', new DataSet(data));
             const processedData = dataModel.processData(sources)!;
 
-            expect(processedData.keys.flat(Infinity).some((v) => typeof v === 'bigint')).toBe(false);
+            expect(processedData.keys).toEqual(expectedKeys([1n, 2n]));
+        });
+
+        it('should sort grouped bigint keys without throwing', () => {
+            // AG-16608: SORT_DOMAIN_GROUPS compares bigint keys directly; subtraction would yield a
+            // bigint that Array.sort ToNumber-coerces and throws on.
+            const dataModel = new DataModel<any, any, true>({
+                props: [rangeKey('x'), value('y'), SORT_DOMAIN_GROUPS],
+                groupByKeys: true,
+            });
+
+            const data = [
+                { x: 3n, y: 30 },
+                { x: 1n, y: 10 },
+                { x: 2n, y: 20 },
+            ];
+
+            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const processedData = dataModel.processData(sources)!;
+
+            expect(processedData.reduced!.sortedGroupDomain).toEqual([[1n], [2n], [3n]]);
         });
 
         it('should tag Date value columns as "date"', () => {
