@@ -154,7 +154,8 @@ function uriPathnameEndsWith(uri: string, suffix: string): boolean {
 
 // Anchored at start-of-buffer (after optional BOM, XML prolog, DOCTYPE, whitespace) so an HTML
 // response that happens to embed an inline <svg> icon does not trip the sniff.
-const SVG_MARKUP_PREFIX = /^\uFEFF?\s{0,32}(?:<\?xml[^>]{0,256}\?>\s{0,32})?(?:<!DOCTYPE[^>]{0,256}>\s{0,32})?<svg[\s>]/i;
+const SVG_MARKUP_PREFIX =
+    /^\uFEFF?\s{0,32}(?:<\?xml[^>]{0,256}\?>\s{0,32})?(?:<!DOCTYPE[^>]{0,256}>\s{0,32})?<svg[\s>]/i;
 function looksLikeSvgMarkup(text: string): boolean {
     return SVG_MARKUP_PREFIX.test(text);
 }
