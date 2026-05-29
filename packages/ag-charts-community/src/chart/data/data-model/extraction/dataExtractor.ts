@@ -1,4 +1,4 @@
-import { Logger, first, iterate } from 'ag-charts-core';
+import { Logger, first, isNumberObject, iterate } from 'ag-charts-core';
 
 import { ContinuousDomain } from '../../dataDomain';
 import {
@@ -79,8 +79,9 @@ function valueColumnType(value: unknown): ColumnValueType | undefined {
         case 'string':
             return 'string';
         case 'object':
-            // TODO(AG-16608, PR2): a numeric NumberObject is tagged 'date' here; disambiguate via isNumberObject().
-            return value == null ? undefined : 'date';
+            if (value == null) return undefined;
+            // A NumberObject ({ valueOf(): number }) is numeric, not a date.
+            return isNumberObject(value) ? 'number' : 'date';
         default:
             return undefined;
     }
@@ -265,8 +266,8 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
 
                     const result = processKeyValue(data[datumIndex], datumIndex, scope);
 
-                    // PR1 stopgap: drop bigint keys until PR2 wires the scale/sort arithmetic that
-                    // consumes them, else they throw on BigInt maths. Removed in PR2.
+                    // bigint *values* are supported now, but bigint *keys* stay dropped until a later PR:
+                    // they break SORT_DOMAIN_GROUPS' comparator and need numeric-axis prediction (AC #4).
                     if (result.valid && typeof result.value !== 'bigint') {
                         keys.push(result.value);
                         // Track ordering/uniqueness for valid keys
@@ -404,14 +405,6 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                     this.markScopeDatumMissing(def.scopes, columnSource, datumIndex, missingData);
                 } else {
                     updateColumnTypeTracker(typeTracker, result.value, datumIndex);
-                }
-
-                // PR1 stopgap: drop bigints until PR2 wires scale/aggregation support, else `x - d0`
-                // throws "Cannot mix BigInt and other types". Removed in PR2.
-                if (typeof value === 'bigint') {
-                    this.markScopeDatumInvalid(def.scopes, columnSource, datumIndex, invalidData, invalidDataCount);
-                    partialValidDataCount += 1;
-                    value = invalidValue;
                 }
 
                 if (invalidKey) {

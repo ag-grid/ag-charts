@@ -10,6 +10,11 @@ describe('number format', () => {
         expect(createNumberFormatter('.4f')!(123)).toBe('123.0000');
         expect(createNumberFormatter('f')!(0.1234567890123456)).toBe('0.123457');
     });
+    test('bigint values format at full precision without throwing (AG-16608)', () => {
+        expect(createNumberFormatter('.2f')!(9007199254740993n)).toBe('9,007,199,254,740,993');
+        expect(createNumberFormatter(',.0f')!(9007199254740993n)).toBe('9,007,199,254,740,993');
+        expect(createNumberFormatter('f')!(-9007199254740993n)).toBe('-9,007,199,254,740,993');
+    });
     test('rounded percentage', () => {
         const f = createNumberFormatter('.0%')!;
         expect(f(0.3)).toBe('30%');

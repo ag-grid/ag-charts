@@ -8,7 +8,7 @@ import {
     transformIntegratedCategoryValue,
 } from 'ag-charts-core';
 
-import { accumulatedValue, range, trailingAccumulatedValue } from './aggregateFunctions';
+import { accumulatedValue, addAccumulated, range, trailingAccumulatedValue } from './aggregateFunctions';
 import {
     type DataGroup,
     type DatumPropertyDefinition,
@@ -534,8 +534,9 @@ function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailin
                 dataGroup: DataGroup,
                 groupIndex: number
             ) {
-                // Datum scope.
-                const acc = [0, 0];
+                // Datum scope. Seeds are number `0`; a bigint column promotes them to bigint via
+                // addAccumulated so stacked totals retain full precision (AG-16608 AC #10).
+                const acc: [number | bigint, number | bigint] = [0, 0];
                 for (const valueIdx of valueIndexes) {
                     const datumIndices = dataGroup.datumIndices[valueIdx];
                     if (datumIndices == null) continue;
@@ -550,19 +551,21 @@ function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailin
                         // (relative index is offset from group start, absolute is for the entire column)
                         const datumIndex = groupIndex + relativeDatumIndex;
                         const currentVal = column[datumIndex];
-                        if (!isFiniteNumber(currentVal)) continue;
+                        const isBigInt = typeof currentVal === 'bigint';
+                        if (!isBigInt && !isFiniteNumber(currentVal)) continue;
 
-                        const useNegative = separateNegative && isNegative(currentVal);
+                        // isNegative() uses Math.sign(), which throws on bigint — compare directly.
+                        const useNegative = separateNegative && (isBigInt ? currentVal < 0n : isNegative(currentVal));
                         const accValue = useNegative ? stackNegative : stackPositive;
                         if (mode === 'normal') {
-                            column[datumIndex] = accValue + currentVal;
+                            column[datumIndex] = addAccumulated(accValue, currentVal);
                         } else {
                             column[datumIndex] = accValue;
                         }
 
                         if (!didAccumulate) {
                             const accIndex = useNegative ? 0 : 1;
-                            acc[accIndex] = accValue + currentVal;
+                            acc[accIndex] = addAccumulated(accValue, currentVal);
 
                             didAccumulate = true;
                         }

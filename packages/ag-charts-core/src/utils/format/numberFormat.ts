@@ -58,8 +58,12 @@ export function parseNumberFormat(format: string): FormatterOptions | undefined 
     };
 }
 
-export function createNumberFormatter(format: FormatterOptions): (n: number, fractionDigits?: number) => string;
-export function createNumberFormatter(format: string): ((n: number, fractionDigits?: number) => string) | undefined;
+export function createNumberFormatter(
+    format: FormatterOptions
+): (n: number | bigint, fractionDigits?: number) => string;
+export function createNumberFormatter(
+    format: string
+): ((n: number | bigint, fractionDigits?: number) => string) | undefined;
 export function createNumberFormatter(format: string | FormatterOptions) {
     const options = typeof format === 'string' ? parseNumberFormat(format) : format;
     if (options == null) return;
@@ -94,7 +98,13 @@ export function createNumberFormatter(format: string | FormatterOptions) {
         padAlign ??= '=';
     }
 
-    return (n: number, fractionDigits?: number) => {
+    return (n: number | bigint, fractionDigits?: number) => {
+        // A bigint can reach here through an `any`-typed value path (e.g. a number format specifier
+        // applied to a bigint column); the formatting body below uses Math/toFixed which throw on
+        // bigint, so emit a locale-grouped string directly (AG-16608 AC #6/#8).
+        if (typeof n === 'bigint') {
+            return `${prefix}${n.toLocaleString('en-US')}${suffix}`;
+        }
         // When a format type is specified and no precision is in the format string:
         // - For 'f' and '%' types, fractionDigits can be used (it represents decimal places)
         // - For other types (s, r, g, e, etc.), use default precision (fractionDigits represents tick step, not format precision)

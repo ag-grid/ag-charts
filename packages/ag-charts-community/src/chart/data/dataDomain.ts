@@ -168,7 +168,10 @@ export class DiscreteDomain implements IDataDomain {
 }
 
 export class ContinuousDomain<T extends number | Date> implements IDataDomain<T> {
-    private domain = [Infinity, -Infinity] as [T, T];
+    // Endpoints may be bigint: a bigint column retains its exact endpoints here so the scale's
+    // full-precision convert() ratio can use them. Comparisons against the Infinity seed (or other
+    // bigints) are legal — only +/-/* mixing of bigint and number throws.
+    private domain = [Infinity, -Infinity] as [T | bigint, T | bigint];
 
     static is<T extends number | Date = any>(value: unknown): value is ContinuousDomain<T> {
         return value instanceof ContinuousDomain;
@@ -176,21 +179,30 @@ export class ContinuousDomain<T extends number | Date> implements IDataDomain<T>
 
     static extendDomain(values: unknown[], domain: [number, number] = [Infinity, -Infinity]) {
         for (const value of values) {
-            if (typeof value !== 'number') {
+            // Aggregation/stacked domains are derived and feed further arithmetic in the aggregator,
+            // so bigint is narrowed to Number here (unlike the instance `extend`, which retains the
+            // exact endpoints of a raw column for the scale's full-precision convert()). Stacked
+            // totals themselves stay bigint in the column (AG-16608 AC #10).
+            let n: number;
+            if (typeof value === 'number') {
+                n = value;
+            } else if (typeof value === 'bigint') {
+                n = Number(value);
+            } else {
                 continue;
             }
-            if (domain[0] > value) {
-                domain[0] = value;
+            if (domain[0] > n) {
+                domain[0] = n;
             }
-            if (domain[1] < value) {
-                domain[1] = value;
+            if (domain[1] < n) {
+                domain[1] = n;
             }
         }
         return domain;
     }
 
-    extend(value: T) {
-        if (typeof value !== 'number' && !(value instanceof Date)) {
+    extend(value: T | bigint) {
+        if (typeof value !== 'number' && typeof value !== 'bigint' && !(value instanceof Date)) {
             return;
         }
         if (this.domain[0] > value) {
@@ -202,7 +214,9 @@ export class ContinuousDomain<T extends number | Date> implements IDataDomain<T>
     }
 
     getDomain() {
-        return [...this.domain];
+        // The scale's domain setter and other consumers branch on `typeof` at runtime, so a retained
+        // bigint endpoint is handled correctly despite the declared `T` element type.
+        return [...this.domain] as T[];
     }
 }
 
