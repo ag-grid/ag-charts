@@ -87,9 +87,8 @@ describe('AgCharts', () => {
             height: sparklineOptions.height! + 50,
             data: sparklineOptions.data!.toReversed(),
             container: () => getDocument().createElement('div'),
-            // `context` change must take the fast path — the Grid sparkline cell
-            // renderer passes a fresh per-row `context` on every `update()`, so
-            // forcing slow setup here would defeat the cell-recycling perf win.
+            // A `context` change must stay on the fast path: the Grid cell renderer passes
+            // a fresh per-row `context` on every `update()`, and slow setup would negate it.
             context: { row: 1, cellData: 0.42 },
         };
 

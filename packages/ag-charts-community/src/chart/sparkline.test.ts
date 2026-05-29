@@ -287,14 +287,8 @@ describe('Sparkline', () => {
     });
 
     describe('chart-level context propagation (AG-17227)', () => {
-        // Verifies that chart-level `context` reaches tooltip renderer params via
-        // `callWithContext`, replacing the per-callback context injection pattern.
-        // Sparkline preset's tooltip wrapper must not capture context at wrap time,
-        // otherwise structural-cache hits would alias context across charts.
-
-        // Invokes the series tooltip path directly. JSDOM cannot canvas-pick, so a
-        // synthesised hover would not reach the renderer; calling formatTooltip
-        // through the public series API mirrors what hover would otherwise trigger.
+        // JSDOM cannot canvas-pick, so a synthesised hover never reaches the renderer;
+        // invoking `formatTooltip` directly mirrors what hover would otherwise trigger.
         const invokeTooltipRenderer = (c: Chart) => {
             const series = c.series[0] as any;
             const tooltip = series.properties.tooltip;
@@ -356,11 +350,8 @@ describe('Sparkline', () => {
                 tooltip: { renderer },
             };
 
-            // Two sparklines share a single user renderer reference but have distinct
-            // chart-level `context` payloads. Each invocation must receive its own
-            // chart's context — never the other's — regardless of whether the
-            // structural cache hits (the user renderer prevents that today) or the
-            // sparkline preset's memoised wrapper happens to be shared.
+            // A shared renderer reference must not let one chart's context leak into the
+            // other's, whether or not the structural cache or memoised wrapper is shared.
             const instanceA = AgCharts.__createSparkline({ ...baseOptions, context: contextA });
             const chartA = deproxy(instanceA);
             await waitForChartStability(chartA);
@@ -383,11 +374,8 @@ describe('Sparkline', () => {
     });
 
     describe('default tooltip content (AG-17227)', () => {
-        // The chart-side preset must produce a useful default tooltip without the
-        // consumer (e.g. the Grid sparkline cell renderer) needing to install a
-        // function at `tooltip.renderer`. A function in user options poisons the
-        // structural-options cache key, so this default-in-the-preset behaviour is
-        // what lets the cache hit for the common Grid case.
+        // The preset must produce a useful default tooltip without a user `renderer`
+        // function, which would otherwise poison the structural-cache key for the Grid case.
 
         const renderDefaultTooltip = (c: Chart, datum: any, xKey: string, yKey: string) => {
             const series = c.series[0] as any;

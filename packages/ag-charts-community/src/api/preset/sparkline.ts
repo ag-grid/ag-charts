@@ -276,11 +276,8 @@ function gridLinePreset(
     return gridLineOpts;
 }
 
-// `datumKey === 'y'` is set by `sparklineDataPreset` for raw number-array input,
-// where the x value is a synthesised index rather than a user-meaningful key.
-// For all other shapes (user-supplied `xKey` on object data, tuple-array input
-// with the original tuple exposed under `'datum'`), the x value is real and
-// belongs in the default tooltip content.
+// `datumKey === 'y'` marks number-array input, where the x value is a synthesised
+// index rather than a user-meaningful key, so it is omitted from the default content.
 const defaultTooltipContent = (xValue: unknown, yValue: unknown, datumKey?: string): string => {
     const formattedY = typeof yValue === 'number' ? yValue.toFixed(2) : String(yValue);
     const showXValue = datumKey !== 'y' && xValue != null;
@@ -295,21 +292,15 @@ const tooltipRendererFn = simpleMemorize((tooltip?: AgSparklineTooltip<any>, dat
         const yValue = params.datum[params.yKey];
         const datum = datumKey == null ? params.datum : params.datum[datumKey];
 
-        // `params.context` is populated by `callWithContext` from `chart.context`, so
-        // the wrapper does not need to capture context at wrap time. This lets the
-        // structural-options cache share the wrapper across chart instances safely.
+        // Read `context` from params (set per-chart by `callWithContext`) rather than
+        // capturing it at wrap time, so the structural cache can share this wrapper.
         const userContent = tooltip?.renderer?.({ context: params.context, datum, xValue, yValue });
 
         if (isString(userContent) || isNumber(userContent) || isDate(userContent)) {
             return toTextString(userContent);
         }
 
-        // `userContent === undefined` (renderer absent or returning `undefined`) falls
-        // through naturally: optional chaining on `userContent?.content` /
-        // `userContent?.title` yields undefined and the default content is used. The
-        // default includes the x value when it is user-meaningful, so callers that
-        // only want yValue formatting don't need to install a custom renderer just to
-        // suppress an auto-synthesised index.
+        // Absent renderer or one returning `undefined` falls through to the default content.
         const content = userContent?.content ?? defaultTooltipContent(xValue, yValue, datumKey);
 
         return userContent?.title

@@ -127,9 +127,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         'width',
         'height',
         'container',
-        // `context` is a user pass-through consumed only by `callWithContext` at
-        // callback time — preset/theme processing does not branch on it, so
-        // context-only deltas can take the fast merge path.
+        // `context` is a pass-through consumed only at callback time; no preset/theme
+        // processing branches on it, so context-only deltas can take the fast path.
         'context',
     ]);
     private static isFastPathDelta(deltaOptions: DeepPartial<AgChartOptions> | null) {
@@ -334,9 +333,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 // Shallow-clone the top level only — the existing dev-mode deepFreeze on
                 // ChartOptions has confirmed no path mutates nested processedOptions, and
                 // sharing frozen nested refs across charts is the whole point of the cache.
-                // VOLATILE_KEYS are re-attached from this chart's `userOptions` to avoid
-                // aliasing per-instance values (container, user context payload) across
-                // charts that share the cache entry.
+                // Re-attach VOLATILE_KEYS from this chart's `userOptions` (see their definition).
                 const userOpts = this.userOptions as Record<string, unknown>;
                 const processedOptions = { ...(cached.processedOptions as object), data: resolvedData } as T;
                 for (const key of VOLATILE_KEYS) {
@@ -466,9 +463,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
         if (cacheKey !== undefined) {
-            // Strip `data` and the per-instance VOLATILE_KEYS before caching so cache hits
-            // do not alias them across charts. The read path re-attaches each from this
-            // chart's `userOptions`.
+            // Strip `data` and VOLATILE_KEYS before caching; the read path re-attaches them.
             const { data: _cachedData, ...rest } = processedOptions as Record<string, unknown>;
             for (const key of VOLATILE_KEYS) {
                 delete rest[key];
