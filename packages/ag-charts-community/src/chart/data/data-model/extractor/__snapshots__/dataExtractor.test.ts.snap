@@ -23,6 +23,12 @@ exports[`DataExtractor > empty data set processing > should generated the expect
       "test",
     },
   ],
+  "columnValueType": [
+    "number",
+    "number",
+    "number",
+    "number",
+  ],
   "columns": [
     [],
     [],
@@ -169,6 +175,12 @@ exports[`DataExtractor > missing and invalid data processing > should generated 
     Set {
       "test",
     },
+  ],
+  "columnValueType": [
+    "number",
+    "number",
+    "number",
+    "number",
   ],
   "columns": [
     [
@@ -509,6 +521,12 @@ exports[`DataExtractor > missing and invalid data processing - multiple scopes >
     Set {
       "series-c",
     },
+  ],
+  "columnValueType": [
+    "number",
+    "number",
+    "number",
+    "number",
   ],
   "columns": [
     [

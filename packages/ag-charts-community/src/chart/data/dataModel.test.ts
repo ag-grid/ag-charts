@@ -1490,6 +1490,139 @@ describe('DataModel', () => {
         });
     });
 
+    describe('columnValueType tag', () => {
+        it('should tag number-only value columns as "number"', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('id'), value('count'), value('amount')],
+            });
+
+            const data = [
+                { id: 'A', count: 10, amount: 100.5 },
+                { id: 'B', count: 20, amount: 200.3 },
+            ];
+
+            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const processedData = dataModel.processData(sources);
+
+            expect(processedData!.columnValueType).toEqual(['number', 'number']);
+        });
+
+        it('should tag bigint-only value columns as "bigint"', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('id'), value('count')],
+            });
+
+            const data = [
+                { id: 'A', count: 10n },
+                { id: 'B', count: 9007199254740993n },
+            ];
+
+            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const processedData = dataModel.processData(sources);
+
+            expect(processedData!.columnValueType).toEqual(['bigint']);
+        });
+
+        it('should drop bigint values into the column while still tagging them (PR1 stopgap)', () => {
+            // PR1 (AG-16608) tags bigint columns but drops the values, since the scale/aggregation
+            // arithmetic that consumes them lands in PR2. PR2 inverts the column assertion below.
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('id'), value('count')],
+            });
+
+            const data = [
+                { id: 'A', count: 10n },
+                { id: 'B', count: 20n },
+            ];
+
+            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const processedData = dataModel.processData(sources)!;
+
+            expect(processedData.columnValueType).toEqual(['bigint']);
+            expect(processedData.columns[0].some((v) => typeof v === 'bigint')).toBe(false);
+        });
+
+        it('should drop bigint keys without throwing on a continuous key (PR1 stopgap)', () => {
+            // PR1 (AG-16608) widens continuous validation to accept bigint, but bigint keys must not
+            // reach domain/sort/scale arithmetic until PR2 wires conversion. PR2 inverts this.
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('x'), value('y')],
+            });
+
+            const data = [
+                { x: 1n, y: 10 },
+                { x: 2n, y: 20 },
+            ];
+
+            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const processedData = dataModel.processData(sources)!;
+
+            expect(processedData.keys.flat(Infinity).some((v) => typeof v === 'bigint')).toBe(false);
+        });
+
+        it('should tag Date value columns as "date"', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('id'), value('when')],
+            });
+
+            const data = [
+                { id: 'A', when: new Date(2024, 0, 1) },
+                { id: 'B', when: new Date(2024, 0, 2) },
+            ];
+
+            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const processedData = dataModel.processData(sources);
+
+            expect(processedData!.columnValueType).toEqual(['date']);
+        });
+
+        it('should tag a column mixing number and bigint as "mixed-numeric" and warn once', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('id'), value('count')],
+            });
+
+            const data = [
+                { id: 'A', count: 10 },
+                { id: 'B', count: 20n },
+                { id: 'C', count: 30n },
+            ];
+
+            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const processedData = dataModel.processData(sources);
+
+            expect(processedData!.columnValueType).toEqual(['mixed-numeric']);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Series "test": column "count" mixes 'number' and 'bigint' values (first detected at row 1). Each column must be uniformly typed. The series renders empty; other series in this chart are unaffected.",
+  ],
+]
+`);
+        });
+
+        it('should preserve the columnValueType tag across incremental reprocessing', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('id'), value('count')],
+            });
+
+            const initialData = [
+                { id: 'A', count: 10n },
+                { id: 'B', count: 20n },
+            ];
+
+            const dataSet = new DataSet(initialData);
+            const sources = basicDataSet(initialData).set('test', dataSet);
+            const processedData = dataModel.processData(sources);
+
+            expect(processedData!.columnValueType).toEqual(['bigint']);
+
+            dataSet.addTransaction({ append: [{ id: 'C', count: 30n }] });
+            const reprocessed = dataModel.reprocessData(processedData!);
+
+            expect(reprocessed.columnValueType).toEqual(['bigint']);
+        });
+    });
+
     describe('update operations', () => {
         describe('ungrouped data', () => {
             it('should process updated items correctly', () => {

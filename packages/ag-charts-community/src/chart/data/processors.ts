@@ -46,6 +46,12 @@ function basicContinuousCheckDatumValidation(value: any) {
     return value != null && isContinuous(value);
 }
 
+// Split out from basicContinuousCheckDatumValidation so the time scales can diverge from number/log/color
+// without those scales inadvertently accepting time-only values (e.g. ISO 8601 strings, added in a later PR).
+function basicTimeCheckDatumValidation(value: any) {
+    return value != null && isContinuous(value);
+}
+
 function basicDiscreteCheckDatumValidation(value: any) {
     return value != null;
 }
@@ -56,11 +62,12 @@ function basicDiscreteCheckDatumValidationAllowNull(_value: any) {
 
 function getValidationFn(scaleType?: ScaleType, allowNullKey?: boolean) {
     switch (scaleType) {
-        case 'number':
-        case 'log':
         case 'time':
         case 'unit-time':
         case 'ordinal-time':
+            return basicTimeCheckDatumValidation;
+        case 'number':
+        case 'log':
         case 'color':
             return basicContinuousCheckDatumValidation;
         default:

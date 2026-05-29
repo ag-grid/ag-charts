@@ -19,10 +19,16 @@ describe('value module', () => {
                 valueOf: () => '',
             })
         ).toBe(false);
+        expect(isContinuous(0n)).toBe(true);
+        expect(isContinuous(1n)).toBe(true);
+        expect(isContinuous(-1n)).toBe(true);
+        expect(isContinuous(9007199254740993n)).toBe(true);
         expect(isContinuous(Number.NaN)).toBe(false);
         expect(isContinuous(null)).toBe(false);
         expect(isContinuous(undefined)).toBe(false);
         expect(isContinuous('')).toBe(false);
+        expect(isContinuous('2024-01-01')).toBe(false);
+        expect(isContinuous(true)).toBe(false);
         expect(isContinuous([])).toBe(false);
         expect(isContinuous({})).toBe(false);
         expect(isContinuous(Symbol.iterator)).toBe(false);

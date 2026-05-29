@@ -3,6 +3,7 @@ import { Logger, first, iterate } from 'ag-charts-core';
 import { ContinuousDomain } from '../../dataDomain';
 import {
     COLUMN_SORT_ORDERS,
+    type ColumnValueType,
     DOMAIN_BANDS,
     DOMAIN_RANGES,
     type InternalDatumPropertyDefinition,
@@ -62,6 +63,49 @@ function trackerToSortOrderEntry(tracker: KeyExtractionTracker): SortOrderEntry 
     };
 }
 
+/** Accumulates the resolved {@link ColumnValueType} for a single column as its values are extracted. */
+interface ColumnTypeTracker {
+    type: ColumnValueType | undefined;
+    /** Row index where `number` and `bigint` were first observed to mix; used for the one-shot warning. */
+    mixedAtIndex: number | undefined;
+}
+
+function valueColumnType(value: unknown): ColumnValueType | undefined {
+    switch (typeof value) {
+        case 'number':
+            return 'number';
+        case 'bigint':
+            return 'bigint';
+        case 'string':
+            return 'string';
+        case 'object':
+            // TODO(AG-16608, PR2): a numeric NumberObject ({ valueOf(): number }) is tagged 'date' here.
+            // Disambiguate via isNumberObject() when PR2 wires the tag into scale dispatch.
+            return value == null ? undefined : 'date';
+        default:
+            return undefined;
+    }
+}
+
+function updateColumnTypeTracker(tracker: ColumnTypeTracker, value: unknown, datumIndex: number): void {
+    const observed = valueColumnType(value);
+    if (observed == null) return;
+
+    if (tracker.type == null) {
+        tracker.type = observed;
+    } else if (tracker.type !== observed && isNumericColumnType(tracker.type) && isNumericColumnType(observed)) {
+        // TODO(AG-16654, PR5): number<->date coexistence (e.g. epoch number + Date in one time column)
+        // should promote to the heterogeneous 'date' tag; only number<->bigint mixing is handled today.
+        // A column mixing `number` and `bigint` is rejected at the series level (see ColumnValueType).
+        tracker.mixedAtIndex ??= datumIndex;
+        tracker.type = 'mixed-numeric';
+    }
+}
+
+function isNumericColumnType(type: ColumnValueType): boolean {
+    return type === 'number' || type === 'bigint' || type === 'mixed-numeric';
+}
+
 /**
  * DataExtractor handles data extraction from DataSet sources.
  *
@@ -98,15 +142,16 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             keySortOrders,
         } = this.extractKeys(keyDefs, sources, getProcessValue);
 
-        const { columns, columnScopes, columnNeedValueOf, partialValidDataCount, maxDataLength } = this.extractValues(
-            invalidData,
-            invalidDataCount,
-            missingData,
-            valueDefs,
-            sources,
-            invalidKeys,
-            getProcessValue
-        );
+        const { columns, columnScopes, columnNeedValueOf, columnValueType, partialValidDataCount, maxDataLength } =
+            this.extractValues(
+                invalidData,
+                invalidDataCount,
+                missingData,
+                valueDefs,
+                sources,
+                invalidKeys,
+                getProcessValue
+            );
 
         const propertyDomain = (def: InternalDatumPropertyDefinition<K>) => {
             const defDomain = dataDomain.get(def)!;
@@ -128,6 +173,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             columns,
             columnScopes,
             columnNeedValueOf,
+            columnValueType,
             invalidKeys,
             invalidKeyCount,
             invalidData,
@@ -221,7 +267,10 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
 
                     const result = processKeyValue(data[datumIndex], datumIndex, scope);
 
-                    if (result.valid) {
+                    // PR1 (AG-16608) stopgap: mirrors the value-column drop below. The widened gate
+                    // accepts bigint keys, but the domain/sort/scale arithmetic that consumes them
+                    // lands in PR2; until then treat a bigint key as invalid so it cannot throw.
+                    if (result.valid && typeof result.value !== 'bigint') {
                         keys.push(result.value);
                         // Track ordering/uniqueness for valid keys
                         updateKeyTracker(tracker, result.value);
@@ -319,6 +368,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
         const columns: unknown[][] = [];
         const allColumnScopes: Set<ScopeId>[] = [];
         const columnNeedValueOf: boolean[] = [];
+        const columnValueType: ColumnValueType[] = [];
         let maxDataLength = 0;
         const valueProcessors = valueDefs.map((def) => getProcessValue(def));
 
@@ -336,6 +386,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             const column = new Array<unknown>();
             const invalidKeys = scopeInvalidKeys.get(columnScope);
             let needsValueOf = false;
+            const typeTracker: ColumnTypeTracker = { type: undefined, mixedAtIndex: undefined };
             for (let datumIndex = 0; datumIndex < columnSource.length; datumIndex++) {
                 if (columnSource[datumIndex] == null || typeof columnSource[datumIndex] !== 'object') {
                     // Count non-object items as invalid data
@@ -354,6 +405,18 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                     this.markScopeDatumInvalid(def.scopes, columnSource, datumIndex, invalidData, invalidDataCount);
                 } else if (result.missing) {
                     this.markScopeDatumMissing(def.scopes, columnSource, datumIndex, missingData);
+                } else {
+                    updateColumnTypeTracker(typeTracker, result.value, datumIndex);
+                }
+
+                // PR1 (AG-16608) stopgap: the type tag above observes bigint, but the scale and
+                // aggregation arithmetic that consume it land in the next PR of the stacked train.
+                // Until then, drop bigints (as the pre-widening gate did) so `x - d0` / `0 + value`
+                // cannot throw "Cannot mix BigInt and other types". Remove with the PR2 convert support.
+                if (typeof value === 'bigint') {
+                    this.markScopeDatumInvalid(def.scopes, columnSource, datumIndex, invalidData, invalidDataCount);
+                    partialValidDataCount += 1;
+                    value = invalidValue;
                 }
 
                 if (invalidKey) {
@@ -372,13 +435,33 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                 column[datumIndex] = value;
             }
 
+            if (typeTracker.type === 'mixed-numeric' && typeTracker.mixedAtIndex != null) {
+                this.warnMixedNumericColumn(columnScope, def.property, typeTracker.mixedAtIndex);
+            }
+
             columns.push(column);
             allColumnScopes.push(columnScopes);
             columnNeedValueOf.push(needsValueOf);
+            columnValueType.push(typeTracker.type ?? 'number');
             maxDataLength = Math.max(maxDataLength, column.length);
         }
 
-        return { columns, columnScopes: allColumnScopes, columnNeedValueOf, partialValidDataCount, maxDataLength };
+        return {
+            columns,
+            columnScopes: allColumnScopes,
+            columnNeedValueOf,
+            columnValueType,
+            partialValidDataCount,
+            maxDataLength,
+        };
+    }
+
+    private warnMixedNumericColumn(seriesId: ScopeId, key: K, atIndex: number) {
+        Logger.warnOnce(
+            `Series "${seriesId}": column "${String(key)}" mixes 'number' and 'bigint' values ` +
+                `(first detected at row ${atIndex}). Each column must be uniformly typed. ` +
+                `The series renders empty; other series in this chart are unaffected.`
+        );
     }
 
     warnDataMissingProperties(sources: Map<string, DataSet<unknown>>) {
