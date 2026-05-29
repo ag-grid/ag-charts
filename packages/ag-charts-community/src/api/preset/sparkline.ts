@@ -276,12 +276,19 @@ function gridLinePreset(
     return gridLineOpts;
 }
 
-// `datumKey === 'y'` marks number-array input, where the x value is a synthesised
-// index rather than a user-meaningful key, so it is omitted from the default content.
-const defaultTooltipContent = (xValue: unknown, yValue: unknown, datumKey?: string): string => {
-    const formattedY = typeof yValue === 'number' ? yValue.toFixed(2) : String(yValue);
-    const showXValue = datumKey !== 'y' && xValue != null;
-    return showXValue ? `${String(xValue)} ${formattedY}` : formattedY;
+// The x value is prepended to the default content only when it is both meaningful and
+// has somewhere to go, matching the Grid's historical sparkline default tooltip:
+//  - `datumKey === 'y'` marks number-array input, where x is a synthesised index — omit it.
+//  - a user-supplied title takes the label slot, leaving the value as y-only.
+// y is rendered raw (no `.toFixed(2)`) to match that Grid default.
+const defaultTooltipContent = (
+    xValue: unknown,
+    yValue: unknown,
+    datumKey: string | undefined,
+    hasUserTitle: boolean
+): string => {
+    const showXValue = !hasUserTitle && datumKey !== 'y' && xValue != null;
+    return showXValue ? `${String(xValue)} ${String(yValue)}` : String(yValue);
 };
 
 const tooltipRendererFn = simpleMemorize((tooltip?: AgSparklineTooltip<any>, datumKey?: string) => {
@@ -301,7 +308,8 @@ const tooltipRendererFn = simpleMemorize((tooltip?: AgSparklineTooltip<any>, dat
         }
 
         // Absent renderer or one returning `undefined` falls through to the default content.
-        const content = userContent?.content ?? defaultTooltipContent(xValue, yValue, datumKey);
+        const hasUserTitle = userContent?.title != null;
+        const content = userContent?.content ?? defaultTooltipContent(xValue, yValue, datumKey, hasUserTitle);
 
         return userContent?.title
             ? {

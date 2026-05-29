@@ -408,7 +408,7 @@ describe('Sparkline', () => {
             // sparklineDataPreset maps numbers to { x: index, y: value } with datumKey: 'y'.
             const result: any = renderDefaultTooltip(chart, { x: 1, y: 20 }, 'x', 'y');
             const html = JSON.stringify(result);
-            expect(html).toContain('20.00');
+            expect(html).toContain('20');
             expect(html).not.toContain('1 20'); // would indicate the synthesised index leaked through
         });
 
@@ -428,7 +428,7 @@ describe('Sparkline', () => {
             // tuple data → datumKey: 'datum' (preserved original tuple). xValue is real.
             const result: any = renderDefaultTooltip(chart, { x: 1, y: 20, datum: [1, 20] }, 'x', 'y');
             const html = JSON.stringify(result);
-            expect(html).toContain('1 20.00');
+            expect(html).toContain('1 20');
         });
 
         it('includes the x value for user-supplied xKey on object data', async () => {
@@ -449,7 +449,32 @@ describe('Sparkline', () => {
             // object data with user xKey → datumKey undefined. xValue is real.
             const result: any = renderDefaultTooltip(chart, { date: 'Feb', value: 20 }, 'date', 'value');
             const html = JSON.stringify(result);
-            expect(html).toContain('Feb 20.00');
+            expect(html).toContain('Feb 20');
+        });
+
+        it('omits the x value when a user renderer supplies only a title', async () => {
+            // Regression (AG-17227): a title-only renderer must not let the default content
+            // leak the x value into the value slot — the Grid suppressed x when a title was set.
+            const instance = AgCharts.__createSparkline({
+                type: 'line',
+                data: [
+                    [0, 10],
+                    [1, 20],
+                ],
+                width: 200,
+                height: 100,
+                tooltip: {
+                    renderer: () => ({ title: 'sym' }),
+                },
+            });
+            chart = deproxy(instance);
+            await waitForChartStability(chart);
+
+            const result: any = renderDefaultTooltip(chart, { x: 1, y: 20, datum: [1, 20] }, 'x', 'y');
+            const html = JSON.stringify(result);
+            expect(html).toContain('sym');
+            expect(html).toContain('20');
+            expect(html).not.toContain('1 20'); // x suppressed because a title was supplied
         });
     });
 });
