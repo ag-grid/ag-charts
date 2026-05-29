@@ -397,14 +397,14 @@ export abstract class FlowProportionSeries<
         const linkData = linksProcessedData.dataSources.get(this.id)?.data;
         if (linkData) {
             for (const [index, datum] of linkData.entries()) {
-                const datumIndex = flowLinkDatumIndex(index);
-                const fromId: string = fromIdValues[datumIndex];
-                const toId: string = toIdValues[datumIndex];
-                const size: number = sizeValues == null ? 1 : sizeValues[datumIndex];
+                const fromId: string = fromIdValues[index];
+                const toId: string = toIdValues[index];
+                const size: number = sizeValues == null ? 1 : sizeValues[index];
                 const fromNode = nodesById.get(fromId);
                 const toNode = nodesById.get(toId);
                 if (size <= 0 || fromNode == null || toNode == null) continue;
 
+                const datumIndex = flowLinkDatumIndex(index);
                 const linkIdValue = dataIdKey == null ? undefined : (datum as any)[dataIdKey];
 
                 const link = createLink({
