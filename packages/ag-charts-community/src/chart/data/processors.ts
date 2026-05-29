@@ -261,13 +261,25 @@ export const LARGEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'largestKeyIn
     needsOverlap: true,
 };
 
+// Compares two domain-group key values. A column is uniformly typed, so a and b share a type; bigint
+// must be compared directly because subtraction would yield a bigint that Array.sort ToNumber-coerces
+// (which throws). Number and Date keep their existing subtraction-based ordering.
+function compareGroupKeys(a: any, b: any): number {
+    if (typeof a === 'bigint' || typeof b === 'bigint') {
+        if (a < b) return -1;
+        if (a > b) return 1;
+        return 0;
+    }
+    return a - b;
+}
+
 export const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<'sortedGroupDomain'> = {
     type: 'processor',
     property: 'sortedGroupDomain',
     calculate: function sortedGroupDomainFn({ domain: { groups } }) {
         return groups?.slice().sort((a, b) => {
             for (let i = 0; i < a.length; i++) {
-                const result = a[i] - b[i];
+                const result = compareGroupKeys(a[i], b[i]);
                 if (result !== 0) {
                     return result;
                 }
