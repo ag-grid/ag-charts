@@ -4,12 +4,12 @@ import type { DynamicContext } from 'ag-charts-core';
 const { SelectionState } = _ModuleSupport;
 
 type ChartRegistry = _ModuleSupport.ChartRegistry;
-type DataSelectionService = _ModuleSupport.DataSelectionService;
+type IDataSelectionService = _ModuleSupport.IDataSelectionService;
 type DataSetSelection = _ModuleSupport.DataSetSelection;
 type SelectionStateEnum = _ModuleSupport.SelectionState;
-type SeriesLike = Parameters<DataSelectionService['getDataSelectionState']>[0];
+type SeriesLike = Parameters<IDataSelectionService['getDataSelectionState']>[0];
 
-export class DataSelectionServiceImp implements DataSelectionService {
+export class DataSelectionService implements IDataSelectionService {
     public totalSelectedCount = 0;
 
     constructor(private readonly ctx: DynamicContext<ChartRegistry>) {}

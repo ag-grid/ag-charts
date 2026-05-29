@@ -16,13 +16,13 @@ import {
 import type { ChartAxis } from '../chartAxis';
 import type { DataModel } from '../data/dataModel';
 import type { ProcessedData, ScopeProvider } from '../data/dataModelTypes';
-import type { DataSelectionService } from '../data/dataSelectionService';
+import type { IDataSelectionService } from '../data/dataSelectionServiceTypes';
 import { type AggregationFilterBase, type AggregationManager } from './aggregationManager';
 import type { BucketLookupFeature, DatumRangeReader } from './seriesTypes';
 
 export type { BucketLookupFeature } from './seriesTypes';
 
-type SeriesLike = Parameters<DataSelectionService['getDataSetSelection']>[0];
+type SeriesLike = Parameters<IDataSelectionService['getDataSetSelection']>[0];
 
 interface ExtremesFilter extends AggregationFilterBase {
     indexData: Uint32Array;
@@ -39,7 +39,7 @@ interface BucketLookupManagerOpts<TFilter extends AggregationFilterBase> {
     getXAxis: () => ChartAxis | undefined;
     getDataModel: () => DataModel<any, any, any> | undefined;
     getProcessedData: () => ProcessedData<any> | undefined;
-    dataSelectionService: DataSelectionService | undefined;
+    dataSelectionService: IDataSelectionService | undefined;
     aggregationManager: AggregationManager<TFilter>;
     /** `'value'` for series whose xValue column is the X coordinate (line); `'key'` for keyed series (bar/area/ohlc/range-*). */
     domainKey: 'value' | 'key';
@@ -452,7 +452,7 @@ export class SplitBucketLookupManager<TFilter extends SplitFilter>
 
 interface IndexSetBucketLookupManagerOpts {
     series: SeriesLike;
-    dataSelectionService: DataSelectionService | undefined;
+    dataSelectionService: IDataSelectionService | undefined;
     /** Cluster-keyed map of representative datum index to underlying datum indices. */
     getIndexSetMap: () => Map<number, number[]> | undefined;
 }
