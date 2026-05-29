@@ -8,4 +8,6 @@ export type AgChartThemeName =
     | 'ag-vivid'
     | 'ag-vivid-dark'
     | 'ag-material'
-    | 'ag-material-dark';
+    | 'ag-material-dark'
+    | 'ag-rainbow'
+    | 'ag-rainbow-dark';
