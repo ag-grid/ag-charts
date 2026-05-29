@@ -124,6 +124,15 @@ describe('themes.ts', () => {
             ],
         };
 
+        it.each<AgChartThemeName>(['ag-rainbow', 'ag-rainbow-dark'])(
+            'resolves a non-empty palette for the %s theme',
+            (themeName) => {
+                const palette = getPalette(themeName);
+                expect(palette?.fills?.length).toBeGreaterThan(0);
+                expect(palette?.strokes?.length).toBeGreaterThan(0);
+            }
+        );
+
         it('should show 1 warning for invalid theme type', async () => {
             const chart = AgCharts.create({
                 ...opts,
@@ -134,7 +143,7 @@ describe('themes.ts', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - Option \`theme\` cannot be set to \`true\`; expecting a keyword such as 'ag-default', 'ag-default-dark', 'ag-sheets', 'ag-sheets-dark', 'ag-polychroma', 'ag-polychroma-dark', 'ag-vivid', 'ag-vivid-dark', 'ag-material', 'ag-material-dark', 'ag-financial' or 'ag-financial-dark' or an object, ignoring.",
+    "AG Charts - Option \`theme\` cannot be set to \`true\`; expecting a keyword such as 'ag-default', 'ag-default-dark', 'ag-sheets', 'ag-sheets-dark', 'ag-polychroma', 'ag-polychroma-dark', 'ag-vivid', 'ag-vivid-dark', 'ag-rainbow', 'ag-rainbow-dark', 'ag-material', 'ag-material-dark', 'ag-financial' or 'ag-financial-dark' or an object, ignoring.",
   ],
 ]
 `);

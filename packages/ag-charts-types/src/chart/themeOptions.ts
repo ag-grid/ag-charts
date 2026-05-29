@@ -60,6 +60,8 @@ export type AgChartThemeName =
     | 'ag-polychroma-dark'
     | 'ag-vivid'
     | 'ag-vivid-dark'
+    | 'ag-rainbow'
+    | 'ag-rainbow-dark'
     | 'ag-material'
     | 'ag-material-dark'
     | 'ag-financial'

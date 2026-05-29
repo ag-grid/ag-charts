@@ -50,6 +50,8 @@ export function getGalleryExampleThemePages({ galleryData }: { galleryData: Gall
         'ag-polychroma-dark',
         'ag-vivid',
         'ag-vivid-dark',
+        'ag-rainbow',
+        'ag-rainbow-dark',
         'ag-material',
         'ag-material-dark',
     ];

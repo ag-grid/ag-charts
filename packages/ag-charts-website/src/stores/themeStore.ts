@@ -1,6 +1,6 @@
 import { persistentAtom } from '@nanostores/persistent';
 
-export type BaseThemeName = 'ag-default' | 'ag-sheets' | 'ag-polychroma' | 'ag-vivid' | 'ag-material';
+export type BaseThemeName = 'ag-default' | 'ag-sheets' | 'ag-polychroma' | 'ag-vivid' | 'ag-rainbow' | 'ag-material';
 
 export type ThemeName = BaseThemeName | `${BaseThemeName}-dark`;
 
