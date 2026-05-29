@@ -7,6 +7,19 @@ export function dateToNumber(value: any) {
     return value instanceof Date ? value.getTime() : value;
 }
 
+/**
+ * Coerces a time-axis value (Date, epoch number/bigint, or ISO 8601 string) to epoch milliseconds.
+ * Returns `NaN` for out-of-range bigint epochs and any value `Date` cannot parse, so callers can treat
+ * the result like any other off-domain time value rather than letting an Invalid Date propagate.
+ */
+export function timeValueToNumber(value: Date | number | bigint | string): number {
+    if (typeof value === 'number') return value;
+    const ms = typeof value === 'bigint' ? Number(value) : value;
+    const date = ms instanceof Date ? ms : new Date(ms);
+    const time = date.getTime();
+    return Number.isNaN(time) ? Number.NaN : time;
+}
+
 export function lowestGranularityForInterval(interval: number) {
     if (interval < durationSecond) {
         return 'millisecond';

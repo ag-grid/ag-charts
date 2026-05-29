@@ -316,10 +316,13 @@ export class UnitTimeScale extends DiscreteTimeScale {
      * Uses linear params for fast bounds checking while delegating actual
      * conversion to parent for accuracy in edge cases.
      */
-    override convert(value: Date, options?: { clamp?: boolean; alignment?: ScaleAlignment }): number {
+    override convert(
+        value: Date | number | bigint | string,
+        options?: { clamp?: boolean; alignment?: ScaleAlignment }
+    ): number {
         this.refresh();
 
-        if (!(value instanceof Date)) value = new Date(value);
+        if (!(value instanceof Date)) value = new Date(typeof value === 'bigint' ? Number(value) : value);
 
         const { domain, interval } = this;
         if (domain.length < 2) return Number.NaN;

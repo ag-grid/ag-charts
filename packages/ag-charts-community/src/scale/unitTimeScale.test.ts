@@ -40,6 +40,18 @@ describe('UnitTimeScale', () => {
         expect(convertedValue).toBeCloseTo(92, 0);
     });
 
+    it('coerces ISO string and bigint epoch to the same position as the equivalent Date', () => {
+        const scale = new UnitTimeScale();
+        scale.range = [0, 100];
+        scale.domain = [new Date(Date.UTC(2022, 0, 1)), new Date(Date.UTC(2022, 11, 1))];
+        scale.interval = 'month';
+
+        const date = new Date(Date.UTC(2022, 5, 15));
+        const expected = scale.convert(date);
+        expect(scale.convert('2022-06-15T00:00:00Z')).toBeCloseTo(expected);
+        expect(scale.convert(BigInt(date.valueOf()))).toBeCloseTo(expected);
+    });
+
     describe('ticksFromNumericBands equivalence', () => {
         it('produces ticks for daily interval with year tick step', () => {
             const domain: [Date, Date] = [new Date(2020, 0, 1), new Date(2024, 0, 1)];

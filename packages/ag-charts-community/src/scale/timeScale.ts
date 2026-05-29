@@ -8,6 +8,7 @@ import {
     intervalRangeStartIndex,
     intervalStep,
     isDenseInterval,
+    timeValueToNumber,
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
@@ -30,8 +31,8 @@ export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeInte
         return new Date(d);
     }
 
-    override convert(value: Date | number, options?: { clamp: boolean }): number {
-        return super.convert(typeof value === 'number' ? value : (value?.valueOf() ?? Number.NaN), options);
+    override convert(value: Date | number | bigint | string, options?: { clamp: boolean }): number {
+        return super.convert(value == null ? Number.NaN : timeValueToNumber(value), options);
     }
 
     override invert(value: number): Date {

@@ -14,6 +14,7 @@ import {
     type UngroupedData,
 } from '../../dataModelTypes';
 import type { DataSet } from '../../dataSet';
+import { isISO8601 } from '../../iso8601';
 import type { DataModelContext } from '../dataModelContext';
 import type { DomainManager } from '../domain/domainManager';
 import type { SpecializedProcessValueFn } from '../domain/processValueFactory';
@@ -77,7 +78,8 @@ function valueColumnType(value: unknown): ColumnValueType | undefined {
         case 'bigint':
             return 'bigint';
         case 'string':
-            return 'string';
+            // A strict ISO 8601 string is a date value; any other string is a plain category.
+            return isISO8601(value) ? 'date' : 'string';
         case 'object':
             if (value == null) return undefined;
             // A NumberObject ({ valueOf(): number }) is numeric, not a date.
@@ -91,11 +93,14 @@ function updateColumnTypeTracker(tracker: ColumnTypeTracker, value: unknown, dat
     const observed = valueColumnType(value);
     if (observed == null) return;
 
-    if (tracker.type == null) {
+    if (tracker.type == null || tracker.type === observed) {
         tracker.type = observed;
-    } else if (tracker.type !== observed && isNumericColumnType(tracker.type) && isNumericColumnType(observed)) {
-        // TODO(AG-16654, PR5): number<->date coexistence (epoch number + Date in one column) should also
-        // promote to 'date'; only number<->bigint mixing is handled today.
+    } else if (isDateColumnType(tracker.type) || isDateColumnType(observed)) {
+        // Date, ISO string and epoch number/bigint coexist as the heterogeneous 'date' tag; each value
+        // normalises to a Date at convert() time.
+        tracker.type = 'date';
+    } else if (isNumericColumnType(tracker.type) && isNumericColumnType(observed)) {
+        // A column mixing `number` and `bigint` (with no date values) is rejected at the series level.
         tracker.mixedAtIndex ??= datumIndex;
         tracker.type = 'mixed-numeric';
     }
@@ -103,6 +108,10 @@ function updateColumnTypeTracker(tracker: ColumnTypeTracker, value: unknown, dat
 
 function isNumericColumnType(type: ColumnValueType): boolean {
     return type === 'number' || type === 'bigint' || type === 'mixed-numeric';
+}
+
+function isDateColumnType(type: ColumnValueType): boolean {
+    return type === 'date';
 }
 
 /**

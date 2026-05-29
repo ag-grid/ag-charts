@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { type Mock, describe, expect, it } from 'vitest';
 
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';
 import * as examples from '../test/examples';
@@ -28,7 +28,27 @@ import {
 import type { GroupByFn } from './dataModel';
 import { DataModel, KEY_SORT_ORDERS, getPathComponents } from './dataModel';
 import { DataSet } from './dataSet';
-import { SMALLEST_KEY_INTERVAL, SORT_DOMAIN_GROUPS, rangedValueProperty } from './processors';
+import {
+    SMALLEST_KEY_INTERVAL,
+    SORT_DOMAIN_GROUPS,
+    keyProperty,
+    rangedValueProperty,
+    valueProperty,
+} from './processors';
+
+const ISO_SCOPE = 'test';
+
+function scoped<T extends object>(def: T): T & { scopes: string[] } {
+    return { ...def, scopes: [ISO_SCOPE] };
+}
+
+/** Returns all `console.warn` call arguments joined into one string and clears the mock. */
+function drainWarnings(): string {
+    const warnMock = console.warn as Mock;
+    const text = warnMock.mock.calls.flat().join('\n');
+    warnMock.mockClear();
+    return text;
+}
 
 describe('DataModel', () => {
     setupMockConsole();
@@ -2845,6 +2865,92 @@ describe('DataModel', () => {
             expect(domainTimes.length).toBeGreaterThan(0);
             expect(domainTimes.at(0)).toBeLessThanOrEqual(earliestInitial);
             expect(domainTimes.at(-1)).toBeGreaterThanOrEqual(latestSeen);
+        });
+    });
+
+    describe('ISO 8601 / time-axis data extraction', () => {
+        function timeKeyModel() {
+            return new DataModel<any, any>({
+                props: [scoped(keyProperty('x', 'time')), scoped(valueProperty('y', 'number'))],
+            });
+        }
+
+        it('accepts ISO 8601 strings on a time axis and preserves the original string', () => {
+            const model = timeKeyModel();
+            const result = model.processData(
+                basicDataSet([
+                    { x: '2024-01-15', y: 1 },
+                    { x: '2024-02-15T10:30:00Z', y: 2 },
+                ])
+            )!;
+
+            // AC #7: the raw column retains the original ISO string, not a parsed Date.
+            const keys = [...result.keys[0].get(ISO_SCOPE)!];
+            expect(keys).toEqual(['2024-01-15', '2024-02-15T10:30:00Z']);
+        });
+
+        it('rejects a non-ISO string on a time axis with a format-naming warning', () => {
+            const model = timeKeyModel();
+            model.processData(
+                basicDataSet([
+                    { x: '2024-01-15', y: 1 },
+                    { x: 'not a date', y: 2 },
+                ])
+            );
+
+            const warnings = drainWarnings();
+            expect(warnings).toContain('not a date');
+            expect(warnings).toContain('row 1');
+            expect(warnings).toContain('ISO 8601');
+        });
+
+        it("promotes a column mixing Date, ISO string and epoch number/bigint to the 'date' tag", () => {
+            const model = new DataModel<any, any>({
+                props: [scoped(valueProperty('v', 'time'))],
+            });
+            const result = model.processData(
+                basicDataSet([
+                    { v: new Date('2024-01-01T00:00:00Z') },
+                    { v: '2024-02-01' },
+                    { v: Date.UTC(2024, 2, 1) },
+                    { v: BigInt(Date.UTC(2024, 3, 1)) },
+                ])
+            )!;
+
+            expect(result.columnValueType).toEqual(['date']);
+        });
+
+        it('rejects ISO 8601 strings on a numeric axis', () => {
+            const model = new DataModel<any, any>({
+                props: [scoped(keyProperty('x', 'number')), scoped(valueProperty('y', 'number'))],
+            });
+            const result = model.processData(
+                basicDataSet([
+                    { x: 1, y: 1 },
+                    { x: '2024-01-15', y: 2 },
+                ])
+            )!;
+
+            // The ISO string is invalid data on a numeric axis: its row is marked invalid and warned.
+            const invalid = result.invalidData?.get(ISO_SCOPE) ?? [];
+            expect(invalid[1]).toBe(true);
+            expect(drainWarnings()).toContain('invalid value of type [string]');
+        });
+
+        it('uses ISO 8601 strings as-is on a category axis (no time validation, no parsing)', () => {
+            const model = new DataModel<any, any, false>({
+                props: [scoped(keyProperty('x')), scoped(valueProperty('y', 'number'))],
+                groupByKeys: false,
+            });
+            const result = model.processData(
+                basicDataSet([
+                    { x: '2024-01-15', y: 1 },
+                    { x: 'not a date', y: 2 },
+                ])
+            )!;
+
+            const keys = [...result.keys[0].get(ISO_SCOPE)!];
+            expect(keys).toEqual(['2024-01-15', 'not a date']);
         });
     });
 });

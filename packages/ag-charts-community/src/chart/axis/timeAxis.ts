@@ -101,14 +101,14 @@ export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTim
     }
 
     override datumFormatParams(
-        value: number | Date,
+        value: number | bigint | string | Date,
         params: FormatDatumParams,
         _fractionDigits: number | undefined,
         timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined,
         style: DateFormatterStyle
     ): FormatterParams<any> {
-        if (typeof value === 'number') {
-            value = new Date(value);
+        if (!(value instanceof Date)) {
+            value = new Date(typeof value === 'bigint' ? Number(value) : value);
         }
 
         if (timeInterval == null) {

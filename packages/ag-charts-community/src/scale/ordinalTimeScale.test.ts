@@ -554,6 +554,27 @@ describe('OrdinalTimeScale', () => {
         });
     });
 
+    describe('value coercion', () => {
+        function bandedScale() {
+            const scale = new OrdinalTimeScale();
+            scale.domain = [
+                new Date(Date.UTC(2024, 0, 1)),
+                new Date(Date.UTC(2024, 1, 1)),
+                new Date(Date.UTC(2024, 2, 1)),
+            ];
+            scale.range = [0, 300];
+            return scale;
+        }
+
+        it('coerces ISO string and bigint epoch to the same band as the equivalent Date', () => {
+            const scale = bandedScale();
+            const date = new Date(Date.UTC(2024, 1, 1));
+            const expected = scale.convert(date);
+            expect(scale.convert('2024-02-01T00:00:00Z')).toBeCloseTo(expected);
+            expect(scale.convert(BigInt(date.valueOf()))).toBeCloseTo(expected);
+        });
+    });
+
     describe('stepTicks', () => {
         it('should return ticks for the given band step', () => {
             const domain = Array.from({ length: 60 }, (_, i) => new Date(2024, 0, i + 1));

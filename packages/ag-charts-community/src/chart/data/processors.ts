@@ -1,4 +1,5 @@
 import {
+    Logger,
     type ScaleType,
     clamp,
     isContinuous,
@@ -24,6 +25,7 @@ import {
     UNDEFINED_KEY_STRING,
     datumKeys,
 } from './dataModel';
+import { isISO8601 } from './iso8601';
 
 export const MAX_ANIMATABLE_NODES = 1000;
 
@@ -46,10 +48,22 @@ function basicContinuousCheckDatumValidation(value: any) {
     return value != null && isContinuous(value);
 }
 
-// Separate from basicContinuousCheckDatumValidation so a later PR can let time scales accept ISO 8601
-// strings without number/log/color scales doing the same.
-function basicTimeCheckDatumValidation(value: any) {
-    return value != null && isContinuous(value);
+const TIME_AXIS_ACCEPTED_FORMATS =
+    "Date, epoch number/bigint, or strict ISO 8601 string (e.g. '2024-01-15', '2024-01-15T10:30:00Z')";
+
+// Split out from basicContinuousCheckDatumValidation so the time scales accept time-only values (ISO 8601
+// strings) that must never be accepted by number/log/color scales.
+function basicTimeCheckDatumValidation(value: any, _datum?: any, index?: number) {
+    if (value == null) return false;
+    if (isContinuous(value) || isISO8601(value)) return true;
+    if (typeof value === 'string') {
+        // warnOnce dedupes by message; embedding the value + row makes it fire once per offending datum
+        // per chart pass (Logger is reset each pass), satisfying the per-column diagnostic requirement.
+        Logger.warnOnce(
+            `unsupported value [${value}] at row ${index ?? '?'} on a time axis; expected ${TIME_AXIS_ACCEPTED_FORMATS}. The value is ignored.`
+        );
+    }
+    return false;
 }
 
 function basicDiscreteCheckDatumValidation(value: any) {

@@ -62,8 +62,8 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         visibleRange?: [number, number]
     ): { ticks: Date[]; count: number | undefined; firstTickIndex?: number } | undefined;
 
-    override toDomain(value: number): Date {
-        return new Date(value);
+    override toDomain(value: number | bigint): Date {
+        return new Date(typeof value === 'bigint' ? Number(value) : value);
     }
 
     protected get reversed(): boolean {
@@ -76,10 +76,13 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         return this.bands.map((d) => d.valueOf());
     }
 
-    override convert(value: Date, options?: { clamp?: boolean; alignment?: ScaleAlignment }): number {
+    override convert(
+        value: Date | number | bigint | string,
+        options?: { clamp?: boolean; alignment?: ScaleAlignment }
+    ): number {
         this.refresh();
 
-        if (!(value instanceof Date)) value = new Date(value);
+        if (!(value instanceof Date)) value = new Date(typeof value === 'bigint' ? Number(value) : value);
         const { domain, reversed } = this;
         const numericBands = this.numericBands;
         const bandCount = numericBands.length;
