@@ -461,6 +461,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             syncManager: new SyncManager(this),
             fireEvent: (event) => this.fireEvent(event),
             updateMutex: this.updateMutex,
+            cssVariables: options.processedCSSVariables,
         }));
         // Publish processed options to chartState immediately so option-derived reads
         // (mode, padding, etc.) work for the rest of construction. `applyOptions` will
@@ -752,6 +753,15 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     detachAndClear() {
         this.container = undefined;
         this.ctx.scene.clearCanvas();
+    }
+
+    private requestRefreshListener?: () => void;
+    setRequestRefreshListener(listener: () => void) {
+        if (this.requestRefreshListener) {
+            this.ctx.eventsHub.off('chart:request-refresh', this.requestRefreshListener);
+        }
+        this.ctx.eventsHub.on('chart:request-refresh', listener);
+        this.requestRefreshListener = listener;
     }
 
     destroy(opts?: { keepTransferableResources: boolean }): TransferableResources | undefined {

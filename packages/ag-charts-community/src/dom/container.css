@@ -94,3 +94,8 @@
 .ag-charts-canvas-overlay > [role='presentation'] {
     left: 0;
 }
+
+.ag-charts-style-sensors {
+    visibility: hidden;
+    position: absolute;
+}

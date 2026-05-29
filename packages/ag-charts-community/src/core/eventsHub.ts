@@ -108,6 +108,7 @@ export interface EventsHubMap {
     'axis-dom-proxy:mouseleave': AxisDOMProxyMouseLeaveEvent;
     'axis-dom-proxy:update': AxisDOMProxyUpdateEvent;
     'axis-dom-proxy:wheel': AxisDOMProxyWheelEvent;
+    'chart:request-refresh': null;
     'chart:request-update': UpdateRequestEvent;
     'context-menu:setup': ContextMenuEvent;
     'context-menu:complete': ContextMenuEvent;

@@ -48,7 +48,6 @@ const paperTheme: AgChartTheme = {
         // foregroundColor: 'red',
         // foregroundColor: { ref: 'var(--ag-charts-accent-color)' },
         // foregroundColor: { ref: 'var(--custom-variable)' },
-        fontFamily: [{ googleFont: 'DM Serif Text' }, 'Georgia', 'sans-serif'],
         fontSize: 14,
         tooltipBackgroundColor: '#fff7ef',
         tooltipTextColor: '#262a33',
@@ -88,6 +87,7 @@ const options: AgCartesianChartOptions = {
             yName: 'Interaction Duration - Transparent Mirror',
             legendItemName: 'Interaction Duration - Transparent Mirror',
             stackGroup: 'ID',
+            fill: 'var(--custom-variable-2)',
             errorBar: {
                 yLowerKey: 'interactionDurationTMLower',
                 yUpperKey: 'interactionDurationTMUpper',
@@ -174,11 +174,18 @@ function usePaperTheme() {
 }
 
 function changeCSSVariable() {
-    const element = document.getElementById('myChart');
-    if (!element) return;
-
-    element.style.setProperty(
+    document.body.style.setProperty(
         '--custom-variable',
-        element.style.getPropertyValue('--custom-variable') === 'blue' ? 'red' : 'blue'
+        document.body.style.getPropertyValue('--custom-variable') === 'blue' ? 'red' : 'blue'
     );
+    document.body.style.setProperty(
+        '--custom-variable-2',
+        document.body.style.getPropertyValue('--custom-variable-2') === 'purple' ? 'yellow' : 'purple'
+    );
+    document.body.style.setProperty(
+        '--custom-variable-3',
+        document.body.style.getPropertyValue('--custom-variable-3') === 'green' ? 'orange' : 'green'
+    );
+    (options.title as any).color = 'var(--custom-variable-3)';
+    chart.update(options);
 }
