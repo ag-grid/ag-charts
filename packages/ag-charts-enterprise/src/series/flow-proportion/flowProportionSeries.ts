@@ -13,7 +13,8 @@ import type {
     DomainWithMetadata,
     InternalAgColorType,
     Point,
- } from 'ag-charts-core';
+} from 'ag-charts-core';
+
 import {
     type FlowLinkDatumIndex,
     type FlowNodeDatumIndex,
@@ -22,7 +23,9 @@ import {
     flowNodeDatumIndex,
     isFlowLinkDatumIndex,
     isFlowNodeDatumIndex,
+    toFlowLinkItemId,
     toFlowLinkOffset,
+    toFlowNodeItemId,
     toFlowNodeOffset,
 } from './flowDatumIndex';
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
@@ -258,7 +261,7 @@ export abstract class FlowProportionSeries<
 
                 return {
                     series: this,
-                    itemId: `node-${datumIndex}`,
+                    itemId: toFlowNodeItemId({}, datumIndex, undefined),
                     datum: {}, // Must be a referential object for tooltips
                     datumIndex,
                     type: FlowProportionDatumType.Node,
@@ -314,17 +317,15 @@ export abstract class FlowProportionSeries<
             const nodeDataIdKey = this.data?.dataIdKey;
             const nodeData = nodesDataModel.processedData.dataSources.get(this.id)?.data;
             if (nodeData) {
-                for (const [index, datum] of nodeData.entries()) {
-                    const datumIndex = flowNodeDatumIndex(index);
-                    const id: string = nodeIdValues[datumIndex];
-                    const label: string | undefined = labelValues?.[datumIndex];
-                    const nodeIdValue = nodeDataIdKey == null ? undefined : (datum as any)[nodeDataIdKey];
-
+                for (const [offset, datum] of nodeData.entries()) {
+                    const id: string = nodeIdValues[offset];
+                    const label: string | undefined = labelValues?.[offset];
+                    const datumIndex = flowNodeDatumIndex(offset);
                     processedNodes.set(id, {
                         series: this,
-                        itemId: nodeIdValue == null ? `node-${datumIndex}` : String(nodeIdValue),
+                        itemId: toFlowNodeItemId(datum, datumIndex, nodeDataIdKey),
                         datum,
-                        datumIndex: flowNodeDatumIndex(datumIndex),
+                        datumIndex,
                         type: FlowProportionDatumType.Node,
                         linksBefore: [],
                         linksAfter: [],
@@ -408,11 +409,9 @@ export abstract class FlowProportionSeries<
                 if (size <= 0 || fromNode == null || toNode == null) continue;
 
                 const datumIndex = flowLinkDatumIndex(index);
-                const linkIdValue = dataIdKey == null ? undefined : (datum as any)[dataIdKey];
-
                 const link = createLink({
                     series: this,
-                    itemId: linkIdValue == null ? `link-${datumIndex}` : String(linkIdValue),
+                    itemId: toFlowLinkItemId(datum, datumIndex, dataIdKey),
                     datum,
                     datumIndex,
                     type: FlowProportionDatumType.Link,

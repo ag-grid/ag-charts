@@ -21,7 +21,7 @@ import type {
     AgChordSeriesOptions,
 } from 'ag-charts-types';
 
-import { toFlowNodeOffset, type FlowLinkDatumIndex, type FlowNodeDatumIndex } from '../flow-proportion/flowDatumIndex';
+import { type FlowLinkDatumIndex, type FlowNodeDatumIndex, toFlowNodeOffset } from '../flow-proportion/flowDatumIndex';
 import {
     type FlowProportionLinkDatum,
     type FlowProportionNodeDatum,
