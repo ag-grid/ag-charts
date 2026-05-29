@@ -13,14 +13,17 @@ import type {
     DomainWithMetadata,
     InternalAgColorType,
     Point,
-} from 'ag-charts-core';
-
+ } from 'ag-charts-core';
 import {
     type FlowLinkDatumIndex,
     type FlowNodeDatumIndex,
     FlowProportionDatumType,
     flowLinkDatumIndex,
     flowNodeDatumIndex,
+    isFlowLinkDatumIndex,
+    isFlowNodeDatumIndex,
+    toFlowLinkOffset,
+    toFlowNodeOffset,
 } from './flowDatumIndex';
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
@@ -772,11 +775,17 @@ export abstract class FlowProportionSeries<
         };
     }
 
+    private readUserDatum(datumIndex: _ModuleSupport.DatumIndex): unknown {
+        if (isFlowLinkDatumIndex(datumIndex)) {
+            return this.linksProcessedData?.dataSources.get(this.id)?.data[toFlowLinkOffset(datumIndex)];
+        } else if (isFlowNodeDatumIndex(datumIndex)) {
+            return this.nodesProcessedData?.dataSources.get(this.id)?.data[toFlowNodeOffset(datumIndex)];
+        }
+    }
+
     override getTooltipContent(datumIndex: _ModuleSupport.DatumIndex): _ModuleSupport.TooltipContent | undefined {
         const {
             id: seriesId,
-            linksProcessedData,
-            nodesProcessedData,
             properties,
             ctx: { formatManager },
         } = this;
@@ -794,11 +803,7 @@ export abstract class FlowProportionSeries<
             seriesDatum.type === FlowProportionDatumType.Link
                 ? `${seriesDatum.fromNode.label} - ${seriesDatum.toNode.label}`
                 : seriesDatum.label;
-        // Link datumIndex values are strictly negative (first link is -1, then -2, and so on)...
-        const datum =
-            datumIndex < 0
-                ? linksProcessedData?.dataSources.get(this.id)?.data[Math.abs(datumIndex) - 1]
-                : nodesProcessedData?.dataSources.get(this.id)?.data[datumIndex];
+        const datum = this.readUserDatum(datumIndex);
         const size = seriesDatum.size;
 
         let format: Required<NodeStyle>;

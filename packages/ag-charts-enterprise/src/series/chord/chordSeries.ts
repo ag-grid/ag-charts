@@ -21,7 +21,7 @@ import type {
     AgChordSeriesOptions,
 } from 'ag-charts-types';
 
-import { type FlowLinkDatumIndex, type FlowNodeDatumIndex } from '../flow-proportion/flowDatumIndex';
+import { toFlowNodeOffset, type FlowLinkDatumIndex, type FlowNodeDatumIndex } from '../flow-proportion/flowDatumIndex';
 import {
     type FlowProportionLinkDatum,
     type FlowProportionNodeDatum,
@@ -417,12 +417,13 @@ export class ChordSeries extends FlowProportionSeries<
         const { fills, strokes, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
         const { itemStyler } = properties.node;
 
+        const nodeOffset = toFlowNodeOffset(fromNodeDatumIndex);
         const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum.datumIndex);
         const selectionStyle = this.getSelectionStyle(nodeDatum.datumIndex);
         const baseStyle = mergeDefaults(
             selectionStyle,
             highlightStyle,
-            properties.node.getStyle(fills, strokes, fromNodeDatumIndex)
+            properties.node.getStyle(fills, strokes, nodeOffset)
         );
 
         let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
@@ -514,19 +515,20 @@ export class ChordSeries extends FlowProportionSeries<
     protected override getLinkStyle(
         datum: ChordLinkDatum['datum'],
         datumIndex: FlowLinkDatumIndex,
-        fromNodeDatumIndex: _ModuleSupport.DatumIndex,
+        fromNodeDatumIndex: FlowNodeDatumIndex,
         isHighlight: boolean
     ) {
         const { id: seriesId, properties } = this;
         const { fills, strokes, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
         const { itemStyler } = properties.link;
 
+        const nodeOffset = toFlowNodeOffset(fromNodeDatumIndex);
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
         const baseStyle = mergeDefaults(
             selectionStyle,
             highlightStyle,
-            properties.link.getStyle(fills, strokes, fromNodeDatumIndex)
+            properties.link.getStyle(fills, strokes, nodeOffset)
         );
 
         let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);

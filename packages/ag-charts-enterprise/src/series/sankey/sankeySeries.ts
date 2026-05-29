@@ -18,7 +18,7 @@ import {
     wrapText,
 } from 'ag-charts-core';
 
-import { type FlowLinkDatumIndex, type FlowNodeDatumIndex } from '../flow-proportion/flowDatumIndex';
+import { toFlowNodeOffset, type FlowLinkDatumIndex, type FlowNodeDatumIndex } from '../flow-proportion/flowDatumIndex';
 import {
     type FlowProportionLinkDatum,
     type FlowProportionNodeDatum,
@@ -795,17 +795,18 @@ export class SankeySeries extends FlowProportionSeries<
         } = properties;
         const { itemStyler } = properties.node;
 
-        const defaultColorStops = defaultColorRange[fromNodeDatumIndex % defaultColorRange.length].map((color) => ({
+        const nodeOffset = toFlowNodeOffset(fromNodeDatumIndex);
+        const defaultColorStops = defaultColorRange[nodeOffset % defaultColorRange.length].map((color) => ({
             color,
         }));
-        const defaultPatternFill = defaultPatternFills[fromNodeDatumIndex % defaultPatternFills.length];
+        const defaultPatternFill = defaultPatternFills[nodeOffset % defaultPatternFills.length];
 
         const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum.datumIndex);
         const selectionStyle = this.getSelectionStyle(nodeDatum.datumIndex);
         const baseStyle = mergeDefaults(
             selectionStyle,
             highlightStyle,
-            properties.getStyle(false, fills, strokes, fromNodeDatumIndex)
+            properties.getStyle(false, fills, strokes, nodeOffset)
         );
         const hasNodeFill = properties.node.fill != null;
         let style = getShapeStyle(
@@ -925,17 +926,18 @@ export class SankeySeries extends FlowProportionSeries<
         } = properties;
         const { itemStyler } = properties.link;
 
-        const defaultColorStops = defaultColorRange[fromNodeDatumIndex % defaultColorRange.length].map((color) => ({
+        const nodeOffset = toFlowNodeOffset(fromNodeDatumIndex);
+        const defaultColorStops = defaultColorRange[nodeOffset % defaultColorRange.length].map((color) => ({
             color,
         }));
-        const defaultPatternFill = defaultPatternFills[fromNodeDatumIndex % defaultPatternFills.length];
+        const defaultPatternFill = defaultPatternFills[nodeOffset % defaultPatternFills.length];
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
         const baseStyle = mergeDefaults(
             selectionStyle,
             highlightStyle,
-            properties.getStyle(true, fills, strokes, fromNodeDatumIndex)
+            properties.getStyle(true, fills, strokes, nodeOffset)
         );
         const hasLinkFill = properties.link.fill != null;
         let style = getShapeStyle(
