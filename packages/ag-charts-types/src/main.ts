@@ -10,6 +10,7 @@ export * from './chart/callbackOptions';
 export * from './chart/chartOptions';
 export * from './chart/chartToolbarOptions';
 export * from './chart/contextMenuOptions';
+export * from './chart/dataValues';
 export * from './chart/crossLineOptions';
 export * from './chart/crosshairOptions';
 export * from './chart/bandHighlightOptions';

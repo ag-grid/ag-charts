@@ -117,6 +117,39 @@ describe('Memento Caretaker', () => {
         });
     });
 
+    it('should save and restore data with bigints', () => {
+        const bigValue = 9007199254740993n; // Number.MAX_SAFE_INTEGER + 2, beyond Number precision.
+        originator.data = { hello: 'world', count: bigValue };
+
+        const blob = caretaker.save(originator);
+        caretaker.restore(blob, originator);
+
+        expect(blob).toStrictEqual({
+            version: '10.0.0',
+            test: {
+                data: {
+                    hello: 'world',
+                    count: { __type: 'bigint', value: '9007199254740993' },
+                },
+                type: 'test',
+            },
+        });
+        expect(originator.restored).toStrictEqual({ hello: 'world', count: bigValue });
+
+        const blobBigIntTypes = {
+            version: '10.0.0',
+            test: {
+                data: {
+                    count: { __type: 'bigint', value: '9007199254740993' },
+                },
+                type: 'test',
+            },
+        };
+
+        caretaker.restore(blobBigIntTypes, originator);
+        expect(originator.restored).toStrictEqual({ count: bigValue });
+    });
+
     it('should migrate older versioned mementos', () => {
         caretaker.restore(
             {

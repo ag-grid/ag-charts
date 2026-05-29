@@ -720,4 +720,42 @@ describe('Annotations', () => {
             await compare();
         });
     });
+
+    describe('bigint coordinates (AG-16608)', () => {
+        // Number.MAX_SAFE_INTEGER + 2, beyond Number precision. Supplied in the serialisable
+        // `AgStateSerializableBigInt` form, mirroring how date coordinates are supplied as `{ __type: 'date' }`.
+        const BIGINT_X = 9007199254740993n;
+
+        const NUMERIC_AXIS_OPTIONS: AgCartesianChartOptions = {
+            data: [
+                { x: 9007199254740992n, y: 5 },
+                { x: 9007199254740994n, y: 95 },
+            ],
+            series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
+            axes: { y: { type: 'number' }, x: { type: 'number' } },
+            annotations: { enabled: true, toolbar: { enabled: false } },
+        };
+
+        it('should round-trip a bigint annotation coordinate through chart state', async () => {
+            const serialisedValue = { __type: 'bigint' as const, value: BIGINT_X.toString() };
+
+            await prepareChart(
+                {
+                    annotations: [
+                        {
+                            type: 'vertical-line',
+                            value: serialisedValue,
+                        },
+                    ],
+                },
+                NUMERIC_AXIS_OPTIONS
+            );
+
+            // `getState()` re-encodes the internally-decoded bigint, so a faithful round-trip
+            // returns the same serialisable `{ __type: 'bigint' }` form that was restored.
+            const state = chart.getState();
+            expect(state.annotations).toHaveLength(1);
+            expect(state.annotations![0]).toMatchObject({ type: 'vertical-line', value: serialisedValue });
+        });
+    });
 });
