@@ -73,7 +73,7 @@ function toHighlightNodeDatum(series: SeriesType, legendDatum: CategoryLegendDat
                 series,
                 itemId: legendDatum.itemId,
                 datum: undefined,
-                datumIndex: NaN,
+                datumIndex: Number.NaN,
                 legendItemName: legendDatum.legendItemName,
             };
         default:
