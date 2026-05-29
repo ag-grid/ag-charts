@@ -418,7 +418,7 @@ describe('MapShapeSeries', () => {
                 series: series0,
                 itemId: series0.id,
                 datum: undefined,
-                datumIndex: undefined,
+                datumIndex: Number.NaN,
                 legendItemName: 'Group A',
             });
 

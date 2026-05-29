@@ -808,7 +808,7 @@ describe('SunburstSeries', () => {
                 seriesImpl,
                 data[americas].children,
                 (c: { change?: number | null }) => c.change == null,
-                (i) => [americas, i]
+                (i) => 1 + americas * 4 + i
             );
         });
     });
