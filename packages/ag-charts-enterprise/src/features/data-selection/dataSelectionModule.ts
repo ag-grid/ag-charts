@@ -32,6 +32,6 @@ export const SelectionModule: PluginModuleDefinition<AgChartSelectionOptions, _M
     create: (ctx) => new DataSelection(ctx),
     register: (ctx) => {
         if (ctx.has('dataSelectionService')) return;
-        ctx.service('dataSelectionService', () => new DataSelectionServiceImp());
+        ctx.service('dataSelectionService', (c) => new DataSelectionServiceImp(c));
     },
 };
