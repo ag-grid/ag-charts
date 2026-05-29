@@ -51,13 +51,26 @@ export function __clearSanitizedThemeCacheForTests() {
 function sanitizeThemeModulesUncached(theme: ChartTheme): ChartTheme {
     const missingModules = new Map<string, Set<string>>();
 
-    for (const [name, { type }] of ExpectedModules) {
+    // Keys already covered by at least one registered axis-plugin module. A missing
+    // module must not prune a theme key that a *different* registered module also owns
+    // (e.g. `CrossLinesModule` absent should not prune `crossLines` when
+    // `PolarCrossLinesModule` — which shares `optionsKey: 'crossLines'` — is present).
+    const coveredAxisPluginKeys = new Set<string>(
+        [...ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)].map((m) => m.optionsKey ?? m.name)
+    );
+
+    for (const [name, { type, optionsKey }] of ExpectedModules) {
         if (ModuleRegistry.hasModule(name)) continue;
 
+        // For axis-plugin modules, store the optionsKey that would be pruned from
+        // theme axis configs. Skip if another registered module already covers that key.
+        const pruneKey = type === ModuleType.AxisPlugin ? (optionsKey ?? name) : name;
+        if (type === ModuleType.AxisPlugin && coveredAxisPluginKeys.has(pruneKey)) continue;
+
         if (missingModules.has(type)) {
-            missingModules.get(type)!.add(name);
+            missingModules.get(type)!.add(pruneKey);
         } else {
-            missingModules.set(type, new Set<string>([name]));
+            missingModules.set(type, new Set<string>([pruneKey]));
         }
     }
 

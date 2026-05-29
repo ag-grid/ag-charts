@@ -317,6 +317,17 @@
                     "isEnterprise": true
                 },
                 {
+                    "moduleName": "CrossLinesModule",
+                    "name": "Cross Lines",
+                    "path": "axes-cross-lines"
+                },
+                {
+                    "moduleName": "PolarCrossLinesModule",
+                    "name": "Polar Cross Lines",
+                    "path": "axes-cross-lines/#polar-axes-cross-lines",
+                    "isEnterprise": true
+                },
+                {
                     "moduleName": "ErrorBarsModule",
                     "name": "Error Bars",
                     "path": "error-bars",
@@ -354,17 +365,6 @@
                     "moduleName": "ContextMenuModule",
                     "name": "Context Menu",
                     "path": "context-menu",
-                    "isEnterprise": true
-                },
-                {
-                    "moduleName": "CrossLinesModule",
-                    "name": "Cross Lines",
-                    "path": "axes-cross-lines"
-                },
-                {
-                    "moduleName": "PolarCrossLinesModule",
-                    "name": "Polar Cross Lines",
-                    "path": "axes-cross-lines/#polar-axes-cross-lines",
                     "isEnterprise": true
                 },
                 {
