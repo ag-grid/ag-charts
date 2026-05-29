@@ -157,7 +157,7 @@ export const seriesTooltipRangeValidator = or(positiveNumber, union('exact', 'ne
 const verticalAlignValidator = union('alphabetic', 'top', 'middle', 'bottom', 'hanging', 'ideographic');
 
 const textSegmentDefs: OptionsDefs<TextSegment> = {
-    type: undocumented(union('text')),
+    type: union('text'),
     text: required(string),
     verticalAlign: verticalAlignValidator,
     lineHeight: positiveNumber,
@@ -169,6 +169,7 @@ const imageSegmentDefs: OptionsDefs<ImageSegment> = {
     url: required(string),
     width: required(positiveNumber),
     height: required(positiveNumber),
+    alt: string,
     verticalAlign: verticalAlignValidator,
     overflowStrategy: union('keep', 'hide'),
     padding,

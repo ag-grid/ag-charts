@@ -263,8 +263,11 @@ export interface Visible {
 export type TextValue = string | number | Date;
 
 export interface TextSegment extends TextOptions {
-    /** Internal discriminator. Always omitted on text segments; image segments set `'image'`. */
-    type?: never;
+    /**
+     * Discriminator separating text segments from image segments. Optional on text segments;
+     * required (`'image'`) on image segments.
+     */
+    type?: 'text';
     /** A segment of text. */
     text: TextValue;
     /**
@@ -295,6 +298,12 @@ export interface ImageSegment {
     width: PixelSize;
     /** Box height in pixels. Required to keep layout stable before the image decodes. */
     height: PixelSize;
+    /**
+     * Textual description of the image, used for the plain-text representation surfaced to
+     * accessibility tooling and consumers that flatten labels to strings (tooltips, exports).
+     * Omitting `alt` causes an image-only label to read as empty.
+     */
+    alt?: string;
     /**
      * Baseline used to align this image vertically against the rest of the line.
      *

@@ -353,35 +353,34 @@ function wrapInlineSegments(segments: Segment[], options: WrapOptions): Measured
 function wrapInlineSegmentsWithOverflow(segments: Segment[], options: WrapOptions): MeasuredSegment[] {
     const maxHeight = options.maxHeight ?? Infinity;
     // Drop any image that exceeds the width or height budget on its own; no strategy can keep it.
-    let working = segments.filter((s) => {
-        if (s.type !== 'image') return true;
-        const box = imageSegmentBox(s);
-        return box.width <= options.maxWidth && box.height <= maxHeight;
-    });
+    // Build a single working array we mutate in place to avoid allocating a fresh array per drop.
+    const working: Segment[] = [];
+    for (const s of segments) {
+        if (s.type === 'image') {
+            const box = imageSegmentBox(s);
+            if (box.width > options.maxWidth || box.height > maxHeight) continue;
+        }
+        working.push(s);
+    }
 
     let result = fitMeasuredSegments(working, options);
 
     // 'hide' images yield to text first.
-    while (!resultFitsAllSegments(working, result)) {
-        const next = dropRightmostImage(working, 'hide');
-        if (!next) break;
-        working = next;
+    while (!resultFitsAllSegments(working, result) && dropRightmostImage(working, 'hide')) {
         result = fitMeasuredSegments(working, options);
     }
 
     // 'keep' images take priority over text: drop trailing text rightmost-first.
-    while (!resultFitsAllSegments(working, result) && hasImageWithStrategy(working, 'keep')) {
-        const next = dropRightmostText(working);
-        if (!next) break;
-        working = next;
+    while (
+        !resultFitsAllSegments(working, result) &&
+        hasImageWithStrategy(working, 'keep') &&
+        dropRightmostText(working)
+    ) {
         result = fitMeasuredSegments(working, options);
     }
 
     // Last resort: drop 'keep' images that still can't fit alongside anything.
-    while (!resultFitsAllSegments(working, result)) {
-        const next = dropRightmostImage(working, 'keep');
-        if (!next) break;
-        working = next;
+    while (!resultFitsAllSegments(working, result) && dropRightmostImage(working, 'keep')) {
         result = fitMeasuredSegments(working, options);
     }
 
@@ -395,28 +394,18 @@ function wrapBlockGroup(blockImages: ImageSegment[], segments: Segment[], option
     // survivors. The aggregate strip width is then checked against `maxWidth`; if it still
     // doesn't fit, drop `hide`-strategy images right-to-left, then drop `keep` images last.
     type Candidate = { source: ImageSegment; measured: MeasuredImageSegment };
-    let strip: Candidate[] = [];
+    const strip: Candidate[] = [];
     for (const img of blockImages) {
         const textMetrics = imageSegmentBox(img);
         if (textMetrics.width > options.maxWidth || textMetrics.height > maxHeight) continue;
         strip.push({ source: img, measured: { ...img, textMetrics } });
     }
 
-    const stripFitsWidth = () => blockStripWidth(strip.map((c) => c.measured)) <= options.maxWidth;
-    const dropRightmost = (kind: 'hide' | 'keep'): boolean => {
-        for (let i = strip.length - 1; i >= 0; i--) {
-            const s = strip[i].source.overflowStrategy ?? 'hide';
-            if (s === kind) {
-                strip = [...strip.slice(0, i), ...strip.slice(i + 1)];
-                return true;
-            }
-        }
-        return false;
-    };
-    while (!stripFitsWidth() && dropRightmost('hide')) {
+    const stripFitsWidth = () => stripMeasuredWidth(strip) <= options.maxWidth;
+    while (!stripFitsWidth() && dropRightmostStripImage(strip, 'hide')) {
         // keep dropping 'hide' images until the strip fits
     }
-    while (!stripFitsWidth() && dropRightmost('keep')) {
+    while (!stripFitsWidth() && dropRightmostStripImage(strip, 'keep')) {
         // last-resort: drop 'keep' images
     }
 
@@ -465,16 +454,36 @@ function wrapBlockGroup(blockImages: ImageSegment[], segments: Segment[], option
     }
 
     // All-'keep': drop trailing text rightmost-first until the inner column is whole.
-    let innerWorking = segments;
+    const innerWorking = segments.slice();
     let innerResult = wrapInlineSegments(innerWorking, innerOptions);
-    while (hasTruncatedText(innerResult) || lostTextSegments(innerWorking, innerResult)) {
-        const next = dropRightmostText(innerWorking);
-        if (!next) break;
-        innerWorking = next;
+    while (
+        (hasTruncatedText(innerResult) || lostTextSegments(innerWorking, innerResult)) &&
+        dropRightmostText(innerWorking)
+    ) {
         innerResult = wrapInlineSegments(innerWorking, innerOptions);
     }
     if (!innerColumnFits(innerResult)) return measuredStrip;
     return [...measuredStrip, ...innerResult];
+}
+
+function stripMeasuredWidth(strip: { measured: MeasuredImageSegment }[]): number {
+    if (strip.length === 0) return 0;
+    let total = 0;
+    for (let i = 0; i < strip.length; i++) {
+        total += strip[i].measured.textMetrics.width;
+        if (i > 0) total += BLOCK_IMAGE_SPACING;
+    }
+    return total;
+}
+
+function dropRightmostStripImage(strip: { source: ImageSegment }[], strategy: 'hide' | 'keep'): boolean {
+    for (let i = strip.length - 1; i >= 0; i--) {
+        if ((strip[i].source.overflowStrategy ?? 'hide') === strategy) {
+            strip.splice(i, 1);
+            return true;
+        }
+    }
+    return false;
 }
 
 function resultFitsAllSegments(input: Segment[], output: MeasuredSegment[]): boolean {
@@ -500,23 +509,25 @@ function hasImageWithStrategy(segments: Segment[], strategy: 'hide' | 'keep'): b
     return segments.some((s) => s.type === 'image' && (s.overflowStrategy ?? 'hide') === strategy);
 }
 
-function dropRightmostImage(segments: Segment[], strategy: 'hide' | 'keep'): Segment[] | null {
+function dropRightmostImage(segments: Segment[], strategy: 'hide' | 'keep'): boolean {
     for (let i = segments.length - 1; i >= 0; i--) {
         const s = segments[i];
         if (s.type === 'image' && (s.overflowStrategy ?? 'hide') === strategy) {
-            return [...segments.slice(0, i), ...segments.slice(i + 1)];
+            segments.splice(i, 1);
+            return true;
         }
     }
-    return null;
+    return false;
 }
 
-function dropRightmostText(segments: Segment[]): Segment[] | null {
+function dropRightmostText(segments: Segment[]): boolean {
     for (let i = segments.length - 1; i >= 0; i--) {
         if (segments[i].type !== 'image') {
-            return [...segments.slice(0, i), ...segments.slice(i + 1)];
+            segments.splice(i, 1);
+            return true;
         }
     }
-    return null;
+    return false;
 }
 
 function fitMeasuredSegments(textSegments: Segment[], options: WrapOptions): MeasuredSegment[] {

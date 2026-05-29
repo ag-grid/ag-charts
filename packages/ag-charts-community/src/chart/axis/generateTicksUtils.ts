@@ -2,6 +2,7 @@ import {
     type BoxBounds,
     EllipsisChar,
     type ITextMeasurer,
+    Logger,
     type Scale,
     ScaleAlignment,
     type ScaleTickParams,
@@ -246,6 +247,11 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 // Per AG-15933: forced wrapping: 'never' when image segments are present, since the
                 // segment-drop pipeline replaces multi-line wrapping for image-bearing labels.
                 const hasImageSegment = isArray(inputText) && inputText.some((s) => s.type === 'image');
+                if (hasImageSegment && wrapOptions.textWrap !== 'never') {
+                    Logger.warnOnce(
+                        "Axis label wrapping is forced to 'never' for tick labels that contain image segments."
+                    );
+                }
                 const tickWrapOptions: WrapOptions = hasImageSegment
                     ? { ...wrapOptions, textWrap: 'never' }
                     : wrapOptions;

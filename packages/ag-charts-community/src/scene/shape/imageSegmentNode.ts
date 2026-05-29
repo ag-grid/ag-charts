@@ -1,7 +1,8 @@
 import type { BorderOptions } from 'ag-charts-types';
 
 import { BBox } from '../bbox';
-import { Node, type RenderContext, SceneChangeDetection } from '../node';
+import type { ImageLoader } from '../image/imageLoader';
+import { type IScene, Node, type RenderContext, SceneChangeDetection } from '../node';
 
 // Renders an inline image segment: optional background fill, optional rounded border, then the image
 // itself drawn inside the padded box. Async loading is handled via the scene's ImageLoader cache —
@@ -24,6 +25,28 @@ export class ImageSegmentNode extends Node {
     url: string = '';
     backgroundFill?: string;
     border?: BorderOptions;
+
+    // Tracks the loader this node has registered itself with via `loadImage`. When the node is
+    // detached from the scene (Text rebuilds its richText children on every text-set), this is
+    // used to unregister so a never-resolving load can't pin the discarded node — and its
+    // surrounding subtree — alive for the chart's lifetime.
+    private registeredLoader?: ImageLoader;
+
+    override setScene(scene?: IScene) {
+        if (scene == null && this.registeredLoader) {
+            this.registeredLoader.unregisterNode(this);
+            this.registeredLoader = undefined;
+        }
+        super.setScene(scene);
+    }
+
+    override destroy(): void {
+        if (this.registeredLoader) {
+            this.registeredLoader.unregisterNode(this);
+            this.registeredLoader = undefined;
+        }
+        super.destroy();
+    }
 
     override render(renderCtx: RenderContext): void {
         const { ctx } = renderCtx;
@@ -57,7 +80,12 @@ export class ImageSegmentNode extends Node {
             }
         }
 
-        const image = this.imageLoader?.loadImage(this.url, this, {
+        const loader = this.imageLoader;
+        if (loader !== this.registeredLoader) {
+            this.registeredLoader?.unregisterNode(this);
+            this.registeredLoader = loader;
+        }
+        const image = loader?.loadImage(this.url, this, {
             width: this.imageWidth,
             height: this.imageHeight,
         });

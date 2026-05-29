@@ -1,5 +1,6 @@
 import {
     BaseProperties,
+    Logger,
     Property,
     callWithContext,
     coerceTextValue,
@@ -95,7 +96,10 @@ export class Overlay extends BaseProperties {
             if (isArray(this.text)) {
                 const container = createElement('div');
                 for (const segment of this.text) {
-                    if (segment.type === 'image') continue;
+                    if (segment.type === 'image') {
+                        Logger.warnOnce('Overlay drops inline image segments; text content is preserved.');
+                        continue;
+                    }
                     const el = createElement('span', {
                         color: segment.color,
                         fontSize: `${segment.fontSize}px`,

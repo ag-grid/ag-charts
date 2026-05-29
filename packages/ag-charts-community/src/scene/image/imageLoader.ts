@@ -31,8 +31,10 @@ export class ImageLoader extends EventEmitter<EventMap> {
         // SVGs that declare only a viewBox have no intrinsic canvas dimensions, so canvas drawImage
         // rasterises them onto the default replaced-element size and ends up with content clipped
         // to a corner of the destination. Cache separately per requested size and inject explicit
-        // width/height before loading.
-        const cacheKey = sizeHint ? `${uri}@${sizeHint.width}x${sizeHint.height}` : uri;
+        // width/height before loading. Sized and unsized callers therefore key differently — the
+        // marker-image path (no sizeHint) and the image-segment path (sizeHint) intentionally do
+        // not share entries for the same URL.
+        const cacheKey = computeCacheKey(uri, sizeHint);
         const entry = this.cache.get(cacheKey);
         if (entry?.image) {
             return entry.image;
@@ -103,21 +105,35 @@ export class ImageLoader extends EventEmitter<EventMap> {
         return nextEntry.image;
     }
 
+    public unregisterNode(node: NotifiableNode): void {
+        // Called when a notifiable node is being detached (scene removal, destroy). Drops the node
+        // from every cache entry's pending-notification set so a never-resolving load can't pin
+        // the discarded node — and its scene-graph subtree — alive for the chart's lifetime.
+        for (const entry of this.cache.values()) {
+            entry.nodes.delete(node);
+        }
+    }
+
     private async resolveSource(uri: string, sizeHint?: ImageSizeHint): Promise<{ src: string; blobUrl?: string }> {
         if (!sizeHint || typeof fetch !== 'function' || typeof Blob === 'undefined') return { src: uri };
+        // Only sized SVGs need the resize-injection round trip. For everything else (PNG/JPG/WebP
+        // or cross-origin assets without CORS headers), skip the fetch entirely — it'd cost a
+        // round trip and produce spurious console CORS errors on every render before the `<img>`
+        // fallback path loads the asset anyway.
+        const pathSaysSvg = uriPathnameEndsWith(uri, '.svg');
+        const dataUriSaysSvg = uri.startsWith('data:image/svg');
+        if (!pathSaysSvg && !dataUriSaysSvg) return { src: uri };
         try {
             const res = await fetch(uri, { mode: 'cors' });
             const contentType = res.headers.get('content-type') ?? '';
-            // Skip the body read entirely when the content-type or URL extension contradicts SVG.
-            // A non-SVG `image/*` response should not pay the cost of UTF-8-decoding its binary body.
             const contentTypeKnown = contentType.startsWith('image/') || contentType.startsWith('application/');
             const contentTypeSaysSvg = contentType.includes('svg');
-            const pathSaysSvg = uriPathnameEndsWith(uri, '.svg');
-            if (contentTypeKnown && !contentTypeSaysSvg && !pathSaysSvg) return { src: uri };
+            // Server contradicts the URL extension (e.g. an .svg path served as image/png) —
+            // trust the headers and skip the body read entirely.
+            if (contentTypeKnown && !contentTypeSaysSvg) return { src: uri };
 
             const text = await res.text();
-            // Sniff only when content-type is empty/generic AND path didn't already say svg.
-            if (!contentTypeSaysSvg && !pathSaysSvg && !looksLikeSvgMarkup(text)) return { src: uri };
+            if (!contentTypeSaysSvg && !looksLikeSvgMarkup(text)) return { src: uri };
 
             const sized = injectSvgSize(text, sizeHint.width, sizeHint.height);
             if (!sized) return { src: uri };
@@ -146,6 +162,10 @@ export class ImageLoader extends EventEmitter<EventMap> {
     }
 }
 
+function computeCacheKey(uri: string, sizeHint?: ImageSizeHint): string {
+    return sizeHint ? `${uri}@${sizeHint.width}x${sizeHint.height}` : uri;
+}
+
 function uriPathnameEndsWith(uri: string, suffix: string): boolean {
     const queryStart = uri.search(/[?#]/);
     const path = queryStart >= 0 ? uri.slice(0, queryStart) : uri;
@@ -161,10 +181,11 @@ function looksLikeSvgMarkup(text: string): boolean {
 }
 
 // A `width`/`height` attribute that parses as a finite positive absolute number (`12`, `12px`,
-// `12.5pt`) is honoured; relative units (`100%`, `50vw`, `1em`) and zero/negative values are
-// treated as missing — canvas drawImage cannot rasterise a percentage-sized SVG, which is the
-// bug this function was created to fix.
-const ABSOLUTE_SIZE = /^\s{0,8}\+?(\d{1,6}(?:\.\d{1,6})?)\s{0,8}(?:px|pt|cm|mm|in|pc|q)?\s{0,8}$/i;
+// `12.5pt`, `1e2`) is honoured; relative units (`100%`, `50vw`, `1em`) and zero/negative values
+// are treated as missing — canvas drawImage cannot rasterise a percentage-sized SVG, which is
+// the bug this function was created to fix. Scientific notation is allowed per the SVG length
+// grammar.
+const ABSOLUTE_SIZE = /^\s{0,8}\+?(\d{1,6}(?:\.\d{1,6})?(?:e[+-]?\d{1,3})?)\s{0,8}(?:px|pt|cm|mm|in|pc|q)?\s{0,8}$/i;
 function hasAbsoluteSize(root: Element, attr: 'width' | 'height'): boolean {
     const raw = root.getAttribute(attr);
     if (raw == null) return false;

@@ -517,6 +517,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
             node.labelValue = toPlainText(labelValue);
             node.secondaryLabelValue = toPlainText(secondaryLabelValue);
+            // Image-bearing segment arrays are only preserved for leaf tiles. Group titles use the
+            // plain-text representation so the (smaller) group header stays text-only — formatter
+            // output for groups that returns image segments is rendered as its `alt`-text fallback.
             node.labelText = isLeaf ? labelValue : undefined;
             node.secondaryLabelText = isLeaf ? secondaryLabelValue : undefined;
         });

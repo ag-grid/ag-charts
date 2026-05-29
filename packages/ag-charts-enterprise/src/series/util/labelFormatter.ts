@@ -220,7 +220,8 @@ function formatSingleSegmentsLabel<Meta>(
     sizeFittingHeight: SizeFittingHeightFn<Meta>
 ): [LabelFormatting, Meta] | undefined {
     // Per-segment fontSize overrides mean we can't usefully binary-search the base fontSize
-    // the way the plain-text path does. Measure once at the declared font and rely on segment
+    // the way the plain-text path does — `minimumFontSize` is therefore not honoured for segment
+    // arrays. Set `fontSize` on individual segments to control sizing, or rely on the segment
     // overflow handling (drop 'hide' images → truncate text → drop 'keep' images) to fit.
     const sizeAdjust = 2 * padding;
     const baseFont: FontOptions = {
