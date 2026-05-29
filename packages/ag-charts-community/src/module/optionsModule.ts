@@ -57,7 +57,12 @@ import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
 import { type OptionsGraphAccessor, createOptionsGraph, createOptionsGraphFn } from './optionsGraph';
-import { computeStructuralCacheKey, getStructuralCacheEntry, setStructuralCacheEntry } from './optionsStructuralCache';
+import {
+    VOLATILE_KEYS,
+    computeStructuralCacheKey,
+    getStructuralCacheEntry,
+    setStructuralCacheEntry,
+} from './optionsStructuralCache';
 
 export interface ChartSpecialOverrides {
     document: Document;
@@ -117,7 +122,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private static readonly perfDebug = Debug.create(true, 'perf');
 
-    private static readonly FAST_PATH_OPTIONS = new Set<keyof AgChartOptions>(['data', 'width', 'height', 'container']);
+    private static readonly FAST_PATH_OPTIONS = new Set<keyof AgChartOptions>([
+        'data',
+        'width',
+        'height',
+        'container',
+        // `context` is a pass-through consumed only at callback time; no preset/theme
+        // processing branches on it, so context-only deltas can take the fast path.
+        'context',
+    ]);
     private static isFastPathDelta(deltaOptions: DeepPartial<AgChartOptions> | null) {
         for (const key of Object.keys(deltaOptions ?? {})) {
             if (!this.FAST_PATH_OPTIONS.has(key as keyof AgChartOptions)) {
@@ -320,7 +333,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 // Shallow-clone the top level only — the existing dev-mode deepFreeze on
                 // ChartOptions has confirmed no path mutates nested processedOptions, and
                 // sharing frozen nested refs across charts is the whole point of the cache.
+                // Re-attach VOLATILE_KEYS from this chart's `userOptions` (see their definition).
+                const userOpts = this.userOptions as Record<string, unknown>;
                 const processedOptions = { ...(cached.processedOptions as object), data: resolvedData } as T;
+                for (const key of VOLATILE_KEYS) {
+                    if (key in userOpts) {
+                        (processedOptions as any)[key] = userOpts[key];
+                    }
+                }
                 // Un-memoized graph — each chart needs its own resolution state for stylers' resolvePartial.
                 const optionsGraph = createOptionsGraphFn(activeTheme, processedOptions as PlainObject);
                 return {
@@ -443,9 +463,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
         if (cacheKey !== undefined) {
-            const { data: _cachedData, ...processedOptionsWithoutData } = processedOptions as Record<string, unknown>;
+            // Strip `data` and VOLATILE_KEYS before caching; the read path re-attaches them.
+            const { data: _cachedData, ...rest } = processedOptions as Record<string, unknown>;
+            for (const key of VOLATILE_KEYS) {
+                delete rest[key];
+            }
             setStructuralCacheEntry(cacheKey, {
-                processedOptions: processedOptionsWithoutData,
+                processedOptions: rest,
                 themeParameters,
                 googleFonts: googleFonts.size > 0 ? new Set(googleFonts) : undefined,
                 annotationThemes,

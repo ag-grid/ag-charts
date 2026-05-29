@@ -2,12 +2,11 @@ import { type ChartModuleDefinition, Debug, LRUCache, ModuleRegistry, deepFreeze
 import type { AgChartThemeParams } from 'ag-charts-types';
 
 // Structural-output cache for `ChartOptions.slowSetup`, gated by callers on
-// `domMode: 'minimal'`. `processedOptions` is cached WITHOUT `data` — the per-call
-// data is re-attached on hit so two charts with the same option shape but different
-// data arrays do not alias.
+// `domMode: 'minimal'`. Per-instance keys are stripped before caching and
+// re-attached on hit; see `VOLATILE_KEYS`.
 
 export interface StructuralCacheEntry {
-    /** `processedOptions` with `data` stripped — caller splices in fresh data on read. */
+    /** `processedOptions` with `data` and `VOLATILE_KEYS` stripped. */
     processedOptions: unknown;
     themeParameters: AgChartThemeParams;
     googleFonts: Set<string> | undefined;
@@ -20,7 +19,16 @@ const structuralCache = new LRUCache<StructuralCacheEntry>(STRUCTURAL_CACHE_MAX)
 let structuralCacheRevision = -1;
 const structuralCacheDebug = Debug.create(true, 'perf', 'opts');
 
+// Per-instance keys excluded from the cache key. `document`/`window`/`styleContainer`
+// are extracted to `specialOverrides` before `slowSetup`; the rest are VOLATILE_KEYS.
 const IGNORED_SIGNATURE_KEYS = new Set(['data', 'container', 'document', 'window', 'styleContainer', 'context']);
+
+/**
+ * Per-instance keys that reach `processedOptions`. Stripped before caching and re-attached
+ * from the chart's `userOptions` on hit, otherwise charts sharing an entry would alias each
+ * other's container reference and user-supplied context payload.
+ */
+export const VOLATILE_KEYS = ['container', 'context'] as const;
 
 export function computeStructuralCacheKey(options: object): string | undefined {
     let unsafe = false;
