@@ -22,6 +22,7 @@ import {
     greaterThan,
     lessThan,
     number,
+    numericValue,
     optionsDefs,
     or,
     positiveNumber,
@@ -51,14 +52,14 @@ import {
 const fillsOptionsDef: OptionsDefs<FillsOptions> = {
     fills: and(
         arrayLength(2),
-        arrayOf(optionsDefs<AgGaugeColorStop>({ color: color, stop: number }, '')),
+        arrayOf(optionsDefs<AgGaugeColorStop>({ color: color, stop: numericValue }, '')),
         colorStopsOrderValidator
     ),
     fillMode: union('continuous', 'discrete'),
 };
 
 export const linearGaugeTargetOptionsDef: OptionsDefs<AgLinearGaugeTarget> = {
-    value: required(number),
+    value: required(numericValue),
     text: string,
     shape: or(
         union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle', 'line'),
@@ -74,7 +75,7 @@ export const linearGaugeTargetOptionsDef: OptionsDefs<AgLinearGaugeTarget> = {
 };
 
 export const radialGaugeTargetOptionsDef: OptionsDefs<AgRadialGaugeTarget> = {
-    value: required(number),
+    value: required(numericValue),
     text: string,
     shape: or(
         union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle', 'line'),
@@ -141,10 +142,10 @@ export const linearGaugeSeriesOptionsDef: OptionsDefs<AgLinearGaugePreset> = {
     ...without(commonSeriesOptionsDefs, ['listeners']),
     ...linearGaugeSeriesThemeableOptionsDef,
     type: required(constant('linear-gauge')),
-    value: required(number),
+    value: required(numericValue),
     scale: {
-        min: and(number, lessThan('max')),
-        max: and(number, greaterThan('min')),
+        min: and(numericValue, lessThan('max')),
+        max: and(numericValue, greaterThan('min')),
         label: {
             enabled: boolean,
             formatter: callback,
@@ -157,8 +158,8 @@ export const linearGaugeSeriesOptionsDef: OptionsDefs<AgLinearGaugePreset> = {
             ...fontOptionsDef,
         },
         interval: {
-            values: arrayOf(number),
-            step: number,
+            values: arrayOf(numericValue),
+            step: numericValue,
         },
         ...fillsOptionsDef,
         ...fillOptionsDef,
@@ -197,8 +198,8 @@ export const radialGaugeSeriesThemeableOptionsDef: OptionsDefs<AgRadialGaugeThem
     cornerMode: union('container', 'item'),
     cornerRadius: positiveNumber,
     scale: {
-        min: and(number, lessThan('max')),
-        max: and(number, greaterThan('min')),
+        min: and(numericValue, lessThan('max')),
+        max: and(numericValue, greaterThan('min')),
         label: {
             enabled: boolean,
             formatter: callback,
@@ -210,8 +211,8 @@ export const radialGaugeSeriesThemeableOptionsDef: OptionsDefs<AgRadialGaugeThem
             ...fontOptionsDef,
         },
         interval: {
-            values: arrayOf(number),
-            step: number,
+            values: arrayOf(numericValue),
+            step: numericValue,
         },
         ...fillsOptionsDef,
         ...fillOptionsDef,
@@ -258,7 +259,7 @@ export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
     ...without(commonSeriesOptionsDefs, ['listeners']),
     ...radialGaugeSeriesThemeableOptionsDef,
     type: required(constant('radial-gauge')),
-    value: required(number),
+    value: required(numericValue),
     targets: arrayOfDefs(radialGaugeTargetOptionsDef, 'target options array'),
 };
 

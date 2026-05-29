@@ -79,7 +79,7 @@ export interface LinearGaugeLabelDatum extends _ModuleSupport.SeriesNodeDatum<Li
     avoidCollisions: boolean;
     spacing: number;
     text: TextOrSegments | undefined;
-    value: number;
+    value: number | bigint;
     fill: string | undefined;
     fontStyle: FontStyle | undefined;
     fontWeight: FontWeight | undefined;

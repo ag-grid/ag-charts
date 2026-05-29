@@ -89,7 +89,7 @@ export type RadialGaugeLabelDatum = {
     centerX: number;
     centerY: number;
     text: string | undefined;
-    value: number;
+    value: number | bigint;
     fill: string | undefined;
     fontStyle: FontStyle | undefined;
     fontWeight: FontWeight | undefined;

@@ -1294,7 +1294,7 @@ export class RadialGaugeSeries
         return true;
     }
 
-    formatLabelText(datum?: { label: number | undefined; secondaryLabel: number | undefined }) {
+    formatLabelText(datum?: { label: number | bigint | undefined; secondaryLabel: number | bigint | undefined }) {
         const { labelSelection, radius, textAlign, verticalAlign } = this;
         const { spacing: padding, innerRadiusRatio } = this.properties;
 
@@ -1327,10 +1327,10 @@ export class RadialGaugeSeries
     private animateLabelText(params: { from?: number; phase?: _ModuleSupport.AnimationPhase } = {}) {
         const { animationManager } = this.ctx;
 
-        let labelFrom: number | undefined;
-        let labelTo: number | undefined;
-        let secondaryLabelFrom: number | undefined;
-        let secondaryLabelTo: number | undefined;
+        let labelFrom: number | bigint | undefined;
+        let labelTo: number | bigint | undefined;
+        let secondaryLabelFrom: number | bigint | undefined;
+        let secondaryLabelTo: number | bigint | undefined;
         this.labelSelection.each((label, datum) => {
             // Reset animation
             label.opacity = 1;
@@ -1353,11 +1353,13 @@ export class RadialGaugeSeries
         } else {
             const animationId = `${this.id}_labels`;
 
+            // The count-up tween narrows to Number — intermediate frames are visual only. The resting
+            // frame (onStop) re-formats from the full-precision label values (AG-16608 AC #11).
             animationManager.animate({
                 id: animationId,
                 groupId: 'label',
-                from: { label: labelFrom, secondaryLabel: secondaryLabelFrom },
-                to: { label: labelTo, secondaryLabel: secondaryLabelTo },
+                from: { label: Number(labelFrom), secondaryLabel: Number(secondaryLabelFrom) },
+                to: { label: Number(labelTo), secondaryLabel: Number(secondaryLabelTo) },
                 phase: params.phase ?? 'update',
                 onUpdate: (datum) => this.formatLabelText(datum),
                 onStop: () => this.formatLabelText({ label: labelTo, secondaryLabel: secondaryLabelTo }),
