@@ -5,6 +5,7 @@ import {
     type Mutable,
     type Point,
     type RequireOptional,
+    createBigIntBins,
     createTicks,
     deepClone,
     findMinMax,
@@ -88,8 +89,11 @@ const defaultBinCount = 10;
 
 type HistogramAnimationData = CartesianAnimationDataOf<HistogramSeriesTypes>;
 
+/** Bin boundaries are `bigint` for a BigInt x-column (AG-16608) and `number` otherwise. */
+type BinDomain = [number | bigint, number | bigint];
+
 interface CalculatedBin {
-    domain: [number, number];
+    domain: BinDomain;
     groupIndex: number;
     datum: any[];
     frequency: number;
@@ -151,6 +155,26 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
     override get hasData(): boolean {
         return this.calculatedBins.length > 0;
+    }
+
+    // Resolves the bin boundaries from the user's configuration and the x-domain. A BigInt x-column
+    // (AG-16608) computes its boundaries in BigInt arithmetic for full precision; everything else keeps
+    // the existing number paths. Explicit `bins` win unless an explicit `binCount` is also set.
+    private computeBins(xExtent: [number | bigint, number | bigint]): BinDomain[] {
+        const bigIntExtent = typeof xExtent[0] === 'bigint' || typeof xExtent[1] === 'bigint';
+
+        if (isNumber(this.properties.binCount)) {
+            return bigIntExtent
+                ? createBigIntBins(xExtent[0] as bigint, xExtent[1] as bigint, this.properties.binCount)
+                : this.calculateNiceBins(xExtent as number[], this.properties.binCount);
+        }
+
+        return (
+            this.properties.bins ??
+            (bigIntExtent
+                ? createBigIntBins(xExtent[0] as bigint, xExtent[1] as bigint, defaultBinCount)
+                : this.deriveBins(xExtent as [number, number]))
+        );
     }
 
     // During processData phase, used to unify different ways of the user specifying
@@ -252,7 +276,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             props.push(aggProp);
         }
 
-        let calculatedBinDomains: [number, number][] = [];
+        let calculatedBinDomains: BinDomain[] = [];
         const groupByFn: GroupByFn = (dataSet) => {
             const xExtent = fixNumericExtent(dataSet.domain.keys[0]);
             if (xExtent.length === 0) {
@@ -261,9 +285,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 return () => [];
             }
 
-            const bins = isNumber(this.properties.binCount)
-                ? this.calculateNiceBins(xExtent, this.properties.binCount)
-                : (this.properties.bins ?? this.deriveBins(xExtent));
+            const bins = this.computeBins(xExtent);
             const binCount = bins.length;
             calculatedBinDomains = [...bins];
 
@@ -272,7 +294,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 if (isDate(xValue)) {
                     xValue = xValue.getTime();
                 }
-                if (!isNumber(xValue)) return [];
+                if (!isNumber(xValue) && typeof xValue !== 'bigint') return [];
 
                 for (let i = 0; i < binCount; i++) {
                     const nextBin = bins[i];

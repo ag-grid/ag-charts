@@ -765,7 +765,7 @@ export function diff(
     };
 }
 
-type KeyType = string | number | boolean | null | undefined;
+type KeyType = string | number | bigint | boolean | null | undefined;
 
 export function createDatumId(key: number): number;
 export function createDatumId(key: boolean): boolean;

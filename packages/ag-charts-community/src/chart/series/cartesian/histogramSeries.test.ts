@@ -359,6 +359,44 @@ describe('HistogramSeries', () => {
         });
     });
 
+    // AG-16608: a BigInt x-column must compute bin boundaries in BigInt arithmetic so values beyond
+    // Number.MAX_SAFE_INTEGER keep full precision (and the series is no longer dropped to empty).
+    describe('bigint bins (AG-16608)', () => {
+        it('computes bin boundaries in BigInt at full precision', async () => {
+            const base = 9_007_199_254_740_993n; // 2^53 + 1 — not representable as a Number
+            const xs = [base, base + 10n, base + 25n, base + 40n, base + 80n];
+            const options: AgChartOptions = {
+                data: xs.map((x) => ({ x })),
+                series: [{ type: 'histogram', xKey: 'x', binCount: 10 }],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0] as unknown as {
+                calculatedBins: { domain: [bigint, bigint]; frequency: number }[];
+            };
+            const bins = series.calculatedBins;
+
+            expect(bins.length).toBeGreaterThan(0);
+            for (const bin of bins) {
+                expect(typeof bin.domain[0]).toBe('bigint');
+                expect(typeof bin.domain[1]).toBe('bigint');
+            }
+            // Contiguous boundaries and full coverage of the data range, all at exact precision.
+            for (let i = 1; i < bins.length; i++) {
+                expect(bins[i].domain[0]).toBe(bins[i - 1].domain[1]);
+            }
+            expect(bins[0].domain[0] <= base).toBe(true);
+            expect(bins.at(-1)!.domain[1] >= base + 80n).toBe(true);
+
+            // Every datum is bucketed rather than dropped (the pre-fix behaviour rendered empty).
+            const totalFrequency = bins.reduce((acc, bin) => acc + bin.frequency, 0);
+            expect(totalFrequency).toBe(xs.length);
+        });
+    });
+
     // CRT-1043: Invisible histogram series must still populate nodeData so the remove animation
     // has actual positions to animate from rather than empty data (which causes no animation).
     describe('legend toggle nodeData (CRT-1043)', () => {

@@ -1,4 +1,4 @@
-import { createBigIntTicks, createTicks, niceBigIntDomain } from './ticks';
+import { createBigIntBins, createBigIntTicks, createTicks, niceBigIntDomain } from './ticks';
 
 describe('ticks', () => {
     test('createTicks', () => {
@@ -96,5 +96,43 @@ describe('niceBigIntDomain', () => {
 
     test('leaves already-nice bounds unchanged', () => {
         expect(niceBigIntDomain(0n, 100n, 5)).toEqual([0n, 100n]);
+    });
+});
+
+describe('createBigIntBins', () => {
+    test('produces contiguous equal-width bins covering a nice domain', () => {
+        expect(createBigIntBins(0n, 100n, 5)).toEqual([
+            [0n, 20n],
+            [20n, 40n],
+            [40n, 60n],
+            [60n, 80n],
+            [80n, 100n],
+        ]);
+    });
+
+    test('extends a non-nice domain outward to step multiples', () => {
+        const bins = createBigIntBins(13n, 97n, 5);
+        expect(bins[0][0]).toBe(0n);
+        expect(bins.at(-1)![1]).toBe(100n);
+    });
+
+    test('returns contiguous bins (each bin starts where the previous ends)', () => {
+        const bins = createBigIntBins(-37n, 91n, 6);
+        for (let i = 1; i < bins.length; i++) {
+            expect(bins[i][0]).toBe(bins[i - 1][1]);
+        }
+    });
+
+    test('returns a single bin for a degenerate domain', () => {
+        expect(createBigIntBins(42n, 42n, 5)).toEqual([[42n, 42n]]);
+    });
+
+    test('stays exact for spans beyond Number.MAX_SAFE_INTEGER', () => {
+        const bins = createBigIntBins(0n, 10n ** 21n, 5);
+        expect(bins[0][0]).toBe(0n);
+        expect(bins.at(-1)![1]).toBe(10n ** 21n);
+        for (let i = 1; i < bins.length; i++) {
+            expect(bins[i][0]).toBe(bins[i - 1][1]);
+        }
     });
 });

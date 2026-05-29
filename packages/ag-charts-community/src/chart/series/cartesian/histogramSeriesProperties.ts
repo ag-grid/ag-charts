@@ -27,7 +27,7 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly clipBBox?: BBox;
     readonly aggregatedValue: number;
     readonly frequency: number;
-    readonly domain: [number, number];
+    readonly domain: [number | bigint, number | bigint];
     readonly label?: {
         readonly text: TextOrSegments;
         readonly x: number;
