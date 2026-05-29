@@ -43,10 +43,8 @@ export class HdpiCanvas {
         this.context = this.element.getContext('2d', { willReadFrequently })!;
         this.context.direction = this.direction;
 
-        // AG-17372: install the DPR setTransform at construction. Previously the seeded
-        // width/height defaults left the context transform at identity, so when the first
-        // Scene.resize callback arrived at (600, 300, DPR) — matching those defaults — the
-        // equality short-circuit fired and the transform was never applied.
+        // Apply the DPR transform at construction; the first Scene.resize callback may match
+        // the seeded width/height and be short-circuited by the equality check (AG-17372).
         this.resize(width ?? this.width, height ?? this.height, this.pixelRatio);
 
         debugContext(this.context);
