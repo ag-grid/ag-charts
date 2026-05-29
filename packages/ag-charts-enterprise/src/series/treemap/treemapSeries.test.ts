@@ -456,7 +456,7 @@ describe('TreemapSeries', () => {
                     if (bbox == null) continue;
                     for (const textNode of labelGroup.children?.() ?? []) {
                         textNode.getBBox?.();
-                        const richText = (textNode as any).richText;
+                        const richText = textNode.richText;
                         if (!richText) continue;
                         for (const child of richText.children?.() ?? []) {
                             if (typeof child.boxWidth !== 'number' || !child.url) continue;
