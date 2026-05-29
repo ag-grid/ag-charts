@@ -30,6 +30,8 @@ const THEMES: Record<AgChartThemeName, boolean> = {
     'ag-sheets-dark': true,
     'ag-vivid': true,
     'ag-vivid-dark': true,
+    'ag-rainbow': true,
+    'ag-rainbow-dark': true,
     'ag-financial': false,
     'ag-financial-dark': false,
 };
