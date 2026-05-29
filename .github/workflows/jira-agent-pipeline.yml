@@ -382,6 +382,12 @@ jobs:
             contents: read
             pull-requests: read
             packages: read
+        # Surfaced so the pr-plnkr job can gate on the first promoting green
+        # (handled == 'true') and forward the issue key + PR number.
+        outputs:
+            handled: ${{ steps.handler.outputs.handled }}
+            issue_key: ${{ steps.handler.outputs.issue_key }}
+            pr_number: ${{ steps.handler.outputs.pr_number }}
         steps:
             - uses: actions/checkout@v4
               with:
@@ -392,7 +398,8 @@ jobs:
               with:
                   channel: ${{ env.DEV_PROMPTS_CHANNEL }}
 
-            - uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-ci-success-handler
+            - id: handler
+              uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-ci-success-handler
               with:
                   head_branch: ${{ github.event.workflow_run.head_branch }}
                   head_sha: ${{ github.event.workflow_run.head_sha }}
@@ -411,3 +418,68 @@ jobs:
                       <script src="https://ag-grid.github.io/ag-charts/pr-{PR_NUMBER}/ag-charts-enterprise.min.js"></script>
 
                       Bundles auto-cleanup on PR close. PR: {PR_URL}
+
+    # -------------------------------------------------------------- pr-plnkr
+    # Automates the manual "paste these <script> tags into a Plunker" step the
+    # success comment above describes: clone the reporter's repro Plunker(s)
+    # from the ticket and re-point their AG Charts <script src> tags at this
+    # PR's per-PR UMD bundle, then post the fix-pinned links back to the ticket.
+    #
+    # Gated on ci-success-handler.handled — true ONLY on the first promoting
+    # green (afterwards AI status is `done`, outside the handler's
+    # eligible_statuses), so this runs exactly once per PR with no marker field.
+    # Boots a focused agent (jira-pr-plnkr); orthogonal to AI status, so it does
+    # NOT go through jira-pipeline.
+    pr-plnkr:
+        needs: ci-success-handler
+        if: needs.ci-success-handler.outputs.handled == 'true'
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        permissions:
+            contents: read
+            packages: read
+            # The agent posts a `<!-- pr-plnkr -->` marker comment on the PR
+            # (idempotency guard against single-job re-runs) via the App token.
+            pull-requests: write
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            # Same read token + setup-nx prelude as the agent stages: setup-nx's
+            # postinstall renders .claude/settings.json, which setup-jira-agent
+            # (inside jira-pr-plnkr) verifies. No repo build runs in the agent.
+            - name: Mint ag-dev-prompts read token
+              id: prompts-token
+              uses: actions/create-github-app-token@v1
+              with:
+                  app-id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  owner: ag-grid
+                  repositories: ag-dev-prompts
+
+            - name: Setup Nx (renders .claude/settings.json)
+              uses: ./.github/actions/setup-nx
+              env:
+                  GITHUB_TOKEN: ${{ steps.prompts-token.outputs.token }}
+              with:
+                  cache_mode: ro
+                  fetch_base: skip
+
+            - name: Install @ag-grid/dev-prompts
+              uses: ./.github/actions/install-ag-dev-prompts
+              with:
+                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
+
+            - uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-pr-plnkr
+              with:
+                  issue_key: ${{ needs.ci-success-handler.outputs.issue_key }}
+                  pr_number: ${{ needs.ci-success-handler.outputs.pr_number }}
+                  community_bundle_url: https://ag-grid.github.io/ag-charts/pr-${{ needs.ci-success-handler.outputs.pr_number }}/ag-charts-community.min.js
+                  enterprise_bundle_url: https://ag-grid.github.io/ag-charts/pr-${{ needs.ci-success-handler.outputs.pr_number }}/ag-charts-enterprise.min.js
+                  anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+                  jira_agent_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  jira_agent_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
