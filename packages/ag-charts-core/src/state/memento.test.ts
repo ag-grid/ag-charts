@@ -150,6 +150,27 @@ describe('Memento Caretaker', () => {
         expect(originator.restored).toStrictEqual({ count: bigValue });
     });
 
+    it('should not throw on a malformed bigint payload and leave it un-decoded', () => {
+        const blobMalformedBigInt = {
+            version: '10.0.0',
+            test: {
+                data: {
+                    fractional: { __type: 'bigint', value: '12.3' },
+                    nonString: { __type: 'bigint', value: 5 },
+                },
+                type: 'test',
+            },
+        };
+
+        expect(() => caretaker.restore(blobMalformedBigInt, originator)).not.toThrow();
+        // Malformed payloads are left un-decoded (not converted to bigint), mirroring how an
+        // invalid date payload flows through to guardMemento rather than aborting the restore.
+        expect(originator.restored).toStrictEqual({
+            fractional: { __type: 'bigint', value: '12.3' },
+            nonString: { __type: 'bigint', value: 5 },
+        });
+    });
+
     it('should migrate older versioned mementos', () => {
         caretaker.restore(
             {
