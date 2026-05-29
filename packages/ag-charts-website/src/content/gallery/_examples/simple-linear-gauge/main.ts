@@ -56,8 +56,8 @@ const options: AgLinearGaugeOptions = {
             title: 'Chemical Concentration',
             data: [
                 { label: 'Measured Value', value: `${value} mol/L` },
-                { label: 'Status', value: getStatusForValue(value) },
-                { label: 'Range', value: getRangeForValue(value) },
+                { label: 'Status', value: getStatusForValue(Number(value)) },
+                { label: 'Range', value: getRangeForValue(Number(value)) },
             ],
         }),
     },
