@@ -2880,13 +2880,13 @@ describe('DataModel', () => {
             const result = model.processData(
                 basicDataSet([
                     { x: '2024-01-15', y: 1 },
-                    { x: '2024-02-15T10:30:00Z', y: 2 },
+                    { x: '2024-02-15T10:30:00', y: 2 },
                 ])
             )!;
 
             // AC #7: the raw column retains the original ISO string, not a parsed Date.
             const keys = [...result.keys[0].get(ISO_SCOPE)!];
-            expect(keys).toEqual(['2024-01-15', '2024-02-15T10:30:00Z']);
+            expect(keys).toEqual(['2024-01-15', '2024-02-15T10:30:00']);
         });
 
         it('rejects a non-ISO string on a time axis with a format-naming warning', () => {
@@ -2935,6 +2935,71 @@ describe('DataModel', () => {
             const invalid = result.invalidData?.get(ISO_SCOPE) ?? [];
             expect(invalid[1]).toBe(true);
             expect(drainWarnings()).toContain('invalid value of type [string]');
+        });
+
+        it('warns once when a column mixes timezone-explicit and timezone-implicit ISO strings', () => {
+            const model = timeKeyModel();
+            const result = model.processData(
+                basicDataSet([
+                    { x: '2024-01-15T10:30:00Z', y: 1 },
+                    { x: '2024-02-15', y: 2 },
+                    { x: '2024-03-15T08:00:00+05:30', y: 3 },
+                ])
+            )!;
+
+            // The chart still renders: every value parses and is retained.
+            const keys = [...result.keys[0].get(ISO_SCOPE)!];
+            expect(keys).toEqual(['2024-01-15T10:30:00Z', '2024-02-15', '2024-03-15T08:00:00+05:30']);
+
+            const warnings = drainWarnings();
+            expect(warnings).toContain('column "x"');
+            expect(warnings).toContain('timezone-explicit');
+            expect(warnings).toContain('timezone-implicit');
+            expect(warnings).toContain('local time');
+            // Names an example of each kind with its row.
+            expect(warnings).toContain('2024-01-15T10:30:00Z');
+            expect(warnings).toContain('2024-02-15');
+            // Warns exactly once for the column despite multiple offending rows.
+            expect(warnings.match(/timezone-explicit/g)).toHaveLength(1);
+        });
+
+        it('does not warn for an all-timezone-explicit ISO column', () => {
+            const model = timeKeyModel();
+            model.processData(
+                basicDataSet([
+                    { x: '2024-01-15T10:30:00Z', y: 1 },
+                    { x: '2024-02-15T08:00:00+05:30', y: 2 },
+                ])
+            );
+
+            expect(drainWarnings()).not.toContain('timezone-explicit');
+        });
+
+        it('does not warn for an all-timezone-implicit ISO column', () => {
+            const model = timeKeyModel();
+            model.processData(
+                basicDataSet([
+                    { x: '2024-01-15', y: 1 },
+                    { x: '2024-02-15T08:00:00', y: 2 },
+                ])
+            );
+
+            expect(drainWarnings()).not.toContain('timezone-explicit');
+        });
+
+        it('does not warn for Date + UTC-explicit ISO + epoch values (all unambiguous UTC instants)', () => {
+            const model = timeKeyModel();
+            const result = model.processData(
+                basicDataSet([
+                    { x: new Date('2024-01-01T00:00:00Z'), y: 1 },
+                    { x: '2024-02-01T00:00:00Z', y: 2 },
+                    { x: Date.UTC(2024, 2, 1), y: 3 },
+                ])
+            )!;
+
+            // Renders unchanged and emits no timezone diagnostic.
+            expect([...result.keys[0].get(ISO_SCOPE)!]).toHaveLength(3);
+            expect(drainWarnings()).not.toContain('timezone-explicit');
         });
 
         it('uses ISO 8601 strings as-is on a category axis (no time validation, no parsing)', () => {
