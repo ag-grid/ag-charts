@@ -417,8 +417,8 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             getDataModel: () => this.dataModel,
             getProcessedData: () => this.processedData,
             aggregationManager: this.aggregationManager,
+            dataSelectionService: this.ctx.dataSelectionService,
             domainKey: 'value',
-            getSelection: () => this.data?.selections.get(this.id)?.getSelection(),
             canonicalExtremaSlots: [AGGREGATION_INDEX_Y_MAX],
         });
     }
