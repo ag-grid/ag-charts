@@ -836,7 +836,7 @@ describe('RadarLineSeries', () => {
             const countVisibleLabels = () => {
                 let count = 0;
                 for (const node of labelGroup.children()) {
-                    if (node.visible && (node as any).text) {
+                    if (node.visible && node.text) {
                         count++;
                     }
                 }
