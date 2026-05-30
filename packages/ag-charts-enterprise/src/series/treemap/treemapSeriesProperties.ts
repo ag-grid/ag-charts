@@ -42,6 +42,9 @@ class TreemapSeriesGroupHighlightStyle extends BaseProperties {
 
 class TreemapSeriesGroupHighlight extends BaseProperties {
     @Property
+    enabled: boolean = true;
+
+    @Property
     readonly highlightedItem = new TreemapSeriesGroupHighlightStyle();
 
     @Property
@@ -69,6 +72,9 @@ class TreemapSeriesTileHighlightStyle extends BaseProperties {
 }
 
 class TreemapSeriesTileHighlight extends BaseProperties {
+    @Property
+    enabled: boolean = true;
+
     @Property
     readonly highlightedBranch = new TreemapSeriesTileHighlightStyle();
 

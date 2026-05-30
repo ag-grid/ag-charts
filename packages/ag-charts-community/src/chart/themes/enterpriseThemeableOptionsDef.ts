@@ -635,6 +635,7 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
     highlight: {
+        enabled: boolean,
         highlightedItem: hierarchyHighlightStyleOptionsDef,
         highlightedBranch: hierarchyHighlightStyleOptionsDef,
         unhighlightedItem: hierarchyHighlightStyleOptionsDef,
@@ -657,6 +658,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         textAlign: union('left', 'center', 'right'),
         interactive: boolean,
         highlight: {
+            enabled: boolean,
             highlightedItem: hierarchyHighlightStyleOptionsDef,
             unhighlightedItem: hierarchyHighlightStyleOptionsDef,
         },
@@ -689,6 +691,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
             overflowStrategy: overflowStrategy,
         },
         highlight: {
+            enabled: boolean,
             highlightedItem: hierarchyHighlightStyleOptionsDef,
             highlightedBranch: hierarchyHighlightStyleOptionsDef,
             unhighlightedItem: hierarchyHighlightStyleOptionsDef,

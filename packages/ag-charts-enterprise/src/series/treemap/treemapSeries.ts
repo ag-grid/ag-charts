@@ -797,11 +797,18 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             return { fillOpacity: groupStyle.fillOpacity, strokeOpacity: groupStyle.strokeOpacity };
         }
 
+        if (!this.properties.tile.highlight.enabled) {
+            return undefined;
+        }
+
         return this.getHierarchyHighlightStyles(tileHighlightState, this.properties.tile.highlight);
     }
 
     private getGroupHighlightStyle(highlightState: _ModuleSupport.HierarchyHighlightState): HighlightStyle | undefined {
         const { highlight } = this.properties.group;
+        if (!highlight.enabled) {
+            return undefined;
+        }
         switch (highlightState) {
             case HierarchyHighlightState.Item:
                 return highlight.highlightedItem;
