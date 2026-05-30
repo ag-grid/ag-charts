@@ -10,7 +10,8 @@ export function isNumberEqual(a: number, b: number, epsilon: number = 1e-10) {
     return a === b || Math.abs(a - b) < epsilon;
 }
 
-export function isNegative(value: number) {
+export function isNegative(value: number | bigint) {
+    if (typeof value === 'bigint') return value < 0n;
     return Math.sign(value) === -1 || Object.is(value, -0);
 }
 

@@ -29,6 +29,10 @@ describe('Number Utilities', () => {
         expect(isNegative(0)).toBe(false);
         expect(isNegative(1)).toBe(false);
         expect(isNegative(-0)).toBe(true); // Negative zero check
+        // bigint: Math.sign throws on bigint, so the bigint branch compares directly.
+        expect(isNegative(-4_500_000_000_000_000_000_000n)).toBe(true);
+        expect(isNegative(0n)).toBe(false);
+        expect(isNegative(4_500_000_000_000_000_000_000n)).toBe(false);
     });
 
     test('isInteger', () => {
