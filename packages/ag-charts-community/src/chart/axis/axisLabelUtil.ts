@@ -2,6 +2,7 @@ import { isArray, objectsEqual } from 'ag-charts-core';
 import type {
     AgAxisLabelFormatterParams,
     AgBaseAxisLabelStyleOptions,
+    AgNumericValue,
     AgTimeIntervalUnit,
     DateFormatterStyle,
     FormatterParams,
@@ -39,6 +40,16 @@ export function getAxisLabelSideFlag(mirrored: boolean): ChartAxisLabelFlipFlag 
     return mirrored ? 1 : -1;
 }
 
+/**
+ * Narrows a possibly-`bigint` visible domain to the `[number, number]` form exposed on the public
+ * `AgAxisLabelFormatterParams.visibleDomain`, which is deliberately not widened to `AgNumericValue`.
+ */
+export function toNumberPairDomain(
+    visibleDomain: [AgNumericValue, AgNumericValue] | undefined
+): [number, number] | undefined {
+    return visibleDomain == null ? undefined : [Number(visibleDomain[0]), Number(visibleDomain[1])];
+}
+
 export function formatAxisLabelValue(
     label:
         | (Pick<AgBaseAxisLabelStyleOptions, never> & {
@@ -70,7 +81,7 @@ export function formatAxisLabelValue(
     let result: TextOrSegments | undefined;
     if (formatter != null) {
         const step = params.type === 'date' ? params.step : undefined;
-        const visibleDomain = params.type === 'number' ? params.visibleDomain : undefined;
+        const visibleDomain = toNumberPairDomain(params.type === 'number' ? params.visibleDomain : undefined);
         result = callWithContext(formatter, {
             type,
             value,
