@@ -1,16 +1,24 @@
 name: Jira Agent Pipeline
 
 # ============================================================================
-# End-to-end Jira -> GHA agent pipeline. Four stages, one workflow:
+# End-to-end Jira -> GHA agent pipeline. Stages, one workflow:
 #
 #   triage              — /fr --ci --phase 0..1 <KEY>            (intent / research / plan)
 #   build               — /fr --ci --phase 2..5 --resume --draft-pr <KEY>
 #   pr-iterate          — /fr --ci --pr-iterate <KEY>                              (review-comment driven)
 #   ci-failure-iterate  — /fr --ci --pr-iterate --ci-failure <run_url> <KEY>       (main-CI failure driven)
+#   recycle             — /fr --ci --recycle --prior <merged|abandoned> <KEY>      (new -rN PR after prior PR merged/closed)
+#
+# A single `→ In Progress` JIRA rule dispatches `jira-resume`; the cheap
+# `resume-preflight` job reads AI pr-url + the PR's GitHub state and routes to
+# one of resume-build / resume-iterate / resume-recycle (no AI-status guard in
+# the rule — the preflight does the disambiguation JIRA can't, since it can see
+# whether the PR is open / merged / closed). See ag-dev-prompts
+# docs/jira-agent-pipeline.md §"Re-engagement after Needs Review".
 #
 # Each stage is its own job, gated on the dispatch event_type, the
-# workflow_dispatch `stage` input, or — for ci-failure-iterate — the
-# `workflow_run.completed` event on the main CI workflow.
+# workflow_dispatch `stage` input, the `resume-preflight` route output, or —
+# for ci-failure-iterate — the `workflow_run.completed` event on main CI.
 #
 # The heavy lifting (App-token mint, MCP setup, status/state/PR/cost
 # writebacks, Claude invocation, trace digest, artefact upload) lives in
@@ -80,7 +88,7 @@ name: Jira Agent Pipeline
 
 on:
     repository_dispatch:
-        types: [jira-triage, jira-build, jira-pr-iterate]
+        types: [jira-triage, jira-build, jira-pr-iterate, jira-resume]
     workflow_dispatch:
         inputs:
             issue_key:
@@ -96,6 +104,7 @@ on:
                     - triage
                     - build
                     - pr-iterate
+                    - recycle
     workflow_run:
         # Auto-react when the main CI workflow completes on an agent-authored
         # branch — failure → ci-failure-iterate, success → ci-success-handler
@@ -266,6 +275,191 @@ jobs:
               with:
                   stage: pr-iterate
                   issue_key: ${{ env.ISSUE_KEY }}
+                  jira_agent_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  jira_agent_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+    # -------------------------------------------------- resume-preflight
+    # The `→ In Progress` router. A single JIRA rule dispatches `jira-resume`
+    # on every transition to In Progress; this cheap job reads the ticket's
+    # AI pr-url + the named PR's GitHub state and emits the route the three
+    # resume-* jobs below gate on. No App token, no agent — mirrors
+    # ci-failure-preflight. See ag-dev-prompts docs/jira-agent-pipeline.md
+    # §"Re-engagement after Needs Review".
+    resume-preflight:
+        if: |
+            (github.event_name == 'repository_dispatch' && github.event.action == 'jira-resume') ||
+            (github.event_name == 'workflow_dispatch'   && inputs.stage == 'recycle')
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
+            pull-requests: read
+            packages: read
+        outputs:
+            route: ${{ steps.gate.outputs.route }}
+            prior_pr_outcome: ${{ steps.gate.outputs.prior_pr_outcome }}
+            issue_key: ${{ steps.gate.outputs.issue_key }}
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Install @ag-grid/dev-prompts
+              uses: ./.github/actions/install-ag-dev-prompts
+              with:
+                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
+
+            - id: gate
+              uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-resume-preflight
+              with:
+                  issue_key: ${{ env.ISSUE_KEY }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+    # -------------------------------------------------- resume-build
+    # route == build → no PR yet, run the first build.
+    resume-build:
+        needs: resume-preflight
+        if: needs.resume-preflight.outputs.route == 'build'
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+        permissions:
+            contents: read
+            packages: read
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Mint ag-dev-prompts read token
+              id: prompts-token
+              uses: actions/create-github-app-token@v1
+              with:
+                  app-id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  owner: ag-grid
+                  repositories: ag-dev-prompts
+
+            - name: Setup Nx (renders .claude/settings.json)
+              uses: ./.github/actions/setup-nx
+              env:
+                  GITHUB_TOKEN: ${{ steps.prompts-token.outputs.token }}
+              with:
+                  cache_mode: ro
+                  fetch_base: skip
+
+            - name: Install @ag-grid/dev-prompts
+              uses: ./.github/actions/install-ag-dev-prompts
+              with:
+                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
+
+            - uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-pipeline
+              with:
+                  stage: build
+                  issue_key: ${{ needs.resume-preflight.outputs.issue_key }}
+                  jira_agent_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  jira_agent_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+    # -------------------------------------------------- resume-iterate
+    # route == iterate → an open PR exists, resume its branch.
+    resume-iterate:
+        needs: resume-preflight
+        if: needs.resume-preflight.outputs.route == 'iterate'
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+        permissions:
+            contents: read
+            packages: read
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Mint ag-dev-prompts read token
+              id: prompts-token
+              uses: actions/create-github-app-token@v1
+              with:
+                  app-id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  owner: ag-grid
+                  repositories: ag-dev-prompts
+
+            - name: Setup Nx (renders .claude/settings.json)
+              uses: ./.github/actions/setup-nx
+              env:
+                  GITHUB_TOKEN: ${{ steps.prompts-token.outputs.token }}
+              with:
+                  cache_mode: ro
+                  fetch_base: skip
+
+            - name: Install @ag-grid/dev-prompts
+              uses: ./.github/actions/install-ag-dev-prompts
+              with:
+                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
+
+            - uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-pipeline
+              with:
+                  stage: pr-iterate
+                  issue_key: ${{ needs.resume-preflight.outputs.issue_key }}
+                  jira_agent_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  jira_agent_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+                  jira_email: ${{ secrets.JIRA_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
+
+    # -------------------------------------------------- resume-recycle
+    # route == recycle → prior PR merged/closed; cut a new -rN branch + PR.
+    # prior_pr_outcome (merged | abandoned) drives the recycle stage.
+    resume-recycle:
+        needs: resume-preflight
+        if: needs.resume-preflight.outputs.route == 'recycle'
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+        permissions:
+            contents: read
+            packages: read
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Mint ag-dev-prompts read token
+              id: prompts-token
+              uses: actions/create-github-app-token@v1
+              with:
+                  app-id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  owner: ag-grid
+                  repositories: ag-dev-prompts
+
+            - name: Setup Nx (renders .claude/settings.json)
+              uses: ./.github/actions/setup-nx
+              env:
+                  GITHUB_TOKEN: ${{ steps.prompts-token.outputs.token }}
+              with:
+                  cache_mode: ro
+                  fetch_base: skip
+
+            - name: Install @ag-grid/dev-prompts
+              uses: ./.github/actions/install-ag-dev-prompts
+              with:
+                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
+
+            - uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-pipeline
+              with:
+                  stage: recycle
+                  issue_key: ${{ needs.resume-preflight.outputs.issue_key }}
+                  recycle_from: ${{ needs.resume-preflight.outputs.prior_pr_outcome }}
                   jira_agent_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
                   jira_agent_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
