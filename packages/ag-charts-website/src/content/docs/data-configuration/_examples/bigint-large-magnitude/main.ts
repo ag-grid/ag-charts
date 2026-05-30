@@ -10,7 +10,8 @@ import {
 ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
 
 // Wei balances exceed Number.MAX_SAFE_INTEGER (2^53 - 1), so they are supplied
-// as bigint to preserve full precision through the data pipeline.
+// as bigint. Data values, aggregated totals, tooltips and axis tick labels stay
+// exact; bar positions are computed at high but finite precision.
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: { text: 'Wallet Balances' },

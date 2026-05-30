@@ -13,6 +13,9 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
     'axes-labels': {
         'axis-label-rotation': { skipCanvasUpdateCheck: true },
     },
+    'axes-time': {
+        'iso-8601-rejected-input': { ignoreConsoleWarnings: true },
+    },
     'api-create-update': {
         'update-partial': { frameworks: ['vanilla', 'typescript'] },
         'wait-for-update': {

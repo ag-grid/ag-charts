@@ -3,7 +3,8 @@ import { AgCharts, AgRadialGaugeOptions, AllGaugeModule, AnimationModule, Module
 ModuleRegistry.registerModules([AllGaugeModule, AnimationModule]);
 
 // The gauge value and scale bounds are supplied as bigint, demonstrating the
-// widened numeric value type. Values are interpreted at full integer precision.
+// widened numeric value type. The label is shown at full precision; the bar fill
+// is positioned from a ratio computed at high but finite precision.
 const options: AgRadialGaugeOptions = {
     type: 'radial-gauge',
     container: document.getElementById('myChart'),

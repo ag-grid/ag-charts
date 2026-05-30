@@ -109,7 +109,7 @@ Numeric values may be supplied as `bigint`. This is useful for integers read str
 
 {% chartExampleRunner title="BigInt Values" name="bigint-small-magnitude" type="generated" /%}
 
-`bigint` also preserves full precision for values beyond the safe-integer range (`Number.MAX_SAFE_INTEGER`, `2^53 - 1`), such as token balances measured in wei.
+`bigint` is also useful for values beyond the safe-integer range (`Number.MAX_SAFE_INTEGER`, `2^53 - 1`), such as token balances measured in wei. Data values, aggregated totals, tooltips and axis tick labels are kept at full precision; series positions are computed at high but finite precision.
 
 {% chartExampleRunner title="Large BigInt Values" name="bigint-large-magnitude" type="generated" /%}
 
