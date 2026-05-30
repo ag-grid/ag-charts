@@ -106,6 +106,11 @@ export class ColorScale extends AbstractScale<number, string> {
     convert(x: number) {
         this.refresh();
 
+        // A bigint colour value (AG-16608 heatmap) narrows to Number; the output colour is derived from
+        // the value's position in the domain, so finite precision is sufficient and arithmetic on a
+        // bigint mixed with the Number domain would throw.
+        x = Number(x);
+
         const { domain, range, parsedRange } = this;
         const d0 = domain[0];
         const d1 = domain.at(-1)!;

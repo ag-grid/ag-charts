@@ -1065,8 +1065,10 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
 
         scratch.datum = ctx.rawData[datumIndex];
         scratch.yDatum = ctx.yRawValues[datumIndex];
-        scratch.yCumulative = +ctx.yCumulativeValues[datumIndex];
-        scratch.validPoint = Number.isFinite(scratch.yDatum) && ctx.invalidData?.[datumIndex] !== true;
+        // Coerce to Number for positioning (bigint values plot at finite precision); the raw value
+        // is retained on yDatum for tooltips. isContinuous accepts bigint where Number.isFinite would not.
+        scratch.yCumulative = Number(ctx.yCumulativeValues[datumIndex]);
+        scratch.validPoint = isContinuous(scratch.yDatum) && ctx.invalidData?.[datumIndex] !== true;
 
         // Compute marker coordinates
         this.computeMarkerCoordinate(ctx, scratch);

@@ -277,7 +277,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         } else {
             const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent');
             const yExtent = values[yCurrIndex];
-            const fixedYExtent = [Math.min(0, yExtent[0]), Math.max(0, yExtent[1])];
+            // The cumulative extent can be bigint; narrow to Number for the domain (finite precision,
+            // consistent with bar) since Math.min/max throw on bigint.
+            const fixedYExtent = [Math.min(0, Number(yExtent[0])), Math.max(0, Number(yExtent[1]))];
             return { domain: fixNumericExtent(fixedYExtent) };
         }
     }
