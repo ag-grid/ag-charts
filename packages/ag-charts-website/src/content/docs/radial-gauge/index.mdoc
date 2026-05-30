@@ -102,6 +102,12 @@ In this configuration:
 - `scale.max` defines the maximum value of the scale.
 - The data is represented by a coloured bar displayed over a grey scale.
 
+### BigInt Values
+
+`value` and the `scale` bounds accept `bigint`, preserving full precision for integers beyond the safe-integer range.
+
+{% chartExampleRunner title="BigInt Value" name="bigint-value" type="generated" options={ "exampleHeight": 320 } /%}
+
 ## Customisation
 
 ### Needle / Bar
