@@ -104,7 +104,12 @@ on:
                     - triage
                     - build
                     - pr-iterate
-                    - recycle
+                    # `resume` runs the resume-preflight router (build / iterate
+                    # / recycle decided from the PR's real state) — the manual
+                    # entry to dry-run the → In Progress path. `recycle` is an
+                    # internal route, not a directly-dispatchable stage: its
+                    # prior_pr_outcome only comes from the preflight.
+                    - resume
     workflow_run:
         # Auto-react when the main CI workflow completes on an agent-authored
         # branch — failure → ci-failure-iterate, success → ci-success-handler
@@ -292,7 +297,7 @@ jobs:
     resume-preflight:
         if: |
             (github.event_name == 'repository_dispatch' && github.event.action == 'jira-resume') ||
-            (github.event_name == 'workflow_dispatch'   && inputs.stage == 'recycle')
+            (github.event_name == 'workflow_dispatch'   && inputs.stage == 'resume')
         runs-on: ubuntu-latest
         timeout-minutes: 5
         permissions:
