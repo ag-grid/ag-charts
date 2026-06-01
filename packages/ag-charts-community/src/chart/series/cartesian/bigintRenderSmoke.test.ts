@@ -7,11 +7,9 @@ import { createChart, setupMockCanvas, setupMockConsole, waitForChartStability }
 /**
  * Render smoke test for large `bigint` data values across community cartesian series families.
  *
- * Motivation: the `isNegative` crash (Math.sign throws on bigint) reached production through the bar
- * animation path and was caught only by a browser example — unit/scale tests and example type-checks
- * missed it because none rendered a real series with out-of-safe-range bigint data. This test renders
- * each family with bigint values beyond Number.MAX_SAFE_INTEGER and asserts the render completes
- * without throwing, flushing out any other number-only-math-on-bigint crash of the same class.
+ * The `isNegative` crash (Math.sign throws on bigint) reached production via the bar animation path
+ * because no unit/scale test rendered a real series with out-of-safe-range bigint data. Each family
+ * renders with values beyond Number.MAX_SAFE_INTEGER and must complete without throwing.
  */
 
 // Beyond Number.MAX_SAFE_INTEGER (2^53 - 1) so values cannot be represented exactly as numbers.
