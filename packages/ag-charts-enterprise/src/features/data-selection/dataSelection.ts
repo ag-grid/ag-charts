@@ -53,9 +53,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
     private supportsSelection(): boolean {
         const type0 = this.ctx.chartService.series.at(0)?.type;
-        if (type0 && UNSUPPORTED_CARTESIANS.includes(type0)) return false;
-
-        return true;
+        return !(type0 && UNSUPPORTED_CARTESIANS.includes(type0));
     }
 
     private supportsSelectionDrag(): boolean {
