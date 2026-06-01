@@ -373,6 +373,17 @@ export class WidgetEventUtil {
         event: { clientX: number; clientY: number }
     ): { currentX: number; currentY: number } {
         const currentRect = current.getBoundingClientRect();
-        return { currentX: event.clientX - currentRect.x, currentY: event.clientY - currentRect.y };
+        // getBoundingClientRect() is post-transform screen pixels, while clientWidth/Height
+        // is the untransformed layout box — the ratio recovers the ancestor scale per axis.
+        // Fall back to a ratio of 1 if either dimension is non-positive (detached elements,
+        // jsdom test stubs where clientWidth is unreported).
+        const clientWidth = current.clientWidth;
+        const clientHeight = current.clientHeight;
+        const scaleX = currentRect.width > 0 && clientWidth > 0 ? clientWidth / currentRect.width : 1;
+        const scaleY = currentRect.height > 0 && clientHeight > 0 ? clientHeight / currentRect.height : 1;
+        return {
+            currentX: (event.clientX - currentRect.x) * scaleX,
+            currentY: (event.clientY - currentRect.y) * scaleY,
+        };
     }
 }
