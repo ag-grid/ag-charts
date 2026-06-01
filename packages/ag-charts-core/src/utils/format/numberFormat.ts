@@ -99,9 +99,8 @@ export function createNumberFormatter(format: string | FormatterOptions) {
     }
 
     return (n: number | bigint, fractionDigits?: number) => {
-        // A bigint can reach here through an `any`-typed value path (e.g. a number format specifier
-        // applied to a bigint column); the formatting body below uses Math/toFixed which throw on
-        // bigint, so emit a locale-grouped string directly (AG-16608 AC #6/#8).
+        // A bigint can reach here via an `any`-typed value path; the body below uses Math/toFixed which
+        // throw on bigint, so emit a locale-grouped string directly (AG-16608 AC #6/#8).
         if (typeof n === 'bigint') {
             return `${prefix}${n.toLocaleString('en-US')}${suffix}`;
         }

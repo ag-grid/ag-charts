@@ -4,9 +4,8 @@ import { ContinuousDomain } from './dataDomain';
 import type { AggregatePropertyDefinition, DatumPropertyDefinition } from './dataModel';
 
 /**
- * Adds two accumulator operands, promoting to bigint when either is a bigint. Columns are uniformly
- * typed (a mixed number/bigint column is rejected at the series level), so for a bigint column the
- * number-typed `0` seed promotes to `0n` on the first value and stays bigint thereafter.
+ * Adds two accumulator operands, promoting to bigint when either operand is. Columns are uniformly
+ * typed, so a bigint column's number `0` seed promotes to `0n` on the first value and stays bigint.
  */
 export function addAccumulated(acc: number | bigint, value: number | bigint): number | bigint {
     if (typeof acc === 'bigint' || typeof value === 'bigint') {

@@ -168,9 +168,8 @@ export class DiscreteDomain implements IDataDomain {
 }
 
 export class ContinuousDomain<T extends number | Date> implements IDataDomain<T> {
-    // Endpoints may be bigint: a bigint column retains its exact endpoints here so the scale's
-    // full-precision convert() ratio can use them. Comparisons against the Infinity seed (or other
-    // bigints) are legal — only +/-/* mixing of bigint and number throws.
+    // Endpoints may be bigint: a bigint column retains exact endpoints here for the scale's full-precision
+    // convert(). Comparisons against the Infinity seed are legal — only +/-/* bigint/number mixing throws.
     private domain = [Infinity, -Infinity] as [T | bigint, T | bigint];
 
     static is<T extends number | Date = any>(value: unknown): value is ContinuousDomain<T> {
@@ -179,10 +178,8 @@ export class ContinuousDomain<T extends number | Date> implements IDataDomain<T>
 
     static extendDomain(values: unknown[], domain: [number, number] = [Infinity, -Infinity]) {
         for (const value of values) {
-            // Aggregation/stacked domains are derived and feed further arithmetic in the aggregator,
-            // so bigint is narrowed to Number here (unlike the instance `extend`, which retains the
-            // exact endpoints of a raw column for the scale's full-precision convert()). Stacked
-            // totals themselves stay bigint in the column (AG-16608 AC #10).
+            // Derived aggregation/stacked domains feed further arithmetic, so narrow bigint to Number here
+            // (unlike instance `extend`, which retains raw-column endpoints for the scale's convert()).
             let n: number;
             if (typeof value === 'number') {
                 n = value;
