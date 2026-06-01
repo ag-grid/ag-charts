@@ -157,9 +157,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         return this.calculatedBins.length > 0;
     }
 
-    // Resolves the bin boundaries from the user's configuration and the x-domain. A BigInt x-column
-    // (AG-16608) computes its boundaries in BigInt arithmetic for full precision; everything else keeps
-    // the existing number paths. Explicit `bins` win unless an explicit `binCount` is also set.
+    // A BigInt x-column (AG-16608) computes boundaries in BigInt for full precision; everything else
+    // keeps the number paths. Explicit `bins` win unless an explicit `binCount` is also set.
     private computeBins(xExtent: [number | bigint, number | bigint]): BinDomain[] {
         const bigIntExtent = typeof xExtent[0] === 'bigint' || typeof xExtent[1] === 'bigint';
 
