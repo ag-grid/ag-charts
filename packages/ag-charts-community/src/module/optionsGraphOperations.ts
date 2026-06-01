@@ -90,16 +90,24 @@ function getPublicOperation(
 ): { operation: Operation; values: Array<any> } | undefined {
     //  `{ ref: string; mix?: number; onto?: string }`
     if ('ref' in value && typeof value.ref === 'string') {
-        if (keys.length === 1) {
+        // If a public operation is applied to a value that has a default private operation, then the private
+        // operation will also be merged into the object as the last key. It can be safely ignored.
+        let privateOperation = 0;
+        const lastKey = keys.at(-1);
+        if (lastKey && operationTypes.has(lastKey)) {
+            privateOperation = 1;
+        }
+
+        if (keys.length === 1 + privateOperation) {
             return { operation: LocationOperation.Ref, values: [value.ref] };
         }
 
         if ('mix' in value && typeof value.mix === 'number') {
-            if (keys.length === 2) {
+            if (keys.length === 2 + privateOperation) {
                 return { operation: ColorOperation.Opacity, values: [{ $ref: value.ref }, value.mix] };
             }
 
-            if ('onto' in value && typeof value.onto === 'string' && keys.length === 3) {
+            if ('onto' in value && typeof value.onto === 'string' && keys.length === 3 + privateOperation) {
                 return {
                     operation: ColorOperation.Mix,
                     values: [{ $ref: value.ref }, { $ref: value.onto }, 1 - value.mix],
