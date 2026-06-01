@@ -19,7 +19,7 @@ const candidacyInserter = (len: number) => new Bitfield(len);
 function getOrInsert<T>(map: Map<string, T>, key: string, data: DataSet, inserter: (len: number) => T): T {
     let entry: T | undefined = map.get(key);
     if (!entry) {
-        entry = inserter(data.data.length);
+        entry = inserter(data.size());
         map.set(key, entry);
     }
     return entry;
