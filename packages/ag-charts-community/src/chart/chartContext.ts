@@ -57,6 +57,7 @@ export interface ChartContextVars {
     withDragInterpretation: boolean;
     fireEvent: <TEvent extends TypedEvent>(event: TEvent) => void;
     updateMutex: Mutex;
+    cssVariables?: Record<string, string>;
 }
 
 type ChartHost = ChartService & { annotationRoot: Group; tooltip: Tooltip };
@@ -84,7 +85,8 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         vars.container,
         vars.styleContainer,
         vars.skipCss,
-        vars.domMode
+        vars.domMode,
+        vars.cssVariables
     );
     const canvasElement = domManager.addChild(
         'canvas',
