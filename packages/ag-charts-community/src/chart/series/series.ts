@@ -812,9 +812,8 @@ export abstract class Series<
         return HighlightState.OtherSeries;
     }
 
-    protected getDataSelectionState(_datumIndex: DatumIndex | undefined): SelectionState | undefined {
-        // For override by subclasses.
-        return undefined;
+    protected getDataSelectionState(datumIndex: DatumIndex | undefined): SelectionState | undefined {
+        return this.ctx.dataSelectionService?.getDataSelectionState(this, datumIndex);
     }
 
     /**

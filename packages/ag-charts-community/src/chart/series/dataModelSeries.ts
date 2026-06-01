@@ -257,8 +257,4 @@ export abstract class DataModelSeries<
             if (objectsEqual(categoryValue, xValue)) return datumIndex;
         }
     }
-
-    protected override getDataSelectionState(datumIndex: number | undefined): SelectionState | undefined {
-        return this.ctx.dataSelectionService?.getDataSelectionState(this, datumIndex);
-    }
 }
