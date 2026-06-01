@@ -22,6 +22,12 @@ describe('Format utils', () => {
         expect(formatValue(true)).toBe('true');
     });
 
+    test('formatValue renders bigint at full precision (AG-16608)', () => {
+        expect(formatValue(9007199254740993n)).toBe('9,007,199,254,740,993');
+        expect(formatValue(-9007199254740993n)).toBe('-9,007,199,254,740,993');
+        expect(formatValue(0n)).toBe('0');
+    });
+
     test('formatPercent', () => {
         expect(formatPercent(0.25)).toBe('25%');
         expect(formatPercent(1)).toBe('100%');

@@ -1523,9 +1523,9 @@ describe('DataModel', () => {
             expect(processedData!.columnValueType).toEqual(['bigint']);
         });
 
-        it('should drop bigint values into the column while still tagging them (PR1 stopgap)', () => {
-            // PR1 (AG-16608) tags bigint columns but drops the values, since the scale/aggregation
-            // arithmetic that consumes them lands in PR2. PR2 inverts the column assertion below.
+        it('should retain bigint values in the column and continuous domain', () => {
+            // AG-16608: bigint values now flow into the column and build a bigint ContinuousDomain
+            // (the scale/aggregation arithmetic that consumes them is bigint-safe).
             const dataModel = new DataModel<any, any>({
                 props: [categoryKey('id'), value('count')],
             });
@@ -1539,12 +1539,14 @@ describe('DataModel', () => {
             const processedData = dataModel.processData(sources)!;
 
             expect(processedData.columnValueType).toEqual(['bigint']);
-            expect(processedData.columns[0].some((v) => typeof v === 'bigint')).toBe(false);
+            expect(processedData.columns[0]).toEqual([10n, 20n]);
+            expect(processedData.domain.values[0]).toEqual([10n, 20n]);
         });
 
-        it('should drop bigint keys without throwing on a continuous key (PR1 stopgap)', () => {
-            // PR1 (AG-16608) widens continuous validation to accept bigint, but bigint keys must not
-            // reach domain/sort/scale arithmetic until PR2 wires conversion. PR2 inverts this.
+        it('should drop bigint keys without throwing on a continuous key', () => {
+            // AG-16608: bigint *keys* remain dropped — a bigint key reaches SORT_DOMAIN_GROUPS (whose
+            // comparator return is ToNumber-coerced by Array.sort, throwing) and needs numeric-axis
+            // prediction (AC #4); both land in a later PR. Bigint *values* are already supported.
             const dataModel = new DataModel<any, any>({
                 props: [rangeKey('x'), value('y')],
             });
@@ -1620,6 +1622,54 @@ describe('DataModel', () => {
             const reprocessed = dataModel.reprocessData(processedData!);
 
             expect(reprocessed.columnValueType).toEqual(['bigint']);
+        });
+    });
+
+    describe('bigint aggregation (AG-16608)', () => {
+        it('should accumulate a bigint value column into bigint running totals', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('kp'), accumulatedPropertyValue('vp')],
+            });
+            const data = basicDataSet([
+                { kp: 1, vp: 5n },
+                { kp: 2, vp: 3n },
+                { kp: 3, vp: 2n },
+            ]);
+
+            const result = dataModel.processData(data)!;
+
+            expect(result.columnValueType).toEqual(['bigint']);
+            expect(result.columns[0]).toEqual([5n, 8n, 10n]);
+        });
+
+        it('should clamp negative bigints when accumulating with onlyPositive', () => {
+            // accumulatedPropertyValue uses accumulatedValue(true): a negative bigint contributes 0n.
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('kp'), accumulatedPropertyValue('vp')],
+            });
+            const data = basicDataSet([
+                { kp: 1, vp: 5n },
+                { kp: 2, vp: -4n },
+                { kp: 3, vp: 2n },
+            ]);
+
+            const result = dataModel.processData(data)!;
+
+            expect(result.columns[0]).toEqual([5n, 5n, 7n]);
+        });
+
+        it('should stack bigint value columns into bigint totals', () => {
+            const dataModel = new DataModel<any, any, true>({
+                props: [categoryKey('kp'), ...accumulatedGroupValues(['a', 'b'], 'all'), range('all')],
+                groupByKeys: true,
+            });
+            const data = basicDataSet([{ kp: 'Q1', a: 5n, b: 7n }]);
+
+            const result = dataModel.processData(data)!;
+
+            expect(result.type).toEqual('grouped');
+            expect(resolveGroupColumn(result, 0, 0)).toEqual([5n]); // first stack layer
+            expect(resolveGroupColumn(result, 0, 1)).toEqual([12n]); // stacked on top: 5n + 7n
         });
     });
 
