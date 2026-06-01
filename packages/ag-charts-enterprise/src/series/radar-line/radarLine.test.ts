@@ -12,6 +12,7 @@ import {
 import {
     MIN_UNHIGHLIGHT_DELAY,
     type MockRadarLineStyler,
+    deproxy,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
@@ -803,6 +804,61 @@ describe('RadarLineSeries', () => {
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
+        });
+    });
+
+    describe('AG-17463 label.enabled toggle', () => {
+        it('should hide series labels when label.enabled is toggled to false', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { subject: 'Maths', score: 7 },
+                    { subject: 'Physics', score: 4 },
+                    { subject: 'Biology', score: 3 },
+                    { subject: 'History', score: 6 },
+                ],
+                series: [
+                    {
+                        type: 'radar-line',
+                        angleKey: 'subject',
+                        radiusKey: 'score',
+                        label: { enabled: true },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0];
+            const labelGroup = (series as any).labelGroup;
+
+            const countVisibleLabels = () => {
+                let count = 0;
+                for (const node of labelGroup.children()) {
+                    if (node.visible && node.text) {
+                        count++;
+                    }
+                }
+                return count;
+            };
+
+            expect(countVisibleLabels()).toBeGreaterThan(0);
+
+            await chart.update({
+                ...options,
+                series: [
+                    {
+                        type: 'radar-line',
+                        angleKey: 'subject',
+                        radiusKey: 'score',
+                        label: { enabled: false },
+                    },
+                ],
+            });
+            await waitForChartStability(chart);
+
+            expect(countVisibleLabels()).toBe(0);
         });
     });
 });
