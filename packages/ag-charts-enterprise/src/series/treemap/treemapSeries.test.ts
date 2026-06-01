@@ -477,6 +477,95 @@ describe('TreemapSeries', () => {
                 expect(imageNodesInspected).toBeGreaterThan(0);
                 expect(violations).toEqual([]);
             });
+
+            it('centres a leading+trailing block-image label inside short tiles without vertical overflow', async () => {
+                // AG-15933: a formatter returning a leading block image, middle-aligned text, and a
+                // trailing block image rendered mis-centred (~18px off) on a 'middle' baseline,
+                // overflowing short tiles. Repros the docs example at a narrow/tall size that yields
+                // several short tiles. Asserts (a) a visual snapshot and (b) every label box stays
+                // vertically within its tile.
+                const block = (name: string) => ({
+                    type: 'image' as const,
+                    url: ICONS[name] ?? ICONS.Alpha,
+                    width: 36,
+                    height: 36,
+                    block: true,
+                    padding: 6,
+                    backgroundFill: 'rgba(0, 0, 0, 0.35)',
+                    borderRadius: 8,
+                });
+                const options: AgChartOptions = {
+                    width: 312,
+                    height: 1053,
+                    animation: { enabled: false },
+                    data: [
+                        {
+                            name: 'Hardware',
+                            children: [
+                                { name: 'Apple', value: 383 },
+                                { name: 'NVIDIA', value: 244 },
+                                { name: 'Intel', value: 87 },
+                                { name: 'Tesla', value: 67 },
+                            ],
+                        },
+                        {
+                            name: 'Software',
+                            children: [
+                                { name: 'Google', value: 333 },
+                                { name: 'Meta', value: 196 },
+                                { name: 'SAP', value: 58 },
+                                { name: 'Shopify', value: 36 },
+                            ],
+                        },
+                    ],
+                    series: [
+                        {
+                            type: 'treemap',
+                            labelKey: 'name',
+                            sizeKey: 'value',
+                            tile: {
+                                label: {
+                                    enabled: true,
+                                    fontSize: 16,
+                                    minimumFontSize: 10,
+                                    formatter: ({ datum }) => {
+                                        const d = datum as { name: string };
+                                        return [
+                                            block(d.name),
+                                            { text: d.name, fontWeight: 'bold', verticalAlign: 'middle' },
+                                            block(d.name),
+                                        ];
+                                    },
+                                },
+                                secondaryLabel: { enabled: false },
+                            },
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+                chart = deproxy(AgCharts.create(options));
+                stubChartImageLoader(chart);
+                await compare();
+
+                const seriesImpl = chart.series[0] as TreemapSeries;
+                const violations: string[] = [];
+                for (const labelGroup of (seriesImpl as any).labelSelection.nodes()) {
+                    const tile = labelGroup.datum?.bbox;
+                    if (tile == null) continue;
+                    for (const textNode of labelGroup.children?.() ?? []) {
+                        if (!Array.isArray(textNode.text)) continue;
+                        const box = textNode.getBBox();
+                        const epsilon = 0.5;
+                        if (box.y < tile.y - epsilon || box.y + box.height > tile.y + tile.height + epsilon) {
+                            violations.push(
+                                `${labelGroup.datum?.labelValue ?? '?'}: label y=[${box.y.toFixed(1)}, ${(box.y + box.height).toFixed(1)}] outside tile y=[${tile.y.toFixed(1)}, ${(tile.y + tile.height).toFixed(1)}]`
+                            );
+                        }
+                    }
+                }
+                expect(violations).toEqual([]);
+                expectWarningsCalls().toHaveLength(0);
+            });
         });
     });
 

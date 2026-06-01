@@ -259,14 +259,22 @@ export class Text<D = unknown> extends Shape<D> {
             case 'alphabetic':
                 return lineMetrics[0]?.ascent ?? 0;
 
-            case 'middle':
+            case 'middle': {
                 // The single-line shortcut uses text-baseline metrics to anchor the row tightly to
-                // the glyph middle. For a strip-only line (block images, no text), there are no
-                // text metrics to consult — fall through to height/2 so the strip box centres on y.
-                if (lineMetrics.length === 1 && lineMetrics[0].segments.length > 0) {
+                // the glyph middle. It is only valid for a pure-text line: a row carrying a
+                // block-image strip or an inline image has its ascent dominated by the image box,
+                // so the glyph offset no longer matches the row centre. Those rows (and multi-line
+                // labels) centre on height/2 instead, so the box centres on y.
+                const line = lineMetrics[0];
+                const isPureTextLine =
+                    lineMetrics.length === 1 &&
+                    line.segments.length > 0 &&
+                    !line.blockImages?.length &&
+                    line.segments.every((s) => s.type !== 'image');
+                if (isPureTextLine) {
                     return (
-                        lineMetrics[0].ascent +
-                        lineMetrics[0].segments.reduce(
+                        line.ascent +
+                        line.segments.reduce(
                             (offsetY, segment) =>
                                 segment.type === 'image'
                                     ? offsetY
@@ -276,6 +284,7 @@ export class Text<D = unknown> extends Shape<D> {
                     );
                 }
                 return height / 2;
+            }
 
             case 'bottom':
                 return height;

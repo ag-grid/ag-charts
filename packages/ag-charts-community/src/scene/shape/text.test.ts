@@ -477,6 +477,42 @@ describe('Text', () => {
         });
     });
 
+    // AG-15933: a 'middle'-baseline label whose row carries a block-image strip (and/or an inline
+    // image) must centre on text.y. The single-line glyph-baseline shortcut in calcSegmentedTopOffset
+    // is only valid for pure-text lines; for image-bearing rows it produced an offset unrelated to
+    // the row height, mis-centring the label by ~15-18px and overflowing short tiles.
+    describe('block-image row vertical centring', () => {
+        const mockScene = setUpMockScene(canvasCtx);
+
+        const blockImage = {
+            type: 'image' as const,
+            url: 'icon.svg',
+            width: 36,
+            height: 36,
+            block: true,
+            padding: 6,
+        };
+
+        it.each([
+            [
+                'block image + middle text + trailing block image',
+                [
+                    blockImage,
+                    { text: 'X', fontSize: 16, fontFamily: 'Verdana', verticalAlign: 'middle' as const },
+                    blockImage,
+                ],
+            ],
+            ['block image + text', [blockImage, { text: 'X', fontSize: 16, fontFamily: 'Verdana' }]],
+        ])('centres a %s on text.y for middle baseline', (_label, segments) => {
+            const text = new Text();
+            Object.assign(text, { ...BASE_OPTIONS, text: segments, textBaseline: 'middle', x: 100, y: 400 });
+            text.setScene(mockScene);
+            const bbox = text.getBBox();
+            const centre = bbox.y + bbox.height / 2;
+            expect(Math.abs(centre - 400)).toBeLessThan(3);
+        });
+    });
+
     describe('per-segment verticalAlign', () => {
         const mockScene = setUpMockScene(canvasCtx);
 
