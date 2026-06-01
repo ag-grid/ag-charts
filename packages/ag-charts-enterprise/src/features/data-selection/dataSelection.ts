@@ -194,11 +194,6 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             internalRefreshTargets = this.ctx.chartService.series;
         } else {
             const { series, datumIndex } = clickedNode;
-            if (typeof datumIndex !== 'number') {
-                Logger.errorOnce(`Not Yet Implemented: datumIndex of type ${typeof datumIndex}`);
-                return;
-            }
-
             if (clickMode === 'multiple' || modifierPressed) {
                 toggleSelection(changes, series, this.service, datumIndex);
                 internalRefreshTargets = [series];
