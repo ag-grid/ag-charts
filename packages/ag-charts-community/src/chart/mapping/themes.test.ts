@@ -22,6 +22,8 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
+import { RainbowDark } from '../themes/rainbowDark';
+import { RainbowLight } from '../themes/rainbowLight';
 import { getChartTheme, themes } from './themes';
 
 describe('themes.ts', () => {
@@ -134,7 +136,7 @@ describe('themes.ts', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - Option \`theme\` cannot be set to \`true\`; expecting a keyword such as 'ag-default', 'ag-default-dark', 'ag-sheets', 'ag-sheets-dark', 'ag-polychroma', 'ag-polychroma-dark', 'ag-vivid', 'ag-vivid-dark', 'ag-material', 'ag-material-dark', 'ag-financial' or 'ag-financial-dark' or an object, ignoring.",
+    "AG Charts - Option \`theme\` cannot be set to \`true\`; expecting a keyword such as 'ag-default', 'ag-default-dark', 'ag-sheets', 'ag-sheets-dark', 'ag-polychroma', 'ag-polychroma-dark', 'ag-rainbow', 'ag-rainbow-dark', 'ag-vivid', 'ag-vivid-dark', 'ag-material', 'ag-material-dark', 'ag-financial' or 'ag-financial-dark' or an object, ignoring.",
   ],
 ]
 `);
@@ -194,6 +196,16 @@ describe('themes.ts', () => {
   ],
 ]
 `);
+        });
+
+        it('should resolve ag-rainbow to RainbowLight', () => {
+            const theme = getChartTheme('ag-rainbow');
+            expect(theme).toBeInstanceOf(RainbowLight);
+        });
+
+        it('should resolve ag-rainbow-dark to RainbowDark', () => {
+            const theme = getChartTheme('ag-rainbow-dark');
+            expect(theme).toBeInstanceOf(RainbowDark);
         });
 
         it('should show 2 warnings for invalid types - palette', async () => {
