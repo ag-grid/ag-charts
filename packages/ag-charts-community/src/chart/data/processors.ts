@@ -46,8 +46,8 @@ function basicContinuousCheckDatumValidation(value: any) {
     return value != null && isContinuous(value);
 }
 
-// Split out from basicContinuousCheckDatumValidation so the time scales can diverge from number/log/color
-// without those scales inadvertently accepting time-only values (e.g. ISO 8601 strings, added in a later PR).
+// Separate from basicContinuousCheckDatumValidation so a later PR can let time scales accept ISO 8601
+// strings without number/log/color scales doing the same.
 function basicTimeCheckDatumValidation(value: any) {
     return value != null && isContinuous(value);
 }

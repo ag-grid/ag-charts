@@ -79,8 +79,7 @@ function valueColumnType(value: unknown): ColumnValueType | undefined {
         case 'string':
             return 'string';
         case 'object':
-            // TODO(AG-16608, PR2): a numeric NumberObject ({ valueOf(): number }) is tagged 'date' here.
-            // Disambiguate via isNumberObject() when PR2 wires the tag into scale dispatch.
+            // TODO(AG-16608, PR2): a numeric NumberObject is tagged 'date' here; disambiguate via isNumberObject().
             return value == null ? undefined : 'date';
         default:
             return undefined;
@@ -94,9 +93,8 @@ function updateColumnTypeTracker(tracker: ColumnTypeTracker, value: unknown, dat
     if (tracker.type == null) {
         tracker.type = observed;
     } else if (tracker.type !== observed && isNumericColumnType(tracker.type) && isNumericColumnType(observed)) {
-        // TODO(AG-16654, PR5): number<->date coexistence (e.g. epoch number + Date in one time column)
-        // should promote to the heterogeneous 'date' tag; only number<->bigint mixing is handled today.
-        // A column mixing `number` and `bigint` is rejected at the series level (see ColumnValueType).
+        // TODO(AG-16654, PR5): number<->date coexistence (epoch number + Date in one column) should also
+        // promote to 'date'; only number<->bigint mixing is handled today.
         tracker.mixedAtIndex ??= datumIndex;
         tracker.type = 'mixed-numeric';
     }
@@ -267,9 +265,8 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
 
                     const result = processKeyValue(data[datumIndex], datumIndex, scope);
 
-                    // PR1 (AG-16608) stopgap: mirrors the value-column drop below. The widened gate
-                    // accepts bigint keys, but the domain/sort/scale arithmetic that consumes them
-                    // lands in PR2; until then treat a bigint key as invalid so it cannot throw.
+                    // PR1 stopgap: drop bigint keys until PR2 wires the scale/sort arithmetic that
+                    // consumes them, else they throw on BigInt maths. Removed in PR2.
                     if (result.valid && typeof result.value !== 'bigint') {
                         keys.push(result.value);
                         // Track ordering/uniqueness for valid keys
@@ -409,10 +406,8 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                     updateColumnTypeTracker(typeTracker, result.value, datumIndex);
                 }
 
-                // PR1 (AG-16608) stopgap: the type tag above observes bigint, but the scale and
-                // aggregation arithmetic that consume it land in the next PR of the stacked train.
-                // Until then, drop bigints (as the pre-widening gate did) so `x - d0` / `0 + value`
-                // cannot throw "Cannot mix BigInt and other types". Remove with the PR2 convert support.
+                // PR1 stopgap: drop bigints until PR2 wires scale/aggregation support, else `x - d0`
+                // throws "Cannot mix BigInt and other types". Removed in PR2.
                 if (typeof value === 'bigint') {
                     this.markScopeDatumInvalid(def.scopes, columnSource, datumIndex, invalidData, invalidDataCount);
                     partialValidDataCount += 1;

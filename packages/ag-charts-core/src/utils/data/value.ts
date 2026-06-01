@@ -13,8 +13,7 @@ export function isNumberObject(value: unknown): value is NumberObject {
 }
 
 export function isContinuous(value: unknown): value is number | bigint | Date | NumberObject {
-    // An explicit `bigint` branch is required: `BigInt.valueOf()` returns a bigint, not a number,
-    // so `isNumberObject()` does not subsume bigint primitives.
+    // Explicit bigint branch: BigInt.valueOf() returns a bigint not a number, so isNumberObject() misses it.
     return isFiniteNumber(value) || typeof value === 'bigint' || isValidDate(value) || isNumberObject(value);
 }
 
