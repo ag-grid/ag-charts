@@ -324,8 +324,15 @@ jobs:
               run: |
                   yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude all,ag-charts-website
 
-            - name: Upload UMD bundles for PR preview
+            # The enterprise UMD loads ag-charts-community at runtime, so publish both even when `nx affected` rebuilt only one.
+            - name: Build UMD bundles for PR preview
+              id: build_umd
               if: github.event_name == 'pull_request' && steps.build.outcome == 'success'
+              run: |
+                  yarn nx run-many -t build:umd -p ag-charts-community ag-charts-enterprise
+
+            - name: Upload UMD bundles for PR preview
+              if: github.event_name == 'pull_request' && steps.build_umd.outcome == 'success'
               uses: actions/upload-artifact@v4
               with:
                   name: pr-preview-umd
