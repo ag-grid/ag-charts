@@ -30,7 +30,7 @@ import {
 } from 'ag-charts-core';
 
 import { NetworkLinkNode } from '../network/networkLinkNode';
-import { AbstractNetworkSeries, type NetworkSeriesDatumIndex } from '../network/networkSeries';
+import { AbstractNetworkSeries } from '../network/networkSeries';
 import { NetworkTreeLayout, type NetworkTreeLayoutUpdateOptions } from '../network/networkTreeLayout';
 import type { NetworkLinkInterpolation } from '../network/networkTypes';
 import { OrganizationGraph } from './organizationGraph';
@@ -623,7 +623,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return this.createNodeDatumFromVertex(vertex);
     }
 
-    override getTooltipContent(datumIndex: NetworkSeriesDatumIndex): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: _ModuleSupport.DatumIndex): _ModuleSupport.TooltipContent | undefined {
         const datum = this.processedData?.dataSources.get(this.id)?.data?.[datumIndex];
         if (datum == null) return;
 

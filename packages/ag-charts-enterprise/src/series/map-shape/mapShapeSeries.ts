@@ -706,7 +706,7 @@ export class MapShapeSeries
 
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
-        let minDatum: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> | undefined;
+        let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
 
         this.datumSelection.each((node, datum) => {
             const distanceSquared = node.distanceSquared(x, y);
@@ -719,10 +719,9 @@ export class MapShapeSeries
         return minDatum == null ? undefined : { datum: minDatum, distance: Math.sqrt(minDistanceSquared) };
     }
 
-    private _previousDatumMidPoint:
-        | { datum: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType>; point: Point | undefined }
-        | undefined = undefined;
-    datumMidPoint(datum: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType>): Point | undefined {
+    private _previousDatumMidPoint: { datum: _ModuleSupport.SeriesNodeDatum; point: Point | undefined } | undefined =
+        undefined;
+    datumMidPoint(datum: _ModuleSupport.SeriesNodeDatum): Point | undefined {
         const { _previousDatumMidPoint } = this;
         if (_previousDatumMidPoint?.datum === datum) {
             return _previousDatumMidPoint.point;

@@ -46,7 +46,7 @@ import type {
 } from '../series';
 import { SeriesNodeEvent } from '../series';
 import { Segmentation, SeriesProperties } from '../seriesProperties';
-import type { DatumIndexType, ISeries, ISeriesProperties, SeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
+import type { ISeries, ISeriesProperties, SeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
 import type {
@@ -94,7 +94,7 @@ export const DEFAULT_CARTESIAN_DIRECTION_NAMES = {
 };
 
 export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<
-    SeriesNodeDatum<number>,
+    SeriesNodeDatum,
     TEvent
 > {
     readonly xKey?: string;
@@ -102,8 +102,8 @@ export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTyp
     constructor(
         type: TEvent,
         nativeEvent: Event,
-        datum: SeriesNodeDatum<number>,
-        series: ISeries<number, SeriesNodeDatum<number>, ISeriesProperties & { xKey?: string; yKey?: string }>,
+        datum: SeriesNodeDatum,
+        series: ISeries<SeriesNodeDatum, ISeriesProperties & { xKey?: string; yKey?: string }>,
         selectionState: SelectionState | undefined
     ) {
         super(type, nativeEvent, datum, series, selectionState);
@@ -127,7 +127,7 @@ type CartesianAnimationEvent<TTypes extends CartesianSeriesTypes> = {
 export interface CartesianAnimationData<
     TDatum extends CartesianSeriesNodeDatum,
     TNode extends Node<TDatum>,
-    TLabel extends SeriesNodeDatum<number> = TDatum,
+    TLabel extends SeriesNodeDatum = TDatum,
     TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
 > {
     datumSelection: Selection<TDatum, TNode>;
@@ -962,16 +962,14 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         return result;
     }
 
-    protected pickNodeDataExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] | undefined {
+    protected pickNodeDataExactShape(point: Point): SeriesNodeDatum[] | undefined {
         const { x, y } = point;
 
         const { dataNodeGroup } = this;
-        const matches = dataNodeGroup
-            .pickNodes(x, y)
-            .filter((match): match is Node & { datum: SeriesNodeDatum<DatumIndexType> } => {
-                const { unsafeDatum } = match;
-                return unsafeDatum !== undefined && unsafeDatum?.missing !== true;
-            });
+        const matches = dataNodeGroup.pickNodes(x, y).filter((match): match is Node & { datum: SeriesNodeDatum } => {
+            const { unsafeDatum } = match;
+            return unsafeDatum !== undefined && unsafeDatum?.missing !== true;
+        });
 
         if (matches.length !== 0) {
             const datums = matches.map((match) => match.datum);
@@ -979,7 +977,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         }
     }
 
-    protected pickModulesExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] | undefined {
+    protected pickModulesExactShape(point: Point): SeriesNodeDatum[] | undefined {
         for (const mod of this.moduleMap.modules()) {
             const { unsafeDatum } = mod.pickNodeExact(point) ?? {};
             if (unsafeDatum == null) continue;
@@ -989,7 +987,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         }
     }
 
-    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] {
+    protected override pickNodesExactShape(point: Point): SeriesNodeDatum[] {
         const result = super.pickNodesExactShape(point);
 
         if (result.length !== 0) {
@@ -1010,7 +1008,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         const hitPoint = { x, y };
 
         let minDistanceSquared = Infinity;
-        let closestDatum: SeriesNodeDatum<DatumIndexType> | undefined;
+        let closestDatum: SeriesNodeDatum | undefined;
 
         for (const datum of contextNodeData.nodeData) {
             const { point: { x: datumX = Number.NaN, y: datumY = Number.NaN } = {} } = datum;
@@ -1058,7 +1056,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
         let minDistance = Infinity;
-        let closestDatum: SeriesNodeDatum<DatumIndexType> | undefined;
+        let closestDatum: SeriesNodeDatum | undefined;
 
         const pick = this.pickNodeDataClosestDatum(point);
         if (pick != null && pick.distance < minDistance) {
@@ -1101,7 +1099,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         if (majorDirection !== ChartAxisDirection.X) hitPointCoords.reverse();
 
         const minDistance = [Infinity, Infinity];
-        let closestDatum: SeriesNodeDatum<DatumIndexType> | undefined;
+        let closestDatum: SeriesNodeDatum | undefined;
 
         for (const datum of contextNodeData.nodeData) {
             const { x: datumX = Number.NaN, y: datumY = Number.NaN } = datum.point ?? datum.midPoint ?? {};

@@ -45,7 +45,7 @@ export interface PluginModuleInstance extends ModuleInstance {
 }
 
 export type PickNodeDatumResult = { unsafeDatum: any; distanceSquared: number } | undefined;
-// export type PickNodeDatumResult = { datum: SeriesNodeDatum<DatumIndexType>; distanceSquared: number } | undefined;
+// export type PickNodeDatumResult = { datum: SeriesNodeDatum; distanceSquared: number } | undefined;
 
 export interface PropertyDefinitionOpts {
     isContinuousX: boolean;

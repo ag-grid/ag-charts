@@ -84,7 +84,7 @@ import type { SeriesProperties } from './seriesProperties';
 import type { SeriesTooltip } from './seriesTooltip';
 import {
     type BucketLookupFeature,
-    type DatumIndexType,
+    type DatumIndex,
     HighlightState,
     type INodeEvent,
     type ISeries,
@@ -115,7 +115,7 @@ export enum SeriesNodePickMode {
 export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'highlight-tooltip' | 'context-menu' | 'event';
 
 export type SeriesNodePickMatch = {
-    datum: SeriesNodeDatum<DatumIndexType>;
+    datum: SeriesNodeDatum;
     distance: number;
 };
 
@@ -137,7 +137,7 @@ export type PickViewportFocusInputs = {
 
 export type PickFocusOutputs = {
     datumIndex: number;
-    datum: SeriesNodeDatum<DatumIndexType>;
+    datum: SeriesNodeDatum;
     otherIndex?: number;
     bounds: BBox | Path;
     movedBounds?: BBox;
@@ -146,13 +146,13 @@ export type PickFocusOutputs = {
 
 export type PickResult = {
     pickMode: SeriesNodePickMode;
-    datums: SeriesNodeDatum<DatumIndexType>[];
+    datums: SeriesNodeDatum[];
     distance: number;
 };
 
 export type INodeEventConstructor<
-    TDatum extends SeriesNodeDatum<DatumIndexType>,
-    TSeries extends Series<any, TDatum, object, any>,
+    TDatum extends SeriesNodeDatum,
+    TSeries extends Series<TDatum, object, any>,
     TEvent extends string = SeriesNodeEventTypes,
 > = new <T extends TEvent>(
     type: T,
@@ -166,7 +166,7 @@ const CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR = 0.25;
 const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
 
 export class SeriesNodeEvent<
-    TDatum extends SeriesNodeDatum<DatumIndexType>,
+    TDatum extends SeriesNodeDatum,
     TEvent extends string = SeriesNodeEventTypes,
 > implements INodeEvent<TEvent> {
     readonly datum: unknown;
@@ -180,7 +180,7 @@ export class SeriesNodeEvent<
         readonly type: TEvent,
         readonly event: Event,
         nodeDatum: TDatum,
-        series: ISeries<DatumIndexType, TDatum, ISeriesProperties, unknown>,
+        series: ISeries<TDatum, ISeriesProperties, unknown>,
         selectionState: PublicSelectionState | undefined
     ) {
         this.datum = nodeDatum.datum;
@@ -195,7 +195,7 @@ export class SeriesNodeEvent<
     }
 }
 
-export type SeriesNodeDataContext<I extends DatumIndexType, S = SeriesNodeDatum<I>, L = S> = {
+export type SeriesNodeDataContext<S = SeriesNodeDatum, L = S> = {
     itemId: string;
     nodeData: S[];
     labelData: L[];
@@ -238,7 +238,7 @@ export class SeriesGroupingChangedEvent implements TypedEvent {
     type = 'groupingChanged';
 
     constructor(
-        public series: Series<DatumIndexType, any, object, any>,
+        public series: Series<any, object, any>,
         public seriesGrouping: SeriesGrouping | undefined
     ) {}
 }
@@ -284,22 +284,17 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
     }
 }
 
-export type UnknownSeries = Series<DatumIndexType, SeriesNodeDatum<DatumIndexType>, object, SeriesProperties<object>>;
+export type UnknownSeries = Series<SeriesNodeDatum, object, SeriesProperties<object>>;
 
 export abstract class Series<
-    TDatumIndex extends DatumIndexType,
-    TDatum extends SeriesNodeDatum<TDatumIndex>,
+    TDatum extends SeriesNodeDatum,
     TOpts extends object,
     TProps extends SeriesProperties<TOpts>,
     TLabel = TDatum,
-    TContext extends SeriesNodeDataContext<TDatumIndex, TDatum, TLabel> = SeriesNodeDataContext<
-        TDatumIndex,
-        TDatum,
-        TLabel
-    >,
+    TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
 >
     extends Observable
-    implements ISeries<TDatumIndex, TDatum, TProps, TLabel>
+    implements ISeries<TDatum, TProps, TLabel>
 {
     static readonly className: string = 'Series';
     protected cleanup = new CleanupRegistry();
@@ -318,7 +313,7 @@ export abstract class Series<
         return 'main';
     }
 
-    @ActionOnSet<Series<TDatumIndex, TDatum, TOpts, TProps, TLabel>>({
+    @ActionOnSet<Series<TDatum, TOpts, TProps, TLabel>>({
         changeValue: function (newVal, oldVal) {
             this.onSeriesGroupingChange(oldVal, newVal);
         },
@@ -743,7 +738,7 @@ export abstract class Series<
     // Using processed data, create data that backs visible nodes.
     abstract createNodeData(): TContext | undefined;
 
-    abstract findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): SeriesNodeDatum<DatumIndexType> | undefined;
+    abstract findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): SeriesNodeDatum | undefined;
 
     toCanvasFromMidPoint(nodeDatum: { midPoint?: Point }): Point {
         const { x = 0, y = 0 } = nodeDatum.midPoint ?? {};
@@ -787,7 +782,7 @@ export abstract class Series<
     public getHighlightState(
         highlightedDatum: HighlightNodeDatum | undefined,
         isHighlight?: boolean,
-        datumIndex?: TDatumIndex,
+        datumIndex?: DatumIndex,
         legendItemValues?: string[]
     ): HighlightState {
         if (!this.properties.highlight.enabled) {
@@ -817,7 +812,7 @@ export abstract class Series<
         return HighlightState.OtherSeries;
     }
 
-    protected getDataSelectionState(_datumIndex: TDatumIndex | undefined): SelectionState | undefined {
+    protected getDataSelectionState(_datumIndex: DatumIndex | undefined): SelectionState | undefined {
         // For override by subclasses.
         return undefined;
     }
@@ -862,14 +857,14 @@ export abstract class Series<
     public getHighlightStateString(
         datum: HighlightNodeDatum | undefined,
         isHighlight?: boolean,
-        datumIndex?: TDatumIndex,
+        datumIndex?: DatumIndex,
         legendItemValues?: string[]
     ): PublicHighlightState {
         return toHighlightString(this.getHighlightState(datum, isHighlight, datumIndex, legendItemValues));
     }
 
     public getSelectionStateString(
-        datumIndex: TDatumIndex | undefined,
+        datumIndex: DatumIndex | undefined,
         selectionState?: SelectionState
     ): PublicSelectionState | undefined {
         selectionState ??= this.getDataSelectionState(datumIndex);
@@ -921,7 +916,7 @@ export abstract class Series<
         return highlightedDatum?.series === this;
     }
 
-    protected isItemHighlighted(highlightedDatum?: HighlightNodeDatum, datumIndex?: TDatumIndex) {
+    protected isItemHighlighted(highlightedDatum?: HighlightNodeDatum, datumIndex?: DatumIndex) {
         // If this function is being invoked, we have already determined that the series is highlighted.
         if (highlightedDatum?.datumIndex == null || datumIndex == null) return;
         return highlightedDatum.datumIndex === datumIndex;
@@ -934,7 +929,7 @@ export abstract class Series<
 
     public getHighlightStyle(
         isHighlight?: boolean,
-        datumIndex?: TDatumIndex,
+        datumIndex?: DatumIndex,
         highlightState?: HighlightState,
         legendItemValues?: string[]
     ) {
@@ -946,7 +941,7 @@ export abstract class Series<
         return this.properties.highlight.getStyle(highlightState);
     }
 
-    public getSelectionStyle(datumIndex?: TDatumIndex, selectionState?: SelectionState) {
+    public getSelectionStyle(datumIndex?: DatumIndex, selectionState?: SelectionState) {
         selectionState ??= this.getDataSelectionState(datumIndex);
         if (selectionState === undefined) return undefined;
         return this.properties.selection.getStyle(selectionState);
@@ -973,10 +968,7 @@ export abstract class Series<
     }
 
     // @todo(AG-7126) - removeThisDatum
-    abstract getTooltipContent(
-        datumIndex: TDatumIndex,
-        removeThisDatum: TDatum | undefined
-    ): TooltipContent | undefined;
+    abstract getTooltipContent(datumIndex: DatumIndex, removeThisDatum: TDatum | undefined): TooltipContent | undefined;
 
     protected _pickNodeCache = new LRUCache<PickResult | undefined>(5);
     pickNodes(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
@@ -1006,7 +998,7 @@ export abstract class Series<
         }
 
         for (const pickMode of selectedPickModes) {
-            let result: { datums: SeriesNodeDatum<DatumIndexType>[]; distance: number } | undefined;
+            let result: { datums: SeriesNodeDatum[]; distance: number } | undefined;
 
             switch (pickMode) {
                 case SeriesNodePickMode.EXACT_SHAPE_MATCH: {
@@ -1046,8 +1038,8 @@ export abstract class Series<
         return this._pickNodeCache.set(key, undefined);
     }
 
-    protected pickNodesExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] {
-        const datums: SeriesNodeDatum<DatumIndexType>[] = [];
+    protected pickNodesExactShape(point: Point): SeriesNodeDatum[] {
+        const datums: SeriesNodeDatum[] = [];
         for (const node of this.contentGroup.pickNodes(point.x, point.y)) {
             const datum = node.unsafeClosestDatum();
             if (typeof datum === 'object' && datum != null && datum.missing !== true) {
@@ -1487,7 +1479,7 @@ export abstract class Series<
      * @param opts.compute - called once per distinct (highlight, selection[, keyExtra]) tuple
      * @param opts.apply - called per non-garbage datum with the cached value
      */
-    protected runMarkerStylePass<TCtx, TPassDatum extends SeriesNodeDatum<TDatumIndex>, TCache, TSeries = this>(
+    protected runMarkerStylePass<TCtx, TPassDatum extends SeriesNodeDatum, TCache, TSeries = this>(
         datumSelection: Selection<TPassDatum, Marker<TPassDatum>>,
         isHighlight: boolean,
         ctx: TCtx,
@@ -1599,9 +1591,9 @@ export abstract class Series<
         return tooltip.formatTooltip([this.properties, this.ctx.chartService], content, params);
     }
 
-    abstract getCategoryValue(datumIndex: TDatumIndex): any;
+    abstract getCategoryValue(datumIndex: DatumIndex): any;
 
-    abstract datumIndexForCategoryValue(categoryValue: any): TDatumIndex | undefined;
+    abstract datumIndexForCategoryValue(categoryValue: any): DatumIndex | undefined;
 
     // @todo(AG-13777) - Remove this function (see CartesianSeries.ts)
     minTimeInterval(): number | undefined {

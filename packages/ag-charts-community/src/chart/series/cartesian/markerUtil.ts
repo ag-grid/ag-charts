@@ -14,14 +14,7 @@ import { Marker } from '../../marker/marker';
 import type { PickFocusInputs } from '../series';
 import type { SeriesMarker } from '../seriesMarker';
 import { highlightStates } from '../seriesProperties';
-import type {
-    DatumIndexType,
-    HighlightState,
-    ISeries,
-    ISeriesProperties,
-    NodeDataDependant,
-    SeriesNodeDatum,
-} from '../seriesTypes';
+import type { HighlightState, ISeries, ISeriesProperties, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 
 type NodeWithDrawingMode<D> = Node<D> & { drawingMode?: AgDrawingMode };
@@ -142,11 +135,11 @@ export function resetMarkerPositionFn<D extends CartesianSeriesNodeDatum>(_node:
     };
 }
 
-interface MarkerNodeDatum extends SeriesNodeDatum<DatumIndexType> {
+interface MarkerNodeDatum extends SeriesNodeDatum {
     readonly point: Point & SizedPoint;
 }
 
-interface MarkerSeries<TDatum extends MarkerNodeDatum> extends ISeries<number, TDatum, ISeriesProperties, unknown> {
+interface MarkerSeries<TDatum extends MarkerNodeDatum> extends ISeries<TDatum, ISeriesProperties, unknown> {
     getNodeData(): { [index: number]: TDatum | undefined } | undefined;
     getFormattedMarkerStyle(datum: TDatum): { size: number; shape?: AgMarkerShape };
 }

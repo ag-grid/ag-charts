@@ -22,7 +22,6 @@ import {
 } from 'ag-charts-core';
 
 import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
-import type { FlowProportionNodeDatumIndex } from '../flow-proportion/flowDatumIndex';
 import {
     type FlowProportionLinkDatum,
     type FlowProportionNodeDatum,

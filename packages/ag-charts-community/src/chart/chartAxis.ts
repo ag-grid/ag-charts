@@ -32,7 +32,7 @@ import type { BBox } from '../scene/bbox';
 import type { Group } from '../scene/group';
 import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
 import type { ScrollbarLayoutMap } from './layout/layoutManager';
-import type { DatumIndexType, ISeries, ISeriesProperties } from './series/seriesTypes';
+import type { ISeries, ISeriesProperties, SeriesNodeDatum } from './series/seriesTypes';
 
 export type ChartAxisLabelFlipFlag = 1 | -1;
 
@@ -130,7 +130,7 @@ export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = Normalis
     applyOptions(options: TOptions): void;
     setDomains(...domains: DomainWithMetadata<unknown>[]): void;
     isCategoryLike(): boolean;
-    boundSeries: ISeries<DatumIndexType, unknown, ISeriesProperties>[];
+    boundSeries: ISeries<SeriesNodeDatum, ISeriesProperties>[];
     dataDomain: { domain: any[]; clipped: boolean };
     direction: ChartAxisDirection;
     gridLength: number;

@@ -12,15 +12,14 @@ import { DataSet } from '../data/dataSet';
 import type { PickFocusInputs, PickFocusOutputs, SeriesConstructorOpts, SeriesNodeDataContext } from './series';
 import { Series } from './series';
 import type { SeriesProperties } from './seriesProperties';
-import { type DatumIndexType, SelectionState, type SeriesNodeDatum } from './seriesTypes';
+import { type SelectionState, type SeriesNodeDatum } from './seriesTypes';
 import { findNodeDatumInArray } from './util';
 
-export interface DataModelSeriesNodeDatum extends SeriesNodeDatum<number> {
+export interface DataModelSeriesNodeDatum extends SeriesNodeDatum {
     itemId?: never;
 }
 
 export interface DataModelSeriesNodeDataContext<TDatum, TLabel = TDatum> extends SeriesNodeDataContext<
-    number,
     TDatum,
     TLabel
 > {}
@@ -31,12 +30,12 @@ export type DataModelSeriesConstructorOpts<TProps extends SeriesProperties<any>>
 };
 
 export abstract class DataModelSeries<
-    TDatum extends SeriesNodeDatum<number>,
+    TDatum extends SeriesNodeDatum,
     TOpts extends object,
     TProps extends SeriesProperties<TOpts>,
     TLabel = TDatum,
     TContext extends DataModelSeriesNodeDataContext<TDatum, TLabel> = DataModelSeriesNodeDataContext<TDatum, TLabel>,
-> extends Series<number, TDatum, TOpts, TProps, TLabel, TContext> {
+> extends Series<TDatum, TOpts, TProps, TLabel, TContext> {
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
     private readonly categoryKey: string | undefined;
@@ -155,7 +154,7 @@ export abstract class DataModelSeries<
         }
     }
 
-    protected override pickNodesExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] {
+    protected override pickNodesExactShape(point: Point): SeriesNodeDatum[] {
         const datums = super.pickNodesExactShape(point) as DataModelSeriesNodeDatum[];
         datums.sort((a, b) => a.datumIndex - b.datumIndex);
         return datums;

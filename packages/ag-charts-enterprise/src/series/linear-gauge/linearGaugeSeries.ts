@@ -34,7 +34,6 @@ import {
     type LinearGaugeLabelDatum,
     LinearGaugeLabelProperties,
     type LinearGaugeNodeDatum,
-    type LinearGaugeNodeDatumIndex,
     LinearGaugeSeriesProperties,
     type LinearGaugeTargetDatum,
     type LinearGaugeTargetDatumLabel,
@@ -64,8 +63,7 @@ const {
     NiceMode,
 } = _ModuleSupport;
 
-type DatumIndexType = _ModuleSupport.DatumIndexType;
-type SeriesNodeDatum<I extends DatumIndexType> = _ModuleSupport.SeriesNodeDatum<I>;
+type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum;
 
 interface TargetLabel {
     enabled: boolean;
@@ -102,7 +100,6 @@ type GaugeAnimationEvent = {
 };
 
 interface LinearGaugeNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<
-    LinearGaugeNodeDatumIndex,
     LinearGaugeNodeDatum,
     LinearGaugeLabelDatum
 > {
@@ -123,7 +120,6 @@ const verticalTargetPlacementRotation: Record<AgLinearGaugeTargetPlacement, numb
 };
 
 export class LinearGaugeSeries extends _ModuleSupport.Series<
-    LinearGaugeNodeDatumIndex,
     LinearGaugeNodeDatum,
     AgLinearGaugeOptions,
     LinearGaugeSeriesProperties,
@@ -799,7 +795,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         };
     }
 
-    override findNodeDatum(itemId: AgActiveItemState['itemId']): SeriesNodeDatum<DatumIndexType> | undefined {
+    override findNodeDatum(itemId: AgActiveItemState['itemId']): SeriesNodeDatum | undefined {
         return findGaugeNodeDatum(this, itemId);
     }
 
@@ -1285,7 +1281,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     override getTooltipContent(
-        datumIndex: LinearGaugeNodeDatumIndex | undefined
+        datumIndex: _ModuleSupport.DatumIndex | undefined
     ): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, properties } = this;
         const { tooltip } = properties;
@@ -1326,11 +1322,11 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return this.formatLabel(this.properties.value);
     }
 
-    getCategoryValue(_datumIndex: LinearGaugeNodeDatumIndex) {
+    getCategoryValue(_datumIndex: _ModuleSupport.DatumIndex) {
         return;
     }
 
-    datumIndexForCategoryValue(_categoryValue: any): LinearGaugeNodeDatumIndex | undefined {
+    datumIndexForCategoryValue(_categoryValue: any): _ModuleSupport.DatumIndex | undefined {
         return;
     }
 

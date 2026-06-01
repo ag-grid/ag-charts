@@ -20,7 +20,6 @@ import {
 import { DataSelectionService } from './dataSelectionService';
 import {
     type SelectionChanges,
-    asNumericDatumIndex,
     clearAllSelections,
     hasAddToSelectionModifier,
     isAgSelectionItem,
@@ -33,7 +32,6 @@ import {
 } from './dataSelectionUtil';
 import { IntervalSet } from './intervalSet';
 
-type BBox = _ModuleSupport.BBox;
 type Series = NonNullable<NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>['series']>;
 type IDataSelectionService = _ModuleSupport.IDataSelectionService;
 
@@ -255,7 +253,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             const bitfield = this.service.enableCandidacy(series.id, data);
             bitfield.clear();
 
-            for (const datumIndex of this.iterateNumericDatumIndices(seriesBounds, series)) {
+            for (const { datumIndex } of series.pickNodesInBBox(seriesBounds)) {
                 bitfield.setBit(datumIndex);
                 this.service.totalCandidacyCount++;
             }
@@ -303,7 +301,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             const bucketLookup = series.ensureBucketLookupFeature();
             const getRangeOfAggregateIndex = bucketLookup?.getRangeReader();
 
-            for (const datumIndex of this.iterateNumericDatumIndices(bbox, series)) {
+            for (const { datumIndex } of series.pickNodesInBBox(bbox)) {
                 const indexSet = bucketLookup?.getIndexSet(datumIndex);
                 if (getRangeOfAggregateIndex) {
                     const range = getRangeOfAggregateIndex(datumIndex);
@@ -406,14 +404,6 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         for (const series of this.ctx.chartService.series) {
             if (series.properties.selection.enabled) {
                 yield series;
-            }
-        }
-    }
-
-    private *iterateNumericDatumIndices(bbox: BBox, series: Series): Generator<number> {
-        for (const datum of series.pickNodesInBBox(bbox)) {
-            if (asNumericDatumIndex(datum.datumIndex)) {
-                yield datum.datumIndex;
             }
         }
     }

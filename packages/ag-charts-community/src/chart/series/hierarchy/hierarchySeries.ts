@@ -42,7 +42,7 @@ type HierarchyAnimationEvent<TDatum, TNode extends Node<TDatum>> = {
     skip: undefined;
 };
 
-export interface HierarchyNodeDatum extends SeriesNodeDatum<number[]> {}
+export interface HierarchyNodeDatum extends SeriesNodeDatum {}
 
 export interface HierarchyAnimationData<_TNode extends Node, _TNodeClass> {}
 
@@ -432,7 +432,7 @@ export abstract class HierarchySeries<
         };
     }
 
-    getDatumAriaText(datum: SeriesNodeDatum<number>, description: string): string | undefined {
+    getDatumAriaText(datum: SeriesNodeDatum, description: string): string | undefined {
         if (!(datum instanceof this.NodeClass)) {
             Logger.error(`datum is not HierarchyNode: ${JSON.stringify(datum)}`);
             return;

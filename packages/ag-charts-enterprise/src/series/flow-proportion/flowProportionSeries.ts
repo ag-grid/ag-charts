@@ -39,7 +39,8 @@ type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 's
 export interface FlowProportionLinkDatum<
     TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
-> extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
+>
+    extends _ModuleSupport.SeriesNodeDatum {
     type: FlowProportionDatumType.Link;
     readonly itemId: string;
     index: number;
@@ -52,7 +53,8 @@ export interface FlowProportionLinkDatum<
 export interface FlowProportionNodeDatum<
     TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
-> extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
+>
+    extends _ModuleSupport.SeriesNodeDatum {
     type: FlowProportionDatumType.Node;
     readonly itemId: string;
     index: number;
@@ -77,16 +79,16 @@ type TDatum<
 
 export class FlowProportionSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeEvent<_ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex>, TEvent> {
+> extends _ModuleSupport.SeriesNodeEvent<_ModuleSupport.SeriesNodeDatum, TEvent> {
     readonly size?: number;
     readonly label?: string;
     constructor(
         type: TEvent,
         nativeEvent: Event,
-        datum: _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex>,
+        datum: _ModuleSupport.SeriesNodeDatum,
         series: _ModuleSupport.ISeries<
             FlowProportionNodeDatumIndex,
-            _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex>,
+            _ModuleSupport.SeriesNodeDatum,
             _ModuleSupport.ISeriesProperties,
             unknown
         > & {
@@ -688,7 +690,7 @@ export abstract class FlowProportionSeries<
 
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
-        let minDatum: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> | undefined;
+        let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
 
         this.linkSelection.each((node, datum) => {
             const distanceSquared = node.distanceSquared(x, y);

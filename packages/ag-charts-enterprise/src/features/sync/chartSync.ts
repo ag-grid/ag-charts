@@ -328,12 +328,11 @@ export class ChartSync extends AbstractModuleInstance {
         valueIsDate: boolean,
         eventValue: any
     ) {
-        return (series: _ModuleSupport.ISeries<any, any, any, any>) => {
+        return (series: _ModuleSupport.ISeries<_ModuleSupport.SeriesNodeDatum, any, any>) => {
             const seriesKeyAxis = series.getKeyAxis(axis.direction);
             if (seriesKeyAxis !== axis.id) return;
 
-            const nodeData: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType>[] =
-                (series as any).contextNodeData?.nodeData ?? [];
+            const nodeData: _ModuleSupport.SeriesNodeDatum[] = (series as any).contextNodeData?.nodeData ?? [];
             if (!nodeData?.length) return;
 
             const firstNode = nodeData[0];
@@ -350,10 +349,7 @@ export class ChartSync extends AbstractModuleInstance {
         };
     }
 
-    private dispatchHighlightUpdate(
-        chart: _ModuleSupport.SyncChartLike,
-        nodeDatum?: _ModuleSupport.SeriesNodeDatum<any>
-    ) {
+    private dispatchHighlightUpdate(chart: _ModuleSupport.SyncChartLike, nodeDatum?: _ModuleSupport.SeriesNodeDatum) {
         debug('ChartSync.dispatchHighlightUpdate()', chart.id, nodeDatum);
 
         const delayed = nodeDatum == null;

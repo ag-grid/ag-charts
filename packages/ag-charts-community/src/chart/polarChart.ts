@@ -10,13 +10,13 @@ import type { LayoutContext } from './layout/layoutManager';
 import { PolarSeries, type UnknownPolarSeries } from './series/polar/polarSeries';
 import type { Series } from './series/series';
 import type { SeriesProperties } from './series/seriesProperties';
-import type { DatumIndexType } from './series/seriesTypes';
+import type { SeriesNodeDatum } from './series/seriesTypes';
 
 export class PolarChart extends Chart {
     static override readonly className = 'PolarChart';
     static readonly type = 'polar' as const;
 
-    override series: Series<DatumIndexType, any, any, SeriesProperties<object> & { marker?: { size: number } }>[] = [];
+    override series: Series<SeriesNodeDatum, any, SeriesProperties<object> & { marker?: { size: number } }>[] = [];
 
     override axes = this.createChartAxes();
     override createChartAxes() {
