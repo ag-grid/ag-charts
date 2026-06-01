@@ -1,5 +1,6 @@
-import type { TextOrSegments, TextSegment, TextValue } from 'ag-charts-types';
+import type { TextSegment, TextValue } from 'ag-charts-types';
 
+import type { NormalisedTextOrSegments } from '../../types/normalised-options/normalisedCommonOptions';
 import { EllipsisChar, type FontOptions, TrimCharsRegex, TrimEdgeGuard } from '../../types/text';
 import { isArray, isDate, isNumber } from '../types/typeGuards';
 
@@ -75,7 +76,7 @@ export function unguardTextEdges(str: string) {
     return str.replaceAll(TrimEdgeGuard, '');
 }
 
-export function isTruncated(value: TextOrSegments) {
+export function isTruncated(value: NormalisedTextOrSegments) {
     return isArray(value) ? isSegmentTruncated(value.at(-1)) : isTextTruncated(toTextString(value));
 }
 

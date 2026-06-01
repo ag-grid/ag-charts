@@ -3,6 +3,7 @@ import {
     Debug,
     type FontOptions,
     LineSplitter,
+    type NormalisedTextOrSegments,
     type RequireOptional,
     SceneRefChangeDetection,
     type TextMetricsBox,
@@ -14,7 +15,7 @@ import {
     toPlainText,
     toTextString,
 } from 'ag-charts-core';
-import type { FontStyle, FontWeight, Opacity, Padding, PixelSize, TextOrSegments } from 'ag-charts-types';
+import type { FontStyle, FontWeight, Opacity, Padding, PixelSize } from 'ag-charts-types';
 
 import { BBox } from '../bbox';
 import { Group } from '../group';
@@ -85,7 +86,7 @@ export class Text<D = unknown> extends Shape<D> {
     @SceneRefChangeDetection({
         changeCb: (o: Text) => o.onTextChange(),
     })
-    text?: TextOrSegments = undefined;
+    text?: NormalisedTextOrSegments = undefined;
 
     fontCache?: string = undefined;
 
@@ -147,7 +148,7 @@ export class Text<D = unknown> extends Shape<D> {
     }
 
     static measureBBox(
-        text: TextOrSegments,
+        text: NormalisedTextOrSegments,
         x: number,
         y: number,
         options: {

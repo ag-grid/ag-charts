@@ -37,6 +37,7 @@ import type {
     AgTimeIntervalUnit,
     AgUnitTimeAxisOptions,
     ContextDefault,
+    CssColor,
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
@@ -72,7 +73,7 @@ type AxisLabelRequiredKeys =
  * the user-facing types where it's actually defined (per invariant I2 — only the
  * formattable subtypes carry it).
  */
-type FontFamilyMorph = { fontFamily: string };
+type FontFamilyMorph = { color?: CssColor; fontFamily: string };
 
 export type NormalisedBaseAxisLabelOptions<TContext = ContextDefault> = Normalised<
     AgBaseAxisLabelOptions<TContext>,
@@ -165,7 +166,7 @@ export type NormalisedAxisContinuousIntervalOptions<
 export type NormalisedAxisTitleOptions = Normalised<
     AgAxisCaptionOptions,
     'enabled' | 'text' | 'spacing' | 'fontSize' | 'fontFamily' | 'fontWeight' | 'color' | 'wrapping' | 'truncate',
-    { fontFamily: string }
+    { color?: CssColor; fontFamily: string }
 >;
 
 export type NormalisedTimeAxisParentLevelOptions<TContext = ContextDefault> = Normalised<

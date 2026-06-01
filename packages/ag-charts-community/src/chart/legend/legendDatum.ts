@@ -1,6 +1,7 @@
 import {
     type ColorScaleState,
     type GradientColorStop,
+    type NormalisedTextOrSegments,
     type PluginModuleInstance,
     deriveNormalizedStops,
     formatColorBinLabel,
@@ -10,7 +11,6 @@ import type {
     AgColorScaleColorStop,
     AgMarkerShape,
     NumberFormatterParams,
-    TextOrSegments,
 } from 'ag-charts-types';
 
 import type { ColorScale } from '../../scale/colorScale';
@@ -52,7 +52,7 @@ export interface CategoryLegendDatum extends BaseChartLegendDatum {
     /** Optional deduplication id - used to coordinate synced toggling of multiple items. */
     legendItemName?: string;
     label: {
-        text: TextOrSegments; // display name for the sub-component
+        text: NormalisedTextOrSegments; // display name for the sub-component
     };
     skipAnimations?: boolean;
     isFixed?: boolean;

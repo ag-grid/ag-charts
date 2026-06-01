@@ -1,5 +1,6 @@
 import {
     BaseProperties,
+    type NormalisedTextOrSegments,
     Property,
     callWithContext,
     coerceTextValue,
@@ -9,7 +10,7 @@ import {
     toPlainText,
     toTextString,
 } from 'ag-charts-core';
-import type { AgChartOverlayRendererParams, DatumDefault, Renderer, TextOrSegments } from 'ag-charts-types';
+import type { AgChartOverlayRendererParams, DatumDefault, Renderer } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
@@ -23,7 +24,7 @@ export class Overlay extends BaseProperties {
     enabled = true;
 
     @Property
-    text?: TextOrSegments;
+    text?: NormalisedTextOrSegments;
 
     @Property
     renderer?: Renderer<AgChartOverlayRendererParams<DatumDefault>, HTMLElement>;

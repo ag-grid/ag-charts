@@ -10,7 +10,7 @@ import {
     borderOptionsDef,
     callbackDefs,
     callbackOf,
-    color,
+    colorOrRef,
     constant,
     date,
     defined,
@@ -89,7 +89,7 @@ export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOp
 // neither `type` nor `value` and supply their own `label`).
 export const crossLineStyleOptionsDefs: OptionsDefs<Omit<AgCommonCrossLineOptions, 'label'>> = {
     enabled: boolean,
-    fill: color,
+    fill: colorOrRef,
     fillOpacity: ratio,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
@@ -181,7 +181,7 @@ const cartesianAxisTick = {
     enabled: boolean,
     width: positiveNumber,
     size: positiveNumber,
-    stroke: color,
+    stroke: colorOrRef,
 };
 
 export const cartesianTimeAxisParentLevel: OptionsDefs<AgTimeAxisParentLevel> = {
@@ -202,9 +202,9 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
         width: positiveNumber,
         style: arrayOfDefs<AgAxisGridStyle>(
             {
-                fill: color,
+                fill: colorOrRef,
                 fillOpacity: positiveNumber,
-                stroke: or(color, themeOperator),
+                stroke: or(colorOrRef, themeOperator), // TODO: is `themeOperator` still needed?
                 strokeWidth: positiveNumber,
                 lineDash: arrayOf(positiveNumber),
             },
@@ -216,7 +216,7 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
     line: {
         enabled: boolean,
         width: positiveNumber,
-        stroke: color,
+        stroke: colorOrRef,
     },
     tick: cartesianAxisTick,
     context: () => true,
@@ -292,8 +292,8 @@ export function cartesianAxisCrosshairOptions(
                 optionsDefs<AgCrosshairLabelRendererResult>(
                     {
                         text: string,
-                        color: color,
-                        backgroundColor: color,
+                        color: colorOrRef,
+                        backgroundColor: colorOrRef,
                         opacity: ratio,
                     },
                     'crosshair label renderer result object'
@@ -397,7 +397,7 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOp
             },
             tick: {
                 enabled: boolean,
-                stroke: color,
+                stroke: colorOrRef,
                 width: positiveNumber,
             },
         },

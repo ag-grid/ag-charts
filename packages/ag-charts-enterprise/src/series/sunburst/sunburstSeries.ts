@@ -1,13 +1,13 @@
 import {
     type AgSunburstHighlightState,
     type AgSunburstSeriesLabelFormatterParams,
-    type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
     type CallbackParamRules,
     type DynamicContext,
     type InternalAgColorType,
+    type NormalisedTextOrSegments,
     type Point,
     type RequireOptional,
     findDiscreteColorBinLabel,
@@ -52,7 +52,7 @@ class SunburstNode extends _ModuleSupport.HierarchyNode<SunburstNode> {
 }
 
 interface LabelLayout {
-    text: TextOrSegments;
+    text: NormalisedTextOrSegments;
     fontSize: number;
     lineHeight: number;
     fontStyle: FontStyle;
@@ -286,7 +286,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             node.secondaryLabel = undefined;
             node.contentHeight = 0;
 
-            let labelValue: TextOrSegments | undefined;
+            let labelValue: NormalisedTextOrSegments | undefined;
             if (datum != null && depth != null && labelKey != null) {
                 const value = (datum as any)[labelKey];
                 labelValue = this.getLabelText<AgSunburstSeriesLabelFormatterParams>(
@@ -314,7 +314,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 labelValue = undefined;
             }
 
-            let secondaryLabelValue: TextOrSegments | undefined;
+            let secondaryLabelValue: NormalisedTextOrSegments | undefined;
             if (datum != null && depth != null && secondaryLabelKey != null) {
                 const value = (datum as any)[secondaryLabelKey];
                 secondaryLabelValue = this.getLabelText<AgSunburstSeriesLabelFormatterParams>(

@@ -5,7 +5,6 @@ import type {
     AgWaterfallSeriesOptions,
     AgWaterfallSeriesStyle,
     AgWaterfallSeriesTooltipRendererParams,
-    TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
@@ -14,6 +13,7 @@ import {
     type DomainWithMetadata,
     type DynamicContext,
     type Mutable,
+    type NormalisedTextOrSegments,
     type Point,
     type RequireOptional,
     easeOut,
@@ -54,7 +54,7 @@ const {
 } = _ModuleSupport;
 
 type WaterfallNodeLabelDatum = Readonly<Point> & {
-    readonly text: TextOrSegments;
+    readonly text: NormalisedTextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
 };

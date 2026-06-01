@@ -3,7 +3,7 @@ import {
     type PresetModuleDefinition,
     and,
     boolean,
-    color,
+    colorOrRef,
     date,
     defined,
     greaterThan,
@@ -51,7 +51,7 @@ const commonSparklineOmit = [
 const commonSparklineAxisOptionsDef: OptionsDefs<AgSparklineBaseAxisOptions> = {
     visible: boolean,
     reverse: boolean,
-    stroke: color,
+    stroke: colorOrRef,
     strokeWidth: positiveNumber,
 };
 

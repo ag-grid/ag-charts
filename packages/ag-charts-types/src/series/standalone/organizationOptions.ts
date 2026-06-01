@@ -5,16 +5,9 @@ import type {
     RichFormatter,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgCssColorOrRef } from '../../chart/themeParamsOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type {
-    ContextDefault,
-    CssColor,
-    DatumDefault,
-    OverflowStrategy,
-    PixelSize,
-    TextAlign,
-    TextWrap,
-} from '../../chart/types';
+import type { ContextDefault, DatumDefault, OverflowStrategy, PixelSize, TextAlign, TextWrap } from '../../chart/types';
 import type {
     FillCssOptions,
     FillOptions,
@@ -90,7 +83,7 @@ export interface AgOrganizationSeriesExpanderStyle extends Toggleable, FillOptio
 }
 
 export interface AgOrganizationSeriesExpanderTextStyle extends FontOptions {
-    color?: CssColor;
+    color?: AgCssColorOrRef;
     textAlign?: TextAlign;
 }
 
@@ -197,7 +190,7 @@ export interface AgOrganizationSeriesOptionsNodeLabel<
 }
 
 export interface AgOrganizationSeriesNodeTextStyle extends FontOptions, FillCssOptions, StrokeOptions, Toggleable {
-    color?: CssColor;
+    color?: AgCssColorOrRef;
     overflowStrategy?: OverflowStrategy;
     spacing?: number;
     textAlign?: TextAlign;

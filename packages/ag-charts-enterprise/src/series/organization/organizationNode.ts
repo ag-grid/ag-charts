@@ -1,19 +1,19 @@
-import { type TextAlign, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
-import { type Point, wrapTextOrSegments } from 'ag-charts-core';
+import { type TextAlign, _ModuleSupport } from 'ag-charts-community';
+import { type NormalisedTextOrSegments, type Point, wrapTextOrSegments } from 'ag-charts-core';
 
 import { layoutScenesColumn, layoutScenesRow } from '../../utils/sceneLayout';
 import type {
+    NormalisedOrganizationNodeStyle,
+    NormalisedOrganizationNodeTextStyle,
     OrganizationDatum,
     OrganizationNodeFields,
-    RequiredOrganizationNodeStyle,
-    RequiredOrganizationNodeTextStyle,
 } from './organizationTypes';
 import { applyFillStyles, applyStrokeStyles, applyTextBoxingStyles, applyTextStyles } from './organizationUtils';
 
 // Sub-pixel slack on the overflow check; pure float-comparison guard, not user-tunable.
 const CLIP_EPSILON = 0.5;
 
-function computeTextMaxWidth(styles: RequiredOrganizationNodeStyle): number {
+function computeTextMaxWidth(styles: NormalisedOrganizationNodeStyle): number {
     const cardWidth = Number.isNaN(styles.width) ? styles.maxWidth : styles.width;
     if (!Number.isFinite(cardWidth)) return Infinity;
 
@@ -26,10 +26,10 @@ function computeTextMaxWidth(styles: RequiredOrganizationNodeStyle): number {
 }
 
 function wrapTextTier(
-    text: TextOrSegments,
-    tierStyles: RequiredOrganizationNodeTextStyle,
+    text: NormalisedTextOrSegments,
+    tierStyles: NormalisedOrganizationNodeTextStyle,
     maxWidth: number
-): TextOrSegments {
+): NormalisedTextOrSegments {
     const tierWidth = Math.max(maxWidth - (tierStyles.padding.left + tierStyles.padding.right), 1);
     if (!Number.isFinite(tierWidth)) return text;
 
@@ -56,13 +56,13 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 
     private expanderNode?: OrganizationExpanderNode;
 
-    private appliedStyles?: RequiredOrganizationNodeStyle;
+    private appliedStyles?: NormalisedOrganizationNodeStyle;
     private intrinsicCardSize?: { width: number; height: number };
 
     update(
         fields: OrganizationNodeFields,
         descendantsCount: number,
-        styles: RequiredOrganizationNodeStyle,
+        styles: NormalisedOrganizationNodeStyle,
         isCollapsed: boolean,
         isRtl: boolean
     ) {
@@ -244,13 +244,13 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         return _ModuleSupport.BBox.merge([cardBBox, this.expanderNode.getBBox()]);
     }
 
-    private updateShapeNode(styles: RequiredOrganizationNodeStyle) {
+    private updateShapeNode(styles: NormalisedOrganizationNodeStyle) {
         this.shapeNode.cornerRadius = styles.cornerRadius;
         applyFillStyles(this.shapeNode, styles);
         applyStrokeStyles(this.shapeNode, styles);
     }
 
-    private updateImageNode(url: string | undefined, styles: RequiredOrganizationNodeStyle) {
+    private updateImageNode(url: string | undefined, styles: NormalisedOrganizationNodeStyle) {
         if (url == null || !styles.image.enabled) {
             this.imageNode?.remove();
             this.imageNode = undefined;
@@ -278,8 +278,8 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     }
 
     private updateTitleNode(
-        text: TextOrSegments | undefined,
-        styles: RequiredOrganizationNodeStyle,
+        text: NormalisedTextOrSegments | undefined,
+        styles: NormalisedOrganizationNodeStyle,
         textMaxWidth: number
     ) {
         if (text == null || !styles.title.enabled) {
@@ -295,8 +295,8 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     }
 
     private updateSubtitleNode(
-        text: TextOrSegments | undefined,
-        styles: RequiredOrganizationNodeStyle,
+        text: NormalisedTextOrSegments | undefined,
+        styles: NormalisedOrganizationNodeStyle,
         textMaxWidth: number
     ) {
         if (text == null || !styles.subtitle.enabled) {
@@ -312,8 +312,8 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     }
 
     private updateLabelNodes(
-        labels: (TextOrSegments | undefined)[] | undefined,
-        styles: RequiredOrganizationNodeStyle,
+        labels: (NormalisedTextOrSegments | undefined)[] | undefined,
+        styles: NormalisedOrganizationNodeStyle,
         textMaxWidth: number
     ) {
         if (labels == null) return;
@@ -346,7 +346,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         descendantsCount: number,
         isCollapsed: boolean,
         isRtl: boolean,
-        styles: RequiredOrganizationNodeStyle
+        styles: NormalisedOrganizationNodeStyle
     ) {
         if (descendantsCount === 0 || !styles.expander.enabled) {
             this.expanderNode?.remove();
@@ -366,7 +366,7 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
     private countNode?: _ModuleSupport.Text;
     private chevronNode?: ChevronPath;
 
-    update(descendantsCount: number, isCollapsed: boolean, isRtl: boolean, styles: RequiredOrganizationNodeStyle) {
+    update(descendantsCount: number, isCollapsed: boolean, isRtl: boolean, styles: NormalisedOrganizationNodeStyle) {
         this.shapeNode ??= this.appendChild(new _ModuleSupport.Rect());
 
         this.countNode ??= this.appendChild(new _ModuleSupport.Text());
@@ -405,7 +405,7 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
 }
 
 class ChevronPath extends _ModuleSupport.Rotatable(_ModuleSupport.Translatable(_ModuleSupport.Path)) {
-    update(width: number, height: number, isCollapsed: boolean, styles: RequiredOrganizationNodeStyle) {
+    update(width: number, height: number, isCollapsed: boolean, styles: NormalisedOrganizationNodeStyle) {
         const { path } = this;
 
         path.clear();

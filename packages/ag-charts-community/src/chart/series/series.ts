@@ -3,6 +3,7 @@ import type {
     ChartAnimationPhase,
     DomainWithMetadata,
     DynamicContext,
+    NormalisedTextOrSegments,
     PlacedLabel,
     PointLabelDatum,
 } from 'ag-charts-core';
@@ -47,7 +48,6 @@ import type {
     HighlightState as PublicHighlightState,
     SelectionState as PublicSelectionState,
     SeriesType,
-    TextOrSegments,
 } from 'ag-charts-types';
 
 import type {
@@ -1266,7 +1266,7 @@ export abstract class Series<
         label: AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>,
         baseParams: RequireOptional<TParams> & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>,
         allowNullValue: boolean = false
-    ): TextOrSegments {
+    ): NormalisedTextOrSegments {
         if (value == null && !allowNullValue) return '';
 
         const { axes, canHaveAxes, ctx, id: seriesId, properties } = this;

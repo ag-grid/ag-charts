@@ -1,6 +1,5 @@
-import type { TextSegment } from 'ag-charts-types';
-
 import { LRUCache } from '../structures/lruCache';
+import type { NormalisedTextSegment } from '../types/normalised-options/normalisedCommonOptions';
 import {
     type FontOptions,
     type ITextMeasurer,
@@ -117,7 +116,7 @@ export function cachedTextMeasurer(font: string | FontOptions): TextMeasurer {
 cachedTextMeasurer.clear = () => instanceMap.clear();
 
 export function measureTextSegments(
-    textSegments: TextSegment[],
+    textSegments: NormalisedTextSegment[],
     defaultFont: FontOptions
 ): MultilineSegmentsMetricsBox {
     let currentLine: SegmentsLineMetrics = { segments: [], width: 0, height: 0, ascent: 0, descent: 0 };

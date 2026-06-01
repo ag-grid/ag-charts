@@ -5,10 +5,9 @@ import type {
     AgMapShapeSeriesStyle,
     AgMapShapeSeriesTooltipRendererParams,
     Styler,
-    TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { FeatureCollection, Geometry, InternalAgColorType } from 'ag-charts-core';
+import type { FeatureCollection, Geometry, InternalAgColorType, NormalisedTextOrSegments } from 'ag-charts-core';
 import { Property } from 'ag-charts-core';
 
 import { AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
@@ -17,7 +16,7 @@ const { ColorScaleProperties, SeriesProperties, makeSeriesTooltip } = _ModuleSup
 export interface MapShapeNodeLabelDatum {
     readonly x: number;
     readonly y: number;
-    readonly text: TextOrSegments;
+    readonly text: NormalisedTextOrSegments;
     readonly fontSize: number;
     readonly lineHeight: number;
     readonly datumIndex: number;

@@ -1,11 +1,10 @@
-import type { InternalAgColorType, RequireOptional } from 'ag-charts-core';
+import type { InternalAgColorType, NormalisedTextOrSegments, RequireOptional } from 'ag-charts-core';
 import { Property } from 'ag-charts-core';
 import type {
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
     AgHistogramSeriesStyle,
     AgHistogramSeriesTooltipRendererParams,
-    TextOrSegments,
 } from 'ag-charts-types';
 
 import type { BBox } from '../../../scene/bbox';
@@ -29,7 +28,7 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly frequency: number;
     readonly domain: [number, number];
     readonly label?: {
-        readonly text: TextOrSegments;
+        readonly text: NormalisedTextOrSegments;
         readonly x: number;
         readonly y: number;
     };

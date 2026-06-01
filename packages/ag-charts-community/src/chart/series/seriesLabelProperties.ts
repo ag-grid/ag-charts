@@ -1,4 +1,4 @@
-import { BaseProperties, Property, isArray, objectsEqual } from 'ag-charts-core';
+import { BaseProperties, type NormalisedTextOrSegments, Property, isArray, objectsEqual } from 'ag-charts-core';
 import type {
     AgAxisLabelFormatterParams,
     AgAxisLabelStylerParams,
@@ -11,7 +11,6 @@ import type {
     Padding,
     RichFormatter,
     Styler,
-    TextOrSegments,
     TextWrap,
 } from 'ag-charts-types';
 
@@ -123,9 +122,9 @@ export class SeriesLabelProperties extends BaseProperties implements ChartAxisLa
     };
     formatValue(
         callWithContext: (
-            formatter: (params: AgAxisLabelFormatterParams) => TextOrSegments | undefined,
+            formatter: (params: AgAxisLabelFormatterParams) => NormalisedTextOrSegments | undefined,
             params: AgAxisLabelFormatterParams
-        ) => TextOrSegments | undefined,
+        ) => NormalisedTextOrSegments | undefined,
         params: FormatterParams<any>,
         index: number,
         options?: {
@@ -133,13 +132,13 @@ export class SeriesLabelProperties extends BaseProperties implements ChartAxisLa
             dateStyle: DateFormatterStyle;
             truncateDate: 'year' | 'month' | 'day' | undefined;
         }
-    ): TextOrSegments | undefined {
+    ): NormalisedTextOrSegments | undefined {
         const { formatter, format } = this;
         const { type, value, domain, boundSeries } = params;
         const fractionDigits = params.type === 'number' ? params.fractionDigits : undefined;
         const unit = params.type === 'date' ? params.unit : undefined;
 
-        let result: TextOrSegments | undefined;
+        let result: NormalisedTextOrSegments | undefined;
         if (formatter != null) {
             const step = params.type === 'date' ? params.step : undefined;
             const visibleDomain = params.type === 'number' ? params.visibleDomain : undefined;
