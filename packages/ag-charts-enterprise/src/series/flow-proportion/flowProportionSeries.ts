@@ -228,7 +228,7 @@ export abstract class FlowProportionSeries<
         });
 
         if (nodes != null) {
-            nodesDataController.execute(undefined, this.ctx.dataSelectionService);
+            nodesDataController.execute(undefined, undefined);
         }
 
         const [nodesDataModel, linksDataModel] = await Promise.all([
