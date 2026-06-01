@@ -12,7 +12,7 @@ import { DataSet } from '../data/dataSet';
 import type { PickFocusInputs, PickFocusOutputs, SeriesConstructorOpts, SeriesNodeDataContext } from './series';
 import { Series } from './series';
 import type { SeriesProperties } from './seriesProperties';
-import { type SelectionState, type SeriesNodeDatum } from './seriesTypes';
+import { type SeriesNodeDatum } from './seriesTypes';
 import { findNodeDatumInArray } from './util';
 
 export interface DataModelSeriesNodeDatum extends SeriesNodeDatum {
