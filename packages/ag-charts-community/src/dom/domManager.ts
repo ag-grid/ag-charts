@@ -548,6 +548,22 @@ export class DOMManager extends BaseManager {
     }
 
     /**
+     * Per-axis ratio between the canvas's post-transform screen size and its untransformed
+     * layout size — i.e. the effective `scale(sx, sy)` applied by any ancestor CSS transform.
+     * Used by elements positioned outside the transformed ancestor (e.g. tooltips, which use
+     * `position: fixed`) to convert canvas-local offsets into screen pixels.
+     */
+    getCanvasScale(): { scaleX: number; scaleY: number } {
+        const rect = this.getBoundingClientRect();
+        const canvas = this.rootElements['canvas'].element;
+        const layoutWidth = canvas.clientWidth;
+        const layoutHeight = canvas.clientHeight;
+        const scaleX = layoutWidth > 0 && rect.width > 0 ? rect.width / layoutWidth : 1;
+        const scaleY = layoutHeight > 0 && rect.height > 0 ? rect.height / layoutHeight : 1;
+        return { scaleX, scaleY };
+    }
+
+    /**
      * Get the client bounding rect for overlay elements that might float outside the bounds of the
      * main chart area.
      */
