@@ -22,8 +22,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
     private domainNeedsValueOf = true; // Safe default
     private d0Cache: number = Number.NaN;
     private d1Cache: number = Number.NaN;
-    // Exact bigint domain endpoints, retained for the full-precision convert() ratio.
-    // Undefined unless the corresponding endpoint was supplied as a bigint.
+    // Exact bigint domain endpoints, retained for the full-precision convert() ratio (see convertBigInt).
     private d0Big: bigint | undefined = undefined;
     private d1Big: bigint | undefined = undefined;
 
@@ -114,9 +113,8 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         const { range } = this;
         const clamp = options?.clamp ?? this.defaultClamp;
 
-        // Full-precision BigInt ratio for linear scales: keeps adjacent high-magnitude bigints and
-        // domain spans beyond Number.MAX_SAFE_INTEGER monotonic, where a float64 narrow would collapse
-        // them. Log/time scales (transform != null) narrow to Number below (AG-16608 AC #9).
+        // Full-precision BigInt ratio for linear scales: keeps adjacent high-magnitude bigints monotonic
+        // where a float64 narrow would collapse them. Log/time scales narrow to Number below (AC #9).
         if (typeof value === 'bigint' && this.d0Big != null && this.d1Big != null && this.transform == null) {
             return convertBigInt(value, this.d0Big, this.d1Big, range, clamp);
         }
@@ -124,8 +122,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         // Use cached domain values to avoid valueOf() calls
         let d0: number = this.d0Cache;
         let d1: number = this.d1Cache;
-        // Conditional valueOf() for input value based on domain type detection; a bigint reaching
-        // here is on a transform (log/time) scale and narrows to Number — see AG-16608 AC #9.
+        // A bigint reaching here is on a transform (log/time) scale and narrows to Number (AC #9).
         let x: number;
         if (typeof value === 'number') {
             x = value;
@@ -196,9 +193,8 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
     }
 }
 
-// Scaling factor for the integer ratio: 10^12 yields ~12 significant digits in [0,1] — far finer
-// than the ~3-4 digits pixel positioning needs — while keeping the intermediate product well below
-// Number.MAX_SAFE_INTEGER once narrowed.
+// Integer ratio scale: 10^12 gives ~12 significant digits in [0,1] — far finer than pixel positioning
+// needs — while keeping the narrowed intermediate product below Number.MAX_SAFE_INTEGER.
 const BIGINT_RATIO_SCALE = 10n ** 12n;
 
 /**
