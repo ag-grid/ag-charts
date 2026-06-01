@@ -78,7 +78,9 @@ In this configuration:
 
 Cross Lines are also available for Polar Axes. These have the same configuration as the Cartesian Cross Lines.
 
-Polar charts use a separate `PolarCrossLinesModule` (Enterprise). Register it instead of `CrossLinesModule` on polar charts, or register both when an application mixes Cartesian and Polar charts.
+{% note %}
+Polar Cross Lines are not included in `CrossLinesModule`. Register `PolarCrossLinesModule` separately when using [module imports](/module-registry).
+{% /note %}
 
 {% chartExampleRunner title="Polar Axis Angle Crosslines" name="polar-axes-crosslines-angle" type="generated" /%}
 

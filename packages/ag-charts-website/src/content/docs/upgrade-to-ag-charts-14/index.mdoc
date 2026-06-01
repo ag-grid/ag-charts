@@ -37,21 +37,19 @@ DO NOT TOUCH.
 
 <!-- If breaking changes do *not* exist, add the following: -->
 
-There are no breaking changes in AG Charts version {% migrationVersion() %}.
+<!-- There are no breaking changes in AG Charts version {% migrationVersion() %}. -->
 
 <!-- Otherwise -->
-<!--
+
 The full list of breaking changes across all features for version {% migrationVersion() %}.
 
 {% expandingSection headerText="Breaking Changes" %}
+
 This release includes the following breaking changes:
 
-### Breaking changes section Name
-
-- item...
+- `CrossLinesModule` and `PolarCrossLinesModule` must be explicitly registered, if not using `AllCommunityModule` or `AllEnterpriseModule`.
 
 {% /expandingSection %}
--->
 
 ## Behaviour Changes
 
