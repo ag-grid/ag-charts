@@ -176,6 +176,7 @@ export class DOMManager extends BaseManager {
     private _isRtl: boolean = false;
 
     private _cachedCanvasRect: DOMRect | undefined;
+    private _cachedCanvasScale: { scaleX: number; scaleY: number } | undefined;
     private _cachedRawOverlayRect: BBox | undefined;
     private _cachedScrollableContainer: HTMLElement | null | undefined;
     private _pendingFlush?: ReturnType<typeof setTimeout>;
@@ -552,15 +553,20 @@ export class DOMManager extends BaseManager {
      * layout size — i.e. the effective `scale(sx, sy)` applied by any ancestor CSS transform.
      * Used by elements positioned outside the transformed ancestor (e.g. tooltips, which use
      * `position: fixed`) to convert canvas-local offsets into screen pixels.
+     *
+     * Cached alongside `_cachedCanvasRect`: invalidated by the same scroll/resize/fullscreen
+     * listeners, so steady-state hot paths (tooltip show/update) pay zero layout cost.
      */
     getCanvasScale(): { scaleX: number; scaleY: number } {
+        if (this._cachedCanvasScale != null) return this._cachedCanvasScale;
         const rect = this.getBoundingClientRect();
         const canvas = this.rootElements['canvas'].element;
         const layoutWidth = canvas.clientWidth;
         const layoutHeight = canvas.clientHeight;
         const scaleX = layoutWidth > 0 && rect.width > 0 ? rect.width / layoutWidth : 1;
         const scaleY = layoutHeight > 0 && rect.height > 0 ? rect.height / layoutHeight : 1;
-        return { scaleX, scaleY };
+        this._cachedCanvasScale = { scaleX, scaleY };
+        return this._cachedCanvasScale;
     }
 
     /**
@@ -876,6 +882,7 @@ export class DOMManager extends BaseManager {
 
     private invalidateRectCaches() {
         this._cachedCanvasRect = undefined;
+        this._cachedCanvasScale = undefined;
         this._cachedRawOverlayRect = undefined;
     }
 
