@@ -1,4 +1,4 @@
-import type { ImageSegment, Padding, PaddingOptions, Segment } from 'ag-charts-types';
+import type { ContentSegment, ImageSegment, Padding, PaddingOptions } from 'ag-charts-types';
 
 import { LRUCache } from '../structures/lruCache';
 import {
@@ -165,7 +165,7 @@ export function blockStripHeight(images: { textMetrics: TextMetricsBox }[]): num
  * the text column flows to the right of the entire strip. Block images sitting mid-line
  * (preceded by inline content with no `\n`) keep the inline-image behaviour.
  */
-export function isBlockBoundary(segments: Segment[], i: number): boolean {
+export function isBlockBoundary(segments: ContentSegment[], i: number): boolean {
     const seg = segments[i];
     if (seg?.type !== 'image' || seg.block !== true) return false;
     if (i === 0) return true;
@@ -178,7 +178,10 @@ function emptyLine(): SegmentsLineMetrics {
     return { segments: [], width: 0, height: 0, ascent: 0, descent: 0 };
 }
 
-export function measureTextSegments(textSegments: Segment[], defaultFont: FontOptions): MultilineSegmentsMetricsBox {
+export function measureTextSegments(
+    textSegments: ContentSegment[],
+    defaultFont: FontOptions
+): MultilineSegmentsMetricsBox {
     let currentLine = emptyLine();
     const lineMetrics: SegmentsLineMetrics[] = [currentLine];
     let currentLineUncommitted = false;

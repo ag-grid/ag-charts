@@ -1,4 +1,4 @@
-import type { ImageSegment, OverflowStrategy, Segment, TextOrSegments, TextWrap } from 'ag-charts-types';
+import type { ContentSegment, ImageSegment, OverflowStrategy, TextOrSegments, TextWrap } from 'ag-charts-types';
 
 import {
     BLOCK_IMAGE_SPACING,
@@ -40,7 +40,7 @@ function shouldHideOverflow(clippedResult: string[], options: WrapOptions) {
 }
 
 export function wrapTextOrSegments(text: string, options: WrapOptions): string;
-export function wrapTextOrSegments(segments: Segment[], options: WrapOptions): MeasuredSegment[];
+export function wrapTextOrSegments(segments: ContentSegment[], options: WrapOptions): MeasuredSegment[];
 export function wrapTextOrSegments(input: TextOrSegments, options: WrapOptions): string | MeasuredSegment[];
 export function wrapTextOrSegments(input: TextOrSegments, options: WrapOptions) {
     return isArray(input) ? wrapTextSegments(input, options) : wrapLines(toTextString(input), options).join('\n');
@@ -272,10 +272,10 @@ function avoidOrphans(lines: string[], measurer: ITextMeasurer, options: WrapOpt
 interface SegmentGroup {
     /** Leading block-image strip for the row. Multiple images render side-by-side at the left. */
     blockImages: ImageSegment[];
-    segments: Segment[];
+    segments: ContentSegment[];
 }
 
-function splitIntoBlockGroups(textSegments: Segment[]): SegmentGroup[] {
+function splitIntoBlockGroups(textSegments: ContentSegment[]): SegmentGroup[] {
     const groups: SegmentGroup[] = [];
     let current: SegmentGroup | null = null;
     for (let i = 0; i < textSegments.length; i++) {
@@ -301,7 +301,7 @@ function splitIntoBlockGroups(textSegments: Segment[]): SegmentGroup[] {
     return groups;
 }
 
-export function wrapTextSegments(textSegments: Segment[], options: WrapOptions): MeasuredSegment[] {
+export function wrapTextSegments(textSegments: ContentSegment[], options: WrapOptions): MeasuredSegment[] {
     const groups = splitIntoBlockGroups(textSegments);
     if (groups.length === 0) return [];
 
@@ -342,7 +342,7 @@ function wrapGroup(group: SegmentGroup, options: WrapOptions): MeasuredSegment[]
     return wrapBlockGroup(group.blockImages, group.segments, options);
 }
 
-function wrapInlineSegments(segments: Segment[], options: WrapOptions): MeasuredSegment[] {
+function wrapInlineSegments(segments: ContentSegment[], options: WrapOptions): MeasuredSegment[] {
     if (segments.length === 0) return [];
     if (!segments.some((s) => s.type === 'image')) {
         return fitMeasuredSegments(segments, options);
@@ -350,11 +350,11 @@ function wrapInlineSegments(segments: Segment[], options: WrapOptions): Measured
     return wrapInlineSegmentsWithOverflow(segments, options);
 }
 
-function wrapInlineSegmentsWithOverflow(segments: Segment[], options: WrapOptions): MeasuredSegment[] {
+function wrapInlineSegmentsWithOverflow(segments: ContentSegment[], options: WrapOptions): MeasuredSegment[] {
     const maxHeight = options.maxHeight ?? Infinity;
     // Drop any image that exceeds the width or height budget on its own; no strategy can keep it.
     // Build a single working array we mutate in place to avoid allocating a fresh array per drop.
-    const working: Segment[] = [];
+    const working: ContentSegment[] = [];
     for (const s of segments) {
         if (s.type === 'image') {
             const box = imageSegmentBox(s);
@@ -387,7 +387,11 @@ function wrapInlineSegmentsWithOverflow(segments: Segment[], options: WrapOption
     return result;
 }
 
-function wrapBlockGroup(blockImages: ImageSegment[], segments: Segment[], options: WrapOptions): MeasuredSegment[] {
+function wrapBlockGroup(
+    blockImages: ImageSegment[],
+    segments: ContentSegment[],
+    options: WrapOptions
+): MeasuredSegment[] {
     const maxHeight = options.maxHeight ?? Infinity;
 
     // Filter individual images that cannot fit on their own (by width or height) and measure the
@@ -486,7 +490,7 @@ function dropRightmostStripImage(strip: { source: ImageSegment }[], strategy: 'h
     return false;
 }
 
-function resultFitsAllSegments(input: Segment[], output: MeasuredSegment[]): boolean {
+function resultFitsAllSegments(input: ContentSegment[], output: MeasuredSegment[]): boolean {
     // Result is "fit" when no text segment was ellipsis-truncated AND every image in input
     // is present in the output.
     if (hasTruncatedText(output)) return false;
@@ -499,17 +503,17 @@ function hasTruncatedText(output: MeasuredSegment[]): boolean {
     return output.some((s) => s.type !== 'image' && isTextTruncated(s.text));
 }
 
-function lostTextSegments(input: Segment[], output: MeasuredSegment[]): boolean {
+function lostTextSegments(input: ContentSegment[], output: MeasuredSegment[]): boolean {
     const inputText = input.reduce((n, s) => (s.type === 'image' ? n : n + 1), 0);
     const outputText = output.reduce((n, s) => (s.type === 'image' ? n : n + 1), 0);
     return outputText < inputText;
 }
 
-function hasImageWithStrategy(segments: Segment[], strategy: 'hide' | 'keep'): boolean {
+function hasImageWithStrategy(segments: ContentSegment[], strategy: 'hide' | 'keep'): boolean {
     return segments.some((s) => s.type === 'image' && (s.overflowStrategy ?? 'hide') === strategy);
 }
 
-function dropRightmostImage(segments: Segment[], strategy: 'hide' | 'keep'): boolean {
+function dropRightmostImage(segments: ContentSegment[], strategy: 'hide' | 'keep'): boolean {
     for (let i = segments.length - 1; i >= 0; i--) {
         const s = segments[i];
         if (s.type === 'image' && (s.overflowStrategy ?? 'hide') === strategy) {
@@ -520,7 +524,7 @@ function dropRightmostImage(segments: Segment[], strategy: 'hide' | 'keep'): boo
     return false;
 }
 
-function dropRightmostText(segments: Segment[]): boolean {
+function dropRightmostText(segments: ContentSegment[]): boolean {
     for (let i = segments.length - 1; i >= 0; i--) {
         if (segments[i].type !== 'image') {
             segments.splice(i, 1);
@@ -530,7 +534,7 @@ function dropRightmostText(segments: Segment[]): boolean {
     return false;
 }
 
-function fitMeasuredSegments(textSegments: Segment[], options: WrapOptions): MeasuredSegment[] {
+function fitMeasuredSegments(textSegments: ContentSegment[], options: WrapOptions): MeasuredSegment[] {
     const { maxHeight = Infinity } = options;
     const result: MeasuredSegment[] = [];
 

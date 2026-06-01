@@ -18,7 +18,15 @@ import {
     toPlainText,
     toTextString,
 } from 'ag-charts-core';
-import type { FontStyle, FontWeight, Opacity, Padding, PixelSize, Segment, TextOrSegments } from 'ag-charts-types';
+import type {
+    ContentSegment,
+    FontStyle,
+    FontWeight,
+    Opacity,
+    Padding,
+    PixelSize,
+    TextOrSegments,
+} from 'ag-charts-types';
 
 import { BBox } from '../bbox';
 import { Group } from '../group';
@@ -354,12 +362,12 @@ export class Text<D = unknown> extends Shape<D> {
         }
     }
 
-    private getSegmentMetrics(text: Segment[]): ReturnType<typeof measureTextSegments> {
+    private getSegmentMetrics(text: ContentSegment[]): ReturnType<typeof measureTextSegments> {
         this.segmentMetrics ??= measureTextSegments(text, this);
         return this.segmentMetrics;
     }
 
-    private buildTextMap(text: Segment[]) {
+    private buildTextMap(text: ContentSegment[]) {
         const childNodes = this.richText!.children();
         const { width: totalWidth, lineMetrics } = this.getSegmentMetrics(text);
 

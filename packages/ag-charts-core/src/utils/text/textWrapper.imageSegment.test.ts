@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { ImageSegment, Segment, TextSegment } from 'ag-charts-types';
+import type { ContentSegment, ImageSegment, TextSegment } from 'ag-charts-types';
 
 import type { ITextMeasurer, MeasuredSegment } from '../../types/text';
 
@@ -46,7 +46,7 @@ const mockImageSegmentBox = (segment: ImageSegment) => {
 };
 
 // Mirrors `isBlockBoundary` in textMeasurer.ts.
-function mockIsBlockBoundary(segments: Segment[], i: number): boolean {
+function mockIsBlockBoundary(segments: ContentSegment[], i: number): boolean {
     const seg = segments[i];
     if (seg?.type !== 'image' || seg.block !== true) return false;
     if (i === 0) return true;
@@ -58,7 +58,7 @@ function mockIsBlockBoundary(segments: Segment[], i: number): boolean {
 // Real measureTextSegments mirror that handles both TextSegment and ImageSegment, producing
 // realistic line metrics (including per-line block markers) so wrapTextSegments can decide
 // what fits and what doesn't.
-function mockMeasureTextSegments(segments: Segment[]) {
+function mockMeasureTextSegments(segments: ContentSegment[]) {
     type LineMetric = {
         segments: any[];
         width: number;
@@ -233,7 +233,7 @@ function textOf(result: MeasuredSegment[]): string {
 
 describe('wrapTextSegments — image segment overflow', () => {
     it('keeps everything when content fits', () => {
-        const segments: Segment[] = [text('AB '), image('flag', { width: 20, height: 20 }), text(' CD')];
+        const segments: ContentSegment[] = [text('AB '), image('flag', { width: 20, height: 20 }), text(' CD')];
         const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 200 });
         expect(imageUrls(result)).toEqual(['https://example.com/flag.png']);
         expect(textOf(result)).toBe('AB  CD');
@@ -241,7 +241,7 @@ describe('wrapTextSegments — image segment overflow', () => {
 
     it("drops a 'hide' image rightmost-first to keep text intact", () => {
         // Width budget: 70px. With image: 20 + 30 + 40 = 90 (overflow). Without image: 20 + 40 = 60 (fits).
-        const segments: Segment[] = [
+        const segments: ContentSegment[] = [
             text('AB'),
             image('hideMe', { width: 30, height: 30, overflowStrategy: 'hide' }),
             text(' XYZ'),
@@ -261,7 +261,7 @@ describe('wrapTextSegments — image segment overflow', () => {
     it("preserves a 'keep' image by dropping trailing text rather than truncating", () => {
         // Width budget: 50px. Keep image (30px) fits alone; the long preceding text would force
         // truncation if kept, so the wrapper drops the text instead and the image survives.
-        const segments: Segment[] = [
+        const segments: ContentSegment[] = [
             text('AAAAAAAAAA'), // 100px
             image('keepMe', { width: 30, height: 30, overflowStrategy: 'keep' }),
         ];
@@ -278,7 +278,10 @@ describe('wrapTextSegments — image segment overflow', () => {
     it("drops a 'keep' image when the image alone exceeds the width budget", () => {
         // Image is 200px wide; maxWidth is 100. No matter what gets dropped the image cannot fit,
         // so the keep flag yields and the surrounding text takes the full width.
-        const segments: Segment[] = [image('huge', { width: 200, height: 30, overflowStrategy: 'keep' }), text('ABC')];
+        const segments: ContentSegment[] = [
+            image('huge', { width: 200, height: 30, overflowStrategy: 'keep' }),
+            text('ABC'),
+        ];
         const result = wrapTextSegments(segments, {
             font: baseFont,
             maxWidth: 100,
@@ -290,7 +293,7 @@ describe('wrapTextSegments — image segment overflow', () => {
     });
 
     it("drops 'hide' images before 'keep' images when both are present and content overflows", () => {
-        const segments: Segment[] = [
+        const segments: ContentSegment[] = [
             text('A'),
             image('hide1', { width: 30, height: 30, overflowStrategy: 'hide' }),
             text('B'),
@@ -309,13 +312,13 @@ describe('wrapTextSegments — image segment overflow', () => {
     });
 
     it('returns content unchanged when no images present (fast path)', () => {
-        const segments: Segment[] = [text('Hello'), text(' world')];
+        const segments: ContentSegment[] = [text('Hello'), text(' world')];
         const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 500 });
         expect(textOf(result)).toBe('Hello world');
     });
 
     it('preserves \\n in trailing text segment so the layout wraps to a new line', () => {
-        const segments: Segment[] = [image('logo', { width: 28, height: 28 }), text(' Apple'), text('\n$2900B')];
+        const segments: ContentSegment[] = [image('logo', { width: 28, height: 28 }), text(' Apple'), text('\n$2900B')];
         const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 500 });
 
         // Newline is encoded as a trailing \n on the preceding text segment.
@@ -330,7 +333,11 @@ describe('wrapTextSegments — image segment overflow', () => {
     });
 
     it('preserves \\n when previous line ended with an image via a synthetic newline segment', () => {
-        const segments: Segment[] = [text('Title'), image('badge', { width: 20, height: 20 }), text('\nSubtitle')];
+        const segments: ContentSegment[] = [
+            text('Title'),
+            image('badge', { width: 20, height: 20 }),
+            text('\nSubtitle'),
+        ];
         const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 500 });
 
         // Synthetic newline-only text segment is inserted so the renderer creates a new line.
@@ -343,7 +350,7 @@ describe('wrapTextSegments — image segment overflow', () => {
 
 describe('wrapTextSegments — block-leading image', () => {
     it('keeps a block image at the front and wraps subsequent segments unchanged when there is room', () => {
-        const segments: Segment[] = [
+        const segments: ContentSegment[] = [
             image('logo', { width: 36, height: 36, block: true }),
             text('Apple', { fontWeight: 'bold' }),
             text('\n$2900B'),
@@ -359,7 +366,7 @@ describe('wrapTextSegments — block-leading image', () => {
     it('reduces the wrap width by the block image width + spacing', () => {
         // maxWidth = 100. Image width = 30 → text column has 100 - 30 - 4 = 66px available.
         // 'AB CD EF' (8 chars × 10px = 80px) doesn't fit on one line within the column → wraps.
-        const segments: Segment[] = [image('logo', { width: 30, height: 30, block: true }), text('AB CD EF')];
+        const segments: ContentSegment[] = [image('logo', { width: 30, height: 30, block: true }), text('AB CD EF')];
         const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 100 });
 
         // Text wraps into multiple lines within the reduced column.
@@ -373,7 +380,7 @@ describe('wrapTextSegments — block-leading image', () => {
     it("drops an oversized block image under 'hide' (default) and renders the remaining text alone", () => {
         // Image width = 200 exceeds maxWidth = 100 → with default 'hide', drop the image and
         // wrap the text segment through the inline path.
-        const segments: Segment[] = [image('huge', { width: 200, height: 50, block: true }), text('label')];
+        const segments: ContentSegment[] = [image('huge', { width: 200, height: 50, block: true }), text('label')];
         const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 100 });
 
         expect(imageUrls(result)).toEqual([]);
@@ -383,7 +390,7 @@ describe('wrapTextSegments — block-leading image', () => {
     it("drops an oversized block image under 'keep' too — the image cannot fit on its own", () => {
         // Even under 'keep' an image that exceeds the label box on its own cannot be preserved;
         // the wrapper drops it and renders the text at full width.
-        const segments: Segment[] = [
+        const segments: ContentSegment[] = [
             image('huge', { width: 200, height: 50, block: true, overflowStrategy: 'keep' }),
             text('label'),
         ];
@@ -415,7 +422,7 @@ describe('wrapTextSegments — block-leading image', () => {
 
     it('treats block:true mid-line (no preceding \\n) as inline', () => {
         // Block boundary requires the image to be at index 0 or the preceding text to end with \n.
-        const segments: Segment[] = [
+        const segments: ContentSegment[] = [
             text('Prefix '),
             image('inline', { width: 20, height: 20, block: true }),
             text(' suffix'),
@@ -426,7 +433,7 @@ describe('wrapTextSegments — block-leading image', () => {
     });
 
     it('opens a new block row when block:true follows a \\n line break', () => {
-        const segments: Segment[] = [
+        const segments: ContentSegment[] = [
             image('logo1', { width: 30, height: 30, block: true }),
             text('Foo\n'),
             image('logo2', { width: 30, height: 30, block: true }),
@@ -449,7 +456,7 @@ describe('wrapTextSegments — block-leading image', () => {
     it('stacks a leading inline group above subsequent block rows', () => {
         // First segment is non-block text ending with \n → leading inline group; the block image
         // that follows opens a new row beneath it.
-        const segments: Segment[] = [
+        const segments: ContentSegment[] = [
             text('Header\n'),
             image('logo', { width: 30, height: 30, block: true }),
             text('Body'),
@@ -472,7 +479,7 @@ describe('wrapTextSegments — non-never wrap modes with image segments', () => 
     it("wraps trailing text to a new line under 'on-space' when image + text overflow the first line", () => {
         // maxWidth 60. Image is 30px → fits on line 1. Trailing 'AB CD EF' is 80px and cannot
         // fit on the same line; 'on-space' must wrap it to a new line within the budget.
-        const segments: Segment[] = [image('icon', { width: 30, height: 30 }), text(' AB CD EF')];
+        const segments: ContentSegment[] = [image('icon', { width: 30, height: 30 }), text(' AB CD EF')];
         const result = wrapTextSegments(segments, {
             font: baseFont,
             maxWidth: 60,
@@ -490,7 +497,7 @@ describe('wrapTextSegments — non-never wrap modes with image segments', () => 
     it("hyphenates long words under 'hyphenate' while preserving the inline image", () => {
         // 'longword' is 8 chars × 10px = 80px; maxWidth (after the image + space) is well below.
         // 'hyphenate' must break the word with hyphens; the image must still be present.
-        const segments: Segment[] = [image('icon', { width: 30, height: 30 }), text(' longword')];
+        const segments: ContentSegment[] = [image('icon', { width: 30, height: 30 }), text(' longword')];
         const result = wrapTextSegments(segments, {
             font: baseFont,
             maxWidth: 60,
@@ -505,7 +512,7 @@ describe('wrapTextSegments — non-never wrap modes with image segments', () => 
     });
 
     it("breaks text at any boundary under 'always' while preserving the inline image", () => {
-        const segments: Segment[] = [image('icon', { width: 30, height: 30 }), text(' AAAAAAAA')];
+        const segments: ContentSegment[] = [image('icon', { width: 30, height: 30 }), text(' AAAAAAAA')];
         const result = wrapTextSegments(segments, {
             font: baseFont,
             maxWidth: 60,
@@ -521,7 +528,7 @@ describe('wrapTextSegments — non-never wrap modes with image segments', () => 
 
     it("respects 'on-space' even when overflowStrategy is 'keep' and the line wraps", () => {
         // Keep image alongside text that needs to wrap: image stays put, text wraps normally.
-        const segments: Segment[] = [
+        const segments: ContentSegment[] = [
             image('icon', { width: 30, height: 30, overflowStrategy: 'keep' }),
             text(' AB CD EF'),
         ];

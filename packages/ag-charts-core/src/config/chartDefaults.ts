@@ -25,7 +25,6 @@ import {
     type AgTooltipRendererResult,
     type FormatterPropertyType,
     type ImageSegment,
-    type Segment,
     type TextSegment,
     type ToolbarButton,
 } from 'ag-charts-types';
@@ -48,6 +47,7 @@ import {
     callbackDefs,
     callbackOf,
     color,
+    constant,
     date,
     defined,
     greaterThan,
@@ -156,16 +156,16 @@ export const rangeValidator = or(positiveNumber, union('exact', 'nearest', 'area
 export const seriesTooltipRangeValidator = or(positiveNumber, union('exact', 'nearest'));
 const verticalAlignValidator = union('alphabetic', 'top', 'middle', 'bottom', 'hanging', 'ideographic');
 
-const textSegmentDefs: OptionsDefs<TextSegment> = {
-    type: union('text'),
+const textSegmentValidator = optionsDefs<TextSegment>({
+    type: constant('text'),
     text: required(string),
     verticalAlign: verticalAlignValidator,
     lineHeight: positiveNumber,
     ...fontOptionsDef,
-};
+});
 
-const imageSegmentDefs: OptionsDefs<ImageSegment> = {
-    type: required(union('image')),
+const imageSegmentValidator = optionsDefs<ImageSegment>({
+    type: required(constant('image')),
     url: required(string),
     width: required(positiveNumber),
     height: required(positiveNumber),
@@ -177,17 +177,9 @@ const imageSegmentDefs: OptionsDefs<ImageSegment> = {
     border: borderOptionsDef,
     backgroundFill: color,
     block: boolean,
-};
+});
 
-const textSegmentValidator: Validator = optionsDefs(textSegmentDefs);
-const imageSegmentValidator: Validator = optionsDefs(imageSegmentDefs);
-
-const segmentValidator = attachDescription((value: unknown, context: ValidatorContext): boolean | ValidatorResult => {
-    if (value != null && typeof value === 'object' && (value as Segment).type === 'image') {
-        return imageSegmentValidator(value, context);
-    }
-    return textSegmentValidator(value, context);
-}, 'a text or image segment');
+const segmentValidator = or(textSegmentValidator, imageSegmentValidator);
 
 export const textOrSegments = or(
     string,

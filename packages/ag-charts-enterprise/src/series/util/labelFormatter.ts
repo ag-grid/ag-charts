@@ -12,9 +12,9 @@ import type {
     AgChartAutoSizedBaseLabelOptions,
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
+    ContentSegment,
     FontSize,
     OverflowStrategy,
-    Segment,
     TextOrSegments,
     TextWrap,
 } from 'ag-charts-types';
@@ -214,7 +214,7 @@ export function formatStackedLabels<Meta>(
 }
 
 function formatSingleSegmentsLabel<Meta>(
-    segments: Segment[],
+    segments: ContentSegment[],
     props: AutoSizedBaseLabelOptions,
     { padding }: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn<Meta>

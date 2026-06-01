@@ -1,4 +1,4 @@
-import type { Segment, TextOrSegments, TextValue } from 'ag-charts-types';
+import type { ContentSegment, TextOrSegments, TextValue } from 'ag-charts-types';
 
 import { EllipsisChar, type FontOptions, TrimCharsRegex, TrimEdgeGuard } from '../../types/text';
 import { isArray, isDate, isNumber } from '../types/typeGuards';
@@ -118,7 +118,7 @@ export function isTextTruncated(str: string) {
     return str.endsWith(EllipsisChar);
 }
 
-export function isSegmentTruncated(segment: Segment | undefined) {
+export function isSegmentTruncated(segment: ContentSegment | undefined) {
     if (!segment || segment.type === 'image') return false;
     return toTextString(segment.text).endsWith(EllipsisChar);
 }

@@ -264,8 +264,7 @@ export type TextValue = string | number | Date;
 
 export interface TextSegment extends TextOptions {
     /**
-     * Discriminator separating text segments from image segments. Optional on text segments;
-     * required (`'image'`) on image segments.
+     * Discriminator separating text segments from image segments. Optional on text segments.
      */
     type?: 'text';
     /** A segment of text. */
@@ -343,6 +342,6 @@ export interface ImageSegment {
     block?: boolean;
 }
 
-export type Segment = TextSegment | ImageSegment;
+export type ContentSegment = TextSegment | ImageSegment;
 
-export type TextOrSegments = TextValue | Segment[];
+export type TextOrSegments = TextValue | ContentSegment[];
