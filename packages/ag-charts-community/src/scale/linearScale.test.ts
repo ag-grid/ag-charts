@@ -284,6 +284,97 @@ describe('LinearScale', () => {
         expect(singlePointFormat(1234.567890123, ' ')).toEqual(' 1234.56789012');
     });
 
+    describe('convert bigint', () => {
+        test('matches the equivalent number conversion', () => {
+            const bigScale = new LinearScale();
+            bigScale.domain = [0n, 100n];
+            bigScale.range = [0, 100];
+
+            const numScale = new LinearScale();
+            numScale.domain = [0, 100];
+            numScale.range = [0, 100];
+
+            for (const v of [0n, 25n, 50n, 75n, 100n]) {
+                expect(bigScale.convert(v)).toBe(numScale.convert(Number(v)));
+            }
+        });
+
+        test('narrows the public domain to Number for spreading consumers', () => {
+            const scale = new LinearScale();
+            scale.domain = [0n, 100n];
+
+            expect(scale.domain).toEqual([0, 100]);
+            expect(scale.domain.every((v) => typeof v === 'number')).toBe(true);
+            expect(() => Math.min(...scale.domain)).not.toThrow();
+        });
+
+        test('clamps to the range bounds', () => {
+            const scale = new LinearScale();
+            scale.domain = [0n, 100n];
+            scale.range = [0, 100];
+
+            expect(scale.convert(-50n, { clamp: true })).toBe(0);
+            expect(scale.convert(150n, { clamp: true })).toBe(100);
+            expect(scale.convert(-50n, { clamp: false })).toBe(-50);
+            expect(scale.convert(150n, { clamp: false })).toBe(150);
+        });
+
+        test('returns the range midpoint for a zero-width domain', () => {
+            const scale = new LinearScale();
+            scale.domain = [100n, 100n];
+            scale.range = [0, 100];
+
+            expect(scale.convert(100n, { clamp: true })).toBe(50);
+            // Clamp takes precedence over the zero-width midpoint, matching the Number path.
+            expect(scale.convert(50n, { clamp: true })).toBe(0);
+            expect(scale.convert(150n, { clamp: true })).toBe(100);
+        });
+
+        test('supports descending domains', () => {
+            const scale = new LinearScale();
+            scale.domain = [100n, 0n];
+            scale.range = [0, 100];
+
+            expect(scale.convert(100n)).toBe(0);
+            expect(scale.convert(0n)).toBe(100);
+            expect(scale.convert(50n)).toBe(50);
+        });
+
+        test('is monotonic for adjacent bigints', () => {
+            const scale = new LinearScale();
+            scale.domain = [0n, 10n];
+            scale.range = [0, 1000];
+
+            let previous = -Infinity;
+            for (let v = 0n; v <= 10n; v++) {
+                const position = scale.convert(v);
+                expect(position).toBeGreaterThan(previous);
+                previous = position;
+            }
+        });
+
+        // AC AG-16608 #16: spans beyond Number.MAX_SAFE_INTEGER stay position-monotonic.
+        test('positions monotonically across a span larger than Number.MAX_SAFE_INTEGER', () => {
+            const span = 10n ** 21n;
+            expect(Number(span)).toBeGreaterThan(Number.MAX_SAFE_INTEGER);
+
+            const scale = new LinearScale();
+            scale.domain = [0n, span];
+            scale.range = [0, 1000];
+
+            expect(scale.convert(0n)).toBe(0);
+            expect(scale.convert(span)).toBe(1000);
+            expect(scale.convert(span / 2n)).toBeCloseTo(500);
+
+            let previous = -Infinity;
+            for (let i = 0n; i <= 10n; i++) {
+                const position = scale.convert((span * i) / 10n);
+                expect(position).toBeGreaterThan(previous);
+                previous = position;
+            }
+        });
+    });
+
     describe('empty domain', () => {
         test('convert does not throw', () => {
             const scale = new LinearScale();
