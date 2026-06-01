@@ -1276,11 +1276,10 @@ describe('HeatmapSeries', () => {
                         colorKey: 'spending',
                         label: {
                             enabled: true,
-                            formatter: ({ datum }) => {
-                                const d = datum as { person: string; spending: number };
+                            formatter: ({ datum }: { datum: { person: string; spending: number } }) => {
                                 return [
-                                    { type: 'image', url: ICONS[d.person], width: 20, height: 20, block: true },
-                                    { text: `${d.spending}` },
+                                    { type: 'image', url: ICONS[datum.person], width: 20, height: 20, block: true },
+                                    { text: `${datum.spending}` },
                                 ];
                             },
                         },
