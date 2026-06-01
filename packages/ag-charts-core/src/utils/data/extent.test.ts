@@ -59,6 +59,18 @@ describe('extent module', () => {
             expect(result?.[1]).toBe(latest);
         });
 
+        test('retains exact bigint endpoints (AG-16608)', () => {
+            const result = extent([0n, 5n, 9_007_199_254_740_993n, 2n]);
+            expect(result?.[0]).toBe(0n);
+            expect(result?.[1]).toBe(9_007_199_254_740_993n);
+        });
+
+        test('retains bigint endpoints via the sorted fast path', () => {
+            const result = extent([0n, 10n ** 21n], 1);
+            expect(result?.[0]).toBe(0n);
+            expect(result?.[1]).toBe(10n ** 21n);
+        });
+
         test('returns earliest and latest timestamp for mixed Dates and numbers', () => {
             const earliest = 5270400000;
             const latest = 1568468277000;
