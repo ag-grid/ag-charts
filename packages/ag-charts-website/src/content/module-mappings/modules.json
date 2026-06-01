@@ -306,6 +306,11 @@
             "name": "Data Elements",
             "children": [
                 {
+                    "moduleName": "CrossLinesModule",
+                    "name": "Cross Lines",
+                    "path": "axes-cross-lines"
+                },
+                {
                     "moduleName": "LegendModule",
                     "name": "Legend",
                     "path": "legend"
@@ -314,17 +319,6 @@
                     "moduleName": "AnnotationsModule",
                     "name": "Annotations",
                     "path": "annotations",
-                    "isEnterprise": true
-                },
-                {
-                    "moduleName": "CrossLinesModule",
-                    "name": "Cross Lines",
-                    "path": "axes-cross-lines"
-                },
-                {
-                    "moduleName": "PolarCrossLinesModule",
-                    "name": "Polar Cross Lines",
-                    "path": "axes-cross-lines/#polar-axes-cross-lines",
                     "isEnterprise": true
                 },
                 {
@@ -337,6 +331,12 @@
                     "moduleName": "GradientLegendModule",
                     "name": "Gradient Legend",
                     "path": "heatmap-series/#gradient-legend",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "PolarCrossLinesModule",
+                    "name": "Polar Cross Lines",
+                    "path": "axes-cross-lines/#polar-axes-cross-lines",
                     "isEnterprise": true
                 }
             ]
@@ -374,6 +374,12 @@
                     "isEnterprise": true
                 },
                 {
+                    "moduleName": "SelectionModule",
+                    "name": "Data Selection",
+                    "path": "selection",
+                    "isEnterprise": true
+                },
+                {
                     "moduleName": "FlashOnUpdateModule",
                     "name": "Flash On Update",
                     "path": "flash-on-update",
@@ -395,12 +401,6 @@
                     "moduleName": "ScrollbarModule",
                     "name": "Scrollbar",
                     "path": "scrollbar",
-                    "isEnterprise": true
-                },
-                {
-                    "moduleName": "SelectionModule",
-                    "name": "Data Selection",
-                    "path": "selection",
                     "isEnterprise": true
                 },
                 {
