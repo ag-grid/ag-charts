@@ -1,16 +1,22 @@
 import {
     BaseProperties,
-    Logger,
     Property,
     callWithContext,
     coerceTextValue,
     createElement,
     isArray,
     isHTMLElement,
+    resolvePadding,
     toPlainText,
     toTextString,
 } from 'ag-charts-core';
-import type { AgChartOverlayRendererParams, DatumDefault, Renderer, TextOrSegments } from 'ag-charts-types';
+import type {
+    AgChartOverlayRendererParams,
+    DatumDefault,
+    ImageSegment,
+    Renderer,
+    TextOrSegments,
+} from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
@@ -18,6 +24,43 @@ import type { AnimationManager } from '../interaction/animationManager';
 
 export const DEFAULT_OVERLAY_CLASS = 'ag-charts-overlay';
 export const DEFAULT_OVERLAY_DARK_CLASS = 'ag-charts-dark-overlay';
+
+function imageVerticalAlignToCss(verticalAlign: ImageSegment['verticalAlign']): string {
+    switch (verticalAlign) {
+        case 'top':
+            return 'top';
+        case 'bottom':
+        case 'ideographic':
+            return 'bottom';
+        case 'alphabetic':
+            return 'baseline';
+        case 'hanging':
+            return 'text-top';
+        case 'middle':
+        default:
+            return 'middle';
+    }
+}
+
+// Maps an image segment's decoration to the CSS for its overlay <img>. Mirrors the canvas
+// ImageSegmentNode: a padded box (`border-box` + `object-fit: contain`), optional background,
+// rounded corners and border. Exported for unit testing — jsdom cannot host a real <img>.
+export function imageSegmentStyle(segment: ImageSegment): Partial<CSSStyleDeclaration> {
+    const { top, right, bottom, left } = resolvePadding(segment.padding);
+    const { border } = segment;
+    const hasBorder = (border?.enabled ?? true) && !!border?.stroke && (border?.strokeWidth ?? 0) > 0;
+    return {
+        boxSizing: 'border-box',
+        objectFit: 'contain',
+        width: `${segment.width}px`,
+        height: `${segment.height}px`,
+        padding: `${top}px ${right}px ${bottom}px ${left}px`,
+        verticalAlign: imageVerticalAlignToCss(segment.verticalAlign),
+        backgroundColor: segment.backgroundFill ?? '',
+        borderRadius: segment.borderRadius == null ? '' : `${segment.borderRadius}px`,
+        border: hasBorder && border ? `${border.strokeWidth}px solid ${border.stroke}` : '',
+    };
+}
 
 export class Overlay extends BaseProperties {
     @Property
@@ -97,7 +140,7 @@ export class Overlay extends BaseProperties {
                 const container = createElement('div');
                 for (const segment of this.text) {
                     if (segment.type === 'image') {
-                        Logger.warnOnce('Overlay drops inline image segments; text content is preserved.');
+                        this.appendImageSegment(container, segment);
                         continue;
                     }
                     const el = createElement('span', {
@@ -133,6 +176,16 @@ export class Overlay extends BaseProperties {
         }
 
         return this.content;
+    }
+
+    // Overlays are plain DOM, so an image segment maps to an <img> the browser loads natively —
+    // no ImageLoader (which exists only for the canvas pipeline). Decoration is mirrored from the
+    // canvas ImageSegmentNode: padded box, optional background, rounded corners and border.
+    private appendImageSegment(container: HTMLElement, segment: ImageSegment) {
+        const img = createElement('img', imageSegmentStyle(segment));
+        img.src = segment.url;
+        img.alt = segment.alt ?? '';
+        container.appendChild(img);
     }
 
     removeElement(cleanup = () => this.content?.remove(), animationManager?: AnimationManager) {

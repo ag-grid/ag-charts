@@ -67,6 +67,9 @@ const options: AgChartOptions = {
             xKey: 'country',
             yKey: 'revenue',
             yName: 'Revenue',
+            tooltip: {
+                renderer: (p) => ({ heading: p.datum[p.xKey] }),
+            },
             label: {
                 enabled: true,
                 formatter: ({ datum }) => {

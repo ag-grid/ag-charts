@@ -105,7 +105,8 @@ export class ImageLoader extends EventEmitter<EventMap> {
             })
             .catch(onFail);
 
-        return nextEntry.image;
+        // The image resolves asynchronously; affected nodes are notified via markDirty on load.
+        return undefined;
     }
 
     public unregisterNode(node: NotifiableNode): void {

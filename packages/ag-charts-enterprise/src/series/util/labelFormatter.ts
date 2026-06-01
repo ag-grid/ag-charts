@@ -224,12 +224,7 @@ function formatSingleSegmentsLabel<Meta>(
     // arrays. Set `fontSize` on individual segments to control sizing, or rely on the segment
     // overflow handling (drop 'hide' images → truncate text → drop 'keep' images) to fit.
     const sizeAdjust = 2 * padding;
-    const baseFont: FontOptions = {
-        fontFamily: props.fontFamily,
-        fontStyle: props.fontStyle,
-        fontWeight: props.fontWeight,
-        fontSize: props.fontSize,
-    };
+    const baseFont = toBaseFont(props);
     const measurer = cachedTextMeasurer(baseFont);
     const lineHeight = props.lineHeight ?? measurer.lineHeight();
 

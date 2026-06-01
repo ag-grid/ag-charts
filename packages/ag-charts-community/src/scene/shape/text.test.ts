@@ -874,6 +874,7 @@ describe('Text', () => {
         // ready-to-render image and the snapshot reflects the actual image content.
         let inlineImage: Image;
         let blockImage: Image;
+        let blockImage2: Image;
         const ICON_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(
             '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">' +
                 '<rect width="24" height="24" rx="4" fill="#2b7cd3"/>' +
@@ -886,10 +887,19 @@ describe('Text', () => {
                 '<text x="18" y="24" text-anchor="middle" font-family="Verdana" font-size="18" fill="white" font-weight="bold">A</text>' +
                 '</svg>'
         )}`;
+        // A second, visually distinct block logo so stacked/side-by-side block rows are
+        // distinguishable in the snapshots.
+        const LOGO2_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36">' +
+                '<rect x="2" y="2" width="32" height="32" rx="6" fill="#d62728"/>' +
+                '<text x="18" y="24" text-anchor="middle" font-family="Verdana" font-size="18" fill="white" font-weight="bold">B</text>' +
+                '</svg>'
+        )}`;
 
         beforeAll(async () => {
             inlineImage = await loadImage(ICON_SVG);
             blockImage = await loadImage(LOGO_SVG);
+            blockImage2 = await loadImage(LOGO2_SVG);
         });
 
         function makeImageLoaderScene(imagesByUri: Record<string, Image>): IScene {
@@ -1115,6 +1125,344 @@ describe('Text', () => {
             expect(imageNode2.x).toBeGreaterThan(imageNode1.x);
             // Text column sits to the right of image 2.
             expect(rowText.x).toBeGreaterThan(imageNode2.x);
+        });
+
+        // ---------------------------------------------------------------------------------------
+        // Block-image position, mixing and decoration scenarios. Geometry tests use `mockScene`
+        // and assert the layout invariants directly; visual tests render real (stubbed) images
+        // and snapshot the output so block positioning can be reviewed by eye.
+        // ---------------------------------------------------------------------------------------
+
+        const imageNodesOf = (text: Text) => childNodesOf(text).filter((n) => n.imageWidth != null);
+        const textNodesOf = (text: Text) => childNodesOf(text).filter((n) => n.imageWidth == null);
+
+        function renderSegmentsSnapshot(text: unknown[], imagesByUri: Record<string, Image>, x = 200, y = 120) {
+            const ctx = canvasCtx.getRenderContext2D();
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 800, canvasCtx.nodeCanvas.height ?? 600);
+
+            const node = new Text();
+            Object.assign(node, { ...BASE_OPTIONS, textBaseline: 'middle', text, x, y });
+            node.setScene(makeImageLoaderScene(imagesByUri));
+
+            ctx.save();
+            node.render({
+                ctx,
+                direction: 'ltr',
+                width: canvasCtx.nodeCanvas.width,
+                height: canvasCtx.nodeCanvas.height,
+                devicePixelRatio: 1,
+                debugNodes: {},
+            });
+            ctx.restore();
+            return extractImageData(canvasCtx);
+        }
+
+        const BLOCK_A = 'https://example.com/blockA.png';
+        const BLOCK_B = 'https://example.com/blockB.png';
+        const BLOCK_C = 'https://example.com/blockC.png';
+        const INLINE = 'https://example.com/inline.png';
+
+        describe('block position within the segments array', () => {
+            it('stacks a leading and a trailing block image as two rows (block, 2 text segments, block)', () => {
+                const text = new Text();
+                Object.assign(text, {
+                    ...BASE_OPTIONS,
+                    text: [
+                        { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true },
+                        { text: 'Alpha ', fontWeight: 'bold' as const },
+                        { text: 'beta\n' },
+                        // Preceded by a `\n`-terminated text segment, so this block starts a new row
+                        // rather than joining the first strip — it must NOT be dropped.
+                        { type: 'image', url: BLOCK_B, width: 40, height: 40, block: true },
+                        { text: 'Gamma' },
+                    ],
+                    x: 200,
+                    y: 100,
+                });
+                text.setScene(mockScene);
+
+                const images = imageNodesOf(text);
+                expect(images).toHaveLength(2);
+                const [blockA, blockB] = images;
+                // Both blocks anchor at the same left edge; block B sits in a new row below block A.
+                expect(blockB.x).toBe(blockA.x);
+                expect(blockB.y).toBeGreaterThan(blockA.y);
+                // The trailing 'Gamma' column flows to the right of block B.
+                const gamma = textNodesOf(text).at(-1)!;
+                expect(gamma.x).toBeGreaterThan(blockB.x);
+            });
+
+            it('keeps a trailing block image inline when no newline separates it from the text (block, 2 text segments, block)', () => {
+                const text = new Text();
+                Object.assign(text, {
+                    ...BASE_OPTIONS,
+                    text: [
+                        { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true },
+                        { text: 'Alpha ', fontWeight: 'bold' as const },
+                        // No trailing `\n`, so the next block:true image is mid-line and renders
+                        // inline within block A's column rather than starting a second row.
+                        { text: 'beta' },
+                        { type: 'image', url: BLOCK_B, width: 40, height: 40, block: true },
+                        { text: 'Gamma' },
+                    ],
+                    x: 200,
+                    y: 100,
+                });
+                text.setScene(mockScene);
+
+                const images = imageNodesOf(text);
+                expect(images).toHaveLength(2);
+                const [blockA, blockB] = images;
+                // Block A is the single leading strip (left-anchored). Block B is not stacked below
+                // it — it flows inline inside the column, to block A's right, before 'Gamma'.
+                expect(blockB.x).toBeGreaterThan(blockA.x);
+                const gamma = textNodesOf(text).at(-1)!;
+                expect(gamma.x).toBeGreaterThan(blockB.x);
+            });
+
+            it('ignores block:true when the image is mid-line (preceded by inline text, no newline)', () => {
+                const text = new Text();
+                Object.assign(text, {
+                    ...BASE_OPTIONS,
+                    text: [
+                        { text: 'Before ' },
+                        { type: 'image', url: BLOCK_A, width: 24, height: 24, block: true },
+                        { text: ' after' },
+                    ],
+                    x: 200,
+                    y: 100,
+                });
+                text.setScene(mockScene);
+
+                const [image] = imageNodesOf(text);
+                const [before, after] = textNodesOf(text);
+                // A real block row would left-anchor the image (smallest x). Inline flow instead
+                // places it after 'Before ' and before ' after' on the same line.
+                expect(image.x).toBeGreaterThan(before.x);
+                expect(after.x).toBeGreaterThan(image.x);
+            });
+
+            it('starts a new block row when block:true follows a newline-terminated text segment', () => {
+                const text = new Text();
+                Object.assign(text, {
+                    ...BASE_OPTIONS,
+                    text: [
+                        { text: 'Header\n' },
+                        { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true },
+                        { text: 'Body' },
+                    ],
+                    x: 200,
+                    y: 100,
+                });
+                text.setScene(mockScene);
+
+                const [image] = imageNodesOf(text);
+                const [header, body] = textNodesOf(text);
+                // Header is its own line above the block row; the block image sits below it and the
+                // body column flows to its right.
+                expect(image.y).toBeGreaterThan(header.y);
+                expect(body.x).toBeGreaterThan(image.x);
+            });
+
+            it('renders the leading/trailing block stack visually', () => {
+                expect(
+                    renderSegmentsSnapshot(
+                        [
+                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { text: 'Alpha', fontWeight: 'bold' as const },
+                            { text: '\nbeta\n' },
+                            { type: 'image', url: BLOCK_B, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { text: 'Gamma' },
+                        ],
+                        { [BLOCK_A]: blockImage, [BLOCK_B]: blockImage2 }
+                    )
+                ).toMatchImageSnapshot();
+            });
+
+            it('renders a trailing block image inline (no newline between the two blocks) visually', () => {
+                expect(
+                    renderSegmentsSnapshot(
+                        [
+                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { text: 'Alpha ', fontWeight: 'bold' as const },
+                            { text: 'beta' },
+                            { type: 'image', url: BLOCK_B, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { text: 'Gamma' },
+                        ],
+                        { [BLOCK_A]: blockImage, [BLOCK_B]: blockImage2 }
+                    )
+                ).toMatchImageSnapshot();
+            });
+        });
+
+        describe('multiple block images', () => {
+            it('lays three block images side-by-side in one strip', () => {
+                const text = new Text();
+                Object.assign(text, {
+                    ...BASE_OPTIONS,
+                    text: [
+                        { type: 'image', url: BLOCK_A, width: 30, height: 30, block: true },
+                        { type: 'image', url: BLOCK_B, width: 30, height: 30, block: true },
+                        { type: 'image', url: BLOCK_C, width: 30, height: 30, block: true },
+                        { text: 'Row' },
+                    ],
+                    x: 200,
+                    y: 100,
+                });
+                text.setScene(mockScene);
+
+                const [a, b, c] = imageNodesOf(text);
+                expect(b.y).toBe(a.y);
+                expect(c.y).toBe(a.y);
+                expect(b.x).toBeGreaterThan(a.x);
+                expect(c.x).toBeGreaterThan(b.x);
+                const row = textNodesOf(text).at(-1)!;
+                expect(row.x).toBeGreaterThan(c.x);
+            });
+
+            it('renders three side-by-side block images visually', () => {
+                expect(
+                    renderSegmentsSnapshot(
+                        [
+                            { type: 'image', url: BLOCK_A, width: 32, height: 32, block: true },
+                            { type: 'image', url: BLOCK_B, width: 32, height: 32, block: true },
+                            { type: 'image', url: BLOCK_A, width: 32, height: 32, block: true },
+                            { text: 'Three icons' },
+                        ],
+                        { [BLOCK_A]: blockImage, [BLOCK_B]: blockImage2 }
+                    )
+                ).toMatchImageSnapshot();
+            });
+        });
+
+        describe('mixing block and inline images', () => {
+            it('renders an inline image inside the text column of a block row', () => {
+                const text = new Text();
+                Object.assign(text, {
+                    ...BASE_OPTIONS,
+                    text: [
+                        { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true },
+                        { text: 'Name ' },
+                        { type: 'image', url: INLINE, width: 20, height: 20, verticalAlign: 'middle' },
+                        { text: ' end' },
+                    ],
+                    x: 200,
+                    y: 100,
+                });
+                text.setScene(mockScene);
+
+                const [block, inline] = imageNodesOf(text);
+                // The inline image lives in the column to the right of the block image.
+                expect(inline.x).toBeGreaterThan(block.x);
+            });
+
+            it('starts a block row after a newline-terminated inline row', () => {
+                const text = new Text();
+                Object.assign(text, {
+                    ...BASE_OPTIONS,
+                    text: [
+                        { type: 'image', url: INLINE, width: 20, height: 20, verticalAlign: 'middle' },
+                        { text: 'top\n' },
+                        { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true },
+                        { text: 'bottom' },
+                    ],
+                    x: 200,
+                    y: 100,
+                });
+                text.setScene(mockScene);
+
+                const [inline, block] = imageNodesOf(text);
+                // The block row sits below the inline row.
+                expect(block.y).toBeGreaterThan(inline.y);
+            });
+
+            it('renders a block + inline image mix visually', () => {
+                expect(
+                    renderSegmentsSnapshot(
+                        [
+                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { text: 'Name ' },
+                            { type: 'image', url: INLINE, width: 20, height: 20, verticalAlign: 'middle' },
+                            { text: ' tag\nsecond line' },
+                        ],
+                        { [BLOCK_A]: blockImage, [INLINE]: inlineImage }
+                    )
+                ).toMatchImageSnapshot();
+            });
+        });
+
+        describe('block image verticalAlign', () => {
+            it.each(['top', 'middle', 'bottom'] as const)(
+                "renders a tall block image with verticalAlign='%s' beside a short text column",
+                (verticalAlign) => {
+                    expect(
+                        renderSegmentsSnapshot(
+                            [
+                                { type: 'image', url: BLOCK_A, width: 36, height: 72, block: true, verticalAlign },
+                                { text: 'Single line' },
+                            ],
+                            { [BLOCK_A]: blockImage }
+                        )
+                    ).toMatchImageSnapshot();
+                }
+            );
+        });
+
+        describe('multi-line text column', () => {
+            it('spans the block row across the pre-split text lines', () => {
+                const text = new Text();
+                Object.assign(text, {
+                    ...BASE_OPTIONS,
+                    text: [
+                        { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true },
+                        { text: 'Line one\nLine two\nLine three' },
+                    ],
+                    x: 200,
+                    y: 100,
+                });
+                text.setScene(mockScene);
+
+                // One block image plus a text node per non-empty column line.
+                expect(imageNodesOf(text)).toHaveLength(1);
+                const columnLines = textNodesOf(text);
+                expect(columnLines.length).toBeGreaterThanOrEqual(3);
+                // Column lines stack downward at the same x, to the right of the block image.
+                expect(columnLines[1].y).toBeGreaterThan(columnLines[0].y);
+                expect(columnLines[0].x).toBe(columnLines[1].x);
+                expect(columnLines[0].x).toBeGreaterThan(imageNodesOf(text)[0].x);
+            });
+
+            it('renders a multi-line column beside a block image visually', () => {
+                expect(
+                    renderSegmentsSnapshot(
+                        [
+                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { text: 'Title', fontWeight: 'bold' as const },
+                            { text: '\nSubtitle\nDetail line' },
+                        ],
+                        { [BLOCK_A]: blockImage }
+                    )
+                ).toMatchImageSnapshot();
+            });
+        });
+
+        describe('block image decorations', () => {
+            it.each([
+                ['padding', { padding: 8, backgroundFill: '#e0e0e0' }],
+                ['rounded background', { padding: 4, backgroundFill: '#333', borderRadius: 10 }],
+                ['border', { border: { enabled: true, stroke: '#0a0', strokeWidth: 2 }, padding: 4 }],
+            ] as const)('renders a block image with %s', (_name, extra) => {
+                expect(
+                    renderSegmentsSnapshot(
+                        [
+                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, ...extra },
+                            { text: 'Decorated', fontWeight: 'bold' as const },
+                        ],
+                        { [BLOCK_A]: blockImage }
+                    )
+                ).toMatchImageSnapshot();
+            });
         });
     });
 

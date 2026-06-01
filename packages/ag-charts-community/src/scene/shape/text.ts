@@ -9,6 +9,8 @@ import {
     type RequireOptional,
     SceneRefChangeDetection,
     type TextMetricsBox,
+    blockStripHeight,
+    blockStripWidth,
     cachedTextMeasurer,
     createSvgElement,
     isArray,
@@ -383,51 +385,9 @@ export class Text<D = unknown> extends Shape<D> {
 
             if (line.blockImages?.length) {
                 const span = line.blockRowSpan ?? 1;
-                const strip = line.blockImages;
-                const stripWidth = strip.reduce(
-                    (w, img, i) => w + img.textMetrics.width + (i > 0 ? BLOCK_IMAGE_SPACING : 0),
-                    0
-                );
-                const stripHeight = strip.reduce((h, img) => Math.max(h, img.textMetrics.height), 0);
-
-                let innerColHeight = 0;
-                for (let k = 0; k < span; k++) {
-                    innerColHeight += lineMetrics[lineIndex + k].height;
-                }
-                const rowHeight = Math.max(stripHeight, innerColHeight);
-
-                // Lay out each image in the strip left-to-right. Each image anchors inside the row
-                // height per its own verticalAlign; the text column anchors independently per the
-                // first text segment's verticalAlign.
-                let stripX = labelLeft;
-                for (let s = 0; s < strip.length; s++) {
-                    const blockSeg = strip[s];
-                    const blockBox = blockSeg.textMetrics;
-                    const imageAlign = blockSeg.verticalAlign ?? 'middle';
-                    const imageOffset = Text.calcAnchoredOffset(imageAlign, rowHeight, blockBox.height);
-
-                    const imageChild = childNodes.next().value;
-                    if (!imageChild) {
-                        this.abandonTextMap();
-                        return;
-                    }
-                    Text.applyImageSegment(imageChild as ImageSegmentNode, blockSeg, stripX, offsetY + imageOffset);
-                    this.textMap!.set(imageChild, (imageChild as ImageSegmentNode).getBBox());
-
-                    stripX += blockBox.width + (s < strip.length - 1 ? BLOCK_IMAGE_SPACING : 0);
-                }
-
-                const firstTextSegment = Text.findFirstTextSegment(lineMetrics, lineIndex, span);
-                const columnLeft = labelLeft + stripWidth + BLOCK_IMAGE_SPACING;
-                let innerOffsetY =
-                    offsetY +
-                    Text.calcAnchoredOffset(firstTextSegment?.verticalAlign ?? 'alphabetic', rowHeight, innerColHeight);
-
-                for (let k = 0; k < span; k++) {
-                    innerOffsetY = this.renderLine(lineMetrics[lineIndex + k], columnLeft, innerOffsetY, childNodes);
-                }
-
-                offsetY += rowHeight;
+                const nextOffsetY = this.layoutBlockRow(lineMetrics, lineIndex, span, offsetY, labelLeft, childNodes);
+                if (nextOffsetY == null) return;
+                offsetY = nextOffsetY;
                 lineIndex += span;
                 continue;
             }
@@ -435,6 +395,61 @@ export class Text<D = unknown> extends Shape<D> {
             offsetY = this.renderLine(line, this.x - line.width / 2, offsetY, childNodes);
             lineIndex += 1;
         }
+    }
+
+    // Lay out a block-image row: the leading image strip anchored at `labelLeft`, then the text
+    // column (`span` wrapped lines) flowing to its right. Returns the advanced offsetY, or null
+    // if the child-node supply diverged from the line metrics (caller abandons the map).
+    private layoutBlockRow(
+        lineMetrics: ReturnType<typeof measureTextSegments>['lineMetrics'],
+        lineIndex: number,
+        span: number,
+        offsetY: number,
+        labelLeft: number,
+        childNodes: IterableIterator<Node>
+    ): number | null {
+        const strip = lineMetrics[lineIndex].blockImages!;
+        const stripWidth = blockStripWidth(strip);
+        const stripHeight = blockStripHeight(strip);
+
+        let innerColHeight = 0;
+        for (let k = 0; k < span; k++) {
+            innerColHeight += lineMetrics[lineIndex + k].height;
+        }
+        const rowHeight = Math.max(stripHeight, innerColHeight);
+
+        // Lay out each image in the strip left-to-right. Each image anchors inside the row height
+        // per its own verticalAlign; the text column anchors independently per the first text
+        // segment's verticalAlign.
+        let stripX = labelLeft;
+        for (let s = 0; s < strip.length; s++) {
+            const blockSeg = strip[s];
+            const blockBox = blockSeg.textMetrics;
+            const imageAlign = blockSeg.verticalAlign ?? 'middle';
+            const imageOffset = Text.calcAnchoredOffset(imageAlign, rowHeight, blockBox.height);
+
+            const imageChild = childNodes.next().value;
+            if (!imageChild) {
+                this.abandonTextMap();
+                return null;
+            }
+            Text.applyImageSegment(imageChild as ImageSegmentNode, blockSeg, stripX, offsetY + imageOffset);
+            this.textMap!.set(imageChild, (imageChild as ImageSegmentNode).getBBox());
+
+            stripX += blockBox.width + (s < strip.length - 1 ? BLOCK_IMAGE_SPACING : 0);
+        }
+
+        const firstTextSegment = Text.findFirstTextSegment(lineMetrics, lineIndex, span);
+        const columnLeft = labelLeft + stripWidth + BLOCK_IMAGE_SPACING;
+        let innerOffsetY =
+            offsetY +
+            Text.calcAnchoredOffset(firstTextSegment?.verticalAlign ?? 'alphabetic', rowHeight, innerColHeight);
+
+        for (let k = 0; k < span; k++) {
+            innerOffsetY = this.renderLine(lineMetrics[lineIndex + k], columnLeft, innerOffsetY, childNodes);
+        }
+
+        return offsetY + rowHeight;
     }
 
     private static findFirstTextSegment(
@@ -535,22 +550,18 @@ export class Text<D = unknown> extends Shape<D> {
         }
     }
 
-    private static applyImagePadding(node: ImageSegmentNode, padding: Padding | undefined) {
-        const { top, right, bottom, left } = resolvePadding(padding);
-        node.paddingTop = top;
-        node.paddingRight = right;
-        node.paddingBottom = bottom;
-        node.paddingLeft = left;
-    }
-
     private static applyImageSegment(node: ImageSegmentNode, segment: MeasuredImageSegment, x: number, y: number) {
+        const { top, right, bottom, left } = resolvePadding(segment.padding);
         node.x = x;
         node.y = y;
         node.boxWidth = segment.textMetrics.width;
         node.boxHeight = segment.textMetrics.height;
         node.imageWidth = segment.width;
         node.imageHeight = segment.height;
-        Text.applyImagePadding(node, segment.padding);
+        node.paddingTop = top;
+        node.paddingRight = right;
+        node.paddingBottom = bottom;
+        node.paddingLeft = left;
         node.borderRadius = segment.borderRadius ?? 0;
         node.backgroundFill = segment.backgroundFill;
         node.border = segment.border;

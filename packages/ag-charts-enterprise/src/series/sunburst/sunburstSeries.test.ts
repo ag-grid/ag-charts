@@ -1,5 +1,6 @@
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import type {
     AgCartesianChartOptions,
@@ -966,6 +967,96 @@ describe('SunburstSeries', () => {
             });
             chart = AgCharts.create(options);
             await compare({ customSnapshotIdentifier: 'AG-8917-label-boxing-styles' });
+        });
+    });
+
+    describe('block-leading image segments (treemap parity)', () => {
+        // Sunburst labels go through formatLabels() like treemap, so a `block: true` image segment
+        // must render anchored left of the slice label with text beside it.
+        const iconSvg = (letter: string) =>
+            `data:image/svg+xml;utf8,${encodeURIComponent(
+                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="28" height="28">` +
+                    `<circle cx="14" cy="14" r="12" fill="#1f77b4"/>` +
+                    `<text x="14" y="19" text-anchor="middle" font-family="Verdana" font-size="13"` +
+                    ` fill="white" font-weight="bold">${letter}</text></svg>`
+            )}`;
+        const ICONS: Record<string, string> = {
+            Solar: iconSvg('S'),
+            Earth: iconSvg('E'),
+            Mars: iconSvg('M'),
+            'Gas Giants': iconSvg('G'),
+            Jupiter: iconSvg('J'),
+        };
+
+        let preloaded: Record<string, SkiaImage> = {};
+        beforeAll(async () => {
+            const entries = await Promise.all(
+                Object.values(ICONS).map(async (url) => [url, await skiaLoadImage(url)] as const)
+            );
+            preloaded = Object.fromEntries(entries);
+        });
+
+        function stubChartImageLoader(chartInstance: any) {
+            const imageLoader = (chartInstance as Chart).ctx.scene.imageLoader as any;
+            imageLoader.loadImage = (uri: string) => preloaded[uri] as unknown as HTMLImageElement;
+        }
+
+        // True only if a rendered label scene node received the image segment array (rather than a
+        // flattened plain string). Sunburst label nodes live inside per-slice groups, so this walks
+        // the label selection's node trees looking for an image-bearing segment array.
+        function someLabelHasImageSegment(chartInstance: any): boolean {
+            const series = (chartInstance as Chart).series[0] as any;
+            const labelNodes = series.labelSelection.nodes();
+            let found = false;
+            const visit = (node: any) => {
+                if (node == null) return;
+                if (Array.isArray(node.text) && node.text.some((s: any) => s?.type === 'image')) {
+                    found = true;
+                }
+                if (typeof node.children === 'function') {
+                    for (const child of node.children()) visit(child);
+                }
+            };
+            for (const node of labelNodes) visit(node);
+            return found;
+        }
+
+        it('renders a block-leading image segment in sunburst labels', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        name: 'Solar',
+                        children: [
+                            { name: 'Earth', size: 60 },
+                            { name: 'Mars', size: 20 },
+                        ],
+                    },
+                    { name: 'Gas Giants', children: [{ name: 'Jupiter', size: 80 }] },
+                ],
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'size',
+                        label: {
+                            formatter: ({ datum }) => {
+                                const d = datum as { name: string };
+                                return [
+                                    { type: 'image', url: ICONS[d.name], width: 18, height: 18, block: true },
+                                    { text: d.name },
+                                ];
+                            },
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            stubChartImageLoader(chart);
+            await compare();
+            // The image segment must survive into the label scene node, not be flattened to text.
+            expect(someLabelHasImageSegment(chart)).toBe(true);
         });
     });
 });

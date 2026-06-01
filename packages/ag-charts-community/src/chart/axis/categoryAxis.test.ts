@@ -1,15 +1,20 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
+import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import { mapValues } from 'ag-charts-core';
 import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-types';
 
+import { AgCharts } from '../../api/agCharts';
+import type { Chart } from '../chart';
 import { DOCS_EXAMPLES } from '../test/examples';
 import type { ChartOrProxy } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     createChart,
+    deproxy,
     extractImageData,
+    prepareTestOptions,
     repeat,
     setupMockCanvas,
     setupMockConsole,
@@ -242,4 +247,102 @@ describe('Category Axis', () => {
             await compare();
         });
     }
+
+    describe('block image labels', () => {
+        // Axis label formatters may return `ContentSegment[]` (RichFormatter), so `block: true`
+        // image segments reach the same Text shape used by treemap labels. These snapshots capture
+        // block-image axis labels with and without rotation.
+        const iconSvg = (letter: string, fill: string) =>
+            `data:image/svg+xml;utf8,${encodeURIComponent(
+                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">` +
+                    `<rect x="1" y="1" width="30" height="30" rx="6" fill="${fill}"/>` +
+                    `<text x="16" y="22" text-anchor="middle" font-family="Verdana" font-size="16"` +
+                    ` fill="white" font-weight="bold">${letter}</text></svg>`
+            )}`;
+        const ICONS: Record<string, string> = {
+            Mon: iconSvg('M', '#1f77b4'),
+            Tue: iconSvg('T', '#ff7f0e'),
+            Wed: iconSvg('W', '#2ca02c'),
+            Thu: iconSvg('H', '#d62728'),
+            inline: iconSvg('+', '#9467bd'),
+        };
+
+        let preloaded: Record<string, SkiaImage> = {};
+        beforeAll(async () => {
+            const entries = await Promise.all(
+                Object.values(ICONS).map(async (url) => [url, await skiaLoadImage(url)] as const)
+            );
+            preloaded = Object.fromEntries(entries);
+        });
+
+        function stubChartImageLoader(chartInstance: Chart) {
+            const imageLoader = (chartInstance.ctx.scene as any).imageLoader;
+            imageLoader.loadImage = (uri: string) => preloaded[uri] as unknown as HTMLImageElement;
+        }
+
+        const DAY_DATA = [
+            { day: 'Mon', value: 4 },
+            { day: 'Tue', value: 7 },
+            { day: 'Wed', value: 3 },
+            { day: 'Thu', value: 6 },
+        ];
+
+        async function createStubbedChart(options: AgCartesianChartOptions) {
+            chart = deproxy(AgCharts.create(prepareTestOptions({ ...options })) as any);
+            stubChartImageLoader(chart);
+            await compare();
+        }
+
+        const blockLabelAxes = (rotation?: number): AgCartesianChartOptions['axes'] => ({
+            x: {
+                type: 'category',
+                position: 'bottom',
+                label: {
+                    rotation,
+                    formatter: ({ value }) => [
+                        { type: 'image', url: ICONS[value as string], width: 28, height: 28, block: true },
+                        { text: `${value}` },
+                    ],
+                },
+            },
+            y: { type: 'number', position: 'left' },
+        });
+
+        it('renders block image labels on a horizontal category axis', async () => {
+            await createStubbedChart({
+                data: DAY_DATA,
+                series: [{ type: 'bar', xKey: 'day', yKey: 'value' }],
+                axes: blockLabelAxes(),
+            });
+        });
+
+        it('renders block image labels rotated 45 degrees', async () => {
+            await createStubbedChart({
+                data: DAY_DATA,
+                series: [{ type: 'bar', xKey: 'day', yKey: 'value' }],
+                axes: blockLabelAxes(45),
+            });
+        });
+
+        it('renders a block + inline image mix in an axis label', async () => {
+            await createStubbedChart({
+                data: DAY_DATA,
+                series: [{ type: 'bar', xKey: 'day', yKey: 'value' }],
+                axes: {
+                    x: {
+                        type: 'category',
+                        position: 'bottom',
+                        label: {
+                            formatter: ({ value }) => [
+                                { type: 'image', url: ICONS[value as string], width: 26, height: 26, block: true },
+                                { text: `${value} ` },
+                                { type: 'image', url: ICONS.inline, width: 16, height: 16, verticalAlign: 'middle' },
+                            ],
+                        },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+            });
+        });
+    });
 });

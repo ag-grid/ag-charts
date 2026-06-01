@@ -2,6 +2,7 @@ import { afterEach, describe, expect } from 'vitest';
 
 import type { Chart } from '../chart';
 import { createChart, expectWarningsCalls, setupMockCanvas, setupMockConsole } from '../test/utils';
+import { imageSegmentStyle } from './overlay';
 
 describe('Overlay', () => {
     setupMockConsole();
@@ -439,5 +440,57 @@ HTMLCollection [
                 expect(focusInfo?.text).toEqual(customMessage);
             });
         });
+
+        // NOTE: the actual <img> DOM rendering of overlay image segments is verified by E2E /
+        // manual testing — vitest's jsdom environment substitutes a skia-canvas `Image` for the
+        // 'img' tag, which has no `.style` and is not a DOM node, so it cannot host an overlay
+        // <img>. The CSS-mapping logic (the bug-prone part) is unit-tested via `imageSegmentStyle`
+        // below; accessibility (alt text → plain text) is covered by `toPlainText`.
+    });
+});
+
+describe('imageSegmentStyle', () => {
+    const base = { type: 'image', url: 'icon.svg', width: 20, height: 20 } as const;
+
+    test('maps box dimensions and contain-fit defaults', () => {
+        const style = imageSegmentStyle({ ...base });
+        expect(style.width).toEqual('20px');
+        expect(style.height).toEqual('20px');
+        expect(style.boxSizing).toEqual('border-box');
+        expect(style.objectFit).toEqual('contain');
+        expect(style.verticalAlign).toEqual('middle');
+        // No decoration requested — background/radius/border resolve to empty.
+        expect(style.backgroundColor).toEqual('');
+        expect(style.borderRadius).toEqual('');
+        expect(style.border).toEqual('');
+        expect(style.padding).toEqual('0px 0px 0px 0px');
+    });
+
+    test('maps padding, background, radius and border decoration', () => {
+        const style = imageSegmentStyle({
+            ...base,
+            padding: 2,
+            backgroundFill: 'red',
+            borderRadius: 4,
+            border: { stroke: 'blue', strokeWidth: 1 },
+        });
+        expect(style.padding).toEqual('2px 2px 2px 2px');
+        expect(style.backgroundColor).toEqual('red');
+        expect(style.borderRadius).toEqual('4px');
+        expect(style.border).toEqual('1px solid blue');
+    });
+
+    test('omits the border when disabled or zero-width', () => {
+        expect(imageSegmentStyle({ ...base, border: { stroke: 'blue', strokeWidth: 0 } }).border).toEqual('');
+        expect(
+            imageSegmentStyle({ ...base, border: { enabled: false, stroke: 'blue', strokeWidth: 2 } }).border
+        ).toEqual('');
+    });
+
+    test('maps each verticalAlign to a CSS equivalent', () => {
+        expect(imageSegmentStyle({ ...base, verticalAlign: 'top' }).verticalAlign).toEqual('top');
+        expect(imageSegmentStyle({ ...base, verticalAlign: 'bottom' }).verticalAlign).toEqual('bottom');
+        expect(imageSegmentStyle({ ...base, verticalAlign: 'alphabetic' }).verticalAlign).toEqual('baseline');
+        expect(imageSegmentStyle({ ...base, verticalAlign: 'hanging' }).verticalAlign).toEqual('text-top');
     });
 });
