@@ -261,9 +261,8 @@ export const LARGEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'largestKeyIn
     needsOverlap: true,
 };
 
-// Compares two domain-group key values. A column is uniformly typed, so a and b share a type; bigint
-// must be compared directly because subtraction would yield a bigint that Array.sort ToNumber-coerces
-// (which throws). Number and Date keep their existing subtraction-based ordering.
+// Compares two domain-group key values (a and b share a type — columns are uniform). bigint is compared
+// directly: subtraction yields a bigint that Array.sort ToNumber-coerces (throws). number/Date subtract.
 function compareGroupKeys(a: any, b: any): number {
     if (typeof a === 'bigint' || typeof b === 'bigint') {
         if (a < b) return -1;
