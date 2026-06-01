@@ -3,15 +3,12 @@
 const ISO_8601 = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})?)?$/;
 
 /**
- * Returns true only for strings that are valid, canonical ISO 8601 date / date-time values.
+ * Returns true only for valid, canonical ISO 8601 date / date-time strings.
  *
- * The regex alone is insufficient: V8 silently rolls impossible calendar dates such as `"2024-02-30"`
- * forward to `"2024-03-01"`. We round-trip the leading `YYYY-MM-DD` (which the regex guarantees is
- * present) through `Date`: parsing the date portion alone fixes it at UTC midnight, so re-deriving the
- * calendar components in UTC and requiring them to match catches any silent rollover. Parsing the date
- * portion in isolation deliberately ignores any time-zone offset — comparing UTC components against the
- * full instant would wrongly reject valid offset forms such as `"2024-01-15T02:00:00+05:30"`, which land
- * on the previous UTC day.
+ * The regex alone is insufficient — V8 silently rolls impossible dates (`"2024-02-30"` → `"2024-03-01"`),
+ * so we round-trip the leading `YYYY-MM-DD` through `Date` (UTC midnight) and require the calendar
+ * components to match. The date portion is parsed in isolation so an offset form landing on the previous
+ * UTC day (e.g. `"2024-01-15T02:00:00+05:30"`) is not wrongly rejected.
  */
 export function isISO8601(value: unknown): value is string {
     if (typeof value !== 'string' || !ISO_8601.test(value)) return false;
