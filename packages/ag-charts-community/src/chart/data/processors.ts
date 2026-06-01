@@ -46,6 +46,12 @@ function basicContinuousCheckDatumValidation(value: any) {
     return value != null && isContinuous(value);
 }
 
+// Separate from basicContinuousCheckDatumValidation so a later PR can let time scales accept ISO 8601
+// strings without number/log/color scales doing the same.
+function basicTimeCheckDatumValidation(value: any) {
+    return value != null && isContinuous(value);
+}
+
 function basicDiscreteCheckDatumValidation(value: any) {
     return value != null;
 }
@@ -56,11 +62,12 @@ function basicDiscreteCheckDatumValidationAllowNull(_value: any) {
 
 function getValidationFn(scaleType?: ScaleType, allowNullKey?: boolean) {
     switch (scaleType) {
-        case 'number':
-        case 'log':
         case 'time':
         case 'unit-time':
         case 'ordinal-time':
+            return basicTimeCheckDatumValidation;
+        case 'number':
+        case 'log':
         case 'color':
             return basicContinuousCheckDatumValidation;
         default:

@@ -513,6 +513,10 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                     insertionCache,
                     (cached) => {
                         const keyResult = cached?.keys.get(defIndex);
+                        // PR1 stopgap: drop bigint keys until PR2 wires convert (mirrors dataExtractor).
+                        if (keyResult?.valid && typeof keyResult.value === 'bigint') {
+                            return def.invalidValue;
+                        }
                         return keyResult?.valid ? keyResult.value : def.invalidValue;
                     },
                     (removedValues) => {
@@ -574,6 +578,10 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                         return def.invalidValue;
                     }
                     const valueResult = cached.values.get(defIndex);
+                    // PR1 stopgap: drop bigint until PR2 wires convert (mirrors dataExtractor.extractValues).
+                    if (valueResult?.valid && typeof valueResult.value === 'bigint') {
+                        return def.invalidValue;
+                    }
                     return valueResult?.valid ? valueResult.value : def.invalidValue;
                 }
                 return def.invalidValue;

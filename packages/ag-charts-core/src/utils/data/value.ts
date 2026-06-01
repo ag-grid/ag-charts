@@ -12,8 +12,9 @@ export function isNumberObject(value: unknown): value is NumberObject {
     return value != null && Object.hasOwn(value, 'valueOf') && isFiniteNumber(value.valueOf());
 }
 
-export function isContinuous(value: unknown): value is number | Date | NumberObject {
-    return isFiniteNumber(value) || isValidDate(value) || isNumberObject(value);
+export function isContinuous(value: unknown): value is number | bigint | Date | NumberObject {
+    // Explicit bigint branch: BigInt.valueOf() returns a bigint not a number, so isNumberObject() misses it.
+    return isFiniteNumber(value) || typeof value === 'bigint' || isValidDate(value) || isNumberObject(value);
 }
 
 export function checkDatum<T>(value: T, isContinuousScale: boolean): boolean {
