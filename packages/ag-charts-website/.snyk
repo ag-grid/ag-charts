@@ -2,6 +2,24 @@
 version: v1.25.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
+    SNYK-JS-AXIOS-17111079:
+        - vite-plugin-mkcert@1.17.8 > axios@1.9.0:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-06-01T11:17:13.604Z
+    SNYK-JS-AXIOS-17111062:
+        - vite-plugin-mkcert@1.17.8 > axios@1.9.0:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-06-01T11:17:05.547Z
+    SNYK-JS-AXIOS-17111060:
+        - vite-plugin-mkcert@1.17.8 > axios@1.9.0:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-06-01T11:16:59.770Z
     SNYK-JS-FOLLOWREDIRECTS-16032162:
         - vite-plugin-mkcert@1.17.8 > axios@1.9.0 > follow-redirects@1.15.9:
               reason: >-
