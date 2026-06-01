@@ -45,10 +45,8 @@ export class LinearScale extends ContinuousScale<number> {
         const [b0, b1] = domain as readonly (number | bigint)[];
         const isBigIntDomain = typeof b0 === 'bigint' && typeof b1 === 'bigint';
 
-        // Full-precision BigInt ticks for the full (unzoomed) domain: the convert() bigint path
-        // positions them and the formatter renders exact labels. A custom interval or a zoomed
-        // sub-range falls through to the Number path, narrowing the domain below — the zoomed
-        // sub-domain renders at Number precision (documented limitation, AG-16608 AC #17).
+        // Full-precision BigInt ticks for the full (unzoomed) domain. A custom interval or zoomed
+        // sub-range falls through to the Number path below — documented limitation (AG-16608 AC #17).
         const fullRange = visibleRange == null || (visibleRange[0] === 0 && visibleRange[1] === 1);
         if (isBigIntDomain && !interval && fullRange) {
             const ticks = createBigIntTicks(b0, b1, tickCount) as unknown as number[];
@@ -80,9 +78,8 @@ export class LinearScale extends ContinuousScale<number> {
         const [b0, b1] = domain as readonly (number | bigint)[];
         const isBigIntDomain = typeof b0 === 'bigint' && typeof b1 === 'bigint';
 
-        // Full-precision bigint nicing only for the auto-step path. A custom interval is a Number
-        // concept (matches ticks(), which narrows for intervals), so fall through to the Number path
-        // on the narrowed domain below — otherwise the bounds would snap to an unrelated auto step.
+        // Bigint nicing only for the auto-step path; a custom interval is a Number concept (matches
+        // ticks()), so it falls through below — else bounds would snap to an unrelated auto step.
         if (isBigIntDomain && ticks.interval == null) {
             const [n0, n1] = niceBigIntDomain(b0, b1, tickCount);
             return [ticks.nice[0] ? n0 : b0, ticks.nice[1] ? n1 : b1] as unknown as number[];

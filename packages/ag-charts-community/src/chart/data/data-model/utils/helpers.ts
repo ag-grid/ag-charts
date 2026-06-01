@@ -42,8 +42,7 @@ export function toKeyString(keys: any[]): string {
 export function fixNumericExtent(extent: Array<number | Date | bigint> | null): [] | [number, number] {
     if (extent == null) return [];
     // Retain exact bigint endpoints so the scale positions and labels them at full precision; Date and
-    // number values still narrow to Number. Maps every element (callers may pass multi-value domains);
-    // downstream consumers branch on `typeof` at runtime.
+    // number values still narrow to Number. Downstream consumers branch on `typeof` at runtime.
     const mapped = extent.map((v) => (typeof v === 'bigint' ? v : Number(v)));
     const allFinite = mapped.every((v) => typeof v === 'bigint' || Number.isFinite(v));
     return allFinite ? (mapped as unknown as [number, number]) : [];

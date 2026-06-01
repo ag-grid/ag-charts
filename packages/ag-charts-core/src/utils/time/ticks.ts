@@ -236,9 +236,8 @@ function bigIntTickStep(extent: bigint, count: number): bigint {
         pow10 *= 10n;
     }
 
-    // Pick the nice multiplier whose resulting tick count is closest to the requested count.
-    // `extent / step` is bounded by ~count*10 for any span (pow10 ≈ extent/count by construction),
-    // so the Number() narrowing is exact here regardless of how large `extent` is.
+    // Pick the nice multiplier whose tick count is closest to `count`. `extent / step` is bounded by
+    // ~count*10 for any span (pow10 ≈ extent/count), so the Number() narrowing stays exact.
     let best = pow10;
     let bestDiff = Infinity;
     for (const multiplier of TickMultipliers) {
@@ -268,10 +267,9 @@ function floorToStep(value: bigint, step: bigint): bigint {
 }
 
 /**
- * Full-precision integer ticks for a BigInt domain, mirroring {@link createTicks} but staying in
- * BigInt end-to-end so high-magnitude endpoints and spans beyond `Number.MAX_SAFE_INTEGER` keep
- * exact label values. Descending domains (`start > stop`) are supported; `0n` is always a step
- * multiple, so it appears whenever the domain crosses zero.
+ * Full-precision integer ticks for a BigInt domain, mirroring {@link createTicks} but staying in BigInt
+ * end-to-end so spans beyond `Number.MAX_SAFE_INTEGER` keep exact label values. Descending domains are
+ * supported; `0n` is always a step multiple, so it appears whenever the domain crosses zero.
  */
 export function createBigIntTicks(start: bigint, stop: bigint, count: number): bigint[] {
     if (start === stop) return [start];

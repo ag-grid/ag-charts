@@ -1,9 +1,8 @@
 import type { DomainWithMetadata } from '../../types/scales';
 import { isNumber } from '../types/typeGuards';
 
-// bigint endpoints are retained so a bigint column's exact extent reaches the scale (the domain
-// setter and tick generation branch on `typeof` at runtime). Comparisons against the Number Infinity
-// seed and between bigints are legal — only +/-/* mixing throws — so min/max selection is safe.
+// bigint endpoints are retained so a bigint column's exact extent reaches the scale. Comparisons
+// against the Number Infinity seed and between bigints are legal — only +/-/* mixing throws.
 const isFiniteEndpoint = (v: number | bigint) => typeof v === 'bigint' || Number.isFinite(v);
 
 export function extent(values: Array<unknown>, sortOrder?: 1 | -1): [number, number] | null {
