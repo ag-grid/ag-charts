@@ -176,6 +176,7 @@ export class DOMManager extends BaseManager {
     private _isRtl: boolean = false;
 
     private _cachedCanvasRect: DOMRect | undefined;
+    private _cachedCanvasScale: { scaleX: number; scaleY: number } | undefined;
     private _cachedRawOverlayRect: BBox | undefined;
     private _cachedScrollableContainer: HTMLElement | null | undefined;
     private _pendingFlush?: ReturnType<typeof setTimeout>;
@@ -547,6 +548,19 @@ export class DOMManager extends BaseManager {
         return this._cachedCanvasRect;
     }
 
+    /** Ancestor CSS `scale(sx, sy)` applied to the canvas — maps canvas-local offsets to screen pixels. */
+    getCanvasScale(): { scaleX: number; scaleY: number } {
+        if (this._cachedCanvasScale != null) return this._cachedCanvasScale;
+        const rect = this.getBoundingClientRect();
+        const canvas = this.rootElements['canvas'].element;
+        const layoutWidth = canvas.clientWidth;
+        const layoutHeight = canvas.clientHeight;
+        const scaleX = layoutWidth > 0 && rect.width > 0 ? rect.width / layoutWidth : 1;
+        const scaleY = layoutHeight > 0 && rect.height > 0 ? rect.height / layoutHeight : 1;
+        this._cachedCanvasScale = { scaleX, scaleY };
+        return this._cachedCanvasScale;
+    }
+
     /**
      * Get the client bounding rect for overlay elements that might float outside the bounds of the
      * main chart area.
@@ -860,6 +874,7 @@ export class DOMManager extends BaseManager {
 
     private invalidateRectCaches() {
         this._cachedCanvasRect = undefined;
+        this._cachedCanvasScale = undefined;
         this._cachedRawOverlayRect = undefined;
     }
 

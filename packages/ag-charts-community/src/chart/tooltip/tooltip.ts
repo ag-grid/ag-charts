@@ -172,6 +172,7 @@ export class Tooltip extends BaseProperties {
     private _visible = false;
 
     private elementProxy?: DOMElementProxy;
+    private domManager?: DOMManager;
 
     private positionParams:
         | {
@@ -197,6 +198,7 @@ export class Tooltip extends BaseProperties {
 
     private localeManager: LocaleManager | undefined = undefined;
     setup(localeManager: LocaleManager, domManager: DOMManager) {
+        this.domManager = domManager;
         this.elementProxy = domManager.addDeferredProxyChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
         this.elementProxy.toggleClass(DEFAULT_TOOLTIP_CLASS, true);
         this.elementProxy.setProperty('position-anchor', domManager.anchorName);
@@ -327,13 +329,18 @@ export class Tooltip extends BaseProperties {
             meta,
         };
 
+        // Tooltip is `position: fixed` (screen space); coords are canvas-local — scale to match.
+        const { scaleX, scaleY } = this.domManager?.getCanvasScale() ?? { scaleX: 1, scaleY: 1 };
         const anchorTo = meta.position?.anchorTo ?? 'pointer';
         switch (anchorTo) {
             case 'node':
-                this.springAnimation.update(meta.nodeCanvasX ?? meta.canvasX, meta.nodeCanvasY ?? meta.canvasY);
+                this.springAnimation.update(
+                    (meta.nodeCanvasX ?? meta.canvasX) * scaleX,
+                    (meta.nodeCanvasY ?? meta.canvasY) * scaleY
+                );
                 break;
             case 'pointer':
-                this.springAnimation.update(meta.canvasX, meta.canvasY);
+                this.springAnimation.update(meta.canvasX * scaleX, meta.canvasY * scaleY);
                 break;
             case 'chart':
                 this.springAnimation.reset();
