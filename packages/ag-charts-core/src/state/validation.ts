@@ -484,7 +484,7 @@ export const number = attachDescription(isFiniteNumber, 'a number');
 // (AG-16608 AC #11) — do NOT widen the global `number` validator, or every numeric option accepts bigint.
 export const numericValue = attachDescription(
     (value): value is number | bigint => isFiniteNumber(value) || typeof value === 'bigint',
-    'a number'
+    'a number or bigint'
 );
 export const object = attachDescription(isObject, 'an object');
 export const string = attachDescription(isString, 'a string');

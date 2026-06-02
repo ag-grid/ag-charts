@@ -16,6 +16,7 @@ import {
     lowestGranularityUnitForTicks,
     lowestGranularityUnitForValue,
     normalisedTimeExtentWithMetadata,
+    timeValueToNumber,
 } from 'ag-charts-core';
 import type {
     AgTimeInterval,
@@ -137,7 +138,7 @@ export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTim
         style: DateFormatterStyle
     ): FormatterParams<any> {
         if (!(value instanceof Date)) {
-            value = new Date(typeof value === 'bigint' ? Number(value) : value);
+            value = new Date(timeValueToNumber(value));
         }
 
         if (timeInterval == null) {

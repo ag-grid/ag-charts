@@ -570,8 +570,8 @@ describe('OrdinalTimeScale', () => {
             const scale = bandedScale();
             const date = new Date(Date.UTC(2024, 1, 1));
             const expected = scale.convert(date);
-            expect(scale.convert('2024-02-01T00:00:00Z')).toBeCloseTo(expected);
-            expect(scale.convert(BigInt(date.valueOf()))).toBeCloseTo(expected);
+            expect(scale.convert('2024-02-01T00:00:00Z')).toBe(expected);
+            expect(scale.convert(BigInt(date.valueOf()))).toBe(expected);
         });
     });
 

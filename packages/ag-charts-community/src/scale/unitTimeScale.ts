@@ -18,6 +18,7 @@ import {
     intervalRange,
     intervalRangeCount,
     intervalRangeNumeric,
+    timeValueToNumber,
     toTimeInterval,
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
@@ -322,7 +323,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
     ): number {
         this.refresh();
 
-        if (!(value instanceof Date)) value = new Date(typeof value === 'bigint' ? Number(value) : value);
+        if (!(value instanceof Date)) value = new Date(timeValueToNumber(value));
 
         const { domain, interval } = this;
         if (domain.length < 2) return Number.NaN;
