@@ -1,6 +1,7 @@
 import type { AstroUserConfig } from 'astro';
 
 import { urlWithBaseUrl } from '../urlWithBaseUrl';
+import { getCspHtaccessBlock } from './cspRules';
 import { SITE_301_REDIRECTS, type SimpleRedirectRule } from './redirects';
 
 export function getHtaccessContent() {
@@ -9,6 +10,12 @@ ErrorDocument 404 /charts/404.html
 
 # add MIME types for serving example files
 AddType text/javascript mjs ts jsx
+
+# Content-Security-Policy — report-only while validating the tightened policy on
+# production. Charts is served from /charts on www.ag-grid.com and inherits the grid
+# root CSP, so this block overrides it for charts pages (see getCspHtaccessBlock).
+# Flip to enforce once the report-only window is clean.
+${getCspHtaccessBlock({ env: 'production' }, 'report-only')}
 
 ${getRedirectRules()}
 

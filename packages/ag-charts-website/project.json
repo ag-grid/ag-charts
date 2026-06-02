@@ -112,6 +112,12 @@
       ],
       "outputs": []
     },
+    "generate-csp": {
+      "command": "tsx scripts/csp/generate-csp.ts",
+      "options": {
+        "cwd": "packages/ag-charts-website"
+      }
+    },
     "test": {
       "executor": "nx:noop",
       "dependsOn": ["test:vitest"],
