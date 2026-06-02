@@ -113,7 +113,7 @@ export class DataSelectionService implements IDataSelectionService {
         }
     }
 
-    applyDataChange(changeDescription: DataChangeDescription): void {
+    onDataChange(changeDescription: DataChangeDescription): void {
         if (this.selections.size > 0) {
             for (const sel of this.selections.values()) {
                 sel.applyDataChange(changeDescription);

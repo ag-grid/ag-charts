@@ -2,15 +2,13 @@ import { Logger } from 'ag-charts-core';
 
 import {
     DataChangeDescription,
+    type DataChangeDescriptionListener,
     type IndexTransformationMap,
     type SpliceOperation,
     contiguousRemovalCountAtStart,
 } from './dataChangeDescription';
-import type { IDataSelectionService } from './dataSelectionServiceTypes';
 
 type DataIdValue = string | number | undefined;
-
-type DataSelectionMixin = Pick<IDataSelectionService, 'transferDataSet' | 'applyDataChange'>;
 
 /**
  * Encapsulates a single transaction to be applied to a DataSet.
@@ -81,22 +79,21 @@ export class DataSet<T = unknown> {
 
     constructor(
         public data: T[],
-        private readonly dataSelectionService?: DataSelectionMixin,
         public readonly dataIdKey?: string
     ) {}
 
     /**
      * Creates an empty DataSet.
      */
-    static empty<U = unknown>(dataSelectionService?: DataSelectionMixin, dataIdKey?: string): DataSet<U> {
-        return new DataSet<U>([], dataSelectionService, dataIdKey);
+    static empty<U = unknown>(dataIdKey?: string): DataSet<U> {
+        return new DataSet<U>([], dataIdKey);
     }
 
     /**
      * Wraps existing data in a DataSet.
      */
-    static wrap<U = unknown>(data: U[], dataSelectionService?: DataSelectionMixin, dataIdKey?: string): DataSet<U> {
-        return new DataSet<U>(data, dataSelectionService, dataIdKey);
+    static wrap<U = unknown>(data: U[], dataIdKey?: string): DataSet<U> {
+        return new DataSet<U>(data, dataIdKey);
     }
 
     netSize(): number {
@@ -116,29 +113,6 @@ export class DataSet<T = unknown> {
         const normalized = this.normalizeTransaction(transaction);
         this.pendingTransactions.push(normalized);
         this.cachedChangeDescription = undefined;
-    }
-
-    /**
-     * @returns A deep clone of the DataSet. Selection state is preserved only when
-     * `dataIdKey` is set (transferred via key mapping). Without `dataIdKey`, selections
-     * are dropped because index-based transfer cannot guarantee correctness after the
-     * clone's data is independently mutated.
-     */
-    deepClone() {
-        const clone = new DataSet([...this.data], this.dataSelectionService, this.dataIdKey);
-        clone.transferFrom(this);
-        return clone;
-    }
-
-    /**
-     * Create a new DataSet, transferring persistent state from a predecessor.
-     * For subclasses that take additional constructor args (e.g. HierarchyDataSet),
-     * use the two-phase pattern: construct, then call `transferFrom()` explicitly.
-     */
-    static replaceWith<U = unknown>(predecessor: DataSet<U> | undefined, data: U[], dataIdKey?: string): DataSet<U> {
-        const newDataSet = new DataSet<U>(data, predecessor?.dataSelectionService, dataIdKey);
-        if (predecessor) newDataSet.transferFrom(predecessor);
-        return newDataSet;
     }
 
     /**
@@ -172,10 +146,6 @@ export class DataSet<T = unknown> {
             }
         }
         return this.getIdToIndexMap().get(itemId);
-    }
-
-    transferFrom(predecessor: DataSet<T>): void {
-        this.dataSelectionService?.transferDataSet(this, predecessor);
     }
 
     /**
@@ -226,7 +196,7 @@ export class DataSet<T = unknown> {
     }
 
     /** Applies all pending transactions to the data array. */
-    commitPendingTransactions(): boolean {
+    commitPendingTransactions(changeDescriptionListener: DataChangeDescriptionListener | undefined): boolean {
         // Eagerly build the ID index so duplicate/missing-key warnings fire on the first
         // render cycle, even when there are no pending transactions yet.
         if (this.dataIdKey != null && this.data.length > 0) {
@@ -285,7 +255,7 @@ export class DataSet<T = unknown> {
         this.updateIdToIndexCache(changeDescription, appendedValues, prependedValues, insertionValues);
 
         // Apply transform to each per-series selection array
-        this.dataSelectionService?.applyDataChange(changeDescription);
+        changeDescriptionListener?.onDataChange(changeDescription);
 
         // Transform idArray if warm (avoid rebuild on next access)
         if (this.idArrayCache) {

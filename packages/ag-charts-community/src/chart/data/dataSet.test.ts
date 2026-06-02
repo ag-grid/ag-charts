@@ -24,7 +24,7 @@ function runCommitScenario<T>({
     steps: CommitStep<T>[];
     dataIdKey?: string;
 }) {
-    const dataSet = new DataSet<T>([...initial], undefined, dataIdKey);
+    const dataSet = new DataSet<T>([...initial], dataIdKey);
 
     for (const step of steps) {
         for (const transaction of step.transactions) {
@@ -42,7 +42,7 @@ function runCommitScenario<T>({
             }
         }
 
-        dataSet.commitPendingTransactions();
+        dataSet.commitPendingTransactions(undefined);
         expect(dataSet.data).toEqual(step.expected);
 
         for (const [index, ref] of step.expectedRefs ?? []) {
@@ -291,7 +291,7 @@ describe('DataSet', () => {
             const descBefore = dataSet.getChangeDescription();
             expect(descBefore).toBeDefined();
 
-            dataSet.commitPendingTransactions();
+            dataSet.commitPendingTransactions(undefined);
 
             const descAfter = dataSet.getChangeDescription();
             expect(descAfter).toBeUndefined(); // No pending transactions after commit
@@ -722,7 +722,7 @@ describe('DataSet', () => {
                 // Mutate item in place
                 item1.x = 10;
                 dataSet.addTransaction({ update: [item1] });
-                dataSet.commitPendingTransactions();
+                dataSet.commitPendingTransactions(undefined);
 
                 // Array should be same references, just mutated
                 expect(dataSet.data).toEqual([item0, item1, item2]);
@@ -740,7 +740,7 @@ describe('DataSet', () => {
                 item0.x = 100;
                 item2.x = 200;
                 dataSet.addTransaction({ update: [item0, item2] });
-                dataSet.commitPendingTransactions();
+                dataSet.commitPendingTransactions(undefined);
 
                 expect(dataSet.data).toEqual([item0, item1, item2]);
                 expect(dataSet.data[0].x).toBe(100);
@@ -755,7 +755,7 @@ describe('DataSet', () => {
                 const dataSet = new DataSet([item0, item1]);
 
                 dataSet.addTransaction({ update: [nonExistent] });
-                dataSet.commitPendingTransactions();
+                dataSet.commitPendingTransactions(undefined);
 
                 // Array unchanged
                 expect(dataSet.data).toEqual([item0, item1]);
@@ -774,7 +774,7 @@ describe('DataSet', () => {
 
                 item0.x = 100;
                 dataSet.addTransaction({ append: [newItem], update: [item0] });
-                dataSet.commitPendingTransactions();
+                dataSet.commitPendingTransactions(undefined);
 
                 expect(dataSet.data).toEqual([item0, item1, newItem]);
                 expect(dataSet.data[0].x).toBe(100);
@@ -789,7 +789,7 @@ describe('DataSet', () => {
 
                 item1.x = 100;
                 dataSet.addTransaction({ prepend: [newItem], update: [item1] });
-                dataSet.commitPendingTransactions();
+                dataSet.commitPendingTransactions(undefined);
 
                 expect(dataSet.data).toEqual([newItem, item0, item1]);
                 expect(dataSet.data[2].x).toBe(100);
@@ -804,7 +804,7 @@ describe('DataSet', () => {
 
                 item1.x = 100;
                 dataSet.addTransaction({ remove: [item1], update: [item1] });
-                dataSet.commitPendingTransactions();
+                dataSet.commitPendingTransactions(undefined);
 
                 // item1 should be removed despite being in update array
                 expect(dataSet.data).toEqual([item0, item2]);
@@ -823,7 +823,7 @@ describe('DataSet', () => {
                 dataSet.addTransaction({ prepend: [newItem] });
                 newItem.x = -100;
                 dataSet.addTransaction({ update: [newItem] });
-                dataSet.commitPendingTransactions();
+                dataSet.commitPendingTransactions(undefined);
 
                 expect(dataSet.data).toEqual([newItem, item0]);
                 expect(dataSet.data[0].x).toBe(-100);
@@ -838,7 +838,7 @@ describe('DataSet', () => {
                 dataSet.addTransaction({ append: [newItem] });
                 newItem.x = 100;
                 dataSet.addTransaction({ update: [newItem] });
-                dataSet.commitPendingTransactions();
+                dataSet.commitPendingTransactions(undefined);
 
                 expect(dataSet.data).toEqual([item0, newItem]);
                 expect(dataSet.data[1].x).toBe(100);
@@ -861,7 +861,7 @@ describe('DataSet', () => {
                     remove: [item1],
                     update: [item0, item2],
                 });
-                dataSet.commitPendingTransactions();
+                dataSet.commitPendingTransactions(undefined);
 
                 expect(dataSet.data).toEqual([prependItem, item0, item2, appendItem]);
                 expect(dataSet.data[1].x).toBe(100);
@@ -898,7 +898,7 @@ describe('DataSet', () => {
 
                 item1.x = 100;
                 dataSet.addTransaction({ add: [newItem], addIndex: 2, update: [item1] });
-                dataSet.commitPendingTransactions();
+                dataSet.commitPendingTransactions(undefined);
 
                 expect(dataSet.data).toEqual([item0, item1, newItem, item2]);
                 expect(dataSet.data[1].x).toBe(100);
@@ -925,7 +925,7 @@ describe('DataSet', () => {
                 const updatedIndices = changeDesc!.getUpdatedIndices();
                 expect(updatedIndices).toEqual([3]);
 
-                dataSet.commitPendingTransactions();
+                dataSet.commitPendingTransactions(undefined);
                 expect(dataSet.data).toEqual([item0, newItem, item1, item2]);
                 expect(dataSet.data[3].x).toBe(200);
             });
@@ -1034,7 +1034,7 @@ describe('DataSet', () => {
                     expect(tracker.reads).toBe(0);
 
                     tracker.reset();
-                    dataSet.commitPendingTransactions();
+                    dataSet.commitPendingTransactions(undefined);
 
                     expect(tracker.splices).toBeLessThanOrEqual(MAX_SIMPLE_SPLICES);
                     expect(dataSet.data).toEqual(expected(initial));
@@ -1072,7 +1072,7 @@ describe('DataSet', () => {
                     }
 
                     tracker.reset();
-                    dataSet.commitPendingTransactions();
+                    dataSet.commitPendingTransactions(undefined);
 
                     expect(tracker.splices).toBeLessThanOrEqual(MAX_REMOVAL_SPLICES);
                     expect(dataSet.data).toEqual(expected(initial));
@@ -1091,7 +1091,7 @@ describe('DataSet', () => {
                         const firstNew = size + 1;
                         applyTransactions(dataSet, { append: [firstNew, firstNew + 1] }, { remove: [firstNew] });
 
-                        dataSet.commitPendingTransactions();
+                        dataSet.commitPendingTransactions(undefined);
 
                         const readsBeforeAssertions = tracker.reads;
                         const splicesBeforeAssertions = tracker.splices;
@@ -1130,7 +1130,7 @@ describe('DataSet', () => {
                     expect(tracker.reads).toBe(0);
 
                     tracker.reset();
-                    dataSet.commitPendingTransactions();
+                    dataSet.commitPendingTransactions(undefined);
 
                     expect(tracker.splices).toBeLessThanOrEqual(MAX_SPLICES_FOR_MIXED);
                     expect(dataSet.data).toEqual([-2, ...initial, obj2]);
@@ -1153,7 +1153,7 @@ describe('DataSet', () => {
                     expect(tracker.reads).toBeLessThan(EARLY_STOP_MAX_READS);
 
                     tracker.reset();
-                    dataSet.commitPendingTransactions();
+                    dataSet.commitPendingTransactions(undefined);
 
                     const expected = initial.filter((value) => !targets.includes(value));
                     expect(dataSet.data).toEqual(expected);
@@ -1168,7 +1168,7 @@ describe('DataSet', () => {
 
                 withTrackedData(initial, ({ dataSet, tracker }) => {
                     dataSet.addTransaction({ remove: [{ id: 100 }] });
-                    dataSet.commitPendingTransactions();
+                    dataSet.commitPendingTransactions(undefined);
 
                     expect(tracker.reads).toBe(size);
                     expect(dataSet.data).toHaveLength(size);
@@ -1190,7 +1190,7 @@ describe('DataSet', () => {
                     tracker.reset();
 
                     dataSet.addTransaction({ remove: [obj] });
-                    dataSet.commitPendingTransactions();
+                    dataSet.commitPendingTransactions(undefined);
 
                     expect(tracker.reads).toBe(0);
                     expect(dataSet.data).toHaveLength(size);
@@ -1796,7 +1796,7 @@ describe('DataSet', () => {
             const dataSet = new DataSet<Item>([a, b, c]);
             // Without dataIdKey, a different object with matching id should NOT match
             dataSet.addTransaction({ remove: [{ id: 'b', value: 2 }] });
-            dataSet.commitPendingTransactions();
+            dataSet.commitPendingTransactions(undefined);
             // b should still be there because the reference is different
             expect(dataSet.data).toEqual([a, b, c]);
             expectWarningMessages([
@@ -1853,10 +1853,9 @@ describe('DataSet', () => {
                     { id: 'a', value: 2 },
                     { id: 'b', value: 3 },
                 ],
-                undefined,
                 'id'
             );
-            dataSet.commitPendingTransactions();
+            dataSet.commitPendingTransactions(undefined);
             expectWarningMessages([`AG Charts - dataIdKey 'id' has duplicate value 'a'; first occurrence used.`]);
         });
 
@@ -1867,11 +1866,10 @@ describe('DataSet', () => {
                     { id: 'a', value: 2 },
                     { id: 'b', value: 3 },
                 ],
-                undefined,
                 'id'
             );
             dataSet.addTransaction({ remove: [{ id: 'a' } as Item] });
-            dataSet.commitPendingTransactions();
+            dataSet.commitPendingTransactions(undefined);
             // First occurrence (index 0) removed; second 'a' (index 1) survives
             expect(dataSet.data).toEqual([
                 { id: 'a', value: 2 },
@@ -1938,9 +1936,9 @@ describe('DataSet', () => {
         });
 
         test('missing ID field: dataIdKey set but datum lacks the field, falls through with warning', () => {
-            const dataSet = new DataSet<any>([{ id: 'a', value: 1 }], undefined, 'id');
+            const dataSet = new DataSet<any>([{ id: 'a', value: 1 }], 'id');
             dataSet.addTransaction({ remove: [{ value: 1 }] });
-            dataSet.commitPendingTransactions();
+            dataSet.commitPendingTransactions(undefined);
             // Item should not be removed because it has no 'id' field
             expect(dataSet.data).toEqual([{ id: 'a', value: 1 }]);
             expectWarningMessages([`AG Charts - applyTransaction() remove item is missing 'id' field; ignoring.`]);
@@ -1952,11 +1950,10 @@ describe('DataSet', () => {
                     { id: 123, value: 1 },
                     { id: 'other', value: 2 },
                 ],
-                undefined,
                 'id'
             );
             dataSet.addTransaction({ remove: [{ id: '123' }] });
-            dataSet.commitPendingTransactions();
+            dataSet.commitPendingTransactions(undefined);
             // No match because string '123' !== number 123
             expect(dataSet.data).toEqual([
                 { id: 123, value: 1 },
@@ -1968,9 +1965,9 @@ describe('DataSet', () => {
         });
 
         test('update with non-existent ID: warning logged, item ignored', () => {
-            const dataSet = new DataSet<Item>([{ ...a }, { ...b }], undefined, 'id');
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }], 'id');
             dataSet.addTransaction({ update: [{ id: 'nonexistent', value: 99 }] });
-            dataSet.commitPendingTransactions();
+            dataSet.commitPendingTransactions(undefined);
             expect(dataSet.data).toEqual([a, b]);
             expectWarningMessages([
                 'AG Charts - applyTransaction() update includes items not present in current data; ignoring missing items.',
@@ -2107,12 +2104,11 @@ describe('DataSet', () => {
                     { id: Number.NaN, value: 2 },
                     { id: 'c', value: 3 },
                 ],
-                undefined,
                 'id'
             );
             // NaN-id item should not be in ID index, so update targeting NaN has no effect
             dataSet.addTransaction({ update: [{ id: Number.NaN, value: 99 }] });
-            dataSet.commitPendingTransactions();
+            dataSet.commitPendingTransactions(undefined);
             expect(dataSet.data).toEqual([
                 { id: 'a', value: 1 },
                 { id: Number.NaN, value: 2 },
@@ -2145,9 +2141,9 @@ describe('DataSet', () => {
         });
 
         test('warns when dataIdKey field is not found on any data item', () => {
-            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], undefined, 'nonExistent');
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'nonExistent');
             dataSet.addTransaction({ remove: [{ nonExistent: 'x' } as any] });
-            dataSet.commitPendingTransactions();
+            dataSet.commitPendingTransactions(undefined);
             expectWarningMessages([
                 "AG Charts - dataIdKey 'nonExistent' was not found on any data item.",
                 'AG Charts - applyTransaction() remove includes items not present in current data; ignoring missing items.',
@@ -2156,17 +2152,17 @@ describe('DataSet', () => {
 
         test('does not warn when dataIdKey field exists on data items', () => {
             const newA: Item = { id: 'a', value: 10 };
-            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], undefined, 'id');
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'id');
             dataSet.addTransaction({ update: [newA] });
-            dataSet.commitPendingTransactions();
+            dataSet.commitPendingTransactions(undefined);
             expect(dataSet.data[0]).toBe(newA);
             expectWarningMessages([]);
         });
 
         test('does not warn when data is empty', () => {
-            const dataSet = new DataSet<Item>([], undefined, 'id');
+            const dataSet = new DataSet<Item>([], 'id');
             dataSet.addTransaction({ append: [{ id: 'a', value: 10 }] });
-            dataSet.commitPendingTransactions();
+            dataSet.commitPendingTransactions(undefined);
             expectWarningMessages([]);
         });
 
@@ -2174,29 +2170,29 @@ describe('DataSet', () => {
             const items = [{ ...a }, { ...b }, { ...c }];
             const dataSet = new DataSet<Item>(items);
             dataSet.addTransaction({ update: [items[0]] });
-            dataSet.commitPendingTransactions();
+            dataSet.commitPendingTransactions(undefined);
             expectWarningMessages([]);
         });
 
         test('prepend duplicate ID: cache maps to prepended (first) occurrence after warm cache', () => {
-            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], undefined, 'id');
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'id');
 
             // Warm the ID cache with an update
             const newC: Item = { id: 'c', value: 30 };
             dataSet.addTransaction({ update: [newC] });
-            dataSet.commitPendingTransactions();
+            dataSet.commitPendingTransactions(undefined);
             expect(dataSet.data).toEqual([a, b, newC]);
 
             // Prepend a duplicate 'a' — the prepended copy should become the "first occurrence"
             const prependedA: Item = { id: 'a', value: 100 };
             dataSet.addTransaction({ prepend: [prependedA] });
-            dataSet.commitPendingTransactions();
+            dataSet.commitPendingTransactions(undefined);
             expect(dataSet.data).toEqual([prependedA, a, b, newC]);
 
             // Update by ID 'a' should target index 0 (the prepended first occurrence)
             const updatedA: Item = { id: 'a', value: 200 };
             dataSet.addTransaction({ update: [updatedA] });
-            dataSet.commitPendingTransactions();
+            dataSet.commitPendingTransactions(undefined);
             expect(dataSet.data[0]).toBe(updatedA);
             expect(dataSet.data[1]).toEqual(a); // original 'a' untouched
         });

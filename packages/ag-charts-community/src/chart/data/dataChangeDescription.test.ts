@@ -422,7 +422,7 @@ describe('DataChangeDescription', () => {
 
         it('should handle mid-array insertion with removals (slow path)', () => {
             const data = Array.from({ length: 10 }, (_, i) => ({ id: i, value: i }));
-            const ds = new DataSet(data, undefined, 'id');
+            const ds = new DataSet(data, 'id');
 
             // Remove index 2, insert 3 new items at index 5
             // Original: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]

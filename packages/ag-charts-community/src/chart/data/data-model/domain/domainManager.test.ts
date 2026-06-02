@@ -171,7 +171,7 @@ describe('DomainManager', () => {
                 ];
                 dataSet.addTransaction({ append: appendData });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
                 // Domain should extend to include new values
                 expect(reprocessed.domain.keys).toEqual([[0, 202]]);
@@ -212,7 +212,7 @@ describe('DomainManager', () => {
                 ];
                 dataSet.addTransaction({ prepend: prependData });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Domain should extend to include new minimum values
@@ -247,7 +247,7 @@ describe('DomainManager', () => {
                     const newValue = -1 - iteration;
                     dataSet.addTransaction({ prepend: [{ x: newValue, y: newValue }] });
 
-                    processedData = dataModel.reprocessData(processedData)!;
+                    processedData = dataModel.reprocessData(processedData, undefined, undefined)!;
                     verifyReprocessMatchesBaseline(dataModel, processedData, sources);
 
                     const expectedMin = newValue;
@@ -289,7 +289,7 @@ describe('DomainManager', () => {
                     ],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
                 // Domain should reflect new min/max
                 expect(reprocessed.domain.keys).toEqual([[-2, 202]]);
@@ -329,7 +329,7 @@ describe('DomainManager', () => {
                     ],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Domain should update to new boundaries
@@ -357,7 +357,7 @@ describe('DomainManager', () => {
                 const toRemove = initialData.slice(0, 5);
                 dataSet.addTransaction({ remove: toRemove });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Domain should start from the remaining minimum
@@ -395,7 +395,7 @@ describe('DomainManager', () => {
                 }));
                 dataSet.addTransaction({ append: appendData });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Domain should include all data
@@ -407,7 +407,7 @@ describe('DomainManager', () => {
                 const toRemove = initialData.slice(0, 5);
                 dataSet.addTransaction({ remove: toRemove });
 
-                const reprocessed2 = dataModel.reprocessData(reprocessed);
+                const reprocessed2 = dataModel.reprocessData(reprocessed, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed2, sources);
 
                 // Should still calculate correct domain with less data
@@ -422,7 +422,7 @@ describe('DomainManager', () => {
                 const toRemoveMore = [...initialData.slice(5), ...appendData.slice(0, 7)];
                 dataSet.addTransaction({ remove: toRemoveMore });
 
-                const reprocessed3 = dataModel.reprocessData(reprocessed2);
+                const reprocessed3 = dataModel.reprocessData(reprocessed2, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed3, sources);
 
                 // Check actual data in dataSet
@@ -471,7 +471,7 @@ describe('DomainManager', () => {
                 }));
                 dataSet.addTransaction({ append: appendData });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
                 // Should now use banding and still calculate correct domain
                 expect(reprocessed.domain.keys).toEqual([[0, 109]]);
@@ -515,7 +515,7 @@ describe('DomainManager', () => {
                     // Perform scrolling transaction
                     performScrollingTransaction(scenario, removeCount, dataSize);
 
-                    const reprocessed = scenario.dataModel.reprocessData(scenario.processedData!);
+                    const reprocessed = scenario.dataModel.reprocessData(scenario.processedData!, undefined, undefined);
                     verifyReprocessMatchesBaseline(scenario.dataModel, reprocessed, scenario.sources);
 
                     // Verify domain shifted correctly
@@ -564,7 +564,7 @@ describe('DomainManager', () => {
                     append: toAppend,
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Domain should correctly shift to new range
@@ -587,7 +587,7 @@ describe('DomainManager', () => {
                     append: toAppend2,
                 });
 
-                const reprocessed2 = dataModel.reprocessData(reprocessed);
+                const reprocessed2 = dataModel.reprocessData(reprocessed, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed2, sources);
 
                 // Domain should correctly shift to new range
@@ -638,7 +638,7 @@ describe('DomainManager', () => {
                         append: toAppend,
                     });
 
-                    processedData = dataModel.reprocessData(processedData) as any;
+                    processedData = dataModel.reprocessData(processedData, undefined, undefined) as any;
                     verifyReprocessMatchesBaseline(dataModel, processedData, sources);
 
                     // Verify domain is correct after each iteration
@@ -687,7 +687,7 @@ describe('DomainManager', () => {
                     append: [{ x: 1200, y: 12000 }],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData);
+                const reprocessed = dataModel.reprocessData(processedData, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
                 expect(reprocessed.domain.keys).toEqual([[1, 1200]]);
 
@@ -739,7 +739,7 @@ describe('DomainManager', () => {
                     append: toAppend,
                 });
 
-                const reprocessed1 = dataModel.reprocessData(processedData!);
+                const reprocessed1 = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed1, sources);
 
                 // First reprocess: bands are created from scratch, all dirty (expected)
@@ -761,7 +761,7 @@ describe('DomainManager', () => {
                     append: toAppend2,
                 });
 
-                const reprocessed2 = dataModel.reprocessData(reprocessed1);
+                const reprocessed2 = dataModel.reprocessData(reprocessed1, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed2, sources);
 
                 // Second reprocess: data size still 1200
@@ -818,7 +818,7 @@ describe('DomainManager', () => {
                 // Add new category
                 dataSet.addTransaction({ append: [{ category: 'F', value: 1000 }] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Should include new category
@@ -852,7 +852,7 @@ describe('DomainManager', () => {
                     dataSet.addTransaction({ append: batchData });
                 }
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
                 // Should handle 100 new data points efficiently
                 expect(reprocessed.input.count).toBe(1100);

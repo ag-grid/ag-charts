@@ -1241,7 +1241,7 @@ describe('DataModel', () => {
                 addIndex: 2,
             });
 
-            const reprocessed = dataModel.reprocessData(processedData!);
+            const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
             expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3, 4, 5]);
@@ -1272,7 +1272,7 @@ describe('DataModel', () => {
                 addIndex: 2,
             });
 
-            const firstReprocess = dataModel.reprocessData(processedData!);
+            const firstReprocess = dataModel.reprocessData(processedData!, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, firstReprocess, sources);
 
             // Simulate updateDelta() recreating the DataSet with the latest materialized data.
@@ -1287,7 +1287,7 @@ describe('DataModel', () => {
                 addIndex: 4,
             });
 
-            const secondReprocess = dataModel.reprocessData(fullProcess!);
+            const secondReprocess = dataModel.reprocessData(fullProcess!, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, secondReprocess, sources);
 
             expect(secondReprocess.keys[0].get('test')).toEqual([0, 2, 3, 4, 5, 6]);
@@ -1317,7 +1317,7 @@ describe('DataModel', () => {
                 addIndex: 0,
             });
 
-            const reprocessed = dataModel.reprocessData(processedData!);
+            const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
             expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3, 4]);
@@ -1345,7 +1345,7 @@ describe('DataModel', () => {
                 addIndex: 3,
             });
 
-            const reprocessed = dataModel.reprocessData(processedData!);
+            const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
             expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3, 4]);
@@ -1373,7 +1373,7 @@ describe('DataModel', () => {
                 addIndex: 1,
             });
 
-            const reprocessed1 = dataModel.reprocessData(processedData!);
+            const reprocessed1 = dataModel.reprocessData(processedData!, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed1, sources);
 
             // Second insertion
@@ -1382,7 +1382,7 @@ describe('DataModel', () => {
                 addIndex: 1,
             });
 
-            const reprocessed2 = dataModel.reprocessData(reprocessed1);
+            const reprocessed2 = dataModel.reprocessData(reprocessed1, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed2, sources);
 
             // Third insertion
@@ -1391,7 +1391,7 @@ describe('DataModel', () => {
                 addIndex: 3,
             });
 
-            const reprocessed3 = dataModel.reprocessData(reprocessed2);
+            const reprocessed3 = dataModel.reprocessData(reprocessed2, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed3, sources);
 
             expect(reprocessed3.keys[0].get('test')).toEqual([1, 2, 3, 4, 5]);
@@ -1483,7 +1483,7 @@ describe('DataModel', () => {
                 append: [{ timestamp: new Date(2024, 0, 3), dateValue: new Date(2024, 0, 3), primitiveValue: 30 }],
             });
 
-            const reprocessed = dataModel.reprocessData(processedData!);
+            const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
             // Should maintain columnNeedValueOf metadata
             expect(reprocessed.columnNeedValueOf).toEqual([true, false]);
@@ -1692,7 +1692,7 @@ describe('DataModel', () => {
                 item1.y = 25;
                 dataSet.addTransaction({ update: [item1] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify updated values are reflected
@@ -1719,7 +1719,7 @@ describe('DataModel', () => {
                 item2.y = 35;
                 dataSet.addTransaction({ update: [item0, item2] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify updated values are reflected
@@ -1745,7 +1745,7 @@ describe('DataModel', () => {
                 const newItem = { x: 3, y: 30 };
                 dataSet.addTransaction({ update: [item0], append: [newItem] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 expect(reprocessed.columns).toEqual([[15, 20, 30]]);
@@ -1770,7 +1770,7 @@ describe('DataModel', () => {
                 const newItem = { x: 1, y: 10 };
                 dataSet.addTransaction({ update: [item1], prepend: [newItem] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 expect(reprocessed.columns).toEqual([[10, 20, 35]]);
@@ -1800,7 +1800,7 @@ describe('DataModel', () => {
                     append: [newItem],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 expect(reprocessed.columns).toEqual([[15, 30, 40]]);
@@ -1823,7 +1823,7 @@ describe('DataModel', () => {
                 // First update
                 item0.y = 15;
                 dataSet.addTransaction({ update: [item0] });
-                const firstReprocessed = dataModel.reprocessData(initialProcessedData);
+                const firstReprocessed = dataModel.reprocessData(initialProcessedData, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, firstReprocessed, sources);
 
                 expect(firstReprocessed.columns).toEqual([[15, 20]]);
@@ -1831,7 +1831,7 @@ describe('DataModel', () => {
                 // Second update
                 item1.y = 25;
                 dataSet.addTransaction({ update: [item1] });
-                const secondReprocessed = dataModel.reprocessData(firstReprocessed);
+                const secondReprocessed = dataModel.reprocessData(firstReprocessed, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, secondReprocessed, sources);
 
                 expect(secondReprocessed.columns).toEqual([[15, 25]]);
@@ -1857,7 +1857,7 @@ describe('DataModel', () => {
                 item1.value = 25;
                 dataSet.addTransaction({ update: [item1] });
 
-                const reprocessed = dataModel.reprocessData(processedData);
+                const reprocessed = dataModel.reprocessData(processedData, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify updated value is reflected in the group
@@ -1885,7 +1885,7 @@ describe('DataModel', () => {
                 item2.value = 35;
                 dataSet.addTransaction({ update: [item0, item2] });
 
-                const reprocessed = dataModel.reprocessData(processedData);
+                const reprocessed = dataModel.reprocessData(processedData, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 if (reprocessed.type === 'grouped') {
@@ -1912,7 +1912,7 @@ describe('DataModel', () => {
                 item1.value = 25;
                 dataSet.addTransaction({ update: [item1] });
 
-                const reprocessed = dataModel.reprocessData(processedData);
+                const reprocessed = dataModel.reprocessData(processedData, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify the updated category appears in the groups
@@ -1941,7 +1941,7 @@ describe('DataModel', () => {
                 item1.y = 25;
                 dataSet.addTransaction({ update: [item1] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify accumulated and normalized values are recalculated
@@ -1983,7 +1983,7 @@ describe('DataModel', () => {
                     update: [item1],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3, 4]);
@@ -2006,7 +2006,7 @@ describe('DataModel', () => {
 
                 dataSet.addTransaction(transaction);
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
@@ -2138,7 +2138,7 @@ describe('DataModel', () => {
 
                     dataSet.addTransaction({ append: [{ x: Number.NaN, y: 10000 }] });
 
-                    const reprocessed = dataModel.reprocessData(processedData!);
+                    const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
                     // Verify reprocessing also returns Infinity for all-NaN data
                     expectSmallestInterval(reprocessed, Infinity, { allowNonFinite: true });
@@ -2211,7 +2211,7 @@ describe('DataModel', () => {
             const processedData = dataModel.processData(sources);
 
             dataSet.addTransaction({ append: [{ x: 3, y: 30 }] });
-            const reprocessed = dataModel.reprocessData(processedData!);
+            const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
             expect(reprocessed.optimizations).toBeDefined();
             expect(reprocessed.optimizations?.reprocessing?.applied).toBe(true);
@@ -2323,7 +2323,7 @@ describe('DataModel', () => {
                 const appendData = Array.from({ length: 100 }, (_, i) => ({ x: 10000 + i, y: 10000 + i }));
                 dataSet.addTransaction({ remove: removeData, append: appendData });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
                 // Verify banding was applied during reprocessing
                 expect(reprocessed.optimizations?.reducerBanding).toBeDefined();
@@ -2384,7 +2384,7 @@ describe('DataModel', () => {
                     dataSet.addTransaction({ remove: removeData, append: appendData });
                 }
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
                 // Verify efficient caching (low scan ratio)
                 const reducerMeta = reprocessed.optimizations?.reducerBanding?.reducers?.find(
@@ -2580,7 +2580,7 @@ describe('DataModel', () => {
 
                 // Append ascending data
                 dataSet.addTransaction({ append: [{ x: 4, y: 40 }] });
-                const reprocessed = dataModel.reprocessData(result);
+                const reprocessed = dataModel.reprocessData(result, undefined, undefined);
 
                 expect(reprocessed[KEY_SORT_ORDERS].get(0)?.sortOrder).toBe(1);
                 expect(reprocessed[KEY_SORT_ORDERS].get(0)?.isUnique).toBe(true);
@@ -2604,7 +2604,7 @@ describe('DataModel', () => {
 
                 // Append data that violates ascending order
                 dataSet.addTransaction({ append: [{ x: 1, y: 40 }] });
-                const reprocessed = dataModel.reprocessData(result);
+                const reprocessed = dataModel.reprocessData(result, undefined, undefined);
 
                 expect(reprocessed[KEY_SORT_ORDERS].get(0)?.sortOrder).toBeUndefined();
             });
@@ -2627,7 +2627,7 @@ describe('DataModel', () => {
 
                 // Append duplicate key
                 dataSet.addTransaction({ append: [{ x: 3, y: 40 }] });
-                const reprocessed = dataModel.reprocessData(result);
+                const reprocessed = dataModel.reprocessData(result, undefined, undefined);
 
                 expect(reprocessed[KEY_SORT_ORDERS].get(0)?.isUnique).toBe(false);
             });
@@ -2654,7 +2654,7 @@ describe('DataModel', () => {
                     });
                 }
 
-                const reprocessed = dataModel.reprocessData(result);
+                const reprocessed = dataModel.reprocessData(result, undefined, undefined);
 
                 // Order should be preserved
                 expect(reprocessed[KEY_SORT_ORDERS].get(0)?.sortOrder).toBe(1);
@@ -2719,7 +2719,7 @@ describe('DataModel', () => {
                 append: [{ date: new Date('2024-01-31'), value: 300 }],
             });
 
-            const reprocessed = dataModel.reprocessData(result);
+            const reprocessed = dataModel.reprocessData(result, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
             // Verify domain extended
@@ -2763,7 +2763,7 @@ describe('DataModel', () => {
                     append: [{ date: newDate, value: (30 + i) * 10 }],
                 });
 
-                result = dataModel.reprocessData(result);
+                result = dataModel.reprocessData(result, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, result, sources);
             }
 
