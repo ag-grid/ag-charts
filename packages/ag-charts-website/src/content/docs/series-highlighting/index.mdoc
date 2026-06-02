@@ -12,7 +12,20 @@ In the above example:
 - Hovering a bar segment in one series will dim the other series.
 - Hovering a legend item will dim the other series.
 
-Highlighting is enabled by default. Use `highlight.enabled = false` on each series to disable.
+Highlighting is enabled by default. Set chart-level `highlight.enabled` to `false` to disable it for every series, then re-enable it for an individual series with `series[].highlight.enabled`.
+
+```js format="snippet"
+{
+    highlight: {
+        enabled: false,
+    },
+    series: [
+        { type: 'bar', xKey: 'quarter', yKey: 'iphone' },
+        // Re-enable highlighting for this series only.
+        { type: 'bar', xKey: 'quarter', yKey: 'mac', highlight: { enabled: true } },
+    ],
+}
+```
 
 ## Bring to Front
 
