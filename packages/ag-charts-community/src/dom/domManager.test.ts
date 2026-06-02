@@ -172,6 +172,87 @@ describe('DOMManager', () => {
         });
     });
 
+    describe('getOverlayClientRect() scrollable container', () => {
+        const proto = HTMLElement.prototype;
+        const originalDescriptor = Object.getOwnPropertyDescriptor(proto, 'togglePopover');
+
+        function stubTogglePopover(this: void) {
+            return true;
+        }
+
+        const setPopoverSupported = (popoverApiAvailable: boolean) => {
+            if (popoverApiAvailable) {
+                Object.defineProperty(proto, 'togglePopover', { value: stubTogglePopover, configurable: true });
+            } else {
+                delete (proto as Partial<HTMLElement>).togglePopover;
+            }
+        };
+
+        afterEach(() => {
+            if (originalDescriptor == null) {
+                delete (proto as Partial<HTMLElement>).togglePopover;
+            } else {
+                Object.defineProperty(proto, 'togglePopover', originalDescriptor);
+            }
+        });
+
+        // Distinct from the jsdom viewport (innerWidth/innerHeight) so the two outcomes
+        // are distinguishable.
+        const scrollableRect = { x: 10, y: 20, width: 100, height: 50, top: 20, left: 10, right: 110, bottom: 70 };
+
+        const buildScrollableContainer = () => {
+            const scrollable = doc.createElement('div');
+            const container = doc.createElement('div');
+            scrollable.append(container);
+            doc.body.append(scrollable);
+            // jsdom does not implement computedStyleMap(); stub it so findScrollableContainer()
+            // detects this ancestor as scrollable (overflow-y: auto).
+            (scrollable as any).computedStyleMap = () => ({ get: () => 'auto' });
+            vi.spyOn(scrollable, 'getBoundingClientRect').mockReturnValue(scrollableRect as DOMRect);
+            return container;
+        };
+
+        it('returns the viewport rect (not the scrollable ancestor) when popover is supported', () => {
+            setPopoverSupported(true);
+            const container = buildScrollableContainer();
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
+
+            const rect = dm.getOverlayClientRect();
+            expect(rect.left).toBe(0);
+            expect(rect.top).toBe(0);
+            expect(rect.width).toBe(doc.innerWidth);
+            expect(rect.height).toBe(doc.innerHeight);
+        });
+
+        it('returns the scrollable ancestor rect when popover is not supported', () => {
+            setPopoverSupported(false);
+            const container = buildScrollableContainer();
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
+
+            const rect = dm.getOverlayClientRect();
+            expect(rect.left).toBe(scrollableRect.left);
+            expect(rect.top).toBe(scrollableRect.top);
+            expect(rect.width).toBe(scrollableRect.width);
+            expect(rect.height).toBe(scrollableRect.height);
+        });
+
+        it('returns the viewport rect with no scrollable ancestor regardless of popover support', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+
+            for (const supported of [true, false]) {
+                setPopoverSupported(supported);
+                const dm = new DOMManager(eventsHub, undefined, doc, container);
+
+                const rect = dm.getOverlayClientRect();
+                expect(rect.left).toBe(0);
+                expect(rect.top).toBe(0);
+                expect(rect.width).toBe(doc.innerWidth);
+                expect(rect.height).toBe(doc.innerHeight);
+            }
+        });
+    });
+
     describe('deferred proxy flushing', () => {
         it('should create a proxy tracked for deferred flushing', () => {
             const container = doc.createElement('div');

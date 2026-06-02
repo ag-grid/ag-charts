@@ -606,12 +606,26 @@ export class DOMManager extends BaseManager {
         return null;
     }
 
+    /**
+     * Whether the active window supports the Popover API. Popover-promoted overlays
+     * (e.g. tooltips with `popover="manual"`) render in the browser top layer and so
+     * escape any ancestor's `overflow` clipping — meaning they should be positioned
+     * against the viewport, not clamped to a scrollable ancestor.
+     */
+    private popoverSupported(): boolean {
+        const HTMLElementCtor: typeof HTMLElement | undefined = (this.agDocument.window as any).HTMLElement;
+        return typeof HTMLElementCtor?.prototype?.togglePopover === 'function';
+    }
+
     private getRawOverlayClientRect(): BBox {
         if (this._cachedRawOverlayRect != null) {
             return this._cachedRawOverlayRect;
         }
 
-        const scrollableContainer = this.findScrollableContainer();
+        // When the Popover API is supported, overlays are promoted to the top layer and
+        // escape ancestor `overflow` clipping, so we must not clamp to a scrollable
+        // ancestor. Browsers without Popover API support retain the clamp below.
+        const scrollableContainer = this.popoverSupported() ? null : this.findScrollableContainer();
 
         if (scrollableContainer != null) {
             this._cachedRawOverlayRect = BBox.fromObject(scrollableContainer.getBoundingClientRect());
