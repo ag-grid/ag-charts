@@ -36,7 +36,7 @@ export abstract class ContinuousScale<D extends number | bigint | Date, I = numb
 
     set domain(values: readonly (D | bigint)[]) {
         if (!values || values.length < 2) {
-            this._domain = values as D[];
+            this._domain = narrowStoredDomain(values);
             this.d0Big = this.d1Big = undefined;
             this.d0Cache = Number.NaN;
             this.d1Cache = Number.NaN;
@@ -54,12 +54,12 @@ export abstract class ContinuousScale<D extends number | bigint | Date, I = numb
             this.domainNeedsValueOf = false;
             this.d0Cache = Number(d0);
             this.d1Cache = Number(d1);
-            this._domain = values.map((v) => (typeof v === 'bigint' ? Number(v) : v)) as D[];
+            this._domain = narrowStoredDomain(values);
             return;
         }
 
         this.d0Big = this.d1Big = undefined;
-        this._domain = values as D[];
+        this._domain = narrowStoredDomain(values);
 
         // Auto-detect if domain values need valueOf() and cache numeric values
         this.domainNeedsValueOf = d0 != null && typeof d0 === 'object';
@@ -67,8 +67,8 @@ export abstract class ContinuousScale<D extends number | bigint | Date, I = numb
             this.d0Cache = (d0 as Date).valueOf();
             this.d1Cache = (d1 as Date).valueOf();
         } else {
-            this.d0Cache = d0 as unknown as number;
-            this.d1Cache = d1 as unknown as number;
+            this.d0Cache = Number(d0);
+            this.d1Cache = Number(d1);
         }
     }
 
@@ -211,6 +211,14 @@ export abstract class ContinuousScale<D extends number | bigint | Date, I = numb
         const [a, b] = this.range;
         return Math.abs(b - a);
     }
+}
+
+// The stored domain narrows any bigint endpoint to Number (the exact bigint is retained separately in
+// d0Big/d1Big). A narrowed bigint is a Number, which is a valid D for every concrete continuous scale
+// (D is number, number|bigint, or Date — and a Date scale never receives bigint input here), so this is
+// the single assertion that bridges the generic base's storage type.
+function narrowStoredDomain<D extends number | bigint | Date>(values: readonly (D | bigint)[]): D[] {
+    return values.map((v) => (typeof v === 'bigint' ? Number(v) : v)) as D[];
 }
 
 // Integer ratio scale: 10^12 gives ~12 significant digits in [0,1] — far finer than pixel positioning

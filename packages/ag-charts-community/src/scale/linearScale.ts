@@ -54,7 +54,7 @@ export class LinearScale extends ContinuousScale<number | bigint> {
             return { ticks, count: ticks.length, firstTickIndex: 0 };
         }
 
-        const numericDomain: number[] = isBigIntDomain ? domain.map(Number) : (domain as number[]);
+        const numericDomain: number[] = domain.map(Number);
         if (!numericDomain.every(Number.isFinite)) {
             return { ticks: [], count: 0, firstTickIndex: 0 };
         }
@@ -91,7 +91,7 @@ export class LinearScale extends ContinuousScale<number | bigint> {
             return [ticks.nice[0] ? n0 : b0, ticks.nice[1] ? n1 : b1];
         }
 
-        const numericDomain: number[] = isBigIntDomain ? domain.map(Number) : (domain as number[]);
+        const numericDomain: number[] = domain.map(Number);
         let [start, stop] = numericDomain;
 
         if (tickCount === 1) {
