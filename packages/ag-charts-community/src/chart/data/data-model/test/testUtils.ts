@@ -101,7 +101,7 @@ export const rowCountProperty = (prop: string) => ({ ...actualRowCountProperty(p
 
 export const groupCount = () => ({ ...actualGroupCount(`groupCount`), scopes: ['test'] });
 
-export const area = (groupId: string, aggFn: AggregatePropertyDefinition<any, any>) => ({
+export const area = (groupId: string, aggFn: AggregatePropertyDefinition<any, any, any>) => ({
     ...actualArea(`area-${groupId}`, aggFn),
     scopes: ['test'],
 });

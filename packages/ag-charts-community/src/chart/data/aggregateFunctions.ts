@@ -76,7 +76,7 @@ export function groupSum(
 }
 
 export function range(id: string, matchGroupId: string) {
-    const result: AggregatePropertyDefinition<any, any> = {
+    const result: AggregatePropertyDefinition<any, any, [number | bigint, number | bigint]> = {
         id,
         matchGroupIds: [matchGroupId],
         type: 'aggregate',
@@ -86,7 +86,10 @@ export function range(id: string, matchGroupId: string) {
     return result;
 }
 
-export function groupCount(id: string, opts?: { visible?: boolean }): AggregatePropertyDefinition<any, any> {
+export function groupCount(
+    id: string,
+    opts?: { visible?: boolean }
+): AggregatePropertyDefinition<any, any, [number, number]> {
     const visible = opts?.visible ?? true;
     return {
         id,
@@ -136,7 +139,7 @@ export function groupAverage(id: string, opts?: { matchGroupId?: string; visible
 }
 
 export function area(id: string, aggFn: AggregatePropertyDefinition<any, any, any>, matchGroupId?: string) {
-    const result: AggregatePropertyDefinition<any, any> = {
+    const result: AggregatePropertyDefinition<any, any, [number, number]> = {
         id,
         matchGroupIds: matchGroupId ? [matchGroupId] : undefined,
         type: 'aggregate',

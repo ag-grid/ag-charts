@@ -20,7 +20,7 @@ export interface UngroupedDataItem<I, D, V> {
     index: I;
     keys: any[];
     values: V;
-    aggValues?: [number, number][];
+    aggValues?: [number | bigint, number | bigint][];
     datum: D;
     validScopes?: Set<string>;
 }
@@ -106,7 +106,7 @@ export interface CommonMetadata<D> {
         keys: any[][];
         values: any[][];
         groups?: any[][];
-        aggValues?: [number, number][];
+        aggValues?: [number | bigint, number | bigint][];
     };
     reduced?: {
         diff?: Record<string, ProcessedOutputDiff>;
@@ -139,7 +139,7 @@ export interface CommonMetadata<D> {
 
 export interface UngroupedData<D> extends CommonMetadata<D> {
     type: 'ungrouped';
-    aggregation?: [number, number][][];
+    aggregation?: [number | bigint, number | bigint][][];
 }
 
 export interface GroupedData<D> extends CommonMetadata<D> {
@@ -296,10 +296,12 @@ export type InternalDatumPropertyDefinition<K> = DatumPropertyDefinition<K> &
         missing: MissMap;
     };
 
-export type AggregatePropertyDefinition<D, K extends keyof D & string, R = [number, number], R2 = R> = Omit<
-    PropertyIdentifiers,
-    'scopes'
-> &
+export type AggregatePropertyDefinition<
+    D,
+    K extends keyof D & string,
+    R = [number | bigint, number | bigint],
+    R2 = R,
+> = Omit<PropertyIdentifiers, 'scopes'> &
     PropertySelectors & {
         type: 'aggregate';
         aggregateFunction: (values: D[K][], keys?: D[K][]) => R;

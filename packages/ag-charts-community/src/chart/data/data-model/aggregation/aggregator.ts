@@ -38,7 +38,10 @@ export class Aggregator<D extends object, K extends keyof D & string> {
      * Each datum gets its own aggregation result.
      */
     aggregateUngroupedData(processedData: UngroupedData<any>) {
-        const domainAggValues = this.ctx.aggregates.map((): [number, number] => [Infinity, -Infinity]);
+        const domainAggValues = this.ctx.aggregates.map((): [number | bigint, number | bigint] => [
+            Infinity,
+            -Infinity,
+        ]);
         processedData.domain.aggValues = domainAggValues;
 
         const { columns, dataSources } = processedData;
@@ -49,7 +52,7 @@ export class Aggregator<D extends object, K extends keyof D & string> {
         // Check if any key definition allows null values
         const allowNull = this.ctx.keys.some((keyDef) => keyDef.allowNullKey === true);
         processedData.aggregation = rawData?.map((_, datumIndex) => {
-            const aggregation: [number, number][] = [];
+            const aggregation: [number | bigint, number | bigint][] = [];
 
             for (const [index, def] of this.ctx.aggregates.entries()) {
                 const indices = this.valueGroupIdxLookup(def);
@@ -78,7 +81,10 @@ export class Aggregator<D extends object, K extends keyof D & string> {
      * Multiple datums in a group share aggregation results.
      */
     aggregateGroupedData(processedData: GroupedData<any>) {
-        const domainAggValues = this.ctx.aggregates.map((): [number, number] => [Infinity, -Infinity]);
+        const domainAggValues = this.ctx.aggregates.map((): [number | bigint, number | bigint] => [
+            Infinity,
+            -Infinity,
+        ]);
         processedData.domain.aggValues = domainAggValues;
 
         const { columns } = processedData;
