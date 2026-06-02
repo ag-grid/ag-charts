@@ -20,6 +20,8 @@ export type CspMode = 'report-only' | 'enforce';
 
 export interface CspOptions {
     env: CspEnv;
+    /** Override the trial-licence form origin. Defaults to the per-env value. */
+    trialFormOrigin?: string;
 }
 
 /** Ordered map of directive name to its allowed sources. */
@@ -37,6 +39,15 @@ const UNSAFE_EVAL = "'unsafe-eval'";
 // production host need an explicit allowance. Harmless where 'self' already covers it.
 const AG_GRID_HOSTS = 'https://*.ag-grid.com';
 
+// The trial-licence form POSTs (via fetch) to a different Cloud Function per
+// environment (see PUBLIC_TRIAL_LICENCE_FORM_URL in the .env.build.* files). Same
+// origins as the grid site — the form is a shared ag-website-shared component.
+const TRIAL_FORM_ORIGIN: Record<CspEnv, string> = {
+    dev: 'https://us-central1-stripe-testing-19784.cloudfunctions.net',
+    staging: 'https://us-central1-stripe-testing-19784.cloudfunctions.net',
+    production: 'https://us-central1-aggrid-ecommerce.cloudfunctions.net',
+};
+
 // Dev-server-only extras (HMR + cross-port preview). Never emitted for staging or
 // production. Charts dev server runs on 4600/4601 (see astro.config.mjs).
 const DEV_SCRIPT_SRC = ['https://localhost:4600', 'https://localhost:4601'];
@@ -44,6 +55,7 @@ const DEV_CONNECT_SRC = ['https://localhost:4600', 'https://localhost:4601', 'ws
 
 export function getCspDirectives(options: CspOptions): CspDirectives {
     const { env } = options;
+    const trialFormOrigin = options.trialFormOrigin ?? TRIAL_FORM_ORIGIN[env];
 
     const directives: CspDirectives = {
         'default-src': [SELF],
@@ -53,8 +65,8 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             'https://plausible.io',
             'https://www.googletagmanager.com',
             'https://cdn.jsdelivr.net',
-            'https://js.zi-scripts.com', // ZoomInfo tag (injected via the shared GTM container)
-            'https://*.zoominfo.com', // ZoomInfo FormComplete
+            'https://js.zi-scripts.com', // ZoomInfo tag (injected via GTM)
+            'https://*.zoominfo.com', // ZoomInfo FormComplete (trial form)
             'https://www.youtube.com', // YouTube iframe JS API (loads into the page)
             UNSAFE_INLINE,
             UNSAFE_EVAL,
@@ -72,6 +84,8 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             SELF,
             AG_GRID_HOSTS,
             'https://plausible.io',
+            'https://*.algolia.net', // Algolia DocSearch
+            'https://*.algolianet.com', // Algolia DocSearch
             'https://www.google-analytics.com',
             'https://*.analytics.google.com',
             'https://stats.g.doubleclick.net',
@@ -79,13 +93,14 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             'https://cdn.jsdelivr.net', // example-runner SystemJS fetches modules as text (XHR)
             'https://js.zi-scripts.com', // ZoomInfo
             'https://*.zoominfo.com', // ZoomInfo
+            trialFormOrigin, // trial-licence form fetch POST
         ],
         'frame-src': [SELF, 'https://www.googletagmanager.com', 'https://www.youtube.com'],
         'media-src': [SELF, 'data:', 'blob:', 'https:'],
         'worker-src': [SELF, 'blob:'],
         'object-src': [NONE],
         'base-uri': [SELF],
-        'form-action': [SELF],
+        'form-action': [SELF, trialFormOrigin],
         'frame-ancestors': [SELF],
     };
 
