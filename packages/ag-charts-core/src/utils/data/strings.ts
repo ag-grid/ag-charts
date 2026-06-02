@@ -48,6 +48,9 @@ export function stringifyValue(value: unknown, maxLength = Infinity): string {
         } else if (value === -Infinity) {
             return '-Infinity';
         }
+    } else if (typeof value === 'bigint') {
+        // JSON.stringify throws on bigint, which would turn a clean validation rejection into a crash.
+        return `${value}`;
     }
     // If values is not serializable output value type instead.
     const strValue = JSON.stringify(value) ?? typeof value;

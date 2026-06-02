@@ -193,7 +193,10 @@ function decimalPlaces(decimal: string) {
     return 0;
 }
 
-export function tickFormat(ticks: any[], format?: string): ((n: number | { valueOf(): number }) => string) | undefined {
+export function tickFormat(
+    ticks: any[],
+    format?: string
+): ((n: number | bigint | { valueOf(): number }) => string) | undefined {
     const options = parseNumberFormat(format ?? ',f');
     if (options == null) return;
 
@@ -220,7 +223,9 @@ export function tickFormat(ticks: any[], format?: string): ((n: number | { value
         }
     }
     const formatter = createNumberFormatter(options);
-    return (n) => formatter(Number(n));
+    // Explicit bigint tick values (e.g. gauge scale.interval.values) render full-precision; only a
+    // bigint reaches this branch, axes always pass Number ticks (AG-16608 AC #11).
+    return (n) => (typeof n === 'bigint' ? n.toLocaleString() : formatter(Number(n)));
 }
 
 function bigIntTickStep(extent: bigint, count: number): bigint {
@@ -291,6 +296,28 @@ export function createBigIntTicks(start: bigint, stop: bigint, count: number): b
     }
 
     return ascending ? ticks : ticks.reverse();
+}
+
+/**
+ * Contiguous, equal-width BigInt bins covering the domain, for histogram bucketing. Reuses the nice
+ * step picker so boundaries land on nice multiples and the outer bins extend to the surrounding step
+ * multiples (like {@link niceBigIntDomain}). Always returns at least one bin.
+ */
+export function createBigIntBins(start: bigint, stop: bigint, count: number): [bigint, bigint][] {
+    const lo = start < stop ? start : stop;
+    const hi = start < stop ? stop : start;
+
+    const step = lo === hi ? 0n : bigIntTickStep(hi - lo, count);
+    if (step <= 0n) return [[lo, hi]];
+
+    const niceLo = floorToStep(lo, step);
+    const niceHi = ceilToStep(hi, step);
+
+    const bins: [bigint, bigint][] = [];
+    for (let edge = niceLo; edge < niceHi; edge += step) {
+        bins.push([edge, edge + step]);
+    }
+    return bins.length > 0 ? bins : [[niceLo, niceHi]];
 }
 
 /** Nice BigInt domain bounds — extends the endpoints outward to the surrounding step multiples. */

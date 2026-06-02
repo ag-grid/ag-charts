@@ -12,7 +12,7 @@ import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 import { LinearAngleScale } from './linearAngleScale';
 
-export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale, NormalisedAngleNumberAxisOptions> {
+export class AngleNumberAxis extends AngleAxis<number | bigint, LinearAngleScale, NormalisedAngleNumberAxisOptions> {
     static readonly className = 'AngleNumberAxis';
     static readonly type = 'angle-number' as const;
 

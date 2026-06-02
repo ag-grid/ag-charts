@@ -19,6 +19,7 @@ import {
     easeOut,
     isContinuous,
     mergeDefaults,
+    toNumber,
 } from 'ag-charts-core';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
@@ -114,8 +115,10 @@ interface WaterfallNodeDatumParams {
     datum: unknown;
     xDatum: any;
     value: number | undefined;
-    cumulativeValue: number | undefined;
-    trailingValue: number | undefined;
+    // Bigint-capable so a cumulative beyond Number.MAX_VALUE survives to yScale.convert() for proportional
+    // positioning; the cumulativeValue datum field and the display value narrow to Number.
+    cumulativeValue: number | bigint | undefined;
+    trailingValue: number | bigint | undefined;
     datumType: AgWaterfallSeriesItemType | undefined;
 }
 
@@ -277,7 +280,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         } else {
             const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent');
             const yExtent = values[yCurrIndex];
-            const fixedYExtent = [Math.min(0, yExtent[0]), Math.max(0, yExtent[1])];
+            // The cumulative extent can be bigint; narrow to Number for the domain (finite precision,
+            // consistent with bar) since Math.min/max throw on bigint. toNumber warns once if a bigint
+            // beyond Number.MAX_VALUE coerces to Infinity (fixNumericExtent then sanitises it).
+            const fixedYExtent = [Math.min(0, toNumber(yExtent[0])), Math.max(0, toNumber(yExtent[1]))];
             return { domain: fixNumericExtent(fixedYExtent) };
         }
     }
@@ -287,7 +293,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     }
 
     protected override populateNodeData(ctx: WaterfallSeriesNodeDatumContext): void {
-        let trailingSubtotal = 0;
+        let trailingSubtotal: number | bigint = 0;
 
         // Scratch object for params - reused across iterations
         const paramsScratch: WaterfallNodeDatumParams = {
@@ -463,8 +469,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         datumIndex: number,
         isTotal: boolean,
         isSubtotal: boolean,
-        trailingSubtotal: number
-    ): { cumulativeValue: number | undefined; trailingValue: number | undefined } {
+        trailingSubtotal: number | bigint
+    ): { cumulativeValue: number | bigint | undefined; trailingValue: number | bigint | undefined } {
         if (isTotal || isSubtotal) {
             return {
                 cumulativeValue: ctx.yCurrTotalValues[datumIndex],
@@ -481,17 +487,19 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     private computeDisplayValue(
         isTotal: boolean,
         isSubtotal: boolean,
-        rawValue?: number,
-        cumulativeValue?: number,
-        trailingValue?: number
+        rawValue?: number | bigint,
+        cumulativeValue?: number | bigint,
+        trailingValue?: number | bigint
     ): number | undefined {
+        // Display value (label/tooltip metadata) narrows to Number; positioning uses the exact bigint
+        // cumulative/trailing directly. Number()ing both operands avoids a bigint/number subtraction throw.
         if (isTotal) {
-            return cumulativeValue;
+            return cumulativeValue == null ? undefined : Number(cumulativeValue);
         }
         if (isSubtotal) {
-            return (cumulativeValue ?? 0) - (trailingValue ?? 0);
+            return Number(cumulativeValue ?? 0) - Number(trailingValue ?? 0);
         }
-        return rawValue;
+        return rawValue == null ? undefined : Number(rawValue);
     }
 
     /**
@@ -514,7 +522,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             itemType: seriesItemType,
             datum,
             datumIndex,
-            cumulativeValue: cumulativeValue ?? 0,
+            cumulativeValue: Number(cumulativeValue ?? 0),
             xValue: xDatum,
             yValue: value,
             yKey,
@@ -567,7 +575,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         mutableNode.itemType = seriesItemType;
         mutableNode.datum = datum;
         mutableNode.datumIndex = datumIndex;
-        mutableNode.cumulativeValue = cumulativeValue ?? 0;
+        mutableNode.cumulativeValue = Number(cumulativeValue ?? 0);
         mutableNode.xValue = xDatum;
         mutableNode.yValue = value;
         mutableNode.x = rectX;
@@ -641,8 +649,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     private createPointDatum(
         ctx: WaterfallSeriesNodeDatumContext,
         nodeDatum: WaterfallNodeDatum,
-        cumulativeValue: number | undefined,
-        trailingValue: number | undefined,
+        cumulativeValue: number | bigint | undefined,
+        trailingValue: number | bigint | undefined,
         isTotalOrSubtotal: boolean
     ): WaterfallNodePointDatum {
         const { yScale, barAlongX, categoryAxisReversed, lineStrokeWidth } = ctx;

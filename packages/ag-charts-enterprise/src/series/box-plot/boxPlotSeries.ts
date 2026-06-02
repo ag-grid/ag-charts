@@ -246,7 +246,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
      */
     private validateBoxPlotValues(minValue: any, q1Value: any, medianValue: any, q3Value: any, maxValue: any): boolean {
         return (
-            [minValue, q1Value, medianValue, q3Value, maxValue].every((value) => typeof value === 'number') &&
+            // Accept bigint as well as number; the ordering comparisons below are valid for both (and mixed).
+            [minValue, q1Value, medianValue, q3Value, maxValue].every(
+                (value) => typeof value === 'number' || typeof value === 'bigint'
+            ) &&
             minValue <= q1Value &&
             q1Value <= medianValue &&
             medianValue <= q3Value &&

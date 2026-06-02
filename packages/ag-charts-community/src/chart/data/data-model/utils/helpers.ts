@@ -39,13 +39,33 @@ export function toKeyString(keys: any[]): string {
  * Fixes a numeric extent to ensure both values are finite numbers.
  * Returns empty array if extent is null or contains non-finite values.
  */
-export function fixNumericExtent(extent: Array<number | Date | bigint> | null): [] | [number, number] {
+export function fixNumericExtent(extent: ReadonlyArray<number | Date | bigint> | null): (number | bigint)[] {
     if (extent == null) return [];
     // Retain exact bigint endpoints so the scale positions and labels them at full precision; Date and
-    // number values still narrow to Number. Downstream consumers branch on `typeof` at runtime.
+    // number values still narrow to Number. The result type carries bigint, so consumers must handle it.
     const mapped = extent.map((v) => (typeof v === 'bigint' ? v : Number(v)));
     const allFinite = mapped.every((v) => typeof v === 'bigint' || Number.isFinite(v));
-    return allFinite ? (mapped as unknown as [number, number]) : [];
+    return allFinite ? mapped : [];
+}
+
+/**
+ * Extends a numeric `[min, max]` extent to include the zero baseline, so bars and areas anchor at zero.
+ * A bigint endpoint is retained exactly and the baseline is emitted as `0n` to match, keeping both scale
+ * endpoints bigint so values beyond Number.MAX_VALUE position proportionally — a numeric `0` baseline would
+ * narrow the bigint endpoint and collapse such values to the axis edge. The all-Number path keeps the
+ * original span-finiteness guard, which rejects non-finite or overflowing extents.
+ */
+export function extendDomainToZero(extent: ReadonlyArray<number | bigint>): (number | bigint)[] {
+    if (extent.length < 2) return [];
+    const [e0, e1] = extent;
+    if (typeof e0 !== 'bigint' && typeof e1 !== 'bigint') {
+        return Number.isFinite(e1 - e0) ? [Math.min(e0, 0), Math.max(e1, 0)] : [];
+    }
+    const zeroLo = typeof e0 === 'bigint' ? 0n : 0;
+    const zeroHi = typeof e1 === 'bigint' ? 0n : 0;
+    const lo = e0 < 0 ? e0 : zeroLo;
+    const hi = e1 > 0 ? e1 : zeroHi;
+    return [lo, hi];
 }
 
 /**

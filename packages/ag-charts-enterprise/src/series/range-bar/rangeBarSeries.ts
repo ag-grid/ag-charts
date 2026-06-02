@@ -24,6 +24,7 @@ import {
     type RequireOptional,
     areScalingEqual,
     findMinMax,
+    isContinuous,
     mergeDefaults,
 } from 'ag-charts-core';
 
@@ -465,7 +466,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const rawLowValue = ctx.yLowValues[datumIndex];
         const rawHighValue = ctx.yHighValues[datumIndex];
 
-        if (!Number.isFinite(rawLowValue?.valueOf()) || !Number.isFinite(rawHighValue?.valueOf())) return undefined;
+        // isContinuous accepts bigint where Number.isFinite would drop a value beyond Number.MAX_VALUE.
+        if (!isContinuous(rawLowValue) || !isContinuous(rawHighValue)) return undefined;
 
         const [yLowValue, yHighValue] =
             rawLowValue < rawHighValue ? [rawLowValue, rawHighValue] : [rawHighValue, rawLowValue];
@@ -473,8 +475,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         // Populate scratch with validated, computed values
         scratch.datum = datum;
         scratch.xValue = xValue;
-        scratch.yLowValue = yLowValue;
-        scratch.yHighValue = yHighValue;
+        // isContinuous narrows to include Date/NumberObject; on a number axis these are number|bigint. The
+        // sorted pair feeds label metadata only (positioning converts the raw columns), so a runtime bigint in
+        // the number-typed field is fine — mirrors mutableNode.yLowValue below.
+        scratch.yLowValue = yLowValue as number;
+        scratch.yHighValue = yHighValue as number;
         scratch.rawLowValue = rawLowValue;
         scratch.rawHighValue = rawHighValue;
 

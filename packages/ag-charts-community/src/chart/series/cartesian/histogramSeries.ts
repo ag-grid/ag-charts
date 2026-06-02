@@ -5,6 +5,7 @@ import {
     type Mutable,
     type Point,
     type RequireOptional,
+    createBigIntBins,
     createTicks,
     deepClone,
     findMinMax,
@@ -30,7 +31,7 @@ import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import type { ChartAxis } from '../../chartAxis';
-import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
+import { addAccumulated, area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
 import type { DataController } from '../../data/dataController';
 import type {
     AggregatePropertyDefinition,
@@ -88,12 +89,17 @@ const defaultBinCount = 10;
 
 type HistogramAnimationData = CartesianAnimationDataOf<HistogramSeriesTypes>;
 
+/** Bin boundaries are `bigint` for a BigInt x-column (AG-16608) and `number` otherwise. */
+type BinDomain = [number | bigint, number | bigint];
+
 interface CalculatedBin {
-    domain: [number, number];
+    domain: BinDomain;
     groupIndex: number;
     datum: any[];
     frequency: number;
-    total: number;
+    // bigint when summing a bigint yKey column (aggregation 'sum'); the y-scale narrows it for positioning
+    // while the exact value reaches the tooltip via the bin datum's aggregatedValue.
+    total: number | bigint;
 }
 
 interface HistogramSeriesNodeDataContext extends CartesianSeriesNodeDataContext<HistogramNodeDatum> {
@@ -151,6 +157,27 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
     override get hasData(): boolean {
         return this.calculatedBins.length > 0;
+    }
+
+    // A BigInt x-column (AG-16608) computes boundaries in BigInt for full precision; everything else
+    // keeps the number paths. Explicit `bins` win unless an explicit `binCount` is also set.
+    private computeBins(xExtent: (number | bigint)[]): BinDomain[] {
+        const x0 = xExtent[0];
+        const x1 = xExtent[1];
+        const bigIntExtent = typeof x0 === 'bigint' || typeof x1 === 'bigint';
+
+        if (isNumber(this.properties.binCount)) {
+            return bigIntExtent
+                ? createBigIntBins(BigInt(x0), BigInt(x1), this.properties.binCount)
+                : this.calculateNiceBins([Number(x0), Number(x1)], this.properties.binCount);
+        }
+
+        return (
+            this.properties.bins ??
+            (bigIntExtent
+                ? createBigIntBins(BigInt(x0), BigInt(x1), defaultBinCount)
+                : this.deriveBins([Number(x0), Number(x1)]))
+        );
     }
 
     // During processData phase, used to unify different ways of the user specifying
@@ -252,7 +279,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             props.push(aggProp);
         }
 
-        let calculatedBinDomains: [number, number][] = [];
+        let calculatedBinDomains: BinDomain[] = [];
         const groupByFn: GroupByFn = (dataSet) => {
             const xExtent = fixNumericExtent(dataSet.domain.keys[0]);
             if (xExtent.length === 0) {
@@ -261,9 +288,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 return () => [];
             }
 
-            const bins = isNumber(this.properties.binCount)
-                ? this.calculateNiceBins(xExtent, this.properties.binCount)
-                : (this.properties.bins ?? this.deriveBins(xExtent));
+            const bins = this.computeBins(xExtent);
             const binCount = bins.length;
             calculatedBinDomains = [...bins];
 
@@ -272,7 +297,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 if (isDate(xValue)) {
                     xValue = xValue.getTime();
                 }
-                if (!isNumber(xValue)) return [];
+                if (!isNumber(xValue) && typeof xValue !== 'bigint') return [];
 
                 for (let i = 0; i < binCount; i++) {
                     const nextBin = bins[i];
@@ -310,7 +335,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 const [[negativeAgg, positiveAgg] = [0, 0]] = group.aggregation;
                 const datum = [...dataModel.forEachDatum(this, processedData, group, groupIndex)];
                 const frequency = this.frequency(group);
-                const total = negativeAgg + positiveAgg;
+                const total = addAccumulated(negativeAgg, positiveAgg);
                 return { domain, datum, groupIndex, frequency, total };
             } else {
                 return { domain, datum: [], groupIndex: -1, frequency: 0, total: 0 };
@@ -358,7 +383,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             const [x0, x1] = findMinMax([xScale.convert(xDomainMin), xScale.convert(xDomainMax)]);
 
             if (x1 >= r0 && x0 <= r1) {
-                const total = negativeAgg + positiveAgg;
+                // Pixel range only: narrow any bigint sum to Number for Math.max.
+                const total = Number(negativeAgg) + Number(positiveAgg);
                 yMax = Math.max(yMax, total);
             }
         }
@@ -757,7 +783,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const frequency = this.frequency(group);
         const domain = keys;
         const [rangeMin, rangeMax]: number[] = domain;
-        const aggregatedValue = negativeAgg + positiveAgg;
+        const aggregatedValue = addAccumulated(negativeAgg, positiveAgg);
         const datum: AgHistogramBinDatum<any> = {
             data: [...dataModel.forEachDatum(this, processedData, group, datumIndex)],
             aggregatedValue,

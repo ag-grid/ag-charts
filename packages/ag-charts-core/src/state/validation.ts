@@ -467,7 +467,8 @@ export const or = (...validators: Validator[]) =>
     );
 
 // Helpers
-const isComparable = (value: unknown): value is number | Date => isFiniteNumber(value) || isValidDate(value);
+const isComparable = (value: unknown): value is number | bigint | Date =>
+    isFiniteNumber(value) || typeof value === 'bigint' || isValidDate(value);
 const isValidDateValue = (value: unknown) =>
     isDate(value) || ((isFiniteNumber(value) || isString(value)) && isValidDate(new Date(value)));
 
@@ -479,6 +480,12 @@ export const color = attachDescription(isColor, 'a color string');
 export const date = attachDescription(isValidDateValue, 'a date');
 export const defined = attachDescription(isDefined, 'a defined value');
 export const number = attachDescription(isFiniteNumber, 'a number');
+// Accepts a finite number or a bigint. Reserved for the gauge fields that opt into bigint at runtime
+// (AG-16608 AC #11) — do NOT widen the global `number` validator, or every numeric option accepts bigint.
+export const numericValue = attachDescription(
+    (value): value is number | bigint => isFiniteNumber(value) || typeof value === 'bigint',
+    'a number or bigint'
+);
 export const object = attachDescription(isObject, 'an object');
 export const string = attachDescription(isString, 'a string');
 

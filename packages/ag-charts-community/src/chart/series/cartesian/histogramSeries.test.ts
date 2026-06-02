@@ -278,6 +278,35 @@ describe('HistogramSeries', () => {
         });
     });
 
+    describe('bigint aggregation (AG-16608)', () => {
+        setupMockCanvas();
+
+        it('sums a bigint yKey column at full precision (aggregation: sum)', async () => {
+            const big = 9_007_199_254_740_993n; // 2^53 + 1, not exactly representable as a Number
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 1, y: big },
+                    { x: 2, y: big },
+                    { x: 3, y: big },
+                ],
+                series: [{ type: 'histogram', xKey: 'x', yKey: 'y', aggregation: 'sum', bins: [[0, 10]] }],
+            };
+            prepareTestOptions(options as any);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const series = chart.series.find((v: any) => v.type === 'histogram');
+            expect(series).toBeDefined();
+
+            const context: SeriesNodeDataContext<any, any> = (series as any)['contextNodeData'];
+            const bin = context.nodeData.find((n: any) => n.aggregatedValue != null);
+            expect(bin).toBeDefined();
+            // 3 × (2^53 + 1) — a narrowing convert() would round this; the bigint sum keeps it exact.
+            expect(bin!.aggregatedValue).toBe(3n * big);
+        });
+    });
+
     describe('Series Labels', () => {
         const examples = {
             HISTOGRAM_SERIES_LABELS: {
@@ -461,6 +490,44 @@ describe('HistogramSeries', () => {
 
             chart = AgCharts.create(options);
             await compare();
+        });
+    });
+
+    // AG-16608: a BigInt x-column must compute bin boundaries in BigInt arithmetic so values beyond
+    // Number.MAX_SAFE_INTEGER keep full precision (and the series is no longer dropped to empty).
+    describe('bigint bins (AG-16608)', () => {
+        it('computes bin boundaries in BigInt at full precision', async () => {
+            const base = 9_007_199_254_740_993n; // 2^53 + 1 — not representable as a Number
+            const xs = [base, base + 10n, base + 25n, base + 40n, base + 80n];
+            const options: AgChartOptions = {
+                data: xs.map((x) => ({ x })),
+                series: [{ type: 'histogram', xKey: 'x', binCount: 10 }],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0] as unknown as {
+                calculatedBins: { domain: [bigint, bigint]; frequency: number }[];
+            };
+            const bins = series.calculatedBins;
+
+            expect(bins.length).toBeGreaterThan(0);
+            for (const bin of bins) {
+                expect(typeof bin.domain[0]).toBe('bigint');
+                expect(typeof bin.domain[1]).toBe('bigint');
+            }
+            // Contiguous boundaries and full coverage of the data range, all at exact precision.
+            for (let i = 1; i < bins.length; i++) {
+                expect(bins[i].domain[0]).toBe(bins[i - 1].domain[1]);
+            }
+            expect(bins[0].domain[0] <= base).toBe(true);
+            expect(bins.at(-1)!.domain[1] >= base + 80n).toBe(true);
+
+            // Every datum is bucketed rather than dropped (the pre-fix behaviour rendered empty).
+            const totalFrequency = bins.reduce((acc, bin) => acc + bin.frequency, 0);
+            expect(totalFrequency).toBe(xs.length);
         });
     });
 

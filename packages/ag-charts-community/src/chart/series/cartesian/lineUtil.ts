@@ -109,7 +109,9 @@ export interface LineNodeDatumScratch {
     datum: any;
     xDatum: any;
     yDatum: any;
-    yCumulative: number;
+    // Bigint-capable so a cumulative beyond Number.MAX_VALUE survives to yScale.convert() for proportional
+    // positioning; narrowed to Number only at the cumulativeValue datum-field assignment.
+    yCumulative: number | bigint;
     selected: boolean | undefined;
     x: number;
     y: number;

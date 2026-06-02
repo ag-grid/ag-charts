@@ -176,23 +176,21 @@ export class ContinuousDomain<T extends number | Date> implements IDataDomain<T>
         return value instanceof ContinuousDomain;
     }
 
-    static extendDomain(values: unknown[], domain: [number, number] = [Infinity, -Infinity]) {
+    static extendDomain(values: unknown[], domain: [number, number] = [Infinity, -Infinity]): [number, number] {
         for (const value of values) {
-            // Derived aggregation/stacked domains feed further arithmetic, so narrow bigint to Number here
-            // (unlike instance `extend`, which retains raw-column endpoints for the scale's convert()).
-            let n: number;
-            if (typeof value === 'number') {
-                n = value;
-            } else if (typeof value === 'bigint') {
-                n = Number(value);
-            } else {
+            if (typeof value !== 'number' && typeof value !== 'bigint') {
                 continue;
             }
-            if (domain[0] > n) {
-                domain[0] = n;
+            // Relational comparison retains an exact bigint endpoint (incl. one beyond Number.MAX_VALUE) so a
+            // stacked/range total positions proportionally; comparing bigint against the Number Infinity seed is
+            // legal (only +/-/* mixing throws, which this never does). The stored value may be a bigint at
+            // runtime — the [number, number] type is a deliberate narrowing, mirroring ContinuousDomain.getDomain;
+            // downstream branches on typeof at convert().
+            if (value < domain[0]) {
+                domain[0] = value as number;
             }
-            if (domain[1] < n) {
-                domain[1] = n;
+            if (value > domain[1]) {
+                domain[1] = value as number;
             }
         }
         return domain;

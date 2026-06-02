@@ -14,6 +14,7 @@ import {
     type UngroupedData,
 } from '../../dataModelTypes';
 import type { DataSet } from '../../dataSet';
+import { isISO8601 } from '../../iso8601';
 import type { DataModelContext } from '../dataModelContext';
 import type { DomainManager } from '../domain/domainManager';
 import type { SpecializedProcessValueFn } from '../domain/processValueFactory';
@@ -77,7 +78,8 @@ function valueColumnType(value: unknown): ColumnValueType | undefined {
         case 'bigint':
             return 'bigint';
         case 'string':
-            return 'string';
+            // A strict ISO 8601 string is a date value; any other string is a plain category.
+            return isISO8601(value) ? 'date' : 'string';
         case 'object':
             if (value == null) return undefined;
             // A NumberObject ({ valueOf(): number }) is numeric, not a date.
@@ -91,11 +93,14 @@ function updateColumnTypeTracker(tracker: ColumnTypeTracker, value: unknown, dat
     const observed = valueColumnType(value);
     if (observed == null) return;
 
-    if (tracker.type == null) {
+    if (tracker.type == null || tracker.type === observed) {
         tracker.type = observed;
-    } else if (tracker.type !== observed && isNumericColumnType(tracker.type) && isNumericColumnType(observed)) {
-        // TODO(AG-16654, PR5): number<->date coexistence (epoch number + Date in one column) should also
-        // promote to 'date'; only number<->bigint mixing is handled today.
+    } else if (isDateColumnType(tracker.type) || isDateColumnType(observed)) {
+        // Date, ISO string and epoch number/bigint coexist as the heterogeneous 'date' tag; each value
+        // normalises to a Date at convert() time.
+        tracker.type = 'date';
+    } else if (isNumericColumnType(tracker.type) && isNumericColumnType(observed)) {
+        // A column mixing `number` and `bigint` (with no date values) is rejected at the series level.
         tracker.mixedAtIndex ??= datumIndex;
         tracker.type = 'mixed-numeric';
     }
@@ -103,6 +108,29 @@ function updateColumnTypeTracker(tracker: ColumnTypeTracker, value: unknown, dat
 
 function isNumericColumnType(type: ColumnValueType): boolean {
     return type === 'number' || type === 'bigint' || type === 'mixed-numeric';
+}
+
+function isDateColumnType(type: ColumnValueType): boolean {
+    return type === 'date';
+}
+
+// An ISO 8601 string carries an explicit timezone iff it ends with `Z` or a trailing `±HH:MM` offset.
+// Date-only (`2024-01-15`) and offset-less date-times (`2024-01-15T10:30:00`) are timezone-implicit.
+const ISO_8601_EXPLICIT_TZ = /(Z|[+-]\d{2}:\d{2})$/;
+
+/** First-seen examples of explicit- and implicit-timezone ISO strings within a single column. */
+interface TimezoneTracker {
+    explicit: { value: string; index: number } | undefined;
+    implicit: { value: string; index: number } | undefined;
+}
+
+function updateTimezoneTracker(tracker: TimezoneTracker, value: unknown, datumIndex: number): void {
+    if (typeof value !== 'string' || !isISO8601(value)) return;
+    if (ISO_8601_EXPLICIT_TZ.test(value)) {
+        tracker.explicit ??= { value, index: datumIndex };
+    } else {
+        tracker.implicit ??= { value, index: datumIndex };
+    }
 }
 
 /**
@@ -236,6 +264,8 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
 
             // Track ordering/uniqueness for this key definition
             const tracker = createKeyTracker();
+            const typeTracker: ColumnTypeTracker = { type: undefined, mixedAtIndex: undefined };
+            const tzTracker: TimezoneTracker = { explicit: undefined, implicit: undefined };
 
             for (const scope of keyScopes ?? []) {
                 const data = sources.get(scope)?.data ?? [];
@@ -270,6 +300,8 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                         keys.push(result.value);
                         // Track ordering/uniqueness for valid keys
                         updateKeyTracker(tracker, result.value);
+                        updateColumnTypeTracker(typeTracker, result.value, datumIndex);
+                        updateTimezoneTracker(tzTracker, result.value, datumIndex);
                         continue;
                     }
 
@@ -301,6 +333,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
 
             // Store the computed sort order entry for this key definition
             keySortOrders.set(keyDefIndex, trackerToSortOrderEntry(tracker));
+            this.warnMixedTimezoneColumn(keyDef.property, typeTracker.type, tzTracker);
         }
         return {
             invalidData,
@@ -383,6 +416,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             const invalidKeys = scopeInvalidKeys.get(columnScope);
             let needsValueOf = false;
             const typeTracker: ColumnTypeTracker = { type: undefined, mixedAtIndex: undefined };
+            const tzTracker: TimezoneTracker = { explicit: undefined, implicit: undefined };
             for (let datumIndex = 0; datumIndex < columnSource.length; datumIndex++) {
                 if (columnSource[datumIndex] == null || typeof columnSource[datumIndex] !== 'object') {
                     // Count non-object items as invalid data
@@ -403,6 +437,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                     this.markScopeDatumMissing(def.scopes, columnSource, datumIndex, missingData);
                 } else {
                     updateColumnTypeTracker(typeTracker, result.value, datumIndex);
+                    updateTimezoneTracker(tzTracker, result.value, datumIndex);
                 }
 
                 if (invalidKey) {
@@ -424,6 +459,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             if (typeTracker.type === 'mixed-numeric' && typeTracker.mixedAtIndex != null) {
                 this.warnMixedNumericColumn(columnScope, def.property, typeTracker.mixedAtIndex);
             }
+            this.warnMixedTimezoneColumn(def.property, typeTracker.type, tzTracker);
 
             columns.push(column);
             allColumnScopes.push(columnScopes);
@@ -447,6 +483,17 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             `Series "${seriesId}": column "${String(key)}" mixes 'number' and 'bigint' values ` +
                 `(first detected at row ${atIndex}). Each column must be uniformly typed. ` +
                 `The series renders empty; other series in this chart are unaffected.`
+        );
+    }
+
+    private warnMixedTimezoneColumn(key: K, columnType: ColumnValueType | undefined, tracker: TimezoneTracker) {
+        const { explicit, implicit } = tracker;
+        // Only a date-tagged column interprets ISO strings as instants; a plain category column keeps them
+        // as opaque labels, so mixed offsets there are not a timezone-ambiguity concern.
+        if (columnType !== 'date' || explicit == null || implicit == null) return;
+        // AC #9: mixed timezone semantics are defined-but-surprising, so warn once and still render.
+        Logger.warnOnce(
+            `Time axis: column "${String(key)}" contains both timezone-explicit values (e.g. "${explicit.value}", row ${explicit.index}) and timezone-implicit values (e.g. "${implicit.value}", row ${implicit.index}). Ambiguous timezone semantics may produce unexpected positions — points without an explicit offset are interpreted as local time. Use explicit offsets (Z or ±HH:MM) for cross-environment determinism.`
         );
     }
 

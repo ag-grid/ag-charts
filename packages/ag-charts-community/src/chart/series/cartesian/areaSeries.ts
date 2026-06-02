@@ -42,9 +42,10 @@ import type { Text } from '../../../scene/shape/text';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';
+import { addAccumulated } from '../../data/aggregateFunctions';
 import type { DataController } from '../../data/dataController';
 import type { DataModel, DatumPropertyDefinition, ProcessedData } from '../../data/dataModel';
-import { fixNumericExtent } from '../../data/dataModel';
+import { extendDomainToZero, fixNumericExtent } from '../../data/dataModel';
 import type { PropertyDefinition } from '../../data/dataModelTypes';
 import {
     animationValidation,
@@ -146,8 +147,10 @@ type AreaStylerApply = MarkerStyleApply<
 >;
 
 interface StackRange {
-    leading: number;
-    trailing: number;
+    // Bigint-capable so a stack accumulated beyond Number.MAX_VALUE survives to yScale.convert() and
+    // positions proportionally; addAccumulated promotes the numeric 0 seed on the first bigint value.
+    leading: number | bigint;
+    trailing: number | bigint;
     dataValid: boolean;
     breakBefore: boolean;
 }
@@ -197,7 +200,7 @@ interface AreaNodeDatumScratch {
     datum: any;
     xDatum: any;
     yDatum: any;
-    yCumulative: number;
+    yCumulative: number | bigint;
     selected: boolean | undefined;
     x: number;
     y: number;
@@ -438,10 +441,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         );
 
         if (yAxis instanceof NumberAxis && !(yAxis instanceof LogAxis)) {
-            const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
-                ? [Math.min(yExtent[0], 0), Math.max(yExtent[1], 0)]
-                : [];
-            return { domain: fixNumericExtent(fixedYExtent) };
+            return { domain: fixNumericExtent(extendDomainToZero(yExtent)) };
         } else {
             return { domain: fixNumericExtent(yExtent) };
         }
@@ -813,13 +813,18 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
 
             const leadingValue = yValues[leadingIndex];
             const trailingValue = yValues[trailingIndex];
-            const missingLeading = !Number.isFinite(leadingValue);
-            const missingTrailing = !Number.isFinite(trailingValue);
+            // isContinuous accepts bigint where Number.isFinite would drop it; addAccumulated promotes the
+            // numeric baseline to bigint so a stack beyond Number.MAX_VALUE accumulates exactly (number + bigint
+            // would otherwise throw) and survives to yScale.convert() for proportional positioning.
+            const missingLeading = !isContinuous(leadingValue);
+            const missingTrailing = !isContinuous(trailingValue);
             const dataValid = !missingLeading && !missingTrailing;
 
             if (dataValid) {
-                leading += leadingValue;
-                trailing += trailingValue;
+                // isContinuous narrows to include Date/NumberObject, but a number-axis stack only sees
+                // number|bigint here; addAccumulated handles both.
+                leading = addAccumulated(leading, leadingValue as number | bigint);
+                trailing = addAccumulated(trailing, trailingValue as number | bigint);
             }
 
             if (stackIndex !== 0 && dataValid !== trackingValidData) {
@@ -1029,7 +1034,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
      * Uses cached context values to avoid repeated lookups.
      */
     private computeMarkerCoordinate(ctx: AreaSeriesCreateNodeDatumContext, scratch: AreaNodeDatumScratch): void {
-        let currY: number | undefined;
+        let currY: number | bigint | undefined;
 
         // if not normalized, the invalid data points will be processed as `undefined` in processData()
         // if normalized, the invalid data points will be processed as 0 rather than `undefined`
@@ -1065,8 +1070,10 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
 
         scratch.datum = ctx.rawData[datumIndex];
         scratch.yDatum = ctx.yRawValues[datumIndex];
-        scratch.yCumulative = +ctx.yCumulativeValues[datumIndex];
-        scratch.validPoint = Number.isFinite(scratch.yDatum) && ctx.invalidData?.[datumIndex] !== true;
+        // Retain the raw (possibly bigint) cumulative for positioning so yScale.convert() can place values
+        // beyond Number.MAX_VALUE proportionally; the cumulativeValue datum field is narrowed at assignment.
+        scratch.yCumulative = ctx.yCumulativeValues[datumIndex];
+        scratch.validPoint = isContinuous(scratch.yDatum) && ctx.invalidData?.[datumIndex] !== true;
 
         // Compute marker coordinates
         this.computeMarkerCoordinate(ctx, scratch);
@@ -1085,7 +1092,9 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                 existingNode.datum = scratch.datum;
                 existingNode.datumIndex = datumIndex;
                 existingNode.midPoint = { x: scratch.x, y: scratch.y };
-                existingNode.cumulativeValue = scratch.yCumulative;
+                // Metadata only (tooltips/error-bars); the position already used the exact bigint above, so a
+                // silent narrow is fine here — toNumber would warn "cannot be rendered" even though it was.
+                existingNode.cumulativeValue = Number(scratch.yCumulative);
                 existingNode.yValue = scratch.yDatum;
                 existingNode.xValue = scratch.xDatum;
                 existingNode.point = { x: scratch.x, y: scratch.y, size: ctx.markerSize };
@@ -1096,7 +1105,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                     datum: scratch.datum,
                     datumIndex,
                     midPoint: { x: scratch.x, y: scratch.y },
-                    cumulativeValue: scratch.yCumulative,
+                    cumulativeValue: Number(scratch.yCumulative),
                     yValue: scratch.yDatum,
                     xValue: scratch.xDatum,
                     yKey: ctx.yKey,

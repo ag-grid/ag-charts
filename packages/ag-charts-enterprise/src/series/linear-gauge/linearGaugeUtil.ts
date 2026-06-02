@@ -209,7 +209,7 @@ export function formatLinearGaugeLabels(
     selection: _ModuleSupport.Selection<LinearGaugeLabelDatum, _ModuleSupport.Text<LinearGaugeLabelDatum>>,
     opts: { padding: number; horizontal: boolean },
     bboxes: { seriesRect: _ModuleSupport.BBox; gaugeRect: _ModuleSupport.BBox; barRect: _ModuleSupport.BBox },
-    datumOverrides?: { label: number | undefined }
+    datumOverrides?: { label: number | bigint | undefined }
 ) {
     const { seriesRect, gaugeRect, barRect } = bboxes;
     const { padding, horizontal } = opts;

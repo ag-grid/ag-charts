@@ -14,6 +14,7 @@ import type {
     TextWrap,
 } from 'ag-charts-types';
 
+import { toNumberPairDomain } from '../axis/axisLabelUtil';
 import type { ChartAxisLabel } from '../chartAxis';
 import { FormatManager } from '../formatter/formatManager';
 import { LabelBorder } from '../label';
@@ -141,7 +142,7 @@ export class SeriesLabelProperties extends BaseProperties implements ChartAxisLa
         let result: NormalisedTextOrSegments | undefined;
         if (formatter != null) {
             const step = params.type === 'date' ? params.step : undefined;
-            const visibleDomain = params.type === 'number' ? params.visibleDomain : undefined;
+            const visibleDomain = toNumberPairDomain(params.type === 'number' ? params.visibleDomain : undefined);
             result = callWithContext(formatter, {
                 type,
                 value,

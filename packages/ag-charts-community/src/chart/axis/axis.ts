@@ -116,7 +116,7 @@ interface TickLayout<D, TickLayoutMeta> {
 }
 
 interface TickLayoutCache<D, TickLayoutMeta> {
-    domain: D[];
+    domain: (D | bigint)[];
     rangeExtent: number;
     nice: [boolean, boolean];
     gridLength: number;
@@ -206,7 +206,7 @@ export abstract class Axis<
     mirrored: boolean = false;
     parallel: boolean = false;
 
-    dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
+    dataDomain: { domain: (D | bigint)[]; clipped: boolean } = { domain: [], clipped: false };
     private allowNull = false;
 
     readonly caption = new Caption();
@@ -802,7 +802,7 @@ export abstract class Axis<
     }
 
     abstract calculateTickLayout(
-        domain: D[],
+        domain: (D | bigint)[],
         niceMode: NiceMode[],
         visibleRange: [number, number],
         primaryTickCount?: AxisPrimaryTickCount
@@ -1080,7 +1080,7 @@ export abstract class Axis<
         return { domain, direction, boundSeries, defaultValue: title?.text };
     }
 
-    protected normaliseDataDomain(d: DomainWithMetadata<D>): { domain: D[]; clipped: boolean } {
+    protected normaliseDataDomain(d: DomainWithMetadata<D>): { domain: (D | bigint)[]; clipped: boolean } {
         return { domain: [...d.domain], clipped: false };
     }
 

@@ -1,4 +1,17 @@
-import { clamp, countFractionDigits, inRange, isInteger, isNegative, isNumberEqual, modulus, roundTo } from './numbers';
+import { vi } from 'vitest';
+
+import * as Logger from '../../logging/logger';
+import {
+    clamp,
+    countFractionDigits,
+    inRange,
+    isInteger,
+    isNegative,
+    isNumberEqual,
+    modulus,
+    roundTo,
+    toNumber,
+} from './numbers';
 
 describe('Number Utilities', () => {
     test('clamp', () => {
@@ -29,6 +42,10 @@ describe('Number Utilities', () => {
         expect(isNegative(0)).toBe(false);
         expect(isNegative(1)).toBe(false);
         expect(isNegative(-0)).toBe(true); // Negative zero check
+        // bigint: Math.sign throws on bigint, so the bigint branch compares directly.
+        expect(isNegative(-4_500_000_000_000_000_000_000n)).toBe(true);
+        expect(isNegative(0n)).toBe(false);
+        expect(isNegative(4_500_000_000_000_000_000_000n)).toBe(false);
     });
 
     test('isInteger', () => {
@@ -52,6 +69,28 @@ describe('Number Utilities', () => {
         expect(modulus(-7, 3)).toBe(2);
         expect(modulus(7, -3)).toBe(1);
         expect(modulus(-5, -3)).toBe(1);
+    });
+
+    test('toNumber', () => {
+        const warnOnce = vi.spyOn(Logger, 'warnOnce').mockImplementation(() => {});
+        try {
+            // Numbers pass through unchanged.
+            expect(toNumber(5)).toBe(5);
+            expect(toNumber(-5.25)).toBe(-5.25);
+            expect(toNumber(Number.MAX_VALUE)).toBe(Number.MAX_VALUE);
+
+            // In-range bigints coerce (lossy beyond MAX_SAFE_INTEGER, but finite) without warning.
+            expect(toNumber(42n)).toBe(42);
+            expect(toNumber(-9_000_000_000_000_000_000n)).toBe(-9_000_000_000_000_000_000);
+            expect(warnOnce).not.toHaveBeenCalled();
+
+            // Bigints beyond Number.MAX_VALUE coerce to ±Infinity (dropped from rendering) and warn once.
+            expect(toNumber(10n ** 400n)).toBe(Infinity);
+            expect(toNumber(-(10n ** 400n))).toBe(-Infinity);
+            expect(warnOnce).toHaveBeenCalled();
+        } finally {
+            warnOnce.mockRestore();
+        }
     });
 
     test('countFractionDigits', () => {

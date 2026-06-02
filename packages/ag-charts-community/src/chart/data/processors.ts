@@ -1,4 +1,5 @@
 import {
+    Logger,
     type ScaleType,
     clamp,
     isContinuous,
@@ -24,6 +25,7 @@ import {
     UNDEFINED_KEY_STRING,
     datumKeys,
 } from './dataModel';
+import { isISO8601 } from './iso8601';
 
 export const MAX_ANIMATABLE_NODES = 1000;
 
@@ -46,10 +48,22 @@ function basicContinuousCheckDatumValidation(value: any) {
     return value != null && isContinuous(value);
 }
 
-// Separate from basicContinuousCheckDatumValidation so a later PR can let time scales accept ISO 8601
-// strings without number/log/color scales doing the same.
-function basicTimeCheckDatumValidation(value: any) {
-    return value != null && isContinuous(value);
+const TIME_AXIS_ACCEPTED_FORMATS =
+    "Date, epoch number/bigint, or strict ISO 8601 string (e.g. '2024-01-15', '2024-01-15T10:30:00Z')";
+
+// Split out from basicContinuousCheckDatumValidation so the time scales accept time-only values (ISO 8601
+// strings) that must never be accepted by number/log/color scales.
+function basicTimeCheckDatumValidation(value: any, _datum?: any, index?: number) {
+    if (value == null) return false;
+    if (isContinuous(value) || isISO8601(value)) return true;
+    if (typeof value === 'string') {
+        // warnOnce dedupes by message; embedding the value + row makes it fire once per offending datum
+        // per chart pass (Logger is reset each pass), satisfying the per-column diagnostic requirement.
+        Logger.warnOnce(
+            `unsupported value [${value}] at row ${index ?? '?'} on a time axis; expected ${TIME_AXIS_ACCEPTED_FORMATS}. The value is ignored.`
+        );
+    }
+    return false;
 }
 
 function basicDiscreteCheckDatumValidation(value: any) {
@@ -289,9 +303,11 @@ export const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<'sortedGroupD
 };
 
 function normaliseFnBuilder({ normaliseTo }: { normaliseTo: number }) {
-    const normalise = (val: null | number, extent: number) => {
+    const normalise = (val: null | number | bigint, extent: number) => {
         if (extent === 0) return 0;
-        const result = ((val ?? 0) * normaliseTo) / extent;
+        // Normalisation produces a [0,1]·normaliseTo fraction, so Number precision is sufficient; narrow a
+        // bigint here (the column becomes Number after this pass — normalizedTo is a Number concept).
+        const result = (Number(val ?? 0) * normaliseTo) / extent;
         if (result >= 0) {
             return Math.min(normaliseTo, result);
         }
@@ -309,7 +325,7 @@ function normaliseFnBuilder({ normaliseTo }: { normaliseTo: number }) {
                 // (relative index is offset from group start, absolute is for the entire column)
                 const datumIndex = groupIndex + relativeDatumIndex;
                 const column = columns[valueIdx];
-                const value: null | number = column[datumIndex];
+                const value: null | number | bigint = column[datumIndex];
                 if (value == null) {
                     column[datumIndex] = undefined;
                     continue;
@@ -331,10 +347,18 @@ function normaliseFindExtent(columns: any[][], valueIndexes: number[], dataGroup
             // Convert relative datum index to absolute column index
             // (relative index is offset from group start, absolute is for the entire column)
             const datumIndex = groupIndex + relativeDatumIndex;
-            const value: null | number | (null | number)[] = column[datumIndex];
+            const value: null | number | bigint | (null | number | bigint)[] = column[datumIndex];
             if (value == null) continue;
-            // Note - Array.isArray(new Float64Array) is false, and this type is used for stack accumulators
-            const valueExtent = typeof value === 'number' ? value : Math.max(...value.map((v) => v ?? 0));
+            // Note - Array.isArray(new Float64Array) is false, and this type is used for stack accumulators.
+            // Narrow bigint to Number (normalizedTo is a Number concept; values beyond MAX_VALUE degrade).
+            let valueExtent: number;
+            if (typeof value === 'number') {
+                valueExtent = value;
+            } else if (typeof value === 'bigint') {
+                valueExtent = Number(value);
+            } else {
+                valueExtent = Math.max(...value.map((v) => Number(v ?? 0)));
+            }
             const valIdx = valueExtent < 0 ? 0 : 1;
             if (valIdx === 0) {
                 valuesExtent[valIdx] = Math.min(valuesExtent[valIdx], valueExtent);
@@ -765,7 +789,7 @@ export function diff(
     };
 }
 
-type KeyType = string | number | boolean | null | undefined;
+type KeyType = string | number | bigint | boolean | null | undefined;
 
 export function createDatumId(key: number): number;
 export function createDatumId(key: boolean): boolean;

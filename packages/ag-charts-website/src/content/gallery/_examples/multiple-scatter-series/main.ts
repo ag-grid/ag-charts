@@ -236,7 +236,7 @@ const options: AgChartOptions = {
             if (params.type !== 'number') return;
             let fractionDigits = params.fractionDigits ?? 0;
             fractionDigits = Math.max(fractionDigits - 1, 0);
-            return `${(params.value / 1000).toFixed(fractionDigits)}K`;
+            return `${(Number(params.value) / 1000).toFixed(fractionDigits)}K`;
         },
     },
 };

@@ -103,6 +103,16 @@ However, to support scenarios where different data sources are needed, each indi
 When a series specifies its own `data` array, it overrides the root-level data option for that series only.
 Other series continue to use root-level data.
 
+## Large Numeric Values with BigInt
+
+Numeric values may be supplied as `bigint`. This is useful for integers read straight from a database `BIGINT` column.
+
+{% chartExampleRunner title="BigInt Values" name="bigint-small-magnitude" type="generated" /%}
+
+`bigint` is also useful for values beyond the safe-integer range (`Number.MAX_SAFE_INTEGER`, `2^53 - 1`), such as token balances measured in wei. Data values, aggregated totals, tooltips and axis tick labels are kept at full precision; series positions are computed at high but finite precision.
+
+{% chartExampleRunner title="Large BigInt Values" name="bigint-large-magnitude" type="generated" /%}
+
 ## Field Dot Notation
 
 By default, AG Charts supports dot notation for accessing nested properties in your data.

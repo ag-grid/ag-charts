@@ -1,5 +1,23 @@
+import * as Logger from '../../logging/logger';
+
 export function clamp(min: number, value: number, max: number) {
     return Math.min(max, Math.max(min, value));
+}
+
+/**
+ * Coerces a `number | bigint` to a `number` for rendering/positioning maths, where finite precision is
+ * sufficient (the exact value is retained elsewhere for tooltips and tick labels). A `bigint` magnitude
+ * beyond `Number.MAX_VALUE` coerces to `Infinity`; the result is then handled as any other non-finite value
+ * (dropped from rendering), and we warn once so the precision-loss is observable rather than silent.
+ */
+export function toNumber(value: number | bigint): number {
+    if (typeof value === 'number') return value;
+
+    const n = Number(value);
+    if (!Number.isFinite(n)) {
+        Logger.warnOnce(`the value ${value} exceeds the representable Number range and cannot be rendered.`);
+    }
+    return n;
 }
 
 export function inRange(value: number, range: [number, number], epsilon: number = 1e-10) {
@@ -10,7 +28,8 @@ export function isNumberEqual(a: number, b: number, epsilon: number = 1e-10) {
     return a === b || Math.abs(a - b) < epsilon;
 }
 
-export function isNegative(value: number) {
+export function isNegative(value: number | bigint) {
+    if (typeof value === 'bigint') return value < 0n;
     return Math.sign(value) === -1 || Object.is(value, -0);
 }
 

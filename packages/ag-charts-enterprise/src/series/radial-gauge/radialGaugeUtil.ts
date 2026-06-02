@@ -184,7 +184,7 @@ export function formatRadialGaugeLabels(
     selection: _ModuleSupport.Selection<RadialGaugeLabelDatum, _ModuleSupport.Text<RadialGaugeLabelDatum>>,
     opts: { padding: number; textAlign: TextAlign; verticalAlign: VerticalAlign },
     innerRadius: number,
-    datumOverrides?: { label: number | undefined; secondaryLabel: number | undefined }
+    datumOverrides?: { label: number | bigint | undefined; secondaryLabel: number | bigint | undefined }
 ) {
     const { padding, textAlign, verticalAlign } = opts;
 

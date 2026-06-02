@@ -54,7 +54,7 @@ const options: AgLinearGaugeOptions = {
     tooltip: {
         enabled: true,
         renderer: (params) => {
-            const currentValue = params.value;
+            const currentValue = Number(params.value);
             const targetValue = 80;
             const performance = performanceStages[Math.floor((currentValue / 100) * performanceStages.length)];
             const gap =

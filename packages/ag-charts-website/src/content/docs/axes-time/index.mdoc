@@ -5,7 +5,7 @@ description: 'Use $framework chart time axis to display time-based data in a $fr
 
 Time axes are used to display time-based data in a chart. They can be used to show data at different levels of granularity, such as years, months, days, or even hours and minutes.
 
-Time can be provided as `number` or `Date` objects, where `number` values are interpreted as timestamps derived from Unix time.
+Time can be provided as `number`, `bigint` or `Date` objects, where `number` and `bigint` values are interpreted as timestamps derived from Unix time. Strict [ISO 8601](#iso-8601-strings) strings are also accepted.
 
 There are three methods of displaying time along an axis.
 
@@ -16,6 +16,16 @@ There are three methods of displaying time along an axis.
 The difference between a [Unit Time Axis](#unit-time), an [Ordinal Time Axis](#ordinal-time), and a [Continuous Time Axis](#continuous-time) is demonstrated in the following example:
 
 {% chartExampleRunner title="Time Axis Types" name="time-vs-unit-time-vs-ordinal-time" type="generated" /%}
+
+## ISO 8601 Strings
+
+A time axis accepts strict ISO 8601 date and date-time strings directly, without converting them to `Date` objects first. Time-zone offsets are honoured as written.
+
+{% chartExampleRunner title="ISO 8601 Strings" name="iso-8601-time-axis" type="generated" /%}
+
+Strings that are not valid ISO 8601 are skipped, and a warning naming the value is logged to the console. The remaining rows still render.
+
+{% chartExampleRunner title="Rejected Date Strings" name="iso-8601-rejected-input" type="generated" /%}
 
 ## Unit Time
 

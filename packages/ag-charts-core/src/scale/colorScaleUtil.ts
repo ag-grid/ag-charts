@@ -1,6 +1,6 @@
 import type { AgColorScaleColorStop } from 'ag-charts-types';
 
-import { clamp } from '../utils/data/numbers';
+import { clamp, toNumber } from '../utils/data/numbers';
 
 /** Colour mode for colour scale operations. */
 export type ColorScaleMode = 'continuous' | 'discrete';
@@ -29,8 +29,13 @@ export interface ColorScaleState {
      * The user-visible domain shown on the gradient legend axis. Independent
      * of `domain`, which carries interpolation pivots derived from the fill
      * stops. When omitted, defaults to `[domain[0], domain.at(-1)]`.
+     * Can be bigint (AG-16608 heatmap); narrowed to Number where used.
      */
-    displayDomain?: [number, number];
+    displayDomain?: [number | bigint, number | bigint];
+}
+
+function toNumberOrUndefined(stop: number | bigint | undefined): number | undefined {
+    return stop == null ? undefined : Number(stop);
 }
 
 function findNextDefinedStop(fills: Array<{ stop?: number }>, from: number): number {
@@ -56,11 +61,13 @@ export function resolveStopPositions(
             nextDefinedStopIndex = findNextDefinedStop(fills, i);
         }
 
-        const stop = fills[i]?.stop;
+        // A colour stop is a fractional threshold, so a bigint stop (gauge AgGaugeColorStop) narrows
+        // to Number for the interpolation maths below — mixing bigint with the Number domain throws.
+        const stop = toNumberOrUndefined(fills[i]?.stop);
 
         if (stop == null) {
-            const stop0 = fills[previousDefinedStopIndex]?.stop;
-            const stop1 = fills[nextDefinedStopIndex]?.stop;
+            const stop0 = toNumberOrUndefined(fills[previousDefinedStopIndex]?.stop);
+            const stop1 = toNumberOrUndefined(fills[nextDefinedStopIndex]?.stop);
             const value0 = stop0 ?? d0;
             const value1 = stop1 ?? d1;
             const offset = isDiscrete && stop0 == null ? 1 : 0;
@@ -106,14 +113,17 @@ interface ColorBins {
  */
 export function computeColorBins(
     fills: ColorScaleColorStop[],
-    domain: [number, number],
+    domain: [number | bigint, number | bigint],
     mode: ColorScaleMode
 ): ColorBins {
     if (fills.length === 0) {
         return { domain: [], range: [], bins: [] };
     }
 
-    const [d0, d1] = domain;
+    // The colour domain originates from the colorKey extent, which can be bigint (AG-16608 heatmap).
+    // Narrow to Number for the interpolation/clamp maths below; mixing bigint with number throws.
+    const d0 = toNumber(domain[0]);
+    const d1 = toNumber(domain[1]);
     const isDiscrete = mode === 'discrete';
     const resolvedStops = resolveStopPositions(fills, d0, d1, isDiscrete);
     const resolvedColors = fills.map((fill) => fill.color);
@@ -167,7 +177,11 @@ export function deriveNormalizedStops(colorScale: ColorScaleState): GradientColo
     const { domain, range, mode, displayDomain } = colorScale;
     if (range.length === 0) return [];
 
-    const [d0, d1] = displayDomain ?? [domain[0], domain.at(-1)!];
+    // `domain` holds Number interpolation pivots. `displayDomain` is the user-visible range and can be
+    // bigint (AG-16608 heatmap), so narrow it to Number for the [0,1] fraction maths below.
+    const [d0, d1] = displayDomain
+        ? [toNumber(displayDomain[0]), toNumber(displayDomain[1])]
+        : [domain[0], domain.at(-1)!];
     const extent = d1 - d0 || 1;
 
     if (mode === 'discrete') {

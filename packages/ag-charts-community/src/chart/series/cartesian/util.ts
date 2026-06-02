@@ -20,6 +20,7 @@ import type {
 
 import { BBox } from '../../../scene/bbox';
 import type { ChartAxis } from '../../chartAxis';
+import { isISO8601 } from '../../data/iso8601';
 
 function isAxisReversed(axis: ChartAxis) {
     return axis.isReversed() !== axis.range[1] < axis.range[0];
@@ -194,14 +195,18 @@ function predictGroupedCategoryAxisType(value: unknown) {
     }
 }
 
+function isTimeNumeric(value: unknown): value is number | bigint {
+    return isNumber(value) || typeof value === 'bigint';
+}
+
 function predictTimeAxisType(key: string, value: unknown) {
-    if (isDate(value) || (TIME_AXIS_KEYS.has(key) && isNumber(value))) {
+    if (isDate(value) || (TIME_AXIS_KEYS.has(key) && (isTimeNumeric(value) || isISO8601(value)))) {
         return CARTESIAN_AXIS_TYPE.TIME;
     }
 }
 
 function predictOrdinalTimeAxisType(key: string, value: unknown) {
-    if (isDate(value) || (TIME_AXIS_KEYS.has(key) && isNumber(value))) {
+    if (isDate(value) || (TIME_AXIS_KEYS.has(key) && (isTimeNumeric(value) || isISO8601(value)))) {
         return CARTESIAN_AXIS_TYPE.ORDINAL_TIME;
     }
 }

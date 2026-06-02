@@ -18,6 +18,7 @@ import {
     intervalRange,
     intervalRangeCount,
     intervalRangeNumeric,
+    timeValueToNumber,
     toTimeInterval,
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
@@ -320,10 +321,13 @@ export class UnitTimeScale extends DiscreteTimeScale {
      * line/area series draw a connecting segment to the axis edge (clipped by
      * the canvas) when an explicit min/max is set — matching the `time` axis.
      */
-    override convert(value: Date, options?: { clamp?: boolean; alignment?: ScaleAlignment }): number {
+    override convert(
+        value: Date | number | bigint | string,
+        options?: { clamp?: boolean; alignment?: ScaleAlignment }
+    ): number {
         this.refresh();
 
-        if (!(value instanceof Date)) value = new Date(value);
+        if (!(value instanceof Date)) value = new Date(timeValueToNumber(value));
 
         const { domain, interval } = this;
         if (domain.length < 2) return Number.NaN;

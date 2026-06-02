@@ -4,7 +4,11 @@ import { findMinMax } from 'ag-charts-core';
 import { AbstractScale } from './abstractScale';
 import { unpackDomainMinMax } from './scaleUtil';
 
-export abstract class ContinuousScale<D extends number | Date, I = number> extends AbstractScale<D, number, I> {
+export abstract class ContinuousScale<D extends number | bigint | Date, I = number> extends AbstractScale<
+    D,
+    number,
+    I
+> {
     static is(value: unknown): value is ContinuousScale<any, any> {
         return value instanceof ContinuousScale;
     }
@@ -32,7 +36,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
 
     set domain(values: readonly (D | bigint)[]) {
         if (!values || values.length < 2) {
-            this._domain = values as D[];
+            this._domain = narrowStoredDomain(values);
             this.d0Big = this.d1Big = undefined;
             this.d0Cache = Number.NaN;
             this.d1Cache = Number.NaN;
@@ -43,19 +47,19 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         const d1 = values[1];
 
         if (typeof d0 === 'bigint' || typeof d1 === 'bigint') {
-            // Retain the exact bigint endpoints for the full-precision convert() ratio, but expose a
-            // Number-narrowed domain so every Math.min/max(...domain) consumer stays Number-only.
+            // Retain the exact bigint endpoints for the full-precision convert() ratio (and for the
+            // order-independent domainMin/domainMax), but expose a Number-narrowed domain array.
             this.d0Big = typeof d0 === 'bigint' ? d0 : undefined;
             this.d1Big = typeof d1 === 'bigint' ? d1 : undefined;
             this.domainNeedsValueOf = false;
             this.d0Cache = Number(d0);
             this.d1Cache = Number(d1);
-            this._domain = values.map((v) => (typeof v === 'bigint' ? Number(v) : v)) as D[];
+            this._domain = narrowStoredDomain(values);
             return;
         }
 
         this.d0Big = this.d1Big = undefined;
-        this._domain = values as D[];
+        this._domain = narrowStoredDomain(values);
 
         // Auto-detect if domain values need valueOf() and cache numeric values
         this.domainNeedsValueOf = d0 != null && typeof d0 === 'object';
@@ -63,8 +67,8 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
             this.d0Cache = (d0 as Date).valueOf();
             this.d1Cache = (d1 as Date).valueOf();
         } else {
-            this.d0Cache = d0 as unknown as number;
-            this.d1Cache = d1 as unknown as number;
+            this.d0Cache = Number(d0);
+            this.d1Cache = Number(d1);
         }
     }
 
@@ -187,10 +191,34 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         return unpackDomainMinMax(this.domain);
     }
 
+    // True min/max (order-independent), returning the exact endpoint so a bigint domain flows through
+    // as bigint. d0Cache/d1Cache give the ordering even when the bigint endpoints narrow to equal Numbers.
+    private exactEndpoint(index: 0 | 1): D {
+        return ((index === 0 ? this.d0Big : this.d1Big) ?? this._domain[index]) as D;
+    }
+
+    override get domainMin(): D | undefined {
+        if (this._domain.length < 2) return this._domain.at(0);
+        return this.exactEndpoint(this.d0Cache <= this.d1Cache ? 0 : 1);
+    }
+
+    override get domainMax(): D | undefined {
+        if (this._domain.length < 2) return this._domain.at(0);
+        return this.exactEndpoint(this.d0Cache <= this.d1Cache ? 1 : 0);
+    }
+
     protected getPixelRange() {
         const [a, b] = this.range;
         return Math.abs(b - a);
     }
+}
+
+// The stored domain narrows any bigint endpoint to Number (the exact bigint is retained separately in
+// d0Big/d1Big). A narrowed bigint is a Number, which is a valid D for every concrete continuous scale
+// (D is number, number|bigint, or Date — and a Date scale never receives bigint input here), so this is
+// the single assertion that bridges the generic base's storage type.
+function narrowStoredDomain<D extends number | bigint | Date>(values: readonly (D | bigint)[]): D[] {
+    return values.map((v) => (typeof v === 'bigint' ? Number(v) : v)) as D[];
 }
 
 // Integer ratio scale: 10^12 gives ~12 significant digits in [0,1] — far finer than pixel positioning
@@ -226,32 +254,28 @@ function convertBigInt(value: bigint, d0: bigint, d1: bigint, range: number[], c
     return r0 + ratio * (r1 - r0);
 }
 
-export function normalizeContinuousDomains<D extends number | Date>(
+export function normalizeContinuousDomains<D extends number | bigint | Date>(
     ...domains: DomainWithMetadata<D>[]
 ): NormalizedDomain<D> {
     let min: D | undefined;
-    let minValue = Infinity;
     let max: D | undefined;
-    let maxValue = -Infinity;
 
     for (const input of domains) {
-        const domain = input.domain;
-        for (const d of domain) {
-            const value = d.valueOf();
-            if (value < minValue) {
-                minValue = value;
+        for (const d of input.domain) {
+            // Select via relational comparison so a bigint endpoint beyond Number.MAX_VALUE is retained
+            // exactly. Number()-narrowing collapses every such candidate to Infinity, so `Infinity > Infinity`
+            // is false and the true maximum is never chosen.
+            if (min === undefined || d < min) {
                 min = d;
             }
-            if (value > maxValue) {
-                maxValue = value;
+            if (max === undefined || d > max) {
                 max = d;
             }
         }
     }
 
     if (min != null && max != null) {
-        const domain = [min, max];
-        return { domain, animatable: true };
+        return { domain: [min, max], animatable: true };
     } else {
         return { domain: [], animatable: false };
     }

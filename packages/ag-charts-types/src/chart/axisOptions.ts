@@ -1,5 +1,6 @@
 import type { LabelBoxOptions, TextOrSegments } from '../series/cartesian/commonOptions';
 import type { RichFormatter, Styler } from './callbackOptions';
+import type { AgTimeValue } from './dataValues';
 import type { AgCssColorOrRef } from './themeParamsOptions';
 import type {
     ContextDefault,
@@ -93,7 +94,7 @@ export interface AgBaseAxisOptions<LabelType = any, TContext = ContextDefault> {
     interval?: AgAxisBaseIntervalOptions;
 }
 
-export interface AgBaseContinuousAxisOptions<TDatum extends Date | number = number> {
+export interface AgBaseContinuousAxisOptions<TDatum extends AgTimeValue = number> {
     /** The min value for the axis domain. */
     min?: TDatum;
     /** The max value for the axis domain. */
@@ -105,7 +106,7 @@ export interface AgBaseContinuousAxisOptions<TDatum extends Date | number = numb
 }
 
 export interface AgContinuousAxisOptions<
-    TDatum extends Date | number = number,
+    TDatum extends AgTimeValue = number,
     TInterval extends AgTimeInterval | AgTimeIntervalUnit | number = number,
 > extends AgBaseContinuousAxisOptions<TDatum> {
     /** If `true`, the range will be rounded up to ensure nice equal spacing between the ticks.

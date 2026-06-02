@@ -46,6 +46,7 @@ export * from './dataModelTypes';
 
 export {
     fixNumericExtent,
+    extendDomainToZero,
     getMissCount,
     datumKeys,
     getPathComponents,

@@ -384,7 +384,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         };
     }
 
-    labelDatum(label: LinearGaugeLabelProperties, value: number): LinearGaugeLabelDatum {
+    labelDatum(label: LinearGaugeLabelProperties, value: number | bigint): LinearGaugeLabelDatum {
         const {
             placement,
             avoidCollisions,
@@ -611,8 +611,10 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const scaleStyle = scaleProps.getStyle(bar.enabled, defaultColorRange, horizontal, scale);
 
         if (segments == null && cornersOnAllItems) {
-            const segmentStart = Math.min(...scale.domain);
-            const segmentEnd = Math.max(...scale.domain);
+            // Visual corner-segment bounds spanning the whole domain; convert() maps the exact endpoints
+            // to the range ends regardless, so a Number-narrow here is precision-safe.
+            const segmentStart = Number(scale.domainMin);
+            const segmentEnd = Number(scale.domainMax);
             const datum = { value, segmentStart, segmentEnd };
 
             if (bar.enabled) {
@@ -1160,7 +1162,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return true;
     }
 
-    formatLabelText(datum?: { label: number }) {
+    formatLabelText(datum?: { label: number | bigint }) {
         const { labelSelection, horizontal, scale, seriesRect, gaugeRect } = this;
         const { x, y, width, height } = gaugeRect;
 
@@ -1200,8 +1202,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     private animateLabelText(params: { from?: number; phase?: _ModuleSupport.AnimationPhase } = {}) {
         const { animationManager } = this.ctx;
 
-        let labelFrom = 0;
-        let labelTo = 0;
+        let labelFrom: number | bigint = 0;
+        let labelTo: number | bigint = 0;
         this.labelSelection.each((label, datum) => {
             // Reset animation
             label.opacity = 1;
@@ -1217,11 +1219,13 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         } else {
             const animationId = `${this.id}_labels`;
 
+            // The count-up tween narrows to Number — intermediate frames are visual only. The resting
+            // frame (onStop) re-formats from the full-precision label value (AG-16608 AC #11).
             animationManager.animate({
                 id: animationId,
                 groupId: 'label',
-                from: { label: labelFrom },
-                to: { label: labelTo },
+                from: { label: Number(labelFrom) },
+                to: { label: Number(labelTo) },
                 phase: params.phase ?? 'update',
                 ease: easeOut,
                 onUpdate: (datum) => this.formatLabelText(datum),

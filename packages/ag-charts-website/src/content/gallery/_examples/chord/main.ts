@@ -51,8 +51,9 @@ const options: AgChartOptions<DataType> = {
         const { value, type } = params;
 
         if (type === 'number') {
-            if (Math.abs(value) >= 1e3) return `${(value / 1e3).toFixed(1)}K`;
-            return value.toLocaleString();
+            const numericValue = Number(value);
+            if (Math.abs(numericValue) >= 1e3) return `${(numericValue / 1e3).toFixed(1)}K`;
+            return numericValue.toLocaleString();
         }
     },
 };

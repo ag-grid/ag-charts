@@ -27,6 +27,7 @@ import {
     type RequireOptional,
     extent,
     findMinMax,
+    isContinuous,
     mergeDefaults,
 } from 'ag-charts-core';
 
@@ -476,7 +477,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
         const currentSpanPoints = ctx.spanPoints.at(-1);
 
-        if (Number.isFinite(scratch.yHighValue) && Number.isFinite(scratch.yLowValue)) {
+        // isContinuous accepts bigint where Number.isFinite would drop a value beyond Number.MAX_VALUE.
+        if (isContinuous(scratch.yHighValue) && isContinuous(scratch.yLowValue)) {
             scratch.inverted = scratch.yLowValue > scratch.yHighValue;
             scratch.x = ctx.xScale.convert(scratch.xValue) + ctx.xOffset;
             if (!Number.isFinite(scratch.x)) return;

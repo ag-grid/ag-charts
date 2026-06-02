@@ -81,7 +81,7 @@ export const accumulatedPropertyValue = (property: string, groupId: string = pro
     processor: accumulatedValue(true),
 });
 
-export const sum = (groupId: string): AggregatePropertyDefinition<any, any> => ({
+export const sum = (groupId: string): AggregatePropertyDefinition<any, any, [number | bigint, number | bigint]> => ({
     id: `sum-${groupId}`,
     matchGroupIds: [groupId],
     type: 'aggregate',

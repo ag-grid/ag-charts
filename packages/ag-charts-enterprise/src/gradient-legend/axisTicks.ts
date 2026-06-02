@@ -271,10 +271,15 @@ export class AxisTicks {
         const ticks: TickDatum[] = [];
         const domain = tickParams.nice ? this.scale.niceDomain(tickParams) : this.scale.domain;
         const rawTicks = this.scale.ticks(tickParams, domain)?.ticks ?? [];
-        const fractionDigits = rawTicks.reduce((max, tick) => Math.max(max, countFractionDigits(tick)), 0);
+        const fractionDigits = rawTicks.reduce<number>(
+            (max, tick) => Math.max(max, countFractionDigits(Number(tick))),
+            0
+        );
         const idGenerator = createIdsGenerator();
 
-        const tickFormatter = this.tickFormatter(domain, rawTicks, false, fractionDigits);
+        // domain/ticks are formatter-context metadata only (narrowed to Number per the documented
+        // pattern); the per-tick label below keeps the exact value, so bigint labels stay full-precision.
+        const tickFormatter = this.tickFormatter(domain.map(Number), rawTicks.map(Number), false, fractionDigits);
 
         for (let index = 0; index < rawTicks.length; index++) {
             const tick = rawTicks[index];

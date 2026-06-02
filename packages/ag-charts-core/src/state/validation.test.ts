@@ -24,6 +24,7 @@ import {
     instanceOf,
     lessThan,
     number,
+    numericValue,
     object,
     optionsDefs,
     or,
@@ -60,6 +61,11 @@ describe('Validation utils', () => {
                 [string, 42, false],
                 [number, 42, true],
                 [number, '42', false],
+                [number, 42n, false],
+                [numericValue, 42, true],
+                [numericValue, 42n, true],
+                [numericValue, '42', false],
+                [numericValue, Number.NaN, false],
                 [boolean, true, true],
                 [boolean, 'false', false],
                 [object, {}, true],
@@ -84,9 +90,22 @@ describe('Validation utils', () => {
                 [ratio, 1.1, false],
                 [lessThan('contextKey'), 4.2, true],
                 [lessThan('contextKey'), 420, false],
+                // Mixed bigint/number comparison: bigint value against a number sibling.
+                [lessThan('contextKey'), 4n, true],
+                [lessThan('contextKey'), 420n, false],
+                [greaterThan('contextKey'), 420n, true],
             ])('%p validates %p as %p', (validator, input, expected) => {
                 expect(runValidator(validator, input, { options: { contextKey: 42 }, path: '' })).toBe(expected);
             });
+        });
+
+        test('numericValue rejects an out-of-range bigint cleanly without throwing (AG-16608)', () => {
+            // max < min via bigint should produce a clean validation rejection (and warning), not a crash
+            // from stringifying the bigint in the error message.
+            const def = { min: numericValue, max: and(numericValue, greaterThan('min')) };
+            expect(() => validate({ min: 10n, max: 1n }, def)).not.toThrow();
+            expect(isValid<{ min: bigint; max: bigint }>({ min: 10n, max: 1n }, def)).toBe(false);
+            expect(isValid<{ min: bigint; max: bigint }>({ min: 1n, max: 10n }, def)).toBe(true);
         });
     });
 
