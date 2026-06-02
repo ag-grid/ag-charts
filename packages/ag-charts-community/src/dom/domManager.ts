@@ -548,11 +548,7 @@ export class DOMManager extends BaseManager {
         return this._cachedCanvasRect;
     }
 
-    /**
-     * Effective ancestor CSS `scale(sx, sy)` applied to the canvas — used by elements
-     * positioned outside the transformed ancestor (e.g. `position: fixed` tooltips) to map
-     * canvas-local offsets into screen pixels. Cached alongside `_cachedCanvasRect`.
-     */
+    /** Ancestor CSS `scale(sx, sy)` applied to the canvas — maps canvas-local offsets to screen pixels. */
     getCanvasScale(): { scaleX: number; scaleY: number } {
         if (this._cachedCanvasScale != null) return this._cachedCanvasScale;
         const rect = this.getBoundingClientRect();

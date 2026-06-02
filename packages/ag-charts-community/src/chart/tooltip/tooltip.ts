@@ -329,8 +329,7 @@ export class Tooltip extends BaseProperties {
             meta,
         };
 
-        // The tooltip is `position: fixed` (screen space); hover coords are canvas-local.
-        // Scale by any ancestor CSS transform so the spaces agree.
+        // Tooltip is `position: fixed` (screen space); coords are canvas-local — scale to match.
         const { scaleX, scaleY } = this.domManager?.getCanvasScale() ?? { scaleX: 1, scaleY: 1 };
         const anchorTo = meta.position?.anchorTo ?? 'pointer';
         switch (anchorTo) {
