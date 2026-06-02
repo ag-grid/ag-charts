@@ -10,7 +10,7 @@ import {
     isNumberEqual,
     modulus,
     roundTo,
-    toFiniteNumber,
+    toNumber,
 } from './numbers';
 
 describe('Number Utilities', () => {
@@ -71,22 +71,22 @@ describe('Number Utilities', () => {
         expect(modulus(-5, -3)).toBe(1);
     });
 
-    test('toFiniteNumber', () => {
+    test('toNumber', () => {
         const warnOnce = vi.spyOn(Logger, 'warnOnce').mockImplementation(() => {});
         try {
             // Numbers pass through unchanged.
-            expect(toFiniteNumber(5)).toBe(5);
-            expect(toFiniteNumber(-5.25)).toBe(-5.25);
-            expect(toFiniteNumber(Number.MAX_VALUE)).toBe(Number.MAX_VALUE);
+            expect(toNumber(5)).toBe(5);
+            expect(toNumber(-5.25)).toBe(-5.25);
+            expect(toNumber(Number.MAX_VALUE)).toBe(Number.MAX_VALUE);
 
             // In-range bigints coerce (lossy beyond MAX_SAFE_INTEGER, but finite) without warning.
-            expect(toFiniteNumber(42n)).toBe(42);
-            expect(toFiniteNumber(-9_000_000_000_000_000_000n)).toBe(-9_000_000_000_000_000_000);
+            expect(toNumber(42n)).toBe(42);
+            expect(toNumber(-9_000_000_000_000_000_000n)).toBe(-9_000_000_000_000_000_000);
             expect(warnOnce).not.toHaveBeenCalled();
 
-            // Bigints beyond Number.MAX_VALUE would become Infinity; clamp to ±MAX_VALUE and warn.
-            expect(toFiniteNumber(10n ** 400n)).toBe(Number.MAX_VALUE);
-            expect(toFiniteNumber(-(10n ** 400n))).toBe(-Number.MAX_VALUE);
+            // Bigints beyond Number.MAX_VALUE coerce to ±Infinity (dropped from rendering) and warn once.
+            expect(toNumber(10n ** 400n)).toBe(Infinity);
+            expect(toNumber(-(10n ** 400n))).toBe(-Infinity);
             expect(warnOnce).toHaveBeenCalled();
         } finally {
             warnOnce.mockRestore();

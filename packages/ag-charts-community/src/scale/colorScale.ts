@@ -1,5 +1,5 @@
 import type { DomainWithMetadata, NormalizedDomain } from 'ag-charts-core';
-import { Color, Logger, clamp, toFiniteNumber } from 'ag-charts-core';
+import { Color, Logger, clamp, toNumber } from 'ag-charts-core';
 
 import { AbstractScale } from './abstractScale';
 import { Invalidating } from './invalidating';
@@ -108,7 +108,7 @@ export class ColorScale extends AbstractScale<number, string> {
 
         // A bigint colour value (AG-16608 heatmap) narrows to Number: the colour derives from the value's
         // position in the (Number) domain, so finite precision suffices and bigint/Number mixing would throw.
-        const xn = toFiniteNumber(x);
+        const xn = toNumber(x);
 
         const { domain, range, parsedRange } = this;
         const d0 = domain[0];

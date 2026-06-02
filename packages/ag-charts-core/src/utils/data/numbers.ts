@@ -7,17 +7,17 @@ export function clamp(min: number, value: number, max: number) {
 /**
  * Coerces a `number | bigint` to a `number` for rendering/positioning maths, where finite precision is
  * sufficient (the exact value is retained elsewhere for tooltips and tick labels). A `bigint` magnitude
- * beyond `Number.MAX_VALUE` coerces to `Infinity`, which would poison downstream scale arithmetic, so we
- * warn once and clamp to `±Number.MAX_VALUE` to keep the result finite.
+ * beyond `Number.MAX_VALUE` coerces to `Infinity`; the result is then handled as any other non-finite value
+ * (dropped from rendering), and we warn once so the precision-loss is observable rather than silent.
  */
-export function toFiniteNumber(value: number | bigint): number {
+export function toNumber(value: number | bigint): number {
     if (typeof value === 'number') return value;
 
     const n = Number(value);
-    if (Number.isFinite(n)) return n;
-
-    Logger.warnOnce(`the value ${value} exceeds the representable Number range and was clamped for rendering.`);
-    return value < 0n ? -Number.MAX_VALUE : Number.MAX_VALUE;
+    if (!Number.isFinite(n)) {
+        Logger.warnOnce(`the value ${value} exceeds the representable Number range and cannot be rendered.`);
+    }
+    return n;
 }
 
 export function inRange(value: number, range: [number, number], epsilon: number = 1e-10) {

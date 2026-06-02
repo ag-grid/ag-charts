@@ -4,7 +4,7 @@ import {
     type PluginModuleInstance,
     deriveNormalizedStops,
     formatColorBinLabel,
-    toFiniteNumber,
+    toNumber,
 } from 'ag-charts-core';
 import type {
     AgChartLegendListeners,
@@ -111,7 +111,7 @@ function deriveNamedLabels(
     // The legend axis positions at finite precision, so a bigint displayDomain (AG-16608 heatmap) narrows
     // to Number here; numeric labels are formatted from the exact value elsewhere.
     const [d0, d1] = displayDomain
-        ? [toFiniteNumber(displayDomain[0]), toFiniteNumber(displayDomain[1])]
+        ? [toNumber(displayDomain[0]), toNumber(displayDomain[1])]
         : [domain[0], domain.at(-1)!];
     const extent = d1 - d0 || 1;
     const labels: GradientLegendNamedLabel[] = [];
@@ -168,7 +168,7 @@ export function buildGradientLegendDatum(
 ): GradientLegendDatum {
     const { domain, displayDomain, mode } = colorScale;
     const axisDomain: [number, number] = displayDomain
-        ? [toFiniteNumber(displayDomain[0]), toFiniteNumber(displayDomain[1])]
+        ? [toNumber(displayDomain[0]), toNumber(displayDomain[1])]
         : [domain[0], domain.at(-1)!];
     const rawStops = deriveNormalizedStops(colorScale);
     const colorStops =

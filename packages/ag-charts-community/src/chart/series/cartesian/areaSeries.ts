@@ -16,7 +16,7 @@ import {
     isContinuous,
     isDefined,
     mergeDefaults,
-    toFiniteNumber,
+    toNumber,
 } from 'ag-charts-core';
 import {
     type AgAreaSeriesLabelFormatterParams,
@@ -1067,9 +1067,9 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         scratch.datum = ctx.rawData[datumIndex];
         scratch.yDatum = ctx.yRawValues[datumIndex];
         // Coerce to Number for positioning (bigint values plot at finite precision); the raw value
-        // is retained on yDatum for tooltips. toFiniteNumber guards bigints beyond Number.MAX_VALUE
-        // that would otherwise become Infinity. isContinuous accepts bigint where Number.isFinite would not.
-        scratch.yCumulative = toFiniteNumber(ctx.yCumulativeValues[datumIndex]);
+        // is retained on yDatum for tooltips. toNumber warns once if a bigint beyond Number.MAX_VALUE
+        // coerces to Infinity. isContinuous accepts bigint where Number.isFinite would not.
+        scratch.yCumulative = toNumber(ctx.yCumulativeValues[datumIndex]);
         scratch.validPoint = isContinuous(scratch.yDatum) && ctx.invalidData?.[datumIndex] !== true;
 
         // Compute marker coordinates
