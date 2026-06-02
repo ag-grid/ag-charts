@@ -159,20 +159,22 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
     // A BigInt x-column (AG-16608) computes boundaries in BigInt for full precision; everything else
     // keeps the number paths. Explicit `bins` win unless an explicit `binCount` is also set.
-    private computeBins(xExtent: [number | bigint, number | bigint]): BinDomain[] {
-        const bigIntExtent = typeof xExtent[0] === 'bigint' || typeof xExtent[1] === 'bigint';
+    private computeBins(xExtent: (number | bigint)[]): BinDomain[] {
+        const x0 = xExtent[0];
+        const x1 = xExtent[1];
+        const bigIntExtent = typeof x0 === 'bigint' || typeof x1 === 'bigint';
 
         if (isNumber(this.properties.binCount)) {
             return bigIntExtent
-                ? createBigIntBins(xExtent[0] as bigint, xExtent[1] as bigint, this.properties.binCount)
-                : this.calculateNiceBins(xExtent as number[], this.properties.binCount);
+                ? createBigIntBins(BigInt(x0), BigInt(x1), this.properties.binCount)
+                : this.calculateNiceBins([Number(x0), Number(x1)], this.properties.binCount);
         }
 
         return (
             this.properties.bins ??
             (bigIntExtent
-                ? createBigIntBins(xExtent[0] as bigint, xExtent[1] as bigint, defaultBinCount)
-                : this.deriveBins(xExtent as [number, number]))
+                ? createBigIntBins(BigInt(x0), BigInt(x1), defaultBinCount)
+                : this.deriveBins([Number(x0), Number(x1)]))
         );
     }
 

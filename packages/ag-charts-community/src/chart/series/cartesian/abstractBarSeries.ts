@@ -73,7 +73,12 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     protected padBandExtent(keys: any[], alignStart?: boolean) {
         const ratio = typeof alignStart === 'boolean' ? 1 : 0.5;
         const scalePadding = isFiniteNumber(this.smallestDataInterval) ? this.smallestDataInterval * ratio : 0;
-        const keysExtent = extent(keys) ?? [Number.NaN, Number.NaN];
+        // Band positioning is finite-precision, so a bigint key extent narrows to Number for the padding
+        // arithmetic below (which would otherwise throw on a bigint).
+        const rawExtent = extent(keys);
+        const keysExtent: [number, number] = rawExtent
+            ? [Number(rawExtent[0]), Number(rawExtent[1])]
+            : [Number.NaN, Number.NaN];
         if (typeof alignStart === 'boolean') {
             keysExtent[alignStart ? 0 : 1] -= (alignStart ? 1 : -1) * scalePadding;
         } else {

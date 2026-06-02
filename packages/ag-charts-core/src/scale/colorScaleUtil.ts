@@ -29,8 +29,9 @@ export interface ColorScaleState {
      * The user-visible domain shown on the gradient legend axis. Independent
      * of `domain`, which carries interpolation pivots derived from the fill
      * stops. When omitted, defaults to `[domain[0], domain.at(-1)]`.
+     * Can be bigint (AG-16608 heatmap); narrowed to Number where used.
      */
-    displayDomain?: [number, number];
+    displayDomain?: [number | bigint, number | bigint];
 }
 
 function toNumberOrUndefined(stop: number | bigint | undefined): number | undefined {
@@ -112,7 +113,7 @@ interface ColorBins {
  */
 export function computeColorBins(
     fills: ColorScaleColorStop[],
-    domain: [number, number],
+    domain: [number | bigint, number | bigint],
     mode: ColorScaleMode
 ): ColorBins {
     if (fills.length === 0) {
@@ -176,10 +177,9 @@ export function deriveNormalizedStops(colorScale: ColorScaleState): GradientColo
     const { domain, range, mode, displayDomain } = colorScale;
     if (range.length === 0) return [];
 
-    // Normalised stops are [0,1] fractions, so a bigint colour domain (AG-16608 heatmap) narrows to
-    // Number; bigint/Number mixing and the Math-based clamp() below both throw otherwise.
-    const numericDomain = domain.map(Number);
-    const [d0, d1] = displayDomain ? displayDomain.map(Number) : [numericDomain[0], numericDomain.at(-1)!];
+    // `domain` holds Number interpolation pivots. `displayDomain` is the user-visible range and can be
+    // bigint (AG-16608 heatmap), so narrow it to Number for the [0,1] fraction maths below.
+    const [d0, d1] = displayDomain ? [Number(displayDomain[0]), Number(displayDomain[1])] : [domain[0], domain.at(-1)!];
     const extent = d1 - d0 || 1;
 
     if (mode === 'discrete') {
@@ -187,8 +187,8 @@ export function deriveNormalizedStops(colorScale: ColorScaleState): GradientColo
         // boundaries outside `displayDomain` collapse to the nearest edge.
         const stops: GradientColorStop[] = [];
         for (let i = 0; i < range.length; i++) {
-            const start = clamp(0, (numericDomain[i] - d0) / extent, 1);
-            const end = clamp(0, (numericDomain[i + 1] - d0) / extent, 1);
+            const start = clamp(0, (domain[i] - d0) / extent, 1);
+            const end = clamp(0, (domain[i + 1] - d0) / extent, 1);
             if (end < start) continue;
             stops.push({ stop: start, color: range[i] });
             if (end > start) stops.push({ stop: end, color: range[i] });
@@ -198,12 +198,12 @@ export function deriveNormalizedStops(colorScale: ColorScaleState): GradientColo
 
     // Continuous mode: if domain has fewer entries than range (fallback path
     // with a 2-element domain and N colours), evenly space the stops.
-    if (numericDomain.length < range.length) {
+    if (domain.length < range.length) {
         const count = Math.max(range.length - 1, 1);
         return range.map((color, i) => ({ stop: i / count, color }));
     }
 
-    return numericDomain.map((v, i) => ({ stop: (v - d0) / extent, color: range[i] }));
+    return domain.map((v, i) => ({ stop: (v - d0) / extent, color: range[i] }));
 }
 
 /** Formats a discrete bin range label from its boundaries. */
