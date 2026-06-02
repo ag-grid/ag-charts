@@ -375,6 +375,45 @@ describe('LinearScale', () => {
         });
     });
 
+    describe('domainMin / domainMax', () => {
+        test('returns the true min/max of a Number domain regardless of order', () => {
+            const scale = new LinearScale();
+            scale.domain = [100, 0];
+
+            expect(scale.domainMin).toBe(0);
+            expect(scale.domainMax).toBe(100);
+        });
+
+        test('flows the exact bigint endpoints through (no Number narrowing)', () => {
+            const scale = new LinearScale();
+            scale.domain = [0n, 100n];
+
+            expect(scale.domainMin).toBe(0n);
+            expect(scale.domainMax).toBe(100n);
+        });
+
+        test('orders bigint endpoints by value for a descending domain', () => {
+            const scale = new LinearScale();
+            scale.domain = [100n, 0n];
+
+            expect(scale.domainMin).toBe(0n);
+            expect(scale.domainMax).toBe(100n);
+        });
+
+        // The exact bigint must survive even where a Number narrow would collapse adjacent values.
+        test('preserves bigint precision beyond Number.MAX_SAFE_INTEGER', () => {
+            const lo = 10n ** 18n;
+            const hi = lo + 1n;
+            expect(Number(lo)).toBe(Number(hi)); // both collapse to the same Number
+
+            const scale = new LinearScale();
+            scale.domain = [lo, hi];
+
+            expect(scale.domainMin).toBe(lo);
+            expect(scale.domainMax).toBe(hi);
+        });
+    });
+
     describe('ticks bigint', () => {
         const tickParams: ScaleTickParams<number> = {
             nice: [true, true],
@@ -388,22 +427,20 @@ describe('LinearScale', () => {
             const scale = new LinearScale();
             scale.range = [0, 600];
 
-            const { ticks } = scale.ticks(tickParams, [0n, 100n] as unknown as number[]);
+            const { ticks } = scale.ticks(tickParams, [0n, 100n]);
             expect(ticks).toEqual([0n, 20n, 40n, 60n, 80n, 100n]);
         });
 
         test('nices a BigInt domain outward to step multiples', () => {
             const scale = new LinearScale();
-            expect(scale.niceDomain(tickParams, [13n, 97n] as unknown as number[])).toEqual([0n, 100n]);
+            expect(scale.niceDomain(tickParams, [13n, 97n])).toEqual([0n, 100n]);
         });
 
         test('honours a custom interval when nicing a BigInt domain', () => {
             const scale = new LinearScale();
             // With interval 30 the bounds must snap to multiples of 30 (Number path), not the auto
             // bigint step that would otherwise produce [0, 100].
-            expect(scale.niceDomain({ ...tickParams, interval: 30 }, [13n, 97n] as unknown as number[])).toEqual([
-                0, 120,
-            ]);
+            expect(scale.niceDomain({ ...tickParams, interval: 30 }, [13n, 97n])).toEqual([0, 120]);
         });
 
         // AC AG-16608 #15e / #16: ticks beyond Number.MAX_SAFE_INTEGER keep exact values.
@@ -412,7 +449,7 @@ describe('LinearScale', () => {
             scale.range = [0, 600];
 
             const span = 10n ** 21n;
-            const { ticks } = scale.ticks(tickParams, [0n, span] as unknown as number[]);
+            const { ticks } = scale.ticks(tickParams, [0n, span]);
             expect(ticks).toEqual([0n, 2n * 10n ** 20n, 4n * 10n ** 20n, 6n * 10n ** 20n, 8n * 10n ** 20n, span]);
         });
 
@@ -421,7 +458,7 @@ describe('LinearScale', () => {
             scale.range = [0, 100];
 
             // A custom interval is a Number concept; the bigint domain narrows and the Number path runs.
-            const { ticks } = scale.ticks({ ...tickParams, interval: 25 }, [0n, 100n] as unknown as number[]);
+            const { ticks } = scale.ticks({ ...tickParams, interval: 25 }, [0n, 100n]);
             expect(ticks).toEqual([0, 25, 50, 75, 100]);
         });
     });

@@ -384,7 +384,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         };
     }
 
-    labelDatum(label: LinearGaugeLabelProperties, value: number): LinearGaugeLabelDatum {
+    labelDatum(label: LinearGaugeLabelProperties, value: number | bigint): LinearGaugeLabelDatum {
         const {
             placement,
             avoidCollisions,
@@ -608,8 +608,10 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const scaleStyle = scaleProps.getStyle(bar.enabled, defaultColorRange, horizontal, scale);
 
         if (segments == null && cornersOnAllItems) {
-            const segmentStart = Math.min(...scale.domain);
-            const segmentEnd = Math.max(...scale.domain);
+            // Visual corner-segment bounds spanning the whole domain; convert() maps the exact endpoints
+            // to the range ends regardless, so a Number-narrow here is precision-safe.
+            const segmentStart = Number(scale.domainMin);
+            const segmentEnd = Number(scale.domainMax);
             const datum = { value, segmentStart, segmentEnd };
 
             if (bar.enabled) {

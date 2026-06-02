@@ -10,10 +10,12 @@ class GaugeSegmentationIntervalProperties extends BaseProperties {
     @Property
     count?: number;
 
-    getSegments(scale: Scale<number, number>, maxTicks: number) {
+    getSegments(scale: Scale<number | bigint, number>, maxTicks: number) {
         const { values, step, count } = this;
-        const d0 = Math.min(...scale.domain);
-        const d1 = Math.max(...scale.domain);
+        // Segment boundaries that survive full-precision (explicit values, scale.ticks) are kept as bigint
+        // below; these domain *bounds* are only used for Number-space stepping/filtering, so narrow them.
+        const d0 = Number(scale.domainMin);
+        const d1 = Number(scale.domainMax);
 
         let ticks: Array<number | bigint> | undefined;
         if (values != null) {

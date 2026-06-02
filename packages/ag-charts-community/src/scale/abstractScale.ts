@@ -17,6 +17,12 @@ export abstract class AbstractScale<D, R, I = number> implements Scale<D, R, I> 
     abstract convert(value: D, options: { clamp?: boolean; alignment?: ScaleAlignment }): R;
     abstract invert(value: R, nearest?: boolean): D | undefined;
     abstract getDomainMinMax(): [D, D] | [undefined, undefined];
+    get domainMin(): D | undefined {
+        return this.getDomainMinMax()[0];
+    }
+    get domainMax(): D | undefined {
+        return this.getDomainMinMax()[1];
+    }
     ticks(
         _ticks: ScaleTickParams<I>,
         _domain?: D[],

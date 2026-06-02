@@ -11,7 +11,7 @@ import { CartesianAxis } from './cartesianAxis';
 
 export class NumberAxis<
     TOptions extends NormalisedNumberAxisOptions = NormalisedNumberAxisOptions,
-> extends CartesianAxis<LinearScale | LogScale, number, TOptions> {
+> extends CartesianAxis<LinearScale | LogScale, number | bigint, TOptions> {
     static readonly className: string = 'NumberAxis';
     static readonly type: string = 'number';
 

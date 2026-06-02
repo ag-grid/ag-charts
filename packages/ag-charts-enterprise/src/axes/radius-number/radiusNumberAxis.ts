@@ -14,7 +14,7 @@ interface TickDatum {
 
 export class RadiusNumberAxis extends RadiusAxis<
     _ModuleSupport.LinearScale,
-    number,
+    number | bigint,
     NormalisedRadiusNumberAxisOptions
 > {
     static readonly className = 'RadiusNumberAxis';

@@ -4,7 +4,11 @@ import { findMinMax } from 'ag-charts-core';
 import { AbstractScale } from './abstractScale';
 import { unpackDomainMinMax } from './scaleUtil';
 
-export abstract class ContinuousScale<D extends number | Date, I = number> extends AbstractScale<D, number, I> {
+export abstract class ContinuousScale<D extends number | bigint | Date, I = number> extends AbstractScale<
+    D,
+    number,
+    I
+> {
     static is(value: unknown): value is ContinuousScale<any, any> {
         return value instanceof ContinuousScale;
     }
@@ -187,6 +191,22 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         return unpackDomainMinMax(this.domain);
     }
 
+    // True min/max (order-independent), returning the exact endpoint so a bigint domain flows through
+    // as bigint. d0Cache/d1Cache give the ordering even when the bigint endpoints narrow to equal Numbers.
+    private exactEndpoint(index: 0 | 1): D {
+        return ((index === 0 ? this.d0Big : this.d1Big) ?? this._domain[index]) as D;
+    }
+
+    override get domainMin(): D | undefined {
+        if (this._domain.length < 2) return this._domain.at(0);
+        return this.exactEndpoint(this.d0Cache <= this.d1Cache ? 0 : 1);
+    }
+
+    override get domainMax(): D | undefined {
+        if (this._domain.length < 2) return this._domain.at(0);
+        return this.exactEndpoint(this.d0Cache <= this.d1Cache ? 1 : 0);
+    }
+
     protected getPixelRange() {
         const [a, b] = this.range;
         return Math.abs(b - a);
@@ -226,7 +246,7 @@ function convertBigInt(value: bigint, d0: bigint, d1: bigint, range: number[], c
     return r0 + ratio * (r1 - r0);
 }
 
-export function normalizeContinuousDomains<D extends number | Date>(
+export function normalizeContinuousDomains<D extends number | bigint | Date>(
     ...domains: DomainWithMetadata<D>[]
 ): NormalizedDomain<D> {
     let min: D | undefined;
@@ -237,7 +257,8 @@ export function normalizeContinuousDomains<D extends number | Date>(
     for (const input of domains) {
         const domain = input.domain;
         for (const d of domain) {
-            const value = d.valueOf();
+            // Narrow only for min/max selection; the retained endpoint `d` stays exact (incl. bigint).
+            const value = Number(d.valueOf());
             if (value < minValue) {
                 minValue = value;
                 min = d;

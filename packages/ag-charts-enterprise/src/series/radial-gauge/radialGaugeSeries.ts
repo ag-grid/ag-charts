@@ -567,8 +567,10 @@ export class RadialGaugeSeries
         const scaleStyle = scaleProps.getStyle(bar.enabled, defaultColorRange, scale);
 
         if (segments == null && cornersOnAllItems) {
-            const segmentStart = Math.min(...scale.domain);
-            const segmentEnd = Math.max(...scale.domain);
+            // Visual corner-segment bounds spanning the whole domain; convert() maps the exact endpoints
+            // to the range ends regardless, so a Number-narrow here is precision-safe.
+            const segmentStart = Number(scale.domainMin);
+            const segmentEnd = Number(scale.domainMax);
             const datum = { value, segmentStart, segmentEnd };
             const appliedCornerRadius = Math.min(cornerRadius, (outerRadius - innerRadius) / 2);
             const angleInset = appliedCornerRadius / ((innerRadius + outerRadius) / 2);
@@ -740,7 +742,9 @@ export class RadialGaugeSeries
             const target = targets[i];
             const { value: targetValue, text, size, shape, style } = target;
 
-            if (targetValue < Math.min(...scale.domain) || targetValue > Math.max(...scale.domain)) {
+            // Exact bigint comparison: domainMin/Max flow the domain value type through unchanged.
+            const { domainMin, domainMax } = scale;
+            if (domainMin == null || domainMax == null || targetValue < domainMin || targetValue > domainMax) {
                 continue;
             }
 
