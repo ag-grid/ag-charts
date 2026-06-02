@@ -1,4 +1,17 @@
-import { clamp, countFractionDigits, inRange, isInteger, isNegative, isNumberEqual, modulus, roundTo } from './numbers';
+import { vi } from 'vitest';
+
+import * as Logger from '../../logging/logger';
+import {
+    clamp,
+    countFractionDigits,
+    inRange,
+    isInteger,
+    isNegative,
+    isNumberEqual,
+    modulus,
+    roundTo,
+    toFiniteNumber,
+} from './numbers';
 
 describe('Number Utilities', () => {
     test('clamp', () => {
@@ -56,6 +69,28 @@ describe('Number Utilities', () => {
         expect(modulus(-7, 3)).toBe(2);
         expect(modulus(7, -3)).toBe(1);
         expect(modulus(-5, -3)).toBe(1);
+    });
+
+    test('toFiniteNumber', () => {
+        const warnOnce = vi.spyOn(Logger, 'warnOnce').mockImplementation(() => {});
+        try {
+            // Numbers pass through unchanged.
+            expect(toFiniteNumber(5)).toBe(5);
+            expect(toFiniteNumber(-5.25)).toBe(-5.25);
+            expect(toFiniteNumber(Number.MAX_VALUE)).toBe(Number.MAX_VALUE);
+
+            // In-range bigints coerce (lossy beyond MAX_SAFE_INTEGER, but finite) without warning.
+            expect(toFiniteNumber(42n)).toBe(42);
+            expect(toFiniteNumber(-9_000_000_000_000_000_000n)).toBe(-9_000_000_000_000_000_000);
+            expect(warnOnce).not.toHaveBeenCalled();
+
+            // Bigints beyond Number.MAX_VALUE would become Infinity; clamp to ±MAX_VALUE and warn.
+            expect(toFiniteNumber(10n ** 400n)).toBe(Number.MAX_VALUE);
+            expect(toFiniteNumber(-(10n ** 400n))).toBe(-Number.MAX_VALUE);
+            expect(warnOnce).toHaveBeenCalled();
+        } finally {
+            warnOnce.mockRestore();
+        }
     });
 
     test('countFractionDigits', () => {

@@ -1,6 +1,6 @@
 import type { AgColorScaleColorStop } from 'ag-charts-types';
 
-import { clamp } from '../utils/data/numbers';
+import { clamp, toFiniteNumber } from '../utils/data/numbers';
 
 /** Colour mode for colour scale operations. */
 export type ColorScaleMode = 'continuous' | 'discrete';
@@ -122,8 +122,8 @@ export function computeColorBins(
 
     // The colour domain originates from the colorKey extent, which can be bigint (AG-16608 heatmap).
     // Narrow to Number for the interpolation/clamp maths below; mixing bigint with number throws.
-    const d0 = Number(domain[0]);
-    const d1 = Number(domain[1]);
+    const d0 = toFiniteNumber(domain[0]);
+    const d1 = toFiniteNumber(domain[1]);
     const isDiscrete = mode === 'discrete';
     const resolvedStops = resolveStopPositions(fills, d0, d1, isDiscrete);
     const resolvedColors = fills.map((fill) => fill.color);
@@ -179,7 +179,9 @@ export function deriveNormalizedStops(colorScale: ColorScaleState): GradientColo
 
     // `domain` holds Number interpolation pivots. `displayDomain` is the user-visible range and can be
     // bigint (AG-16608 heatmap), so narrow it to Number for the [0,1] fraction maths below.
-    const [d0, d1] = displayDomain ? [Number(displayDomain[0]), Number(displayDomain[1])] : [domain[0], domain.at(-1)!];
+    const [d0, d1] = displayDomain
+        ? [toFiniteNumber(displayDomain[0]), toFiniteNumber(displayDomain[1])]
+        : [domain[0], domain.at(-1)!];
     const extent = d1 - d0 || 1;
 
     if (mode === 'discrete') {
