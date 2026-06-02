@@ -9,7 +9,7 @@ export const SiteLogo: FunctionComponent = () => {
 
     return (
         <a
-            href={SITE_BASE_URL}
+            href={`${SITE_BASE_URL}/`}
             aria-label="Home"
             className={siteHeaderStyles.headerLogo}
             onMouseEnter={() => {
