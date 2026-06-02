@@ -1619,7 +1619,7 @@ describe('DataModel', () => {
             expect(processedData!.columnValueType).toEqual(['bigint']);
 
             dataSet.addTransaction({ append: [{ id: 'C', count: 30n }] });
-            const reprocessed = dataModel.reprocessData(processedData!);
+            const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
             expect(reprocessed.columnValueType).toEqual(['bigint']);
         });
