@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { DynamicContext } from 'ag-charts-core';
+import { AbstractModuleInstance, Bitfield, type DynamicContext } from 'ag-charts-core';
 
 import type { DataSetSelectionsIterator } from './dataSelectionUtil';
 import { DataSetSelection } from './dataSetSelection';
@@ -8,18 +8,50 @@ const { SelectionState } = _ModuleSupport;
 
 type ChartRegistry = _ModuleSupport.ChartRegistry;
 type DataChangeDescription = _ModuleSupport.DataChangeDescription;
-type DataSet<T> = _ModuleSupport.DataSet<T>;
+type DataSet<T = unknown> = _ModuleSupport.DataSet<T>;
 type IDataSelectionService = _ModuleSupport.IDataSelectionService;
 type SelectionStateEnum = _ModuleSupport.SelectionState;
 type SeriesLike = Parameters<IDataSelectionService['getDataSelectionState']>[0];
 
-export class DataSelectionService implements IDataSelectionService {
+const selectionInserter = (len: number) => new DataSetSelection(len);
+const candidacyInserter = (len: number) => new Bitfield(len);
+
+function getOrInsert<T>(map: Map<string, T>, key: string, data: DataSet, inserter: (len: number) => T): T {
+    let entry: T | undefined = map.get(key);
+    if (!entry) {
+        entry = inserter(data.data.length);
+        map.set(key, entry);
+    }
+    return entry;
+}
+
+export class DataSelectionService extends AbstractModuleInstance implements IDataSelectionService {
     public totalSelectedCount = 0;
+    public totalCandidacyCount = 0;
 
     /** Per-series selection state. Keyed by `seriesId`. */
     selections = new Map<string, DataSetSelection>();
 
-    constructor(private readonly ctx?: DynamicContext<ChartRegistry>) {}
+    /** Per-series candidacy state. Keyed by `seriesId`. */
+    private readonly candidacy = new Map<string, Bitfield>();
+
+    constructor(private readonly ctx?: DynamicContext<ChartRegistry>) {
+        super();
+        this.cleanup.register(
+            () => this.clear(),
+            () => this.clearCandidacy(),
+            ctx?.chartState.observe((get) => {
+                const opts = get('options', 'selection');
+                if (opts?.enabled === false) {
+                    this.clearCandidacy();
+                }
+            })
+        );
+    }
+
+    private clearCandidacy() {
+        this.candidacy.clear();
+    }
 
     clear(): void {
         for (const [_, selection] of this.selections) {
@@ -30,12 +62,11 @@ export class DataSelectionService implements IDataSelectionService {
 
     /** Lazy-create a per-series selection backed by a Uint8Array of `data.length`. */
     enableSelection(seriesId: string, data: DataSet<unknown>): DataSetSelection {
-        let sel = this.selections.get(seriesId);
-        if (!sel) {
-            sel = new DataSetSelection(data.data.length);
-            this.selections.set(seriesId, sel);
-        }
-        return sel;
+        return getOrInsert(this.selections, seriesId, data, selectionInserter);
+    }
+
+    enableCandidacy(seriesId: string, data: DataSet): Bitfield {
+        return getOrInsert(this.candidacy, seriesId, data, candidacyInserter);
     }
 
     *iterateDataSetSelections(): Generator<DataSetSelectionsIterator> {
@@ -66,6 +97,7 @@ export class DataSelectionService implements IDataSelectionService {
      * Without `dataIdKey`, selections cannot be transferred and are dropped.
      */
     transferDataSet<T>(newDataSet: DataSet<T>, oldDataSet: DataSet<T>): void {
+        this.candidacy.clear();
         if (this.selections.size === 0) return;
 
         const oldIds = oldDataSet.getIdArray();
@@ -114,6 +146,7 @@ export class DataSelectionService implements IDataSelectionService {
     }
 
     onDataChange(changeDescription: DataChangeDescription): void {
+        this.candidacy.clear();
         if (this.selections.size > 0) {
             for (const sel of this.selections.values()) {
                 sel.applyDataChange(changeDescription);
@@ -131,7 +164,7 @@ export class DataSelectionService implements IDataSelectionService {
         const options = this.ctx.chartState.getValue('options');
         if (!options?.selection?.enabled) return undefined;
 
-        if (this.totalSelectedCount === 0) {
+        if (this.totalSelectedCount === 0 && this.totalCandidacyCount === 0) {
             return SelectionState.None;
         }
 
@@ -141,7 +174,12 @@ export class DataSelectionService implements IDataSelectionService {
         // be the bucket's representative index. Fall back to the per-datum
         // bitset when no aggregation level applies.
         const selectionBuffer = this.getDataSetSelection(series);
+        const candidacyField = this.candidacy.get(series.id);
         if (typeof datumIndex === 'number') {
+            if (candidacyField?.getBit(datumIndex) === 1) {
+                return SelectionState.Item;
+            }
+
             const aggregated = series.ensureBucketLookupFeature()?.isBucketSelected(datumIndex);
             const isItem = aggregated ?? selectionBuffer?.isSelected(datumIndex) ?? false;
             if (isItem) {

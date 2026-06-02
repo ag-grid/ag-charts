@@ -33,6 +33,7 @@ import {
 } from './dataSelectionUtil';
 import { IntervalSet } from './intervalSet';
 
+type BBox = _ModuleSupport.BBox;
 type Series = NonNullable<NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>['series']>;
 type IDataSelectionService = _ModuleSupport.IDataSelectionService;
 
@@ -246,11 +247,25 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const seriesBounds = toBBox(dragStartEvent, dragMoveEvent);
         const canvasBounds = _ModuleSupport.Transformable.toCanvas(this.ctx.chartService.seriesRoot, seriesBounds);
 
+        this.service.totalCandidacyCount = 0;
+        for (const series of this.iterateSelectableSeries()) {
+            const data = series.data;
+            if (!data) continue;
+
+            const bitfield = this.service.enableCandidacy(series.id, data);
+            bitfield.clear();
+
+            for (const datumIndex of this.iterateNumericDatumIndices(seriesBounds, series)) {
+                bitfield.setBit(datumIndex);
+                this.service.totalCandidacyCount++;
+            }
+        }
+
         this.dragRect.x = canvasBounds.x;
         this.dragRect.y = canvasBounds.y;
         this.dragRect.width = canvasBounds.width;
         this.dragRect.height = canvasBounds.height;
-        this.redraw(ChartUpdateType.PRE_SERIES_UPDATE);
+        this.redraw(ChartUpdateType.FULL);
         dragMoveEvent.sourceEvent.preventDefault();
     }
 
@@ -260,6 +275,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const { enabled, enableDrag } = this.opts;
         const { dragStartEvent, service } = this;
 
+        service.totalCandidacyCount = 0;
         if (!enabled || !enableDrag || !dragStartEvent) {
             this.dragRect.visible = false;
             return;
@@ -280,29 +296,25 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const bbox = toBBox(dragStartEvent, dragEndEvent);
         const intervalSet = new IntervalSet();
 
-        for (const series of this.ctx.chartService.series) {
-            if (!series.properties.selection.enabled) continue;
-
+        for (const series of this.iterateSelectableSeries()) {
             let changed = false;
             intervalSet.clear();
 
             const bucketLookup = series.ensureBucketLookupFeature();
             const getRangeOfAggregateIndex = bucketLookup?.getRangeReader();
 
-            for (const datum of series.pickNodesInBBox(bbox)) {
-                if (!asNumericDatumIndex(datum.datumIndex)) continue;
-
-                const indexSet = bucketLookup?.getIndexSet(datum.datumIndex);
+            for (const datumIndex of this.iterateNumericDatumIndices(bbox, series)) {
+                const indexSet = bucketLookup?.getIndexSet(datumIndex);
                 if (getRangeOfAggregateIndex) {
-                    const range = getRangeOfAggregateIndex(datum.datumIndex);
-                    if (range && !intervalSet.has(datum.datumIndex)) {
+                    const range = getRangeOfAggregateIndex(datumIndex);
+                    if (range && !intervalSet.has(datumIndex)) {
                         const [start, end] = range;
                         changed = true;
                         intervalSet.add(start, end);
                     }
                 } else if (indexSet === undefined) {
                     changed = true;
-                    setSelected(changes, series, service, datum.datumIndex);
+                    setSelected(changes, series, service, datumIndex);
                 } else {
                     for (const idx of indexSet) {
                         changed = true;
@@ -388,5 +400,21 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
     private hasUnknownModifier(event: _Widget.DragWidgetEvent): boolean {
         return event.sourceEvent.altKey || event.sourceEvent.shiftKey;
+    }
+
+    private *iterateSelectableSeries(): Generator<Series> {
+        for (const series of this.ctx.chartService.series) {
+            if (series.properties.selection.enabled) {
+                yield series;
+            }
+        }
+    }
+
+    private *iterateNumericDatumIndices(bbox: BBox, series: Series): Generator<number> {
+        for (const datum of series.pickNodesInBBox(bbox)) {
+            if (asNumericDatumIndex(datum.datumIndex)) {
+                yield datum.datumIndex;
+            }
+        }
     }
 }
