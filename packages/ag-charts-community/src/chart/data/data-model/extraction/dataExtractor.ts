@@ -266,9 +266,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
 
                     const result = processKeyValue(data[datumIndex], datumIndex, scope);
 
-                    // bigint *values* are supported now, but bigint *keys* stay dropped until a later PR:
-                    // they break SORT_DOMAIN_GROUPS' comparator and need numeric-axis prediction (AC #4).
-                    if (result.valid && typeof result.value !== 'bigint') {
+                    if (result.valid) {
                         keys.push(result.value);
                         // Track ordering/uniqueness for valid keys
                         updateKeyTracker(tracker, result.value);

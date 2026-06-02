@@ -519,11 +519,6 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
                     insertionCache,
                     (cached) => {
                         const keyResult = cached?.keys.get(defIndex);
-                        // bigint keys remain dropped (see dataExtractor.extractKeys) until key-sort
-                        // safety and numeric-axis prediction (AC #4) land in a later PR.
-                        if (keyResult?.valid && typeof keyResult.value === 'bigint') {
-                            return def.invalidValue;
-                        }
                         return keyResult?.valid ? keyResult.value : def.invalidValue;
                     },
                     (removedValues) => {
