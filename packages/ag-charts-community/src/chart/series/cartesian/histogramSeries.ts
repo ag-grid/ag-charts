@@ -31,7 +31,7 @@ import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import type { ChartAxis } from '../../chartAxis';
-import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
+import { addAccumulated, area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
 import type { DataController } from '../../data/dataController';
 import type {
     AggregatePropertyDefinition,
@@ -97,7 +97,9 @@ interface CalculatedBin {
     groupIndex: number;
     datum: any[];
     frequency: number;
-    total: number;
+    // bigint when summing a bigint yKey column (aggregation 'sum'); the y-scale narrows it for positioning
+    // while the exact value reaches the tooltip via the bin datum's aggregatedValue.
+    total: number | bigint;
 }
 
 interface HistogramSeriesNodeDataContext extends CartesianSeriesNodeDataContext<HistogramNodeDatum> {
@@ -333,7 +335,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 const [[negativeAgg, positiveAgg] = [0, 0]] = group.aggregation;
                 const datum = [...dataModel.forEachDatum(this, processedData, group, groupIndex)];
                 const frequency = this.frequency(group);
-                const total = negativeAgg + positiveAgg;
+                const total = addAccumulated(negativeAgg, positiveAgg);
                 return { domain, datum, groupIndex, frequency, total };
             } else {
                 return { domain, datum: [], groupIndex: -1, frequency: 0, total: 0 };
@@ -381,7 +383,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             const [x0, x1] = findMinMax([xScale.convert(xDomainMin), xScale.convert(xDomainMax)]);
 
             if (x1 >= r0 && x0 <= r1) {
-                const total = negativeAgg + positiveAgg;
+                // Pixel range only: narrow any bigint sum to Number for Math.max.
+                const total = Number(negativeAgg) + Number(positiveAgg);
                 yMax = Math.max(yMax, total);
             }
         }
@@ -772,7 +775,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const frequency = this.frequency(group);
         const domain = keys;
         const [rangeMin, rangeMax]: number[] = domain;
-        const aggregatedValue = negativeAgg + positiveAgg;
+        const aggregatedValue = addAccumulated(negativeAgg, positiveAgg);
         const datum: AgHistogramBinDatum<any> = {
             data: [...dataModel.forEachDatum(this, processedData, group, datumIndex)],
             aggregatedValue,

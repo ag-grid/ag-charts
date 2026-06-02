@@ -419,7 +419,7 @@ export interface HighlightNodeDatum<I extends DatumIndexType = DatumIndexType> e
     readonly radiusKey?: string;
     readonly colorValue?: number;
     readonly cumulativeValue?: number;
-    readonly aggregatedValue?: number;
+    readonly aggregatedValue?: number | bigint;
     readonly domain?: [number, number];
     readonly legendItemName?: string;
 }

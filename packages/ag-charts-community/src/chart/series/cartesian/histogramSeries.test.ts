@@ -173,6 +173,35 @@ describe('HistogramSeries', () => {
         });
     });
 
+    describe('bigint aggregation (AG-16608)', () => {
+        setupMockCanvas();
+
+        it('sums a bigint yKey column at full precision (aggregation: sum)', async () => {
+            const big = 9_007_199_254_740_993n; // 2^53 + 1, not exactly representable as a Number
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 1, y: big },
+                    { x: 2, y: big },
+                    { x: 3, y: big },
+                ],
+                series: [{ type: 'histogram', xKey: 'x', yKey: 'y', aggregation: 'sum', bins: [[0, 10]] }],
+            };
+            prepareTestOptions(options as any);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const series = chart.series.find((v: any) => v.type === 'histogram');
+            expect(series).toBeDefined();
+
+            const context: SeriesNodeDataContext<any, any> = (series as any)['contextNodeData'];
+            const bin = context.nodeData.find((n: any) => n.aggregatedValue != null);
+            expect(bin).toBeDefined();
+            // 3 × (2^53 + 1) — a narrowing convert() would round this; the bigint sum keeps it exact.
+            expect(bin!.aggregatedValue).toBe(3n * big);
+        });
+    });
+
     describe('Series Labels', () => {
         const examples = {
             HISTOGRAM_SERIES_LABELS: {

@@ -1,8 +1,24 @@
 import { describe, expect, it } from 'vitest';
 
-import { accumulatedValue, addAccumulated, trailingAccumulatedValue } from './aggregateFunctions';
+import { accumulatedValue, addAccumulated, sumValues, trailingAccumulatedValue } from './aggregateFunctions';
 
 describe('aggregateFunctions bigint support (AG-16608)', () => {
+    describe('sumValues', () => {
+        it('splits numbers into negative and positive sums', () => {
+            expect(sumValues([1, -2, 3, -4])).toEqual([-6, 4]);
+        });
+
+        it('sums bigint values in bigint so a large-magnitude total stays exact', () => {
+            // The negative side keeps its untouched Number seed; the positive side promotes to bigint.
+            expect(sumValues([2n, -3n, 5n])).toEqual([-3n, 7n]);
+        });
+
+        it('preserves precision beyond Number.MAX_SAFE_INTEGER', () => {
+            const big = 9_007_199_254_740_993n; // 2^53 + 1, not representable as a Number
+            expect(sumValues([big, big])).toEqual([0, 18_014_398_509_481_986n]);
+        });
+    });
+
     describe('addAccumulated', () => {
         it('adds two numbers', () => {
             expect(addAccumulated(2, 3)).toBe(5);

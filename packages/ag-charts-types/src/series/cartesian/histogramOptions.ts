@@ -1,3 +1,4 @@
+import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
@@ -29,7 +30,8 @@ export type AgHistogramSeriesLabelFormatterParams<TDatum = DatumDefault> = AgHis
 
 export interface AgHistogramBinDatum<TDatum> {
     data: TDatum[];
-    aggregatedValue: number;
+    /** Aggregated value for the bin. A `bigint` when a bigint `yKey` column is summed (`aggregation: 'sum'`). */
+    aggregatedValue: AgNumericValue;
     frequency: number;
     domain: [number, number];
 }

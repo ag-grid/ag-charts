@@ -14,23 +14,29 @@ export function addAccumulated(acc: number | bigint, value: number | bigint): nu
     return acc + value;
 }
 
-export function sumValues(values: any[], accumulator: [number, number] = [0, 0]) {
+export function sumValues(
+    values: any[],
+    accumulator: [number | bigint, number | bigint] = [0, 0]
+): [number | bigint, number | bigint] {
     for (const value of values) {
-        if (typeof value !== 'number') {
+        if (typeof value !== 'number' && typeof value !== 'bigint') {
             continue;
         }
+        // Sum in bigint when a value is bigint so a large-magnitude total stays exact (addAccumulated
+        // promotes the 0 seed). The opposite-sign side keeps its untouched Number seed — hence the mixed
+        // accumulator type; downstream consumers recombine the two sides with addAccumulated.
         if (value < 0) {
-            accumulator[0] += value;
+            accumulator[0] = addAccumulated(accumulator[0], value);
         }
         if (value > 0) {
-            accumulator[1] += value;
+            accumulator[1] = addAccumulated(accumulator[1], value);
         }
     }
     return accumulator;
 }
 
 export function sum(id: string, matchGroupId: string) {
-    const result: AggregatePropertyDefinition<any, any> = {
+    const result: AggregatePropertyDefinition<any, any, [number | bigint, number | bigint]> = {
         id,
         matchGroupIds: [matchGroupId],
         type: 'aggregate',
@@ -43,7 +49,7 @@ export function sum(id: string, matchGroupId: string) {
 export function groupSum(
     id: string,
     opts?: { matchGroupId?: string; visible?: boolean }
-): AggregatePropertyDefinition<any, any> {
+): AggregatePropertyDefinition<any, any, [number | bigint, number | bigint]> {
     const visible = opts?.visible ?? true;
     return {
         id,
@@ -52,8 +58,8 @@ export function groupSum(
         aggregateFunction: (values) => sumValues(values),
         groupAggregateFunction: (next, acc = [0, 0]) => {
             if (visible) {
-                acc[0] += next?.[0] ?? 0;
-                acc[1] += next?.[1] ?? 0;
+                acc[0] = addAccumulated(acc[0], next?.[0] ?? 0);
+                acc[1] = addAccumulated(acc[1], next?.[1] ?? 0);
             }
             return acc;
         },
@@ -89,21 +95,27 @@ export function groupCount(id: string, opts?: { visible?: boolean }): AggregateP
 
 export function groupAverage(id: string, opts?: { matchGroupId?: string; visible?: boolean }) {
     const visible = opts?.visible ?? true;
-    const def: AggregatePropertyDefinition<any, any, [number, number], [number, number, number]> = {
+    const def: AggregatePropertyDefinition<
+        any,
+        any,
+        [number | bigint, number | bigint],
+        [number | bigint, number | bigint, number]
+    > = {
         id,
         matchGroupIds: opts?.matchGroupId ? [opts?.matchGroupId] : undefined,
         type: 'aggregate',
         aggregateFunction: (values) => sumValues(values),
         groupAggregateFunction: (next, acc = [0, 0, -1]) => {
             if (visible) {
-                acc[0] += next?.[0] ?? 0;
+                acc[0] = addAccumulated(acc[0], next?.[0] ?? 0);
                 acc[2]++;
-                acc[1] += next?.[1] ?? 0;
+                acc[1] = addAccumulated(acc[1], next?.[1] ?? 0);
             }
             return acc;
         },
         finalFunction: (acc = [0, 0, 0]) => {
-            const result = acc[0] + acc[1];
+            // A mean is fractional, so narrow the bigint sums to Number for the division.
+            const result = Number(acc[0]) + Number(acc[1]);
             if (result >= 0) {
                 return [0, result / acc[2]];
             }
@@ -114,14 +126,19 @@ export function groupAverage(id: string, opts?: { matchGroupId?: string; visible
     return def;
 }
 
-export function area(id: string, aggFn: AggregatePropertyDefinition<any, any>, matchGroupId?: string) {
+export function area(id: string, aggFn: AggregatePropertyDefinition<any, any, any>, matchGroupId?: string) {
     const result: AggregatePropertyDefinition<any, any> = {
         id,
         matchGroupIds: matchGroupId ? [matchGroupId] : undefined,
         type: 'aggregate',
         aggregateFunction: (values, keyRange = []) => {
-            const keyWidth = keyRange[1] - keyRange[0];
-            return aggFn.aggregateFunction(values).map((v) => v / keyWidth) as [number, number];
+            // Area is a density (value / key-width) → fractional, so narrow bigint sums and bigint keys to
+            // Number for the division.
+            const keyWidth = Number(keyRange[1]) - Number(keyRange[0]);
+            return aggFn.aggregateFunction(values).map((v: number | bigint) => Number(v) / keyWidth) as [
+                number,
+                number,
+            ];
         },
     };
 
