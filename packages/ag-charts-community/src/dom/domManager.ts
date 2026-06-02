@@ -549,13 +549,9 @@ export class DOMManager extends BaseManager {
     }
 
     /**
-     * Per-axis ratio between the canvas's post-transform screen size and its untransformed
-     * layout size — i.e. the effective `scale(sx, sy)` applied by any ancestor CSS transform.
-     * Used by elements positioned outside the transformed ancestor (e.g. tooltips, which use
-     * `position: fixed`) to convert canvas-local offsets into screen pixels.
-     *
-     * Cached alongside `_cachedCanvasRect`: invalidated by the same scroll/resize/fullscreen
-     * listeners, so steady-state hot paths (tooltip show/update) pay zero layout cost.
+     * Effective ancestor CSS `scale(sx, sy)` applied to the canvas — used by elements
+     * positioned outside the transformed ancestor (e.g. `position: fixed` tooltips) to map
+     * canvas-local offsets into screen pixels. Cached alongside `_cachedCanvasRect`.
      */
     getCanvasScale(): { scaleX: number; scaleY: number } {
         if (this._cachedCanvasScale != null) return this._cachedCanvasScale;

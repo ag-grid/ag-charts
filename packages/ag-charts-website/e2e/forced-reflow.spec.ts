@@ -27,9 +27,7 @@ test.describe('forced reflow detection', () => {
         const initialAnalysis = analyseForcedReflows(initialEvents);
         const initialFiltered = filterAgChartsReflows(initialAnalysis, {
             // These functions are unavoidable initially due to the tooltip being shown.
-            // `getCanvasScale` reads `clientWidth/Height` to derive the ancestor CSS-transform
-            // ratio; result is cached alongside the canvas rect and reused on every subsequent
-            // tooltip update until a scroll/resize/fullscreen invalidates it.
+            // `getCanvasScale` is cached alongside the canvas rect (see DOMManager).
             additionalAllowlist: ['getBoundingClientRect', 'flush', 'getCanvasScale'],
         });
         expect(initialFiltered.count, formatReflowDiagnostics(initialFiltered)).toBe(0);
