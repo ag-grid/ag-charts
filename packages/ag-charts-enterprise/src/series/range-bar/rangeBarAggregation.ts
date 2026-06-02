@@ -56,8 +56,8 @@ export function aggregateRangeBarDataFromDataModel(
     existingFilters?: RangeBarSeriesDataAggregationFilter[]
 ): RangeBarSeriesDataAggregationFilter[] | undefined {
     const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
-    const highValues = dataModel.resolveColumnById(series, 'yHighValue', processedData);
-    const lowValues = dataModel.resolveColumnById(series, 'yLowValue', processedData);
+    const highValues = dataModel.resolveColumnById(series, 'yHighValue', processedData, 'numeric');
+    const lowValues = dataModel.resolveColumnById(series, 'yLowValue', processedData, 'numeric');
 
     const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
@@ -98,8 +98,8 @@ export function aggregateRangeBarDataFromDataModelPartial(
     existingFilters?: RangeBarSeriesDataAggregationFilter[]
 ): RangeBarPartialAggregationResult | undefined {
     const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
-    const highValues = dataModel.resolveColumnById(series, 'yHighValue', processedData);
-    const lowValues = dataModel.resolveColumnById(series, 'yLowValue', processedData);
+    const highValues = dataModel.resolveColumnById(series, 'yHighValue', processedData, 'numeric');
+    const lowValues = dataModel.resolveColumnById(series, 'yLowValue', processedData, 'numeric');
 
     const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 

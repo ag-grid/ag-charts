@@ -673,7 +673,7 @@ export class MapLineSeries
 
         let { stroke } = properties;
         if (datumIndex != null && this.isColorScaleValid()) {
-            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!);
+            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!, 'numeric');
             const colorValue = colorValues[datumIndex];
             if (colorValue != null) {
                 stroke = this.colorScale.convert(colorValue);

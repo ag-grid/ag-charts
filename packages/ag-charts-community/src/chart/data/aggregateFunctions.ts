@@ -1,4 +1,4 @@
-import { isFiniteNumber } from 'ag-charts-core';
+import { addValues, isFiniteNumber } from 'ag-charts-core';
 
 import { ContinuousDomain } from './dataDomain';
 import type { AggregatePropertyDefinition, DatumPropertyDefinition } from './dataModel';
@@ -8,19 +8,7 @@ import type { AggregatePropertyDefinition, DatumPropertyDefinition } from './dat
  * typed, so a bigint column's number `0` seed promotes to `0n` on the first value and stays bigint.
  */
 export function addAccumulated(acc: number | bigint, value: number | bigint): number | bigint {
-    if (typeof acc === 'bigint' || typeof value === 'bigint') {
-        // BigInt() throws on a fractional Number, which happens when a bigint series is stacked with a
-        // non-integer Number series. Only sum exactly in BigInt when both operands are integral; otherwise
-        // fall back to a (lossy) Number sum rather than crashing the mixed stack.
-        if (
-            (typeof acc === 'bigint' || Number.isInteger(acc)) &&
-            (typeof value === 'bigint' || Number.isInteger(value))
-        ) {
-            return BigInt(acc) + BigInt(value);
-        }
-        return Number(acc) + Number(value);
-    }
-    return acc + value;
+    return addValues(acc, value);
 }
 
 export function sumValues(

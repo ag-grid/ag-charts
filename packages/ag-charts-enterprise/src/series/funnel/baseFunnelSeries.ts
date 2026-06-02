@@ -314,7 +314,7 @@ export abstract class BaseFunnelSeries<
         if (!isVisible) return context;
 
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
-        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
+        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData, 'numeric');
 
         const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
 
@@ -460,7 +460,7 @@ export abstract class BaseFunnelSeries<
         datumIndex: number;
         rect: Bounds;
         barAlongX: boolean;
-        yDatum: number;
+        yDatum: number | bigint;
         datum: any;
         visible: boolean;
     }): FunnelNodeLabelDatum | undefined;
@@ -571,7 +571,7 @@ export abstract class BaseFunnelSeries<
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, 'xValue', processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData, 'numeric')[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         const allowNullKeys = this.properties.allowNullKeys ?? false;

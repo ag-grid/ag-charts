@@ -318,10 +318,12 @@ export function aggregateBarDataFromDataModel(
     const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
 
     const isStacked = dataModel.hasColumnById(series, 'yValue-start');
-    const yStartValues = isStacked ? dataModel.resolveColumnById(series, 'yValue-start', processedData) : undefined;
+    const yStartValues = isStacked
+        ? dataModel.resolveColumnById(series, 'yValue-start', processedData, 'numeric')
+        : undefined;
     const yEndValues = isStacked
-        ? dataModel.resolveColumnById(series, 'yValue-end', processedData)
-        : dataModel.resolveColumnById(series, 'yValue-raw', processedData);
+        ? dataModel.resolveColumnById(series, 'yValue-end', processedData, 'numeric')
+        : dataModel.resolveColumnById(series, 'yValue-raw', processedData, 'numeric');
 
     const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
@@ -378,10 +380,12 @@ export function aggregateBarDataFromDataModelPartial(
     const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
 
     const isStacked = dataModel.hasColumnById(series, 'yValue-start');
-    const yStartValues = isStacked ? dataModel.resolveColumnById(series, 'yValue-start', processedData) : undefined;
+    const yStartValues = isStacked
+        ? dataModel.resolveColumnById(series, 'yValue-start', processedData, 'numeric')
+        : undefined;
     const yEndValues = isStacked
-        ? dataModel.resolveColumnById(series, 'yValue-end', processedData)
-        : dataModel.resolveColumnById(series, 'yValue-raw', processedData);
+        ? dataModel.resolveColumnById(series, 'yValue-end', processedData, 'numeric')
+        : dataModel.resolveColumnById(series, 'yValue-raw', processedData, 'numeric');
 
     const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 

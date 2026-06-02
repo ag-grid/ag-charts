@@ -746,7 +746,7 @@ export class MapShapeSeries
 
         let { fill } = properties;
         if (datumIndex != null && this.isColorScaleValid()) {
-            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!);
+            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!, 'numeric');
             const colorValue = colorValues[datumIndex];
             if (colorValue != null) {
                 fill = this.colorScale.convert(colorValue);

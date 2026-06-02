@@ -397,7 +397,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
         const columns: unknown[][] = [];
         const allColumnScopes: Set<ScopeId>[] = [];
         const columnNeedValueOf: boolean[] = [];
-        const columnValueType: ColumnValueType[] = [];
+        const columnValueType: (ColumnValueType | undefined)[] = [];
         let maxDataLength = 0;
         const valueProcessors = valueDefs.map((def) => getProcessValue(def));
 
@@ -464,7 +464,9 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             columns.push(column);
             allColumnScopes.push(columnScopes);
             columnNeedValueOf.push(needsValueOf);
-            columnValueType.push(typeTracker.type ?? 'number');
+            // An unobserved column (no values, or all missing) has no resolved type; leave it undefined
+            // rather than guessing 'number' so expected-type assertions don't false-positive on it.
+            columnValueType.push(typeTracker.type);
             maxDataLength = Math.max(maxDataLength, column.length);
         }
 

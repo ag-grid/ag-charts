@@ -333,8 +333,10 @@ export function aggregateBubbleDataFromDataModel(
     series: any
 ): BubbleAggregation | undefined {
     const xValues = dataModel.resolveColumnById(series, 'xValue', processedData);
-    const yValues = dataModel.resolveColumnById(series, 'yValue', processedData);
-    const sizeValues = hasSizeKey ? dataModel.resolveColumnById(series, 'sizeValue', processedData) : undefined;
+    const yValues = dataModel.resolveColumnById(series, 'yValue', processedData, 'numeric');
+    const sizeValues = hasSizeKey
+        ? dataModel.resolveColumnById(series, 'sizeValue', processedData, 'numeric')
+        : undefined;
 
     const xDomain = dataModel.getDomain(series, 'xValue', 'value', processedData);
     const yDomain = dataModel.getDomain(series, 'yValue', 'value', processedData);

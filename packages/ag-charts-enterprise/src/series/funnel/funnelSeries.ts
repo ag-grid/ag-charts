@@ -70,7 +70,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         datumIndex: number;
         rect: Bounds;
         barAlongX: boolean;
-        yDatum: number;
+        yDatum: number | bigint;
         datum: any;
         visible: boolean;
     }): FunnelNodeLabelDatum | undefined {

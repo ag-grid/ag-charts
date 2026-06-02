@@ -1,4 +1,8 @@
+import { Logger } from 'ag-charts-core';
+
 import type {
+    ColumnValueCategory,
+    ColumnValueType,
     GroupedData,
     ProcessedData,
     ProcessedDataDef,
@@ -11,6 +15,26 @@ import { COLUMN_SORT_ORDERS, DOMAIN_RANGES, KEY_SORT_ORDERS } from '../../dataMo
 import { RangeLookup } from '../../rangeLookup';
 import { type SortOrder, valuesSortOrder } from '../../sortOrder';
 import type { DataModelContext } from '../dataModelContext';
+
+/** Runtime {@link ColumnValueType} tags accepted for a continuous (`'numeric'`) value column. */
+const CONTINUOUS_COLUMN_TYPES = new Set<ColumnValueType>(['number', 'bigint', 'mixed-numeric', 'date']);
+
+/**
+ * Warns once when a column resolved with an expected {@link ColumnValueCategory} holds values of an
+ * incompatible runtime type. A `null` tag means extraction captured no type (e.g. an all-empty column),
+ * which is treated as a no-op rather than a mismatch.
+ */
+function assertColumnValueCategory(
+    scope: ScopeProvider,
+    searchId: string,
+    expectedType: ColumnValueCategory,
+    actualType: ColumnValueType | undefined
+): void {
+    if (actualType == null || CONTINUOUS_COLUMN_TYPES.has(actualType)) return;
+    Logger.warnOnce(
+        `column '${searchId}' for scope '${scope.id}' was resolved as '${expectedType}' but holds '${actualType}' values; check the series data types.`
+    );
+}
 
 /**
  * DataModelResolvers handles lookups and resolution of processed data.
@@ -75,15 +99,30 @@ export class DataModelResolvers<D extends object, K extends keyof D & string> {
         return this.ctx.scopeCache.get(scope.id)?.get(searchId) != null;
     }
 
+    resolveColumnById(
+        scope: ScopeProvider,
+        searchId: string,
+        processedData: UngroupedData<any> | GroupedData<any>,
+        expectedType: ColumnValueCategory
+    ): (number | bigint)[];
     resolveColumnById<T = any>(
         scope: ScopeProvider,
         searchId: string,
         processedData: UngroupedData<any> | GroupedData<any>
-    ): T[] {
+    ): T[];
+    resolveColumnById(
+        scope: ScopeProvider,
+        searchId: string,
+        processedData: UngroupedData<any> | GroupedData<any>,
+        expectedType?: ColumnValueCategory
+    ): any[] {
         const index = this.resolveProcessedDataIndexById(scope, searchId);
         const column = processedData.columns?.[index];
         if (column == null) {
             throw new Error(`AG Charts - didn't find column for [${searchId}, ${scope.id}]`);
+        }
+        if (expectedType != null) {
+            assertColumnValueCategory(scope, searchId, expectedType, processedData.columnValueType?.[index]);
         }
         return column;
     }

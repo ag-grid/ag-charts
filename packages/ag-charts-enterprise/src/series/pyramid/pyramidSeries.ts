@@ -683,7 +683,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveColumnById(this, 'xValue', processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData, 'numeric')[datumIndex];
 
         const allowNullKeys = this.properties.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return;
@@ -703,7 +703,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             tooltip,
             {
                 symbol: this.legendItemSymbol(datumIndex),
-                data: [{ label: toPlainText(label), value: toPlainText(yValue) }],
+                data: [{ label: toPlainText(label), value: toPlainText(String(yValue)) }],
             },
             {
                 seriesId,

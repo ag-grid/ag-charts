@@ -56,8 +56,8 @@ export function aggregateOhlcDataFromDataModel(
     existingFilters?: OhlcSeriesDataAggregationFilter[]
 ): OhlcSeriesDataAggregationFilter[] | undefined {
     const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
-    const highValues = dataModel.resolveColumnById(series, 'highValue', processedData);
-    const lowValues = dataModel.resolveColumnById(series, 'lowValue', processedData);
+    const highValues = dataModel.resolveColumnById(series, 'highValue', processedData, 'numeric');
+    const lowValues = dataModel.resolveColumnById(series, 'lowValue', processedData, 'numeric');
 
     const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
@@ -98,8 +98,8 @@ export function aggregateOhlcDataFromDataModelPartial(
     existingFilters?: OhlcSeriesDataAggregationFilter[]
 ): OhlcPartialAggregationResult | undefined {
     const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
-    const highValues = dataModel.resolveColumnById(series, 'highValue', processedData);
-    const lowValues = dataModel.resolveColumnById(series, 'lowValue', processedData);
+    const highValues = dataModel.resolveColumnById(series, 'highValue', processedData, 'numeric');
+    const lowValues = dataModel.resolveColumnById(series, 'lowValue', processedData, 'numeric');
 
     const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 

@@ -53,6 +53,17 @@ export type ScopeId = string;
  */
 export type ColumnValueType = 'number' | 'bigint' | 'date' | 'string' | 'mixed-numeric';
 
+/**
+ * Expected-type discriminator callers pass to {@link DataModel.resolveColumnById} to both type the returned
+ * column (as `number | bigint`) and assert it against the runtime {@link ColumnValueType} tag captured during
+ * extraction.
+ *
+ * `'numeric'` denotes a continuous value column: `number`/`bigint`, or a `date` when the column feeds a time
+ * axis (date values pass the assertion and flow through scale conversion). Only `string`/category data trips
+ * the assertion — the genuine misconfiguration of a non-continuous value on a value axis.
+ */
+export type ColumnValueCategory = 'numeric';
+
 export type ProcessedValue = { value: unknown; missing: boolean; valid: boolean };
 export type SortOrderEntry = {
     sortOrder: SortOrder;
@@ -101,7 +112,7 @@ export interface CommonMetadata<D> {
     columns: any[][];
     columnScopes: Set<ScopeId>[];
     columnNeedValueOf?: boolean[]; // true if column needs valueOf() (contains Dates/objects), false for primitives
-    columnValueType?: ColumnValueType[]; // per-column primitive type tag, set once during extraction
+    columnValueType?: (ColumnValueType | undefined)[]; // per-column primitive type tag, set once during extraction (undefined when unobserved)
     domain: {
         keys: any[][];
         values: any[][];

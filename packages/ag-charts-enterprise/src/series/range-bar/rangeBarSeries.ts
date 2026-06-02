@@ -424,8 +424,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yAxis,
             rawData,
             xValues: dataModel.resolveKeysById(this, `xValue`, processedData),
-            yLowValues: dataModel.resolveColumnById(this, `yLowValue`, processedData),
-            yHighValues: dataModel.resolveColumnById(this, `yHighValue`, processedData),
+            yLowValues: dataModel.resolveColumnById(this, `yLowValue`, processedData, 'numeric'),
+            yHighValues: dataModel.resolveColumnById(this, `yHighValue`, processedData, 'numeric'),
             xScale,
             yScale,
             groupOffset,
@@ -1232,8 +1232,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
-        const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData)[datumIndex];
-        const yLowValue = dataModel.resolveColumnById(this, `yLowValue`, processedData)[datumIndex];
+        const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData, 'numeric')[datumIndex];
+        const yLowValue = dataModel.resolveColumnById(this, `yLowValue`, processedData, 'numeric')[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         const allowNullKeys = this.properties.allowNullKeys ?? false;

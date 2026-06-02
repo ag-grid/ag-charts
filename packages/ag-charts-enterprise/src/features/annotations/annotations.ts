@@ -14,6 +14,7 @@ import {
     PropertiesArray,
     Vec2,
     isValidDate,
+    toNumber,
 } from 'ag-charts-core';
 
 import { TextInput } from '../text-input/textInput';
@@ -647,13 +648,13 @@ export class Annotations extends AbstractModuleInstance {
         }
 
         const dateValues = dataModel.resolveKeysById<Date>({ id: 'annotations' }, 'date', processedData);
-        const volumeValues = dataModel.resolveColumnById({ id: 'annotations' }, 'volume', processedData);
+        const volumeValues = dataModel.resolveColumnById({ id: 'annotations' }, 'volume', processedData, 'numeric');
 
         let sum = 0;
         for (let datumIndex = 0; datumIndex < processedData.input.count; datumIndex++) {
             const key = dateValues[datumIndex];
             if (isValidDate(key) && key >= from && key <= to) {
-                sum += volumeValues[datumIndex];
+                sum += toNumber(volumeValues[datumIndex]);
             }
         }
         return sum;

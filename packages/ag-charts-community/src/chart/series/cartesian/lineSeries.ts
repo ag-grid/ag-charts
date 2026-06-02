@@ -458,8 +458,13 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             yAxis,
             rawData,
             xValues: dataModel.resolveColumnById(this, 'xValue', processedData),
-            yRawValues: dataModel.resolveColumnById(this, 'yValueRaw', processedData),
-            yCumulativeValues: dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData),
+            yRawValues: dataModel.resolveColumnById(this, 'yValueRaw', processedData, 'numeric'),
+            yCumulativeValues: dataModel.resolveColumnById(
+                this,
+                this.yCumulativeKey(processedData),
+                processedData,
+                'numeric'
+            ),
             selectionValues: this.properties.selectedKey
                 ? dataModel.resolveColumnById(this, 'selectedRaw', processedData)
                 : undefined,
@@ -980,7 +985,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         const { xKey, yKey } = this.properties;
 
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData, 'numeric')[datumIndex];
         const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData).domain;
         const yDomain = dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData).domain;
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
@@ -1010,7 +1015,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
 
         const datum = processedData.dataSources.get(this.id)?.data?.[datumIndex];
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData, 'numeric')[datumIndex];
 
         if (xValue === undefined && !allowNullKeys) return;
 

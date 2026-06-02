@@ -555,7 +555,7 @@ export abstract class RadarSeries<
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const angleValue = dataModel.resolveKeysById(this, `angleValue`, processedData)[datumIndex];
-        const radiusValue = dataModel.resolveColumnById(this, `radiusValue`, processedData)[datumIndex];
+        const radiusValue = dataModel.resolveColumnById(this, `radiusValue`, processedData, 'numeric')[datumIndex];
 
         const allowNullKeys = this.properties.allowNullKeys ?? false;
         if (angleValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison

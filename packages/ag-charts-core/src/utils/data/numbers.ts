@@ -20,6 +20,31 @@ export function toNumber(value: number | bigint): number {
     return n;
 }
 
+/** Both operands can combine exactly as bigints (each is already a bigint or an integral number). */
+function bothIntegral(a: number | bigint, b: number | bigint): boolean {
+    return (typeof a === 'bigint' || Number.isInteger(a)) && (typeof b === 'bigint' || Number.isInteger(b));
+}
+
+/**
+ * Adds two operands, promoting to `bigint` when either is a `bigint` so a large-magnitude result stays
+ * exact. A fractional operand mixed with a `bigint` forces a (lossy) `number` sum rather than throwing,
+ * matching {@link toNumber}'s precision-loss policy.
+ */
+export function addValues(a: number | bigint, b: number | bigint): number | bigint {
+    if (typeof a === 'bigint' || typeof b === 'bigint') {
+        return bothIntegral(a, b) ? BigInt(a) + BigInt(b) : Number(a) + Number(b);
+    }
+    return a + b;
+}
+
+/** Subtracts `b` from `a`, promoting to `bigint` under the same rules as {@link addValues}. */
+export function subtractValues(a: number | bigint, b: number | bigint): number | bigint {
+    if (typeof a === 'bigint' || typeof b === 'bigint') {
+        return bothIntegral(a, b) ? BigInt(a) - BigInt(b) : Number(a) - Number(b);
+    }
+    return a - b;
+}
+
 export function inRange(value: number, range: [number, number], epsilon: number = 1e-10) {
     return value >= range[0] - epsilon && value <= range[1] + epsilon;
 }

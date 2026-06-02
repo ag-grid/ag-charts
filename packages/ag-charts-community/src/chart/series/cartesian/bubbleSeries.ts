@@ -396,7 +396,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const { size, sizeKey } = properties;
         const x = this.axes[ChartAxisDirection.X]!.scale.convert(xValue);
         const sizeValues =
-            sizeKey == null ? undefined : this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!);
+            sizeKey == null
+                ? undefined
+                : this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!, 'numeric');
         const sizeValue = sizeValues == null ? size : sizeScale.convert(sizeValues[index]);
         const r = 0.5 * sizeValue * pixelSize;
         return [x - r, x + r];
@@ -407,7 +409,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const { size, sizeKey } = properties;
         const y = this.axes[ChartAxisDirection.Y]!.scale.convert(yValues[0]);
         const sizeValues =
-            sizeKey == null ? undefined : this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!);
+            sizeKey == null
+                ? undefined
+                : this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!, 'numeric');
         const sizeValue = sizeValues == null ? size : sizeScale.convert(sizeValues[index]);
         const r = 0.5 * sizeValue * pixelSize;
         return [y - r, y + r];

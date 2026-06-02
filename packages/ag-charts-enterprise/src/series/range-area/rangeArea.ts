@@ -390,8 +390,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             yAxis,
             rawData,
             xValues: dataModel.resolveKeysById(this, 'xValue', processedData),
-            yHighValues: dataModel.resolveColumnById(this, 'yHighValue', processedData),
-            yLowValues: dataModel.resolveColumnById(this, 'yLowValue', processedData),
+            yHighValues: dataModel.resolveColumnById(this, 'yHighValue', processedData, 'numeric'),
+            yLowValues: dataModel.resolveColumnById(this, 'yLowValue', processedData, 'numeric'),
             xScale,
             yScale,
             xAxisRange,
@@ -1365,8 +1365,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
-        const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData)[datumIndex];
-        const yLowValue = dataModel.resolveColumnById(this, `yLowValue`, processedData)[datumIndex];
+        const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData, 'numeric')[datumIndex];
+        const yLowValue = dataModel.resolveColumnById(this, `yLowValue`, processedData, 'numeric')[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         const allowNullKeys = this.properties.allowNullKeys ?? false;

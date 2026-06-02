@@ -221,11 +221,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             yAxis,
             rawData: processedData.dataSources.get(this.id)?.data ?? [],
             xValues: dataModel.resolveKeysById(this, 'xValue', processedData),
-            minValues: dataModel.resolveColumnById(this, 'minValue', processedData),
-            q1Values: dataModel.resolveColumnById(this, 'q1Value', processedData),
-            medianValues: dataModel.resolveColumnById(this, 'medianValue', processedData),
-            q3Values: dataModel.resolveColumnById(this, 'q3Value', processedData),
-            maxValues: dataModel.resolveColumnById(this, 'maxValue', processedData),
+            minValues: dataModel.resolveColumnById(this, 'minValue', processedData, 'numeric'),
+            q1Values: dataModel.resolveColumnById(this, 'q1Value', processedData, 'numeric'),
+            medianValues: dataModel.resolveColumnById(this, 'medianValue', processedData, 'numeric'),
+            q3Values: dataModel.resolveColumnById(this, 'q3Value', processedData, 'numeric'),
+            maxValues: dataModel.resolveColumnById(this, 'maxValue', processedData, 'numeric'),
             xScale: xAxis.scale,
             yScale: yAxis.scale,
             groupOffset,
@@ -552,11 +552,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
-        const minValue = dataModel.resolveColumnById(this, `minValue`, processedData)[datumIndex];
-        const q1Value = dataModel.resolveColumnById(this, `q1Value`, processedData)[datumIndex];
-        const medianValue = dataModel.resolveColumnById(this, `medianValue`, processedData)[datumIndex];
-        const q3Value = dataModel.resolveColumnById(this, `q3Value`, processedData)[datumIndex];
-        const maxValue = dataModel.resolveColumnById(this, `maxValue`, processedData)[datumIndex];
+        const minValue = dataModel.resolveColumnById(this, `minValue`, processedData, 'numeric')[datumIndex];
+        const q1Value = dataModel.resolveColumnById(this, `q1Value`, processedData, 'numeric')[datumIndex];
+        const medianValue = dataModel.resolveColumnById(this, `medianValue`, processedData, 'numeric')[datumIndex];
+        const q3Value = dataModel.resolveColumnById(this, `q3Value`, processedData, 'numeric')[datumIndex];
+        const maxValue = dataModel.resolveColumnById(this, `maxValue`, processedData, 'numeric')[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         const allowNullKeys = this.properties.allowNullKeys ?? false;

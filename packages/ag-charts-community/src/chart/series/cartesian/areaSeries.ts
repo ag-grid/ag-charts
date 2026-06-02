@@ -578,7 +578,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const invalidData = processedData.invalidData?.get(this.id);
 
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
-        const yValues = dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData);
+        const yValues = dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData, 'numeric');
 
         let [m0, m1] = visibleRangeIndices(1, metaIndices.length - 1, xAxis.range, (metaIndex) => {
             const startIndex = metaIndices[metaIndex];
@@ -749,7 +749,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 
         let xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
-        let yValues = dataModel.resolveColumnById(this, this.yValueKey(), processedData);
+        let yValues = dataModel.resolveColumnById(this, this.yValueKey(), processedData, 'numeric');
 
         const connectMissingData = !this.isStacked() && this.properties.connectMissingData;
 
@@ -821,10 +821,8 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             const dataValid = !missingLeading && !missingTrailing;
 
             if (dataValid) {
-                // isContinuous narrows to include Date/NumberObject, but a number-axis stack only sees
-                // number|bigint here; addAccumulated handles both.
-                leading = addAccumulated(leading, leadingValue as number | bigint);
-                trailing = addAccumulated(trailing, trailingValue as number | bigint);
+                leading = addAccumulated(leading, leadingValue);
+                trailing = addAccumulated(trailing, trailingValue);
             }
 
             if (stackIndex !== 0 && dataValid !== trackingValidData) {
@@ -986,10 +984,10 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             // Data arrays (resolved once)
             rawData: processedData.dataSources.get(this.id)?.data ?? [],
             xValues: dataModel.resolveKeysById(this, 'xValue', processedData),
-            yRawValues: dataModel.resolveColumnById(this, 'yValueRaw', processedData),
+            yRawValues: dataModel.resolveColumnById(this, 'yValueRaw', processedData, 'numeric'),
             yCumulativeValues: stacked
-                ? dataModel.resolveColumnById(this, 'yValueCumulative', processedData)
-                : dataModel.resolveColumnById(this, 'yValueRaw', processedData),
+                ? dataModel.resolveColumnById(this, 'yValueCumulative', processedData, 'numeric')
+                : dataModel.resolveColumnById(this, 'yValueRaw', processedData, 'numeric'),
             selectedValues:
                 selectedKey == null ? undefined : dataModel.resolveColumnById(this, 'selectedRaw', processedData),
             invalidData: processedData.invalidData?.get(this.id),
@@ -1570,7 +1568,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const { xKey, yKey } = this.properties;
 
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData, 'numeric')[datumIndex];
         const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData).domain;
         const yDomain = dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData).domain;
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
@@ -1600,7 +1598,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
 
         const datum = processedData.dataSources.get(this.id)?.data?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData, 'numeric')[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         if (xValue === undefined && !allowNullKeys) return;

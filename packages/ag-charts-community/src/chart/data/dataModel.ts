@@ -18,6 +18,7 @@ import type { DataChangeDescription, DataChangeDescriptionListener } from './dat
 import type {
     AggregatePropertyDefinition,
     BandedReducerStats,
+    ColumnValueCategory,
     DataGroup,
     DataModelOptions,
     GroupDatumIteratorOutput,
@@ -256,12 +257,26 @@ export class DataModel<
         return this.resolvers.hasColumnById(scope, searchId);
     }
 
+    resolveColumnById(
+        scope: ScopeProvider,
+        searchId: string,
+        processedData: UngroupedData<any> | GroupedData<any>,
+        expectedType: ColumnValueCategory
+    ): (number | bigint)[];
     resolveColumnById<T = any>(
         scope: ScopeProvider,
         searchId: string,
         processedData: UngroupedData<any> | GroupedData<any>
-    ): T[] {
-        return this.resolvers.resolveColumnById<T>(scope, searchId, processedData);
+    ): T[];
+    resolveColumnById(
+        scope: ScopeProvider,
+        searchId: string,
+        processedData: UngroupedData<any> | GroupedData<any>,
+        expectedType?: ColumnValueCategory
+    ): any[] {
+        return expectedType == null
+            ? this.resolvers.resolveColumnById(scope, searchId, processedData)
+            : this.resolvers.resolveColumnById(scope, searchId, processedData, expectedType);
     }
 
     resolveColumnNeedsValueOf(

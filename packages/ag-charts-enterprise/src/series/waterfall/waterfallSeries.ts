@@ -19,6 +19,7 @@ import {
     easeOut,
     isContinuous,
     mergeDefaults,
+    subtractValues,
     toNumber,
 } from 'ag-charts-core';
 
@@ -100,11 +101,11 @@ interface WaterfallSeriesNodeDatumContext extends _ModuleSupport.CartesianCreate
     readonly lineStrokeWidth: number;
     readonly yDomain: number[];
     // Data arrays
-    readonly yRawValues: (number | undefined)[];
+    readonly yRawValues: (number | bigint | undefined)[];
     readonly totalTypeValues: (AgWaterfallSeriesItemType | undefined)[];
-    readonly yCurrValues: number[];
-    readonly yPrevValues: number[];
-    readonly yCurrTotalValues: number[];
+    readonly yCurrValues: (number | bigint)[];
+    readonly yPrevValues: (number | bigint)[];
+    readonly yCurrTotalValues: (number | bigint)[];
     // Mutable state for connector line points (built during populateNodeData)
     pointData: WaterfallNodePointDatum[];
 }
@@ -406,15 +407,15 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const yScale = yAxis.scale;
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-        const yRawValues = dataModel.resolveColumnById(this, `yRaw`, processedData);
+        const yRawValues = dataModel.resolveColumnById(this, `yRaw`, processedData, 'numeric');
         const totalTypeValues = dataModel.resolveColumnById<AgWaterfallSeriesItemType | undefined>(
             this,
             `totalTypeValue`,
             processedData
         );
-        const yCurrValues = dataModel.resolveColumnById<number>(this, 'yCurrent', processedData);
-        const yPrevValues = dataModel.resolveColumnById<number>(this, 'yPrevious', processedData);
-        const yCurrTotalValues = dataModel.resolveColumnById<number>(this, 'yCurrentTotal', processedData);
+        const yCurrValues = dataModel.resolveColumnById(this, 'yCurrent', processedData, 'numeric');
+        const yPrevValues = dataModel.resolveColumnById(this, 'yPrevious', processedData, 'numeric');
+        const yCurrTotalValues = dataModel.resolveColumnById(this, 'yCurrentTotal', processedData, 'numeric');
 
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
 
@@ -973,8 +974,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yRaw`, processedData)[datumIndex];
-        const yCurrTotalValues = dataModel.resolveColumnById<number>(this, 'yCurrentTotal', processedData);
+        const yValue = dataModel.resolveColumnById(this, `yRaw`, processedData, 'numeric')[datumIndex];
+        const yCurrTotalValues = dataModel.resolveColumnById(this, 'yCurrentTotal', processedData, 'numeric');
         const totalTypeValues = dataModel.resolveColumnById<AgWaterfallSeriesItemType | undefined>(
             this,
             `totalTypeValue`,
@@ -990,14 +991,14 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const seriesItemType = this.getSeriesItemType(isPositive, datumType);
 
-        let total: number;
+        let total: number | bigint;
         if (this.isTotal(datumType)) {
             total = yCurrTotalValues[datumIndex];
         } else if (this.isSubtotal(datumType)) {
             total = yCurrTotalValues[datumIndex];
             for (let previousIndex = datumIndex - 1; previousIndex >= 0; previousIndex -= 1) {
                 if (this.isSubtotal(totalTypeValues[previousIndex])) {
-                    total = total - yCurrTotalValues[previousIndex];
+                    total = subtractValues(total, yCurrTotalValues[previousIndex]);
                     break;
                 }
             }
