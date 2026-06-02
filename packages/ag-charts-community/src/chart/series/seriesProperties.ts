@@ -125,7 +125,12 @@ export function toSelectionString(state: SelectionState | undefined): PublicSele
 }
 
 export function isUnselected(state: SelectionState | undefined): boolean {
-    if (state === SelectionState.None || state === SelectionState.OtherItem || state == SelectionState.OtherSeries) {
+    if (
+        state === undefined ||
+        state === SelectionState.None ||
+        state === SelectionState.OtherItem ||
+        state === SelectionState.OtherSeries
+    ) {
         // Compile-time check for SelectionState exhaustiveness:
         type ActualComplement = Exclude<SelectionState, typeof state>;
         type ExpectedComplement = SelectionState.Item;

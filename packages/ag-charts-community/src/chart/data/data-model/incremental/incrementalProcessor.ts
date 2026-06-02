@@ -1,6 +1,7 @@
 import { first } from 'ag-charts-core';
 
 import {
+    DataChangeDescription,
     hasNoRemovals,
     hasOnlyRemovals,
     isAppendOnly,
@@ -25,7 +26,7 @@ import {
     type ScopeId,
     type SortOrderEntry,
 } from '../../dataModelTypes';
-import type { DataChangeDescription, DataSet } from '../../dataSet';
+import type { DataSet } from '../../dataSet';
 import type { RangeLookup } from '../../rangeLookup';
 import type { DataModelContext } from '../dataModelContext';
 import type { SpecializedProcessValueFn } from '../domain/processValueFactory';
