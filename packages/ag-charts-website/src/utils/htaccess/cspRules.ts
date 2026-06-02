@@ -67,6 +67,8 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             'https://cdn.jsdelivr.net',
             'https://js.zi-scripts.com', // ZoomInfo tag (injected via GTM)
             'https://*.zoominfo.com', // ZoomInfo FormComplete (trial form)
+            'https://www.google.com', // reCAPTCHA (license-pricing trial form)
+            'https://www.gstatic.com', // reCAPTCHA
             'https://www.youtube.com', // YouTube iframe JS API (loads into the page)
             UNSAFE_INLINE,
             UNSAFE_EVAL,
@@ -93,9 +95,15 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             'https://cdn.jsdelivr.net', // example-runner SystemJS fetches modules as text (XHR)
             'https://js.zi-scripts.com', // ZoomInfo
             'https://*.zoominfo.com', // ZoomInfo
+            'https://www.google.com', // reCAPTCHA (api2/clr XHR)
             trialFormOrigin, // trial-licence form fetch POST
         ],
-        'frame-src': [SELF, 'https://www.googletagmanager.com', 'https://www.youtube.com'],
+        'frame-src': [
+            SELF,
+            'https://www.googletagmanager.com',
+            'https://www.youtube.com',
+            'https://www.google.com', // reCAPTCHA challenge iframe
+        ],
         'media-src': [SELF, 'data:', 'blob:', 'https:'],
         'worker-src': [SELF, 'blob:'],
         'object-src': [NONE],
