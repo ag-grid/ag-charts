@@ -24,6 +24,7 @@ import type {
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import type { Chart } from './chart';
 import type { DataServiceRestoredData } from './data/dataService';
+import { deepCloneDataSet } from './data/dataSetUtil';
 import { InteractionState } from './interaction/interactionManager';
 import type { UpdateZoomSourcing } from './interaction/zoomManager';
 
@@ -162,9 +163,10 @@ export class AgChartInstanceProxy implements AgChartProxy {
         return debug.group('AgChartInstance.applyTransaction()', async () => {
             if (!chart.isDataTransactionSupported()) {
                 // Avoid mutating original data set; it will be compared with in options processing.
-                const dataSet = chart.data.deepClone();
+                const service = chart.ctx.dataSelectionService;
+                const dataSet = deepCloneDataSet(service, chart.data);
                 dataSet.addTransaction(transaction);
-                dataSet.commitPendingTransactions();
+                dataSet.commitPendingTransactions(service);
                 return this.updateDelta({ data: dataSet.data });
             }
 

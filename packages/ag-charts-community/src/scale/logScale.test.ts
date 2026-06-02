@@ -209,4 +209,30 @@ describe('LogScale', () => {
             firstTickIndex: 1,
         });
     });
+
+    // Log scales carry a transform, so bigints narrow to Number through the standard path rather
+    // than the linear bigint ratio — accepted limitation, AG-16608 AC #9.
+    describe('convert bigint', () => {
+        test('positive bigints match the equivalent number conversion', () => {
+            const bigScale = new LogScale();
+            bigScale.domain = [1n, 1000n];
+            bigScale.range = [0, 100];
+
+            const numScale = new LogScale();
+            numScale.domain = [1, 1000];
+            numScale.range = [0, 100];
+
+            for (const v of [1n, 10n, 100n, 1000n]) {
+                expect(bigScale.convert(v)).toBe(numScale.convert(Number(v)));
+            }
+        });
+
+        test('a bigint domain narrows so transform spreading stays Number-only', () => {
+            const scale = new LogScale();
+            scale.domain = [1n, 1000n];
+
+            expect(scale.domain).toEqual([1, 1000]);
+            expect(() => scale.convert(10n)).not.toThrow();
+        });
+    });
 });

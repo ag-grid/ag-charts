@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ChartAxisDirection, deepClone } from 'ag-charts-core';
+import { classCast } from 'ag-charts-test';
 import type {
     AgAreaSeriesMarkerItemStylerParams,
     AgAreaSeriesOptions,
@@ -713,7 +714,7 @@ describe('AreaSeries', () => {
         });
 
         function* iterAreaSectors(myChart: AgChartInstance) {
-            const areaSeries = deproxy(myChart).series[0] as AreaSeries;
+            const areaSeries = classCast(deproxy(myChart).series[0], AreaSeries);
             for (const nodeData of areaSeries.getNodeData() ?? []) {
                 const { x = 0, y = 0 } = nodeData.point ?? {};
                 yield Transformable.toCanvasPoint(areaSeries.contentGroup, x, y);

@@ -33,7 +33,7 @@ describe('DataController', () => {
         const promise1 = controller.request('test1', dataSet, def);
         const promise2 = controller.request('test2', dataSet, def);
 
-        controller.execute();
+        controller.execute(undefined, undefined);
         const results = await Promise.all([promise1, promise2]);
 
         expect(results[0]).toEqual(results[1]);
@@ -75,7 +75,7 @@ describe('DataController', () => {
             ],
         });
 
-        controller.execute();
+        controller.execute(undefined, undefined);
         const results = await Promise.all([promise1, promise2]);
 
         expect(results[0]).toEqual(results[1]);
@@ -116,7 +116,7 @@ describe('DataController', () => {
             ],
         });
 
-        controller.execute();
+        controller.execute(undefined, undefined);
         const results = await Promise.all([promise1, promise2]);
 
         expect(results[0]).not.toEqual(results[1]);
@@ -174,7 +174,7 @@ describe('DataController', () => {
             ],
         });
 
-        controller.execute();
+        controller.execute(undefined, undefined);
         const results = await Promise.all([promise1, promise2]);
 
         const test1ValueProp1DataIdx = results[0].dataModel.resolveProcessedDataDefById(
@@ -243,7 +243,7 @@ describe('DataController', () => {
             ],
         });
 
-        controller.execute();
+        controller.execute(undefined, undefined);
         const results = await Promise.all([promise1]);
 
         expect(results[0].processedData.keys).toEqual([new Map([['test1', [2020, 2021, 2022]]])]);
@@ -283,7 +283,7 @@ describe('DataController', () => {
             const promise1 = controller.request('test1', new DataSet(data1), def);
             const promise2 = controller.request('test2', new DataSet(data2), def);
 
-            controller.execute();
+            controller.execute(undefined, undefined);
             const results = await Promise.all([promise1, promise2]);
 
             expect(results.length).toEqual(2);
@@ -337,7 +337,7 @@ describe('DataController', () => {
                 ],
             });
 
-            controller.execute();
+            controller.execute(undefined, undefined);
             const results = await Promise.all([promise1, promise2]);
 
             expect(results[0].processedData.columns.map((c) => c[0])).toEqual([100]);
@@ -386,7 +386,7 @@ describe('DataController', () => {
                 ],
             });
 
-            controller.execute();
+            controller.execute(undefined, undefined);
             const results = await Promise.all([promise1, promise2]);
 
             expect(results[0].processedData.columns.map((c) => c[0])).toEqual([100, 'key2 100']);
@@ -426,7 +426,7 @@ describe('DataController', () => {
             const promise1 = controller.request('test1', new DataSet(data1), def);
             const promise2 = controller.request('test2', new DataSet(data2), def);
 
-            controller.execute();
+            controller.execute(undefined, undefined);
             const results = await Promise.all([promise1, promise2]);
 
             expect(results[0].processedData.columns).toEqual([[100, 200, 300]]);

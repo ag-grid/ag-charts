@@ -492,8 +492,8 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             getDataModel: () => this.dataModel,
             getProcessedData: () => this.processedData,
             aggregationManager: this.aggregationManager,
+            dataSelectionService: this.ctx.dataSelectionService,
             domainKey: 'key',
-            getSelection: () => this.data?.selections.get(this.id)?.getSelection(),
             canonicalExtremaSlots: [AGGREGATION_INDEX_Y_MAX],
         });
     }

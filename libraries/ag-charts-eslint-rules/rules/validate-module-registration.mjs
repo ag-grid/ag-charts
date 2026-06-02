@@ -12,6 +12,7 @@ import {
     intrinsicDefaults,
     moduleToPackage,
     pluginOptionToModule,
+    polarAxisPluginToModule,
     polarSeriesModules,
     seriesChartType,
     seriesDefaultAxes,
@@ -319,8 +320,8 @@ export default {
                         continue;
                     }
                     const moduleId =
-                        keyName === 'crossLines' && isPolarAxis
-                            ? 'PolarCrossLinesModule'
+                        isPolarAxis && polarAxisPluginToModule.has(keyName)
+                            ? polarAxisPluginToModule.get(keyName)
                             : axisPluginToModule.get(keyName);
                     requireModule(moduleId, `axis option '${keyName}'`, prop);
                 }

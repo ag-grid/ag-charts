@@ -8,10 +8,15 @@ import { Chart } from './chart';
 import { PolarChartAxes } from './chartAxes';
 import type { LayoutContext } from './layout/layoutManager';
 import { PolarSeries, type UnknownPolarSeries } from './series/polar/polarSeries';
+import type { Series } from './series/series';
+import type { SeriesProperties } from './series/seriesProperties';
+import type { DatumIndexType } from './series/seriesTypes';
 
 export class PolarChart extends Chart {
     static override readonly className = 'PolarChart';
     static readonly type = 'polar' as const;
+
+    override series: Series<DatumIndexType, any, any, SeriesProperties<object> & { marker?: { size: number } }>[] = [];
 
     override axes = this.createChartAxes();
     override createChartAxes() {
@@ -48,7 +53,7 @@ export class PolarChart extends Chart {
         for (const series of this.series) {
             maxMarkerSize = Math.max(maxMarkerSize, series.properties.marker?.size ?? 0);
         }
-        for (const series of this.series.filter(isPolarSeries)) {
+        for (const series of filterPolarSeries(this.series)) {
             series.maxChartMarkerSize = maxMarkerSize;
         }
 
@@ -92,7 +97,7 @@ export class PolarChart extends Chart {
     }
 
     private async computeCircle(seriesBox: BBox) {
-        const polarSeries = this.series.filter(isPolarSeries);
+        const polarSeries = filterPolarSeries(this.series);
 
         const setSeriesCircle = (cx: number, cy: number, r: number) => {
             this.updateAxes(seriesBox, cx, cy, r);
@@ -224,6 +229,6 @@ export class PolarChart extends Chart {
     }
 }
 
-function isPolarSeries(series: unknown): series is UnknownPolarSeries {
-    return series instanceof PolarSeries;
+function filterPolarSeries(series: any[]): UnknownPolarSeries[] {
+    return series.filter((s: any): s is UnknownPolarSeries => s instanceof PolarSeries);
 }

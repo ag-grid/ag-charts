@@ -94,6 +94,12 @@ export interface AgTreemapSeriesTileHighlightStyle extends AgTreemapSeriesTileSt
 }
 
 export interface AgTreemapSeriesTileHighlightOptions {
+    /**
+     * Whether highlighting is enabled for tiles.
+     *
+     * Default: `true`
+     */
+    enabled?: boolean;
     /** Style for tiles within the hovered branch. */
     highlightedBranch?: AgTreemapSeriesTileHighlightStyle;
     /** Style for the directly hovered tile. */
@@ -110,6 +116,12 @@ export interface AgTreemapSeriesGroupHighlightStyle extends FillOptions, StrokeO
 }
 
 export interface AgTreemapSeriesGroupHighlightOptions {
+    /**
+     * Whether highlighting is enabled for groups.
+     *
+     * Default: `true`
+     */
+    enabled?: boolean;
     /** Style for the hovered group. */
     highlightedItem?: AgTreemapSeriesGroupHighlightStyle;
     /** Style for groups that are not hovered when another group is active. */

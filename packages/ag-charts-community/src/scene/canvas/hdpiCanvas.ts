@@ -43,7 +43,9 @@ export class HdpiCanvas {
         this.context = this.element.getContext('2d', { willReadFrequently })!;
         this.context.direction = this.direction;
 
-        this.resize(width ?? 0, height ?? 0, this.pixelRatio);
+        // Apply the DPR transform at construction; the first Scene.resize callback may match
+        // the seeded width/height and be short-circuited by the equality check (AG-17372).
+        this.resize(width ?? this.width, height ?? this.height, this.pixelRatio);
 
         debugContext(this.context);
     }

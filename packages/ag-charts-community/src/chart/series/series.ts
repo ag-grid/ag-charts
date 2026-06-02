@@ -59,6 +59,7 @@ import type {
 import type { AxisFormattableLabel } from '../../module/axisContext';
 import type { ChartRegistry, ChartSeriesRegistry } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
+import type { SeriesGrouping } from '../../module/seriesGrouping';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import { type Node, PointerEvents } from '../../scene/node';
@@ -80,7 +81,6 @@ import { mergeMarkerStyles, mergeMarkerStylesPair } from './seriesMarker';
 import type { SeriesMarker } from './seriesMarker';
 import { isUnselected, toHighlightString, toSelectionString } from './seriesProperties';
 import type { SeriesProperties } from './seriesProperties';
-import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import {
     type BucketLookupFeature,
@@ -927,12 +927,9 @@ export abstract class Series<
         return highlightedDatum.datumIndex === datumIndex;
     }
 
-    private getDataSelectionCount(): number {
-        return this.data?.selections?.get(this.id)?.getSelectedCount() ?? 0;
-    }
-
     private hasDataSelection(): boolean {
-        return this.getDataSelectionCount() > 0;
+        const count: number = this.ctx.dataSelectionService?.getDataSetSelection(this)?.getSelectedCount() ?? 0;
+        return count > 0;
     }
 
     public getHighlightStyle(

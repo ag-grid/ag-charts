@@ -37,21 +37,19 @@ DO NOT TOUCH.
 
 <!-- If breaking changes do *not* exist, add the following: -->
 
-There are no breaking changes in AG Charts version {% migrationVersion() %}.
+<!-- There are no breaking changes in AG Charts version {% migrationVersion() %}. -->
 
 <!-- Otherwise -->
-<!--
+
 The full list of breaking changes across all features for version {% migrationVersion() %}.
 
 {% expandingSection headerText="Breaking Changes" %}
+
 This release includes the following breaking changes:
 
-### Breaking changes section Name
-
-- item...
+- `CrossLinesModule` and `PolarCrossLinesModule` must be explicitly registered, if not using module bundles.
 
 {% /expandingSection %}
--->
 
 ## Behaviour Changes
 
@@ -78,20 +76,19 @@ This release includes the following behaviour changes:
 
 <!-- If there are *no* deprecated APIs, add the following: -->
 
-There are no deprecated APIs removed in AG Charts version {% migrationVersion() %}.
+<!-- There are no deprecated APIs removed in AG Charts version {% migrationVersion() %}. -->
 
 <!-- Otherwise: -->
-<!--
+
 The following APIs have been deprecated since version 13 and have now been removed.
 
 {% expandingSection headerText="Removed Deprecated APIs" %}
 
-### Deprecated APIs section Name
+<!-- ### Deprecated APIs section Name -->
 
-- item...
+- `colorRange` is removed from `heatmap`, `treemap`, `sunburst`, `map-marker` and `map-shape` series. Use `colorScale.fills` instead.
 
 {% /expandingSection %}
--->
 
 ## Deprecations
 

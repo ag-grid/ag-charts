@@ -92,6 +92,130 @@ describe('TreemapSeries', () => {
         });
     });
 
+    describe('AG-17377 highlight.enabled', () => {
+        const DATA = [
+            {
+                name: 'Group A',
+                children: [
+                    { name: 'Tile A1', size: 6 },
+                    { name: 'Tile A2', size: 4 },
+                ],
+            },
+            {
+                name: 'Group B',
+                children: [{ name: 'Tile B1', size: 5 }],
+            },
+        ];
+
+        const buildOptions = (tileHighlight: any, groupHighlight: any): AgChartOptions => ({
+            data: DATA,
+            series: [
+                {
+                    type: 'treemap',
+                    labelKey: 'name',
+                    sizeKey: 'size',
+                    colorKey: undefined,
+                    tile: { highlight: { highlightedItem: { fill: 'lime' }, ...tileHighlight } },
+                    group: { highlight: { highlightedItem: { fill: 'cyan' }, ...groupHighlight } },
+                },
+            ],
+            animation: { enabled: false },
+        });
+
+        const createChart = async (tileHighlight: any, groupHighlight: any) => {
+            const options = buildOptions(tileHighlight, groupHighlight);
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            return chart;
+        };
+
+        const nodeAtPath = (series: TreemapSeries, path: number[]): any =>
+            path.reduce<any>((node, idx) => node?.children[idx], (series as any).rootNode);
+
+        // The highlight selection contains only the active highlight node; its rect fill
+        // reflects whatever getItemStyle resolved. 'lime'/'cyan' means the highlight style
+        // applied; any other fill means highlighting was suppressed.
+        const highlightFill = (series: any): string | undefined => {
+            const rect = Array.from(series.highlightSelection.nodes())[0] as any;
+            return rect?.fill;
+        };
+
+        const highlightNodeAndReadFill = async (series: TreemapSeries, path: number[]): Promise<string | undefined> => {
+            const node = nodeAtPath(series, path);
+            (chart as Chart).ctx.highlightManager.updateHighlight(chart.id, node);
+            await waitForChartStability(chart);
+            return highlightFill(series);
+        };
+
+        it('highlights a tile on hover by default (control)', async () => {
+            await createChart({}, {});
+            const series = chart.series[0] as TreemapSeries;
+            expect(await highlightNodeAndReadFill(series, [0, 0])).toEqual('lime');
+        });
+
+        it('suppresses tile highlighting when tile.highlight.enabled is false', async () => {
+            await createChart({ enabled: false }, {});
+            const series = chart.series[0] as TreemapSeries;
+            expect(await highlightNodeAndReadFill(series, [0, 0])).not.toEqual('lime');
+        });
+
+        it('suppresses group highlighting when group.highlight.enabled is false', async () => {
+            await createChart({}, { enabled: false });
+            const series = chart.series[0] as TreemapSeries;
+            expect(await highlightNodeAndReadFill(series, [0])).not.toEqual('cyan');
+        });
+
+        it('highlights only groups when tile.highlight.enabled is false and group.highlight.enabled is true', async () => {
+            await createChart({ enabled: false }, { enabled: true });
+            const series = chart.series[0] as TreemapSeries;
+            expect(await highlightNodeAndReadFill(series, [0])).toEqual('cyan');
+        });
+
+        it('suppresses all highlighting when both tile and group highlight.enabled are false', async () => {
+            await createChart({ enabled: false }, { enabled: false });
+            const series = chart.series[0] as TreemapSeries;
+            expect(await highlightNodeAndReadFill(series, [0, 0])).not.toEqual('lime');
+            expect(await highlightNodeAndReadFill(series, [0])).not.toEqual('cyan');
+        });
+
+        it('still shows tooltips when highlighting is disabled', async () => {
+            const options: AgChartOptions = {
+                data: DATA,
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'size',
+                        colorKey: undefined,
+                        tile: { highlight: { enabled: false } },
+                        group: { highlight: { enabled: false } },
+                        tooltip: { renderer: ({ datum }: any) => datum.name },
+                    },
+                ],
+                tooltip: { range: 'exact' },
+                animation: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const series = chart.series[0] as TreemapSeries;
+            const tileNode = nodeAtPath(series, [0, 0]);
+            const { x, y } = _ModuleSupport.Transformable.toCanvasPoint(
+                (series as any).contentGroup,
+                tileNode.bbox.x + tileNode.bbox.width / 2,
+                tileNode.bbox.y + tileNode.bbox.height / 2
+            );
+            await hoverAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            const tooltip = document.querySelector('.ag-charts-tooltip');
+            expect(tooltip).toBeInstanceOf(HTMLElement);
+            expect(tooltip?.textContent).toEqual('Tile A1');
+        });
+    });
+
     describe('Series Labels', () => {
         const examples = {
             TREEMAP_SERIES_LABELS: {

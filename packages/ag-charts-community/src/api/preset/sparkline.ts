@@ -276,7 +276,22 @@ function gridLinePreset(
     return gridLineOpts;
 }
 
-const tooltipRendererFn = simpleMemorize((context: any, tooltip?: AgSparklineTooltip<any>, datumKey?: string) => {
+// The x value is prepended to the default content only when it is both meaningful and
+// has somewhere to go, matching the Grid's historical sparkline default tooltip:
+//  - `datumKey === 'y'` marks number-array input, where x is a synthesised index — omit it.
+//  - a user-supplied title takes the label slot, leaving the value as y-only.
+// y is rendered raw (no `.toFixed(2)`) to match that Grid default.
+const defaultTooltipContent = (
+    xValue: unknown,
+    yValue: unknown,
+    datumKey: string | undefined,
+    hasUserTitle: boolean
+): string => {
+    const showXValue = !hasUserTitle && datumKey !== 'y' && xValue != null;
+    return showXValue ? `${String(xValue)} ${String(yValue)}` : String(yValue);
+};
+
+const tooltipRendererFn = simpleMemorize((tooltip?: AgSparklineTooltip<any>, datumKey?: string) => {
     return (
         params: AgBarSeriesTooltipRendererParams | AgLineSeriesTooltipRendererParams | AgAreaSeriesTooltipRendererParams
     ): AgTooltipRendererResult | string => {
@@ -284,17 +299,17 @@ const tooltipRendererFn = simpleMemorize((context: any, tooltip?: AgSparklineToo
         const yValue = params.datum[params.yKey];
         const datum = datumKey == null ? params.datum : params.datum[datumKey];
 
-        const userContent = tooltip?.renderer?.({ context, datum, xValue, yValue });
+        // Read `context` from params (set per-chart by `callWithContext`) rather than
+        // capturing it at wrap time, so the structural cache can share this wrapper.
+        const userContent = tooltip?.renderer?.({ context: params.context, datum, xValue, yValue });
 
         if (isString(userContent) || isNumber(userContent) || isDate(userContent)) {
             return toTextString(userContent);
         }
 
-        // `userContent === undefined` (renderer absent or returning `undefined`) falls through
-        // naturally: optional chaining on `userContent?.content` / `userContent?.title` yields
-        // undefined and the default `yValue.toFixed(2)` content is used. Per the Renderer<P, R>
-        // contract this is the documented "fall through to default" behaviour.
-        const content = userContent?.content ?? yValue.toFixed(2);
+        // Absent renderer or one returning `undefined` falls through to the default content.
+        const hasUserTitle = userContent?.title != null;
+        const content = userContent?.content ?? defaultTooltipContent(xValue, yValue, datumKey, hasUserTitle);
 
         return userContent?.title
             ? {
@@ -338,6 +353,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     const chartOpts: AgCartesianChartOptions & SparklineUndocumentedProperties = {
         background,
         container,
+        context,
         foreground,
         height,
         listeners: listeners as AgCartesianChartOptions['listeners'],
@@ -358,7 +374,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     }
     seriesConfig.tooltip = {
         ...tooltip,
-        renderer: tooltipRendererFn(context, tooltip, datumKey),
+        renderer: tooltipRendererFn(tooltip, datumKey),
     };
 
     chartOpts.theme = setInitialBaseTheme(baseTheme, SPARKLINE_THEME) as AgChartTheme; // TODO: Remove cast when `WithThemeParams` is public

@@ -10,6 +10,7 @@ import {
     kebabCase,
     setAttribute,
     stopPageScrolling,
+    strictObjectKeys,
 } from 'ag-charts-core';
 import type { AgChartThemeParams } from 'ag-charts-types';
 
@@ -34,6 +35,7 @@ const DOM_ELEMENT_CLASSES = [
     'canvas-proxy',
     'series-area',
     'tooltip-container',
+    'style-sensors',
 ] as const;
 const MINIMAL_DOM_ELEMENT_ROLES = new Set(['styles', 'canvas-container', 'canvas', 'tooltip-container']);
 const CONTAINER_MODIFIERS = {
@@ -186,7 +188,8 @@ export class DOMManager extends BaseManager {
         initialContainer?: HTMLElement,
         private readonly styleContainer?: HTMLElement,
         private readonly skipCss?: boolean,
-        readonly mode: 'normal' | 'minimal' = 'normal'
+        readonly mode: 'normal' | 'minimal' = 'normal',
+        readonly cssVariables?: Record<string, string>
     ) {
         super();
 
@@ -219,6 +222,8 @@ export class DOMManager extends BaseManager {
 
         this.cleanup.register(stopPageScrolling(this.element));
         this.setupGlobalListeners();
+
+        this.updateCSSVariableWatchers(cssVariables);
 
         if (this.mode === 'normal') {
             const guardedElement = this.rootElements['canvas-center'].element;
@@ -892,6 +897,41 @@ export class DOMManager extends BaseManager {
             window.removeEventListener('resize', invalidateRects, { capture: true });
             document.removeEventListener('fullscreenchange', invalidateAll);
         });
+    }
+
+    updateCSSVariableWatchers(cssVariables?: Record<string, string>) {
+        if (!cssVariables) return;
+
+        const existingWatchers = new Set();
+        for (let i = 0; i < this.element.children.length; i++) {
+            const child = this.element.children.item(i) as HTMLElement | null;
+            if (child?.dataset.variableName != null) {
+                existingWatchers.add(child.dataset.variableName);
+            }
+        }
+
+        for (const key of strictObjectKeys(cssVariables)) {
+            const property = key.slice(4, -1);
+            if (existingWatchers.has(property)) continue;
+
+            const styleElement = createElement('style');
+            styleElement.dataset.variableName = property;
+            styleElement.textContent = `@property ${property} { syntax: '<color>'; inherits: true; initial-value: transparent; }`;
+            this.element.prepend(styleElement);
+
+            const sensorElement = createElement('div', { transition: `${property} 1ms` });
+            this.rootElements['style-sensors'].element.appendChild(sensorElement);
+
+            const handleTransitionEnd = () => {
+                this.eventsHub.emit('chart:request-refresh', null);
+            };
+            sensorElement.addEventListener('transitionend', handleTransitionEnd);
+            this.cleanup.register(() => {
+                sensorElement.removeEventListener('transitionend', handleTransitionEnd);
+                sensorElement.remove();
+                styleElement.remove();
+            });
+        }
     }
 
     private updateContainerClassName() {

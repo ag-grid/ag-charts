@@ -46,7 +46,7 @@ describe('HierarchyDataSet', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'nonExistent', 'children');
             ds.addTransaction({ remove: [{ nonExistent: 'x' } as any] });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
             expectWarningMessages(["AG Charts - dataIdKey 'nonExistent' was not found on any data item."]);
         });
 
@@ -54,7 +54,7 @@ describe('HierarchyDataSet', () => {
             const data = createTestData();
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children');
             ds.addTransaction({ update: [{ id: 'eng-fe', name: 'Frontend', value: 50 }] });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
             expect(ds.data[0].children![0].value).toBe(50);
             expectWarningMessages([]);
         });
@@ -67,7 +67,7 @@ describe('HierarchyDataSet', () => {
 
             const updatedEng = { ...data[0], name: 'Engineering Dept' };
             ds.addTransaction({ update: [updatedEng] });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
 
             expect(ds.data[0].name).toBe('Engineering Dept');
             expect(ds.data.length).toBe(3);
@@ -79,7 +79,7 @@ describe('HierarchyDataSet', () => {
 
             const updatedLeaf = { id: 'eng-fe', name: 'Frontend', value: 50 };
             ds.addTransaction({ update: [updatedLeaf] });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
 
             // Root array unchanged
             expect(ds.data.length).toBe(3);
@@ -97,7 +97,7 @@ describe('HierarchyDataSet', () => {
                     { id: 'sales-eu', name: 'Europe', value: 77 },
                 ],
             });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
 
             expect(ds.data[0].children![1].value).toBe(99);
             expect(ds.data[1].children![1].value).toBe(77);
@@ -111,7 +111,7 @@ describe('HierarchyDataSet', () => {
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children');
 
             ds.addTransaction({ remove: [{ id: 'ops' } as TreeItem] });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
 
             expect(ds.data.length).toBe(2);
             expect(ds.data.map((d) => d.id)).toEqual(['eng', 'sales']);
@@ -122,7 +122,7 @@ describe('HierarchyDataSet', () => {
             const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children');
 
             ds.addTransaction({ remove: [{ id: 'eng-infra' } as TreeItem] });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
 
             // Root array unchanged
             expect(ds.data.length).toBe(3);
@@ -138,7 +138,7 @@ describe('HierarchyDataSet', () => {
             ds.addTransaction({
                 remove: [{ id: 'eng-fe' } as TreeItem, { id: 'sales-na' } as TreeItem],
             });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
 
             expect(ds.data[0].children!.length).toBe(2);
             expect(ds.data[1].children!.length).toBe(1);
@@ -154,7 +154,7 @@ describe('HierarchyDataSet', () => {
             const newLeaf = { id: 'eng-new', name: 'New Team', value: 10 };
             data[0].children!.push(newLeaf);
             ds.addTransaction({ add: [newLeaf] });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
 
             // Should NOT appear at root level (only in children)
             expect(ds.data.length).toBe(3);
@@ -168,7 +168,7 @@ describe('HierarchyDataSet', () => {
 
             const newDept = { id: 'marketing', name: 'Marketing', children: [] };
             ds.addTransaction({ add: [newDept] });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
 
             expect(ds.data.length).toBe(4);
             expect(ds.data[3].id).toBe('marketing');
@@ -185,7 +185,7 @@ describe('HierarchyDataSet', () => {
             const newRoot = { id: 'legal', name: 'Legal Dept', children: [] };
 
             ds.addTransaction({ add: [nestedLeaf, newRoot] });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
 
             // nestedLeaf should not appear at root (it's nested under ops)
             // newRoot should appear at root
@@ -205,7 +205,7 @@ describe('HierarchyDataSet', () => {
                 update: [{ id: 'eng-fe', name: 'Frontend', value: 100 }],
                 remove: [{ id: 'eng-infra' } as TreeItem],
             });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
 
             expect(ds.data[0].children![0].value).toBe(100);
             expect(ds.data[0].children!.length).toBe(2);
@@ -220,12 +220,12 @@ describe('HierarchyDataSet', () => {
 
             // First transaction: update eng-fe
             ds.addTransaction({ update: [{ id: 'eng-fe', name: 'Frontend', value: 50 }] });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
             expect(ds.data[0].children![0].value).toBe(50);
 
             // Second transaction: update eng-be (exercises cache rebuild after first commit)
             ds.addTransaction({ update: [{ id: 'eng-be', name: 'Backend', value: 99 }] });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
             expect(ds.data[0].children![0].value).toBe(50);
             expect(ds.data[0].children![1].value).toBe(99);
             expect(ds.data.length).toBe(3);
@@ -237,12 +237,12 @@ describe('HierarchyDataSet', () => {
 
             // First: remove a nested item
             ds.addTransaction({ remove: [{ id: 'eng-infra' } as TreeItem] });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
             expect(ds.data[0].children!.length).toBe(2);
 
             // Second: update a remaining nested item (cache must reflect removal)
             ds.addTransaction({ update: [{ id: 'eng-be', name: 'Backend', value: 200 }] });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
             expect(ds.data[0].children![1].value).toBe(200);
             expect(ds.data[0].children!.length).toBe(2);
         });
@@ -255,12 +255,12 @@ describe('HierarchyDataSet', () => {
             const newLeaf = { id: 'eng-new', name: 'New Team', value: 10 };
             data[0].children!.push(newLeaf);
             ds.addTransaction({ add: [newLeaf] });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
             expect(ds.data.length).toBe(3);
 
             // Second: update the newly added nested item (cache must be valid after dedup splice)
             ds.addTransaction({ update: [{ id: 'eng-new', name: 'New Team', value: 42 }] });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
             expect(ds.data[0].children![3].value).toBe(42);
             expect(ds.data.length).toBe(3);
         });
@@ -278,7 +278,7 @@ describe('HierarchyDataSet', () => {
 
             // This should NOT emit a warning and should leave data consistent
             ds.addTransaction({ remove: [removed] });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
 
             expect(ds.data.length).toBe(3);
             expect(ds.data[0].children!.length).toBe(2);
@@ -296,7 +296,7 @@ describe('HierarchyDataSet', () => {
             ds.addTransaction({ add: [newDept], addIndex: 1 });
             // Remove the same item before committing
             ds.addTransaction({ remove: [newDept] });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
 
             // Net result: no change — item should not appear in data
             expect(ds.data.length).toBe(3);
@@ -309,7 +309,7 @@ describe('HierarchyDataSet', () => {
 
             const newDept = { id: 'new-mid', name: 'Mid Dept', children: [] };
             ds.addTransaction({ add: [newDept], addIndex: 1 });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
 
             expect(ds.data.length).toBe(4);
             expect(ds.data[1].id).toBe('new-mid');
@@ -323,7 +323,7 @@ describe('HierarchyDataSet', () => {
 
             const newItem = { id: 'new', name: 'New', value: 1 };
             ds.addTransaction({ add: [newItem] });
-            ds.commitPendingTransactions();
+            ds.commitPendingTransactions(undefined);
 
             // Without dataIdKey, deduplication doesn't apply
             expect(ds.data.length).toBe(4);

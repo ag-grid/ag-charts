@@ -28,6 +28,12 @@ export interface AgSunburstSeriesHighlightStyle extends AgSunburstSeriesStyle {
 }
 
 export interface AgSunburstSeriesHighlightOptions {
+    /**
+     * Whether highlighting is enabled.
+     *
+     * Default: `true`
+     */
+    enabled?: boolean;
     /** Style for nodes within the hovered branch. */
     highlightedBranch?: AgSunburstSeriesHighlightStyle;
     /** Style for the directly hovered node. */

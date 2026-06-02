@@ -1,0 +1,5 @@
+body {
+    --custom-variable: red;
+    --custom-variable-2: yellow;
+    --custom-variable-3: orange;
+}

@@ -33,7 +33,6 @@ import type {
 } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../core/eventsHub';
-import type { DataSelectionState } from './data/dataSelectionState';
 import type { CategoryLegendDatum } from './legend/legendDatum';
 
 export type NormalisedBackgroundOptions = AgChartBackground & { visible: boolean; fill: string };
@@ -217,5 +216,4 @@ export interface ChartState {
     legendVisible: boolean;
     zoom: ZoomState | undefined;
     initialZoom: ZoomState | undefined;
-    selectionState: DataSelectionState | undefined;
 }

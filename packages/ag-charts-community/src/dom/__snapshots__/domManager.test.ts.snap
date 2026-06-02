@@ -69,6 +69,11 @@ exports[`DOMManager > for disconnected container cases > should initialize the e
       class="ag-charts-tab-guard"
     />
     
+    
+    <div
+      class="ag-charts-style-sensors"
+    />
+    
 
     <style
       data-ag-charts="ag-charts-community"
@@ -151,6 +156,11 @@ exports[`DOMManager > for normal container cases > should initialize the expecte
     </div>
     <div
       class="ag-charts-tab-guard"
+    />
+    
+    
+    <div
+      class="ag-charts-style-sensors"
     />
     
 
@@ -240,6 +250,11 @@ exports[`DOMManager > for shadow-DOM container cases > should initialize the exp
     </div>
     <div
       class="ag-charts-tab-guard"
+    />
+    
+    
+    <div
+      class="ag-charts-style-sensors"
     />
     
 

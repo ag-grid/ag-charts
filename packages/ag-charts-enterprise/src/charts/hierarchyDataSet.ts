@@ -2,6 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
 type TransactionCollectionState<T> = _ModuleSupport.TransactionCollectionState<T>;
+type DataChangeDescriptionListener = _ModuleSupport.DataChangeDescriptionListener;
 
 const { DataSet } = _ModuleSupport;
 
@@ -24,8 +25,8 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
      * to a parent's children array and also calls applyTransaction({ add: [item] }),
      * which would otherwise duplicate the item at root level.
      */
-    override commitPendingTransactions(): boolean {
-        const result = super.commitPendingTransactions();
+    override commitPendingTransactions(changeDescriptionListener: DataChangeDescriptionListener | undefined): boolean {
+        const result = super.commitPendingTransactions(changeDescriptionListener);
         if (result && this.dataIdKey) {
             this.removeNestedDuplicatesFromRoot();
             // Invalidate after structural changes — splice may shift root indices.
@@ -64,7 +65,7 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
     }
 
     /** Recursively indexes all items (root and nested) by ID, mapping each to the root ancestor's index. */
-    protected override getIdToIndexMap(): Map<string | number, number> {
+    public override getIdToIndexMap(): Map<string | number, number> {
         if (this.idToIndexCache === undefined) {
             this.idToIndexCache = new Map();
             for (let i = 0; i < this.data.length; i++) {

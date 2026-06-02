@@ -13,6 +13,11 @@ export function formatValue(value: unknown, maximumFractionDigits: number = 2): 
     if (typeof value === 'number') {
         return formatNumber(value, maximumFractionDigits);
     }
+    if (typeof value === 'bigint') {
+        // Full-precision locale-grouped output (e.g. "9,007,199,254,740,993") for the default
+        // tooltip / label path, without narrowing through Number (AG-16608 AC #7).
+        return value.toLocaleString('en-US');
+    }
     return typeof value === 'string' ? value : String(value ?? '');
 }
 

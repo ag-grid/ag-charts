@@ -2,6 +2,7 @@ import {
     ChartAxisDirection,
     type ChartModuleDefinition,
     type CloneOptions,
+    Color,
     Debug,
     type DeepPartial,
     Logger,
@@ -56,8 +57,15 @@ import {
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
-import { type OptionsGraphAccessor, createOptionsGraph, createOptionsGraphFn } from './optionsGraph';
-import { computeStructuralCacheKey, getStructuralCacheEntry, setStructuralCacheEntry } from './optionsStructuralCache';
+import { type OptionsGraphAccessor, createOptionsGraph, createOptionsGraphMemoised } from './optionsGraph';
+import {
+    type StructuralCacheEntry,
+    VOLATILE_KEYS,
+    computeStructuralCacheKey,
+    getStructuralCacheEntry,
+    setStructuralCacheEntry,
+} from './optionsStructuralCache';
+import type { SeriesGrouping } from './seriesGrouping';
 
 export interface ChartSpecialOverrides {
     document: Document;
@@ -77,12 +85,7 @@ type GroupingOptions = {
     grouped?: boolean;
     stacked?: boolean;
     stackGroup?: string;
-    seriesGrouping?: {
-        groupIndex: number;
-        groupCount: number;
-        stackIndex: number;
-        stackCount: number;
-    };
+    seriesGrouping?: SeriesGrouping;
 };
 type GroupingSeriesOptions = GroupingOptions & { type: SeriesType; xKey?: string };
 type SeriesGroup = { groupType: GroupingType; seriesType: string; series: GroupingSeriesOptions[]; groupId: string };
@@ -117,7 +120,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private static readonly perfDebug = Debug.create(true, 'perf');
 
-    private static readonly FAST_PATH_OPTIONS = new Set<keyof AgChartOptions>(['data', 'width', 'height', 'container']);
+    private static readonly FAST_PATH_OPTIONS = new Set<keyof AgChartOptions>([
+        'data',
+        'width',
+        'height',
+        'container',
+        // `context` is a pass-through consumed only at callback time; no preset/theme
+        // processing branches on it, so context-only deltas can take the fast path.
+        'context',
+    ]);
     private static isFastPathDelta(deltaOptions: DeepPartial<AgChartOptions> | null) {
         for (const key of Object.keys(deltaOptions ?? {})) {
             if (!this.FAST_PATH_OPTIONS.has(key as keyof AgChartOptions)) {
@@ -147,6 +158,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         indices: Set<number>;
     }; // AG-16360
     userDeltaKeys?: Set<string>; // AG-16389: Track keys the user passed in deltaOptions
+    processedCSSVariables?: Record<string, string>;
 
     private static readonly debug = Debug.create(true, 'opts');
 
@@ -158,6 +170,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         metadata: ChartInternalOptionMetadata,
         deltaOptions?: DeepPartial<T> | null,
         stripSymbols = false,
+        refreshCSSVariables = false,
         apiStartTime?: number
     ) {
         this.optionMetadata = metadata ?? {};
@@ -208,6 +221,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         let activeTheme, processedOptions, fastDelta, themeParameters, annotationThemes, googleFonts, optionsGraph;
         if (
             !stripSymbols &&
+            !refreshCSSVariables &&
             this.seriesWithUserVisibility == undefined &&
             deltaOptions !== undefined &&
             ChartOptions.isFastPathDelta(deltaOptions) &&
@@ -303,30 +317,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (cacheKey !== undefined) {
             const cached = getStructuralCacheEntry(cacheKey);
             if (cached) {
-                const activeTheme = sanitizeThemeModules(getChartTheme((this.userOptions as any).theme));
-                this.chartDef = cached.chartDef;
-                // Re-run the preset's data transform on this chart's data — the cached
-                // processedOptions has `data` stripped to prevent aliasing.
-                const presetDef =
-                    this.optionMetadata.presetType == null
-                        ? undefined
-                        : ModuleRegistry.getPresetModule(this.optionMetadata.presetType);
-                const userData = (this.userOptions as any).data;
-                const resolvedData = presetDef?.processData ? presetDef.processData(userData).data : userData;
-                // Shallow-clone the top level only — the existing dev-mode deepFreeze on
-                // ChartOptions has confirmed no path mutates nested processedOptions, and
-                // sharing frozen nested refs across charts is the whole point of the cache.
-                const processedOptions = { ...(cached.processedOptions as object), data: resolvedData } as T;
-                // Un-memoized graph — each chart needs its own resolution state for stylers' resolvePartial.
-                const optionsGraph = createOptionsGraphFn(activeTheme, processedOptions as PlainObject);
-                return {
-                    activeTheme,
-                    processedOptions,
-                    themeParameters: cached.themeParameters,
-                    annotationThemes: cached.annotationThemes,
-                    googleFonts: cached.googleFonts ? new Set(cached.googleFonts) : undefined,
-                    optionsGraph,
-                };
+                return this.slowSetupCached(cached);
             }
         }
 
@@ -411,7 +402,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.processSeriesOptions(options);
         const unmappedAxisKeys = this.processAxesOptions(options, chartType);
 
-        const optionsGraph = createOptionsGraph(activeTheme, options);
+        if (this.optionMetadata.presetType !== 'sparkline') {
+            this.processedCSSVariables = this.processCSSVariables(options);
+        }
+
+        const optionsGraph = createOptionsGraphMemoised(activeTheme, options, this.processedCSSVariables);
         const resolvedOptions = optionsGraph.resolve() as any;
         const themeParameters = optionsGraph.resolveParams();
         const annotationThemes = optionsGraph.resolveAnnotationThemes();
@@ -439,9 +434,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
         if (cacheKey !== undefined) {
-            const { data: _cachedData, ...processedOptionsWithoutData } = processedOptions as Record<string, unknown>;
+            // Strip `data` and VOLATILE_KEYS before caching; the read path re-attaches them.
+            const { data: _cachedData, ...rest } = processedOptions as Record<string, unknown>;
+            for (const key of VOLATILE_KEYS) {
+                delete rest[key];
+            }
             setStructuralCacheEntry(cacheKey, {
-                processedOptions: processedOptionsWithoutData,
+                processedOptions: rest,
                 themeParameters,
                 googleFonts: googleFonts.size > 0 ? new Set(googleFonts) : undefined,
                 annotationThemes,
@@ -461,6 +460,48 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Delta updates take a different path (fastSetup); cache targets cold creation only.
         if (deltaOptions) return undefined;
         return computeStructuralCacheKey(this.userOptions);
+    }
+
+    private slowSetupCached(cached: StructuralCacheEntry) {
+        const activeTheme = sanitizeThemeModules(getChartTheme((this.userOptions as any).theme));
+        this.chartDef = cached.chartDef;
+
+        // Re-run the preset's data transform on this chart's data — the cached
+        // processedOptions has `data` stripped to prevent aliasing.
+        const presetDef =
+            this.optionMetadata.presetType == null
+                ? undefined
+                : ModuleRegistry.getPresetModule(this.optionMetadata.presetType);
+        const userData = (this.userOptions as any).data;
+        const resolvedData = presetDef?.processData ? presetDef.processData(userData).data : userData;
+
+        // Shallow-clone the top level only — the existing dev-mode deepFreeze on
+        // ChartOptions has confirmed no path mutates nested processedOptions, and
+        // sharing frozen nested refs across charts is the whole point of the cache.
+        // Re-attach VOLATILE_KEYS from this chart's `userOptions` (see their definition).
+        const userOpts = this.userOptions as Record<string, unknown>;
+        const processedOptions = { ...(cached.processedOptions as object), data: resolvedData } as T;
+        for (const key of VOLATILE_KEYS) {
+            if (key in userOpts) {
+                (processedOptions as any)[key] = userOpts[key];
+            }
+        }
+
+        if (this.optionMetadata.presetType !== 'sparkline') {
+            this.processedCSSVariables = this.processCSSVariables(processedOptions);
+        }
+
+        // Un-memoized graph — each chart needs its own resolution state for stylers' resolvePartial.
+        const optionsGraph = createOptionsGraph(activeTheme, processedOptions as PlainObject);
+
+        return {
+            activeTheme,
+            processedOptions,
+            themeParameters: cached.themeParameters,
+            annotationThemes: cached.annotationThemes,
+            googleFonts: cached.googleFonts ? new Set(cached.googleFonts) : undefined,
+            optionsGraph,
+        };
     }
 
     private validatePluginOptions(options: T, params: ValidateParams = {}) {
@@ -1328,6 +1369,44 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private removeLeftoverSymbols(options: Partial<T>) {
         jsonWalk(options, ChartOptions.removeLeftoverSymbolsJson, new Set(['data']));
+    }
+
+    private static processCSSVariablesJSON(
+        this: void,
+        optionsNode: any,
+        _parallelNode: any,
+        container: HTMLElement | undefined,
+        processedCSSVariables: Record<string, string> | undefined
+    ) {
+        processedCSSVariables ??= {};
+
+        if (!optionsNode || !isObject(optionsNode) || !container) {
+            return processedCSSVariables;
+        }
+
+        for (const key of Object.keys(optionsNode)) {
+            const value = optionsNode[key];
+            if (typeof value !== 'string' || !value.startsWith('var(--')) continue;
+
+            const propertyKey = value.slice(4, -1);
+
+            // Only process external css variables.
+            if (propertyKey.startsWith('--ag-charts')) continue;
+
+            // Only process color values.
+            const propertyValue = getComputedStyle(container).getPropertyValue(propertyKey);
+            if (!Color.validColorString(propertyValue)) continue;
+
+            processedCSSVariables[value] ??= propertyValue;
+        }
+
+        return processedCSSVariables;
+    }
+
+    private processCSSVariables(options: Partial<T>) {
+        if (options.container == null) return;
+
+        return jsonWalk(options, ChartOptions.processCSSVariablesJSON, new Set(['data']), undefined, options.container);
     }
 
     private specialOverridesDefaults(options: Partial<ChartSpecialOverrides>) {

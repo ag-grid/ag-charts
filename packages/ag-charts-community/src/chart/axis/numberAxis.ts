@@ -53,7 +53,10 @@ export class NumberAxis<
     }
 
     protected getVisibleDomain(domain: number[]): [number, number] {
-        const [d0, d1] = domain;
+        // Narrow to Number: a bigint domain reaches here as formatter-context metadata only — the tick
+        // label itself carries the exact bigint value, so this range context can narrow safely.
+        const d0 = Number(domain[0]);
+        const d1 = Number(domain[1]);
         const [r0, r1] = this.visibleRange;
         const length = d1 - d0;
         return [d0 + r0 * length, d1 - (1 - r1) * length];

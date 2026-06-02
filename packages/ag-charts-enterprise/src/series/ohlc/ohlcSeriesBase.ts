@@ -350,8 +350,8 @@ export abstract class OhlcSeriesBase<
             getDataModel: () => this.dataModel,
             getProcessedData: () => this.processedData,
             aggregationManager: this.aggregationManager,
+            dataSelectionService: this.ctx.dataSelectionService,
             domainKey: 'key',
-            getSelection: () => this.data?.selections.get(this.id)?.getSelection(),
         });
     }
 

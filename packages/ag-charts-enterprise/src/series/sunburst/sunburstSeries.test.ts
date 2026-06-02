@@ -84,6 +84,98 @@ describe('SunburstSeries', () => {
         });
     });
 
+    describe('AG-17377 highlight.enabled', () => {
+        const DATA = [
+            {
+                name: 'Group A',
+                children: [
+                    { name: 'Leaf A1', size: 6 },
+                    { name: 'Leaf A2', size: 4 },
+                ],
+            },
+            { name: 'Group B', children: [{ name: 'Leaf B1', size: 5 }] },
+        ];
+
+        const createChart = async (highlight: any) => {
+            const options: AgChartOptions = {
+                data: DATA,
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'size',
+                        colorKey: undefined,
+                        highlight: { highlightedItem: { fill: 'lime' }, ...highlight },
+                    },
+                ],
+                animation: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            return chart;
+        };
+
+        const highlightLeafFill = async (series: SunburstSeries): Promise<string | undefined> => {
+            const leaf = (series as any).rootNode.children[0].children[0];
+            (chart as Chart).ctx.highlightManager.updateHighlight(chart.id, leaf);
+            await waitForChartStability(chart);
+            const node = Array.from((series as any).highlightSelection.nodes())[0] as any;
+            return node?.fill;
+        };
+
+        it('highlights a node on hover by default (control)', async () => {
+            await createChart({});
+            const series = chart.series[0] as SunburstSeries;
+            expect(await highlightLeafFill(series)).toEqual('lime');
+        });
+
+        it('suppresses all highlighting when highlight.enabled is false', async () => {
+            await createChart({ enabled: false });
+            const series = chart.series[0] as SunburstSeries;
+            expect(await highlightLeafFill(series)).not.toEqual('lime');
+        });
+
+        it('still shows tooltips when highlighting is disabled', async () => {
+            const options: AgChartOptions = {
+                data: DATA,
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'size',
+                        colorKey: undefined,
+                        highlight: { enabled: false },
+                        tooltip: { renderer: ({ datum }: any) => datum.name },
+                    },
+                ],
+                animation: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const series = chart.series[0] as SunburstSeries;
+            const sectors = Array.from((series as any).sectorGroup.children());
+            const leaf = sectors.find((s: any) => (s.datum?.depth ?? -1) === 1) as any;
+            expect(leaf).toBeDefined();
+            const { centerX, centerY, innerRadius, outerRadius, startAngle, endAngle } = leaf;
+            const r = (innerRadius + outerRadius) / 2;
+            const theta = (startAngle + endAngle) / 2;
+            const { x, y } = _ModuleSupport.Transformable.toCanvasPoint(
+                (series as any).contentGroup,
+                centerX + r * Math.cos(theta),
+                centerY + r * Math.sin(theta)
+            );
+            await hoverAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            const tooltip = document.querySelector('.ag-charts-tooltip');
+            expect(tooltip).toBeInstanceOf(HTMLElement);
+            expect(tooltip?.textContent?.length).toBeGreaterThan(0);
+        });
+    });
+
     describe('Series Labels', () => {
         const examples = {
             SUNBURST_SERIES_LABELS: {

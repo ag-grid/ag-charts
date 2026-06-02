@@ -94,6 +94,9 @@ export const axisPluginToModule = new Map([
     ['bandHighlight', 'BandHighlightModule'],
 ]);
 
+// Polar-specific overrides for axisPluginToModule
+export const polarAxisPluginToModule = new Map([['crossLines', 'PolarCrossLinesModule']]);
+
 // Nested series plugin option → Module ID
 export const seriesPluginToModule = new Map([['errorBar', 'ErrorBarsModule']]);
 
@@ -246,6 +249,7 @@ export const enterpriseModules = new Set([
     'ErrorBarsModule',
     'GradientLegendModule',
     'NavigatorModule',
+    'PolarCrossLinesModule',
     'RangesModule',
     'ScrollbarModule',
     'SelectionModule',

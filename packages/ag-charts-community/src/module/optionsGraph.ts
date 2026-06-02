@@ -57,8 +57,12 @@ export interface OptionsGraphAccessorResolvePartialOptions {
     proxyPaths?: Record<string, Array<string>>;
 }
 
-export const createOptionsGraph = simpleMemorize(createOptionsGraphFn);
-export function createOptionsGraphFn(theme: ChartTheme, options: PlainObject): OptionsGraphAccessor {
+export const createOptionsGraphMemoised = simpleMemorize(createOptionsGraph);
+export function createOptionsGraph(
+    theme: ChartTheme,
+    options: PlainObject,
+    cssVariables?: Record<string, string>
+): OptionsGraphAccessor {
     return debug.group('OptionsGraph.constructor()', () => {
         const optionsGraph = new OptionsGraph(
             theme.config,
@@ -66,7 +70,8 @@ export function createOptionsGraphFn(theme: ChartTheme, options: PlainObject): O
             theme.params,
             theme.palette,
             theme.overrides,
-            theme.getTemplateParameters()
+            theme.getTemplateParameters(),
+            cssVariables
         );
 
         return {
@@ -176,7 +181,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         params: PlainObject | undefined = undefined,
         public readonly palette: PlainObject = {},
         private readonly overrides: PlainObject | undefined = undefined,
-        private readonly internalParams: Map<unknown, unknown> = new Map()
+        private readonly internalParams: Map<unknown, unknown> = new Map(),
+        private readonly cssVariables: Record<string, string> = {}
     ) {
         super({
             cachedNeighboursEdge: PATH_EDGE,
@@ -1202,7 +1208,15 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     }
 
     private resolveValueOrSymbol(value: unknown) {
-        return typeof value === 'symbol' && this.internalParams?.has(value) ? this.internalParams.get(value) : value;
+        if (typeof value === 'symbol' && this.internalParams?.has(value)) {
+            return this.internalParams.get(value);
+        }
+
+        if (typeof value === 'string' && value in this.cssVariables) {
+            return this.cssVariables[value];
+        }
+
+        return value;
     }
 
     private snapshot() {

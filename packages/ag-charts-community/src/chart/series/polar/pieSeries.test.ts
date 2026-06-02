@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
+import { classCast } from 'ag-charts-test';
 import type { AgChartOptions, AgPieSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
@@ -31,7 +32,7 @@ import {
 import { PieSeries } from './pieSeries';
 
 function* iterPieSectors(myChart: Chart) {
-    const pieSeries = deproxy(myChart).series[0] as PieSeries;
+    const pieSeries = classCast(deproxy(myChart).series[0], PieSeries);
     for (const nodeData of pieSeries.getNodeData() ?? []) {
         if (nodeData.angleValue < 1e-10) continue;
 
@@ -945,7 +946,7 @@ describe('PieSeries', () => {
             chart = deproxy(chartProxy);
             await waitForChartStability(chart);
 
-            pieSeries = chart.series[0] as PieSeries;
+            pieSeries = classCast(chart.series[0], PieSeries);
         });
 
         afterEach(() => {

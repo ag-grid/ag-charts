@@ -161,6 +161,10 @@ export function isRollingWindow(indexMap: IndexTransformationMap): boolean {
     return hasContiguousRemovalsAtStart(indexMap) && indexMap.totalAppendCount > 0 && indexMap.totalPrependCount === 0;
 }
 
+export interface DataChangeDescriptionListener {
+    onDataChange(changeDescription: DataChangeDescription): void;
+}
+
 /**
  * Abstract description of changes to be applied to source data.
  * Provides precise index mapping for optimized incremental updates.

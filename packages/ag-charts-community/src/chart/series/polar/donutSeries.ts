@@ -73,6 +73,7 @@ import { type TooltipContent } from '../../tooltip/tooltip';
 import type { DataModelSeriesNodeDatum } from '../dataModelSeries';
 import { SeriesNodeEvent, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
+import { isUnselected } from '../seriesProperties';
 import type { HighlightState, SeriesNodeEventTypes } from '../seriesTypes';
 import type { DonutInnerLabel, DonutTitle } from './donutSeriesProperties';
 import { DonutSeriesProperties } from './donutSeriesProperties';
@@ -1103,7 +1104,8 @@ export class DonutSeries extends PolarSeries<
             sector.inset = inset;
             sector.lineJoin = this.properties.sectorSpacing >= 0 || inset > 0 ? 'miter' : 'round';
 
-            const isSelected: boolean = this.data?.selections?.get(this.id)?.isSelected(datum.datumIndex) ?? false;
+            const datumSelectionState = this.ctx.dataSelectionService?.getDataSelectionState(this, datum.datumIndex);
+            const isSelected: boolean = !isUnselected(datumSelectionState);
             const selectedOffset: number = this.properties.selection.selectedOffset;
             if (isSelected && selectedOffset > 0) {
                 const midAngle = (sector.endAngle + sector.startAngle) / 2;

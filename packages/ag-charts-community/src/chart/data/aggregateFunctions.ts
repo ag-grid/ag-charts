@@ -3,6 +3,17 @@ import { isFiniteNumber } from 'ag-charts-core';
 import { ContinuousDomain } from './dataDomain';
 import type { AggregatePropertyDefinition, DatumPropertyDefinition } from './dataModel';
 
+/**
+ * Adds two accumulator operands, promoting to bigint when either operand is. Columns are uniformly
+ * typed, so a bigint column's number `0` seed promotes to `0n` on the first value and stays bigint.
+ */
+export function addAccumulated(acc: number | bigint, value: number | bigint): number | bigint {
+    if (typeof acc === 'bigint' || typeof value === 'bigint') {
+        return BigInt(acc) + BigInt(value);
+    }
+    return acc + value;
+}
+
 export function sumValues(values: any[], accumulator: [number, number] = [0, 0]) {
     for (const value of values) {
         if (typeof value !== 'number') {
@@ -123,14 +134,18 @@ export function area(id: string, aggFn: AggregatePropertyDefinition<any, any>, m
 
 export function accumulatedValue(onlyPositive?: boolean): DatumPropertyDefinition<any>['processor'] {
     return () => {
-        let value = 0;
+        let value: number | bigint = 0;
 
         return (datum: any) => {
+            if (typeof datum === 'bigint') {
+                value = addAccumulated(value, onlyPositive && datum < 0n ? 0n : datum);
+                return value;
+            }
             if (!isFiniteNumber(datum)) {
                 return datum;
             }
 
-            value += onlyPositive ? Math.max(0, datum) : datum;
+            value = addAccumulated(value, onlyPositive ? Math.max(0, datum) : datum);
             return value;
         };
     };
@@ -138,15 +153,20 @@ export function accumulatedValue(onlyPositive?: boolean): DatumPropertyDefinitio
 
 export function trailingAccumulatedValue(): DatumPropertyDefinition<any>['processor'] {
     return () => {
-        let value = 0;
+        let value: number | bigint = 0;
 
         return (datum: any) => {
-            if (!isFiniteNumber(datum)) {
+            if (typeof datum !== 'bigint' && !isFiniteNumber(datum)) {
                 return datum;
+            }
+            // Promote the seed before capturing the trailing value so a bigint column's first
+            // trailing entry is 0n, keeping the whole column uniformly bigint (AG-16608 AC #10).
+            if (typeof datum === 'bigint' && typeof value !== 'bigint') {
+                value = 0n;
             }
 
             const trailingValue = value;
-            value += datum;
+            value = addAccumulated(value, datum);
             return trailingValue;
         };
     };

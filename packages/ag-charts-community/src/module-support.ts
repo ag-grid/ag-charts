@@ -52,6 +52,9 @@ export {
     annotationShapeStylesDefs,
     annotationTextStylesDef,
 } from './chart/themes/annotationOptionsDef';
+export type { IDataSelectionService } from './chart/data/dataSelectionServiceTypes';
+export type { DataChangeDescription } from './chart/data/dataChangeDescription';
+export type { IDataSetSelection } from './chart/data/dataSetSelectionTypes';
 export {
     commonAxisThemeTemplate,
     parentLevelAxisThemeTemplate,
@@ -149,8 +152,9 @@ export type {
     ScopeProvider,
     UngroupedData,
 } from './chart/data/dataModel';
-export { DataSet, DataSetSelection, type TransactionCollectionState } from './chart/data/dataSet';
-export type { DataSelectionState } from './chart/data/dataSelectionState';
+export { DataSet, type TransactionCollectionState } from './chart/data/dataSet';
+export { deepCloneDataSet, replaceDataSet } from './chart/data/dataSetUtil';
+export type { DataChangeDescriptionListener } from './chart/data/dataChangeDescription';
 export {
     accumulativeValueProperty,
     animationValidation,

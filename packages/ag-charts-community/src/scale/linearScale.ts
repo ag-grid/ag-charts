@@ -1,5 +1,13 @@
 import type { ScaleTickParams } from 'ag-charts-core';
-import { createTicks, isDenseInterval, niceTicksDomain, range, tickStep } from 'ag-charts-core';
+import {
+    createBigIntTicks,
+    createTicks,
+    isDenseInterval,
+    niceBigIntDomain,
+    niceTicksDomain,
+    range,
+    tickStep,
+} from 'ag-charts-core';
 
 import { ContinuousScale } from './continuousScale';
 
@@ -31,10 +39,26 @@ export class LinearScale extends ContinuousScale<number> {
         domain: number[] = this.domain,
         visibleRange?: [number, number]
     ): { ticks: number[]; count: number; firstTickIndex?: number } {
-        if (!domain || domain.length < 2 || tickCount < 1 || !domain.every(Number.isFinite)) {
+        if (!domain || domain.length < 2 || tickCount < 1) {
             return { ticks: [], count: 0, firstTickIndex: 0 };
         }
-        const [d0, d1] = domain;
+        const [b0, b1] = domain as readonly (number | bigint)[];
+        const isBigIntDomain = typeof b0 === 'bigint' && typeof b1 === 'bigint';
+
+        // Full-precision BigInt ticks for the full (unzoomed) domain. A custom interval or zoomed
+        // sub-range falls through to the Number path below — documented limitation (AG-16608 AC #17).
+        const fullRange = visibleRange == null || (visibleRange[0] === 0 && visibleRange[1] === 1);
+        if (isBigIntDomain && !interval && fullRange) {
+            const ticks = createBigIntTicks(b0, b1, tickCount) as unknown as number[];
+            return { ticks, count: ticks.length, firstTickIndex: 0 };
+        }
+
+        const numericDomain = isBigIntDomain ? domain.map(Number) : domain;
+        if (!numericDomain.every(Number.isFinite)) {
+            return { ticks: [], count: 0, firstTickIndex: 0 };
+        }
+
+        const [d0, d1] = numericDomain;
 
         if (interval) {
             const step = Math.abs(interval);
@@ -50,7 +74,19 @@ export class LinearScale extends ContinuousScale<number> {
         if (domain.length < 2) return [];
 
         const { tickCount = ContinuousScale.defaultTickCount } = ticks;
-        let [start, stop] = domain;
+
+        const [b0, b1] = domain as readonly (number | bigint)[];
+        const isBigIntDomain = typeof b0 === 'bigint' && typeof b1 === 'bigint';
+
+        // Bigint nicing only for the auto-step path; a custom interval is a Number concept (matches
+        // ticks()), so it falls through below — else bounds would snap to an unrelated auto step.
+        if (isBigIntDomain && ticks.interval == null) {
+            const [n0, n1] = niceBigIntDomain(b0, b1, tickCount);
+            return [ticks.nice[0] ? n0 : b0, ticks.nice[1] ? n1 : b1] as unknown as number[];
+        }
+
+        const numericDomain = isBigIntDomain ? domain.map(Number) : domain;
+        let [start, stop] = numericDomain;
 
         if (tickCount === 1) {
             [start, stop] = niceTicksDomain(start, stop);
@@ -63,7 +99,7 @@ export class LinearScale extends ContinuousScale<number> {
                 const prev0 = start;
                 const prev1 = stop;
                 const step = LinearScale.getTickStep(start, stop, ticks);
-                const [d0, d1] = domain;
+                const [d0, d1] = numericDomain;
 
                 start = roundStart(d0 / step) * step;
                 stop = roundStop(d1 / step) * step;
@@ -72,6 +108,6 @@ export class LinearScale extends ContinuousScale<number> {
             }
         }
 
-        return [ticks.nice[0] ? start : domain[0], ticks.nice[1] ? stop : domain[1]];
+        return [ticks.nice[0] ? start : numericDomain[0], ticks.nice[1] ? stop : numericDomain[1]];
     }
 }

@@ -2,14 +2,11 @@ import { Logger } from 'ag-charts-core';
 
 import {
     DataChangeDescription,
+    type DataChangeDescriptionListener,
     type IndexTransformationMap,
     type SpliceOperation,
     contiguousRemovalCountAtStart,
 } from './dataChangeDescription';
-import { DataSetSelection } from './dataSetSelection';
-
-export { DataChangeDescription } from './dataChangeDescription';
-export { DataSetSelection } from './dataSetSelection';
 
 type DataIdValue = string | number | undefined;
 
@@ -80,9 +77,6 @@ export class DataSet<T = unknown> {
     protected idToIndexCache: Map<string | number, number> | undefined;
     protected idArrayCache: DataIdValue[] | undefined;
 
-    /** Per-series selection state. Keyed by `seriesId`. */
-    readonly selections = new Map<string, DataSetSelection>();
-
     constructor(
         public data: T[],
         public readonly dataIdKey?: string
@@ -122,39 +116,6 @@ export class DataSet<T = unknown> {
     }
 
     /**
-     * @returns A deep clone of the DataSet. Selection state is preserved only when
-     * `dataIdKey` is set (transferred via key mapping). Without `dataIdKey`, selections
-     * are dropped because index-based transfer cannot guarantee correctness after the
-     * clone's data is independently mutated.
-     */
-    deepClone() {
-        const clone = new DataSet([...this.data], this.dataIdKey);
-        clone.transferFrom(this);
-        return clone;
-    }
-
-    /**
-     * Create a new DataSet, transferring persistent state from a predecessor.
-     * For subclasses that take additional constructor args (e.g. HierarchyDataSet),
-     * use the two-phase pattern: construct, then call `transferFrom()` explicitly.
-     */
-    static replaceWith<U = unknown>(predecessor: DataSet<U> | undefined, data: U[], dataIdKey?: string): DataSet<U> {
-        const newDataSet = new DataSet<U>(data, dataIdKey);
-        if (predecessor) newDataSet.transferFrom(predecessor);
-        return newDataSet;
-    }
-
-    /** Lazy-create a per-series selection backed by a Uint8Array of `data.length`. */
-    enableSelection(seriesId: string): DataSetSelection {
-        let sel = this.selections.get(seriesId);
-        if (!sel) {
-            sel = new DataSetSelection(this.data.length);
-            this.selections.set(seriesId, sel);
-        }
-        return sel;
-    }
-
-    /**
      * Lazy index→key array mirroring `getIdToIndexMap()`. Built on first access
      * when `dataIdKey` is set; invalidated on data mutation and rebuilt on demand.
      */
@@ -185,54 +146,6 @@ export class DataSet<T = unknown> {
             }
         }
         return this.getIdToIndexMap().get(itemId);
-    }
-
-    /**
-     * Transfer persistent state (selections) from a predecessor DataSet.
-     * Uses `idArray` + `idToIndexMap` to map selected keys from old to new index space.
-     * Without `dataIdKey`, selections cannot be transferred and are dropped.
-     */
-    transferFrom(predecessor: DataSet<T>): void {
-        if (predecessor.selections.size === 0) return;
-
-        const oldIds = predecessor.getIdArray();
-        if (!oldIds) {
-            if (predecessor.data.length === this.data.length) {
-                // There's no dataId, but lengths are the same so assume the indices match to the same datums. This
-                // assumption is not guaranteed, but is likely in most use cases. In the use cases where it isn't, it's
-                // up the user to decide whether to call `chart.clearSelection()` or to integrate `dataIdKey`.
-                //
-                // Just copy the previous selection state:
-                for (const [seriesId, oldSelObj] of predecessor.selections) {
-                    this.selections.set(seriesId, oldSelObj);
-                }
-            }
-            return;
-        }
-
-        if (!this.dataIdKey || this.dataIdKey !== predecessor.dataIdKey) {
-            return;
-        }
-
-        const newIdMap = this.getIdToIndexMap();
-        for (const [seriesId, oldSelObj] of predecessor.selections) {
-            const oldSel = oldSelObj.getSelection();
-            // Collect selected keys (transient Set, O(k) where k = selected count)
-            const selectedKeys = new Set<string | number>();
-            for (let i = 0; i < oldSel.length; i++) {
-                const id = oldIds[i];
-                if (oldSel[i] && id != null) selectedKeys.add(id);
-            }
-            if (selectedKeys.size === 0) continue;
-
-            // Map into new index space (O(k) lookups)
-            const newSelObj = this.enableSelection(seriesId);
-            for (const key of selectedKeys) {
-                const idx = newIdMap.get(key);
-                if (idx != null) newSelObj.select(idx);
-            }
-            // selectedKeys GC'd after this scope
-        }
     }
 
     /**
@@ -283,7 +196,7 @@ export class DataSet<T = unknown> {
     }
 
     /** Applies all pending transactions to the data array. */
-    commitPendingTransactions(): boolean {
+    commitPendingTransactions(changeDescriptionListener: DataChangeDescriptionListener | undefined): boolean {
         // Eagerly build the ID index so duplicate/missing-key warnings fire on the first
         // render cycle, even when there are no pending transactions yet.
         if (this.dataIdKey != null && this.data.length > 0) {
@@ -342,11 +255,7 @@ export class DataSet<T = unknown> {
         this.updateIdToIndexCache(changeDescription, appendedValues, prependedValues, insertionValues);
 
         // Apply transform to each per-series selection array
-        if (this.selections.size > 0) {
-            for (const sel of this.selections.values()) {
-                sel.applyDataChange(changeDescription);
-            }
-        }
+        changeDescriptionListener?.onDataChange(changeDescription);
 
         // Transform idArray if warm (avoid rebuild on next access)
         if (this.idArrayCache) {
@@ -931,7 +840,7 @@ export class DataSet<T = unknown> {
     }
 
     /** Lazy ID→index map for O(1) lookups when `dataIdKey` is set. */
-    protected getIdToIndexMap(): Map<string | number, number> {
+    public getIdToIndexMap(): Map<string | number, number> {
         if (this.idToIndexCache === undefined) {
             this.idToIndexCache = new Map();
             for (let i = 0; i < this.data.length; i++) {

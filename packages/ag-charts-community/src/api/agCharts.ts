@@ -214,20 +214,16 @@ class AgChartsInternal {
 
         const { document, window: userWindow, styleContainer, skipCss, ...options } = mutableOptions ?? {};
         const baseOptions = chart?.getChartOptions();
+        const newSpecialOverrides = { ...specialOverrides, document, window: userWindow, styleContainer, skipCss };
         const chartOptions = new ChartOptions(
             baseOptions,
             options,
             processedOverrides,
-            {
-                ...specialOverrides,
-                document,
-                window: userWindow,
-                styleContainer,
-                skipCss,
-            },
+            newSpecialOverrides,
             optionsMetadata,
             deltaOptions,
             stripSymbols,
+            false,
             apiStartTime
         );
 
@@ -280,18 +276,24 @@ class AgChartsInternal {
             (globalThis as any).agChartInstances[chart.id] = chart;
         }
 
-        chart.queuedUserOptions.push(chartOptions.userOptions);
-        chart.queuedChartOptions.push(chartOptions);
-        chart.requestFactoryUpdate((chartRef) => {
-            debug.group('>>>> Chart.applyOptions()', () => {
-                chartRef.applyOptions(chartOptions);
-                // If there are a lot of update calls, `requestFactoryUpdate()` may skip callbacks,
-                // so we need to remove all queue items up to the last successfully applied item.
-                const queueIdx = chartRef.queuedUserOptions.indexOf(chartOptions.userOptions) + 1;
-                chartRef.queuedUserOptions.splice(0, queueIdx);
-                chartRef.queuedChartOptions.splice(0, queueIdx);
-            });
+        chart.ctx.domManager.updateCSSVariableWatchers(chartOptions.processedCSSVariables);
+
+        chart.setRequestRefreshListener(() => {
+            const refreshedChartOptions = new ChartOptions(
+                baseOptions,
+                options,
+                processedOverrides,
+                newSpecialOverrides,
+                optionsMetadata,
+                deltaOptions,
+                stripSymbols,
+                true,
+                Debug.check('scene:stats', 'scene:stats:verbose') ? performance.now() : undefined
+            );
+            AgChartsInternal.requestFactoryUpdate(chart, refreshedChartOptions);
         });
+
+        AgChartsInternal.requestFactoryUpdate(chart, chartOptions);
 
         return proxy;
     }
@@ -362,5 +364,20 @@ class AgChartsInternal {
             this.destroy,
             Infinity // AG-13480 - Prevent Grid exhausting pool during sorting.
         );
+    }
+
+    private static requestFactoryUpdate(chart: Chart, chartOptions: ChartOptions) {
+        chart.queuedUserOptions.push(chartOptions.userOptions);
+        chart.queuedChartOptions.push(chartOptions);
+        chart.requestFactoryUpdate((chartRef) => {
+            debug.group('>>>> Chart.applyOptions()', () => {
+                chartRef.applyOptions(chartOptions);
+                // If there are a lot of update calls, `requestFactoryUpdate()` may skip callbacks,
+                // so we need to remove all queue items up to the last successfully applied item.
+                const queueIdx = chartRef.queuedUserOptions.indexOf(chartOptions.userOptions) + 1;
+                chartRef.queuedUserOptions.splice(0, queueIdx);
+                chartRef.queuedChartOptions.splice(0, queueIdx);
+            });
+        });
     }
 }
