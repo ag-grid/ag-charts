@@ -418,27 +418,7 @@ For more information see the [API Reference section](#reference-AgZoomOptions-bu
 
 ## Asynchronous Loading
 
-Use the `dataSource` option to asynchronously load in new data as the chart is zoomed.
-
-{% chartExampleRunner title="Asynchronous Loading" name="zoom-async" type="generated" /%}
-
-```js format="snippet"
-{
-    dataSource: {
-        getData: ({ windowStart, windowEnd }) => {
-            return FakeServer.get(windowStart, windowEnd);
-        },
-    },
-}
-```
-
-In this example, the `getData` function returns both the coarse data plus additional finer grained data for the visible time window.
-
-The data returned from the `getData` function should always include the coarse data set to ensure the chart knows the full extent of the data.
-
-{% note %}
-The `windowStart` and `windowEnd` parameters will be `undefined` if the chart does not have a time axis. They will also be `undefined` on the first call to `dataSource.getData()` if no `axis[].min` and `axis[].max` are provided on the time axis.
-{% /note %}
+For loading data asynchronously as the user zooms and pans, see [Asynchronous Data](./async-data/).
 
 ## Save & Restore
 

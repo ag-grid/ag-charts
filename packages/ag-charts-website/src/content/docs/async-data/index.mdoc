@@ -1,0 +1,84 @@
+---
+title: 'Asynchronous Data'
+description: 'Load $framework chart data asynchronously using a data source callback, with automatic loading overlay display.'
+enterprise: true
+---
+
+Asynchronous Data allows charts to load data on demand, supporting progressive detail loading and server-side paging
+when used with [Zoom](./zoom/) or the [Scrollbar](./scrollbar/).
+
+## Data Source
+
+Use the `dataSource` option to provide an asynchronous `getData` callback. The chart calls this function when it needs
+data, and displays the loading overlay until the returned promise resolves.
+
+{% chartExampleRunner title="Async Data" name="async-data" type="generated" /%}
+
+```js format="snippet"
+{
+    dataSource: {
+        getData: ({ windowStart, windowEnd }) => {
+            return FakeServer.get({ windowStart, windowEnd });
+        },
+    },
+}
+```
+
+In this example, the fake server returns coarse data covering the full date range alongside finer-grained data for the
+visible window. As the user zooms in, `getData` is re-invoked with updated `windowStart` and `windowEnd` values and
+the server returns higher-resolution data for that range.
+
+The `getData` callback receives an `AgDataSourceCallbackParams` object with:
+
+- `windowStart`: the start of the visible window.
+- `windowEnd`: the end of the visible window.
+- `context`: the chart context object, if one has been provided.
+
+`windowStart` and `windowEnd` reflect the current visible window and are `undefined` on the initial load if no axis
+bounds have been established.
+
+This pattern supports both progressive detail loading by returning finer data
+as the window narrows, as well as server-side paging where only the visible range is fetched from the server on each
+zoom or scroll.
+
+The returned data must include the first and last data points so the chart can establish the axis domain, unless the
+axis has explicit `min` and `max` values.
+
+### Triggering a Reload
+
+Calling `updateDelta({})` with an empty object triggers `getData` to be called again, which is useful for refreshing
+data on demand.
+
+```js format="snippet"
+{
+    chart.updateDelta({});
+}
+```
+
+## Loading Overlay
+
+While `getData` is in progress, the chart displays a [Loading Overlay](./overlays/#loading-data-overlay)
+automatically. The overlay can be customised through the `overlays.loading` option; see [Overlays](./overlays/) for
+text customisation and custom renderers.
+
+### Manual Control
+
+Set `loading` on the chart options to control the overlay independently of `dataSource`.
+
+{% chartExampleRunner title="Loading Overlay" name="loading" type="generated" /%}
+
+Use the buttons to override the loading state.
+
+```js format="snippet"
+{
+    loading: true,
+}
+```
+
+- `true` - force the overlay on.
+- `false` - force the overlay off.
+- `undefined` - automatic, shown while `getData` is pending and hidden when it resolves.
+
+## API Reference
+
+{% apiReference id="AgDataSourceOptions" /%}
