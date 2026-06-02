@@ -134,7 +134,7 @@ describe('themes.ts', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - Option \`theme\` cannot be set to \`true\`; expecting a keyword such as 'ag-default', 'ag-default-dark', 'ag-sheets', 'ag-sheets-dark', 'ag-polychroma', 'ag-polychroma-dark', 'ag-vivid', 'ag-vivid-dark', 'ag-material', 'ag-material-dark', 'ag-financial' or 'ag-financial-dark' or an object, ignoring.",
+    "AG Charts - Option \`theme\` cannot be set to \`true\`; expecting a keyword such as 'ag-default', 'ag-default-dark', 'ag-sheets', 'ag-sheets-dark', 'ag-polychroma', 'ag-polychroma-dark', 'ag-rainbow', 'ag-rainbow-dark', 'ag-vivid', 'ag-vivid-dark', 'ag-material', 'ag-material-dark', 'ag-financial' or 'ag-financial-dark' or an object, ignoring.",
   ],
 ]
 `);
@@ -168,6 +168,24 @@ describe('themes.ts', () => {
             await waitForChartStability(chart);
 
             expect(getActualPalette(chart)?.fills).toEqual(getPalette('ag-default-dark')?.fills);
+        });
+
+        it.each(['ag-rainbow', 'ag-rainbow-dark'] as const)('resolves the %s stock theme palette', (themeName) => {
+            const palette = getPalette(themeName);
+            // Series cycle is the spectrum from red to violet, with gray as a neutral tail.
+            expect(palette?.fills).toEqual([
+                '#f47348',
+                '#f2a602',
+                '#e9e201',
+                '#21b448',
+                '#00b9a2',
+                '#00aee4',
+                '#436ff4',
+                '#9a7bff',
+                '#d165d2',
+                '#f0598b',
+                '#bbbbbb',
+            ]);
         });
 
         it('should show 3 warnings for invalid types', async () => {
