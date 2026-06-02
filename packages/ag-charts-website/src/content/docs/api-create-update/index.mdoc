@@ -61,6 +61,10 @@ The following example demonstrates both create and update cases:
 
 To assist with state management, the complete applied options state can be retrieved by calling the `getOptions()` method on the `AgChartInstance`.
 
+{% warning %}
+When updating `series` or `axes` options, the complete array must be supplied with all the properties for each item.
+{% /warning %}
+
 {% apiReference id="_AgChartInstanceInterface" include=["updateDelta", "getOptions"] hideHeader=true hideRequired=true /%}
 
 The following example demonstrates:

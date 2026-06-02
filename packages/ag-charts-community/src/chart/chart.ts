@@ -46,6 +46,7 @@ import type {
 import type { UpdateOpts } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
 import type { ChartOptions } from '../module/optionsModule';
+import type { SeriesGrouping } from '../module/seriesGrouping';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
@@ -67,6 +68,7 @@ import type { ChartType } from './chartType';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
 import { DataSet } from './data/dataSet';
+import { replaceDataSet } from './data/dataSetUtil';
 import { SyncManager, type SyncStatus } from './interaction/syncManager';
 import { type LayoutContext, LayoutElement } from './layout/layoutManager';
 import type { ChartLegend } from './legend/legendDatum';
@@ -79,7 +81,7 @@ import { SeriesArea } from './series-area/seriesArea';
 import { Series, SeriesGroupingChangedEvent, SeriesNodeEvent, type UnknownSeries } from './series/series';
 import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
-import type { SeriesGrouping } from './series/seriesStateManager';
+import type { SeriesProperties } from './series/seriesProperties';
 import type { DatumIndexType, ISeries, ISeriesProperties } from './series/seriesTypes';
 import { Tooltip, type TooltipContent } from './tooltip/tooltip';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
@@ -417,7 +419,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     protected createDataSet(data: unknown[]): DataSet {
-        return DataSet.replaceWith(this.data, data, this.ctx.chartState.getValue('options', 'dataIdKey'));
+        const dataIdKey: string | undefined = this.ctx.chartState.getValue('options', 'dataIdKey');
+        return replaceDataSet(this.ctx.dataSelectionService, this.data, data, dataIdKey);
     }
 
     constructor(options: ChartOptions, resources?: TransferableResources) {
@@ -1222,7 +1225,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.onSeriesChange(newValue, oldValue);
         },
     })
-    series: Series<DatumIndexType, any, any, any>[] = [];
+    series: Series<DatumIndexType, any, any, SeriesProperties<object>>[] = [];
 
     protected onAxisChange(newValue: ChartAxis[], oldValue?: ChartAxis[]) {
         if (oldValue == null && newValue.length === 0) return;
@@ -1418,7 +1421,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             }
         }
 
-        this._cachedData = dataController.execute(this._cachedData);
+        this._cachedData = dataController.execute(this._cachedData, this.ctx.dataSelectionService);
 
         this.updateSplits('🏭');
         await Promise.all(promises);

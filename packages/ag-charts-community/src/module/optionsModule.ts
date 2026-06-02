@@ -65,6 +65,7 @@ import {
     getStructuralCacheEntry,
     setStructuralCacheEntry,
 } from './optionsStructuralCache';
+import type { SeriesGrouping } from './seriesGrouping';
 
 export interface ChartSpecialOverrides {
     document: Document;
@@ -84,12 +85,7 @@ type GroupingOptions = {
     grouped?: boolean;
     stacked?: boolean;
     stackGroup?: string;
-    seriesGrouping?: {
-        groupIndex: number;
-        groupCount: number;
-        stackIndex: number;
-        stackCount: number;
-    };
+    seriesGrouping?: SeriesGrouping;
 };
 type GroupingSeriesOptions = GroupingOptions & { type: SeriesType; xKey?: string };
 type SeriesGroup = { groupType: GroupingType; seriesType: string; series: GroupingSeriesOptions[]; groupId: string };

@@ -1,6 +1,10 @@
 import type { DomainWithMetadata } from '../../types/scales';
 import { isNumber } from '../types/typeGuards';
 
+// bigint endpoints are retained so a bigint column's exact extent reaches the scale. Comparisons
+// against the Number Infinity seed and between bigints are legal — only +/-/* mixing throws.
+const isFiniteEndpoint = (v: number | bigint) => typeof v === 'bigint' || Number.isFinite(v);
+
 export function extent(values: Array<unknown>, sortOrder?: 1 | -1): [number, number] | null {
     if (values.length === 0) {
         return null;
@@ -13,17 +17,17 @@ export function extent(values: Array<unknown>, sortOrder?: 1 | -1): [number, num
         const v0 = first instanceof Date ? first.getTime() : first;
         const v1 = last instanceof Date ? last.getTime() : last;
 
-        if (typeof v0 === 'number' && typeof v1 === 'number') {
-            return sortOrder === 1 ? [v0, v1] : [v1, v0];
+        if ((typeof v0 === 'number' || typeof v0 === 'bigint') && (typeof v1 === 'number' || typeof v1 === 'bigint')) {
+            return (sortOrder === 1 ? [v0, v1] : [v1, v0]) as [number, number];
         }
     }
 
-    let min = Infinity;
-    let max = -Infinity;
+    let min: number | bigint = Infinity;
+    let max: number | bigint = -Infinity;
 
     for (const n of values) {
         const v = n instanceof Date ? n.getTime() : n;
-        if (typeof v !== 'number') continue;
+        if (typeof v !== 'number' && typeof v !== 'bigint') continue;
         if (v < min) {
             min = v;
         }
@@ -32,8 +36,7 @@ export function extent(values: Array<unknown>, sortOrder?: 1 | -1): [number, num
         }
     }
 
-    const result: [number, number] = [min, max];
-    return result.every(Number.isFinite) ? result : null;
+    return isFiniteEndpoint(min) && isFiniteEndpoint(max) ? ([min, max] as [number, number]) : null;
 }
 
 export function normalisedExtentWithMetadata<T>(

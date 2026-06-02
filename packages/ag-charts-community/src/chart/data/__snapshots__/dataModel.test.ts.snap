@@ -11,6 +11,9 @@ exports[`DataModel > grouped processing - calculated grouping > should generated
       "test",
     },
   ],
+  "columnValueType": [
+    "number",
+  ],
   "columns": [
     [
       2548,
@@ -325,6 +328,9 @@ exports[`DataModel > grouped processing - calculated grouping > should generated
     Set {
       "test",
     },
+  ],
+  "columnValueType": [
+    "number",
   ],
   "columns": [
     [
@@ -659,6 +665,9 @@ exports[`DataModel > grouped processing - calculated grouping > should generated
     Set {
       "test",
     },
+  ],
+  "columnValueType": [
+    "number",
   ],
   "columns": [
     [
@@ -999,6 +1008,10 @@ exports[`DataModel > grouped processing - grouped example > should generated the
     Set {
       "test",
     },
+  ],
+  "columnValueType": [
+    "number",
+    "number",
   ],
   "columns": [
     [
@@ -1384,6 +1397,14 @@ exports[`DataModel > grouped processing - stacked and normalised example > shoul
     Set {
       "test",
     },
+  ],
+  "columnValueType": [
+    "number",
+    "number",
+    "number",
+    "number",
+    "number",
+    "number",
   ],
   "columns": [
     [
@@ -2268,6 +2289,14 @@ exports[`DataModel > grouped processing - stacked and normalised example > shoul
       "test",
     },
   ],
+  "columnValueType": [
+    "number",
+    "number",
+    "number",
+    "number",
+    "number",
+    "number",
+  ],
   "columns": [
     [
       100,
@@ -2752,6 +2781,12 @@ exports[`DataModel > grouped processing - stacked example > should generated the
     Set {
       "test",
     },
+  ],
+  "columnValueType": [
+    "number",
+    "number",
+    "number",
+    "number",
   ],
   "columns": [
     [
@@ -3282,6 +3317,12 @@ exports[`DataModel > grouped processing - stacked with accumulation and normalis
       "test",
     },
   ],
+  "columnValueType": [
+    "number",
+    "number",
+    "number",
+    "number",
+  ],
   "columns": [
     [
       76.09130289903365,
@@ -3811,6 +3852,12 @@ exports[`DataModel > grouped processing - stacked with accumulation example > sh
       "test",
     },
   ],
+  "columnValueType": [
+    "number",
+    "number",
+    "number",
+    "number",
+  ],
   "columns": [
     [
       4567,
@@ -4290,6 +4337,10 @@ exports[`DataModel > repeated property processing > should generated the expecte
       "test",
     },
   ],
+  "columnValueType": [
+    "number",
+    "number",
+  ],
   "columns": [
     [
       0,
@@ -4420,6 +4471,10 @@ exports[`DataModel > ungrouped processing > should generated the expected result
     Set {
       "test",
     },
+  ],
+  "columnValueType": [
+    "number",
+    "number",
   ],
   "columns": [
     [
@@ -4962,6 +5017,11 @@ exports[`DataModel > ungrouped processing - accumulated and normalised propertie
     Set {
       "test",
     },
+  ],
+  "columnValueType": [
+    "number",
+    "string",
+    "number",
   ],
   "columns": [
     [

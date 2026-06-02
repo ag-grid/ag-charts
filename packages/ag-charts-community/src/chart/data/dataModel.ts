@@ -14,6 +14,7 @@ import { ReducerManager } from './data-model/reducers/reducerManager';
 import { isScoped, uniqueChangeDescriptions } from './data-model/utils/helpers';
 import { DataModelResolvers } from './data-model/utils/resolvers';
 import { ScopeCacheManager } from './data-model/utils/scopeCache';
+import type { DataChangeDescription, DataChangeDescriptionListener } from './dataChangeDescription';
 import type {
     AggregatePropertyDefinition,
     BandedReducerStats,
@@ -38,7 +39,7 @@ import type {
     UngroupedData,
 } from './dataModelTypes';
 import { REDUCER_BANDS } from './dataModelTypes';
-import type { DataChangeDescription, DataSet } from './dataSet';
+import type { DataSet } from './dataSet';
 import { type SortOrder } from './sortOrder';
 
 export * from './dataModelTypes';
@@ -458,7 +459,8 @@ export class DataModel<
 
     public reprocessData(
         processedData: ProcessedData<D>,
-        dataSets?: Map<DataSet<any>, DataChangeDescription | undefined>
+        dataSets: Map<DataSet<any>, DataChangeDescription | undefined> | undefined,
+        changeDescriptionListener: DataChangeDescriptionListener | undefined
     ): ProcessedData<D> {
         if (!this.isReprocessingSupported(processedData)) {
             // Log fallback reason if debug is enabled
@@ -469,7 +471,7 @@ export class DataModel<
             // First commit any pending transactions (deduplicate DataSets)
             const uniqueDataSets = this.getUniqueDataSets(processedData);
             for (const dataSet of uniqueDataSets) {
-                dataSet.commitPendingTransactions();
+                dataSet.commitPendingTransactions(changeDescriptionListener);
             }
             return this.processData(processedData.dataSources)!;
         }
@@ -481,7 +483,8 @@ export class DataModel<
             getProcessValue,
             this.reprocessGroupProcessors.bind(this),
             this.recomputeDomains.bind(this),
-            this.collectOptimizationMetadata.bind(this)
+            this.collectOptimizationMetadata.bind(this),
+            changeDescriptionListener
         );
 
         const { diff } = result.reduced ?? {};

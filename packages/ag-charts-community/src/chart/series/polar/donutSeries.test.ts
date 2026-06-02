@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
+import { classCast } from 'ag-charts-test';
 import type { AgChartOptions, AgDonutSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
@@ -773,7 +774,7 @@ describe('DonutSeries', () => {
             chart = deproxy(chartProxy);
             await waitForChartStability(chart);
 
-            donutSeries = chart.series[0] as DonutSeries;
+            donutSeries = classCast(chart.series[0], DonutSeries);
         });
 
         afterEach(() => {

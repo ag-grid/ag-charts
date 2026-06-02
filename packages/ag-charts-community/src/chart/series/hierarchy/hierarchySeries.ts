@@ -185,7 +185,7 @@ export abstract class HierarchySeries<
     override processData() {
         // Commit pending transactions before reading data. The HierarchyDataSet subclass
         // handles nested item lookups via childrenKey.
-        this.data?.commitPendingTransactions();
+        this.data?.commitPendingTransactions(this.ctx.dataSelectionService);
 
         const { NodeClass } = this;
         const { childrenKey, sizeKey, colorKey } = this.properties;

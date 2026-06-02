@@ -1,8 +1,8 @@
 import { SeriesZIndexMap, clamp } from 'ag-charts-core';
 
+import type { SeriesGrouping } from '../../module/seriesGrouping';
 import { Group } from '../../scene/group';
 import { compareZIndex } from '../../scene/zIndex';
-import type { SeriesGrouping } from './seriesStateManager';
 
 interface SeriesConfig {
     internalId: string;

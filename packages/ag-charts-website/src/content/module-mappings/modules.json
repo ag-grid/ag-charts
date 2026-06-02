@@ -222,12 +222,6 @@
                     "name": "Pyramid Series",
                     "path": "pyramid-series",
                     "isEnterprise": true
-                },
-                {
-                    "moduleName": "OrganizationSeriesModule",
-                    "name": "Organization Series",
-                    "path": "org-chart",
-                    "isEnterprise": true
                 }
             ]
         },

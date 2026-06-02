@@ -1230,6 +1230,20 @@ describe('OptionsGraph', () => {
                     axes: expect.any(Object),
                 });
             });
+
+            it('should resolve public `ref` operation with priority over default operations', () => {
+                const themeConfig = { line: { fill: { $ref: 'accentColor' } } };
+                const params = {
+                    accentColor: { ref: 'foregroundColor', $foregroundBackgroundMix: 0.25 },
+                    foregroundColor: '#ff0000',
+                    backgroundColor: '#00ff00',
+                };
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                expect(options).toStrictEqual({
+                    fill: '#ff0000',
+                    axes: expect.any(Object),
+                });
+            });
         });
     });
 });

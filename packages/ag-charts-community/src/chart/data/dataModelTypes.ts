@@ -46,6 +46,13 @@ export const SHARED_ZERO_INDICES: readonly number[] = Object.freeze([0]);
 
 export type ScopeId = string;
 
+/**
+ * Per-column primitive type, set once during extraction. Consumers dispatch off this tag rather than
+ * re-sniffing values. `'mixed-numeric'` flags a column that contains both `number` and `bigint` values,
+ * which is rejected at the series level (see {@link CommonMetadata.columnValueType}).
+ */
+export type ColumnValueType = 'number' | 'bigint' | 'date' | 'string' | 'mixed-numeric';
+
 export type ProcessedValue = { value: unknown; missing: boolean; valid: boolean };
 export type SortOrderEntry = {
     sortOrder: SortOrder;
@@ -94,6 +101,7 @@ export interface CommonMetadata<D> {
     columns: any[][];
     columnScopes: Set<ScopeId>[];
     columnNeedValueOf?: boolean[]; // true if column needs valueOf() (contains Dates/objects), false for primitives
+    columnValueType?: ColumnValueType[]; // per-column primitive type tag, set once during extraction
     domain: {
         keys: any[][];
         values: any[][];

@@ -224,9 +224,10 @@ describe('CartesianChart', () => {
             chart = deproxy(AgCharts.create(options)) as CartesianChart;
             await waitForChartStability(chart);
 
-            const seriesImpl = chart.series.find(
-                (v) => v.properties.yKey === yKey || v.properties.yKeys?.some((s: unknown[]) => s.includes(yKey))
-            );
+            const seriesImpl = chart.series.find((v) => {
+                const p: typeof v.properties & { yKey?: unknown; yKeys?: unknown[][] } = v.properties;
+                return p.yKey === yKey || p.yKeys?.some((s: unknown[]) => s.includes(yKey));
+            });
             if (seriesImpl == null) fail('No seriesImpl found');
 
             const nodeData: SeriesNodeDataContext<never, never> = (seriesImpl as any)['contextNodeData'];

@@ -1241,7 +1241,7 @@ describe('DataModel', () => {
                 addIndex: 2,
             });
 
-            const reprocessed = dataModel.reprocessData(processedData!);
+            const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
             expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3, 4, 5]);
@@ -1272,7 +1272,7 @@ describe('DataModel', () => {
                 addIndex: 2,
             });
 
-            const firstReprocess = dataModel.reprocessData(processedData!);
+            const firstReprocess = dataModel.reprocessData(processedData!, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, firstReprocess, sources);
 
             // Simulate updateDelta() recreating the DataSet with the latest materialized data.
@@ -1287,7 +1287,7 @@ describe('DataModel', () => {
                 addIndex: 4,
             });
 
-            const secondReprocess = dataModel.reprocessData(fullProcess!);
+            const secondReprocess = dataModel.reprocessData(fullProcess!, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, secondReprocess, sources);
 
             expect(secondReprocess.keys[0].get('test')).toEqual([0, 2, 3, 4, 5, 6]);
@@ -1317,7 +1317,7 @@ describe('DataModel', () => {
                 addIndex: 0,
             });
 
-            const reprocessed = dataModel.reprocessData(processedData!);
+            const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
             expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3, 4]);
@@ -1345,7 +1345,7 @@ describe('DataModel', () => {
                 addIndex: 3,
             });
 
-            const reprocessed = dataModel.reprocessData(processedData!);
+            const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
             expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3, 4]);
@@ -1373,7 +1373,7 @@ describe('DataModel', () => {
                 addIndex: 1,
             });
 
-            const reprocessed1 = dataModel.reprocessData(processedData!);
+            const reprocessed1 = dataModel.reprocessData(processedData!, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed1, sources);
 
             // Second insertion
@@ -1382,7 +1382,7 @@ describe('DataModel', () => {
                 addIndex: 1,
             });
 
-            const reprocessed2 = dataModel.reprocessData(reprocessed1);
+            const reprocessed2 = dataModel.reprocessData(reprocessed1, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed2, sources);
 
             // Third insertion
@@ -1391,7 +1391,7 @@ describe('DataModel', () => {
                 addIndex: 3,
             });
 
-            const reprocessed3 = dataModel.reprocessData(reprocessed2);
+            const reprocessed3 = dataModel.reprocessData(reprocessed2, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed3, sources);
 
             expect(reprocessed3.keys[0].get('test')).toEqual([1, 2, 3, 4, 5]);
@@ -1483,10 +1483,193 @@ describe('DataModel', () => {
                 append: [{ timestamp: new Date(2024, 0, 3), dateValue: new Date(2024, 0, 3), primitiveValue: 30 }],
             });
 
-            const reprocessed = dataModel.reprocessData(processedData!);
+            const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
             // Should maintain columnNeedValueOf metadata
             expect(reprocessed.columnNeedValueOf).toEqual([true, false]);
+        });
+    });
+
+    describe('columnValueType tag', () => {
+        it('should tag number-only value columns as "number"', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('id'), value('count'), value('amount')],
+            });
+
+            const data = [
+                { id: 'A', count: 10, amount: 100.5 },
+                { id: 'B', count: 20, amount: 200.3 },
+            ];
+
+            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const processedData = dataModel.processData(sources);
+
+            expect(processedData!.columnValueType).toEqual(['number', 'number']);
+        });
+
+        it('should tag bigint-only value columns as "bigint"', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('id'), value('count')],
+            });
+
+            const data = [
+                { id: 'A', count: 10n },
+                { id: 'B', count: 9007199254740993n },
+            ];
+
+            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const processedData = dataModel.processData(sources);
+
+            expect(processedData!.columnValueType).toEqual(['bigint']);
+        });
+
+        it('should retain bigint values in the column and continuous domain', () => {
+            // AG-16608: bigint values now flow into the column and build a bigint ContinuousDomain
+            // (the scale/aggregation arithmetic that consumes them is bigint-safe).
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('id'), value('count')],
+            });
+
+            const data = [
+                { id: 'A', count: 10n },
+                { id: 'B', count: 20n },
+            ];
+
+            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const processedData = dataModel.processData(sources)!;
+
+            expect(processedData.columnValueType).toEqual(['bigint']);
+            expect(processedData.columns[0]).toEqual([10n, 20n]);
+            expect(processedData.domain.values[0]).toEqual([10n, 20n]);
+        });
+
+        it('should drop bigint keys without throwing on a continuous key', () => {
+            // AG-16608: bigint *keys* remain dropped — a bigint key reaches SORT_DOMAIN_GROUPS (whose
+            // comparator return is ToNumber-coerced by Array.sort, throwing) and needs numeric-axis
+            // prediction (AC #4); both land in a later PR. Bigint *values* are already supported.
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('x'), value('y')],
+            });
+
+            const data = [
+                { x: 1n, y: 10 },
+                { x: 2n, y: 20 },
+            ];
+
+            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const processedData = dataModel.processData(sources)!;
+
+            expect(processedData.keys.flat(Infinity).some((v) => typeof v === 'bigint')).toBe(false);
+        });
+
+        it('should tag Date value columns as "date"', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('id'), value('when')],
+            });
+
+            const data = [
+                { id: 'A', when: new Date(2024, 0, 1) },
+                { id: 'B', when: new Date(2024, 0, 2) },
+            ];
+
+            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const processedData = dataModel.processData(sources);
+
+            expect(processedData!.columnValueType).toEqual(['date']);
+        });
+
+        it('should tag a column mixing number and bigint as "mixed-numeric" and warn once', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('id'), value('count')],
+            });
+
+            const data = [
+                { id: 'A', count: 10 },
+                { id: 'B', count: 20n },
+                { id: 'C', count: 30n },
+            ];
+
+            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const processedData = dataModel.processData(sources);
+
+            expect(processedData!.columnValueType).toEqual(['mixed-numeric']);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Series "test": column "count" mixes 'number' and 'bigint' values (first detected at row 1). Each column must be uniformly typed. The series renders empty; other series in this chart are unaffected.",
+  ],
+]
+`);
+        });
+
+        it('should preserve the columnValueType tag across incremental reprocessing', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('id'), value('count')],
+            });
+
+            const initialData = [
+                { id: 'A', count: 10n },
+                { id: 'B', count: 20n },
+            ];
+
+            const dataSet = new DataSet(initialData);
+            const sources = basicDataSet(initialData).set('test', dataSet);
+            const processedData = dataModel.processData(sources);
+
+            expect(processedData!.columnValueType).toEqual(['bigint']);
+
+            dataSet.addTransaction({ append: [{ id: 'C', count: 30n }] });
+            const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
+
+            expect(reprocessed.columnValueType).toEqual(['bigint']);
+        });
+    });
+
+    describe('bigint aggregation (AG-16608)', () => {
+        it('should accumulate a bigint value column into bigint running totals', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('kp'), accumulatedPropertyValue('vp')],
+            });
+            const data = basicDataSet([
+                { kp: 1, vp: 5n },
+                { kp: 2, vp: 3n },
+                { kp: 3, vp: 2n },
+            ]);
+
+            const result = dataModel.processData(data)!;
+
+            expect(result.columnValueType).toEqual(['bigint']);
+            expect(result.columns[0]).toEqual([5n, 8n, 10n]);
+        });
+
+        it('should clamp negative bigints when accumulating with onlyPositive', () => {
+            // accumulatedPropertyValue uses accumulatedValue(true): a negative bigint contributes 0n.
+            const dataModel = new DataModel<any, any>({
+                props: [rangeKey('kp'), accumulatedPropertyValue('vp')],
+            });
+            const data = basicDataSet([
+                { kp: 1, vp: 5n },
+                { kp: 2, vp: -4n },
+                { kp: 3, vp: 2n },
+            ]);
+
+            const result = dataModel.processData(data)!;
+
+            expect(result.columns[0]).toEqual([5n, 5n, 7n]);
+        });
+
+        it('should stack bigint value columns into bigint totals', () => {
+            const dataModel = new DataModel<any, any, true>({
+                props: [categoryKey('kp'), ...accumulatedGroupValues(['a', 'b'], 'all'), range('all')],
+                groupByKeys: true,
+            });
+            const data = basicDataSet([{ kp: 'Q1', a: 5n, b: 7n }]);
+
+            const result = dataModel.processData(data)!;
+
+            expect(result.type).toEqual('grouped');
+            expect(resolveGroupColumn(result, 0, 0)).toEqual([5n]); // first stack layer
+            expect(resolveGroupColumn(result, 0, 1)).toEqual([12n]); // stacked on top: 5n + 7n
         });
     });
 
@@ -1509,7 +1692,7 @@ describe('DataModel', () => {
                 item1.y = 25;
                 dataSet.addTransaction({ update: [item1] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify updated values are reflected
@@ -1536,7 +1719,7 @@ describe('DataModel', () => {
                 item2.y = 35;
                 dataSet.addTransaction({ update: [item0, item2] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify updated values are reflected
@@ -1562,7 +1745,7 @@ describe('DataModel', () => {
                 const newItem = { x: 3, y: 30 };
                 dataSet.addTransaction({ update: [item0], append: [newItem] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 expect(reprocessed.columns).toEqual([[15, 20, 30]]);
@@ -1587,7 +1770,7 @@ describe('DataModel', () => {
                 const newItem = { x: 1, y: 10 };
                 dataSet.addTransaction({ update: [item1], prepend: [newItem] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 expect(reprocessed.columns).toEqual([[10, 20, 35]]);
@@ -1617,7 +1800,7 @@ describe('DataModel', () => {
                     append: [newItem],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 expect(reprocessed.columns).toEqual([[15, 30, 40]]);
@@ -1640,7 +1823,7 @@ describe('DataModel', () => {
                 // First update
                 item0.y = 15;
                 dataSet.addTransaction({ update: [item0] });
-                const firstReprocessed = dataModel.reprocessData(initialProcessedData);
+                const firstReprocessed = dataModel.reprocessData(initialProcessedData, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, firstReprocessed, sources);
 
                 expect(firstReprocessed.columns).toEqual([[15, 20]]);
@@ -1648,7 +1831,7 @@ describe('DataModel', () => {
                 // Second update
                 item1.y = 25;
                 dataSet.addTransaction({ update: [item1] });
-                const secondReprocessed = dataModel.reprocessData(firstReprocessed);
+                const secondReprocessed = dataModel.reprocessData(firstReprocessed, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, secondReprocessed, sources);
 
                 expect(secondReprocessed.columns).toEqual([[15, 25]]);
@@ -1674,7 +1857,7 @@ describe('DataModel', () => {
                 item1.value = 25;
                 dataSet.addTransaction({ update: [item1] });
 
-                const reprocessed = dataModel.reprocessData(processedData);
+                const reprocessed = dataModel.reprocessData(processedData, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify updated value is reflected in the group
@@ -1702,7 +1885,7 @@ describe('DataModel', () => {
                 item2.value = 35;
                 dataSet.addTransaction({ update: [item0, item2] });
 
-                const reprocessed = dataModel.reprocessData(processedData);
+                const reprocessed = dataModel.reprocessData(processedData, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 if (reprocessed.type === 'grouped') {
@@ -1729,7 +1912,7 @@ describe('DataModel', () => {
                 item1.value = 25;
                 dataSet.addTransaction({ update: [item1] });
 
-                const reprocessed = dataModel.reprocessData(processedData);
+                const reprocessed = dataModel.reprocessData(processedData, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify the updated category appears in the groups
@@ -1758,7 +1941,7 @@ describe('DataModel', () => {
                 item1.y = 25;
                 dataSet.addTransaction({ update: [item1] });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 // Verify accumulated and normalized values are recalculated
@@ -1800,7 +1983,7 @@ describe('DataModel', () => {
                     update: [item1],
                 });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
                 expect(reprocessed.keys[0].get('test')).toEqual([1, 2, 3, 4]);
@@ -1823,7 +2006,7 @@ describe('DataModel', () => {
 
                 dataSet.addTransaction(transaction);
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
@@ -1955,7 +2138,7 @@ describe('DataModel', () => {
 
                     dataSet.addTransaction({ append: [{ x: Number.NaN, y: 10000 }] });
 
-                    const reprocessed = dataModel.reprocessData(processedData!);
+                    const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
                     // Verify reprocessing also returns Infinity for all-NaN data
                     expectSmallestInterval(reprocessed, Infinity, { allowNonFinite: true });
@@ -2028,7 +2211,7 @@ describe('DataModel', () => {
             const processedData = dataModel.processData(sources);
 
             dataSet.addTransaction({ append: [{ x: 3, y: 30 }] });
-            const reprocessed = dataModel.reprocessData(processedData!);
+            const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
             expect(reprocessed.optimizations).toBeDefined();
             expect(reprocessed.optimizations?.reprocessing?.applied).toBe(true);
@@ -2140,7 +2323,7 @@ describe('DataModel', () => {
                 const appendData = Array.from({ length: 100 }, (_, i) => ({ x: 10000 + i, y: 10000 + i }));
                 dataSet.addTransaction({ remove: removeData, append: appendData });
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
                 // Verify banding was applied during reprocessing
                 expect(reprocessed.optimizations?.reducerBanding).toBeDefined();
@@ -2201,7 +2384,7 @@ describe('DataModel', () => {
                     dataSet.addTransaction({ remove: removeData, append: appendData });
                 }
 
-                const reprocessed = dataModel.reprocessData(processedData!);
+                const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
                 // Verify efficient caching (low scan ratio)
                 const reducerMeta = reprocessed.optimizations?.reducerBanding?.reducers?.find(
@@ -2397,7 +2580,7 @@ describe('DataModel', () => {
 
                 // Append ascending data
                 dataSet.addTransaction({ append: [{ x: 4, y: 40 }] });
-                const reprocessed = dataModel.reprocessData(result);
+                const reprocessed = dataModel.reprocessData(result, undefined, undefined);
 
                 expect(reprocessed[KEY_SORT_ORDERS].get(0)?.sortOrder).toBe(1);
                 expect(reprocessed[KEY_SORT_ORDERS].get(0)?.isUnique).toBe(true);
@@ -2421,7 +2604,7 @@ describe('DataModel', () => {
 
                 // Append data that violates ascending order
                 dataSet.addTransaction({ append: [{ x: 1, y: 40 }] });
-                const reprocessed = dataModel.reprocessData(result);
+                const reprocessed = dataModel.reprocessData(result, undefined, undefined);
 
                 expect(reprocessed[KEY_SORT_ORDERS].get(0)?.sortOrder).toBeUndefined();
             });
@@ -2444,7 +2627,7 @@ describe('DataModel', () => {
 
                 // Append duplicate key
                 dataSet.addTransaction({ append: [{ x: 3, y: 40 }] });
-                const reprocessed = dataModel.reprocessData(result);
+                const reprocessed = dataModel.reprocessData(result, undefined, undefined);
 
                 expect(reprocessed[KEY_SORT_ORDERS].get(0)?.isUnique).toBe(false);
             });
@@ -2471,7 +2654,7 @@ describe('DataModel', () => {
                     });
                 }
 
-                const reprocessed = dataModel.reprocessData(result);
+                const reprocessed = dataModel.reprocessData(result, undefined, undefined);
 
                 // Order should be preserved
                 expect(reprocessed[KEY_SORT_ORDERS].get(0)?.sortOrder).toBe(1);
@@ -2536,7 +2719,7 @@ describe('DataModel', () => {
                 append: [{ date: new Date('2024-01-31'), value: 300 }],
             });
 
-            const reprocessed = dataModel.reprocessData(result);
+            const reprocessed = dataModel.reprocessData(result, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
             // Verify domain extended
@@ -2580,7 +2763,7 @@ describe('DataModel', () => {
                     append: [{ date: newDate, value: (30 + i) * 10 }],
                 });
 
-                result = dataModel.reprocessData(result);
+                result = dataModel.reprocessData(result, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, result, sources);
             }
 

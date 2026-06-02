@@ -3,6 +3,7 @@ import { Debug, Logger, getWindow, jsonDiff } from 'ag-charts-core';
 import type { EventsHub } from '../../core/eventsHub';
 import type { ChartMode } from '../chartMode';
 import { type CachedData, canReuseCachedData } from './caching';
+import type { DataChangeDescription, DataChangeDescriptionListener } from './dataChangeDescription';
 import {
     DataModel,
     type DataModelOptions,
@@ -11,7 +12,7 @@ import {
     type UngroupedData,
 } from './dataModel';
 import type { PropertyDefinition } from './dataModelTypes';
-import type { DataChangeDescription, DataSet } from './dataSet';
+import type { DataSet } from './dataSet';
 
 interface RequestedProcessing<
     D extends object,
@@ -77,7 +78,10 @@ export class DataController {
         });
     }
 
-    public execute(cachedData?: CachedData): CachedData {
+    public execute(
+        cachedData: CachedData | undefined,
+        changeDescriptionListener: DataChangeDescriptionListener | undefined
+    ): CachedData {
         if (this.status !== 'setup') {
             throw new Error(`AG Charts - data request after data setup phase.`);
         }
@@ -90,7 +94,7 @@ export class DataController {
             if (request.dataSet.hasPendingTransactions()) {
                 dataSets.set(request.dataSet, request.dataSet.getChangeDescription());
             }
-            request.dataSet.commitPendingTransactions();
+            request.dataSet.commitPendingTransactions(changeDescriptionListener);
         }
 
         this.debug('DataController.execute() - requested', this.requested);
@@ -159,7 +163,7 @@ export class DataController {
                 this.debug('DataController.execute() - reprocessing data', processedData, dataSet);
 
                 // Run incremental update
-                dataModel.reprocessData(processedData, dataSets);
+                dataModel.reprocessData(processedData, dataSets, changeDescriptionListener);
 
                 // DEBUG: Compare incremental update with full reprocess baseline
                 if (Debug.check('data-model:reprocess-diff')) {
