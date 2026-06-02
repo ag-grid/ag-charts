@@ -333,7 +333,10 @@ const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: st
             axisTypes: { x: 'unit-time', y: 'number' },
             seriesTypes: repeat('line', 2),
         }),
-        warningMessages: ['AG Charts - Unknown option `axes.y.crossLines[0][type=range].value`, ignoring.'],
+        warningMessages: [
+            'AG Charts - Option `axes.y.crossLines[0][type=range].range` is required and has not been provided; expecting a number array and an array of exactly 2 items, ignoring.',
+            'AG Charts - Unknown option `axes.y.crossLines[0][type=range].value`, ignoring.',
+        ],
     },
 };
 

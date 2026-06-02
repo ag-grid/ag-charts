@@ -111,7 +111,7 @@ export function crossLineOptionsDefs(
     return typeUnion<AgBaseCrossLineOptions>(
         {
             line: { value: required(value), ...style },
-            range: { range: and(required(arrayOf(value)), arrayLength(2, 2)), ...style },
+            range: { range: required(and(arrayOf(value), arrayLength(2, 2))), ...style },
         },
         'cross-line options'
     );

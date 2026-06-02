@@ -186,6 +186,11 @@ export function validate<T>(
     const optionsKeys = new Set(Object.keys(options));
     const unusedKeys = [];
 
+    // A node with `enabled: false` has its remaining properties stripped by
+    // `removeDisabledOptions`, so enforcing required fields on it would warn about values that
+    // are about to be discarded.
+    const optionsDisabled = (options as { enabled?: unknown }).enabled === false;
+
     let schemaKeys = schemaKeyCache.get(optionsDefs);
     if (schemaKeys === undefined) {
         schemaKeys = Object.keys(optionsDefs);
@@ -207,6 +212,10 @@ export function validate<T>(
                 error.setUnionType(type, path);
             }
             invalid.push(...nestedResult.invalid);
+        } else if (optionsDisabled) {
+            // Disabled node with no resolvable discriminant: its properties are about to be
+            // stripped, so preserve only the `enabled` flag and skip the `type` requirement.
+            Object.assign(cleared, { enabled: false });
         } else {
             const keywords = joinFormatted(validTypes, 'or', (val) => `'${val}'`);
             invalid.push(
@@ -226,7 +235,7 @@ export function validate<T>(
             if (!validatorOrDefs[undocumentedSymbol]) {
                 unusedKeys.push(key);
             }
-            if (!required) continue;
+            if (!required || optionsDisabled) continue;
         }
 
         const keyPath = extendPath(path, key);
