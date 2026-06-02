@@ -329,10 +329,8 @@ export class Tooltip extends BaseProperties {
             meta,
         };
 
-        // Hover detection / quadtree uses canvas-local (untransformed) coordinates, but the
-        // tooltip is positioned via `position: fixed` outside any transformed ancestor — so
-        // its layout space is screen pixels (canvasRect/relativeRect/elementSize). Scale the
-        // pointer/node coords by the ancestor transform so the two spaces agree.
+        // The tooltip is `position: fixed` (screen space); hover coords are canvas-local.
+        // Scale by any ancestor CSS transform so the spaces agree.
         const { scaleX, scaleY } = this.domManager?.getCanvasScale() ?? { scaleX: 1, scaleY: 1 };
         const anchorTo = meta.position?.anchorTo ?? 'pointer';
         switch (anchorTo) {

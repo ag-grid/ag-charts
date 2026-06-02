@@ -42,8 +42,7 @@ function makeMouseDrag<K extends DragEvents>(
 export function getTouchOffsets(current: Targetable, touch: Touch): { offsetX: number; offsetY: number } {
     const elem = current.getElement();
     const rect = elem.getBoundingClientRect();
-    // Same per-axis scale correction as WidgetEventUtil.calcCurrentXY. Use clientX/Y to match
-    // rect.x/y's coordinate space — pageX/Y is wrong by the page scroll offset.
+    // clientX/Y matches rect.x/y's coordinate space; pageX/Y would be wrong by the page scroll offset.
     const clientWidth = elem.clientWidth;
     const clientHeight = elem.clientHeight;
     const scaleX = rect.width > 0 && clientWidth > 0 ? clientWidth / rect.width : 1;
