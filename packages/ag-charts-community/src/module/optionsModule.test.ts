@@ -318,6 +318,7 @@ const ENABLED_FALSE_OPTIONS: AgCartesianChartOptions = {
                 {
                     enabled: false,
                     type: 'range',
+                    range: [new Date('2019-01-01'), new Date('2019-06-01')],
                     label: {
                         enabled: false,
                         text: 'Custom Crossline Label',
@@ -401,6 +402,7 @@ const INTRINSIC_ENABLE_CROSSLINE_OPTIONS: AgCartesianChartOptions = {
             crossLines: [
                 {
                     type: 'range',
+                    range: [new Date('2019-01-01'), new Date('2019-06-01')],
                     label: {
                         text: 'Custom Crossline Label',
                     },
