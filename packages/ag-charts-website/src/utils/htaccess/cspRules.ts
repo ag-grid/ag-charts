@@ -48,6 +48,15 @@ const TRIAL_FORM_ORIGIN: Record<CspEnv, string> = {
     production: 'https://us-central1-aggrid-ecommerce.cloudfunctions.net',
 };
 
+// The license-pricing form also does a native POST to Salesforce Web-to-Lead — a
+// sandbox org in non-prod, the live org in production (see CONTACT_FORM_DATA in
+// external/ag-website-shared/src/constants.ts). Governed by form-action, not connect-src.
+const SALESFORCE_FORM_ORIGIN: Record<CspEnv, string> = {
+    dev: 'https://test.salesforce.com',
+    staging: 'https://test.salesforce.com',
+    production: 'https://webto.salesforce.com',
+};
+
 // Dev-server-only extras (HMR + cross-port preview). Never emitted for staging or
 // production. Charts dev server runs on 4600/4601 (see astro.config.mjs).
 const DEV_SCRIPT_SRC = ['https://localhost:4600', 'https://localhost:4601'];
@@ -56,6 +65,7 @@ const DEV_CONNECT_SRC = ['https://localhost:4600', 'https://localhost:4601', 'ws
 export function getCspDirectives(options: CspOptions): CspDirectives {
     const { env } = options;
     const trialFormOrigin = options.trialFormOrigin ?? TRIAL_FORM_ORIGIN[env];
+    const salesforceFormOrigin = SALESFORCE_FORM_ORIGIN[env];
 
     const directives: CspDirectives = {
         'default-src': [SELF],
@@ -108,7 +118,7 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
         'worker-src': [SELF, 'blob:'],
         'object-src': [NONE],
         'base-uri': [SELF],
-        'form-action': [SELF, trialFormOrigin],
+        'form-action': [SELF, trialFormOrigin, salesforceFormOrigin],
         'frame-ancestors': [SELF],
     };
 
