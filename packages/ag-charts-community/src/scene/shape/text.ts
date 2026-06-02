@@ -13,6 +13,7 @@ import {
     blockStripWidth,
     cachedTextMeasurer,
     createSvgElement,
+    imageBoxAroundBaseline,
     isArray,
     measureTextSegments,
     resolvePadding,
@@ -479,7 +480,8 @@ export class Text<D = unknown> extends Shape<D> {
         offsetY: number,
         childNodes: IterableIterator<Node>
     ): number {
-        const { height, ascent, segments } = line;
+        const { height, ascent, textAscent, textDescent, segments } = line;
+        const baseline = offsetY + ascent;
         let offsetX = 0;
         for (const measured of segments) {
             const node = childNodes.next().value;
@@ -491,17 +493,13 @@ export class Text<D = unknown> extends Shape<D> {
             }
 
             if (measured.type === 'image') {
-                const verticalAlign = measured.verticalAlign ?? 'middle';
-                const anchorY = Text.calcSegmentY(verticalAlign, offsetY, ascent, height);
+                // The image box is placed relative to the text baseline per its verticalAlign; the
+                // text stays put. The line was already grown to contain this extent during measurement.
                 const boxWidth = measured.textMetrics.width;
                 const boxHeight = measured.textMetrics.height;
+                const { above } = imageBoxAroundBaseline(measured.verticalAlign, boxHeight, textAscent, textDescent);
                 const imageNode = node as ImageSegmentNode;
-                Text.applyImageSegment(
-                    imageNode,
-                    measured,
-                    lineLeft + offsetX,
-                    Text.calcImageTopFromAnchor(verticalAlign, anchorY, boxHeight)
-                );
+                Text.applyImageSegment(imageNode, measured, lineLeft + offsetX, baseline - above);
                 this.textMap!.set(imageNode, imageNode.getBBox());
                 offsetX += boxWidth;
                 continue;
@@ -540,22 +538,6 @@ export class Text<D = unknown> extends Shape<D> {
             case 'hanging':
             default:
                 return 0;
-        }
-    }
-
-    // Convert a chosen baseline anchor position into the image box's top-left y.
-    private static calcImageTopFromAnchor(verticalAlign: CanvasTextBaseline, anchorY: number, boxHeight: number) {
-        switch (verticalAlign) {
-            case 'middle':
-                return anchorY - boxHeight / 2;
-            case 'bottom':
-            case 'ideographic':
-            case 'alphabetic':
-                return anchorY - boxHeight;
-            case 'top':
-            case 'hanging':
-            default:
-                return anchorY;
         }
     }
 

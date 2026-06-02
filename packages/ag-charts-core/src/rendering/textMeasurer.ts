@@ -135,6 +135,44 @@ export function imageSegmentBox(segment: ImageSegment): TextMetricsBox {
     return { width, height, ascent: height, descent: 0 };
 }
 
+/**
+ * Vertical extent of an inline image box of `boxHeight`, positioned relative to the text baseline
+ * per `verticalAlign`. The text stays fixed; the image moves. `above`/`below` are the distances the
+ * box extends above and below the baseline (`above + below === boxHeight`), so the line can grow to
+ * contain it. `textAscent`/`textDescent` are the line's text-only metrics; on a text-less line both
+ * are 0 and the box resolves to `[baseline, baseline + boxHeight]` for every alignment.
+ *
+ * - `top`: image top at the text top (image extends below the text).
+ * - `middle`: image centre at the text midline.
+ * - `bottom`: image bottom at the descender line (image extends above the text).
+ * - `baseline` (and the unspecified default): image bottom on the baseline, like a text glyph.
+ */
+export function imageBoxAroundBaseline(
+    verticalAlign: CanvasTextBaseline | undefined,
+    boxHeight: number,
+    textAscent: number,
+    textDescent: number
+): { above: number; below: number } {
+    switch (verticalAlign) {
+        case 'top':
+        case 'hanging': {
+            return { above: textAscent, below: boxHeight - textAscent };
+        }
+        case 'bottom':
+        case 'ideographic': {
+            return { above: boxHeight - textDescent, below: textDescent };
+        }
+        case 'middle': {
+            const above = (textAscent - textDescent) / 2 + boxHeight / 2;
+            return { above, below: boxHeight - above };
+        }
+        case 'alphabetic':
+        default: {
+            return { above: boxHeight, below: 0 };
+        }
+    }
+}
+
 /** Horizontal gap between a block-leading image and the text column to its right, and between
  * adjacent images in a leading block-image strip. */
 export const BLOCK_IMAGE_SPACING = 4;
@@ -175,7 +213,7 @@ export function isBlockBoundary(segments: ContentSegment[], i: number): boolean 
 }
 
 function emptyLine(): SegmentsLineMetrics {
-    return { segments: [], width: 0, height: 0, ascent: 0, descent: 0 };
+    return { segments: [], width: 0, height: 0, ascent: 0, descent: 0, textAscent: 0, textDescent: 0 };
 }
 
 export function measureTextSegments(
@@ -238,12 +276,11 @@ export function measureTextSegments(
         }
 
         if (segment.type === 'image') {
-            // Inline image (block flag absent or non-boundary).
+            // Inline image (block flag absent or non-boundary). The image does not contribute to the
+            // line's ascent/descent here: it is positioned relative to the text and the box is grown
+            // to fit during finalisation below, once the line's text metrics are known.
             const textMetrics = imageSegmentBox(segment);
             currentLine.width += textMetrics.width;
-            currentLine.ascent = Math.max(currentLine.ascent, textMetrics.ascent);
-            currentLine.descent = Math.max(currentLine.descent, textMetrics.descent);
-            currentLine.height = Math.max(currentLine.height, currentLine.ascent + currentLine.descent);
             currentLine.segments.push({ ...segment, textMetrics });
             currentLineUncommitted = false;
             continue;
@@ -288,6 +325,26 @@ export function measureTextSegments(
     }
 
     finalizeBlock();
+
+    // Grow each line to contain its inline images. The line's text-only ascent/descent are captured
+    // first (images contributed nothing above), then each image box is placed relative to the text
+    // baseline per its verticalAlign and the line's ascent/descent expanded to fit.
+    for (const line of lineMetrics) {
+        line.textAscent = line.ascent;
+        line.textDescent = line.descent;
+        for (const seg of line.segments) {
+            if (seg.type !== 'image') continue;
+            const { above, below } = imageBoxAroundBaseline(
+                seg.verticalAlign,
+                seg.textMetrics.height,
+                line.textAscent,
+                line.textDescent
+            );
+            line.ascent = Math.max(line.ascent, above);
+            line.descent = Math.max(line.descent, below);
+        }
+        line.height = Math.max(line.height, line.ascent + line.descent);
+    }
 
     let maxWidth = 0;
     let totalHeight = 0;

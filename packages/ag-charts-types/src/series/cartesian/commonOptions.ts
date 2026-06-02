@@ -304,9 +304,15 @@ export interface ImageSegment {
      */
     alt?: string;
     /**
-     * Baseline used to align this image vertically against the rest of the line.
+     * Positions the image box vertically relative to the adjacent text; the text position stays
+     * fixed and only the image moves.
      *
-     * Default: `'middle'`
+     * - `'top'` — the image's top edge aligns with the top of the text (the image extends below it).
+     * - `'middle'` — the image's centre aligns with the text's midline.
+     * - `'bottom'` — the image's bottom edge aligns with the text's descender line (the image extends above it).
+     * - `'alphabetic'` — the image's bottom edge sits on the text baseline (like a text glyph).
+     *
+     * Default: `'alphabetic'`
      */
     verticalAlign?: 'alphabetic' | 'top' | 'middle' | 'bottom' | 'hanging' | 'ideographic';
     /**

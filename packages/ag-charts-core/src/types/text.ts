@@ -48,6 +48,14 @@ export type MeasuredSegment = MeasuredTextSegment | MeasuredImageSegment;
 export interface SegmentsLineMetrics extends Size {
     ascent: number;
     descent: number;
+    /**
+     * Ascent/descent of the line's text segments alone, ignoring inline images. Inline image boxes
+     * are positioned relative to these (not the full `ascent`/`descent`, which the image itself may
+     * have inflated), so an image aligns to the text rather than to the line box. Equal to
+     * `ascent`/`descent` on a line with no inline images.
+     */
+    textAscent: number;
+    textDescent: number;
     segments: MeasuredSegment[];
     /**
      * Present on the first line of a block row: the leading block-image strip, anchored to the left

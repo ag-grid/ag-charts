@@ -774,7 +774,7 @@ describe('Text', () => {
             expect(imageNode.paddingLeft).toBe(3);
         });
 
-        it("defaults image segment verticalAlign to 'middle' (anchor below the line's top)", () => {
+        it('defaults image segment verticalAlign to baseline (image bottom on the text baseline)', () => {
             const text = new Text();
             Object.assign(text, {
                 ...BASE_OPTIONS,
@@ -786,11 +786,16 @@ describe('Text', () => {
                 y: 0,
             });
             text.setScene(mockScene);
-            const [textNode, imageNode] = childNodesOf(text);
-            // The text node sits at its alphabetic baseline (a positive y inside the line),
-            // and the image's top should be above its anchor — both within the line bounds.
+            const [textNode, imageNode] = childNodesOf(text) as unknown as Array<{
+                y: number;
+                textBaseline?: CanvasTextBaseline;
+                getBBox(): { y: number; height: number };
+            }>;
+            // The text sits on its alphabetic baseline; with no verticalAlign the image defaults to
+            // baseline too, so its bottom edge rests on that same baseline (textNode.y).
             expect(textNode.textBaseline).toBe('alphabetic');
-            expect(imageNode.boxHeight).toBeDefined();
+            const imageBox = imageNode.getBBox();
+            expect(Math.abs(imageBox.y + imageBox.height - textNode.y)).toBeLessThan(1);
         });
 
         it('threads borderRadius and backgroundFill through to the rendered node', () => {
@@ -840,30 +845,79 @@ describe('Text', () => {
             expect(imageNode.border).toEqual(border);
         });
 
-        it.each(['top', 'middle', 'alphabetic', 'bottom'] as const)(
-            "places an inline image's top edge relative to its line per verticalAlign='%s'",
-            (verticalAlign) => {
+        // AG-15933: verticalAlign positions the image box relative to the adjacent text — the image
+        // moves, the text does not. The image is taller than the text here so each option resolves
+        // to a visibly different image position. Reference lines come from the same rendered text
+        // node (its bbox is the font-metrics box; its y is the alphabetic baseline).
+        describe('inline image verticalAlign positions the image relative to the text', () => {
+            const layout = (verticalAlign: CanvasTextBaseline) => {
                 const text = new Text();
                 Object.assign(text, {
                     ...BASE_OPTIONS,
                     text: [
-                        { text: 'A', fontSize: 14, fontFamily: 'Verdana' },
-                        { type: 'image', url: 'https://example.com/x.png', width: 20, height: 20, verticalAlign },
+                        { text: 'Ay', fontSize: 16, fontFamily: 'Verdana' },
+                        { type: 'image', url: 'i.png', width: 20, height: 40, verticalAlign },
                     ],
                     x: 0,
                     y: 0,
                 });
                 text.setScene(mockScene);
-                const [, imageNode] = childNodesOf(text);
-                // Image top is bounded by the line's vertical extent. We sanity-check the
-                // monotonicity: 'top' produces the smallest y, 'bottom' the largest.
-                if (verticalAlign === 'top') {
-                    expect(imageNode.y).toBeLessThanOrEqual(0);
-                } else if (verticalAlign === 'bottom') {
-                    expect(imageNode.y).toBeGreaterThan(0);
-                }
-            }
-        );
+                const [textNode, imageNode] = childNodesOf(text) as unknown as Array<{
+                    y: number;
+                    getBBox(): { y: number; height: number };
+                }>;
+                const t = textNode.getBBox();
+                const i = imageNode.getBBox();
+                return {
+                    baseline: textNode.y,
+                    textTop: t.y,
+                    textBottom: t.y + t.height,
+                    textMid: t.y + t.height / 2,
+                    imageTop: i.y,
+                    imageBottom: i.y + i.height,
+                    imageMid: i.y + i.height / 2,
+                };
+            };
+
+            it("'top' aligns the image top with the text top", () => {
+                const l = layout('top');
+                expect(Math.abs(l.imageTop - l.textTop)).toBeLessThan(1);
+            });
+
+            it("'middle' aligns the image centre with the text midline", () => {
+                const l = layout('middle');
+                expect(Math.abs(l.imageMid - l.textMid)).toBeLessThan(1);
+            });
+
+            it("'bottom' aligns the image bottom with the text descender line", () => {
+                const l = layout('bottom');
+                expect(Math.abs(l.imageBottom - l.textBottom)).toBeLessThan(1);
+            });
+
+            it("'alphabetic' sits the image bottom on the text baseline", () => {
+                const l = layout('alphabetic');
+                expect(Math.abs(l.imageBottom - l.baseline)).toBeLessThan(1);
+            });
+
+            it("extends the image below the text for 'top' and above the text for 'bottom'", () => {
+                const top = layout('top');
+                const bottom = layout('bottom');
+                expect(top.imageBottom).toBeGreaterThan(top.textBottom);
+                expect(bottom.imageTop).toBeLessThan(bottom.textTop);
+            });
+        });
+
+        it('sizes an image-only line to the image box (no text to align against)', () => {
+            const text = new Text();
+            Object.assign(text, {
+                ...BASE_OPTIONS,
+                text: [{ type: 'image', url: 'i.png', width: 20, height: 30 }],
+                x: 0,
+                y: 0,
+            });
+            text.setScene(mockScene);
+            expect(text.getBBox().height).toBeCloseTo(30, 5);
+        });
 
         it.each([
             ['middle', 'middle'],
@@ -1037,7 +1091,7 @@ describe('Text', () => {
                 ...BASE_OPTIONS,
                 text: [
                     { text: 'Before ' },
-                    { type: 'image', url: ICON_SVG, width: 24, height: 24, verticalAlign: 'middle', ...extra },
+                    { type: 'image', url: ICON_SVG, width: 24, height: 24, ...extra },
                     { text: ' after' },
                 ],
                 x: 100,
@@ -1065,7 +1119,12 @@ describe('Text', () => {
 
         it('renders an inline image segment with a rounded background', () => {
             expect(
-                renderInlineImageSegmentSnapshot({ padding: 4, backgroundFill: '#333', borderRadius: 8 })
+                renderInlineImageSegmentSnapshot({
+                    padding: 4,
+                    backgroundFill: '#333',
+                    borderRadius: 8,
+                    verticalAlign: 'middle',
+                })
             ).toMatchImageSnapshot();
         });
 
