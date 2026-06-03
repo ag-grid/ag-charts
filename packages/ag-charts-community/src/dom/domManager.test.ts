@@ -16,6 +16,19 @@ describe('DOMManager', () => {
 
     const eventsHub: EventsHub = new EventEmitter();
 
+    // Builds a chart container nested inside a scrollable ancestor whose client rect is `scrollableRect`.
+    // jsdom does not implement computedStyleMap(); stub it so findScrollableContainer() detects the
+    // ancestor as scrollable (overflow-y: auto).
+    const buildScrollableContainer = (scrollableRect: DOMRect) => {
+        const scrollable = doc.createElement('div');
+        const container = doc.createElement('div');
+        scrollable.append(container);
+        doc.body.append(scrollable);
+        (scrollable as any).computedStyleMap = () => ({ get: () => 'auto' });
+        vi.spyOn(scrollable, 'getBoundingClientRect').mockReturnValue(scrollableRect);
+        return container;
+    };
+
     describe('for normal container cases', () => {
         it('should initialize the expected DOM', () => {
             const container = doc.createElement('div');
@@ -198,23 +211,20 @@ describe('DOMManager', () => {
 
         // Distinct from the jsdom viewport (innerWidth/innerHeight) so the two outcomes
         // are distinguishable.
-        const scrollableRect = { x: 10, y: 20, width: 100, height: 50, top: 20, left: 10, right: 110, bottom: 70 };
-
-        const buildScrollableContainer = () => {
-            const scrollable = doc.createElement('div');
-            const container = doc.createElement('div');
-            scrollable.append(container);
-            doc.body.append(scrollable);
-            // jsdom does not implement computedStyleMap(); stub it so findScrollableContainer()
-            // detects this ancestor as scrollable (overflow-y: auto).
-            (scrollable as any).computedStyleMap = () => ({ get: () => 'auto' });
-            vi.spyOn(scrollable, 'getBoundingClientRect').mockReturnValue(scrollableRect as DOMRect);
-            return container;
-        };
+        const scrollableRect = {
+            x: 10,
+            y: 20,
+            width: 100,
+            height: 50,
+            top: 20,
+            left: 10,
+            right: 110,
+            bottom: 70,
+        } as DOMRect;
 
         it('returns the viewport rect (not the scrollable ancestor) when popover is supported', () => {
             setPopoverSupported(true);
-            const container = buildScrollableContainer();
+            const container = buildScrollableContainer(scrollableRect);
             const dm = new DOMManager(eventsHub, undefined, doc, container);
 
             const rect = dm.getOverlayClientRect();
@@ -226,7 +236,7 @@ describe('DOMManager', () => {
 
         it('returns the scrollable ancestor rect when popover is not supported', () => {
             setPopoverSupported(false);
-            const container = buildScrollableContainer();
+            const container = buildScrollableContainer(scrollableRect);
             const dm = new DOMManager(eventsHub, undefined, doc, container);
 
             const rect = dm.getOverlayClientRect();
@@ -250,6 +260,66 @@ describe('DOMManager', () => {
                 expect(rect.width).toBe(doc.innerWidth);
                 expect(rect.height).toBe(doc.innerHeight);
             }
+        });
+    });
+
+    describe('getVisibleChartRect()', () => {
+        // Canvas spans x:0..200, y:0..200; scrollable window only reveals x:50..150, y:60..120.
+        const canvasRect = {
+            x: 0,
+            y: 0,
+            width: 200,
+            height: 200,
+            top: 0,
+            left: 0,
+            right: 200,
+            bottom: 200,
+        } as DOMRect;
+        const scrollableRect = {
+            x: 50,
+            y: 60,
+            width: 100,
+            height: 60,
+            top: 60,
+            left: 50,
+            right: 150,
+            bottom: 120,
+        } as DOMRect;
+
+        it('returns null when the chart has no scrollable ancestor', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
+
+            expect(dm.getVisibleChartRect()).toBeNull();
+        });
+
+        it('returns the canvas rect clipped to the scrollable ancestor', () => {
+            const container = buildScrollableContainer(scrollableRect);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
+            vi.spyOn(dm.getParent('canvas'), 'getBoundingClientRect').mockReturnValue(canvasRect);
+
+            const rect = dm.getVisibleChartRect();
+            expect(rect).not.toBeNull();
+            expect(rect!.left).toBe(scrollableRect.left);
+            expect(rect!.top).toBe(scrollableRect.top);
+            expect(rect!.right).toBe(scrollableRect.right);
+            expect(rect!.bottom).toBe(scrollableRect.bottom);
+        });
+
+        it('caches the result and re-computes after a scroll invalidation', () => {
+            const container = buildScrollableContainer(scrollableRect);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
+            const canvasEl = dm.getParent('canvas');
+            vi.spyOn(canvasEl, 'getBoundingClientRect').mockReturnValue(canvasRect);
+
+            const rect1 = dm.getVisibleChartRect();
+            const rect2 = dm.getVisibleChartRect();
+            expect(rect1).toBe(rect2);
+
+            doc.window.dispatchEvent(new Event('scroll'));
+            const rect3 = dm.getVisibleChartRect();
+            expect(rect3).not.toBe(rect1);
         });
     });
 

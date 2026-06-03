@@ -289,6 +289,21 @@ export class Tooltip extends BaseProperties {
     }
 
     /**
+     * Confine an anchor point (canvas-local, screen px) to the visible chart area so a node- or
+     * pointer-anchored tooltip stays connected to the chart when its anchor has scrolled out of a
+     * scrollable container (AG-13992). The tooltip body itself remains free to float to the
+     * viewport. No-op when the chart has no scrollable ancestor.
+     */
+    private clampAnchorToVisibleChart(x: number, y: number, canvasRect: DOMRect): { x: number; y: number } {
+        const visibleRect = this.domManager?.getVisibleChartRect();
+        if (visibleRect == null) return { x, y };
+        return {
+            x: clamp(visibleRect.left - canvasRect.left, x, visibleRect.right - canvasRect.left),
+            y: clamp(visibleRect.top - canvasRect.top, y, visibleRect.bottom - canvasRect.top),
+        };
+    }
+
+    /**
      * Shows tooltip at the given event's coordinates.
      * If the `html` parameter is missing, moves the existing tooltip to the new position.
      */
@@ -333,15 +348,24 @@ export class Tooltip extends BaseProperties {
         const { scaleX, scaleY } = this.domManager?.getCanvasScale() ?? { scaleX: 1, scaleY: 1 };
         const anchorTo = meta.position?.anchorTo ?? 'pointer';
         switch (anchorTo) {
-            case 'node':
-                this.springAnimation.update(
+            case 'node': {
+                const { x, y } = this.clampAnchorToVisibleChart(
                     (meta.nodeCanvasX ?? meta.canvasX) * scaleX,
-                    (meta.nodeCanvasY ?? meta.canvasY) * scaleY
+                    (meta.nodeCanvasY ?? meta.canvasY) * scaleY,
+                    canvasRect
                 );
+                this.springAnimation.update(x, y);
                 break;
-            case 'pointer':
-                this.springAnimation.update(meta.canvasX * scaleX, meta.canvasY * scaleY);
+            }
+            case 'pointer': {
+                const { x, y } = this.clampAnchorToVisibleChart(
+                    meta.canvasX * scaleX,
+                    meta.canvasY * scaleY,
+                    canvasRect
+                );
+                this.springAnimation.update(x, y);
                 break;
+            }
             case 'chart':
                 this.springAnimation.reset();
         }
