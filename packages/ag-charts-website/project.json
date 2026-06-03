@@ -116,6 +116,10 @@
       "command": "tsx scripts/csp/generate-csp.ts",
       "options": {
         "cwd": "packages/ag-charts-website"
+      },
+      "configurations": {
+        "staging": { "args": "--env staging" },
+        "production": { "args": "--env production" }
       }
     },
     "test": {
