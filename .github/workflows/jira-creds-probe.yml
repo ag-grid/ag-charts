@@ -20,6 +20,8 @@ jobs:
               env:
                   EMAIL_SECRET: ${{ secrets.JIRA_AI_BOT_API_EMAIL }}
                   EMAIL_VAR: ${{ vars.JIRA_AI_BOT_API_EMAIL }}
+                  EMAIL2_SECRET: ${{ secrets.JIRA_AI_BOT_EMAIL }}
+                  EMAIL2_VAR: ${{ vars.JIRA_AI_BOT_EMAIL }}
                   TOKEN: ${{ secrets.JIRA_AI_BOT_API_TOKEN }}
                   CLOUD_ID: 1565837d-d6d1-4228-bcb2-4cb74df700f2
                   SITE: https://ag-grid.atlassian.net
@@ -27,9 +29,13 @@ jobs:
                   set -uo pipefail
                   echo "email — secrets.JIRA_AI_BOT_API_EMAIL set: $([ -n "${EMAIL_SECRET:-}" ] && echo yes || echo NO)"
                   echo "email — vars.JIRA_AI_BOT_API_EMAIL    set: $([ -n "${EMAIL_VAR:-}" ] && echo yes || echo NO)"
+                  echo "email — secrets.JIRA_AI_BOT_EMAIL     set: $([ -n "${EMAIL2_SECRET:-}" ] && echo yes || echo NO)"
+                  echo "email — vars.JIRA_AI_BOT_EMAIL        set: $([ -n "${EMAIL2_VAR:-}" ] && echo yes || echo NO)"
                   echo "token — secrets.JIRA_AI_BOT_API_TOKEN set: $([ -n "${TOKEN:-}" ] && echo yes || echo NO)"
-                  EMAIL="${EMAIL_SECRET:-}"; EMAIL_SRC="secrets"
-                  if [ -z "$EMAIL" ]; then EMAIL="${EMAIL_VAR:-}"; EMAIL_SRC="vars"; fi
+                  EMAIL="${EMAIL_SECRET:-}"; EMAIL_SRC="secrets.JIRA_AI_BOT_API_EMAIL"
+                  if [ -z "$EMAIL" ]; then EMAIL="${EMAIL_VAR:-}"; EMAIL_SRC="vars.JIRA_AI_BOT_API_EMAIL"; fi
+                  if [ -z "$EMAIL" ]; then EMAIL="${EMAIL2_SECRET:-}"; EMAIL_SRC="secrets.JIRA_AI_BOT_EMAIL"; fi
+                  if [ -z "$EMAIL" ]; then EMAIL="${EMAIL2_VAR:-}"; EMAIL_SRC="vars.JIRA_AI_BOT_EMAIL"; fi
                   [ -n "$EMAIL" ] && echo "using email from: $EMAIL_SRC  value: ${EMAIL}" || echo "no email available — Basic-auth probes (A/C/E) will be SKIPPED"
                   BASIC=""
                   [ -n "$EMAIL" ] && [ -n "${TOKEN:-}" ] && BASIC=$(printf '%s:%s' "$EMAIL" "$TOKEN" | base64 | tr -d '\n')
