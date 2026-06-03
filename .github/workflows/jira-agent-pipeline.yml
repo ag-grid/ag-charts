@@ -78,8 +78,14 @@ name: Jira Agent Pipeline
 #   Repository secrets:
 #       JIRA_AGENT_APP_PRIVATE_KEY  - GitHub App PEM
 #       ANTHROPIC_API_KEY           - Anthropic Enterprise admin key
-#       JIRA_API_TOKEN              - Atlassian API token (service account)
-#       JIRA_EMAIL                  - Service-account email
+#
+#   Organisation secrets (ag-grid org; repo must be in the secret's access list):
+#       JIRA_AI_BOT_API_TOKEN       - Atlassian API token (jira-ai-bot service account; SCOPED token)
+#       JIRA_AI_BOT_EMAIL           - jira-ai-bot service-account email
+#
+#   NOTE: the token is a *scoped* Atlassian API token, so the pipeline's REST
+#   calls go through the api.atlassian.com gateway (cloudId path), resolved
+#   automatically from JIRA_SITE_URL. No extra config needed here.
 #
 #   Repository variables:
 #       JIRA_AGENT_APP_ID           - GitHub App ID
@@ -195,8 +201,8 @@ jobs:
               uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-resume-preflight
               with:
                   issue_key: ${{ env.ISSUE_KEY }}
-                  jira_email: ${{ secrets.JIRA_EMAIL }}
-                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_email: ${{ secrets.JIRA_AI_BOT_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_AI_BOT_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
             # CI-failure re-entry eligibility walk (workflow_run · failure only).
@@ -207,8 +213,8 @@ jobs:
                   head_branch: ${{ github.event.workflow_run.head_branch }}
                   head_sha: ${{ github.event.workflow_run.head_sha }}
                   run_url: ${{ github.event.workflow_run.html_url }}
-                  jira_email: ${{ secrets.JIRA_EMAIL }}
-                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_email: ${{ secrets.JIRA_AI_BOT_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_AI_BOT_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
     # -------------------------------------------------- agent-run
@@ -270,8 +276,8 @@ jobs:
                   jira_agent_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
                   jira_agent_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-                  jira_email: ${{ secrets.JIRA_EMAIL }}
-                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_email: ${{ secrets.JIRA_AI_BOT_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_AI_BOT_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
     # -------------------------------------------------- ci-success-handler
@@ -315,8 +321,8 @@ jobs:
                   head_branch: ${{ github.event.workflow_run.head_branch }}
                   head_sha: ${{ github.event.workflow_run.head_sha }}
                   run_url: ${{ github.event.workflow_run.html_url }}
-                  jira_email: ${{ secrets.JIRA_EMAIL }}
-                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_email: ${{ secrets.JIRA_AI_BOT_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_AI_BOT_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
                   # Live-test snippet — the ci.yml `pr_preview` job publishes
                   # per-PR UMD bundles to gh-pages, so the reviewer can paste
@@ -391,6 +397,6 @@ jobs:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   jira_agent_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
                   jira_agent_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
-                  jira_email: ${{ secrets.JIRA_EMAIL }}
-                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_email: ${{ secrets.JIRA_AI_BOT_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_AI_BOT_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
