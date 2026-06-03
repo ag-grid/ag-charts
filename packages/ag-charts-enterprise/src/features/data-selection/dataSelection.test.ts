@@ -406,14 +406,8 @@ function createDiskUsageOptions(
         },
     ];
 
-    const label = {
-        enabled: true,
-        formatter: (p: { datum: { name: string } }) => p.datum.name,
-    } as const;
-
-    const highlight = {
-        highlightedItem: { strokeWidth: 4 },
-    } as const;
+    const formatter = (p: { datum: { name: string } }) => p.datum.name;
+    const strokeWidth = 6;
 
     return {
         data,
@@ -433,15 +427,19 @@ function createDiskUsageOptions(
                 treemap: {
                     series: {
                         group: {
-                            label,
-                            highlight,
+                            label: { formatter },
+                            highlight: { highlightedItem: { strokeWidth } },
+                        },
+                        tile: {
+                            label: { formatter },
+                            highlight: { highlightedItem: { strokeWidth } },
                         },
                     },
                 },
                 sunburst: {
                     series: {
-                        label,
-                        highlight,
+                        label: { formatter },
+                        highlight: { highlightedItem: { strokeWidth } },
                     },
                 },
             },
@@ -1480,22 +1478,22 @@ describe('DataSelection', () => {
             const POINT_IMG1: CanvasPoint = { canvasX: 84, canvasY: 522 };
             const POINT_MISS: CanvasPoint = { canvasX: 20, canvasY: 20 };
             const DATUM_MOVIE: D = findName('movie.mp4');
-            const DATUM_VID2: D = findName('vid1.mp4');
+            const DATUM_VID2: D = findName('vid2.mp4');
             const DATUM_MNT: D = findName('mnt/');
             const DATUM_IMG1: D = findName('img1.jpg');
-            const ITEM_MOVIE: AgSelectionItem<D> = { datum: DATUM_MOVIE, seriesId, itemId: NaN };
-            const ITEM_VID2: AgSelectionItem<D> = { datum: DATUM_VID2, seriesId, itemId: NaN };
-            const ITEM_MNT: AgSelectionItem<D> = { datum: DATUM_MNT, seriesId, itemId: NaN };
-            const ITEM_IMG1: AgSelectionItem<D> = { datum: DATUM_IMG1, seriesId, itemId: NaN };
+            const ITEM_MOVIE: AgSelectionItem<D> = { datum: DATUM_MOVIE, seriesId, itemId: 13 };
+            const ITEM_VID2: AgSelectionItem<D> = { datum: DATUM_VID2, seriesId, itemId: 22 };
+            const ITEM_MNT: AgSelectionItem<D> = { datum: DATUM_MNT, seriesId, itemId: 15 };
+            const ITEM_IMG1: AgSelectionItem<D> = { datum: DATUM_IMG1, seriesId, itemId: 10 };
             const ADDED_MOVIE = uiChangeEvent<D, C>({ added: [ITEM_MOVIE], removed: [] });
             const ADDED_VID2 = uiChangeEvent<D, C>({ added: [ITEM_VID2], removed: [] });
             const ADDED_MNT = uiChangeEvent<D, C>({ added: [ITEM_MNT], removed: [] });
             const ADDED_IMG1 = uiChangeEvent<D, C>({ added: [ITEM_IMG1], removed: [] });
             const REMOVED_MOVIE = uiChangeEvent<D, C>({ added: [], removed: [ITEM_MOVIE] });
             const REMOVED_VID2_MNT = uiChangeEvent<D, C>({ added: [], removed: [] });
-            const ADDED_IMG1_REMOVED_MOVIE_VID2_MNT = uiChangeEvent<D, C>({
+            const ADDED_IMG1_REMOVED_MOVIE_MNT_VID2 = uiChangeEvent<D, C>({
                 added: [ITEM_IMG1],
-                removed: [ITEM_MOVIE, ITEM_VID2, ITEM_MNT],
+                removed: [ITEM_MOVIE, ITEM_MNT, ITEM_VID2],
             });
             describe('single', () => {
                 beforeEach(async () => {
@@ -1523,10 +1521,10 @@ describe('DataSelection', () => {
                     });
                     describe('initial', () => {
                         test.skip('screenshot', async () => {
-                            await compareExact('diskusage-highlighted-none-selected-moviemp4-vid2mp4-mnt');
+                            await compareExact('diskusage-highlighted-none-selected-movie-mnt-vid2');
                         });
                         test('getSelection', () => {
-                            expect(getChartSelectionArray()).toEqual([ITEM_MOVIE, ITEM_VID2, ITEM_MNT]);
+                            expect(getChartSelectionArray()).toEqual([ITEM_MOVIE, ITEM_MNT, ITEM_VID2]);
                         });
                         test('selectionChange', () => {
                             expect(selectionChange.popEvents()).toEqual([ADDED_MOVIE, ADDED_VID2, ADDED_MNT]);
@@ -1537,7 +1535,7 @@ describe('DataSelection', () => {
                             test.skip('screenshot', async () => {
                                 await mouseClick(POINT_MOVIE);
                                 await mouseMove(POINT_MISS);
-                                await compareExact('diskusage-highlighted-none-selected-moviemp4');
+                                await compareExact('diskusage-highlighted-none-selected-movie');
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_MOVIE);
@@ -1554,12 +1552,12 @@ describe('DataSelection', () => {
                             test.skip('screenshot', async () => {
                                 await mouseClick(POINT_MOVIE, { ctrlKey });
                                 await mouseMove(POINT_MISS);
-                                await compareExact('diskusage-highlighted-none-selected-vid2mp4-mnt');
+                                await compareExact('diskusage-highlighted-none-selected-vid2-mnt');
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_MOVIE, { ctrlKey });
                                 await mouseMove(POINT_MISS);
-                                expect(getChartSelectionArray()).toEqual([ITEM_VID2, ITEM_MNT]);
+                                expect(getChartSelectionArray()).toEqual([ITEM_MNT, ITEM_VID2]);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_MOVIE, { ctrlKey });
@@ -1581,7 +1579,7 @@ describe('DataSelection', () => {
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_IMG1);
                                 await mouseMove(POINT_MISS);
-                                expect(selectionChange.popEvents()).toEqual([ADDED_IMG1_REMOVED_MOVIE_VID2_MNT]);
+                                expect(selectionChange.popEvents()).toEqual([ADDED_IMG1_REMOVED_MOVIE_MNT_VID2]);
                             });
                         });
                         describe('ctrl-click on unselected node add that node only', () => {
@@ -1593,7 +1591,7 @@ describe('DataSelection', () => {
                             test('getSelection', async () => {
                                 await mouseClick(POINT_IMG1, { ctrlKey });
                                 await mouseMove(POINT_MISS);
-                                expect(getChartSelectionArray()).toEqual([ITEM_MOVIE, ITEM_VID2, ITEM_MNT, ITEM_IMG1]);
+                                expect(getChartSelectionArray()).toEqual([ITEM_IMG1, ITEM_MOVIE, ITEM_MNT, ITEM_VID2]);
                             });
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_IMG1, { ctrlKey });
