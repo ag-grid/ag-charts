@@ -159,11 +159,15 @@ export function getCspHtaccessLine(options: CspOptions, mode: CspMode): string {
  * regardless of which phase (report-only / enforce) the root policy is in.
  */
 export function getCspHtaccessBlock(options: CspOptions, mode: CspMode): string {
-    return [
-        '# Clear any CSP inherited from the grid root .htaccess so /charts is governed',
-        '# only by the charts policy below (per-product override).',
-        'Header always unset Content-Security-Policy',
-        'Header always unset Content-Security-Policy-Report-Only',
-        getCspHtaccessLine(options, mode),
-    ].join('\n');
+    const lines: string[] = ['# Override the CSP inherited from the grid root for /charts pages.'];
+    // Always replace the inherited report-only header so grid's report-only policy does
+    // not also report against /charts. Only unset the inherited *enforced* CSP when this
+    // block enforces — during the report-only window keep it for baseline protection
+    // rather than leaving /charts with no enforced CSP.
+    if (mode === 'enforce') {
+        lines.push('Header always unset Content-Security-Policy');
+    }
+    lines.push('Header always unset Content-Security-Policy-Report-Only');
+    lines.push(getCspHtaccessLine(options, mode));
+    return lines.join('\n');
 }
