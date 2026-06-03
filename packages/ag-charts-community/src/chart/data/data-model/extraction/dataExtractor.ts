@@ -93,9 +93,13 @@ function valueColumnType(value: unknown): ColumnValueType | undefined {
     }
 }
 
-function updateColumnTypeTracker(tracker: ColumnTypeTracker, value: unknown, datumIndex: number): void {
+function updateColumnTypeTracker(
+    tracker: ColumnTypeTracker,
+    value: unknown,
+    datumIndex: number
+): ColumnValueType | undefined {
     const observed = valueColumnType(value);
-    if (observed == null) return;
+    if (observed == null) return undefined;
 
     // 'boolean' and 'object' have no merge rule: a column mixing them with another type keeps its
     // first-seen tag (neither branch below matches), so heterogeneity is never silently coerced.
@@ -110,6 +114,8 @@ function updateColumnTypeTracker(tracker: ColumnTypeTracker, value: unknown, dat
         tracker.mixedAtIndex ??= datumIndex;
         tracker.type = 'mixed-numeric';
     }
+
+    return observed;
 }
 
 function isNumericColumnType(type: ColumnValueType): boolean {
@@ -130,8 +136,11 @@ interface TimezoneTracker {
     implicit: { value: string; index: number } | undefined;
 }
 
+// Precondition: only called for values already observed as 'date'. A string reaching that tag must be a
+// valid ISO 8601 string (the sole string -> date path), so no re-validation is needed here; epoch
+// number/bigint and Date-object dates carry no timezone text and are skipped by the typeof guard.
 function updateTimezoneTracker(tracker: TimezoneTracker, value: unknown, datumIndex: number): void {
-    if (typeof value !== 'string' || !isISO8601(value)) return;
+    if (typeof value !== 'string') return;
     if (ISO_8601_EXPLICIT_TZ.test(value)) {
         tracker.explicit ??= { value, index: datumIndex };
     } else {
@@ -306,8 +315,9 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                         keys.push(result.value);
                         // Track ordering/uniqueness for valid keys
                         updateKeyTracker(tracker, result.value);
-                        updateColumnTypeTracker(typeTracker, result.value, datumIndex);
-                        updateTimezoneTracker(tzTracker, result.value, datumIndex);
+                        if (updateColumnTypeTracker(typeTracker, result.value, datumIndex) === 'date') {
+                            updateTimezoneTracker(tzTracker, result.value, datumIndex);
+                        }
                         continue;
                     }
 
@@ -441,8 +451,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                     this.markScopeDatumInvalid(def.scopes, columnSource, datumIndex, invalidData, invalidDataCount);
                 } else if (result.missing) {
                     this.markScopeDatumMissing(def.scopes, columnSource, datumIndex, missingData);
-                } else {
-                    updateColumnTypeTracker(typeTracker, result.value, datumIndex);
+                } else if (updateColumnTypeTracker(typeTracker, result.value, datumIndex) === 'date') {
                     updateTimezoneTracker(tzTracker, result.value, datumIndex);
                 }
 
