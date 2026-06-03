@@ -1,5 +1,5 @@
-import type { DataChangeDescriptionListener } from './dataChangeDescription';
 import type { ISeries, ISeriesProperties, SelectionState, SeriesNodeDatum } from '../series/seriesTypes';
+import type { DataChangeDescriptionListener } from './dataChangeDescription';
 import type { DataSet } from './dataSet';
 import type { IDataSetSelection } from './dataSetSelectionTypes';
 
