@@ -37,6 +37,7 @@ import {
     themeOperator,
     timeInterval,
     timeIntervalUnit,
+    typeUnion,
     undocumented,
     union,
 } from 'ag-charts-core';
@@ -55,8 +56,9 @@ import type {
     AgBaseCrossLineOptions,
     AgBaseCrosshairLabel,
     AgCartesianAxisLabelOptions,
-    AgCartesianCrossLineOptions,
+    AgCartesianCrossLineLabelOptions,
     AgCategoryAxisOptions,
+    AgCommonCrossLineOptions,
     AgContinuousAxisOptions,
     AgCrosshairLabel,
     AgCrosshairLabelRendererResult,
@@ -65,6 +67,7 @@ import type {
     AgGroupedCategoryDepthOptions,
     AgLogAxisOptions,
     AgNumberAxisOptions,
+    AgRadiusCrossLineLabelOptions,
     AgTimeAxisFormattableLabelFormat,
     AgTimeAxisFormattableLabelUnitFormat,
     AgTimeAxisOptions,
@@ -82,54 +85,63 @@ export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOp
     ...fillOptionsDef,
 };
 
-export const commonCrossLineOptionsDefs = attachDescription<AgBaseCrossLineOptions>(
-    {
-        enabled: boolean,
-        type: required(union('line', 'range')),
-        range: and(
-            attachDescription((_, { options }) => options.type === 'range', "crossLine type to be 'range'"),
-            arrayOf(defined),
-            arrayLength(2, 2)
-        ),
-        value: and(
-            attachDescription((_, { options }) => options.type === 'line', "crossLine type to be 'line'"),
-            defined
-        ),
-        label: commonCrossLineLabelOptionsDefs,
-        fill: color,
-        fillOpacity: ratio,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-    },
-    'cross-line options'
-);
-
-export const cartesianCrossLineOptionsDefs: OptionsDefs<AgCartesianCrossLineOptions> = {
-    ...commonCrossLineOptionsDefs,
-    label: {
-        ...commonCrossLineLabelOptionsDefs,
-        position: union(
-            'top',
-            'left',
-            'right',
-            'bottom',
-            'top-left',
-            'top-right',
-            'bottom-left',
-            'bottom-right',
-            'inside',
-            'inside-left',
-            'inside-right',
-            'inside-top',
-            'inside-bottom',
-            'inside-top-left',
-            'inside-bottom-left',
-            'inside-top-right',
-            'inside-bottom-right'
-        ),
-        rotation: number,
-    },
+// The style options shared by both cross-line variants and by theme overrides (which carry
+// neither `type` nor `value` and supply their own `label`).
+export const crossLineStyleOptionsDefs: OptionsDefs<Omit<AgCommonCrossLineOptions, 'label'>> = {
+    enabled: boolean,
+    fill: color,
+    fillOpacity: ratio,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
 };
+
+export const radiusCrossLineLabelOptionsDefs: OptionsDefs<AgRadiusCrossLineLabelOptions> = {
+    ...commonCrossLineLabelOptionsDefs,
+    positionAngle: number,
+};
+
+// Builds the cross-line options schema as a discriminated union on `type`, so the value is
+// validated against the axis it's attached to: `line` carries a single `value`, `range` a
+// two-item `range` tuple, both checked with the supplied per-axis `value` validator.
+export function crossLineOptionsDefs(
+    value: Validator,
+    labelDefs: OptionsDefs<AgBaseCrossLineLabelOptions>
+): OptionsDefs<AgBaseCrossLineOptions> {
+    const style = { ...crossLineStyleOptionsDefs, label: labelDefs };
+    return typeUnion<AgBaseCrossLineOptions>(
+        {
+            line: { value: required(value), ...style },
+            range: { range: required(and(arrayOf(value), arrayLength(2, 2))), ...style },
+        },
+        'cross-line options'
+    );
+}
+
+export const cartesianCrossLineLabelOptionsDefs: OptionsDefs<AgCartesianCrossLineLabelOptions> = {
+    ...commonCrossLineLabelOptionsDefs,
+    position: union(
+        'top',
+        'left',
+        'right',
+        'bottom',
+        'top-left',
+        'top-right',
+        'bottom-left',
+        'bottom-right',
+        'inside',
+        'inside-left',
+        'inside-right',
+        'inside-top',
+        'inside-bottom',
+        'inside-top-left',
+        'inside-bottom-left',
+        'inside-top-right',
+        'inside-bottom-right'
+    ),
+    rotation: number,
+};
+
+export const cartesianCrossLineOptionsDefs = crossLineOptionsDefs(defined, cartesianCrossLineLabelOptionsDefs);
 
 export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
     enabled: boolean,
@@ -399,6 +411,10 @@ export const numberAxisOptionsDefs: OptionsDefs<AgNumberAxisOptions> = {
     type: constant('number'),
     label: cartesianNumericAxisLabel,
     crosshair: cartesianAxisCrosshairOptions(true),
+    crossLines: arrayOfDefs(
+        crossLineOptionsDefs(number, cartesianCrossLineLabelOptionsDefs),
+        'a cross-line options array'
+    ),
 };
 
 export const logAxisOptionsDefs: OptionsDefs<AgLogAxisOptions> = {
@@ -411,6 +427,10 @@ export const logAxisOptionsDefs: OptionsDefs<AgLogAxisOptions> = {
     ),
     label: cartesianNumericAxisLabel,
     crosshair: cartesianAxisCrosshairOptions(true),
+    crossLines: arrayOfDefs(
+        crossLineOptionsDefs(number, cartesianCrossLineLabelOptionsDefs),
+        'a cross-line options array'
+    ),
 };
 
 export const timeAxisOptionsDefs: OptionsDefs<AgTimeAxisOptions> = {
@@ -420,6 +440,10 @@ export const timeAxisOptionsDefs: OptionsDefs<AgTimeAxisOptions> = {
     label: cartesianTimeAxisLabel,
     parentLevel: cartesianTimeAxisParentLevel,
     crosshair: cartesianAxisCrosshairOptions(true, true),
+    crossLines: arrayOfDefs(
+        crossLineOptionsDefs(or(number, date), cartesianCrossLineLabelOptionsDefs),
+        'a cross-line options array'
+    ),
 };
 
 export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
@@ -440,4 +464,8 @@ export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     preferredMin: and(or(number, date), lessThan('preferredMax'), lessThan('max')),
     preferredMax: and(or(number, date), greaterThan('preferredMin'), greaterThan('min')),
     interval: discreteTimeAxisIntervalOptionsDefs,
+    crossLines: arrayOfDefs(
+        crossLineOptionsDefs(or(number, date), cartesianCrossLineLabelOptionsDefs),
+        'a cross-line options array'
+    ),
 };

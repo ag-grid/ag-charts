@@ -258,13 +258,21 @@ export function extractSearchData(
     reference?: ApiReferenceType,
     interfaceRef?: NodeTypes,
     basePath: NavigationPath[] = [],
-    labelPrefix = ''
+    labelPrefix = '',
+    genericsMap?: Record<string, TypeNode>
 ): SearchDatum[] {
-    if (isInterfaceLikeNode(interfaceRef)) {
-        return extractInterfaceSearchData(reference, interfaceRef, basePath, labelPrefix);
+    const aliasedUnion = resolveAliasedUnion(interfaceRef, reference);
+    if (aliasedUnion) {
+        return extractUnionSearchData(
+            reference,
+            aliasedUnion.unionType,
+            basePath,
+            labelPrefix,
+            mergeGenericsMaps(genericsMap, aliasedUnion.genericsMap)
+        );
     }
-    if (isUnionTypeAlias(interfaceRef)) {
-        return extractUnionSearchData(reference, interfaceRef, basePath, labelPrefix);
+    if (isInterfaceLikeNode(interfaceRef)) {
+        return extractInterfaceSearchData(reference, interfaceRef, basePath, labelPrefix, genericsMap);
     }
     return [];
 }
@@ -612,13 +620,114 @@ function isUnionTypeAlias(
     return Boolean(interfaceRef?.kind === 'typeAlias' && isUnionNode(interfaceRef.type));
 }
 
+/** Resolves the referenced type name from a node that may be a bare string or a typeRef. */
+export function getReferencedTypeName(type?: TypeNode): string | undefined {
+    if (typeof type === 'string') {
+        return type;
+    }
+    if (type && isTypeReferenceNode(type)) {
+        return type.type;
+    }
+    return undefined;
+}
+
+/**
+ * Resolves a reference that represents a union, whether directly (a union type alias) or
+ * indirectly. Axis-specific cross-line aliases (e.g. `AgCartesianCrossLineOptions`) are
+ * emitted as an interface with no own members whose single heritage is a union type alias
+ * (`AgBaseCrossLineOptions`); without this they resolve to zero members and disappear from
+ * the navigation and options page. The alias' `genericsMap` is returned so generic members
+ * of the union variants (e.g. `label`) resolve to the per-axis type.
+ */
+export function resolveAliasedUnion(
+    interfaceRef?: NodeTypes,
+    reference?: ApiReferenceType
+): { unionType: MultiTypeNode & { kind: 'union' }; genericsMap?: Record<string, TypeNode> } | undefined {
+    if (isUnionTypeAlias(interfaceRef)) {
+        return { unionType: interfaceRef.type, genericsMap: interfaceRef.genericsMap };
+    }
+    if (
+        interfaceRef?.kind === 'interface' &&
+        interfaceRef.members.length === 0 &&
+        interfaceRef.heritage?.length === 1
+    ) {
+        const [heritage] = interfaceRef.heritage;
+        const heritageName = getReferencedTypeName(heritage);
+        const target = heritageName ? reference?.get(heritageName) : undefined;
+        if (isUnionTypeAlias(target)) {
+            return { unionType: target.type, genericsMap: interfaceRef.genericsMap };
+        }
+    }
+    return undefined;
+}
+
+function mergeGenericsMaps(
+    base?: Record<string, TypeNode>,
+    overrides?: Record<string, TypeNode>
+): Record<string, TypeNode> | undefined {
+    if (!base) return overrides;
+    if (!overrides) return base;
+    return { ...base, ...overrides };
+}
+
+/**
+ * Resolves the discriminated variants of an aliased union (see {@link resolveAliasedUnion}) into
+ * `{ name, type }` navigation entries — `name` being the variant's `type` discriminator value and
+ * `type` its interface name. Returns the alias' `genericsMap` so callers can resolve generic
+ * members (e.g. the per-axis `label`) when rendering each variant. Mirrors the shape produced for
+ * direct union aliases so both can feed the same typed-union navigation rendering.
+ */
+export function getAliasedUnionVariants(
+    interfaceRef?: NodeTypes,
+    reference?: ApiReferenceType
+): { variants: NavigationPath[]; genericsMap?: Record<string, TypeNode> } | undefined {
+    const aliasedUnion = resolveAliasedUnion(interfaceRef, reference);
+    if (!aliasedUnion) {
+        return undefined;
+    }
+
+    const variants = aliasedUnion.unionType.type
+        .map((subType) => {
+            const subtypeName = getReferencedTypeName(subType);
+            const subtypeRef = subtypeName ? reference?.get(subtypeName) : undefined;
+            if (subtypeRef?.kind === 'interface') {
+                const typeMember = subtypeRef.members.find((member) => member.name === 'type');
+                if (typeof typeMember?.type === 'string') {
+                    return { name: cleanupName(typeMember.type), type: subtypeName! };
+                }
+            }
+            return undefined;
+        })
+        .filter((variant): variant is NavigationPath => variant != null);
+
+    return variants.length ? { variants, genericsMap: aliasedUnion.genericsMap } : undefined;
+}
+
+/** Builds positional type arguments for an interface from a generics map keyed by type-param name. */
+export function buildTypeArgumentsFromGenericsMap(
+    interfaceRef: NodeTypes,
+    genericsMap?: Record<string, TypeNode>
+): string[] | undefined {
+    const typeParams = (interfaceRef as HasProperty<NodeTypes, 'typeParams'>).typeParams;
+    if (!genericsMap || !typeParams) {
+        return undefined;
+    }
+    return typeParams.map((typeParam) =>
+        normalizeType(genericsMap[typeParam.name] ?? typeParam.default ?? typeParam.name)
+    );
+}
+
 function extractInterfaceSearchData(
     reference: ApiReferenceType | undefined,
     interfaceRef: InterfaceNode | (TypeLiteralNode & { name: string }),
     basePath: NavigationPath[],
-    labelPrefix: string
+    labelPrefix: string,
+    parentGenericsMap?: Record<string, TypeNode>
 ) {
-    const { genericsMap } = interfaceRef as HasProperty<NodeTypes, 'genericsMap'>;
+    const genericsMap = mergeGenericsMaps(
+        (interfaceRef as HasProperty<NodeTypes, 'genericsMap'>).genericsMap,
+        parentGenericsMap
+    );
     return interfaceRef.members.flatMap((member) => {
         const cleanedName = cleanupName(member.name);
         const newPath = { name: cleanedName, type: getMemberType(member) };
@@ -670,12 +779,13 @@ function resolveMemberReference(
 
 function extractUnionSearchData(
     reference: ApiReferenceType | undefined,
-    interfaceRef: TypeAliasNode & { type: MultiTypeNode & { kind: 'union' } },
+    unionType: MultiTypeNode & { kind: 'union' },
     basePath: NavigationPath[],
-    labelPrefix: string
+    labelPrefix: string,
+    genericsMap?: Record<string, TypeNode>
 ) {
-    return interfaceRef.type.type
-        .flatMap((typeName) => buildUnionSearchEntries(typeName, reference, basePath, labelPrefix))
+    return unionType.type
+        .flatMap((typeName) => buildUnionSearchEntries(typeName, reference, basePath, labelPrefix, genericsMap))
         .filter((item): item is SearchDatum => Boolean(item));
 }
 
@@ -683,13 +793,15 @@ function buildUnionSearchEntries(
     typeName: TypeNode,
     reference: ApiReferenceType | undefined,
     basePath: NavigationPath[],
-    labelPrefix: string
+    labelPrefix: string,
+    parentGenericsMap?: Record<string, TypeNode>
 ) {
-    if (typeof typeName !== 'string' || isInterfaceHidden(typeName)) {
+    const subtypeName = getReferencedTypeName(typeName);
+    if (!subtypeName || isInterfaceHidden(subtypeName)) {
         return [];
     }
 
-    const subtypeRef = reference?.get(typeName);
+    const subtypeRef = reference?.get(subtypeName);
     if (subtypeRef?.kind !== 'interface') {
         return [];
     }
@@ -702,7 +814,7 @@ function buildUnionSearchEntries(
     const label = `${labelPrefix.replace(/\.$/, '')}[type=${typeMember.type as string}]`;
     const navPath = basePath.concat({
         name: cleanupName(getMemberType(typeMember)),
-        type: typeName,
+        type: subtypeName,
     });
 
     return [
@@ -711,7 +823,7 @@ function buildUnionSearchEntries(
             searchable: cleanupName(getMemberType(typeMember)).toLowerCase(),
             navPath,
         },
-        ...extractSearchData(reference, subtypeRef, navPath, `${label}.`),
+        ...extractSearchData(reference, subtypeRef, navPath, `${label}.`, parentGenericsMap),
     ];
 }
 

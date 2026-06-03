@@ -5,7 +5,7 @@ import type {
     AgNumericAxisFormattableLabelOptions,
 } from './axisOptions';
 import type { AgBaseCrossLineLabelOptions, AgBaseCrossLineOptions, AgCrossLineThemeOptions } from './crossLineOptions';
-import type { ContextDefault, Degree, Ratio } from './types';
+import type { AxisValue, ContextDefault, Degree, Ratio } from './types';
 
 export type AgPolarAxisShape = 'polygon' | 'circle';
 
@@ -21,7 +21,7 @@ export interface AgAngleCategoryAxisOptions<TContext = ContextDefault> extends A
     /** Angle in degrees to end ticks positioning at. */
     endAngle?: Degree;
     /** Add cross lines or regions corresponding to data values. */
-    crossLines?: AgAngleCrossLineOptions[];
+    crossLines?: AgAngleCrossLineOptions<AxisValue>[];
     /**
      * This property is for grouped polar series plotted on a angle category axis.
      * It is a proportion between 0 and 1 which determines the size of the gap between the items within a single group along the angle axis.
@@ -48,7 +48,7 @@ export interface AgAngleNumberAxisOptions<TContext = ContextDefault>
     /** Angle in degrees to end ticks positioning at. It should be greater than `startAngle`. */
     endAngle?: Degree;
     /** Add cross lines or regions corresponding to data values. */
-    crossLines?: AgAngleCrossLineOptions[];
+    crossLines?: AgAngleCrossLineOptions<number>[];
 }
 
 export type AgAngleAxisLabelOrientation = 'fixed' | 'parallel' | 'perpendicular';
@@ -70,5 +70,5 @@ export interface AgAngleAxisFormattableLabelOptions<TContext = ContextDefault>
 export interface AgAngleAxisLabelOptions<TContext = ContextDefault>
     extends AgBaseAxisLabelOptions<TContext>, OrientableLabel {}
 
-export interface AgAngleCrossLineOptions extends AgBaseCrossLineOptions<AgBaseCrossLineLabelOptions> {}
+export type AgAngleCrossLineOptions<TValue = AxisValue> = AgBaseCrossLineOptions<TValue, AgBaseCrossLineLabelOptions>;
 export interface AgAngleCrossLineThemeOptions extends AgCrossLineThemeOptions<AgBaseCrossLineLabelOptions> {}

@@ -175,6 +175,61 @@ test.describe('api-ref-page', () => {
         await expect(getNavigationProperty(page, /^xKey$/)).toBeVisible();
     });
 
+    // On the number-axis page the `crossLines` member sits under the `{ type = 'number' ... }`
+    // nav node, which is collapsed by default. Deep-linking to a sibling axis property auto-expands
+    // that node (the path to the selection) so `crossLines` is reachable in the navigation tree,
+    // while leaving `crossLines` itself collapsed.
+    const NUMBER_AXIS_URL = 'options/axes/number/#reference-AgNumberAxisOptions-nice';
+
+    test('expands an axis cross-line member into its discriminated variants', async ({ page }) => {
+        await gotoUrl(page, toPageUrl(NUMBER_AXIS_URL));
+
+        const crossLines = getNavigationProperty(page, /^crossLines/);
+        await expect(crossLines).toBeVisible();
+        await crossLines.locator(PROPERTY_EXPANDER_SELECTOR).click();
+
+        await expect(getNavigationProperty(page, /type\s*= 'line'/)).toBeVisible();
+        await expect(getNavigationProperty(page, /type\s*= 'range'/)).toBeVisible();
+    });
+
+    test('expands a cross-line variant to its own properties, not the axis properties', async ({ page }) => {
+        await gotoUrl(page, toPageUrl(NUMBER_AXIS_URL));
+
+        const crossLines = getNavigationProperty(page, /^crossLines/);
+        await expect(crossLines).toBeVisible();
+        await crossLines.locator(PROPERTY_EXPANDER_SELECTOR).click();
+
+        const lineVariant = getNavigationProperty(page, /type\s*= 'line'/);
+        await lineVariant.locator(PROPERTY_EXPANDER_SELECTOR).click();
+
+        // `value` is a cross-line line-variant property; it is absent from the axis interface, so
+        // its presence proves the variant resolved to the cross-line type rather than the axis type.
+        await expect(getNavigationProperty(page, /^value$/)).toBeVisible();
+    });
+
+    test('keeps cross-line variants collapsed after refreshing on another axis property', async ({ page }) => {
+        await gotoUrl(page, toPageUrl(NUMBER_AXIS_URL));
+
+        const crossLines = getNavigationProperty(page, /^crossLines/);
+        await expect(crossLines).toBeVisible();
+        await crossLines.locator(PROPERTY_EXPANDER_SELECTOR).click();
+
+        // The variant branches show, but selecting an unrelated axis property must not auto-expand
+        // them, even though they share the axis page.
+        await expect(getNavigationProperty(page, /type\s*= 'line'/)).toBeVisible();
+        await expect(getNavigationTree(page).locator(PROPERTY_NAME_SELECTOR, { hasText: /^value$/ })).toHaveCount(0);
+    });
+
+    test('renders a cross-line member as a plain array, like series', async ({ page }) => {
+        await gotoUrl(page, toPageUrl(NUMBER_AXIS_URL));
+
+        const crossLines = getNavigationProperty(page, /^crossLines/);
+        await expect(crossLines).toBeVisible();
+        // A discriminated-union array reads as a plain array, not an array wrapping an object (`[{ }]`).
+        await expect(crossLines).toContainText('[ ... ]');
+        await expect(crossLines).not.toContainText('[{');
+    });
+
     test('child properties toggle reveals nested rows for padding', async ({ page }) => {
         await gotoUrl(page, toPageUrl('options/'));
         await waitForApiReady(page);

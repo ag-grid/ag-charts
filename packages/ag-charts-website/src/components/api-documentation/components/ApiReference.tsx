@@ -24,10 +24,12 @@ import {
     cleanupName,
     formatTypeToCode,
     getMemberType,
+    getReferencedTypeName,
     isInterfaceHidden,
     normalizeType,
     parseJsDocs,
     processMembers,
+    resolveAliasedUnion,
 } from '../apiReferenceHelpers';
 import { SelectionContext } from './OptionsNavigation';
 import { type CollapsibleType, PropertyTitle, PropertyType } from './Properties';
@@ -365,6 +367,30 @@ function useMemberAdditionalDetails(member: MemberNode): NodeTypes | NodeTypes[]
         resolveReferenceType(reference, resolveType);
 
     const resolvedDetails = resolve(memberType);
+
+    // An axis-specific cross-line alias resolves to an interface with no own members whose
+    // heritage is a union type alias; expand it to its variants so the union renders.
+    const aliasedUnion = resolveAliasedUnion(
+        resolvedDetails && !Array.isArray(resolvedDetails) ? resolvedDetails : undefined,
+        reference
+    );
+    if (aliasedUnion) {
+        const unionTypes = aliasedUnion.unionType.type
+            .flatMap((unionType) => {
+                const typeName = getReferencedTypeName(unionType);
+                return typeName ? resolve(typeName) : undefined;
+            })
+            .filter(
+                (apiNode): apiNode is NodeTypes =>
+                    typeof apiNode === 'object' &&
+                    (apiNode.kind === 'typeAlias' || apiNode.kind === 'interface') &&
+                    !isInterfaceHidden(apiNode.name)
+            );
+        if (unionTypes.length) {
+            return unionTypes;
+        }
+    }
+
     if (resolvedDetails) {
         return resolvedDetails;
     }

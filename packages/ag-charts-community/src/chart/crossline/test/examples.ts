@@ -12,7 +12,8 @@ const AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
     loadExampleOptions('area-with-negative-values');
 
 type CrossLinesRangeConfig = Record<string, { vertical: [Date, Date]; horizontal: [number, number] }>;
-type InvalidCrossLineConfig = Record<string, Partial<AgCartesianCrossLineOptions>>;
+// Deliberately malformed cross-line options used to exercise validation warnings.
+type InvalidCrossLineConfig = Record<string, Record<string, unknown>>;
 
 const baseChartOptions: AgCartesianChartOptions = {
     data: DATA_OIL_PETROLEUM,
@@ -70,7 +71,7 @@ const baseChartOptions: AgCartesianChartOptions = {
     },
 };
 
-const baseCrossLineOptions: AgCartesianCrossLineOptions = {
+const baseCrossLineOptions = {
     type: 'range',
     fill: '#dbddf0',
     stroke: '#5157b7',
@@ -90,7 +91,7 @@ const createChartOptions = (rangeConfig: CrossLinesRangeConfig): Record<string, 
             ...baseChartOptions,
             axes: mapValues(baseChartOptions['axes'] ?? {}, (axis) => {
                 const range = axis.position === 'bottom' ? rangeConfig[name].vertical : rangeConfig[name].horizontal;
-                return { ...axis, crossLines: [{ ...baseCrossLineOptions, range }] };
+                return { ...axis, crossLines: [{ ...baseCrossLineOptions, range }] as AgCartesianCrossLineOptions[] };
             }),
         };
     }
@@ -155,7 +156,7 @@ const invalidCrossLinesOptions: InvalidCrossLineConfig = {
     },
     INVALID_RANGE_LENGTH_CROSSLINE: {
         type: 'range',
-        range: [128, 134, 135] as any,
+        range: [128, 134, 135],
     },
     INVALID_RANGE_WITHOUT_TYPE_CROSSLINE: {
         range: [128, 134],
