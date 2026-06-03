@@ -7,8 +7,6 @@ import { random } from './seededRandom';
  */
 export const FakeServer = {
     get: async function (params: { windowStart?: Date | number | string; windowEnd?: Date | number | string }) {
-        if (typeof params.windowStart !== 'object' || typeof params.windowEnd !== 'object') return [];
-
         // Simulate a real server with a random 2000-2500ms delay
         const delayTime = 2000 + Math.floor(random() * 500);
         await delay(delayTime);
@@ -19,13 +17,20 @@ export const FakeServer = {
         // Format the data ready for the chart
         const formattedData = formatData(
             data,
-            params.windowStart?.getTime() ?? dataStart,
-            params.windowEnd?.getTime() ?? dataEnd
+            toTimestamp(params.windowStart) ?? dataStart,
+            toTimestamp(params.windowEnd) ?? dataEnd
         );
 
         return formattedData;
     },
 };
+
+function toTimestamp(value: Date | number | string | undefined): number | undefined {
+    if (value === undefined) return undefined;
+    if (value instanceof Date) return value.getTime();
+    if (typeof value === 'number') return value;
+    return new Date(value).getTime();
+}
 
 function delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
