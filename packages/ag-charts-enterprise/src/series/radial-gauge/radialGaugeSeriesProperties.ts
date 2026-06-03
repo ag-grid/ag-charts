@@ -12,6 +12,7 @@ import {
 import type {
     AgChartLabelFormatterParams,
     AgGradientColorMode,
+    AgNumericValue,
     AgRadialGaugeLabelFormatterParams,
     AgRadialGaugeMarkerShape,
     AgRadialGaugeOptions,
@@ -89,7 +90,7 @@ export type RadialGaugeLabelDatum = {
     centerX: number;
     centerY: number;
     text: string | undefined;
-    value: number | bigint;
+    value: AgNumericValue;
     fill: string | undefined;
     fontStyle: FontStyle | undefined;
     fontWeight: FontWeight | undefined;

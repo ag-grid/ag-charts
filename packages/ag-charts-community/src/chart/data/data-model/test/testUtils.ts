@@ -1,3 +1,5 @@
+import type { AgNumericValue } from 'ag-charts-types';
+
 import {
     accumulatedValue,
     area as actualArea,
@@ -81,7 +83,7 @@ export const accumulatedPropertyValue = (property: string, groupId: string = pro
     processor: accumulatedValue(true),
 });
 
-export const sum = (groupId: string): AggregatePropertyDefinition<any, any, [number | bigint, number | bigint]> => ({
+export const sum = (groupId: string): AggregatePropertyDefinition<any, any, [AgNumericValue, AgNumericValue]> => ({
     id: `sum-${groupId}`,
     matchGroupIds: [groupId],
     type: 'aggregate',

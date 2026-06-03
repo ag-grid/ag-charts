@@ -131,7 +131,7 @@ export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTim
     }
 
     override datumFormatParams(
-        value: number | bigint | string | Date,
+        value: AgTimeValue,
         params: FormatDatumParams,
         _fractionDigits: number | undefined,
         timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined,

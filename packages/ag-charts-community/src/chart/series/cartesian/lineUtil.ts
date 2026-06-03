@@ -8,7 +8,7 @@ import {
     spanRange,
     stepPoints,
 } from 'ag-charts-core';
-import type { AgSeriesMarkerStyle } from 'ag-charts-types';
+import type { AgNumericValue, AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import { type FromToFns, NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Path } from '../../../scene/shape/path';
@@ -111,7 +111,7 @@ export interface LineNodeDatumScratch {
     yDatum: any;
     // Bigint-capable so a cumulative beyond Number.MAX_VALUE survives to yScale.convert() for proportional
     // positioning; narrowed to Number only at the cumulativeValue datum-field assignment.
-    yCumulative: number | bigint;
+    yCumulative: AgNumericValue;
     selected: boolean | undefined;
     x: number;
     y: number;

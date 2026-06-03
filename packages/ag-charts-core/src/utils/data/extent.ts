@@ -1,9 +1,11 @@
+import type { AgNumericValue } from 'ag-charts-types';
+
 import type { DomainWithMetadata } from '../../types/scales';
 import { isNumber } from '../types/typeGuards';
 
 // bigint endpoints are retained so a bigint column's exact extent reaches the scale. Comparisons
 // against the Number Infinity seed and between bigints are legal — only +/-/* mixing throws.
-const isFiniteEndpoint = (v: number | bigint) => typeof v === 'bigint' || Number.isFinite(v);
+const isFiniteEndpoint = (v: AgNumericValue) => typeof v === 'bigint' || Number.isFinite(v);
 
 // Date/number inputs yield a Number extent; only a bigint input carries bigint endpoints. The overloads
 // keep bigint out of the result type for the common (Date/number) callers, so it never percolates falsely.
@@ -12,8 +14,8 @@ export function extent(
     sortOrder?: 1 | -1
 ): [number, number] | null;
 export function extent(values: readonly (bigint | null | undefined)[], sortOrder?: 1 | -1): [bigint, bigint] | null;
-export function extent(values: readonly unknown[], sortOrder?: 1 | -1): [number | bigint, number | bigint] | null;
-export function extent(values: readonly unknown[], sortOrder?: 1 | -1): [number | bigint, number | bigint] | null {
+export function extent(values: readonly unknown[], sortOrder?: 1 | -1): [AgNumericValue, AgNumericValue] | null;
+export function extent(values: readonly unknown[], sortOrder?: 1 | -1): [AgNumericValue, AgNumericValue] | null {
     if (values.length === 0) {
         return null;
     }
@@ -30,8 +32,8 @@ export function extent(values: readonly unknown[], sortOrder?: 1 | -1): [number 
         }
     }
 
-    let min: number | bigint = Infinity;
-    let max: number | bigint = -Infinity;
+    let min: AgNumericValue = Infinity;
+    let max: AgNumericValue = -Infinity;
 
     for (const n of values) {
         const v = n instanceof Date ? n.getTime() : n;

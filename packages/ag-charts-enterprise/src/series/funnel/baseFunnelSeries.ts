@@ -12,6 +12,7 @@ import type {
     RequireOptional,
 } from 'ag-charts-core';
 import { ChartAxisDirection, SeriesZIndexMap } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
@@ -460,7 +461,7 @@ export abstract class BaseFunnelSeries<
         datumIndex: number;
         rect: Bounds;
         barAlongX: boolean;
-        yDatum: number | bigint;
+        yDatum: AgNumericValue;
         datum: any;
         visible: boolean;
     }): FunnelNodeLabelDatum | undefined;

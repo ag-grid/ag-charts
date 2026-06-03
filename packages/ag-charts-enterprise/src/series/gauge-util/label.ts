@@ -1,10 +1,11 @@
 import type { AgChartLabelFormatterParams, RichFormatter, _ModuleSupport } from 'ag-charts-community';
 import { type NormalisedTextOrSegments, isArray } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { formatWithContext } from '../../utils/formatter';
 
 interface GaugeLabelDatum {
-    value: number | bigint;
+    value: AgNumericValue;
     text?: NormalisedTextOrSegments;
     formatter?: RichFormatter<AgChartLabelFormatterParams<any>>;
 }
@@ -18,7 +19,7 @@ export const fadeInFns: _ModuleSupport.FromToFns<_ModuleSupport.Node, any, any> 
     toFn: () => ({ opacity: 1 }),
 };
 
-export function formatLabel(value: number | bigint | undefined, scale: { min: number | bigint; max: number | bigint }) {
+export function formatLabel(value: AgNumericValue | undefined, scale: { min: AgNumericValue; max: AgNumericValue }) {
     if (value == null) return '';
 
     // A bigint value is exact and integral, so render it full-precision and skip the decimal-place
@@ -37,7 +38,7 @@ export function formatLabel(value: number | bigint | undefined, scale: { min: nu
     return value.toFixed(dp);
 }
 
-export function getLabelText(seriesId: string, ctx: Ctx, datum: GaugeLabelDatum, valueOverride?: number | bigint) {
+export function getLabelText(seriesId: string, ctx: Ctx, datum: GaugeLabelDatum, valueOverride?: AgNumericValue) {
     if (datum.text != null) return datum.text;
 
     const value = valueOverride ?? datum.value;

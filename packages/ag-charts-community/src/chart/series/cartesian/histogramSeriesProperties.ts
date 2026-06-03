@@ -6,6 +6,7 @@ import type {
     AgHistogramSeriesOptions,
     AgHistogramSeriesStyle,
     AgHistogramSeriesTooltipRendererParams,
+    AgNumericValue,
 } from 'ag-charts-types';
 
 import type { BBox } from '../../../scene/bbox';
@@ -28,9 +29,9 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly bottomRightCornerRadius: boolean;
     readonly bottomLeftCornerRadius: boolean;
     readonly clipBBox?: BBox;
-    readonly aggregatedValue: number | bigint;
+    readonly aggregatedValue: AgNumericValue;
     readonly frequency: number;
-    readonly domain: [number | bigint, number | bigint];
+    readonly domain: [AgNumericValue, AgNumericValue];
     readonly label?: {
         readonly text: NormalisedTextOrSegments;
         readonly x: number;

@@ -24,6 +24,7 @@ import {
     toRadians,
     toTextString,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
@@ -384,7 +385,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         };
     }
 
-    labelDatum(label: LinearGaugeLabelProperties, value: number | bigint): LinearGaugeLabelDatum {
+    labelDatum(label: LinearGaugeLabelProperties, value: AgNumericValue): LinearGaugeLabelDatum {
         const {
             placement,
             avoidCollisions,
@@ -1162,7 +1163,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return true;
     }
 
-    formatLabelText(datum?: { label: number | bigint }) {
+    formatLabelText(datum?: { label: AgNumericValue }) {
         const { labelSelection, horizontal, scale, seriesRect, gaugeRect } = this;
         const { x, y, width, height } = gaugeRect;
 
@@ -1202,8 +1203,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     private animateLabelText(params: { from?: number; phase?: _ModuleSupport.AnimationPhase } = {}) {
         const { animationManager } = this.ctx;
 
-        let labelFrom: number | bigint = 0;
-        let labelTo: number | bigint = 0;
+        let labelFrom: AgNumericValue = 0;
+        let labelTo: AgNumericValue = 0;
         this.labelSelection.each((label, datum) => {
             // Reset animation
             label.opacity = 1;

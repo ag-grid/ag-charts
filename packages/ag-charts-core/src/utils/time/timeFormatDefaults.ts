@@ -1,4 +1,4 @@
-import type { AgTimeIntervalUnit } from 'ag-charts-types';
+import type { AgTimeIntervalUnit, AgTimeValue } from 'ag-charts-types';
 
 import { findMinMax } from '../data/numberArray';
 import { durationDay, durationHour, durationMinute, durationSecond, durationYear, intervalFloor } from './time';
@@ -12,7 +12,7 @@ export function dateToNumber(value: any) {
  * Returns `NaN` for out-of-range bigint epochs and any value `Date` cannot parse, so callers can treat
  * the result like any other off-domain time value rather than letting an Invalid Date propagate.
  */
-export function timeValueToNumber(value: Date | number | bigint | string): number {
+export function timeValueToNumber(value: AgTimeValue): number {
     if (typeof value === 'number') return value;
     const ms = typeof value === 'bigint' ? Number(value) : value;
     const date = ms instanceof Date ? ms : new Date(ms);

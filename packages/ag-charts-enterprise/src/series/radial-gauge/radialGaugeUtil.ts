@@ -1,5 +1,6 @@
 import { type TextAlign, type VerticalAlign, _ModuleSupport } from 'ag-charts-community';
 import { toPlainText } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { getLabelText } from '../gauge-util/label';
 import { type LabelFormatting, formatSingleLabel, formatStackedLabels } from '../util/labelFormatter';
@@ -184,7 +185,7 @@ export function formatRadialGaugeLabels(
     selection: _ModuleSupport.Selection<RadialGaugeLabelDatum, _ModuleSupport.Text<RadialGaugeLabelDatum>>,
     opts: { padding: number; textAlign: TextAlign; verticalAlign: VerticalAlign },
     innerRadius: number,
-    datumOverrides?: { label: number | bigint | undefined; secondaryLabel: number | bigint | undefined }
+    datumOverrides?: { label: AgNumericValue | undefined; secondaryLabel: AgNumericValue | undefined }
 ) {
     const { padding, textAlign, verticalAlign } = opts;
 

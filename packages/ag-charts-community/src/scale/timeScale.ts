@@ -10,7 +10,7 @@ import {
     isDenseInterval,
     timeValueToNumber,
 } from 'ag-charts-core';
-import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit, AgTimeValue } from 'ag-charts-types';
 
 import { ContinuousScale } from './continuousScale';
 
@@ -31,7 +31,7 @@ export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeInte
         return new Date(d);
     }
 
-    override convert(value: Date | number | bigint | string, options?: { clamp: boolean }): number {
+    override convert(value: AgTimeValue, options?: { clamp: boolean }): number {
         return super.convert(value == null ? Number.NaN : timeValueToNumber(value), options);
     }
 

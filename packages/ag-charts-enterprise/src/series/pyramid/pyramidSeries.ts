@@ -22,6 +22,7 @@ import {
     toPlainText,
     toTextString,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { FunnelConnector } from '../funnel/funnelConnector';
 import { PyramidProperties } from './pyramidProperties';
@@ -51,7 +52,7 @@ type PyramidNodeLabelDatum = Readonly<Point> & {
 interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
     readonly xValue: string;
-    readonly yValue: number | bigint;
+    readonly yValue: AgNumericValue;
     readonly top: number;
     readonly right: number;
     readonly bottom: number;

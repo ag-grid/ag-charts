@@ -1,5 +1,6 @@
 import type { DomainWithMetadata, NormalizedDomain } from 'ag-charts-core';
 import { findMinMax } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { AbstractScale } from './abstractScale';
 import { unpackDomainMinMax } from './scaleUtil';
@@ -108,7 +109,7 @@ export abstract class ContinuousScale<D extends number | bigint | Date, I = numb
         return rangeDistance / Math.max(1, bands);
     }
 
-    convert(value: D | number | bigint, options?: { clamp?: boolean }) {
+    convert(value: D | AgNumericValue, options?: { clamp?: boolean }) {
         const { domain } = this;
         if (!domain || domain.length < 2 || value == null) {
             return Number.NaN;

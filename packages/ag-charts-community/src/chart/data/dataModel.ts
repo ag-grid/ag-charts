@@ -1,4 +1,5 @@
 import { Debug, type DomainWithMetadata, Logger, first } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { ChartMode } from '../chartMode';
@@ -262,7 +263,7 @@ export class DataModel<
         searchId: string,
         processedData: UngroupedData<any> | GroupedData<any>,
         expectedType: ColumnValueCategory
-    ): (number | bigint)[];
+    ): AgNumericValue[];
     resolveColumnById<T = any>(
         scope: ScopeProvider,
         searchId: string,

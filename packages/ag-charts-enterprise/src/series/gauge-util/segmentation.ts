@@ -1,23 +1,24 @@
 import { BaseProperties, Logger, Property, type Scale } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 class GaugeSegmentationIntervalProperties extends BaseProperties {
     @Property
-    values?: Array<number | bigint>;
+    values?: Array<AgNumericValue>;
 
     @Property
-    step?: number | bigint;
+    step?: AgNumericValue;
 
     @Property
     count?: number;
 
-    getSegments(scale: Scale<number | bigint, number>, maxTicks: number) {
+    getSegments(scale: Scale<AgNumericValue, number>, maxTicks: number) {
         const { values, step, count } = this;
         // Segment boundaries that survive full-precision (explicit values, scale.ticks) are kept as bigint
         // below; these domain *bounds* are only used for Number-space stepping/filtering, so narrow them.
         const d0 = Number(scale.domainMin);
         const d1 = Number(scale.domainMax);
 
-        let ticks: Array<number | bigint> | undefined;
+        let ticks: Array<AgNumericValue> | undefined;
         if (values != null) {
             // Explicit values flow through full-precision as segment boundaries; the bigint-safe scale
             // positions them. Sort with Number() only for the comparator return value.

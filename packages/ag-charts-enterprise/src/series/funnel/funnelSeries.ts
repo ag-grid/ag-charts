@@ -6,6 +6,7 @@ import {
 } from 'ag-charts-community';
 import type { DynamicContext, RequireOptional } from 'ag-charts-core';
 import { ChartAxisDirection, mergeDefaults } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import {
     BaseFunnelSeries,
@@ -70,7 +71,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         datumIndex: number;
         rect: Bounds;
         barAlongX: boolean;
-        yDatum: number | bigint;
+        yDatum: AgNumericValue;
         datum: any;
         visible: boolean;
     }): FunnelNodeLabelDatum | undefined {

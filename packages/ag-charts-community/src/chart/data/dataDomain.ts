@@ -1,3 +1,5 @@
+import type { AgNumericValue } from 'ag-charts-types';
+
 import { type BandLike, BandedStructure, type BandedStructureConfig } from './data-model/utils/bandedStructure';
 
 export interface IDataDomain<D = any> {
@@ -178,8 +180,8 @@ export class ContinuousDomain<T extends number | Date> implements IDataDomain<T>
 
     static extendDomain(
         values: unknown[],
-        domain: [number | bigint, number | bigint] = [Infinity, -Infinity]
-    ): [number | bigint, number | bigint] {
+        domain: [AgNumericValue, AgNumericValue] = [Infinity, -Infinity]
+    ): [AgNumericValue, AgNumericValue] {
         for (const value of values) {
             if (typeof value !== 'number' && typeof value !== 'bigint') {
                 continue;

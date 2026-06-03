@@ -17,6 +17,7 @@ import {
     maxValue,
     minValue,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import { readDatum } from '../../utils/datum';
@@ -288,7 +289,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const getLabelNodeDatum = (
             datum: RadialColumnNodeDatum,
-            angleDatum: number | bigint,
+            angleDatum: AgNumericValue,
             x: number,
             y: number
         ): RadialBarLabelNodeDatum | undefined => {

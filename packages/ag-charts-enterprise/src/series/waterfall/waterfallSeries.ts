@@ -23,6 +23,7 @@ import {
     minValue,
     subtractValues,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
@@ -102,11 +103,11 @@ interface WaterfallSeriesNodeDatumContext extends _ModuleSupport.CartesianCreate
     readonly lineStrokeWidth: number;
     readonly yDomain: number[];
     // Data arrays
-    readonly yRawValues: (number | bigint | undefined)[];
+    readonly yRawValues: (AgNumericValue | undefined)[];
     readonly totalTypeValues: (AgWaterfallSeriesItemType | undefined)[];
-    readonly yCurrValues: (number | bigint)[];
-    readonly yPrevValues: (number | bigint)[];
-    readonly yCurrTotalValues: (number | bigint)[];
+    readonly yCurrValues: AgNumericValue[];
+    readonly yPrevValues: AgNumericValue[];
+    readonly yCurrTotalValues: AgNumericValue[];
     // Mutable state for connector line points (built during populateNodeData)
     pointData: WaterfallNodePointDatum[];
 }
@@ -119,8 +120,8 @@ interface WaterfallNodeDatumParams {
     value: number | undefined;
     // Bigint-capable so a cumulative beyond Number.MAX_VALUE survives to yScale.convert() for proportional
     // positioning; the cumulativeValue datum field and the display value narrow to Number.
-    cumulativeValue: number | bigint | undefined;
-    trailingValue: number | bigint | undefined;
+    cumulativeValue: AgNumericValue | undefined;
+    trailingValue: AgNumericValue | undefined;
     datumType: AgWaterfallSeriesItemType | undefined;
 }
 
@@ -294,7 +295,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     }
 
     protected override populateNodeData(ctx: WaterfallSeriesNodeDatumContext): void {
-        let trailingSubtotal: number | bigint = 0;
+        let trailingSubtotal: AgNumericValue = 0;
 
         // Scratch object for params - reused across iterations
         const paramsScratch: WaterfallNodeDatumParams = {
@@ -470,8 +471,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         datumIndex: number,
         isTotal: boolean,
         isSubtotal: boolean,
-        trailingSubtotal: number | bigint
-    ): { cumulativeValue: number | bigint | undefined; trailingValue: number | bigint | undefined } {
+        trailingSubtotal: AgNumericValue
+    ): { cumulativeValue: AgNumericValue | undefined; trailingValue: AgNumericValue | undefined } {
         if (isTotal || isSubtotal) {
             return {
                 cumulativeValue: ctx.yCurrTotalValues[datumIndex],
@@ -488,9 +489,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     private computeDisplayValue(
         isTotal: boolean,
         isSubtotal: boolean,
-        rawValue?: number | bigint,
-        cumulativeValue?: number | bigint,
-        trailingValue?: number | bigint
+        rawValue?: AgNumericValue,
+        cumulativeValue?: AgNumericValue,
+        trailingValue?: AgNumericValue
     ): number | undefined {
         // Display value (label/tooltip metadata) narrows to Number; positioning uses the exact bigint
         // cumulative/trailing directly. Number()ing both operands avoids a bigint/number subtraction throw.
@@ -650,8 +651,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     private createPointDatum(
         ctx: WaterfallSeriesNodeDatumContext,
         nodeDatum: WaterfallNodeDatum,
-        cumulativeValue: number | bigint | undefined,
-        trailingValue: number | bigint | undefined,
+        cumulativeValue: AgNumericValue | undefined,
+        trailingValue: AgNumericValue | undefined,
         isTotalOrSubtotal: boolean
     ): WaterfallNodePointDatum {
         const { yScale, barAlongX, categoryAxisReversed, lineStrokeWidth } = ctx;
@@ -991,7 +992,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const seriesItemType = this.getSeriesItemType(isPositive, datumType);
 
-        let total: number | bigint;
+        let total: AgNumericValue;
         if (this.isTotal(datumType)) {
             total = yCurrTotalValues[datumIndex];
         } else if (this.isSubtotal(datumType)) {

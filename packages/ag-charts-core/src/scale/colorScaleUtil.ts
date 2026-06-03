@@ -1,4 +1,4 @@
-import type { AgColorScaleColorStop } from 'ag-charts-types';
+import type { AgColorScaleColorStop, AgNumericValue } from 'ag-charts-types';
 
 import { clamp, toNumber } from '../utils/data/numbers';
 
@@ -31,10 +31,10 @@ export interface ColorScaleState {
      * stops. When omitted, defaults to `[domain[0], domain.at(-1)]`.
      * Can be bigint (AG-16608 heatmap); narrowed to Number where used.
      */
-    displayDomain?: [number | bigint, number | bigint];
+    displayDomain?: [AgNumericValue, AgNumericValue];
 }
 
-function toNumberOrUndefined(stop: number | bigint | undefined): number | undefined {
+function toNumberOrUndefined(stop: AgNumericValue | undefined): number | undefined {
     return stop == null ? undefined : Number(stop);
 }
 
@@ -113,7 +113,7 @@ interface ColorBins {
  */
 export function computeColorBins(
     fills: ColorScaleColorStop[],
-    domain: [number | bigint, number | bigint],
+    domain: [AgNumericValue, AgNumericValue],
     mode: ColorScaleMode
 ): ColorBins {
     if (fills.length === 0) {

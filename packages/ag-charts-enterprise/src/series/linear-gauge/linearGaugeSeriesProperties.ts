@@ -10,6 +10,7 @@ import type {
     AgLinearGaugeSeriesStyle,
     AgLinearGaugeTargetPlacement,
     AgLinearGaugeTooltipRendererParams,
+    AgNumericValue,
     FontStyle,
     FontWeight,
     OverflowStrategy,
@@ -79,7 +80,7 @@ export interface LinearGaugeLabelDatum extends _ModuleSupport.SeriesNodeDatum<Li
     avoidCollisions: boolean;
     spacing: number;
     text: NormalisedTextOrSegments | undefined;
-    value: number | bigint;
+    value: AgNumericValue;
     fill: string | undefined;
     fontStyle: FontStyle | undefined;
     fontWeight: FontWeight | undefined;

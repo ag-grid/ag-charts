@@ -25,6 +25,7 @@ import {
     toPlainText,
     toRadians,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';
 import { formatWithContext } from '../../utils/formatter';
@@ -1298,7 +1299,7 @@ export class RadialGaugeSeries
         return true;
     }
 
-    formatLabelText(datum?: { label: number | bigint | undefined; secondaryLabel: number | bigint | undefined }) {
+    formatLabelText(datum?: { label: AgNumericValue | undefined; secondaryLabel: AgNumericValue | undefined }) {
         const { labelSelection, radius, textAlign, verticalAlign } = this;
         const { spacing: padding, innerRadiusRatio } = this.properties;
 
@@ -1331,10 +1332,10 @@ export class RadialGaugeSeries
     private animateLabelText(params: { from?: number; phase?: _ModuleSupport.AnimationPhase } = {}) {
         const { animationManager } = this.ctx;
 
-        let labelFrom: number | bigint | undefined;
-        let labelTo: number | bigint | undefined;
-        let secondaryLabelFrom: number | bigint | undefined;
-        let secondaryLabelTo: number | bigint | undefined;
+        let labelFrom: AgNumericValue | undefined;
+        let labelTo: AgNumericValue | undefined;
+        let secondaryLabelFrom: AgNumericValue | undefined;
+        let secondaryLabelTo: AgNumericValue | undefined;
         this.labelSelection.each((label, datum) => {
             // Reset animation
             label.opacity = 1;

@@ -7,12 +7,13 @@ import {
     isNumberEqual,
     normalisedExtentWithMetadata,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 import { LinearAngleScale } from './linearAngleScale';
 
-export class AngleNumberAxis extends AngleAxis<number | bigint, LinearAngleScale, NormalisedAngleNumberAxisOptions> {
+export class AngleNumberAxis extends AngleAxis<AgNumericValue, LinearAngleScale, NormalisedAngleNumberAxisOptions> {
     static readonly className = 'AngleNumberAxis';
     static readonly type = 'angle-number' as const;
 

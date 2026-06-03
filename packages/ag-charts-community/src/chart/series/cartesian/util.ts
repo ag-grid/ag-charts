@@ -12,6 +12,7 @@ import {
 } from 'ag-charts-core';
 import type {
     AgCartesianSeriesOptions,
+    AgNumericValue,
     AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
     DatumDefault,
@@ -195,7 +196,7 @@ function predictGroupedCategoryAxisType(value: unknown) {
     }
 }
 
-function isTimeNumeric(value: unknown): value is number | bigint {
+function isTimeNumeric(value: unknown): value is AgNumericValue {
     return isNumber(value) || typeof value === 'bigint';
 }
 

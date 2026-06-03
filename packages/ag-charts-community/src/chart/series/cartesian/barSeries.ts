@@ -32,6 +32,7 @@ import type {
     AgBarSeriesStyle,
     AgBarSeriesStylerParams,
     AgErrorBoundSeriesTooltipRendererParams,
+    AgNumericValue,
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
@@ -194,9 +195,9 @@ interface NodeDatumParams {
     width: number;
     // Bigint-capable so a stack bound beyond Number.MAX_VALUE survives to yScale.convert() for proportional
     // positioning; the non-aggregated path passes raw values and recombines in pixel space (see updateNodeDatum).
-    yStart: number | bigint;
-    yEnd: number | bigint;
-    yRange: number | bigint;
+    yStart: AgNumericValue;
+    yEnd: AgNumericValue;
+    yRange: AgNumericValue;
     featherRatio: number;
     opacity: number;
 }
@@ -594,9 +595,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
 
-        let yStartValues: (number | bigint)[] | undefined;
-        let yEndValues: (number | bigint)[] | undefined;
-        let yFilterValues: (number | bigint)[] | undefined;
+        let yStartValues: AgNumericValue[] | undefined;
+        let yEndValues: AgNumericValue[] | undefined;
+        let yFilterValues: AgNumericValue[] | undefined;
         if (filteredValueExceedUnfiltered) {
             yStartValues = dataModel.resolveColumnById(this, 'yFilterValue-start', processedData, 'numeric');
             yEndValues = dataModel.resolveColumnById(this, 'yFilterValue-end', processedData, 'numeric');
@@ -675,8 +676,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         ctx: BarSeriesNodeDatumContext,
         nodeDatumScratch: PreparedBarNodeDatumState,
         datumIndex: number,
-        yStart: number | bigint,
-        yEnd: number | bigint
+        yStart: AgNumericValue,
+        yEnd: AgNumericValue
     ): PreparedBarNodeDatumState | undefined {
         // isContinuous accepts bigint where Number.isFinite would drop a value beyond Number.MAX_VALUE.
         if (!isContinuous(yEnd)) {
@@ -841,14 +842,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         // currY/nodeYRange stay in domain space (possibly bigint) so yScale.convert() positions them
         // proportionally. The cross-filter branch recombines a baseline with the filtered delta in Number
         // space — a Number concept — so a bigint baseline beyond MAX_VALUE degrades there rather than throws.
-        let currY: number | bigint;
+        let currY: AgNumericValue;
         if (phantom || prepared.yFilterValue == null) {
             currY = params.yEnd;
         } else {
             currY = Number(params.yStart) + prepared.yFilterValue;
         }
 
-        let nodeYRange: number | bigint;
+        let nodeYRange: AgNumericValue;
         if (phantom || prepared.yFilterValue == null) {
             nodeYRange = params.yRange;
         } else {

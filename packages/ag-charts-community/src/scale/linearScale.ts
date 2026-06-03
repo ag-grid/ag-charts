@@ -8,13 +8,14 @@ import {
     range,
     tickStep,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { ContinuousScale } from './continuousScale';
 
 /**
  * Maps continuous domain to a continuous range.
  */
-export class LinearScale extends ContinuousScale<number | bigint> {
+export class LinearScale extends ContinuousScale<AgNumericValue> {
     static override is(value: unknown): value is LinearScale {
         return value instanceof LinearScale;
     }
@@ -37,9 +38,9 @@ export class LinearScale extends ContinuousScale<number | bigint> {
 
     override ticks(
         { interval, tickCount = ContinuousScale.defaultTickCount, minTickCount, maxTickCount }: ScaleTickParams<number>,
-        domain: (number | bigint)[] = this.domain,
+        domain: AgNumericValue[] = this.domain,
         visibleRange?: [number, number]
-    ): { ticks: (number | bigint)[]; count: number; firstTickIndex?: number } {
+    ): { ticks: AgNumericValue[]; count: number; firstTickIndex?: number } {
         if (!domain || domain.length < 2 || tickCount < 1) {
             return { ticks: [], count: 0, firstTickIndex: 0 };
         }
@@ -73,10 +74,7 @@ export class LinearScale extends ContinuousScale<number | bigint> {
         return createTicks(d0, d1, tickCount, minTickCount, maxTickCount, visibleRange);
     }
 
-    override niceDomain(
-        ticks: ScaleTickParams<number>,
-        domain: (number | bigint)[] = this.domain
-    ): (number | bigint)[] {
+    override niceDomain(ticks: ScaleTickParams<number>, domain: AgNumericValue[] = this.domain): AgNumericValue[] {
         if (domain.length < 2) return [];
 
         const { tickCount = ContinuousScale.defaultTickCount } = ticks;

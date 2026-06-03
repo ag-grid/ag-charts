@@ -22,6 +22,7 @@ import type {
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
     AgHistogramSeriesStyle,
+    AgNumericValue,
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
@@ -93,7 +94,7 @@ const defaultBinCount = 10;
 type HistogramAnimationData = CartesianAnimationDataOf<HistogramSeriesTypes>;
 
 /** Bin boundaries are `bigint` for a BigInt x-column (AG-16608) and `number` otherwise. */
-type BinDomain = [number | bigint, number | bigint];
+type BinDomain = [AgNumericValue, AgNumericValue];
 
 interface CalculatedBin {
     domain: BinDomain;
@@ -102,7 +103,7 @@ interface CalculatedBin {
     frequency: number;
     // bigint when summing a bigint yKey column (aggregation 'sum'); the y-scale narrows it for positioning
     // while the exact value reaches the tooltip via the bin datum's aggregatedValue.
-    total: number | bigint;
+    total: AgNumericValue;
 }
 
 interface HistogramSeriesNodeDataContext extends CartesianSeriesNodeDataContext<HistogramNodeDatum> {
@@ -164,7 +165,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
     // A BigInt x-column (AG-16608) computes boundaries in BigInt for full precision; everything else
     // keeps the number paths. Explicit `bins` win unless an explicit `binCount` is also set.
-    private computeBins(xExtent: (number | bigint)[]): BinDomain[] {
+    private computeBins(xExtent: AgNumericValue[]): BinDomain[] {
         const x0 = xExtent[0];
         const x1 = xExtent[1];
         const bigIntExtent = typeof x0 === 'bigint' || typeof x1 === 'bigint';
@@ -378,7 +379,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const xScale = this.axes[ChartAxisDirection.X]!.scale;
 
         const yMin = 0;
-        let yMax: number | bigint = -Infinity;
+        let yMax: AgNumericValue = -Infinity;
         for (const { keys, aggregation } of processedData.groups) {
             const [[negativeAgg, positiveAgg] = [0, 0]] = aggregation;
             const [xDomainMin, xDomainMax] = keys;

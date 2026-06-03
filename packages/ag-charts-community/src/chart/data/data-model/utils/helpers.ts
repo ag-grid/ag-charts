@@ -3,6 +3,7 @@
  * Extracted from dataModel.ts as part of Phase 2.1 refactoring.
  */
 import { isObject } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import type { DataChangeDescription } from '../../dataChangeDescription';
 import type { MissMap, ScopeId, ScopeProvider } from '../../dataModelTypes';
@@ -39,7 +40,7 @@ export function toKeyString(keys: any[]): string {
  * Fixes a numeric extent to ensure both values are finite numbers.
  * Returns empty array if extent is null or contains non-finite values.
  */
-export function fixNumericExtent(extent: ReadonlyArray<number | Date | bigint> | null): (number | bigint)[] {
+export function fixNumericExtent(extent: ReadonlyArray<number | Date | bigint> | null): AgNumericValue[] {
     if (extent == null) return [];
     // Retain exact bigint endpoints so the scale positions and labels them at full precision; Date and
     // number values still narrow to Number. The result type carries bigint, so consumers must handle it.
@@ -55,7 +56,7 @@ export function fixNumericExtent(extent: ReadonlyArray<number | Date | bigint> |
  * narrow the bigint endpoint and collapse such values to the axis edge. The all-Number path keeps the
  * original span-finiteness guard, which rejects non-finite or overflowing extents.
  */
-export function extendDomainToZero(extent: ReadonlyArray<number | bigint>): (number | bigint)[] {
+export function extendDomainToZero(extent: ReadonlyArray<AgNumericValue>): AgNumericValue[] {
     if (extent.length < 2) return [];
     const [e0, e1] = extent;
     if (typeof e0 !== 'bigint' && typeof e1 !== 'bigint') {

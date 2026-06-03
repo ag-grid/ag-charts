@@ -15,6 +15,7 @@ import {
     isGradientFill,
     normalizeAngle360,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
 import { type RadialSeriesStyleResult, getItemStyle, getStyle } from '../util/radialUtil';
@@ -299,7 +300,7 @@ export abstract class RadialColumnSeriesBase<
 
         const getLabelNodeDatum = (
             datum: RadialColumnNodeDatum,
-            radiusDatum: number | bigint,
+            radiusDatum: AgNumericValue,
             x: number,
             y: number
         ): RadialColumnLabelNodeDatum | undefined => {

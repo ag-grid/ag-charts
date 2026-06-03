@@ -1,4 +1,5 @@
 import { addValues, isFiniteNumber } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { ContinuousDomain } from './dataDomain';
 import type { AggregatePropertyDefinition, DatumPropertyDefinition } from './dataModel';
@@ -7,14 +8,14 @@ import type { AggregatePropertyDefinition, DatumPropertyDefinition } from './dat
  * Adds two accumulator operands, promoting to bigint when either operand is. Columns are uniformly
  * typed, so a bigint column's number `0` seed promotes to `0n` on the first value and stays bigint.
  */
-export function addAccumulated(acc: number | bigint, value: number | bigint): number | bigint {
+export function addAccumulated(acc: AgNumericValue, value: AgNumericValue): AgNumericValue {
     return addValues(acc, value);
 }
 
 export function sumValues(
     values: any[],
-    accumulator: [number | bigint, number | bigint] = [0, 0]
-): [number | bigint, number | bigint] {
+    accumulator: [AgNumericValue, AgNumericValue] = [0, 0]
+): [AgNumericValue, AgNumericValue] {
     for (const value of values) {
         if (typeof value !== 'number' && typeof value !== 'bigint') {
             continue;
@@ -33,7 +34,7 @@ export function sumValues(
 }
 
 export function sum(id: string, matchGroupId: string) {
-    const result: AggregatePropertyDefinition<any, any, [number | bigint, number | bigint]> = {
+    const result: AggregatePropertyDefinition<any, any, [AgNumericValue, AgNumericValue]> = {
         id,
         matchGroupIds: [matchGroupId],
         type: 'aggregate',
@@ -46,7 +47,7 @@ export function sum(id: string, matchGroupId: string) {
 export function groupSum(
     id: string,
     opts?: { matchGroupId?: string; visible?: boolean }
-): AggregatePropertyDefinition<any, any, [number | bigint, number | bigint]> {
+): AggregatePropertyDefinition<any, any, [AgNumericValue, AgNumericValue]> {
     const visible = opts?.visible ?? true;
     return {
         id,
@@ -64,7 +65,7 @@ export function groupSum(
 }
 
 export function range(id: string, matchGroupId: string) {
-    const result: AggregatePropertyDefinition<any, any, [number | bigint, number | bigint]> = {
+    const result: AggregatePropertyDefinition<any, any, [AgNumericValue, AgNumericValue]> = {
         id,
         matchGroupIds: [matchGroupId],
         type: 'aggregate',
@@ -98,8 +99,8 @@ export function groupAverage(id: string, opts?: { matchGroupId?: string; visible
     const def: AggregatePropertyDefinition<
         any,
         any,
-        [number | bigint, number | bigint],
-        [number | bigint, number | bigint, number]
+        [AgNumericValue, AgNumericValue],
+        [AgNumericValue, AgNumericValue, number]
     > = {
         id,
         matchGroupIds: opts?.matchGroupId ? [opts?.matchGroupId] : undefined,
@@ -135,10 +136,7 @@ export function area(id: string, aggFn: AggregatePropertyDefinition<any, any, an
             // Area is a density (value / key-width) → fractional, so narrow bigint sums and bigint keys to
             // Number for the division.
             const keyWidth = Number(keyRange[1]) - Number(keyRange[0]);
-            return aggFn.aggregateFunction(values).map((v: number | bigint) => Number(v) / keyWidth) as [
-                number,
-                number,
-            ];
+            return aggFn.aggregateFunction(values).map((v: AgNumericValue) => Number(v) / keyWidth) as [number, number];
         },
     };
 
@@ -151,7 +149,7 @@ export function area(id: string, aggFn: AggregatePropertyDefinition<any, any, an
 
 export function accumulatedValue(onlyPositive?: boolean): DatumPropertyDefinition<any>['processor'] {
     return () => {
-        let value: number | bigint = 0;
+        let value: AgNumericValue = 0;
 
         return (datum: any) => {
             if (typeof datum === 'bigint') {
@@ -170,7 +168,7 @@ export function accumulatedValue(onlyPositive?: boolean): DatumPropertyDefinitio
 
 export function trailingAccumulatedValue(): DatumPropertyDefinition<any>['processor'] {
     return () => {
-        let value: number | bigint = 0;
+        let value: AgNumericValue = 0;
 
         return (datum: any) => {
             if (typeof datum !== 'bigint' && !isFiniteNumber(datum)) {

@@ -1,5 +1,6 @@
 import type { DomainWithMetadata, NormalizedDomain } from 'ag-charts-core';
 import { Color, Logger, clamp, toNumber } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { AbstractScale } from './abstractScale';
 import { Invalidating } from './invalidating';
@@ -58,7 +59,7 @@ export class ColorScale extends AbstractScale<number, string> {
      * `domain` (which carries interpolation pivots) so that colour-stop
      * positions do not distort the legend axis range.
      */
-    displayDomain?: [number | bigint, number | bigint];
+    displayDomain?: [AgNumericValue, AgNumericValue];
 
     private parsedRange = this.range.map(convertColorStringToOklcha);
 
@@ -103,7 +104,7 @@ export class ColorScale extends AbstractScale<number, string> {
         return;
     }
 
-    convert(x: number | bigint) {
+    convert(x: AgNumericValue) {
         this.refresh();
 
         // A bigint colour value (AG-16608 heatmap) narrows to Number: the colour derives from the value's

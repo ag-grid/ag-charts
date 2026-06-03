@@ -8,6 +8,7 @@ import {
     memo,
     transformIntegratedCategoryValue,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { accumulatedValue, addAccumulated, range, trailingAccumulatedValue } from './aggregateFunctions';
 import {
@@ -303,7 +304,7 @@ export const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<'sortedGroupD
 };
 
 function normaliseFnBuilder({ normaliseTo }: { normaliseTo: number }) {
-    const normalise = (val: null | number | bigint, extent: number) => {
+    const normalise = (val: AgNumericValue | null, extent: number) => {
         if (extent === 0) return 0;
         // Normalisation produces a [0,1]·normaliseTo fraction, so Number precision is sufficient; narrow a
         // bigint here (the column becomes Number after this pass — normalizedTo is a Number concept).
@@ -325,7 +326,7 @@ function normaliseFnBuilder({ normaliseTo }: { normaliseTo: number }) {
                 // (relative index is offset from group start, absolute is for the entire column)
                 const datumIndex = groupIndex + relativeDatumIndex;
                 const column = columns[valueIdx];
-                const value: null | number | bigint = column[datumIndex];
+                const value: AgNumericValue | null = column[datumIndex];
                 if (value == null) {
                     column[datumIndex] = undefined;
                     continue;
@@ -347,7 +348,7 @@ function normaliseFindExtent(columns: any[][], valueIndexes: number[], dataGroup
             // Convert relative datum index to absolute column index
             // (relative index is offset from group start, absolute is for the entire column)
             const datumIndex = groupIndex + relativeDatumIndex;
-            const value: null | number | bigint | (null | number | bigint)[] = column[datumIndex];
+            const value: AgNumericValue | null | (AgNumericValue | null)[] = column[datumIndex];
             if (value == null) continue;
             // Note - Array.isArray(new Float64Array) is false, and this type is used for stack accumulators.
             // Narrow bigint to Number (normalizedTo is a Number concept; values beyond MAX_VALUE degrade).
@@ -571,7 +572,7 @@ function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailin
             ) {
                 // Datum scope. Seeds are number `0`; a bigint column promotes them to bigint via
                 // addAccumulated so stacked totals retain full precision (AG-16608 AC #10).
-                const acc: [number | bigint, number | bigint] = [0, 0];
+                const acc: [AgNumericValue, AgNumericValue] = [0, 0];
                 for (const valueIdx of valueIndexes) {
                     const datumIndices = dataGroup.datumIndices[valueIdx];
                     if (datumIndices == null) continue;

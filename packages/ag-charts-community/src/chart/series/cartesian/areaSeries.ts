@@ -28,6 +28,7 @@ import {
     type AgAreaSeriesStylerResult,
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
+    type AgNumericValue,
     type AgSeriesMarkerStyle,
 } from 'ag-charts-types';
 
@@ -152,8 +153,8 @@ type AreaStylerApply = MarkerStyleApply<
 interface StackRange {
     // Bigint-capable so a stack accumulated beyond Number.MAX_VALUE survives to yScale.convert() and
     // positions proportionally; addAccumulated promotes the numeric 0 seed on the first bigint value.
-    leading: number | bigint;
-    trailing: number | bigint;
+    leading: AgNumericValue;
+    trailing: AgNumericValue;
     dataValid: boolean;
     breakBefore: boolean;
 }
@@ -203,7 +204,7 @@ interface AreaNodeDatumScratch {
     datum: any;
     xDatum: any;
     yDatum: any;
-    yCumulative: number | bigint;
+    yCumulative: AgNumericValue;
     selected: boolean | undefined;
     x: number;
     y: number;
@@ -1037,7 +1038,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
      * Uses cached context values to avoid repeated lookups.
      */
     private computeMarkerCoordinate(ctx: AreaSeriesCreateNodeDatumContext, scratch: AreaNodeDatumScratch): void {
-        let currY: number | bigint | undefined;
+        let currY: AgNumericValue | undefined;
 
         // if not normalized, the invalid data points will be processed as `undefined` in processData()
         // if normalized, the invalid data points will be processed as 0 rather than `undefined`

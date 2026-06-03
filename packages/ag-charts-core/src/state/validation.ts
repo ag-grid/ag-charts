@@ -1,3 +1,5 @@
+import type { AgNumericValue } from 'ag-charts-types';
+
 import { warnOnce } from '../logging/logger';
 import { isEnterprise } from '../modules/registryMode';
 import type { AreExact, IsUnion } from '../types/global';
@@ -483,7 +485,7 @@ export const number = attachDescription(isFiniteNumber, 'a number');
 // Accepts a finite number or a bigint. Reserved for the gauge fields that opt into bigint at runtime
 // (AG-16608 AC #11) — do NOT widen the global `number` validator, or every numeric option accepts bigint.
 export const numericValue = attachDescription(
-    (value): value is number | bigint => isFiniteNumber(value) || typeof value === 'bigint',
+    (value): value is AgNumericValue => isFiniteNumber(value) || typeof value === 'bigint',
     'a number or bigint'
 );
 export const object = attachDescription(isObject, 'an object');

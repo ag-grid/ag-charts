@@ -1,5 +1,5 @@
 import { ScaleAlignment, type ScaleTickParams, findMaxIndex, findMinIndex, timeValueToNumber } from 'ag-charts-core';
-import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
+import type { AgNumericValue, AgTimeInterval, AgTimeIntervalUnit, AgTimeValue } from 'ag-charts-types';
 
 import { BandScale } from './bandScale';
 
@@ -62,7 +62,7 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         visibleRange?: [number, number]
     ): { ticks: Date[]; count: number | undefined; firstTickIndex?: number } | undefined;
 
-    override toDomain(value: number | bigint): Date {
+    override toDomain(value: AgNumericValue): Date {
         return new Date(timeValueToNumber(value));
     }
 
@@ -76,10 +76,7 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         return this.bands.map((d) => d.valueOf());
     }
 
-    override convert(
-        value: Date | number | bigint | string,
-        options?: { clamp?: boolean; alignment?: ScaleAlignment }
-    ): number {
+    override convert(value: AgTimeValue, options?: { clamp?: boolean; alignment?: ScaleAlignment }): number {
         this.refresh();
 
         if (!(value instanceof Date)) value = new Date(timeValueToNumber(value));
