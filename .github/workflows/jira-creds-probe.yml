@@ -18,17 +18,23 @@ jobs:
         steps:
             - name: Probe Jira auth forms
               env:
-                  EMAIL: ${{ secrets.JIRA_AI_BOT_API_EMAIL }}
+                  EMAIL_SECRET: ${{ secrets.JIRA_AI_BOT_API_EMAIL }}
+                  EMAIL_VAR: ${{ vars.JIRA_AI_BOT_API_EMAIL }}
                   TOKEN: ${{ secrets.JIRA_AI_BOT_API_TOKEN }}
                   CLOUD_ID: 1565837d-d6d1-4228-bcb2-4cb74df700f2
                   SITE: https://ag-grid.atlassian.net
               run: |
                   set -uo pipefail
-                  if [ -z "${EMAIL:-}" ] || [ -z "${TOKEN:-}" ]; then
-                      echo "::error::Org secrets JIRA_AI_BOT_API_EMAIL / JIRA_AI_BOT_API_TOKEN are empty — this repo is not in the secret's access list, or the secret is unset."
+                  echo "email — secrets.JIRA_AI_BOT_API_EMAIL set: $([ -n "${EMAIL_SECRET:-}" ] && echo yes || echo NO)"
+                  echo "email — vars.JIRA_AI_BOT_API_EMAIL    set: $([ -n "${EMAIL_VAR:-}" ] && echo yes || echo NO)"
+                  echo "token — secrets.JIRA_AI_BOT_API_TOKEN set: $([ -n "${TOKEN:-}" ] && echo yes || echo NO)"
+                  EMAIL="${EMAIL_SECRET:-}"; EMAIL_SRC="secrets"
+                  if [ -z "$EMAIL" ]; then EMAIL="${EMAIL_VAR:-}"; EMAIL_SRC="vars"; fi
+                  if [ -z "$EMAIL" ] || [ -z "${TOKEN:-}" ]; then
+                      echo "::error::Could not assemble Basic creds — email empty in both secrets and vars, or token empty."
                       exit 1
                   fi
-                  echo "secrets present (email len ${#EMAIL}, token len ${#TOKEN})"
+                  echo "using email from: $EMAIL_SRC  value: ${EMAIL}"
                   BASIC=$(printf '%s:%s' "$EMAIL" "$TOKEN" | base64 | tr -d '\n')
 
                   probe() {
