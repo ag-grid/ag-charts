@@ -245,7 +245,9 @@ export abstract class RadarSeries<
         }
 
         const angleValues = dataModel.resolveKeysById(this, `angleValue`, processedData);
-        const radiusValues = dataModel.resolveColumnById(this, `radiusValue`, processedData, 'number');
+        // Resolve as mixed-numeric (matching the tooltip path) so a bigint radius reaches radiusScale.convert()
+        // exactly instead of being typed as a plain number.
+        const radiusValues = dataModel.resolveColumnById(this, `radiusValue`, processedData, 'mixed-numeric');
         const axisInnerRadius = this.getAxisInnerRadius();
 
         const radiusDomain = this.getSeriesDomain(ChartAxisDirection.Radius).domain;

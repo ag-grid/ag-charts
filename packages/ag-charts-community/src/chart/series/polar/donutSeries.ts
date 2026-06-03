@@ -20,6 +20,7 @@ import {
     mergeDefaults,
     modulus,
     normalizeAngle180,
+    toNumber,
     toPlainText,
     toRadians,
     wrapTextOrSegments,
@@ -33,6 +34,7 @@ import type {
     AgDonutSeriesOptions,
     AgDonutSeriesStyle,
     AgDrawingMode,
+    AgNumericValue,
     AgPieSeriesItemStylerParams,
     AgPieSeriesLabelFormatterParams,
     AgPieSeriesStyle,
@@ -121,8 +123,8 @@ interface PieDonutNodeDatum extends DataModelSeriesNodeDatum {
     readonly radius: number; // in the [0, 1] range
     readonly innerRadius: number;
     readonly outerRadius: number;
-    readonly angleValue: number;
-    readonly radiusValue?: number;
+    readonly angleValue: AgNumericValue;
+    readonly radiusValue?: AgNumericValue;
     readonly startAngle: number;
     readonly endAngle: number;
     readonly midAngle: number;
@@ -145,11 +147,11 @@ interface PieDonutNodeDatum extends DataModelSeriesNodeDatum {
 
 interface ProcessedDataValues {
     angleValues: number[];
-    angleRawValues: number[];
+    angleRawValues: AgNumericValue[];
     angleFilterValues: number[] | undefined;
     angleFilterRawValues: number[] | undefined;
     radiusValues: number[] | undefined;
-    radiusRawValues: number[] | undefined;
+    radiusRawValues: AgNumericValue[] | undefined;
     calloutLabelValues: string[] | undefined;
     sectorLabelValues: string[] | undefined;
     legendItemValues: string[] | undefined;
@@ -413,7 +415,9 @@ export class DonutSeries extends PolarSeries<
 
     private getProcessedDataValues(dataModel: DataModel<any>, processedData: ProcessedData<any>) {
         const angleValues = dataModel.resolveColumnById(this, `angleValue`, processedData, 'number');
-        const angleRawValues = dataModel.resolveColumnById(this, `angleRaw`, processedData, 'number');
+        // Raw pass-through angle values stay mixed-numeric so a bigint datum reaches the node datum and
+        // tooltip exactly; the normalised angleValues above are [0,1] ratios and remain number.
+        const angleRawValues = dataModel.resolveColumnById(this, `angleRaw`, processedData, 'mixed-numeric');
         const angleFilterValues =
             this.properties.angleFilterKey == null
                 ? undefined
@@ -426,7 +430,7 @@ export class DonutSeries extends PolarSeries<
             ? dataModel.resolveColumnById(this, `radiusValue`, processedData, 'number')
             : undefined;
         const radiusRawValues = this.properties.radiusKey
-            ? dataModel.resolveColumnById(this, `radiusRaw`, processedData, 'number')
+            ? dataModel.resolveColumnById(this, `radiusRaw`, processedData, 'mixed-numeric')
             : undefined;
         const calloutLabelValues = this.properties.calloutLabelKey
             ? dataModel.resolveColumnById<string>(this, `calloutLabelValue`, processedData, 'object')
@@ -491,7 +495,9 @@ export class DonutSeries extends PolarSeries<
             const currentValue = useFilterAngles ? angleFilterValues![datumIndex] : angleValues[datumIndex];
             const crossFilterScale =
                 angleFilterRawValues != null && !useFilterAngles
-                    ? Math.sqrt(angleFilterRawValues[datumIndex] / angleRawValues[datumIndex])
+                    ? // A [0,1] cross-filter ratio is a finite-precision screen-space quantity; narrow here so a
+                      // bigint raw angle divides as a float rather than truncating (or throwing in Math.sqrt).
+                      Math.sqrt(toNumber(angleFilterRawValues[datumIndex]) / toNumber(angleRawValues[datumIndex]))
                     : 1;
 
             const startAngle = angleScale.convert(currentStart) + toRadians(rotation);

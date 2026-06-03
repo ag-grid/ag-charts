@@ -11,7 +11,7 @@ import type {
     Point,
     RequireOptional,
 } from 'ag-charts-core';
-import { ChartAxisDirection, SeriesZIndexMap } from 'ag-charts-core';
+import { ChartAxisDirection, SeriesZIndexMap, maxValue } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
@@ -267,7 +267,9 @@ export abstract class BaseFunnelSeries<
             return { domain: this.padBandExtent(keys) };
         } else {
             const yExtent = this.domainForClippedRange(direction, ['yValue'], 'xValue');
-            const maxExtent = Math.max(...yExtent);
+            // maxValue preserves an exact bigint; Math.max throws on bigint operands.
+            let maxExtent: AgNumericValue = -Infinity;
+            for (const v of yExtent) maxExtent = maxValue(maxExtent, v);
             const fixedYExtent = [-maxExtent, maxExtent];
             return { domain: fixNumericExtent(fixedYExtent) };
         }

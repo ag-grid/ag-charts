@@ -23,6 +23,7 @@ import {
     type Point,
     type Scale,
     mergeDefaults,
+    toNumber,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
@@ -375,8 +376,15 @@ export abstract class OhlcSeriesBase<
         return { domain: fixNumericExtent(yExtent) };
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]) {
-        return this.domainForVisibleRange(ChartAxisDirection.Y, ['highValue', 'lowValue'], 'xValue', visibleRange);
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]): [number, number] {
+        // domainForVisibleRange may yield a bigint; narrow once for this number-typed range contract.
+        const [y0, y1] = this.domainForVisibleRange(
+            ChartAxisDirection.Y,
+            ['highValue', 'lowValue'],
+            'xValue',
+            visibleRange
+        );
+        return [toNumber(y0), toNumber(y1)];
     }
 
     override getZoomRangeFittingItems(

@@ -670,7 +670,8 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                 if (invalidData?.[datumIndex]) continue;
 
                 const yValue = yValues[datumIndex];
-                if (!Number.isFinite(yValue)) continue;
+                // isContinuous accepts bigint where Number.isFinite would drop a value beyond Number.MAX_VALUE.
+                if (!isContinuous(yValue)) continue;
 
                 const xDatum = xValues[datumIndex];
                 bucketPoints.push({
@@ -739,7 +740,8 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             }
 
             const yValue = yValues[datumIndex];
-            if (!Number.isFinite(yValue)) {
+            // isContinuous accepts bigint where Number.isFinite would drop a value beyond Number.MAX_VALUE.
+            if (!isContinuous(yValue)) {
                 return true;
             }
         }

@@ -1,3 +1,5 @@
+import type { AgNumericValue } from 'ag-charts-types';
+
 import { clamp } from './numbers';
 
 export function clampArray(value: number, array: readonly number[]) {
@@ -5,16 +7,20 @@ export function clampArray(value: number, array: readonly number[]) {
     return clamp(min, value, max);
 }
 
-export function findMinMax(array: readonly number[]) {
+export function findMinMax(array: readonly number[]): number[];
+export function findMinMax(array: readonly AgNumericValue[]): AgNumericValue[];
+export function findMinMax(array: readonly AgNumericValue[]): AgNumericValue[] {
     if (array.length === 0) return [];
 
-    // Optimized min/max algorithm, single array pass.
-    const result = [Infinity, -Infinity];
+    // Optimized min/max algorithm, single array pass. Comparisons are bigint-safe (unlike Math.min/max), so
+    // an AgNumericValue array keeps an exact bigint extent.
+    let min: AgNumericValue = Infinity;
+    let max: AgNumericValue = -Infinity;
     for (const val of array) {
-        if (val < result[0]) result[0] = val;
-        if (val > result[1]) result[1] = val;
+        if (val < min) min = val;
+        if (val > max) max = val;
     }
-    return result;
+    return [min, max];
 }
 
 export function findRangeExtent(array: number[]) {

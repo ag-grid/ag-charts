@@ -13,8 +13,10 @@ import {
     findMinIndex,
     findMinMax,
     isFiniteNumber,
+    maxValue,
+    minValue,
 } from 'ag-charts-core';
-import type { AgDrawingMode, AgSeriesSegmentation, SelectionState } from 'ag-charts-types';
+import type { AgDrawingMode, AgNumericValue, AgSeriesSegmentation, SelectionState } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { AnimationValue } from '../../../motion/animation';
@@ -1206,7 +1208,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         crossAxisKey: string,
         visibleRange: [any, any],
         indices?: number[]
-    ): [number, number] {
+    ): [AgNumericValue, AgNumericValue] {
         const { processedData, dataModel } = this;
 
         const [r0, r1] = visibleRange;
@@ -1220,17 +1222,19 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
         const allAxisValues = axisKeys.map((axisKey) => this.keysOrValues(axisKey));
 
-        let axisMin = Infinity;
-        let axisMax = -Infinity;
+        let axisMin: AgNumericValue = Infinity;
+        let axisMax: AgNumericValue = -Infinity;
         for (const [i, crossAxisValue] of crossAxisValues.entries()) {
             const [x0, x1] = this.xCoordinateRange(crossAxisValue, 0, i);
             if (x1 < r0 || x0 > r1) continue;
 
             for (let j = 0; j < axisKeys.length; j++) {
                 const axisValue = allAxisValues[j][i];
-                if (typeof axisValue === 'number' && Number.isFinite(axisValue)) {
-                    axisMin = Math.min(axisMin, axisValue);
-                    axisMax = Math.max(axisMax, axisValue);
+                // Include bigint (excluded by `typeof === 'number'`) and accumulate with minValue/maxValue so a
+                // value beyond Number.MAX_VALUE stays exact for the scale; Math.min/max would throw on bigint.
+                if (typeof axisValue === 'bigint' || (typeof axisValue === 'number' && Number.isFinite(axisValue))) {
+                    axisMin = minValue(axisMin, axisValue);
+                    axisMax = maxValue(axisMax, axisValue);
                 }
             }
         }
@@ -1238,7 +1242,11 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         return axisMin > axisMax ? [Number.NaN, Number.NaN] : [axisMin, axisMax];
     }
 
-    protected domainForClippedRange(direction: ChartAxisDirection, axisKeys: string[], crossAxisKey: string) {
+    protected domainForClippedRange(
+        direction: ChartAxisDirection,
+        axisKeys: string[],
+        crossAxisKey: string
+    ): AgNumericValue[] {
         const { processedData, dataModel, axes } = this;
 
         const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
@@ -1263,16 +1271,18 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         const allAxisValues = axisKeys.map((axisKey) => this.keysOrValues(axisKey));
         const range0 = crossAxisRange[0].valueOf();
         const range1 = crossAxisRange[1].valueOf();
-        let axisMin = Infinity;
-        let axisMax = -Infinity;
+        let axisMin: AgNumericValue = Infinity;
+        let axisMax: AgNumericValue = -Infinity;
         for (const [i, crossAxisValue] of crossAxisValues.entries()) {
             const c = crossAxisValue.valueOf();
             if (c < range0 || c > range1) continue;
             for (let j = 0; j < axisKeys.length; j++) {
                 const axisValue = allAxisValues[j][i];
-                if (typeof axisValue === 'number' && Number.isFinite(axisValue)) {
-                    axisMin = Math.min(axisMin, axisValue);
-                    axisMax = Math.max(axisMax, axisValue);
+                // Include bigint (excluded by `typeof === 'number'`) and accumulate with minValue/maxValue so a
+                // value beyond Number.MAX_VALUE stays exact for the scale; Math.min/max would throw on bigint.
+                if (typeof axisValue === 'bigint' || (typeof axisValue === 'number' && Number.isFinite(axisValue))) {
+                    axisMin = minValue(axisMin, axisValue);
+                    axisMax = maxValue(axisMax, axisValue);
                 }
             }
         }

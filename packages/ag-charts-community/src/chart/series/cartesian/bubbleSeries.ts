@@ -20,6 +20,7 @@ import {
     isArray,
     measureTextSegments,
     rescaleVisibleRange,
+    toNumber,
     toPlainText,
 } from 'ag-charts-core';
 import {
@@ -440,8 +441,10 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         return { domain: fixNumericExtent(extent(ext)) };
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]) {
-        return this.domainForVisibleRange(ChartAxisDirection.Y, ['yValue'], 'xValue', visibleRange);
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]): [number, number] {
+        // domainForVisibleRange may yield a bigint; narrow once for this number-typed range contract.
+        const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, ['yValue'], 'xValue', visibleRange);
+        return [toNumber(y0), toNumber(y1)];
     }
 
     override getVisibleItems(

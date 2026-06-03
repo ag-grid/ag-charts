@@ -465,7 +465,8 @@ function buildFilterValidation([id, yKey, yFilterKey]: [id: string, yKey: string
         if (yValues.length !== yFilterValues.length) return true;
 
         for (let i = 0; i < yValues.length; i++) {
-            if (Math.abs(yFilterValues[i]) > Math.abs(yValues[i])) return true;
+            // absValue preserves bigint; Math.abs throws on bigint (ToNumber) for mixed-numeric columns.
+            if (absValue(yFilterValues[i]) > absValue(yValues[i])) return true;
         }
 
         return false;

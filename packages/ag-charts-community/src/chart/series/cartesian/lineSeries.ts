@@ -6,6 +6,7 @@ import {
     extent,
     isDefined,
     mergeDefaults,
+    toNumber,
 } from 'ag-charts-core';
 import {
     type AgDrawingMode,
@@ -327,13 +328,15 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         }
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]) {
-        return this.domainForVisibleRange(
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]): [number, number] {
+        // domainForVisibleRange may yield a bigint; narrow once for this number-typed range contract.
+        const [y0, y1] = this.domainForVisibleRange(
             ChartAxisDirection.Y,
             [this.yCumulativeKey(this.processedData!)],
             'xValue',
             visibleRange
         );
+        return [toNumber(y0), toNumber(y1)];
     }
 
     override getZoomRangeFittingItems(
