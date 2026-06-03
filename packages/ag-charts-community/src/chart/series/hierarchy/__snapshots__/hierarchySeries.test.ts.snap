@@ -10,6 +10,7 @@ HierarchyNode {
           "colorValue": undefined,
           "datumIndex": 2,
           "depth": 1,
+          "itemId": "0;0",
           "midPoint": {
             "x": 0,
             "y": 0,
@@ -27,6 +28,7 @@ HierarchyNode {
           "colorValue": undefined,
           "datumIndex": 3,
           "depth": 1,
+          "itemId": "0;1",
           "midPoint": {
             "x": 0,
             "y": 0,
@@ -44,6 +46,7 @@ HierarchyNode {
           "colorValue": undefined,
           "datumIndex": 4,
           "depth": 1,
+          "itemId": "0;2",
           "midPoint": {
             "x": 0,
             "y": 0,
@@ -60,6 +63,7 @@ HierarchyNode {
       "colorValue": undefined,
       "datumIndex": 1,
       "depth": 0,
+      "itemId": "0",
       "midPoint": {
         "x": 0,
         "y": 0,
@@ -78,6 +82,7 @@ HierarchyNode {
           "colorValue": undefined,
           "datumIndex": 6,
           "depth": 1,
+          "itemId": "1;0",
           "midPoint": {
             "x": 0,
             "y": 0,
@@ -97,6 +102,7 @@ HierarchyNode {
               "colorValue": undefined,
               "datumIndex": 8,
               "depth": 2,
+              "itemId": "1;1;0",
               "midPoint": {
                 "x": 0,
                 "y": 0,
@@ -115,6 +121,7 @@ HierarchyNode {
               "colorValue": undefined,
               "datumIndex": 9,
               "depth": 2,
+              "itemId": "1;1;1",
               "midPoint": {
                 "x": 0,
                 "y": 0,
@@ -133,6 +140,7 @@ HierarchyNode {
               "colorValue": undefined,
               "datumIndex": 10,
               "depth": 2,
+              "itemId": "1;1;2",
               "midPoint": {
                 "x": 0,
                 "y": 0,
@@ -150,6 +158,7 @@ HierarchyNode {
           "colorValue": undefined,
           "datumIndex": 7,
           "depth": 1,
+          "itemId": "1;1",
           "midPoint": {
             "x": 0,
             "y": 0,
@@ -169,6 +178,7 @@ HierarchyNode {
               "colorValue": undefined,
               "datumIndex": 12,
               "depth": 2,
+              "itemId": "1;2;0",
               "midPoint": {
                 "x": 0,
                 "y": 0,
@@ -186,6 +196,7 @@ HierarchyNode {
           "colorValue": undefined,
           "datumIndex": 11,
           "depth": 1,
+          "itemId": "1;2",
           "midPoint": {
             "x": 0,
             "y": 0,
@@ -202,6 +213,7 @@ HierarchyNode {
       "colorValue": undefined,
       "datumIndex": 5,
       "depth": 0,
+      "itemId": "1",
       "midPoint": {
         "x": 0,
         "y": 0,
@@ -217,6 +229,7 @@ HierarchyNode {
   "colorValue": undefined,
   "datumIndex": 0,
   "depth": undefined,
+  "itemId": "root",
   "midPoint": {
     "x": 0,
     "y": 0,
