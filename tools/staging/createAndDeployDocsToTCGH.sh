@@ -20,6 +20,7 @@ FILENAME="charts-staging_${ZIP_PREFIX}_v${ZIP_PREFIX}.zip"
 
 echo "Creating $FILENAME"
 (
+    set -e
     cd dist/packages/ag-charts-website
     zip -qr "../../../$FILENAME" *
     # The glob above skips dotfiles, so add the generated .htaccess explicitly (present on staging/production builds)
