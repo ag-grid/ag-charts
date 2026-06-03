@@ -110,6 +110,12 @@
                             "type": "item",
                             "title": "Transactions",
                             "path": "transactions"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Asynchronous Data",
+                            "path": "async-data",
+                            "isEnterprise": true
                         }
                     ]
                 },
