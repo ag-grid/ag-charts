@@ -1,3 +1,5 @@
+import type { AgNumericValue } from 'ag-charts-types';
+
 import type { BandedReducer } from './data-model/reducers/bandedReducer';
 import type { DataChangeDescription } from './dataChangeDescription';
 import type { BandedDomain, BandedDomainConfig } from './dataDomain';
@@ -20,7 +22,7 @@ export interface UngroupedDataItem<I, D, V> {
     index: I;
     keys: any[];
     values: V;
-    aggValues?: [number | bigint, number | bigint][];
+    aggValues?: [AgNumericValue, AgNumericValue][];
     datum: D;
     validScopes?: Set<string>;
 }
@@ -52,6 +54,14 @@ export type ScopeId = string;
  * which is rejected at the series level (see {@link CommonMetadata.columnValueType}).
  */
 export type ColumnValueType = 'number' | 'bigint' | 'date' | 'string' | 'mixed-numeric';
+
+export type ColumnValueTypeMapping = {
+    number: number;
+    bigint: bigint;
+    date: Date;
+    string: string;
+    'mixed-numeric': AgNumericValue;
+};
 
 /**
  * Expected-type discriminator callers pass to {@link DataModel.resolveColumnById} to both type the returned
@@ -117,7 +127,7 @@ export interface CommonMetadata<D> {
         keys: any[][];
         values: any[][];
         groups?: any[][];
-        aggValues?: [number | bigint, number | bigint][];
+        aggValues?: [AgNumericValue, AgNumericValue][];
     };
     reduced?: {
         diff?: Record<string, ProcessedOutputDiff>;
@@ -150,7 +160,7 @@ export interface CommonMetadata<D> {
 
 export interface UngroupedData<D> extends CommonMetadata<D> {
     type: 'ungrouped';
-    aggregation?: [number | bigint, number | bigint][][];
+    aggregation?: [AgNumericValue, AgNumericValue][][];
 }
 
 export interface GroupedData<D> extends CommonMetadata<D> {
@@ -310,7 +320,7 @@ export type InternalDatumPropertyDefinition<K> = DatumPropertyDefinition<K> &
 export type AggregatePropertyDefinition<
     D,
     K extends keyof D & string,
-    R = [number | bigint, number | bigint],
+    R = [AgNumericValue, AgNumericValue],
     R2 = R,
 > = Omit<PropertyIdentifiers, 'scopes'> &
     PropertySelectors & {

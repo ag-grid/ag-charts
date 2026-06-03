@@ -1,8 +1,8 @@
 import { Logger } from 'ag-charts-core';
 
 import type {
-    ColumnValueCategory,
     ColumnValueType,
+    ColumnValueTypeMapping,
     GroupedData,
     ProcessedData,
     ProcessedDataDef,
@@ -27,7 +27,7 @@ const CONTINUOUS_COLUMN_TYPES = new Set<ColumnValueType>(['number', 'bigint', 'm
 function assertColumnValueCategory(
     scope: ScopeProvider,
     searchId: string,
-    expectedType: ColumnValueCategory,
+    expectedType: ColumnValueType,
     actualType: ColumnValueType | undefined
 ): void {
     if (actualType == null || CONTINUOUS_COLUMN_TYPES.has(actualType)) return;
@@ -99,23 +99,18 @@ export class DataModelResolvers<D extends object, K extends keyof D & string> {
         return this.ctx.scopeCache.get(scope.id)?.get(searchId) != null;
     }
 
-    resolveColumnById(
+    resolveColumnById<T extends ColumnValueType>(
         scope: ScopeProvider,
         searchId: string,
         processedData: UngroupedData<any> | GroupedData<any>,
-        expectedType: ColumnValueCategory
-    ): (number | bigint)[];
-    resolveColumnById<T = any>(
-        scope: ScopeProvider,
-        searchId: string,
-        processedData: UngroupedData<any> | GroupedData<any>
-    ): T[];
-    resolveColumnById(
+        expectedType: T
+    ): ColumnValueTypeMapping[T][];
+    resolveColumnById<T extends ColumnValueType>(
         scope: ScopeProvider,
         searchId: string,
         processedData: UngroupedData<any> | GroupedData<any>,
-        expectedType?: ColumnValueCategory
-    ): any[] {
+        expectedType?: T
+    ): ColumnValueTypeMapping[T][] {
         const index = this.resolveProcessedDataIndexById(scope, searchId);
         const column = processedData.columns?.[index];
         if (column == null) {
