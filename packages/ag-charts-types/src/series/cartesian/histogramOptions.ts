@@ -1,3 +1,4 @@
+import type { ContextCallbackParams } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
@@ -32,6 +33,15 @@ export interface AgHistogramBinDatum<TDatum> {
     aggregatedValue: number;
     frequency: number;
     domain: [number, number];
+}
+
+export interface AgHistogramSeriesGetDataIdParams<TContext = ContextDefault> extends ContextCallbackParams<TContext> {
+    /** The lower bound of the bin. */
+    binStart: number;
+    /** The upper bound of the bin. */
+    binEnd: number;
+    /** The index of the bin. */
+    binIndex: number;
 }
 
 export interface AgHistogramSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
@@ -90,4 +100,12 @@ export interface AgHistogramSeriesOptions<TDatum = DatumDefault, TContext = Cont
         AgHistogramSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for Histogram Series. */
     type: 'histogram';
+    /**
+     * A callback to provide a stable identifier for each bin, exposed as `itemId` in events and active state.
+     *
+     * The returned identifier must be unique across all bins in the series.
+     *
+     * If not supplied, an identifier is generated from the bin boundaries.
+     */
+    getDataId?: (params: AgHistogramSeriesGetDataIdParams<TContext>) => string;
 }

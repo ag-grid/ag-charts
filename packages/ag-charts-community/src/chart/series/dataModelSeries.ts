@@ -16,7 +16,9 @@ import { type DatumIndexType, SelectionState, type SeriesNodeDatum } from './ser
 import { findNodeDatumInArray } from './util';
 
 export interface DataModelSeriesNodeDatum extends SeriesNodeDatum<number> {
-    itemId?: never;
+    // Data-model series identify nodes by their numeric `datumIndex` (and chart-level `dataIdKey`).
+    // The exception is aggregated series such as histogram, whose bins carry an explicit stable id.
+    itemId?: string;
 }
 
 export interface DataModelSeriesNodeDataContext<TDatum, TLabel = TDatum> extends SeriesNodeDataContext<

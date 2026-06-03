@@ -1,6 +1,7 @@
 import type { InternalAgColorType, RequireOptional } from 'ag-charts-core';
 import { Property } from 'ag-charts-core';
 import type {
+    AgHistogramSeriesGetDataIdParams,
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
     AgHistogramSeriesStyle,
@@ -16,6 +17,9 @@ import { CartesianSeriesProperties } from './cartesianSeries';
 import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 
 export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
+    // Bins are aggregated from many datums, so they carry an explicit stable id rather than
+    // relying on the data-model `datumIndex`/`dataIdKey` matching used by 1:1 series.
+    readonly itemId: string;
     readonly x: number;
     readonly y: number;
     readonly width: number;
@@ -87,6 +91,9 @@ export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHisto
 
     @Property
     binCount?: number;
+
+    @Property
+    getDataId?: (params: AgHistogramSeriesGetDataIdParams) => string = undefined;
 
     @Property
     readonly shadow = new DropShadow();

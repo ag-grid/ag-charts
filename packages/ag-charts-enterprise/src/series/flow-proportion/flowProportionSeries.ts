@@ -260,7 +260,7 @@ export abstract class FlowProportionSeries<
 
                 return {
                     series: this,
-                    itemId: `node-${datumIndex}`,
+                    itemId: this.callGetDataId({ nodeName: id, index: datumIndex, datum: {} }) ?? id,
                     datum: {}, // Must be a referential object for tooltips
                     datumIndex: { type: FlowProportionDatumType.Node, index: datumIndex },
                     type: FlowProportionDatumType.Node,
@@ -323,10 +323,11 @@ export abstract class FlowProportionSeries<
 
                     const nodeDatumIndex = { type: FlowProportionDatumType.Node, index: datumIndex };
                     const nodeIdValue = nodeDataIdKey == null ? undefined : (datum as any)[nodeDataIdKey];
+                    const computedId = this.callGetDataId({ nodeName: id, index: datumIndex, datum });
 
                     processedNodes.set(id, {
                         series: this,
-                        itemId: nodeIdValue == null ? `node-${datumIndex}` : String(nodeIdValue),
+                        itemId: computedId ?? (nodeIdValue == null ? id : String(nodeIdValue)),
                         datum,
                         datumIndex: nodeDatumIndex,
                         type: FlowProportionDatumType.Node,
@@ -347,6 +348,11 @@ export abstract class FlowProportionSeries<
         }
 
         this.processedNodes = processedNodes;
+    }
+
+    private callGetDataId(params: { nodeName: string; index: number; datum: unknown }): string | undefined {
+        const { getDataId } = this.properties;
+        return getDataId == null ? undefined : this.cachedCallWithContext(getDataId, params);
     }
 
     override findNodeDatum(itemId: AgActiveItemState['itemId']): TDatum<TNodeDatum, TLinkDatum> | undefined {

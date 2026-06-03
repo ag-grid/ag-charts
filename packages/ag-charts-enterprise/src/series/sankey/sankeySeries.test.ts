@@ -303,6 +303,82 @@ describe('SankeySeries', () => {
         });
     });
 
+    describe('getDataId', () => {
+        const DATA = [
+            { from: 'A', to: 'B', size: 5 },
+            { from: 'B', to: 'C', size: 5 },
+        ];
+        const getNodeItemIds = (c: any) =>
+            (deproxy(c).series[0] as any).contextNodeData.nodeData
+                .filter((n: any) => n.type === FlowProportionDatumType.Node)
+                .map((n: any) => n.itemId)
+                .sort();
+
+        it('defaults a node itemId to its name', async () => {
+            const options: AgStandaloneChartOptions = {
+                data: DATA,
+                series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expect(getNodeItemIds(chart)).toEqual(['A', 'B', 'C']);
+        });
+
+        it('uses the getDataId callback to override the node itemId', async () => {
+            const getDataId = vi.fn((p: { nodeName: string }) => `node:${p.nodeName}`);
+            const options: AgStandaloneChartOptions = {
+                data: DATA,
+                series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', getDataId }],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expect(getNodeItemIds(chart)).toEqual(['node:A', 'node:B', 'node:C']);
+            expect(getDataId).toHaveBeenCalledWith(expect.objectContaining({ nodeName: 'A' }));
+        });
+
+        it('passes the chart context to the callback', async () => {
+            const context = { tenant: 'acme' };
+            const getDataId = vi.fn((p: { nodeName: string; context?: any }) => `${p.context?.tenant}:${p.nodeName}`);
+            const options: AgStandaloneChartOptions = {
+                data: DATA,
+                series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', context, getDataId }],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expect(getNodeItemIds(chart)).toEqual(['acme:A', 'acme:B', 'acme:C']);
+        });
+
+        it('keeps node itemIds stable across a data update', async () => {
+            const options: AgStandaloneChartOptions = {
+                data: DATA,
+                series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            expect(getNodeItemIds(chart)).toEqual(['A', 'B', 'C']);
+
+            await chart.update({
+                data: [...DATA, { from: 'C', to: 'D', size: 5 }],
+                series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
+            } as AgStandaloneChartOptions);
+            await waitForChartStability(chart);
+
+            // The new node D appears (so the update applied), while existing name-derived ids are unchanged.
+            expect(getNodeItemIds(chart)).toEqual(['A', 'B', 'C', 'D']);
+        });
+    });
+
     const testPointerEvents = (testParams: {
         seriesOptions: any;
         chartOptions?: any;

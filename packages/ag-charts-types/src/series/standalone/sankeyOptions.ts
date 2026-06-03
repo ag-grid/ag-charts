@@ -13,6 +13,26 @@ export interface AgSankeySeriesOptions<TDatum = DatumDefault, TContext = Context
         AgSankeySeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Sankey Series. */
     type: 'sankey';
+    /**
+     * A callback to provide a stable identifier for each node, exposed as `itemId` in events and active state.
+     *
+     * The returned identifier must be unique across all nodes in the series.
+     *
+     * If not supplied, the node name is used as its identifier.
+     */
+    getDataId?: (params: AgSankeySeriesGetDataIdParams<TDatum, TContext>) => string;
+}
+
+export interface AgSankeySeriesGetDataIdParams<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends ContextCallbackParams<TContext> {
+    /** The name of the node, derived from the `fromKey`/`toKey` values or the supplied `nodes`. */
+    nodeName: string;
+    /** The index of the node, in the order nodes are first encountered. Not a stable identifier. */
+    index: number;
+    /** The node datum, or an empty object for nodes derived implicitly from link data. */
+    datum: TDatum;
 }
 
 export interface AgSankeySeriesLinkItemStylerParams<TDatum, TContext = ContextDefault>
