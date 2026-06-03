@@ -10,7 +10,13 @@ import { QueryClientProvider, useQuery } from 'react-query';
 import remarkBreaks from 'remark-breaks';
 
 import { type NavigationData, type PageTitle, type SpecialTypesMap, parseJsDocs } from '../apiReferenceHelpers';
-import { ApiReference, ApiReferenceConfigContext, ApiReferenceContext, queryClient, queryOptions } from './ApiReference';
+import {
+    ApiReference,
+    ApiReferenceConfigContext,
+    ApiReferenceContext,
+    queryClient,
+    queryOptions,
+} from './ApiReference';
 import styles from './ApiReferencePage.module.scss';
 import { OptionsNavigation, SelectionContext } from './OptionsNavigation';
 import { PropertyType } from './Properties';
