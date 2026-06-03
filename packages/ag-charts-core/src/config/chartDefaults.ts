@@ -461,6 +461,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     loadGoogleFonts: boolean,
     highlight: {
+        enabled: boolean,
         drawingMode: union('overlay', 'cutout'),
         range: union('tooltip', 'node'),
     },
@@ -618,9 +619,6 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     formatter: or(callbackOf(textOrSegments), formatObjectValidator),
     enableRtl: boolean,
 };
-
-// @ts-expect-error undocumented option
-commonChartOptionsDefs.highlight.enabled = undocumented(boolean);
 
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.dataSource.requestThrottle = undocumented(positiveNumber);

@@ -601,7 +601,6 @@ describe('Chart highlighting', () => {
                     y: { position: 'left', type: 'number' },
                 },
                 highlight: {
-                    // @ts-expect-error Undocumented
                     enabled: false,
                 },
                 series: [
@@ -636,7 +635,6 @@ describe('Chart highlighting', () => {
                     y: { position: 'left', type: 'number' },
                 },
                 highlight: {
-                    // @ts-expect-error Undocumented
                     enabled: false,
                 },
                 series: [
@@ -662,6 +660,47 @@ describe('Chart highlighting', () => {
                 seriesIndex: 0,
                 datumIndex: 2,
             });
+        });
+
+        const seriesHighlightEnabled = (chartInstance: Chart, seriesIndex: number) =>
+            (chartInstance.series[seriesIndex] as unknown as { properties: { highlight: { enabled: boolean } } })
+                .properties.highlight.enabled;
+
+        it('cascades chart highlight.enabled = false to series that do not override it', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                highlight: { enabled: false },
+                series: [
+                    { type: 'bar', xKey: 'category', yKey: 'apples' },
+                    { type: 'bar', xKey: 'category', yKey: 'oranges', highlight: { enabled: true } },
+                ],
+            });
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            expect(seriesHighlightEnabled(chart, 0)).toBe(false);
+            expect(seriesHighlightEnabled(chart, 1)).toBe(true);
+        });
+
+        it('leaves series highlight.enabled = true by default when chart highlight is unset', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
+            });
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            expect(seriesHighlightEnabled(chart, 0)).toBe(true);
         });
     });
 

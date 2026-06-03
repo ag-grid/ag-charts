@@ -161,6 +161,12 @@ export interface AgChartBackground {
 export type AgChartHighlightRange = 'tooltip' | 'node';
 
 export interface AgChartHighlightOptions {
+    /**
+     * Set to `false` to disable highlighting for all series. Individual series can re-enable it with `series[].highlight.enabled`.
+     *
+     * Default: `true`
+     */
+    enabled?: boolean;
     /** By default, nodes will be highlighted when the cursor is within the `tooltip.range`. Set this to `'node'` to highlight nodes when within the `series[].nodeClickRange`. */
     range?: AgChartHighlightRange;
     /**
