@@ -19,7 +19,14 @@ fi
 FILENAME="charts-staging_${ZIP_PREFIX}_v${ZIP_PREFIX}.zip"
 
 echo "Creating $FILENAME"
-( cd dist/packages/ag-charts-website && zip -qr "../../../$FILENAME" * )
+(
+    cd dist/packages/ag-charts-website
+    zip -qr "../../../$FILENAME" *
+    # The glob above skips dotfiles, so add the generated .htaccess explicitly (present on staging/production builds)
+    if [ -f .htaccess ]; then
+        zip -q "../../../$FILENAME" .htaccess
+    fi
+)
 
 REMOTE_SCRIPT=/tmp/updateChartsStagingRemote.sh
 sed -e "s#@WWW_ROOT_DIR@#${WWW_ROOT_DIR}#g" -e "s#@FILENAME@#${FILENAME}#g" \
