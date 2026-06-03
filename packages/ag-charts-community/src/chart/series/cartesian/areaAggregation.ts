@@ -422,7 +422,7 @@ export function aggregateAreaDataFromDataModel(
     existingFilters?: AreaSeriesDataAggregationFilter[]
 ): AreaSeriesDataAggregationFilter[] | undefined {
     const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
-    const yValues = dataModel.resolveColumnById(series, yKey, processedData, 'numeric');
+    const yValues = dataModel.resolveColumnById(series, yKey, processedData, 'mixed-numeric');
     const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
     const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
@@ -464,7 +464,7 @@ export function aggregateAreaDataFromDataModelPartial(
     existingFilters?: AreaSeriesDataAggregationFilter[]
 ): PartialAreaAggregationResult | undefined {
     const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
-    const yValues = dataModel.resolveColumnById(series, yKey, processedData, 'numeric');
+    const yValues = dataModel.resolveColumnById(series, yKey, processedData, 'mixed-numeric');
     const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
     const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);

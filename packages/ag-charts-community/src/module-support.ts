@@ -144,6 +144,7 @@ export { generateTicks } from './chart/axis/generateTicks';
 export { DataController } from './chart/data/dataController';
 export { DataModel, fixNumericExtent, getMissCount } from './chart/data/dataModel';
 export type {
+    ColumnValueType,
     DatumPropertyDefinition,
     GroupedData,
     ProcessedData,

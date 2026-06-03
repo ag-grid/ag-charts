@@ -16,21 +16,45 @@ import { RangeLookup } from '../../rangeLookup';
 import { type SortOrder, valuesSortOrder } from '../../sortOrder';
 import type { DataModelContext } from '../dataModelContext';
 
-/** Runtime {@link ColumnValueType} tags accepted for a continuous (`'numeric'`) value column. */
-const CONTINUOUS_COLUMN_TYPES = new Set<ColumnValueType>(['number', 'bigint', 'mixed-numeric', 'date']);
+/** Runtime numeric {@link ColumnValueType} tags that interchange freely on a value axis. */
+const NUMERIC_COLUMN_TYPES = new Set<ColumnValueType>(['number', 'bigint', 'mixed-numeric']);
 
 /**
- * Warns once when a column resolved with an expected {@link ColumnValueCategory} holds values of an
+ * Decides whether a column's runtime {@link ColumnValueType} tag satisfies the type a caller expects.
+ *
+ * The numeric family interchanges, and a `date` column is accepted on a value axis (epoch values flow
+ * through scale conversion). `'object'` is the caller-typed/opaque tag: the caller asserts the element
+ * type itself, so any non-`null` runtime tag is accepted and validation is intentionally skipped.
+ */
+function isCompatibleColumnType(expected: ColumnValueType, actual: ColumnValueType): boolean {
+    switch (expected) {
+        case 'number':
+        case 'bigint':
+        case 'mixed-numeric':
+            return NUMERIC_COLUMN_TYPES.has(actual) || actual === 'date';
+        case 'date':
+            return actual === 'date' || NUMERIC_COLUMN_TYPES.has(actual);
+        case 'string':
+            return actual === 'string';
+        case 'boolean':
+            return actual === 'boolean';
+        case 'object':
+            return true;
+    }
+}
+
+/**
+ * Warns once when a column resolved with an expected {@link ColumnValueType} holds values of an
  * incompatible runtime type. A `null` tag means extraction captured no type (e.g. an all-empty column),
  * which is treated as a no-op rather than a mismatch.
  */
-function assertColumnValueCategory(
+function assertColumnValueType(
     scope: ScopeProvider,
     searchId: string,
     expectedType: ColumnValueType,
     actualType: ColumnValueType | undefined
 ): void {
-    if (actualType == null || CONTINUOUS_COLUMN_TYPES.has(actualType)) return;
+    if (actualType == null || isCompatibleColumnType(expectedType, actualType)) return;
     Logger.warnOnce(
         `column '${searchId}' for scope '${scope.id}' was resolved as '${expectedType}' but holds '${actualType}' values; check the series data types.`
     );
@@ -99,27 +123,31 @@ export class DataModelResolvers<D extends object, K extends keyof D & string> {
         return this.ctx.scopeCache.get(scope.id)?.get(searchId) != null;
     }
 
-    resolveColumnById<T extends ColumnValueType>(
+    resolveColumnById<T extends Exclude<ColumnValueType, 'object'>>(
         scope: ScopeProvider,
         searchId: string,
         processedData: UngroupedData<any> | GroupedData<any>,
         expectedType: T
     ): ColumnValueTypeMapping[T][];
-    resolveColumnById<T extends ColumnValueType>(
+    resolveColumnById<E = unknown>(
         scope: ScopeProvider,
         searchId: string,
         processedData: UngroupedData<any> | GroupedData<any>,
-        expectedType?: T
-    ): ColumnValueTypeMapping[T][] {
+        expectedType: 'object'
+    ): E[];
+    resolveColumnById<E>(
+        scope: ScopeProvider,
+        searchId: string,
+        processedData: UngroupedData<any> | GroupedData<any>,
+        expectedType: ColumnValueType
+    ): E[] {
         const index = this.resolveProcessedDataIndexById(scope, searchId);
         const column = processedData.columns?.[index];
         if (column == null) {
             throw new Error(`AG Charts - didn't find column for [${searchId}, ${scope.id}]`);
         }
-        if (expectedType != null) {
-            assertColumnValueCategory(scope, searchId, expectedType, processedData.columnValueType?.[index]);
-        }
-        return column;
+        assertColumnValueType(scope, searchId, expectedType, processedData.columnValueType?.[index]);
+        return column as E[];
     }
 
     resolveColumnNeedsValueOf(

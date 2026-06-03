@@ -257,9 +257,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         }
 
         const radiusValues = dataModel.resolveKeysById<number>(this, 'radiusValue', processedData);
-        const angleStartValues = dataModel.resolveColumnById(this, `angleValue-start`, processedData, 'numeric');
-        const angleEndValues = dataModel.resolveColumnById(this, `angleValue-end`, processedData, 'numeric');
-        const angleRawValues = dataModel.resolveColumnById(this, `angleValue-raw`, processedData, 'numeric');
+        const angleStartValues = dataModel.resolveColumnById(this, `angleValue-start`, processedData, 'mixed-numeric');
+        const angleEndValues = dataModel.resolveColumnById(this, `angleValue-end`, processedData, 'mixed-numeric');
+        const angleRawValues = dataModel.resolveColumnById(this, `angleValue-raw`, processedData, 'mixed-numeric');
 
         const angleRangeIndex = dataModel.resolveProcessedDataIndexById(this, `angleValue-range`);
 
@@ -566,7 +566,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const radiusValue = dataModel.resolveKeysById(this, `radiusValue`, processedData)[datumIndex];
-        const angleValue = dataModel.resolveColumnById(this, `angleValue-raw`, processedData, 'numeric')[datumIndex];
+        const angleValue = dataModel.resolveColumnById(this, `angleValue-raw`, processedData, 'mixed-numeric')[
+            datumIndex
+        ];
 
         // eslint-disable-next-line sonarjs/different-types-comparison
         if (radiusValue === undefined && !this.properties.allowNullKeys) return;

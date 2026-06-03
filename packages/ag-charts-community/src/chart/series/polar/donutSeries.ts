@@ -412,30 +412,30 @@ export class DonutSeries extends PolarSeries<
     }
 
     private getProcessedDataValues(dataModel: DataModel<any>, processedData: ProcessedData<any>) {
-        const angleValues = dataModel.resolveColumnById<number>(this, `angleValue`, processedData);
-        const angleRawValues = dataModel.resolveColumnById<number>(this, `angleRaw`, processedData);
+        const angleValues = dataModel.resolveColumnById(this, `angleValue`, processedData, 'number');
+        const angleRawValues = dataModel.resolveColumnById(this, `angleRaw`, processedData, 'number');
         const angleFilterValues =
             this.properties.angleFilterKey == null
                 ? undefined
-                : dataModel.resolveColumnById<number>(this, `angleFilterValue`, processedData);
+                : dataModel.resolveColumnById(this, `angleFilterValue`, processedData, 'number');
         const angleFilterRawValues =
             this.properties.angleFilterKey == null
                 ? undefined
-                : dataModel.resolveColumnById<number>(this, `angleFilterRaw`, processedData);
+                : dataModel.resolveColumnById(this, `angleFilterRaw`, processedData, 'number');
         const radiusValues = this.properties.radiusKey
-            ? dataModel.resolveColumnById<number>(this, `radiusValue`, processedData)
+            ? dataModel.resolveColumnById(this, `radiusValue`, processedData, 'number')
             : undefined;
         const radiusRawValues = this.properties.radiusKey
-            ? dataModel.resolveColumnById<number>(this, `radiusRaw`, processedData)
+            ? dataModel.resolveColumnById(this, `radiusRaw`, processedData, 'number')
             : undefined;
         const calloutLabelValues = this.properties.calloutLabelKey
-            ? dataModel.resolveColumnById<string>(this, `calloutLabelValue`, processedData)
+            ? dataModel.resolveColumnById<string>(this, `calloutLabelValue`, processedData, 'object')
             : undefined;
         const sectorLabelValues = this.properties.sectorLabelKey
-            ? dataModel.resolveColumnById<string>(this, `sectorLabelValue`, processedData)
+            ? dataModel.resolveColumnById<string>(this, `sectorLabelValue`, processedData, 'object')
             : undefined;
         const legendItemValues = this.properties.legendItemKey
-            ? dataModel.resolveColumnById<string>(this, `legendItemValue`, processedData)
+            ? dataModel.resolveColumnById<string>(this, `legendItemValue`, processedData, 'object')
             : undefined;
 
         return {

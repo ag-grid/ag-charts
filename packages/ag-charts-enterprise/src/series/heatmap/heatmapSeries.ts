@@ -362,10 +362,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
 
-        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
-        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
+        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData, 'object');
+        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData, 'object');
         const colorValues = colorKey
-            ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)
+            ? dataModel.resolveColumnById(this, `colorValue`, processedData, 'number')
             : undefined;
 
         const colorDomain = colorKey ? dataModel.getDomain(this, 'colorValue', 'value', processedData).domain : [];
@@ -766,12 +766,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
-        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
+        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData, 'object')[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData, 'object')[datumIndex];
         const colorValue =
             colorKey == null
                 ? undefined
-                : dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
+                : dataModel.resolveColumnById(this, `colorValue`, processedData, 'number')[datumIndex];
 
         const allowNullKeys = this.properties.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return;

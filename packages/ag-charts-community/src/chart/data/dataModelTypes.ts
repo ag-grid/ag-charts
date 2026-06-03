@@ -49,30 +49,27 @@ export const SHARED_ZERO_INDICES: readonly number[] = Object.freeze([0]);
 export type ScopeId = string;
 
 /**
- * Per-column primitive type, set once during extraction. Consumers dispatch off this tag rather than
- * re-sniffing values. `'mixed-numeric'` flags a column that contains both `number` and `bigint` values,
- * which is rejected at the series level (see {@link CommonMetadata.columnValueType}).
+ * Per-column value type, set once during extraction. Consumers dispatch off this tag rather than
+ * re-sniffing values, and {@link DataModel.resolveColumnById} asserts it against the type the caller
+ * expects. `'mixed-numeric'` flags a column that contains both `number` and `bigint` values (the
+ * `number | bigint` value path); `'object'` flags non-`Date` object values (e.g. GeoJSON features),
+ * whose precise element type the caller supplies rather than this tag.
+ *
+ * The tag is advisory: column storage keeps raw values and no runtime conversion keys off it.
  */
-export type ColumnValueType = 'number' | 'bigint' | 'date' | 'string' | 'mixed-numeric';
+export type ColumnValueType = 'number' | 'bigint' | 'date' | 'string' | 'boolean' | 'mixed-numeric' | 'object';
 
 export type ColumnValueTypeMapping = {
     number: number;
     bigint: bigint;
     date: Date;
     string: string;
+    boolean: boolean;
     'mixed-numeric': AgNumericValue;
+    // The 'object' overload returns the caller-supplied element type, so this entry is never consulted
+    // for the return type; it exists only to make 'object' a valid mapping key.
+    object: unknown;
 };
-
-/**
- * Expected-type discriminator callers pass to {@link DataModel.resolveColumnById} to both type the returned
- * column (as `number | bigint`) and assert it against the runtime {@link ColumnValueType} tag captured during
- * extraction.
- *
- * `'numeric'` denotes a continuous value column: `number`/`bigint`, or a `date` when the column feeds a time
- * axis (date values pass the assertion and flow through scale conversion). Only `string`/category data trips
- * the assertion — the genuine misconfiguration of a non-continuous value on a value axis.
- */
-export type ColumnValueCategory = 'numeric';
 
 export type ProcessedValue = { value: unknown; missing: boolean; valid: boolean };
 export type SortOrderEntry = {

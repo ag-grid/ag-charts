@@ -599,20 +599,20 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         let yEndValues: AgNumericValue[] | undefined;
         let yFilterValues: AgNumericValue[] | undefined;
         if (filteredValueExceedUnfiltered) {
-            yStartValues = dataModel.resolveColumnById(this, 'yFilterValue-start', processedData, 'numeric');
-            yEndValues = dataModel.resolveColumnById(this, 'yFilterValue-end', processedData, 'numeric');
+            yStartValues = dataModel.resolveColumnById(this, 'yFilterValue-start', processedData, 'mixed-numeric');
+            yEndValues = dataModel.resolveColumnById(this, 'yFilterValue-end', processedData, 'mixed-numeric');
             yFilterValues = undefined;
         } else {
             const isCrossFilteringEnabled = dataModel.hasColumnById(this, 'yFilterValue-raw');
 
             yStartValues = isStacked
-                ? dataModel.resolveColumnById(this, 'yValue-start', processedData, 'numeric')
+                ? dataModel.resolveColumnById(this, 'yValue-start', processedData, 'mixed-numeric')
                 : undefined;
             yEndValues = isStacked
-                ? dataModel.resolveColumnById(this, 'yValue-end', processedData, 'numeric')
+                ? dataModel.resolveColumnById(this, 'yValue-end', processedData, 'mixed-numeric')
                 : undefined;
             yFilterValues = isCrossFilteringEnabled
-                ? dataModel.resolveColumnById(this, 'yFilterValue-raw', processedData, 'numeric')
+                ? dataModel.resolveColumnById(this, 'yFilterValue-raw', processedData, 'mixed-numeric')
                 : undefined;
         }
 
@@ -620,7 +620,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             dataSource: rawData,
             rawData: rawData.data,
             xValues: dataModel.resolveKeysById(this, 'xValue', processedData),
-            yRawValues: dataModel.resolveColumnById(this, 'yValue-raw', processedData, 'numeric'),
+            yRawValues: dataModel.resolveColumnById(this, 'yValue-raw', processedData, 'mixed-numeric'),
             yStartValues,
             yEndValues,
             yFilterValues,
@@ -1407,7 +1407,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const { xKey, yKey, stackGroup } = this.properties;
 
         const datum = processedData.dataSources.get(seriesId)?.data?.[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, 'yValue-raw', processedData, 'numeric')[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, 'yValue-raw', processedData, 'mixed-numeric')[datumIndex];
         const xDomain = dataModel.getDomain(this, 'xValue', 'key', processedData).domain;
         const yDomain = dataModel.getDomain(this, this.yCumulativeKey(dataModel), 'value', processedData).domain;
 
@@ -1635,7 +1635,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         const datum = processedData.dataSources.get(this.id)?.data?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, 'xValue', processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, 'yValue-raw', processedData, 'numeric')[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, 'yValue-raw', processedData, 'mixed-numeric')[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison

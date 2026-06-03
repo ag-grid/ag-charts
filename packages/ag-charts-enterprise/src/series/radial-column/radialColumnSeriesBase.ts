@@ -269,9 +269,14 @@ export abstract class RadialColumnSeriesBase<
         }
 
         const angleValues = dataModel.resolveKeysById(this, `angleValue`, processedData);
-        const radiusStartValues = dataModel.resolveColumnById(this, `radiusValue-start`, processedData, 'numeric');
-        const radiusEndValues = dataModel.resolveColumnById(this, `radiusValue-end`, processedData, 'numeric');
-        const radiusRawValues = dataModel.resolveColumnById(this, `radiusValue-raw`, processedData, 'numeric');
+        const radiusStartValues = dataModel.resolveColumnById(
+            this,
+            `radiusValue-start`,
+            processedData,
+            'mixed-numeric'
+        );
+        const radiusEndValues = dataModel.resolveColumnById(this, `radiusValue-end`, processedData, 'mixed-numeric');
+        const radiusRawValues = dataModel.resolveColumnById(this, `radiusValue-raw`, processedData, 'mixed-numeric');
 
         let groupPaddingInner = 0;
         let groupPaddingOuter = 0;
@@ -577,7 +582,9 @@ export abstract class RadialColumnSeriesBase<
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const angleValue = dataModel.resolveKeysById(this, `angleValue`, processedData)[datumIndex];
-        const radiusValue = dataModel.resolveColumnById(this, `radiusValue-raw`, processedData, 'numeric')[datumIndex];
+        const radiusValue = dataModel.resolveColumnById(this, `radiusValue-raw`, processedData, 'mixed-numeric')[
+            datumIndex
+        ];
 
         // eslint-disable-next-line sonarjs/different-types-comparison
         if (angleValue === undefined && !this.properties.allowNullKeys) return;

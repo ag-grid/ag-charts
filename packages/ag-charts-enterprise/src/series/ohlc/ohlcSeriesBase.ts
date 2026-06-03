@@ -445,10 +445,10 @@ export abstract class OhlcSeriesBase<
         return {
             rawData,
             xValues: dataModel.resolveKeysById(this, 'xValue', processedData),
-            openValues: dataModel.resolveColumnById(this, 'openValue', processedData, 'numeric'),
-            closeValues: dataModel.resolveColumnById(this, 'closeValue', processedData, 'numeric'),
-            highValues: dataModel.resolveColumnById(this, 'highValue', processedData, 'numeric'),
-            lowValues: dataModel.resolveColumnById(this, 'lowValue', processedData, 'numeric'),
+            openValues: dataModel.resolveColumnById(this, 'openValue', processedData, 'mixed-numeric'),
+            closeValues: dataModel.resolveColumnById(this, 'closeValue', processedData, 'mixed-numeric'),
+            highValues: dataModel.resolveColumnById(this, 'highValue', processedData, 'mixed-numeric'),
+            lowValues: dataModel.resolveColumnById(this, 'lowValue', processedData, 'mixed-numeric'),
             xScale,
             yScale,
             xAxis,
@@ -934,10 +934,10 @@ export abstract class OhlcSeriesBase<
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
-        const openValue = dataModel.resolveColumnById(this, `openValue`, processedData, 'numeric')[datumIndex];
-        const highValue = dataModel.resolveColumnById(this, `highValue`, processedData, 'numeric')[datumIndex];
-        const lowValue = dataModel.resolveColumnById(this, `lowValue`, processedData, 'numeric')[datumIndex];
-        const closeValue = dataModel.resolveColumnById(this, `closeValue`, processedData, 'numeric')[datumIndex];
+        const openValue = dataModel.resolveColumnById(this, `openValue`, processedData, 'mixed-numeric')[datumIndex];
+        const highValue = dataModel.resolveColumnById(this, `highValue`, processedData, 'mixed-numeric')[datumIndex];
+        const lowValue = dataModel.resolveColumnById(this, `lowValue`, processedData, 'mixed-numeric')[datumIndex];
+        const closeValue = dataModel.resolveColumnById(this, `closeValue`, processedData, 'mixed-numeric')[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         const allowNullKeys = this.properties.allowNullKeys ?? false;

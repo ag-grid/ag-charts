@@ -110,7 +110,7 @@ function resolveBucketingInputs(
     const xValues =
         domainKey === 'key'
             ? dataModel.resolveKeysById(series, 'xValue', processedData)
-            : dataModel.resolveColumnById(series, 'xValue', processedData);
+            : dataModel.resolveColumnById(series, 'xValue', processedData, 'object');
     const xNeedsValueOf =
         domainKey === 'key' ? false : dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const [d0, d1] = aggregationDomain(xAxis.scale.type, domainInput);
@@ -371,7 +371,12 @@ export class SplitBucketLookupManager<TFilter extends SplitFilter>
         const dataModel = this.splitOpts.getDataModel()!;
         const processedData = this.splitOpts.getProcessedData()!;
         const yColumnId = this.splitOpts.getYColumnId(dataModel, processedData);
-        const yEndValues = dataModel.resolveColumnById(this.splitOpts.series, yColumnId, processedData, 'numeric');
+        const yEndValues = dataModel.resolveColumnById(
+            this.splitOpts.series,
+            yColumnId,
+            processedData,
+            'mixed-numeric'
+        );
         const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this.splitOpts.series, yColumnId, processedData);
 
         populateBucketSelectedFromSparseSplit(
@@ -402,7 +407,12 @@ export class SplitBucketLookupManager<TFilter extends SplitFilter>
             this.splitOpts.domainKey
         );
         const yColumnId = this.splitOpts.getYColumnId(dataModel, processedData);
-        const yEndValues = dataModel.resolveColumnById(this.splitOpts.series, yColumnId, processedData, 'numeric');
+        const yEndValues = dataModel.resolveColumnById(
+            this.splitOpts.series,
+            yColumnId,
+            processedData,
+            'mixed-numeric'
+        );
         const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this.splitOpts.series, yColumnId, processedData);
         const xValuesLength = xValues.length;
         const { positiveIndexData, negativeIndexData, maxRange } = filter;

@@ -385,8 +385,8 @@ export function aggregateLineDataFromDataModel(
     series: ScopeProvider,
     existingFilters?: LineSeriesDataAggregationFilter[]
 ): LineSeriesDataAggregationFilter[] | undefined {
-    const xValues = dataModel.resolveColumnById(series, 'xValue', processedData);
-    const yValues = dataModel.resolveColumnById(series, yKey, processedData, 'numeric');
+    const xValues = dataModel.resolveColumnById(series, 'xValue', processedData, 'object');
+    const yValues = dataModel.resolveColumnById(series, yKey, processedData, 'mixed-numeric');
     const domainInput = dataModel.getDomain(series, 'xValue', 'value', processedData);
 
     const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
@@ -427,8 +427,8 @@ export function aggregateLineDataFromDataModelPartial(
     targetRange: number,
     existingFilters?: LineSeriesDataAggregationFilter[]
 ): PartialLineAggregationResult | undefined {
-    const xValues = dataModel.resolveColumnById(series, 'xValue', processedData);
-    const yValues = dataModel.resolveColumnById(series, yKey, processedData, 'numeric');
+    const xValues = dataModel.resolveColumnById(series, 'xValue', processedData, 'object');
+    const yValues = dataModel.resolveColumnById(series, yKey, processedData, 'mixed-numeric');
     const domainInput = dataModel.getDomain(series, 'xValue', 'value', processedData);
 
     const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);

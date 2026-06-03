@@ -648,7 +648,12 @@ export class Annotations extends AbstractModuleInstance {
         }
 
         const dateValues = dataModel.resolveKeysById<Date>({ id: 'annotations' }, 'date', processedData);
-        const volumeValues = dataModel.resolveColumnById({ id: 'annotations' }, 'volume', processedData, 'numeric');
+        const volumeValues = dataModel.resolveColumnById(
+            { id: 'annotations' },
+            'volume',
+            processedData,
+            'mixed-numeric'
+        );
 
         let sum = 0;
         for (let datumIndex = 0; datumIndex < processedData.input.count; datumIndex++) {

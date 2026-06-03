@@ -219,7 +219,7 @@ export abstract class DataModelSeries<
         if (!dataModel || !processedData) return [];
         return this.dataModelPropertyIsKey(xKey)
             ? dataModel.resolveKeysById(this, xKey, processedData)
-            : dataModel.resolveColumnById(this, xKey, processedData);
+            : dataModel.resolveColumnById(this, xKey, processedData, 'object');
     }
 
     protected sortOrder(xKey: string): -1 | 1 | undefined {

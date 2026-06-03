@@ -214,7 +214,12 @@ export class MapShapeSeries
             ],
         });
 
-        const featureValues = dataModel.resolveColumnById<Feature | undefined>(this, `featureValue`, processedData);
+        const featureValues = dataModel.resolveColumnById<Feature | undefined>(
+            this,
+            `featureValue`,
+            processedData,
+            'object'
+        );
         this.topologyBounds = featureValues.reduce<LonLatBBox | undefined>((current, feature) => {
             const geometry = feature?.geometry;
             if (geometry == null) return current;
@@ -368,20 +373,27 @@ export class MapShapeSeries
     private resolveColumn<T>(
         key: string | undefined,
         columnId: string,
-        processedData: _ModuleSupport.ProcessedData<any>
+        processedData: _ModuleSupport.ProcessedData<any>,
+        expectedType: _ModuleSupport.ColumnValueType
     ): T[] | undefined {
         if (key == null || this.dataModel == null) return undefined;
-        return this.dataModel.resolveColumnById<T>(this, columnId, processedData);
+        // expectedType is validated at runtime; the cast only selects the element-typed overload.
+        return this.dataModel.resolveColumnById<T>(this, columnId, processedData, expectedType as 'object');
     }
 
     private resolveShapeDataColumns(processedData: _ModuleSupport.ProcessedData<any>) {
         const { colorKey, labelKey } = this.properties;
 
         return {
-            idValues: this.dataModel!.resolveColumnById<string>(this, 'idValue', processedData),
-            featureValues: this.dataModel!.resolveColumnById<Feature | undefined>(this, 'featureValue', processedData),
-            labelValues: this.resolveColumn<string>(labelKey, 'labelValue', processedData),
-            colorValues: this.resolveColumn<number>(colorKey, 'colorValue', processedData),
+            idValues: this.dataModel!.resolveColumnById(this, 'idValue', processedData, 'string'),
+            featureValues: this.dataModel!.resolveColumnById<Feature | undefined>(
+                this,
+                'featureValue',
+                processedData,
+                'object'
+            ),
+            labelValues: this.resolveColumn<string>(labelKey, 'labelValue', processedData, 'object'),
+            colorValues: this.resolveColumn<number>(colorKey, 'colorValue', processedData, 'number'),
         };
     }
 
@@ -746,7 +758,7 @@ export class MapShapeSeries
 
         let { fill } = properties;
         if (datumIndex != null && this.isColorScaleValid()) {
-            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!, 'numeric');
+            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!, 'mixed-numeric');
             const colorValue = colorValues[datumIndex];
             if (colorValue != null) {
                 fill = this.colorScale.convert(colorValue);
@@ -836,11 +848,11 @@ export class MapShapeSeries
         if (!dataModel || !processedData) return;
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
-        const idValue = dataModel.resolveColumnById<string>(this, `idValue`, processedData)[datumIndex];
+        const idValue = dataModel.resolveColumnById(this, `idValue`, processedData, 'string')[datumIndex];
         const colorValue =
             colorKey == null
                 ? undefined
-                : dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
+                : dataModel.resolveColumnById(this, `colorValue`, processedData, 'number')[datumIndex];
 
         if (colorKey != null && colorValue == null) {
             return;
@@ -849,7 +861,9 @@ export class MapShapeSeries
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
         if (this.isLabelEnabled() && labelKey != null && labelKey !== idKey) {
-            const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData)[datumIndex];
+            const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData, 'object')[
+                datumIndex
+            ];
             const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'category',
                 value: labelValue,

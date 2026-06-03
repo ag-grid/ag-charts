@@ -1367,7 +1367,9 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         if (!dataModel || !processedData) return Infinity;
 
         const crossValues = this.keysOrValues(crossAxisKey);
-        const allAxisValues = axisKeys.map((axisKey) => dataModel.resolveColumnById(this, axisKey, processedData));
+        const allAxisValues = axisKeys.map((axisKey) =>
+            dataModel.resolveColumnById(this, axisKey, processedData, 'object')
+        );
 
         const shouldFlipXY = this.shouldFlipXY();
 

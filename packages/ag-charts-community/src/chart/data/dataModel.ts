@@ -1,5 +1,4 @@
 import { Debug, type DomainWithMetadata, Logger, first } from 'ag-charts-core';
-import type { AgNumericValue } from 'ag-charts-types';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { ChartMode } from '../chartMode';
@@ -19,7 +18,8 @@ import type { DataChangeDescription, DataChangeDescriptionListener } from './dat
 import type {
     AggregatePropertyDefinition,
     BandedReducerStats,
-    ColumnValueCategory,
+    ColumnValueType,
+    ColumnValueTypeMapping,
     DataGroup,
     DataModelOptions,
     GroupDatumIteratorOutput,
@@ -258,26 +258,26 @@ export class DataModel<
         return this.resolvers.hasColumnById(scope, searchId);
     }
 
-    resolveColumnById(
+    resolveColumnById<T extends Exclude<ColumnValueType, 'object'>>(
         scope: ScopeProvider,
         searchId: string,
         processedData: UngroupedData<any> | GroupedData<any>,
-        expectedType: ColumnValueCategory
-    ): AgNumericValue[];
-    resolveColumnById<T = any>(
-        scope: ScopeProvider,
-        searchId: string,
-        processedData: UngroupedData<any> | GroupedData<any>
-    ): T[];
-    resolveColumnById(
+        expectedType: T
+    ): ColumnValueTypeMapping[T][];
+    resolveColumnById<E = unknown>(
         scope: ScopeProvider,
         searchId: string,
         processedData: UngroupedData<any> | GroupedData<any>,
-        expectedType?: ColumnValueCategory
-    ): any[] {
-        return expectedType == null
-            ? this.resolvers.resolveColumnById(scope, searchId, processedData)
-            : this.resolvers.resolveColumnById(scope, searchId, processedData, expectedType);
+        expectedType: 'object'
+    ): E[];
+    resolveColumnById<E>(
+        scope: ScopeProvider,
+        searchId: string,
+        processedData: UngroupedData<any> | GroupedData<any>,
+        expectedType: ColumnValueType
+    ): E[] {
+        // Forward to the resolver's 'object' overload; the impl validates against the real tag.
+        return this.resolvers.resolveColumnById<E>(scope, searchId, processedData, expectedType as 'object');
     }
 
     resolveColumnNeedsValueOf(

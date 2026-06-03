@@ -670,17 +670,37 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         this.rootVertex = this.graph.addVertex('root');
 
         const idValues = dataModel.resolveKeysById(this, 'idValue', processedData);
-        const parentIdValues = dataModel.resolveColumnById(this, 'parentIdValue', processedData);
-        const imageValues = dataModel.resolveColumnById(this, 'imageValue', processedData);
-        const titleValues = dataModel.resolveColumnById(this, 'titleValue', processedData);
-        const subtitleValues = dataModel.resolveColumnById(this, 'subtitleValue', processedData);
+        const parentIdValues = dataModel.resolveColumnById<string | undefined>(
+            this,
+            'parentIdValue',
+            processedData,
+            'object'
+        );
+        const imageValues = dataModel.resolveColumnById<string | undefined>(
+            this,
+            'imageValue',
+            processedData,
+            'object'
+        );
+        const titleValues = dataModel.resolveColumnById<string | undefined>(
+            this,
+            'titleValue',
+            processedData,
+            'object'
+        );
+        const subtitleValues = dataModel.resolveColumnById<string | undefined>(
+            this,
+            'subtitleValue',
+            processedData,
+            'object'
+        );
 
         const labelsValues: (string[] | undefined)[] = [];
         for (let i = 0; i < this.properties.node.labels.length; i++) {
             // Disabled tiers have no value-property; preserve slot so tier indexing stays aligned.
             labelsValues.push(
                 this.properties.node.labels[i].enabled
-                    ? dataModel.resolveColumnById(this, `labelValue-${i}`, processedData)
+                    ? dataModel.resolveColumnById<string>(this, `labelValue-${i}`, processedData, 'object')
                     : undefined
             );
         }

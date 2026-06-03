@@ -457,16 +457,16 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             xAxis,
             yAxis,
             rawData,
-            xValues: dataModel.resolveColumnById(this, 'xValue', processedData),
-            yRawValues: dataModel.resolveColumnById(this, 'yValueRaw', processedData, 'numeric'),
+            xValues: dataModel.resolveColumnById(this, 'xValue', processedData, 'object'),
+            yRawValues: dataModel.resolveColumnById(this, 'yValueRaw', processedData, 'mixed-numeric'),
             yCumulativeValues: dataModel.resolveColumnById(
                 this,
                 this.yCumulativeKey(processedData),
                 processedData,
-                'numeric'
+                'mixed-numeric'
             ),
             selectionValues: this.properties.selectedKey
-                ? dataModel.resolveColumnById(this, 'selectedRaw', processedData)
+                ? dataModel.resolveColumnById(this, 'selectedRaw', processedData, 'boolean')
                 : undefined,
             xScale,
             yScale,
@@ -841,8 +841,8 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             marker,
             hideWithSize0,
             isHighlight,
-            xColumn: dataModel.resolveColumnById<any>(this, 'xValue', processedData),
-            yColumn: dataModel.resolveColumnById<any>(this, 'yValueRaw', processedData),
+            xColumn: dataModel.resolveColumnById(this, 'xValue', processedData, 'object'),
+            yColumn: dataModel.resolveColumnById(this, 'yValueRaw', processedData, 'mixed-numeric'),
             xDomain: dataModel.getDomain(this, 'xValue', 'key', processedData).domain,
             yDomain: dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData).domain,
             xKey,
@@ -984,8 +984,8 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
     ): AgLineSeriesMarkerItemStylerParams<unknown, unknown> {
         const { xKey, yKey } = this.properties;
 
-        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData, 'numeric')[datumIndex];
+        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData, 'object')[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData, 'mixed-numeric')[datumIndex];
         const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData).domain;
         const yDomain = dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData).domain;
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
@@ -1014,8 +1014,8 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const datum = processedData.dataSources.get(this.id)?.data?.[datumIndex];
-        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData, 'numeric')[datumIndex];
+        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData, 'object')[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData, 'mixed-numeric')[datumIndex];
 
         if (xValue === undefined && !allowNullKeys) return;
 

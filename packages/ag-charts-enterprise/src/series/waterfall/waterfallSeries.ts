@@ -408,15 +408,16 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const yScale = yAxis.scale;
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-        const yRawValues = dataModel.resolveColumnById(this, `yRaw`, processedData, 'numeric');
+        const yRawValues = dataModel.resolveColumnById(this, `yRaw`, processedData, 'mixed-numeric');
         const totalTypeValues = dataModel.resolveColumnById<AgWaterfallSeriesItemType | undefined>(
             this,
             `totalTypeValue`,
-            processedData
+            processedData,
+            'object'
         );
-        const yCurrValues = dataModel.resolveColumnById(this, 'yCurrent', processedData, 'numeric');
-        const yPrevValues = dataModel.resolveColumnById(this, 'yPrevious', processedData, 'numeric');
-        const yCurrTotalValues = dataModel.resolveColumnById(this, 'yCurrentTotal', processedData, 'numeric');
+        const yCurrValues = dataModel.resolveColumnById(this, 'yCurrent', processedData, 'mixed-numeric');
+        const yPrevValues = dataModel.resolveColumnById(this, 'yPrevious', processedData, 'mixed-numeric');
+        const yCurrTotalValues = dataModel.resolveColumnById(this, 'yCurrentTotal', processedData, 'mixed-numeric');
 
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
 
@@ -975,12 +976,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yRaw`, processedData, 'numeric')[datumIndex];
-        const yCurrTotalValues = dataModel.resolveColumnById(this, 'yCurrentTotal', processedData, 'numeric');
+        const yValue = dataModel.resolveColumnById(this, `yRaw`, processedData, 'mixed-numeric')[datumIndex];
+        const yCurrTotalValues = dataModel.resolveColumnById(this, 'yCurrentTotal', processedData, 'mixed-numeric');
         const totalTypeValues = dataModel.resolveColumnById<AgWaterfallSeriesItemType | undefined>(
             this,
             `totalTypeValue`,
-            processedData
+            processedData,
+            'object'
         );
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds

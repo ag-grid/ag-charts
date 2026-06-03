@@ -210,8 +210,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         const horizontal = direction === 'horizontal';
 
-        const xValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
-        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData, 'numeric');
+        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData, 'string');
+        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData, 'mixed-numeric');
 
         const xDomain = dataModel.getDomain(this, 'xValue', 'value', processedData).domain;
         const yDomain = dataModel.getDomain(this, 'yValue', 'value', processedData).domain;
@@ -684,8 +684,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         if (!dataModel || !processedData) return;
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
-        const xValue = dataModel.resolveColumnById(this, 'xValue', processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData, 'numeric')[datumIndex];
+        const xValue = dataModel.resolveColumnById(this, 'xValue', processedData, 'string')[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData, 'mixed-numeric')[datumIndex];
 
         const allowNullKeys = this.properties.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return;
@@ -772,7 +772,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         }
 
         const { showInLegend } = this.properties;
-        const stageValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
+        const stageValues = dataModel.resolveColumnById(this, `xValue`, processedData, 'string');
 
         return (processedData.dataSources.get(this.id)?.data ?? [])
             .map((datum, datumIndex): _ModuleSupport.CategoryLegendDatum | undefined => {

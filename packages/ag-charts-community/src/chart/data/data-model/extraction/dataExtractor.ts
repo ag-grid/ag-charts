@@ -77,13 +77,17 @@ function valueColumnType(value: unknown): ColumnValueType | undefined {
             return 'number';
         case 'bigint':
             return 'bigint';
+        case 'boolean':
+            return 'boolean';
         case 'string':
             // A strict ISO 8601 string is a date value; any other string is a plain category.
             return isISO8601(value) ? 'date' : 'string';
         case 'object':
             if (value == null) return undefined;
-            // A NumberObject ({ valueOf(): number }) is numeric, not a date.
-            return isNumberObject(value) ? 'number' : 'date';
+            if (value instanceof Date) return 'date';
+            // A NumberObject ({ valueOf(): number }) is numeric; any other object (e.g. a GeoJSON
+            // feature) is opaque and carries its element type via the caller, not this tag.
+            return isNumberObject(value) ? 'number' : 'object';
         default:
             return undefined;
     }
@@ -93,6 +97,8 @@ function updateColumnTypeTracker(tracker: ColumnTypeTracker, value: unknown, dat
     const observed = valueColumnType(value);
     if (observed == null) return;
 
+    // 'boolean' and 'object' have no merge rule: a column mixing them with another type keeps its
+    // first-seen tag (neither branch below matches), so heterogeneity is never silently coerced.
     if (tracker.type == null || tracker.type === observed) {
         tracker.type = observed;
     } else if (isDateColumnType(tracker.type) || isDateColumnType(observed)) {
