@@ -1749,7 +1749,7 @@ test.describe('state', () => {
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
-                        activeItem: { type: 'series-node', itemId: 'node-1', seriesId: 'SankeySeries-1' },
+                        activeItem: { type: 'series-node', itemId: 'C', seriesId: 'SankeySeries-1' },
                     });
                     const hoverLinkState: AgChartState = state;
 

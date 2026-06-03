@@ -16,7 +16,8 @@ export interface AgChordSeriesOptions<TDatum = DatumDefault, TContext = ContextD
     /**
      * A callback to provide a stable identifier for each node, exposed as `itemId` in events and active state.
      *
-     * The returned identifier must be unique across all nodes in the series.
+     * The returned identifier must be unique across nodes and links, which share one `itemId` namespace
+     * (links default to `link-<index>`).
      *
      * If not supplied, the node name is used as its identifier.
      */
