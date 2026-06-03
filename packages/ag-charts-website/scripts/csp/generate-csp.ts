@@ -33,7 +33,7 @@ function assertOneOf<T extends string>(value: string | undefined, allowed: T[], 
 }
 
 function parseArgs(argv: string[]): { env: CspEnv; mode: CspMode; format: Format; out?: string } {
-    let env: CspEnv = 'production';
+    let env: CspEnv = 'staging';
     let mode: CspMode = 'report-only';
     let format: Format = 'htaccess';
     let out: string | undefined;
