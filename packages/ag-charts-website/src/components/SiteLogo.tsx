@@ -4,12 +4,14 @@ import LogoMark from '@components/logo/LogoMark';
 import { SITE_BASE_URL } from '@constants';
 import { type FunctionComponent, useState } from 'react';
 
+import { ensureTrailingSlash } from '../utils/ensureUrl';
+
 export const SiteLogo: FunctionComponent = () => {
     const [isLogoHover, setIsLogoHover] = useState(false);
 
     return (
         <a
-            href={SITE_BASE_URL.replace(/\/?$/, '/')}
+            href={ensureTrailingSlash(SITE_BASE_URL)}
             aria-label="Home"
             className={siteHeaderStyles.headerLogo}
             onMouseEnter={() => {
