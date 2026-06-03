@@ -76,3 +76,13 @@ jobs:
 
                   echo "===== G: bot's own permissions (mypermissions BROWSE) ====="
                   basic_probe "G mypermissions"          "Authorization: Basic $BASIC"  "$SITE/rest/api/3/mypermissions?permissions=BROWSE_PROJECTS"
+
+                  GW="https://api.atlassian.com/ex/jira/$CLOUD_ID"
+                  echo "===== H: GATEWAY + Basic — issue read (scoped-token-correct form) ====="
+                  basic_probe "H gw+Basic issue AG-15988" "Authorization: Basic $BASIC" "$GW/rest/api/3/issue/AG-15988?fields=summary,status"
+
+                  echo "===== I: GATEWAY + Basic — JQL search ====="
+                  basic_probe "I gw+Basic search"        "Authorization: Basic $BASIC" "$GW/rest/api/3/search/jql?jql=project%20%3D%20AG&maxResults=1&fields=summary"
+
+                  echo "===== J: GATEWAY + Basic — myself ====="
+                  basic_probe "J gw+Basic /myself"       "Authorization: Basic $BASIC" "$GW/rest/api/3/myself"
