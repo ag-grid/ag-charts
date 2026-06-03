@@ -194,7 +194,7 @@ export abstract class HierarchySeries<
         let maxDepth = 0;
         let minColor = Infinity;
         let maxColor = -Infinity;
-        let datumIndex = 0; // DFS-order index.
+        let datumIndex = -1; // DFS-order index. -1 is the root, 0 is the first child of the root
 
         const createNode = (datum: any, indexPath: number[], parent: TNodeClass): TNodeClass => {
             const depth = parent.depth == null ? 0 : parent.depth + 1;
