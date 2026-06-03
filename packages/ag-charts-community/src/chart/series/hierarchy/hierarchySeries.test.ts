@@ -107,7 +107,7 @@ describe('HierarchySeries', () => {
 
         expect(series.rootNode).toEqual({
             itemId: 'root',
-            datumIndex: 0,
+            datumIndex: -1,
             datum: undefined,
             sizeValue: 0,
             colorValue: undefined,
