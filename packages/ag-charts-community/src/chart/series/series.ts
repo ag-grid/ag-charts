@@ -918,7 +918,7 @@ export abstract class Series<
 
     protected isItemHighlighted(highlightedDatum?: HighlightNodeDatum, datumIndex?: DatumIndex) {
         // If this function is being invoked, we have already determined that the series is highlighted.
-        if (highlightedDatum?.datumIndex == null || datumIndex == null) return;
+        if (highlightedDatum == null || Number.isNaN(highlightedDatum.datumIndex) || datumIndex == null) return;
         return highlightedDatum.datumIndex === datumIndex;
     }
 
