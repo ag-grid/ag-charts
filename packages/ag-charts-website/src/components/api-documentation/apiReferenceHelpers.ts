@@ -261,20 +261,37 @@ export function extractSearchData(
     labelPrefix = '',
     genericsMap?: Record<string, TypeNode>
 ): SearchDatum[] {
+    const out: SearchDatum[] = [];
+    collectSearchData(out, reference, interfaceRef, basePath, labelPrefix, genericsMap);
+    return out;
+}
+
+// Appends entries to a shared accumulator rather than returning per-level arrays. The theme search
+// index reaches ~150k entries; assembling it with `result.push(...childArray)` spreads child arrays
+// as call arguments, which overflows V8's argument limit and throws "Maximum call stack size exceeded".
+function collectSearchData(
+    out: SearchDatum[],
+    reference: ApiReferenceType | undefined,
+    interfaceRef: NodeTypes | undefined,
+    basePath: NavigationPath[],
+    labelPrefix: string,
+    genericsMap?: Record<string, TypeNode>
+): void {
     const aliasedUnion = resolveAliasedUnion(interfaceRef, reference);
     if (aliasedUnion) {
-        return extractUnionSearchData(
+        collectUnionSearchData(
+            out,
             reference,
             aliasedUnion.unionType,
             basePath,
             labelPrefix,
             mergeGenericsMaps(genericsMap, aliasedUnion.genericsMap)
         );
+        return;
     }
     if (isInterfaceLikeNode(interfaceRef)) {
-        return extractInterfaceSearchData(reference, interfaceRef, basePath, labelPrefix, genericsMap);
+        collectInterfaceSearchData(out, reference, interfaceRef, basePath, labelPrefix, genericsMap);
     }
-    return [];
 }
 
 export function getOptionsStaticPaths(reference: ApiReferenceType) {
@@ -717,41 +734,38 @@ export function buildTypeArgumentsFromGenericsMap(
     );
 }
 
-function extractInterfaceSearchData(
+function collectInterfaceSearchData(
+    out: SearchDatum[],
     reference: ApiReferenceType | undefined,
     interfaceRef: InterfaceNode | (TypeLiteralNode & { name: string }),
     basePath: NavigationPath[],
     labelPrefix: string,
     parentGenericsMap?: Record<string, TypeNode>
-) {
+): void {
     const genericsMap = mergeGenericsMaps(
         (interfaceRef as HasProperty<NodeTypes, 'genericsMap'>).genericsMap,
         parentGenericsMap
     );
-    return interfaceRef.members.flatMap((member) => {
+    for (const member of interfaceRef.members) {
         const cleanedName = cleanupName(member.name);
         const newPath = { name: cleanedName, type: getMemberType(member) };
         if (basePath.find((p) => p.name === newPath.name && p.type === newPath.type)) {
-            return [];
+            continue;
         }
 
         const navPath = basePath.concat(newPath);
         const label = labelPrefix + cleanedName;
-        const results: SearchDatum[] = [
-            {
-                label,
-                searchable: cleanedName.toLowerCase(),
-                navPath,
-            },
-        ];
+        out.push({
+            label,
+            searchable: cleanedName.toLowerCase(),
+            navPath,
+        });
 
         const referenceTarget = resolveMemberReference(member, reference, genericsMap);
         if (referenceTarget) {
-            results.push(...extractSearchData(reference, referenceTarget, navPath, `${label}.`));
+            collectSearchData(out, reference, referenceTarget, navPath, `${label}.`);
         }
-
-        return results;
-    });
+    }
 }
 
 function resolveMemberReference(
@@ -777,38 +791,40 @@ function resolveMemberReference(
     return resolvedType && reference?.get(resolvedType);
 }
 
-function extractUnionSearchData(
+function collectUnionSearchData(
+    out: SearchDatum[],
     reference: ApiReferenceType | undefined,
     unionType: MultiTypeNode & { kind: 'union' },
     basePath: NavigationPath[],
     labelPrefix: string,
     genericsMap?: Record<string, TypeNode>
-) {
-    return unionType.type
-        .flatMap((typeName) => buildUnionSearchEntries(typeName, reference, basePath, labelPrefix, genericsMap))
-        .filter((item): item is SearchDatum => Boolean(item));
+): void {
+    for (const typeName of unionType.type) {
+        collectUnionSearchEntries(out, typeName, reference, basePath, labelPrefix, genericsMap);
+    }
 }
 
-function buildUnionSearchEntries(
+function collectUnionSearchEntries(
+    out: SearchDatum[],
     typeName: TypeNode,
     reference: ApiReferenceType | undefined,
     basePath: NavigationPath[],
     labelPrefix: string,
     parentGenericsMap?: Record<string, TypeNode>
-) {
+): void {
     const subtypeName = getReferencedTypeName(typeName);
     if (!subtypeName || isInterfaceHidden(subtypeName)) {
-        return [];
+        return;
     }
 
     const subtypeRef = reference?.get(subtypeName);
     if (subtypeRef?.kind !== 'interface') {
-        return [];
+        return;
     }
 
     const typeMember = subtypeRef.members.find((member) => member.name === 'type');
     if (!typeMember) {
-        return [];
+        return;
     }
 
     const label = `${labelPrefix.replace(/\.$/, '')}[type=${typeMember.type as string}]`;
@@ -817,14 +833,12 @@ function buildUnionSearchEntries(
         type: subtypeName,
     });
 
-    return [
-        {
-            label,
-            searchable: cleanupName(getMemberType(typeMember)).toLowerCase(),
-            navPath,
-        },
-        ...extractSearchData(reference, subtypeRef, navPath, `${label}.`, parentGenericsMap),
-    ];
+    out.push({
+        label,
+        searchable: cleanupName(getMemberType(typeMember)).toLowerCase(),
+        navPath,
+    });
+    collectSearchData(out, reference, subtypeRef, navPath, `${label}.`, parentGenericsMap);
 }
 
 function findRequiredRefs(reference: ApiReferenceType) {

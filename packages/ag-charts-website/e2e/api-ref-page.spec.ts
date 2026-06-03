@@ -88,6 +88,15 @@ test.describe('api-ref-page', () => {
         ]);
     });
 
+    // The themes API page roots its search index at AgChartTheme, whose tree is far larger than the
+    // options page. Regression: building that index overflowed V8's argument limit and the page
+    // failed to load with "Maximum call stack size exceeded". setupIntrinsicAssertions captures any
+    // such pageerror and fails the test; the visible nav tree guards against a silently blank page.
+    test('themes API page loads without overflowing', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('themes-api/'));
+        await expect(getNavigationTree(page).locator(PROPERTY_NAME_SELECTOR).first()).toBeVisible();
+    });
+
     test('shows fallback when search returns no matches', async ({ page }) => {
         await gotoUrl(page, toPageUrl('options/'));
         await waitForApiReady(page);
