@@ -3,9 +3,11 @@ import {
     type Point,
     Property,
     type Scaling,
+    addValues,
     extent,
     findMinMax,
     isFiniteNumber,
+    subtractValues,
 } from 'ag-charts-core';
 import type { AgNumericValue, Direction } from 'ag-charts-types';
 
@@ -75,17 +77,17 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         // Band positioning is finite-precision, so narrow the interval here before the padding arithmetic.
         const interval = this.smallestDataInterval == null ? Number.NaN : Number(this.smallestDataInterval);
         const scalePadding = isFiniteNumber(interval) ? interval * ratio : 0;
-        // Band positioning is finite-precision, so a bigint key extent narrows to Number for the padding
-        // arithmetic below (which would otherwise throw on a bigint).
         const rawExtent = extent(keys);
-        const keysExtent: [number, number] = rawExtent
-            ? [Number(rawExtent[0]), Number(rawExtent[1])]
-            : [Number.NaN, Number.NaN];
+        if (rawExtent == null) return fixNumericExtent([Number.NaN, Number.NaN]);
+        // Keep the extent endpoints exact (a bigint key axis must position at full precision); only the band
+        // padding is finite-precision, and add/subtractValues narrow at the boundary if the operands are mixed.
+        const keysExtent: AgNumericValue[] = [rawExtent[0], rawExtent[1]];
         if (typeof alignStart === 'boolean') {
-            keysExtent[alignStart ? 0 : 1] -= (alignStart ? 1 : -1) * scalePadding;
+            const i = alignStart ? 0 : 1;
+            keysExtent[i] = subtractValues(keysExtent[i], (alignStart ? 1 : -1) * scalePadding);
         } else {
-            keysExtent[0] -= scalePadding;
-            keysExtent[1] += scalePadding;
+            keysExtent[0] = subtractValues(keysExtent[0], scalePadding);
+            keysExtent[1] = addValues(keysExtent[1], scalePadding);
         }
         return fixNumericExtent(keysExtent);
     }

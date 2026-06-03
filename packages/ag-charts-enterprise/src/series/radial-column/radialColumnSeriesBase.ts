@@ -13,6 +13,8 @@ import {
     type Point,
     isDefined,
     isGradientFill,
+    maxValue,
+    minValue,
     normalizeAngle360,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
@@ -148,9 +150,9 @@ export abstract class RadialColumnSeriesBase<
             return dataModel.getDomain(this, 'angleValue', 'key', processedData);
         } else {
             const yExtent = dataModel.getDomain(this, 'radiusValue-end', 'value', processedData).domain;
-            const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
-                ? [Math.min(yExtent[0], 0), Math.max(yExtent[1], 0)]
-                : [];
+            // minValue/maxValue (not Math.min/max, which throw on bigint) keep an exact bigint extent so the
+            // scale's full-precision conversion path is used; fixNumericExtent carries number|bigint through.
+            const fixedYExtent = [minValue(yExtent[0], 0), maxValue(yExtent[1], 0)];
             return { domain: fixNumericExtent(fixedYExtent) };
         }
     }
