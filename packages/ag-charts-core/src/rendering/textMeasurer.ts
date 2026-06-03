@@ -206,10 +206,20 @@ export function blockStripHeight(images: { textMetrics: TextMetricsBox }[]): num
 export function isBlockBoundary(segments: ContentSegment[], i: number): boolean {
     const seg = segments[i];
     if (seg?.type !== 'image' || seg.block !== true) return false;
-    if (i === 0) return true;
-    const prev = segments[i - 1];
-    if (prev.type === 'image') return prev.block === true;
-    return toTextString(prev.text).endsWith('\n');
+    // Walk back over the contiguous run of block images this segment belongs to. The run is a
+    // leading strip only if it starts at index 0 or right after a `\n`. A preceding inline image
+    // (or a non-block image breaking the run) means this image sits mid-line and stays inline —
+    // otherwise `text, block-image, block-image` would wrongly promote the second image to a strip.
+    let j = i;
+    while (j > 0) {
+        const prev = segments[j - 1];
+        if (prev.type !== 'image') {
+            return toTextString(prev.text).endsWith('\n');
+        }
+        if (prev.block !== true) return false;
+        j--;
+    }
+    return true;
 }
 
 function emptyLine(): SegmentsLineMetrics {

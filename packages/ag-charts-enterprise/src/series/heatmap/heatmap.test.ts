@@ -1277,18 +1277,16 @@ describe('HeatmapSeries', () => {
                         colorKey: 'spending',
                         label: {
                             enabled: true,
-                            formatter: ({ datum }: { datum: { person: string; spending: number } }) => {
-                                return [
-                                    { type: 'image', url: ICONS[datum.person], width: 20, height: 20, block: true },
-                                    { text: `${datum.spending}` },
-                                ];
-                            },
+                            formatter: ({ datum }) => [
+                                { type: 'image', url: ICONS[datum.person], width: 20, height: 20, block: true },
+                                { text: `${datum.spending}` },
+                            ],
                         },
                     },
                 ],
-            } as any);
+            });
 
-            chart = deproxy(AgCharts.create(options) as any);
+            chart = deproxy(AgCharts.create(options));
             stubChartImageLoader(chart);
             await compare();
             // The image segment must survive into the label scene node, not be flattened to text.
