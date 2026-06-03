@@ -1,6 +1,6 @@
 import type { LabelBoxOptions, TextOrSegments } from '../series/cartesian/commonOptions';
 import type { RichFormatter, Styler } from './callbackOptions';
-import type { AgTimeValue } from './dataValues';
+import type { AgNumericValue, AgTimeValue } from './dataValues';
 import type { AgCssColorOrRef } from './themeParamsOptions';
 import type {
     ContextDefault,
@@ -190,7 +190,7 @@ export interface AgAxisLabelFormatterParams<TContext = ContextDefault> {
     /** Context for this callback. */
     readonly context?: TContext;
     /** The currently visible domain. [min, max] */
-    readonly visibleDomain?: [number, number];
+    readonly visibleDomain?: [AgNumericValue, AgNumericValue];
 }
 
 export interface AgAxisLabelStylerParams<TContext = ContextDefault> extends AgBaseAxisLabelStyleOptions {
