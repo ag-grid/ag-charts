@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { Logger, reversePush } from 'ag-charts-core';
 
 type TransactionCollectionState<T> = _ModuleSupport.TransactionCollectionState<T>;
 type DataChangeDescriptionListener = _ModuleSupport.DataChangeDescriptionListener;
@@ -25,17 +25,17 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
         if (this.dfsOrdering !== undefined) return this.dfsOrdering;
 
         this.dfsOrdering = [];
-        const stack: any[] = [...this.data];
+        // push to stack in reverse, so that the first child is visited first:
+        const stack = reversePush<any>([], this.data);
         let node: (typeof stack)[number];
         while ((node = stack.pop()) !== undefined) {
             this.dfsOrdering.push(node);
             const children = node[this.childrenKey];
             if (children instanceof Array) {
-                stack.push(...children);
+                reversePush(stack, children);
             }
         }
         return this.dfsOrdering;
-
     }
 
     override size(): number {
