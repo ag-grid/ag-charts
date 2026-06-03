@@ -8,6 +8,8 @@ import {
     isInteger,
     isNegative,
     isNumberEqual,
+    maxValue,
+    minValue,
     modulus,
     roundTo,
     toNumber,
@@ -91,6 +93,28 @@ describe('Number Utilities', () => {
         } finally {
             warnOnce.mockRestore();
         }
+    });
+
+    test('minValue / maxValue', () => {
+        const BIG = 9_007_199_254_740_993n; // MAX_SAFE_INTEGER + 2, not exactly representable as a Number
+
+        // Pure-number path keeps Math.min/max semantics, including NaN propagation.
+        expect(minValue(3, 7)).toBe(3);
+        expect(maxValue(3, 7)).toBe(7);
+        expect(minValue(-2, 0)).toBe(-2);
+        expect(maxValue(-2, 0)).toBe(0);
+        expect(Number.isNaN(minValue(Number.NaN, 0))).toBe(true);
+        expect(Number.isNaN(maxValue(Number.NaN, 0))).toBe(true);
+
+        // bigint operands are compared without coercion and returned exactly.
+        expect(minValue(BIG, BIG * 2n)).toBe(BIG);
+        expect(maxValue(BIG, BIG * 2n)).toBe(BIG * 2n);
+
+        // Mixed operands compare correctly and preserve the exact bigint when it is the selected value.
+        expect(minValue(BIG, 0)).toBe(0);
+        expect(maxValue(BIG, 0)).toBe(BIG);
+        expect(minValue(0, -BIG)).toBe(-BIG);
+        expect(maxValue(0, -BIG)).toBe(0);
     });
 
     test('countFractionDigits', () => {

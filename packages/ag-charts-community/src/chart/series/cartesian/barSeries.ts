@@ -20,7 +20,10 @@ import {
     areScalingEqual,
     isContinuous,
     isFiniteNumber,
+    maxValue,
     mergeDefaults,
+    minValue,
+    toNumber,
 } from 'ag-charts-core';
 import type {
     AgBarSeriesItemStylerParams,
@@ -458,7 +461,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 ? dataModel.getDomain(this, 'yFilterValue-raw', 'value', processedData).domain
                 : undefined;
             if (yFilterExtent != null) {
-                yExtent = [Math.min(yExtent[0], yFilterExtent[0]), Math.max(yExtent[1], yFilterExtent[1])];
+                // minValue/maxValue (not Math.min/max, which throw on bigint) merge the two extents while
+                // preserving an exact bigint endpoint for the scale's full-precision conversion path.
+                yExtent = [minValue(yExtent[0], yFilterExtent[0]), maxValue(yExtent[1], yFilterExtent[1])];
             }
         }
 
@@ -475,7 +480,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         if (selfDirection !== direction) return [];
         const yKey = this.yCumulativeKey(this.dataModel!);
         const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, [yKey], 'xValue', visibleRange);
-        return [Math.min(y0, 0), Math.max(y1, 0)];
+        // domainForVisibleRange can return a bigint via its sortOrder path; minValue/maxValue avoid the
+        // Math.min/max throw and toNumber narrows once for this number-typed range return.
+        return [toNumber(minValue(y0, 0)), toNumber(maxValue(y1, 0))];
     }
 
     override getZoomRangeFittingItems(

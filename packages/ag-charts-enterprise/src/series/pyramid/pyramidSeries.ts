@@ -18,6 +18,7 @@ import {
     isArray,
     measureTextSegments,
     mergeDefaults,
+    toNumber,
     toPlainText,
     toTextString,
 } from 'ag-charts-core';
@@ -50,7 +51,7 @@ type PyramidNodeLabelDatum = Readonly<Point> & {
 interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
     readonly xValue: string;
-    readonly yValue: number;
+    readonly yValue: number | bigint;
     readonly top: number;
     readonly right: number;
     readonly bottom: number;
@@ -209,7 +210,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const horizontal = direction === 'horizontal';
 
         const xValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
-        const yValues = dataModel.resolveColumnById<number>(this, `yValue`, processedData);
+        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData, 'numeric');
 
         const xDomain = dataModel.getDomain(this, 'xValue', 'value', processedData).domain;
         const yDomain = dataModel.getDomain(this, 'yValue', 'value', processedData).domain;
@@ -241,7 +242,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             const yValue = yValues[datumIndex];
             const enabled = visible && (legendManager?.getItemEnabled({ seriesId, itemId: datumIndex }) ?? true);
 
-            yTotal += yValue;
+            yTotal += toNumber(yValue);
 
             if (stageLabelData == null) continue;
 
@@ -331,7 +332,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             const enabled = visible && (legendManager?.getItemEnabled({ seriesId, itemId: datumIndex }) ?? true);
 
-            const yEnd = yStart + yValue;
+            const yEnd = yStart + toNumber(yValue);
 
             const yMidRatio = (yStart + yEnd) / (2 * yTotal);
             const yRangeRatio = (yEnd - yStart) / yTotal;

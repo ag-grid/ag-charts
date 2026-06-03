@@ -18,9 +18,10 @@ import {
     type RequireOptional,
     easeOut,
     isContinuous,
+    maxValue,
     mergeDefaults,
+    minValue,
     subtractValues,
-    toNumber,
 } from 'ag-charts-core';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
@@ -281,10 +282,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         } else {
             const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent');
             const yExtent = values[yCurrIndex];
-            // The cumulative extent can be bigint; narrow to Number for the domain (finite precision,
-            // consistent with bar) since Math.min/max throw on bigint. toNumber warns once if a bigint
-            // beyond Number.MAX_VALUE coerces to Infinity (fixNumericExtent then sanitises it).
-            const fixedYExtent = [Math.min(0, toNumber(yExtent[0])), Math.max(0, toNumber(yExtent[1]))];
+            // minValue/maxValue (not Math.min/max, which throw on bigint) keep an exact bigint cumulative
+            // extent so the scale's full-precision conversion path is used; fixNumericExtent carries number|bigint through.
+            const fixedYExtent = [minValue(0, yExtent[0]), maxValue(0, yExtent[1])];
             return { domain: fixNumericExtent(fixedYExtent) };
         }
     }

@@ -45,6 +45,23 @@ export function subtractValues(a: number | bigint, b: number | bigint): number |
     return a - b;
 }
 
+/**
+ * Returns the smaller of two operands, preserving an exact `bigint` rather than coercing. `Math.min`
+ * throws on a `bigint` (it calls `ToNumber`); JS comparison operators do not, so a `bigint`-involving
+ * comparison stays lossless and lets the exact value reach the scale's full-precision path. The pure-number
+ * path keeps `Math.min` semantics (including `NaN` propagation).
+ */
+export function minValue(a: number | bigint, b: number | bigint): number | bigint {
+    if (typeof a === 'number' && typeof b === 'number') return Math.min(a, b);
+    return a < b ? a : b;
+}
+
+/** Returns the larger of two operands, preserving an exact `bigint`. Mirror of {@link minValue}. */
+export function maxValue(a: number | bigint, b: number | bigint): number | bigint {
+    if (typeof a === 'number' && typeof b === 'number') return Math.max(a, b);
+    return a > b ? a : b;
+}
+
 export function inRange(value: number, range: [number, number], epsilon: number = 1e-10) {
     return value >= range[0] - epsilon && value <= range[1] + epsilon;
 }

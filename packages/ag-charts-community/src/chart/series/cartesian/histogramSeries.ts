@@ -5,14 +5,17 @@ import {
     type Mutable,
     type Point,
     type RequireOptional,
+    addValues,
     createBigIntBins,
     createTicks,
     deepClone,
     findMinMax,
     isDate,
     isNumber,
+    maxValue,
     mergeDefaults,
     tickStep,
+    toNumber,
 } from 'ag-charts-core';
 import type {
     AgHistogramBinDatum,
@@ -375,7 +378,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const xScale = this.axes[ChartAxisDirection.X]!.scale;
 
         const yMin = 0;
-        let yMax = -Infinity;
+        let yMax: number | bigint = -Infinity;
         for (const { keys, aggregation } of processedData.groups) {
             const [[negativeAgg, positiveAgg] = [0, 0]] = aggregation;
             const [xDomainMin, xDomainMax] = keys;
@@ -383,15 +386,15 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             const [x0, x1] = findMinMax([xScale.convert(xDomainMin), xScale.convert(xDomainMax)]);
 
             if (x1 >= r0 && x0 <= r1) {
-                // Pixel range only: narrow any bigint sum to Number for Math.max.
-                const total = Number(negativeAgg) + Number(positiveAgg);
-                yMax = Math.max(yMax, total);
+                // Sum exactly (operands may be bigint) and take the running max; the return type is number,
+                // so toNumber narrows once below (warning only if the total overflows the Number range).
+                yMax = maxValue(yMax, addValues(negativeAgg, positiveAgg));
             }
         }
 
         if (yMin > yMax) return [Number.NaN, Number.NaN];
 
-        return [yMin, yMax];
+        return [yMin, toNumber(yMax)];
     }
 
     private frequency(group: DataGroup) {

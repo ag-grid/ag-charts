@@ -15,7 +15,10 @@ import {
     extent,
     isContinuous,
     isDefined,
+    maxValue,
     mergeDefaults,
+    minValue,
+    toNumber,
 } from 'ag-charts-core';
 import {
     type AgAreaSeriesLabelFormatterParams,
@@ -454,7 +457,9 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             'xValue',
             visibleRange
         );
-        return [Math.min(y0, 0), Math.max(y1, 0)];
+        // domainForVisibleRange can return a bigint via its sortOrder path; minValue/maxValue avoid the
+        // Math.min/max throw and toNumber narrows once for this number-typed range return.
+        return [toNumber(minValue(y0, 0)), toNumber(maxValue(y1, 0))];
     }
 
     override getZoomRangeFittingItems(

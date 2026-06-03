@@ -41,6 +41,25 @@ const waterfallData = [
     { x: 'c', amount: BIG * 2n },
 ];
 
+// Funnel-family value columns: the proportional layout sums them, so values are positive.
+const stageData = [
+    { stage: 'a', value: BIG * 3n },
+    { stage: 'b', value: BIG * 2n },
+    { stage: 'c', value: BIG },
+];
+
+const ohlcData = [
+    { x: 1, low: BIG, open: BIG * 2n, close: BIG * 3n, high: BIG * 4n },
+    { x: 2, low: BIG * 2n, open: BIG * 3n, close: BIG * 2n, high: BIG * 5n },
+    { x: 3, low: NEG_BIG, open: 0n, close: BIG, high: BIG * 2n },
+];
+
+const radialData = [
+    { quarter: 'Q1', value: BIG },
+    { quarter: 'Q2', value: BIG * 2n },
+    { quarter: 'Q3', value: BIG * 3n },
+];
+
 const cases: Array<{ name: string; options: AgChartOptions }> = [
     {
         name: 'range-bar',
@@ -90,6 +109,37 @@ const cases: Array<{ name: string; options: AgChartOptions }> = [
             data: waterfallData,
             series: [{ type: 'waterfall', xKey: 'x', yKey: 'amount' }],
             axes: { x: { type: 'category' as const }, y: { type: 'number' as const } },
+        },
+    },
+    {
+        name: 'pyramid',
+        options: {
+            data: stageData,
+            series: [{ type: 'pyramid', stageKey: 'stage', valueKey: 'value' }],
+        },
+    },
+    {
+        name: 'ohlc',
+        options: {
+            data: ohlcData,
+            series: [{ type: 'ohlc', xKey: 'x', lowKey: 'low', openKey: 'open', closeKey: 'close', highKey: 'high' }],
+            axes: numericAxes,
+        },
+    },
+    {
+        name: 'radial-bar',
+        options: {
+            data: radialData,
+            series: [{ type: 'radial-bar', angleKey: 'value', radiusKey: 'quarter' }],
+            axes: { angle: { type: 'angle-number' as const }, radius: { type: 'radius-category' as const } },
+        },
+    },
+    {
+        name: 'radial-column',
+        options: {
+            data: radialData,
+            series: [{ type: 'radial-column', angleKey: 'quarter', radiusKey: 'value' }],
+            axes: { angle: { type: 'angle-category' as const }, radius: { type: 'radius-number' as const } },
         },
     },
 ];

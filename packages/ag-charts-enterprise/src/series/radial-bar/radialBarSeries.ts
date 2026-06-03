@@ -14,6 +14,8 @@ import {
     angleBetween,
     isDefined,
     isGradientFill,
+    maxValue,
+    minValue,
 } from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
@@ -136,7 +138,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         if (direction === ChartAxisDirection.Angle) {
             const xExtent = dataModel.getDomain(this, 'angleValue-end', 'value', processedData).domain;
-            const fixedXExtent = [Math.min(xExtent[0], 0), Math.max(xExtent[1], 0)];
+            // minValue/maxValue (not Math.min/max, which throw on bigint) keep an exact bigint extent so the
+            // scale's full-precision conversion path is used; fixNumericExtent carries number|bigint through.
+            const fixedXExtent = [minValue(xExtent[0], 0), maxValue(xExtent[1], 0)];
             return { domain: fixNumericExtent(fixedXExtent) };
         } else {
             return dataModel.getDomain(this, 'radiusValue', 'key', processedData);
