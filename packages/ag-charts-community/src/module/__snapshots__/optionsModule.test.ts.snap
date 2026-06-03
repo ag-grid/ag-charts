@@ -334,7 +334,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -406,7 +406,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -478,7 +478,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -903,7 +903,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -984,7 +984,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -1056,7 +1056,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -1417,7 +1417,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -1491,7 +1491,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -1565,7 +1565,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -1639,7 +1639,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -1713,7 +1713,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -1787,7 +1787,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -1861,7 +1861,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -2226,7 +2226,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -2308,7 +2308,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -2390,7 +2390,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -2472,7 +2472,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -2554,7 +2554,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -2636,7 +2636,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -2718,7 +2718,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -2800,7 +2800,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -3144,7 +3144,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -3522,7 +3522,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -3594,7 +3594,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -3666,7 +3666,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -3738,7 +3738,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -4106,7 +4106,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -4191,7 +4191,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -4276,7 +4276,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -4361,7 +4361,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -4446,7 +4446,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -4811,7 +4811,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -5180,7 +5180,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -5535,7 +5535,7 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -5886,7 +5886,7 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -6252,7 +6252,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -6331,7 +6331,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -6697,7 +6697,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -6781,7 +6781,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -7153,7 +7153,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -7239,7 +7239,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -7325,7 +7325,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -7411,7 +7411,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -7497,7 +7497,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -7583,7 +7583,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -7669,7 +7669,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -8031,7 +8031,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -8106,7 +8106,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -8181,7 +8181,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -8256,7 +8256,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -8331,7 +8331,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -8406,7 +8406,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -8481,7 +8481,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -8556,7 +8556,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -8631,7 +8631,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -8706,7 +8706,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -8781,7 +8781,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -8856,7 +8856,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -8931,7 +8931,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -9006,7 +9006,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -9081,7 +9081,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -9156,7 +9156,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -9507,7 +9507,7 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -9884,7 +9884,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -9977,7 +9977,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -10070,7 +10070,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -10163,7 +10163,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -10256,7 +10256,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -10349,7 +10349,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -10442,7 +10442,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -10813,7 +10813,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -10898,7 +10898,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -10983,7 +10983,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -11350,7 +11350,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -11432,7 +11432,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -11514,7 +11514,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -11596,7 +11596,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -11678,7 +11678,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -11760,7 +11760,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -12155,7 +12155,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -12237,7 +12237,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -12319,7 +12319,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -12401,7 +12401,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -12768,7 +12768,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -13104,7 +13104,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -13486,7 +13486,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -13559,7 +13559,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -13860,7 +13860,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -14193,7 +14193,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -14592,7 +14592,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -14681,7 +14681,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -14770,7 +14770,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -14859,7 +14859,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -14948,7 +14948,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -15037,7 +15037,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "tooltip": {
         "position": {
           "anchorTo": "node",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -15406,7 +15406,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -15490,7 +15490,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -15574,7 +15574,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -15658,7 +15658,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -16028,7 +16028,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -16112,7 +16112,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -16196,7 +16196,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -16280,7 +16280,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },
@@ -16364,7 +16364,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "tooltip": {
         "position": {
           "anchorTo": "pointer",
-          "offset": 8,
+          "offset": 12,
           "xOffset": 0,
           "yOffset": 0,
         },

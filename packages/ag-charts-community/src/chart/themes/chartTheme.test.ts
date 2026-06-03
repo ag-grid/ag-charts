@@ -786,6 +786,34 @@ describe('ChartTheme', () => {
         });
     });
 
+    describe('tooltip position defaults', () => {
+        const baseOptions: AgCartesianChartOptions = {
+            data,
+            series: [{ type: 'bar', xKey: 'label', yKey: 'v1' }],
+        };
+
+        test("default tooltip offset is 12 for the default 'pointer' anchor", async () => {
+            chart = deproxy(AgCharts.create(baseOptions));
+            if (!(chart instanceof CartesianChart)) fail();
+            await waitForChartStability(chart);
+
+            expect(chart.tooltip.position.offset).toBe(12);
+        });
+
+        test("default tooltip offset is 0 when anchorTo is 'chart'", async () => {
+            chart = deproxy(
+                AgCharts.create({
+                    ...baseOptions,
+                    tooltip: { position: { anchorTo: 'chart' } },
+                })
+            );
+            if (!(chart instanceof CartesianChart)) fail();
+            await waitForChartStability(chart);
+
+            expect(chart.tooltip.position.offset).toBe(0);
+        });
+    });
+
     describe('series overrides', () => {
         const theme: AgChartTheme = {
             baseTheme: 'ag-default',

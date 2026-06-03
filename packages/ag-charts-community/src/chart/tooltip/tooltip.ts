@@ -36,7 +36,7 @@ export {
 } from './tooltipContent';
 
 /** Default gap between tooltip and anchor; must match the theme template fallback in chartTheme.ts. */
-const DEFAULT_TOOLTIP_OFFSET = 8;
+const DEFAULT_TOOLTIP_OFFSET = 12;
 
 type TooltipOffsets = { canvasX: number; canvasY: number; nodeCanvasX?: number; nodeCanvasY?: number };
 export type TooltipEventType = 'pointermove' | 'click' | 'dblclick' | 'keyboard';
@@ -96,9 +96,9 @@ const directionChecks: Record<AgTooltipPlacement, DirectionCheck> = {
     center: DirectionCheck.None,
 };
 
-const defaultPlacements: Record<AgTooltipAnchorTo, AgTooltipPlacement> = {
-    pointer: 'top',
-    node: 'top',
+const defaultPlacements: Record<AgTooltipAnchorTo, AgTooltipPlacement | AgTooltipPlacement[]> = {
+    pointer: ['top', 'bottom', 'left', 'right'],
+    node: ['top', 'bottom', 'left', 'right'],
     chart: 'top-left',
 };
 
