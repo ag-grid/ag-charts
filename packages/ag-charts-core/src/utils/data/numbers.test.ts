@@ -2,6 +2,7 @@ import { vi } from 'vitest';
 
 import * as Logger from '../../logging/logger';
 import {
+    absValue,
     clamp,
     countFractionDigits,
     inRange,
@@ -115,6 +116,20 @@ describe('Number Utilities', () => {
         expect(maxValue(BIG, 0)).toBe(BIG);
         expect(minValue(0, -BIG)).toBe(-BIG);
         expect(maxValue(0, -BIG)).toBe(0);
+    });
+
+    test('absValue', () => {
+        const BIG = 9_007_199_254_740_993n; // MAX_SAFE_INTEGER + 2, not exactly representable as a Number
+
+        // Pure-number path keeps Math.abs semantics.
+        expect(absValue(5)).toBe(5);
+        expect(absValue(-5)).toBe(5);
+        expect(absValue(-0)).toBe(0);
+        expect(Number.isNaN(absValue(Number.NaN))).toBe(true);
+
+        // bigint magnitude is preserved exactly rather than coerced.
+        expect(absValue(BIG)).toBe(BIG);
+        expect(absValue(-BIG)).toBe(BIG);
     });
 
     test('countFractionDigits', () => {

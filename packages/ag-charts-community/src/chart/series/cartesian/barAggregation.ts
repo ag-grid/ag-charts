@@ -10,6 +10,7 @@ import {
     nextPowerOf2,
     simpleMemorize2,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import type { DataModel } from '../../data/dataModel';
 import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
@@ -72,7 +73,7 @@ export function computeBarAggregation(
     yStartValues: any[] | undefined,
     yEndValues: any[],
     options: {
-        smallestKeyInterval: number | undefined;
+        smallestKeyInterval: AgNumericValue | undefined;
         xNeedsValueOf: boolean;
         yNeedsValueOf: boolean;
         existingFilters?: BarSeriesDataAggregationFilter[];
@@ -191,7 +192,7 @@ export function computeBarAggregationPartial(
     yStartValues: any[] | undefined,
     yEndValues: any[],
     options: {
-        smallestKeyInterval: number | undefined;
+        smallestKeyInterval: AgNumericValue | undefined;
         xNeedsValueOf: boolean;
         yNeedsValueOf: boolean;
         targetRange: number;
@@ -275,7 +276,7 @@ function aggregateBarData(
     yStartValues: any[] | undefined,
     yEndValues: any[],
     domainInput: DomainWithMetadata<number>,
-    smallestKeyInterval: number | undefined,
+    smallestKeyInterval: AgNumericValue | undefined,
     xNeedsValueOf: boolean,
     yNeedsValueOf: boolean
 ): BarSeriesDataAggregationFilter[] | undefined {

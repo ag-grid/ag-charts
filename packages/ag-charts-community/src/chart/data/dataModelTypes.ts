@@ -128,8 +128,8 @@ export interface CommonMetadata<D> {
     };
     reduced?: {
         diff?: Record<string, ProcessedOutputDiff>;
-        smallestKeyInterval?: number;
-        largestKeyInterval?: number;
+        smallestKeyInterval?: AgNumericValue;
+        largestKeyInterval?: AgNumericValue;
         filteredValueExceedUnfiltered?: boolean;
         sortedGroupDomain?: any[][];
         animationValidation?: {

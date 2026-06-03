@@ -64,6 +64,12 @@ export function maxValue(a: AgNumericValue, b: AgNumericValue): AgNumericValue {
     return a > b ? a : b;
 }
 
+/** Returns the absolute value, preserving an exact `bigint` rather than coercing. */
+export function absValue(value: AgNumericValue): AgNumericValue {
+    if (typeof value === 'bigint') return value < 0n ? -value : value;
+    return Math.abs(value);
+}
+
 export function inRange(value: number, range: [number, number], epsilon: number = 1e-10) {
     return value >= range[0] - epsilon && value <= range[1] + epsilon;
 }

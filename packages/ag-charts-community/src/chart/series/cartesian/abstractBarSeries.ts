@@ -7,7 +7,7 @@ import {
     findMinMax,
     isFiniteNumber,
 } from 'ag-charts-core';
-import type { Direction } from 'ag-charts-types';
+import type { AgNumericValue, Direction } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { IrregularBandScale } from '../../../scale/irregularBandScale';
@@ -67,12 +67,14 @@ export type AbstractBarSeriesAnimationData<TTypes extends AbstractBarSeriesTypes
 >;
 
 export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> extends CartesianSeries<TTypes> {
-    protected smallestDataInterval?: number = undefined;
-    protected largestDataInterval?: number = undefined;
+    protected smallestDataInterval?: AgNumericValue = undefined;
+    protected largestDataInterval?: AgNumericValue = undefined;
 
     protected padBandExtent(keys: any[], alignStart?: boolean) {
         const ratio = typeof alignStart === 'boolean' ? 1 : 0.5;
-        const scalePadding = isFiniteNumber(this.smallestDataInterval) ? this.smallestDataInterval * ratio : 0;
+        // Band positioning is finite-precision, so narrow the interval here before the padding arithmetic.
+        const interval = this.smallestDataInterval == null ? Number.NaN : Number(this.smallestDataInterval);
+        const scalePadding = isFiniteNumber(interval) ? interval * ratio : 0;
         // Band positioning is finite-precision, so a bigint key extent narrows to Number for the padding
         // arithmetic below (which would otherwise throw on a bigint).
         const rawExtent = extent(keys);

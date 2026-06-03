@@ -11,6 +11,7 @@ import {
     computeExtremesAggregationPartial,
     simpleMemorize2,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 type ScopeProvider = _ModuleSupport.ScopeProvider;
 type ProcessedData = _ModuleSupport.ProcessedData<any>;
@@ -30,7 +31,7 @@ function aggregateOhlcData(
     highValues: any[],
     lowValues: any[],
     domainInput: DomainWithMetadata<number>,
-    smallestKeyInterval: number | undefined,
+    smallestKeyInterval: AgNumericValue | undefined,
     xNeedsValueOf: boolean,
     yNeedsValueOf: boolean
 ): OhlcSeriesDataAggregationFilter[] | undefined {

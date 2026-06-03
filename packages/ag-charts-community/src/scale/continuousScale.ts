@@ -87,14 +87,15 @@ export abstract class ContinuousScale<D extends number | bigint | Date, I = numb
         return normalizeContinuousDomains(...domains);
     }
 
-    calcBandwidth(smallestInterval = 1, minWidth: 1 | 0 = 1) {
+    calcBandwidth(smallestInterval: AgNumericValue = 1, minWidth: 1 | 0 = 1) {
         const { domain } = this;
 
         const rangeDistance = this.getPixelRange();
         if (domain.length === 0) return rangeDistance;
 
+        // Screen-space boundary: the interval becomes a band count against the pixel range, so narrow a bigint.
         // Use cached domain values to avoid valueOf() calls
-        const intervals = Math.abs(this.d1Cache - this.d0Cache) / smallestInterval + 1;
+        const intervals = Math.abs(this.d1Cache - this.d0Cache) / Number(smallestInterval) + 1;
 
         // The number of intervals/bands is used to determine the width of individual bands by dividing the available range.
         let bands = intervals;

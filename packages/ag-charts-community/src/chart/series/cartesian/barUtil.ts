@@ -1,5 +1,6 @@
 import type { Scale } from 'ag-charts-core';
 import { ChartAxisDirection, isNegative } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import type { ApplyFn, FromToMotionPropFn, NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../../motion/fromToMotion';
@@ -14,8 +15,8 @@ import type { DatumIndexType, ISeries, ISeriesProperties } from '../seriesTypes'
 export function checkCrisp(
     scale: Scale<any, any> | undefined,
     visibleRange: number[] | undefined,
-    smallestDataInterval: number | undefined,
-    largestDataInterval: number | undefined
+    smallestDataInterval: AgNumericValue | undefined,
+    largestDataInterval: AgNumericValue | undefined
 ): boolean {
     if (visibleRange != null) {
         const [visibleMin, visibleMax] = visibleRange;

@@ -1,11 +1,15 @@
 import {
     Logger,
     type ScaleType,
+    absValue,
     clamp,
     isContinuous,
     isFiniteNumber,
     isNegative,
+    maxValue,
     memo,
+    minValue,
+    subtractValues,
     transformIntegratedCategoryValue,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
@@ -32,13 +36,16 @@ export const MAX_ANIMATABLE_NODES = 1000;
 
 function combineIntervalBandResults(
     bandResults: unknown[],
-    fallback: number,
-    combiner: (values: number[]) => number
-): number {
-    const validResults = bandResults.filter(
-        (result): result is number => typeof result === 'number' && Number.isFinite(result)
-    );
-    return validResults.length > 0 ? combiner(validResults) : fallback;
+    fallback: AgNumericValue,
+    combine: (a: AgNumericValue, b: AgNumericValue) => AgNumericValue
+): AgNumericValue {
+    let combined: AgNumericValue | undefined;
+    for (const result of bandResults) {
+        const valid = typeof result === 'bigint' || (typeof result === 'number' && Number.isFinite(result));
+        if (!valid) continue;
+        combined = combined == null ? result : combine(combined, result);
+    }
+    return combined ?? fallback;
 }
 
 export function processedDataIsAnimatable(processedData: ProcessedData<any>) {
@@ -218,23 +225,34 @@ export function groupAccumulativeValueProperty<K>(
     ];
 }
 
+// Normalises a key for interval maths: a bigint is kept exact, anything else (number, Date) coerces to a
+// Number as before. NaN/Infinity keys (e.g. invalid data) yield undefined and are skipped.
+function finiteKey(key: unknown): AgNumericValue | undefined {
+    if (typeof key === 'bigint') return key;
+    const n = Number(key);
+    return Number.isFinite(n) ? n : undefined;
+}
+
+// Gap between adjacent keys, kept exact (a bigint gap stays a bigint) so coercion is deferred to the
+// screen-space consumers (bandwidth/aggregation). Subtracting before any narrowing is what fixes the
+// precision loss; coercing each key first would collapse gaps below the Number ULP at the keys' magnitude.
+function keyInterval(curr: AgNumericValue, prev: AgNumericValue): AgNumericValue {
+    return absValue(subtractValues(curr, prev));
+}
+
 export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKeyInterval'> = {
     type: 'reducer',
     property: 'smallestKeyInterval',
     initialValue: Infinity,
     reducer() {
-        let prevX = Number.NaN;
+        let prevKey: AgNumericValue | undefined;
         return function smallestKeyIntervalReducerFn(smallestSoFar, keys) {
-            const key = keys[0];
-            const nextX = typeof key === 'number' ? key : Number(key);
-            if (!Number.isFinite(nextX)) return smallestSoFar;
-            const prevX2 = prevX;
-            prevX = nextX;
-            if (!Number.isFinite(prevX)) return smallestSoFar;
-
-            const interval = Math.abs(nextX - prevX2);
+            const key = finiteKey(keys[0]);
             const currentSmallest = smallestSoFar ?? Infinity;
-            if (interval > 0 && interval < currentSmallest) {
+            if (key == null) return currentSmallest;
+            const interval = prevKey == null ? undefined : keyInterval(key, prevKey);
+            prevKey = key;
+            if (interval != null && interval > 0 && interval < currentSmallest) {
                 return interval;
             }
             return currentSmallest;
@@ -242,7 +260,7 @@ export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKey
     },
     supportsBanding: true,
     combineResults(bandResults) {
-        return combineIntervalBandResults(bandResults, Infinity, (values) => Math.min(...values));
+        return combineIntervalBandResults(bandResults, Infinity, minValue);
     },
     needsOverlap: true,
 };
@@ -252,18 +270,14 @@ export const LARGEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'largestKeyIn
     property: 'largestKeyInterval',
     initialValue: -Infinity,
     reducer() {
-        let prevX = Number.NaN;
+        let prevKey: AgNumericValue | undefined;
         return function largestKeyIntervalReducerFn(largestSoFar, keys) {
-            const key = keys[0];
-            const nextX = typeof key === 'number' ? key : Number(key);
-            if (!Number.isFinite(nextX)) return largestSoFar;
-            const prevX2 = prevX;
-            prevX = nextX;
-            if (!Number.isFinite(prevX)) return largestSoFar;
-
-            const interval = Math.abs(nextX - prevX2);
+            const key = finiteKey(keys[0]);
             const currentLargest = largestSoFar ?? -Infinity;
-            if (interval > 0 && interval > currentLargest) {
+            if (key == null) return currentLargest;
+            const interval = prevKey == null ? undefined : keyInterval(key, prevKey);
+            prevKey = key;
+            if (interval != null && interval > 0 && interval > currentLargest) {
                 return interval;
             }
             return currentLargest;
@@ -271,7 +285,7 @@ export const LARGEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'largestKeyIn
     },
     supportsBanding: true,
     combineResults(bandResults) {
-        return combineIntervalBandResults(bandResults, -Infinity, (values) => Math.max(...values));
+        return combineIntervalBandResults(bandResults, -Infinity, maxValue);
     },
     needsOverlap: true,
 };

@@ -1,3 +1,5 @@
+import type { AgNumericValue } from 'ag-charts-types';
+
 import type { DomainWithMetadata, ScaleType } from '../types/scales';
 import { nextPowerOf2 } from './data/numberArray';
 
@@ -115,15 +117,16 @@ export function aggregationRangeFittingPoints(
     xValues: any[],
     d0: number,
     d1: number,
-    opts?: { smallestKeyInterval?: number; xNeedsValueOf?: boolean }
+    opts?: { smallestKeyInterval?: AgNumericValue; xNeedsValueOf?: boolean }
 ) {
     if (Number.isFinite(d0)) {
         const smallestKeyInterval = opts?.smallestKeyInterval;
         const xNeedsValueOf = opts?.xNeedsValueOf ?? true;
+        // Screen-space boundary: the key interval becomes a pixel-fraction here, so narrow a bigint to Number.
         const smallestPixelInterval =
             smallestKeyInterval == null
                 ? estimateSmallestPixelInterval(xValues, d0, d1, xNeedsValueOf)
-                : smallestKeyInterval / (d1 - d0);
+                : Number(smallestKeyInterval) / (d1 - d0);
         return nextPowerOf2(Math.trunc(1 / smallestPixelInterval)) >> 3;
     } else {
         let power = Math.ceil(Math.log2(xValues.length)) - 1;
@@ -878,7 +881,7 @@ export function computeExtremesAggregation(
     highValues: any[],
     lowValues: any[],
     options: {
-        smallestKeyInterval: number | undefined;
+        smallestKeyInterval: AgNumericValue | undefined;
         xNeedsValueOf: boolean;
         yNeedsValueOf: boolean;
         existingFilters?: ExtremesAggregationFilter[];
@@ -963,7 +966,7 @@ export function computeExtremesAggregationPartial(
     highValues: any[],
     lowValues: any[],
     options: {
-        smallestKeyInterval: number | undefined;
+        smallestKeyInterval: AgNumericValue | undefined;
         targetRange: number;
         xNeedsValueOf: boolean;
         yNeedsValueOf: boolean;
