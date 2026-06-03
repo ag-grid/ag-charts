@@ -65,6 +65,7 @@ console.log(
             PUBLIC_GALLERY_IMAGE_DPR_ENHANCEMENT,
             HTACCESS,
             CHECK_REDIRECTS,
+            CHECK_LINKS,
             PUBLIC_ENABLE_HOT_RELOAD,
         },
         null,
