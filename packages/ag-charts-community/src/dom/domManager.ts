@@ -178,6 +178,7 @@ export class DOMManager extends BaseManager {
     private _cachedCanvasRect: DOMRect | undefined;
     private _cachedCanvasScale: { scaleX: number; scaleY: number } | undefined;
     private _cachedRawOverlayRect: BBox | undefined;
+    private _cachedVisibleChartRect: DOMRect | null | undefined;
     private _cachedScrollableContainer: HTMLElement | null | undefined;
     private _pendingFlush?: ReturnType<typeof setTimeout>;
     private _deferring: boolean = false;
@@ -572,6 +573,30 @@ export class DOMManager extends BaseManager {
         return windowBBox.intersection(containerBBox)?.toDOMRect() ?? NULL_DOMRECT;
     }
 
+    /**
+     * The visible region of the chart in viewport coordinates: the canvas rect clipped to a
+     * scrollable ancestor's rect, or `null` when the chart has no scrollable ancestor. A
+     * popover-promoted overlay may still float out to the viewport (see `getOverlayClientRect`),
+     * but its anchor should clamp to this region so it stays visually connected to the chart
+     * when the chart is partly scrolled out of a scrollable container.
+     */
+    getVisibleChartRect(): DOMRect | null {
+        if (this._cachedVisibleChartRect !== undefined) {
+            return this._cachedVisibleChartRect;
+        }
+
+        const scrollableContainer = this.findScrollableContainer();
+        if (scrollableContainer == null) {
+            this._cachedVisibleChartRect = null;
+            return null;
+        }
+
+        const canvasBBox = BBox.fromObject(this.getBoundingClientRect());
+        const containerBBox = BBox.fromObject(scrollableContainer.getBoundingClientRect());
+        this._cachedVisibleChartRect = canvasBBox.intersection(containerBBox)?.toDOMRect() ?? NULL_DOMRECT;
+        return this._cachedVisibleChartRect;
+    }
+
     private findScrollableContainer(): HTMLElement | null {
         if (this._cachedScrollableContainer !== undefined) {
             return this._cachedScrollableContainer;
@@ -606,12 +631,26 @@ export class DOMManager extends BaseManager {
         return null;
     }
 
+    /**
+     * Whether the active window supports the Popover API. Popover-promoted overlays
+     * (e.g. tooltips with `popover="manual"`) render in the browser top layer and so
+     * escape any ancestor's `overflow` clipping — meaning they should be positioned
+     * against the viewport, not clamped to a scrollable ancestor.
+     */
+    private popoverSupported(): boolean {
+        const HTMLElementCtor: typeof HTMLElement | undefined = (this.agDocument.window as any).HTMLElement;
+        return typeof HTMLElementCtor?.prototype?.togglePopover === 'function';
+    }
+
     private getRawOverlayClientRect(): BBox {
         if (this._cachedRawOverlayRect != null) {
             return this._cachedRawOverlayRect;
         }
 
-        const scrollableContainer = this.findScrollableContainer();
+        // When the Popover API is supported, overlays are promoted to the top layer and
+        // escape ancestor `overflow` clipping, so we must not clamp to a scrollable
+        // ancestor. Browsers without Popover API support retain the clamp below.
+        const scrollableContainer = this.popoverSupported() ? null : this.findScrollableContainer();
 
         if (scrollableContainer != null) {
             this._cachedRawOverlayRect = BBox.fromObject(scrollableContainer.getBoundingClientRect());
@@ -876,6 +915,7 @@ export class DOMManager extends BaseManager {
         this._cachedCanvasRect = undefined;
         this._cachedCanvasScale = undefined;
         this._cachedRawOverlayRect = undefined;
+        this._cachedVisibleChartRect = undefined;
     }
 
     private invalidateAllCaches() {
