@@ -27,6 +27,7 @@ import {
     isContinuous,
     mergeDefaults,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import {
     type RangeBarSeriesDataAggregationFilter,
@@ -88,8 +89,8 @@ type RangeBarItemId = `${string}-${string}`;
  */
 interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<RangeBarNodeDatum> {
     // Data arrays (resolved from dataModel - worth caching)
-    readonly yLowValues: any[];
-    readonly yHighValues: any[];
+    readonly yLowValues: AgNumericValue[];
+    readonly yHighValues: AgNumericValue[];
 
     // Computed positioning (involves scale conversions - worth caching)
     readonly barWidth: number;
@@ -120,10 +121,12 @@ interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateN
 interface PreparedRangeBarNodeDatumState {
     datum: any;
     xValue: any;
-    yLowValue: number;
-    yHighValue: number;
-    rawLowValue: any;
-    rawHighValue: any;
+    // Domain values (possibly bigint), preserved exactly for label/tooltip metadata; positioning converts
+    // the raw columns directly via params.yLow/yHigh.
+    yLowValue: AgNumericValue;
+    yHighValue: AgNumericValue;
+    rawLowValue: AgNumericValue;
+    rawHighValue: AgNumericValue;
 }
 
 /**
@@ -137,8 +140,9 @@ interface NodeDatumParams {
     groupedDataIndex: number;
     x: number;
     width: number;
-    yLow: number;
-    yHigh: number;
+    // Domain values (possibly bigint) so yScale.convert() keeps full precision; x/width are pixel-space.
+    yLow: AgNumericValue;
+    yHigh: AgNumericValue;
     crisp: boolean;
 }
 
@@ -153,8 +157,8 @@ interface LabelUpdateParams {
     rectY: number;
     rectWidth: number;
     rectHeight: number;
-    yLowValue: number;
-    yHighValue: number;
+    yLowValue: AgNumericValue;
+    yHighValue: AgNumericValue;
     datum: any;
 }
 
@@ -162,8 +166,8 @@ interface RangeBarNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum
     readonly index: number;
     readonly yLowKey: string;
     readonly yHighKey: string;
-    readonly yLowValue: number;
-    readonly yHighValue: number;
+    readonly yLowValue: AgNumericValue;
+    readonly yHighValue: AgNumericValue;
     readonly width: number;
     readonly height: number;
     readonly labels: RangeBarNodeLabelDatum[];
@@ -475,11 +479,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         // Populate scratch with validated, computed values
         scratch.datum = datum;
         scratch.xValue = xValue;
-        // isContinuous narrows to include Date/NumberObject; on a number axis these are number|bigint. The
-        // sorted pair feeds label metadata only (positioning converts the raw columns), so a runtime bigint in
-        // the number-typed field is fine — mirrors mutableNode.yLowValue below.
-        scratch.yLowValue = yLowValue as number;
-        scratch.yHighValue = yHighValue as number;
+        scratch.yLowValue = yLowValue;
+        scratch.yHighValue = yHighValue;
         scratch.rawLowValue = rawLowValue;
         scratch.rawHighValue = rawHighValue;
 
@@ -750,8 +751,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 xValue: undefined,
                 yLowValue: 0,
                 yHighValue: 0,
-                rawLowValue: undefined,
-                rawHighValue: undefined,
+                rawLowValue: 0,
+                rawHighValue: 0,
             },
             labelParamsScratch: {
                 labels: [],

@@ -1010,16 +1010,21 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 nodeDatumParamsScratch.width = width;
                 nodeDatumParamsScratch.opacity = opacity;
                 if (ctx.isStacked) {
-                    nodeDatumParamsScratch.yStart = Number(ctx.yStartValues![yMinIndex]);
-                    nodeDatumParamsScratch.yEnd = Number(ctx.yEndValues![yMaxIndex]);
+                    // Geometry stays in domain space (possibly bigint) so yScale.convert() keeps full precision,
+                    // matching the non-aggregated path; only the bucket *index* comes from the aggregation.
+                    nodeDatumParamsScratch.yStart = ctx.yStartValues![yMinIndex];
+                    nodeDatumParamsScratch.yEnd = ctx.yEndValues![yMaxIndex];
                     nodeDatumParamsScratch.featherRatio = 0;
                 } else {
-                    const yEndMax = Number(ctx.yRawValues[yMaxIndex]);
-                    const yEndMin = Number(ctx.yRawValues[yMinIndex]);
+                    const yEndMax = ctx.yRawValues[yMaxIndex];
+                    const yEndMin = ctx.yRawValues[yMinIndex];
 
                     nodeDatumParamsScratch.yStart = 0;
                     nodeDatumParamsScratch.yEnd = yEndMax;
-                    nodeDatumParamsScratch.featherRatio = (positive ? 1 : -1) * sign * (1 - yEndMin / yEndMax);
+                    // featherRatio is a finite-precision visual ratio, so narrow here (a bigint pair would
+                    // otherwise divide as truncating integers) while yEnd above keeps full precision.
+                    nodeDatumParamsScratch.featherRatio =
+                        (positive ? 1 : -1) * sign * (1 - toNumber(yEndMin) / toNumber(yEndMax));
                 }
                 nodeDatumParamsScratch.yRange = nodeDatumParamsScratch.yEnd;
 

@@ -79,8 +79,8 @@ export interface LineSeriesDatumContext extends CartesianMarkerLikeContext<LineN
     readonly yKey: string;
 
     // Additional data arrays specific to line series
-    readonly yRawValues: any[];
-    readonly yCumulativeValues: any[];
+    readonly yRawValues: AgNumericValue[];
+    readonly yCumulativeValues: AgNumericValue[];
     readonly selectionValues: ArrayLike<any> | undefined;
 
     // Pre-computed values (computed once, reused for all datums)

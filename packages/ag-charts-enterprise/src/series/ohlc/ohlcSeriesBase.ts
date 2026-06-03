@@ -24,6 +24,7 @@ import {
     type Scale,
     mergeDefaults,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import {
     type OhlcSeriesDataAggregationFilter,
@@ -63,11 +64,11 @@ export interface OhlcNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDa
     readonly itemId?: never;
     readonly itemType: AgOhlcSeriesItemType;
 
-    readonly openValue: number;
-    readonly closeValue: number;
-    readonly highValue?: number;
-    readonly lowValue?: number;
-    readonly aggregatedValue: number;
+    readonly openValue: AgNumericValue;
+    readonly closeValue: AgNumericValue;
+    readonly highValue?: AgNumericValue;
+    readonly lowValue?: AgNumericValue;
+    readonly aggregatedValue: AgNumericValue;
 
     readonly isRising: boolean;
 
@@ -115,10 +116,12 @@ class OhlcSeriesNodeEvent<
 interface PreparedOhlcNodeDatumState {
     datum: any;
     xValue: any;
-    openValue: number;
-    closeValue: number;
-    highValue: number;
-    lowValue: number;
+    // Domain values (possibly bigint) so yScale.convert() keeps full precision; narrowed to number only
+    // at the stored OhlcNodeDatum metadata fields below.
+    openValue: AgNumericValue;
+    closeValue: AgNumericValue;
+    highValue: AgNumericValue;
+    lowValue: AgNumericValue;
     isRising: boolean;
     itemType: 'up' | 'down';
 }
@@ -133,10 +136,10 @@ interface OhlcSeriesNodeDatumContext {
     // Data arrays (resolved from dataModel - worth caching)
     readonly rawData: any[];
     readonly xValues: any[];
-    readonly openValues: any[];
-    readonly closeValues: any[];
-    readonly highValues: any[];
-    readonly lowValues: any[];
+    readonly openValues: AgNumericValue[];
+    readonly closeValues: AgNumericValue[];
+    readonly highValues: AgNumericValue[];
+    readonly lowValues: AgNumericValue[];
 
     // Scales (axis lookups - worth caching)
     readonly xScale: Scale<any, any>;

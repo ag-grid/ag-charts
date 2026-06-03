@@ -9,6 +9,7 @@ import {
 } from 'ag-charts-community';
 import type { CallbackParamRules, DeepRequired, DynamicContext, Mutable, RequireOptional } from 'ag-charts-core';
 import { ChartAxisDirection, deepClone, mergeDefaults } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotNode } from './boxPlotNode';
@@ -57,11 +58,11 @@ interface BoxPlotSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
 /** Context object caching expensive lookups for createNodeData(). */
 interface BoxPlotSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<BoxPlotNodeDatum> {
     // Box plot specific data arrays
-    readonly minValues: any[];
-    readonly q1Values: any[];
-    readonly medianValues: any[];
-    readonly q3Values: any[];
-    readonly maxValues: any[];
+    readonly minValues: AgNumericValue[];
+    readonly q1Values: AgNumericValue[];
+    readonly medianValues: AgNumericValue[];
+    readonly q3Values: AgNumericValue[];
+    readonly maxValues: AgNumericValue[];
 
     // Computed positioning (involves scale conversions - worth caching)
     readonly barWidth: number;

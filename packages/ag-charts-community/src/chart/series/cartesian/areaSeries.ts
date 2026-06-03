@@ -171,8 +171,8 @@ interface AreaSeriesCreateNodeDatumContext extends CartesianMarkerLikeContext<Ma
     readonly yKey: string;
 
     // Additional data arrays specific to area series
-    readonly yRawValues: any[];
-    readonly yCumulativeValues: any[];
+    readonly yRawValues: AgNumericValue[];
+    readonly yCumulativeValues: AgNumericValue[];
     readonly selectedValues: boolean[] | undefined;
     readonly invalidData: boolean[] | undefined;
 

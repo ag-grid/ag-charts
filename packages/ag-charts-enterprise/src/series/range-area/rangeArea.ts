@@ -30,6 +30,7 @@ import {
     isContinuous,
     mergeDefaults,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import {
     type RangeAreaSeriesDataAggregationFilter,
@@ -112,8 +113,8 @@ type StylerMarkerOptionsResult = DeepRequired<ResolvedStyleMixin>;
  */
 interface RangeAreaSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<RangeAreaMarkerDatum> {
     // Data arrays (from dataModel - cache once)
-    readonly yHighValues: any[];
-    readonly yLowValues: any[];
+    readonly yHighValues: AgNumericValue[];
+    readonly yLowValues: AgNumericValue[];
 
     // Pre-computed offsets
     readonly xOffset: number;
@@ -147,8 +148,10 @@ interface RangeAreaSeriesNodeDatumContext extends _ModuleSupport.CartesianCreate
 interface RangeAreaNodeDatumScratch {
     datum: any;
     xValue: any;
-    yHighValue: number;
-    yLowValue: number;
+    // Domain values (possibly bigint) so yScale.convert() keeps full precision; the *Coordinate fields
+    // below are the resulting pixel positions.
+    yHighValue: AgNumericValue;
+    yLowValue: AgNumericValue;
     x: number;
     yHighCoordinate: number;
     yLowCoordinate: number;
@@ -465,8 +468,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         ctx: RangeAreaSeriesNodeDatumContext,
         scratch: RangeAreaNodeDatumScratch,
         datumIndex: number,
-        yHighValueOverride?: number,
-        yLowValueOverride?: number
+        yHighValueOverride?: AgNumericValue,
+        yLowValueOverride?: AgNumericValue
     ): void {
         scratch.xValue = ctx.xValues[datumIndex];
         if (scratch.xValue === undefined && !this.properties.allowNullKeys) return;
@@ -532,13 +535,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     }
 
     private hasInvalidDatumsInRange(
-        yHighValues: any[],
-        yLowValues: any[],
+        yHighValues: AgNumericValue[],
+        yLowValues: AgNumericValue[],
         startIndex: number,
         endIndex: number
     ): boolean {
         for (let i = startIndex; i <= endIndex; i++) {
-            if (!Number.isFinite(yHighValues[i]) || !Number.isFinite(yLowValues[i])) {
+            // isContinuous accepts bigint where Number.isFinite would drop a value beyond Number.MAX_VALUE.
+            if (!isContinuous(yHighValues[i]) || !isContinuous(yLowValues[i])) {
                 return true;
             }
         }
@@ -554,7 +558,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         scratch: RangeAreaNodeDatumScratch,
         datumIndex: number,
         itemType: 'high' | 'low',
-        yValue: number,
+        yValue: AgNumericValue,
         y: number
     ): void {
         const { size } = ctx.item[itemType].marker;
