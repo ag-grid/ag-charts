@@ -1,17 +1,16 @@
 import siteHeaderStyles from '@ag-website-shared/components/site-header/SiteHeader.module.scss';
 import LogoType from '@ag-website-shared/images/inline-svgs/ag-charts-logotype.svg?react';
+import { addTrailingSlash } from '@ag-website-shared/utils/addTrailingSlash';
 import LogoMark from '@components/logo/LogoMark';
 import { SITE_BASE_URL } from '@constants';
 import { type FunctionComponent, useState } from 'react';
-
-import { ensureTrailingSlash } from '../utils/ensureUrl';
 
 export const SiteLogo: FunctionComponent = () => {
     const [isLogoHover, setIsLogoHover] = useState(false);
 
     return (
         <a
-            href={ensureTrailingSlash(SITE_BASE_URL)}
+            href={addTrailingSlash(SITE_BASE_URL)}
             aria-label="Home"
             className={siteHeaderStyles.headerLogo}
             onMouseEnter={() => {
