@@ -30,12 +30,9 @@ jobs:
                   echo "token — secrets.JIRA_AI_BOT_API_TOKEN set: $([ -n "${TOKEN:-}" ] && echo yes || echo NO)"
                   EMAIL="${EMAIL_SECRET:-}"; EMAIL_SRC="secrets"
                   if [ -z "$EMAIL" ]; then EMAIL="${EMAIL_VAR:-}"; EMAIL_SRC="vars"; fi
-                  if [ -z "$EMAIL" ] || [ -z "${TOKEN:-}" ]; then
-                      echo "::error::Could not assemble Basic creds — email empty in both secrets and vars, or token empty."
-                      exit 1
-                  fi
-                  echo "using email from: $EMAIL_SRC  value: ${EMAIL}"
-                  BASIC=$(printf '%s:%s' "$EMAIL" "$TOKEN" | base64 | tr -d '\n')
+                  [ -n "$EMAIL" ] && echo "using email from: $EMAIL_SRC  value: ${EMAIL}" || echo "no email available — Basic-auth probes (A/C/E) will be SKIPPED"
+                  BASIC=""
+                  [ -n "$EMAIL" ] && [ -n "${TOKEN:-}" ] && BASIC=$(printf '%s:%s' "$EMAIL" "$TOKEN" | base64 | tr -d '\n')
 
                   probe() {
                       local label="$1" hdr="$2" url="$3"
@@ -47,18 +44,22 @@ jobs:
                       echo "::endgroup::"
                       echo "RESULT $label = $code"
                   }
+                  basic_probe() {
+                      if [ -z "$BASIC" ]; then echo "RESULT $1 = SKIP (no email)"; return; fi
+                      probe "$@"
+                  }
 
                   echo "===== A: site host + Basic (what the pipeline does today) ====="
-                  probe "A site+Basic /myself"     "Authorization: Basic $BASIC"  "$SITE/rest/api/3/myself"
+                  basic_probe "A site+Basic /myself"     "Authorization: Basic $BASIC"  "$SITE/rest/api/3/myself"
 
-                  echo "===== B: site cloudId (tenant_info) — must match $CLOUD_ID ====="
+                  echo "===== B: site cloudId (tenant_info, no auth) — must match $CLOUD_ID ====="
                   probe "B tenant_info"            "Accept: application/json"     "$SITE/_edge/tenant_info"
 
                   echo "===== C: gateway (cloudId path) + Basic ====="
-                  probe "C gateway+Basic /myself"  "Authorization: Basic $BASIC"  "https://api.atlassian.com/ex/jira/$CLOUD_ID/rest/api/3/myself"
+                  basic_probe "C gateway+Basic /myself"  "Authorization: Basic $BASIC"  "https://api.atlassian.com/ex/jira/$CLOUD_ID/rest/api/3/myself"
 
-                  echo "===== D: gateway (cloudId path) + Bearer (OAuth hypothesis) ====="
+                  echo "===== D: gateway (cloudId path) + Bearer — token only, no email ====="
                   probe "D gateway+Bearer /myself" "Authorization: Bearer $TOKEN" "https://api.atlassian.com/ex/jira/$CLOUD_ID/rest/api/3/myself"
 
                   echo "===== E: real read target — AG-15988 via site+Basic ====="
-                  probe "E site issue AG-15988"    "Authorization: Basic $BASIC"  "$SITE/rest/api/3/issue/AG-15988?fields=summary,status"
+                  basic_probe "E site issue AG-15988"    "Authorization: Basic $BASIC"  "$SITE/rest/api/3/issue/AG-15988?fields=summary,status"
