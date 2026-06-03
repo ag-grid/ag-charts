@@ -1,0 +1,58 @@
+name: Jira creds probe (throwaway)
+
+# TEMPORARY diagnostic — verifies the ag-grid org-level jira-ai-bot secrets
+# reach this repo and which Jira REST auth form they work with (site-host +
+# Basic vs api.atlassian.com/ex/jira/{cloudId} gateway, Basic vs Bearer).
+# Delete this branch + file once the question is answered.
+
+on:
+    push:
+        branches: [jira-creds-probe]
+
+permissions:
+    contents: read
+
+jobs:
+    probe:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Probe Jira auth forms
+              env:
+                  EMAIL: ${{ secrets.JIRA_AI_BOT_API_EMAIL }}
+                  TOKEN: ${{ secrets.JIRA_AI_BOT_API_TOKEN }}
+                  CLOUD_ID: 1565837d-d6d1-4228-bcb2-4cb74df700f2
+                  SITE: https://ag-grid.atlassian.net
+              run: |
+                  set -uo pipefail
+                  if [ -z "${EMAIL:-}" ] || [ -z "${TOKEN:-}" ]; then
+                      echo "::error::Org secrets JIRA_AI_BOT_API_EMAIL / JIRA_AI_BOT_API_TOKEN are empty — this repo is not in the secret's access list, or the secret is unset."
+                      exit 1
+                  fi
+                  echo "secrets present (email len ${#EMAIL}, token len ${#TOKEN})"
+                  BASIC=$(printf '%s:%s' "$EMAIL" "$TOKEN" | base64 | tr -d '\n')
+
+                  probe() {
+                      local label="$1" hdr="$2" url="$3"
+                      local code
+                      code=$(curl -s -o /tmp/body -w '%{http_code}' -H "$hdr" -H 'Accept: application/json' "$url")
+                      echo "::group::[$label] HTTP $code"
+                      echo "$url"
+                      head -c 400 /tmp/body; echo
+                      echo "::endgroup::"
+                      echo "RESULT $label = $code"
+                  }
+
+                  echo "===== A: site host + Basic (what the pipeline does today) ====="
+                  probe "A site+Basic /myself"     "Authorization: Basic $BASIC"  "$SITE/rest/api/3/myself"
+
+                  echo "===== B: site cloudId (tenant_info) — must match $CLOUD_ID ====="
+                  probe "B tenant_info"            "Accept: application/json"     "$SITE/_edge/tenant_info"
+
+                  echo "===== C: gateway (cloudId path) + Basic ====="
+                  probe "C gateway+Basic /myself"  "Authorization: Basic $BASIC"  "https://api.atlassian.com/ex/jira/$CLOUD_ID/rest/api/3/myself"
+
+                  echo "===== D: gateway (cloudId path) + Bearer (OAuth hypothesis) ====="
+                  probe "D gateway+Bearer /myself" "Authorization: Bearer $TOKEN" "https://api.atlassian.com/ex/jira/$CLOUD_ID/rest/api/3/myself"
+
+                  echo "===== E: real read target — AG-15988 via site+Basic ====="
+                  probe "E site issue AG-15988"    "Authorization: Basic $BASIC"  "$SITE/rest/api/3/issue/AG-15988?fields=summary,status"
