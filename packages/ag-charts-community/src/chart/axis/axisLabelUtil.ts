@@ -2,7 +2,6 @@ import { type NormalisedTextOrSegments, isArray, objectsEqual } from 'ag-charts-
 import type {
     AgAxisLabelFormatterParams,
     AgBaseAxisLabelStyleOptions,
-    AgNumericValue,
     AgTimeIntervalUnit,
     DateFormatterStyle,
     FormatterParams,
