@@ -1,1 +1,1 @@
-export const ensureTrailingSlash = (str) => (str.endsWith('/') ? str : str + '/');
+export const ensureTrailingSlash = (str: string) => (str.endsWith('/') ? str : str + '/');
