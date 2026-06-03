@@ -97,7 +97,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
                 for (let datumIndex = 0; datumIndex < it.selection.getLength(); datumIndex++) {
                     if (it.selection.isSelected(datumIndex)) {
                         const itemId = it.dataSet.getItemIdFromIndex(datumIndex);
-                        const datum = it.dataSet.data[datumIndex];
+                        const datum = it.dataSet.getDatumAt(datumIndex);
                         const seriesId = it.seriesId;
                         yield { seriesId, itemId, datum };
                     }
