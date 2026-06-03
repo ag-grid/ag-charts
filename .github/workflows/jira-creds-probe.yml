@@ -43,9 +43,10 @@ jobs:
                   probe() {
                       local label="$1" hdr="$2" url="$3"
                       local code
-                      code=$(curl -s -o /tmp/body -w '%{http_code}' -H "$hdr" -H 'Accept: application/json' "$url")
+                      code=$(curl -s -o /tmp/body -D /tmp/hdr -w '%{http_code}' -H "$hdr" -H 'Accept: application/json' "$url")
                       echo "::group::[$label] HTTP $code"
                       echo "$url"
+                      grep -iE '^(x-seraph-loginreason|www-authenticate|x-failure-category|x-arequestid|retry-after):' /tmp/hdr || true
                       head -c 400 /tmp/body; echo
                       echo "::endgroup::"
                       echo "RESULT $label = $code"
@@ -69,3 +70,9 @@ jobs:
 
                   echo "===== E: real read target — AG-15988 via site+Basic ====="
                   basic_probe "E site issue AG-15988"    "Authorization: Basic $BASIC"  "$SITE/rest/api/3/issue/AG-15988?fields=summary,status"
+
+                  echo "===== F: can the bot see ANY issue? (JQL search) ====="
+                  basic_probe "F site search"            "Authorization: Basic $BASIC"  "$SITE/rest/api/3/search/jql?jql=project%20%3D%20AG&maxResults=1&fields=summary"
+
+                  echo "===== G: bot's own permissions (mypermissions BROWSE) ====="
+                  basic_probe "G mypermissions"          "Authorization: Basic $BASIC"  "$SITE/rest/api/3/mypermissions?permissions=BROWSE_PROJECTS"
