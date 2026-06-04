@@ -347,6 +347,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private endDrag(): void {
+        this.service.clearCandidacy();
         this.dragStartEvent = undefined;
         this.dragRect.visible = false;
         this.redraw(ChartUpdateType.PERFORM_LAYOUT);
