@@ -13,9 +13,10 @@ import {
     type Point,
     PropertiesArray,
     Vec2,
+    addValues,
     isValidDate,
-    toNumber,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { TextInput } from '../text-input/textInput';
 import { AxesButtons } from './annotationAxesButtons';
@@ -655,11 +656,11 @@ export class Annotations extends AbstractModuleInstance {
             'mixed-numeric'
         );
 
-        let sum = 0;
+        let sum: AgNumericValue = 0;
         for (let datumIndex = 0; datumIndex < processedData.input.count; datumIndex++) {
             const key = dateValues[datumIndex];
             if (isValidDate(key) && key >= from && key <= to) {
-                sum += toNumber(volumeValues[datumIndex]);
+                sum = addValues(sum, volumeValues[datumIndex]);
             }
         }
         return sum;
