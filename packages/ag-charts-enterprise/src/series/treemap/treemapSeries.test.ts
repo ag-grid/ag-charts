@@ -177,6 +177,52 @@ describe('TreemapSeries', () => {
             expect(await highlightNodeAndReadFill(series, [0])).not.toEqual('cyan');
         });
 
+        const tileEnabled = (series: TreemapSeries) =>
+            (series as unknown as { properties: { tile: { highlight: { enabled: boolean } } } }).properties.tile
+                .highlight.enabled;
+        const groupEnabled = (series: TreemapSeries) =>
+            (series as unknown as { properties: { group: { highlight: { enabled: boolean } } } }).properties.group
+                .highlight.enabled;
+
+        it('cascades chart-level highlight.enabled = false to tile and group', async () => {
+            const options: AgChartOptions = {
+                data: DATA,
+                highlight: { enabled: false },
+                series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'size', colorKey: undefined }],
+                animation: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            const series = chart.series[0] as TreemapSeries;
+            expect(tileEnabled(series)).toBe(false);
+            expect(groupEnabled(series)).toBe(false);
+        });
+
+        it('lets a series re-enable tile/group highlighting over a disabled chart-level default', async () => {
+            const options: AgChartOptions = {
+                data: DATA,
+                highlight: { enabled: false },
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'size',
+                        colorKey: undefined,
+                        tile: { highlight: { enabled: true } },
+                        group: { highlight: { enabled: true } },
+                    },
+                ],
+                animation: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            const series = chart.series[0] as TreemapSeries;
+            expect(tileEnabled(series)).toBe(true);
+            expect(groupEnabled(series)).toBe(true);
+        });
+
         it('still shows tooltips when highlighting is disabled', async () => {
             const options: AgChartOptions = {
                 data: DATA,
