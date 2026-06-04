@@ -21,6 +21,7 @@ import {
     touchAverage,
     touchEvent,
     wheelEvent,
+    keydownEvent,
 } from 'ag-charts-test';
 import type {
     AgCartesianChartOptions,
@@ -741,6 +742,21 @@ export function twoFingerEnd(
         { identifier: identifier1, clientX: clientX1, clientY: clientY1, states: ['changed'] },
         { identifier: identifier2, clientX: clientX2, clientY: clientY2, states: ['changed'] },
     ]);
+}
+
+export function keyDownAction(
+    canvasX: number,
+    canvasY: number,
+    input: {key: string, code: string},
+): (chart: ChartOrProxy) => Promise<void> {
+    return async (chartOrProxy) => {
+        const chart = deproxy(chartOrProxy);
+        const testTarget = findChartTarget(chart, canvasX, canvasY);
+        checkTargetValid(testTarget);
+
+        dispatchEvent(testTarget, keydownEvent(input));
+        return delay(50);
+    };
 }
 
 export async function createChart(options: AgChartOptions<any, any>) {
