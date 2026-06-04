@@ -1624,6 +1624,9 @@ describe('DataSelection', () => {
 
                         await pressEscape(POINT_B);
                         await compareExact('drag-modifiers-bubble-no-selection');
+
+                        await mouseUp(POINT_B);
+                        await compareExact('drag-modifiers-bubble-no-selection');
                     });
                     test('getSelection', async () => {
                         await mouseDown(POINT_A, { shiftKey });
@@ -1632,6 +1635,9 @@ describe('DataSelection', () => {
 
                         await pressEscape(POINT_B);
                         expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(POINT_B);
+                        expect(getChartSelectionArray()).toEqual([]);
                     });
                     test('selectionChange', async () => {
                         await mouseDown(POINT_A, { shiftKey });
@@ -1639,6 +1645,9 @@ describe('DataSelection', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
 
                         await pressEscape(POINT_B);
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(POINT_B);
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
