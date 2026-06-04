@@ -1,4 +1,4 @@
-import type { DynamicContext, NormalisedChartCaptionOptions } from 'ag-charts-core';
+import type { DynamicContext, NormalisedChartCaptionOptions, NormalisedTextOrSegments } from 'ag-charts-core';
 import {
     FONT_SIZE,
     callWithContext,
@@ -11,7 +11,7 @@ import {
     wrapText,
     wrapTextSegments,
 } from 'ag-charts-core';
-import type { AgCaptionTooltipOptions, AgCaptionTooltipRendererParams, TextOrSegments } from 'ag-charts-types';
+import type { AgCaptionTooltipOptions, AgCaptionTooltipRendererParams } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
@@ -24,7 +24,7 @@ import type { TooltipContent } from './tooltip/tooltipContent';
 
 type CaptionNodeDatum = {
     visible: boolean;
-    text: TextOrSegments | undefined;
+    text: NormalisedTextOrSegments | undefined;
     textBaseline: string;
     x: number;
     y: number;
@@ -72,7 +72,7 @@ export class ChartCaption implements CaptionLike {
         return this.opts.enabled ?? false;
     }
 
-    get text(): TextOrSegments | undefined {
+    get text(): NormalisedTextOrSegments | undefined {
         return this.opts.text;
     }
 

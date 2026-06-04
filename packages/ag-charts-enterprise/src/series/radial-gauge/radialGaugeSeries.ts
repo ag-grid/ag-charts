@@ -7,13 +7,13 @@ import {
     type FontStyle,
     type FontWeight,
     type TextAlign,
-    type TextOrSegments,
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
     type ChartAnimationPhase,
     type DynamicContext,
+    type NormalisedTextOrSegments,
     type Point,
     StateMachine,
     isBetweenAngles,
@@ -116,7 +116,7 @@ interface RadialGaugeNeedleDatum {
 interface RadialGaugeTickDatum {
     index: number;
     value: number;
-    text: TextOrSegments;
+    text: NormalisedTextOrSegments;
 }
 
 interface RadialGaugeNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<
@@ -356,7 +356,7 @@ export class RadialGaugeSeries
         const tickData: RadialGaugeTickDatum[] = [];
 
         for (const [index, value] of ticks.entries()) {
-            let text: TextOrSegments | undefined;
+            let text: NormalisedTextOrSegments | undefined;
             if (label.formatter) {
                 text = formatWithContext(this.ctx, label.formatter, {
                     type: 'number',

@@ -1,6 +1,7 @@
-import type { FontFamily, FontSize, FontStyle, FontWeight, TextSegment } from 'ag-charts-types';
+import type { FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
 import type { Writeable } from './global';
+import type { NormalisedTextSegment } from './normalised-options/normalisedCommonOptions';
 import type { Size } from './scene';
 
 export const EllipsisChar = '\u2026';
@@ -32,7 +33,7 @@ export interface MultilineTextMetricsBox {
     lineMetrics: LineMetricsBox[];
 }
 
-export interface MeasuredSegment extends Omit<TextSegment, 'text'> {
+export interface MeasuredSegment extends Omit<NormalisedTextSegment, 'text'> {
     text: string;
     fontSize: number;
     textMetrics: TextMetricsBox;

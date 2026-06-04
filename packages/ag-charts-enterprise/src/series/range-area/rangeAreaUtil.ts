@@ -1,10 +1,5 @@
-import {
-    type AgRangeAreaSeriesItemType,
-    type AgSeriesMarkerStyle,
-    type TextOrSegments,
-    _ModuleSupport,
-} from 'ag-charts-community';
-import { type Point, areScalingEqual, isScaleValid } from 'ag-charts-core';
+import { type AgRangeAreaSeriesItemType, type AgSeriesMarkerStyle, _ModuleSupport } from 'ag-charts-community';
+import { type NormalisedTextOrSegments, type Point, areScalingEqual, isScaleValid } from 'ag-charts-core';
 
 import { type RangeAreaMarkerDatum } from './rangeAreaProperties';
 
@@ -18,7 +13,7 @@ const {
 
 export interface RangeAreaLabelDatum extends Readonly<Point> {
     datumIndex: number;
-    text: TextOrSegments;
+    text: NormalisedTextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     datum: any;

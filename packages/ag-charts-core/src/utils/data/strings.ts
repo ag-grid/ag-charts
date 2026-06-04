@@ -1,5 +1,4 @@
-import type { TextOrSegments } from 'ag-charts-types';
-
+import type { NormalisedTextOrSegments } from '../../types/normalised-options/normalisedCommonOptions';
 import { toTextString } from '../text/textUtils';
 import { isArray, isString } from '../types/typeGuards';
 
@@ -126,7 +125,7 @@ export function kebabCase(a: string) {
 // characters.
 const KEBAB_CASE_REGEX = /[A-Z]+(?![a-z])|[A-Z]/g;
 
-export function toPlainText(text?: TextOrSegments, fallback = ''): string {
+export function toPlainText(text?: NormalisedTextOrSegments, fallback = ''): string {
     if (text == null) {
         return fallback;
     } else if (isArray(text)) {

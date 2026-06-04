@@ -1,13 +1,13 @@
-import type { AxisID, BoxBounds, ChartAxisDirection, Point, Scale } from 'ag-charts-core';
-import type { AgCartesianAxisPosition, FormatterParams, TextOrSegments } from 'ag-charts-types';
+import type { AxisID, BoxBounds, ChartAxisDirection, NormalisedTextOrSegments, Point, Scale } from 'ag-charts-core';
+import type { AgCartesianAxisPosition, FormatterParams } from 'ag-charts-types';
 
 import type { Group } from '../scene/group';
 import type { Node } from '../scene/node';
 
 export type ContextFormatter<Params> = (
-    fn: (params: Params) => TextOrSegments | undefined,
+    fn: (params: Params) => NormalisedTextOrSegments | undefined,
     params: Params
-) => TextOrSegments | undefined;
+) => NormalisedTextOrSegments | undefined;
 
 export interface AxisFormattableLabel<FormatParams extends object, Params extends object = FormatParams> {
     formatValue(
@@ -15,7 +15,7 @@ export interface AxisFormattableLabel<FormatParams extends object, Params extend
         type: 'number' | 'date' | 'category',
         value: any,
         params: Params
-    ): TextOrSegments | undefined;
+    ): NormalisedTextOrSegments | undefined;
 }
 
 export interface AxisBandMeasurement {

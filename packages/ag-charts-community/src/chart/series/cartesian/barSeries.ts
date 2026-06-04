@@ -3,6 +3,7 @@ import type {
     DomainWithMetadata,
     DynamicContext,
     Mutable,
+    NormalisedTextOrSegments,
     Point,
     RequireOptional,
     Scale,
@@ -27,7 +28,6 @@ import type {
     AgBarSeriesStyle,
     AgBarSeriesStylerParams,
     AgErrorBoundSeriesTooltipRendererParams,
-    TextOrSegments,
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
@@ -99,7 +99,7 @@ import { calculateDataDiff } from './diffUtil';
 import { calculateSegments } from './util';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
-    readonly text: TextOrSegments;
+    readonly text: NormalisedTextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
 }
@@ -176,7 +176,7 @@ interface PreparedBarNodeDatumState {
     xValue: any;
     yRawValue: number;
     yFilterValue?: number;
-    labelText?: TextOrSegments;
+    labelText?: NormalisedTextOrSegments;
     inset: boolean;
     isPositive: boolean;
     precomputedBottomY?: number;

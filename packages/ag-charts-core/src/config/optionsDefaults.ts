@@ -1,8 +1,11 @@
 import type {
     AgBarHighlightStyleOptions,
+    AgColorRef,
+    AgColorRefMixOnto,
     AgColorScale,
     AgColorScaleColorStop,
     AgColorType,
+    AgCssColorOrRef,
     AgGradientColor,
     AgGradientColorBounds,
     AgGradientColorStop,
@@ -62,7 +65,17 @@ export const themeOperator = (value: unknown) => {
     return keys.length === 1 && keys[0].startsWith('$');
 };
 
-const colorStop = optionsDefs<AgGradientColorStop>({ color: color, stop: ratio }, '');
+// Validator for public theme operators.
+export const colorRef = attachDescription(
+    or(
+        optionsDefs<AgColorRefMixOnto>({ ref: required(string), mix: required(ratio), onto: required(string) }),
+        optionsDefs<AgColorRef>({ ref: required(string), mix: ratio })
+    ),
+    'a color ref'
+);
+export const colorOrRef = or(colorRef, color);
+
+const colorStop = optionsDefs<AgGradientColorStop>({ color: colorOrRef, stop: ratio }, '');
 export const colorStopsOrderValidator = attachDescription((value) => {
     let lastStop = -Infinity;
     for (const item of value as AgGradientColorStop[]) {
@@ -78,7 +91,7 @@ export const colorStopsOrderValidator = attachDescription((value) => {
 export const gradientColorStops = and(arrayLength(2), arrayOf(colorStop), colorStopsOrderValidator);
 
 const colorScaleColorStop = optionsDefs<AgColorScaleColorStop>(
-    { color: required(color), stop: number, name: string },
+    { color: required(colorOrRef), stop: number, name: string },
     'a color scale color stop'
 );
 export const colorScaleOptionsDef = optionsDefs<AgColorScale>(
@@ -93,7 +106,7 @@ export const colorScaleOptionsDef = optionsDefs<AgColorScale>(
             )
         ),
         mode: union('continuous', 'discrete'),
-        missingDataFill: color,
+        missingDataFill: colorOrRef,
     },
     'a colour scale configuration'
 );
@@ -151,7 +164,7 @@ export type RequiredInternalAgColorType =
     | (RequiredInternalAgImageFill & Pick<InternalAgImageFill, 'url'>);
 
 export const strokeOptionsDef: OptionsDefs<StrokeOptions> = {
-    stroke: color,
+    stroke: colorOrRef,
     strokeWidth: positiveNumber,
     strokeOpacity: ratio,
 };
@@ -160,7 +173,7 @@ export const fillGradientDefaults = optionsDefs<InternalAgGradientColor>({
     type: required(constant('gradient')),
     gradient: required(union('linear', 'radial', 'conic')),
     bounds: required(gradientBounds),
-    colorStops: required(or(gradientColorStops, and(arrayLength(2), arrayOf(color)))),
+    colorStops: required(or(gradientColorStops, and(arrayLength(2), arrayOf(colorOrRef)))),
     rotation: required(number),
     reverse: required(boolean),
     colorSpace: required(union('rgb', 'oklch')),
@@ -186,14 +199,14 @@ export const fillPatternDefaults = optionsDefs<InternalAgPatternColor>({
     path: stringLength(2),
     width: required(positiveNumber),
     height: required(positiveNumber),
-    fill: required(color),
+    fill: required(colorOrRef),
     fillOpacity: required(ratio),
-    backgroundFill: required(color),
+    backgroundFill: required(colorOrRef),
     backgroundFillOpacity: required(ratio),
     padding: required(positiveNumber),
     rotation: required(number),
     scale: required(positiveNumber),
-    stroke: required(color),
+    stroke: required(colorOrRef),
     strokeWidth: required(positiveNumber),
     strokeOpacity: required(ratio),
 });
@@ -204,7 +217,7 @@ export const fillImageDefaults = optionsDefs<InternalAgImageFill>({
     width: positiveNumber,
     height: positiveNumber,
     rotation: required(number),
-    backgroundFill: required(color),
+    backgroundFill: required(colorOrRef),
     backgroundFillOpacity: ratio,
     fit: required(union('stretch', 'contain', 'cover')),
     repeat: required(union('repeat', 'repeat-x', 'repeat-y', 'no-repeat')),
@@ -239,16 +252,16 @@ const colorObjectDefs: OptionsDefs<Exclude<AgColorType, CssColor>> = {
         height: positiveNumber,
         rotation: number,
         scale: positiveNumber,
-        fill: color,
+        fill: colorOrRef,
         fillOpacity: ratio,
-        backgroundFill: color,
+        backgroundFill: colorOrRef,
         backgroundFillOpacity: ratio,
         ...strokeOptionsDef,
         padding: undocumented(positiveNumber),
     },
     image: {
         url: required(string),
-        backgroundFill: color,
+        backgroundFill: colorOrRef,
         backgroundFillOpacity: ratio,
         width: positiveNumber,
         height: positiveNumber,
@@ -257,9 +270,9 @@ const colorObjectDefs: OptionsDefs<Exclude<AgColorType, CssColor>> = {
         rotation: number,
     },
 };
-const colorObject = typeUnion<Exclude<AgColorType, CssColor>>(colorObjectDefs as any, 'a color object');
+const colorObject = typeUnion<Exclude<AgColorType, AgCssColorOrRef>>(colorObjectDefs as any, 'a color object');
 
-export const colorUnion = or(color, optionsDefs(colorObject, 'a color object'));
+export const colorUnion = or(colorRef, color, optionsDefs(colorObject, 'a color object'));
 
 export const fillOptionsDef: OptionsDefs<FillOptions> = {
     fill: colorUnion,
@@ -274,7 +287,7 @@ fillOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
 fillOptionsDef.fillImageDefaults = undocumented(fillImageDefaults);
 
 export const fillCssOptionsDef: OptionsDefs<FillCssOptions> = {
-    fill: color,
+    fill: colorOrRef,
     fillOpacity: ratio,
 };
 
@@ -379,7 +392,7 @@ export const fontFamilyFull = or(string, themeOperator, googleFont, arrayOf(or(s
 export const fontWeight = or(positiveNumber, union('normal', 'bold', 'bolder', 'lighter'));
 
 export const fontOptionsDef: OptionsDefs<TextOptions> = {
-    color: color,
+    color: colorOrRef,
     fontFamily: fontFamilyFull,
     fontSize: positiveNumber,
     fontStyle: union('normal', 'italic', 'oblique'),
@@ -399,7 +412,7 @@ export const padding = or(number, paddingOptions);
 
 export const borderOptionsDef: OptionsDefs<BorderOptions> = {
     enabled: boolean,
-    stroke: color,
+    stroke: colorOrRef,
     strokeWidth: positiveNumber,
     strokeOpacity: ratio,
 };

@@ -210,15 +210,15 @@ describe('themes.ts', () => {
             await waitForChartStability(chart);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
-[
-  [
-    "AG Charts - Option \`theme.palette.fills\` cannot be set to \`"red"\`; expecting a color string or a color object array, ignoring.",
-  ],
-  [
-    "AG Charts - Option \`theme.palette.strokes\` cannot be set to \`"black"\`; expecting a color string array, ignoring.",
-  ],
-]
-`);
+              [
+                [
+                  "AG Charts - Option \`theme.palette.fills\` cannot be set to \`"red"\`; expecting a color ref, a color string or a color object array, ignoring.",
+                ],
+                [
+                  "AG Charts - Option \`theme.palette.strokes\` cannot be set to \`"black"\`; expecting a color string array, ignoring.",
+                ],
+              ]
+            `);
         });
     });
 

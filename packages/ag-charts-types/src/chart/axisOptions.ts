@@ -1,5 +1,6 @@
 import type { LabelBoxOptions, TextOrSegments } from '../series/cartesian/commonOptions';
 import type { RichFormatter, Styler } from './callbackOptions';
+import type { AgCssColorOrRef } from './themeParamsOptions';
 import type {
     ContextDefault,
     CssColor,
@@ -47,7 +48,7 @@ export interface AgAxisCaptionOptions {
     /** The font family to use for the title. */
     fontFamily?: FontFamilyFull;
     /** The colour to use for the title. */
-    color?: CssColor;
+    color?: AgCssColorOrRef;
     /** Spacing between the axis labels and the axis title. */
     spacing?: PixelSize;
     /** Used to constrain the size of the title along the text direction before wrapping or truncation. */
@@ -173,7 +174,7 @@ export interface AgBaseAxisLabelStyleOptions extends LabelBoxOptions {
     /** Spacing in pixels between the axis label and the tick. */
     spacing?: PixelSize;
     /** The colour to use for the labels */
-    color?: CssColor;
+    color?: AgCssColorOrRef;
 }
 
 export interface AgAxisLabelFormatterParams<TContext = ContextDefault> {

@@ -4,9 +4,9 @@ import {
     ModuleRegistry,
     type OptionsDefs,
     arrayOf,
-    attachDescription,
     boolean,
     color,
+    colorOrRef,
     colorUnion,
     fontFamilyFull,
     fontWeight,
@@ -15,10 +15,7 @@ import {
     mergeDefaults,
     number,
     object,
-    optionsDefs,
     or,
-    ratio,
-    required,
     string,
     union,
     validate,
@@ -29,8 +26,6 @@ import type {
     AgChartThemeOverrides,
     AgChartThemePalette,
     AgChartThemeParams,
-    AgColorRef,
-    AgColorRefMixOnto,
 } from 'ag-charts-types';
 
 import { ChartTheme } from '../themes/chartTheme';
@@ -163,15 +158,6 @@ function reduceThemeOptions(options: AgChartTheme): AgChartTheme {
         palette,
     };
 }
-
-const colorRef = attachDescription(
-    or(
-        optionsDefs<AgColorRefMixOnto>({ ref: required(string), mix: required(ratio), onto: required(string) }),
-        optionsDefs<AgColorRef>({ ref: required(string), mix: ratio })
-    ),
-    'a color ref'
-);
-const colorOrRef = or(colorRef, color);
 
 export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
     baseTheme: or(string, object),

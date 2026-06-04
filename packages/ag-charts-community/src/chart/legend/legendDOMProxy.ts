@@ -1,11 +1,11 @@
 import {
     type BoxBounds,
     type DynamicContext,
+    type NormalisedTextOrSegments,
     type StrictHTMLElement,
     createElementId,
     toPlainText,
 } from 'ag-charts-core';
-import type { TextOrSegments } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
@@ -23,7 +23,7 @@ import type { CategoryLegendDatum } from './legendDatum';
 import type { LegendMarkerLabel } from './legendMarkerLabel';
 
 type ItemSelection = Selection<CategoryLegendDatum, LegendMarkerLabel>;
-type CategoryLegendDatumReader = { getItemLabel(datum: CategoryLegendDatum): TextOrSegments | undefined };
+type CategoryLegendDatumReader = { getItemLabel(datum: CategoryLegendDatum): NormalisedTextOrSegments | undefined };
 
 interface ButtonListener {
     onClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget): void;

@@ -1,3 +1,4 @@
+import type { AgCssColorOrRef } from '../../chart/themeParamsOptions';
 import type {
     CssColor,
     DatumKey,
@@ -229,7 +230,7 @@ export interface FontOptions {
  */
 export interface TextOptions extends FontOptions {
     /** The colour for text elements. */
-    color?: CssColor;
+    color?: AgCssColorOrRef;
 }
 
 export type Padding = PixelSize | PaddingOptions;

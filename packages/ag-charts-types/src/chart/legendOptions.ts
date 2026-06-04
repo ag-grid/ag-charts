@@ -1,6 +1,7 @@
 import type { AgColorType, BorderOptions, FillOptions, Padding } from '../series/cartesian/commonOptions';
 import type { Formatter, Renderer } from './callbackOptions';
 import type { AgPreventableEvent } from './eventOptions';
+import type { AgCssColorOrRef } from './themeParamsOptions';
 import type {
     AgMarkerShape,
     ContextDefault,
@@ -92,7 +93,7 @@ export interface AgChartLegendLabelOptions<TContext = ContextDefault> {
     /** If the label text exceeds the specified number of characters, it will be truncated and an ellipsis will be appended to indicate this. */
     maxLength?: number;
     /** The colour of the text. */
-    color?: CssColor;
+    color?: AgCssColorOrRef;
     /** The font style to use for the legend. */
     fontStyle?: FontStyle;
     /** The font weight to use for the legend. */
@@ -264,7 +265,7 @@ export interface AgPaginationMarkerStyle {
 
 export interface AgPaginationLabelOptions {
     /** The colour of the text. */
-    color?: CssColor;
+    color?: AgCssColorOrRef;
     /** The font style to use for the pagination label. */
     fontStyle?: FontStyle;
     /** The font weight to use for the pagination label. */
