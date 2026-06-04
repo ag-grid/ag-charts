@@ -1102,7 +1102,7 @@ export abstract class Series<
         })();
 
         yield* walkNodes(this.contentGroup, (node) => {
-            const { x, y, width, height } = node.getBBox();
+            const { x, y, width, height } = Transformable.toCanvas(this.contentGroup, node.getBBox());
             if (predicate(selectionBox, x, y, width, height)) {
                 return node.unsafeDatum;
             }
