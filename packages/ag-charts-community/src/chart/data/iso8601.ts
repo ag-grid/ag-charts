@@ -37,3 +37,13 @@ export function isISO8601(value: unknown): value is string {
     const maxDay = month === 2 && isLeapYear ? 29 : DAYS_IN_MONTH[month - 1];
     return day >= 1 && day <= maxDay;
 }
+
+/**
+ * Coerce a strict ISO 8601 string to a `Date` for domain construction; anything else passes through
+ * unchanged. The raw string is preserved in the data column (for timezone-correct display); this
+ * coercion only applies to the domain extent, which must be numeric/`Date` for the time scales. The
+ * scales themselves already parse ISO via `timeValueToNumber`, so only the domain classes need this.
+ */
+export function coerceIso8601Date(value: unknown): unknown {
+    return isISO8601(value) ? new Date(value) : value;
+}

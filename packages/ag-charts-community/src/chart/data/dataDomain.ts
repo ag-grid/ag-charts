@@ -1,6 +1,7 @@
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { type BandLike, BandedStructure, type BandedStructureConfig } from './data-model/utils/bandedStructure';
+import { coerceIso8601Date } from './iso8601';
 
 export interface IDataDomain<D = any> {
     extend(val: any): void;
@@ -21,6 +22,12 @@ export class DiscreteDomain implements IDataDomain {
     private sortOrder: SortOrder | undefined = undefined;
     private isSortedUnique: boolean = false;
 
+    constructor(
+        // When true (time/ordinal-time keys), ISO 8601 strings coerce to Date instants. A plain category
+        // domain keeps ISO-shaped strings (e.g. '2024-01-15') as opaque labels, so the flag is off there.
+        private readonly coerceDates: boolean = false
+    ) {}
+
     static is(value: unknown): value is DiscreteDomain {
         return value instanceof DiscreteDomain;
     }
@@ -39,6 +46,11 @@ export class DiscreteDomain implements IDataDomain {
     }
 
     extend(val: any) {
+        // A time/ordinal-time key accepts ISO 8601 strings; coerce to Date so they bucket as instants
+        // rather than as opaque category labels (the column keeps the raw string for display).
+        if (this.coerceDates && typeof val === 'string') {
+            val = coerceIso8601Date(val);
+        }
         if (this.isSortedUnique && this.sortedValues) {
             // Sorted unique mode: store values directly without conversion
             // Null deduplication is handled in getDomain()
@@ -200,14 +212,20 @@ export class ContinuousDomain<T extends number | Date> implements IDataDomain<T>
     }
 
     extend(value: T | bigint) {
-        if (typeof value !== 'number' && typeof value !== 'bigint' && !(value instanceof Date)) {
+        // A time key accepts ISO 8601 strings; coerce to Date so the extent is computed as instants
+        // (the column keeps the raw string for display). The time scales parse ISO at convert() time.
+        let v: unknown = value;
+        if (typeof v === 'string') {
+            v = coerceIso8601Date(v);
+        }
+        if (typeof v !== 'number' && typeof v !== 'bigint' && !(v instanceof Date)) {
             return;
         }
-        if (this.domain[0] > value) {
-            this.domain[0] = value;
+        if (this.domain[0] > v) {
+            this.domain[0] = v as T | bigint;
         }
-        if (this.domain[1] < value) {
-            this.domain[1] = value;
+        if (this.domain[1] < v) {
+            this.domain[1] = v as T | bigint;
         }
     }
 

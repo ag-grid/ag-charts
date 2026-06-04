@@ -3017,5 +3017,39 @@ describe('DataModel', () => {
             const keys = [...result.keys[0].get(ISO_SCOPE)!];
             expect(keys).toEqual(['2024-01-15', 'not a date']);
         });
+
+        it('derives a Date key domain from ISO 8601 strings on a time axis (AG-16654)', () => {
+            const model = timeKeyModel();
+            const result = model.processData(
+                basicDataSet([
+                    { x: '2024-01-15T09:00:00Z', y: 1 },
+                    { x: '2024-01-15T12:00:00Z', y: 2 },
+                ])
+            )!;
+
+            // The raw column keeps the strings (AC #7); the domain coerces to Date instants so the time
+            // scale receives a numeric extent. Before AG-16654 the strings were ignored and this was empty.
+            const domain = result.domain.keys[0];
+            expect(domain.length).toBeGreaterThan(0);
+            expect(domain.every((d: unknown) => d instanceof Date)).toBe(true);
+            expect((domain[0] as Date).getTime()).toBe(new Date('2024-01-15T09:00:00Z').getTime());
+            expect((domain.at(-1) as Date).getTime()).toBe(new Date('2024-01-15T12:00:00Z').getTime());
+        });
+
+        it('keeps ISO-shaped strings as labels in a category-axis domain (AG-16654 guard)', () => {
+            const model = new DataModel<any, any, false>({
+                props: [scoped(keyProperty('x')), scoped(valueProperty('y', 'number'))],
+                groupByKeys: false,
+            });
+            const result = model.processData(
+                basicDataSet([
+                    { x: '2024-01-15', y: 1 },
+                    { x: '2024-02-20', y: 2 },
+                ])
+            )!;
+
+            // A category axis must not coerce ISO-shaped labels to Date instants.
+            expect(result.domain.keys[0]).toEqual(['2024-01-15', '2024-02-20']);
+        });
     });
 });

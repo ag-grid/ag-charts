@@ -343,7 +343,7 @@ export class DomainManager<D extends object, K extends keyof D & string> {
             // First, create domains for key definitions
             for (const def of keyDefs) {
                 if (def.valueType === 'category') {
-                    dataDomain.set(def, new DiscreteDomain());
+                    dataDomain.set(def, new DiscreteDomain(def.timeDomain === true));
                 } else {
                     dataDomain.set(def, new ContinuousDomain());
                 }
@@ -362,7 +362,7 @@ export class DomainManager<D extends object, K extends keyof D & string> {
                 }
 
                 if (def.valueType === 'category') {
-                    dataDomain.set(def, new DiscreteDomain());
+                    dataDomain.set(def, new DiscreteDomain(def.timeDomain === true));
                 } else {
                     dataDomain.set(def, new ContinuousDomain());
                     allScopesHaveSameDefs &&= (def.scopes?.length ?? 0) === scopes.size;

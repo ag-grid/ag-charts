@@ -108,12 +108,19 @@ function getValueType(scaleType?: ScaleType) {
             return 'category';
     }
 }
+
+// Time scales accept ISO 8601 strings; their (possibly discrete) domain must coerce them to Date instants.
+function isTimeScaleType(scaleType?: ScaleType): boolean {
+    return scaleType === 'time' || scaleType === 'unit-time' || scaleType === 'ordinal-time';
+}
+
 export function keyProperty<K>(propName: K, scaleType?: ScaleType, opts: Partial<DatumPropertyDefinition<K>> = {}) {
     const allowNullKey = opts.allowNullKey ?? false;
     const result: DatumPropertyDefinition<K> = {
         property: propName,
         type: 'key',
         valueType: getValueType(scaleType),
+        timeDomain: isTimeScaleType(scaleType),
         validation: opts.validation ?? getValidationFn(scaleType, allowNullKey),
         ...opts,
     };
@@ -126,6 +133,7 @@ export function valueProperty<K>(propName: K, scaleType?: ScaleType, opts: Parti
         property: propName,
         type: 'value',
         valueType: getValueType(scaleType),
+        timeDomain: isTimeScaleType(scaleType),
         validation: opts.validation ?? getValidationFn(scaleType, allowNullKey),
         ...opts,
     };

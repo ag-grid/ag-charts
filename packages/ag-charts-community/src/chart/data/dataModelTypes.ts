@@ -293,6 +293,9 @@ export type PropertySelectors = {
 export type DatumPropertyDefinition<K> = PropertyIdentifiers & {
     type: 'key' | 'value';
     valueType: DatumPropertyType;
+    /** True for time scales (time/unit-time/ordinal-time), so a discrete domain coerces ISO 8601 strings
+     * to Date instants rather than keeping them as opaque category labels. */
+    timeDomain?: boolean;
     property: K;
     forceValue?: any;
     includeProperty?: boolean;
