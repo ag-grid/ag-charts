@@ -162,7 +162,7 @@ export type AgChartHighlightRange = 'tooltip' | 'node';
 
 export interface AgChartHighlightOptions {
     /**
-     * Set to `false` to disable highlighting for all series. Individual series can re-enable it with `series[].highlight.enabled`.
+     * Set to `false` to disable highlighting for all series in the chart.
      *
      * Default: `true`
      */
