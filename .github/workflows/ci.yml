@@ -26,6 +26,7 @@ on:
                     - 'run-many'
 
 env:
+    IBM_TELEMETRY_DISABLED: 'true'
     # Disable git's post-fetch background gc/maintenance for every git invocation
     # (injected via git's GIT_CONFIG_* protocol). Otherwise it rewrites .git/shallow
     # concurrently with the next chained `git fetch --depth 1`, intermittently failing

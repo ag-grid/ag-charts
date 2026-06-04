@@ -11,6 +11,7 @@
     "preinstall": "./external/ag-shared/scripts/setup-worktree/preinstall-worktree.sh && yarn run preinstall:verify-native-dep-versions",
     "preinstall:verify-native-dep-versions": "./tools/dependencies/check-versions.sh",
     "postinstall": "npx run-s postinstall:*",
+    "postinstall:0-allow-scripts": "[ -z \"$ALLOW_SCRIPTS_RUNNING\" ] && ALLOW_SCRIPTS_RUNNING=1 npx --yes @lavamoat/allow-scripts || true",
     "postinstall:patch": "[ \"$AG_WORKTREE_FAST_PATH\" = \"1\" ] || ./external/ag-shared/scripts/apply-patches.sh",
     "postinstall:nx-stop-watch": "[ \"$AG_WORKTREE_FAST_PATH\" = \"1\" ] || pkill -f \"nx dev\" || echo \"Nx watch not running\"",
     "postinstall:nx-daemon-prebuild-restart": "[ \"$AG_WORKTREE_FAST_PATH\" = \"1\" ] || (test -e .nx/workspace-data/d/server-process.json && nx daemon --stop) || echo \"Nx Daemon not running\"",
@@ -38,6 +39,7 @@
     "@cspell/dict-en-gb": "^5.0.21",
     "@eslint/js": "^9.14.0",
     "@kazuph/mcp-fetch": "1.6.2",
+    "@lavamoat/allow-scripts": "^5.0.2",
     "@modelcontextprotocol/server-puppeteer": "^2025.5.12",
     "@modelcontextprotocol/server-sequential-thinking": "^2025.12.18",
     "@nanostores/persistent": "^0.9.0",
@@ -184,5 +186,22 @@
     "@nx/devkit/**/ejs": "3.1.10",
     "@nx/devkit/**/ejs/jake": "10.9.4",
     "@nx/devkit/**/brace-expansion": "2.0.2"
+  },
+  "lavamoat": {
+    "allowScripts": {
+      "@carbon/icons-react#11.80.0": false,
+      "@carbon/icons-react>@carbon/icon-helpers#10.75.0": false,
+      "@kazuph/mcp-fetch>sharp#0.33.5": true,
+      "@modelcontextprotocol/server-puppeteer>puppeteer#23.11.1": true,
+      "@size-limit/esbuild>esbuild#0.24.2": true,
+      "@swc/core#1.15.32": true,
+      "esbuild#0.19.9": true,
+      "nx#20.3.1": true,
+      "rulesync>fastmcp>mcp-proxy>pipenet>tldjs#2.3.2": true,
+      "tsx>esbuild#0.27.7": true,
+      "vite>esbuild#0.21.5": true,
+      "vitest>vite-node>vite>esbuild#0.25.0": true,
+      "vitest>vite>esbuild#0.25.0": true
+    }
   }
 }
