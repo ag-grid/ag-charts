@@ -517,6 +517,9 @@ jobs:
               with:
                   name: website-staging-dist
                   path: dist/packages/ag-charts-website/
+                  # upload-artifact@v4 excludes hidden files by default, which would drop the
+                  # generated .htaccess (CSP + redirects) before the deploy job zips it.
+                  include-hidden-files: true
                   retention-days: 1
 
     test:
