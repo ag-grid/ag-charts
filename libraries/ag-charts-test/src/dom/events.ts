@@ -250,6 +250,6 @@ export function touchEvent(type: MockTouchTypes, mockEvent: MockEvent, mockTouch
     return event;
 }
 
-export function keydownEvent(input: { key:string, code: string}): KeyboardEvent {
+export function keydownEvent(input: { key: string; code: string }): KeyboardEvent {
     return new KeyboardEvent('keydown', input);
 }

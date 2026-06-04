@@ -13,6 +13,7 @@ import {
     contextMenuEvent,
     dispatchEvent,
     doubleClickEvent,
+    keydownEvent,
     mouseDownEvent,
     mouseEnterEvent,
     mouseLeaveEvent,
@@ -21,7 +22,6 @@ import {
     touchAverage,
     touchEvent,
     wheelEvent,
-    keydownEvent,
 } from 'ag-charts-test';
 import type {
     AgCartesianChartOptions,
@@ -747,7 +747,7 @@ export function twoFingerEnd(
 export function keyDownAction(
     canvasX: number,
     canvasY: number,
-    input: {key: string, code: string},
+    input: { key: string; code: string }
 ): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);

@@ -344,7 +344,7 @@ describe('DataSelection', () => {
         await waitForChartStability(chart);
     }
     async function pressEscape(point: CanvasPoint) {
-        await keyDownAction(point.canvasX, point.canvasY, {key: 'Escape', code: 'Escape'})(chart);
+        await keyDownAction(point.canvasX, point.canvasY, { key: 'Escape', code: 'Escape' })(chart);
         await waitForChartStability(chart);
     }
 
