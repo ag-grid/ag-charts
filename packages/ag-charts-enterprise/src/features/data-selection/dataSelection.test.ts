@@ -1531,7 +1531,7 @@ describe('DataSelection', () => {
                         });
                     });
                     describe('follow-up', () => {
-                        describe('click on selected node set that node to the sole selection', () => {
+                        describe('click on selected node sets that node to the sole selection', () => {
                             test.skip('screenshot', async () => {
                                 await mouseClick(POINT_MOVIE);
                                 await mouseMove(POINT_MISS);
@@ -1565,7 +1565,7 @@ describe('DataSelection', () => {
                                 expect(selectionChange.popEvents()).toEqual([REMOVED_MOVIE]);
                             });
                         });
-                        describe('click on unselected node set that node to the sole selection', () => {
+                        describe('click on unselected node sets that node to the sole selection', () => {
                             test.skip('screenshot', async () => {
                                 await mouseClick(POINT_IMG1);
                                 await mouseMove(POINT_MISS);
@@ -1582,7 +1582,7 @@ describe('DataSelection', () => {
                                 expect(selectionChange.popEvents()).toEqual([ADDED_IMG1_REMOVED_MOVIE_MNT_VID2]);
                             });
                         });
-                        describe('ctrl-click on unselected node add that node only', () => {
+                        describe('ctrl-click on unselected node adds that node only', () => {
                             test.skip('screenshot', async () => {
                                 await mouseClick(POINT_IMG1, { ctrlKey });
                                 await mouseMove(POINT_MISS);
