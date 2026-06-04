@@ -38,9 +38,9 @@ type ReferenceMap = Map<string, NodeTypes>;
 
 // NOTE: Not on the layout level, as that is generated at build time, and queryClient needs to be
 // loaded on the client side
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient();
 
-const queryOptions = {
+export const queryOptions = {
     retry: false,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
