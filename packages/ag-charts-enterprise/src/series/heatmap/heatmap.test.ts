@@ -1229,7 +1229,7 @@ describe('HeatmapSeries', () => {
                     series: [{ type: 'heatmap', xKey: 'col', yKey: 'row', colorKey: 'temp' }],
                     axes: { x: { type: 'category' }, y: { type: 'category' } },
                     legend: { enabled: false },
-                } as AgChartOptions)
+                })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
     });

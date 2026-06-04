@@ -2254,7 +2254,7 @@ describe('LineSeries', () => {
                     ],
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                     axes: categoryNumberAxes,
-                } as AgCartesianChartOptions)
+                })
             );
             await compare();
         });
@@ -2271,7 +2271,7 @@ describe('LineSeries', () => {
                         { type: 'line', xKey: 'x', yKey: 'b', stacked: true },
                     ],
                     axes: categoryNumberAxes,
-                } as AgCartesianChartOptions)
+                })
             );
             await compare();
         });
@@ -2288,7 +2288,7 @@ describe('LineSeries', () => {
                         { type: 'line', xKey: 'x', yKey: 'b', stacked: true, normalizedTo: 100 },
                     ],
                     axes: categoryNumberAxes,
-                } as AgCartesianChartOptions)
+                })
             );
             await compare();
         });
@@ -2306,7 +2306,7 @@ describe('LineSeries', () => {
                     ],
                     series: [{ type: 'line', xKey: 'time', yKey: 'y' }],
                     axes: { x: { type: 'time' }, y: { type: 'number' } },
-                } as AgCartesianChartOptions)
+                })
             );
             await compare();
         });

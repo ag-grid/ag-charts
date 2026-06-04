@@ -298,7 +298,7 @@ describe('HistogramSeries', () => {
                 ],
                 series: [{ type: 'histogram', xKey: 'x', yKey: 'y', aggregation: 'sum', bins: [[0, 10]] }],
             };
-            prepareTestOptions(options as any);
+            prepareTestOptions(options);
 
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
@@ -667,7 +667,7 @@ describe('HistogramSeries', () => {
                     data: [base, base + 10n, base + 25n, base + 40n, base + 80n, base + 95n].map((x) => ({ x })),
                     series: [{ type: 'histogram', xKey: 'x', binCount: 5 }],
                     axes: { x: { type: 'number' }, y: { type: 'number' } },
-                } as AgCartesianChartOptions)
+                })
             );
             await compare();
         });

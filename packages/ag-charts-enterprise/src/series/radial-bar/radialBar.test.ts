@@ -912,7 +912,7 @@ describe('RadialBarSeries', () => {
                     data: plainData,
                     series: [{ type: 'radial-bar', angleKey: 'value', radiusKey: 'quarter' }],
                     axes: polarAxes,
-                } as AgChartOptions)
+                })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
 
@@ -925,7 +925,7 @@ describe('RadialBarSeries', () => {
                         { type: 'radial-bar', angleKey: 'value2', radiusKey: 'quarter', stacked: true },
                     ],
                     axes: polarAxes,
-                } as AgChartOptions)
+                })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
 
@@ -938,7 +938,7 @@ describe('RadialBarSeries', () => {
                         { type: 'radial-bar', angleKey: 'value2', radiusKey: 'quarter', grouped: true },
                     ],
                     axes: polarAxes,
-                } as AgChartOptions)
+                })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
 
@@ -963,7 +963,7 @@ describe('RadialBarSeries', () => {
                         },
                     ],
                     axes: polarAxes,
-                } as AgChartOptions)
+                })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
     });

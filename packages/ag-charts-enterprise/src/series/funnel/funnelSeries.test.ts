@@ -677,7 +677,7 @@ describe('FunnelSeries', () => {
                         { stage: 'c', value: BIG },
                     ],
                     series: [{ type: 'funnel', stageKey: 'stage', valueKey: 'value' }],
-                } as AgChartOptions)
+                })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
     });

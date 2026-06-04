@@ -1014,7 +1014,7 @@ describe('WaterfallSeries', () => {
                     ],
                     series: [{ type: 'waterfall', xKey: 'x', yKey: 'amount' }],
                     axes: { x: { type: 'category' }, y: { type: 'number' } },
-                } as AgChartOptions)
+                })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
     });
@@ -1031,7 +1031,7 @@ describe('WaterfallSeries', () => {
                     ],
                     series: [{ type: 'waterfall', xKey: 'time', yKey: 'amount' }],
                     axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
-                } as AgChartOptions)
+                })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
     });

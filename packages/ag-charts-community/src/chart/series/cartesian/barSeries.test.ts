@@ -2752,7 +2752,7 @@ describe('BarSeries', () => {
                     ],
                     series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
                     axes: categoryNumberAxes,
-                } as AgCartesianChartOptions)
+                })
             );
             await compare();
         });
@@ -2769,7 +2769,7 @@ describe('BarSeries', () => {
                         { type: 'bar', xKey: 'x', yKey: 'b', grouped: true },
                     ],
                     axes: categoryNumberAxes,
-                } as AgCartesianChartOptions)
+                })
             );
             await compare();
         });
@@ -2786,7 +2786,7 @@ describe('BarSeries', () => {
                         { type: 'bar', xKey: 'x', yKey: 'b', stacked: true },
                     ],
                     axes: categoryNumberAxes,
-                } as AgCartesianChartOptions)
+                })
             );
             await compare();
         });
@@ -2803,7 +2803,7 @@ describe('BarSeries', () => {
                         { type: 'bar', xKey: 'x', yKey: 'b', stacked: true, normalizedTo: 100 },
                     ],
                     axes: categoryNumberAxes,
-                } as AgCartesianChartOptions)
+                })
             );
             await compare();
         });
@@ -2821,7 +2821,7 @@ describe('BarSeries', () => {
                         { type: 'bar', xKey: 'x', yKey: 'b', stacked: true },
                     ],
                     axes: categoryNumberAxes,
-                } as AgCartesianChartOptions)
+                })
             );
             await waitForChartStability(chart);
             expect(chart).toBeDefined();
@@ -2840,7 +2840,7 @@ describe('BarSeries', () => {
                     ],
                     series: [{ type: 'bar', xKey: 'time', yKey: 'y' }],
                     axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
-                } as AgCartesianChartOptions)
+                })
             );
             await compare();
         });

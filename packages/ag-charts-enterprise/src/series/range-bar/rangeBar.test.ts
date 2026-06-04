@@ -1741,7 +1741,7 @@ describe('RangeBarSeries', () => {
                     ],
                     series: [{ type: 'range-bar', xKey: 'x', yLowKey: 'lo', yHighKey: 'hi' }],
                     axes: numberAxes,
-                } as AgChartOptions)
+                })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
 
@@ -1757,7 +1757,7 @@ describe('RangeBarSeries', () => {
                         { type: 'range-bar', xKey: 'x', yLowKey: 'lo2', yHighKey: 'hi2', grouped: true },
                     ],
                     axes: numberAxes,
-                } as AgChartOptions)
+                })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
     });
@@ -1774,7 +1774,7 @@ describe('RangeBarSeries', () => {
                     ],
                     series: [{ type: 'range-bar', xKey: 'time', yLowKey: 'lo', yHighKey: 'hi' }],
                     axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
-                } as AgChartOptions)
+                })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
     });

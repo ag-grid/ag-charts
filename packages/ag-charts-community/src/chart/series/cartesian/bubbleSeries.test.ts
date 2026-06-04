@@ -1200,7 +1200,7 @@ describe('BubbleSeries', () => {
                     ],
                     series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'size' }],
                     axes: { x: { type: 'number' }, y: { type: 'number' } },
-                } as AgCartesianChartOptions)
+                })
             );
             await compare();
         });
@@ -1217,7 +1217,7 @@ describe('BubbleSeries', () => {
                     ],
                     series: [{ type: 'bubble', xKey: 'time', yKey: 'y', sizeKey: 'size' }],
                     axes: { x: { type: 'time' }, y: { type: 'number' } },
-                } as AgCartesianChartOptions)
+                })
             );
             await compare();
         });

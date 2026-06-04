@@ -1080,7 +1080,7 @@ describe('RadialColumnSeries', () => {
                         data: plainData,
                         series: [{ type: seriesType, angleKey: 'quarter', radiusKey: 'value' }],
                         axes: polarAxes,
-                    } as AgChartOptions)
+                    })
                 ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
             });
 
@@ -1093,7 +1093,7 @@ describe('RadialColumnSeries', () => {
                             { type: seriesType, angleKey: 'quarter', radiusKey: 'value2', stacked: true },
                         ],
                         axes: polarAxes,
-                    } as AgChartOptions)
+                    })
                 ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
             });
 
@@ -1106,7 +1106,7 @@ describe('RadialColumnSeries', () => {
                             { type: seriesType, angleKey: 'quarter', radiusKey: 'value2', grouped: true },
                         ],
                         axes: polarAxes,
-                    } as AgChartOptions)
+                    })
                 ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
             });
 
@@ -1131,7 +1131,7 @@ describe('RadialColumnSeries', () => {
                             },
                         ],
                         axes: polarAxes,
-                    } as AgChartOptions)
+                    })
                 ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
             });
         });

@@ -1687,7 +1687,7 @@ describe('RangeAreaSeries', () => {
                     ],
                     series: [{ type: 'range-area', xKey: 'x', yLowKey: 'lo', yHighKey: 'hi' }],
                     axes: { x: { type: 'number' }, y: { type: 'number' } },
-                } as AgChartOptions)
+                })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
     });
@@ -1704,7 +1704,7 @@ describe('RangeAreaSeries', () => {
                     ],
                     series: [{ type: 'range-area', xKey: 'time', yLowKey: 'lo', yHighKey: 'hi' }],
                     axes: { x: { type: 'time' }, y: { type: 'number' } },
-                } as AgChartOptions)
+                })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
     });

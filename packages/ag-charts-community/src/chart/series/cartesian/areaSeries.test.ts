@@ -2365,7 +2365,7 @@ describe('AreaSeries', () => {
                     ],
                     series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
                     axes: categoryNumberAxes,
-                } as AgCartesianChartOptions)
+                })
             );
             await compare();
         });
@@ -2382,7 +2382,7 @@ describe('AreaSeries', () => {
                         { type: 'area', xKey: 'x', yKey: 'b', stacked: true },
                     ],
                     axes: categoryNumberAxes,
-                } as AgCartesianChartOptions)
+                })
             );
             await compare();
         });
@@ -2399,7 +2399,7 @@ describe('AreaSeries', () => {
                         { type: 'area', xKey: 'x', yKey: 'b', stacked: true, normalizedTo: 100 },
                     ],
                     axes: categoryNumberAxes,
-                } as AgCartesianChartOptions)
+                })
             );
             await compare();
         });
@@ -2417,7 +2417,7 @@ describe('AreaSeries', () => {
                     ],
                     series: [{ type: 'area', xKey: 'time', yKey: 'y' }],
                     axes: { x: { type: 'time' }, y: { type: 'number' } },
-                } as AgCartesianChartOptions)
+                })
             );
             await compare();
         });

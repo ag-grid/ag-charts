@@ -1087,7 +1087,7 @@ describe('BoxPlotSeries', () => {
                         },
                     ],
                     axes: categoryNumberAxes,
-                } as AgChartOptions)
+                })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
 
@@ -1143,7 +1143,7 @@ describe('BoxPlotSeries', () => {
                         },
                     ],
                     axes: categoryNumberAxes,
-                } as AgChartOptions)
+                })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
     });
@@ -1169,7 +1169,7 @@ describe('BoxPlotSeries', () => {
                         },
                     ],
                     axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
-                } as AgChartOptions)
+                })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
     });

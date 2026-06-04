@@ -344,7 +344,7 @@ describe('OhlcSeries', () => {
                         ],
                         series: [{ type: seriesType, ...keys }],
                         axes: { x: { type: 'number' }, y: { type: 'number' } },
-                    } as AgChartOptions)
+                    })
                 ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
             });
         });
@@ -360,7 +360,7 @@ describe('OhlcSeries', () => {
                         ],
                         series: [{ type: seriesType, ...keys }],
                         axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
-                    } as AgChartOptions)
+                    })
                 ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
             });
         });

@@ -996,7 +996,7 @@ describe('ScatterSeries', () => {
                     ],
                     series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
                     axes: { x: { type: 'number' }, y: { type: 'number' } },
-                } as AgCartesianChartOptions)
+                })
             );
             await compare();
         });
@@ -1013,7 +1013,7 @@ describe('ScatterSeries', () => {
                     ],
                     series: [{ type: 'scatter', xKey: 'time', yKey: 'y' }],
                     axes: { x: { type: 'time' }, y: { type: 'number' } },
-                } as AgCartesianChartOptions)
+                })
             );
             await compare();
         });

@@ -637,7 +637,7 @@ describe('PyramidSeries', () => {
                         { stage: 'c', value: BIG },
                     ],
                     series: [{ type: 'pyramid', stageKey: 'stage', valueKey: 'value' }],
-                } as AgChartOptions)
+                })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
     });
