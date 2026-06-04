@@ -11,11 +11,16 @@ import {
     type AgSeriesMarkerStylerParams,
 } from 'ag-charts-community';
 import {
+    BIG,
     IMAGE_SNAPSHOT_DEFAULTS,
     type MockRangeAreaStyler,
+    NEG_BIG,
+    STRIPPED_NUMBER_AXES,
+    expectPixelIdenticalAcrossMagnitude,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
+    magnitudePair,
     newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
@@ -24,7 +29,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 
 describe('RangeAreaSeries', () => {
     setupMockConsole();
@@ -1668,6 +1673,62 @@ describe('RangeAreaSeries', () => {
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
+        });
+    });
+
+    describe('bigint values (AG-16608)', () => {
+        it('renders a plain range-area series with out-of-safe-range bigint values', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: [
+                        { x: 1, lo: NEG_BIG, hi: BIG },
+                        { x: 2, lo: NEG_BIG * 2n, hi: BIG * 2n },
+                        { x: 3, lo: NEG_BIG, hi: BIG * 3n },
+                    ],
+                    series: [{ type: 'range-area', xKey: 'x', yLowKey: 'lo', yHighKey: 'hi' }],
+                    axes: { x: { type: 'number' }, y: { type: 'number' } },
+                } as AgChartOptions)
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
+
+    describe('ISO datetime (AG-16654)', () => {
+        it('renders a range-area series with ISO-8601 datetime-string x values on a time axis', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: [
+                        { time: '2024-01-15T09:00:00Z', lo: 4, hi: 12 },
+                        { time: '2024-01-15T10:00:00Z', lo: 6, hi: 15 },
+                        { time: '2024-01-15T11:00:00Z', lo: 3, hi: 11 },
+                        { time: '2024-01-15T12:00:00Z', lo: 8, hi: 18 },
+                    ],
+                    series: [{ type: 'range-area', xKey: 'time', yLowKey: 'lo', yHighKey: 'hi' }],
+                    axes: { x: { type: 'time' }, y: { type: 'number' } },
+                } as AgChartOptions)
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
+
+    describe('bigint magnitude invariance (AG-16608)', () => {
+        const ranges = (rows: Array<[number, number]>) => (toValue: (v: number) => number | bigint) =>
+            rows.map(([lo, hi], i) => ({ x: i + 1, lo: toValue(lo), hi: toValue(hi) }));
+
+        it('positions a plain range-area series identically when scaled beyond Number.MAX_VALUE', async () => {
+            await expectPixelIdenticalAcrossMagnitude(
+                ctx,
+                createEnterpriseChart,
+                magnitudePair(
+                    {
+                        series: [{ type: 'range-area', xKey: 'x', yLowKey: 'lo', yHighKey: 'hi' }],
+                        axes: STRIPPED_NUMBER_AXES,
+                    },
+                    ranges([
+                        [-3, 3],
+                        [-6, 6],
+                        [-3, 9],
+                    ])
+                )
+            );
         });
     });
 });

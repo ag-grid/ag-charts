@@ -14,12 +14,20 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
+import {
+    BIG,
+    NEG_BIG,
+    STRIPPED_NUMBER_AXES,
+    expectPixelIdenticalAcrossMagnitude,
+    magnitudePair,
+} from '../../test/bigintExamples';
 import * as examples from '../../test/examples';
 import { type MockBubbleStyler, newFreezableMock } from '../../test/freezableMock';
 import { testLegendItemName } from '../../test/legendItemName';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
+    createChart,
     expectWarningsCalls,
     extractImageData,
     getSeriesAggregationInternals,
@@ -1178,6 +1186,61 @@ describe('BubbleSeries', () => {
             const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeUndefined();
             expect(series.ensureBucketLookupFeature()?.getIndexSet(0)).toBeUndefined();
+        });
+    });
+
+    describe('bigint values (AG-16608)', () => {
+        it('renders a bubble series with out-of-safe-range bigint x, y and size values', async () => {
+            chart = AgCharts.create(
+                prepareTestOptions({
+                    data: [
+                        { x: BIG, y: BIG, size: BIG },
+                        { x: BIG * 2n, y: NEG_BIG, size: BIG * 2n },
+                        { x: NEG_BIG, y: BIG * 2n, size: BIG * 3n },
+                    ],
+                    series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'size' }],
+                    axes: { x: { type: 'number' }, y: { type: 'number' } },
+                } as AgCartesianChartOptions)
+            );
+            await compare();
+        });
+    });
+
+    describe('ISO datetime (AG-16654)', () => {
+        it('renders a bubble series with ISO-8601 datetime-string x values on a time axis', async () => {
+            chart = AgCharts.create(
+                prepareTestOptions({
+                    data: [
+                        { time: '2024-01-15T09:00:00Z', y: 12, size: 4 },
+                        { time: '2024-01-15T10:30:00Z', y: 15, size: 8 },
+                        { time: '2024-01-15T11:45:00Z', y: 11, size: 6 },
+                    ],
+                    series: [{ type: 'bubble', xKey: 'time', yKey: 'y', sizeKey: 'size' }],
+                    axes: { x: { type: 'time' }, y: { type: 'number' } },
+                } as AgCartesianChartOptions)
+            );
+            await compare();
+        });
+    });
+
+    describe('bigint magnitude invariance (AG-16608)', () => {
+        // Size is not scaled: marker radius is screen-space and must stay constant across magnitudes.
+        const points = (xy: Array<[number, number]>) => (toValue: (v: number) => number | bigint) =>
+            xy.map(([x, y]) => ({ x: toValue(x), y: toValue(y), size: 5 }));
+
+        it('positions a bubble series identically when x/y scaled beyond Number.MAX_VALUE', async () => {
+            await expectPixelIdenticalAcrossMagnitude(
+                ctx,
+                createChart,
+                magnitudePair(
+                    { series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'size' }], axes: STRIPPED_NUMBER_AXES },
+                    points([
+                        [1, 3],
+                        [2, 4],
+                        [3, 5],
+                    ])
+                )
+            );
         });
     });
 });

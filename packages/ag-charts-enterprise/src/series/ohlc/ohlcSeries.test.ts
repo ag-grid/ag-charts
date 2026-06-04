@@ -2,15 +2,20 @@ import { describe, expect, it } from 'vitest';
 
 import { type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
+    BIG,
     IMAGE_SNAPSHOT_DEFAULTS,
+    NEG_BIG,
+    STRIPPED_NUMBER_AXES,
+    expectPixelIdenticalAcrossMagnitude,
     expectWarningsCalls,
     extractImageData,
+    magnitudePair,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 
 const OHLC_OPTIONS: AgChartOptions = {
     data: [
@@ -322,6 +327,68 @@ describe('OhlcSeries', () => {
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compareSnapshot(chart);
+        });
+    });
+
+    describe.each(['ohlc', 'candlestick'] as const)('%s', (seriesType) => {
+        const keys = { xKey: 'x', lowKey: 'low', openKey: 'open', closeKey: 'close', highKey: 'high' } as const;
+
+        describe('bigint values (AG-16608)', () => {
+            it(`renders a plain ${seriesType} series with out-of-safe-range bigint values`, async () => {
+                expect(
+                    await renderEnterpriseChartImage(ctx, {
+                        data: [
+                            { x: 1, low: BIG, open: BIG * 2n, close: BIG * 3n, high: BIG * 4n },
+                            { x: 2, low: BIG * 2n, open: BIG * 3n, close: BIG * 2n, high: BIG * 5n },
+                            { x: 3, low: NEG_BIG, open: 0n, close: BIG, high: BIG * 2n },
+                        ],
+                        series: [{ type: seriesType, ...keys }],
+                        axes: { x: { type: 'number' }, y: { type: 'number' } },
+                    } as AgChartOptions)
+                ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            });
+        });
+
+        describe('ISO datetime (AG-16654)', () => {
+            it(`renders a ${seriesType} series with ISO-8601 datetime-string x values on a unit-time axis`, async () => {
+                expect(
+                    await renderEnterpriseChartImage(ctx, {
+                        data: [
+                            { x: '2024-01-15T09:00:00Z', low: 3, open: 4, close: 6, high: 7 },
+                            { x: '2024-01-15T10:00:00Z', low: 5, open: 6, close: 5, high: 8 },
+                            { x: '2024-01-15T11:00:00Z', low: 2, open: 3, close: 4, high: 5 },
+                        ],
+                        series: [{ type: seriesType, ...keys }],
+                        axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
+                    } as AgChartOptions)
+                ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            });
+        });
+
+        describe('bigint magnitude invariance (AG-16608)', () => {
+            const bars = (rows: Array<[number, number, number, number]>) => (toValue: (v: number) => number | bigint) =>
+                rows.map(([low, open, close, high], i) => ({
+                    x: i + 1,
+                    low: toValue(low),
+                    open: toValue(open),
+                    close: toValue(close),
+                    high: toValue(high),
+                }));
+
+            it(`positions a plain ${seriesType} series identically when scaled beyond Number.MAX_VALUE`, async () => {
+                await expectPixelIdenticalAcrossMagnitude(
+                    ctx,
+                    createEnterpriseChart,
+                    magnitudePair(
+                        { series: [{ type: seriesType, ...keys }], axes: STRIPPED_NUMBER_AXES },
+                        bars([
+                            [1, 2, 3, 4],
+                            [2, 3, 2, 5],
+                            [1, 2, 4, 5],
+                        ])
+                    )
+                );
+            });
         });
     });
 });

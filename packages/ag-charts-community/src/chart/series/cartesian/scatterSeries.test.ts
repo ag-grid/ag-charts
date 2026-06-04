@@ -13,12 +13,20 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
+import {
+    BIG,
+    NEG_BIG,
+    STRIPPED_NUMBER_AXES,
+    expectPixelIdenticalAcrossMagnitude,
+    magnitudePair,
+} from '../../test/bigintExamples';
 import * as examples from '../../test/examples';
 import { type MockScatterStyler, newFreezableMock } from '../../test/freezableMock';
 import { testLegendItemName } from '../../test/legendItemName';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
+    createChart,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
@@ -974,6 +982,75 @@ describe('ScatterSeries', () => {
                     { type: 'scatter', xKey: 'Ar_V', yKey: 'Ar_P', yName: 'Argon' },
                 ],
             },
+        });
+    });
+
+    describe('bigint values (AG-16608)', () => {
+        it('renders a scatter series with out-of-safe-range bigint x and y values', async () => {
+            chart = AgCharts.create(
+                prepareTestOptions({
+                    data: [
+                        { x: BIG, y: BIG },
+                        { x: BIG * 2n, y: NEG_BIG },
+                        { x: NEG_BIG, y: BIG * 2n },
+                    ],
+                    series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
+                    axes: { x: { type: 'number' }, y: { type: 'number' } },
+                } as AgCartesianChartOptions)
+            );
+            await compare();
+        });
+    });
+
+    describe('ISO datetime (AG-16654)', () => {
+        it('renders a scatter series with ISO-8601 datetime-string x values on a time axis', async () => {
+            chart = AgCharts.create(
+                prepareTestOptions({
+                    data: [
+                        { time: '2024-01-15T09:00:00Z', y: 12 },
+                        { time: '2024-01-15T10:30:00Z', y: 15 },
+                        { time: '2024-01-15T11:45:00Z', y: 11 },
+                    ],
+                    series: [{ type: 'scatter', xKey: 'time', yKey: 'y' }],
+                    axes: { x: { type: 'time' }, y: { type: 'number' } },
+                } as AgCartesianChartOptions)
+            );
+            await compare();
+        });
+    });
+
+    describe('bigint magnitude invariance (AG-16608)', () => {
+        const points = (xy: Array<[number, number]>) => (toValue: (v: number) => number | bigint) =>
+            xy.map(([x, y]) => ({ x: toValue(x), y: toValue(y) }));
+
+        it('positions a scatter series identically when scaled beyond Number.MAX_VALUE', async () => {
+            await expectPixelIdenticalAcrossMagnitude(
+                ctx,
+                createChart,
+                magnitudePair(
+                    { series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }], axes: STRIPPED_NUMBER_AXES },
+                    points([
+                        [1, 3],
+                        [2, 4],
+                        [3, 5],
+                    ])
+                )
+            );
+        });
+
+        it('positions a straddling-zero scatter series identically when scaled beyond Number.MAX_VALUE', async () => {
+            await expectPixelIdenticalAcrossMagnitude(
+                ctx,
+                createChart,
+                magnitudePair(
+                    { series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }], axes: STRIPPED_NUMBER_AXES },
+                    points([
+                        [-3, 4],
+                        [2, -5],
+                        [4, 3],
+                    ])
+                )
+            );
         });
     });
 });

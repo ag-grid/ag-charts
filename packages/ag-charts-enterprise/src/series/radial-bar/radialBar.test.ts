@@ -10,6 +10,7 @@ import {
     type AgRadialSeriesStylerParams,
 } from 'ag-charts-community';
 import {
+    BIG,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     type MockRadialColumnStyler,
@@ -24,7 +25,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 
 describe('RadialBarSeries', () => {
     setupMockConsole();
@@ -888,4 +889,87 @@ describe('RadialBarSeries', () => {
             await compare();
         });
     });
+
+    describe('bigint values (AG-16608)', () => {
+        const polarAxes = {
+            angle: { type: 'angle-number' as const },
+            radius: { type: 'radius-category' as const },
+        };
+        const plainData = [
+            { quarter: 'Q1', value: BIG },
+            { quarter: 'Q2', value: BIG * 2n },
+            { quarter: 'Q3', value: BIG * 3n },
+        ];
+        const pairedData = [
+            { quarter: 'Q1', value: BIG, value2: BIG * 2n },
+            { quarter: 'Q2', value: BIG * 2n, value2: BIG * 3n },
+            { quarter: 'Q3', value: BIG * 3n, value2: BIG },
+        ];
+
+        it('renders a plain radial-bar series with out-of-safe-range bigint values', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: plainData,
+                    series: [{ type: 'radial-bar', angleKey: 'value', radiusKey: 'quarter' }],
+                    axes: polarAxes,
+                } as AgChartOptions)
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('renders a stacked radial-bar series with bigint values', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: pairedData,
+                    series: [
+                        { type: 'radial-bar', angleKey: 'value', radiusKey: 'quarter', stacked: true },
+                        { type: 'radial-bar', angleKey: 'value2', radiusKey: 'quarter', stacked: true },
+                    ],
+                    axes: polarAxes,
+                } as AgChartOptions)
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('renders a grouped radial-bar series with bigint values', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: pairedData,
+                    series: [
+                        { type: 'radial-bar', angleKey: 'value', radiusKey: 'quarter', grouped: true },
+                        { type: 'radial-bar', angleKey: 'value2', radiusKey: 'quarter', grouped: true },
+                    ],
+                    axes: polarAxes,
+                } as AgChartOptions)
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('renders a 100%-stacked radial-bar series with bigint values', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: pairedData,
+                    series: [
+                        {
+                            type: 'radial-bar',
+                            angleKey: 'value',
+                            radiusKey: 'quarter',
+                            stacked: true,
+                            normalizedTo: 100,
+                        },
+                        {
+                            type: 'radial-bar',
+                            angleKey: 'value2',
+                            radiusKey: 'quarter',
+                            stacked: true,
+                            normalizedTo: 100,
+                        },
+                    ],
+                    axes: polarAxes,
+                } as AgChartOptions)
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
+
+    // Magnitude-invariance is intentionally omitted: the angle-number scale converts each value through
+    // the Number domain, so scaling by Number.MAX_VALUE pushes the angle beyond the representable range
+    // and emits an "exceeds the representable Number range" warning. Unlike a cartesian value axis, the
+    // polar angle scale cannot stay exact across the boundary, so identical-pixel comparison does not hold.
 });

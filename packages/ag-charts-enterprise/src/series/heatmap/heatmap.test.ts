@@ -2,9 +2,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { type AgChartOptions, AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
+    BIG,
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
+    NEG_BIG,
     assertTooltipSuppressedForMissing,
     computeLegendBBox,
     deproxy,
@@ -18,7 +20,7 @@ import {
 } from 'ag-charts-community-test';
 import { classCast } from 'ag-charts-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 import { HeatmapSeries } from './heatmapSeries';
 
 // Drives a hover at the canvas point of the given datum index and waits for chart stability.
@@ -1212,6 +1214,23 @@ describe('HeatmapSeries', () => {
 
             expectWarningsCalls().toEqual([]);
             await compare();
+        });
+    });
+
+    describe('bigint values (AG-16608)', () => {
+        it('renders a heatmap series with out-of-safe-range bigint colour values', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: [
+                        { col: 'a', row: 'x', temp: BIG },
+                        { col: 'a', row: 'y', temp: NEG_BIG },
+                        { col: 'b', row: 'x', temp: BIG * 2n },
+                    ],
+                    series: [{ type: 'heatmap', xKey: 'col', yKey: 'row', colorKey: 'temp' }],
+                    axes: { x: { type: 'category' }, y: { type: 'category' } },
+                    legend: { enabled: false },
+                } as AgChartOptions)
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
     });
 });

@@ -5,11 +5,18 @@ import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import { Transformable } from '../../../scene/transformable';
+import {
+    BIG,
+    STRIPPED_NUMBER_AXES,
+    expectPixelIdenticalAcrossMagnitude,
+    magnitudePair,
+} from '../../test/bigintExamples';
 import { type ChartTestCase, COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES } from '../../test/examples-gallery';
 import type { ChartOrProxy } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    createChart,
     deproxy,
     expectWarningsCalls,
     extractImageData,
@@ -649,6 +656,36 @@ describe('HistogramSeries', () => {
             await waitForChartStability(chart);
 
             await compare();
+        });
+    });
+
+    describe('bigint values (AG-16608)', () => {
+        it('renders a histogram of out-of-safe-range bigint x values', async () => {
+            const base = BIG;
+            chart = AgCharts.create(
+                prepareTestOptions({
+                    data: [base, base + 10n, base + 25n, base + 40n, base + 80n, base + 95n].map((x) => ({ x })),
+                    series: [{ type: 'histogram', xKey: 'x', binCount: 5 }],
+                    axes: { x: { type: 'number' }, y: { type: 'number' } },
+                } as AgCartesianChartOptions)
+            );
+            await compare();
+        });
+    });
+
+    describe('bigint magnitude invariance (AG-16608)', () => {
+        const xs = (values: number[]) => (toValue: (v: number) => number | bigint) =>
+            values.map((x) => ({ x: toValue(x) }));
+
+        it('bins a histogram identically when x is scaled beyond Number.MAX_VALUE', async () => {
+            await expectPixelIdenticalAcrossMagnitude(
+                ctx,
+                createChart,
+                magnitudePair(
+                    { series: [{ type: 'histogram', xKey: 'x', binCount: 5 }], axes: STRIPPED_NUMBER_AXES },
+                    xs([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+                )
+            );
         });
     });
 });

@@ -10,12 +10,17 @@ import {
     type AgRangeBarSeriesStylerParams,
 } from 'ag-charts-community';
 import {
+    BIG,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     type MockRangeBarStyler,
+    NEG_BIG,
+    STRIPPED_NUMBER_AXES,
+    expectPixelIdenticalAcrossMagnitude,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
+    magnitudePair,
     newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
@@ -25,7 +30,7 @@ import {
 } from 'ag-charts-community-test';
 import { roundTo } from 'ag-charts-core';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 
 describe('RangeBarSeries', () => {
     setupMockConsole();
@@ -1720,6 +1725,108 @@ describe('RangeBarSeries', () => {
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
+        });
+    });
+
+    describe('bigint values (AG-16608)', () => {
+        const numberAxes = { x: { type: 'number' as const }, y: { type: 'number' as const } };
+
+        it('renders a plain range-bar series with out-of-safe-range bigint values', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: [
+                        { x: 1, lo: NEG_BIG, hi: BIG },
+                        { x: 2, lo: NEG_BIG * 2n, hi: BIG * 2n },
+                        { x: 3, lo: NEG_BIG, hi: BIG * 3n },
+                    ],
+                    series: [{ type: 'range-bar', xKey: 'x', yLowKey: 'lo', yHighKey: 'hi' }],
+                    axes: numberAxes,
+                } as AgChartOptions)
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('renders a grouped range-bar series with bigint values', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: [
+                        { x: 1, lo: NEG_BIG, hi: BIG, lo2: NEG_BIG * 2n, hi2: BIG * 2n },
+                        { x: 2, lo: NEG_BIG * 2n, hi: BIG * 2n, lo2: NEG_BIG, hi2: BIG * 3n },
+                    ],
+                    series: [
+                        { type: 'range-bar', xKey: 'x', yLowKey: 'lo', yHighKey: 'hi', grouped: true },
+                        { type: 'range-bar', xKey: 'x', yLowKey: 'lo2', yHighKey: 'hi2', grouped: true },
+                    ],
+                    axes: numberAxes,
+                } as AgChartOptions)
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
+
+    describe('ISO datetime (AG-16654)', () => {
+        it('renders a range-bar series with ISO-8601 datetime-string x values on a unit-time axis', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: [
+                        { time: '2024-01-15T09:00:00Z', lo: 4, hi: 12 },
+                        { time: '2024-01-15T10:00:00Z', lo: 6, hi: 15 },
+                        { time: '2024-01-15T11:00:00Z', lo: 3, hi: 11 },
+                        { time: '2024-01-15T12:00:00Z', lo: 8, hi: 18 },
+                    ],
+                    series: [{ type: 'range-bar', xKey: 'time', yLowKey: 'lo', yHighKey: 'hi' }],
+                    axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
+                } as AgChartOptions)
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
+
+    describe('bigint magnitude invariance (AG-16608)', () => {
+        const single = (rows: Array<[number, number]>) => (toValue: (v: number) => number | bigint) =>
+            rows.map(([lo, hi], i) => ({ x: i + 1, lo: toValue(lo), hi: toValue(hi) }));
+        const paired = (rows: Array<[number, number, number, number]>) => (toValue: (v: number) => number | bigint) =>
+            rows.map(([lo, hi, lo2, hi2], i) => ({
+                x: i + 1,
+                lo: toValue(lo),
+                hi: toValue(hi),
+                lo2: toValue(lo2),
+                hi2: toValue(hi2),
+            }));
+
+        it('positions a plain range-bar series identically when scaled beyond Number.MAX_VALUE', async () => {
+            await expectPixelIdenticalAcrossMagnitude(
+                ctx,
+                createEnterpriseChart,
+                magnitudePair(
+                    {
+                        series: [{ type: 'range-bar', xKey: 'x', yLowKey: 'lo', yHighKey: 'hi' }],
+                        axes: STRIPPED_NUMBER_AXES,
+                    },
+                    single([
+                        [-3, 3],
+                        [-6, 6],
+                        [-3, 9],
+                    ])
+                )
+            );
+        });
+
+        it('positions a grouped range-bar series identically when scaled beyond Number.MAX_VALUE', async () => {
+            await expectPixelIdenticalAcrossMagnitude(
+                ctx,
+                createEnterpriseChart,
+                magnitudePair(
+                    {
+                        series: [
+                            { type: 'range-bar', xKey: 'x', yLowKey: 'lo', yHighKey: 'hi', grouped: true },
+                            { type: 'range-bar', xKey: 'x', yLowKey: 'lo2', yHighKey: 'hi2', grouped: true },
+                        ],
+                        axes: STRIPPED_NUMBER_AXES,
+                    },
+                    paired([
+                        [-3, 3, -6, 6],
+                        [-6, 6, -3, 9],
+                    ])
+                )
+            );
         });
     });
 });
