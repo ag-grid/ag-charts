@@ -259,7 +259,9 @@ const options: AgChartOptions = {
     ],
 };
 
-const chart = AgCharts.create(options);
+// Pin the instance to the full options union: the switcher updates the chart across
+// chart families (cartesian/polar/standalone), so update() must accept any AgChartOptions.
+const chart = AgCharts.create<AgChartOptions>(options);
 
 // `options` is a chart-options union; the switcher reassigns series/axes/data across chart families, so
 // it is mutated through a loose view rather than re-declaring a typed literal per branch.
