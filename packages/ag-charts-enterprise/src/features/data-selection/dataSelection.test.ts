@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
     AgBubbleSeriesOptions,
@@ -64,17 +64,19 @@ function apiChangeEvent<D, C>(partial: { added: AgSelectionItem<D>[]; removed: A
     });
 }
 
-type SelectionChangeRecorder<D, C> = {
-    (ev: AgSelectionChangeEvent<D, C>): void;
+type SelectionChangeCallback<D, C> = (ev: AgSelectionChangeEvent<D, C>) => void;
+type SelectionChangeRecorder<D, C> = SelectionChangeCallback<D, C> & {
     popEvents(): AgSelectionChangeEvent<D, C>[];
 };
 
-function createSelectionChangeRecorder<D, C>(): SelectionChangeRecorder<D, C> {
+function createSelectionChangeRecorder<D, C>(cb?: SelectionChangeCallback<D, C>): SelectionChangeRecorder<D, C> {
     let events: AgSelectionChangeEvent<D, C>[] = [];
 
     const freezeable = newFreezableMockInferred<MockSelectionChangeListener<D, C>>(
         (ev: AgSelectionChangeEvent<D, C>) => {
             events.push(ev);
+            console.log(cb, 'here');
+            cb?.(ev);
         }
     );
 
@@ -5601,6 +5603,110 @@ describe('DataSelection', () => {
                     });
                     test('selectionChange', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+            });
+        });
+    });
+
+    describe('AG-17445 data-selection cleans up when selectionChange callback throws an error', () => {
+        describe('bar', () => {
+            class MyTestError extends Error {}
+
+            type D = StackMixDatum;
+            type C = unknown;
+            let spy: unknown;
+            let selectionChange: SelectionChangeRecorder<D, C>;
+            const POINT_S2A: CanvasPoint = { canvasX: 74, canvasY: 430 };
+            const POINT_S3A: CanvasPoint = { canvasX: 127, canvasY: 508 };
+            const DATUM_S1A: D = {} as any;
+            const DATUM_S2A: D = { cat: 'A', s1: 5, s2: 3, s3: 7, s6: 3 };
+            const DATUM_S3A: D = {} as any;
+            const SELECTION_S1A: [AgSelectionItem<D>] = [{ itemId: 0, seriesId: 's1id', datum: DATUM_S1A }];
+            const SELECTION_S2A: [AgSelectionItem<D>] = [{ itemId: 0, seriesId: 's2id', datum: DATUM_S2A }];
+            const SELECTION_S3A: [AgSelectionItem<D>] = [{ itemId: 0, seriesId: 's3id', datum: DATUM_S3A }];
+            const SELECTION_S1A_S2A_S3A: AgSelectionItem<D>[] = [SELECTION_S1A, SELECTION_S2A, SELECTION_S3A].flat();
+            const ADDED_S2A = uiChangeEvent<D, C>({ added: SELECTION_S2A, removed: [] });
+            const ADDED_S1A_S2A_S3A = uiChangeEvent<D, C>({ added: SELECTION_S1A_S2A_S3A, removed: [] });
+
+            beforeEach(async () => {
+                spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+                const { data, series, axes, theme, legend } = createBarStackMixOptions();
+                selectionChange = createSelectionChangeRecorder(() => {
+                    console.log('there... throwing...');
+                    throw new MyTestError();
+                });
+                chart = await createChartInstance({
+                    data,
+                    series,
+                    axes,
+                    theme,
+                    legend,
+                    selection: {
+                        enabled: true,
+                        enableClick: true,
+                        enableDrag: true,
+                        clickMode: 'single',
+                    },
+                    listeners: { selectionChange },
+                });
+            });
+            afterEach(() => {
+                expect(spy).toHaveBeenCalledTimes(1);
+            });
+
+            describe('click', () => {
+                test('screenshot', async () => {
+                    await mouseClick(POINT_S2A);
+                    await waitForChartStability(chart);
+                    // expect(async  () => {
+                    //     await mouseClick(POINT_S2A);
+                    //     await waitForChartStability(chart);
+                    // }).rejects.toThrow(MyTestError);
+                    //await expect(mouseClick(POINT_S2A)).rejects.toThrow(MyTestError);
+                    //await expect(async () => await mouseClick(POINT_S2A)).rejects.toThrow(MyTestError);
+                    //await mouseClick(POINT_S2A);
+                    await compareExact('stack-mix-highlighted-none-selected-s2a');
+                });
+                test.skip('getSelection', async () => {
+                    await expect(mouseClick(POINT_S2A)).rejects.toThrow(MyTestError);
+                    expect(getChartSelectionArray()).toEqual(SELECTION_S2A);
+                });
+                test.skip('selectionChange', async () => {
+                    await expect(mouseClick(POINT_S2A)).rejects.toThrow(MyTestError);
+                    expect(getChartSelectionArray()).toEqual(ADDED_S2A);
+                });
+            });
+
+            describe.skip('drag', () => {
+                beforeEach(async () => {
+                    await mouseDown(POINT_S2A);
+                    await mouseMove(POINT_S2A);
+                });
+                describe('mousedown + mousemove', () => {
+                    test('screenshot', async () => {
+                        await compareExact('stack-mix-highlighted-s3a-selecting-s1-s2a-s3');
+                    });
+                    test('getSelection', async () => {
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', async () => {
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                });
+                describe('mouseup', () => {
+                    test('screenshot', async () => {
+                        await expect(mouseUp(POINT_S3A)).rejects.toThrow(MyTestError);
+                        await compareExact('stack-mix-highlighted-s3a-selected-s1-s2a-s3');
+                    });
+                    test('getSelection', async () => {
+                        await expect(mouseUp(POINT_S3A)).rejects.toThrow(MyTestError);
+                        expect(getChartSelectionArray()).toEqual(SELECTION_S1A_S2A_S3A);
+                    });
+                    test('selectionChange', async () => {
+                        await expect(mouseUp(POINT_S3A)).rejects.toThrow(MyTestError);
+                        expect(getChartSelectionArray()).toEqual(ADDED_S1A_S2A_S3A);
                     });
                 });
             });
