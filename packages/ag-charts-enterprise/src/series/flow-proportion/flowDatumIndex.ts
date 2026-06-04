@@ -46,3 +46,11 @@ export function toFlowNodeItemId(datum: unknown, datumIndex: FlowNodeDatumIndex,
 export function toFlowLinkItemId(datum: unknown, datumIndex: FlowLinkDatumIndex, idKey: string | undefined): string {
     return readDataIdKey(datum, idKey) ?? `link-${toFlowLinkOffset(datumIndex)}`;
 }
+
+export function toFlowNodeAriaIndex(datumIndex: FlowNodeDatumIndex): number {
+    return toFlowNodeOffset(datumIndex) + 1;
+}
+
+export function toFlowLinkAriaIndex(datumIndex: FlowLinkDatumIndex): number {
+    return toFlowLinkOffset(datumIndex) + 1;
+}

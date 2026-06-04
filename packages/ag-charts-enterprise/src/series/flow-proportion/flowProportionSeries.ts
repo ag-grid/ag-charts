@@ -27,6 +27,8 @@ import {
     toFlowLinkOffset,
     toFlowNodeItemId,
     toFlowNodeOffset,
+    toFlowNodeAriaIndex,
+    toFlowLinkAriaIndex,
 } from './flowDatumIndex';
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
@@ -699,10 +701,9 @@ export abstract class FlowProportionSeries<
     }
 
     getDatumAriaText(datum: TDatum<TNodeDatum, TLinkDatum>, description: string) {
-        const ariaAnnounceIndex = Math.abs(datum.datumIndex) + 1;
         if (datum.type === FlowProportionDatumType.Link) {
             return this.ctx.localeManager.t('ariaAnnounceFlowProportionLink', {
-                index: ariaAnnounceIndex,
+                index: toFlowLinkAriaIndex(datum.datumIndex),
                 count: this.linkCount,
                 from: datum.fromNode.id,
                 to: datum.toNode.id,
@@ -711,7 +712,7 @@ export abstract class FlowProportionSeries<
             });
         } else if (datum.type === FlowProportionDatumType.Node) {
             return this.ctx.localeManager.t('ariaAnnounceFlowProportionNode', {
-                index: ariaAnnounceIndex,
+                index: toFlowNodeAriaIndex(datum.datumIndex),
                 count: this.nodeCount,
                 description,
             });
