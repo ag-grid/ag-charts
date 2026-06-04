@@ -138,7 +138,7 @@ export interface AgTreemapSeriesTileOptions<TDatum, TContext = ContextDefault>
 
 export interface AgTreemapSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
     AgBaseSeriesThemeableOptions<TDatum, TContext>,
-    'highlight' | 'showInLegend' | 'selection'
+    'highlight' | 'showInLegend'
 > {
     /** The colours to cycle through for the fills of the groups and tiles. */
     fills?: AgColorType[];

@@ -6,6 +6,7 @@ import {
     FILL_PATTERN_DEFAULTS,
     FONT_SIZE_RATIO,
     LABEL_BOXING_DEFAULTS,
+    SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
@@ -73,6 +74,7 @@ const themeTemplate: ExtensibleTheme<'sunburst'> = {
                 strokeOpacity: 0.2,
             },
         },
+        selection: SERIES_SELECTION_THEME,
     },
     legend: {
         enabled: {
