@@ -1495,7 +1495,7 @@ describe('DataSelection', () => {
             const ADDED_MNT = uiChangeEvent<D, C>({ added: [ITEM_MNT], removed: [] });
             const ADDED_IMG1 = uiChangeEvent<D, C>({ added: [ITEM_IMG1], removed: [] });
             const REMOVED_MOVIE = uiChangeEvent<D, C>({ added: [], removed: [ITEM_MOVIE] });
-            const REMOVED_VID2_MNT = uiChangeEvent<D, C>({ added: [], removed: [] });
+            const REMOVED_MNT_VID2 = uiChangeEvent<D, C>({ added: [], removed: [ITEM_MNT, ITEM_VID2] });
             const ADDED_IMG1_REMOVED_MOVIE_MNT_VID2 = uiChangeEvent<D, C>({
                 added: [ITEM_IMG1],
                 removed: [ITEM_MOVIE, ITEM_MNT, ITEM_VID2],
@@ -1536,6 +1536,9 @@ describe('DataSelection', () => {
                         });
                     });
                     describe('follow-up', () => {
+                        beforeEach(() => {
+                            selectionChange.popEvents(); // pop event of initial selection.
+                        });
                         describe('click on selected node sets that node to the sole selection', () => {
                             test.skip('screenshot', async () => {
                                 await mouseClick(POINT_MOVIE);
@@ -1550,7 +1553,7 @@ describe('DataSelection', () => {
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_MOVIE);
                                 await mouseMove(POINT_MISS);
-                                expect(selectionChange.popEvents()).toEqual([REMOVED_VID2_MNT]);
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_MNT_VID2]);
                             });
                         });
                         describe('ctrl-click on selected node removes that node only', () => {
