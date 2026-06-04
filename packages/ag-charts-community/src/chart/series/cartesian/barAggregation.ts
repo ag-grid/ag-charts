@@ -6,7 +6,9 @@ import {
     aggregationRangeFittingPoints,
     compactAggregationIndices,
     createAggregationIndices,
+    epochColumnForTimeScale,
     getMidpointsForIndices,
+    narrowBigIntColumn,
     nextPowerOf2,
     simpleMemorize2,
 } from 'ag-charts-core';
@@ -316,24 +318,31 @@ export function aggregateBarDataFromDataModel(
     series: ScopeProvider,
     existingFilters?: BarSeriesDataAggregationFilter[]
 ): BarSeriesDataAggregationFilter[] | undefined {
-    const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
+    const rawXValues = dataModel.resolveKeysById(series, 'xValue', processedData);
 
     const isStacked = dataModel.hasColumnById(series, 'yValue-start');
-    const yStartValues = isStacked
+    const rawYStartValues = isStacked
         ? dataModel.resolveColumnById(series, 'yValue-start', processedData, 'mixed-numeric')
         : undefined;
-    const yEndValues = isStacked
+    const rawYEndValues = isStacked
         ? dataModel.resolveColumnById(series, 'yValue-end', processedData, 'mixed-numeric')
         : dataModel.resolveColumnById(series, 'yValue-raw', processedData, 'mixed-numeric');
 
     const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
-    const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    const rawXNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(
         series,
         isStacked ? 'yValue-end' : 'yValue-raw',
         processedData
     );
+
+    // Split-mode aggregation keys off each value's sign, so narrow bigints absolutely (sign-preserving).
+    const xValues = epochColumnForTimeScale(scale, rawXValues, rawXNeedsValueOf);
+    const xNeedsValueOf = xValues === rawXValues ? rawXNeedsValueOf : false;
+    const yStartValues =
+        yNeedsValueOf || rawYStartValues == null ? rawYStartValues : narrowBigIntColumn(rawYStartValues);
+    const yEndValues = yNeedsValueOf ? rawYEndValues : narrowBigIntColumn(rawYEndValues);
 
     // When existingFilters provided, bypass memoization to enable array reuse
     if (existingFilters) {
@@ -378,24 +387,31 @@ export function aggregateBarDataFromDataModelPartial(
     targetRange: number,
     existingFilters?: BarSeriesDataAggregationFilter[]
 ): PartialBarAggregationResult | undefined {
-    const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
+    const rawXValues = dataModel.resolveKeysById(series, 'xValue', processedData);
 
     const isStacked = dataModel.hasColumnById(series, 'yValue-start');
-    const yStartValues = isStacked
+    const rawYStartValues = isStacked
         ? dataModel.resolveColumnById(series, 'yValue-start', processedData, 'mixed-numeric')
         : undefined;
-    const yEndValues = isStacked
+    const rawYEndValues = isStacked
         ? dataModel.resolveColumnById(series, 'yValue-end', processedData, 'mixed-numeric')
         : dataModel.resolveColumnById(series, 'yValue-raw', processedData, 'mixed-numeric');
 
     const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
-    const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    const rawXNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(
         series,
         isStacked ? 'yValue-end' : 'yValue-raw',
         processedData
     );
+
+    // Split-mode aggregation keys off each value's sign, so narrow bigints absolutely (sign-preserving).
+    const xValues = epochColumnForTimeScale(scale, rawXValues, rawXNeedsValueOf);
+    const xNeedsValueOf = xValues === rawXValues ? rawXNeedsValueOf : false;
+    const yStartValues =
+        yNeedsValueOf || rawYStartValues == null ? rawYStartValues : narrowBigIntColumn(rawYStartValues);
+    const yEndValues = yNeedsValueOf ? rawYEndValues : narrowBigIntColumn(rawYEndValues);
 
     const [d0, d1] = aggregationDomain(scale, domainInput);
     // TODO: Use memoized version of computeBarAggregationPartial

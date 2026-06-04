@@ -1,4 +1,7 @@
-import { computeBubbleAggregation } from './bubbleAggregation';
+import type { DataModel } from '../../data/dataModel';
+import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
+import { BIG } from '../../test/bigintExamples';
+import { aggregateBubbleDataFromDataModel, computeBubbleAggregation } from './bubbleAggregation';
 
 const SIZE_QUANTIZATION = 3;
 
@@ -464,5 +467,62 @@ describe('computeBubbleAggregation', () => {
             expect(result!.yd0).toBe(0);
             expect(result!.yd1).toBe(49);
         });
+    });
+});
+
+describe('aggregateBubbleDataFromDataModel - bigint and ISO 8601 time values (render hardening)', () => {
+    // Exercises the real aggregation entry point (where high-volume bigint/ISO columns must be narrowed)
+    // rather than the lower-level compute function. x via the raw 'object' column; no size key.
+    const series: ScopeProvider = { id: 'series-1' };
+    const stubDataModel = (xValues: any[], yValues: any[], xDomain: any[], yDomain: any[]) =>
+        ({
+            resolveColumnById: (_s: unknown, id: string) => (id === 'xValue' ? xValues : yValues),
+            getDomain: (_s: unknown, id: string) => ({
+                domain: id === 'xValue' ? xDomain : yDomain,
+                sortMetadata: { sortOrder: 1 as const },
+            }),
+            resolveColumnNeedsValueOf: () => false,
+        }) as unknown as DataModel<any, any, any>;
+
+    it('aggregates bigint y values beyond MAX_SAFE_INTEGER', () => {
+        const N = 2000;
+        const xValues = Array.from({ length: N }, (_, i) => i);
+        const yValues = Array.from({ length: N }, (_, i) => BIG + BigInt(i) * 1_000_000_000n);
+        // y domain is the actual bigint extent, as the real pipeline derives it, so ratios stay within [0, 1].
+        const yDomain = [yValues[0], yValues[N - 1]];
+
+        const result = aggregateBubbleDataFromDataModel(
+            'number',
+            'number',
+            stubDataModel(xValues, yValues, [0, N - 1], yDomain),
+            {} as ProcessedData<any>,
+            undefined,
+            false,
+            series
+        );
+
+        expect(result).toBeDefined();
+        expect(result!.filters.length).toBeGreaterThan(0);
+    });
+
+    it('aggregates ISO 8601 string timestamps on a time scale', () => {
+        const N = 2000;
+        const startMs = Date.UTC(2024, 0, 1);
+        const xValues = Array.from({ length: N }, (_, i) => new Date(startMs + i * 60_000).toISOString());
+        const yValues = Array.from({ length: N }, (_, i) => Math.sin(i / 10));
+        const xDomain = [new Date(xValues[0]), new Date(xValues[N - 1])];
+
+        const result = aggregateBubbleDataFromDataModel(
+            'time',
+            'number',
+            stubDataModel(xValues, yValues, xDomain, [-1, 1]),
+            {} as ProcessedData<any>,
+            undefined,
+            false,
+            series
+        );
+
+        expect(result).toBeDefined();
+        expect(result!.filters.length).toBeGreaterThan(0);
     });
 });

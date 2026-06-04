@@ -966,6 +966,44 @@ describe('RadialBarSeries', () => {
                 })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
+
+        // The radius-number axis is a cross-configuration for radial-bar (it normally sits on a
+        // radius-category axis); placing bigint values on it makes the scale emit bigint grid ticks, which
+        // previously threw in RadiusNumberAxis.prepareGridPathTickData when the tick sort coerced the bigint
+        // comparator result back to Number. The mixed-numeric warnings below are an unrelated artefact of the
+        // cross-configuration; the regression guard is that setupMockConsole sees no "update error".
+        it('renders bigint values on a radius-number axis without throwing (regression: grid tick sort)', async () => {
+            const options: AgPolarChartOptions = {
+                data: [
+                    { category: 'A', value: BIG },
+                    { category: 'B', value: BIG * 2n },
+                    { category: 'C', value: BIG * 3n },
+                ],
+                series: [{ type: 'radial-bar', angleKey: 'category', radiusKey: 'value' }],
+                axes: { angle: { type: 'angle-category' }, radius: { type: 'radius-number' } } as any,
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // The mixed-numeric warnings are an artefact of the cross-configuration (a string angle key on a
+            // radial-bar, whose angle axis is the value axis); the regression guard is that setupMockConsole
+            // sees no "update error" from the bigint grid-tick sort.
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - column 'angleValue-start' for scope 'RadialBarSeries-1' was resolved as 'mixed-numeric' but holds 'string' values; check the series data types.",
+                ],
+                [
+                  "AG Charts - column 'angleValue-end' for scope 'RadialBarSeries-1' was resolved as 'mixed-numeric' but holds 'string' values; check the series data types.",
+                ],
+                [
+                  "AG Charts - column 'angleValue-raw' for scope 'RadialBarSeries-1' was resolved as 'mixed-numeric' but holds 'string' values; check the series data types.",
+                ],
+              ]
+            `);
+        });
     });
 
     // Magnitude-invariance is intentionally omitted: the angle-number scale converts each value through

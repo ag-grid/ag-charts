@@ -1,4 +1,7 @@
-import { computeAreaAggregation } from './areaAggregation';
+import type { DataModel } from '../../data/dataModel';
+import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
+import { BIG } from '../../test/bigintExamples';
+import { aggregateAreaDataFromDataModel, computeAreaAggregation } from './areaAggregation';
 
 describe('computeAreaAggregation', () => {
     describe('threshold behaviour', () => {
@@ -414,5 +417,54 @@ describe('computeAreaAggregation', () => {
                 }
             }
         });
+    });
+});
+
+describe('aggregateAreaDataFromDataModel - bigint and ISO 8601 time values (render hardening)', () => {
+    // Exercises the real aggregation entry point (where high-volume bigint/ISO columns must be narrowed),
+    // above AGGREGATION_THRESHOLD, rather than the lower-level compute function.
+    const series: ScopeProvider = { id: 'series-1' };
+    const stubDataModel = (xValues: any[], yValues: any[], domain: any[]) =>
+        ({
+            resolveKeysById: () => xValues,
+            resolveColumnById: () => yValues,
+            getDomain: () => ({ domain, sortMetadata: { sortOrder: 1 as const } }),
+            resolveColumnNeedsValueOf: () => false,
+        }) as unknown as DataModel<any, any, any>;
+
+    it('aggregates bigint y values beyond MAX_SAFE_INTEGER', () => {
+        const N = 2000;
+        const xValues = Array.from({ length: N }, (_, i) => i);
+        const yValues = Array.from({ length: N }, (_, i) => BIG + BigInt(i) * 1_000_000_000n);
+
+        const result = aggregateAreaDataFromDataModel(
+            'number',
+            stubDataModel(xValues, yValues, [0, N - 1]),
+            {} as ProcessedData<any>,
+            'yValue',
+            series
+        );
+
+        expect(result).toBeDefined();
+        expect(result![0].indices.length).toBeGreaterThan(0);
+    });
+
+    it('aggregates ISO 8601 string timestamps on a time scale', () => {
+        const N = 2000;
+        const startMs = Date.UTC(2024, 0, 1);
+        const xValues = Array.from({ length: N }, (_, i) => new Date(startMs + i * 60_000).toISOString());
+        const yValues = Array.from({ length: N }, (_, i) => Math.sin(i / 10));
+        const domain = [new Date(xValues[0]), new Date(xValues[N - 1])];
+
+        const result = aggregateAreaDataFromDataModel(
+            'time',
+            stubDataModel(xValues, yValues, domain),
+            {} as ProcessedData<any>,
+            'yValue',
+            series
+        );
+
+        expect(result).toBeDefined();
+        expect(result![0].indices.length).toBeGreaterThan(0);
     });
 });

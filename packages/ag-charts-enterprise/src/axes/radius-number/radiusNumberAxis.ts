@@ -6,7 +6,7 @@ import type {
     NormalisedRadiusNumberAxisOptions,
     NormalisedTextOrSegments,
 } from 'ag-charts-core';
-import { normalisedExtentWithMetadata } from 'ag-charts-core';
+import { normalisedExtentWithMetadata, toNumber } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { RadiusAxis } from '../radius/radiusAxis';
@@ -46,10 +46,13 @@ export class RadiusNumberAxis extends RadiusAxis<
 
     protected prepareGridPathTickData(data: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[] {
         const { scale } = this;
-        const domainTop = scale.domain[1];
+        // Ticks for a bigint domain arrive as bigints; narrow to Number so the filter compares against the
+        // (narrowed) domain endpoint and the sort comparator stays in Number space (bigint subtraction in a
+        // comparator throws when the engine coerces the result back to Number).
+        const domainTop = toNumber(scale.domain[1]);
         return data
-            .filter(({ tick }) => tick !== domainTop) // Prevent outer tick being drawn behind polar line
-            .sort((a, b) => b.tick - a.tick); // Apply grid styles starting from the largest arc
+            .filter(({ tick }) => toNumber(tick) !== domainTop) // Prevent outer tick being drawn behind polar line
+            .sort((a, b) => toNumber(b.tick) - toNumber(a.tick)); // Apply grid styles starting from the largest arc
     }
 
     protected getTickRadius(tickDatum: TickDatum): number {

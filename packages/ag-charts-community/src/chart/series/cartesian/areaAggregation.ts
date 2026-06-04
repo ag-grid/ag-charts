@@ -14,6 +14,8 @@ import {
     aggregationXRatioForXValue,
     compactAggregationIndices,
     createAggregationIndices,
+    epochColumnForTimeScale,
+    narrowBigIntColumnRelative,
     nextPowerOf2,
     simpleMemorize2,
 } from 'ag-charts-core';
@@ -421,12 +423,16 @@ export function aggregateAreaDataFromDataModel(
     series: ScopeProvider,
     existingFilters?: AreaSeriesDataAggregationFilter[]
 ): AreaSeriesDataAggregationFilter[] | undefined {
-    const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
-    const yValues = dataModel.resolveColumnById(series, yKey, processedData, 'mixed-numeric');
+    const rawXValues = dataModel.resolveKeysById(series, 'xValue', processedData);
+    const rawYValues = dataModel.resolveColumnById(series, yKey, processedData, 'mixed-numeric');
     const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
-    const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    const rawXNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, yKey, processedData);
+
+    const xValues = epochColumnForTimeScale(scale, rawXValues, rawXNeedsValueOf);
+    const xNeedsValueOf = xValues === rawXValues ? rawXNeedsValueOf : false;
+    const yValues = yNeedsValueOf ? rawYValues : narrowBigIntColumnRelative(rawYValues);
 
     // When existingFilters provided, bypass memoization to enable TypedArray reuse
     if (existingFilters) {
@@ -463,12 +469,16 @@ export function aggregateAreaDataFromDataModelPartial(
     targetRange: number,
     existingFilters?: AreaSeriesDataAggregationFilter[]
 ): PartialAreaAggregationResult | undefined {
-    const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
-    const yValues = dataModel.resolveColumnById(series, yKey, processedData, 'mixed-numeric');
+    const rawXValues = dataModel.resolveKeysById(series, 'xValue', processedData);
+    const rawYValues = dataModel.resolveColumnById(series, yKey, processedData, 'mixed-numeric');
     const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
-    const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    const rawXNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, yKey, processedData);
+
+    const xValues = epochColumnForTimeScale(scale, rawXValues, rawXNeedsValueOf);
+    const xNeedsValueOf = xValues === rawXValues ? rawXNeedsValueOf : false;
+    const yValues = yNeedsValueOf ? rawYValues : narrowBigIntColumnRelative(rawYValues);
 
     const [d0, d1] = aggregationDomain(scale, domainInput);
     return computeAreaAggregationPartial([d0, d1], xValues, yValues, {

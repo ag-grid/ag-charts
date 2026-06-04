@@ -1,4 +1,18 @@
-import { computeLineAggregation } from './lineAggregation';
+import { describe, expect, it } from 'vitest';
+
+import type { DataModel } from '../../data/dataModel';
+import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
+import { aggregateLineDataFromDataModel, computeLineAggregation } from './lineAggregation';
+
+// Minimal DataModel stub exercising the real aggregation entry point: line resolves x via the raw
+// 'object' column and y via a 'mixed-numeric' column, so the column-narrowing happens before the hot loop.
+const series: ScopeProvider = { id: 'series-1' };
+const stubLineDataModel = (xValues: any[], yValues: any[], domain: any[]) =>
+    ({
+        resolveColumnById: (_s: unknown, id: string) => (id === 'xValue' ? xValues : yValues),
+        getDomain: () => ({ domain, sortMetadata: { sortOrder: 1 as const } }),
+        resolveColumnNeedsValueOf: () => false,
+    }) as unknown as DataModel<any, any, any>;
 
 describe('computeLineAggregation', () => {
     describe('threshold behaviour', () => {
@@ -297,6 +311,47 @@ describe('computeLineAggregation', () => {
         });
     });
 
+    describe('bigint and ISO 8601 time values (render hardening)', () => {
+        it('aggregates bigint y values beyond MAX_SAFE_INTEGER (regression: high-volume bigint threw on Float64 write)', () => {
+            const N = 2000;
+            const base = 9_007_199_254_740_993n; // Number.MAX_SAFE_INTEGER + 2
+            const xValues = Array.from({ length: N }, (_, i) => i);
+            const yValues = Array.from({ length: N }, (_, i) => base + BigInt(i) * 1_000_000_000n);
+
+            const result = aggregateLineDataFromDataModel(
+                'number',
+                stubLineDataModel(xValues, yValues, [0, N - 1]),
+                {} as ProcessedData<any>,
+                'yValue',
+                series
+            );
+
+            expect(result).toBeDefined();
+            expect(result![0].indices.length).toBeGreaterThan(0);
+        });
+
+        it('aggregates ISO 8601 string timestamps on a time scale (regression: high-volume ISO rendered blank)', () => {
+            const N = 2000;
+            const startMs = Date.UTC(2024, 0, 1);
+            const xValues = Array.from({ length: N }, (_, i) => new Date(startMs + i * 60_000).toISOString());
+            const yValues = Array.from({ length: N }, (_, i) => Math.sin(i / 10));
+            // The column holds raw ISO strings (as the real pipeline preserves them); the domain is the
+            // parsed Date extent the time scale provides.
+            const domain = [new Date(xValues[0]), new Date(xValues[N - 1])];
+
+            const result = aggregateLineDataFromDataModel(
+                'time',
+                stubLineDataModel(xValues, yValues, domain),
+                {} as ProcessedData<any>,
+                'yValue',
+                series
+            );
+
+            expect(result).toBeDefined();
+            expect(result![0].indices.length).toBeGreaterThan(0);
+        });
+    });
+
     describe('filter structure', () => {
         it('should return filters with correct structure', () => {
             const xValues = Array.from({ length: 2000 }, (_, i) => i);
@@ -357,5 +412,51 @@ describe('computeLineAggregation', () => {
                 }
             }
         });
+    });
+});
+
+describe('aggregateLineDataFromDataModel - bigint downsampling fidelity (high magnitude, narrow range)', () => {
+    // When the Y span is smaller than the ULP of a double at that magnitude, narrowing each bigint to
+    // Number collapses distinct values onto the same double, so the downsampler can no longer find the
+    // true per-bucket extrema. The exact bigint domain endpoints must be subtracted BEFORE narrowing (as
+    // ContinuousScale.convertBigInt does) for the downsampled envelope to capture the true min/max.
+    // EXPECTED TO FAIL against the current naive Number() narrowing; passes with offset-relative narrowing.
+    it('captures the true min/max when the Y span is below the double ULP at that magnitude', () => {
+        const N = 2000;
+        const BASE = 2n ** 60n + 123_456_789n; // off the power-of-2 boundary: uniform ULP (256) around it
+        const DELTA = 100n; // < half-ULP (128), so BASE, BASE ± DELTA all narrow to the same double
+        const spikeIndex = 1000; // interior to its bucket, so a collapsed downsampler cannot surface it
+        const dipIndex = 1500;
+
+        const xValues = Array.from({ length: N }, (_, i) => i);
+        const yValues = Array.from({ length: N }, () => BASE);
+        yValues[spikeIndex] = BASE + DELTA; // unique global max
+        yValues[dipIndex] = BASE - DELTA; // unique global min
+        // x domain matches the x values; the y span is recovered from the column itself by the narrowing.
+        const domain = [0, N - 1];
+
+        const result = aggregateLineDataFromDataModel(
+            'number',
+            stubLineDataModel(xValues, yValues, domain),
+            {} as ProcessedData<any>,
+            'yValue',
+            series
+        );
+        expect(result).toBeDefined();
+
+        // Coarsest level (smallest maxRange): the spike/dip share a bucket with baseline neighbours, so a
+        // faithful downsampler must still surface them as that bucket's extrema. Read exact bigint values
+        // back from the source column via the selected indices.
+        const coarsest = result!.reduce((a, b) => (b.maxRange < a.maxRange ? b : a), result![0]);
+        // Naive Number() narrowing collapses the whole span to a zero-width domain → this level is empty
+        // (the series would render blank); offset-relative narrowing keeps the span and populates it.
+        expect(coarsest.indices.length).toBeGreaterThan(0);
+
+        const selectedY = Array.from(coarsest.indices, (idx) => yValues[idx]);
+        const maxSelected = selectedY.reduce((a, b) => (b > a ? b : a), selectedY[0]);
+        const minSelected = selectedY.reduce((a, b) => (b < a ? b : a), selectedY[0]);
+
+        expect(maxSelected).toBe(BASE + DELTA);
+        expect(minSelected).toBe(BASE - DELTA);
     });
 });
