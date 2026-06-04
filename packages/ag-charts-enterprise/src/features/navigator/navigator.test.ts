@@ -6,6 +6,7 @@ import {
     type CartesianTestCase,
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    deproxy,
     expectWarningsCalls,
     extractImageData,
     repeat,
@@ -439,5 +440,50 @@ describe('Navigator', () => {
                 if (example.warnings) expectWarningsCalls().toEqual(example.warnings);
             }
         );
+    });
+
+    describe('AG-17456 mini-chart axis nice', () => {
+        const getMiniChartXAxis = (c: any) => {
+            const miniChart = deproxy(c).modulesManager.getModule<any>('navigator').miniChart;
+            return miniChart.axes.find((axis: any) => axis.direction === 'x');
+        };
+
+        it('propagates main axis nice=true (default) to the mini chart x-axis', async () => {
+            const options: AgCartesianChartOptions = {
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', data: xyData([5, 7, 8, 3, 0, 2]) }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                navigator: { miniChart: {} },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const miniX = getMiniChartXAxis(chart);
+            expect(miniX).toBeDefined();
+            expect(miniX.nice).toBe(true);
+        });
+
+        it('propagates main axis nice=false to the mini chart x-axis', async () => {
+            const options: AgCartesianChartOptions = {
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', data: xyData([5, 7, 8, 3, 0, 2]) }],
+                axes: {
+                    x: { type: 'number', position: 'bottom', nice: false },
+                    y: { type: 'number', position: 'left' },
+                },
+                navigator: { miniChart: {} },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const miniX = getMiniChartXAxis(chart);
+            expect(miniX).toBeDefined();
+            expect(miniX.nice).toBe(false);
+        });
     });
 });

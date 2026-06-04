@@ -1967,7 +1967,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const axes = miniChart.axes as ChartAxis[];
 
         for (const axis of axes) {
-            axis.nice = false;
             axis.interactionEnabled = false;
         }
     }
