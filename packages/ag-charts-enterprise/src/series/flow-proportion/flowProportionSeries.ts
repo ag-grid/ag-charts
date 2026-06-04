@@ -23,12 +23,12 @@ import {
     flowNodeDatumIndex,
     isFlowLinkDatumIndex,
     isFlowNodeDatumIndex,
+    toFlowLinkAriaIndex,
     toFlowLinkItemId,
     toFlowLinkOffset,
+    toFlowNodeAriaIndex,
     toFlowNodeItemId,
     toFlowNodeOffset,
-    toFlowNodeAriaIndex,
-    toFlowLinkAriaIndex,
 } from './flowDatumIndex';
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
