@@ -47,7 +47,42 @@ The full list of breaking changes across all features for version {% migrationVe
 
 This release includes the following breaking changes:
 
-- `CrossLinesModule` and `PolarCrossLinesModule` must be explicitly registered, if not using module bundles.
+### Module Registration
+
+- `CrossLinesModule` and `PolarCrossLinesModule` must be explicitly registered when not using `AllCommunityModule` or `AllEnterpriseModule`.
+
+### Cross Lines
+
+- `crossLines` entries are now a discriminated union on `type`, with `value` required when `type: 'line'` and `range` required when `type: 'range'`.
+
+### Bubble Series
+
+- `size` is removed from `AgBubbleSeriesOptions`. Use `minSize` instead.
+- `domain` is removed from `AgBubbleSeriesOptions`. Use `sizeDomain` instead.
+
+### Waterfall Series
+
+- Callbacks now receive `datum: undefined` for total and subtotal bars. Use `params.itemType` to identify `'total'` and `'subtotal'` bars.
+
+### Histogram Series
+
+All histogram callbacks (`tooltip.renderer`, `label.formatter`, `seriesNodeClick`, `seriesNodeDoubleClick`, and context menu callbacks) now receive a consistent set of params: `datum` is `TDatum[]` (the raw source rows in the bin), with `binIndex`, `aggregatedValue`, `frequency`, and `binRange` as top-level fields.
+
+- In `tooltip.renderer`, `datum` is changed from `AgHistogramBinDatum` to `TDatum[]`.
+- In `seriesNodeClick`, `seriesNodeDoubleClick`, and context menu callbacks, `datum` is changed from extracted column values to the raw source objects.
+- `xRange` is removed from `tooltip.renderer` params. Use `binRange` instead.
+- The bin-object `domain` field is removed from `tooltip.renderer` params.
+- `binIndex`, `aggregatedValue`, `frequency`, and `binRange` are added as top-level params to all histogram callbacks.
+
+### BigInt Support
+
+Number-typed values supplied to callbacks are widened to `number | bigint` to support BigInt data keys. This affects all callbacks that receive numeric values, including `tooltip.renderer`, `label.formatter`, `marker.formatter`, `seriesNodeClick`, `seriesNodeDoubleClick`, and any other renderer or event callback that exposes a field that was previously typed as `number`.
+
+Update any code that performs arithmetic, string formatting, or strict equality checks on these values to handle the `bigint` case.
+
+### Theme Params
+
+- `separationLinesColor` is removed. Use `groupedCategoryLinesColor` instead.
 
 {% /expandingSection %}
 
@@ -55,22 +90,36 @@ This release includes the following breaking changes:
 
 <!-- If behaviour changes do *not* exist, add the following: -->
 
-There are no behaviour changes in AG Charts version {% migrationVersion() %}.
+<!-- There are no behaviour changes in AG Charts version {% migrationVersion() %}. -->
 
 <!-- Otherwise -->
-<!--
+
 The full list of behaviour changes across all features for version {% migrationVersion() %}.
 
 {% expandingSection headerText="Behaviour Changes" %}
 
 This release includes the following behaviour changes:
 
-### Behaviour Changes section Name
+### Theme Defaults
 
-- item...
+- The default `fontFamily` has been updated to the IBM Plex Sans stack (`"IBM Plex Sans", -apple-system, "system-ui", ...`) to align with AG Grid v14. Charts that relied on the previous system font may render with a different typeface.
+- The default `focusShadow` has been updated to a 50% opacity accent colour to match AG Grid v14.
+
+### Tooltips
+
+- The default `tooltip.position.offset` has increased from `8` to `12` for `anchorTo: 'pointer'` and `anchorTo: 'node'`.
+- The default `tooltip.position.placement` has changed from `'top'` to `['top', 'bottom', 'left', 'right']` for `anchorTo: 'pointer'` and `anchorTo: 'node'`.
+
+### Bubble Series
+
+- Out-of-domain values now clamp to `[minSize, maxSize]` instead of extrapolating beyond the bounds.
+- Setting both `minSize` and `maxSize` explicitly with `minSize > maxSize` now emits a warning and falls back to theme defaults. Use `sizeDomain: [max, min]` to reverse the size scale.
+
+### Zoom
+
+- Setting `initialState.zoom.rangeX` or `initialState.zoom.rangeY` with string values now applies the zoom range correctly on category axes. Previously these values produced a console warning and were ignored.
 
 {% /expandingSection %}
--->
 
 ## Removal of Deprecated APIs
 
