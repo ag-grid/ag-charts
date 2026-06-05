@@ -16,8 +16,9 @@ export class OptionsGraphService {
     resolvePartial<T extends PlainObject>(
         path: Array<string>,
         partialOptions?: T,
-        resolveOptions?: OptionsGraphAccessorResolvePartialOptions
+        resolveOptions?: OptionsGraphAccessorResolvePartialOptions,
+        cssVariables?: Record<string, string>
     ): Partial<T> | undefined {
-        return this.resolvePartialCallback?.(path, partialOptions, resolveOptions);
+        return this.resolvePartialCallback?.(path, partialOptions, resolveOptions, cssVariables);
     }
 }

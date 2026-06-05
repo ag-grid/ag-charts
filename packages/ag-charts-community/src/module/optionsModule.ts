@@ -1426,6 +1426,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return jsonWalk(options, ChartOptions.processCSSVariablesJSON, new Set(['data']), undefined, options.container);
     }
 
+    processCSSVariablesPartial(partialOptions: PlainObject | undefined, container: HTMLElement | null | undefined) {
+        if (partialOptions == null || container == null) return;
+
+        return jsonWalk(partialOptions, ChartOptions.processCSSVariablesJSON, new Set(['data']), undefined, container);
+    }
+
     private specialOverridesDefaults(options: Partial<ChartSpecialOverrides>) {
         if (options.window == null) {
             options.window = getWindow();
