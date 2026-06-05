@@ -8,7 +8,7 @@ import { getData } from './data';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData(),
+    data: [],
     animation: { enabled: false },
     zoom: {
         enabled: true,
@@ -33,6 +33,9 @@ const options: AgCartesianChartOptions = {
     },
 };
 /* @ag-options-end */
+
+const data = getData();
+options.data = data;
 
 const chartRef: ChartRef = { current: AgCharts.create(options) };
 const container = document.getElementById('myChart')!;
