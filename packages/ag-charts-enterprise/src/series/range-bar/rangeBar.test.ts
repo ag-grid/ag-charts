@@ -1783,9 +1783,6 @@ describe('RangeBarSeries', () => {
         });
     });
 
-    // Property test: a high-volume (> AGGREGATION_THRESHOLD) bigint series must render pixel-identically to
-    // its Number baseline. Range-bar writes its low/high extrema into the aggregation Float64Array, so this
-    // drives that path across the sign extremes and an ISO time axis.
     describe('bigint high-volume aggregation invariance (AG-16608)', () => {
         const N = HIGH_VOLUME_COUNT;
         const STRIPPED_TIME_AXES = stripAxes({ x: { type: 'unit-time' }, y: { type: 'number', nice: false } });

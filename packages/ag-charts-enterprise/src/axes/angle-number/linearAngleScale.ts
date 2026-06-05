@@ -26,9 +26,7 @@ export class LinearAngleScale extends LinearScale {
     ): { ticks: number[]; count: number } {
         const { arcLength } = this;
 
-        // Angle scales nice-step in Number space (log2/pow); a bigint domain narrows here — a documented
-        // limitation in the same class as custom intervals (AC #17). Value positioning stays full-precision
-        // via convert()'s bigint path; only these tick *label* values are Number-precision.
+        // Nice-stepping is Number-only (log2/pow); a bigint domain narrows here for tick labels only.
         const numericDomain = domain.map(toNumber);
         if (numericDomain.length < 2 || numericDomain.some((d) => !Number.isFinite(d)) || arcLength <= 0) {
             return { ticks: [], count: 0 };
@@ -38,7 +36,6 @@ export class LinearAngleScale extends LinearScale {
         const [d0, d1] = numericDomain;
 
         if (interval) {
-            // A custom interval step is a Number concept (AG-16608 AC #17); narrow a bigint step.
             const step = Math.abs(toNumber(interval));
             const availableRange = this.getPixelRange();
             if (!isDenseInterval((d1 - d0) / step, availableRange)) {
@@ -70,7 +67,6 @@ export class LinearAngleScale extends LinearScale {
 
         if (!this.hasNiceRange()) return linearNiceDomain;
 
-        // Extend the nice domain in Number space (see ticks() — bigint narrows here, AC #17).
         const [n0, n1] = linearNiceDomain.map(toNumber);
         const reversed = n0 > n1;
         const start = reversed ? n1 : n0;

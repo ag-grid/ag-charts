@@ -93,7 +93,6 @@ export abstract class ContinuousScale<D extends number | bigint | Date, I = numb
         const rangeDistance = this.getPixelRange();
         if (domain.length === 0) return rangeDistance;
 
-        // Screen-space boundary: the interval becomes a band count against the pixel range, so narrow a bigint.
         // Use cached domain values to avoid valueOf() calls
         const intervals = Math.abs(this.d1Cache - this.d0Cache) / Number(smallestInterval) + 1;
 
@@ -120,9 +119,7 @@ export abstract class ContinuousScale<D extends number | bigint | Date, I = numb
         const clamp = options?.clamp ?? this.defaultClamp;
 
         // Full-precision BigInt ratio for linear scales: keeps adjacent high-magnitude bigints monotonic
-        // where a float64 narrow would collapse them. Log/time scales narrow to Number below (AC #9).
-        // Both endpoints must be bigint to enter here; a mixed domain is homogenized to Number by niceDomain
-        // upstream, so the Number path below handles it (promoting a fractional endpoint to BigInt would throw).
+        // where a float64 narrow would collapse them. Log/time scales narrow to Number below.
         if (typeof value === 'bigint' && this.d0Big != null && this.d1Big != null && this.transform == null) {
             return convertBigInt(value, this.d0Big, this.d1Big, range, clamp);
         }
@@ -195,8 +192,7 @@ export abstract class ContinuousScale<D extends number | bigint | Date, I = numb
         return unpackDomainMinMax(this.domain);
     }
 
-    // True min/max (order-independent), returning the exact endpoint so a bigint domain flows through
-    // as bigint. d0Cache/d1Cache give the ordering even when the bigint endpoints narrow to equal Numbers.
+    // Returns the exact (possibly bigint) endpoint; d0Cache/d1Cache order even when bigints narrow to equal Numbers.
     private exactEndpoint(index: 0 | 1): D {
         return ((index === 0 ? this.d0Big : this.d1Big) ?? this._domain[index]) as D;
     }
@@ -217,10 +213,7 @@ export abstract class ContinuousScale<D extends number | bigint | Date, I = numb
     }
 }
 
-// The stored domain narrows any bigint endpoint to Number (the exact bigint is retained separately in
-// d0Big/d1Big). A narrowed bigint is a Number, which is a valid D for every concrete continuous scale
-// (D is number, number|bigint, or Date — and a Date scale never receives bigint input here), so this is
-// the single assertion that bridges the generic base's storage type.
+// Narrows bigint endpoints to Number for storage; the exact bigints are retained separately in d0Big/d1Big.
 function narrowStoredDomain<D extends number | bigint | Date>(values: readonly (D | bigint)[]): D[] {
     return values.map((v) => (typeof v === 'bigint' ? Number(v) : v)) as D[];
 }
@@ -266,11 +259,8 @@ export function normalizeContinuousDomains<D extends number | bigint | Date>(
 
     for (const input of domains) {
         for (const d of input.domain) {
-            // Select via relational comparison so a bigint endpoint beyond Number.MAX_VALUE is retained
-            // exactly. Number()-narrowing collapses every such candidate to Infinity, so `Infinity > Infinity`
-            // is false and the true maximum is never chosen. Inputs are NaN-free — every producer filters
-            // non-finite extents upstream (fixNumericExtent / ContinuousDomain) — so a leading NaN, which
-            // would otherwise poison the relational seed, cannot reach here.
+            // Compare relationally, not via Number(), so a bigint beyond Number.MAX_VALUE isn't collapsed to
+            // Infinity and lost. Inputs are NaN-free (producers filter non-finite extents upstream).
             if (min === undefined || d < min) {
                 min = d;
             }

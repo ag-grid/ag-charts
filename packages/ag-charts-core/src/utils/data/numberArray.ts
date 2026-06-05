@@ -12,8 +12,7 @@ export function findMinMax(array: readonly AgNumericValue[]): AgNumericValue[];
 export function findMinMax(array: readonly AgNumericValue[]): AgNumericValue[] {
     if (array.length === 0) return [];
 
-    // Optimized min/max algorithm, single array pass. Comparisons are bigint-safe (unlike Math.min/max), so
-    // an AgNumericValue array keeps an exact bigint extent.
+    // Optimized min/max algorithm, single array pass. Comparisons are bigint-safe, unlike Math.min/max.
     let min: AgNumericValue = Infinity;
     let max: AgNumericValue = -Infinity;
     for (const val of array) {

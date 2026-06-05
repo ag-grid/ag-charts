@@ -3,8 +3,7 @@ import type { AgNumericValue } from 'ag-charts-types';
 import type { DomainWithMetadata } from '../../types/scales';
 import { isFiniteNumericValue, isNumber, isNumericValue } from '../types/typeGuards';
 
-// Date/number inputs yield a Number extent; only a bigint input carries bigint endpoints. The overloads
-// keep bigint out of the result type for the common (Date/number) callers, so it never percolates falsely.
+// Overloads keep bigint out of the result type for the common Date/number callers.
 export function extent(
     values: readonly (number | Date | null | undefined)[],
     sortOrder?: 1 | -1
@@ -59,8 +58,7 @@ export function normalisedExtentWithMetadata<T>(
     let clipped = false;
 
     const domainExtentNumbers = extent(d, sortOrder);
-    // `toValue` is only supplied for Date domains, whose extent is always Number; a bigint number-axis
-    // domain takes the un-mapped branch and passes its exact endpoints straight through as T.
+    // `toValue` is only supplied for Date domains; a bigint number-axis domain passes through unmapped as T.
     const domainExtent =
         domainExtentNumbers && toValue
             ? [toValue(Number(domainExtentNumbers[0])), toValue(Number(domainExtentNumbers[1]))]

@@ -7,11 +7,7 @@ export function dateToNumber(value: any) {
     return value instanceof Date ? value.getTime() : value;
 }
 
-/**
- * Coerces a time-axis value (Date, epoch number/bigint, or ISO 8601 string) to epoch milliseconds.
- * Returns `NaN` for out-of-range bigint epochs and any value `Date` cannot parse, so callers can treat
- * the result like any other off-domain time value rather than letting an Invalid Date propagate.
- */
+/** Coerce a time-axis value (Date, epoch number/bigint, or ISO 8601 string) to epoch ms; `NaN` if unparseable. */
 export function timeValueToNumber(value: AgTimeValue): number {
     if (typeof value === 'number') return value;
     if (typeof value === 'bigint') return Number(value);

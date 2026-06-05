@@ -15,8 +15,6 @@ export function configureColorScale(
     if (dataDomain.length < 2) return;
     if (colorScaleProps.fills.length === 0) return;
 
-    // The colour data domain can be bigint (AG-16608 heatmap); computeColorBins narrows it for the
-    // interpolation maths, so the bigint stays type-visible up to that single boundary.
     const domainTuple: [AgNumericValue, AgNumericValue] = [dataDomain[0], dataDomain.at(-1)!];
     const displayDomain: [AgNumericValue, AgNumericValue] = colorScaleProps.domain ?? domainTuple;
 

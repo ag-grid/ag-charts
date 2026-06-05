@@ -23,8 +23,7 @@ export class DiscreteDomain implements IDataDomain {
     private isSortedUnique: boolean = false;
 
     constructor(
-        // When true (time/ordinal-time keys), ISO 8601 strings coerce to Date instants. A plain category
-        // domain keeps ISO-shaped strings (e.g. '2024-01-15') as opaque labels, so the flag is off there.
+        // When true (time keys), ISO 8601 strings coerce to Date instants rather than opaque category labels.
         private readonly coerceDates: boolean = false
     ) {}
 
@@ -46,8 +45,7 @@ export class DiscreteDomain implements IDataDomain {
     }
 
     extend(val: any) {
-        // A time/ordinal-time key accepts ISO 8601 strings; coerce to Date so they bucket as instants
-        // rather than as opaque category labels (the column keeps the raw string for display).
+        // Coerce ISO 8601 strings to Date so they bucket as instants (the column keeps the raw string for display).
         if (this.coerceDates && typeof val === 'string') {
             val = coerceIso8601Date(val);
         }
@@ -198,9 +196,7 @@ export class ContinuousDomain<T extends number | Date> implements IDataDomain<T>
             if (typeof value !== 'number' && typeof value !== 'bigint') {
                 continue;
             }
-            // Relational comparison retains an exact bigint endpoint (incl. one beyond Number.MAX_VALUE) so a
-            // stacked/range total positions proportionally; comparing bigint against the Number Infinity seed is
-            // legal (only +/-/* mixing throws, which this never does). Downstream branches on typeof at convert().
+            // Compare (don't narrow) to retain exact bigint endpoints; bigint-vs-Number comparison is legal (only arithmetic mixing throws).
             if (value < domain[0]) {
                 domain[0] = value;
             }
@@ -212,8 +208,7 @@ export class ContinuousDomain<T extends number | Date> implements IDataDomain<T>
     }
 
     extend(value: T | bigint) {
-        // A time key accepts ISO 8601 strings; coerce to Date so the extent is computed as instants
-        // (the column keeps the raw string for display). The time scales parse ISO at convert() time.
+        // Coerce ISO 8601 strings to Date so the extent is computed as instants (the column keeps the raw string).
         let v: unknown = value;
         if (typeof v === 'string') {
             v = coerceIso8601Date(v);

@@ -4,10 +4,7 @@ import type { AgNumericValue } from 'ag-charts-types';
 import { ContinuousDomain } from './dataDomain';
 import type { AggregatePropertyDefinition, DatumPropertyDefinition } from './dataModel';
 
-/**
- * Adds two accumulator operands, promoting to bigint when either operand is. Columns are uniformly
- * typed, so a bigint column's number `0` seed promotes to `0n` on the first value and stays bigint.
- */
+/** Adds two operands, promoting to bigint when either is, so a bigint column's `0` seed stays exact. */
 export function addAccumulated(acc: AgNumericValue, value: AgNumericValue): AgNumericValue {
     return addValues(acc, value);
 }
@@ -20,9 +17,7 @@ export function sumValues(
         if (typeof value !== 'number' && typeof value !== 'bigint') {
             continue;
         }
-        // Sum in bigint when a value is bigint so a large-magnitude total stays exact (addAccumulated
-        // promotes the 0 seed). The opposite-sign side keeps its untouched Number seed — hence the mixed
-        // accumulator type; downstream consumers recombine the two sides with addAccumulated.
+        // addAccumulated keeps bigint totals exact; the unused-sign side retains its Number seed (mixed accumulator type).
         if (value < 0) {
             accumulator[0] = addAccumulated(accumulator[0], value);
         }
@@ -133,9 +128,7 @@ export function area(id: string, aggFn: AggregatePropertyDefinition<any, any, an
         matchGroupIds: matchGroupId ? [matchGroupId] : undefined,
         type: 'aggregate',
         aggregateFunction: (values, keyRange = []) => {
-            // Area is a density (value / key-width) → fractional, so narrow to Number for the division.
-            // Subtract the bigint key edges exactly first: narrowing each edge before subtracting collapses
-            // the width to 0 for adjacent bins beyond a double's ULP (≈ 2^53), blanking the series.
+            // Subtract bigint key edges before narrowing: narrowing first collapses the width to 0 beyond a double's ULP.
             const keyWidth = Number(subtractValues(keyRange[1], keyRange[0]));
             return aggFn.aggregateFunction(values).map((v: AgNumericValue) => Number(v) / keyWidth) as [number, number];
         },

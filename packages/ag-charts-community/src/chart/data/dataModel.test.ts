@@ -42,7 +42,6 @@ function scoped<T extends object>(def: T): T & { scopes: string[] } {
     return { ...def, scopes: [ISO_SCOPE] };
 }
 
-/** Returns all `console.warn` call arguments joined into one string and clears the mock. */
 function drainWarnings(): string {
     const warnMock = console.warn as Mock;
     const text = warnMock.mock.calls.flat().join('\n');
@@ -1714,8 +1713,6 @@ describe('DataModel', () => {
 
     describe('stacking on a date column (AG-16608)', () => {
         it('should reject a stacked date-tagged column with a warning and render empty', () => {
-            // AG-16608 AC #14: stacking/accumulation is not meaningful for date data. The date columns
-            // are blanked (empty domain) so the series renders nothing; sibling series are unaffected.
             const dataModel = new DataModel<any, any, true>({
                 props: [categoryKey('kp'), ...accumulatedGroupValues(['a', 'b'], 'all')],
                 groupByKeys: true,
@@ -1753,7 +1750,7 @@ describe('DataModel', () => {
 
             expect(result.columnValueType).toEqual(['number', 'number']);
             expect(resolveGroupColumn(result, 0, 0)).toEqual([5]);
-            expect(resolveGroupColumn(result, 0, 1)).toEqual([12]); // stacked: 5 + 7
+            expect(resolveGroupColumn(result, 0, 1)).toEqual([12]);
         });
     });
 
@@ -2884,7 +2881,6 @@ describe('DataModel', () => {
                 ])
             )!;
 
-            // AC #7: the raw column retains the original ISO string, not a parsed Date.
             const keys = [...result.keys[0].get(ISO_SCOPE)!];
             expect(keys).toEqual(['2024-01-15', '2024-02-15T10:30:00']);
         });
@@ -2931,7 +2927,6 @@ describe('DataModel', () => {
                 ])
             )!;
 
-            // The ISO string is invalid data on a numeric axis: its row is marked invalid and warned.
             const invalid = result.invalidData?.get(ISO_SCOPE) ?? [];
             expect(invalid[1]).toBe(true);
             expect(drainWarnings()).toContain('invalid value of type [string]');
@@ -2947,7 +2942,6 @@ describe('DataModel', () => {
                 ])
             )!;
 
-            // The chart still renders: every value parses and is retained.
             const keys = [...result.keys[0].get(ISO_SCOPE)!];
             expect(keys).toEqual(['2024-01-15T10:30:00Z', '2024-02-15', '2024-03-15T08:00:00+05:30']);
 
@@ -2956,10 +2950,8 @@ describe('DataModel', () => {
             expect(warnings).toContain('timezone-explicit');
             expect(warnings).toContain('timezone-implicit');
             expect(warnings).toContain('local time');
-            // Names an example of each kind with its row.
             expect(warnings).toContain('2024-01-15T10:30:00Z');
             expect(warnings).toContain('2024-02-15');
-            // Warns exactly once for the column despite multiple offending rows.
             expect(warnings.match(/timezone-explicit/g)).toHaveLength(1);
         });
 
@@ -2997,7 +2989,6 @@ describe('DataModel', () => {
                 ])
             )!;
 
-            // Renders unchanged and emits no timezone diagnostic.
             expect([...result.keys[0].get(ISO_SCOPE)!]).toHaveLength(3);
             expect(drainWarnings()).not.toContain('timezone-explicit');
         });
@@ -3027,8 +3018,6 @@ describe('DataModel', () => {
                 ])
             )!;
 
-            // The raw column keeps the strings (AC #7); the domain coerces to Date instants so the time
-            // scale receives a numeric extent. Before AG-16654 the strings were ignored and this was empty.
             const domain = result.domain.keys[0];
             expect(domain.length).toBeGreaterThan(0);
             expect(domain.every((d: unknown) => d instanceof Date)).toBe(true);
@@ -3048,7 +3037,6 @@ describe('DataModel', () => {
                 ])
             )!;
 
-            // A category axis must not coerce ISO-shaped labels to Date instants.
             expect(result.domain.keys[0]).toEqual(['2024-01-15', '2024-02-20']);
         });
     });

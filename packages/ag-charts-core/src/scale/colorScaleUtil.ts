@@ -29,7 +29,6 @@ export interface ColorScaleState {
      * The user-visible domain shown on the gradient legend axis. Independent
      * of `domain`, which carries interpolation pivots derived from the fill
      * stops. When omitted, defaults to `[domain[0], domain.at(-1)]`.
-     * Can be bigint (AG-16608 heatmap); narrowed to Number where used.
      */
     displayDomain?: [AgNumericValue, AgNumericValue];
 }
@@ -57,8 +56,7 @@ export function resolveStopPositions(
             nextDefinedStopIndex = findNextDefinedStop(fills, i);
         }
 
-        // A colour stop is a fractional threshold, so a bigint stop (gauge AgGaugeColorStop) narrows
-        // to Number for the interpolation maths below — mixing bigint with the Number domain throws.
+        // Narrow a bigint stop to Number; mixing bigint with the Number domain below throws.
         const stop = toNumberOrUndefined(fills[i]?.stop);
 
         if (stop == null) {
@@ -116,8 +114,7 @@ export function computeColorBins(
         return { domain: [], range: [], bins: [] };
     }
 
-    // The colour domain originates from the colorKey extent, which can be bigint (AG-16608 heatmap).
-    // Narrow to Number for the interpolation/clamp maths below; mixing bigint with number throws.
+    // Narrow a bigint domain to Number; mixing bigint with number in the maths below throws.
     const d0 = toNumber(domain[0]);
     const d1 = toNumber(domain[1]);
     const isDiscrete = mode === 'discrete';
@@ -173,8 +170,7 @@ export function deriveNormalizedStops(colorScale: ColorScaleState): GradientColo
     const { domain, range, mode, displayDomain } = colorScale;
     if (range.length === 0) return [];
 
-    // `domain` holds Number interpolation pivots. `displayDomain` is the user-visible range and can be
-    // bigint (AG-16608 heatmap), so narrow it to Number for the [0,1] fraction maths below.
+    // Narrow a bigint `displayDomain` to Number for the [0,1] fraction maths below.
     const [d0, d1] = displayDomain
         ? [toNumber(displayDomain[0]), toNumber(displayDomain[1])]
         : [domain[0], domain.at(-1)!];

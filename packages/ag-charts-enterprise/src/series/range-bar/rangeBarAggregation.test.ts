@@ -521,8 +521,7 @@ describe('computeExtremesAggregation', () => {
 });
 
 describe('aggregateRangeBarDataFromDataModel - bigint and ISO 8601 time values (render hardening)', () => {
-    // Exercises the real aggregation entry point (where high-volume bigint/ISO columns must be narrowed),
-    // above AGGREGATION_THRESHOLD, rather than the lower-level compute function.
+    // Drives the real entry point (which narrows the columns) rather than the lower-level compute function.
     type Fn = typeof aggregateRangeBarDataFromDataModel;
     const series = { id: 'series-1' };
     const stubDataModel = (xValues: any[], highValues: any[], lowValues: any[], domain: any[]) =>

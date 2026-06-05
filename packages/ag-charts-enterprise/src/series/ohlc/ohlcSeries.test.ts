@@ -396,9 +396,6 @@ describe('OhlcSeries', () => {
         });
     });
 
-    // Property test: a high-volume (> AGGREGATION_THRESHOLD) bigint series must render pixel-identically to
-    // its Number baseline. OHLC writes high/low into the aggregation Float64Array, so an unguarded bigint
-    // here would throw — this drives that path across the sign extremes and an ISO time axis.
     describe('bigint high-volume aggregation invariance (AG-16608)', () => {
         const N = HIGH_VOLUME_COUNT;
         const keys = { xKey: 'x', lowKey: 'low', openKey: 'open', closeKey: 'close', highKey: 'high' } as const;

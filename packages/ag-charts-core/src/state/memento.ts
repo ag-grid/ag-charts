@@ -106,8 +106,7 @@ export class MementoCaretaker {
                 return new Date(this[key].value);
             }
             if (this[key].__type === 'bigint') {
-                // Untrusted input: only decode a valid base-10 integer string, otherwise leave the
-                // value un-decoded so guardMemento rejects it via the warn-and-ignore path.
+                // Untrusted input: only decode a valid integer string, else leave it for guardMemento to reject.
                 const bigintValue = this[key].value;
                 if (typeof bigintValue === 'string' && /^-?\d+$/.test(bigintValue)) {
                     return BigInt(bigintValue);

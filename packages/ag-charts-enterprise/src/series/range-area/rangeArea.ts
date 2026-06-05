@@ -149,8 +149,7 @@ interface RangeAreaSeriesNodeDatumContext extends _ModuleSupport.CartesianCreate
 interface RangeAreaNodeDatumScratch {
     datum: any;
     xValue: any;
-    // Domain values (possibly bigint) so yScale.convert() keeps full precision; the *Coordinate fields
-    // below are the resulting pixel positions.
+    // bigint-capable so yScale.convert() keeps full precision; the *Coordinate fields are pixel positions.
     yHighValue: AgNumericValue;
     yLowValue: AgNumericValue;
     x: number;

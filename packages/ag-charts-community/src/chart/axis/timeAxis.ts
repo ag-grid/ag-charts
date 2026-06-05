@@ -36,11 +36,7 @@ import { CartesianAxis } from './cartesianAxis';
 
 type TimeBound = Date | number | undefined;
 
-/**
- * Coerces a user-supplied time-axis bound to the `Date | number` form the internal extent and
- * granularity helpers expect. `bigint` epochs narrow to `number`; strict ISO 8601 strings parse to
- * `Date`. Non-time inputs pass through unchanged so existing validation surfaces the error.
- */
+// Coerces a time-axis bound to `Date | number`; non-time inputs pass through so existing validation surfaces the error.
 export function coerceTimeBound(value: AgTimeValue | undefined): TimeBound {
     if (typeof value === 'bigint') return Number(value);
     if (isISO8601(value)) return new Date(value);

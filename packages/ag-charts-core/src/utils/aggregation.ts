@@ -21,25 +21,16 @@ const SMALLEST_INTERVAL_MIN_RECURSE = 3;
 const SMALLEST_INTERVAL_RECURSE_LIMIT = 20;
 const SMALLEST_INTERVAL_MAX_INDEX_ADJUSTMENTS = 100;
 
-// ============================================================================
-// COLUMN PREPROCESSING: narrow bigint and parse ISO time columns upfront
-// ============================================================================
-//
-// The aggregation hot path (createAggregationIndices / the bubble quadtree) stores into Float64Arrays and
-// does numeric ratio maths, so it cannot branch on `bigint` or interpret an ISO string per element. These
-// helpers convert a column once, upfront, keyed by source-column identity so memoization stays stable.
+// The aggregation hot path stores into Float64Arrays, so columns are narrowed/parsed once upfront, keyed
+// by source-column identity for stable memoization.
 
 const TIME_SCALE_TYPES: ReadonlySet<ScaleType> = new Set<ScaleType>(['time', 'unit-time', 'ordinal-time']);
 
 const isoEpochColumnCache = new WeakMap<readonly unknown[], unknown[]>();
 
 /**
- * ISO 8601 string time columns are kept verbatim in the data column (for timezone-correct display), but
- * the numeric bucketing maths cannot interpret a string. Parse such a column to epoch ms once and reuse
- * it. Date columns are already handled via valueOf (xNeedsValueOf=true) and numeric epoch columns need no
- * conversion.
- * @returns `values` (the input `xValues` reference unchanged when no parsing is required) and `needsValueOf`,
- * which is `false` once a column has been converted to epoch numbers, otherwise the caller's original flag.
+ * Parse an ISO-string time column to epoch ms (the bucketing maths cannot interpret a string).
+ * @returns the input `xValues` unchanged when no parsing is required; `needsValueOf` is `false` once converted.
  */
 export function epochColumnForTimeScale(
     scale: ScaleType,
@@ -47,7 +38,6 @@ export function epochColumnForTimeScale(
     xNeedsValueOf: boolean
 ): { values: any[]; needsValueOf: boolean } {
     const values = resolveEpochColumn(scale, xValues, xNeedsValueOf);
-    // A converted column holds epoch numbers (no valueOf needed); an unchanged reference keeps the caller's flag.
     return { values, needsValueOf: values === xValues ? xNeedsValueOf : false };
 }
 
@@ -57,7 +47,6 @@ function resolveEpochColumn(scale: ScaleType, xValues: any[], xNeedsValueOf: boo
     const cached = isoEpochColumnCache.get(xValues);
     if (cached !== undefined) return cached;
 
-    // Only string (ISO) columns need parsing; a numeric epoch column is cached as itself to skip the scan.
     const sample = xValues.find((v) => v != null);
     const converted =
         typeof sample === 'string' ? xValues.map((v) => (typeof v === 'string' ? timeValueToNumber(v) : v)) : xValues;
@@ -68,12 +57,9 @@ function resolveEpochColumn(scale: ScaleType, xValues: any[], xNeedsValueOf: boo
 const numericColumnCache = new WeakMap<readonly unknown[], unknown[]>();
 
 /**
- * Narrow a bigint-bearing column to Number absolutely. Sign and absolute magnitude are preserved, which
- * split-mode bar relies on (positive/negative bucket selection keys off each value's sign) and which the
- * bubble quadtree relies on (its value-to-domain ratios must share the absolute narrowing that
- * `aggregationDomain` applies to the domain). Mixed bigint/number elements are each coerced; null/undefined
- * pass through.
- * @returns the input `values` reference unchanged when the column holds no bigint.
+ * Narrow a bigint column to Number absolutely, preserving sign and magnitude (bar's sign buckets and the
+ * bubble quadtree's domain ratios depend on it).
+ * @returns the input `values` unchanged when the column holds no bigint.
  */
 export function narrowBigIntColumn(values: any[]): any[] {
     const cached = numericColumnCache.get(values);
@@ -94,18 +80,11 @@ export function narrowBigIntColumn(values: any[]): any[] {
 const relativeNumericColumnCache = new WeakMap<readonly unknown[], unknown[]>();
 
 /**
- * Narrow a bigint column to Number relative to its minimum bigint. Subtracting the column minimum in
- * bigint before crossing to Number (mirroring ContinuousScale.convertBigInt) means a high-magnitude,
- * narrow-range column — span below a double's ULP at that magnitude — keeps full resolution instead of
- * collapsing every value onto one double (which would empty the coarsest aggregation level and render
- * blank). Offsetting rebases each value onto the column's bigint minimum, destroying sign and absolute
- * magnitude (a pure-bigint column lands at ≥ 0; a mixed column with a Number below that minimum can stay
- * negative), and the result is no longer comparable to an absolutely-narrowed domain: use this ONLY where
- * the narrowed values feed the
- * comparison-based extrema envelope and neither their sign nor their distance to a domain is read
- * (line/area/ohlc/range). bar (sign) and bubble (domain ratios) must use {@link narrowBigIntColumn}.
- * Mixed bigint/number elements each subtract the same real offset; null/undefined pass through.
- * @returns the input `values` reference unchanged when the column holds no bigint.
+ * Narrow a bigint column to Number after subtracting its bigint minimum, so a high-magnitude narrow-range
+ * column keeps full resolution instead of collapsing onto one double. The offset destroys sign and absolute
+ * magnitude, so use ONLY for the comparison-based extrema envelope (line/area/ohlc/range); bar and bubble
+ * must use {@link narrowBigIntColumn}.
+ * @returns the input `values` unchanged when the column holds no bigint.
  */
 export function narrowBigIntColumnRelative(values: any[]): any[] {
     const cached = relativeNumericColumnCache.get(values);
@@ -237,7 +216,6 @@ export function aggregationRangeFittingPoints(
     if (Number.isFinite(d0)) {
         const smallestKeyInterval = opts?.smallestKeyInterval;
         const xNeedsValueOf = opts?.xNeedsValueOf ?? true;
-        // Screen-space boundary: the key interval becomes a pixel-fraction here, so narrow a bigint to Number.
         const smallestPixelInterval =
             smallestKeyInterval == null
                 ? estimateSmallestPixelInterval(xValues, d0, d1, xNeedsValueOf)

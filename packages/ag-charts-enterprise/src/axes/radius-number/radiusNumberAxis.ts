@@ -46,9 +46,7 @@ export class RadiusNumberAxis extends RadiusAxis<
 
     protected prepareGridPathTickData(data: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[] {
         const { scale } = this;
-        // Ticks for a bigint domain arrive as bigints; narrow to Number so the filter compares against the
-        // (narrowed) domain endpoint and the sort comparator stays in Number space (bigint subtraction in a
-        // comparator throws when the engine coerces the result back to Number).
+        // Narrow to Number so the sort comparator stays in Number space (bigint subtraction throws there).
         const domainTop = toNumber(scale.domain[1]);
         return data
             .filter(({ tick }) => toNumber(tick) !== domainTop) // Prevent outer tick being drawn behind polar line

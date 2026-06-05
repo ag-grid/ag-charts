@@ -722,8 +722,7 @@ describe('Annotations', () => {
     });
 
     describe('bigint coordinates (AG-16608)', () => {
-        // Number.MAX_SAFE_INTEGER + 2, beyond Number precision. Supplied in the serialisable
-        // `AgStateSerializableBigInt` form, mirroring how date coordinates are supplied as `{ __type: 'date' }`.
+        // Beyond Number precision, so a faithful round-trip can only hold via the serialisable bigint form.
         const BIGINT_X = 9007199254740993n;
 
         const NUMERIC_AXIS_OPTIONS: AgCartesianChartOptions = {
@@ -751,8 +750,6 @@ describe('Annotations', () => {
                 NUMERIC_AXIS_OPTIONS
             );
 
-            // `getState()` re-encodes the internally-decoded bigint, so a faithful round-trip
-            // returns the same serialisable `{ __type: 'bigint' }` form that was restored.
             const state = chart.getState();
             expect(state.annotations).toHaveLength(1);
             expect(state.annotations![0]).toMatchObject({ type: 'vertical-line', value: serialisedValue });

@@ -32,12 +32,7 @@ export async function createEnterpriseChart<T extends AgChartOptions<any, any>>(
     return chart;
 }
 
-/**
- * Render an enterprise chart, extract its canvas as a PNG buffer, then destroy it. Used by the
- * per-series `bigint values` / `ISO datetime` sub-suites so the assertion (`toMatchImageSnapshot`)
- * stays in the test file — `src/test/utils.ts` is cruised as production code and must not depend on
- * the test runner. `ctx` is the suite's `setupMockCanvas()` handle.
- */
+// Returns the image so the assertion stays in the caller: this file is cruised as production code and cannot depend on the test runner.
 export async function renderEnterpriseChartImage(
     ctx: Parameters<typeof extractImageData>[0],
     options: AgChartOptions

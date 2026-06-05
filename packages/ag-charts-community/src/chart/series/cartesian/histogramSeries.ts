@@ -99,7 +99,7 @@ function isBigIntConvertible(value: AgNumericValue): boolean {
 
 type HistogramAnimationData = CartesianAnimationDataOf<HistogramSeriesTypes>;
 
-/** Bin boundaries are `bigint` for a BigInt x-column (AG-16608) and `number` otherwise. */
+/** Bin boundaries are `bigint` for a BigInt x-column and `number` otherwise. */
 type BinDomain = [AgNumericValue, AgNumericValue];
 
 interface CalculatedBin {
@@ -107,8 +107,7 @@ interface CalculatedBin {
     groupIndex: number;
     datum: any[];
     frequency: number;
-    // bigint when summing a bigint yKey column (aggregation 'sum'); the y-scale narrows it for positioning
-    // while the exact value reaches the tooltip via the bin datum's aggregatedValue.
+    // bigint when summing a bigint yKey column; kept exact so the tooltip's aggregatedValue is precise.
     total: AgNumericValue;
 }
 
@@ -169,13 +168,10 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         return this.calculatedBins.length > 0;
     }
 
-    // A BigInt x-column (AG-16608) computes boundaries in BigInt for full precision; everything else
-    // keeps the number paths. Explicit `bins` win unless an explicit `binCount` is also set.
     private computeBins(xExtent: AgNumericValue[]): BinDomain[] {
         const x0 = xExtent[0];
         const x1 = xExtent[1];
-        // Full-precision BigInt boundaries need both endpoints integral; a fractional endpoint (possible on a
-        // mixed bigint/number column) would make BigInt() throw, so fall back to the Number path in that case.
+        // BigInt boundaries need both endpoints integral, else BigInt() throws — fall back to the Number path.
         const bigIntExtent = (isBigInt(x0) || isBigInt(x1)) && isBigIntConvertible(x0) && isBigIntConvertible(x1);
 
         if (isNumber(this.properties.binCount)) {
@@ -395,8 +391,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             const [x0, x1] = findMinMax([xScale.convert(xDomainMin), xScale.convert(xDomainMax)]);
 
             if (x1 >= r0 && x0 <= r1) {
-                // Sum exactly (operands may be bigint) and take the running max; the return type is number,
-                // so toNumber narrows once below (warning only if the total overflows the Number range).
+                // Sum exactly (operands may be bigint); toNumber narrows the number-typed return once below.
                 yMax = maxValue(yMax, addValues(negativeAgg, positiveAgg));
             }
         }

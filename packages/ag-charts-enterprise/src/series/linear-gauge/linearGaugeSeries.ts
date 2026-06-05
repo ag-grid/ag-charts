@@ -612,8 +612,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const scaleStyle = scaleProps.getStyle(bar.enabled, defaultColorRange, horizontal, scale);
 
         if (segments == null && cornersOnAllItems) {
-            // Visual corner-segment bounds spanning the whole domain; convert() maps the exact endpoints
-            // to the range ends regardless, so a Number-narrow here is precision-safe.
+            // convert() maps these whole-domain endpoints to the range ends, so a Number-narrow is precision-safe.
             const segmentStart = Number(scale.domainMin);
             const segmentEnd = Number(scale.domainMax);
             const datum = { value, segmentStart, segmentEnd };
@@ -1220,8 +1219,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         } else {
             const animationId = `${this.id}_labels`;
 
-            // The count-up tween narrows to Number — intermediate frames are visual only. The resting
-            // frame (onStop) re-formats from the full-precision label value (AG-16608 AC #11).
+            // The count-up tween narrows to Number; onStop re-formats from the full-precision label value.
             animationManager.animate({
                 id: animationId,
                 groupId: 'label',

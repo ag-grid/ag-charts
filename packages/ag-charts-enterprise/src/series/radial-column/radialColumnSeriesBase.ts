@@ -150,8 +150,7 @@ export abstract class RadialColumnSeriesBase<
             return dataModel.getDomain(this, 'angleValue', 'key', processedData);
         } else {
             const yExtent = dataModel.getDomain(this, 'radiusValue-end', 'value', processedData).domain;
-            // minValue/maxValue (not Math.min/max, which throw on bigint) keep an exact bigint extent so the
-            // scale's full-precision conversion path is used; fixNumericExtent carries number|bigint through.
+            // minValue/maxValue (not Math.min/max, which throw on bigint) keep an exact bigint extent.
             const fixedYExtent = [minValue(yExtent[0], 0), maxValue(yExtent[1], 0)];
             return { domain: fixNumericExtent(fixedYExtent) };
         }

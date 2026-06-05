@@ -118,8 +118,7 @@ interface WaterfallNodeDatumParams {
     datum: unknown;
     xDatum: any;
     value: number | undefined;
-    // Bigint-capable so a cumulative beyond Number.MAX_VALUE survives to yScale.convert() for proportional
-    // positioning; the cumulativeValue datum field and the display value narrow to Number.
+    // bigint-capable so a cumulative beyond Number.MAX_VALUE survives to yScale.convert().
     cumulativeValue: AgNumericValue | undefined;
     trailingValue: AgNumericValue | undefined;
     datumType: AgWaterfallSeriesItemType | undefined;
@@ -283,8 +282,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         } else {
             const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent');
             const yExtent = values[yCurrIndex];
-            // minValue/maxValue (not Math.min/max, which throw on bigint) keep an exact bigint cumulative
-            // extent so the scale's full-precision conversion path is used; fixNumericExtent carries number|bigint through.
+            // minValue/maxValue (not Math.min/max, which throw on bigint) keep an exact bigint extent.
             const fixedYExtent = [minValue(0, yExtent[0]), maxValue(0, yExtent[1])];
             return { domain: fixNumericExtent(fixedYExtent) };
         }
@@ -494,8 +492,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         cumulativeValue?: AgNumericValue,
         trailingValue?: AgNumericValue
     ): number | undefined {
-        // Display value (label/tooltip metadata) narrows to Number; positioning uses the exact bigint
-        // cumulative/trailing directly. Number()ing both operands avoids a bigint/number subtraction throw.
+        // Display value narrows to Number; Number()ing both operands avoids a bigint/number subtraction throw.
         if (isTotal) {
             return cumulativeValue == null ? undefined : Number(cumulativeValue);
         }

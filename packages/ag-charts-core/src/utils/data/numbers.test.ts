@@ -77,17 +77,16 @@ describe('Number Utilities', () => {
     test('toNumber', () => {
         const warnOnce = vi.spyOn(Logger, 'warnOnce').mockImplementation(() => {});
         try {
-            // Numbers pass through unchanged.
             expect(toNumber(5)).toBe(5);
             expect(toNumber(-5.25)).toBe(-5.25);
             expect(toNumber(Number.MAX_VALUE)).toBe(Number.MAX_VALUE);
 
-            // In-range bigints coerce (lossy beyond MAX_SAFE_INTEGER, but finite) without warning.
+            // In-range bigints coerce (lossy but finite) without warning.
             expect(toNumber(42n)).toBe(42);
             expect(toNumber(-9_000_000_000_000_000_000n)).toBe(-9_000_000_000_000_000_000);
             expect(warnOnce).not.toHaveBeenCalled();
 
-            // Bigints beyond Number.MAX_VALUE coerce to ±Infinity (dropped from rendering) and warn once.
+            // Bigints beyond Number.MAX_VALUE coerce to ±Infinity and warn once.
             expect(toNumber(10n ** 400n)).toBe(Infinity);
             expect(toNumber(-(10n ** 400n))).toBe(-Infinity);
             expect(warnOnce).toHaveBeenCalled();
@@ -99,7 +98,6 @@ describe('Number Utilities', () => {
     test('minValue / maxValue', () => {
         const BIG = 9_007_199_254_740_993n; // MAX_SAFE_INTEGER + 2, not exactly representable as a Number
 
-        // Pure-number path keeps Math.min/max semantics, including NaN propagation.
         expect(minValue(3, 7)).toBe(3);
         expect(maxValue(3, 7)).toBe(7);
         expect(minValue(-2, 0)).toBe(-2);
@@ -107,11 +105,9 @@ describe('Number Utilities', () => {
         expect(Number.isNaN(minValue(Number.NaN, 0))).toBe(true);
         expect(Number.isNaN(maxValue(Number.NaN, 0))).toBe(true);
 
-        // bigint operands are compared without coercion and returned exactly.
         expect(minValue(BIG, BIG * 2n)).toBe(BIG);
         expect(maxValue(BIG, BIG * 2n)).toBe(BIG * 2n);
 
-        // Mixed operands compare correctly and preserve the exact bigint when it is the selected value.
         expect(minValue(BIG, 0)).toBe(0);
         expect(maxValue(BIG, 0)).toBe(BIG);
         expect(minValue(0, -BIG)).toBe(-BIG);
@@ -121,13 +117,11 @@ describe('Number Utilities', () => {
     test('absValue', () => {
         const BIG = 9_007_199_254_740_993n; // MAX_SAFE_INTEGER + 2, not exactly representable as a Number
 
-        // Pure-number path keeps Math.abs semantics.
         expect(absValue(5)).toBe(5);
         expect(absValue(-5)).toBe(5);
         expect(absValue(-0)).toBe(0);
         expect(Number.isNaN(absValue(Number.NaN))).toBe(true);
 
-        // bigint magnitude is preserved exactly rather than coerced.
         expect(absValue(BIG)).toBe(BIG);
         expect(absValue(-BIG)).toBe(BIG);
     });

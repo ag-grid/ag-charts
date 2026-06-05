@@ -277,8 +277,7 @@ export class AxisTicks {
         );
         const idGenerator = createIdsGenerator();
 
-        // domain/ticks are formatter-context metadata only (narrowed to Number per the documented
-        // pattern); the per-tick label below keeps the exact value, so bigint labels stay full-precision.
+        // Formatter context only; the per-tick label below keeps the exact value.
         const tickFormatter = this.tickFormatter(domain.map(Number), rawTicks.map(Number), false, fractionDigits);
 
         for (let index = 0; index < rawTicks.length; index++) {

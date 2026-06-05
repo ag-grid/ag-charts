@@ -131,8 +131,7 @@ export class Aggregator<D extends object, K extends keyof D & string> {
 
         const { columnScopes, columns, invalidData, columnValueType } = processedData;
         for (const processor of groupProcessors) {
-            // Stacking/accumulation is meaningless for date columns: reject each (warn once + blank it so
-            // the series renders empty) and exclude from accumulation; siblings unaffected (AG-16608 #14).
+            // Stacking is meaningless for date columns: reject and exclude them from accumulation.
             const valueIndexes = this.valueGroupIdxLookup(processor).filter((valueIndex) => {
                 if (columnValueType?.[valueIndex] !== 'date') return true;
                 this.rejectDateStackColumn(processedData, valueIndex);

@@ -223,8 +223,7 @@ export function tickFormat(
         }
     }
     const formatter = createNumberFormatter(options);
-    // Explicit bigint tick values (e.g. gauge scale.interval.values) render full-precision; only a
-    // bigint reaches this branch, axes always pass Number ticks (AG-16608 AC #11).
+    // A bigint tick renders full-precision rather than narrowing to Number.
     return (n) => (typeof n === 'bigint' ? n.toLocaleString() : formatter(Number(n)));
 }
 
@@ -298,11 +297,7 @@ export function createBigIntTicks(start: bigint, stop: bigint, count: number): b
     return ascending ? ticks : ticks.reverse();
 }
 
-/**
- * Contiguous, equal-width BigInt bins covering the domain, for histogram bucketing. Reuses the nice
- * step picker so boundaries land on nice multiples and the outer bins extend to the surrounding step
- * multiples (like {@link niceBigIntDomain}). Always returns at least one bin.
- */
+/** Contiguous, equal-width BigInt bins covering the domain (histogram bucketing); always at least one bin. */
 export function createBigIntBins(start: bigint, stop: bigint, count: number): [bigint, bigint][] {
     const lo = start < stop ? start : stop;
     const hi = start < stop ? stop : start;

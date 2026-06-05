@@ -49,13 +49,9 @@ export const SHARED_ZERO_INDICES: readonly number[] = Object.freeze([0]);
 export type ScopeId = string;
 
 /**
- * Per-column value type, set once during extraction. Consumers dispatch off this tag rather than
- * re-sniffing values, and {@link DataModel.resolveColumnById} asserts it against the type the caller
- * expects. `'mixed-numeric'` flags a column that contains both `number` and `bigint` values (the
- * `number | bigint` value path); `'object'` flags non-`Date` object values (e.g. GeoJSON features),
- * whose precise element type the caller supplies rather than this tag.
- *
- * The tag is advisory: column storage keeps raw values and no runtime conversion keys off it.
+ * Per-column value type, set once during extraction; an advisory tag consumers dispatch off rather than
+ * re-sniffing values. `'mixed-numeric'` is a column of both `number` and `bigint`; `'object'` is non-`Date`
+ * objects whose element type the caller supplies rather than this tag.
  */
 export type ColumnValueType = 'number' | 'bigint' | 'date' | 'string' | 'boolean' | 'mixed-numeric' | 'object';
 
@@ -66,8 +62,7 @@ export type ColumnValueTypeMapping = {
     string: string;
     boolean: boolean;
     'mixed-numeric': AgNumericValue;
-    // The 'object' overload returns the caller-supplied element type, so this entry is never consulted
-    // for the return type; it exists only to make 'object' a valid mapping key.
+    // 'object' returns the caller-supplied element type; this entry only makes 'object' a valid key.
     object: unknown;
 };
 
@@ -293,8 +288,7 @@ export type PropertySelectors = {
 export type DatumPropertyDefinition<K> = PropertyIdentifiers & {
     type: 'key' | 'value';
     valueType: DatumPropertyType;
-    /** True for time scales (time/unit-time/ordinal-time), so a discrete domain coerces ISO 8601 strings
-     * to Date instants rather than keeping them as opaque category labels. */
+    /** True for time scales, so a discrete domain coerces ISO 8601 strings to Date instants. */
     timeDomain?: boolean;
     property: K;
     forceValue?: any;

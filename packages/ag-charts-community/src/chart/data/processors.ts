@@ -60,14 +60,11 @@ function basicContinuousCheckDatumValidation(value: any) {
 const TIME_AXIS_ACCEPTED_FORMATS =
     "Date, epoch number/bigint, or strict ISO 8601 string (e.g. '2024-01-15', '2024-01-15T10:30:00Z')";
 
-// Split out from basicContinuousCheckDatumValidation so the time scales accept time-only values (ISO 8601
-// strings) that must never be accepted by number/log/color scales.
+// Separate from basicContinuousCheckDatumValidation so only time scales accept ISO 8601 strings.
 function basicTimeCheckDatumValidation(value: any, _datum?: any, index?: number) {
     if (value == null) return false;
     if (isContinuous(value) || isISO8601(value)) return true;
     if (typeof value === 'string') {
-        // warnOnce dedupes by message; embedding the value + row makes it fire once per offending datum
-        // per chart pass (Logger is reset each pass), satisfying the per-column diagnostic requirement.
         Logger.warnOnce(
             `unsupported value [${value}] at row ${index ?? '?'} on a time axis; expected ${TIME_AXIS_ACCEPTED_FORMATS}. The value is ignored.`
         );
@@ -110,7 +107,6 @@ function getValueType(scaleType?: ScaleType) {
     }
 }
 
-// Time scales accept ISO 8601 strings; their (possibly discrete) domain must coerce them to Date instants.
 function isTimeScaleType(scaleType?: ScaleType): boolean {
     return scaleType === 'time' || scaleType === 'unit-time' || scaleType === 'ordinal-time';
 }
@@ -234,21 +230,15 @@ export function groupAccumulativeValueProperty<K>(
     ];
 }
 
-// Normalises a key for interval maths: a bigint is kept exact, anything else (number, Date) coerces to a
-// Number as before. NaN/Infinity keys (e.g. invalid data) yield undefined and are skipped. An ISO 8601
-// string key (Number() would yield NaN) parses to epoch ms — the interval reducers run only for a
-// continuous x-axis, so a string here is a date string, never a category.
+// Bigint kept exact; ISO 8601 string parses to epoch ms; anything else coerces to Number (NaN/Infinity skipped).
 function finiteKey(key: unknown): AgNumericValue | undefined {
     if (typeof key === 'bigint') return key;
-    // isISO8601 guarantees a calendar-valid date, so timeValueToNumber always yields a finite epoch here.
     if (isISO8601(key)) return timeValueToNumber(key);
     const n = Number(key);
     return Number.isFinite(n) ? n : undefined;
 }
 
-// Gap between adjacent keys, kept exact (a bigint gap stays a bigint) so coercion is deferred to the
-// screen-space consumers (bandwidth/aggregation). Subtracting before any narrowing is what fixes the
-// precision loss; coercing each key first would collapse gaps below the Number ULP at the keys' magnitude.
+// Subtract before narrowing: coercing each key first collapses gaps below the Number ULP at large magnitudes.
 function keyInterval(curr: AgNumericValue, prev: AgNumericValue): AgNumericValue {
     return absValue(subtractValues(curr, prev));
 }
@@ -333,8 +323,7 @@ export const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<'sortedGroupD
 function normaliseFnBuilder({ normaliseTo }: { normaliseTo: number }) {
     const normalise = (val: AgNumericValue | null, extent: number) => {
         if (extent === 0) return 0;
-        // Normalisation produces a [0,1]·normaliseTo fraction, so Number precision is sufficient; narrow a
-        // bigint here (the column becomes Number after this pass — normalizedTo is a Number concept).
+        // Narrow bigint to Number: normalisation yields a fraction, and the column becomes Number after this pass.
         const result = (Number(val ?? 0) * normaliseTo) / extent;
         if (result >= 0) {
             return Math.min(normaliseTo, result);
@@ -378,7 +367,6 @@ function normaliseFindExtent(columns: any[][], valueIndexes: number[], dataGroup
             const value: AgNumericValue | null | (AgNumericValue | null)[] = column[datumIndex];
             if (value == null) continue;
             // Note - Array.isArray(new Float64Array) is false, and this type is used for stack accumulators.
-            // Narrow bigint to Number (normalizedTo is a Number concept; values beyond MAX_VALUE degrade).
             let valueExtent: number;
             if (typeof value === 'number') {
                 valueExtent = value;
@@ -598,8 +586,7 @@ function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailin
                 dataGroup: DataGroup,
                 groupIndex: number
             ) {
-                // Datum scope. Seeds are number `0`; a bigint column promotes them to bigint via
-                // addAccumulated so stacked totals retain full precision (AG-16608 AC #10).
+                // Number `0` seeds promote to bigint via addAccumulated so stacked totals stay exact.
                 const acc: [AgNumericValue, AgNumericValue] = [0, 0];
                 for (const valueIdx of valueIndexes) {
                     const datumIndices = dataGroup.datumIndices[valueIdx];

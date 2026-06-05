@@ -122,8 +122,6 @@ interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateN
 interface PreparedRangeBarNodeDatumState {
     datum: any;
     xValue: any;
-    // Domain values (possibly bigint), preserved exactly for label/tooltip metadata; positioning converts
-    // the raw columns directly via params.yLow/yHigh.
     yLowValue: AgNumericValue;
     yHighValue: AgNumericValue;
     rawLowValue: AgNumericValue;
@@ -141,7 +139,7 @@ interface NodeDatumParams {
     groupedDataIndex: number;
     x: number;
     width: number;
-    // Domain values (possibly bigint) so yScale.convert() keeps full precision; x/width are pixel-space.
+    // bigint-capable so yScale.convert() keeps full precision; x/width are pixel-space.
     yLow: AgNumericValue;
     yHigh: AgNumericValue;
     crisp: boolean;

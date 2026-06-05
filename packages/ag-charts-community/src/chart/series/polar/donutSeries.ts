@@ -415,8 +415,7 @@ export class DonutSeries extends PolarSeries<
 
     private getProcessedDataValues(dataModel: DataModel<any>, processedData: ProcessedData<any>) {
         const angleValues = dataModel.resolveColumnById(this, `angleValue`, processedData, 'number');
-        // Raw pass-through angle values stay mixed-numeric so a bigint datum reaches the node datum and
-        // tooltip exactly; the normalised angleValues above are [0,1] ratios and remain number.
+        // Mixed-numeric so a bigint datum reaches the node datum and tooltip exactly.
         const angleRawValues = dataModel.resolveColumnById(this, `angleRaw`, processedData, 'mixed-numeric');
         const angleFilterValues =
             this.properties.angleFilterKey == null
@@ -495,8 +494,7 @@ export class DonutSeries extends PolarSeries<
             const currentValue = useFilterAngles ? angleFilterValues![datumIndex] : angleValues[datumIndex];
             const crossFilterScale =
                 angleFilterRawValues != null && !useFilterAngles
-                    ? // A [0,1] cross-filter ratio is a finite-precision screen-space quantity; narrow here so a
-                      // bigint raw angle divides as a float rather than truncating (or throwing in Math.sqrt).
+                    ? // Narrow so a bigint raw angle divides as a float rather than truncating (or throwing in Math.sqrt).
                       Math.sqrt(toNumber(angleFilterRawValues[datumIndex]) / toNumber(angleRawValues[datumIndex]))
                     : 1;
 

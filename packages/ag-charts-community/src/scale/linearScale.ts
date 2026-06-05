@@ -22,7 +22,6 @@ export class LinearScale extends ContinuousScale<AgNumericValue> {
 
     protected static getTickStep(start: number, stop: number, ticks: ScaleTickParams<number>) {
         const { interval, tickCount = ContinuousScale.defaultTickCount, minTickCount, maxTickCount } = ticks;
-        // A custom interval narrows to Number here; the magnitude is a Number concept (AG-16608 AC #17).
         return interval == null ? tickStep(start, stop, tickCount, minTickCount, maxTickCount) : Number(interval);
     }
 
@@ -63,8 +62,7 @@ export class LinearScale extends ContinuousScale<AgNumericValue> {
         const [d0, d1] = numericDomain;
 
         if (interval) {
-            // A custom interval step is a Number concept (full precision applies to the auto-step path
-            // and to explicit values[]); narrow a bigint step to Number for the magnitude arithmetic.
+            // A custom interval step is a Number concept; bigint full precision applies only to the auto-step path.
             const step = Math.abs(Number(interval));
             if (!isDenseInterval((d1 - d0) / step, this.getPixelRange())) {
                 return range(d0, d1, step, visibleRange);

@@ -194,8 +194,7 @@ interface NodeDatumParams {
     datumIndex: number;
     x: number;
     width: number;
-    // Bigint-capable so a stack bound beyond Number.MAX_VALUE survives to yScale.convert() for proportional
-    // positioning; the non-aggregated path passes raw values and recombines in pixel space (see updateNodeDatum).
+    // Kept raw (possibly bigint) so yScale.convert() positions values beyond Number.MAX_VALUE proportionally.
     yStart: AgNumericValue;
     yEnd: AgNumericValue;
     yRange: AgNumericValue;
@@ -463,8 +462,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 ? dataModel.getDomain(this, 'yFilterValue-raw', 'value', processedData).domain
                 : undefined;
             if (yFilterExtent != null) {
-                // minValue/maxValue (not Math.min/max, which throw on bigint) merge the two extents while
-                // preserving an exact bigint endpoint for the scale's full-precision conversion path.
+                // minValue/maxValue (not Math.min/max, which throw on bigint) preserve exact bigint endpoints.
                 yExtent = [minValue(yExtent[0], yFilterExtent[0]), maxValue(yExtent[1], yFilterExtent[1])];
             }
         }
@@ -482,8 +480,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         if (selfDirection !== direction) return [];
         const yKey = this.yCumulativeKey(this.dataModel!);
         const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, [yKey], 'xValue', visibleRange);
-        // domainForVisibleRange can return a bigint via its sortOrder path; minValue/maxValue avoid the
-        // Math.min/max throw and toNumber narrows once for this number-typed range return.
+        // domainForVisibleRange may yield a bigint; minValue/maxValue avoid the Math.min/max throw, toNumber narrows once.
         return [toNumber(minValue(y0, 0)), toNumber(maxValue(y1, 0))];
     }
 
@@ -634,8 +631,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             barWidth,
             range,
             yReversed: yAxis.isReversed(),
-            // 0n so a bigint y-domain takes the full-precision convert() path; on a Number scale this narrows
-            // to 0 identically. A numeric 0 against a straddling-zero bigint domain narrows to NaN (Inf/Inf).
+            // 0n so a bigint y-domain takes the full-precision convert() path; a numeric 0 against it yields NaN.
             bboxBottom: yScale.convert(0n),
             labelSpacing: label.spacing + (typeof label.padding === 'number' ? label.padding : 0),
             crisp:
@@ -836,13 +832,12 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const phantom = node.phantom;
         const prevY = params.yStart;
         const yValue = phantom ? prepared.yFilterValue! : (prepared.yFilterValue ?? prepared.yRawValue);
-        // Metadata only (tooltips/error-bars); the geometry below uses the exact bigint, so a silent narrow is fine.
+        // Metadata only (tooltips/error-bars); geometry below uses the exact bigint, so narrowing here is fine.
         const cumulativeValue = phantom ? prepared.yFilterValue! : (prepared.yFilterValue ?? Number(params.yEnd));
         const nodeLabelText = phantom ? undefined : prepared.labelText;
 
-        // currY/nodeYRange stay in domain space (possibly bigint) so yScale.convert() positions them
-        // proportionally. The cross-filter branch recombines a baseline with the filtered delta in Number
-        // space — a Number concept — so a bigint baseline beyond MAX_VALUE degrades there rather than throws.
+        // Stay in domain space (possibly bigint) so yScale.convert() positions proportionally; the cross-filter
+        // branch recombines in Number space, so a bigint baseline beyond MAX_VALUE degrades there rather than throws.
         let currY: AgNumericValue;
         if (phantom || prepared.yFilterValue == null) {
             currY = params.yEnd;
@@ -1011,8 +1006,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 nodeDatumParamsScratch.width = width;
                 nodeDatumParamsScratch.opacity = opacity;
                 if (ctx.isStacked) {
-                    // Geometry stays in domain space (possibly bigint) so yScale.convert() keeps full precision,
-                    // matching the non-aggregated path; only the bucket *index* comes from the aggregation.
+                    // Keep domain space (possibly bigint) so yScale.convert() keeps full precision; only the bucket index comes from the aggregation.
                     nodeDatumParamsScratch.yStart = ctx.yStartValues![yMinIndex];
                     nodeDatumParamsScratch.yEnd = ctx.yEndValues![yMaxIndex];
                     nodeDatumParamsScratch.featherRatio = 0;
@@ -1022,8 +1016,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
                     nodeDatumParamsScratch.yStart = 0;
                     nodeDatumParamsScratch.yEnd = yEndMax;
-                    // featherRatio is a finite-precision visual ratio, so narrow here (a bigint pair would
-                    // otherwise divide as truncating integers) while yEnd above keeps full precision.
+                    // Narrow here: a bigint pair would otherwise divide as truncating integers.
                     nodeDatumParamsScratch.featherRatio =
                         (positive ? 1 : -1) * sign * (1 - toNumber(yEndMin) / toNumber(yEndMax));
                 }
@@ -1079,10 +1072,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 const yRawValue = ctx.yRawValues[datumIndex];
                 if (yRawValue == null) continue;
                 const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
-                // Pass raw (possibly bigint) stack bounds through; recombination/narrowing happens in pixel
-                // space later. Number() here would collapse a value beyond Number.MAX_VALUE to Infinity. The
-                // baseline must match the value type (0n for bigint) so convert() takes the full-precision
-                // bigint path — a numeric 0 against a bigint domain narrows to Infinity and yields NaN.
+                // Pass raw (possibly bigint) bounds through; the baseline must match the value type (0n for
+                // bigint) or convert() yields NaN against a bigint domain.
                 const baseline = zeroLike(yRawValue);
                 const yStart = ctx.isStacked ? (ctx.yStartValues?.[datumIndex] ?? baseline) : baseline;
                 const yEnd = ctx.isStacked ? ctx.yEndValues?.[datumIndex] : yRawValue;
@@ -1137,8 +1128,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             nodeDatumParamsScratch.datumIndex = datumIndex;
             nodeDatumParamsScratch.x = x;
             nodeDatumParamsScratch.width = width;
-            // 0n baseline for a bigint value so convert() takes the full-precision bigint path (a numeric 0
-            // against a bigint domain narrows to Infinity and yields NaN for a straddling-zero domain).
+            // 0n baseline for a bigint value so convert() takes the bigint path; a numeric 0 against it yields NaN.
             nodeDatumParamsScratch.yStart = zeroLike(yEnd);
             nodeDatumParamsScratch.yEnd = yEnd;
             nodeDatumParamsScratch.yRange = yEnd;

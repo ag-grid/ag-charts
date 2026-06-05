@@ -6,12 +6,7 @@ export function clamp(min: number, value: number, max: number) {
     return Math.min(max, Math.max(min, value));
 }
 
-/**
- * Coerces a `number | bigint` to a `number` for rendering/positioning maths, where finite precision is
- * sufficient (the exact value is retained elsewhere for tooltips and tick labels). A `bigint` magnitude
- * beyond `Number.MAX_VALUE` coerces to `Infinity`; the result is then handled as any other non-finite value
- * (dropped from rendering), and we warn once so the precision-loss is observable rather than silent.
- */
+/** Coerce a `number | bigint` to `number` for rendering maths; warns once when a bigint exceeds the Number range. */
 export function toNumber(value: AgNumericValue): number {
     if (typeof value === 'number') return value;
 
@@ -22,11 +17,7 @@ export function toNumber(value: AgNumericValue): number {
     return n;
 }
 
-/**
- * Nullable narrowing of a `number | bigint` to `number`, passing `null`/`undefined` through unchanged.
- * Unlike {@link toNumber} this is silent — used for fractional positions (e.g. colour stops) where an
- * out-of-range magnitude is not a meaningful "cannot be rendered" case.
- */
+/** Like {@link toNumber} but passes `null`/`undefined` through and stays silent on out-of-range magnitudes. */
 export function toNumberOrUndefined(value: AgNumericValue | undefined): number | undefined {
     return value == null ? undefined : Number(value);
 }
@@ -36,11 +27,7 @@ function bothIntegral(a: AgNumericValue, b: AgNumericValue): boolean {
     return (typeof a === 'bigint' || Number.isInteger(a)) && (typeof b === 'bigint' || Number.isInteger(b));
 }
 
-/**
- * Adds two operands, promoting to `bigint` when either is a `bigint` so a large-magnitude result stays
- * exact. A fractional operand mixed with a `bigint` forces a (lossy) `number` sum rather than throwing,
- * matching {@link toNumber}'s precision-loss policy.
- */
+/** Adds two operands, promoting to `bigint` when both are integral so a large-magnitude result stays exact. */
 export function addValues(a: AgNumericValue, b: AgNumericValue): AgNumericValue {
     if (typeof a === 'bigint' || typeof b === 'bigint') {
         return bothIntegral(a, b) ? BigInt(a) + BigInt(b) : Number(a) + Number(b);
@@ -56,12 +43,7 @@ export function subtractValues(a: AgNumericValue, b: AgNumericValue): AgNumericV
     return a - b;
 }
 
-/**
- * Returns the smaller of two operands, preserving an exact `bigint` rather than coercing. `Math.min`
- * throws on a `bigint` (it calls `ToNumber`); JS comparison operators do not, so a `bigint`-involving
- * comparison stays lossless and lets the exact value reach the scale's full-precision path. The pure-number
- * path keeps `Math.min` semantics (including `NaN` propagation).
- */
+/** Smaller of two operands via comparison, preserving an exact `bigint` (`Math.min` throws on bigint). */
 export function minValue(a: AgNumericValue, b: AgNumericValue): AgNumericValue {
     if (typeof a === 'number' && typeof b === 'number') return Math.min(a, b);
     return a < b ? a : b;
@@ -79,8 +61,7 @@ export function absValue(value: AgNumericValue): AgNumericValue {
     return Math.abs(value);
 }
 
-/** Returns a zero of the same kind as `value` (`0n` for a `bigint`, `0` otherwise) so a baseline
- * stays type-compatible for exact `bigint` arithmetic via {@link addValues} / {@link subtractValues}. */
+/** Returns a zero of the same kind as `value` (`0n` for a `bigint`), keeping exact bigint arithmetic. */
 export function zeroLike(value: AgNumericValue): AgNumericValue {
     return typeof value === 'bigint' ? 0n : 0;
 }

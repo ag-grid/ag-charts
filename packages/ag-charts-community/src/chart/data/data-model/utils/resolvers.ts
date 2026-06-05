@@ -16,16 +16,9 @@ import { RangeLookup } from '../../rangeLookup';
 import { type SortOrder, valuesSortOrder } from '../../sortOrder';
 import type { DataModelContext } from '../dataModelContext';
 
-/** Runtime numeric {@link ColumnValueType} tags that interchange freely on a value axis. */
 const NUMERIC_COLUMN_TYPES = new Set<ColumnValueType>(['number', 'bigint', 'mixed-numeric']);
 
-/**
- * Decides whether a column's runtime {@link ColumnValueType} tag satisfies the type a caller expects.
- *
- * The numeric family interchanges, and a `date` column is accepted on a value axis (epoch values flow
- * through scale conversion). `'object'` is the caller-typed/opaque tag: the caller asserts the element
- * type itself, so any non-`null` runtime tag is accepted and validation is intentionally skipped.
- */
+// 'object' is caller-typed (the caller asserts the element type), so any runtime tag is accepted.
 function isCompatibleColumnType(expected: ColumnValueType, actual: ColumnValueType): boolean {
     switch (expected) {
         case 'number':
@@ -43,11 +36,7 @@ function isCompatibleColumnType(expected: ColumnValueType, actual: ColumnValueTy
     }
 }
 
-/**
- * Warns once when a column resolved with an expected {@link ColumnValueType} holds values of an
- * incompatible runtime type. A `null` tag means extraction captured no type (e.g. an all-empty column),
- * which is treated as a no-op rather than a mismatch.
- */
+// A null actualType (e.g. all-empty column) is a no-op, not a mismatch.
 function assertColumnValueType(
     scope: ScopeProvider,
     searchId: string,

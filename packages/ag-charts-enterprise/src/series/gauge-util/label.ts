@@ -22,14 +22,11 @@ export const fadeInFns: _ModuleSupport.FromToFns<_ModuleSupport.Node, any, any> 
 export function formatLabel(value: AgNumericValue | undefined, scale: { min: AgNumericValue; max: AgNumericValue }) {
     if (value == null) return '';
 
-    // A bigint value is exact and integral, so render it full-precision and skip the decimal-place
-    // estimation entirely (AG-16608 AC #11).
+    // bigint is exact and integral; render full-precision and skip decimal-place estimation.
     if (typeof value === 'bigint') {
         return value.toLocaleString();
     }
 
-    // Narrow the bounds to Number purely to estimate decimal places — precision loss here only affects
-    // how many fraction digits a (Number) value is rounded to, not the value text itself.
     const min = Number(scale.min);
     const max = Number(scale.max);
     const minLog10 = min === 0 ? 0 : Math.ceil(Math.log10(Math.abs(min)));

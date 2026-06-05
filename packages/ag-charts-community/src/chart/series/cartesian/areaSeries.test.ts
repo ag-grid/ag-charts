@@ -2427,10 +2427,7 @@ describe('AreaSeries', () => {
         });
     });
 
-    // Property test: a high-volume (> AGGREGATION_THRESHOLD) bigint series must render pixel-identically to
-    // its Number baseline across the sign extremes — guarding bigint scale-conversion and ISO epoch parsing
-    // at volume. The aggregation column-narrowing itself is unit-tested in ag-charts-core (aggregation.test.ts);
-    // community series defer aggregation to a render path the JSDOM mock canvas does not exercise.
+    // Above AGGREGATION_THRESHOLD, a bigint series must render identically to its Number baseline.
     describe('bigint high-volume aggregation invariance (AG-16608)', () => {
         const N = HIGH_VOLUME_COUNT;
         const STRIPPED_TIME_AXES = stripAxes({ x: { type: 'time', nice: false }, y: { type: 'number', nice: false } });

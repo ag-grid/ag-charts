@@ -13,8 +13,7 @@ class GaugeSegmentationIntervalProperties extends BaseProperties {
 
     getSegments(scale: Scale<AgNumericValue, number>, maxTicks: number) {
         const { values, step, count } = this;
-        // Keep the raw (possibly bigint) domain endpoints exact for the boundaries that reach scale.convert();
-        // a Number copy drives only the Number-space stepping/division paths (AG-16608 AC #17).
+        // Keep raw endpoints exact for scale.convert(); the Number copies drive only stepping/division.
         const d0 = scale.domainMin ?? Number.NaN;
         const d1 = scale.domainMax ?? Number.NaN;
         const d0n = Number(d0);
@@ -22,14 +21,9 @@ class GaugeSegmentationIntervalProperties extends BaseProperties {
 
         let ticks: Array<AgNumericValue> | undefined;
         if (values != null) {
-            // Explicit values flow through full-precision as segment boundaries; the bigint-safe scale
-            // positions them. Comparisons against the raw endpoints stay exact; sort with Number() only for
-            // the comparator return value.
             const segments = values.filter((v) => v > d0 && v < d1).sort((a, b) => Number(a) - Number(b));
             ticks = [d0, ...segments, d1];
         } else if (step != null) {
-            // A custom interval step is a Number concept (AG-16608 AC #17); narrow a bigint step. The max
-            // endpoint is still pushed raw so a bigint domain bound positions exactly.
             const numericStep = Number(step);
             const segments: AgNumericValue[] = [];
             for (let i = d0n; i < d1n; i += numericStep) {

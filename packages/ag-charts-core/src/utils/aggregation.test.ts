@@ -1,7 +1,6 @@
 import { epochColumnForTimeScale, narrowBigIntColumn, narrowBigIntColumnRelative } from './aggregation';
 
-// Off the power-of-2 boundary so the ULP of a double is uniform (256) around it: any two bigints within
-// 128 of each other narrow to the same double under absolute Number() coercion.
+// Off the power-of-2 boundary so the ULP is uniform (256): bigints within 128 narrow to the same double.
 const HIGH_MAGNITUDE = 2n ** 60n + 123_456_789n;
 const SUB_ULP_DELTA = 100n; // < half-ULP (128)
 
@@ -27,7 +26,6 @@ describe('aggregation column preprocessing', () => {
                 HIGH_MAGNITUDE + SUB_ULP_DELTA,
             ]) as number[];
 
-            // All three round onto the same double, so the span — and any extrema within it — is lost.
             expect(new Set(result).size).toBe(1);
         });
 
@@ -51,8 +49,7 @@ describe('aggregation column preprocessing', () => {
                 HIGH_MAGNITUDE - SUB_ULP_DELTA,
             ]) as number[];
 
-            // Subtracting the min (HIGH_MAGNITUDE - SUB_ULP_DELTA) in bigint before crossing to Number keeps
-            // the values distinct, where absolute narrowing collapses them onto a single double.
+            // Offsetting by the min in bigint before narrowing keeps the values distinct.
             expect(result).toEqual([100, 200, 0]);
             expect(new Set(result).size).toBe(3);
         });

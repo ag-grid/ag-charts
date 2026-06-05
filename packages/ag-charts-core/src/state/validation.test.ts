@@ -90,7 +90,6 @@ describe('Validation utils', () => {
                 [ratio, 1.1, false],
                 [lessThan('contextKey'), 4.2, true],
                 [lessThan('contextKey'), 420, false],
-                // Mixed bigint/number comparison: bigint value against a number sibling.
                 [lessThan('contextKey'), 4n, true],
                 [lessThan('contextKey'), 420n, false],
                 [greaterThan('contextKey'), 420n, true],
@@ -100,8 +99,7 @@ describe('Validation utils', () => {
         });
 
         test('numericValue rejects an out-of-range bigint cleanly without throwing (AG-16608)', () => {
-            // max < min via bigint should produce a clean validation rejection (and warning), not a crash
-            // from stringifying the bigint in the error message.
+            // Stringifying a bigint in the error message would otherwise crash.
             const def = { min: numericValue, max: and(numericValue, greaterThan('min')) };
             expect(() => validate({ min: 10n, max: 1n }, def)).not.toThrow();
             expect(isValid<{ min: bigint; max: bigint }>({ min: 10n, max: 1n }, def)).toBe(false);

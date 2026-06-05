@@ -79,8 +79,7 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         const scalePadding = isFiniteNumber(interval) ? interval * ratio : 0;
         const rawExtent = extent(keys);
         if (rawExtent == null) return fixNumericExtent([Number.NaN, Number.NaN]);
-        // Keep the extent endpoints exact (a bigint key axis must position at full precision); only the band
-        // padding is finite-precision, and add/subtractValues narrow at the boundary if the operands are mixed.
+        // Keep endpoints exact so a bigint key axis positions at full precision; only the padding is narrowed.
         const keysExtent: AgNumericValue[] = [rawExtent[0], rawExtent[1]];
         if (typeof alignStart === 'boolean') {
             const i = alignStart ? 0 : 1;

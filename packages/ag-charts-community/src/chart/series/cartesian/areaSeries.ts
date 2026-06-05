@@ -151,8 +151,7 @@ type AreaStylerApply = MarkerStyleApply<
 >;
 
 interface StackRange {
-    // Bigint-capable so a stack accumulated beyond Number.MAX_VALUE survives to yScale.convert() and
-    // positions proportionally; addAccumulated promotes the numeric 0 seed on the first bigint value.
+    // Kept raw (possibly bigint) so a stack beyond Number.MAX_VALUE positions proportionally via yScale.convert().
     leading: AgNumericValue;
     trailing: AgNumericValue;
     dataValid: boolean;
@@ -458,8 +457,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             'xValue',
             visibleRange
         );
-        // domainForVisibleRange can return a bigint via its sortOrder path; minValue/maxValue avoid the
-        // Math.min/max throw and toNumber narrows once for this number-typed range return.
+        // domainForVisibleRange may yield a bigint; minValue/maxValue avoid the Math.min/max throw, toNumber narrows once.
         return [toNumber(minValue(y0, 0)), toNumber(maxValue(y1, 0))];
     }
 
@@ -826,9 +824,8 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
 
             const leadingValue = yValues[leadingIndex];
             const trailingValue = yValues[trailingIndex];
-            // isContinuous accepts bigint where Number.isFinite would drop it; addAccumulated promotes the
-            // numeric baseline to bigint so a stack beyond Number.MAX_VALUE accumulates exactly (number + bigint
-            // would otherwise throw) and survives to yScale.convert() for proportional positioning.
+            // addAccumulated below promotes the numeric baseline to bigint so a stack beyond Number.MAX_VALUE
+            // accumulates exactly (number + bigint would otherwise throw).
             const missingLeading = !isContinuous(leadingValue);
             const missingTrailing = !isContinuous(trailingValue);
             const dataValid = !missingLeading && !missingTrailing;
@@ -1083,8 +1080,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
 
         scratch.datum = ctx.rawData[datumIndex];
         scratch.yDatum = ctx.yRawValues[datumIndex];
-        // Retain the raw (possibly bigint) cumulative for positioning so yScale.convert() can place values
-        // beyond Number.MAX_VALUE proportionally; the cumulativeValue datum field is narrowed at assignment.
+        // Keep raw (possibly bigint) so yScale.convert() positions values beyond Number.MAX_VALUE proportionally.
         scratch.yCumulative = ctx.yCumulativeValues[datumIndex];
         scratch.validPoint = isContinuous(scratch.yDatum) && ctx.invalidData?.[datumIndex] !== true;
 
@@ -1105,8 +1101,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                 existingNode.datum = scratch.datum;
                 existingNode.datumIndex = datumIndex;
                 existingNode.midPoint = { x: scratch.x, y: scratch.y };
-                // Metadata only (tooltips/error-bars); the position already used the exact bigint above, so a
-                // silent narrow is fine here — toNumber would warn "cannot be rendered" even though it was.
+                // Metadata only (tooltips/error-bars); position already used the exact bigint, so narrowing here is fine.
                 existingNode.cumulativeValue = Number(scratch.yCumulative);
                 existingNode.yValue = scratch.yDatum;
                 existingNode.xValue = scratch.xDatum;

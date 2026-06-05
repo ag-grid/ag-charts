@@ -69,10 +69,8 @@ describe('aggregateFunctions bigint support (AG-16608)', () => {
 
     describe('area density', () => {
         it('divides by an exact bigint key width beyond the Number ULP instead of collapsing to zero', () => {
-            // ULP at 2^60 is 256, so narrowing each bin edge to Number before subtracting would collapse an
-            // 8-wide bin to width 0 → density Infinity. Subtracting the edges in bigint first keeps it exact.
+            // At 2^60 the ULP is 256, so narrowing each edge before subtracting collapses the width to 0.
             const base = 2n ** 60n;
-            // sum([20]) = [0, 20]; divided by the exact width 8 → [0, 2.5].
             const density = area('area-test', sum('inner-sum', 'group')).aggregateFunction([20], [base, base + 8n]);
             expect(density[1]).toBeCloseTo(2.5);
             expect(Number.isFinite(density[1])).toBe(true);

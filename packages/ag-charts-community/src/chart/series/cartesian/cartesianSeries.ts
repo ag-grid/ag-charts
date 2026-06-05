@@ -1231,8 +1231,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
             for (let j = 0; j < axisKeys.length; j++) {
                 const axisValue = allAxisValues[j][i];
-                // Include bigint (excluded by `typeof === 'number'`) and accumulate with minValue/maxValue so a
-                // value beyond Number.MAX_VALUE stays exact for the scale; Math.min/max would throw on bigint.
+                // isFiniteNumericValue/minValue/maxValue include bigint and stay exact; Math.min/max would throw on bigint.
                 if (isFiniteNumericValue(axisValue)) {
                     axisMin = minValue(axisMin, axisValue);
                     axisMax = maxValue(axisMax, axisValue);
@@ -1279,8 +1278,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             if (c < range0 || c > range1) continue;
             for (let j = 0; j < axisKeys.length; j++) {
                 const axisValue = allAxisValues[j][i];
-                // Include bigint (excluded by `typeof === 'number'`) and accumulate with minValue/maxValue so a
-                // value beyond Number.MAX_VALUE stays exact for the scale; Math.min/max would throw on bigint.
+                // isFiniteNumericValue/minValue/maxValue include bigint and stay exact; Math.min/max would throw on bigint.
                 if (isFiniteNumericValue(axisValue)) {
                     axisMin = minValue(axisMin, axisValue);
                     axisMax = maxValue(axisMax, axisValue);

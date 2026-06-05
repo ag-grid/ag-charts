@@ -42,18 +42,14 @@ export function toKeyString(keys: any[]): string {
  */
 export function fixNumericExtent(extent: ReadonlyArray<number | Date | bigint> | null): AgNumericValue[] {
     if (extent == null) return [];
-    // Retain exact bigint endpoints so the scale positions and labels them at full precision; Date and
-    // number values still narrow to Number. The result type carries bigint, so consumers must handle it.
+    // Retain exact bigint endpoints so the scale positions them at full precision; Date/number narrow to Number.
     const mapped = extent.map((v) => (typeof v === 'bigint' ? v : Number(v)));
     return mapped.every(isFiniteNumericValue) ? mapped : [];
 }
 
 /**
  * Extends a numeric `[min, max]` extent to include the zero baseline, so bars and areas anchor at zero.
- * A bigint endpoint is retained exactly and the baseline is emitted as `0n` to match, keeping both scale
- * endpoints bigint so values beyond Number.MAX_VALUE position proportionally — a numeric `0` baseline would
- * narrow the bigint endpoint and collapse such values to the axis edge. The all-Number path keeps the
- * original span-finiteness guard, which rejects non-finite or overflowing extents.
+ * A bigint baseline is emitted as `0n` to keep both endpoints bigint; a numeric `0` would narrow them.
  */
 export function extendDomainToZero(extent: ReadonlyArray<AgNumericValue>): AgNumericValue[] {
     if (extent.length < 2) return [];

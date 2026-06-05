@@ -17,8 +17,7 @@ import { CartesianSeriesProperties } from './cartesianSeries';
 import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 
 export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
-    // Bins are aggregated from many datums, so they carry an explicit stable id rather than
-    // relying on the data-model `datumIndex`/`dataIdKey` matching used by 1:1 series.
+    // Bins aggregate many datums, so they carry an explicit stable id rather than the 1:1-series datumIndex match.
     readonly itemId: string;
     readonly x: number;
     readonly y: number;

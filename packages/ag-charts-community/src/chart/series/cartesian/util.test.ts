@@ -5,7 +5,6 @@ import type { AgCartesianSeriesOptions } from 'ag-charts-types';
 
 import { predictCartesianAxis, predictCartesianFinancialAxis } from './util';
 
-// A representative time-named key and a non-time-named key, to exercise the TIME_AXIS_KEYS guard.
 const TIME_KEY = 'date';
 const NON_TIME_KEY = 'category';
 
@@ -24,9 +23,7 @@ describe('predictCartesianAxis time-axis prediction', () => {
         ['bigint under a time key', TIME_KEY, BigInt(1_700_000_000_000), CARTESIAN_AXIS_TYPE.TIME],
         ['strict ISO string under a time key', TIME_KEY, '2024-01-15T10:30:00Z', CARTESIAN_AXIS_TYPE.TIME],
         ['date-only ISO string under a time key', TIME_KEY, '2024-01-15', CARTESIAN_AXIS_TYPE.TIME],
-        // Non-ISO strings must not predict a time axis (false-positive guard).
         ['non-ISO string under a time key', TIME_KEY, 'Q1', CARTESIAN_AXIS_TYPE.CATEGORY],
-        // ISO under a non-time-named key must not predict a time axis.
         ['ISO string under a non-time key', NON_TIME_KEY, '2024-01-15', CARTESIAN_AXIS_TYPE.CATEGORY],
     ];
 
@@ -43,9 +40,7 @@ describe('predictCartesianFinancialAxis ordinal-time prediction', () => {
         ['bigint under a time key', TIME_KEY, BigInt(1_700_000_000_000), CARTESIAN_AXIS_TYPE.ORDINAL_TIME],
         ['strict ISO string under a time key', TIME_KEY, '2024-01-15T10:30:00Z', CARTESIAN_AXIS_TYPE.ORDINAL_TIME],
         ['date-only ISO string under a time key', TIME_KEY, '2024-01-15', CARTESIAN_AXIS_TYPE.ORDINAL_TIME],
-        // Non-ISO strings fall through to the category branch.
         ['non-ISO string under a time key', TIME_KEY, 'Q1', CARTESIAN_AXIS_TYPE.CATEGORY],
-        // ISO under a non-time-named key is treated as a category, not ordinal-time.
         ['ISO string under a non-time key', NON_TIME_KEY, '2024-01-15', CARTESIAN_AXIS_TYPE.CATEGORY],
     ];
 

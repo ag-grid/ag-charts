@@ -79,13 +79,10 @@ function valueColumnType(value: unknown): ColumnValueType | undefined {
         case 'boolean':
             return 'boolean';
         case 'string':
-            // A strict ISO 8601 string is a date value; any other string is a plain category.
             return isISO8601(value) ? 'date' : 'string';
         case 'object':
             if (value == null) return undefined;
             if (value instanceof Date) return 'date';
-            // A NumberObject ({ valueOf(): number }) is numeric; any other object (e.g. a GeoJSON
-            // feature) is opaque and carries its element type via the caller, not this tag.
             return isNumberObject(value) ? 'number' : 'object';
         default:
             return undefined;
@@ -100,18 +97,12 @@ function updateColumnTypeTracker(
     const observed = valueColumnType(value);
     if (observed == null) return undefined;
 
-    // 'boolean' and 'object' have no merge rule: a column mixing them with another type keeps its
-    // first-seen tag (neither branch below matches), so heterogeneity is never silently coerced.
     if (tracker.type == null || tracker.type === observed) {
         tracker.type = observed;
     } else if (isDateColumnType(tracker.type) || isDateColumnType(observed)) {
-        // Date, ISO string and epoch number/bigint coexist as the heterogeneous 'date' tag; each value
-        // normalises to a Date at convert() time.
         tracker.type = 'date';
     } else if (isNumericColumnType(tracker.type) && isNumericColumnType(observed)) {
-        // A column mixing `number` and `bigint` (with no date values) is tagged 'mixed-numeric'; it still
-        // renders, but its bigints are narrowed to Number (lossy beyond ±2^53) rather than taking the
-        // full-precision bigint paths a uniformly-typed column would. Warned once at the series level.
+        // Mixed number/bigint narrows bigints to Number (lossy beyond ±2^53); warned once at series level.
         tracker.mixedAtIndex ??= datumIndex;
         tracker.type = 'mixed-numeric';
     }
@@ -127,19 +118,14 @@ function isDateColumnType(type: ColumnValueType): boolean {
     return type === 'date';
 }
 
-// An ISO 8601 string carries an explicit timezone iff it ends with `Z` or a trailing `±HH:MM` offset.
-// Date-only (`2024-01-15`) and offset-less date-times (`2024-01-15T10:30:00`) are timezone-implicit.
+// Explicit timezone iff the ISO string ends with `Z` or a trailing `±HH:MM` offset.
 const ISO_8601_EXPLICIT_TZ = /(Z|[+-]\d{2}:\d{2})$/;
 
-/** First-seen examples of explicit- and implicit-timezone ISO strings within a single column. */
 interface TimezoneTracker {
     explicit: { value: string; index: number } | undefined;
     implicit: { value: string; index: number } | undefined;
 }
 
-// Precondition: only called for values already observed as 'date'. A string reaching that tag must be a
-// valid ISO 8601 string (the sole string -> date path), so no re-validation is needed here; epoch
-// number/bigint and Date-object dates carry no timezone text and are skipped by the typeof guard.
 function updateTimezoneTracker(tracker: TimezoneTracker, value: unknown, datumIndex: number): void {
     if (typeof value !== 'string') return;
     if (ISO_8601_EXPLICIT_TZ.test(value)) {
@@ -480,8 +466,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             columns.push(column);
             allColumnScopes.push(columnScopes);
             columnNeedValueOf.push(needsValueOf);
-            // An unobserved column (no values, or all missing) has no resolved type; leave it undefined
-            // rather than guessing 'number' so expected-type assertions don't false-positive on it.
+            // Leave unobserved columns undefined rather than guessing 'number', so type assertions don't false-positive.
             columnValueType.push(typeTracker.type);
             maxDataLength = Math.max(maxDataLength, column.length);
         }
@@ -506,10 +491,8 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
 
     private warnMixedTimezoneColumn(key: K, columnType: ColumnValueType | undefined, tracker: TimezoneTracker) {
         const { explicit, implicit } = tracker;
-        // Only a date-tagged column interprets ISO strings as instants; a plain category column keeps them
-        // as opaque labels, so mixed offsets there are not a timezone-ambiguity concern.
+        // Only date-tagged columns interpret ISO strings as instants; mixed offsets in a category column are not ambiguous.
         if (columnType !== 'date' || explicit == null || implicit == null) return;
-        // AC #9: mixed timezone semantics are defined-but-surprising, so warn once and still render.
         Logger.warnOnce(
             `Time axis: column "${String(key)}" contains both timezone-explicit values (e.g. "${explicit.value}", row ${explicit.index}) and timezone-implicit values (e.g. "${implicit.value}", row ${implicit.index}). Ambiguous timezone semantics may produce unexpected positions — points without an explicit offset are interpreted as local time. Use explicit offsets (Z or ±HH:MM) for cross-environment determinism.`
         );

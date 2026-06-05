@@ -163,8 +163,7 @@ describe('Memento Caretaker', () => {
         };
 
         expect(() => caretaker.restore(blobMalformedBigInt, originator)).not.toThrow();
-        // Malformed payloads are left un-decoded (not converted to bigint), mirroring how an
-        // invalid date payload flows through to guardMemento rather than aborting the restore.
+        // Mirrors invalid-date handling: the payload flows through guardMemento rather than aborting.
         expect(originator.restored).toStrictEqual({
             fractional: { __type: 'bigint', value: '12.3' },
             nonString: { __type: 'bigint', value: 5 },

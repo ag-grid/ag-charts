@@ -545,7 +545,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                 (existingNode as any).datumIndex = datumIndex;
                 (existingNode as any).point = { x: scratch.x, y: scratch.y, size: ctx.size };
                 (existingNode as any).midPoint = { x: scratch.x, y: scratch.y };
-                // Metadata only; the position already used the exact bigint, so a silent narrow is fine here.
+                // Metadata only; position already used the exact bigint, so narrowing here is fine.
                 (existingNode as any).cumulativeValue = Number(scratch.yCumulative);
                 (existingNode as any).yValue = scratch.yDatum;
                 (existingNode as any).xValue = scratch.xDatum;

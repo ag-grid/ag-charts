@@ -270,7 +270,7 @@ describe('HistogramSeries', () => {
             });
             await waitForChartStability(chart);
 
-            // The update changes bin contents (so it definitely applied) but not boundaries.
+            // Frequencies change, proving the update applied; only boundaries are unchanged.
             expect(nodeDataOf(chart).map((n) => n.frequency)).not.toEqual(frequenciesBefore);
             expect(itemIdsOf(chart)).toEqual(before);
         });
@@ -311,7 +311,7 @@ describe('HistogramSeries', () => {
             const context: SeriesNodeDataContext<any, any> = (series as any)['contextNodeData'];
             const bin = context.nodeData.find((n: any) => n.aggregatedValue != null);
             expect(bin).toBeDefined();
-            // 3 × (2^53 + 1) — a narrowing convert() would round this; the bigint sum keeps it exact.
+            // A narrowing convert() would round this sum; the bigint path keeps it exact.
             expect(bin!.aggregatedValue).toBe(3n * big);
         });
     });
@@ -502,8 +502,6 @@ describe('HistogramSeries', () => {
         });
     });
 
-    // AG-16608: a BigInt x-column must compute bin boundaries in BigInt arithmetic so values beyond
-    // Number.MAX_SAFE_INTEGER keep full precision (and the series is no longer dropped to empty).
     describe('bigint bins (AG-16608)', () => {
         it('computes bin boundaries in BigInt at full precision', async () => {
             const base = 9_007_199_254_740_993n; // 2^53 + 1 — not representable as a Number
@@ -527,21 +525,18 @@ describe('HistogramSeries', () => {
                 expect(typeof bin.domain[0]).toBe('bigint');
                 expect(typeof bin.domain[1]).toBe('bigint');
             }
-            // Contiguous boundaries and full coverage of the data range, all at exact precision.
             for (let i = 1; i < bins.length; i++) {
                 expect(bins[i].domain[0]).toBe(bins[i - 1].domain[1]);
             }
             expect(bins[0].domain[0] <= base).toBe(true);
             expect(bins.at(-1)!.domain[1] >= base + 80n).toBe(true);
 
-            // Every datum is bucketed rather than dropped (the pre-fix behaviour rendered empty).
             const totalFrequency = bins.reduce((acc, bin) => acc + bin.frequency, 0);
             expect(totalFrequency).toBe(xs.length);
         });
 
         it('falls back to Number bins (no RangeError) when the extent mixes a bigint and a fractional number', async () => {
-            // A mixed bigint/number column yields an extent like [10n, 25.5]. BigInt(25.5) throws RangeError,
-            // so the bigint bin path must defer to the Number path when an endpoint is non-integral.
+            // BigInt(25.5) throws RangeError, so a non-integral endpoint must defer to the Number path.
             const options: AgChartOptions = {
                 data: [{ x: 10n }, { x: 12n }, { x: 18n }, { x: 20n }, { x: 25.5 }],
                 series: [{ type: 'histogram', xKey: 'x', binCount: 5 }],
@@ -557,15 +552,13 @@ describe('HistogramSeries', () => {
             const bins = series.calculatedBins;
 
             expect(bins.length).toBeGreaterThan(0);
-            // Fell back to the Number path, so boundaries are numbers rather than bigints.
             for (const bin of bins) {
                 expect(typeof bin.domain[0]).toBe('number');
                 expect(typeof bin.domain[1]).toBe('number');
             }
-            // Every datum still buckets rather than crashing the build.
             const totalFrequency = bins.reduce((acc, bin) => acc + bin.frequency, 0);
             expect(totalFrequency).toBe(5);
-            // No warning: the mixed-numeric warning is emitted for value columns, not key columns.
+            // The mixed-numeric warning is emitted for value columns, not key columns.
             expectWarningsCalls().toHaveLength(0);
         });
     });

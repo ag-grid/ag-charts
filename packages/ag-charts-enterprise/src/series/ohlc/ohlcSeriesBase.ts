@@ -117,8 +117,7 @@ class OhlcSeriesNodeEvent<
 interface PreparedOhlcNodeDatumState {
     datum: any;
     xValue: any;
-    // Domain values (possibly bigint) so yScale.convert() keeps full precision; narrowed to number only
-    // at the stored OhlcNodeDatum metadata fields below.
+    // bigint-capable so yScale.convert() keeps full precision; narrowed to number for the stored datum.
     openValue: AgNumericValue;
     closeValue: AgNumericValue;
     highValue: AgNumericValue;

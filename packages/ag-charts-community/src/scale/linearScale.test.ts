@@ -301,9 +301,7 @@ describe('LinearScale', () => {
 
         test('selects the true bigint extremes beyond Number.MAX_VALUE', () => {
             const scale = new LinearScale();
-            // Several endpoints exceed MAX_VALUE: Number()-narrowing would map every one to ±Infinity, so
-            // `Infinity > Infinity` is false and the first over-large candidate would win instead of the true
-            // extreme. Relational selection must retain the exact -12·MAX / 12·MAX endpoints.
+            // Number()-narrowing maps every over-large endpoint to ±Infinity, so the true extreme is lost.
             const max = BigInt(Number.MAX_VALUE);
             const { domain } = scale.normalizeDomains({ domain: [-3n * max, -12n * max, 7n * max, 12n * max] });
 
@@ -314,8 +312,7 @@ describe('LinearScale', () => {
             const scale = new LinearScale();
             scale.domain = [0n, 100n];
 
-            // The array form narrows to Number; exact endpoints are reached via domainMin/domainMax, not by
-            // spreading the array into Math.min/Math.max.
+            // Exact endpoints are reached via domainMin/domainMax, not the narrowed array.
             expect(scale.domain).toEqual([0, 100]);
             expect(scale.domain.every((v) => typeof v === 'number')).toBe(true);
         });
@@ -412,7 +409,6 @@ describe('LinearScale', () => {
             expect(scale.domainMax).toBe(100n);
         });
 
-        // The exact bigint must survive even where a Number narrow would collapse adjacent values.
         test('preserves bigint precision beyond Number.MAX_SAFE_INTEGER', () => {
             const lo = 10n ** 18n;
             const hi = lo + 1n;
