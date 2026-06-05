@@ -339,7 +339,7 @@ describe('AG-13024 API context - overlays', () => {
     type TDatum = undefined;
     type TContext = { name: string };
     type TMock = MockOverlayRenderer<TDatum, TContext>;
-    let chart: Chart;
+    let chart: Chart | undefined;
     let context: TContext;
     let overlayRenderer: ReturnType<typeof newFreezableMock<TDatum, TContext, TMock>>;
 

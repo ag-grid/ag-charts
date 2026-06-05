@@ -817,7 +817,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 !(
                     direction in options.axes &&
                     isObject(options.axes[direction]) &&
-                    !('position' in options.axes[direction]!)
+                    !('position' in options.axes[direction])
                 )
             ) {
                 for (const [axisKey, axisOptions] of entries(options.axes)) {

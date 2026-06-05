@@ -178,7 +178,7 @@ export class Legend {
             ctx.chartState.observe((get) => {
                 const activeItem = get('activeItem');
                 if (activeItem?.type === 'series-node') {
-                    this.ctx.highlightManager.updateHighlight(this.id, undefined);
+                    this.ctx.highlightManager.updateHighlight(this.id);
                 }
             }),
             ctx.chartState.observe((get) => {
@@ -1171,7 +1171,7 @@ export class Legend {
     private onActiveLoadMemento(event: ActiveLoadMementoEvent): void {
         const { activeItem } = event;
         if (activeItem?.type !== 'legend') {
-            return this.ctx.highlightManager.updateHighlight(this.id, undefined);
+            return this.ctx.highlightManager.updateHighlight(this.id);
         }
 
         const datum = this.data.find((d) => d.seriesId === activeItem.seriesId && d.itemId === activeItem.itemId);

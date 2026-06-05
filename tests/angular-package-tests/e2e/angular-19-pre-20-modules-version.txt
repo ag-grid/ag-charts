@@ -1,2 +1,0 @@
-    "ag-charts-angular": "^13.0.0",
-    "@angular/cli": "^19.2.19",

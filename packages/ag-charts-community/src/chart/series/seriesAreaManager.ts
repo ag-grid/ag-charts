@@ -1129,8 +1129,8 @@ export class SeriesAreaManager extends BaseManager {
         // Clear tooltip/highlight state, but without broadcasting an AgActiveChangeEvent.
         if (this.getHoverDevice() === 'setState') {
             this.clearCachedEvents();
-            this.chart.ctx.highlightManager.updateHighlight(this.id, undefined);
-            this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined);
+            this.chart.ctx.highlightManager.updateHighlight(this.id);
+            this.chart.ctx.tooltipManager.removeTooltip(this.id);
         }
     }
 
@@ -1452,8 +1452,8 @@ export class SeriesAreaManager extends BaseManager {
         if (!this.isState(InteractionState.Hoverable)) return;
         this.setHoverDevice('pointer');
         this.clearCachedEvents();
-        this.chart.ctx.highlightManager.updateHighlight(this.id, undefined);
-        this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined);
+        this.chart.ctx.highlightManager.updateHighlight(this.id);
+        this.chart.ctx.tooltipManager.removeTooltip(this.id);
     }
 
     private onActiveLoadMemento(event: ActiveLoadMementoEvent) {
@@ -1494,8 +1494,8 @@ export class SeriesAreaManager extends BaseManager {
                     this.pickManager.maybeActivate(undefined, () => {
                         this.activeState.lastActive = undefined;
                         this.clearCachedEvents();
-                        this.chart.ctx.highlightManager.updateHighlight(this.id, undefined);
-                        this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined);
+                        this.chart.ctx.highlightManager.updateHighlight(this.id);
+                        this.chart.ctx.tooltipManager.removeTooltip(this.id);
                     });
                 }
             } else {

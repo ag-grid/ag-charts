@@ -117,7 +117,7 @@
     "timezone-mock": "1.4.2",
     "ts-node": "10.9.2",
     "tsx": "^4.21.0",
-    "typescript": "^5.4.5",
+    "typescript": "~5.8.3",
     "typescript-eslint": "^8.59.1",
     "vite": "~5.4.19",
     "vitest": "2.1.9",
@@ -168,6 +168,7 @@
     ]
   },
   "resolutions": {
+    "typescript": "~5.8.3",
     "**/astro/devalue": "5.6.2",
     "**/astro/unstorage/h3": "1.15.5",
     "**/micromatch": "4.0.8",
@@ -185,7 +186,8 @@
     "@modelcontextprotocol/sdk": "1.26.0",
     "@nx/devkit/**/ejs": "3.1.10",
     "@nx/devkit/**/ejs/jake": "10.9.4",
-    "@nx/devkit/**/brace-expansion": "2.0.2"
+    "@nx/devkit/**/brace-expansion": "2.0.2",
+    "@svgr/**/lru-cache": "5.1.1"
   },
   "lavamoat": {
     "allowScripts": {

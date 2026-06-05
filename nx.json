@@ -209,7 +209,10 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "{projectRoot}",
-        "command": "npx eslint --cache --cache-location node_modules/.cache/eslint/"
+        "command": "npx eslint --cache --cache-location node_modules/.cache/eslint/",
+        "env": {
+          "NODE_OPTIONS": "--max-old-space-size=8192"
+        }
       },
       "cache": true,
       "inputs": [
