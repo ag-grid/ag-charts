@@ -407,3 +407,44 @@ describe('Scrollbar visibility on barWidth change', () => {
         });
     });
 });
+
+describe('enableSeriesAreaScrolling default', () => {
+    setupMockConsole();
+
+    setupMockCanvas();
+    let proxy: ReturnType<typeof AgCharts.create> | undefined;
+
+    afterEach(() => {
+        proxy?.destroy();
+        proxy = undefined;
+    });
+
+    // Assert the resolved option the wheel handler reads (scrollbar.ts onWheel); JSDOM canvas
+    // hit-testing can't reach the series-area picking path. Internal read for assertions (level 3).
+    function getResolvedSeriesAreaScrolling() {
+        return (deproxy(proxy!) as any).ctx.chartState.getValue('options', 'scrollbar')?.enableSeriesAreaScrolling;
+    }
+
+    async function createScrollbarChart(scrollbar: AgCartesianChartOptions['scrollbar']) {
+        proxy = AgCharts.create(
+            prepareEnterpriseTestOptions({
+                width: 400,
+                height: 300,
+                data: BAR_DATA,
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                scrollbar,
+            })
+        );
+        await waitForChartStability(proxy);
+    }
+
+    it('defaults to true when only the scrollbar is enabled', async () => {
+        await createScrollbarChart({ enabled: true });
+        expect(getResolvedSeriesAreaScrolling()).toBe(true);
+    });
+
+    it('honours an explicit false', async () => {
+        await createScrollbarChart({ enabled: true, enableSeriesAreaScrolling: false });
+        expect(getResolvedSeriesAreaScrolling()).toBe(false);
+    });
+});

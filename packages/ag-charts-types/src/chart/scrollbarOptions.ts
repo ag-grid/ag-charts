@@ -66,7 +66,7 @@ export interface AgScrollbarOptions extends AgScrollbarBaseOptions {
     /**
      * Whether scrolling on the series area should scroll the scrollbar.
      *
-     * Default: `false`
+     * Default: `true`
      */
     enableSeriesAreaScrolling?: boolean;
     /** Options applied to the horizontal scrollbar. */
