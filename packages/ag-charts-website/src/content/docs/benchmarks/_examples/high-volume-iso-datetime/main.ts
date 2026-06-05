@@ -38,7 +38,6 @@ const chartRef: ChartRef = { current: AgCharts.create(options) };
 const container = document.getElementById('myChart')!;
 
 const seriesCount = options.series!.length;
-const data = getData();
 
 /** inScope */
 function getBenchmarkConfig(): BenchmarkConfig {
@@ -71,7 +70,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
             warmupUpdates: 2,
         },
         metadata: {
-            dataPoints: data.length,
+            dataPoints: options.data!.length,
             seriesCount: seriesCount,
             seriesType: 'line',
             dataType: 'iso-8601-string',
