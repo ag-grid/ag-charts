@@ -47,6 +47,18 @@ The full list of breaking changes across all features for version {% migrationVe
 
 This release includes the following breaking changes:
 
+{% if isFramework("angular") %}
+
+### Compatibility
+
+The minimum supported version of Angular is now Angular 20.
+
+{% /if %}
+
+### TypeScript
+
+The minimum supported version of TypeScript is now 5.8.
+
 ### Module Registration
 
 - `CrossLinesModule` and `PolarCrossLinesModule` must be explicitly registered when not using `AllCommunityModule` or `AllEnterpriseModule`.

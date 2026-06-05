@@ -170,7 +170,7 @@ describe('Group', () => {
                 expect(layersManager.size).toBe(1);
 
                 // Detach group from scene - this should remove the layer
-                group.setScene(undefined);
+                group.setScene();
 
                 expect(layersManager.size).toBe(0);
             });
