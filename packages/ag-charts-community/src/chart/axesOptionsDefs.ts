@@ -60,6 +60,7 @@ import type {
     AgCategoryAxisOptions,
     AgCommonCrossLineOptions,
     AgContinuousAxisOptions,
+    AgCrossLineThemeOptions,
     AgCrosshairLabel,
     AgCrosshairLabelRendererResult,
     AgCrosshairOptions,
@@ -85,14 +86,20 @@ export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOp
     ...fillOptionsDef,
 };
 
-// The style options shared by both cross-line variants and by theme overrides (which carry
-// neither `type` nor `value` and supply their own `label`).
-export const crossLineStyleOptionsDefs: OptionsDefs<Omit<AgCommonCrossLineOptions, 'label'>> = {
+// Stroke/enabled style shared by both cross-line variants. `fill`/`fillOpacity` are intentionally
+// excluded — they belong to the `range` variant only (see `crossLineOptionsDefs`).
+const crossLineCommonStyleOptionsDefs: OptionsDefs<Omit<AgCommonCrossLineOptions, 'label'>> = {
     enabled: boolean,
-    fill: colorOrRef,
-    fillOpacity: ratio,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+};
+
+// The full style surface accepted by theme overrides (which carry neither `type` nor `value` and
+// supply their own `label`); theme defaults apply to both variants, so `fill`/`fillOpacity` are valid.
+export const crossLineStyleOptionsDefs: OptionsDefs<Omit<AgCrossLineThemeOptions, 'label'>> = {
+    ...crossLineCommonStyleOptionsDefs,
+    fill: colorOrRef,
+    fillOpacity: ratio,
 };
 
 export const radiusCrossLineLabelOptionsDefs: OptionsDefs<AgRadiusCrossLineLabelOptions> = {
@@ -107,11 +114,16 @@ export function crossLineOptionsDefs(
     value: Validator,
     labelDefs: OptionsDefs<AgBaseCrossLineLabelOptions>
 ): OptionsDefs<AgBaseCrossLineOptions> {
-    const style = { ...crossLineStyleOptionsDefs, label: labelDefs };
+    const commonStyle = { ...crossLineCommonStyleOptionsDefs, label: labelDefs };
     return typeUnion<AgBaseCrossLineOptions>(
         {
-            line: { value: required(value), ...style },
-            range: { range: required(and(arrayOf(value), arrayLength(2, 2))), ...style },
+            line: { value: required(value), ...commonStyle },
+            range: {
+                range: required(and(arrayOf(value), arrayLength(2, 2))),
+                fill: colorOrRef,
+                fillOpacity: ratio,
+                ...commonStyle,
+            },
         },
         'cross-line options'
     );

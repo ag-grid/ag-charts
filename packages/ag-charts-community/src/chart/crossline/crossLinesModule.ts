@@ -16,9 +16,11 @@ export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions
         $apply: [
             {
                 enabled: true,
-                fill: { $ref: 'foregroundColor' },
+                // `fill`/`fillOpacity` style the `range` variant only; applying them to a `line`
+                // cross-line would surface as an "unknown option" validation warning.
+                fill: { $if: [{ $eq: [{ $path: './type' }, 'range'] }, { $ref: 'foregroundColor' }, undefined] },
+                fillOpacity: { $if: [{ $eq: [{ $path: './type' }, 'range'] }, 0.08, undefined] },
                 stroke: { $ref: 'foregroundColor' },
-                fillOpacity: 0.08,
                 strokeWidth: 1,
                 label: {
                     fontSize: { $ref: 'fontSize' },

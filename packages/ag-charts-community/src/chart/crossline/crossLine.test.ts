@@ -340,6 +340,21 @@ const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: st
     },
 };
 
+// The cross-line itself is valid and renders; only the extra unknown options are stripped with a warning.
+const UNKNOWN_OPTION_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: string[] }> = {
+    INVALID_FILL_ON_LINE_TYPE_CROSSLINE: {
+        options: examples.INVALID_FILL_ON_LINE_TYPE_CROSSLINE,
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'unit-time', y: 'number' },
+            seriesTypes: repeat('line', 2),
+        }),
+        warningMessages: [
+            'AG Charts - Unknown option `axes.y.crossLines[0][type=line].fill`, ignoring.',
+            'AG Charts - Unknown option `axes.y.crossLines[0][type=line].fillOpacity`, ignoring.',
+        ],
+    },
+};
+
 describe('CrossLine', () => {
     setupMockConsole();
 
@@ -389,6 +404,21 @@ describe('CrossLine', () => {
     describe('#invalid options', () => {
         it.each(Object.entries(INVALID_EXAMPLES))(
             'for %s it should render to canvas without crossLines and show warning',
+            async (_exampleName, example) => {
+                const options: AgCartesianChartOptions = { ...example.options };
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await compare();
+
+                expectWarningMessages(example.warningMessages);
+            }
+        );
+    });
+
+    describe('#unknown options', () => {
+        it.each(Object.entries(UNKNOWN_OPTION_EXAMPLES))(
+            'for %s it should render to canvas with crossLines and show warning',
             async (_exampleName, example) => {
                 const options: AgCartesianChartOptions = { ...example.options };
                 prepareTestOptions(options);
