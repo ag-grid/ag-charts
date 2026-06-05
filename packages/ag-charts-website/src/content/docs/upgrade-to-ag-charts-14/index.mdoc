@@ -109,6 +109,10 @@ This release includes the following behaviour changes:
 - Out-of-domain values now clamp to `[minSize, maxSize]` instead of extrapolating beyond the bounds.
 - Setting both `minSize` and `maxSize` explicitly with `minSize > maxSize` now emits a warning and falls back to theme defaults. Use `sizeDomain: [max, min]` to reverse the size scale.
 
+### Scrollbar
+
+- The default value of `scrollbar.enableSeriesAreaScroll` has changed from `false` to `true`. Charts with `scrollbar.enabled: true` and no explicit `enableSeriesAreaScroll` setting will now pan on wheel-scroll over the series area. Set `scrollbar.enableSeriesAreaScroll: false` to restore the previous behaviour.
+
 ### Zoom
 
 - Setting `initialState.zoom.rangeX` or `initialState.zoom.rangeY` with string values now applies the zoom range correctly on category axes. Previously these values produced a console warning and were ignored.
