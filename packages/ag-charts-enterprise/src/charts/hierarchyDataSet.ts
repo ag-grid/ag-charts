@@ -19,6 +19,20 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
         super(data, dataIdKey);
     }
 
+    override size(): number {
+        const stack: any[] = [...this.data];
+        let total = 0;
+        let node: (typeof stack)[number];
+        while ((node = stack.pop()) !== undefined) {
+            total++;
+            const children = node[this.childrenKey];
+            if (children instanceof Array) {
+                stack.push(...children);
+            }
+        }
+        return total;
+    }
+
     /**
      * After the base commit, remove any root-level items whose IDs already exist
      * nested in the tree. This handles the case where the user manually adds an item

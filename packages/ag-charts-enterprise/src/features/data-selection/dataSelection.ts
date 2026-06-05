@@ -52,12 +52,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private supportsSelection(): boolean {
-        if (this.ctx.chartService.getChartType() === 'standalone') return false;
-
         const type0 = this.ctx.chartService.series.at(0)?.type;
-        if (type0 && UNSUPPORTED_CARTESIANS.includes(type0)) return false;
-
-        return true;
+        return !(type0 && UNSUPPORTED_CARTESIANS.includes(type0));
     }
 
     private supportsSelectionDrag(): boolean {
@@ -196,11 +192,6 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             internalRefreshTargets = this.ctx.chartService.series;
         } else {
             const { series, datumIndex } = clickedNode;
-            if (typeof datumIndex !== 'number') {
-                Logger.errorOnce(`Not Yet Implemented: datumIndex of type ${typeof datumIndex}`);
-                return;
-            }
-
             if (clickMode === 'multiple' || modifierPressed) {
                 toggleSelection(changes, series, this.service, datumIndex);
                 internalRefreshTargets = [series];

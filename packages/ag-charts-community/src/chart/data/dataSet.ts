@@ -96,6 +96,18 @@ export class DataSet<T = unknown> {
         return new DataSet<U>(data, dataIdKey);
     }
 
+    /**
+     * Returns the total number of data points.
+     *
+     * The computation depends on the underlying data set type:
+     * - Array (default): Used for data-model series such as cartesian, polar, etc.
+     * - Hierarchy: Used for treemap, sunburst, and organisation charts; counts data points recursively.
+     * - Flow: Used for chord and sankey diagrams; returns the sum of nodes and links.
+     */
+    size(): number {
+        return this.data.length;
+    }
+
     netSize(): number {
         if (!this.hasPendingTransactions()) {
             return this.data.length;
