@@ -68,6 +68,8 @@ interface ColumnTypeTracker {
     type: ColumnValueType | undefined;
     /** Row index where `number` and `bigint` were first observed to mix; used for the one-shot warning. */
     mixedAtIndex: number | undefined;
+    /** Row index where a date column was first observed to mix with a non-date, non-numeric value. */
+    mixedDateAtIndex: number | undefined;
 }
 
 function valueColumnType(value: unknown): ColumnValueType | undefined {
@@ -100,6 +102,12 @@ function updateColumnTypeTracker(
     if (tracker.type == null || tracker.type === observed) {
         tracker.type = observed;
     } else if (isDateColumnType(tracker.type) || isDateColumnType(observed)) {
+        // A date column tolerates numeric epochs, but mixing in strings/booleans/objects is incompatible:
+        // those values cannot be placed on a time axis, so flag the column for a one-shot warning.
+        const otherType = isDateColumnType(tracker.type) ? observed : tracker.type;
+        if (!isNumericColumnType(otherType)) {
+            tracker.mixedDateAtIndex ??= datumIndex;
+        }
         tracker.type = 'date';
     } else if (isNumericColumnType(tracker.type) && isNumericColumnType(observed)) {
         // Mixed number/bigint narrows bigints to Number (lossy beyond ±2^53); warned once at series level.
@@ -266,7 +274,11 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
 
             // Track ordering/uniqueness for this key definition
             const tracker = createKeyTracker();
-            const typeTracker: ColumnTypeTracker = { type: undefined, mixedAtIndex: undefined };
+            const typeTracker: ColumnTypeTracker = {
+                type: undefined,
+                mixedAtIndex: undefined,
+                mixedDateAtIndex: undefined,
+            };
             const tzTracker: TimezoneTracker = { explicit: undefined, implicit: undefined };
 
             for (const scope of keyScopes ?? []) {
@@ -418,7 +430,11 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             const column = new Array<unknown>();
             const invalidKeys = scopeInvalidKeys.get(columnScope);
             let needsValueOf = false;
-            const typeTracker: ColumnTypeTracker = { type: undefined, mixedAtIndex: undefined };
+            const typeTracker: ColumnTypeTracker = {
+                type: undefined,
+                mixedAtIndex: undefined,
+                mixedDateAtIndex: undefined,
+            };
             const tzTracker: TimezoneTracker = { explicit: undefined, implicit: undefined };
             for (let datumIndex = 0; datumIndex < columnSource.length; datumIndex++) {
                 if (columnSource[datumIndex] == null || typeof columnSource[datumIndex] !== 'object') {
@@ -461,6 +477,9 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             if (typeTracker.type === 'mixed-numeric' && typeTracker.mixedAtIndex != null) {
                 this.warnMixedNumericColumn(columnScope, def.property, typeTracker.mixedAtIndex);
             }
+            if (typeTracker.mixedDateAtIndex != null) {
+                this.warnMixedDateColumn(columnScope, def.property, typeTracker.mixedDateAtIndex);
+            }
             this.warnMixedTimezoneColumn(def.property, typeTracker.type, tzTracker);
 
             columns.push(column);
@@ -486,6 +505,14 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             `Series "${seriesId}": column "${String(key)}" mixes 'number' and 'bigint' values ` +
                 `(first detected at row ${atIndex}); the bigints are narrowed to Number and may lose precision ` +
                 `beyond ±2^53. Use one numeric type per column.`
+        );
+    }
+
+    private warnMixedDateColumn(seriesId: ScopeId, key: K, atIndex: number) {
+        Logger.warnOnce(
+            `Series "${seriesId}": column "${String(key)}" mixes date/time values with non-date values ` +
+                `(first detected at row ${atIndex}). Each column must be uniformly typed; the non-date values ` +
+                `cannot be placed on a time axis and may render at invalid positions.`
         );
     }
 
