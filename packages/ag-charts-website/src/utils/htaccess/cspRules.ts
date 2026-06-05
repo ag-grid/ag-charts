@@ -100,7 +100,7 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             'https://plausible.io',
             'https://*.algolia.net', // Algolia DocSearch
             'https://*.algolianet.com', // Algolia DocSearch
-            'https://www.google-analytics.com',
+            'https://*.google-analytics.com', // GA4 incl. regional collect endpoints (region1/2.google-analytics.com)
             'https://*.analytics.google.com',
             'https://stats.g.doubleclick.net',
             'https://www.googletagmanager.com',
