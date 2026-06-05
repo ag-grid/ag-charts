@@ -1,5 +1,3 @@
-import type { AgNumericValue } from 'ag-charts-types';
-
 import { warnOnce } from '../logging/logger';
 import { isEnterprise } from '../modules/registryMode';
 import type { AreExact, IsUnion } from '../types/global';
@@ -12,6 +10,7 @@ import {
     isDate,
     isDefined,
     isFiniteNumber,
+    isFiniteNumericValue,
     isFunction,
     isHtmlElement,
     isObject,
@@ -470,7 +469,7 @@ export const or = (...validators: Validator[]) =>
 
 // Helpers
 const isComparable = (value: unknown): value is number | bigint | Date =>
-    isFiniteNumber(value) || typeof value === 'bigint' || isValidDate(value);
+    isFiniteNumericValue(value) || isValidDate(value);
 const isValidDateValue = (value: unknown) =>
     isDate(value) || ((isFiniteNumber(value) || isString(value)) && isValidDate(new Date(value)));
 
@@ -484,10 +483,7 @@ export const defined = attachDescription(isDefined, 'a defined value');
 export const number = attachDescription(isFiniteNumber, 'a number');
 // Accepts a finite number or a bigint. Reserved for the gauge fields that opt into bigint at runtime
 // (AG-16608 AC #11) — do NOT widen the global `number` validator, or every numeric option accepts bigint.
-export const numericValue = attachDescription(
-    (value): value is AgNumericValue => isFiniteNumber(value) || typeof value === 'bigint',
-    'a number or bigint'
-);
+export const numericValue = attachDescription(isFiniteNumericValue, 'a number or bigint');
 export const object = attachDescription(isObject, 'an object');
 export const string = attachDescription(isString, 'a string');
 

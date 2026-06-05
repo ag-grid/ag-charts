@@ -22,6 +22,15 @@ export function toNumber(value: AgNumericValue): number {
     return n;
 }
 
+/**
+ * Nullable narrowing of a `number | bigint` to `number`, passing `null`/`undefined` through unchanged.
+ * Unlike {@link toNumber} this is silent — used for fractional positions (e.g. colour stops) where an
+ * out-of-range magnitude is not a meaningful "cannot be rendered" case.
+ */
+export function toNumberOrUndefined(value: AgNumericValue | undefined): number | undefined {
+    return value == null ? undefined : Number(value);
+}
+
 /** Both operands can combine exactly as bigints (each is already a bigint or an integral number). */
 function bothIntegral(a: AgNumericValue, b: AgNumericValue): boolean {
     return (typeof a === 'bigint' || Number.isInteger(a)) && (typeof b === 'bigint' || Number.isInteger(b));
@@ -68,6 +77,12 @@ export function maxValue(a: AgNumericValue, b: AgNumericValue): AgNumericValue {
 export function absValue(value: AgNumericValue): AgNumericValue {
     if (typeof value === 'bigint') return value < 0n ? -value : value;
     return Math.abs(value);
+}
+
+/** Returns a zero of the same kind as `value` (`0n` for a `bigint`, `0` otherwise) so a baseline
+ * stays type-compatible for exact `bigint` arithmetic via {@link addValues} / {@link subtractValues}. */
+export function zeroLike(value: AgNumericValue): AgNumericValue {
+    return typeof value === 'bigint' ? 0n : 0;
 }
 
 export function inRange(value: number, range: [number, number], epsilon: number = 1e-10) {

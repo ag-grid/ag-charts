@@ -24,6 +24,7 @@ import {
     mergeDefaults,
     minValue,
     toNumber,
+    zeroLike,
 } from 'ag-charts-core';
 import type {
     AgBarSeriesItemStylerParams,
@@ -1082,7 +1083,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 // space later. Number() here would collapse a value beyond Number.MAX_VALUE to Infinity. The
                 // baseline must match the value type (0n for bigint) so convert() takes the full-precision
                 // bigint path — a numeric 0 against a bigint domain narrows to Infinity and yields NaN.
-                const baseline = typeof yRawValue === 'bigint' ? 0n : 0;
+                const baseline = zeroLike(yRawValue);
                 const yStart = ctx.isStacked ? (ctx.yStartValues?.[datumIndex] ?? baseline) : baseline;
                 const yEnd = ctx.isStacked ? ctx.yEndValues?.[datumIndex] : yRawValue;
                 let yRange = yEnd;
@@ -1138,7 +1139,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             nodeDatumParamsScratch.width = width;
             // 0n baseline for a bigint value so convert() takes the full-precision bigint path (a numeric 0
             // against a bigint domain narrows to Infinity and yields NaN for a straddling-zero domain).
-            nodeDatumParamsScratch.yStart = typeof yEnd === 'bigint' ? 0n : 0;
+            nodeDatumParamsScratch.yStart = zeroLike(yEnd);
             nodeDatumParamsScratch.yEnd = yEnd;
             nodeDatumParamsScratch.yRange = yEnd;
             nodeDatumParamsScratch.featherRatio = 0;

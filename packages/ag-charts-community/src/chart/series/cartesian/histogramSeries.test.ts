@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { mapValues } from 'ag-charts-core';
-import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartOptions, AgNumericValue } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import { Transformable } from '../../../scene/transformable';
@@ -230,7 +230,9 @@ describe('HistogramSeries', () => {
         });
 
         it('uses the getDataId callback to override the id', async () => {
-            const getDataId = vi.fn((p: { binStart: number; binEnd: number; binIndex: number }) => `b${p.binIndex}`);
+            const getDataId = vi.fn(
+                (p: { binStart: AgNumericValue; binEnd: AgNumericValue; binIndex: number }) => `b${p.binIndex}`
+            );
             chart = createBinnedChart({ getDataId });
             await waitForChartStability(chart);
 

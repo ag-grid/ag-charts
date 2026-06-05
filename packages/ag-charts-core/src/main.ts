@@ -82,6 +82,7 @@ export * from './utils/data/json';
 export * from './utils/dom/keynavUtil';
 export * from './identity/id';
 export * from './types/idBranding';
+export * from './utils/data/iso8601';
 export * from './utils/data/iterators';
 export * from './utils/data/linkedList';
 export * from './state/memo';

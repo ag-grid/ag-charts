@@ -10,6 +10,7 @@ import {
     createTicks,
     deepClone,
     findMinMax,
+    isBigInt,
     isDate,
     isNumber,
     maxValue,
@@ -168,7 +169,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     private computeBins(xExtent: AgNumericValue[]): BinDomain[] {
         const x0 = xExtent[0];
         const x1 = xExtent[1];
-        const bigIntExtent = typeof x0 === 'bigint' || typeof x1 === 'bigint';
+        const bigIntExtent = isBigInt(x0) || isBigInt(x1);
 
         if (isNumber(this.properties.binCount)) {
             return bigIntExtent
@@ -785,14 +786,13 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const { aggregation, keys } = group;
         const [[negativeAgg, positiveAgg] = [0, 0]] = aggregation;
         const frequency = this.frequency(group);
-        const domain = keys;
-        const [rangeMin, rangeMax]: number[] = domain;
+        const [rangeMin, rangeMax]: AgNumericValue[] = keys;
         const aggregatedValue = addAccumulated(negativeAgg, positiveAgg);
         const datum: AgHistogramBinDatum<any> = {
             data: [...dataModel.forEachDatum(this, processedData, group, datumIndex)],
             aggregatedValue,
             frequency,
-            domain: domain as any,
+            domain: [rangeMin, rangeMax],
         };
 
         const data: TooltipContentDataRow[] = [
@@ -841,7 +841,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 xName,
                 yKey: yKey as any, // HistogramSeries is an outlier since it's callbacks don't use TDatum.
                 yName,
-                xRange: [rangeMin, rangeMax] satisfies [number, number],
+                xRange: [rangeMin, rangeMax] satisfies [AgNumericValue, AgNumericValue],
                 frequency,
                 ...this.getItemStyle(datumIndex, false),
             }

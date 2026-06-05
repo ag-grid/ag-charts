@@ -1,6 +1,6 @@
 import type { AgColorScaleColorStop, AgNumericValue } from 'ag-charts-types';
 
-import { clamp, toNumber } from '../utils/data/numbers';
+import { clamp, toNumber, toNumberOrUndefined } from '../utils/data/numbers';
 
 /** Colour mode for colour scale operations. */
 export type ColorScaleMode = 'continuous' | 'discrete';
@@ -32,10 +32,6 @@ export interface ColorScaleState {
      * Can be bigint (AG-16608 heatmap); narrowed to Number where used.
      */
     displayDomain?: [AgNumericValue, AgNumericValue];
-}
-
-function toNumberOrUndefined(stop: AgNumericValue | undefined): number | undefined {
-    return stop == null ? undefined : Number(stop);
 }
 
 function findNextDefinedStop(fills: Array<{ stop?: number }>, from: number): number {

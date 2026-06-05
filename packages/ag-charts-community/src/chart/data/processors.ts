@@ -5,6 +5,8 @@ import {
     clamp,
     isContinuous,
     isFiniteNumber,
+    isFiniteNumericValue,
+    isISO8601,
     isNegative,
     maxValue,
     memo,
@@ -30,7 +32,6 @@ import {
     UNDEFINED_KEY_STRING,
     datumKeys,
 } from './dataModel';
-import { isISO8601 } from './iso8601';
 
 export const MAX_ANIMATABLE_NODES = 1000;
 
@@ -41,8 +42,7 @@ function combineIntervalBandResults(
 ): AgNumericValue {
     let combined: AgNumericValue | undefined;
     for (const result of bandResults) {
-        const valid = typeof result === 'bigint' || (typeof result === 'number' && Number.isFinite(result));
-        if (!valid) continue;
+        if (!isFiniteNumericValue(result)) continue;
         combined = combined == null ? result : combine(combined, result);
     }
     return combined ?? fallback;

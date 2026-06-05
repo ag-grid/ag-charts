@@ -13,6 +13,7 @@ import {
     findMinIndex,
     findMinMax,
     isFiniteNumber,
+    isFiniteNumericValue,
     maxValue,
     minValue,
 } from 'ag-charts-core';
@@ -1232,7 +1233,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
                 const axisValue = allAxisValues[j][i];
                 // Include bigint (excluded by `typeof === 'number'`) and accumulate with minValue/maxValue so a
                 // value beyond Number.MAX_VALUE stays exact for the scale; Math.min/max would throw on bigint.
-                if (typeof axisValue === 'bigint' || (typeof axisValue === 'number' && Number.isFinite(axisValue))) {
+                if (isFiniteNumericValue(axisValue)) {
                     axisMin = minValue(axisMin, axisValue);
                     axisMax = maxValue(axisMax, axisValue);
                 }
@@ -1280,7 +1281,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
                 const axisValue = allAxisValues[j][i];
                 // Include bigint (excluded by `typeof === 'number'`) and accumulate with minValue/maxValue so a
                 // value beyond Number.MAX_VALUE stays exact for the scale; Math.min/max would throw on bigint.
-                if (typeof axisValue === 'bigint' || (typeof axisValue === 'number' && Number.isFinite(axisValue))) {
+                if (isFiniteNumericValue(axisValue)) {
                     axisMin = minValue(axisMin, axisValue);
                     axisMax = maxValue(axisMax, axisValue);
                 }

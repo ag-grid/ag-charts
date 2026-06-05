@@ -2,7 +2,7 @@
  * Helper functions for DataModel processing.
  * Extracted from dataModel.ts as part of Phase 2.1 refactoring.
  */
-import { isObject } from 'ag-charts-core';
+import { isFiniteNumericValue, isObject, zeroLike } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import type { DataChangeDescription } from '../../dataChangeDescription';
@@ -45,8 +45,7 @@ export function fixNumericExtent(extent: ReadonlyArray<number | Date | bigint> |
     // Retain exact bigint endpoints so the scale positions and labels them at full precision; Date and
     // number values still narrow to Number. The result type carries bigint, so consumers must handle it.
     const mapped = extent.map((v) => (typeof v === 'bigint' ? v : Number(v)));
-    const allFinite = mapped.every((v) => typeof v === 'bigint' || Number.isFinite(v));
-    return allFinite ? mapped : [];
+    return mapped.every(isFiniteNumericValue) ? mapped : [];
 }
 
 /**
@@ -62,10 +61,8 @@ export function extendDomainToZero(extent: ReadonlyArray<AgNumericValue>): AgNum
     if (typeof e0 !== 'bigint' && typeof e1 !== 'bigint') {
         return Number.isFinite(e1 - e0) ? [Math.min(e0, 0), Math.max(e1, 0)] : [];
     }
-    const zeroLo = typeof e0 === 'bigint' ? 0n : 0;
-    const zeroHi = typeof e1 === 'bigint' ? 0n : 0;
-    const lo = e0 < 0 ? e0 : zeroLo;
-    const hi = e1 > 0 ? e1 : zeroHi;
+    const lo = e0 < 0 ? e0 : zeroLike(e0);
+    const hi = e1 > 0 ? e1 : zeroLike(e1);
     return [lo, hi];
 }
 

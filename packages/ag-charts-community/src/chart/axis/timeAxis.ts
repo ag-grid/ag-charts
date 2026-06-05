@@ -12,6 +12,7 @@ import {
     intervalMilliseconds,
     intervalStep,
     intervalUnit,
+    isISO8601,
     lowestGranularityForInterval,
     lowestGranularityUnitForTicks,
     lowestGranularityUnitForValue,
@@ -29,7 +30,6 @@ import type {
 import type { ChartRegistry } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
 import type { FormatDatumParams } from '../chartAxis';
-import { isISO8601 } from '../data/iso8601';
 import type { DatumIndexType, ISeries, ISeriesProperties } from '../series/seriesTypes';
 import type { AxisTickFormatParams } from './axis';
 import { CartesianAxis } from './cartesianAxis';

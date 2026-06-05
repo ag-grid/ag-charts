@@ -20,8 +20,8 @@ export interface AgHistogramSeriesTooltipRendererParams<TDatum, TContext = Conte
         StrokeOptions {
     /** yKey as specified on series options. */
     readonly yKey?: DatumKey<TDatum>;
-    /** Range for x values. */
-    readonly xRange: [number, number];
+    /** Range for x values. `bigint` values for a bigint `xKey` column (AG-16608). */
+    readonly xRange: [AgNumericValue, AgNumericValue];
     /** Number of values within xRange. */
     readonly frequency: number;
 }
@@ -34,14 +34,15 @@ export interface AgHistogramBinDatum<TDatum> {
     /** Aggregated value for the bin. A `bigint` when a bigint `yKey` column is summed (`aggregation: 'sum'`). */
     aggregatedValue: AgNumericValue;
     frequency: number;
-    domain: [number, number];
+    /** Bin boundaries `[min, max]`. `bigint` values for a bigint `xKey` column (AG-16608). */
+    domain: [AgNumericValue, AgNumericValue];
 }
 
 export interface AgHistogramSeriesGetDataIdParams<TContext = ContextDefault> extends ContextCallbackParams<TContext> {
-    /** The lower bound of the bin. */
-    binStart: number;
-    /** The upper bound of the bin. */
-    binEnd: number;
+    /** The lower bound of the bin. A `bigint` for a bigint `xKey` column. */
+    binStart: AgNumericValue;
+    /** The upper bound of the bin. A `bigint` for a bigint `xKey` column. */
+    binEnd: AgNumericValue;
     /** The index of the bin. */
     binIndex: number;
 }

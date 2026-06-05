@@ -1,5 +1,4 @@
-// Strict ISO 8601 detection. String parsing is a time-axis concern, not a general one, so this lives
-// alongside the data pipeline rather than in the shared value utilities.
+// Strict ISO 8601 detection, used by the time-axis data pipeline to recognise and coerce date strings.
 //
 // This runs per datum on date-string columns, so it must not allocate. The regex bounds every time and
 // offset component to a legal range, and the calendar check — which the regex cannot express, because

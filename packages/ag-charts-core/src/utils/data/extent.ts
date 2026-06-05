@@ -1,11 +1,7 @@
 import type { AgNumericValue } from 'ag-charts-types';
 
 import type { DomainWithMetadata } from '../../types/scales';
-import { isNumber } from '../types/typeGuards';
-
-// bigint endpoints are retained so a bigint column's exact extent reaches the scale. Comparisons
-// against the Number Infinity seed and between bigints are legal — only +/-/* mixing throws.
-const isFiniteEndpoint = (v: AgNumericValue) => typeof v === 'bigint' || Number.isFinite(v);
+import { isFiniteNumericValue, isNumber, isNumericValue } from '../types/typeGuards';
 
 // Date/number inputs yield a Number extent; only a bigint input carries bigint endpoints. The overloads
 // keep bigint out of the result type for the common (Date/number) callers, so it never percolates falsely.
@@ -27,17 +23,19 @@ export function extent(values: readonly unknown[], sortOrder?: 1 | -1): [AgNumer
         const v0 = first instanceof Date ? first.getTime() : first;
         const v1 = last instanceof Date ? last.getTime() : last;
 
-        if ((typeof v0 === 'number' || typeof v0 === 'bigint') && (typeof v1 === 'number' || typeof v1 === 'bigint')) {
+        if (isNumericValue(v0) && isNumericValue(v1)) {
             return sortOrder === 1 ? [v0, v1] : [v1, v0];
         }
     }
 
+    // bigint endpoints are retained so a bigint column's exact extent reaches the scale. Comparisons
+    // against the Number Infinity seed and between bigints are legal — only +/-/* mixing throws.
     let min: AgNumericValue = Infinity;
     let max: AgNumericValue = -Infinity;
 
     for (const n of values) {
         const v = n instanceof Date ? n.getTime() : n;
-        if (typeof v !== 'number' && typeof v !== 'bigint') continue;
+        if (!isNumericValue(v)) continue;
         if (v < min) {
             min = v;
         }
@@ -46,7 +44,7 @@ export function extent(values: readonly unknown[], sortOrder?: 1 | -1): [AgNumer
         }
     }
 
-    return isFiniteEndpoint(min) && isFiniteEndpoint(max) ? [min, max] : null;
+    return isFiniteNumericValue(min) && isFiniteNumericValue(max) ? [min, max] : null;
 }
 
 export function normalisedExtentWithMetadata<T>(

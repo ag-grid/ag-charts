@@ -1,4 +1,4 @@
-import { Logger, first, isNumberObject, iterate } from 'ag-charts-core';
+import { Logger, first, isISO8601, isNumberObject, iterate } from 'ag-charts-core';
 
 import { ContinuousDomain } from '../../dataDomain';
 import {
@@ -14,7 +14,6 @@ import {
     type UngroupedData,
 } from '../../dataModelTypes';
 import type { DataSet } from '../../dataSet';
-import { isISO8601 } from '../../iso8601';
 import type { DataModelContext } from '../dataModelContext';
 import type { DomainManager } from '../domain/domainManager';
 import type { SpecializedProcessValueFn } from '../domain/processValueFactory';

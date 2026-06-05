@@ -6,13 +6,13 @@ import {
     isArray,
     isDate,
     isEmptyObject,
-    isNumber,
+    isISO8601,
+    isNumericValue,
     isObject,
     isString,
 } from 'ag-charts-core';
 import type {
     AgCartesianSeriesOptions,
-    AgNumericValue,
     AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
     DatumDefault,
@@ -21,7 +21,6 @@ import type {
 
 import { BBox } from '../../../scene/bbox';
 import type { ChartAxis } from '../../chartAxis';
-import { isISO8601 } from '../../data/iso8601';
 
 function isAxisReversed(axis: ChartAxis) {
     return axis.isReversed() !== axis.range[1] < axis.range[0];
@@ -196,18 +195,14 @@ function predictGroupedCategoryAxisType(value: unknown) {
     }
 }
 
-function isTimeNumeric(value: unknown): value is AgNumericValue {
-    return isNumber(value) || typeof value === 'bigint';
-}
-
 function predictTimeAxisType(key: string, value: unknown) {
-    if (isDate(value) || (TIME_AXIS_KEYS.has(key) && (isTimeNumeric(value) || isISO8601(value)))) {
+    if (isDate(value) || (TIME_AXIS_KEYS.has(key) && (isNumericValue(value) || isISO8601(value)))) {
         return CARTESIAN_AXIS_TYPE.TIME;
     }
 }
 
 function predictOrdinalTimeAxisType(key: string, value: unknown) {
-    if (isDate(value) || (TIME_AXIS_KEYS.has(key) && (isTimeNumeric(value) || isISO8601(value)))) {
+    if (isDate(value) || (TIME_AXIS_KEYS.has(key) && (isNumericValue(value) || isISO8601(value)))) {
         return CARTESIAN_AXIS_TYPE.ORDINAL_TIME;
     }
 }
