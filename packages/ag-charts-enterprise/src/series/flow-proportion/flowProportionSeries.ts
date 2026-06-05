@@ -24,10 +24,8 @@ import {
     isFlowLinkDatumIndex,
     isFlowNodeDatumIndex,
     toFlowLinkAriaIndex,
-    toFlowLinkItemId,
     toFlowLinkOffset,
     toFlowNodeAriaIndex,
-    toFlowNodeItemId,
     toFlowNodeOffset,
 } from './flowDatumIndex';
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
@@ -263,11 +261,7 @@ export abstract class FlowProportionSeries<
 
                 return {
                     series: this,
-<<<<<<< HEAD
-                    itemId: toFlowNodeItemId({}, datumIndex, undefined),
-=======
-                    itemId: this.callGetDataId({ nodeName: id, index: datumIndex, datum: {} }) ?? id,
->>>>>>> latest
+                    itemId: this.toFlowNodeItemId({}, datumIndex, { dataIdKey: undefined, nodeName: id }),
                     datum: {}, // Must be a referential object for tooltips
                     datumIndex,
                     type: FlowProportionDatumType.Node,
@@ -323,27 +317,13 @@ export abstract class FlowProportionSeries<
             const nodeDataIdKey = this.data?.dataIdKey;
             const nodeData = nodesDataModel.processedData.dataSources.get(this.id)?.data;
             if (nodeData) {
-<<<<<<< HEAD
                 for (const [offset, datum] of nodeData.entries()) {
                     const id: string = nodeIdValues[offset];
                     const label: string | undefined = labelValues?.[offset];
                     const datumIndex = flowNodeDatumIndex(offset);
                     processedNodes.set(id, {
                         series: this,
-                        itemId: toFlowNodeItemId(datum, datumIndex, nodeDataIdKey),
-=======
-                for (const [datumIndex, datum] of nodeData.entries()) {
-                    const id: string = nodeIdValues[datumIndex];
-                    const label: string | undefined = labelValues?.[datumIndex];
-
-                    const nodeDatumIndex = { type: FlowProportionDatumType.Node, index: datumIndex };
-                    const nodeIdValue = nodeDataIdKey == null ? undefined : (datum as any)[nodeDataIdKey];
-                    const computedId = this.callGetDataId({ nodeName: id, index: datumIndex, datum });
-
-                    processedNodes.set(id, {
-                        series: this,
-                        itemId: computedId ?? (nodeIdValue == null ? id : String(nodeIdValue)),
->>>>>>> latest
+                        itemId: this.toFlowNodeItemId(datum, datumIndex, { dataIdKey: nodeDataIdKey, nodeName: id }),
                         datum,
                         datumIndex,
                         type: FlowProportionDatumType.Node,
@@ -436,7 +416,7 @@ export abstract class FlowProportionSeries<
                 const datumIndex = flowLinkDatumIndex(index);
                 const link = createLink({
                     series: this,
-                    itemId: toFlowLinkItemId(datum, datumIndex, dataIdKey),
+                    itemId: this.toFlowLinkItemId(datum, datumIndex, { dataIdKey }),
                     datum,
                     datumIndex,
                     type: FlowProportionDatumType.Link,
@@ -882,5 +862,30 @@ export abstract class FlowProportionSeries<
 
     datumIndexForCategoryValue(_categoryValue: any): _ModuleSupport.DatumIndex | undefined {
         return;
+    }
+
+    private readDataIdKey(datum: unknown, info: { dataIdKey?: string }): string | undefined {
+        return info.dataIdKey == null ? undefined : (datum as any)?.[info.dataIdKey];
+    }
+
+    private toFlowNodeItemId(
+        datum: unknown,
+        datumIndex: FlowNodeDatumIndex,
+        info: { dataIdKey: string | undefined; nodeName: string }
+    ): string {
+        const { nodeName } = info;
+        const nodeIdValue = this.readDataIdKey(datum, info);
+        const offset = toFlowNodeOffset(datumIndex);
+        const computedId = this.callGetDataId({ nodeName, index: offset, datum });
+        return computedId ?? (nodeIdValue == null ? nodeName : String(nodeIdValue));
+    }
+
+    private toFlowLinkItemId(
+        datum: unknown,
+        datumIndex: FlowLinkDatumIndex,
+        info: { dataIdKey: string | undefined }
+    ): string {
+        const linkIdValue = this.readDataIdKey(datum, info);
+        return linkIdValue == null ? `link-${datumIndex}` : String(linkIdValue);
     }
 }

@@ -35,18 +35,6 @@ export function isFlowLinkDatumIndex(datumIndex: _ModuleSupport.DatumIndex): dat
     return datumIndex >= 0;
 }
 
-function readDataIdKey(datum: unknown, idKey: string | undefined): string | undefined {
-    return idKey == null ? undefined : (datum as any)?.[idKey];
-}
-
-export function toFlowNodeItemId(datum: unknown, datumIndex: FlowNodeDatumIndex, idKey: string | undefined): string {
-    return readDataIdKey(datum, idKey) ?? `node-${toFlowNodeOffset(datumIndex)}`;
-}
-
-export function toFlowLinkItemId(datum: unknown, datumIndex: FlowLinkDatumIndex, idKey: string | undefined): string {
-    return readDataIdKey(datum, idKey) ?? `link-${toFlowLinkOffset(datumIndex)}`;
-}
-
 export function toFlowNodeAriaIndex(datumIndex: FlowNodeDatumIndex): number {
     return toFlowNodeOffset(datumIndex) + 1;
 }
