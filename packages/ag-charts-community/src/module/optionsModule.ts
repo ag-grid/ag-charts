@@ -21,6 +21,7 @@ import {
     isArray,
     isKeyOf,
     isObject,
+    isObjectLike,
     isPlainObject,
     isSymbol,
     joinFormatted,
@@ -1380,11 +1381,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     ) {
         processedCSSVariables ??= {};
 
-        if (!optionsNode || !isObject(optionsNode) || !container) {
+        if (!optionsNode || !isObjectLike(optionsNode) || !container) {
             return processedCSSVariables;
         }
 
-        for (const key of Object.keys(optionsNode)) {
+        for (const key of Object.keys(optionsNode) as any[]) {
             const value = optionsNode[key];
             if (typeof value !== 'string' || !value.startsWith('var(--')) continue;
 

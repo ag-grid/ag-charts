@@ -593,7 +593,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             const operator = operations[operation];
             const operatorFn = typeof operator === 'function' ? operator : operator.resolve;
             const resolved = operatorFn?.(this, vertex, operationValues ?? []);
-            return resolved === RESOLVED_TO_BRANCH ? undefined : resolved;
+            return resolved === RESOLVED_TO_BRANCH ? undefined : this.resolveValueOrSymbol(resolved);
         }
 
         let value = this.getVertexValue(valueVertex);
@@ -1089,7 +1089,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             const operator = operations[operation];
             const operatorFn = typeof operator === 'function' ? operator : operator.resolve;
             const resolved = operatorFn?.(this, vertex, operationValues ?? []);
-            return resolved === RESOLVED_TO_BRANCH ? undefined : resolved;
+            return resolved === RESOLVED_TO_BRANCH ? undefined : this.resolveValueOrSymbol(resolved);
         }
 
         return this.resolveValueOrSymbol(this.getVertexValue(valueVertex));
