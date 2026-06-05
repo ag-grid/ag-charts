@@ -66,6 +66,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 gap: 2,
                 textAlign: 'left',
                 highlight: {
+                    enabled: { $circular: { $path: '/highlight/enabled' } },
                     unhighlightedItem: {
                         opacity: 0.2,
                         fillOpacity: 0.2,
@@ -105,6 +106,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 padding: 3,
                 gap: 1,
                 highlight: {
+                    enabled: { $circular: { $path: '/highlight/enabled' } },
                     unhighlightedItem: {
                         fillOpacity: 0.6,
                         strokeOpacity: 0.6,

@@ -1,11 +1,11 @@
-import type { Callback, CallbackParam, DynamicContext, IsAny, Point, RequireOptional } from 'ag-charts-core';
-import { mergeDefaults } from 'ag-charts-core';
+import type { Callback, CallbackParam, DynamicContext, IsAny, NormalisedTextOrSegments, Point } from 'ag-charts-core';
+import { type NormalisedChartLabelStyleOptions, mergeDefaults } from 'ag-charts-core';
 import type {
-    AgChartLabelStyleOptions,
     AgChartLabelStylerParams,
+    CssColor,
     HighlightState,
+    NormalisedCallbackParams,
     PixelSize,
-    TextOrSegments,
 } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../core/eventsHub';
@@ -38,7 +38,7 @@ type Bounds = {
 export type BarLabelPlacement = 'inside-center' | 'inside-start' | 'inside-end' | 'outside-start' | 'outside-end';
 
 type LabelDatum = Point & {
-    text: TextOrSegments;
+    text: NormalisedTextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
 };
@@ -51,7 +51,7 @@ export function getLabelStyles<TParams>(
     isHighlight: boolean,
     activeHighlight: HighlightNodeDatum | undefined,
     labelPath: string[] = ['series', `${series.declarationOrder}`, 'label']
-): AgChartLabelStyleOptions & { fontSize: number } {
+): NormalisedChartLabelStyleOptions & { fontSize: number } {
     if (series.visible && label.itemStyler) {
         const highlightState = series.getHighlightStateString(
             activeHighlight,
@@ -65,9 +65,10 @@ export function getLabelStyles<TParams>(
         const itemId: string | number | undefined =
             typeof nodeDatum?.datumIndex === 'number' ? nodeDatum.datumIndex : nodeDatum?.itemId;
 
-        const styleParams: RequireOptional<Omit<AgChartLabelStylerParams<unknown, unknown>, 'context'>> & {
-            fontSize: number;
-        } = {
+        const styleParams: NormalisedCallbackParams<
+            AgChartLabelStylerParams<unknown, unknown>,
+            { color?: CssColor; fontSize: number }
+        > = {
             border: label.border,
             color: label.color,
             cornerRadius: label.cornerRadius,

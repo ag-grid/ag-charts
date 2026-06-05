@@ -263,7 +263,11 @@ export abstract class FlowProportionSeries<
 
                 return {
                     series: this,
+<<<<<<< HEAD
                     itemId: toFlowNodeItemId({}, datumIndex, undefined),
+=======
+                    itemId: this.callGetDataId({ nodeName: id, index: datumIndex, datum: {} }) ?? id,
+>>>>>>> latest
                     datum: {}, // Must be a referential object for tooltips
                     datumIndex,
                     type: FlowProportionDatumType.Node,
@@ -319,6 +323,7 @@ export abstract class FlowProportionSeries<
             const nodeDataIdKey = this.data?.dataIdKey;
             const nodeData = nodesDataModel.processedData.dataSources.get(this.id)?.data;
             if (nodeData) {
+<<<<<<< HEAD
                 for (const [offset, datum] of nodeData.entries()) {
                     const id: string = nodeIdValues[offset];
                     const label: string | undefined = labelValues?.[offset];
@@ -326,6 +331,19 @@ export abstract class FlowProportionSeries<
                     processedNodes.set(id, {
                         series: this,
                         itemId: toFlowNodeItemId(datum, datumIndex, nodeDataIdKey),
+=======
+                for (const [datumIndex, datum] of nodeData.entries()) {
+                    const id: string = nodeIdValues[datumIndex];
+                    const label: string | undefined = labelValues?.[datumIndex];
+
+                    const nodeDatumIndex = { type: FlowProportionDatumType.Node, index: datumIndex };
+                    const nodeIdValue = nodeDataIdKey == null ? undefined : (datum as any)[nodeDataIdKey];
+                    const computedId = this.callGetDataId({ nodeName: id, index: datumIndex, datum });
+
+                    processedNodes.set(id, {
+                        series: this,
+                        itemId: computedId ?? (nodeIdValue == null ? id : String(nodeIdValue)),
+>>>>>>> latest
                         datum,
                         datumIndex,
                         type: FlowProportionDatumType.Node,
@@ -345,6 +363,11 @@ export abstract class FlowProportionSeries<
         }
 
         this.processedNodes = processedNodes;
+    }
+
+    private callGetDataId(params: { nodeName: string; index: number; datum: unknown }): string | undefined {
+        const { getDataId } = this.properties;
+        return getDataId == null ? undefined : this.cachedCallWithContext(getDataId, params);
     }
 
     override findNodeDatum(itemId: AgActiveItemState['itemId']): TDatum<TNodeDatum, TLinkDatum> | undefined {

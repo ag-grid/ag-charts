@@ -1,4 +1,5 @@
 import {
+    type AgChordSeriesGetDataIdParams,
     type AgChordSeriesLabelFormatterParams,
     type AgChordSeriesLinkItemStylerParams,
     type AgChordSeriesLinkStyle,
@@ -142,6 +143,9 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
 
     @Property
     nodes: any[] | undefined = undefined;
+
+    @Property
+    getDataId?: (params: AgChordSeriesGetDataIdParams) => string = undefined;
 
     @Property
     readonly fillGradientDefaults = new FillGradientDefaults();

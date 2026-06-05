@@ -12,7 +12,6 @@ import {
     type PaddingOptions,
     type RichFormatter,
     type Styler,
-    type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -21,6 +20,7 @@ import {
     ChartAxisDirection,
     type DeepRequired,
     type DynamicContext,
+    type NormalisedTextOrSegments,
     type Point,
     Vertex,
     clamp,
@@ -37,13 +37,13 @@ import { OrganizationGraph } from './organizationGraph';
 import { OrganizationNode } from './organizationNode';
 import { OrganizationSeriesNodeTextProperties, OrganizationSeriesProperties } from './organizationSeriesProperties';
 import type {
+    NormalisedOrganizationNodeStyle,
+    NormalisedOrganizationNodeTextStyle,
+    NormalisedOrganizationSeriesExpanderStyle,
     OrganizationDatum,
     OrganizationEdge,
     OrganizationLinkDatum,
     OrganizationVertex,
-    RequiredOrganizationNodeStyle,
-    RequiredOrganizationNodeTextStyle,
-    RequiredOrganizationSeriesExpanderStyle,
 } from './organizationTypes';
 
 const { keyProperty, valueProperty } = _ModuleSupport;
@@ -735,7 +735,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     private formatText(
-        text: TextOrSegments | undefined,
+        text: NormalisedTextOrSegments | undefined,
         formatter: RichFormatter<AgOrganizationNodeTextFormatterParams> | undefined,
         datumIndex: number | undefined,
         isCollapsed: boolean
@@ -754,9 +754,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     private resolveVertexFields(vertex: Vertex<OrganizationVertex, OrganizationEdge>) {
         return {
             image: this.graph.findNeighbourValue(vertex, 'image') as string | undefined,
-            title: this.graph.findNeighbourValue(vertex, 'title') as TextOrSegments | undefined,
-            subtitle: this.graph.findNeighbourValue(vertex, 'subtitle') as TextOrSegments | undefined,
-            labels: this.graph.findNeighbourValue(vertex, 'labels') as (TextOrSegments | undefined)[] | undefined,
+            title: this.graph.findNeighbourValue(vertex, 'title') as NormalisedTextOrSegments | undefined,
+            subtitle: this.graph.findNeighbourValue(vertex, 'subtitle') as NormalisedTextOrSegments | undefined,
+            labels: this.graph.findNeighbourValue(vertex, 'labels') as
+                | (NormalisedTextOrSegments | undefined)[]
+                | undefined,
         };
     }
 
@@ -807,7 +809,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         isHighlight: boolean,
         highlightState: _ModuleSupport.HighlightState | undefined,
         isCollapsed: boolean
-    ): RequiredOrganizationNodeStyle {
+    ): NormalisedOrganizationNodeStyle {
         const { dataModel, processedData } = this;
         const { itemStyler } = this.properties.node;
         const { itemStyler: titleStyler } = this.properties.node.title;
@@ -938,7 +940,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         };
     }
 
-    private getExpanderDefaultStyle(): RequiredOrganizationSeriesExpanderStyle {
+    private getExpanderDefaultStyle(): NormalisedOrganizationSeriesExpanderStyle {
         const {
             cornerRadius,
             enabled,
@@ -991,7 +993,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         };
     }
 
-    private getNodeTextDefaultStyle(props: OrganizationSeriesNodeTextProperties): RequiredOrganizationNodeTextStyle {
+    private getNodeTextDefaultStyle(props: OrganizationSeriesNodeTextProperties): NormalisedOrganizationNodeTextStyle {
         return {
             color: props.color,
             enabled: props.enabled,
@@ -1022,7 +1024,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         styler:
             | Styler<AgOrganizationSeriesNodeItemStylerParams<unknown, unknown>, AgOrganizationSeriesNodeStyle>
             | undefined,
-        style: RequiredOrganizationNodeStyle,
+        style: NormalisedOrganizationNodeStyle,
         dataModel: _ModuleSupport.DataModel<any, any, any> | undefined,
         processedData: _ModuleSupport.ProcessedData<any> | undefined,
         datumIndex: number | undefined,
@@ -1064,7 +1066,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         styler:
             | Styler<AgOrganizationSeriesExpanderItemStylerParams<unknown, unknown>, AgOrganizationSeriesExpanderStyle>
             | undefined,
-        style: RequiredOrganizationSeriesExpanderStyle,
+        style: NormalisedOrganizationSeriesExpanderStyle,
         dataModel: _ModuleSupport.DataModel<any, any, any> | undefined,
         processedData: _ModuleSupport.ProcessedData<any> | undefined,
         datumIndex: number | undefined,
@@ -1106,7 +1108,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         styler:
             | Styler<AgOrganizationSeriesNodeTextStylerParams<unknown, unknown>, AgOrganizationSeriesNodeTextStyle>
             | undefined,
-        style: RequiredOrganizationNodeTextStyle,
+        style: NormalisedOrganizationNodeTextStyle,
         datumIdSuffix: string,
         dataModel: _ModuleSupport.DataModel<any, any, any> | undefined,
         processedData: _ModuleSupport.ProcessedData<any> | undefined,
@@ -1173,7 +1175,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         depth: number,
         highlightState: _ModuleSupport.HighlightState | undefined,
         isCollapsed: boolean,
-        style: Required<AgOrganizationSeriesNodeStyle>
+        style: NormalisedOrganizationNodeStyle
     ): AgOrganizationSeriesNodeItemStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
 
@@ -1197,7 +1199,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         depth: number,
         highlightState: _ModuleSupport.HighlightState | undefined,
         isCollapsed: boolean,
-        style: RequiredOrganizationSeriesExpanderStyle
+        style: NormalisedOrganizationSeriesExpanderStyle
     ): AgOrganizationSeriesExpanderItemStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
 
@@ -1221,7 +1223,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         depth: number,
         highlightState: _ModuleSupport.HighlightState | undefined,
         isCollapsed: boolean,
-        style: RequiredOrganizationNodeTextStyle
+        style: NormalisedOrganizationNodeTextStyle
     ): AgOrganizationSeriesNodeTextStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
 

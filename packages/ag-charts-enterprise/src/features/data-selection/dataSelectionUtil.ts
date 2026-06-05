@@ -16,7 +16,7 @@ type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode'
 type DragWidgetEvent = _ModuleSupport.DragWidgetEvent;
 
 type Service = {
-    clear(): void;
+    clearSelection(): void;
     enableSelection(seriesId: string, dataSet: DataSet): DataSetSelection;
     iterateDataSetSelections(): Iterable<DataSetSelectionsIterator>;
 };
@@ -122,7 +122,7 @@ export function clearAllSelections(changes: Changes, srv: Service): void {
             }
         }
     }
-    srv.clear();
+    srv.clearSelection();
 }
 
 export function isUnknownIterable(value: unknown): value is Iterable<unknown> {

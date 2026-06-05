@@ -1,4 +1,4 @@
-import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import type {
     CallbackParamRules,
     DynamicContext,
@@ -6,6 +6,7 @@ import type {
     FeatureCollection,
     Geometry,
     ITextMeasurer,
+    NormalisedTextOrSegments,
     Point,
     Position,
 } from 'ag-charts-core';
@@ -76,7 +77,7 @@ const fixedScale = _ModuleSupport.MercatorScale.fixedScale();
 
 interface LabelLayout {
     geometry: Geometry;
-    labelText: TextOrSegments;
+    labelText: NormalisedTextOrSegments;
     aspectRatio: number;
     x: number;
     y: number;

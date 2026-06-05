@@ -1,5 +1,6 @@
 import type {
     AgChordSeriesTooltipRendererParams,
+    AgSankeySeriesGetDataIdParams,
     AgSankeySeriesTooltipRendererParams,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -22,4 +23,5 @@ export interface FlowProportionSeriesProperties<
     tooltip: _ModuleSupport.SeriesTooltip<
         AgChordSeriesTooltipRendererParams<any> & AgSankeySeriesTooltipRendererParams<any>
     >;
+    getDataId?: (params: AgSankeySeriesGetDataIdParams<any, any>) => string;
 }

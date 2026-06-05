@@ -1,4 +1,4 @@
-import type { DynamicContext } from 'ag-charts-core';
+import type { DynamicContext, NormalisedTextOrSegments } from 'ag-charts-core';
 import {
     BaseProperties,
     FONT_SIZE,
@@ -20,7 +20,6 @@ import type {
     FontWeight,
     Renderer,
     TextAlign,
-    TextOrSegments,
     TextWrap,
 } from 'ag-charts-types';
 
@@ -35,7 +34,7 @@ import type { TooltipContent } from './tooltip/tooltipContent';
 
 type CaptionNodeDatum = {
     visible: boolean;
-    text: TextOrSegments | undefined;
+    text: NormalisedTextOrSegments | undefined;
     textBaseline: string;
     x: number;
     y: number;
@@ -70,7 +69,7 @@ export class Caption extends BaseProperties implements CaptionLike {
 
     @Property
     @ProxyPropertyOnWrite('node')
-    text?: TextOrSegments;
+    text?: NormalisedTextOrSegments;
 
     @Property
     @ProxyPropertyOnWrite('node')

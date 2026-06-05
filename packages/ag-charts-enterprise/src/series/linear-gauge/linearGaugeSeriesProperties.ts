@@ -1,5 +1,5 @@
-import { type RichFormatter, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgGradientColor, RequireOptional } from 'ag-charts-core';
+import { type RichFormatter, _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgGradientColor, NormalisedTextOrSegments, RequireOptional } from 'ag-charts-core';
 import { BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
@@ -76,7 +76,7 @@ export interface LinearGaugeLabelDatum extends _ModuleSupport.SeriesNodeDatum {
     placement: AgLinearGaugeLabelPlacement;
     avoidCollisions: boolean;
     spacing: number;
-    text: TextOrSegments | undefined;
+    text: NormalisedTextOrSegments | undefined;
     value: number;
     fill: string | undefined;
     fontStyle: FontStyle | undefined;

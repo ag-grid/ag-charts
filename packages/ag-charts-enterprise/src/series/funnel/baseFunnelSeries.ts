@@ -2,10 +2,15 @@ import {
     type AgFunnelSeriesLabelFormatterParams,
     type AgFunnelSeriesStyle,
     type SelectionState,
-    type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { DomainWithMetadata, DynamicContext, Point, RequireOptional } from 'ag-charts-core';
+import type {
+    DomainWithMetadata,
+    DynamicContext,
+    NormalisedTextOrSegments,
+    Point,
+    RequireOptional,
+} from 'ag-charts-core';
 import { ChartAxisDirection, SeriesZIndexMap } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
@@ -43,7 +48,7 @@ export type Bounds = {
 
 export type FunnelNodeLabelDatum = Readonly<Point> & {
     datumIndex: number;
-    text: TextOrSegments;
+    text: NormalisedTextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     datum: any;

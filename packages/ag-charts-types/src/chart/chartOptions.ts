@@ -15,6 +15,7 @@ import type { AgNavigatorOptions } from './navigatorOptions';
 import type { AgRangesOptions } from './rangesOptions';
 import type { AgScrollbarOptions } from './scrollbarOptions';
 import type { AgChartSelectionOptions } from './selectionOptions';
+import type { AgCssColorOrRef } from './themeParamsOptions';
 import type { AgChartTooltipOptions } from './tooltipOptions';
 import type {
     ContextDefault,
@@ -126,7 +127,7 @@ export interface AgChartCaptionOptions<TContext = ContextDefault> {
     /** The font family to use for the text. */
     fontFamily?: FontFamilyFull;
     /** The colour to use for the text. */
-    color?: CssColor;
+    color?: AgCssColorOrRef;
     /** Spacing added to help position the text. */
     spacing?: PixelSize;
     /** Used to constrain the width of the title before text is wrapped or truncated. */
@@ -162,7 +163,7 @@ export type AgChartHighlightRange = 'tooltip' | 'node';
 
 export interface AgChartHighlightOptions {
     /**
-     * Set to `false` to disable highlighting for all series. Individual series can re-enable it with `series[].highlight.enabled`.
+     * Set to `false` to disable highlighting for all series in the chart.
      *
      * Default: `true`
      */

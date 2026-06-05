@@ -2,6 +2,7 @@ import {
     type OptionsDefs,
     arrayOf,
     boolean,
+    callbackOf,
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     constant,
@@ -48,4 +49,5 @@ export const histogramSeriesOptionsDef: OptionsDefs<AgHistogramSeriesOptions> = 
     yKeyAxis: string,
     xName: string,
     yName: string,
+    getDataId: callbackOf(string),
 };

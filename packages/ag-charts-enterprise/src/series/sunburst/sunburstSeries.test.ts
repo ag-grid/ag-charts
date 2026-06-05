@@ -135,6 +135,43 @@ describe('SunburstSeries', () => {
             expect(await highlightLeafFill(series)).not.toEqual('lime');
         });
 
+        const seriesHighlightEnabled = (series: SunburstSeries) =>
+            (series as unknown as { properties: { highlight: { enabled: boolean } } }).properties.highlight.enabled;
+
+        it('cascades chart-level highlight.enabled = false to the series', async () => {
+            const options: AgChartOptions = {
+                data: DATA,
+                highlight: { enabled: false },
+                series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size', colorKey: undefined }],
+                animation: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            expect(seriesHighlightEnabled(chart.series[0] as SunburstSeries)).toBe(false);
+        });
+
+        it('lets a series re-enable highlighting over a disabled chart-level default', async () => {
+            const options: AgChartOptions = {
+                data: DATA,
+                highlight: { enabled: false },
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'size',
+                        colorKey: undefined,
+                        highlight: { enabled: true },
+                    },
+                ],
+                animation: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            expect(seriesHighlightEnabled(chart.series[0] as SunburstSeries)).toBe(true);
+        });
+
         it('still shows tooltips when highlighting is disabled', async () => {
             const options: AgChartOptions = {
                 data: DATA,

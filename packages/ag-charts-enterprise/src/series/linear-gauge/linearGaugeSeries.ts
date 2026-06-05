@@ -6,12 +6,12 @@ import {
     type AgSeriesMarkerStyle,
     type FontStyle,
     type FontWeight,
-    type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
     type ChartAnimationPhase,
     type DynamicContext,
+    type NormalisedTextOrSegments,
     type Point,
     StateMachine,
     cachedTextMeasurer,
@@ -459,15 +459,18 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return label.spacing + labelSize;
     }
 
-    private tickFormatter(domain: number[], ticks: number[]): (value: number, index: number) => TextOrSegments {
+    private tickFormatter(
+        domain: number[],
+        ticks: number[]
+    ): (value: number, index: number) => NormalisedTextOrSegments {
         const { format, formatter } = this.properties.scale.label;
-        let tickFormatter: ((value: number) => TextOrSegments) | undefined;
+        let tickFormatter: ((value: number) => NormalisedTextOrSegments) | undefined;
         if (format != null) {
             tickFormatter = tickFormat(ticks, typeof format === 'string' ? format : undefined);
         }
 
-        return (value: number, index: number): TextOrSegments => {
-            let r: TextOrSegments | undefined = undefined;
+        return (value: number, index: number): NormalisedTextOrSegments => {
+            let r: NormalisedTextOrSegments | undefined = undefined;
             if (formatter) {
                 r ??= formatWithContext(this.ctx, formatter, {
                     type: 'number',

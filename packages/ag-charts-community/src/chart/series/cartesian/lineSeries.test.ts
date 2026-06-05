@@ -2194,4 +2194,42 @@ describe('LineSeries', () => {
             await compare();
         });
     });
+
+    describe('AG-17300 unit-time axis extrapolation', () => {
+        const data = [
+            { time: new Date('2024-01-01'), value: 10 },
+            { time: new Date('2024-01-02'), value: 20 },
+            { time: new Date('2024-01-03'), value: 15 },
+            { time: new Date('2024-01-04'), value: 30 },
+            { time: new Date('2024-01-05'), value: 25 },
+        ];
+
+        it('draws a segment to the boundary when max is below the last data point', async () => {
+            const options: AgCartesianChartOptions = {
+                axes: {
+                    x: { type: 'unit-time', position: 'bottom', max: new Date('2024-01-03') },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'line', data, xKey: 'time', yKey: 'value' }],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+
+            await compare();
+        });
+
+        it('draws a segment from the boundary when min is above the first data point', async () => {
+            const options: AgCartesianChartOptions = {
+                axes: {
+                    x: { type: 'unit-time', position: 'bottom', min: new Date('2024-01-03') },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'line', data, xKey: 'time', yKey: 'value' }],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+
+            await compare();
+        });
+    });
 });

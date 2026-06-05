@@ -1,20 +1,21 @@
-import type { DeepRequired } from 'ag-charts-core';
+import type { DeepRequired, Normalised, NormalisedPaddingOptions, NormalisedTextOrSegments } from 'ag-charts-core';
 import type {
+    AgColorType,
     AgOrganizationSeriesExpanderStyle,
+    AgOrganizationSeriesExpanderTextStyle,
     AgOrganizationSeriesNodeStyle,
     AgOrganizationSeriesNodeTextStyle,
+    AgOrganizationSeriesOptionsNodeImage,
     CssColor,
-    PaddingOptions,
-    TextOrSegments,
 } from 'ag-charts-types';
 
 import type { NetworkDatum, NetworkLinkDatum } from '../network/networkSeries';
 
 export interface OrganizationNodeFields {
     image?: string;
-    title?: TextOrSegments;
-    subtitle?: TextOrSegments;
-    labels?: (TextOrSegments | undefined)[];
+    title?: NormalisedTextOrSegments;
+    subtitle?: NormalisedTextOrSegments;
+    labels?: (NormalisedTextOrSegments | undefined)[];
 }
 
 export type OrganizationVertex = string | (string | undefined)[] | number | boolean;
@@ -41,26 +42,74 @@ export type OrganizationLinkDatum = NetworkLinkDatum<OrganizationVertex, Organiz
 // `fill` and `stroke` for text tiers explicitly carry `undefined` rather than being
 // erased: unset means "no backing box", which the public contract surfaces to
 // itemStyler params as `fill: undefined` (instead of an empty-string sentinel).
-export type RequiredOrganizationNodeTextStyle = Omit<
-    DeepRequired<AgOrganizationSeriesNodeTextStyle>,
-    'fill' | 'stroke' | 'padding'
-> & {
-    fill: CssColor | undefined;
-    stroke: CssColor | undefined;
-    padding: Required<PaddingOptions>;
-};
+export type NormalisedOrganizationNodeTextStyle = Normalised<
+    AgOrganizationSeriesNodeTextStyle,
+    | 'cornerRadius'
+    | 'enabled'
+    | 'fillOpacity'
+    | 'fontFamily'
+    | 'fontSize'
+    | 'fontStyle'
+    | 'fontWeight'
+    | 'spacing'
+    | 'strokeOpacity'
+    | 'strokeWidth'
+    | 'textAlign'
+    | 'overflowStrategy'
+    | 'wrapping',
+    {
+        color: CssColor;
+        fill: CssColor | undefined;
+        stroke: CssColor | undefined;
+        padding: NormalisedPaddingOptions;
+    }
+>;
 
-export type RequiredOrganizationSeriesExpanderStyle = Omit<
-    DeepRequired<AgOrganizationSeriesExpanderStyle>,
-    'padding'
-> & {
-    padding: Required<PaddingOptions>;
-};
+export type NormalisedOrganizationSeriesExpanderStyle = Normalised<
+    AgOrganizationSeriesExpanderStyle,
+    | 'cornerRadius'
+    | 'enabled'
+    | 'fill'
+    | 'fillOpacity'
+    | 'lineDash'
+    | 'lineDashOffset'
+    | 'stroke'
+    | 'strokeOpacity'
+    | 'strokeWidth',
+    { padding: NormalisedPaddingOptions; text: NormalisedOrganizationSeriesExpanderTextStyle }
+>;
 
-export type RequiredOrganizationNodeStyle = Omit<DeepRequired<AgOrganizationSeriesNodeStyle>, 'padding'> & {
-    title: RequiredOrganizationNodeTextStyle;
-    subtitle: RequiredOrganizationNodeTextStyle;
-    labels: RequiredOrganizationNodeTextStyle[];
-    expander: DeepRequired<RequiredOrganizationSeriesExpanderStyle>;
-    padding: Required<PaddingOptions>;
-};
+type NormalisedOrganizationSeriesExpanderTextStyle = Normalised<
+    AgOrganizationSeriesExpanderTextStyle,
+    'fontSize' | 'textAlign',
+    { color: CssColor }
+>;
+
+export type NormalisedOrganizationSeriesOptionsNodeImage = Normalised<
+    AgOrganizationSeriesOptionsNodeImage,
+    'cornerRadius' | 'enabled' | 'key' | 'height' | 'position' | 'spacing' | 'width'
+>;
+
+export type NormalisedOrganizationNodeStyle = Normalised<
+    AgOrganizationSeriesNodeStyle,
+    | 'cornerRadius'
+    | 'fillOpacity'
+    | 'height'
+    | 'lineDash'
+    | 'lineDashOffset'
+    | 'maxHeight'
+    | 'maxWidth'
+    | 'stroke'
+    | 'strokeOpacity'
+    | 'strokeWidth'
+    | 'width',
+    {
+        fill: DeepRequired<AgColorType>;
+        expander: NormalisedOrganizationSeriesExpanderStyle;
+        image: NormalisedOrganizationSeriesOptionsNodeImage;
+        labels: NormalisedOrganizationNodeTextStyle[];
+        padding: NormalisedPaddingOptions;
+        title: NormalisedOrganizationNodeTextStyle;
+        subtitle: NormalisedOrganizationNodeTextStyle;
+    }
+>;

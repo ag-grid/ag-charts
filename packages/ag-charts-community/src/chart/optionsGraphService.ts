@@ -13,11 +13,11 @@ export class OptionsGraphService {
         this.resolvePartialCallback = resolvePartialCallback;
     }
 
-    resolvePartial(
+    resolvePartial<T extends PlainObject>(
         path: Array<string>,
-        partialOptions?: PlainObject,
+        partialOptions?: T,
         resolveOptions?: OptionsGraphAccessorResolvePartialOptions
-    ) {
+    ): Partial<T> | undefined {
         return this.resolvePartialCallback?.(path, partialOptions, resolveOptions);
     }
 }

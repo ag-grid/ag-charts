@@ -1,11 +1,17 @@
-import { type FontOptions, Logger, cachedTextMeasurer, findMaxValue, wrapLines } from 'ag-charts-core';
+import {
+    type FontOptions,
+    Logger,
+    type NormalisedTextOrSegments,
+    cachedTextMeasurer,
+    findMaxValue,
+    wrapLines,
+} from 'ag-charts-core';
 import type {
     AgChartAutoSizedBaseLabelOptions,
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
     FontSize,
     OverflowStrategy,
-    TextOrSegments,
     TextWrap,
 } from 'ag-charts-types';
 
@@ -74,7 +80,7 @@ type LayoutParams = {
 };
 
 export type LabelFormatting = {
-    text: TextOrSegments;
+    text: NormalisedTextOrSegments;
     fontSize: number;
     lineHeight: number;
     width: number;

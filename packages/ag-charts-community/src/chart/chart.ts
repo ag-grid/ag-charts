@@ -1,4 +1,4 @@
-import type { DynamicContext } from 'ag-charts-core';
+import type { DynamicContext, NormalisedTextOrSegments } from 'ag-charts-core';
 import {
     ActionOnSet,
     AgDocument,
@@ -40,7 +40,6 @@ import type {
     AgSelectionItemIds,
     SeriesOptionsTypes,
     SeriesType,
-    TextOrSegments,
 } from 'ag-charts-types';
 
 import type { UpdateOpts } from '../core/eventsHub';
@@ -1521,7 +1520,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         if (this.ctx.chartState.getValue('options', 'mode') !== 'integrated') {
             // Validate each series that shares a legend item label uses the same fill colour
-            const seriesMarkerFills: { [key: string]: Map<TextOrSegments, AgColorType | undefined> } = {};
+            const seriesMarkerFills: { [key: string]: Map<NormalisedTextOrSegments, AgColorType | undefined> } = {};
             const seriesMap = new Map(this.series.map((s) => [s.id, s]));
 
             for (const {
