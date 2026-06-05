@@ -80,6 +80,8 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             'https://www.google.com', // reCAPTCHA (license-pricing trial form)
             'https://www.gstatic.com', // reCAPTCHA
             'https://www.youtube.com', // YouTube iframe JS API (loads into the page)
+            'https://cdn.cookielaw.org', // OneTrust cookie-consent SDK (GTM-injected, prod-only)
+            'blob:', // ZoomInfo zi-tag.js bootstraps a blob: URL script
             UNSAFE_INLINE,
             UNSAFE_EVAL,
         ],
@@ -106,6 +108,8 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             'https://js.zi-scripts.com', // ZoomInfo
             'https://*.zoominfo.com', // ZoomInfo
             'https://www.google.com', // reCAPTCHA (api2/clr XHR)
+            'https://cdn.cookielaw.org', // OneTrust config/JSON/asset XHR (GTM-injected, prod-only)
+            'https://*.onetrust.com', // OneTrust geolocation + consent-receipt endpoints
             trialFormOrigin, // trial-licence form fetch POST
         ],
         'frame-src': [
