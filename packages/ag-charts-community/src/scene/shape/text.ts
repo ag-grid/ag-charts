@@ -111,7 +111,7 @@ export class Text<D = unknown> extends Shape<D> {
             // were already detached by `clear()` above.
             if (this.richText) {
                 this.richText.parentNode = undefined;
-                this.richText.setScene(undefined);
+                this.richText.setScene();
                 this.richText = undefined;
             }
             const lines = toTextString(this.text).split(LineSplitter);
@@ -463,7 +463,7 @@ export class Text<D = unknown> extends Shape<D> {
     ) {
         for (let k = 0; k < span; k++) {
             const seg = lineMetrics[startIndex + k].segments.find((s) => s.type !== 'image');
-            if (seg && seg.type !== 'image') return seg;
+            if (seg) return seg;
         }
         return undefined;
     }
