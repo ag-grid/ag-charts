@@ -458,9 +458,17 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     private createSkeletonNodeDatum(ctx: HistogramSeriesNodeDatumContext, bin: CalculatedBin): HistogramNodeDatum {
         const { xKey, yKey } = ctx;
         const { domain, datum, groupIndex, frequency, total } = bin;
+        const [binStart, binEnd] = domain;
+        const { getDataId } = this.properties;
+        const customId =
+            getDataId == null
+                ? undefined
+                : this.cachedCallWithContext(getDataId, { binStart, binEnd, binIndex: groupIndex });
+        const itemId = customId ?? `bin:${binStart},${binEnd}`;
 
         return {
             series: this,
+            itemId,
             datumIndex: groupIndex,
             datum,
             aggregatedValue: total,
