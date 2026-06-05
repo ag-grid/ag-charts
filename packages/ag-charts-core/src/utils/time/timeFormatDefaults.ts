@@ -14,10 +14,10 @@ export function dateToNumber(value: any) {
  */
 export function timeValueToNumber(value: AgTimeValue): number {
     if (typeof value === 'number') return value;
-    const ms = typeof value === 'bigint' ? Number(value) : value;
-    const date = ms instanceof Date ? ms : new Date(ms);
-    const time = date.getTime();
-    return Number.isNaN(time) ? Number.NaN : time;
+    if (typeof value === 'bigint') return Number(value);
+    if (typeof value === 'string') return Date.parse(value);
+    if (value instanceof Date) return value.getTime();
+    return value;
 }
 
 export function lowestGranularityForInterval(interval: number) {
