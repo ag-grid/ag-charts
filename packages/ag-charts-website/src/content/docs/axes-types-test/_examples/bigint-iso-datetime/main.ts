@@ -237,10 +237,49 @@ function buildRadialSeries(): AgPolarSeriesOptions[] {
             },
         ];
     }
-    const type = seriesType === 'radial-bar' ? 'radial-bar' : 'radial-column';
+    if (seriesType === 'radial-bar') {
+        // radial-bar reverses the axis roles vs radial-column: the value lives on the angle axis and the
+        // category on the radius axis, so the bigint/large-magnitude exercise runs on the angle axis here.
+        return [
+            {
+                type: 'radial-bar',
+                radiusKey: 'category',
+                angleKey: 'open',
+                angleName: 'Open',
+                stacked,
+                grouped,
+                normalizedTo,
+            },
+            {
+                type: 'radial-bar',
+                radiusKey: 'category',
+                angleKey: 'close',
+                angleName: 'Close',
+                stacked,
+                grouped,
+                normalizedTo,
+            },
+        ];
+    }
     return [
-        { type, angleKey: 'category', radiusKey: 'open', radiusName: 'Open', stacked, grouped, normalizedTo },
-        { type, angleKey: 'category', radiusKey: 'close', radiusName: 'Close', stacked, grouped, normalizedTo },
+        {
+            type: 'radial-column',
+            angleKey: 'category',
+            radiusKey: 'open',
+            radiusName: 'Open',
+            stacked,
+            grouped,
+            normalizedTo,
+        },
+        {
+            type: 'radial-column',
+            angleKey: 'category',
+            radiusKey: 'close',
+            radiusName: 'Close',
+            stacked,
+            grouped,
+            normalizedTo,
+        },
     ];
 }
 
@@ -271,7 +310,12 @@ function applyState() {
     mutableOptions.data = getData(effectiveDataMode());
     if (isRadial()) {
         mutableOptions.series = buildRadialSeries();
-        mutableOptions.axes = { angle: { type: 'angle-category' }, radius: { type: 'radius-number' } };
+        // radial-bar carries the value on the angle axis and the category on the radius axis; the
+        // radial-column / nightingale family is the other way round.
+        mutableOptions.axes =
+            seriesType === 'radial-bar'
+                ? { angle: { type: 'angle-number' }, radius: { type: 'radius-category' } }
+                : { angle: { type: 'angle-category' }, radius: { type: 'radius-number' } };
     } else if (seriesType === 'pyramid') {
         mutableOptions.series = [{ type: 'pyramid', stageKey: 'category', valueKey: 'value' }];
         delete mutableOptions.axes;
