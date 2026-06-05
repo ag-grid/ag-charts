@@ -341,6 +341,47 @@ describe('Validation utils', () => {
         });
     });
 
+    describe('Disabled nodes (enabled: false)', () => {
+        const defs = { enabled: boolean, value: required(number) };
+        const skipDisabled = { skipDisabledNodeValidation: true };
+
+        test('skips required-field enforcement for a disabled node when opted in', () => {
+            const { cleared, invalid } = validate({ enabled: false }, defs, '', skipDisabled);
+            expect(invalid).toEqual([]);
+            expect(cleared).toEqual({ enabled: false });
+        });
+
+        test('still enforces required fields on a disabled node without the opt-in', () => {
+            expect(validate({ enabled: false }, defs).invalid).not.toEqual([]);
+        });
+
+        test('still enforces required fields when the node is not disabled', () => {
+            expect(validate({ enabled: true }, defs, '', skipDisabled).invalid).not.toEqual([]);
+            expect(validate({}, defs, '', skipDisabled).invalid).not.toEqual([]);
+        });
+
+        test('skips the discriminant requirement for a disabled type-union node when opted in', () => {
+            const unionDefs = typeUnion<
+                { type: 'a'; enabled?: boolean; aa?: boolean } | { type: 'b'; enabled?: boolean; bb: number }
+            >({ a: { enabled: boolean, aa: boolean }, b: { enabled: boolean, bb: required(number) } }, 'an object');
+
+            // Disabled with no `type`: no "type is required" error, `enabled` flag preserved.
+            const noType = validate({ enabled: false }, unionDefs, '', skipDisabled);
+            expect(noType.invalid).toEqual([]);
+            expect(noType.cleared).toEqual({ enabled: false });
+
+            // Disabled, matching branch but missing its required field: no error.
+            expect(validate({ type: 'b', enabled: false }, unionDefs, '', skipDisabled).invalid).toEqual([]);
+
+            // Without the opt-in, a disabled union node still warns about the missing discriminant.
+            expect(validate({ enabled: false }, unionDefs).invalid).not.toEqual([]);
+
+            // Enabled equivalents still warn about the missing discriminant / required field.
+            expect(validate({}, unionDefs, '', skipDisabled).invalid).not.toEqual([]);
+            expect(validate({ type: 'b' }, unionDefs, '', skipDisabled).invalid).not.toEqual([]);
+        });
+    });
+
     describe('Conditional Validators', () => {
         const axisSchema: OptionsDefs<any> = {
             min: and(number, lessThan('max')),

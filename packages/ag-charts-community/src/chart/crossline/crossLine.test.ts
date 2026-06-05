@@ -430,4 +430,24 @@ describe('CrossLine', () => {
             }
         );
     });
+
+    describe('#disabled options', () => {
+        // Regression (AG-14484): a valid crossline disabled via `enabled: false` is stripped to
+        // `{ enabled: false }` before the second validation pass, which must not warn about the
+        // removed `type`/`value`. `setupMockConsole`'s afterEach fails on any unexpected warning.
+        it('does not warn for crosslines disabled via enabled: false', async () => {
+            const options: AgCartesianChartOptions = {
+                ...examples.LINE_CROSSLINES,
+                axes: mapValues(examples.LINE_CROSSLINES.axes ?? {}, (axis: any) =>
+                    axis.crossLines
+                        ? { ...axis, crossLines: axis.crossLines.map((c: any) => ({ ...c, enabled: false })) }
+                        : axis
+                ),
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+        });
+    });
 });

@@ -418,13 +418,17 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         removeIncompatibleModuleOptions(this.chartDef.name, processedOptions);
         processModuleOptions(this.chartDef.name, processedOptions, missingSeriesModules);
 
-        this.validateSeriesOptions(processedOptions);
+        // Second-pass validation runs after `removeDisabledOptions`, so disabled nodes have been
+        // stripped to `{ enabled: false }`; skip their required-field/discriminant warnings.
+        const secondPassParams: ValidateParams = { skipDisabledNodeValidation: true };
+
+        this.validateSeriesOptions(processedOptions, secondPassParams);
 
         // The second pass validation of the axes, after they have been processed and the keys remapped. Any missing
         // `type` properties are now inferred and those axes can be validated.
-        this.validateAxesOptions(processedOptions, unmappedAxisKeys);
+        this.validateAxesOptions(processedOptions, unmappedAxisKeys, secondPassParams);
 
-        this.validatePluginOptions(processedOptions);
+        this.validatePluginOptions(processedOptions, secondPassParams);
         this.processMiniChartSeriesOptions(processedOptions);
 
         if (!processedOptions.loadGoogleFonts) {
