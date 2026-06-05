@@ -141,7 +141,7 @@ function valueXAxis(): AgCartesianAxisOptions {
     if (isTimeMode()) {
         return { type: UNIT_TIME_SERIES.has(seriesType) ? 'unit-time' : 'time', position: 'bottom' };
     }
-    return { type: 'number', position: 'bottom' };
+    return { type: 'number', position: 'bottom', nice: false };
 }
 
 // Returns undefined for funnel, which manages its own axes internally.
@@ -289,7 +289,7 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData('bigint-small'),
     axes: {
-        x: { type: 'number', position: 'bottom' },
+        x: { type: 'number', position: 'bottom', nice: false },
         y: { type: 'number', position: 'left' },
     },
     series: [
