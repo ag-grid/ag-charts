@@ -1395,7 +1395,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             // Only process color values.
             const propertyValue = getComputedStyle(container).getPropertyValue(propertyKey);
-            if (!Color.validColorString(propertyValue)) continue;
+            if (!Color.validColorString(propertyValue)) {
+                Logger.warnOnce(`CSS property [${propertyKey}] is not a valid color, ignoring.`);
+                delete optionsNode[key];
+                continue;
+            }
 
             processedCSSVariables[value] ??= propertyValue;
         }
