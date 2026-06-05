@@ -16,6 +16,8 @@ export const FeatureGrid = ({ items }: Props) => {
                     href={urlWithBaseUrl(item.link)}
                     key={item.title}
                     id={`feature-${item.title.replace(/\s+/g, '-').toLowerCase()}`}
+                    target={item.external ? '_blank' : undefined}
+                    rel={item.external ? 'noopener noreferrer' : undefined}
                 >
                     <div className={styles.featureCard} style={{ animationDelay: `${index * 0.1}s` }}>
                         <div className={styles.iconWrapper}>
