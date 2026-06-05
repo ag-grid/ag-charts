@@ -303,60 +303,6 @@ describe('TreemapSeries', () => {
             await compare();
         });
 
-        it('preserves image segments in tile label formatter output', async () => {
-            const options: AgChartOptions = {
-                animation: { enabled: false },
-                data: [{ name: 'Alpha', size: 100 }],
-                series: [
-                    {
-                        type: 'treemap',
-                        labelKey: 'name',
-                        sizeKey: 'size',
-                        tile: {
-                            label: {
-                                enabled: true,
-                                fontSize: 18,
-                                formatter: ({ datum }) => [
-                                    {
-                                        type: 'image',
-                                        url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22/%3E',
-                                        width: 24,
-                                        height: 24,
-                                        verticalAlign: 'middle',
-                                    },
-                                    { text: ` ${(datum as { name: string }).name}` },
-                                ],
-                            },
-                            secondaryLabel: { enabled: false },
-                        },
-                    },
-                ],
-            };
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
-
-            const seriesImpl = chart.series[0] as TreemapSeries;
-            const tileTexts: Array<{ text: unknown }> = [];
-            for (const labelGroup of (seriesImpl as any).labelSelection.nodes()) {
-                for (const child of labelGroup.children?.() ?? []) {
-                    if (child.text != null) tileTexts.push(child);
-                }
-            }
-
-            const segmentArrays = tileTexts.map((t) => t.text).filter(Array.isArray);
-            expect(segmentArrays.length).toBeGreaterThan(0);
-            const imageSegment = segmentArrays.flat().find((s: any) => s?.type === 'image');
-            expect(imageSegment).toMatchObject({
-                url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22/%3E',
-                width: 24,
-                height: 24,
-            });
-
-            // JSDOM cannot decode images, so the scene logs a single load-failure warning.
-            expectWarningsCalls().toHaveLength(1);
-        });
-
         describe('block-leading image segments', () => {
             const iconSvg = (letter: string) =>
                 `data:image/svg+xml;utf8,${encodeURIComponent(

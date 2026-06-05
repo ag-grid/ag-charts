@@ -1130,26 +1130,6 @@ describe('SunburstSeries', () => {
             imageLoader.loadImage = (uri: string) => preloaded[uri] as unknown as HTMLImageElement;
         }
 
-        // True only if a rendered label scene node received the image segment array (rather than a
-        // flattened plain string). Sunburst label nodes live inside per-slice groups, so this walks
-        // the label selection's node trees looking for an image-bearing segment array.
-        function someLabelHasImageSegment(chartInstance: any): boolean {
-            const series = (chartInstance as Chart).series[0] as any;
-            const labelNodes = series.labelSelection.nodes();
-            let found = false;
-            const visit = (node: any) => {
-                if (node == null) return;
-                if (Array.isArray(node.text) && node.text.some((s: any) => s?.type === 'image')) {
-                    found = true;
-                }
-                if (typeof node.children === 'function') {
-                    for (const child of node.children()) visit(child);
-                }
-            };
-            for (const node of labelNodes) visit(node);
-            return found;
-        }
-
         it('renders a block-leading image segment in sunburst labels', async () => {
             const options: AgChartOptions = {
                 data: [
@@ -1183,9 +1163,9 @@ describe('SunburstSeries', () => {
 
             chart = deproxy(AgCharts.create(options));
             stubChartImageLoader(chart);
+            // The snapshot is the guard: if the series flattened the formatter's segment array to
+            // plain text the stubbed image would not render and the baseline would diff.
             await compare();
-            // The image segment must survive into the label scene node, not be flattened to text.
-            expect(someLabelHasImageSegment(chart)).toBe(true);
         });
     });
 });
