@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     BIG,
+    HIGH_VOLUME_COUNT,
+    HIGH_VOLUME_SIGNALS,
     IMAGE_SNAPSHOT_DEFAULTS,
     NEG_BIG,
     STRIPPED_NUMBER_AXES,
@@ -10,8 +12,10 @@ import {
     expectWarningsCalls,
     extractImageData,
     magnitudePair,
+    scaleToBigIntFinite,
     setupMockCanvas,
     setupMockConsole,
+    stripAxes,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -389,6 +393,56 @@ describe('OhlcSeries', () => {
                     )
                 );
             });
+        });
+    });
+
+    // Property test: a high-volume (> AGGREGATION_THRESHOLD) bigint series must render pixel-identically to
+    // its Number baseline. OHLC writes high/low into the aggregation Float64Array, so an unguarded bigint
+    // here would throw — this drives that path across the sign extremes and an ISO time axis.
+    describe('bigint high-volume aggregation invariance (AG-16608)', () => {
+        const N = HIGH_VOLUME_COUNT;
+        const keys = { xKey: 'x', lowKey: 'low', openKey: 'open', closeKey: 'close', highKey: 'high' } as const;
+        const STRIPPED_TIME_AXES = stripAxes({ x: { type: 'unit-time' }, y: { type: 'number', nice: false } });
+        const bar = (toValue: (v: number) => number | bigint, base: number, i: number) => ({
+            x: i + 1,
+            low: toValue(base - 5),
+            open: toValue(base - 2),
+            close: toValue(base + 2),
+            high: toValue(base + 5),
+        });
+
+        it.each(HIGH_VOLUME_SIGNALS)(
+            'renders a %s high-volume bigint ohlc series identically to its Number baseline',
+            async (_label, sig) => {
+                await expectPixelIdenticalAcrossMagnitude(
+                    ctx,
+                    createEnterpriseChart,
+                    magnitudePair(
+                        { series: [{ type: 'ohlc', ...keys }], axes: STRIPPED_NUMBER_AXES },
+                        (toValue) => Array.from({ length: N }, (_, i) => bar(toValue, sig(i), i)),
+                        scaleToBigIntFinite
+                    )
+                );
+            }
+        );
+
+        it('renders high-volume ISO-string x identically to numeric epoch x on a time axis', async () => {
+            const startMs = Date.UTC(2024, 0, 1);
+            const at = (i: number) => startMs + i * 60_000;
+            const base = { series: [{ type: 'ohlc', ...keys }], axes: STRIPPED_TIME_AXES };
+            const row = (x: number | string, i: number) => {
+                const b = Math.sin(i / 10) * 5;
+                return { x, low: b - 5, open: b - 2, close: b + 2, high: b + 5 };
+            };
+            const small = {
+                ...base,
+                data: Array.from({ length: N }, (_, i) => row(at(i), i)),
+            } as AgChartOptions;
+            const large = {
+                ...base,
+                data: Array.from({ length: N }, (_, i) => row(new Date(at(i)).toISOString(), i)),
+            } as AgChartOptions;
+            await expectPixelIdenticalAcrossMagnitude(ctx, createEnterpriseChart, { small, large });
         });
     });
 });

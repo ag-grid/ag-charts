@@ -15,10 +15,14 @@ import type {
 import { AgCharts } from '../../../api/agCharts';
 import {
     BIG,
+    HIGH_VOLUME_COUNT,
+    HIGH_VOLUME_SIGNALS,
     NEG_BIG,
     STRIPPED_NUMBER_AXES,
     expectPixelIdenticalAcrossMagnitude,
     magnitudePair,
+    scaleToBigIntFinite,
+    stripAxes,
 } from '../../test/bigintExamples';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
@@ -2359,6 +2363,45 @@ describe('LineSeries', () => {
                     ])
                 )
             );
+        });
+    });
+
+    // Property test: a high-volume (> AGGREGATION_THRESHOLD) bigint series must render pixel-identically to
+    // its Number baseline across the sign extremes — guarding bigint scale-conversion and ISO epoch parsing
+    // at volume. The aggregation column-narrowing itself is unit-tested in ag-charts-core (aggregation.test.ts);
+    // community series defer aggregation to a render path the JSDOM mock canvas does not exercise.
+    describe('bigint high-volume aggregation invariance (AG-16608)', () => {
+        const N = HIGH_VOLUME_COUNT;
+        const STRIPPED_TIME_AXES = stripAxes({ x: { type: 'time', nice: false }, y: { type: 'number', nice: false } });
+
+        it.each(HIGH_VOLUME_SIGNALS)(
+            'renders a %s high-volume bigint line identically to its Number baseline',
+            async (_label, sig) => {
+                await expectPixelIdenticalAcrossMagnitude(
+                    ctx,
+                    createChart,
+                    magnitudePair(
+                        { series: [{ type: 'line', xKey: 'x', yKey: 'y' }], axes: STRIPPED_NUMBER_AXES },
+                        (toValue) => Array.from({ length: N }, (_, i) => ({ x: i + 1, y: toValue(sig(i)) })),
+                        scaleToBigIntFinite
+                    )
+                );
+            }
+        );
+
+        it('renders high-volume ISO-string x identically to numeric epoch x on a time axis', async () => {
+            const startMs = Date.UTC(2024, 0, 1);
+            const at = (i: number) => startMs + i * 60_000;
+            const base = { series: [{ type: 'line', xKey: 'x', yKey: 'y' }], axes: STRIPPED_TIME_AXES };
+            const small = {
+                ...base,
+                data: Array.from({ length: N }, (_, i) => ({ x: at(i), y: Math.sin(i / 10) })),
+            } as AgChartOptions;
+            const large = {
+                ...base,
+                data: Array.from({ length: N }, (_, i) => ({ x: new Date(at(i)).toISOString(), y: Math.sin(i / 10) })),
+            } as AgChartOptions;
+            await expectPixelIdenticalAcrossMagnitude(ctx, createChart, { small, large });
         });
     });
 });

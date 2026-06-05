@@ -12,6 +12,8 @@ import {
 } from 'ag-charts-community';
 import {
     BIG,
+    HIGH_VOLUME_COUNT,
+    HIGH_VOLUME_SIGNALS,
     IMAGE_SNAPSHOT_DEFAULTS,
     type MockRangeAreaStyler,
     NEG_BIG,
@@ -22,9 +24,11 @@ import {
     hoverAction,
     magnitudePair,
     newFreezableMock,
+    scaleToBigIntFinite,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
+    stripAxes,
     testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
@@ -1706,6 +1710,51 @@ describe('RangeAreaSeries', () => {
                     axes: { x: { type: 'time' }, y: { type: 'number' } },
                 })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
+
+    // Property test: a high-volume (> AGGREGATION_THRESHOLD) bigint series must render pixel-identically to
+    // its Number baseline. Range-area writes its low/high extrema into the aggregation Float64Array, so this
+    // drives that path across the sign extremes and an ISO time axis.
+    describe('bigint high-volume aggregation invariance (AG-16608)', () => {
+        const N = HIGH_VOLUME_COUNT;
+        const STRIPPED_TIME_AXES = stripAxes({ x: { type: 'unit-time' }, y: { type: 'number', nice: false } });
+        const row = (toValue: (v: number) => number | bigint, base: number, i: number) => ({
+            x: i + 1,
+            lo: toValue(base - 5),
+            hi: toValue(base + 5),
+        });
+
+        it.each(HIGH_VOLUME_SIGNALS)(
+            'renders a %s high-volume bigint range-area identically to its Number baseline',
+            async (_label, sig) => {
+                await expectPixelIdenticalAcrossMagnitude(
+                    ctx,
+                    createEnterpriseChart,
+                    magnitudePair(
+                        {
+                            series: [{ type: 'range-area', xKey: 'x', yLowKey: 'lo', yHighKey: 'hi' }],
+                            axes: STRIPPED_NUMBER_AXES,
+                        },
+                        (toValue) => Array.from({ length: N }, (_, i) => row(toValue, sig(i), i)),
+                        scaleToBigIntFinite
+                    )
+                );
+            }
+        );
+
+        it('renders high-volume ISO-string x identically to numeric epoch x on a time axis', async () => {
+            const startMs = Date.UTC(2024, 0, 1);
+            const at = (i: number) => startMs + i * 60_000;
+            const base = {
+                series: [{ type: 'range-area', xKey: 'x', yLowKey: 'lo', yHighKey: 'hi' }],
+                axes: STRIPPED_TIME_AXES,
+            };
+            const data = (x: (i: number) => number | string) =>
+                Array.from({ length: N }, (_, i) => ({ x: x(i), lo: Math.sin(i / 10) - 1, hi: Math.sin(i / 10) + 1 }));
+            const small = { ...base, data: data(at) } as AgChartOptions;
+            const large = { ...base, data: data((i) => new Date(at(i)).toISOString()) } as AgChartOptions;
+            await expectPixelIdenticalAcrossMagnitude(ctx, createEnterpriseChart, { small, large });
         });
     });
 
