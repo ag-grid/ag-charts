@@ -1,6 +1,6 @@
 import type { AgSelectionItemIds } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type AreExact, Logger } from 'ag-charts-core';
+import { type AreExact } from 'ag-charts-core';
 
 import type { DataSelectionChangeMap } from './dataSelectionChangeMap';
 import type { DataSetSelection } from './dataSetSelection';
@@ -16,7 +16,7 @@ type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode'
 type DragWidgetEvent = _ModuleSupport.DragWidgetEvent;
 
 type Service = {
-    clear(): void;
+    clearSelection(): void;
     enableSelection(seriesId: string, dataSet: DataSet): DataSetSelection;
     iterateDataSetSelections(): Iterable<DataSetSelectionsIterator>;
 };
@@ -122,7 +122,7 @@ export function clearAllSelections(changes: Changes, srv: Service): void {
             }
         }
     }
-    srv.clear();
+    srv.clearSelection();
 }
 
 export function isUnknownIterable(value: unknown): value is Iterable<unknown> {
@@ -149,13 +149,4 @@ export function isAgSelectionItem(item: unknown): item is AgSelectionItemIds {
         return true satisfies AreExact<VerifiedType, AgSelectionItemIds>;
     }
     return false;
-}
-
-export function asNumericDatumIndex(datumIndex: _ModuleSupport.DatumIndexType): datumIndex is number {
-    if (typeof datumIndex === 'number') {
-        return true;
-    } else {
-        Logger.errorOnce(`unsupported datumIndex type: ${typeof datumIndex}`);
-        return false;
-    }
 }

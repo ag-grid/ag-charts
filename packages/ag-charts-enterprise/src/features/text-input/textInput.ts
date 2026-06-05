@@ -2,13 +2,14 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     CleanupRegistry,
     type DynamicContext,
+    type NormalisedTextOptions,
     type Point,
     attachListener,
     ceilTo,
     focusCursorAtEnd,
     setAttributes,
 } from 'ag-charts-core';
-import type { TextAlign, TextOptions } from 'ag-charts-types';
+import type { TextAlign } from 'ag-charts-types';
 
 import type { AnnotationTextPosition } from '../annotations/text/util';
 import textInputTemplate from './textInputTemplate.html';
@@ -50,7 +51,7 @@ export class TextInput {
         anchor?: { x: number; y: number };
         text?: string;
         placeholderText?: string;
-        styles?: TextOptions & { placeholderColor?: string };
+        styles?: NormalisedTextOptions & { placeholderColor?: string };
         layout?: Layout;
         onChange?: (text: string, bbox: _ModuleSupport.BBox) => void;
         onClose?: (text: string) => void;

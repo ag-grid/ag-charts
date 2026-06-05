@@ -43,11 +43,11 @@ export interface OptionsGraphAccessor {
     resolve(): PlainObject;
     resolveParams(): PlainObject;
     resolveAnnotationThemes(): PlainObject;
-    resolvePartial(
+    resolvePartial<T extends PlainObject>(
         path: Array<string>,
-        partialOptions?: PlainObject,
+        partialOptions?: T,
         resolveOptions?: OptionsGraphAccessorResolvePartialOptions
-    ): PlainObject | undefined;
+    ): Partial<T> | undefined;
     clearSafe(): void;
 }
 
@@ -360,15 +360,15 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
      * Resolve partial options against the existing graph at a given path without overriding the existing user values.
      * Returns an object with only those keys that were also present within `partialOptions`.
      */
-    resolvePartial(
+    resolvePartial<T extends PlainObject>(
         path: Array<string>,
-        partialOptions?: PlainObject,
+        partialOptions?: T,
         resolveOptions?: {
             permissivePath?: boolean;
             pick?: boolean;
             proxyPaths?: Record<string, Array<string>>;
         }
-    ) {
+    ): Partial<T> | undefined {
         if (!partialOptions) return;
 
         // If the graph has been cleared, do not attempt to resolve. This will occur when no `styler` options are provided.
@@ -454,11 +454,11 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             }
         }
 
-        const pathed = getPathSafe(resolved, path) as PlainObject;
+        const pathed = getPathSafe(resolved, path) as Partial<T>;
 
         // Only pick the keys that have been requested to prevent overwriting other values with the graph.
         const shouldPick: boolean = resolveOptions?.pick ?? true;
-        const partial = shouldPick ? pick(getPathSafe(resolved, path) as PlainObject, partialKeys) : pathed;
+        const partial = shouldPick ? (pick(getPathSafe(resolved, path) as T, partialKeys) as Partial<T>) : pathed;
 
         debug('vertex count', this.getVertexCount());
         debug('edge count', this.getEdgeCount());

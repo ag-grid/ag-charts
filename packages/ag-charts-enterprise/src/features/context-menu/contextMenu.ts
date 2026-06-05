@@ -24,8 +24,7 @@ type ContextMenuCallback = _ModuleSupport.ContextMenuCallback<AgContextMenuItemS
 
 const { getItemId, ContextMenuRegistry } = _ModuleSupport;
 type UnknownSeries = _ModuleSupport.ISeries<
-    _ModuleSupport.DatumIndexType,
-    unknown,
+    _ModuleSupport.SeriesNodeDatum,
     _ModuleSupport.SeriesProperties<object>,
     unknown
 >;
@@ -52,7 +51,7 @@ const DATUM_KEYS = [
     'yKey',
 ] as const satisfies readonly (keyof AgContextMenuGetItemsParamsSeriesNode)[];
 
-type PickedNode = _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> & {
+type PickedNode = _ModuleSupport.SeriesNodeDatum & {
     [K in (typeof DATUM_KEYS)[number]]?: string;
 };
 

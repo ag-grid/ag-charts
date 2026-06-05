@@ -2,7 +2,8 @@ import type { BorderOptions, FillOptions, Padding } from '../series/cartesian/co
 import type { AgAxisContinuousIntervalOptions, AgAxisLabelFormatterParams } from './axisOptions';
 import type { Formatter } from './callbackOptions';
 import type { AgChartLegendPosition } from './legendOptions';
-import type { ContextDefault, CssColor, FontFamilyFull, FontSize, FontStyle, FontWeight, PixelSize } from './types';
+import type { AgCssColorOrRef } from './themeParamsOptions';
+import type { ContextDefault, FontFamilyFull, FontSize, FontStyle, FontWeight, PixelSize } from './types';
 
 export interface AgGradientLegendLabelOptions<TContext = ContextDefault> {
     /** The font style to use for the labels. */
@@ -14,7 +15,7 @@ export interface AgGradientLegendLabelOptions<TContext = ContextDefault> {
     /** The font family to use for the labels. */
     fontFamily?: FontFamilyFull;
     /** The colour to use for the labels. */
-    color?: CssColor;
+    color?: AgCssColorOrRef;
     /** Minimum gap in pixels between the axis labels before being removed to avoid collisions. */
     minSpacing?: PixelSize;
     /** Format string used when rendering labels. */

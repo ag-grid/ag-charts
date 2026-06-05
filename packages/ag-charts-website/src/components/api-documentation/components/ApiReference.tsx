@@ -24,10 +24,12 @@ import {
     cleanupName,
     formatTypeToCode,
     getMemberType,
+    getReferencedTypeName,
     isInterfaceHidden,
     normalizeType,
     parseJsDocs,
     processMembers,
+    resolveAliasedUnion,
 } from '../apiReferenceHelpers';
 import { SelectionContext } from './OptionsNavigation';
 import { type CollapsibleType, PropertyTitle, PropertyType } from './Properties';
@@ -38,9 +40,9 @@ type ReferenceMap = Map<string, NodeTypes>;
 
 // NOTE: Not on the layout level, as that is generated at build time, and queryClient needs to be
 // loaded on the client side
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient();
 
-const queryOptions = {
+export const queryOptions = {
     retry: false,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
@@ -365,6 +367,30 @@ function useMemberAdditionalDetails(member: MemberNode): NodeTypes | NodeTypes[]
         resolveReferenceType(reference, resolveType);
 
     const resolvedDetails = resolve(memberType);
+
+    // An axis-specific cross-line alias resolves to an interface with no own members whose
+    // heritage is a union type alias; expand it to its variants so the union renders.
+    const aliasedUnion = resolveAliasedUnion(
+        resolvedDetails && !Array.isArray(resolvedDetails) ? resolvedDetails : undefined,
+        reference
+    );
+    if (aliasedUnion) {
+        const unionTypes = aliasedUnion.unionType.type
+            .flatMap((unionType) => {
+                const typeName = getReferencedTypeName(unionType);
+                return typeName ? resolve(typeName) : undefined;
+            })
+            .filter(
+                (apiNode): apiNode is NodeTypes =>
+                    typeof apiNode === 'object' &&
+                    (apiNode.kind === 'typeAlias' || apiNode.kind === 'interface') &&
+                    !isInterfaceHidden(apiNode.name)
+            );
+        if (unionTypes.length) {
+            return unionTypes;
+        }
+    }
+
     if (resolvedDetails) {
         return resolvedDetails;
     }

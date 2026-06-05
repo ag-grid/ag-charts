@@ -204,7 +204,7 @@ const verticalAlignFactors: Record<Align, number> = {
 };
 
 export function formatLinearGaugeLabels(
-    series: _ModuleSupport.Series<_ModuleSupport.DatumIndexType, any, object, any>,
+    series: { id: string },
     ctx: Ctx,
     selection: _ModuleSupport.Selection<LinearGaugeLabelDatum, _ModuleSupport.Text<LinearGaugeLabelDatum>>,
     opts: { padding: number; horizontal: boolean },

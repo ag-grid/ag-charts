@@ -81,6 +81,23 @@ The styling of all links can be customised using the `link` property.
 }
 ```
 
+## Node Identifiers
+
+Each node has a stable identifier, surfaced as the `itemId` in node events and active state. By default this is the node name taken from the `fromKey` and `toKey` values. Use `getDataId` to map a node to an identifier from your own domain. The returned value must be unique across nodes and links, which share one `itemId` namespace (links default to `link-<index>`).
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'chord',
+            fromKey: 'from',
+            toKey: 'to',
+            getDataId: ({ nodeName }) => nodeName.toLowerCase().replace(/\s+/g, '-'),
+        },
+    ],
+}
+```
+
 ## API Reference
 
 {% tabs %}

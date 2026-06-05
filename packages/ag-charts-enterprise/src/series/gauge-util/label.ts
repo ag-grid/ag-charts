@@ -1,11 +1,11 @@
-import type { AgChartLabelFormatterParams, RichFormatter, TextOrSegments, _ModuleSupport } from 'ag-charts-community';
-import { isArray } from 'ag-charts-core';
+import type { AgChartLabelFormatterParams, RichFormatter, _ModuleSupport } from 'ag-charts-community';
+import { type NormalisedTextOrSegments, isArray } from 'ag-charts-core';
 
 import { formatWithContext } from '../../utils/formatter';
 
 interface GaugeLabelDatum {
     value: number;
-    text?: TextOrSegments;
+    text?: NormalisedTextOrSegments;
     formatter?: RichFormatter<AgChartLabelFormatterParams<any>>;
 }
 
@@ -32,7 +32,7 @@ export function getLabelText(seriesId: string, ctx: Ctx, datum: GaugeLabelDatum,
     if (datum.text != null) return datum.text;
 
     const value = valueOverride ?? datum.value;
-    let labelFormat: TextOrSegments | undefined;
+    let labelFormat: NormalisedTextOrSegments | undefined;
     if (datum?.formatter != null) {
         labelFormat = formatWithContext(ctx, datum.formatter, { seriesId, datum: undefined, value });
     }

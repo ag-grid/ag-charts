@@ -1,8 +1,9 @@
-import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import {
     type DynamicContext,
     type NormalisedGradientLegendIntervalOptions,
     type NormalisedGradientLegendLabelOptions,
+    type NormalisedTextOrSegments,
     type ScaleTickParams,
     ZIndexMap,
     cachedTextMeasurer,
@@ -27,7 +28,7 @@ const { LinearScale, BBox, TranslatableGroup, Selection, Text, createAxisLabelFo
 interface TickDatum {
     tick: any;
     tickId: string;
-    tickLabel: TextOrSegments;
+    tickLabel: NormalisedTextOrSegments;
     translation: number;
 }
 
@@ -154,12 +155,12 @@ export class AxisTicks {
         _ticks: number[],
         _primary: boolean,
         fractionDigits?: number
-    ): (value: any, index: number) => TextOrSegments | undefined {
+    ): (value: any, index: number) => NormalisedTextOrSegments | undefined {
         const { ctx } = this;
         const { formatManager } = ctx;
         const { boundSeries } = this;
 
-        return (value, index): TextOrSegments => {
+        return (value, index): NormalisedTextOrSegments => {
             const formatParams: FormatterParams<any> = {
                 type: 'number',
                 value,

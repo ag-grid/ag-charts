@@ -128,6 +128,22 @@ The default aggregation method is `sum`. Use the `aggregation` option to change 
 }
 ```
 
+## Bin Identifiers
+
+Each bin has a stable identifier, surfaced as the `itemId` in node events and active state. By default this identifier is generated from the bin boundaries. Use `getDataId` to map a bin to an identifier from your own domain. The returned value must be unique across the bins in the series.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'histogram',
+            xKey: 'age',
+            getDataId: ({ binStart, binEnd }) => `${binStart}-${binEnd}yrs`,
+        },
+    ],
+}
+```
+
 ## API Reference
 
 {% tabs %}

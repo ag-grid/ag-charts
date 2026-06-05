@@ -1,4 +1,4 @@
-import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import type {
     CallbackParamRules,
     DynamicContext,
@@ -6,6 +6,7 @@ import type {
     FeatureCollection,
     Geometry,
     ITextMeasurer,
+    NormalisedTextOrSegments,
     Point,
     Position,
 } from 'ag-charts-core';
@@ -76,7 +77,7 @@ const fixedScale = _ModuleSupport.MercatorScale.fixedScale();
 
 interface LabelLayout {
     geometry: Geometry;
-    labelText: TextOrSegments;
+    labelText: NormalisedTextOrSegments;
     aspectRatio: number;
     x: number;
     y: number;
@@ -706,7 +707,7 @@ export class MapShapeSeries
 
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
-        let minDatum: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> | undefined;
+        let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
 
         this.datumSelection.each((node, datum) => {
             const distanceSquared = node.distanceSquared(x, y);
@@ -719,10 +720,9 @@ export class MapShapeSeries
         return minDatum == null ? undefined : { datum: minDatum, distance: Math.sqrt(minDistanceSquared) };
     }
 
-    private _previousDatumMidPoint:
-        | { datum: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType>; point: Point | undefined }
-        | undefined = undefined;
-    datumMidPoint(datum: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType>): Point | undefined {
+    private _previousDatumMidPoint: { datum: _ModuleSupport.SeriesNodeDatum; point: Point | undefined } | undefined =
+        undefined;
+    datumMidPoint(datum: _ModuleSupport.SeriesNodeDatum): Point | undefined {
         const { _previousDatumMidPoint } = this;
         if (_previousDatumMidPoint?.datum === datum) {
             return _previousDatumMidPoint.point;

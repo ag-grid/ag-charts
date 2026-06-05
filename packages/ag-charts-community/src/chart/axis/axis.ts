@@ -10,6 +10,7 @@ import type {
     NormalisedAxisTickOptions,
     NormalisedBaseAxisLabelOptions,
     NormalisedBaseAxisOptions,
+    NormalisedTextOrSegments,
     Point,
     Scale,
 } from 'ag-charts-core';
@@ -38,7 +39,6 @@ import type {
     DateFormatterStyle,
     FormatterParams,
     FormatterPropertyType,
-    TextOrSegments,
 } from 'ag-charts-types';
 
 import type { AxisLayout } from '../../core/eventsHub';
@@ -60,7 +60,7 @@ import { Caption } from '../caption';
 import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../chartAxis';
 import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
-import type { DatumIndexType, ISeries, ISeriesProperties } from '../series/seriesTypes';
+import type { ISeries, ISeriesProperties, SeriesNodeDatum } from '../series/seriesTypes';
 import { type AxisLabelFormatterCache, createAxisLabelFormatterCache, formatAxisLabelValue } from './axisLabelUtil';
 import type { TickInterval } from './axisTick';
 import { type AxisGroupDatumTranslation, NiceMode } from './axisUtil';
@@ -70,7 +70,7 @@ export interface LabelNodeDatum extends TextSizeProperties, TextBoxingProperties
     color?: CssColor;
     tickId: string;
     rotation: number;
-    text: TextOrSegments;
+    text: NormalisedTextOrSegments;
     textBaseline: CanvasTextBaseline;
     textUntruncated?: string;
     visible: boolean;
@@ -277,7 +277,7 @@ export abstract class Axis<
         this._requiredRange = value;
     }
 
-    boundSeries: ISeries<DatumIndexType, unknown, ISeriesProperties>[] = [];
+    boundSeries: ISeries<SeriesNodeDatum, ISeriesProperties>[] = [];
     includeInvisibleDomains: boolean = false;
 
     interactionEnabled = true;
@@ -560,7 +560,7 @@ export abstract class Axis<
     }
 
     protected getLabelStyles(
-        params: { value: number; formattedValue: TextOrSegments | undefined; depth?: number },
+        params: { value: number; formattedValue: NormalisedTextOrSegments | undefined; depth?: number },
         additionalStyles?: AgBaseAxisLabelStyleOptions,
         label: NormalisedBaseAxisLabelOptions = this.options.label
     ) {
@@ -872,7 +872,7 @@ export abstract class Axis<
         inputFractionDigits?: number,
         inputTimeInterval?: AgTimeInterval | AgTimeIntervalUnit,
         dateStyle: DateFormatterStyle = 'long'
-    ): (value: any, index: number) => TextOrSegments {
+    ): (value: any, index: number) => NormalisedTextOrSegments {
         const { moduleCtx } = this;
         const label = this.options.label;
         const { formatManager } = moduleCtx;
@@ -920,7 +920,7 @@ export abstract class Axis<
         };
 
         const formatterCache = this.formatterCache;
-        return (value: any, index: number): TextOrSegments => {
+        return (value: any, index: number): NormalisedTextOrSegments => {
             const formatParams = this.datumFormatParams(value, params, fractionDigits, timeInterval, dateStyle);
             // For time axis, the datum is aligned. However, for ticks, we don't want to align the datum.
             formatParams.value = value;
@@ -984,7 +984,7 @@ export abstract class Axis<
         label?: AxisFormattableLabel<any>,
         params?: any,
         allowNull?: boolean
-    ): TextOrSegments {
+    ): NormalisedTextOrSegments {
         // Handle null/undefined values with empty string unless allowNull is true (for formatter access)
         if (input == null && !allowNull) return '';
 

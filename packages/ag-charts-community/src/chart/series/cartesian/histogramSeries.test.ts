@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { mapValues } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
@@ -11,6 +11,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     deproxy,
+    expectWarningsCalls,
     extractImageData,
     hoverAction,
     prepareTestOptions,
@@ -170,6 +171,110 @@ describe('HistogramSeries', () => {
             await waitForChartStability(chart);
 
             await compare();
+        });
+    });
+
+    describe('getDataId', () => {
+        const nodeDataOf = (c: any) => (deproxy(c).series[0] as any).getNodeData() as any[];
+        const itemIdsOf = (c: any) => nodeDataOf(c).map((n) => n.itemId);
+
+        const createBinnedChart = (
+            series: Partial<NonNullable<AgCartesianChartOptions['series']>[number]> = {},
+            data?: any[]
+        ) => {
+            const options: AgCartesianChartOptions = {
+                data: data ?? [{ x: 1 }, { x: 5 }, { x: 12 }, { x: 18 }],
+                series: [
+                    {
+                        type: 'histogram',
+                        xKey: 'x',
+                        bins: [
+                            [0, 10],
+                            [10, 20],
+                        ],
+                        ...(series as object),
+                    },
+                ],
+            };
+            prepareTestOptions(options as any);
+            return AgCharts.create(options);
+        };
+
+        it('auto-generates an id from the bin boundaries', async () => {
+            chart = createBinnedChart();
+            await waitForChartStability(chart);
+
+            expect(itemIdsOf(chart)).toEqual(['bin:0,10', 'bin:10,20']);
+        });
+
+        it('disambiguates negative and fractional bin boundaries', async () => {
+            chart = createBinnedChart(
+                {
+                    bins: [
+                        [-10, -5],
+                        [-5, 0.5],
+                    ],
+                },
+                [{ x: -8 }, { x: -1 }]
+            );
+            await waitForChartStability(chart);
+
+            expect(itemIdsOf(chart)).toEqual(['bin:-10,-5', 'bin:-5,0.5']);
+        });
+
+        it('uses the getDataId callback to override the id', async () => {
+            const getDataId = vi.fn((p: { binStart: number; binEnd: number; binIndex: number }) => `b${p.binIndex}`);
+            chart = createBinnedChart({ getDataId });
+            await waitForChartStability(chart);
+
+            expect(itemIdsOf(chart)).toEqual(['b0', 'b1']);
+            expect(getDataId).toHaveBeenCalledWith(expect.objectContaining({ binStart: 0, binEnd: 10, binIndex: 0 }));
+        });
+
+        it('passes the chart context to the callback', async () => {
+            const context = { tenant: 'acme' };
+            const getDataId = vi.fn((p: { context?: any }) => `${p.context?.tenant}`);
+            chart = createBinnedChart({ context, getDataId });
+            await waitForChartStability(chart);
+
+            expect(itemIdsOf(chart)).toEqual(['acme', 'acme']);
+        });
+
+        it('keeps ids stable across a data update that preserves bin boundaries', async () => {
+            chart = createBinnedChart();
+            await waitForChartStability(chart);
+            const before = itemIdsOf(chart);
+            const frequenciesBefore = nodeDataOf(chart).map((n) => n.frequency);
+
+            await chart.update({
+                data: [{ x: 2 }, { x: 3 }, { x: 14 }],
+                series: [
+                    {
+                        type: 'histogram',
+                        xKey: 'x',
+                        bins: [
+                            [0, 10],
+                            [10, 20],
+                        ],
+                    },
+                ],
+            });
+            await waitForChartStability(chart);
+
+            // The update changes bin contents (so it definitely applied) but not boundaries.
+            expect(nodeDataOf(chart).map((n) => n.frequency)).not.toEqual(frequenciesBefore);
+            expect(itemIdsOf(chart)).toEqual(before);
+        });
+
+        it('falls back to the default id when the callback throws', async () => {
+            const getDataId = () => {
+                throw new Error('boom');
+            };
+            chart = createBinnedChart({ getDataId });
+            await waitForChartStability(chart);
+
+            expect(itemIdsOf(chart)).toEqual(['bin:0,10', 'bin:10,20']);
+            expectWarningsCalls().toHaveLength(1);
         });
     });
 

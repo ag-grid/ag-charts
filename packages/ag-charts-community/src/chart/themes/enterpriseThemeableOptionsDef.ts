@@ -6,7 +6,7 @@ import {
     barHighlightOptionsDef,
     boolean,
     callbackDefs,
-    color,
+    colorOrRef,
     colorScaleOptionsDef,
     colorUnion,
     commonSeriesThemeableOptionsDefs,
@@ -184,7 +184,7 @@ export const candlestickSeriesThemeableOptionsDef: OptionsDefs<AgCandlestickSeri
 
 export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableOptions> = {
     fills: arrayOf(colorUnion),
-    strokes: arrayOf(color),
+    strokes: arrayOf(colorOrRef),
     label: {
         spacing: positiveNumber,
         maxWidth: positiveNumber,
@@ -221,7 +221,7 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
 export const coneFunnelSeriesThemeableOptionsDef: OptionsDefs<AgConeFunnelSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
     fills: arrayOf(colorUnion),
-    strokes: arrayOf(color),
+    strokes: arrayOf(colorOrRef),
     label: {
         spacing: positiveNumber,
         placement: union('before', 'middle', 'after'),
@@ -243,7 +243,7 @@ export const coneFunnelSeriesThemeableOptionsDef: OptionsDefs<AgConeFunnelSeries
 export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
     fills: arrayOf(colorUnion),
-    strokes: arrayOf(color),
+    strokes: arrayOf(colorOrRef),
     itemStyler: callbackDefs<AgFunnelSeriesStyle>({
         ...fillOptionsDef,
         ...strokeOptionsDef,
@@ -411,7 +411,7 @@ export const pyramidSeriesThemeableOptionsDef: OptionsDefs<AgPyramidSeriesThemea
         ...lineDashOptionsDef,
     }),
     fills: arrayOf(colorUnion),
-    strokes: arrayOf(color),
+    strokes: arrayOf(colorOrRef),
     label: seriesLabelOptionsDefs,
     stageLabel: {
         spacing: positiveNumber,
@@ -577,7 +577,7 @@ export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThem
 
 export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeableOptions> = {
     fills: arrayOf(colorUnion),
-    strokes: arrayOf(color),
+    strokes: arrayOf(colorOrRef),
     label: {
         ...seriesLabelOptionsDefs,
         spacing: positiveNumber,
@@ -616,7 +616,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
 
 export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThemeableOptions> = {
     fills: arrayOf(colorUnion),
-    strokes: arrayOf(color),
+    strokes: arrayOf(colorOrRef),
     colorScale: colorScaleOptionsDef,
     sectorSpacing: positiveNumber,
     cornerRadius: positiveNumber,
@@ -645,7 +645,7 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
 
 export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemeableOptions> = {
     fills: arrayOf(colorUnion),
-    strokes: arrayOf(color),
+    strokes: arrayOf(colorOrRef),
     colorScale: colorScaleOptionsDef,
     itemStyler: callbackDefs<AgTreemapSeriesStyle>({
         ...fillOptionsDef,

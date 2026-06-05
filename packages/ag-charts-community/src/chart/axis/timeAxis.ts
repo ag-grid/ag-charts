@@ -22,7 +22,7 @@ import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterP
 import type { ChartRegistry } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
 import type { FormatDatumParams } from '../chartAxis';
-import type { DatumIndexType, ISeries, ISeriesProperties } from '../series/seriesTypes';
+import type { ISeries, ISeriesProperties, SeriesNodeDatum } from '../series/seriesTypes';
 import type { AxisTickFormatParams } from './axis';
 import { CartesianAxis } from './cartesianAxis';
 
@@ -148,7 +148,7 @@ export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTim
 }
 
 export function minimumTimeAxisDatumGranularity(
-    boundSeries: ISeries<DatumIndexType, unknown, ISeriesProperties, unknown>[],
+    boundSeries: ISeries<SeriesNodeDatum, ISeriesProperties, unknown>[],
     direction: ChartAxisDirection,
     min: TimeBound,
     max: TimeBound
@@ -165,7 +165,7 @@ export function minimumTimeAxisDatumGranularity(
 }
 
 export function calculateDefaultUnit(
-    boundSeries: ISeries<DatumIndexType, unknown, ISeriesProperties, unknown>[],
+    boundSeries: ISeries<SeriesNodeDatum, ISeriesProperties, unknown>[],
     direction: ChartAxisDirection,
     min: TimeBound,
     max: TimeBound

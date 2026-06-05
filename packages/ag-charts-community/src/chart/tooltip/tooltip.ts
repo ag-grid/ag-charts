@@ -36,7 +36,7 @@ export {
 } from './tooltipContent';
 
 /** Default gap between tooltip and anchor; must match the theme template fallback in chartTheme.ts. */
-const DEFAULT_TOOLTIP_OFFSET = 8;
+const DEFAULT_TOOLTIP_OFFSET = 12;
 
 type TooltipOffsets = { canvasX: number; canvasY: number; nodeCanvasX?: number; nodeCanvasY?: number };
 export type TooltipEventType = 'pointermove' | 'click' | 'dblclick' | 'keyboard';
@@ -96,9 +96,9 @@ const directionChecks: Record<AgTooltipPlacement, DirectionCheck> = {
     center: DirectionCheck.None,
 };
 
-const defaultPlacements: Record<AgTooltipAnchorTo, AgTooltipPlacement> = {
-    pointer: 'top',
-    node: 'top',
+const defaultPlacements: Record<AgTooltipAnchorTo, AgTooltipPlacement | AgTooltipPlacement[]> = {
+    pointer: ['top', 'bottom', 'left', 'right'],
+    node: ['top', 'bottom', 'left', 'right'],
     chart: 'top-left',
 };
 
@@ -172,6 +172,7 @@ export class Tooltip extends BaseProperties {
     private _visible = false;
 
     private elementProxy?: DOMElementProxy;
+    private domManager?: DOMManager;
 
     private positionParams:
         | {
@@ -197,6 +198,7 @@ export class Tooltip extends BaseProperties {
 
     private localeManager: LocaleManager | undefined = undefined;
     setup(localeManager: LocaleManager, domManager: DOMManager) {
+        this.domManager = domManager;
         this.elementProxy = domManager.addDeferredProxyChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
         this.elementProxy.toggleClass(DEFAULT_TOOLTIP_CLASS, true);
         this.elementProxy.setProperty('position-anchor', domManager.anchorName);
@@ -287,6 +289,21 @@ export class Tooltip extends BaseProperties {
     }
 
     /**
+     * Confine an anchor point (canvas-local, screen px) to the visible chart area so a node- or
+     * pointer-anchored tooltip stays connected to the chart when its anchor has scrolled out of a
+     * scrollable container (AG-13992). The tooltip body itself remains free to float to the
+     * viewport. No-op when the chart has no scrollable ancestor.
+     */
+    private clampAnchorToVisibleChart(x: number, y: number, canvasRect: DOMRect): { x: number; y: number } {
+        const visibleRect = this.domManager?.getVisibleChartRect();
+        if (visibleRect == null) return { x, y };
+        return {
+            x: clamp(visibleRect.left - canvasRect.left, x, visibleRect.right - canvasRect.left),
+            y: clamp(visibleRect.top - canvasRect.top, y, visibleRect.bottom - canvasRect.top),
+        };
+    }
+
+    /**
      * Shows tooltip at the given event's coordinates.
      * If the `html` parameter is missing, moves the existing tooltip to the new position.
      */
@@ -327,14 +344,28 @@ export class Tooltip extends BaseProperties {
             meta,
         };
 
+        // Tooltip is `position: fixed` (screen space); coords are canvas-local — scale to match.
+        const { scaleX, scaleY } = this.domManager?.getCanvasScale() ?? { scaleX: 1, scaleY: 1 };
         const anchorTo = meta.position?.anchorTo ?? 'pointer';
         switch (anchorTo) {
-            case 'node':
-                this.springAnimation.update(meta.nodeCanvasX ?? meta.canvasX, meta.nodeCanvasY ?? meta.canvasY);
+            case 'node': {
+                const { x, y } = this.clampAnchorToVisibleChart(
+                    (meta.nodeCanvasX ?? meta.canvasX) * scaleX,
+                    (meta.nodeCanvasY ?? meta.canvasY) * scaleY,
+                    canvasRect
+                );
+                this.springAnimation.update(x, y);
                 break;
-            case 'pointer':
-                this.springAnimation.update(meta.canvasX, meta.canvasY);
+            }
+            case 'pointer': {
+                const { x, y } = this.clampAnchorToVisibleChart(
+                    meta.canvasX * scaleX,
+                    meta.canvasY * scaleY,
+                    canvasRect
+                );
+                this.springAnimation.update(x, y);
                 break;
+            }
             case 'chart':
                 this.springAnimation.reset();
         }

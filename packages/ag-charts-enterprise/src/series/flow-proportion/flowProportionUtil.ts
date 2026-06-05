@@ -1,12 +1,9 @@
+import type { _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
-
-import { FlowProportionDatumType, type FlowProportionNodeDatumIndex } from './flowDatumIndex';
-
-type ItemIdRules = `node-${number}` | `link-${number}`;
 
 interface Node {
     id: string;
-    datumIndex: FlowProportionNodeDatumIndex;
+    datumIndex: _ModuleSupport.DatumIndex;
 }
 
 interface Link<N extends Node> {
@@ -20,7 +17,6 @@ export interface LinkedNode<N extends Node, L extends Link<N>> {
 }
 
 export interface NodeGraphEntry<N extends Node, L extends Link<N>> {
-    itemId: ItemIdRules;
     datum: N;
     linksBefore: LinkedNode<N, L>[];
     linksAfter: LinkedNode<N, L>[];
@@ -39,12 +35,7 @@ export function computeNodeGraph<N extends Node, L extends Link<N>>(
 
     const nodeGraph = new Map<string, NodeGraphEntry<N, L>>();
     for (const datum of nodes) {
-        const itemId: ItemIdRules =
-            datum.datumIndex.type === FlowProportionDatumType.Link
-                ? `link-${datum.datumIndex.index}`
-                : `node-${datum.datumIndex.index}`;
         nodeGraph.set(datum.id, {
-            itemId,
             datum,
             linksBefore: [],
             linksAfter: [],

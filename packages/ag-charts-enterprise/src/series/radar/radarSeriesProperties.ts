@@ -7,10 +7,9 @@ import type {
     AgSeriesMarkerStyle,
     ContextDefault,
     DatumDefault,
-    TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { SizedPoint } from 'ag-charts-core';
+import type { NormalisedTextOrSegments, SizedPoint } from 'ag-charts-core';
 import { Property } from 'ag-charts-core';
 
 export interface RadarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
@@ -18,7 +17,7 @@ export interface RadarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum 
     readonly label?: {
         x: number;
         y: number;
-        text: TextOrSegments;
+        text: NormalisedTextOrSegments;
         textAlign: CanvasTextAlign;
         textBaseline: CanvasTextBaseline;
     };

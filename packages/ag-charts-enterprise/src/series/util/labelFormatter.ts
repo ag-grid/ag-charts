@@ -1,6 +1,8 @@
 import {
     type FontOptions,
     Logger,
+    type NormalisedContentSegment,
+    type NormalisedTextOrSegments,
     cachedTextMeasurer,
     findMaxValue,
     isArray,
@@ -12,10 +14,8 @@ import type {
     AgChartAutoSizedBaseLabelOptions,
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
-    ContentSegment,
     FontSize,
     OverflowStrategy,
-    TextOrSegments,
     TextWrap,
 } from 'ag-charts-types';
 
@@ -84,7 +84,7 @@ type LayoutParams = {
 };
 
 export type LabelFormatting = {
-    text: TextOrSegments;
+    text: NormalisedTextOrSegments;
     fontSize: number;
     lineHeight: number;
     width: number;
@@ -214,7 +214,7 @@ export function formatStackedLabels<Meta>(
 }
 
 function formatSingleSegmentsLabel<Meta>(
-    segments: ContentSegment[],
+    segments: NormalisedContentSegment[],
     props: AutoSizedBaseLabelOptions,
     { padding }: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn<Meta>
@@ -298,7 +298,7 @@ function hasInvalidFontSize(label?: AutoSizedBaseLabelOptions) {
 }
 
 function formatSingleAny<Meta>(
-    value: TextOrSegments,
+    value: NormalisedTextOrSegments,
     props: AutoSizedBaseLabelOptions,
     layoutParams: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn<Meta>
@@ -336,9 +336,9 @@ function fixedFitting<Meta>(
 // plain-text path doesn't apply. Apportion the available height between the two labels and
 // format each independently via formatSingleAny.
 function formatStackedAnyLabels<Meta>(
-    labelValue: TextOrSegments,
+    labelValue: NormalisedTextOrSegments,
     labelProps: AutoSizedLabelOptions,
-    secondaryLabelValue: TextOrSegments,
+    secondaryLabelValue: NormalisedTextOrSegments,
     secondaryLabelProps: AutoSizedSecondaryLabelOptions,
     layoutParams: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn<Meta>
@@ -406,7 +406,7 @@ function formatStackedAnyLabels<Meta>(
 // availableWidth in the inner call, but at this point we only need a coarse share for
 // apportionment — line height is a reasonable lower bound; `formatSingleLabel`'s overflow path
 // handles wrapped multi-line text inside the apportioned budget.
-function naturalStackHeight(value: TextOrSegments, font: FontOptions): number {
+function naturalStackHeight(value: NormalisedTextOrSegments, font: FontOptions): number {
     if (isArray(value)) {
         return measureTextSegments(value, font).height;
     }
@@ -414,9 +414,9 @@ function naturalStackHeight(value: TextOrSegments, font: FontOptions): number {
 }
 
 export function formatLabels<Meta = never>(
-    baseLabelValue: TextOrSegments | undefined,
+    baseLabelValue: NormalisedTextOrSegments | undefined,
     labelProps: AutoSizedLabelOptions,
-    baseSecondaryLabelValue: TextOrSegments | undefined,
+    baseSecondaryLabelValue: NormalisedTextOrSegments | undefined,
     secondaryLabelProps: AutoSizedSecondaryLabelOptions,
     layoutParams: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn<Meta>

@@ -1,5 +1,5 @@
-import { type RichFormatter, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgGradientColor, RequireOptional } from 'ag-charts-core';
+import { type RichFormatter, _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgGradientColor, NormalisedTextOrSegments, RequireOptional } from 'ag-charts-core';
 import { BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
@@ -26,9 +26,7 @@ export enum NodeDataType {
     Target,
 }
 
-export type LinearGaugeNodeDatumIndex = { type: NodeDataType.Node } | { type: NodeDataType.Target; index: number };
-
-export interface LinearGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum<LinearGaugeNodeDatumIndex> {
+export interface LinearGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     type: NodeDataType.Node;
     readonly itemId: 'value' | 'scale' | `value-${number}` | `scale-${number}`;
     x0: number;
@@ -61,7 +59,7 @@ export interface LinearGaugeTargetDatumLabel {
     lineHeight: number | undefined;
 }
 
-export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum<LinearGaugeNodeDatumIndex> {
+export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
     type: NodeDataType.Target;
     readonly itemId: `target-${number}`;
     value: number;
@@ -74,11 +72,11 @@ export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum<L
     label: LinearGaugeTargetDatumLabel;
     style: AgLinearGaugeSeriesStyle;
 }
-export interface LinearGaugeLabelDatum extends _ModuleSupport.SeriesNodeDatum<LinearGaugeNodeDatumIndex> {
+export interface LinearGaugeLabelDatum extends _ModuleSupport.SeriesNodeDatum {
     placement: AgLinearGaugeLabelPlacement;
     avoidCollisions: boolean;
     spacing: number;
-    text: TextOrSegments | undefined;
+    text: NormalisedTextOrSegments | undefined;
     value: number;
     fill: string | undefined;
     fontStyle: FontStyle | undefined;

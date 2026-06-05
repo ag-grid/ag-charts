@@ -1,4 +1,4 @@
-import type { ContentSegment, ImageSegment, OverflowStrategy, TextOrSegments, TextWrap } from 'ag-charts-types';
+import type { ImageSegment, OverflowStrategy, TextWrap } from 'ag-charts-types';
 
 import {
     BLOCK_IMAGE_SPACING,
@@ -8,6 +8,10 @@ import {
     isBlockBoundary,
     measureTextSegments,
 } from '../../rendering/textMeasurer';
+import type {
+    NormalisedContentSegment,
+    NormalisedTextOrSegments,
+} from '../../types/normalised-options/normalisedCommonOptions';
 import type { ITextMeasurer, MeasuredImageSegment, MeasuredSegment, MeasuredTextSegment } from '../../types/text';
 import { isArray, isFiniteNumber } from '../types/typeGuards';
 import {
@@ -40,9 +44,9 @@ function shouldHideOverflow(clippedResult: string[], options: WrapOptions) {
 }
 
 export function wrapTextOrSegments(text: string, options: WrapOptions): string;
-export function wrapTextOrSegments(segments: ContentSegment[], options: WrapOptions): MeasuredSegment[];
-export function wrapTextOrSegments(input: TextOrSegments, options: WrapOptions): string | MeasuredSegment[];
-export function wrapTextOrSegments(input: TextOrSegments, options: WrapOptions) {
+export function wrapTextOrSegments(segments: NormalisedContentSegment[], options: WrapOptions): MeasuredSegment[];
+export function wrapTextOrSegments(input: NormalisedTextOrSegments, options: WrapOptions): string | MeasuredSegment[];
+export function wrapTextOrSegments(input: NormalisedTextOrSegments, options: WrapOptions) {
     return isArray(input) ? wrapTextSegments(input, options) : wrapLines(toTextString(input), options).join('\n');
 }
 
@@ -272,10 +276,10 @@ function avoidOrphans(lines: string[], measurer: ITextMeasurer, options: WrapOpt
 interface SegmentGroup {
     /** Leading block-image strip for the row. Multiple images render side-by-side at the left. */
     blockImages: ImageSegment[];
-    segments: ContentSegment[];
+    segments: NormalisedContentSegment[];
 }
 
-function splitIntoBlockGroups(textSegments: ContentSegment[]): SegmentGroup[] {
+function splitIntoBlockGroups(textSegments: NormalisedContentSegment[]): SegmentGroup[] {
     const groups: SegmentGroup[] = [];
     let current: SegmentGroup | null = null;
     for (let i = 0; i < textSegments.length; i++) {
@@ -301,7 +305,7 @@ function splitIntoBlockGroups(textSegments: ContentSegment[]): SegmentGroup[] {
     return groups;
 }
 
-export function wrapTextSegments(textSegments: ContentSegment[], options: WrapOptions): MeasuredSegment[] {
+export function wrapTextSegments(textSegments: NormalisedContentSegment[], options: WrapOptions): MeasuredSegment[] {
     const groups = splitIntoBlockGroups(textSegments);
     if (groups.length === 0) return [];
 
@@ -342,7 +346,7 @@ function wrapGroup(group: SegmentGroup, options: WrapOptions): MeasuredSegment[]
     return wrapBlockGroup(group.blockImages, group.segments, options);
 }
 
-function wrapInlineSegments(segments: ContentSegment[], options: WrapOptions): MeasuredSegment[] {
+function wrapInlineSegments(segments: NormalisedContentSegment[], options: WrapOptions): MeasuredSegment[] {
     if (segments.length === 0) return [];
     if (!segments.some((s) => s.type === 'image')) {
         return fitMeasuredSegments(segments, options);
@@ -350,11 +354,11 @@ function wrapInlineSegments(segments: ContentSegment[], options: WrapOptions): M
     return wrapInlineSegmentsWithOverflow(segments, options);
 }
 
-function wrapInlineSegmentsWithOverflow(segments: ContentSegment[], options: WrapOptions): MeasuredSegment[] {
+function wrapInlineSegmentsWithOverflow(segments: NormalisedContentSegment[], options: WrapOptions): MeasuredSegment[] {
     const maxHeight = options.maxHeight ?? Infinity;
     // Drop any image that exceeds the width or height budget on its own; no strategy can keep it.
     // Build a single working array we mutate in place to avoid allocating a fresh array per drop.
-    const working: ContentSegment[] = [];
+    const working: NormalisedContentSegment[] = [];
     for (const s of segments) {
         if (s.type === 'image') {
             const box = imageSegmentBox(s);
@@ -378,7 +382,7 @@ function wrapInlineSegmentsWithOverflow(segments: ContentSegment[], options: Wra
 // Re-fit after each successful drop until either everything fits or `drop` has nothing left to
 // remove. `drop` mutates `working` in place and returns whether it removed a segment.
 function dropUntilFits(
-    working: ContentSegment[],
+    working: NormalisedContentSegment[],
     options: WrapOptions,
     result: MeasuredSegment[],
     drop: () => boolean
@@ -391,7 +395,7 @@ function dropUntilFits(
 
 function wrapBlockGroup(
     blockImages: ImageSegment[],
-    segments: ContentSegment[],
+    segments: NormalisedContentSegment[],
     options: WrapOptions
 ): MeasuredSegment[] {
     const maxHeight = options.maxHeight ?? Infinity;
@@ -459,7 +463,7 @@ function buildBlockStrip(blockImages: ImageSegment[], options: WrapOptions): Mea
 // is allowed to truncate; under all-'keep' trailing text is dropped rightmost-first until the
 // column wraps whole.
 function wrapBlockTextColumn(
-    segments: ContentSegment[],
+    segments: NormalisedContentSegment[],
     innerOptions: WrapOptions,
     allKeep: boolean
 ): MeasuredSegment[] {
@@ -486,13 +490,13 @@ function dropLastMatching<T>(arr: T[], predicate: (item: T) => boolean): boolean
     return false;
 }
 
-const isText = (s: ContentSegment): boolean => s.type !== 'image';
+const isText = (s: NormalisedContentSegment): boolean => s.type !== 'image';
 
 function isImageWithStrategy(strategy: 'hide' | 'keep') {
-    return (s: ContentSegment): boolean => s.type === 'image' && (s.overflowStrategy ?? 'hide') === strategy;
+    return (s: NormalisedContentSegment): boolean => s.type === 'image' && (s.overflowStrategy ?? 'hide') === strategy;
 }
 
-function resultFitsAllSegments(input: ContentSegment[], output: MeasuredSegment[]): boolean {
+function resultFitsAllSegments(input: NormalisedContentSegment[], output: MeasuredSegment[]): boolean {
     // Result is "fit" when no text segment was ellipsis-truncated AND every image in input
     // is present in the output.
     if (hasTruncatedText(output)) return false;
@@ -505,17 +509,17 @@ function hasTruncatedText(output: MeasuredSegment[]): boolean {
     return output.some((s) => s.type !== 'image' && isTextTruncated(s.text));
 }
 
-function lostTextSegments(input: ContentSegment[], output: MeasuredSegment[]): boolean {
+function lostTextSegments(input: NormalisedContentSegment[], output: MeasuredSegment[]): boolean {
     const inputText = input.reduce((n, s) => (s.type === 'image' ? n : n + 1), 0);
     const outputText = output.reduce((n, s) => (s.type === 'image' ? n : n + 1), 0);
     return outputText < inputText;
 }
 
-function hasImageWithStrategy(segments: ContentSegment[], strategy: 'hide' | 'keep'): boolean {
+function hasImageWithStrategy(segments: NormalisedContentSegment[], strategy: 'hide' | 'keep'): boolean {
     return segments.some(isImageWithStrategy(strategy));
 }
 
-function fitMeasuredSegments(textSegments: ContentSegment[], options: WrapOptions): MeasuredSegment[] {
+function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: WrapOptions): MeasuredSegment[] {
     const { maxHeight = Infinity } = options;
     const result: MeasuredSegment[] = [];
 

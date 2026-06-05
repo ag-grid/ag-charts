@@ -1,4 +1,4 @@
-import type { AgAngleAxisLabelOrientation, TextOrSegments } from 'ag-charts-community';
+import type { AgAngleAxisLabelOrientation } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     type AxisID,
@@ -6,6 +6,7 @@ import {
     type DynamicContext,
     type NormalisedAngleAxisLabelOptions,
     type NormalisedBaseAngleAxisOptions,
+    type NormalisedTextOrSegments,
     type Scale,
     type ScaleTickParams,
     type WrapOptions,
@@ -19,7 +20,7 @@ import {
 
 const { Path, RotatableText, Transformable, BBox, Selection, Line } = _ModuleSupport;
 export interface AngleAxisLabelDatum {
-    text: TextOrSegments;
+    text: NormalisedTextOrSegments;
     x: number;
     y: number;
     hidden: boolean;

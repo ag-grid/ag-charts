@@ -8,7 +8,7 @@ import { ColorScale } from '../../../scale/colorScale';
 import { configureColorScale } from '../../../scale/colorScaleUtil';
 import { BBox } from '../../../scene/bbox';
 import type { Node } from '../../../scene/node';
-import type { Selection } from '../../../scene/selection';
+import type { Selection, SelectionInterface } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import { createDatumId } from '../../data/processors';
 import {
@@ -20,7 +20,7 @@ import {
     colorScaleLegendFormatterContext,
 } from '../../legend/legendDatum';
 import { type PickFocusInputs, type PickFocusOutputs, Series, SeriesNodePickMode } from '../series';
-import type { ISeries, ItemId, SeriesNodeDatum } from '../seriesTypes';
+import type { DatumIndex, ISeries, ItemId, SeriesNodeDatum } from '../seriesTypes';
 import {
     HierarchyHighlightState,
     type HierarchySeriesProperties,
@@ -42,7 +42,7 @@ type HierarchyAnimationEvent<TDatum, TNode extends Node<TDatum>> = {
     skip: undefined;
 };
 
-export interface HierarchyNodeDatum extends SeriesNodeDatum<number[]> {}
+export interface HierarchyNodeDatum extends SeriesNodeDatum {}
 
 export interface HierarchyAnimationData<_TNode extends Node, _TNodeClass> {}
 
@@ -59,7 +59,8 @@ export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatu
     constructor(
         public readonly series: ISeries<any, any, any>,
         public readonly itemId: ItemId,
-        public readonly datumIndex: number[],
+        public readonly path: number[],
+        public readonly datumIndex: number,
         public readonly datum: TDatum | undefined,
         public readonly sizeValue: number,
         public readonly colorValue: number | undefined,
@@ -117,7 +118,7 @@ export abstract class HierarchySeries<
     TNode extends Node<TNodeClass>,
     TOpts extends object,
     TProps extends HierarchySeriesProperties<TOpts>,
-> extends Series<number[], TNodeClass, TOpts, TProps> {
+> extends Series<TNodeClass, TOpts, TProps> {
     protected abstract NodeClass: new (...params: ConstructorParameters<typeof HierarchyNode<any, any>>) => TNodeClass;
 
     rootNode: TNodeClass | undefined;
@@ -193,6 +194,7 @@ export abstract class HierarchySeries<
         let maxDepth = 0;
         let minColor = Infinity;
         let maxColor = -Infinity;
+        let datumIndex = -1; // DFS-order index. -1 is the root, 0 is the first child of the root
 
         const createNode = (datum: any, indexPath: number[], parent: TNodeClass): TNodeClass => {
             const depth = parent.depth == null ? 0 : parent.depth + 1;
@@ -215,12 +217,14 @@ export abstract class HierarchySeries<
                 maxColor = Math.max(maxColor, colorValue);
             }
 
-            const style = this.getItemStyle({ datumIndex: indexPath, datum, depth, colorValue }, isLeaf, false);
+            ++datumIndex;
+            const style = this.getItemStyle({ datumIndex, datum, depth, colorValue }, isLeaf, false);
             return appendChildren(
                 new NodeClass(
                     this,
                     createDatumId(indexPath.join(';')),
                     indexPath,
+                    datumIndex,
                     datum,
                     sizeValue,
                     colorValue,
@@ -235,10 +239,10 @@ export abstract class HierarchySeries<
         };
 
         const appendChildren = (node: Mutable<TNodeClass>, data: any[] | undefined): TNodeClass => {
-            const { datumIndex } = node;
+            const { path } = node;
             if (data) {
                 for (const [childIndex, datum] of data.entries()) {
-                    const child = createNode(datum, datumIndex.concat(childIndex), node);
+                    const child = createNode(datum, path.concat(childIndex), node);
                     node.children.push(child);
                     node.sumSize += child.sumSize;
                 }
@@ -247,7 +251,7 @@ export abstract class HierarchySeries<
         };
 
         const rootNode = appendChildren(
-            new NodeClass(this, 'root', [], undefined, 0, undefined, 0, undefined, undefined, [], {}),
+            new NodeClass(this, 'root', [], datumIndex, undefined, 0, undefined, 0, undefined, undefined, [], {}),
             this.data?.data
         );
 
@@ -375,28 +379,24 @@ export abstract class HierarchySeries<
         return [];
     }
 
-    protected getDatumIdFromData(node: Pick<TNodeClass, 'datumIndex'>): string {
-        return node.datumIndex.join(':');
-    }
-
-    protected getDatumId(node: Pick<TNodeClass, 'datumIndex'>): string {
-        return this.getDatumIdFromData(node);
-    }
-
     private removeMeIndexPathForIndex(index: number): number[] {
-        return this.datumSelection.at(index + 1)?.datum.datumIndex ?? [];
+        return this.datumSelection.at(index + 1)?.datum?.path ?? [];
     }
 
     private removeMeIndexForIndexPath(indexPath: number[]): number {
-        for (const { index, datum } of this.datumSelection) {
-            if (arraysEqual(datum.datumIndex, indexPath)) {
+        const nodes = this.datumSelection.nodes();
+        for (let index = 0; index < nodes.length; index++) {
+            const { datum } = nodes[index];
+            if (datum === undefined) continue;
+
+            if (arraysEqual(datum.path, indexPath)) {
                 return index - 1;
             }
         }
         return 0;
     }
 
-    protected abstract datumSelection: Selection<TNodeClass, any>;
+    protected abstract datumSelection: SelectionInterface<TNodeClass, TNode>;
 
     protected abstract computeFocusBounds(node: TNode): BBox | Path | undefined;
 
@@ -419,7 +419,10 @@ export abstract class HierarchySeries<
         }
 
         const nextNode = path.reduce((n, childIndex) => n.children[childIndex], this.rootNode);
-        const bounds = this.computeFocusBounds(this.datumSelection.at(index + 1));
+        const focusedNode = this.datumSelection.at(index + 1);
+        if (focusedNode == null) return;
+
+        const bounds = this.computeFocusBounds(focusedNode);
 
         if (bounds == null) return;
 
@@ -432,7 +435,7 @@ export abstract class HierarchySeries<
         };
     }
 
-    getDatumAriaText(datum: SeriesNodeDatum<number>, description: string): string | undefined {
+    getDatumAriaText(datum: SeriesNodeDatum, description: string): string | undefined {
         if (!(datum instanceof this.NodeClass)) {
             Logger.error(`datum is not HierarchyNode: ${JSON.stringify(datum)}`);
             return;
@@ -444,11 +447,11 @@ export abstract class HierarchySeries<
         });
     }
 
-    getCategoryValue(_datumIndex: number[]) {
+    getCategoryValue(_datumIndex: DatumIndex) {
         return;
     }
 
-    datumIndexForCategoryValue(_categoryValue: any): number[] | undefined {
+    datumIndexForCategoryValue(_categoryValue: any): DatumIndex | undefined {
         return;
     }
 
@@ -467,7 +470,7 @@ export abstract class HierarchySeries<
     protected getHierarchyHighlightState(
         isHighlight: boolean,
         highlightedNode: TNodeClass | undefined,
-        nodeDatum: Pick<TNodeClass, 'datumIndex'>
+        nodeDatum: Pick<TNodeClass, 'path'>
     ): HierarchyHighlightState {
         if (isHighlight) {
             return HierarchyHighlightState.Item;
@@ -477,8 +480,8 @@ export abstract class HierarchySeries<
             return HierarchyHighlightState.None;
         }
 
-        const nodeRoot = nodeDatum.datumIndex?.[0];
-        const highlightRoot = highlightedNode.datumIndex?.[0];
+        const nodeRoot = nodeDatum.path?.[0];
+        const highlightRoot = highlightedNode.path?.[0];
 
         if (nodeRoot == null || highlightRoot == null) {
             return HierarchyHighlightState.None;
@@ -511,7 +514,7 @@ export abstract class HierarchySeries<
     public override getHighlightStateString(
         _datum: HighlightNodeDatum | undefined,
         isHighlight?: boolean,
-        datumIndex?: number[],
+        datumIndex?: DatumIndex,
         _legendItemValues?: string[]
     ): ReturnType<typeof toHierarchyHighlightString> {
         if (!this.properties.highlight.enabled) {
@@ -521,7 +524,7 @@ export abstract class HierarchySeries<
             return toHierarchyHighlightString(HierarchyHighlightState.None);
         }
 
-        const nodeDatum = datumIndex.reduce((node, idx) => node?.children[idx], this.rootNode);
+        const nodeDatum = this.dfsFind(datumIndex);
         const highlightedNode = this.getActiveHighlightNode();
         if (nodeDatum == null) {
             return toHierarchyHighlightString(HierarchyHighlightState.None);
@@ -536,4 +539,14 @@ export abstract class HierarchySeries<
         isLeaf: boolean,
         isHighlight: boolean
     ): FillOptions & StrokeOptions;
+
+    protected dfsFind(datumIndex: number): TNodeClass | undefined {
+        const stack: TNodeClass[] = [];
+        let node: TNodeClass | undefined = this.rootNode;
+        while (node && node.datumIndex !== datumIndex) {
+            stack.push(...node.children);
+            node = stack.pop();
+        }
+        return node;
+    }
 }

@@ -26,6 +26,7 @@ on:
                     - 'run-many'
 
 env:
+    IBM_TELEMETRY_DISABLED: 'true'
     # Disable git's post-fetch background gc/maintenance for every git invocation
     # (injected via git's GIT_CONFIG_* protocol). Otherwise it rewrites .git/shallow
     # concurrently with the next chained `git fetch --depth 1`, intermittently failing
@@ -517,6 +518,9 @@ jobs:
               with:
                   name: website-staging-dist
                   path: dist/packages/ag-charts-website/
+                  # upload-artifact@v4 excludes hidden files by default, which would drop the
+                  # generated .htaccess (CSP + redirects) before the deploy job zips it.
+                  include-hidden-files: true
                   retention-days: 1
 
     test:

@@ -132,15 +132,15 @@ The Scrollbar track mirrors native scrollbar behaviour:
 
 ## Scrolling
 
-Scrolling over the Scrollbar track always pans the viewport.
+Scrolling over the Scrollbar track always pans the viewport. Scrolling over the series area also pans the chart by default.
 
-Use `enableSeriesAreaScrolling` and `enableAxisScrolling` to extend this to the series area and axis areas.
+Set `enableSeriesAreaScrolling` to `false` to disable series-area scrolling, and `enableAxisScrolling` to `true` to extend scrolling to the axis areas.
 
 {% chartExampleRunner title="Scrollbar Scrolling" name="scrollbar-scrolling" type="generated" /%}
 
 In this example:
 
-- `enableSeriesAreaScrolling` enables scrolling within the series area to pan the chart.
+- `enableSeriesAreaScrolling` controls whether scrolling within the series area pans the chart. It is enabled by default.
 - `enableAxisScrolling` enables scrolling over the axis to pan in that axis direction.
 - If [Zoom](./zoom) is also enabled, its scroll interactions take precedence.
 

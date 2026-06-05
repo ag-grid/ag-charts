@@ -176,7 +176,9 @@ export class DOMManager extends BaseManager {
     private _isRtl: boolean = false;
 
     private _cachedCanvasRect: DOMRect | undefined;
+    private _cachedCanvasScale: { scaleX: number; scaleY: number } | undefined;
     private _cachedRawOverlayRect: BBox | undefined;
+    private _cachedVisibleChartRect: DOMRect | null | undefined;
     private _cachedScrollableContainer: HTMLElement | null | undefined;
     private _pendingFlush?: ReturnType<typeof setTimeout>;
     private _deferring: boolean = false;
@@ -299,7 +301,12 @@ export class DOMManager extends BaseManager {
 
         for (const el of Object.values(this.rootElements)) {
             for (const c of el.children.values()) {
-                c.remove();
+                // A transferred canvas (keepTransferableResources) may already have been re-parented
+                // into the replacement chart's DOM; only remove nodes this manager still owns so the
+                // deferred teardown doesn't orphan the live canvas.
+                if (c.parentNode === el.element) {
+                    c.remove();
+                }
             }
             el.element.remove();
         }
@@ -547,6 +554,19 @@ export class DOMManager extends BaseManager {
         return this._cachedCanvasRect;
     }
 
+    /** Ancestor CSS `scale(sx, sy)` applied to the canvas — maps canvas-local offsets to screen pixels. */
+    getCanvasScale(): { scaleX: number; scaleY: number } {
+        if (this._cachedCanvasScale != null) return this._cachedCanvasScale;
+        const rect = this.getBoundingClientRect();
+        const canvas = this.rootElements['canvas'].element;
+        const layoutWidth = canvas.clientWidth;
+        const layoutHeight = canvas.clientHeight;
+        const scaleX = layoutWidth > 0 && rect.width > 0 ? rect.width / layoutWidth : 1;
+        const scaleY = layoutHeight > 0 && rect.height > 0 ? rect.height / layoutHeight : 1;
+        this._cachedCanvasScale = { scaleX, scaleY };
+        return this._cachedCanvasScale;
+    }
+
     /**
      * Get the client bounding rect for overlay elements that might float outside the bounds of the
      * main chart area.
@@ -556,6 +576,30 @@ export class DOMManager extends BaseManager {
         const windowBBox = new BBox(0, 0, innerWidth, innerHeight);
         const containerBBox = this.getRawOverlayClientRect();
         return windowBBox.intersection(containerBBox)?.toDOMRect() ?? NULL_DOMRECT;
+    }
+
+    /**
+     * The visible region of the chart in viewport coordinates: the canvas rect clipped to a
+     * scrollable ancestor's rect, or `null` when the chart has no scrollable ancestor. A
+     * popover-promoted overlay may still float out to the viewport (see `getOverlayClientRect`),
+     * but its anchor should clamp to this region so it stays visually connected to the chart
+     * when the chart is partly scrolled out of a scrollable container.
+     */
+    getVisibleChartRect(): DOMRect | null {
+        if (this._cachedVisibleChartRect !== undefined) {
+            return this._cachedVisibleChartRect;
+        }
+
+        const scrollableContainer = this.findScrollableContainer();
+        if (scrollableContainer == null) {
+            this._cachedVisibleChartRect = null;
+            return null;
+        }
+
+        const canvasBBox = BBox.fromObject(this.getBoundingClientRect());
+        const containerBBox = BBox.fromObject(scrollableContainer.getBoundingClientRect());
+        this._cachedVisibleChartRect = canvasBBox.intersection(containerBBox)?.toDOMRect() ?? NULL_DOMRECT;
+        return this._cachedVisibleChartRect;
     }
 
     private findScrollableContainer(): HTMLElement | null {
@@ -592,12 +636,26 @@ export class DOMManager extends BaseManager {
         return null;
     }
 
+    /**
+     * Whether the active window supports the Popover API. Popover-promoted overlays
+     * (e.g. tooltips with `popover="manual"`) render in the browser top layer and so
+     * escape any ancestor's `overflow` clipping — meaning they should be positioned
+     * against the viewport, not clamped to a scrollable ancestor.
+     */
+    private popoverSupported(): boolean {
+        const HTMLElementCtor: typeof HTMLElement | undefined = (this.agDocument.window as any).HTMLElement;
+        return typeof HTMLElementCtor?.prototype?.togglePopover === 'function';
+    }
+
     private getRawOverlayClientRect(): BBox {
         if (this._cachedRawOverlayRect != null) {
             return this._cachedRawOverlayRect;
         }
 
-        const scrollableContainer = this.findScrollableContainer();
+        // When the Popover API is supported, overlays are promoted to the top layer and
+        // escape ancestor `overflow` clipping, so we must not clamp to a scrollable
+        // ancestor. Browsers without Popover API support retain the clamp below.
+        const scrollableContainer = this.popoverSupported() ? null : this.findScrollableContainer();
 
         if (scrollableContainer != null) {
             this._cachedRawOverlayRect = BBox.fromObject(scrollableContainer.getBoundingClientRect());
@@ -860,7 +918,9 @@ export class DOMManager extends BaseManager {
 
     private invalidateRectCaches() {
         this._cachedCanvasRect = undefined;
+        this._cachedCanvasScale = undefined;
         this._cachedRawOverlayRect = undefined;
+        this._cachedVisibleChartRect = undefined;
     }
 
     private invalidateAllCaches() {

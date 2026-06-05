@@ -2,6 +2,7 @@ import { type AgSankeySeriesOptions, _ModuleSupport } from 'ag-charts-community'
 import {
     type OptionsDefs,
     arrayOf,
+    callbackOf,
     color,
     commonSeriesOptionsDefs,
     constant,
@@ -23,6 +24,7 @@ export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
     toKey: required(string),
     sizeKey: string,
     sizeName: string,
+    getDataId: callbackOf(string),
 };
 
 // @ts-expect-error undocumented option

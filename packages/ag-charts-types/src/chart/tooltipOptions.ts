@@ -76,7 +76,7 @@ export interface AgTooltipPositionOptions {
     /**
      * The distance in pixels between the tooltip and its anchor point, applied in the placement direction.
      *
-     * Default: `8` (`0` when `anchorTo` is `'chart'`).
+     * Default: `12` (`0` when `anchorTo` is `'chart'`).
      */
     offset?: PixelSize;
 }

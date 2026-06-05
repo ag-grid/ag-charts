@@ -1,9 +1,9 @@
 import type { AgAxisLabelFormatterParams, AgBaseAxisLabelOptions } from '../../chart/axisOptions';
 import type { Formatter } from '../../chart/callbackOptions';
 import type { AgSelectionOptions, AgSelectionStyleOptions } from '../../chart/selectionOptions';
+import type { AgCssColorOrRef } from '../../chart/themeParamsOptions';
 import type {
     ContextDefault,
-    CssColor,
     Degree,
     FontFamily,
     FontSize,
@@ -53,7 +53,7 @@ export interface AgGaugeScaleLabel<TContext> {
     /** Spacing in pixels between the scale label and the tick. */
     spacing?: PixelSize;
     /** The colour to use for the labels */
-    color?: CssColor;
+    color?: AgCssColorOrRef;
     /** The rotation of the scale labels in degrees. */
     rotation?: Degree;
     /** Avoid scale label collision by automatically reducing the number of ticks displayed. If set to `false`, scale labels may collide. */

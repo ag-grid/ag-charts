@@ -1,4 +1,4 @@
-import type { DynamicContext } from 'ag-charts-core';
+import type { DynamicContext, NormalisedTextOrSegments } from 'ag-charts-core';
 import {
     type CallbackParamRules,
     ChartAxisDirection,
@@ -37,7 +37,6 @@ import type {
     AgPieSeriesLabelFormatterParams,
     AgPieSeriesStyle,
     SelectionState,
-    TextOrSegments,
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
@@ -109,7 +108,7 @@ class PieDonutSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> exte
 }
 
 interface PieDonutLabelDatum {
-    readonly text: TextOrSegments;
+    readonly text: NormalisedTextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
     hidden: boolean;
@@ -133,7 +132,7 @@ interface PieDonutNodeDatum extends DataModelSeriesNodeDatum {
     readonly calloutLabel?: PieDonutLabelDatum;
 
     readonly sectorLabel?: {
-        readonly text: TextOrSegments;
+        readonly text: NormalisedTextOrSegments;
     };
 
     readonly sectorFormat: { [key in keyof Omit<Required<PieDonutSeriesStyle>, 'fill'>]: PieDonutSeriesStyle[key] } & {
@@ -584,8 +583,8 @@ export class DonutSeries extends PolarSeries<
         };
 
         const result: {
-            callout: TextOrSegments | undefined;
-            sector: TextOrSegments | undefined;
+            callout: NormalisedTextOrSegments | undefined;
+            sector: NormalisedTextOrSegments | undefined;
             legendItem: string | undefined;
         } = {
             callout: undefined,
@@ -646,7 +645,7 @@ export class DonutSeries extends PolarSeries<
         const formats = this.getLabelContent(datumIndex, datum, values);
         const result: {
             calloutLabel?: PieDonutLabelDatum;
-            sectorLabel?: { text: TextOrSegments };
+            sectorLabel?: { text: NormalisedTextOrSegments };
             legendItem?: { key: string; text: string };
         } = {};
 

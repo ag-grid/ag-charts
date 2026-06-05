@@ -4,6 +4,7 @@ import type {
     ApiReferenceNode,
     ApiReferenceType,
     MemberNode,
+    TypeNode,
 } from '@generate-code-reference-plugin/doc-interfaces/types';
 import { useToggle } from '@utils/hooks/useToggle';
 import classnames from 'classnames';
@@ -28,8 +29,10 @@ import {
     type NavigationPath,
     type SearchIndex,
     type SearchIndexDatum,
+    buildTypeArgumentsFromGenericsMap,
     cleanupName,
     extractSearchData,
+    getAliasedUnionVariants,
     getMemberType,
     getNavigationDataFromPath,
     isInterfaceHidden,
@@ -180,6 +183,13 @@ function NavProperty({
     const isInterfaceArray = config.specialTypes?.[memberType] === 'InterfaceArray';
     const isInterfaceRecord = config.specialTypes?.[memberType] === 'InterfaceRecord';
     const hasNestedPages = config.specialTypes?.[memberType] === 'NestedPage';
+    // An axis-specific cross-line alias resolves to an empty interface whose heritage is a union
+    // type alias; expand it into its discriminated variants rather than its (empty) members.
+    const unionVariants =
+        isInterface && !isInterfaceArray && !isInterfaceRecord
+            ? getAliasedUnionVariants(interfaceRef, reference)
+            : undefined;
+    const isTypedUnion = Boolean(unionVariants);
     const expandable = isInterface || isInterfaceArray || isInterfaceRecord;
     const isObjectArray =
         !isInterfaceArray &&
@@ -188,6 +198,9 @@ function NavProperty({
         member.type.kind === 'array' &&
         reference?.has(memberType) &&
         !isInterfaceHidden(memberType);
+    // A discriminated-union array renders like `series`: a plain array of `{ type=... }` branches,
+    // not an array wrapping a single object literal (`[{ }]`).
+    const isUnionArray = isTypedUnion && isObjectArray;
 
     const navData = getNavigationDataFromPath(path, config.specialTypes);
 
@@ -283,8 +296,8 @@ function NavProperty({
                     {expandable && (
                         <OpeningBrackets
                             isOpen={isExpanded}
-                            isArray={isInterfaceArray}
-                            isObjectArray={isObjectArray}
+                            isArray={isInterfaceArray || isUnionArray}
+                            isObjectArray={isObjectArray && !isUnionArray}
                             onClick={toggleExpanded}
                         />
                     )}
@@ -293,7 +306,7 @@ function NavProperty({
             {expandable && isExpanded && (
                 <>
                     <NavGroup depth={depth + 1}>
-                        {isInterface
+                        {isInterface && !isTypedUnion
                             ? processMembers(interfaceRef, config, typeArguments)
                                   .filter((childMember) => !skip?.includes(childMember.name))
                                   .map((childMember) => (
@@ -309,17 +322,24 @@ function NavProperty({
                                           onClick={onClick}
                                       />
                                   ))
-                            : getInterfaceArrayTypes(reference, interfaceRef).map(({ name, type }) => (
-                                  <NavTypedUnionProperty
-                                      key={type}
-                                      depth={depth + 1}
-                                      path={path.concat({ name, type })}
-                                      isRecordUnion={isInterfaceRecord}
-                                      onClick={onClick}
-                                  />
-                              ))}
+                            : (unionVariants?.variants ?? getInterfaceArrayTypes(reference, interfaceRef)).map(
+                                  ({ name, type }) => (
+                                      <NavTypedUnionProperty
+                                          key={type}
+                                          depth={depth + 1}
+                                          path={path.concat({ name, type })}
+                                          isRecordUnion={isInterfaceRecord}
+                                          genericsMap={unionVariants?.genericsMap}
+                                          onClick={onClick}
+                                      />
+                                  )
+                              )}
                     </NavGroup>
-                    <ClosingBrackets depth={depth} isArray={isInterfaceArray} isObjectArray={isObjectArray} />
+                    <ClosingBrackets
+                        depth={depth}
+                        isArray={isInterfaceArray || isUnionArray}
+                        isObjectArray={isObjectArray && !isUnionArray}
+                    />
                 </>
             )}
         </>
@@ -330,25 +350,40 @@ function NavTypedUnionProperty({
     depth = 0,
     path,
     isRecordUnion,
+    genericsMap,
     onClick,
 }: {
     depth?: number;
     path: NavigationPath[];
     isRecordUnion: boolean;
+    genericsMap?: Record<string, TypeNode>;
     onClick?: (navData: NavigationData) => void;
 }) {
     const selection = useContext(SelectionContext);
     const reference = useContext(ApiReferenceContext);
     const config = useContext(ApiReferenceConfigContext);
     const navData = getNavigationDataFromPath(path, config.specialTypes);
-    const interfaceRef = reference?.get(navData.pageInterface);
+    // The variant interface is the terminal path entry. `navData.pageInterface` only advances to
+    // the variant for members registered as InterfaceArray/Record special types; an inline aliased
+    // union (e.g. a cross-line member) leaves it pointing at the page's root interface, so resolving
+    // from it would render the root interface's members instead of the variant's.
+    const variantType = path[path.length - 1].type;
+    const interfaceRef = reference?.get(variantType);
+    // An inline aliased-union variant shares its page with the root interface, so a page-level match
+    // would auto-expand it for any selection on that page. Require the selection to sit inside this
+    // variant's own subtree instead. Separate-page variants (InterfaceArray) keep the page-match.
+    const isInlineUnion = navData.pageInterface !== variantType;
 
-    const [isExpanded, toggleExpanded] = useAutoExpand(
-        () =>
+    const [isExpanded, toggleExpanded] = useAutoExpand(() => {
+        const isWithinPage =
             selection?.selection.pageInterface === navData.pageInterface &&
             Boolean(selection?.selection.hash) &&
-            selection?.selection.hash !== navData.hash
-    );
+            selection?.selection.hash !== navData.hash;
+        if (!isWithinPage) {
+            return false;
+        }
+        return isInlineUnion ? Boolean(selection?.selection.hash?.startsWith(navData.hash)) : true;
+    });
 
     if (interfaceRef?.kind !== 'interface') {
         return null;
@@ -358,6 +393,8 @@ function NavTypedUnionProperty({
         !isExpanded &&
         selection?.selection.pageInterface === navData.pageInterface &&
         selection?.selection.hash === navData.hash;
+
+    const typeArguments = buildTypeArgumentsFromGenericsMap(interfaceRef, genericsMap);
 
     return (
         <>
@@ -394,7 +431,7 @@ function NavTypedUnionProperty({
             {isExpanded && (
                 <>
                     <NavGroup depth={depth + 1}>
-                        {processMembers(interfaceRef, config).map((member) => (
+                        {processMembers(interfaceRef, config, typeArguments).map((member) => (
                             <NavProperty
                                 key={member.name}
                                 member={member}

@@ -2,7 +2,7 @@ import { objectsEqual } from 'ag-charts-core';
 import type { AgActiveItemState } from 'ag-charts-types';
 
 import type { ActiveManager } from '../interaction/activeManager';
-import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
+import type { SeriesNodeDatum } from './seriesTypes';
 
 // Strict `ActiveManager.update` args (both defined, or both undefined):
 type ActivationArgs =
@@ -13,7 +13,7 @@ type ActivationOptsNoArg = { defaultCbArg?: never };
 type ActivationOptsWithArg<A> = { defaultCbArg: A };
 type ActivationOpts<A> = ActivationOptsNoArg | ActivationOptsWithArg<A>;
 
-export type PickedNode = SeriesNodeDatum<DatumIndexType>;
+export type PickedNode = SeriesNodeDatum;
 
 export type PickedNodes = {
     matches: PickedNode[];

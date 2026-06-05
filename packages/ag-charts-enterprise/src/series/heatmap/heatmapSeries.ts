@@ -7,7 +7,6 @@ import type {
     FontWeight,
     SelectionState,
     TextAlign,
-    TextOrSegments,
     VerticalAlign,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -19,6 +18,7 @@ import {
     type InternalAgColorType,
     Logger,
     type Mutable,
+    type NormalisedTextOrSegments,
     type Point,
     type SizedPoint,
     extent,
@@ -66,7 +66,7 @@ interface HeatmapLabelDatum extends Point {
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
     datum: any;
     itemId?: never;
-    text: TextOrSegments;
+    text: NormalisedTextOrSegments;
     fontSize: number;
     lineHeight: number;
     fontStyle: FontStyle | undefined;
@@ -926,9 +926,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         addHitTestersToQuadtree(quadtree, this.datumNodesIter());
     }
 
-    protected override pickNodesExactShape(
-        point: Point
-    ): _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType>[] {
+    protected override pickNodesExactShape(point: Point): _ModuleSupport.SeriesNodeDatum[] {
         const item = findQuadtreeMatch(this, point);
         return item != null && item.distance <= 0 ? [item.datum] : [];
     }

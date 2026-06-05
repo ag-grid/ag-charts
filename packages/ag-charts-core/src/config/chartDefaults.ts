@@ -71,6 +71,7 @@ import {
 import { isValidNumberFormat } from '../utils/format/numberFormat';
 import {
     borderOptionsDef,
+    colorOrRef,
     colorUnion,
     fillCssOptionsDef,
     fillOptionsDef,
@@ -484,6 +485,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     loadGoogleFonts: boolean,
     highlight: {
+        enabled: boolean,
         drawingMode: union('overlay', 'cutout'),
         range: union('tooltip', 'node'),
     },
@@ -533,71 +535,71 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         button: {
             ...fillCssOptionsDef,
             ...strokeOptionsDef,
-            textColor: color,
+            textColor: colorOrRef,
             ...fontOptionsDef,
             cornerRadius: positiveNumber,
             padding: padding,
             active: {
                 ...fillCssOptionsDef,
                 stroke: strokeOptionsDef.stroke,
-                textColor: color,
+                textColor: colorOrRef,
             },
             disabled: {
                 ...fillCssOptionsDef,
                 stroke: strokeOptionsDef.stroke,
-                textColor: color,
+                textColor: colorOrRef,
             },
             hover: {
                 ...fillCssOptionsDef,
                 stroke: strokeOptionsDef.stroke,
-                textColor: color,
+                textColor: colorOrRef,
             },
         },
         dropdown: {
             visible: union('auto', 'always', 'never'),
             ...fillCssOptionsDef,
             ...strokeOptionsDef,
-            textColor: color,
+            textColor: colorOrRef,
             ...fontOptionsDef,
             cornerRadius: positiveNumber,
             padding: padding,
             active: {
                 ...fillCssOptionsDef,
                 stroke: strokeOptionsDef.stroke,
-                textColor: color,
+                textColor: colorOrRef,
             },
             disabled: {
                 ...fillCssOptionsDef,
                 stroke: strokeOptionsDef.stroke,
-                textColor: color,
+                textColor: colorOrRef,
             },
             hover: {
                 ...fillCssOptionsDef,
                 stroke: strokeOptionsDef.stroke,
-                textColor: color,
+                textColor: colorOrRef,
             },
         },
         gap: positiveNumber,
         ...fillCssOptionsDef,
         ...strokeOptionsDef,
-        textColor: color,
+        textColor: colorOrRef,
         ...fontOptionsDef,
         cornerRadius: positiveNumber,
         padding: padding,
         active: {
             ...fillCssOptionsDef,
             stroke: strokeOptionsDef.stroke,
-            textColor: color,
+            textColor: colorOrRef,
         },
         disabled: {
             ...fillCssOptionsDef,
             stroke: strokeOptionsDef.stroke,
-            textColor: color,
+            textColor: colorOrRef,
         },
         hover: {
             ...fillCssOptionsDef,
             stroke: strokeOptionsDef.stroke,
-            textColor: color,
+            textColor: colorOrRef,
         },
         buttons: arrayOfDefs<AgRangesButton>(
             {
@@ -621,7 +623,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     background: {
         visible: boolean,
-        fill: color,
+        fill: colorOrRef,
         // enterprise
         image: {
             url: required(string),
@@ -641,9 +643,6 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     formatter: or(callbackOf(textOrSegments), formatObjectValidator),
     enableRtl: boolean,
 };
-
-// @ts-expect-error undocumented option
-commonChartOptionsDefs.highlight.enabled = undocumented(boolean);
 
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.dataSource.requestThrottle = undocumented(positiveNumber);
@@ -805,14 +804,14 @@ export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
                             enabled: boolean,
                             shape: shapeValidator,
                             ...fillOptionsDef,
-                            stroke: color,
+                            stroke: colorOrRef,
                             strokeOpacity: ratio,
                             strokeWidth: positiveNumber,
                             ...lineDashOptionsDef,
                         },
                         line: {
                             enabled: boolean,
-                            stroke: color,
+                            stroke: colorOrRef,
                             strokeWidth: positiveNumber,
                             strokeOpacity: ratio,
                             ...lineDashOptionsDef,
@@ -849,7 +848,7 @@ export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
     xOffset: number,
     yOffset: number,
     blur: positiveNumber,
-    color: color,
+    color: colorOrRef,
 };
 
 export const interpolationOptionsDefs = typeUnion<AgInterpolationType>(

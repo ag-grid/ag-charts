@@ -3,13 +3,13 @@ import {
     type AgRadialSeriesLabelFormatterParams,
     type AgRadialSeriesStyle,
     type SelectionState,
-    type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
     ChartAxisDirection,
     type DomainWithMetadata,
     type DynamicContext,
+    type NormalisedTextOrSegments,
     type Point,
     angleBetween,
     isDefined,
@@ -65,7 +65,7 @@ class RadialBarSeriesNodeEvent<
 }
 
 interface RadialBarLabelNodeDatum {
-    text: TextOrSegments;
+    text: NormalisedTextOrSegments;
     x: number;
     y: number;
     textAlign: CanvasTextAlign;

@@ -7,7 +7,7 @@ import {
     arrayOfDefs,
     boolean,
     callbackOf,
-    color,
+    colorOrRef,
     commonChartOptionsDefs,
     constant,
     defined,
@@ -54,13 +54,14 @@ import type {
 } from 'ag-charts-types';
 
 import {
-    cartesianCrossLineOptionsDefs,
+    cartesianCrossLineLabelOptionsDefs,
     categoryAxisOptionsDefs,
     commonCrossLineLabelOptionsDefs,
-    commonCrossLineOptionsDefs,
+    crossLineStyleOptionsDefs,
     groupedCategoryAxisOptionsDefs,
     logAxisOptionsDefs,
     numberAxisOptionsDefs,
+    radiusCrossLineLabelOptionsDefs,
     timeAxisOptionsDefs,
     unitTimeAxisOptionsDefs,
 } from '../axesOptionsDefs';
@@ -134,8 +135,8 @@ const navigatorHandleOptionsDef: OptionsDefs<AgNavigatorHandleOptions> = {
     width: positiveNumber,
     height: positiveNumber,
     grip: boolean,
-    fill: color,
-    stroke: color,
+    fill: colorOrRef,
+    stroke: colorOrRef,
     strokeWidth: positiveNumber,
     cornerRadius: positiveNumber,
 };
@@ -146,9 +147,9 @@ const navigatorOptionsDef: OptionsDefs<AgNavigatorThemeableOptions> = {
     spacing: positiveNumber,
     cornerRadius: number,
     mask: {
-        fill: color,
+        fill: colorOrRef,
         fillOpacity: ratio,
-        stroke: color,
+        stroke: colorOrRef,
         strokeWidth: positiveNumber,
     },
     minHandle: navigatorHandleOptionsDef,
@@ -230,7 +231,10 @@ export const scrollbarOptionsDef: OptionsDefs<AgScrollbarOptions> = {
     vertical: scrollbarVerticalOrientationOptionsDef,
 };
 
-const cartesianCrossLineThemeableOptionsDefs = without(cartesianCrossLineOptionsDefs, ['type', 'value', 'range']);
+const cartesianCrossLineThemeableOptionsDefs = {
+    ...crossLineStyleOptionsDefs,
+    label: cartesianCrossLineLabelOptionsDefs,
+};
 
 const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
     number: {
@@ -294,31 +298,19 @@ const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
 const polarAxesThemeDef: OptionsDefs<AgPolarAxesTheme> = {
     'angle-category': {
         ...without(angleCategoryAxisOptionsDefs, ['type', 'crossLines']),
-        crossLines: without(commonCrossLineOptionsDefs, ['type']),
+        crossLines: { ...crossLineStyleOptionsDefs, label: commonCrossLineLabelOptionsDefs },
     },
     'angle-number': {
         ...without(angleNumberAxisOptionsDefs, ['type', 'crossLines']),
-        crossLines: without(commonCrossLineOptionsDefs, ['type']),
+        crossLines: { ...crossLineStyleOptionsDefs, label: commonCrossLineLabelOptionsDefs },
     },
     'radius-category': {
         ...without(radiusCategoryAxisOptionsDefs, ['type', 'crossLines']),
-        crossLines: {
-            ...without(commonCrossLineOptionsDefs, ['type']),
-            label: {
-                ...commonCrossLineLabelOptionsDefs,
-                positionAngle: number,
-            },
-        },
+        crossLines: { ...crossLineStyleOptionsDefs, label: radiusCrossLineLabelOptionsDefs },
     },
     'radius-number': {
         ...without(radiusNumberAxisOptionsDefs, ['type', 'crossLines']),
-        crossLines: {
-            ...without(commonCrossLineOptionsDefs, ['type']),
-            label: {
-                ...commonCrossLineLabelOptionsDefs,
-                positionAngle: number,
-            },
-        },
+        crossLines: { ...crossLineStyleOptionsDefs, label: radiusCrossLineLabelOptionsDefs },
     },
 };
 

@@ -1,6 +1,7 @@
-import type { ContentSegment, ImageSegment, Padding, PaddingOptions } from 'ag-charts-types';
+import type { ImageSegment, Padding, PaddingOptions } from 'ag-charts-types';
 
 import { LRUCache } from '../structures/lruCache';
+import type { NormalisedContentSegment } from '../types/normalised-options/normalisedCommonOptions';
 import {
     type FontOptions,
     type ITextMeasurer,
@@ -203,7 +204,7 @@ export function blockStripHeight(images: { textMetrics: TextMetricsBox }[]): num
  * the text column flows to the right of the entire strip. Block images sitting mid-line
  * (preceded by inline content with no `\n`) keep the inline-image behaviour.
  */
-export function isBlockBoundary(segments: ContentSegment[], i: number): boolean {
+export function isBlockBoundary(segments: NormalisedContentSegment[], i: number): boolean {
     const seg = segments[i];
     if (seg?.type !== 'image' || seg.block !== true) return false;
     // Walk back over the contiguous run of block images this segment belongs to. The run is a
@@ -227,7 +228,7 @@ function emptyLine(): SegmentsLineMetrics {
 }
 
 export function measureTextSegments(
-    textSegments: ContentSegment[],
+    textSegments: NormalisedContentSegment[],
     defaultFont: FontOptions
 ): MultilineSegmentsMetricsBox {
     let currentLine = emptyLine();

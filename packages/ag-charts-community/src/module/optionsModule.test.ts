@@ -318,6 +318,7 @@ const ENABLED_FALSE_OPTIONS: AgCartesianChartOptions = {
                 {
                     enabled: false,
                     type: 'range',
+                    range: [new Date('2019-01-01'), new Date('2019-06-01')],
                     label: {
                         enabled: false,
                         text: 'Custom Crossline Label',
@@ -401,6 +402,7 @@ const INTRINSIC_ENABLE_CROSSLINE_OPTIONS: AgCartesianChartOptions = {
             crossLines: [
                 {
                     type: 'range',
+                    range: [new Date('2019-01-01'), new Date('2019-06-01')],
                     label: {
                         text: 'Custom Crossline Label',
                     },
@@ -497,467 +499,467 @@ describe('ChartOptions', () => {
             const { series: options } = prepareOptions({ series: seriesOptions });
 
             expect(options).toMatchInlineSnapshot(`
-[
-  {
-    "direction": "vertical",
-    "fill": "pink",
-    "fillOpacity": 1,
-    "highlight": {
-      "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
-      "unhighlightedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "label": {
-      "border": {
-        "enabled": false,
-        "stroke": "rgba(24, 29, 31, 0.08)",
-        "strokeWidth": 1,
-      },
-      "color": "white",
-      "cornerRadius": 4,
-      "enabled": false,
-      "fontFamily": "Verdana, sans-serif",
-      "fontSize": 12,
-      "fontWeight": 400,
-      "padding": 8,
-      "placement": "inside-center",
-    },
-    "lineDash": [
-      0,
-    ],
-    "lineDashOffset": 0,
-    "segmentation": {
-      "enabled": false,
-      "key": "x",
-    },
-    "selection": {
-      "enabled": false,
-      "selectedItem": {
-        "strokeWidth": 2,
-      },
-      "unselectedItem": {
-        "opacity": 0.6,
-      },
-      "unselectedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "seriesGrouping": {
-      "groupCount": 4,
-      "groupId": "bar-quarter-grouped",
-      "groupIndex": 0,
-      "stackCount": 0,
-      "stackIndex": 0,
-    },
-    "shadow": {
-      "blur": 5,
-      "color": "#00000080",
-      "enabled": false,
-      "xOffset": 3,
-      "yOffset": 3,
-    },
-    "showInLegend": true,
-    "stroke": "#2b5c95",
-    "strokeWidth": 0,
-    "tooltip": {
-      "position": {
-        "anchorTo": "pointer",
-        "offset": 8,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
-      "range": "exact",
-    },
-    "type": "bar",
-    "visible": true,
-    "xKey": "quarter",
-    "yKey": "iphone",
-    "yName": "IPhone",
-  },
-  {
-    "direction": "vertical",
-    "fill": "red",
-    "fillOpacity": 1,
-    "highlight": {
-      "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
-      "unhighlightedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "label": {
-      "border": {
-        "enabled": false,
-        "stroke": "rgba(24, 29, 31, 0.08)",
-        "strokeWidth": 1,
-      },
-      "color": "white",
-      "cornerRadius": 4,
-      "enabled": false,
-      "fontFamily": "Verdana, sans-serif",
-      "fontSize": 12,
-      "fontWeight": 400,
-      "padding": 8,
-      "placement": "inside-center",
-    },
-    "lineDash": [
-      0,
-    ],
-    "lineDashOffset": 0,
-    "segmentation": {
-      "enabled": false,
-      "key": "x",
-    },
-    "selection": {
-      "enabled": false,
-      "selectedItem": {
-        "strokeWidth": 2,
-      },
-      "unselectedItem": {
-        "opacity": 0.6,
-      },
-      "unselectedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "seriesGrouping": {
-      "groupCount": 4,
-      "groupId": "bar-quarter-grouped",
-      "groupIndex": 1,
-      "stackCount": 0,
-      "stackIndex": 0,
-    },
-    "shadow": {
-      "blur": 5,
-      "color": "#00000080",
-      "enabled": false,
-      "xOffset": 3,
-      "yOffset": 3,
-    },
-    "showInLegend": false,
-    "stroke": "#cc6f10",
-    "strokeWidth": 0,
-    "tooltip": {
-      "position": {
-        "anchorTo": "pointer",
-        "offset": 8,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
-      "range": "exact",
-    },
-    "type": "bar",
-    "visible": true,
-    "xKey": "quarter",
-    "yKey": "mac",
-    "yName": "Mac",
-  },
-  {
-    "direction": "vertical",
-    "fill": "#459d55",
-    "fillOpacity": 1,
-    "highlight": {
-      "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
-      "unhighlightedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "label": {
-      "border": {
-        "enabled": false,
-        "stroke": "rgba(24, 29, 31, 0.08)",
-        "strokeWidth": 1,
-      },
-      "color": "white",
-      "cornerRadius": 4,
-      "enabled": false,
-      "fontFamily": "Verdana, sans-serif",
-      "fontSize": 12,
-      "fontWeight": 400,
-      "padding": 8,
-      "placement": "inside-center",
-    },
-    "lineDash": [
-      0,
-    ],
-    "lineDashOffset": 0,
-    "segmentation": {
-      "enabled": false,
-      "key": "x",
-    },
-    "selection": {
-      "enabled": false,
-      "selectedItem": {
-        "strokeWidth": 2,
-      },
-      "unselectedItem": {
-        "opacity": 0.6,
-      },
-      "unselectedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "seriesGrouping": {
-      "groupCount": 4,
-      "groupId": "bar-quarter-grouped",
-      "groupIndex": 2,
-      "stackCount": 0,
-      "stackIndex": 0,
-    },
-    "shadow": {
-      "blur": 5,
-      "color": "#00000080",
-      "enabled": false,
-      "xOffset": 3,
-      "yOffset": 3,
-    },
-    "showInLegend": true,
-    "stroke": "#1e652e",
-    "strokeWidth": 0,
-    "tooltip": {
-      "position": {
-        "anchorTo": "pointer",
-        "offset": 8,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
-      "range": "exact",
-    },
-    "type": "bar",
-    "visible": true,
-    "xKey": "quarter",
-    "yKey": "wearables",
-    "yName": "Wearables",
-  },
-  {
-    "direction": "vertical",
-    "fill": "#34bfe1",
-    "fillOpacity": 1,
-    "highlight": {
-      "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
-      "unhighlightedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "label": {
-      "border": {
-        "enabled": false,
-        "stroke": "rgba(24, 29, 31, 0.08)",
-        "strokeWidth": 1,
-      },
-      "color": "white",
-      "cornerRadius": 4,
-      "enabled": false,
-      "fontFamily": "Verdana, sans-serif",
-      "fontSize": 12,
-      "fontWeight": 400,
-      "padding": 8,
-      "placement": "inside-center",
-    },
-    "lineDash": [
-      0,
-    ],
-    "lineDashOffset": 0,
-    "segmentation": {
-      "enabled": false,
-      "key": "x",
-    },
-    "selection": {
-      "enabled": false,
-      "selectedItem": {
-        "strokeWidth": 2,
-      },
-      "unselectedItem": {
-        "opacity": 0.6,
-      },
-      "unselectedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "seriesGrouping": {
-      "groupCount": 4,
-      "groupId": "bar-quarter-grouped",
-      "groupIndex": 3,
-      "stackCount": 0,
-      "stackIndex": 0,
-    },
-    "shadow": {
-      "blur": 5,
-      "color": "#00000080",
-      "enabled": false,
-      "xOffset": 3,
-      "yOffset": 3,
-    },
-    "showInLegend": false,
-    "stroke": "#18859e",
-    "strokeWidth": 0,
-    "tooltip": {
-      "position": {
-        "anchorTo": "pointer",
-        "offset": 8,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
-      "range": "exact",
-    },
-    "type": "bar",
-    "visible": true,
-    "xKey": "quarter",
-    "yKey": "services",
-    "yName": "Services",
-  },
-  {
-    "highlight": {
-      "enabled": true,
-      "unhighlightedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "interpolation": {
-      "type": "linear",
-    },
-    "label": {
-      "border": {
-        "enabled": false,
-        "stroke": "rgba(24, 29, 31, 0.08)",
-        "strokeWidth": 1,
-      },
-      "color": "#181d1f",
-      "cornerRadius": 4,
-      "enabled": false,
-      "fontFamily": "Verdana, sans-serif",
-      "fontSize": 12,
-      "fontWeight": 400,
-      "padding": 8,
-    },
-    "lineDash": [
-      0,
-    ],
-    "lineDashOffset": 0,
-    "marker": {
-      "fill": "#e1cc00",
-      "shape": "circle",
-      "size": 7,
-      "stroke": "#a69400",
-      "strokeWidth": 0,
-    },
-    "segmentation": {
-      "enabled": false,
-      "key": "x",
-    },
-    "selection": {
-      "enabled": false,
-      "selectedItem": {
-        "strokeWidth": 2,
-      },
-      "unselectedItem": {
-        "opacity": 0.6,
-      },
-      "unselectedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "stroke": "#e1cc00",
-    "strokeOpacity": 1,
-    "strokeWidth": 2,
-    "tooltip": {
-      "position": {
-        "anchorTo": "node",
-        "offset": 8,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
-      "range": "nearest",
-    },
-    "type": "line",
-    "visible": true,
-    "xKey": "quarter",
-    "yKey": "mac",
-    "yName": "Mac",
-  },
-  {
-    "highlight": {
-      "enabled": true,
-      "unhighlightedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "interpolation": {
-      "type": "linear",
-    },
-    "label": {
-      "border": {
-        "enabled": false,
-        "stroke": "rgba(24, 29, 31, 0.08)",
-        "strokeWidth": 1,
-      },
-      "color": "#181d1f",
-      "cornerRadius": 4,
-      "enabled": false,
-      "fontFamily": "Verdana, sans-serif",
-      "fontSize": 12,
-      "fontWeight": 400,
-      "padding": 8,
-    },
-    "lineDash": [
-      0,
-    ],
-    "lineDashOffset": 0,
-    "marker": {
-      "fill": "#9669cb",
-      "shape": "circle",
-      "size": 7,
-      "stroke": "#603c88",
-      "strokeWidth": 0,
-    },
-    "segmentation": {
-      "enabled": false,
-      "key": "x",
-    },
-    "selection": {
-      "enabled": false,
-      "selectedItem": {
-        "strokeWidth": 2,
-      },
-      "unselectedItem": {
-        "opacity": 0.6,
-      },
-      "unselectedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "stroke": "#9669cb",
-    "strokeOpacity": 1,
-    "strokeWidth": 2,
-    "tooltip": {
-      "position": {
-        "anchorTo": "node",
-        "offset": 8,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
-      "range": "nearest",
-    },
-    "type": "line",
-    "visible": true,
-    "xKey": "quarter",
-    "yKey": "iphone",
-    "yName": "IPhone",
-  },
-]
-`);
+              [
+                {
+                  "direction": "vertical",
+                  "fill": "pink",
+                  "fillOpacity": 1,
+                  "highlight": {
+                    "enabled": true,
+                    "unhighlightedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unhighlightedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "label": {
+                    "border": {
+                      "enabled": false,
+                      "stroke": "rgba(24, 29, 31, 0.08)",
+                      "strokeWidth": 1,
+                    },
+                    "color": "white",
+                    "cornerRadius": 4,
+                    "enabled": false,
+                    "fontFamily": "Verdana, sans-serif",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "padding": 8,
+                    "placement": "inside-center",
+                  },
+                  "lineDash": [
+                    0,
+                  ],
+                  "lineDashOffset": 0,
+                  "segmentation": {
+                    "enabled": false,
+                    "key": "x",
+                  },
+                  "selection": {
+                    "enabled": false,
+                    "selectedItem": {
+                      "strokeWidth": 2,
+                    },
+                    "unselectedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unselectedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "seriesGrouping": {
+                    "groupCount": 4,
+                    "groupId": "bar-quarter-grouped",
+                    "groupIndex": 0,
+                    "stackCount": 0,
+                    "stackIndex": 0,
+                  },
+                  "shadow": {
+                    "blur": 5,
+                    "color": "#00000080",
+                    "enabled": false,
+                    "xOffset": 3,
+                    "yOffset": 3,
+                  },
+                  "showInLegend": true,
+                  "stroke": "#2b5c95",
+                  "strokeWidth": 0,
+                  "tooltip": {
+                    "position": {
+                      "anchorTo": "pointer",
+                      "offset": 12,
+                      "xOffset": 0,
+                      "yOffset": 0,
+                    },
+                    "range": "exact",
+                  },
+                  "type": "bar",
+                  "visible": true,
+                  "xKey": "quarter",
+                  "yKey": "iphone",
+                  "yName": "IPhone",
+                },
+                {
+                  "direction": "vertical",
+                  "fill": "red",
+                  "fillOpacity": 1,
+                  "highlight": {
+                    "enabled": true,
+                    "unhighlightedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unhighlightedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "label": {
+                    "border": {
+                      "enabled": false,
+                      "stroke": "rgba(24, 29, 31, 0.08)",
+                      "strokeWidth": 1,
+                    },
+                    "color": "white",
+                    "cornerRadius": 4,
+                    "enabled": false,
+                    "fontFamily": "Verdana, sans-serif",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "padding": 8,
+                    "placement": "inside-center",
+                  },
+                  "lineDash": [
+                    0,
+                  ],
+                  "lineDashOffset": 0,
+                  "segmentation": {
+                    "enabled": false,
+                    "key": "x",
+                  },
+                  "selection": {
+                    "enabled": false,
+                    "selectedItem": {
+                      "strokeWidth": 2,
+                    },
+                    "unselectedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unselectedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "seriesGrouping": {
+                    "groupCount": 4,
+                    "groupId": "bar-quarter-grouped",
+                    "groupIndex": 1,
+                    "stackCount": 0,
+                    "stackIndex": 0,
+                  },
+                  "shadow": {
+                    "blur": 5,
+                    "color": "#00000080",
+                    "enabled": false,
+                    "xOffset": 3,
+                    "yOffset": 3,
+                  },
+                  "showInLegend": false,
+                  "stroke": "#cc6f10",
+                  "strokeWidth": 0,
+                  "tooltip": {
+                    "position": {
+                      "anchorTo": "pointer",
+                      "offset": 12,
+                      "xOffset": 0,
+                      "yOffset": 0,
+                    },
+                    "range": "exact",
+                  },
+                  "type": "bar",
+                  "visible": true,
+                  "xKey": "quarter",
+                  "yKey": "mac",
+                  "yName": "Mac",
+                },
+                {
+                  "direction": "vertical",
+                  "fill": "#459d55",
+                  "fillOpacity": 1,
+                  "highlight": {
+                    "enabled": true,
+                    "unhighlightedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unhighlightedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "label": {
+                    "border": {
+                      "enabled": false,
+                      "stroke": "rgba(24, 29, 31, 0.08)",
+                      "strokeWidth": 1,
+                    },
+                    "color": "white",
+                    "cornerRadius": 4,
+                    "enabled": false,
+                    "fontFamily": "Verdana, sans-serif",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "padding": 8,
+                    "placement": "inside-center",
+                  },
+                  "lineDash": [
+                    0,
+                  ],
+                  "lineDashOffset": 0,
+                  "segmentation": {
+                    "enabled": false,
+                    "key": "x",
+                  },
+                  "selection": {
+                    "enabled": false,
+                    "selectedItem": {
+                      "strokeWidth": 2,
+                    },
+                    "unselectedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unselectedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "seriesGrouping": {
+                    "groupCount": 4,
+                    "groupId": "bar-quarter-grouped",
+                    "groupIndex": 2,
+                    "stackCount": 0,
+                    "stackIndex": 0,
+                  },
+                  "shadow": {
+                    "blur": 5,
+                    "color": "#00000080",
+                    "enabled": false,
+                    "xOffset": 3,
+                    "yOffset": 3,
+                  },
+                  "showInLegend": true,
+                  "stroke": "#1e652e",
+                  "strokeWidth": 0,
+                  "tooltip": {
+                    "position": {
+                      "anchorTo": "pointer",
+                      "offset": 12,
+                      "xOffset": 0,
+                      "yOffset": 0,
+                    },
+                    "range": "exact",
+                  },
+                  "type": "bar",
+                  "visible": true,
+                  "xKey": "quarter",
+                  "yKey": "wearables",
+                  "yName": "Wearables",
+                },
+                {
+                  "direction": "vertical",
+                  "fill": "#34bfe1",
+                  "fillOpacity": 1,
+                  "highlight": {
+                    "enabled": true,
+                    "unhighlightedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unhighlightedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "label": {
+                    "border": {
+                      "enabled": false,
+                      "stroke": "rgba(24, 29, 31, 0.08)",
+                      "strokeWidth": 1,
+                    },
+                    "color": "white",
+                    "cornerRadius": 4,
+                    "enabled": false,
+                    "fontFamily": "Verdana, sans-serif",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "padding": 8,
+                    "placement": "inside-center",
+                  },
+                  "lineDash": [
+                    0,
+                  ],
+                  "lineDashOffset": 0,
+                  "segmentation": {
+                    "enabled": false,
+                    "key": "x",
+                  },
+                  "selection": {
+                    "enabled": false,
+                    "selectedItem": {
+                      "strokeWidth": 2,
+                    },
+                    "unselectedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unselectedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "seriesGrouping": {
+                    "groupCount": 4,
+                    "groupId": "bar-quarter-grouped",
+                    "groupIndex": 3,
+                    "stackCount": 0,
+                    "stackIndex": 0,
+                  },
+                  "shadow": {
+                    "blur": 5,
+                    "color": "#00000080",
+                    "enabled": false,
+                    "xOffset": 3,
+                    "yOffset": 3,
+                  },
+                  "showInLegend": false,
+                  "stroke": "#18859e",
+                  "strokeWidth": 0,
+                  "tooltip": {
+                    "position": {
+                      "anchorTo": "pointer",
+                      "offset": 12,
+                      "xOffset": 0,
+                      "yOffset": 0,
+                    },
+                    "range": "exact",
+                  },
+                  "type": "bar",
+                  "visible": true,
+                  "xKey": "quarter",
+                  "yKey": "services",
+                  "yName": "Services",
+                },
+                {
+                  "highlight": {
+                    "enabled": true,
+                    "unhighlightedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "interpolation": {
+                    "type": "linear",
+                  },
+                  "label": {
+                    "border": {
+                      "enabled": false,
+                      "stroke": "rgba(24, 29, 31, 0.08)",
+                      "strokeWidth": 1,
+                    },
+                    "color": "#181d1f",
+                    "cornerRadius": 4,
+                    "enabled": false,
+                    "fontFamily": "Verdana, sans-serif",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "padding": 8,
+                  },
+                  "lineDash": [
+                    0,
+                  ],
+                  "lineDashOffset": 0,
+                  "marker": {
+                    "fill": "#e1cc00",
+                    "shape": "circle",
+                    "size": 7,
+                    "stroke": "#a69400",
+                    "strokeWidth": 0,
+                  },
+                  "segmentation": {
+                    "enabled": false,
+                    "key": "x",
+                  },
+                  "selection": {
+                    "enabled": false,
+                    "selectedItem": {
+                      "strokeWidth": 2,
+                    },
+                    "unselectedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unselectedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "stroke": "#e1cc00",
+                  "strokeOpacity": 1,
+                  "strokeWidth": 2,
+                  "tooltip": {
+                    "position": {
+                      "anchorTo": "node",
+                      "offset": 12,
+                      "xOffset": 0,
+                      "yOffset": 0,
+                    },
+                    "range": "nearest",
+                  },
+                  "type": "line",
+                  "visible": true,
+                  "xKey": "quarter",
+                  "yKey": "mac",
+                  "yName": "Mac",
+                },
+                {
+                  "highlight": {
+                    "enabled": true,
+                    "unhighlightedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "interpolation": {
+                    "type": "linear",
+                  },
+                  "label": {
+                    "border": {
+                      "enabled": false,
+                      "stroke": "rgba(24, 29, 31, 0.08)",
+                      "strokeWidth": 1,
+                    },
+                    "color": "#181d1f",
+                    "cornerRadius": 4,
+                    "enabled": false,
+                    "fontFamily": "Verdana, sans-serif",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "padding": 8,
+                  },
+                  "lineDash": [
+                    0,
+                  ],
+                  "lineDashOffset": 0,
+                  "marker": {
+                    "fill": "#9669cb",
+                    "shape": "circle",
+                    "size": 7,
+                    "stroke": "#603c88",
+                    "strokeWidth": 0,
+                  },
+                  "segmentation": {
+                    "enabled": false,
+                    "key": "x",
+                  },
+                  "selection": {
+                    "enabled": false,
+                    "selectedItem": {
+                      "strokeWidth": 2,
+                    },
+                    "unselectedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unselectedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "stroke": "#9669cb",
+                  "strokeOpacity": 1,
+                  "strokeWidth": 2,
+                  "tooltip": {
+                    "position": {
+                      "anchorTo": "node",
+                      "offset": 12,
+                      "xOffset": 0,
+                      "yOffset": 0,
+                    },
+                    "range": "nearest",
+                  },
+                  "type": "line",
+                  "visible": true,
+                  "xKey": "quarter",
+                  "yKey": "iphone",
+                  "yName": "IPhone",
+                },
+              ]
+            `);
         });
 
         test('Series options with grouped columns processing works as expected', () => {
@@ -966,467 +968,467 @@ describe('ChartOptions', () => {
             });
 
             expect(options).toMatchInlineSnapshot(`
-[
-  {
-    "direction": "vertical",
-    "fill": "pink",
-    "fillOpacity": 1,
-    "highlight": {
-      "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
-      "unhighlightedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "label": {
-      "border": {
-        "enabled": false,
-        "stroke": "rgba(24, 29, 31, 0.08)",
-        "strokeWidth": 1,
-      },
-      "color": "white",
-      "cornerRadius": 4,
-      "enabled": false,
-      "fontFamily": "Verdana, sans-serif",
-      "fontSize": 12,
-      "fontWeight": 400,
-      "padding": 8,
-      "placement": "inside-center",
-    },
-    "lineDash": [
-      0,
-    ],
-    "lineDashOffset": 0,
-    "segmentation": {
-      "enabled": false,
-      "key": "x",
-    },
-    "selection": {
-      "enabled": false,
-      "selectedItem": {
-        "strokeWidth": 2,
-      },
-      "unselectedItem": {
-        "opacity": 0.6,
-      },
-      "unselectedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "seriesGrouping": {
-      "groupCount": 4,
-      "groupId": "bar-quarter-grouped",
-      "groupIndex": 0,
-      "stackCount": 0,
-      "stackIndex": 0,
-    },
-    "shadow": {
-      "blur": 5,
-      "color": "#00000080",
-      "enabled": false,
-      "xOffset": 3,
-      "yOffset": 3,
-    },
-    "showInLegend": true,
-    "stroke": "#2b5c95",
-    "strokeWidth": 0,
-    "tooltip": {
-      "position": {
-        "anchorTo": "pointer",
-        "offset": 8,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
-      "range": "exact",
-    },
-    "type": "bar",
-    "visible": true,
-    "xKey": "quarter",
-    "yKey": "iphone",
-    "yName": "IPhone",
-  },
-  {
-    "direction": "vertical",
-    "fill": "red",
-    "fillOpacity": 1,
-    "highlight": {
-      "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
-      "unhighlightedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "label": {
-      "border": {
-        "enabled": false,
-        "stroke": "rgba(24, 29, 31, 0.08)",
-        "strokeWidth": 1,
-      },
-      "color": "white",
-      "cornerRadius": 4,
-      "enabled": false,
-      "fontFamily": "Verdana, sans-serif",
-      "fontSize": 12,
-      "fontWeight": 400,
-      "padding": 8,
-      "placement": "inside-center",
-    },
-    "lineDash": [
-      0,
-    ],
-    "lineDashOffset": 0,
-    "segmentation": {
-      "enabled": false,
-      "key": "x",
-    },
-    "selection": {
-      "enabled": false,
-      "selectedItem": {
-        "strokeWidth": 2,
-      },
-      "unselectedItem": {
-        "opacity": 0.6,
-      },
-      "unselectedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "seriesGrouping": {
-      "groupCount": 4,
-      "groupId": "bar-quarter-grouped",
-      "groupIndex": 1,
-      "stackCount": 0,
-      "stackIndex": 0,
-    },
-    "shadow": {
-      "blur": 5,
-      "color": "#00000080",
-      "enabled": false,
-      "xOffset": 3,
-      "yOffset": 3,
-    },
-    "showInLegend": false,
-    "stroke": "#cc6f10",
-    "strokeWidth": 0,
-    "tooltip": {
-      "position": {
-        "anchorTo": "pointer",
-        "offset": 8,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
-      "range": "exact",
-    },
-    "type": "bar",
-    "visible": true,
-    "xKey": "quarter",
-    "yKey": "mac",
-    "yName": "Mac",
-  },
-  {
-    "direction": "vertical",
-    "fill": "#459d55",
-    "fillOpacity": 1,
-    "highlight": {
-      "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
-      "unhighlightedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "label": {
-      "border": {
-        "enabled": false,
-        "stroke": "rgba(24, 29, 31, 0.08)",
-        "strokeWidth": 1,
-      },
-      "color": "white",
-      "cornerRadius": 4,
-      "enabled": false,
-      "fontFamily": "Verdana, sans-serif",
-      "fontSize": 12,
-      "fontWeight": 400,
-      "padding": 8,
-      "placement": "inside-center",
-    },
-    "lineDash": [
-      0,
-    ],
-    "lineDashOffset": 0,
-    "segmentation": {
-      "enabled": false,
-      "key": "x",
-    },
-    "selection": {
-      "enabled": false,
-      "selectedItem": {
-        "strokeWidth": 2,
-      },
-      "unselectedItem": {
-        "opacity": 0.6,
-      },
-      "unselectedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "seriesGrouping": {
-      "groupCount": 4,
-      "groupId": "bar-quarter-grouped",
-      "groupIndex": 2,
-      "stackCount": 0,
-      "stackIndex": 0,
-    },
-    "shadow": {
-      "blur": 5,
-      "color": "#00000080",
-      "enabled": false,
-      "xOffset": 3,
-      "yOffset": 3,
-    },
-    "showInLegend": true,
-    "stroke": "#1e652e",
-    "strokeWidth": 0,
-    "tooltip": {
-      "position": {
-        "anchorTo": "pointer",
-        "offset": 8,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
-      "range": "exact",
-    },
-    "type": "bar",
-    "visible": true,
-    "xKey": "quarter",
-    "yKey": "wearables",
-    "yName": "Wearables",
-  },
-  {
-    "direction": "vertical",
-    "fill": "#34bfe1",
-    "fillOpacity": 1,
-    "highlight": {
-      "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
-      "unhighlightedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "label": {
-      "border": {
-        "enabled": false,
-        "stroke": "rgba(24, 29, 31, 0.08)",
-        "strokeWidth": 1,
-      },
-      "color": "white",
-      "cornerRadius": 4,
-      "enabled": false,
-      "fontFamily": "Verdana, sans-serif",
-      "fontSize": 12,
-      "fontWeight": 400,
-      "padding": 8,
-      "placement": "inside-center",
-    },
-    "lineDash": [
-      0,
-    ],
-    "lineDashOffset": 0,
-    "segmentation": {
-      "enabled": false,
-      "key": "x",
-    },
-    "selection": {
-      "enabled": false,
-      "selectedItem": {
-        "strokeWidth": 2,
-      },
-      "unselectedItem": {
-        "opacity": 0.6,
-      },
-      "unselectedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "seriesGrouping": {
-      "groupCount": 4,
-      "groupId": "bar-quarter-grouped",
-      "groupIndex": 3,
-      "stackCount": 0,
-      "stackIndex": 0,
-    },
-    "shadow": {
-      "blur": 5,
-      "color": "#00000080",
-      "enabled": false,
-      "xOffset": 3,
-      "yOffset": 3,
-    },
-    "showInLegend": false,
-    "stroke": "#18859e",
-    "strokeWidth": 0,
-    "tooltip": {
-      "position": {
-        "anchorTo": "pointer",
-        "offset": 8,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
-      "range": "exact",
-    },
-    "type": "bar",
-    "visible": true,
-    "xKey": "quarter",
-    "yKey": "services",
-    "yName": "Services",
-  },
-  {
-    "highlight": {
-      "enabled": true,
-      "unhighlightedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "interpolation": {
-      "type": "linear",
-    },
-    "label": {
-      "border": {
-        "enabled": false,
-        "stroke": "rgba(24, 29, 31, 0.08)",
-        "strokeWidth": 1,
-      },
-      "color": "#181d1f",
-      "cornerRadius": 4,
-      "enabled": false,
-      "fontFamily": "Verdana, sans-serif",
-      "fontSize": 12,
-      "fontWeight": 400,
-      "padding": 8,
-    },
-    "lineDash": [
-      0,
-    ],
-    "lineDashOffset": 0,
-    "marker": {
-      "fill": "#e1cc00",
-      "shape": "circle",
-      "size": 7,
-      "stroke": "#a69400",
-      "strokeWidth": 0,
-    },
-    "segmentation": {
-      "enabled": false,
-      "key": "x",
-    },
-    "selection": {
-      "enabled": false,
-      "selectedItem": {
-        "strokeWidth": 2,
-      },
-      "unselectedItem": {
-        "opacity": 0.6,
-      },
-      "unselectedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "stroke": "#e1cc00",
-    "strokeOpacity": 1,
-    "strokeWidth": 2,
-    "tooltip": {
-      "position": {
-        "anchorTo": "node",
-        "offset": 8,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
-      "range": "nearest",
-    },
-    "type": "line",
-    "visible": true,
-    "xKey": "quarter",
-    "yKey": "mac",
-    "yName": "Mac",
-  },
-  {
-    "highlight": {
-      "enabled": true,
-      "unhighlightedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "interpolation": {
-      "type": "linear",
-    },
-    "label": {
-      "border": {
-        "enabled": false,
-        "stroke": "rgba(24, 29, 31, 0.08)",
-        "strokeWidth": 1,
-      },
-      "color": "#181d1f",
-      "cornerRadius": 4,
-      "enabled": false,
-      "fontFamily": "Verdana, sans-serif",
-      "fontSize": 12,
-      "fontWeight": 400,
-      "padding": 8,
-    },
-    "lineDash": [
-      0,
-    ],
-    "lineDashOffset": 0,
-    "marker": {
-      "fill": "#9669cb",
-      "shape": "circle",
-      "size": 7,
-      "stroke": "#603c88",
-      "strokeWidth": 0,
-    },
-    "segmentation": {
-      "enabled": false,
-      "key": "x",
-    },
-    "selection": {
-      "enabled": false,
-      "selectedItem": {
-        "strokeWidth": 2,
-      },
-      "unselectedItem": {
-        "opacity": 0.6,
-      },
-      "unselectedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "stroke": "#9669cb",
-    "strokeOpacity": 1,
-    "strokeWidth": 2,
-    "tooltip": {
-      "position": {
-        "anchorTo": "node",
-        "offset": 8,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
-      "range": "nearest",
-    },
-    "type": "line",
-    "visible": true,
-    "xKey": "quarter",
-    "yKey": "iphone",
-    "yName": "IPhone",
-  },
-]
-`);
+              [
+                {
+                  "direction": "vertical",
+                  "fill": "pink",
+                  "fillOpacity": 1,
+                  "highlight": {
+                    "enabled": true,
+                    "unhighlightedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unhighlightedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "label": {
+                    "border": {
+                      "enabled": false,
+                      "stroke": "rgba(24, 29, 31, 0.08)",
+                      "strokeWidth": 1,
+                    },
+                    "color": "white",
+                    "cornerRadius": 4,
+                    "enabled": false,
+                    "fontFamily": "Verdana, sans-serif",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "padding": 8,
+                    "placement": "inside-center",
+                  },
+                  "lineDash": [
+                    0,
+                  ],
+                  "lineDashOffset": 0,
+                  "segmentation": {
+                    "enabled": false,
+                    "key": "x",
+                  },
+                  "selection": {
+                    "enabled": false,
+                    "selectedItem": {
+                      "strokeWidth": 2,
+                    },
+                    "unselectedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unselectedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "seriesGrouping": {
+                    "groupCount": 4,
+                    "groupId": "bar-quarter-grouped",
+                    "groupIndex": 0,
+                    "stackCount": 0,
+                    "stackIndex": 0,
+                  },
+                  "shadow": {
+                    "blur": 5,
+                    "color": "#00000080",
+                    "enabled": false,
+                    "xOffset": 3,
+                    "yOffset": 3,
+                  },
+                  "showInLegend": true,
+                  "stroke": "#2b5c95",
+                  "strokeWidth": 0,
+                  "tooltip": {
+                    "position": {
+                      "anchorTo": "pointer",
+                      "offset": 12,
+                      "xOffset": 0,
+                      "yOffset": 0,
+                    },
+                    "range": "exact",
+                  },
+                  "type": "bar",
+                  "visible": true,
+                  "xKey": "quarter",
+                  "yKey": "iphone",
+                  "yName": "IPhone",
+                },
+                {
+                  "direction": "vertical",
+                  "fill": "red",
+                  "fillOpacity": 1,
+                  "highlight": {
+                    "enabled": true,
+                    "unhighlightedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unhighlightedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "label": {
+                    "border": {
+                      "enabled": false,
+                      "stroke": "rgba(24, 29, 31, 0.08)",
+                      "strokeWidth": 1,
+                    },
+                    "color": "white",
+                    "cornerRadius": 4,
+                    "enabled": false,
+                    "fontFamily": "Verdana, sans-serif",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "padding": 8,
+                    "placement": "inside-center",
+                  },
+                  "lineDash": [
+                    0,
+                  ],
+                  "lineDashOffset": 0,
+                  "segmentation": {
+                    "enabled": false,
+                    "key": "x",
+                  },
+                  "selection": {
+                    "enabled": false,
+                    "selectedItem": {
+                      "strokeWidth": 2,
+                    },
+                    "unselectedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unselectedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "seriesGrouping": {
+                    "groupCount": 4,
+                    "groupId": "bar-quarter-grouped",
+                    "groupIndex": 1,
+                    "stackCount": 0,
+                    "stackIndex": 0,
+                  },
+                  "shadow": {
+                    "blur": 5,
+                    "color": "#00000080",
+                    "enabled": false,
+                    "xOffset": 3,
+                    "yOffset": 3,
+                  },
+                  "showInLegend": false,
+                  "stroke": "#cc6f10",
+                  "strokeWidth": 0,
+                  "tooltip": {
+                    "position": {
+                      "anchorTo": "pointer",
+                      "offset": 12,
+                      "xOffset": 0,
+                      "yOffset": 0,
+                    },
+                    "range": "exact",
+                  },
+                  "type": "bar",
+                  "visible": true,
+                  "xKey": "quarter",
+                  "yKey": "mac",
+                  "yName": "Mac",
+                },
+                {
+                  "direction": "vertical",
+                  "fill": "#459d55",
+                  "fillOpacity": 1,
+                  "highlight": {
+                    "enabled": true,
+                    "unhighlightedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unhighlightedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "label": {
+                    "border": {
+                      "enabled": false,
+                      "stroke": "rgba(24, 29, 31, 0.08)",
+                      "strokeWidth": 1,
+                    },
+                    "color": "white",
+                    "cornerRadius": 4,
+                    "enabled": false,
+                    "fontFamily": "Verdana, sans-serif",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "padding": 8,
+                    "placement": "inside-center",
+                  },
+                  "lineDash": [
+                    0,
+                  ],
+                  "lineDashOffset": 0,
+                  "segmentation": {
+                    "enabled": false,
+                    "key": "x",
+                  },
+                  "selection": {
+                    "enabled": false,
+                    "selectedItem": {
+                      "strokeWidth": 2,
+                    },
+                    "unselectedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unselectedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "seriesGrouping": {
+                    "groupCount": 4,
+                    "groupId": "bar-quarter-grouped",
+                    "groupIndex": 2,
+                    "stackCount": 0,
+                    "stackIndex": 0,
+                  },
+                  "shadow": {
+                    "blur": 5,
+                    "color": "#00000080",
+                    "enabled": false,
+                    "xOffset": 3,
+                    "yOffset": 3,
+                  },
+                  "showInLegend": true,
+                  "stroke": "#1e652e",
+                  "strokeWidth": 0,
+                  "tooltip": {
+                    "position": {
+                      "anchorTo": "pointer",
+                      "offset": 12,
+                      "xOffset": 0,
+                      "yOffset": 0,
+                    },
+                    "range": "exact",
+                  },
+                  "type": "bar",
+                  "visible": true,
+                  "xKey": "quarter",
+                  "yKey": "wearables",
+                  "yName": "Wearables",
+                },
+                {
+                  "direction": "vertical",
+                  "fill": "#34bfe1",
+                  "fillOpacity": 1,
+                  "highlight": {
+                    "enabled": true,
+                    "unhighlightedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unhighlightedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "label": {
+                    "border": {
+                      "enabled": false,
+                      "stroke": "rgba(24, 29, 31, 0.08)",
+                      "strokeWidth": 1,
+                    },
+                    "color": "white",
+                    "cornerRadius": 4,
+                    "enabled": false,
+                    "fontFamily": "Verdana, sans-serif",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "padding": 8,
+                    "placement": "inside-center",
+                  },
+                  "lineDash": [
+                    0,
+                  ],
+                  "lineDashOffset": 0,
+                  "segmentation": {
+                    "enabled": false,
+                    "key": "x",
+                  },
+                  "selection": {
+                    "enabled": false,
+                    "selectedItem": {
+                      "strokeWidth": 2,
+                    },
+                    "unselectedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unselectedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "seriesGrouping": {
+                    "groupCount": 4,
+                    "groupId": "bar-quarter-grouped",
+                    "groupIndex": 3,
+                    "stackCount": 0,
+                    "stackIndex": 0,
+                  },
+                  "shadow": {
+                    "blur": 5,
+                    "color": "#00000080",
+                    "enabled": false,
+                    "xOffset": 3,
+                    "yOffset": 3,
+                  },
+                  "showInLegend": false,
+                  "stroke": "#18859e",
+                  "strokeWidth": 0,
+                  "tooltip": {
+                    "position": {
+                      "anchorTo": "pointer",
+                      "offset": 12,
+                      "xOffset": 0,
+                      "yOffset": 0,
+                    },
+                    "range": "exact",
+                  },
+                  "type": "bar",
+                  "visible": true,
+                  "xKey": "quarter",
+                  "yKey": "services",
+                  "yName": "Services",
+                },
+                {
+                  "highlight": {
+                    "enabled": true,
+                    "unhighlightedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "interpolation": {
+                    "type": "linear",
+                  },
+                  "label": {
+                    "border": {
+                      "enabled": false,
+                      "stroke": "rgba(24, 29, 31, 0.08)",
+                      "strokeWidth": 1,
+                    },
+                    "color": "#181d1f",
+                    "cornerRadius": 4,
+                    "enabled": false,
+                    "fontFamily": "Verdana, sans-serif",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "padding": 8,
+                  },
+                  "lineDash": [
+                    0,
+                  ],
+                  "lineDashOffset": 0,
+                  "marker": {
+                    "fill": "#e1cc00",
+                    "shape": "circle",
+                    "size": 7,
+                    "stroke": "#a69400",
+                    "strokeWidth": 0,
+                  },
+                  "segmentation": {
+                    "enabled": false,
+                    "key": "x",
+                  },
+                  "selection": {
+                    "enabled": false,
+                    "selectedItem": {
+                      "strokeWidth": 2,
+                    },
+                    "unselectedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unselectedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "stroke": "#e1cc00",
+                  "strokeOpacity": 1,
+                  "strokeWidth": 2,
+                  "tooltip": {
+                    "position": {
+                      "anchorTo": "node",
+                      "offset": 12,
+                      "xOffset": 0,
+                      "yOffset": 0,
+                    },
+                    "range": "nearest",
+                  },
+                  "type": "line",
+                  "visible": true,
+                  "xKey": "quarter",
+                  "yKey": "mac",
+                  "yName": "Mac",
+                },
+                {
+                  "highlight": {
+                    "enabled": true,
+                    "unhighlightedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "interpolation": {
+                    "type": "linear",
+                  },
+                  "label": {
+                    "border": {
+                      "enabled": false,
+                      "stroke": "rgba(24, 29, 31, 0.08)",
+                      "strokeWidth": 1,
+                    },
+                    "color": "#181d1f",
+                    "cornerRadius": 4,
+                    "enabled": false,
+                    "fontFamily": "Verdana, sans-serif",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "padding": 8,
+                  },
+                  "lineDash": [
+                    0,
+                  ],
+                  "lineDashOffset": 0,
+                  "marker": {
+                    "fill": "#9669cb",
+                    "shape": "circle",
+                    "size": 7,
+                    "stroke": "#603c88",
+                    "strokeWidth": 0,
+                  },
+                  "segmentation": {
+                    "enabled": false,
+                    "key": "x",
+                  },
+                  "selection": {
+                    "enabled": false,
+                    "selectedItem": {
+                      "strokeWidth": 2,
+                    },
+                    "unselectedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unselectedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "stroke": "#9669cb",
+                  "strokeOpacity": 1,
+                  "strokeWidth": 2,
+                  "tooltip": {
+                    "position": {
+                      "anchorTo": "node",
+                      "offset": 12,
+                      "xOffset": 0,
+                      "yOffset": 0,
+                    },
+                    "range": "nearest",
+                  },
+                  "type": "line",
+                  "visible": true,
+                  "xKey": "quarter",
+                  "yKey": "iphone",
+                  "yName": "IPhone",
+                },
+              ]
+            `);
         });
 
         test('Series options with stacked columns processing works as expected', () => {
@@ -1435,467 +1437,467 @@ describe('ChartOptions', () => {
             });
 
             expect(options).toMatchInlineSnapshot(`
-[
-  {
-    "direction": "vertical",
-    "fill": "pink",
-    "fillOpacity": 1,
-    "highlight": {
-      "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
-      "unhighlightedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "label": {
-      "border": {
-        "enabled": false,
-        "stroke": "rgba(24, 29, 31, 0.08)",
-        "strokeWidth": 1,
-      },
-      "color": "white",
-      "cornerRadius": 4,
-      "enabled": false,
-      "fontFamily": "Verdana, sans-serif",
-      "fontSize": 12,
-      "fontWeight": 400,
-      "padding": 8,
-      "placement": "inside-center",
-    },
-    "lineDash": [
-      0,
-    ],
-    "lineDashOffset": 0,
-    "segmentation": {
-      "enabled": false,
-      "key": "x",
-    },
-    "selection": {
-      "enabled": false,
-      "selectedItem": {
-        "strokeWidth": 2,
-      },
-      "unselectedItem": {
-        "opacity": 0.6,
-      },
-      "unselectedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "seriesGrouping": {
-      "groupCount": 1,
-      "groupId": "bar-quarter-stacked",
-      "groupIndex": 0,
-      "stackCount": 4,
-      "stackIndex": 0,
-    },
-    "shadow": {
-      "blur": 5,
-      "color": "#00000080",
-      "enabled": false,
-      "xOffset": 3,
-      "yOffset": 3,
-    },
-    "showInLegend": true,
-    "stroke": "#2b5c95",
-    "strokeWidth": 0,
-    "tooltip": {
-      "position": {
-        "anchorTo": "pointer",
-        "offset": 8,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
-      "range": "exact",
-    },
-    "type": "bar",
-    "visible": true,
-    "xKey": "quarter",
-    "yKey": "iphone",
-    "yName": "IPhone",
-  },
-  {
-    "direction": "vertical",
-    "fill": "red",
-    "fillOpacity": 1,
-    "highlight": {
-      "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
-      "unhighlightedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "label": {
-      "border": {
-        "enabled": false,
-        "stroke": "rgba(24, 29, 31, 0.08)",
-        "strokeWidth": 1,
-      },
-      "color": "white",
-      "cornerRadius": 4,
-      "enabled": false,
-      "fontFamily": "Verdana, sans-serif",
-      "fontSize": 12,
-      "fontWeight": 400,
-      "padding": 8,
-      "placement": "inside-center",
-    },
-    "lineDash": [
-      0,
-    ],
-    "lineDashOffset": 0,
-    "segmentation": {
-      "enabled": false,
-      "key": "x",
-    },
-    "selection": {
-      "enabled": false,
-      "selectedItem": {
-        "strokeWidth": 2,
-      },
-      "unselectedItem": {
-        "opacity": 0.6,
-      },
-      "unselectedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "seriesGrouping": {
-      "groupCount": 1,
-      "groupId": "bar-quarter-stacked",
-      "groupIndex": 0,
-      "stackCount": 4,
-      "stackIndex": 1,
-    },
-    "shadow": {
-      "blur": 5,
-      "color": "#00000080",
-      "enabled": false,
-      "xOffset": 3,
-      "yOffset": 3,
-    },
-    "showInLegend": false,
-    "stroke": "#cc6f10",
-    "strokeWidth": 0,
-    "tooltip": {
-      "position": {
-        "anchorTo": "pointer",
-        "offset": 8,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
-      "range": "exact",
-    },
-    "type": "bar",
-    "visible": true,
-    "xKey": "quarter",
-    "yKey": "mac",
-    "yName": "Mac",
-  },
-  {
-    "direction": "vertical",
-    "fill": "#459d55",
-    "fillOpacity": 1,
-    "highlight": {
-      "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
-      "unhighlightedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "label": {
-      "border": {
-        "enabled": false,
-        "stroke": "rgba(24, 29, 31, 0.08)",
-        "strokeWidth": 1,
-      },
-      "color": "white",
-      "cornerRadius": 4,
-      "enabled": false,
-      "fontFamily": "Verdana, sans-serif",
-      "fontSize": 12,
-      "fontWeight": 400,
-      "padding": 8,
-      "placement": "inside-center",
-    },
-    "lineDash": [
-      0,
-    ],
-    "lineDashOffset": 0,
-    "segmentation": {
-      "enabled": false,
-      "key": "x",
-    },
-    "selection": {
-      "enabled": false,
-      "selectedItem": {
-        "strokeWidth": 2,
-      },
-      "unselectedItem": {
-        "opacity": 0.6,
-      },
-      "unselectedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "seriesGrouping": {
-      "groupCount": 1,
-      "groupId": "bar-quarter-stacked",
-      "groupIndex": 0,
-      "stackCount": 4,
-      "stackIndex": 2,
-    },
-    "shadow": {
-      "blur": 5,
-      "color": "#00000080",
-      "enabled": false,
-      "xOffset": 3,
-      "yOffset": 3,
-    },
-    "showInLegend": true,
-    "stroke": "#1e652e",
-    "strokeWidth": 0,
-    "tooltip": {
-      "position": {
-        "anchorTo": "pointer",
-        "offset": 8,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
-      "range": "exact",
-    },
-    "type": "bar",
-    "visible": true,
-    "xKey": "quarter",
-    "yKey": "wearables",
-    "yName": "Wearables",
-  },
-  {
-    "direction": "vertical",
-    "fill": "#34bfe1",
-    "fillOpacity": 1,
-    "highlight": {
-      "enabled": true,
-      "unhighlightedItem": {
-        "opacity": 0.6,
-      },
-      "unhighlightedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "label": {
-      "border": {
-        "enabled": false,
-        "stroke": "rgba(24, 29, 31, 0.08)",
-        "strokeWidth": 1,
-      },
-      "color": "white",
-      "cornerRadius": 4,
-      "enabled": false,
-      "fontFamily": "Verdana, sans-serif",
-      "fontSize": 12,
-      "fontWeight": 400,
-      "padding": 8,
-      "placement": "inside-center",
-    },
-    "lineDash": [
-      0,
-    ],
-    "lineDashOffset": 0,
-    "segmentation": {
-      "enabled": false,
-      "key": "x",
-    },
-    "selection": {
-      "enabled": false,
-      "selectedItem": {
-        "strokeWidth": 2,
-      },
-      "unselectedItem": {
-        "opacity": 0.6,
-      },
-      "unselectedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "seriesGrouping": {
-      "groupCount": 1,
-      "groupId": "bar-quarter-stacked",
-      "groupIndex": 0,
-      "stackCount": 4,
-      "stackIndex": 3,
-    },
-    "shadow": {
-      "blur": 5,
-      "color": "#00000080",
-      "enabled": false,
-      "xOffset": 3,
-      "yOffset": 3,
-    },
-    "showInLegend": false,
-    "stroke": "#18859e",
-    "strokeWidth": 0,
-    "tooltip": {
-      "position": {
-        "anchorTo": "pointer",
-        "offset": 8,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
-      "range": "exact",
-    },
-    "type": "bar",
-    "visible": true,
-    "xKey": "quarter",
-    "yKey": "services",
-    "yName": "Services",
-  },
-  {
-    "highlight": {
-      "enabled": true,
-      "unhighlightedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "interpolation": {
-      "type": "linear",
-    },
-    "label": {
-      "border": {
-        "enabled": false,
-        "stroke": "rgba(24, 29, 31, 0.08)",
-        "strokeWidth": 1,
-      },
-      "color": "#181d1f",
-      "cornerRadius": 4,
-      "enabled": false,
-      "fontFamily": "Verdana, sans-serif",
-      "fontSize": 12,
-      "fontWeight": 400,
-      "padding": 8,
-    },
-    "lineDash": [
-      0,
-    ],
-    "lineDashOffset": 0,
-    "marker": {
-      "fill": "#e1cc00",
-      "shape": "circle",
-      "size": 7,
-      "stroke": "#a69400",
-      "strokeWidth": 0,
-    },
-    "segmentation": {
-      "enabled": false,
-      "key": "x",
-    },
-    "selection": {
-      "enabled": false,
-      "selectedItem": {
-        "strokeWidth": 2,
-      },
-      "unselectedItem": {
-        "opacity": 0.6,
-      },
-      "unselectedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "stroke": "#e1cc00",
-    "strokeOpacity": 1,
-    "strokeWidth": 2,
-    "tooltip": {
-      "position": {
-        "anchorTo": "node",
-        "offset": 8,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
-      "range": "nearest",
-    },
-    "type": "line",
-    "visible": true,
-    "xKey": "quarter",
-    "yKey": "mac",
-    "yName": "Mac",
-  },
-  {
-    "highlight": {
-      "enabled": true,
-      "unhighlightedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "interpolation": {
-      "type": "linear",
-    },
-    "label": {
-      "border": {
-        "enabled": false,
-        "stroke": "rgba(24, 29, 31, 0.08)",
-        "strokeWidth": 1,
-      },
-      "color": "#181d1f",
-      "cornerRadius": 4,
-      "enabled": false,
-      "fontFamily": "Verdana, sans-serif",
-      "fontSize": 12,
-      "fontWeight": 400,
-      "padding": 8,
-    },
-    "lineDash": [
-      0,
-    ],
-    "lineDashOffset": 0,
-    "marker": {
-      "fill": "#9669cb",
-      "shape": "circle",
-      "size": 7,
-      "stroke": "#603c88",
-      "strokeWidth": 0,
-    },
-    "segmentation": {
-      "enabled": false,
-      "key": "x",
-    },
-    "selection": {
-      "enabled": false,
-      "selectedItem": {
-        "strokeWidth": 2,
-      },
-      "unselectedItem": {
-        "opacity": 0.6,
-      },
-      "unselectedSeries": {
-        "opacity": 0.2,
-      },
-    },
-    "stroke": "#9669cb",
-    "strokeOpacity": 1,
-    "strokeWidth": 2,
-    "tooltip": {
-      "position": {
-        "anchorTo": "node",
-        "offset": 8,
-        "xOffset": 0,
-        "yOffset": 0,
-      },
-      "range": "nearest",
-    },
-    "type": "line",
-    "visible": true,
-    "xKey": "quarter",
-    "yKey": "iphone",
-    "yName": "IPhone",
-  },
-]
-`);
+              [
+                {
+                  "direction": "vertical",
+                  "fill": "pink",
+                  "fillOpacity": 1,
+                  "highlight": {
+                    "enabled": true,
+                    "unhighlightedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unhighlightedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "label": {
+                    "border": {
+                      "enabled": false,
+                      "stroke": "rgba(24, 29, 31, 0.08)",
+                      "strokeWidth": 1,
+                    },
+                    "color": "white",
+                    "cornerRadius": 4,
+                    "enabled": false,
+                    "fontFamily": "Verdana, sans-serif",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "padding": 8,
+                    "placement": "inside-center",
+                  },
+                  "lineDash": [
+                    0,
+                  ],
+                  "lineDashOffset": 0,
+                  "segmentation": {
+                    "enabled": false,
+                    "key": "x",
+                  },
+                  "selection": {
+                    "enabled": false,
+                    "selectedItem": {
+                      "strokeWidth": 2,
+                    },
+                    "unselectedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unselectedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "seriesGrouping": {
+                    "groupCount": 1,
+                    "groupId": "bar-quarter-stacked",
+                    "groupIndex": 0,
+                    "stackCount": 4,
+                    "stackIndex": 0,
+                  },
+                  "shadow": {
+                    "blur": 5,
+                    "color": "#00000080",
+                    "enabled": false,
+                    "xOffset": 3,
+                    "yOffset": 3,
+                  },
+                  "showInLegend": true,
+                  "stroke": "#2b5c95",
+                  "strokeWidth": 0,
+                  "tooltip": {
+                    "position": {
+                      "anchorTo": "pointer",
+                      "offset": 12,
+                      "xOffset": 0,
+                      "yOffset": 0,
+                    },
+                    "range": "exact",
+                  },
+                  "type": "bar",
+                  "visible": true,
+                  "xKey": "quarter",
+                  "yKey": "iphone",
+                  "yName": "IPhone",
+                },
+                {
+                  "direction": "vertical",
+                  "fill": "red",
+                  "fillOpacity": 1,
+                  "highlight": {
+                    "enabled": true,
+                    "unhighlightedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unhighlightedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "label": {
+                    "border": {
+                      "enabled": false,
+                      "stroke": "rgba(24, 29, 31, 0.08)",
+                      "strokeWidth": 1,
+                    },
+                    "color": "white",
+                    "cornerRadius": 4,
+                    "enabled": false,
+                    "fontFamily": "Verdana, sans-serif",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "padding": 8,
+                    "placement": "inside-center",
+                  },
+                  "lineDash": [
+                    0,
+                  ],
+                  "lineDashOffset": 0,
+                  "segmentation": {
+                    "enabled": false,
+                    "key": "x",
+                  },
+                  "selection": {
+                    "enabled": false,
+                    "selectedItem": {
+                      "strokeWidth": 2,
+                    },
+                    "unselectedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unselectedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "seriesGrouping": {
+                    "groupCount": 1,
+                    "groupId": "bar-quarter-stacked",
+                    "groupIndex": 0,
+                    "stackCount": 4,
+                    "stackIndex": 1,
+                  },
+                  "shadow": {
+                    "blur": 5,
+                    "color": "#00000080",
+                    "enabled": false,
+                    "xOffset": 3,
+                    "yOffset": 3,
+                  },
+                  "showInLegend": false,
+                  "stroke": "#cc6f10",
+                  "strokeWidth": 0,
+                  "tooltip": {
+                    "position": {
+                      "anchorTo": "pointer",
+                      "offset": 12,
+                      "xOffset": 0,
+                      "yOffset": 0,
+                    },
+                    "range": "exact",
+                  },
+                  "type": "bar",
+                  "visible": true,
+                  "xKey": "quarter",
+                  "yKey": "mac",
+                  "yName": "Mac",
+                },
+                {
+                  "direction": "vertical",
+                  "fill": "#459d55",
+                  "fillOpacity": 1,
+                  "highlight": {
+                    "enabled": true,
+                    "unhighlightedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unhighlightedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "label": {
+                    "border": {
+                      "enabled": false,
+                      "stroke": "rgba(24, 29, 31, 0.08)",
+                      "strokeWidth": 1,
+                    },
+                    "color": "white",
+                    "cornerRadius": 4,
+                    "enabled": false,
+                    "fontFamily": "Verdana, sans-serif",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "padding": 8,
+                    "placement": "inside-center",
+                  },
+                  "lineDash": [
+                    0,
+                  ],
+                  "lineDashOffset": 0,
+                  "segmentation": {
+                    "enabled": false,
+                    "key": "x",
+                  },
+                  "selection": {
+                    "enabled": false,
+                    "selectedItem": {
+                      "strokeWidth": 2,
+                    },
+                    "unselectedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unselectedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "seriesGrouping": {
+                    "groupCount": 1,
+                    "groupId": "bar-quarter-stacked",
+                    "groupIndex": 0,
+                    "stackCount": 4,
+                    "stackIndex": 2,
+                  },
+                  "shadow": {
+                    "blur": 5,
+                    "color": "#00000080",
+                    "enabled": false,
+                    "xOffset": 3,
+                    "yOffset": 3,
+                  },
+                  "showInLegend": true,
+                  "stroke": "#1e652e",
+                  "strokeWidth": 0,
+                  "tooltip": {
+                    "position": {
+                      "anchorTo": "pointer",
+                      "offset": 12,
+                      "xOffset": 0,
+                      "yOffset": 0,
+                    },
+                    "range": "exact",
+                  },
+                  "type": "bar",
+                  "visible": true,
+                  "xKey": "quarter",
+                  "yKey": "wearables",
+                  "yName": "Wearables",
+                },
+                {
+                  "direction": "vertical",
+                  "fill": "#34bfe1",
+                  "fillOpacity": 1,
+                  "highlight": {
+                    "enabled": true,
+                    "unhighlightedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unhighlightedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "label": {
+                    "border": {
+                      "enabled": false,
+                      "stroke": "rgba(24, 29, 31, 0.08)",
+                      "strokeWidth": 1,
+                    },
+                    "color": "white",
+                    "cornerRadius": 4,
+                    "enabled": false,
+                    "fontFamily": "Verdana, sans-serif",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "padding": 8,
+                    "placement": "inside-center",
+                  },
+                  "lineDash": [
+                    0,
+                  ],
+                  "lineDashOffset": 0,
+                  "segmentation": {
+                    "enabled": false,
+                    "key": "x",
+                  },
+                  "selection": {
+                    "enabled": false,
+                    "selectedItem": {
+                      "strokeWidth": 2,
+                    },
+                    "unselectedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unselectedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "seriesGrouping": {
+                    "groupCount": 1,
+                    "groupId": "bar-quarter-stacked",
+                    "groupIndex": 0,
+                    "stackCount": 4,
+                    "stackIndex": 3,
+                  },
+                  "shadow": {
+                    "blur": 5,
+                    "color": "#00000080",
+                    "enabled": false,
+                    "xOffset": 3,
+                    "yOffset": 3,
+                  },
+                  "showInLegend": false,
+                  "stroke": "#18859e",
+                  "strokeWidth": 0,
+                  "tooltip": {
+                    "position": {
+                      "anchorTo": "pointer",
+                      "offset": 12,
+                      "xOffset": 0,
+                      "yOffset": 0,
+                    },
+                    "range": "exact",
+                  },
+                  "type": "bar",
+                  "visible": true,
+                  "xKey": "quarter",
+                  "yKey": "services",
+                  "yName": "Services",
+                },
+                {
+                  "highlight": {
+                    "enabled": true,
+                    "unhighlightedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "interpolation": {
+                    "type": "linear",
+                  },
+                  "label": {
+                    "border": {
+                      "enabled": false,
+                      "stroke": "rgba(24, 29, 31, 0.08)",
+                      "strokeWidth": 1,
+                    },
+                    "color": "#181d1f",
+                    "cornerRadius": 4,
+                    "enabled": false,
+                    "fontFamily": "Verdana, sans-serif",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "padding": 8,
+                  },
+                  "lineDash": [
+                    0,
+                  ],
+                  "lineDashOffset": 0,
+                  "marker": {
+                    "fill": "#e1cc00",
+                    "shape": "circle",
+                    "size": 7,
+                    "stroke": "#a69400",
+                    "strokeWidth": 0,
+                  },
+                  "segmentation": {
+                    "enabled": false,
+                    "key": "x",
+                  },
+                  "selection": {
+                    "enabled": false,
+                    "selectedItem": {
+                      "strokeWidth": 2,
+                    },
+                    "unselectedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unselectedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "stroke": "#e1cc00",
+                  "strokeOpacity": 1,
+                  "strokeWidth": 2,
+                  "tooltip": {
+                    "position": {
+                      "anchorTo": "node",
+                      "offset": 12,
+                      "xOffset": 0,
+                      "yOffset": 0,
+                    },
+                    "range": "nearest",
+                  },
+                  "type": "line",
+                  "visible": true,
+                  "xKey": "quarter",
+                  "yKey": "mac",
+                  "yName": "Mac",
+                },
+                {
+                  "highlight": {
+                    "enabled": true,
+                    "unhighlightedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "interpolation": {
+                    "type": "linear",
+                  },
+                  "label": {
+                    "border": {
+                      "enabled": false,
+                      "stroke": "rgba(24, 29, 31, 0.08)",
+                      "strokeWidth": 1,
+                    },
+                    "color": "#181d1f",
+                    "cornerRadius": 4,
+                    "enabled": false,
+                    "fontFamily": "Verdana, sans-serif",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "padding": 8,
+                  },
+                  "lineDash": [
+                    0,
+                  ],
+                  "lineDashOffset": 0,
+                  "marker": {
+                    "fill": "#9669cb",
+                    "shape": "circle",
+                    "size": 7,
+                    "stroke": "#603c88",
+                    "strokeWidth": 0,
+                  },
+                  "segmentation": {
+                    "enabled": false,
+                    "key": "x",
+                  },
+                  "selection": {
+                    "enabled": false,
+                    "selectedItem": {
+                      "strokeWidth": 2,
+                    },
+                    "unselectedItem": {
+                      "opacity": 0.6,
+                    },
+                    "unselectedSeries": {
+                      "opacity": 0.2,
+                    },
+                  },
+                  "stroke": "#9669cb",
+                  "strokeOpacity": 1,
+                  "strokeWidth": 2,
+                  "tooltip": {
+                    "position": {
+                      "anchorTo": "node",
+                      "offset": 12,
+                      "xOffset": 0,
+                      "yOffset": 0,
+                    },
+                    "range": "nearest",
+                  },
+                  "type": "line",
+                  "visible": true,
+                  "xKey": "quarter",
+                  "yKey": "iphone",
+                  "yName": "IPhone",
+                },
+              ]
+            `);
         });
 
         describe('Stacking and grouping configuration combinations', () => {
