@@ -209,10 +209,19 @@ runs:
               # under the current exact key the bad layout poisons every reader.
               EXACT_CACHE_HIT: ${{ steps.cache_rw.outputs.cache-hit || steps.cache_ro.outputs.cache-hit }}
           run: |
-              if [[ "${EXACT_CACHE_HIT}" != "true" ]] && yarn check --integrity ; then
-                # Fallback-restored tree: reinstall so the layout matches this
-                # lockfile before it is cached under the exact key (or used by a
-                # read-only job that would otherwise trust a stale layout).
+              if [[ "${EXACT_CACHE_HIT}" != "true" ]] ; then
+                # Fallback-restored tree (restore-keys hit, not exact key): the
+                # node_modules came from a different lockfile. `yarn check
+                # --integrity` would pass (it verifies package versions, not the
+                # hoisting layout) and a plain `yarn install` over an existing
+                # tree does not re-dedup, so the stale hoisting survives — and if
+                # a writable job then saves it under the current exact key the
+                # bad layout poisons every reader (e.g. the svgr babel toolchain
+                # resolving a hoisted non-constructor lru-cache@10 instead of its
+                # nested v5 copy → `_lruCache is not a constructor`). Remove the
+                # tree first to force a clean install that rebuilds hoisting from
+                # this lockfile before it is cached or consumed.
+                rm -rf node_modules packages/*/node_modules plugins/*/node_modules libraries/*/node_modules external/*/node_modules
                 yarn install --ci
                 yarn check --integrity
               elif (yarn check --integrity) ; then
