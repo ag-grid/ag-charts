@@ -202,25 +202,11 @@ runs:
           id: yarn_install_slow
           shell: bash
           env:
-              # 'true' only on an exact key hit (whichever of the rw/ro restore
-              # steps ran for this cache_mode). An inexact restore-keys fallback
-              # (different lockfile) can pass `yarn check --integrity` yet carry a
-              # stale dependency hoisting layout; if a writable job then saves it
-              # under the current exact key the bad layout poisons every reader.
+              # 'true' only on an exact key hit; an inexact restore-keys fallback can carry a stale hoisting layout.
               EXACT_CACHE_HIT: ${{ steps.cache_rw.outputs.cache-hit || steps.cache_ro.outputs.cache-hit }}
           run: |
               if [[ "${EXACT_CACHE_HIT}" != "true" ]] ; then
-                # Fallback-restored tree (restore-keys hit, not exact key): the
-                # node_modules came from a different lockfile. `yarn check
-                # --integrity` would pass (it verifies package versions, not the
-                # hoisting layout) and a plain `yarn install` over an existing
-                # tree does not re-dedup, so the stale hoisting survives — and if
-                # a writable job then saves it under the current exact key the
-                # bad layout poisons every reader (e.g. the svgr babel toolchain
-                # resolving a hoisted non-constructor lru-cache@10 instead of its
-                # nested v5 copy → `_lruCache is not a constructor`). Remove the
-                # tree first to force a clean install that rebuilds hoisting from
-                # this lockfile before it is cached or consumed.
+                # Fallback restore: wipe node_modules so install rebuilds hoisting from this lockfile, avoiding stale-layout cache poisoning.
                 rm -rf node_modules packages/*/node_modules plugins/*/node_modules libraries/*/node_modules external/*/node_modules
                 yarn install --ci
                 yarn check --integrity
