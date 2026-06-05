@@ -82,7 +82,9 @@
                 {
                     "icon": "download",
                     "title": "1M+ Weekly Downloads",
-                    "description": "Trusted by teams at scale with over one million npm downloads per week across all frameworks and versions."
+                    "description": "Trusted by teams at scale with over one million npm downloads per week across all frameworks and versions.",
+                    "link": "https://www.npmjs.com/package/ag-charts-community",
+                    "external": true
                 },
                 {
                     "icon": "enterprise",
