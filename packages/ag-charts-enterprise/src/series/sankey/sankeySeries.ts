@@ -3,9 +3,6 @@ import {
     type AgSankeySeriesNodeItemStylerParams,
     type AgSankeySeriesNodeStyle,
     type AgSankeySeriesOptions,
-    type FillOptions,
-    type LineDashOptions,
-    type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -21,8 +18,7 @@ import {
     wrapText,
 } from 'ag-charts-core';
 
-import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
-import type { FlowProportionNodeDatumIndex } from '../flow-proportion/flowDatumIndex';
+import { type FlowLinkDatumIndex, type FlowNodeDatumIndex, toFlowNodeOffset } from '../flow-proportion/flowDatumIndex';
 import {
     type FlowProportionLinkDatum,
     type FlowProportionNodeDatum,
@@ -39,9 +35,6 @@ import {
 } from './sankeySeriesProperties';
 
 const { Transformable, SeriesNodePickMode, createDatumId, getShapeStyle, getLabelStyles, Rect, BBox } = _ModuleSupport;
-
-type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
-    Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'>;
 
 interface GhostNodeGraphEntry {
     ghost: boolean;
@@ -785,7 +778,11 @@ export class SankeySeries extends FlowProportionSeries<
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.type, datum.id));
     }
 
-    protected getNodeStyle(nodeDatum: Partial<SankeyNodeDatum>, fromNodeDatumIndex: number, isHighlight: boolean) {
+    protected getNodeStyle(
+        nodeDatum: Partial<SankeyNodeDatum>,
+        fromNodeDatumIndex: FlowNodeDatumIndex,
+        isHighlight: boolean
+    ) {
         const { properties } = this;
         const {
             fills,
@@ -798,17 +795,18 @@ export class SankeySeries extends FlowProportionSeries<
         } = properties;
         const { itemStyler } = properties.node;
 
-        const defaultColorStops = defaultColorRange[fromNodeDatumIndex % defaultColorRange.length].map((color) => ({
+        const nodeOffset = toFlowNodeOffset(fromNodeDatumIndex);
+        const defaultColorStops = defaultColorRange[nodeOffset % defaultColorRange.length].map((color) => ({
             color,
         }));
-        const defaultPatternFill = defaultPatternFills[fromNodeDatumIndex % defaultPatternFills.length];
+        const defaultPatternFill = defaultPatternFills[nodeOffset % defaultPatternFills.length];
 
         const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum.datumIndex);
         const selectionStyle = this.getSelectionStyle(nodeDatum.datumIndex);
         const baseStyle = mergeDefaults(
             selectionStyle,
             highlightStyle,
-            properties.getStyle(false, fills, strokes, fromNodeDatumIndex)
+            properties.getStyle(false, fills, strokes, nodeOffset)
         );
         const hasNodeFill = properties.node.fill != null;
         let style = getShapeStyle(
@@ -822,7 +820,7 @@ export class SankeySeries extends FlowProportionSeries<
 
         if (itemStyler != null && nodeDatum.datumIndex != null) {
             const overrides = this.cachedDatumCallback(
-                createDatumId(nodeDatum.datumIndex.index, 'node', isHighlight ? 'highlight' : 'node'),
+                createDatumId(nodeDatum.datumIndex, 'node', isHighlight ? 'highlight' : 'node'),
                 () => {
                     const params = this.makeItemStylerParams(nodeDatum, isHighlight, style);
                     return this.callWithContext(itemStyler, params);
@@ -883,7 +881,7 @@ export class SankeySeries extends FlowProportionSeries<
 
         datumSelection.each((rect, datum) => {
             const { datumIndex } = datum;
-            const style = this.getNodeStyle(datum, datumIndex.index, isHighlight);
+            const style = this.getNodeStyle(datum, datumIndex, isHighlight);
 
             rect.x = datum.x;
             rect.y = datum.y;
@@ -906,13 +904,14 @@ export class SankeySeries extends FlowProportionSeries<
         datumSelection: _ModuleSupport.Selection<SankeyLinkDatum, SankeyLink<SankeyLinkDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) =>
-            createDatumId(datum.type, datum.index, datum.fromNode.id, datum.toNode.id)
+            createDatumId(datum.type, datum.datumIndex, datum.fromNode.id, datum.toNode.id)
         );
     }
 
     protected override getLinkStyle(
-        { datumIndex, datum }: Partial<SankeyLinkDatum>,
-        fromNodeDatumIndex: FlowProportionNodeDatumIndex,
+        datum: SankeyLinkDatum['datum'],
+        datumIndex: FlowLinkDatumIndex,
+        fromNodeDatumIndex: FlowNodeDatumIndex,
         isHighlight: boolean
     ) {
         const { id: seriesId, properties } = this;
@@ -927,19 +926,18 @@ export class SankeySeries extends FlowProportionSeries<
         } = properties;
         const { itemStyler } = properties.link;
 
-        const defaultColorStops = defaultColorRange[fromNodeDatumIndex.index % defaultColorRange.length].map(
-            (color) => ({
-                color,
-            })
-        );
-        const defaultPatternFill = defaultPatternFills[fromNodeDatumIndex.index % defaultPatternFills.length];
+        const nodeOffset = toFlowNodeOffset(fromNodeDatumIndex);
+        const defaultColorStops = defaultColorRange[nodeOffset % defaultColorRange.length].map((color) => ({
+            color,
+        }));
+        const defaultPatternFill = defaultPatternFills[nodeOffset % defaultPatternFills.length];
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
         const baseStyle = mergeDefaults(
             selectionStyle,
             highlightStyle,
-            properties.getStyle(true, fills, strokes, fromNodeDatumIndex.index)
+            properties.getStyle(true, fills, strokes, nodeOffset)
         );
         const hasLinkFill = properties.link.fill != null;
         let style = getShapeStyle(
@@ -953,7 +951,7 @@ export class SankeySeries extends FlowProportionSeries<
 
         if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
-                createDatumId(datumIndex.index, 'link', isHighlight ? 'highlight' : 'node'),
+                createDatumId(datumIndex, 'link', isHighlight ? 'highlight' : 'node'),
                 () => {
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
                     const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
@@ -991,8 +989,7 @@ export class SankeySeries extends FlowProportionSeries<
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((link, datum) => {
-            const fromNodeDatumIndex = datum.fromNode.datumIndex;
-            const style = this.getLinkStyle(datum, fromNodeDatumIndex, isHighlight);
+            const style = this.getLinkStyle(datum, datum.datumIndex, datum.fromNode.datumIndex, isHighlight);
 
             link.x1 = datum.x1;
             link.y1 = datum.y1;
@@ -1005,82 +1002,6 @@ export class SankeySeries extends FlowProportionSeries<
 
             link.inset = link.strokeWidth / 2;
         });
-    }
-
-    override getTooltipContent(datumIndex: FlowProportionNodeDatumIndex): _ModuleSupport.TooltipContent | undefined {
-        const {
-            id: seriesId,
-            linksProcessedData,
-            nodesProcessedData,
-            properties,
-            ctx: { formatManager },
-        } = this;
-        const { fromKey, toKey, sizeKey, sizeName, tooltip } = properties;
-
-        // This needs refactoring
-        const seriesDatum = this.contextNodeData?.nodeData.find(
-            (d) => d.datumIndex.type === datumIndex.type && d.datumIndex.index === datumIndex.index
-        );
-        if (seriesDatum == null) return;
-
-        const nodeIndex =
-            seriesDatum.type === FlowProportionDatumType.Link ? seriesDatum.fromNode.index : seriesDatum.index;
-        const title =
-            seriesDatum.type === FlowProportionDatumType.Link
-                ? `${seriesDatum.fromNode.label} - ${seriesDatum.toNode.label}`
-                : seriesDatum.label;
-        const datum =
-            datumIndex.type === FlowProportionDatumType.Link
-                ? linksProcessedData?.dataSources.get(this.id)?.data[datumIndex.index]
-                : nodesProcessedData?.dataSources.get(this.id)?.data[datumIndex.index];
-        const size = seriesDatum.size;
-
-        let format: Required<NodeStyle>;
-        if (seriesDatum.type === FlowProportionDatumType.Link) {
-            const fromNodeDatumIndex = seriesDatum.fromNode.datumIndex;
-            format = this.getLinkStyle({ datumIndex, datum }, fromNodeDatumIndex, false);
-        } else {
-            format = this.getNodeStyle({ datumIndex, datum }, datumIndex.index, false);
-        }
-
-        const data: _ModuleSupport.TooltipContentDataRow[] = [];
-        if (sizeKey != null) {
-            const content = formatManager.format(this.callWithContext.bind(this), {
-                type: 'number',
-                value: size,
-                datum,
-                seriesId,
-                legendItemName: undefined,
-                key: sizeKey,
-                source: 'tooltip',
-                property: 'size',
-                domain: [],
-                boundSeries: this.getFormatterContext('size'),
-                fractionDigits: undefined,
-                visibleDomain: undefined,
-            });
-            data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? String(size) });
-        }
-
-        return this.formatTooltipWithContext(
-            tooltip,
-            {
-                title,
-                symbol: this.legendItemSymbol(seriesDatum.type, nodeIndex, format),
-                data,
-            },
-            {
-                seriesId,
-                datum,
-                title,
-                fromKey,
-                toKey,
-                sizeKey,
-                sizeName,
-                size,
-                ...format,
-            }
-        );
     }
 
     protected computeFocusBounds(

@@ -1,5 +1,4 @@
 import type {
-    AreMutuallyExclusive,
     BoxBounds,
     ChartAxisDirection,
     DomainWithMetadata,
@@ -39,12 +38,9 @@ interface ChartAxisLike {
     id: string;
 }
 
-export type DatumIndexType = number | object | undefined;
+export type DatumIndex = number;
 export type ItemId = string;
 export type ItemType = 'positive' | 'negative' | 'total' | 'subtotal' | 'up' | 'down' | 'low' | 'high';
-
-// Assert that DatumIndexType and ItemId share no types in common:
-true satisfies AreMutuallyExclusive<DatumIndexType, ItemId>;
 
 export type SeriesNodeEventTypes =
     | 'nodeContextMenuAction'
@@ -110,12 +106,7 @@ export interface ISeriesProperties {
     tooltip: { enabled?: boolean };
 }
 
-export interface ISeries<
-    TDatumIndex extends DatumIndexType,
-    TDatum,
-    TProps extends ISeriesProperties,
-    TLabel = TDatum,
-> {
+export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesProperties, TLabel = TDatum> {
     id: string;
     axes: { [K in ChartAxisDirection]?: ChartAxisLike };
     contentGroup: Group;
@@ -125,19 +116,19 @@ export interface ISeries<
     hasData: boolean;
     update(opts: { seriesRect?: BBox }): Promise<void> | void;
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[]): void;
-    fireNodeClickEvent(event: Event, datum: SeriesNodeDatum<TDatumIndex>): boolean;
-    fireNodeDoubleClickEvent(event: Event, datum: SeriesNodeDatum<TDatumIndex>): void;
+    fireNodeClickEvent(event: Event, datum: SeriesNodeDatum): boolean;
+    fireNodeDoubleClickEvent(event: Event, datum: SeriesNodeDatum): void;
     createNodeContextMenuActionEvent(event: Event, datum: TDatum): INodeEvent<'nodeContextMenuAction'>;
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
     getLabelData(): (TLabel & PointLabelDatum)[];
-    getTooltipContent(datumIndex: TDatumIndex, removeThisDatum: TDatum | undefined): TooltipContent | undefined;
+    getTooltipContent(datumIndex: DatumIndex, removeThisDatum: TDatum | undefined): TooltipContent | undefined;
     getDatumAriaText?(seriesDatum: TDatum, description: string): string | undefined;
-    getCategoryValue(datumIndex: TDatumIndex): any;
-    datumIndexForCategoryValue(categoryValue: any): TDatumIndex | undefined;
+    getCategoryValue(datumIndex: number): any;
+    datumIndexForCategoryValue(categoryValue: any): DatumIndex | undefined;
     isHighlightEnabled(): boolean;
     getSelectionStateString(
-        datumIndex: TDatumIndex | undefined,
+        datumIndex: DatumIndex | undefined,
         selectionState?: SelectionState
     ): PublicSelectionState | undefined;
     // BoundSeries
@@ -166,7 +157,7 @@ export interface ISeries<
         direction: ChartAxisDirection
     ): Array<{ seriesId: string; key: string; name: string | undefined }>;
     resolveKeyDirection(direction: ChartAxisDirection): ChartAxisDirection;
-    datumMidPoint?<T extends SeriesNodeDatum<TDatumIndex>>(datum: T): Point | undefined;
+    datumMidPoint?<T extends SeriesNodeDatum>(datum: T): Point | undefined;
     isEnabled(): boolean;
     type: string;
     visible: boolean;
@@ -175,24 +166,24 @@ export interface ISeries<
     // @todo(AG-13777) - Remove this function (see CartesianSeries.ts)
     minTimeInterval(): number | undefined;
     isPointInArea?(x: number, y: number): boolean;
-    findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): SeriesNodeDatum<DatumIndexType> | undefined;
+    findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): SeriesNodeDatum | undefined;
     readonly data?: DataSet<any>;
     pickNodesInBBox(bbox: BoxBounds): Iterable<TDatum>;
     ensureBucketLookupFeature(): BucketLookupFeature | undefined;
 }
 
-type SeriesNodeDatumSeries<I extends DatumIndexType> = ISeries<I, SeriesNodeDatum<I>, ISeriesProperties, unknown>;
+type SeriesNodeDatumSeries = ISeries<SeriesNodeDatum, ISeriesProperties, unknown>;
 
 /**
  * Processed series datum used in node selections,
  * contains information used to render pie sectors, bars, markers, etc.
  */
-export interface SeriesNodeDatum<I extends DatumIndexType> {
-    readonly series: SeriesNodeDatumSeries<I>;
+export interface SeriesNodeDatum {
+    readonly series: SeriesNodeDatumSeries;
     readonly itemId?: ItemId;
     readonly itemType?: ItemType;
     readonly datum: unknown;
-    readonly datumIndex: I;
+    readonly datumIndex: DatumIndex;
     readonly point?: Readonly<Point> & SizedPoint;
     readonly missing?: boolean;
     readonly enabled?: boolean;

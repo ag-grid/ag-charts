@@ -38,7 +38,7 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
     constructor(private readonly ctx?: DynamicContext<ChartRegistry>) {
         super();
         this.cleanup.register(
-            () => this.clear(),
+            () => this.clearSelection(),
             () => this.clearCandidacy(),
             ctx?.chartState.observe((get) => {
                 const opts = get('options', 'selection');
@@ -49,15 +49,16 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
         );
     }
 
-    private clearCandidacy() {
-        this.candidacy.clear();
-    }
-
-    clear(): void {
+    clearSelection(): void {
         for (const [_, selection] of this.selections) {
             selection.clear();
         }
         this.totalSelectedCount = 0;
+    }
+
+    clearCandidacy() {
+        this.candidacy.clear();
+        this.totalCandidacyCount = 0;
     }
 
     /** Lazy-create a per-series selection backed by a Uint8Array of `data.length`. */

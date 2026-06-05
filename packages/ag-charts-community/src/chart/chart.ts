@@ -81,7 +81,7 @@ import { Series, SeriesGroupingChangedEvent, SeriesNodeEvent, type UnknownSeries
 import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesProperties } from './series/seriesProperties';
-import type { DatumIndexType, ISeries, ISeriesProperties } from './series/seriesTypes';
+import type { DatumIndex, ISeries, ISeriesProperties, SeriesNodeDatum } from './series/seriesTypes';
 import { Tooltip, type TooltipContent } from './tooltip/tooltip';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
@@ -632,10 +632,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const hasPgUpPgDownSupport: () => boolean = () => this.hasPgUpPgDownSupport();
         const fireEvent = this.fireEvent.bind(this);
         const getUpdateType = () => this.performUpdateType;
-        const getTooltipContent = <DatumIndex extends DatumIndexType>(
-            series: ISeries<DatumIndex, unknown, ISeriesProperties>,
+        const getTooltipContent = (
+            series: ISeries<SeriesNodeDatum, ISeriesProperties, unknown>,
             datumIndex: DatumIndex,
-            removeThisDatum: unknown,
+            removeThisDatum: SeriesNodeDatum,
             purpose: 'aria-label' | 'tooltip'
         ) => this.getTooltipContent(series, datumIndex, removeThisDatum, purpose);
 
@@ -661,9 +661,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     abstract getChartType(): ChartType;
 
     public getTooltipContent(
-        series: ISeries<DatumIndexType, any, any>,
-        datumIndex: DatumIndexType,
-        removeMeDatum: unknown,
+        series: ISeries<SeriesNodeDatum, ISeriesProperties, unknown>,
+        datumIndex: DatumIndex,
+        removeMeDatum: SeriesNodeDatum,
         purpose: 'aria-label' | 'tooltip'
     ): TooltipContent[] {
         const useTooltip = purpose === 'aria-label' || series.properties.tooltip.enabled !== false;
@@ -1224,7 +1224,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.onSeriesChange(newValue, oldValue);
         },
     })
-    series: Series<DatumIndexType, any, any, SeriesProperties<object>>[] = [];
+    series: Series<SeriesNodeDatum, object, SeriesProperties<object>>[] = [];
 
     protected onAxisChange(newValue: ChartAxis[], oldValue?: ChartAxis[]) {
         if (oldValue == null && newValue.length === 0) return;
@@ -1297,7 +1297,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     protected assignSeriesToAxes() {
         for (const axis of this.axes) {
-            function seriesPredicateFn(s: Series<DatumIndexType, any, any, any>) {
+            function seriesPredicateFn(s: Series<SeriesNodeDatum, any, any>) {
                 return s.axes[axis.direction] === axis;
             }
             axis.boundSeries = this.series.filter(seriesPredicateFn);
@@ -1597,10 +1597,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         });
     }
 
-    protected async updateSeries(seriesToUpdate: ISeries<DatumIndexType, unknown, ISeriesProperties>[]) {
+    protected async updateSeries(seriesToUpdate: ISeries<SeriesNodeDatum, ISeriesProperties>[]) {
         const { seriesRect } = this;
 
-        function seriesUpdate(series: ISeries<DatumIndexType, unknown, ISeriesProperties>) {
+        function seriesUpdate(series: ISeries<SeriesNodeDatum, ISeriesProperties>) {
             return series.update({ seriesRect });
         }
 
@@ -1965,8 +1965,21 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         const axes = miniChart.axes as ChartAxis[];
 
+        // AG-17456: the navigator overlay is derived from the main chart's domain-direction
+        // axis after `nice` rounding, so the mini-chart axis on that same direction must
+        // inherit `nice` from the main axis or the handles drift. All other (cross) axes
+        // keep `nice = false` — restoring the pre-AG-13759 raw-extent rendering and avoiding
+        // collateral mini-chart rendering changes (see AG-17456 history comment).
+        // The domain direction is resolved from the main series rather than
+        // `_requiredRangeDirection`, which is only set later by `processRanges()`.
+        const domainDirection = this.series.some(
+            (s) => s.visible && s.resolveKeyDirection(ChartAxisDirection.X) === ChartAxisDirection.Y
+        )
+            ? ChartAxisDirection.Y
+            : ChartAxisDirection.X;
+        const mainDomainAxis = this.axes.find((axis) => axis.direction === domainDirection);
         for (const axis of axes) {
-            axis.nice = false;
+            axis.nice = axis.direction === domainDirection ? (mainDomainAxis?.nice ?? true) : false;
             axis.interactionEnabled = false;
         }
     }

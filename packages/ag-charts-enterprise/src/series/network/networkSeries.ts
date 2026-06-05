@@ -16,12 +16,7 @@ import type { NetworkLayout, NetworkLayoutUpdateOptions } from './networkLayout'
 import { NetworkLinkNode } from './networkLinkNode';
 import type { NetworkLinkInterpolation } from './networkTypes';
 
-export type NetworkSeriesDatumIndex = number;
-
-export interface NetworkDatum<
-    NetworkVertex,
-    TNetworkEdge,
-> extends _ModuleSupport.SeriesNodeDatum<NetworkSeriesDatumIndex> {
+export interface NetworkDatum<NetworkVertex, TNetworkEdge> extends _ModuleSupport.SeriesNodeDatum {
     vertex: Vertex<NetworkVertex, TNetworkEdge>;
 }
 
@@ -33,7 +28,6 @@ export class NetworkSeriesProperties extends _ModuleSupport.SeriesProperties<obj
 }
 
 export interface NetworkSeriesContextNodeData<NetworkVertex, TNetworkEdge> extends _ModuleSupport.SeriesNodeDataContext<
-    NetworkSeriesDatumIndex,
     NetworkDatum<NetworkVertex, TNetworkEdge>
 > {
     linkData: NetworkLinkDatum<NetworkVertex, TNetworkEdge>[];
@@ -59,7 +53,6 @@ export abstract class AbstractNetworkSeries<
     TLinkDatum extends NetworkLinkDatum<TVertex, TEdge>,
     TLayout extends NetworkLayout<TVertex, TEdge>,
 > extends _ModuleSupport.Series<
-    NetworkSeriesDatumIndex,
     NetworkDatum<TVertex, TEdge>,
     NetworkSeriesOptions,
     NetworkSeriesProperties,
@@ -420,11 +413,11 @@ export abstract class AbstractNetworkSeries<
     // ---
     // UNUSED METHODS
 
-    getCategoryValue(_datumIndex: NetworkSeriesDatumIndex): any {
+    getCategoryValue(_datumIndex: _ModuleSupport.DatumIndex): any {
         return;
     }
 
-    datumIndexForCategoryValue(_categoryValue: any): NetworkSeriesDatumIndex | undefined {
+    datumIndexForCategoryValue(_categoryValue: any): _ModuleSupport.DatumIndex | undefined {
         return;
     }
 

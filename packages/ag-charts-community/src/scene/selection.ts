@@ -44,6 +44,7 @@ export interface SelectionInterface<TDatum, TChild extends Node<TDatum>> {
     [Symbol.iterator](): IterableIterator<{ node: TChild }>;
     readonly length: number;
     nodes(): TChild[];
+    at(index: number): TChild | undefined;
     cleanup(): void;
     isGarbage(node: TChild): boolean;
     batchedUpdate(fn: () => void): void;

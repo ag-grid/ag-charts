@@ -1,4 +1,5 @@
 import {
+    type AgSankeySeriesGetDataIdParams,
     type AgSankeySeriesLabelFormatterParams,
     type AgSankeySeriesLinkItemStylerParams,
     type AgSankeySeriesLinkOptions,
@@ -15,7 +16,6 @@ import {
 import type { InternalAgColorType } from 'ag-charts-core';
 import { BaseProperties, Property } from 'ag-charts-core';
 
-import type { FlowProportionNodeDatumIndex } from '../flow-proportion/flowDatumIndex';
 import type { FlowProportionLinkDatum, FlowProportionNodeDatum } from '../flow-proportion/flowProportionSeries';
 
 const { FillGradientDefaults, FillPatternDefaults, FillImageDefaults, makeSeriesTooltip, SeriesProperties, Label } =
@@ -46,7 +46,7 @@ export interface SankeyNodeLabelDatum {
     text: string;
     size: number;
     nodeDatum: SankeyNodeDatum;
-    datumIndex: FlowProportionNodeDatumIndex;
+    datumIndex: _ModuleSupport.DatumIndex;
 }
 
 class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterParams> {
@@ -157,6 +157,9 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
 
     @Property
     sizeName: string | undefined = undefined;
+
+    @Property
+    getDataId?: (params: AgSankeySeriesGetDataIdParams) => string = undefined;
 
     @Property
     readonly fillGradientDefaults = new FillGradientDefaults();

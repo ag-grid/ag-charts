@@ -8,7 +8,7 @@ import type { ITopology } from '../series/map-util/topologyTypes';
 
 const { Chart, MercatorScale } = _ModuleSupport;
 function isTopologySeries(
-    series: _ModuleSupport.Series<_ModuleSupport.DatumIndexType, any, object, any>
+    series: _ModuleSupport.Series<_ModuleSupport.SeriesNodeDatum, object, any>
 ): series is ITopology {
     return (
         series.type === 'map-shape' ||

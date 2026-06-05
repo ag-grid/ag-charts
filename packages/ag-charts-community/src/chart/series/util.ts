@@ -4,7 +4,6 @@ import type { AgActiveItemState, AgDrawingMode } from 'ag-charts-types';
 import { Transformable } from '../../scene/transformable';
 import { highlightStates } from './seriesProperties';
 import type {
-    DatumIndexType,
     ErrorBoundSeriesNodeDatum,
     HighlightState,
     ISeries,
@@ -99,7 +98,7 @@ export function visibleRangeIndices(
 
 export function getDatumRefPoint(
     series: ISeries<any, any, any>,
-    datum: SeriesNodeDatum<DatumIndexType> & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>,
+    datum: SeriesNodeDatum & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>,
     movedBounds: BoxBounds | undefined
 ): { canvasX: number; canvasY: number } | undefined {
     if (movedBounds) {
@@ -225,7 +224,7 @@ export function resolveMarkerDrawingMode(
     return isOpaqueMarkerFillStyle(style) ? 'cutout' : 'overlay';
 }
 
-export function findNodeDatumInArray<D extends SeriesNodeDatum<DatumIndexType>>(
+export function findNodeDatumInArray<D extends SeriesNodeDatum>(
     itemIdOrIndex: AgActiveItemState['itemId'],
     nodeData: D[] | undefined,
     dataIdKey?: string

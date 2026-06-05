@@ -412,4 +412,27 @@ describe('DOMManager', () => {
             Object.defineProperty(element.style, 'cursor', descriptor);
         });
     });
+
+    describe('destroy()', () => {
+        it('removes children it owns but leaves a transferred (re-homed) child intact', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
+
+            // A child still parented under this manager is torn down on destroy().
+            const owned = dm.addChild('canvas', 'owned');
+            // A transferred canvas (keepTransferableResources) re-parented into a replacement
+            // chart's DOM must survive this manager's deferred teardown (AG-17444).
+            const transferred = dm.addChild('canvas', 'transferred');
+            const newOwner = doc.createElement('div');
+            doc.body.append(newOwner);
+            newOwner.append(transferred);
+
+            dm.destroy();
+
+            expect(transferred.isConnected).toBe(true);
+            expect(newOwner.contains(transferred)).toBe(true);
+            expect(owned.isConnected).toBe(false);
+        });
+    });
 });

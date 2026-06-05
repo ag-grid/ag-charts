@@ -11,7 +11,7 @@
     "preinstall": "./external/ag-shared/scripts/setup-worktree/preinstall-worktree.sh && yarn run preinstall:verify-native-dep-versions",
     "preinstall:verify-native-dep-versions": "./tools/dependencies/check-versions.sh",
     "postinstall": "npx run-s postinstall:*",
-    "postinstall:0-allow-scripts": "[ -z \"$ALLOW_SCRIPTS_RUNNING\" ] && ALLOW_SCRIPTS_RUNNING=1 npx --yes @lavamoat/allow-scripts || true",
+    "postinstall:0-allow-scripts": "[ -n \"$ALLOW_SCRIPTS_RUNNING\" ] || ALLOW_SCRIPTS_RUNNING=1 yarn allow-scripts",
     "postinstall:patch": "[ \"$AG_WORKTREE_FAST_PATH\" = \"1\" ] || ./external/ag-shared/scripts/apply-patches.sh",
     "postinstall:nx-stop-watch": "[ \"$AG_WORKTREE_FAST_PATH\" = \"1\" ] || pkill -f \"nx dev\" || echo \"Nx watch not running\"",
     "postinstall:nx-daemon-prebuild-restart": "[ \"$AG_WORKTREE_FAST_PATH\" = \"1\" ] || (test -e .nx/workspace-data/d/server-process.json && nx daemon --stop) || echo \"Nx Daemon not running\"",

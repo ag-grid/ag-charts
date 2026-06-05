@@ -1,15 +1,9 @@
-import type {
-    DatumIndexType,
-    ISeries,
-    ISeriesProperties,
-    SelectionState,
-    SeriesNodeDatum,
-} from '../series/seriesTypes';
+import type { ISeries, ISeriesProperties, SelectionState, SeriesNodeDatum } from '../series/seriesTypes';
 import type { DataChangeDescriptionListener } from './dataChangeDescription';
 import type { DataSet } from './dataSet';
 import type { IDataSetSelection } from './dataSetSelectionTypes';
 
-type SeriesLike = ISeries<DatumIndexType, SeriesNodeDatum<DatumIndexType>, ISeriesProperties, unknown>;
+type SeriesLike = ISeries<SeriesNodeDatum, ISeriesProperties, unknown>;
 
 export interface IDataSelectionService extends DataChangeDescriptionListener {
     transferDataSet<T>(newDataSet: DataSet<T>, oldDataSet: DataSet<T>): void;

@@ -1,6 +1,7 @@
 import { type AgChordSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
+    callbackOf,
     commonSeriesOptionsDefs,
     constant,
     fillGradientDefaults,
@@ -21,6 +22,7 @@ export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
     toKey: required(string),
     sizeKey: string,
     sizeName: string,
+    getDataId: callbackOf(string),
 };
 
 // @ts-expect-error undocumented option

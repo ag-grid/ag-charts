@@ -20,6 +20,7 @@ import {
     dragAction,
     extractImageData,
     getSeriesAggregationInternals,
+    keyDownAction,
     mouseDownAction,
     mouseMoveAction,
     mouseUpAction,
@@ -340,6 +341,10 @@ describe('DataSelection', () => {
     }
     async function mouseUp(point: CanvasPoint, modifiers?: Modifiers) {
         await mouseUpAction(point.canvasX, point.canvasY, modifiers)(chart);
+        await waitForChartStability(chart);
+    }
+    async function pressEscape(point: CanvasPoint) {
+        await keyDownAction(point.canvasX, point.canvasY, { key: 'Escape', code: 'Escape' })(chart);
         await waitForChartStability(chart);
     }
 
@@ -1607,6 +1612,42 @@ describe('DataSelection', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
 
                         await mouseUp(POINT_D, { shiftKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+
+                describe('pressing Escape aborts selection', () => {
+                    test('screenshot', async () => {
+                        await mouseDown(POINT_A);
+                        await mouseMove(POINT_B);
+                        await compareExact('drag-modifiers-bubble-region-AB-selection-in-progress');
+
+                        await pressEscape(POINT_B);
+                        await compareExact('drag-modifiers-bubble-no-selection');
+
+                        await mouseUp(POINT_B);
+                        await compareExact('drag-modifiers-bubble-no-selection');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(POINT_A, { shiftKey });
+                        await mouseMove(POINT_B, { shiftKey });
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await pressEscape(POINT_B);
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(POINT_B);
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(POINT_A, { shiftKey });
+                        await mouseMove(POINT_B, { shiftKey });
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await pressEscape(POINT_B);
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(POINT_B);
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
