@@ -421,7 +421,9 @@ export interface HighlightNodeDatum<I extends DatumIndexType = DatumIndexType> e
     readonly colorValue?: number;
     readonly cumulativeValue?: number;
     readonly aggregatedValue?: number;
-    readonly domain?: [number, number];
+    readonly binIndex?: number;
+    readonly binRange?: [number, number];
+    readonly frequency?: number;
     readonly legendItemName?: string;
 }
 

@@ -276,8 +276,9 @@ export class DataModel<
     }
 
     /**
-     * Provides a convenience iterator to iterate over all of the extract datum values in a
-     * specific DataGroup.
+     * Provides a convenience iterator to iterate over the original source rows that belong to a
+     * specific DataGroup. Unlike {@link forEachGroupDatum}, which yields extracted column values,
+     * this yields the full user-supplied datum objects.
      *
      * @param scope to which datums should belong
      * @param group containing the datums
@@ -286,10 +287,11 @@ export class DataModel<
      */
     *forEachDatum(scope: ScopeProvider, processedData: GroupedData<any>, group: DataGroup, groupIndex: number) {
         const columnIndex = processedData.columnScopes.findIndex((s) => s.has(scope.id));
+        const sourceData = processedData.dataSources.get(scope.id)?.data;
 
         for (const relativeDatumIndex of group.datumIndices[columnIndex] ?? []) {
             const absoluteDatumIndex = this.resolvers.resolveAbsoluteIndex(groupIndex, relativeDatumIndex);
-            yield processedData.columns[columnIndex][absoluteDatumIndex];
+            yield sourceData?.[absoluteDatumIndex];
         }
     }
 

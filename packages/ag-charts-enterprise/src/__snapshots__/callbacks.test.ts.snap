@@ -2593,9 +2593,18 @@ exports[`AG-15850 labels > histogram > formatter 1`] = `
 [
   [
     {
-      "datum": [
+      "aggregatedValue": 1,
+      "binIndex": 1,
+      "binRange": [
         1,
+        1.5,
       ],
+      "datum": [
+        {
+          "myValue": 1,
+        },
+      ],
+      "frequency": 1,
       "seriesId": "HistogramSeries-1",
       "value": 1,
       "xKey": "myValue",
@@ -2606,9 +2615,18 @@ exports[`AG-15850 labels > histogram > formatter 1`] = `
   ],
   [
     {
-      "datum": [
-        1,
+      "aggregatedValue": 1,
+      "binIndex": 3,
+      "binRange": [
+        2,
+        2.5,
       ],
+      "datum": [
+        {
+          "myValue": 2,
+        },
+      ],
+      "frequency": 1,
       "seriesId": "HistogramSeries-1",
       "value": 1,
       "xKey": "myValue",
@@ -2619,9 +2637,18 @@ exports[`AG-15850 labels > histogram > formatter 1`] = `
   ],
   [
     {
-      "datum": [
-        1,
+      "aggregatedValue": 1,
+      "binIndex": 5,
+      "binRange": [
+        3,
+        3.5,
       ],
+      "datum": [
+        {
+          "myValue": 3,
+        },
+      ],
+      "frequency": 1,
       "seriesId": "HistogramSeries-1",
       "value": 1,
       "xKey": "myValue",
@@ -2632,9 +2659,18 @@ exports[`AG-15850 labels > histogram > formatter 1`] = `
   ],
   [
     {
-      "datum": [
-        1,
+      "aggregatedValue": 1,
+      "binIndex": 7,
+      "binRange": [
+        4,
+        4.5,
       ],
+      "datum": [
+        {
+          "myValue": 4,
+        },
+      ],
+      "frequency": 1,
       "seriesId": "HistogramSeries-1",
       "value": 1,
       "xKey": "myValue",
@@ -2650,6 +2686,12 @@ exports[`AG-15850 labels > histogram > itemStyler 1`] = `
 [
   [
     {
+      "aggregatedValue": 0,
+      "binIndex": 0,
+      "binRange": [
+        0.5,
+        1,
+      ],
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
@@ -2666,15 +2708,27 @@ exports[`AG-15850 labels > histogram > itemStyler 1`] = `
       "fontSize": 12,
       "fontStyle": undefined,
       "fontWeight": 400,
+      "frequency": 0,
       "highlightState": "none",
       "itemId": -1,
       "itemType": undefined,
       "padding": 8,
       "seriesId": "HistogramSeries-1",
+      "value": 0,
+      "xKey": "myValue",
+      "xName": undefined,
+      "yKey": undefined,
+      "yName": undefined,
     },
   ],
   [
     {
+      "aggregatedValue": 1,
+      "binIndex": 1,
+      "binRange": [
+        1,
+        1.5,
+      ],
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
@@ -2684,7 +2738,9 @@ exports[`AG-15850 labels > histogram > itemStyler 1`] = `
       "color": "white",
       "cornerRadius": 4,
       "datum": [
-        1,
+        {
+          "myValue": 1,
+        },
       ],
       "enabled": true,
       "fill": undefined,
@@ -2693,15 +2749,64 @@ exports[`AG-15850 labels > histogram > itemStyler 1`] = `
       "fontSize": 12,
       "fontStyle": undefined,
       "fontWeight": 400,
+      "frequency": 1,
       "highlightState": "none",
       "itemId": 0,
       "itemType": undefined,
       "padding": 8,
       "seriesId": "HistogramSeries-1",
+      "value": 1,
+      "xKey": "myValue",
+      "xName": undefined,
+      "yKey": undefined,
+      "yName": undefined,
     },
   ],
   [
     {
+      "aggregatedValue": 0,
+      "binIndex": 2,
+      "binRange": [
+        1.5,
+        2,
+      ],
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "white",
+      "cornerRadius": 4,
+      "datum": [],
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "frequency": 0,
+      "highlightState": "none",
+      "itemId": -1,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "HistogramSeries-1",
+      "value": 0,
+      "xKey": "myValue",
+      "xName": undefined,
+      "yKey": undefined,
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "aggregatedValue": 1,
+      "binIndex": 3,
+      "binRange": [
+        2,
+        2.5,
+      ],
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
@@ -2711,7 +2816,9 @@ exports[`AG-15850 labels > histogram > itemStyler 1`] = `
       "color": "white",
       "cornerRadius": 4,
       "datum": [
-        1,
+        {
+          "myValue": 2,
+        },
       ],
       "enabled": true,
       "fill": undefined,
@@ -2720,15 +2827,64 @@ exports[`AG-15850 labels > histogram > itemStyler 1`] = `
       "fontSize": 12,
       "fontStyle": undefined,
       "fontWeight": 400,
+      "frequency": 1,
       "highlightState": "none",
       "itemId": 1,
       "itemType": undefined,
       "padding": 8,
       "seriesId": "HistogramSeries-1",
+      "value": 1,
+      "xKey": "myValue",
+      "xName": undefined,
+      "yKey": undefined,
+      "yName": undefined,
     },
   ],
   [
     {
+      "aggregatedValue": 0,
+      "binIndex": 4,
+      "binRange": [
+        2.5,
+        3,
+      ],
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "white",
+      "cornerRadius": 4,
+      "datum": [],
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "frequency": 0,
+      "highlightState": "none",
+      "itemId": -1,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "HistogramSeries-1",
+      "value": 0,
+      "xKey": "myValue",
+      "xName": undefined,
+      "yKey": undefined,
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "aggregatedValue": 1,
+      "binIndex": 5,
+      "binRange": [
+        3,
+        3.5,
+      ],
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
@@ -2738,7 +2894,9 @@ exports[`AG-15850 labels > histogram > itemStyler 1`] = `
       "color": "white",
       "cornerRadius": 4,
       "datum": [
-        1,
+        {
+          "myValue": 3,
+        },
       ],
       "enabled": true,
       "fill": undefined,
@@ -2747,15 +2905,64 @@ exports[`AG-15850 labels > histogram > itemStyler 1`] = `
       "fontSize": 12,
       "fontStyle": undefined,
       "fontWeight": 400,
+      "frequency": 1,
       "highlightState": "none",
       "itemId": 2,
       "itemType": undefined,
       "padding": 8,
       "seriesId": "HistogramSeries-1",
+      "value": 1,
+      "xKey": "myValue",
+      "xName": undefined,
+      "yKey": undefined,
+      "yName": undefined,
     },
   ],
   [
     {
+      "aggregatedValue": 0,
+      "binIndex": 6,
+      "binRange": [
+        3.5,
+        4,
+      ],
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "white",
+      "cornerRadius": 4,
+      "datum": [],
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "frequency": 0,
+      "highlightState": "none",
+      "itemId": -1,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "HistogramSeries-1",
+      "value": 0,
+      "xKey": "myValue",
+      "xName": undefined,
+      "yKey": undefined,
+      "yName": undefined,
+    },
+  ],
+  [
+    {
+      "aggregatedValue": 1,
+      "binIndex": 7,
+      "binRange": [
+        4,
+        4.5,
+      ],
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
@@ -2765,7 +2972,9 @@ exports[`AG-15850 labels > histogram > itemStyler 1`] = `
       "color": "white",
       "cornerRadius": 4,
       "datum": [
-        1,
+        {
+          "myValue": 4,
+        },
       ],
       "enabled": true,
       "fill": undefined,
@@ -2774,11 +2983,17 @@ exports[`AG-15850 labels > histogram > itemStyler 1`] = `
       "fontSize": 12,
       "fontStyle": undefined,
       "fontWeight": 400,
+      "frequency": 1,
       "highlightState": "none",
       "itemId": 3,
       "itemType": undefined,
       "padding": 8,
       "seriesId": "HistogramSeries-1",
+      "value": 1,
+      "xKey": "myValue",
+      "xName": undefined,
+      "yKey": undefined,
+      "yName": undefined,
     },
   ],
 ]

@@ -36,15 +36,15 @@ const options: AgCartesianChartOptions = {
             cornerRadius: 4,
             tooltip: {
                 renderer: (params) => {
-                    const { datum } = params;
-                    const binStart = Math.round(datum.domain[0]);
-                    const binEnd = Math.round(datum.domain[1]);
-                    const percentage = ((datum.frequency / data.length) * 100).toFixed(1);
+                    const { binRange, frequency } = params;
+                    const binStart = Math.round(binRange[0]);
+                    const binEnd = Math.round(binRange[1]);
+                    const percentage = ((frequency / data.length) * 100).toFixed(1);
 
                     return {
                         data: [
                             { label: 'Engine Size Range', value: `${binStart} - ${binEnd} cu in` },
-                            { label: 'Vehicle Count', value: String(datum.frequency) },
+                            { label: 'Vehicle Count', value: String(frequency) },
                             { label: 'Percentage', value: `${percentage}%` },
                         ],
                     };
