@@ -170,7 +170,7 @@ export default defineConfig({
         react(),
         markdoc(),
         sitemap(getSitemapConfig()),
-        agHtaccessGen({ include: HTACCESS === 'true' }),
+        agHtaccessGen({ htaccessEnv: HTACCESS }),
         agLinkChecker({ include: CHECK_LINKS === 'true', prefix: PUBLIC_BASE_URL }),
         agRedirectsChecker({
             skip: CHECK_REDIRECTS !== 'true',
