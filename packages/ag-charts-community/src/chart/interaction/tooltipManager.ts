@@ -6,7 +6,7 @@ import type { LocaleManager } from '../../locale/localeManager';
 import { debouncedCallback } from '../../util/render';
 import { StateTracker } from '../../util/stateTracker';
 import type { SeriesTooltip } from '../series/seriesTooltip';
-import type { DatumIndexType, ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from '../series/seriesTypes';
+import type { ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from '../series/seriesTypes';
 import { getDatumRefPoint } from '../series/util';
 import type {
     Tooltip,
@@ -175,7 +175,7 @@ export class TooltipManager {
     public static makeTooltipMeta(
         event: TooltipPointerEvent,
         series: ISeries<any, any, any>,
-        datum: SeriesNodeDatum<DatumIndexType> & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>,
+        datum: SeriesNodeDatum & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>,
         movedBounds: BoxBounds | undefined
     ): TooltipMeta {
         const { canvasX, canvasY } = event;

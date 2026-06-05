@@ -42,7 +42,7 @@ describe('Enterprise highlight defaults', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    type HighlightNodeDatum = _ModuleSupport.HighlightNodeDatum<_ModuleSupport.DatumIndexType>;
+    type HighlightNodeDatum = _ModuleSupport.HighlightNodeDatum;
     type HighlightGetter = (chart: Chart) => HighlightNodeDatum | undefined;
 
     type HighlightTestCase = {

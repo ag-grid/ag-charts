@@ -4,11 +4,11 @@ import type { AgActiveChangeEventSource, AgActiveItemState, AgActiveState } from
 
 import type { ChartRegistry } from '../../module/moduleContext';
 import { commonChartOptions } from '../chartOptionsDefs';
-import type { DatumIndexType, SeriesNodeDatum } from '../series/seriesTypes';
+import type { SeriesNodeDatum } from '../series/seriesTypes';
 import { InteractionState } from './interactionManager';
 
 type ActiveItem = AgActiveItemState | undefined;
-type DatumArg = Readonly<SeriesNodeDatum<DatumIndexType>> | undefined;
+type DatumArg = Readonly<SeriesNodeDatum> | undefined;
 
 /**
  * This class implements the (de-)serialisation of `AgChartState['active']`.
@@ -152,7 +152,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         const reject = () => (rejection = true);
 
         let nodeDatum: DatumArg = undefined;
-        const setDatum = (d: SeriesNodeDatum<DatumIndexType> | undefined) => (nodeDatum = d);
+        const setDatum = (d: SeriesNodeDatum | undefined) => (nodeDatum = d);
 
         const initialState: boolean = this.pendingMemento !== undefined;
         const chartId = this.ctx.chartService.id;

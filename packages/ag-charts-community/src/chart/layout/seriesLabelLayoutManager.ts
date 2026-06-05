@@ -2,13 +2,13 @@ import { type PointLabelDatum, isPointLabelDatum, placeLabels } from 'ag-charts-
 import type { AgChartPaddingOptions } from 'ag-charts-types';
 
 import { BBox } from '../../scene/bbox';
-import type { DatumIndexType, ISeries, ISeriesProperties } from '../series/seriesTypes';
+import type { ISeries, ISeriesProperties, SeriesNodeDatum } from '../series/seriesTypes';
 
 export class SeriesLabelLayoutManager {
     private readonly labelData: Map<string, PointLabelDatum[]> = new Map();
 
     updateLabels(
-        placedLabelSeries: ISeries<DatumIndexType, unknown, ISeriesProperties>[],
+        placedLabelSeries: ISeries<SeriesNodeDatum, ISeriesProperties, unknown>[],
         padding: Required<AgChartPaddingOptions>,
         seriesRect = BBox.zero
     ) {

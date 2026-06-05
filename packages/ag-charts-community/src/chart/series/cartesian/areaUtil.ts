@@ -40,7 +40,7 @@ export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
     style?: AgSeriesMarkerStyle;
 }
 
-export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum<number> {
+export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
     readonly itemId?: never;
     readonly labelText: NormalisedTextOrSegments;
 }

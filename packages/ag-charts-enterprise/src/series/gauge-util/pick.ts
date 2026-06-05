@@ -3,7 +3,7 @@ import type { AgActiveItemState } from 'ag-charts-community';
 import { type Point, clamp, iterate } from 'ag-charts-core';
 
 type SceneNode = _ModuleSupport.Node;
-type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType>;
+type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum;
 type SeriesNodePickMatch = _ModuleSupport.SeriesNodePickMatch;
 type SelectionNode = { node: _ModuleSupport.Path; datum: SeriesNodeDatum | undefined };
 type SelectionLike = Iterable<SelectionNode> & { nodes(): Iterable<SceneNode> };

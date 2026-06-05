@@ -1,6 +1,6 @@
 import type { AgSelectionItemIds } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type AreExact, Logger } from 'ag-charts-core';
+import { type AreExact } from 'ag-charts-core';
 
 import type { DataSelectionChangeMap } from './dataSelectionChangeMap';
 import type { DataSetSelection } from './dataSetSelection';
@@ -149,13 +149,4 @@ export function isAgSelectionItem(item: unknown): item is AgSelectionItemIds {
         return true satisfies AreExact<VerifiedType, AgSelectionItemIds>;
     }
     return false;
-}
-
-export function asNumericDatumIndex(datumIndex: _ModuleSupport.DatumIndexType): datumIndex is number {
-    if (typeof datumIndex === 'number') {
-        return true;
-    } else {
-        Logger.errorOnce(`unsupported datumIndex type: ${typeof datumIndex}`);
-        return false;
-    }
 }

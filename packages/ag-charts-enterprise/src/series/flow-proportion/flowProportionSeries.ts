@@ -15,8 +15,19 @@ import type {
     Point,
 } from 'ag-charts-core';
 
-import { FlowProportionDatumType } from './flowDatumIndex';
-import type { FlowProportionNodeDatumIndex } from './flowDatumIndex';
+import {
+    type FlowLinkDatumIndex,
+    type FlowNodeDatumIndex,
+    FlowProportionDatumType,
+    flowLinkDatumIndex,
+    flowNodeDatumIndex,
+    isFlowLinkDatumIndex,
+    isFlowNodeDatumIndex,
+    toFlowLinkAriaIndex,
+    toFlowLinkOffset,
+    toFlowNodeAriaIndex,
+    toFlowNodeOffset,
+} from './flowDatumIndex';
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
 
@@ -39,10 +50,11 @@ type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 's
 export interface FlowProportionLinkDatum<
     TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
-> extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
+>
+    extends _ModuleSupport.SeriesNodeDatum {
     type: FlowProportionDatumType.Link;
     readonly itemId: string;
-    index: number;
+    datumIndex: FlowLinkDatumIndex;
     fromNode: TNodeDatum;
     toNode: TNodeDatum;
     size: number;
@@ -52,10 +64,11 @@ export interface FlowProportionLinkDatum<
 export interface FlowProportionNodeDatum<
     TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
-> extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
+>
+    extends _ModuleSupport.SeriesNodeDatum {
     type: FlowProportionDatumType.Node;
     readonly itemId: string;
-    index: number;
+    datumIndex: FlowNodeDatumIndex;
     linksBefore: TLinkDatum[];
     linksAfter: TLinkDatum[];
     id: string;
@@ -68,7 +81,7 @@ export interface FlowProportionSeriesContext<
     TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
     TLabel,
-> extends _ModuleSupport.SeriesNodeDataContext<FlowProportionNodeDatumIndex, TDatum<TNodeDatum, TLinkDatum>, TLabel> {}
+> extends _ModuleSupport.SeriesNodeDataContext<TDatum<TNodeDatum, TLinkDatum>, TLabel> {}
 
 type TDatum<
     TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
@@ -77,21 +90,15 @@ type TDatum<
 
 export class FlowProportionSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeEvent<_ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex>, TEvent> {
+> extends _ModuleSupport.SeriesNodeEvent<_ModuleSupport.SeriesNodeDatum, TEvent> {
     readonly size?: number;
     readonly label?: string;
     constructor(
         type: TEvent,
         nativeEvent: Event,
-        datum: _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex>,
-        series: _ModuleSupport.ISeries<
-            FlowProportionNodeDatumIndex,
-            _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex>,
-            _ModuleSupport.ISeriesProperties,
-            unknown
-        > & {
+        datum: _ModuleSupport.SeriesNodeDatum & { type?: FlowProportionDatumType },
+        series: _ModuleSupport.ISeries<_ModuleSupport.SeriesNodeDatum, _ModuleSupport.ISeriesProperties, unknown> & {
             contextNodeData?: _ModuleSupport.SeriesNodeDataContext<
-                FlowProportionNodeDatumIndex,
                 TDatum<FlowProportionNodeDatum<any, any>, FlowProportionLinkDatum<any, any>>,
                 _ModuleSupport.ISeriesProperties
             >;
@@ -99,9 +106,8 @@ export class FlowProportionSeriesNodeEvent<
         selectionState: SelectionState | undefined
     ) {
         super(type, nativeEvent, datum, series, selectionState);
-        const { datumIndex } = datum;
         const nodeDatum = series.contextNodeData?.nodeData.find(
-            (d) => d.datumIndex.type === datumIndex.type && d.datumIndex.index === datumIndex.index
+            (d) => d.type === datum.type && d.datumIndex === datum.datumIndex
         );
         this.size = nodeDatum?.size;
         this.label = nodeDatum?.type === FlowProportionDatumType.Node ? nodeDatum?.label : undefined;
@@ -117,12 +123,11 @@ export abstract class FlowProportionSeries<
     TNode extends _ModuleSupport.Node<TNodeDatum> & DistantObject,
     TLink extends _ModuleSupport.Node<TLinkDatum> & DistantObject,
 > extends Series<
-    FlowProportionNodeDatumIndex,
     TDatum<TNodeDatum, TLinkDatum>,
     TOpts,
     TProps,
     TLabel,
-    _ModuleSupport.SeriesNodeDataContext<FlowProportionNodeDatumIndex, TDatum<TNodeDatum, TLinkDatum>, TLabel>
+    _ModuleSupport.SeriesNodeDataContext<TDatum<TNodeDatum, TLinkDatum>, TLabel>
 > {
     protected override readonly NodeEvent = FlowProportionSeriesNodeEvent;
 
@@ -141,11 +146,7 @@ export abstract class FlowProportionSeries<
     protected nodesDataModel: _ModuleSupport.DataModel<any, any, true> | undefined = undefined;
     protected nodesProcessedData: _ModuleSupport.ProcessedData<any> | undefined = undefined;
 
-    public contextNodeData?: _ModuleSupport.SeriesNodeDataContext<
-        FlowProportionNodeDatumIndex,
-        TDatum<TNodeDatum, TLinkDatum>,
-        TLabel
-    >;
+    public contextNodeData?: _ModuleSupport.SeriesNodeDataContext<TDatum<TNodeDatum, TLinkDatum>, TLabel>;
 
     private processedNodes = new Map<string, FlowProportionNodeDatum<TNodeDatum, TLinkDatum>>();
 
@@ -255,16 +256,15 @@ export abstract class FlowProportionSeries<
             );
 
             const createImplicitNode = (id: string): FlowProportionNodeDatum<TNodeDatum, TLinkDatum> => {
-                const datumIndex = processedNodes.size;
+                const datumIndex = flowNodeDatumIndex(processedNodes.size);
                 const label = id;
 
                 return {
                     series: this,
-                    itemId: this.callGetDataId({ nodeName: id, index: datumIndex, datum: {} }) ?? id,
+                    itemId: this.toFlowNodeItemId({}, datumIndex, { dataIdKey: undefined, nodeName: id }),
                     datum: {}, // Must be a referential object for tooltips
-                    datumIndex: { type: FlowProportionDatumType.Node, index: datumIndex },
+                    datumIndex,
                     type: FlowProportionDatumType.Node,
-                    index: datumIndex,
                     linksBefore: [],
                     linksAfter: [],
                     id,
@@ -272,7 +272,7 @@ export abstract class FlowProportionSeries<
                     label,
                     style: this.getNodeStyle(
                         {
-                            datumIndex: { type: FlowProportionDatumType.Node, index: datumIndex },
+                            datumIndex,
                             datum: {},
                             size: 0,
                             label,
@@ -317,28 +317,23 @@ export abstract class FlowProportionSeries<
             const nodeDataIdKey = this.data?.dataIdKey;
             const nodeData = nodesDataModel.processedData.dataSources.get(this.id)?.data;
             if (nodeData) {
-                for (const [datumIndex, datum] of nodeData.entries()) {
-                    const id: string = nodeIdValues[datumIndex];
-                    const label: string | undefined = labelValues?.[datumIndex];
-
-                    const nodeDatumIndex = { type: FlowProportionDatumType.Node, index: datumIndex };
-                    const nodeIdValue = nodeDataIdKey == null ? undefined : (datum as any)[nodeDataIdKey];
-                    const computedId = this.callGetDataId({ nodeName: id, index: datumIndex, datum });
-
+                for (const [offset, datum] of nodeData.entries()) {
+                    const id: string = nodeIdValues[offset];
+                    const label: string | undefined = labelValues?.[offset];
+                    const datumIndex = flowNodeDatumIndex(offset);
                     processedNodes.set(id, {
                         series: this,
-                        itemId: computedId ?? (nodeIdValue == null ? id : String(nodeIdValue)),
+                        itemId: this.toFlowNodeItemId(datum, datumIndex, { dataIdKey: nodeDataIdKey, nodeName: id }),
                         datum,
-                        datumIndex: nodeDatumIndex,
+                        datumIndex,
                         type: FlowProportionDatumType.Node,
-                        index: datumIndex,
                         linksBefore: [],
                         linksAfter: [],
                         id,
                         size: 0,
                         label,
                         style: this.getNodeStyle(
-                            { datumIndex: nodeDatumIndex, datum, size: 0, label } as Partial<TNodeDatum>,
+                            { datumIndex, datum, size: 0, label } as Partial<TNodeDatum>,
                             datumIndex,
                             false
                         ),
@@ -360,16 +355,17 @@ export abstract class FlowProportionSeries<
     }
 
     protected abstract getNodeStyle(
-        datum: Partial<TNodeDatum>,
-        fromNodeDatumIndex: number,
+        nodeDatum: Partial<TNodeDatum>,
+        fromNodeDatumIndex: FlowNodeDatumIndex,
         isHighlight: boolean
-    ): NodeStyle;
+    ): Required<NodeStyle>;
 
     protected abstract getLinkStyle(
-        { datumIndex, datum }: Partial<TLinkDatum>,
-        fromNodeDatumIndex: FlowProportionNodeDatumIndex,
+        datum: TLinkDatum['datum'],
+        datumIndex: FlowLinkDatumIndex,
+        fromNodeDatumIndex: FlowNodeDatumIndex,
         isHighlight: boolean
-    ): NodeStyle;
+    ): Required<NodeStyle>;
 
     protected getNodeGraph(
         createNode: (node: FlowProportionNodeDatum<TNodeDatum, TLinkDatum>) => TNodeDatum,
@@ -409,32 +405,25 @@ export abstract class FlowProportionSeries<
         const dataIdKey = this.data?.dataIdKey;
         const linkData = linksProcessedData.dataSources.get(this.id)?.data;
         if (linkData) {
-            for (const [datumIndex, datum] of linkData.entries()) {
-                const fromId: string = fromIdValues[datumIndex];
-                const toId: string = toIdValues[datumIndex];
-                const size: number = sizeValues == null ? 1 : sizeValues[datumIndex];
+            for (const [index, datum] of linkData.entries()) {
+                const fromId: string = fromIdValues[index];
+                const toId: string = toIdValues[index];
+                const size: number = sizeValues == null ? 1 : sizeValues[index];
                 const fromNode = nodesById.get(fromId);
                 const toNode = nodesById.get(toId);
                 if (size <= 0 || fromNode == null || toNode == null) continue;
 
-                const linkNodeDatumIndex = { type: FlowProportionDatumType.Link, index: datumIndex };
-                const linkIdValue = dataIdKey == null ? undefined : (datum as any)[dataIdKey];
-
+                const datumIndex = flowLinkDatumIndex(index);
                 const link = createLink({
                     series: this,
-                    itemId: linkIdValue == null ? `link-${datumIndex}` : String(linkIdValue),
+                    itemId: this.toFlowLinkItemId(datum, datumIndex, { dataIdKey }),
                     datum,
-                    datumIndex: linkNodeDatumIndex,
+                    datumIndex,
                     type: FlowProportionDatumType.Link,
-                    index: datumIndex,
                     fromNode,
                     toNode,
                     size,
-                    style: this.getLinkStyle(
-                        { datum, datumIndex: linkNodeDatumIndex } as Partial<TLinkDatum>,
-                        fromNode.datumIndex,
-                        false
-                    ),
+                    style: this.getLinkStyle(datum, datumIndex, fromNode.datumIndex, false),
                 });
                 baseLinks.push(link);
             }
@@ -636,7 +625,7 @@ export abstract class FlowProportionSeries<
 
     protected legendItemSymbol(
         _type: FlowProportionDatumType,
-        nodeIndex: number,
+        nodeIndex: FlowNodeDatumIndex,
         format: {
             fill?: InternalAgColorType;
             fillOpacity?: number;
@@ -678,14 +667,14 @@ export abstract class FlowProportionSeries<
         const { showInLegend } = this.properties;
         return Array.from(
             this.processedNodes.values(),
-            ({ id, label }, nodeIndex): _ModuleSupport.CategoryLegendDatum => ({
+            ({ id, label }, index): _ModuleSupport.CategoryLegendDatum => ({
                 legendType: 'category',
                 id: this.id,
                 itemId: id,
                 seriesId: this.id,
                 enabled: true,
                 label: { text: label ?? id },
-                symbol: this.legendItemSymbol(FlowProportionDatumType.Node, nodeIndex),
+                symbol: this.legendItemSymbol(FlowProportionDatumType.Node, flowNodeDatumIndex(index)),
                 hideInLegend: !showInLegend,
                 isFixed: true,
             })
@@ -694,7 +683,7 @@ export abstract class FlowProportionSeries<
 
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
-        let minDatum: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> | undefined;
+        let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
 
         this.linkSelection.each((node, datum) => {
             const distanceSquared = node.distanceSquared(x, y);
@@ -717,7 +706,7 @@ export abstract class FlowProportionSeries<
     getDatumAriaText(datum: TDatum<TNodeDatum, TLinkDatum>, description: string) {
         if (datum.type === FlowProportionDatumType.Link) {
             return this.ctx.localeManager.t('ariaAnnounceFlowProportionLink', {
-                index: datum.index + 1,
+                index: toFlowLinkAriaIndex(datum.datumIndex),
                 count: this.linkCount,
                 from: datum.fromNode.id,
                 to: datum.toNode.id,
@@ -726,7 +715,7 @@ export abstract class FlowProportionSeries<
             });
         } else if (datum.type === FlowProportionDatumType.Node) {
             return this.ctx.localeManager.t('ariaAnnounceFlowProportionNode', {
-                index: datum.index + 1,
+                index: toFlowNodeAriaIndex(datum.datumIndex),
                 count: this.nodeCount,
                 description,
             });
@@ -789,11 +778,114 @@ export abstract class FlowProportionSeries<
         };
     }
 
-    getCategoryValue(_datumIndex: FlowProportionNodeDatumIndex): any {
+    private readUserDatum(datumIndex: _ModuleSupport.DatumIndex): unknown {
+        if (isFlowLinkDatumIndex(datumIndex)) {
+            return this.linksProcessedData?.dataSources.get(this.id)?.data[toFlowLinkOffset(datumIndex)];
+        } else if (isFlowNodeDatumIndex(datumIndex)) {
+            return this.nodesProcessedData?.dataSources.get(this.id)?.data[toFlowNodeOffset(datumIndex)];
+        }
+    }
+
+    override getTooltipContent(datumIndex: _ModuleSupport.DatumIndex): _ModuleSupport.TooltipContent | undefined {
+        const {
+            id: seriesId,
+            properties,
+            ctx: { formatManager },
+        } = this;
+        const { fromKey, toKey, sizeKey, sizeName, tooltip } = properties;
+
+        // This needs refactoring
+        const seriesDatum = this.contextNodeData?.nodeData.find((d) => d.datumIndex === datumIndex);
+        if (seriesDatum == null) return;
+
+        const nodeIndex =
+            seriesDatum.type === FlowProportionDatumType.Link
+                ? seriesDatum.fromNode.datumIndex
+                : seriesDatum.datumIndex;
+        const title =
+            seriesDatum.type === FlowProportionDatumType.Link
+                ? `${seriesDatum.fromNode.label} - ${seriesDatum.toNode.label}`
+                : seriesDatum.label;
+        const datum = this.readUserDatum(datumIndex);
+        const size = seriesDatum.size;
+
+        let format: Required<NodeStyle>;
+        if (seriesDatum.type === FlowProportionDatumType.Link) {
+            format = this.getLinkStyle(datum, seriesDatum.datumIndex, nodeIndex, false);
+        } else {
+            format = this.getNodeStyle(seriesDatum, nodeIndex, false);
+        }
+
+        const data: _ModuleSupport.TooltipContentDataRow[] = [];
+        if (sizeKey != null) {
+            const content = formatManager.format(this.callWithContext.bind(this), {
+                type: 'number',
+                value: size,
+                datum,
+                seriesId,
+                legendItemName: undefined,
+                key: sizeKey,
+                source: 'tooltip',
+                property: 'size',
+                domain: [],
+                boundSeries: this.getFormatterContext('size'),
+                fractionDigits: undefined,
+                visibleDomain: undefined,
+            });
+            data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? String(size) });
+        }
+
+        return this.formatTooltipWithContext(
+            tooltip,
+            {
+                title,
+                symbol: this.legendItemSymbol(seriesDatum.type, nodeIndex, format),
+                data,
+            },
+            {
+                context: undefined,
+                seriesId,
+                datum,
+                title,
+                fromKey,
+                toKey,
+                sizeKey,
+                sizeName,
+                size,
+                ...format,
+            }
+        );
+    }
+    getCategoryValue(_datumIndex: _ModuleSupport.DatumIndex): any {
         return;
     }
 
-    datumIndexForCategoryValue(_categoryValue: any): FlowProportionNodeDatumIndex | undefined {
+    datumIndexForCategoryValue(_categoryValue: any): _ModuleSupport.DatumIndex | undefined {
         return;
+    }
+
+    private readDataIdKey(datum: unknown, info: { dataIdKey?: string }): string | undefined {
+        return info.dataIdKey == null ? undefined : (datum as any)?.[info.dataIdKey];
+    }
+
+    private toFlowNodeItemId(
+        datum: unknown,
+        datumIndex: FlowNodeDatumIndex,
+        info: { dataIdKey: string | undefined; nodeName: string }
+    ): string {
+        const { nodeName } = info;
+        const nodeIdValue = this.readDataIdKey(datum, info);
+        const offset = toFlowNodeOffset(datumIndex);
+        const computedId = this.callGetDataId({ nodeName, index: offset, datum });
+        return computedId ?? (nodeIdValue == null ? nodeName : String(nodeIdValue));
+    }
+
+    private toFlowLinkItemId(
+        datum: unknown,
+        datumIndex: FlowLinkDatumIndex,
+        info: { dataIdKey: string | undefined }
+    ): string {
+        const linkIdValue = this.readDataIdKey(datum, info);
+        return linkIdValue == null ? `link-${datumIndex}` : String(linkIdValue);
     }
 }

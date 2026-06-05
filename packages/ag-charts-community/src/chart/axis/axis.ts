@@ -60,7 +60,7 @@ import { Caption } from '../caption';
 import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../chartAxis';
 import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
-import type { DatumIndexType, ISeries, ISeriesProperties } from '../series/seriesTypes';
+import type { ISeries, ISeriesProperties, SeriesNodeDatum } from '../series/seriesTypes';
 import { type AxisLabelFormatterCache, createAxisLabelFormatterCache, formatAxisLabelValue } from './axisLabelUtil';
 import type { TickInterval } from './axisTick';
 import { type AxisGroupDatumTranslation, NiceMode } from './axisUtil';
@@ -277,7 +277,7 @@ export abstract class Axis<
         this._requiredRange = value;
     }
 
-    boundSeries: ISeries<DatumIndexType, unknown, ISeriesProperties>[] = [];
+    boundSeries: ISeries<SeriesNodeDatum, ISeriesProperties>[] = [];
     includeInvisibleDomains: boolean = false;
 
     interactionEnabled = true;

@@ -758,7 +758,7 @@ describe('TreemapSeries', () => {
                 seriesImpl,
                 data,
                 (d) => d.change == null,
-                (i) => [i]
+                (i) => i
             );
         });
 
