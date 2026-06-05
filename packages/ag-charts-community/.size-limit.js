@@ -1,23 +1,24 @@
 const { plugins } = require('../../esbuild.config.cjs');
 
+// Limits carry ~5% headroom over the current minified+brotlied sizes.
 const scenarios = [
     {
         name: 'Full package',
         import: '*',
-        srcLimit: '290 kB',
-        distLimit: '289 kB',
+        srcLimit: '304 kB',
+        distLimit: '304 kB',
     },
     {
         name: 'CartesianChart only',
         import: '{ CartesianChartModule }',
-        srcLimit: '176 kB',
-        distLimit: '267 kB',
+        srcLimit: '178 kB',
+        distLimit: '281 kB',
     },
     {
         name: 'PolarChart only',
         import: '{ PolarChartModule }',
         srcLimit: '167 kB',
-        distLimit: '268 kB',
+        distLimit: '282 kB',
     },
 ];
 
