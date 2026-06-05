@@ -240,10 +240,8 @@ export function groupAccumulativeValueProperty<K>(
 // continuous x-axis, so a string here is a date string, never a category.
 function finiteKey(key: unknown): AgNumericValue | undefined {
     if (typeof key === 'bigint') return key;
-    if (isISO8601(key)) {
-        const ms = timeValueToNumber(key);
-        return Number.isFinite(ms) ? ms : undefined;
-    }
+    // isISO8601 guarantees a calendar-valid date, so timeValueToNumber always yields a finite epoch here.
+    if (isISO8601(key)) return timeValueToNumber(key);
     const n = Number(key);
     return Number.isFinite(n) ? n : undefined;
 }

@@ -499,9 +499,8 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
     private warnMixedNumericColumn(seriesId: ScopeId, key: K, atIndex: number) {
         Logger.warnOnce(
             `Series "${seriesId}": column "${String(key)}" mixes 'number' and 'bigint' values ` +
-                `(first detected at row ${atIndex}). The bigint values are narrowed to Number to render ` +
-                `alongside the numbers, which can lose precision beyond ±2^53; use a uniformly-typed column ` +
-                `to retain full bigint precision.`
+                `(first detected at row ${atIndex}); the bigints are narrowed to Number and may lose precision ` +
+                `beyond ±2^53. Use one numeric type per column.`
         );
     }
 
