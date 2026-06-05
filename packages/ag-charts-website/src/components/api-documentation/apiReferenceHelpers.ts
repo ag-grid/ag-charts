@@ -266,9 +266,7 @@ export function extractSearchData(
     return out;
 }
 
-// Appends entries to a shared accumulator rather than returning per-level arrays. The theme search
-// index reaches ~150k entries; assembling it with `result.push(...childArray)` spreads child arrays
-// as call arguments, which overflows V8's argument limit and throws "Maximum call stack size exceeded".
+// Shared accumulator avoids `push(...childArray)`, whose spread overflows V8's argument limit at ~150k entries.
 function collectSearchData(
     out: SearchDatum[],
     reference: ApiReferenceType | undefined,

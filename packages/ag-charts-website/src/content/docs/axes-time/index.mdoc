@@ -5,7 +5,7 @@ description: 'Use $framework chart time axis to display time-based data in a $fr
 
 Time axes are used to display time-based data in a chart. They can be used to show data at different levels of granularity, such as years, months, days, or even hours and minutes.
 
-Time can be provided as `number` or `Date` objects, where `number` values are interpreted as timestamps derived from Unix time.
+Time can be provided as `number` or `Date` objects, where `number` values are interpreted as timestamps derived from Unix time. Strict [ISO 8601](#iso-8601-strings) strings are also accepted.
 
 There are three methods of displaying time along an axis.
 
@@ -17,83 +17,13 @@ The difference between a [Unit Time Axis](#unit-time), an [Ordinal Time Axis](#o
 
 {% chartExampleRunner title="Time Axis Types" name="time-vs-unit-time-vs-ordinal-time" type="generated" /%}
 
-## Unit Time
+## ISO 8601 Strings
 
-The Unit Time Axis will plot time values with evenly spaced bands for each unit of time in the domain, regardless of the actual time span between them or missing data.
+A time axis accepts strict ISO 8601 date and date-time strings directly, without converting them to `Date` objects first. Time-zone offsets are honoured as written.
 
-For example, with a `month` unit, dates of 01 Jan and 30 Mar will appear as three evenly spaced items representing "January", "February" and "March".
+{% chartExampleRunner title="ISO 8601 Strings" name="iso-8601-time-axis" type="generated" /%}
 
-```js format="snippet"
-{
-    axes: {
-        x: { type: 'unit-time' },
-    },
-}
-```
-
-{% note %}
-
-The Unit Time Axis does not aggregate data, so you should ensure that each series only has one value per `unit`.
-
-{% /note %}
-
-### Custom Unit
-
-The Unit Time Axis assumes that data is provided with one item per unit, and will infer a `unit` based on the data.
-
-For some scenarios - such as datasets with missing data points - it may be necessary to specify the `unit` explicitly.
-To explicitly set the `unit`, provide an `AgTimeInterval` string or `AgTimeIntervalUnit` object.
-
-```js format="snippet"
-{
-    axes: {
-        x: {
-            type: 'unit-time',
-            unit: 'day', // every day
-        },
-    },
-}
-```
-
-In this configuration:
-
-- `unit` must be one of `millisecond`, `second`, `minute`, `hour`, `day`, `month`, or `year`.
-
-{% note %}
-
-The `axes[].unit` property controls how time is bucketed for display.
-See [Time Interval](#reference-AgTimeInterval) for to control the spacing of ticks, grid lines, and labels.
-
-{% /note %}
-
-### Weekly Data Example
-
-The `AgTimeIntervalUnit` object supports advanced configuration for more complex `unit` requirements such as weekly data.
-
-{% chartExampleRunner title="Unit Time (Custom Unit)" name="unit-time-unit" type="generated" /%}
-
-```js format="snippet"
-{
-    axes: {
-        x: {
-            type: 'unit-time',
-            unit: {
-                unit: 'day',
-                step: 7, //every 7 days (weekly)
-                epoch: new Date(2024, 0, 1), //start the week on Monday
-            },
-        },
-    },
-}
-```
-
-In this example:
-
-- `step` specifies the multiple of the unit to use. In this example, `step: 7` combined with `unit: 'day'` will display one data point for any provided date within each week.
-- `epoch` is an optional `Date` that specifies the starting point for the unit. In this example, the week runs from Monday to Monday.
-- In this example, a [Formatter](./formatters) is used to format the labels as numbered weeks of the year.
-
-For a full list of configuration options see [Unit Time Axis Options](#reference-AgUnitTimeAxisOptions).
+Strings that are not valid ISO 8601 are skipped, and a warning naming the value is logged to the console. The remaining rows still render.
 
 ## Ordinal Time
 
@@ -240,6 +170,84 @@ In this configuration:
 - The parent level label format is set to show the day and month on separate lines for the `month` level, and the month and year on separate lines for the `year` level.
 
 See [Axis Labels](./axes-labels/#label-text-formatting) and the [Formatters](./formatters/) pages for more information on formatting labels.
+
+## Unit Time
+
+The Unit Time Axis will plot time values with evenly spaced bands for each unit of time in the domain, regardless of the actual time span between them or missing data.
+
+For example, with a `month` unit, dates of 01 Jan and 30 Mar will appear as three evenly spaced items representing "January", "February" and "March".
+
+```js format="snippet"
+{
+    axes: {
+        x: { type: 'unit-time' },
+    },
+}
+```
+
+{% note %}
+
+The Unit Time Axis does not aggregate data, so you should ensure that each series only has one value per `unit`.
+
+{% /note %}
+
+### Custom Unit
+
+The Unit Time Axis assumes that data is provided with one item per unit, and will infer a `unit` based on the data.
+
+For some scenarios - such as datasets with missing data points - it may be necessary to specify the `unit` explicitly.
+To explicitly set the `unit`, provide an `AgTimeInterval` string or `AgTimeIntervalUnit` object.
+
+```js format="snippet"
+{
+    axes: {
+        x: {
+            type: 'unit-time',
+            unit: 'day', // every day
+        },
+    },
+}
+```
+
+In this configuration:
+
+- `unit` must be one of `millisecond`, `second`, `minute`, `hour`, `day`, `month`, or `year`.
+
+{% note %}
+
+The `axes[].unit` property controls how time is bucketed for display.
+See [Time Interval](#reference-AgTimeInterval) for to control the spacing of ticks, grid lines, and labels.
+
+{% /note %}
+
+### Weekly Data Example
+
+The `AgTimeIntervalUnit` object supports advanced configuration for more complex `unit` requirements such as weekly data.
+
+{% chartExampleRunner title="Unit Time (Custom Unit)" name="unit-time-unit" type="generated" /%}
+
+```js format="snippet"
+{
+    axes: {
+        x: {
+            type: 'unit-time',
+            unit: {
+                unit: 'day',
+                step: 7, //every 7 days (weekly)
+                epoch: new Date(2024, 0, 1), //start the week on Monday
+            },
+        },
+    },
+}
+```
+
+In this example:
+
+- `step` specifies the multiple of the unit to use. In this example, `step: 7` combined with `unit: 'day'` will display one data point for any provided date within each week.
+- `epoch` is an optional `Date` that specifies the starting point for the unit. In this example, the week runs from Monday to Monday.
+- In this example, a [Formatter](./formatters) is used to format the labels as numbered weeks of the year.
+
+For a full list of configuration options see [Unit Time Axis Options](#reference-AgUnitTimeAxisOptions).
 
 ## API Reference
 
