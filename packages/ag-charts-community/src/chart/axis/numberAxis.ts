@@ -1,6 +1,6 @@
 import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedNumberAxisOptions } from 'ag-charts-core';
 import { normalisedExtentWithMetadata } from 'ag-charts-core';
-import type { FormatterParams } from 'ag-charts-types';
+import type { AgNumericValue, FormatterParams } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
 import { LinearScale } from '../../scale/linearScale';
@@ -11,7 +11,7 @@ import { CartesianAxis } from './cartesianAxis';
 
 export class NumberAxis<
     TOptions extends NormalisedNumberAxisOptions = NormalisedNumberAxisOptions,
-> extends CartesianAxis<LinearScale | LogScale, number, TOptions> {
+> extends CartesianAxis<LinearScale | LogScale, AgNumericValue, TOptions> {
     static readonly className: string = 'NumberAxis';
     static readonly type: string = 'number';
 
@@ -33,7 +33,7 @@ export class NumberAxis<
         return this.options.label.format;
     }
 
-    override normaliseDataDomain(d: DomainWithMetadata<number>) {
+    override normaliseDataDomain(d: DomainWithMetadata<AgNumericValue>) {
         const { min, max, preferredMin, preferredMax } = this.options;
         const { extent, clipped } = normalisedExtentWithMetadata(
             d.domain,
@@ -52,7 +52,7 @@ export class NumberAxis<
         return [this.options.min == null && this.nice, this.options.max == null && this.nice];
     }
 
-    protected getVisibleDomain(domain: number[]): [number, number] {
+    protected getVisibleDomain(domain: AgNumericValue[]): [number, number] {
         // Narrow to Number: a bigint domain reaches here as formatter-context metadata only — the tick
         // label itself carries the exact bigint value, so this range context can narrow safely.
         const d0 = Number(domain[0]);
@@ -62,7 +62,11 @@ export class NumberAxis<
         return [d0 + r0 * length, d1 - (1 - r1) * length];
     }
 
-    override tickFormatParams(domain: number[], _ticks: number[], fractionDigits?: number): AxisTickFormatParams {
+    override tickFormatParams(
+        domain: AgNumericValue[],
+        _ticks: AgNumericValue[],
+        fractionDigits?: number
+    ): AxisTickFormatParams {
         return { type: 'number', visibleDomain: this.getVisibleDomain(domain), fractionDigits };
     }
 

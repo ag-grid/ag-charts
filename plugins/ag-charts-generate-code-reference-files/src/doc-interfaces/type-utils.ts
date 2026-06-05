@@ -150,6 +150,7 @@ export function formatNode<T extends ts.Node>(node: T | undefined): any {
 
     switch (node.kind) {
         case ts.SyntaxKind.AnyKeyword:
+        case ts.SyntaxKind.BigIntKeyword:
         case ts.SyntaxKind.BooleanKeyword:
         case ts.SyntaxKind.ConstructSignature:
         case ts.SyntaxKind.Identifier:

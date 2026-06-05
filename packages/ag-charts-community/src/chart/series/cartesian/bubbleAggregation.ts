@@ -1,5 +1,11 @@
 import type { DomainWithMetadata, ScaleType } from 'ag-charts-core';
-import { aggregationDomain, aggregationXRatioForXValue, clamp } from 'ag-charts-core';
+import {
+    aggregationDomain,
+    aggregationXRatioForXValue,
+    clamp,
+    epochColumnForTimeScale,
+    narrowBigIntColumn,
+} from 'ag-charts-core';
 
 const SIZE_QUANTIZATION = 3;
 const FILTER_DATUM_THRESHOLD = 5;
@@ -332,16 +338,27 @@ export function aggregateBubbleDataFromDataModel(
     hasSizeKey: boolean,
     series: any
 ): BubbleAggregation | undefined {
-    const xValues = dataModel.resolveColumnById(series, 'xValue', processedData);
-    const yValues = dataModel.resolveColumnById(series, 'yValue', processedData);
-    const sizeValues = hasSizeKey ? dataModel.resolveColumnById(series, 'sizeValue', processedData) : undefined;
+    const rawXValues = dataModel.resolveColumnById(series, 'xValue', processedData, 'object');
+    const rawYValues = dataModel.resolveColumnById(series, 'yValue', processedData, 'mixed-numeric');
+    const sizeValues = hasSizeKey
+        ? dataModel.resolveColumnById(series, 'sizeValue', processedData, 'mixed-numeric')
+        : undefined;
 
     const xDomain = dataModel.getDomain(series, 'xValue', 'value', processedData);
     const yDomain = dataModel.getDomain(series, 'yValue', 'value', processedData);
     const sizeDomain = hasSizeKey ? sizeScale.domain : [0, 0];
 
-    const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    const rawXNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'yValue', processedData);
+
+    // Narrow bigints absolutely to match aggregationDomain's narrowing of the domain; parse ISO time x to epoch ms first.
+    const { values: epochXValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
+        xScale,
+        rawXValues,
+        rawXNeedsValueOf
+    );
+    const xValues = narrowBigIntColumn(epochXValues);
+    const yValues = yNeedsValueOf ? rawYValues : narrowBigIntColumn(rawYValues);
 
     return aggregateBubbleData(
         xScale,

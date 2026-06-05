@@ -1,12 +1,21 @@
 import {
+    Logger,
     type ScaleType,
+    absValue,
     clamp,
     isContinuous,
     isFiniteNumber,
+    isFiniteNumericValue,
+    isISO8601,
     isNegative,
+    maxValue,
     memo,
+    minValue,
+    subtractValues,
+    timeValueToNumber,
     transformIntegratedCategoryValue,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { accumulatedValue, addAccumulated, range, trailingAccumulatedValue } from './aggregateFunctions';
 import {
@@ -29,13 +38,15 @@ export const MAX_ANIMATABLE_NODES = 1000;
 
 function combineIntervalBandResults(
     bandResults: unknown[],
-    fallback: number,
-    combiner: (values: number[]) => number
-): number {
-    const validResults = bandResults.filter(
-        (result): result is number => typeof result === 'number' && Number.isFinite(result)
-    );
-    return validResults.length > 0 ? combiner(validResults) : fallback;
+    fallback: AgNumericValue,
+    combine: (a: AgNumericValue, b: AgNumericValue) => AgNumericValue
+): AgNumericValue {
+    let combined: AgNumericValue | undefined;
+    for (const result of bandResults) {
+        if (!isFiniteNumericValue(result)) continue;
+        combined = combined == null ? result : combine(combined, result);
+    }
+    return combined ?? fallback;
 }
 
 export function processedDataIsAnimatable(processedData: ProcessedData<any>) {
@@ -46,10 +57,19 @@ function basicContinuousCheckDatumValidation(value: any) {
     return value != null && isContinuous(value);
 }
 
-// Separate from basicContinuousCheckDatumValidation so a later PR can let time scales accept ISO 8601
-// strings without number/log/color scales doing the same.
-function basicTimeCheckDatumValidation(value: any) {
-    return value != null && isContinuous(value);
+const TIME_AXIS_ACCEPTED_FORMATS =
+    "Date, epoch number/bigint, or strict ISO 8601 string (e.g. '2024-01-15', '2024-01-15T10:30:00Z')";
+
+// Separate from basicContinuousCheckDatumValidation so only time scales accept ISO 8601 strings.
+function basicTimeCheckDatumValidation(value: any, _datum?: any, index?: number) {
+    if (value == null) return false;
+    if (isContinuous(value) || isISO8601(value)) return true;
+    if (typeof value === 'string') {
+        Logger.warnOnce(
+            `unsupported value [${value}] at row ${index ?? '?'} on a time axis; expected ${TIME_AXIS_ACCEPTED_FORMATS}. The value is ignored.`
+        );
+    }
+    return false;
 }
 
 function basicDiscreteCheckDatumValidation(value: any) {
@@ -86,12 +106,18 @@ function getValueType(scaleType?: ScaleType) {
             return 'category';
     }
 }
+
+function isTimeScaleType(scaleType?: ScaleType): boolean {
+    return scaleType === 'time' || scaleType === 'unit-time' || scaleType === 'ordinal-time';
+}
+
 export function keyProperty<K>(propName: K, scaleType?: ScaleType, opts: Partial<DatumPropertyDefinition<K>> = {}) {
     const allowNullKey = opts.allowNullKey ?? false;
     const result: DatumPropertyDefinition<K> = {
         property: propName,
         type: 'key',
         valueType: getValueType(scaleType),
+        timeDomain: isTimeScaleType(scaleType),
         validation: opts.validation ?? getValidationFn(scaleType, allowNullKey),
         ...opts,
     };
@@ -104,6 +130,7 @@ export function valueProperty<K>(propName: K, scaleType?: ScaleType, opts: Parti
         property: propName,
         type: 'value',
         valueType: getValueType(scaleType),
+        timeDomain: isTimeScaleType(scaleType),
         validation: opts.validation ?? getValidationFn(scaleType, allowNullKey),
         ...opts,
     };
@@ -203,23 +230,32 @@ export function groupAccumulativeValueProperty<K>(
     ];
 }
 
+// Bigint kept exact; ISO 8601 string parses to epoch ms; anything else coerces to Number (NaN/Infinity skipped).
+function finiteKey(key: unknown): AgNumericValue | undefined {
+    if (typeof key === 'bigint') return key;
+    if (isISO8601(key)) return timeValueToNumber(key);
+    const n = Number(key);
+    return Number.isFinite(n) ? n : undefined;
+}
+
+// Subtract before narrowing: coercing each key first collapses gaps below the Number ULP at large magnitudes.
+function keyInterval(curr: AgNumericValue, prev: AgNumericValue): AgNumericValue {
+    return absValue(subtractValues(curr, prev));
+}
+
 export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKeyInterval'> = {
     type: 'reducer',
     property: 'smallestKeyInterval',
     initialValue: Infinity,
     reducer() {
-        let prevX = Number.NaN;
+        let prevKey: AgNumericValue | undefined;
         return function smallestKeyIntervalReducerFn(smallestSoFar, keys) {
-            const key = keys[0];
-            const nextX = typeof key === 'number' ? key : Number(key);
-            if (!Number.isFinite(nextX)) return smallestSoFar;
-            const prevX2 = prevX;
-            prevX = nextX;
-            if (!Number.isFinite(prevX)) return smallestSoFar;
-
-            const interval = Math.abs(nextX - prevX2);
+            const key = finiteKey(keys[0]);
             const currentSmallest = smallestSoFar ?? Infinity;
-            if (interval > 0 && interval < currentSmallest) {
+            if (key == null) return currentSmallest;
+            const interval = prevKey == null ? undefined : keyInterval(key, prevKey);
+            prevKey = key;
+            if (interval != null && interval > 0 && interval < currentSmallest) {
                 return interval;
             }
             return currentSmallest;
@@ -227,7 +263,7 @@ export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKey
     },
     supportsBanding: true,
     combineResults(bandResults) {
-        return combineIntervalBandResults(bandResults, Infinity, (values) => Math.min(...values));
+        return combineIntervalBandResults(bandResults, Infinity, minValue);
     },
     needsOverlap: true,
 };
@@ -237,18 +273,14 @@ export const LARGEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'largestKeyIn
     property: 'largestKeyInterval',
     initialValue: -Infinity,
     reducer() {
-        let prevX = Number.NaN;
+        let prevKey: AgNumericValue | undefined;
         return function largestKeyIntervalReducerFn(largestSoFar, keys) {
-            const key = keys[0];
-            const nextX = typeof key === 'number' ? key : Number(key);
-            if (!Number.isFinite(nextX)) return largestSoFar;
-            const prevX2 = prevX;
-            prevX = nextX;
-            if (!Number.isFinite(prevX)) return largestSoFar;
-
-            const interval = Math.abs(nextX - prevX2);
+            const key = finiteKey(keys[0]);
             const currentLargest = largestSoFar ?? -Infinity;
-            if (interval > 0 && interval > currentLargest) {
+            if (key == null) return currentLargest;
+            const interval = prevKey == null ? undefined : keyInterval(key, prevKey);
+            prevKey = key;
+            if (interval != null && interval > 0 && interval > currentLargest) {
                 return interval;
             }
             return currentLargest;
@@ -256,7 +288,7 @@ export const LARGEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'largestKeyIn
     },
     supportsBanding: true,
     combineResults(bandResults) {
-        return combineIntervalBandResults(bandResults, -Infinity, (values) => Math.max(...values));
+        return combineIntervalBandResults(bandResults, -Infinity, maxValue);
     },
     needsOverlap: true,
 };
@@ -289,9 +321,10 @@ export const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<'sortedGroupD
 };
 
 function normaliseFnBuilder({ normaliseTo }: { normaliseTo: number }) {
-    const normalise = (val: null | number, extent: number) => {
+    const normalise = (val: AgNumericValue | null, extent: number) => {
         if (extent === 0) return 0;
-        const result = ((val ?? 0) * normaliseTo) / extent;
+        // Narrow bigint to Number: normalisation yields a fraction, and the column becomes Number after this pass.
+        const result = (Number(val ?? 0) * normaliseTo) / extent;
         if (result >= 0) {
             return Math.min(normaliseTo, result);
         }
@@ -309,7 +342,7 @@ function normaliseFnBuilder({ normaliseTo }: { normaliseTo: number }) {
                 // (relative index is offset from group start, absolute is for the entire column)
                 const datumIndex = groupIndex + relativeDatumIndex;
                 const column = columns[valueIdx];
-                const value: null | number = column[datumIndex];
+                const value: AgNumericValue | null = column[datumIndex];
                 if (value == null) {
                     column[datumIndex] = undefined;
                     continue;
@@ -331,10 +364,17 @@ function normaliseFindExtent(columns: any[][], valueIndexes: number[], dataGroup
             // Convert relative datum index to absolute column index
             // (relative index is offset from group start, absolute is for the entire column)
             const datumIndex = groupIndex + relativeDatumIndex;
-            const value: null | number | (null | number)[] = column[datumIndex];
+            const value: AgNumericValue | null | (AgNumericValue | null)[] = column[datumIndex];
             if (value == null) continue;
-            // Note - Array.isArray(new Float64Array) is false, and this type is used for stack accumulators
-            const valueExtent = typeof value === 'number' ? value : Math.max(...value.map((v) => v ?? 0));
+            // Note - Array.isArray(new Float64Array) is false, and this type is used for stack accumulators.
+            let valueExtent: number;
+            if (typeof value === 'number') {
+                valueExtent = value;
+            } else if (typeof value === 'bigint') {
+                valueExtent = Number(value);
+            } else {
+                valueExtent = Math.max(...value.map((v) => Number(v ?? 0)));
+            }
             const valIdx = valueExtent < 0 ? 0 : 1;
             if (valIdx === 0) {
                 valuesExtent[valIdx] = Math.min(valuesExtent[valIdx], valueExtent);
@@ -426,7 +466,8 @@ function buildFilterValidation([id, yKey, yFilterKey]: [id: string, yKey: string
         if (yValues.length !== yFilterValues.length) return true;
 
         for (let i = 0; i < yValues.length; i++) {
-            if (Math.abs(yFilterValues[i]) > Math.abs(yValues[i])) return true;
+            // absValue preserves bigint; Math.abs throws on bigint (ToNumber) for mixed-numeric columns.
+            if (absValue(yFilterValues[i]) > absValue(yValues[i])) return true;
         }
 
         return false;
@@ -459,8 +500,8 @@ function animationValidationProcessValue(def: DatumPropertyDefinition<unknown>, 
     let lastValue = column[0]?.valueOf();
     for (let d = 1; validation !== 0 && d < column.length; d++) {
         const keyValue = column[d]?.valueOf();
-        if (!Number.isFinite(keyValue) || lastValue > keyValue) validation &= ~ANIMATION_VALIDATION_ORDERED_KEYS;
-        if (Number.isFinite(keyValue) && lastValue === keyValue) validation &= ~ANIMATION_VALIDATION_UNIQUE_KEYS;
+        if (!isContinuous(keyValue) || lastValue > keyValue) validation &= ~ANIMATION_VALIDATION_ORDERED_KEYS;
+        if (isContinuous(keyValue) && lastValue === keyValue) validation &= ~ANIMATION_VALIDATION_UNIQUE_KEYS;
         lastValue = keyValue;
     }
 
@@ -545,9 +586,8 @@ function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailin
                 dataGroup: DataGroup,
                 groupIndex: number
             ) {
-                // Datum scope. Seeds are number `0`; a bigint column promotes them to bigint via
-                // addAccumulated so stacked totals retain full precision (AG-16608 AC #10).
-                const acc: [number | bigint, number | bigint] = [0, 0];
+                // Number `0` seeds promote to bigint via addAccumulated so stacked totals stay exact.
+                const acc: [AgNumericValue, AgNumericValue] = [0, 0];
                 for (const valueIdx of valueIndexes) {
                     const datumIndices = dataGroup.datumIndices[valueIdx];
                     if (datumIndices == null) continue;
@@ -765,7 +805,7 @@ export function diff(
     };
 }
 
-type KeyType = string | number | boolean | null | undefined;
+type KeyType = string | number | bigint | boolean | null | undefined;
 
 export function createDatumId(key: number): number;
 export function createDatumId(key: boolean): boolean;

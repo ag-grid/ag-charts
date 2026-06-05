@@ -1,4 +1,5 @@
 import type { ContextCallbackParams, Listener } from '../../chart/callbackOptions';
+import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgNodeClickEvent } from '../../chart/eventOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
@@ -22,10 +23,10 @@ export interface AgHistogramSeriesBinParams<TDatum = DatumDefault> {
     readonly datum: TDatum[];
     /** Zero-based positional index of the bin within the series. Defined for every bin, including empty ones. */
     readonly binIndex: number;
-    /** The bin's start and end bounds on the x-axis. */
-    readonly binRange: [number, number];
-    /** The aggregated `yKey` value for the bin. */
-    readonly aggregatedValue: number;
+    /** The bin's start and end bounds on the x-axis. `bigint` values for a bigint `xKey` column. */
+    readonly binRange: [AgNumericValue, AgNumericValue];
+    /** The aggregated `yKey` value for the bin. A `bigint` when a bigint `yKey` column is summed (`aggregation: 'sum'`). */
+    readonly aggregatedValue: AgNumericValue;
     /** The number of source rows within the bin. */
     readonly frequency: number;
 }

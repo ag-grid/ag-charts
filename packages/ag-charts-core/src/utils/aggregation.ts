@@ -1,5 +1,8 @@
+import type { AgNumericValue } from 'ag-charts-types';
+
 import type { DomainWithMetadata, ScaleType } from '../types/scales';
 import { nextPowerOf2 } from './data/numberArray';
+import { timeValueToNumber } from './time/timeFormatDefaults';
 
 export const AGGREGATION_INDEX_X_MIN = 0;
 export const AGGREGATION_INDEX_X_MAX = 1;
@@ -17,6 +20,99 @@ export const AGGREGATION_INDEX_UNSET = 0xffffffff;
 const SMALLEST_INTERVAL_MIN_RECURSE = 3;
 const SMALLEST_INTERVAL_RECURSE_LIMIT = 20;
 const SMALLEST_INTERVAL_MAX_INDEX_ADJUSTMENTS = 100;
+
+// The aggregation hot path stores into Float64Arrays, so columns are narrowed/parsed once upfront, keyed
+// by source-column identity for stable memoization.
+
+const TIME_SCALE_TYPES: ReadonlySet<ScaleType> = new Set<ScaleType>(['time', 'unit-time', 'ordinal-time']);
+
+const isoEpochColumnCache = new WeakMap<readonly unknown[], unknown[]>();
+
+/**
+ * Parse an ISO-string time column to epoch ms (the bucketing maths cannot interpret a string).
+ * @returns the input `xValues` unchanged when no parsing is required; `needsValueOf` is `false` once converted.
+ */
+export function epochColumnForTimeScale(
+    scale: ScaleType,
+    xValues: any[],
+    xNeedsValueOf: boolean
+): { values: any[]; needsValueOf: boolean } {
+    const values = resolveEpochColumn(scale, xValues, xNeedsValueOf);
+    return { values, needsValueOf: values === xValues ? xNeedsValueOf : false };
+}
+
+function resolveEpochColumn(scale: ScaleType, xValues: any[], xNeedsValueOf: boolean): any[] {
+    if (xNeedsValueOf || !TIME_SCALE_TYPES.has(scale)) return xValues;
+
+    const cached = isoEpochColumnCache.get(xValues);
+    if (cached !== undefined) return cached;
+
+    const sample = xValues.find((v) => v != null);
+    const converted =
+        typeof sample === 'string' ? xValues.map((v) => (typeof v === 'string' ? timeValueToNumber(v) : v)) : xValues;
+    isoEpochColumnCache.set(xValues, converted);
+    return converted;
+}
+
+const numericColumnCache = new WeakMap<readonly unknown[], unknown[]>();
+
+/**
+ * Narrow a bigint column to Number absolutely, preserving sign and magnitude (bar's sign buckets and the
+ * bubble quadtree's domain ratios depend on it).
+ * @returns the input `values` unchanged when the column holds no bigint.
+ */
+export function narrowBigIntColumn(values: any[]): any[] {
+    const cached = numericColumnCache.get(values);
+    if (cached !== undefined) return cached;
+
+    let hasBigInt = false;
+    for (let i = 0; i < values.length; i++) {
+        if (typeof values[i] === 'bigint') {
+            hasBigInt = true;
+            break;
+        }
+    }
+    const converted = hasBigInt ? values.map((v) => (typeof v === 'bigint' ? Number(v) : v)) : values;
+    numericColumnCache.set(values, converted);
+    return converted;
+}
+
+const relativeNumericColumnCache = new WeakMap<readonly unknown[], unknown[]>();
+
+/**
+ * Narrow a bigint column to Number after subtracting its bigint minimum, so a high-magnitude narrow-range
+ * column keeps full resolution instead of collapsing onto one double. The offset destroys sign and absolute
+ * magnitude, so use ONLY for the comparison-based extrema envelope (line/area/ohlc/range); bar and bubble
+ * must use {@link narrowBigIntColumn}.
+ * @returns the input `values` unchanged when the column holds no bigint.
+ */
+export function narrowBigIntColumnRelative(values: any[]): any[] {
+    const cached = relativeNumericColumnCache.get(values);
+    if (cached !== undefined) return cached;
+
+    let minBig: bigint | undefined;
+    for (let i = 0; i < values.length; i++) {
+        const v = values[i];
+        if (typeof v === 'bigint' && (minBig === undefined || v < minBig)) {
+            minBig = v;
+        }
+    }
+
+    let converted: any[];
+    if (minBig === undefined) {
+        converted = values;
+    } else {
+        const offsetBig = minBig;
+        const offsetNum = Number(offsetBig);
+        converted = values.map((v) => {
+            if (typeof v === 'bigint') return Number(v - offsetBig);
+            if (typeof v === 'number') return v - offsetNum;
+            return v;
+        });
+    }
+    relativeNumericColumnCache.set(values, converted);
+    return converted;
+}
 
 function estimateSmallestPixelIntervalIter(
     xValues: any[],
@@ -115,7 +211,7 @@ export function aggregationRangeFittingPoints(
     xValues: any[],
     d0: number,
     d1: number,
-    opts?: { smallestKeyInterval?: number; xNeedsValueOf?: boolean }
+    opts?: { smallestKeyInterval?: AgNumericValue; xNeedsValueOf?: boolean }
 ) {
     if (Number.isFinite(d0)) {
         const smallestKeyInterval = opts?.smallestKeyInterval;
@@ -123,7 +219,7 @@ export function aggregationRangeFittingPoints(
         const smallestPixelInterval =
             smallestKeyInterval == null
                 ? estimateSmallestPixelInterval(xValues, d0, d1, xNeedsValueOf)
-                : smallestKeyInterval / (d1 - d0);
+                : Number(smallestKeyInterval) / (d1 - d0);
         return nextPowerOf2(Math.trunc(1 / smallestPixelInterval)) >> 3;
     } else {
         let power = Math.ceil(Math.log2(xValues.length)) - 1;
@@ -878,7 +974,7 @@ export function computeExtremesAggregation(
     highValues: any[],
     lowValues: any[],
     options: {
-        smallestKeyInterval: number | undefined;
+        smallestKeyInterval: AgNumericValue | undefined;
         xNeedsValueOf: boolean;
         yNeedsValueOf: boolean;
         existingFilters?: ExtremesAggregationFilter[];
@@ -963,7 +1059,7 @@ export function computeExtremesAggregationPartial(
     highValues: any[],
     lowValues: any[],
     options: {
-        smallestKeyInterval: number | undefined;
+        smallestKeyInterval: AgNumericValue | undefined;
         targetRange: number;
         xNeedsValueOf: boolean;
         yNeedsValueOf: boolean;

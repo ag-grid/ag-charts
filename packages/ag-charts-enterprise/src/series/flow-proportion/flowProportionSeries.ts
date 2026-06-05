@@ -247,12 +247,14 @@ export abstract class FlowProportionSeries<
             const fromIdValues = linksDataModel.dataModel.resolveColumnById<string | undefined>(
                 this,
                 'fromValue',
-                linksDataModel.processedData
+                linksDataModel.processedData,
+                'object'
             );
             const toIdValues = linksDataModel.dataModel.resolveColumnById<string | undefined>(
                 this,
                 'toValue',
-                linksDataModel.processedData
+                linksDataModel.processedData,
+                'object'
             );
 
             const createImplicitNode = (id: string): FlowProportionNodeDatum<TNodeDatum, TLinkDatum> => {
@@ -300,10 +302,11 @@ export abstract class FlowProportionSeries<
                 }
             }
         } else {
-            const nodeIdValues = nodesDataModel.dataModel.resolveColumnById<string>(
+            const nodeIdValues = nodesDataModel.dataModel.resolveColumnById(
                 this,
                 'idValue',
-                nodesDataModel.processedData
+                nodesDataModel.processedData,
+                'string'
             );
             const labelValues =
                 labelKey == null
@@ -311,7 +314,8 @@ export abstract class FlowProportionSeries<
                     : nodesDataModel.dataModel.resolveColumnById<string | undefined>(
                           this,
                           'labelValue',
-                          nodesDataModel.processedData
+                          nodesDataModel.processedData,
+                          'object'
                       );
 
             const nodeDataIdKey = this.data?.dataIdKey;
@@ -388,12 +392,12 @@ export abstract class FlowProportionSeries<
 
         const { sizeKey } = this.properties;
 
-        const fromIdValues = linksDataModel.resolveColumnById<string>(this, 'fromValue', linksProcessedData);
-        const toIdValues = linksDataModel.resolveColumnById<string>(this, 'toValue', linksProcessedData);
+        const fromIdValues = linksDataModel.resolveColumnById(this, 'fromValue', linksProcessedData, 'string');
+        const toIdValues = linksDataModel.resolveColumnById(this, 'toValue', linksProcessedData, 'string');
         const sizeValues =
             sizeKey == null
                 ? undefined
-                : linksDataModel.resolveColumnById<number>(this, 'sizeValue', linksProcessedData);
+                : linksDataModel.resolveColumnById(this, 'sizeValue', linksProcessedData, 'number');
 
         const nodesById = new Map<string, TNodeDatum>();
         for (const datum of this.processedNodes.values()) {

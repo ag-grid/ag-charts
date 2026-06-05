@@ -1,3 +1,5 @@
+import type { AgNumericValue } from 'ag-charts-types';
+
 import { warnOnce } from '../../logging/logger';
 import { clamp } from '../data/numbers';
 import { isString } from '../types/typeGuards';
@@ -58,12 +60,10 @@ export function parseNumberFormat(format: string): FormatterOptions | undefined 
     };
 }
 
-export function createNumberFormatter(
-    format: FormatterOptions
-): (n: number | bigint, fractionDigits?: number) => string;
+export function createNumberFormatter(format: FormatterOptions): (n: AgNumericValue, fractionDigits?: number) => string;
 export function createNumberFormatter(
     format: string
-): ((n: number | bigint, fractionDigits?: number) => string) | undefined;
+): ((n: AgNumericValue, fractionDigits?: number) => string) | undefined;
 export function createNumberFormatter(format: string | FormatterOptions) {
     const options = typeof format === 'string' ? parseNumberFormat(format) : format;
     if (options == null) return;
@@ -98,7 +98,7 @@ export function createNumberFormatter(format: string | FormatterOptions) {
         padAlign ??= '=';
     }
 
-    return (n: number | bigint, fractionDigits?: number) => {
+    return (n: AgNumericValue, fractionDigits?: number) => {
         // A bigint can reach here via an `any`-typed value path; the body below uses Math/toFixed which
         // throw on bigint, so emit a locale-grouped string directly (AG-16608 AC #6/#8).
         if (typeof n === 'bigint') {

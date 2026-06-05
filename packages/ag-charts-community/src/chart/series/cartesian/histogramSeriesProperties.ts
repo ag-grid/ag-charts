@@ -6,6 +6,7 @@ import type {
     AgHistogramSeriesOptions,
     AgHistogramSeriesStyle,
     AgHistogramSeriesTooltipRendererParams,
+    AgNumericValue,
 } from 'ag-charts-types';
 
 import type { BBox } from '../../../scene/bbox';
@@ -16,8 +17,7 @@ import { CartesianSeriesProperties } from './cartesianSeries';
 import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 
 export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
-    // Bins are aggregated from many datums, so they carry an explicit stable id rather than
-    // relying on the data-model `datumIndex`/`dataIdKey` matching used by 1:1 series.
+    // Bins aggregate many datums, so they carry an explicit stable id rather than the 1:1-series datumIndex match.
     readonly itemId: string;
     readonly x: number;
     readonly y: number;
@@ -29,8 +29,8 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly bottomLeftCornerRadius: boolean;
     readonly clipBBox?: BBox;
     readonly binIndex: number;
-    readonly binRange: [number, number];
-    readonly aggregatedValue: number;
+    readonly binRange: [AgNumericValue, AgNumericValue];
+    readonly aggregatedValue: AgNumericValue;
     // Plotted bar height the crosshair snaps to (area-adjusted); the raw value is `aggregatedValue`.
     readonly cumulativeValue: number;
     readonly frequency: number;

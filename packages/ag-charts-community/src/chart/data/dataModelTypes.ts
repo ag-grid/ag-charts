@@ -1,3 +1,5 @@
+import type { AgNumericValue } from 'ag-charts-types';
+
 import type { BandedReducer } from './data-model/reducers/bandedReducer';
 import type { DataChangeDescription } from './dataChangeDescription';
 import type { BandedDomain, BandedDomainConfig } from './dataDomain';
@@ -20,7 +22,7 @@ export interface UngroupedDataItem<I, D, V> {
     index: I;
     keys: any[];
     values: V;
-    aggValues?: [number, number][];
+    aggValues?: [AgNumericValue, AgNumericValue][];
     datum: D;
     validScopes?: Set<string>;
 }
@@ -47,11 +49,22 @@ export const SHARED_ZERO_INDICES: readonly number[] = Object.freeze([0]);
 export type ScopeId = string;
 
 /**
- * Per-column primitive type, set once during extraction. Consumers dispatch off this tag rather than
- * re-sniffing values. `'mixed-numeric'` flags a column that contains both `number` and `bigint` values,
- * which is rejected at the series level (see {@link CommonMetadata.columnValueType}).
+ * Per-column value type, set once during extraction; an advisory tag consumers dispatch off rather than
+ * re-sniffing values. `'mixed-numeric'` is a column of both `number` and `bigint`; `'object'` is non-`Date`
+ * objects whose element type the caller supplies rather than this tag.
  */
-export type ColumnValueType = 'number' | 'bigint' | 'date' | 'string' | 'mixed-numeric';
+export type ColumnValueType = 'number' | 'bigint' | 'date' | 'string' | 'boolean' | 'mixed-numeric' | 'object';
+
+export type ColumnValueTypeMapping = {
+    number: number;
+    bigint: bigint;
+    date: Date;
+    string: string;
+    boolean: boolean;
+    'mixed-numeric': AgNumericValue;
+    // 'object' returns the caller-supplied element type; this entry only makes 'object' a valid key.
+    object: unknown;
+};
 
 export type ProcessedValue = { value: unknown; missing: boolean; valid: boolean };
 export type SortOrderEntry = {
@@ -101,17 +114,17 @@ export interface CommonMetadata<D> {
     columns: any[][];
     columnScopes: Set<ScopeId>[];
     columnNeedValueOf?: boolean[]; // true if column needs valueOf() (contains Dates/objects), false for primitives
-    columnValueType?: ColumnValueType[]; // per-column primitive type tag, set once during extraction
+    columnValueType?: (ColumnValueType | undefined)[]; // per-column primitive type tag, set once during extraction (undefined when unobserved)
     domain: {
         keys: any[][];
         values: any[][];
         groups?: any[][];
-        aggValues?: [number, number][];
+        aggValues?: [AgNumericValue, AgNumericValue][];
     };
     reduced?: {
         diff?: Record<string, ProcessedOutputDiff>;
-        smallestKeyInterval?: number;
-        largestKeyInterval?: number;
+        smallestKeyInterval?: AgNumericValue;
+        largestKeyInterval?: AgNumericValue;
         filteredValueExceedUnfiltered?: boolean;
         sortedGroupDomain?: any[][];
         animationValidation?: {
@@ -139,7 +152,7 @@ export interface CommonMetadata<D> {
 
 export interface UngroupedData<D> extends CommonMetadata<D> {
     type: 'ungrouped';
-    aggregation?: [number, number][][];
+    aggregation?: [AgNumericValue, AgNumericValue][][];
 }
 
 export interface GroupedData<D> extends CommonMetadata<D> {
@@ -275,6 +288,8 @@ export type PropertySelectors = {
 export type DatumPropertyDefinition<K> = PropertyIdentifiers & {
     type: 'key' | 'value';
     valueType: DatumPropertyType;
+    /** True for time scales, so a discrete domain coerces ISO 8601 strings to Date instants. */
+    timeDomain?: boolean;
     property: K;
     forceValue?: any;
     includeProperty?: boolean;
@@ -296,10 +311,12 @@ export type InternalDatumPropertyDefinition<K> = DatumPropertyDefinition<K> &
         missing: MissMap;
     };
 
-export type AggregatePropertyDefinition<D, K extends keyof D & string, R = [number, number], R2 = R> = Omit<
-    PropertyIdentifiers,
-    'scopes'
-> &
+export type AggregatePropertyDefinition<
+    D,
+    K extends keyof D & string,
+    R = [AgNumericValue, AgNumericValue],
+    R2 = R,
+> = Omit<PropertyIdentifiers, 'scopes'> &
     PropertySelectors & {
         type: 'aggregate';
         aggregateFunction: (values: D[K][], keys?: D[K][]) => R;

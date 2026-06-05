@@ -245,7 +245,8 @@ export abstract class RadarSeries<
         }
 
         const angleValues = dataModel.resolveKeysById(this, `angleValue`, processedData);
-        const radiusValues = dataModel.resolveColumnById<number>(this, `radiusValue`, processedData);
+        // mixed-numeric so a bigint radius reaches radiusScale.convert() exactly.
+        const radiusValues = dataModel.resolveColumnById(this, `radiusValue`, processedData, 'mixed-numeric');
         const axisInnerRadius = this.getAxisInnerRadius();
 
         const radiusDomain = this.getSeriesDomain(ChartAxisDirection.Radius).domain;
@@ -555,7 +556,9 @@ export abstract class RadarSeries<
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const angleValue = dataModel.resolveKeysById(this, `angleValue`, processedData)[datumIndex];
-        const radiusValue = dataModel.resolveColumnById(this, `radiusValue`, processedData)[datumIndex];
+        const radiusValue = dataModel.resolveColumnById(this, `radiusValue`, processedData, 'mixed-numeric')[
+            datumIndex
+        ];
 
         const allowNullKeys = this.properties.allowNullKeys ?? false;
         if (angleValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison

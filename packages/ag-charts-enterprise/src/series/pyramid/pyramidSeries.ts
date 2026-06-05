@@ -18,9 +18,11 @@ import {
     isArray,
     measureTextSegments,
     mergeDefaults,
+    toNumber,
     toPlainText,
     toTextString,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { FunnelConnector } from '../funnel/funnelConnector';
 import { PyramidProperties } from './pyramidProperties';
@@ -50,7 +52,7 @@ type PyramidNodeLabelDatum = Readonly<Point> & {
 interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
     readonly xValue: string;
-    readonly yValue: number;
+    readonly yValue: AgNumericValue;
     readonly top: number;
     readonly right: number;
     readonly bottom: number;
@@ -208,8 +210,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         const horizontal = direction === 'horizontal';
 
-        const xValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
-        const yValues = dataModel.resolveColumnById<number>(this, `yValue`, processedData);
+        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData, 'string');
+        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData, 'mixed-numeric');
 
         const xDomain = dataModel.getDomain(this, 'xValue', 'value', processedData).domain;
         const yDomain = dataModel.getDomain(this, 'yValue', 'value', processedData).domain;
@@ -241,7 +243,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             const yValue = yValues[datumIndex];
             const enabled = visible && (legendManager?.getItemEnabled({ seriesId, itemId: datumIndex }) ?? true);
 
-            yTotal += yValue;
+            yTotal += toNumber(yValue);
 
             if (stageLabelData == null) continue;
 
@@ -331,7 +333,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             const enabled = visible && (legendManager?.getItemEnabled({ seriesId, itemId: datumIndex }) ?? true);
 
-            const yEnd = yStart + yValue;
+            const yEnd = yStart + toNumber(yValue);
 
             const yMidRatio = (yStart + yEnd) / (2 * yTotal);
             const yRangeRatio = (yEnd - yStart) / yTotal;
@@ -682,8 +684,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         if (!dataModel || !processedData) return;
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
-        const xValue = dataModel.resolveColumnById(this, 'xValue', processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
+        const xValue = dataModel.resolveColumnById(this, 'xValue', processedData, 'string')[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData, 'mixed-numeric')[datumIndex];
 
         const allowNullKeys = this.properties.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return;
@@ -703,7 +705,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             tooltip,
             {
                 symbol: this.legendItemSymbol(datumIndex),
-                data: [{ label: toPlainText(label), value: toPlainText(yValue) }],
+                data: [{ label: toPlainText(label), value: toPlainText(String(yValue)) }],
             },
             {
                 seriesId,
@@ -770,7 +772,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         }
 
         const { showInLegend } = this.properties;
-        const stageValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
+        const stageValues = dataModel.resolveColumnById(this, `xValue`, processedData, 'string');
 
         return (processedData.dataSources.get(this.id)?.data ?? [])
             .map((datum, datumIndex): _ModuleSupport.CategoryLegendDatum | undefined => {

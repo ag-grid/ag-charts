@@ -1,4 +1,4 @@
-import type { AgStateSerializableDate } from '../api/stateTypes';
+import type { AgStateSerializableBigInt, AgStateSerializableDate } from '../api/stateTypes';
 import type {
     FillOptions,
     LineDashOptions,
@@ -516,7 +516,7 @@ interface Extendable {
     extendEnd?: boolean;
 }
 
-export type ValueType = string | number | AgStateSerializableDate;
+export type ValueType = string | number | bigint | AgStateSerializableDate | AgStateSerializableBigInt;
 export type AgAnnotationValue = ValueType | AgGroupingValueType;
 export interface AgGroupingValueType {
     /** The value at the annotation position. */

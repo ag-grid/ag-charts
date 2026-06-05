@@ -1,27 +1,32 @@
 import { BaseProperties, Logger, Property, type Scale } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 class GaugeSegmentationIntervalProperties extends BaseProperties {
     @Property
-    values?: number[];
+    values?: Array<AgNumericValue>;
 
     @Property
-    step?: number;
+    step?: AgNumericValue;
 
     @Property
     count?: number;
 
-    getSegments(scale: Scale<number, number>, maxTicks: number) {
+    getSegments(scale: Scale<AgNumericValue, number>, maxTicks: number) {
         const { values, step, count } = this;
-        const d0 = Math.min(...scale.domain);
-        const d1 = Math.max(...scale.domain);
+        // Keep raw endpoints exact for scale.convert(); the Number copies drive only stepping/division.
+        const d0 = scale.domainMin ?? Number.NaN;
+        const d1 = scale.domainMax ?? Number.NaN;
+        const d0n = Number(d0);
+        const d1n = Number(d1);
 
-        let ticks: number[] | undefined;
+        let ticks: Array<AgNumericValue> | undefined;
         if (values != null) {
-            const segments = values.filter((v) => v > d0 && v < d1).sort((a, b) => a - b);
+            const segments = values.filter((v) => v > d0 && v < d1).sort((a, b) => Number(a) - Number(b));
             ticks = [d0, ...segments, d1];
         } else if (step != null) {
-            const segments: number[] = [];
-            for (let i = d0; i < d1; i += step) {
+            const numericStep = Number(step);
+            const segments: AgNumericValue[] = [];
+            for (let i = d0n; i < d1n; i += numericStep) {
                 segments.push(i);
             }
             segments.push(d1);
@@ -39,7 +44,7 @@ class GaugeSegmentationIntervalProperties extends BaseProperties {
             ticks = segments == null ? undefined : [d0, ...segments, d1];
         } else {
             const segments = count + 1;
-            ticks = Array.from({ length: segments + 1 }, (_, i) => (i / segments) * (d1 - d0) + d0);
+            ticks = Array.from({ length: segments + 1 }, (_, i) => (i / segments) * (d1n - d0n) + d0n);
         }
 
         if (ticks != null && ticks.length > maxTicks) {

@@ -1,3 +1,6 @@
+import { coerceIso8601Date } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
+
 import { type BandLike, BandedStructure, type BandedStructureConfig } from './data-model/utils/bandedStructure';
 
 export interface IDataDomain<D = any> {
@@ -19,6 +22,11 @@ export class DiscreteDomain implements IDataDomain {
     private sortOrder: SortOrder | undefined = undefined;
     private isSortedUnique: boolean = false;
 
+    constructor(
+        // When true (time keys), ISO 8601 strings coerce to Date instants rather than opaque category labels.
+        private readonly coerceDates: boolean = false
+    ) {}
+
     static is(value: unknown): value is DiscreteDomain {
         return value instanceof DiscreteDomain;
     }
@@ -37,6 +45,10 @@ export class DiscreteDomain implements IDataDomain {
     }
 
     extend(val: any) {
+        // Coerce ISO 8601 strings to Date so they bucket as instants (the column keeps the raw string for display).
+        if (this.coerceDates && typeof val === 'string') {
+            val = coerceIso8601Date(val);
+        }
         if (this.isSortedUnique && this.sortedValues) {
             // Sorted unique mode: store values directly without conversion
             // Null deduplication is handled in getDomain()
@@ -176,37 +188,39 @@ export class ContinuousDomain<T extends number | Date> implements IDataDomain<T>
         return value instanceof ContinuousDomain;
     }
 
-    static extendDomain(values: unknown[], domain: [number, number] = [Infinity, -Infinity]) {
+    static extendDomain(
+        values: unknown[],
+        domain: [AgNumericValue, AgNumericValue] = [Infinity, -Infinity]
+    ): [AgNumericValue, AgNumericValue] {
         for (const value of values) {
-            // Derived aggregation/stacked domains feed further arithmetic, so narrow bigint to Number here
-            // (unlike instance `extend`, which retains raw-column endpoints for the scale's convert()).
-            let n: number;
-            if (typeof value === 'number') {
-                n = value;
-            } else if (typeof value === 'bigint') {
-                n = Number(value);
-            } else {
+            if (typeof value !== 'number' && typeof value !== 'bigint') {
                 continue;
             }
-            if (domain[0] > n) {
-                domain[0] = n;
+            // Compare (don't narrow) to retain exact bigint endpoints; bigint-vs-Number comparison is legal (only arithmetic mixing throws).
+            if (value < domain[0]) {
+                domain[0] = value;
             }
-            if (domain[1] < n) {
-                domain[1] = n;
+            if (value > domain[1]) {
+                domain[1] = value;
             }
         }
         return domain;
     }
 
     extend(value: T | bigint) {
-        if (typeof value !== 'number' && typeof value !== 'bigint' && !(value instanceof Date)) {
+        // Coerce ISO 8601 strings to Date so the extent is computed as instants (the column keeps the raw string).
+        let v: unknown = value;
+        if (typeof v === 'string') {
+            v = coerceIso8601Date(v);
+        }
+        if (typeof v !== 'number' && typeof v !== 'bigint' && !(v instanceof Date)) {
             return;
         }
-        if (this.domain[0] > value) {
-            this.domain[0] = value;
+        if (this.domain[0] > v) {
+            this.domain[0] = v as T | bigint;
         }
-        if (this.domain[1] < value) {
-            this.domain[1] = value;
+        if (this.domain[1] < v) {
+            this.domain[1] = v as T | bigint;
         }
     }
 

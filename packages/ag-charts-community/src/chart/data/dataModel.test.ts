@@ -1615,7 +1615,7 @@ describe('DataModel', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - Series "test": column "count" mixes 'number' and 'bigint' values (first detected at row 1). Each column must be uniformly typed. The series renders empty; other series in this chart are unaffected.",
+    "AG Charts - Series "test": column "count" mixes 'number' and 'bigint' values (first detected at row 1); the bigints are narrowed to Number and may lose precision beyond ±2^53. Use one numeric type per column.",
   ],
 ]
 `);

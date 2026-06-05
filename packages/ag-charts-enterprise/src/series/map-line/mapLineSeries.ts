@@ -200,7 +200,12 @@ export class MapLineSeries
             ],
         });
 
-        const featureValues = dataModel.resolveColumnById<Feature | undefined>(this, `featureValue`, processedData);
+        const featureValues = dataModel.resolveColumnById<Feature | undefined>(
+            this,
+            `featureValue`,
+            processedData,
+            'object'
+        );
         this.topologyBounds = featureValues.reduce<LonLatBBox | undefined>((current, feature) => {
             const geometry = feature?.geometry;
             if (geometry == null) return current;
@@ -300,21 +305,28 @@ export class MapLineSeries
     private resolveColumn<T>(
         key: string | undefined,
         columnId: string,
-        processedData: _ModuleSupport.ProcessedData<any>
+        processedData: _ModuleSupport.ProcessedData<any>,
+        expectedType: _ModuleSupport.ColumnValueType
     ): T[] | undefined {
         if (key == null || this.dataModel == null) return undefined;
-        return this.dataModel.resolveColumnById<T>(this, columnId, processedData);
+        // expectedType is validated at runtime; the cast only selects the element-typed overload.
+        return this.dataModel.resolveColumnById<T>(this, columnId, processedData, expectedType as 'object');
     }
 
     private resolveLineDataColumns(processedData: _ModuleSupport.ProcessedData<any>) {
         const { sizeKey, colorKey, labelKey } = this.properties;
 
         return {
-            idValues: this.dataModel!.resolveColumnById<string>(this, 'idValue', processedData),
-            featureValues: this.dataModel!.resolveColumnById<Feature | undefined>(this, 'featureValue', processedData),
-            labelValues: this.resolveColumn<string>(labelKey, 'labelValue', processedData),
-            sizeValues: this.resolveColumn<number>(sizeKey, 'sizeValue', processedData),
-            colorValues: this.resolveColumn<number>(colorKey, 'colorValue', processedData),
+            idValues: this.dataModel!.resolveColumnById(this, 'idValue', processedData, 'string'),
+            featureValues: this.dataModel!.resolveColumnById<Feature | undefined>(
+                this,
+                'featureValue',
+                processedData,
+                'object'
+            ),
+            labelValues: this.resolveColumn<string>(labelKey, 'labelValue', processedData, 'object'),
+            sizeValues: this.resolveColumn<number>(sizeKey, 'sizeValue', processedData, 'number'),
+            colorValues: this.resolveColumn<number>(colorKey, 'colorValue', processedData, 'number'),
         };
     }
 
@@ -672,7 +684,7 @@ export class MapLineSeries
 
         let { stroke } = properties;
         if (datumIndex != null && this.isColorScaleValid()) {
-            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!);
+            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!, 'mixed-numeric');
             const colorValue = colorValues[datumIndex];
             if (colorValue != null) {
                 stroke = this.colorScale.convert(colorValue);
@@ -782,20 +794,22 @@ export class MapLineSeries
         if (!dataModel || !processedData) return;
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
-        const idValues = dataModel.resolveColumnById<string>(this, `idValue`, processedData);
+        const idValues = dataModel.resolveColumnById(this, `idValue`, processedData, 'string');
         const sizeValue =
             sizeKey == null
                 ? undefined
-                : dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
+                : dataModel.resolveColumnById(this, `sizeValue`, processedData, 'number')[datumIndex];
         const colorValue =
             colorKey == null
                 ? undefined
-                : dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
+                : dataModel.resolveColumnById(this, `colorValue`, processedData, 'number')[datumIndex];
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
         if (this.isLabelEnabled() && labelKey != null && labelKey !== idKey) {
-            const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData)[datumIndex];
+            const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData, 'object')[
+                datumIndex
+            ];
             const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'category',
                 value: labelValue,

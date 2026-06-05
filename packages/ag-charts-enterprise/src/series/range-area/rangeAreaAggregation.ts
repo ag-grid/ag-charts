@@ -9,8 +9,11 @@ import {
     aggregationDomain,
     computeExtremesAggregation,
     computeExtremesAggregationPartial,
+    epochColumnForTimeScale,
+    narrowBigIntColumnRelative,
     simpleMemorize2,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 type ScopeProvider = _ModuleSupport.ScopeProvider;
 type ProcessedData = _ModuleSupport.ProcessedData<any>;
@@ -30,7 +33,7 @@ function aggregateRangeAreaData(
     highValues: any[],
     lowValues: any[],
     domainInput: DomainWithMetadata<number>,
-    smallestKeyInterval: number | undefined,
+    smallestKeyInterval: AgNumericValue | undefined,
     xNeedsValueOf: boolean,
     yNeedsValueOf: boolean
 ): RangeAreaSeriesDataAggregationFilter[] | undefined {
@@ -55,16 +58,24 @@ export function aggregateRangeAreaDataFromDataModel(
     series: ScopeProvider,
     existingFilters?: RangeAreaSeriesDataAggregationFilter[]
 ): RangeAreaSeriesDataAggregationFilter[] | undefined {
-    const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
-    const highValues = dataModel.resolveColumnById(series, 'yHighValue', processedData);
-    const lowValues = dataModel.resolveColumnById(series, 'yLowValue', processedData);
+    const rawXValues = dataModel.resolveKeysById(series, 'xValue', processedData);
+    const rawHighValues = dataModel.resolveColumnById(series, 'yHighValue', processedData, 'mixed-numeric');
+    const rawLowValues = dataModel.resolveColumnById(series, 'yLowValue', processedData, 'mixed-numeric');
 
     const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
-    const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    const rawXNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf =
         dataModel.resolveColumnNeedsValueOf(series, 'yHighValue', processedData) ??
         dataModel.resolveColumnNeedsValueOf(series, 'yLowValue', processedData);
+
+    const { values: xValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
+        scale,
+        rawXValues,
+        rawXNeedsValueOf
+    );
+    const highValues = yNeedsValueOf ? rawHighValues : narrowBigIntColumnRelative(rawHighValues);
+    const lowValues = yNeedsValueOf ? rawLowValues : narrowBigIntColumnRelative(rawLowValues);
 
     // When existingFilters provided, bypass memoization to enable array reuse
     if (existingFilters) {
@@ -97,16 +108,24 @@ export function aggregateRangeAreaDataFromDataModelPartial(
     targetRange: number,
     existingFilters?: RangeAreaSeriesDataAggregationFilter[]
 ): RangeAreaPartialAggregationResult | undefined {
-    const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
-    const highValues = dataModel.resolveColumnById(series, 'yHighValue', processedData);
-    const lowValues = dataModel.resolveColumnById(series, 'yLowValue', processedData);
+    const rawXValues = dataModel.resolveKeysById(series, 'xValue', processedData);
+    const rawHighValues = dataModel.resolveColumnById(series, 'yHighValue', processedData, 'mixed-numeric');
+    const rawLowValues = dataModel.resolveColumnById(series, 'yLowValue', processedData, 'mixed-numeric');
 
     const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
-    const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    const rawXNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf =
         dataModel.resolveColumnNeedsValueOf(series, 'yHighValue', processedData) ??
         dataModel.resolveColumnNeedsValueOf(series, 'yLowValue', processedData);
+
+    const { values: xValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
+        scale,
+        rawXValues,
+        rawXNeedsValueOf
+    );
+    const highValues = yNeedsValueOf ? rawHighValues : narrowBigIntColumnRelative(rawHighValues);
+    const lowValues = yNeedsValueOf ? rawLowValues : narrowBigIntColumnRelative(rawLowValues);
 
     const [d0, d1] = aggregationDomain(scale, domainInput);
     return computeExtremesAggregationPartial([d0, d1], xValues, highValues, lowValues, {

@@ -1,4 +1,5 @@
-import { first } from 'ag-charts-core';
+import { Logger, first } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { ContinuousDomain, DiscreteDomain } from '../../dataDomain';
 import type { GroupedData, PropertySelectors, UngroupedData } from '../../dataModelTypes';
@@ -38,7 +39,7 @@ export class Aggregator<D extends object, K extends keyof D & string> {
      * Each datum gets its own aggregation result.
      */
     aggregateUngroupedData(processedData: UngroupedData<any>) {
-        const domainAggValues = this.ctx.aggregates.map((): [number, number] => [Infinity, -Infinity]);
+        const domainAggValues = this.ctx.aggregates.map((): [AgNumericValue, AgNumericValue] => [Infinity, -Infinity]);
         processedData.domain.aggValues = domainAggValues;
 
         const { columns, dataSources } = processedData;
@@ -49,7 +50,7 @@ export class Aggregator<D extends object, K extends keyof D & string> {
         // Check if any key definition allows null values
         const allowNull = this.ctx.keys.some((keyDef) => keyDef.allowNullKey === true);
         processedData.aggregation = rawData?.map((_, datumIndex) => {
-            const aggregation: [number, number][] = [];
+            const aggregation: [AgNumericValue, AgNumericValue][] = [];
 
             for (const [index, def] of this.ctx.aggregates.entries()) {
                 const indices = this.valueGroupIdxLookup(def);
@@ -78,7 +79,7 @@ export class Aggregator<D extends object, K extends keyof D & string> {
      * Multiple datums in a group share aggregation results.
      */
     aggregateGroupedData(processedData: GroupedData<any>) {
-        const domainAggValues = this.ctx.aggregates.map((): [number, number] => [Infinity, -Infinity]);
+        const domainAggValues = this.ctx.aggregates.map((): [AgNumericValue, AgNumericValue] => [Infinity, -Infinity]);
         processedData.domain.aggValues = domainAggValues;
 
         const { columns } = processedData;
@@ -128,9 +129,14 @@ export class Aggregator<D extends object, K extends keyof D & string> {
     postProcessGroups(processedData: GroupedData<any>) {
         const { groupProcessors } = this.ctx;
 
-        const { columnScopes, columns, invalidData } = processedData;
+        const { columnScopes, columns, invalidData, columnValueType } = processedData;
         for (const processor of groupProcessors) {
-            const valueIndexes = this.valueGroupIdxLookup(processor);
+            // Stacking is meaningless for date columns: reject and exclude them from accumulation.
+            const valueIndexes = this.valueGroupIdxLookup(processor).filter((valueIndex) => {
+                if (columnValueType?.[valueIndex] !== 'date') return true;
+                this.rejectDateStackColumn(processedData, valueIndex);
+                return false;
+            });
             const adjustFn = processor.adjust()();
 
             for (let groupIndex = 0; groupIndex < processedData.groups.length; groupIndex++) {
@@ -154,6 +160,22 @@ export class Aggregator<D extends object, K extends keyof D & string> {
                 processedData.domain.values[valueIndex] = domain.getDomain();
             }
         }
+    }
+
+    private rejectDateStackColumn(processedData: GroupedData<any>, valueIndex: number) {
+        const valueDef = this.ctx.values[valueIndex];
+        const columnScope = first(processedData.columnScopes[valueIndex]);
+        Logger.warnOnce(
+            `Series "${String(columnScope)}": column "${String(valueDef.property)}" is date-typed; ` +
+                `stacking is not meaningful for date data. The series renders empty; ` +
+                `other series in this chart are unaffected.`
+        );
+
+        const column = processedData.columns[valueIndex];
+        for (let datumIndex = 0; datumIndex < column.length; datumIndex += 1) {
+            column[datumIndex] = undefined;
+        }
+        processedData.domain.values[valueIndex] = [];
     }
 
     private valueGroupIdxLookup(selector: PropertySelectors) {

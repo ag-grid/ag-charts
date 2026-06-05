@@ -65,7 +65,6 @@ export const themeOperator = (value: unknown) => {
     return keys.length === 1 && keys[0].startsWith('$');
 };
 
-// Validator for public theme operators.
 export const colorRef = attachDescription(
     or(
         optionsDefs<AgColorRefMixOnto>({ ref: required(string), mix: required(ratio), onto: required(string) }),

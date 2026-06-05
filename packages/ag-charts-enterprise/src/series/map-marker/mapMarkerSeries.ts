@@ -276,9 +276,13 @@ export class MapMarkerSeries
         const featureValues =
             idKey == null
                 ? undefined
-                : dataModel.resolveColumnById<Feature | undefined>(this, `featureValue`, processedData);
-        const latValues = hasLatLon ? dataModel.resolveColumnById<number>(this, `latValue`, processedData) : undefined;
-        const lonValues = hasLatLon ? dataModel.resolveColumnById<number>(this, `lonValue`, processedData) : undefined;
+                : dataModel.resolveColumnById<Feature | undefined>(this, `featureValue`, processedData, 'object');
+        const latValues = hasLatLon
+            ? dataModel.resolveColumnById(this, `latValue`, processedData, 'number')
+            : undefined;
+        const lonValues = hasLatLon
+            ? dataModel.resolveColumnById(this, `lonValue`, processedData, 'number')
+            : undefined;
         this.topologyBounds = processedData.dataSources
             .get(this.id)
             ?.data.reduce<LonLatBBox | undefined>((current, _datum, datumIndex) => {
@@ -397,10 +401,12 @@ export class MapMarkerSeries
     private resolveColumn<T>(
         key: string | undefined,
         columnId: string,
-        processedData: _ModuleSupport.ProcessedData<any>
+        processedData: _ModuleSupport.ProcessedData<any>,
+        expectedType: _ModuleSupport.ColumnValueType
     ): T[] | undefined {
         if (key == null || this.dataModel == null) return undefined;
-        return this.dataModel.resolveColumnById<T>(this, columnId, processedData);
+        // expectedType is validated at runtime; the cast only selects the element-typed overload.
+        return this.dataModel.resolveColumnById<T>(this, columnId, processedData, expectedType as 'object');
     }
 
     private resolveDataColumns(processedData: _ModuleSupport.ProcessedData<any>) {
@@ -408,13 +414,17 @@ export class MapMarkerSeries
         const hasLatLon = latitudeKey != null && longitudeKey != null;
 
         return {
-            idValues: this.resolveColumn<string>(idKey, 'idValue', processedData),
-            featureValues: this.resolveColumn<Feature | undefined>(idKey, 'featureValue', processedData),
-            latValues: hasLatLon ? this.resolveColumn<number>(latitudeKey, 'latValue', processedData) : undefined,
-            lonValues: hasLatLon ? this.resolveColumn<number>(longitudeKey, 'lonValue', processedData) : undefined,
-            labelValues: this.resolveColumn<string>(labelKey, 'labelValue', processedData),
-            sizeValues: this.resolveColumn<number>(sizeKey, 'sizeValue', processedData),
-            colorValues: this.resolveColumn<number>(colorKey, 'colorValue', processedData),
+            idValues: this.resolveColumn<string>(idKey, 'idValue', processedData, 'string'),
+            featureValues: this.resolveColumn<Feature | undefined>(idKey, 'featureValue', processedData, 'object'),
+            latValues: hasLatLon
+                ? this.resolveColumn<number>(latitudeKey, 'latValue', processedData, 'number')
+                : undefined,
+            lonValues: hasLatLon
+                ? this.resolveColumn<number>(longitudeKey, 'lonValue', processedData, 'number')
+                : undefined,
+            labelValues: this.resolveColumn<string>(labelKey, 'labelValue', processedData, 'object'),
+            sizeValues: this.resolveColumn<number>(sizeKey, 'sizeValue', processedData, 'number'),
+            colorValues: this.resolveColumn<number>(colorKey, 'colorValue', processedData, 'number'),
         };
     }
 
@@ -939,7 +949,7 @@ export class MapMarkerSeries
 
         let { fill } = properties;
         if (datumIndex != null && this.isColorScaleValid()) {
-            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!);
+            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!, 'mixed-numeric');
             const colorValue = colorValues[datumIndex];
             if (colorValue != null) {
                 fill = this.colorScale.convert(colorValue);
@@ -1049,16 +1059,18 @@ export class MapMarkerSeries
         const sizeValue =
             sizeKey == null
                 ? undefined
-                : dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
+                : dataModel.resolveColumnById(this, `sizeValue`, processedData, 'number')[datumIndex];
         const colorValue =
             colorKey == null
                 ? undefined
-                : dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
+                : dataModel.resolveColumnById(this, `colorValue`, processedData, 'number')[datumIndex];
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
         if (this.isLabelEnabled() && labelKey != null && labelKey !== idKey) {
-            const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData)[datumIndex];
+            const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData, 'object')[
+                datumIndex
+            ];
             const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'category',
                 value: labelValue,
@@ -1118,10 +1130,10 @@ export class MapMarkerSeries
 
         let heading: string | undefined;
         if (idKey != null) {
-            heading = dataModel.resolveColumnById<string>(this, `idValue`, processedData)[datumIndex];
+            heading = dataModel.resolveColumnById(this, `idValue`, processedData, 'string')[datumIndex];
         } else if (latitudeKey != null && longitudeKey != null) {
-            const latValue = dataModel.resolveColumnById<number>(this, `latValue`, processedData)[datumIndex];
-            const lonValue = dataModel.resolveColumnById<number>(this, `lonValue`, processedData)[datumIndex];
+            const latValue = dataModel.resolveColumnById(this, `latValue`, processedData, 'number')[datumIndex];
+            const lonValue = dataModel.resolveColumnById(this, `lonValue`, processedData, 'number')[datumIndex];
             heading = `${Math.abs(latValue).toFixed(4)}\u00B0 ${latValue >= 0 ? 'N' : 'S'}, ${Math.abs(lonValue).toFixed(4)}\u00B0 ${lonValue >= 0 ? 'W' : 'E'}`;
         }
 

@@ -1,4 +1,4 @@
-import type { CssColor } from 'ag-charts-types';
+import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import type { PlainObject } from '../../types/global';
 import { parseColor } from '../dom/domUtil';
@@ -66,6 +66,20 @@ export function isNumber(value: unknown): value is number {
 
 export function isFiniteNumber(value: unknown): value is number {
     return Number.isFinite(value);
+}
+
+export function isBigInt(value: unknown): value is bigint {
+    return typeof value === 'bigint';
+}
+
+/** A `number` (including non-finite values such as `NaN`) or a `bigint`. */
+export function isNumericValue(value: unknown): value is AgNumericValue {
+    return typeof value === 'number' || typeof value === 'bigint';
+}
+
+/** A finite `number`, or a `bigint` (which is always exact and so always counts as finite here). */
+export function isFiniteNumericValue(value: unknown): value is AgNumericValue {
+    return typeof value === 'bigint' || Number.isFinite(value);
 }
 
 export function isHtmlElement(value: unknown): value is HTMLElement {

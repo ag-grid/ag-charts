@@ -14,6 +14,7 @@ import type {
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType, SizedPoint } from 'ag-charts-core';
 import { BaseProperties, InterpolationProperties, Property } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
     readonly itemId?: never;
@@ -21,8 +22,8 @@ export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSerie
     readonly index: number;
     readonly yLowKey: string;
     readonly yHighKey: string;
-    readonly yLowValue: number;
-    readonly yHighValue: number;
+    readonly yLowValue: AgNumericValue;
+    readonly yHighValue: AgNumericValue;
     readonly point: Readonly<SizedPoint>;
     readonly enabled: boolean;
     style?: AgSeriesMarkerStyle;

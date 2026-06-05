@@ -1,11 +1,16 @@
+import type { AgNumericValue } from 'ag-charts-types';
+
 import type { DomainWithMetadata } from '../../types/scales';
-import { isNumber } from '../types/typeGuards';
+import { isFiniteNumericValue, isNumber, isNumericValue } from '../types/typeGuards';
 
-// bigint endpoints are retained so a bigint column's exact extent reaches the scale. Comparisons
-// against the Number Infinity seed and between bigints are legal — only +/-/* mixing throws.
-const isFiniteEndpoint = (v: number | bigint) => typeof v === 'bigint' || Number.isFinite(v);
-
-export function extent(values: Array<unknown>, sortOrder?: 1 | -1): [number, number] | null {
+// Overloads keep bigint out of the result type for the common Date/number callers.
+export function extent(
+    values: readonly (number | Date | null | undefined)[],
+    sortOrder?: 1 | -1
+): [number, number] | null;
+export function extent(values: readonly (bigint | null | undefined)[], sortOrder?: 1 | -1): [bigint, bigint] | null;
+export function extent(values: readonly unknown[], sortOrder?: 1 | -1): [AgNumericValue, AgNumericValue] | null;
+export function extent(values: readonly unknown[], sortOrder?: 1 | -1): [AgNumericValue, AgNumericValue] | null {
     if (values.length === 0) {
         return null;
     }
@@ -17,17 +22,19 @@ export function extent(values: Array<unknown>, sortOrder?: 1 | -1): [number, num
         const v0 = first instanceof Date ? first.getTime() : first;
         const v1 = last instanceof Date ? last.getTime() : last;
 
-        if ((typeof v0 === 'number' || typeof v0 === 'bigint') && (typeof v1 === 'number' || typeof v1 === 'bigint')) {
-            return (sortOrder === 1 ? [v0, v1] : [v1, v0]) as [number, number];
+        if (isNumericValue(v0) && isNumericValue(v1)) {
+            return sortOrder === 1 ? [v0, v1] : [v1, v0];
         }
     }
 
-    let min: number | bigint = Infinity;
-    let max: number | bigint = -Infinity;
+    // bigint endpoints are retained so a bigint column's exact extent reaches the scale. Comparisons
+    // against the Number Infinity seed and between bigints are legal — only +/-/* mixing throws.
+    let min: AgNumericValue = Infinity;
+    let max: AgNumericValue = -Infinity;
 
     for (const n of values) {
         const v = n instanceof Date ? n.getTime() : n;
-        if (typeof v !== 'number' && typeof v !== 'bigint') continue;
+        if (!isNumericValue(v)) continue;
         if (v < min) {
             min = v;
         }
@@ -36,7 +43,7 @@ export function extent(values: Array<unknown>, sortOrder?: 1 | -1): [number, num
         }
     }
 
-    return isFiniteEndpoint(min) && isFiniteEndpoint(max) ? ([min, max] as [number, number]) : null;
+    return isFiniteNumericValue(min) && isFiniteNumericValue(max) ? [min, max] : null;
 }
 
 export function normalisedExtentWithMetadata<T>(
@@ -51,10 +58,11 @@ export function normalisedExtentWithMetadata<T>(
     let clipped = false;
 
     const domainExtentNumbers = extent(d, sortOrder);
+    // `toValue` is only supplied for Date domains; a bigint number-axis domain passes through unmapped as T.
     const domainExtent =
         domainExtentNumbers && toValue
-            ? [toValue(domainExtentNumbers[0]), toValue(domainExtentNumbers[1])]
-            : (domainExtentNumbers as [T, T]);
+            ? [toValue(Number(domainExtentNumbers[0])), toValue(Number(domainExtentNumbers[1]))]
+            : (domainExtentNumbers as [T, T] | null);
 
     if (domainExtent == null) {
         let nullExtent: T[] | undefined;

@@ -93,12 +93,25 @@ export class MementoCaretaker {
         if (isDate(this[key])) {
             return { __type: 'date', value: this[key].toISOString() };
         }
+        if (typeof this[key] === 'bigint') {
+            // Encode as a base-10 string; JSON numbers cannot represent bigints beyond 2^53 without precision loss.
+            return { __type: 'bigint', value: this[key].toString() };
+        }
         return value;
     }
 
     private static decodeTypes(this: any, key: any, value: any) {
-        if (isObject(this[key]) && '__type' in this[key] && this[key].__type === 'date') {
-            return new Date(this[key].value);
+        if (isObject(this[key]) && '__type' in this[key]) {
+            if (this[key].__type === 'date') {
+                return new Date(this[key].value);
+            }
+            if (this[key].__type === 'bigint') {
+                // Untrusted input: only decode a valid integer string, else leave it for guardMemento to reject.
+                const bigintValue = this[key].value;
+                if (typeof bigintValue === 'string' && /^-?\d+$/.test(bigintValue)) {
+                    return BigInt(bigintValue);
+                }
+            }
         }
         return value;
     }

@@ -2,7 +2,8 @@
  * Helper functions for DataModel processing.
  * Extracted from dataModel.ts as part of Phase 2.1 refactoring.
  */
-import { isObject } from 'ag-charts-core';
+import { isFiniteNumericValue, isObject, zeroLike } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import type { DataChangeDescription } from '../../dataChangeDescription';
 import type { MissMap, ScopeId, ScopeProvider } from '../../dataModelTypes';
@@ -39,13 +40,26 @@ export function toKeyString(keys: any[]): string {
  * Fixes a numeric extent to ensure both values are finite numbers.
  * Returns empty array if extent is null or contains non-finite values.
  */
-export function fixNumericExtent(extent: Array<number | Date | bigint> | null): [] | [number, number] {
+export function fixNumericExtent(extent: ReadonlyArray<number | Date | bigint> | null): AgNumericValue[] {
     if (extent == null) return [];
-    // Retain exact bigint endpoints so the scale positions and labels them at full precision; Date and
-    // number values still narrow to Number. Downstream consumers branch on `typeof` at runtime.
+    // Retain exact bigint endpoints so the scale positions them at full precision; Date/number narrow to Number.
     const mapped = extent.map((v) => (typeof v === 'bigint' ? v : Number(v)));
-    const allFinite = mapped.every((v) => typeof v === 'bigint' || Number.isFinite(v));
-    return allFinite ? (mapped as unknown as [number, number]) : [];
+    return mapped.every(isFiniteNumericValue) ? mapped : [];
+}
+
+/**
+ * Extends a numeric `[min, max]` extent to include the zero baseline, so bars and areas anchor at zero.
+ * A bigint baseline is emitted as `0n` to keep both endpoints bigint; a numeric `0` would narrow them.
+ */
+export function extendDomainToZero(extent: ReadonlyArray<AgNumericValue>): AgNumericValue[] {
+    if (extent.length < 2) return [];
+    const [e0, e1] = extent;
+    if (typeof e0 !== 'bigint' && typeof e1 !== 'bigint') {
+        return Number.isFinite(e1 - e0) ? [Math.min(e0, 0), Math.max(e1, 0)] : [];
+    }
+    const lo = e0 < 0 ? e0 : zeroLike(e0);
+    const hi = e1 > 0 ? e1 : zeroLike(e1);
+    return [lo, hi];
 }
 
 /**

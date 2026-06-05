@@ -160,7 +160,7 @@ const options: AgCartesianChartOptions = {
         },
         y: (params) => {
             if (params.type !== 'number') return;
-            const value = params.value / 1000;
+            const value = Number(params.value) / 1000;
             const fractionDigits = params.source === 'tooltip' ? 1 : 0;
 
             if (value >= 100) {
