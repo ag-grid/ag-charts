@@ -74,6 +74,12 @@ All histogram callbacks (`tooltip.renderer`, `label.formatter`, `seriesNodeClick
 - The bin-object `domain` field is removed from `tooltip.renderer` params.
 - `binIndex`, `aggregatedValue`, `frequency`, and `binRange` are added as top-level params to all histogram callbacks.
 
+### BigInt Support
+
+Number-typed values supplied to callbacks are widened to `number | bigint` to support BigInt data keys. This affects all callbacks that receive numeric values, including `tooltip.renderer`, `label.formatter`, `marker.formatter`, `seriesNodeClick`, `seriesNodeDoubleClick`, and any other renderer or event callback that exposes a field that was previously typed as `number`.
+
+Update any code that performs arithmetic, string formatting, or strict equality checks on these values to handle the `bigint` case.
+
 ### Theme Params
 
 - `separationLinesColor` is removed. Use `groupedCategoryLinesColor` instead.
