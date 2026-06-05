@@ -429,18 +429,18 @@ function createDiskUsageOptions(
                     series: {
                         group: {
                             label: { formatter },
-                            highlight: { highlightedItem: { strokeWidth } },
+                            selection: { selectedItem: { strokeWidth } },
                         },
                         tile: {
                             label: { formatter },
-                            highlight: { highlightedItem: { strokeWidth } },
+                            selection: { selectedItem: { strokeWidth } },
                         },
                     },
                 },
                 sunburst: {
                     series: {
                         label: { formatter },
-                        highlight: { highlightedItem: { strokeWidth } },
+                        selection: { selectedItem: { strokeWidth } },
                     },
                 },
             },
