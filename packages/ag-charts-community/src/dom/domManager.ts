@@ -301,7 +301,12 @@ export class DOMManager extends BaseManager {
 
         for (const el of Object.values(this.rootElements)) {
             for (const c of el.children.values()) {
-                c.remove();
+                // A transferred canvas (keepTransferableResources) may already have been re-parented
+                // into the replacement chart's DOM; only remove nodes this manager still owns so the
+                // deferred teardown doesn't orphan the live canvas.
+                if (c.parentNode === el.element) {
+                    c.remove();
+                }
             }
             el.element.remove();
         }
