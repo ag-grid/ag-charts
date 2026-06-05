@@ -27,19 +27,21 @@ export class BaseProperties<T extends object = object> {
         const keys = new Set(Object.keys(properties)) as Set<keyof J>;
         for (const propertyKey of listDecoratedProperties(this)) {
             if (keys.has(propertyKey)) {
-                const value = properties[propertyKey as keyof T];
+                const value: unknown = properties[propertyKey as keyof T];
                 const self = this as any;
                 if (isProperties(self[propertyKey])) {
                     // re-set property to force re-validation
                     if (self[propertyKey] instanceof PropertiesArray) {
-                        const array = self[propertyKey].reset(value);
+                        // reset() runtime-validates the value and returns undefined for non-arrays.
+                        const array = self[propertyKey].reset(value as object[]);
                         if (array == null) {
                             Logger.warn(`unable to set [${String(propertyKey)}] - expecting a properties array`);
                         } else {
                             self[propertyKey] = array;
                         }
                     } else {
-                        self[propertyKey].set(value);
+                        // set() runtime-validates the value and warns for non-objects.
+                        self[propertyKey].set(value as object);
                     }
                 } else if (isPlainObject(value)) {
                     self[propertyKey] = merge(value, self[propertyKey] ?? {});

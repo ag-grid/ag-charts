@@ -349,10 +349,10 @@ describe('AG-14631 context enterprise', () => {
         }
 
         beforeEach(async () => {
-            alwaysAction = newFreezable((_params: AgChartContextMenuEvent<TContext>) => {});
-            seriesAreaAction = newFreezable((_params: AgSeriesAreaContextMenuActionEvent<TContext>) => {});
-            seriesNodeAction = newFreezable((_params: AgNodeContextMenuActionEvent<TDatum, TContext>) => {});
-            legendItemAction = newFreezable((_params: AgChartLegendContextMenuEvent<TContext>) => {});
+            alwaysAction = newFreezable((_params: AgChartContextMenuEvent<TContext>): void => {});
+            seriesAreaAction = newFreezable((_params: AgSeriesAreaContextMenuActionEvent<TContext>): void => {});
+            seriesNodeAction = newFreezable((_params: AgNodeContextMenuActionEvent<TDatum, TContext>): void => {});
+            legendItemAction = newFreezable((_params: AgChartLegendContextMenuEvent<TContext>): void => {});
             chartContext = { name: 'chart context' } as const;
             series0Context = { name: 'series 0 context' } as const;
             series1Context = { name: 'series 1 context' } as const;

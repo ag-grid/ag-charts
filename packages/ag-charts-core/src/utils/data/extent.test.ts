@@ -93,7 +93,7 @@ describe('extent module', () => {
         });
 
         test('not clipped when only min expands domain', () => {
-            const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], -80, undefined);
+            const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], -80);
             expect(result.extent[0]).toBe(-80);
             expect(result.extent[1]).toBe(50);
             expect(result.clipped).toBe(false);
@@ -135,7 +135,7 @@ describe('extent module', () => {
         });
 
         test('clipped when only min is set', () => {
-            const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], -30, undefined);
+            const result = normalisedExtentWithMetadata([-50, -20, 0, 30, 50], -30);
             expect(result.extent[0]).toBe(-30);
             expect(result.extent[1]).toBe(50);
             expect(result.clipped).toBe(true);
