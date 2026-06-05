@@ -6,6 +6,7 @@ import {
     type CartesianTestCase,
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    deproxy,
     expectWarningsCalls,
     extractImageData,
     repeat,
@@ -439,5 +440,93 @@ describe('Navigator', () => {
                 if (example.warnings) expectWarningsCalls().toEqual(example.warnings);
             }
         );
+    });
+
+    describe('AG-17456 mini-chart axis nice', () => {
+        const getMiniChartAxes = (c: any) => {
+            const miniChart = deproxy(c).modulesManager.getModule<any>('navigator').miniChart;
+            const findByDirection = (d: 'x' | 'y') => miniChart.axes.find((axis: any) => axis.direction === d);
+            return { x: findByDirection('x'), y: findByDirection('y') };
+        };
+
+        it('propagates main axis nice=true (default) to the mini chart x-axis', async () => {
+            const options: AgCartesianChartOptions = {
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', data: xyData([5, 7, 8, 3, 0, 2]) }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                navigator: { miniChart: {} },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const { x: miniX } = getMiniChartAxes(chart);
+            expect(miniX).toBeDefined();
+            expect(miniX.nice).toBe(true);
+        });
+
+        it('propagates main axis nice=false to the mini chart x-axis', async () => {
+            const options: AgCartesianChartOptions = {
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', data: xyData([5, 7, 8, 3, 0, 2]) }],
+                axes: {
+                    x: { type: 'number', position: 'bottom', nice: false },
+                    y: { type: 'number', position: 'left' },
+                },
+                navigator: { miniChart: {} },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const { x: miniX } = getMiniChartAxes(chart);
+            expect(miniX).toBeDefined();
+            expect(miniX.nice).toBe(false);
+        });
+
+        it('keeps nice=false on the mini chart cross axis even when the main cross axis is nice', async () => {
+            const options: AgCartesianChartOptions = {
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', data: xyData([5, 7, 8, 3, 0, 2]) }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                navigator: { miniChart: {} },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const { y: miniY } = getMiniChartAxes(chart);
+            expect(miniY).toBeDefined();
+            expect(miniY.nice).toBe(false);
+        });
+
+        it('on a flipped (horizontal) bar chart, propagates nice to the y-direction mini-chart axis only', async () => {
+            const options: AgCartesianChartOptions = {
+                series: [
+                    { type: 'bar', direction: 'horizontal', xKey: 'x', yKey: 'y', data: xyData([5, 7, 8, 3, 0, 2]) },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'left' },
+                    y: { type: 'number', position: 'bottom' },
+                },
+                navigator: { miniChart: {} },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const { x: miniX, y: miniY } = getMiniChartAxes(chart);
+            expect(miniY).toBeDefined();
+            expect(miniY.nice).toBe(true);
+            expect(miniX).toBeDefined();
+            expect(miniX.nice).toBe(false);
+        });
     });
 });

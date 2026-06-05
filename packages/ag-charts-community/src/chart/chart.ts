@@ -1965,8 +1965,21 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         const axes = miniChart.axes as ChartAxis[];
 
+        // AG-17456: the navigator overlay is derived from the main chart's domain-direction
+        // axis after `nice` rounding, so the mini-chart axis on that same direction must
+        // inherit `nice` from the main axis or the handles drift. All other (cross) axes
+        // keep `nice = false` — restoring the pre-AG-13759 raw-extent rendering and avoiding
+        // collateral mini-chart rendering changes (see AG-17456 history comment).
+        // The domain direction is resolved from the main series rather than
+        // `_requiredRangeDirection`, which is only set later by `processRanges()`.
+        const domainDirection = this.series.some(
+            (s) => s.visible && s.resolveKeyDirection(ChartAxisDirection.X) === ChartAxisDirection.Y
+        )
+            ? ChartAxisDirection.Y
+            : ChartAxisDirection.X;
+        const mainDomainAxis = this.axes.find((axis) => axis.direction === domainDirection);
         for (const axis of axes) {
-            axis.nice = false;
+            axis.nice = axis.direction === domainDirection ? (mainDomainAxis?.nice ?? true) : false;
             axis.interactionEnabled = false;
         }
     }
