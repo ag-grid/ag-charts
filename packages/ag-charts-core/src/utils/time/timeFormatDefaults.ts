@@ -7,10 +7,17 @@ export function dateToNumber(value: any) {
     return value instanceof Date ? value.getTime() : value;
 }
 
-/** Coerce a time-axis value (Date, epoch number/bigint, or ISO 8601 string) to epoch ms; `NaN` if unparseable. */
+// Largest epoch (ms) a Date can represent; beyond this is an Invalid Date (NaN).
+const MAX_TIME_MS = 8.64e15;
+
+function epochInRange(epoch: number): number {
+    return Math.abs(epoch) > MAX_TIME_MS ? Number.NaN : epoch;
+}
+
+/** Coerce a time-axis value (Date, epoch number/bigint, or ISO 8601 string) to epoch ms; `NaN` if unparseable or out of Date range. */
 export function timeValueToNumber(value: AgTimeValue): number {
-    if (typeof value === 'number') return value;
-    if (typeof value === 'bigint') return Number(value);
+    if (typeof value === 'number') return epochInRange(value);
+    if (typeof value === 'bigint') return epochInRange(Number(value));
     if (typeof value === 'string') return Date.parse(value);
     if (value instanceof Date) return value.getTime();
     return value;
