@@ -28,6 +28,14 @@ describe('interval reducers', () => {
         expect(foldKeys(SMALLEST_KEY_INTERVAL, [new Date(t), new Date(t + 1000), new Date(t + 1500)])).toBe(500);
     });
 
+    // Regression (AG-16608): ISO 8601 string keys yielded Number(key)=NaN, so finiteKey dropped every key
+    // and no key interval was computed for an ISO-keyed time axis; they now parse to epoch ms like Date keys.
+    it('measures ISO 8601 string-keyed gaps as elapsed milliseconds', () => {
+        const isoKeys = ['2024-01-01T00:00:00.000Z', '2024-01-01T00:00:01.000Z', '2024-01-01T00:00:01.500Z'];
+        expect(foldKeys(SMALLEST_KEY_INTERVAL, isoKeys)).toBe(500);
+        expect(foldKeys(LARGEST_KEY_INTERVAL, isoKeys)).toBe(1000);
+    });
+
     // Regression: coerce-then-subtract collapsed adjacent bigints whose gap is below the Number ULP at
     // their magnitude (here 2^60, ULP 256), yielding a zero interval that the > 0 guard then discarded.
     // The exact gap is now retained as a bigint and only narrowed by screen-space consumers.

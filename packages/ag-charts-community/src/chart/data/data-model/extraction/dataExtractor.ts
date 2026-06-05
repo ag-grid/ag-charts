@@ -109,7 +109,9 @@ function updateColumnTypeTracker(
         // normalises to a Date at convert() time.
         tracker.type = 'date';
     } else if (isNumericColumnType(tracker.type) && isNumericColumnType(observed)) {
-        // A column mixing `number` and `bigint` (with no date values) is rejected at the series level.
+        // A column mixing `number` and `bigint` (with no date values) is tagged 'mixed-numeric'; it still
+        // renders, but its bigints are narrowed to Number (lossy beyond ±2^53) rather than taking the
+        // full-precision bigint paths a uniformly-typed column would. Warned once at the series level.
         tracker.mixedAtIndex ??= datumIndex;
         tracker.type = 'mixed-numeric';
     }
@@ -497,8 +499,9 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
     private warnMixedNumericColumn(seriesId: ScopeId, key: K, atIndex: number) {
         Logger.warnOnce(
             `Series "${seriesId}": column "${String(key)}" mixes 'number' and 'bigint' values ` +
-                `(first detected at row ${atIndex}). Each column must be uniformly typed. ` +
-                `The series renders empty; other series in this chart are unaffected.`
+                `(first detected at row ${atIndex}). The bigint values are narrowed to Number to render ` +
+                `alongside the numbers, which can lose precision beyond ±2^53; use a uniformly-typed column ` +
+                `to retain full bigint precision.`
         );
     }
 

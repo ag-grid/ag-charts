@@ -74,6 +74,18 @@ All histogram callbacks (`tooltip.renderer`, `label.formatter`, `seriesNodeClick
 - The bin-object `domain` field is removed from `tooltip.renderer` params.
 - `binIndex`, `aggregatedValue`, `frequency`, and `binRange` are added as top-level params to all histogram callbacks.
 
+### Numeric and Time-Axis Value Types
+
+Numeric value channels now accept `bigint`, for integers beyond `Number.MAX_SAFE_INTEGER`. Time axes also accept `bigint` epochs and ISO 8601 date strings. Two new types describe this: `AgNumericValue` (`number | bigint`) and `AgTimeValue` (`Date | number | bigint | string`).
+
+Accepting these as input is backwards-compatible. Several output types — values the library passes back to your callbacks — have been widened from `number` to `AgNumericValue`:
+
+- The `value` passed to number and axis-tick formatters.
+- A continuous axis's `visibleDomain`.
+- The bin range and aggregated value passed to `histogram` tooltip and label callbacks.
+
+If a callback assigns one of these to a `number`-typed variable, or does number-only arithmetic on it, narrow it with `Number(value)`. Runtime values are unchanged: they remain `number` unless your data supplies `bigint` or ISO 8601 values.
+
 ### Theme Params
 
 - `separationLinesColor` is removed. Use `groupedCategoryLinesColor` instead.

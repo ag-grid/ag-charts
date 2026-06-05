@@ -1,4 +1,4 @@
-import { addValues, isFiniteNumber } from 'ag-charts-core';
+import { addValues, isFiniteNumber, subtractValues } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { ContinuousDomain } from './dataDomain';
@@ -133,9 +133,10 @@ export function area(id: string, aggFn: AggregatePropertyDefinition<any, any, an
         matchGroupIds: matchGroupId ? [matchGroupId] : undefined,
         type: 'aggregate',
         aggregateFunction: (values, keyRange = []) => {
-            // Area is a density (value / key-width) → fractional, so narrow bigint sums and bigint keys to
-            // Number for the division.
-            const keyWidth = Number(keyRange[1]) - Number(keyRange[0]);
+            // Area is a density (value / key-width) → fractional, so narrow to Number for the division.
+            // Subtract the bigint key edges exactly first: narrowing each edge before subtracting collapses
+            // the width to 0 for adjacent bins beyond a double's ULP (≈ 2^53), blanking the series.
+            const keyWidth = Number(subtractValues(keyRange[1], keyRange[0]));
             return aggFn.aggregateFunction(values).map((v: AgNumericValue) => Number(v) / keyWidth) as [number, number];
         },
     };

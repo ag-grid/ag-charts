@@ -74,30 +74,38 @@ describe('aggregation column preprocessing', () => {
     });
 
     describe('epochColumnForTimeScale', () => {
-        it('parses ISO 8601 strings to epoch milliseconds on a time scale', () => {
+        it('parses ISO 8601 strings to epoch milliseconds on a time scale and clears needsValueOf', () => {
             const iso = ['2024-01-01T00:00:00.000Z', '2024-01-02T00:00:00.000Z'];
-            expect(epochColumnForTimeScale('time', iso, false)).toEqual([Date.UTC(2024, 0, 1), Date.UTC(2024, 0, 2)]);
+            const result = epochColumnForTimeScale('time', iso, false);
+            expect(result.values).toEqual([Date.UTC(2024, 0, 1), Date.UTC(2024, 0, 2)]);
+            expect(result.needsValueOf).toBe(false);
         });
 
-        it('returns the input reference unchanged on a non-time scale', () => {
+        it('returns the input reference unchanged on a non-time scale, preserving needsValueOf', () => {
             const iso = ['2024-01-01T00:00:00.000Z'];
-            expect(epochColumnForTimeScale('number', iso, false)).toBe(iso);
+            const result = epochColumnForTimeScale('number', iso, false);
+            expect(result.values).toBe(iso);
+            expect(result.needsValueOf).toBe(false);
         });
 
         it('returns the input reference unchanged when xNeedsValueOf (Date columns are valueOf-handled)', () => {
             const dates = [new Date('2024-01-01T00:00:00.000Z')];
-            expect(epochColumnForTimeScale('time', dates, true)).toBe(dates);
+            const result = epochColumnForTimeScale('time', dates, true);
+            expect(result.values).toBe(dates);
+            expect(result.needsValueOf).toBe(true);
         });
 
         it('returns a numeric epoch column unchanged rather than rescanning it', () => {
             const epochs = [Date.UTC(2024, 0, 1), Date.UTC(2024, 0, 2)];
-            expect(epochColumnForTimeScale('time', epochs, false)).toBe(epochs);
+            const result = epochColumnForTimeScale('time', epochs, false);
+            expect(result.values).toBe(epochs);
+            expect(result.needsValueOf).toBe(false);
         });
 
         it('caches by column identity so repeated calls return the same parsed reference', () => {
             const iso = ['2024-01-01T00:00:00.000Z', '2024-01-02T00:00:00.000Z'];
             const first = epochColumnForTimeScale('time', iso, false);
-            expect(epochColumnForTimeScale('time', iso, false)).toBe(first);
+            expect(epochColumnForTimeScale('time', iso, false).values).toBe(first.values);
         });
     });
 });

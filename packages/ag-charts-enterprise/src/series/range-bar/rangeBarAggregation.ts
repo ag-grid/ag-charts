@@ -69,8 +69,11 @@ export function aggregateRangeBarDataFromDataModel(
         dataModel.resolveColumnNeedsValueOf(series, 'yHighValue', processedData) ??
         dataModel.resolveColumnNeedsValueOf(series, 'yLowValue', processedData);
 
-    const xValues = epochColumnForTimeScale(scale, rawXValues, rawXNeedsValueOf);
-    const xNeedsValueOf = xValues === rawXValues ? rawXNeedsValueOf : false;
+    const { values: xValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
+        scale,
+        rawXValues,
+        rawXNeedsValueOf
+    );
     const highValues = yNeedsValueOf ? rawHighValues : narrowBigIntColumnRelative(rawHighValues);
     const lowValues = yNeedsValueOf ? rawLowValues : narrowBigIntColumnRelative(rawLowValues);
 
@@ -116,8 +119,11 @@ export function aggregateRangeBarDataFromDataModelPartial(
         dataModel.resolveColumnNeedsValueOf(series, 'yHighValue', processedData) ??
         dataModel.resolveColumnNeedsValueOf(series, 'yLowValue', processedData);
 
-    const xValues = epochColumnForTimeScale(scale, rawXValues, rawXNeedsValueOf);
-    const xNeedsValueOf = xValues === rawXValues ? rawXNeedsValueOf : false;
+    const { values: xValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
+        scale,
+        rawXValues,
+        rawXNeedsValueOf
+    );
     const highValues = yNeedsValueOf ? rawHighValues : narrowBigIntColumnRelative(rawHighValues);
     const lowValues = yNeedsValueOf ? rawLowValues : narrowBigIntColumnRelative(rawLowValues);
 

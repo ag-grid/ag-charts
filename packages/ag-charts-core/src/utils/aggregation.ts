@@ -38,9 +38,20 @@ const isoEpochColumnCache = new WeakMap<readonly unknown[], unknown[]>();
  * the numeric bucketing maths cannot interpret a string. Parse such a column to epoch ms once and reuse
  * it. Date columns are already handled via valueOf (xNeedsValueOf=true) and numeric epoch columns need no
  * conversion.
- * @returns the input `xValues` reference unchanged when no parsing is required.
+ * @returns `values` (the input `xValues` reference unchanged when no parsing is required) and `needsValueOf`,
+ * which is `false` once a column has been converted to epoch numbers, otherwise the caller's original flag.
  */
-export function epochColumnForTimeScale(scale: ScaleType, xValues: any[], xNeedsValueOf: boolean): any[] {
+export function epochColumnForTimeScale(
+    scale: ScaleType,
+    xValues: any[],
+    xNeedsValueOf: boolean
+): { values: any[]; needsValueOf: boolean } {
+    const values = resolveEpochColumn(scale, xValues, xNeedsValueOf);
+    // A converted column holds epoch numbers (no valueOf needed); an unchanged reference keeps the caller's flag.
+    return { values, needsValueOf: values === xValues ? xNeedsValueOf : false };
+}
+
+function resolveEpochColumn(scale: ScaleType, xValues: any[], xNeedsValueOf: boolean): any[] {
     if (xNeedsValueOf || !TIME_SCALE_TYPES.has(scale)) return xValues;
 
     const cached = isoEpochColumnCache.get(xValues);
@@ -87,8 +98,10 @@ const relativeNumericColumnCache = new WeakMap<readonly unknown[], unknown[]>();
  * bigint before crossing to Number (mirroring ContinuousScale.convertBigInt) means a high-magnitude,
  * narrow-range column — span below a double's ULP at that magnitude — keeps full resolution instead of
  * collapsing every value onto one double (which would empty the coarsest aggregation level and render
- * blank). Offsetting shifts every value to ≥ 0 and so destroys sign, and the result is no longer
- * comparable to an absolutely-narrowed domain: use this ONLY where the narrowed values feed the
+ * blank). Offsetting rebases each value onto the column's bigint minimum, destroying sign and absolute
+ * magnitude (a pure-bigint column lands at ≥ 0; a mixed column with a Number below that minimum can stay
+ * negative), and the result is no longer comparable to an absolutely-narrowed domain: use this ONLY where
+ * the narrowed values feed the
  * comparison-based extrema envelope and neither their sign nor their distance to a domain is read
  * (line/area/ohlc/range). bar (sign) and bubble (domain ratios) must use {@link narrowBigIntColumn}.
  * Mixed bigint/number elements each subtract the same real offset; null/undefined pass through.

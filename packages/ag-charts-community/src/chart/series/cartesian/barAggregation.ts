@@ -338,8 +338,11 @@ export function aggregateBarDataFromDataModel(
     );
 
     // Split-mode aggregation keys off each value's sign, so narrow bigints absolutely (sign-preserving).
-    const xValues = epochColumnForTimeScale(scale, rawXValues, rawXNeedsValueOf);
-    const xNeedsValueOf = xValues === rawXValues ? rawXNeedsValueOf : false;
+    const { values: xValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
+        scale,
+        rawXValues,
+        rawXNeedsValueOf
+    );
     const yStartValues =
         yNeedsValueOf || rawYStartValues == null ? rawYStartValues : narrowBigIntColumn(rawYStartValues);
     const yEndValues = yNeedsValueOf ? rawYEndValues : narrowBigIntColumn(rawYEndValues);
@@ -407,8 +410,11 @@ export function aggregateBarDataFromDataModelPartial(
     );
 
     // Split-mode aggregation keys off each value's sign, so narrow bigints absolutely (sign-preserving).
-    const xValues = epochColumnForTimeScale(scale, rawXValues, rawXNeedsValueOf);
-    const xNeedsValueOf = xValues === rawXValues ? rawXNeedsValueOf : false;
+    const { values: xValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
+        scale,
+        rawXValues,
+        rawXNeedsValueOf
+    );
     const yStartValues =
         yNeedsValueOf || rawYStartValues == null ? rawYStartValues : narrowBigIntColumn(rawYStartValues);
     const yEndValues = yNeedsValueOf ? rawYEndValues : narrowBigIntColumn(rawYEndValues);

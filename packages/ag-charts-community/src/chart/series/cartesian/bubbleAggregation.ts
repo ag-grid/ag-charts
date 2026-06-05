@@ -353,8 +353,14 @@ export function aggregateBubbleDataFromDataModel(
 
     // The quadtree computes value-to-domain ratios, so narrow bigints absolutely to match the absolute
     // narrowing aggregationDomain applies to the domain; parse ISO time x to epoch ms first.
-    const xValues = narrowBigIntColumn(epochColumnForTimeScale(xScale, rawXValues, rawXNeedsValueOf));
-    const xNeedsValueOf = xValues === rawXValues ? rawXNeedsValueOf : false;
+    // needsValueOf comes straight from the epoch resolver: narrowBigIntColumn only rewrites bigint (numeric)
+    // columns, which never need valueOf, so it cannot change the flag.
+    const { values: epochXValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
+        xScale,
+        rawXValues,
+        rawXNeedsValueOf
+    );
+    const xValues = narrowBigIntColumn(epochXValues);
     const yValues = yNeedsValueOf ? rawYValues : narrowBigIntColumn(rawYValues);
 
     return aggregateBubbleData(

@@ -121,6 +121,8 @@ export abstract class ContinuousScale<D extends number | bigint | Date, I = numb
 
         // Full-precision BigInt ratio for linear scales: keeps adjacent high-magnitude bigints monotonic
         // where a float64 narrow would collapse them. Log/time scales narrow to Number below (AC #9).
+        // Both endpoints must be bigint to enter here; a mixed domain is homogenized to Number by niceDomain
+        // upstream, so the Number path below handles it (promoting a fractional endpoint to BigInt would throw).
         if (typeof value === 'bigint' && this.d0Big != null && this.d1Big != null && this.transform == null) {
             return convertBigInt(value, this.d0Big, this.d1Big, range, clamp);
         }
@@ -266,7 +268,9 @@ export function normalizeContinuousDomains<D extends number | bigint | Date>(
         for (const d of input.domain) {
             // Select via relational comparison so a bigint endpoint beyond Number.MAX_VALUE is retained
             // exactly. Number()-narrowing collapses every such candidate to Infinity, so `Infinity > Infinity`
-            // is false and the true maximum is never chosen.
+            // is false and the true maximum is never chosen. Inputs are NaN-free — every producer filters
+            // non-finite extents upstream (fixNumericExtent / ContinuousDomain) — so a leading NaN, which
+            // would otherwise poison the relational seed, cannot reach here.
             if (min === undefined || d < min) {
                 min = d;
             }

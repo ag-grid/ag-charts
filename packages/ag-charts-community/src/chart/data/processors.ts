@@ -12,6 +12,7 @@ import {
     memo,
     minValue,
     subtractValues,
+    timeValueToNumber,
     transformIntegratedCategoryValue,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
@@ -234,9 +235,15 @@ export function groupAccumulativeValueProperty<K>(
 }
 
 // Normalises a key for interval maths: a bigint is kept exact, anything else (number, Date) coerces to a
-// Number as before. NaN/Infinity keys (e.g. invalid data) yield undefined and are skipped.
+// Number as before. NaN/Infinity keys (e.g. invalid data) yield undefined and are skipped. An ISO 8601
+// string key (Number() would yield NaN) parses to epoch ms — the interval reducers run only for a
+// continuous x-axis, so a string here is a date string, never a category.
 function finiteKey(key: unknown): AgNumericValue | undefined {
     if (typeof key === 'bigint') return key;
+    if (isISO8601(key)) {
+        const ms = timeValueToNumber(key);
+        return Number.isFinite(ms) ? ms : undefined;
+    }
     const n = Number(key);
     return Number.isFinite(n) ? n : undefined;
 }

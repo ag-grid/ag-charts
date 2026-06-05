@@ -92,6 +92,11 @@ import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 const defaultBinCount = 10;
 
+/** True when a value can be converted to a BigInt without throwing — a bigint, or an integral number. */
+function isBigIntConvertible(value: AgNumericValue): boolean {
+    return typeof value === 'bigint' || Number.isInteger(value);
+}
+
 type HistogramAnimationData = CartesianAnimationDataOf<HistogramSeriesTypes>;
 
 /** Bin boundaries are `bigint` for a BigInt x-column (AG-16608) and `number` otherwise. */
@@ -169,7 +174,9 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     private computeBins(xExtent: AgNumericValue[]): BinDomain[] {
         const x0 = xExtent[0];
         const x1 = xExtent[1];
-        const bigIntExtent = isBigInt(x0) || isBigInt(x1);
+        // Full-precision BigInt boundaries need both endpoints integral; a fractional endpoint (possible on a
+        // mixed bigint/number column) would make BigInt() throw, so fall back to the Number path in that case.
+        const bigIntExtent = (isBigInt(x0) || isBigInt(x1)) && isBigIntConvertible(x0) && isBigIntConvertible(x1);
 
         if (isNumber(this.properties.binCount)) {
             return bigIntExtent

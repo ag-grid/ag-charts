@@ -538,6 +538,36 @@ describe('HistogramSeries', () => {
             const totalFrequency = bins.reduce((acc, bin) => acc + bin.frequency, 0);
             expect(totalFrequency).toBe(xs.length);
         });
+
+        it('falls back to Number bins (no RangeError) when the extent mixes a bigint and a fractional number', async () => {
+            // A mixed bigint/number column yields an extent like [10n, 25.5]. BigInt(25.5) throws RangeError,
+            // so the bigint bin path must defer to the Number path when an endpoint is non-integral.
+            const options: AgChartOptions = {
+                data: [{ x: 10n }, { x: 12n }, { x: 18n }, { x: 20n }, { x: 25.5 }],
+                series: [{ type: 'histogram', xKey: 'x', binCount: 5 }],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0] as unknown as {
+                calculatedBins: { domain: [AgNumericValue, AgNumericValue]; frequency: number }[];
+            };
+            const bins = series.calculatedBins;
+
+            expect(bins.length).toBeGreaterThan(0);
+            // Fell back to the Number path, so boundaries are numbers rather than bigints.
+            for (const bin of bins) {
+                expect(typeof bin.domain[0]).toBe('number');
+                expect(typeof bin.domain[1]).toBe('number');
+            }
+            // Every datum still buckets rather than crashing the build.
+            const totalFrequency = bins.reduce((acc, bin) => acc + bin.frequency, 0);
+            expect(totalFrequency).toBe(5);
+            // No warning: the mixed-numeric warning is emitted for value columns, not key columns.
+            expectWarningsCalls().toHaveLength(0);
+        });
     });
 
     // CRT-1043: Invisible histogram series must still populate nodeData so the remove animation

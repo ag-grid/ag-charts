@@ -430,8 +430,11 @@ export function aggregateAreaDataFromDataModel(
     const rawXNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, yKey, processedData);
 
-    const xValues = epochColumnForTimeScale(scale, rawXValues, rawXNeedsValueOf);
-    const xNeedsValueOf = xValues === rawXValues ? rawXNeedsValueOf : false;
+    const { values: xValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
+        scale,
+        rawXValues,
+        rawXNeedsValueOf
+    );
     const yValues = yNeedsValueOf ? rawYValues : narrowBigIntColumnRelative(rawYValues);
 
     // When existingFilters provided, bypass memoization to enable TypedArray reuse
@@ -476,8 +479,11 @@ export function aggregateAreaDataFromDataModelPartial(
     const rawXNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, yKey, processedData);
 
-    const xValues = epochColumnForTimeScale(scale, rawXValues, rawXNeedsValueOf);
-    const xNeedsValueOf = xValues === rawXValues ? rawXNeedsValueOf : false;
+    const { values: xValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
+        scale,
+        rawXValues,
+        rawXNeedsValueOf
+    );
     const yValues = yNeedsValueOf ? rawYValues : narrowBigIntColumnRelative(rawYValues);
 
     const [d0, d1] = aggregationDomain(scale, domainInput);

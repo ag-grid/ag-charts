@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { accumulatedValue, addAccumulated, sumValues, trailingAccumulatedValue } from './aggregateFunctions';
+import { accumulatedValue, addAccumulated, area, sum, sumValues, trailingAccumulatedValue } from './aggregateFunctions';
 
 describe('aggregateFunctions bigint support (AG-16608)', () => {
     describe('sumValues', () => {
@@ -64,6 +64,18 @@ describe('aggregateFunctions bigint support (AG-16608)', () => {
             expect(trailing(5n, 0)).toBe(0n);
             expect(trailing(3n, 1)).toBe(5n);
             expect(trailing(2n, 2)).toBe(8n);
+        });
+    });
+
+    describe('area density', () => {
+        it('divides by an exact bigint key width beyond the Number ULP instead of collapsing to zero', () => {
+            // ULP at 2^60 is 256, so narrowing each bin edge to Number before subtracting would collapse an
+            // 8-wide bin to width 0 → density Infinity. Subtracting the edges in bigint first keeps it exact.
+            const base = 2n ** 60n;
+            // sum([20]) = [0, 20]; divided by the exact width 8 → [0, 2.5].
+            const density = area('area-test', sum('inner-sum', 'group')).aggregateFunction([20], [base, base + 8n]);
+            expect(density[1]).toBeCloseTo(2.5);
+            expect(Number.isFinite(density[1])).toBe(true);
         });
     });
 });
