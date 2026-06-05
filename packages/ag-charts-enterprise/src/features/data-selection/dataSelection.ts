@@ -301,7 +301,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             const bucketLookup = series.ensureBucketLookupFeature();
             const getRangeOfAggregateIndex = bucketLookup?.getRangeReader();
 
-            for (const { datumIndex } of series.pickNodesInBBox(bbox)) {
+            for (const nodeDatum of series.pickNodesInBBox(bbox)) {
+                const datumIndex = nodeDatum.datumIndex;
                 const indexSet = bucketLookup?.getIndexSet(datumIndex);
                 if (getRangeOfAggregateIndex) {
                     const range = getRangeOfAggregateIndex(datumIndex);
