@@ -1525,8 +1525,8 @@ describe('DataSelection', () => {
                         await mouseMove(POINT_MISS);
                     });
                     describe('initial', () => {
-                        test.skip('screenshot', async () => {
-                            await compareExact('diskusage-highlighted-none-selected-movie-mnt-vid2');
+                        test('screenshot', async () => {
+                            await compareExact('diskusage-treemap-highlighted-none-selected-movie-mnt-vid2');
                         });
                         test('getSelection', () => {
                             expect(getChartSelectionArray()).toEqual([ITEM_MOVIE, ITEM_MNT, ITEM_VID2]);
@@ -1540,10 +1540,10 @@ describe('DataSelection', () => {
                             selectionChange.popEvents(); // pop event of initial selection.
                         });
                         describe('click on selected node sets that node to the sole selection', () => {
-                            test.skip('screenshot', async () => {
+                            test('screenshot', async () => {
                                 await mouseClick(POINT_MOVIE);
                                 await mouseMove(POINT_MISS);
-                                await compareExact('diskusage-highlighted-none-selected-movie');
+                                await compareExact('diskusage-treemap-highlighted-none-selected-movie');
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_MOVIE);
@@ -1557,10 +1557,10 @@ describe('DataSelection', () => {
                             });
                         });
                         describe('ctrl-click on selected node removes that node only', () => {
-                            test.skip('screenshot', async () => {
+                            test('screenshot', async () => {
                                 await mouseClick(POINT_MOVIE, { ctrlKey });
                                 await mouseMove(POINT_MISS);
-                                await compareExact('diskusage-highlighted-none-selected-vid2-mnt');
+                                await compareExact('diskusage-treemap-highlighted-none-selected-vid2-mnt');
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_MOVIE, { ctrlKey });
@@ -1574,10 +1574,10 @@ describe('DataSelection', () => {
                             });
                         });
                         describe('click on unselected node sets that node to the sole selection', () => {
-                            test.skip('screenshot', async () => {
+                            test('screenshot', async () => {
                                 await mouseClick(POINT_IMG1);
                                 await mouseMove(POINT_MISS);
-                                await compareExact('diskusage-highlighted-none-selected-img1');
+                                await compareExact('diskusage-treemap-highlighted-none-selected-img1');
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_IMG1);
@@ -1591,10 +1591,10 @@ describe('DataSelection', () => {
                             });
                         });
                         describe('ctrl-click on unselected node adds that node only', () => {
-                            test.skip('screenshot', async () => {
+                            test('screenshot', async () => {
                                 await mouseClick(POINT_IMG1, { ctrlKey });
                                 await mouseMove(POINT_MISS);
-                                await compareExact('diskusage-highlighted-none-selected-img1');
+                                await compareExact('diskusage-treemap-highlighted-none-selected-img1');
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_IMG1, { ctrlKey });
