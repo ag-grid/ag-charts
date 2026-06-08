@@ -373,6 +373,24 @@ describe('HistogramSeries', () => {
             expect(nodeDataOf(chart)[0].aggregatedValue).toBe(6);
         });
 
+        it('carries the area-adjusted plotted height as cumulativeValue for the crosshair', async () => {
+            // The value-axis crosshair snaps to the bar's plotted height via `cumulativeValue`, which
+            // stays area-adjusted even though `aggregatedValue` is raw. Bin width is 10, so 6 -> 0.6.
+            chart = createChart({ aggregation: 'sum', yKey: 'y', areaPlot: true });
+            await waitForChartStability(chart);
+            const firstBin = nodeDataOf(chart)[0];
+            expect(firstBin.aggregatedValue).toBe(6);
+            expect(firstBin.cumulativeValue).toBeCloseTo(0.6);
+        });
+
+        it('keeps cumulativeValue and aggregatedValue equal without areaPlot', async () => {
+            chart = createChart({ aggregation: 'sum', yKey: 'y' });
+            await waitForChartStability(chart);
+            const firstBin = nodeDataOf(chart)[0];
+            expect(firstBin.cumulativeValue).toBe(6);
+            expect(firstBin.aggregatedValue).toBe(6);
+        });
+
         const clickFirstBin = async (c: any) => {
             const series = deproxy(c).series[0] as any;
             const node = series.getNodeData()[0];
@@ -448,7 +466,7 @@ describe('HistogramSeries', () => {
             await waitForChartStability(chart);
 
             expect(renderer).toHaveBeenCalledTimes(1);
-            const params = renderer.mock.calls[0][0] as any;
+            const params = renderer.mock.calls[0][0];
             expect(params).toMatchObject({ binIndex: 0, binRange: [0, 10], aggregatedValue: 3, frequency: 3 });
             expect(params.datum).toHaveLength(3);
             expect(params.datum).toEqual(

@@ -413,7 +413,10 @@ export class Crosshair
         const isYKey = seriesKeyProperties.includes('yKey') && matchingAxisId;
         const isXKey = seriesKeyProperties.includes('xKey') && matchingAxisId;
 
-        const datumValue = aggregatedValue ?? cumulativeValue;
+        // Prefer the explicit plotted value (`cumulativeValue`) over `aggregatedValue`: histogram
+        // bins expose a raw, area-independent `aggregatedValue` for callbacks that is not the value
+        // the bar is drawn at, so the crosshair must snap to `cumulativeValue` when both are present.
+        const datumValue = cumulativeValue ?? aggregatedValue;
         if (isYKey && datumValue !== undefined) {
             const position = axisCtx.scale.convert(datumValue) + halfBandwidth;
             const isInRange = this.isInRange(position);

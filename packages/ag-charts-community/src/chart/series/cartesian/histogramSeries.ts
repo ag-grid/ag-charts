@@ -490,7 +490,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
      */
     private createSkeletonNodeDatum(ctx: HistogramSeriesNodeDatumContext, bin: CalculatedBin): HistogramNodeDatum {
         const { xKey, yKey } = ctx;
-        const { domain: binRange, datum, groupIndex, binIndex, frequency, aggregatedValue } = bin;
+        const { domain: binRange, datum, groupIndex, binIndex, frequency, total, aggregatedValue } = bin;
         const [binStart, binEnd] = binRange;
         const { getDataId } = this.properties;
         const customId =
@@ -513,6 +513,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             binIndex,
             binRange,
             aggregatedValue,
+            cumulativeValue: total,
             frequency,
             yKey,
             xKey,
@@ -558,6 +559,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         mutableNode.datum = datum;
         mutableNode.binIndex = binIndex;
         mutableNode.aggregatedValue = aggregatedValue;
+        mutableNode.cumulativeValue = total;
         mutableNode.frequency = frequency;
         mutableNode.binRange = binRange;
         mutableNode.x = x;
