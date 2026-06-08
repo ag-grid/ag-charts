@@ -15,7 +15,6 @@ import {
     isGradientFill,
     mergeDefaults,
     normalizeAngle360,
-    toPlainText,
 } from 'ag-charts-core';
 import type {
     AgSunburstSeriesItemStylerParams,
@@ -395,9 +394,12 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             };
 
             const formatting = formatLabels<LabelPlacement>(
-                toPlainText(labelValue),
+                // Preserve `ContentSegment[]` (including image segments) instead of flattening to
+                // plain text, so image-bearing labels render like treemap rather than dropping the
+                // image.
+                labelValue,
                 this.properties.label,
-                toPlainText(secondaryLabelValue),
+                secondaryLabelValue,
                 this.properties.secondaryLabel,
                 { padding },
                 sizeFittingHeight

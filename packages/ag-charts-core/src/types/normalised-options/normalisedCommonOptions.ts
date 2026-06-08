@@ -1,4 +1,4 @@
-import type { CssColor, PaddingOptions, TextOptions, TextSegment, TextValue } from 'ag-charts-types';
+import type { CssColor, ImageSegment, PaddingOptions, TextOptions, TextSegment, TextValue } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
 
@@ -8,4 +8,6 @@ export type NormalisedTextOptions = Normalised<TextOptions, never, { color?: Css
 
 export type NormalisedTextSegment = Normalised<TextSegment, never, { color?: CssColor }>;
 
-export type NormalisedTextOrSegments = TextValue | NormalisedTextSegment[];
+export type NormalisedContentSegment = NormalisedTextSegment | ImageSegment;
+
+export type NormalisedTextOrSegments = TextValue | NormalisedContentSegment[];

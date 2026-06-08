@@ -26,7 +26,6 @@ import {
     formatValue,
     joinFormatted,
     mergeDefaults,
-    toPlainText,
 } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
@@ -559,7 +558,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         const sizeFittingHeight = () => ({ width, height, meta: null });
         const labels = formatLabels(
-            toPlainText(labelText),
+            // Preserve `ContentSegment[]` (including image segments) instead of flattening to plain
+            // text, so image-bearing labels render like treemap rather than dropping the image.
+            labelText,
             this.properties.label,
             undefined,
             this.properties.label,

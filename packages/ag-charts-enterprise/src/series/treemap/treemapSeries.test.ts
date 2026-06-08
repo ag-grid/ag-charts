@@ -1,4 +1,5 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import type {
     AgCartesianChartOptions,
@@ -16,6 +17,7 @@ import {
     assertTooltipPresentForAll,
     clickAction,
     deproxy,
+    expectWarningsCalls,
     extractImageData,
     hierarchyChartAssertions,
     hoverAction,
@@ -299,6 +301,343 @@ describe('TreemapSeries', () => {
             prepareEnterpriseTestOptions(options);
             chart = AgCharts.create(options);
             await compare();
+        });
+
+        describe('block-leading image segments', () => {
+            const iconSvg = (letter: string) =>
+                `data:image/svg+xml;utf8,${encodeURIComponent(
+                    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36">` +
+                        `<circle cx="18" cy="18" r="16" fill="#1f77b4"/>` +
+                        `<text x="18" y="24" text-anchor="middle" font-family="Verdana" font-size="18"` +
+                        ` fill="white" font-weight="bold">${letter}</text></svg>`
+                )}`;
+            const ICONS: Record<string, string> = {
+                Alpha: iconSvg('A'),
+                Beta: iconSvg('B'),
+                Gamma: iconSvg('G'),
+                Delta: iconSvg('D'),
+            };
+
+            let preloaded: Record<string, SkiaImage> = {};
+            beforeAll(async () => {
+                const entries = await Promise.all(
+                    Object.values(ICONS).map(async (url) => [url, await skiaLoadImage(url)] as const)
+                );
+                preloaded = Object.fromEntries(entries);
+            });
+
+            function stubChartImageLoader(chartInstance: any) {
+                const imageLoader = (chartInstance as Chart).ctx.scene.imageLoader as any;
+                imageLoader.loadImage = (uri: string) => preloaded[uri] as unknown as HTMLImageElement;
+            }
+
+            it.each(['top', 'middle', 'bottom'] as const)(
+                'renders block-leading image segments aligned %s of the two-line text column',
+                async (verticalAlign) => {
+                    const options: AgChartOptions = {
+                        animation: { enabled: false },
+                        data: [
+                            { name: 'Alpha', value: 300 },
+                            { name: 'Beta', value: 200 },
+                            { name: 'Gamma', value: 150 },
+                            { name: 'Delta', value: 120 },
+                        ],
+                        series: [
+                            {
+                                type: 'treemap',
+                                labelKey: 'name',
+                                sizeKey: 'value',
+                                tile: {
+                                    label: {
+                                        enabled: true,
+                                        fontSize: 16,
+                                        minimumFontSize: 10,
+                                        formatter: ({ datum }) => {
+                                            const d = datum as { name: string; value: number };
+                                            return [
+                                                {
+                                                    type: 'image',
+                                                    url: ICONS[d.name],
+                                                    width: 36,
+                                                    height: 36,
+                                                    block: true,
+                                                    padding: 6,
+                                                    backgroundFill: 'rgba(0, 0, 0, 0.35)',
+                                                    borderRadius: 8,
+                                                    verticalAlign,
+                                                },
+                                                { text: d.name, fontWeight: 'bold', verticalAlign },
+                                                { text: `\n$${d.value}B`, color: 'rgba(0, 0, 0, 0.6)' },
+                                            ];
+                                        },
+                                    },
+                                    secondaryLabel: { enabled: false },
+                                },
+                            },
+                        ],
+                    };
+                    prepareEnterpriseTestOptions(options);
+                    chart = deproxy(AgCharts.create(options));
+                    stubChartImageLoader(chart);
+                    await compare();
+                    expectWarningsCalls().toHaveLength(0);
+                }
+            );
+
+            it('lays two adjacent block-leading image segments side-by-side and keeps both inside the tile', async () => {
+                // Regression for AG-15933: a formatter returning two `block: true` images at the
+                // start of the label (no `\n` between them) must render both side-by-side as a
+                // leading strip, with text flowing to the right and both images contained inside
+                // their tile.
+                const options: AgChartOptions = {
+                    animation: { enabled: false },
+                    data: [
+                        { name: 'Alpha', value: 300 },
+                        { name: 'Beta', value: 200 },
+                        { name: 'Gamma', value: 150 },
+                        { name: 'Delta', value: 120 },
+                    ],
+                    series: [
+                        {
+                            type: 'treemap',
+                            labelKey: 'name',
+                            sizeKey: 'value',
+                            tile: {
+                                label: {
+                                    enabled: true,
+                                    fontSize: 16,
+                                    minimumFontSize: 10,
+                                    formatter: ({ datum }) => {
+                                        const d = datum as { name: string; value: number };
+                                        const icon = {
+                                            type: 'image' as const,
+                                            url: ICONS[d.name],
+                                            width: 28,
+                                            height: 28,
+                                            block: true,
+                                            padding: 4,
+                                            backgroundFill: 'rgba(0, 0, 0, 0.35)',
+                                            borderRadius: 6,
+                                        };
+                                        return [
+                                            icon,
+                                            icon,
+                                            { text: d.name, fontWeight: 'bold' },
+                                            { text: `\n$${d.value}B` },
+                                        ];
+                                    },
+                                },
+                                secondaryLabel: { enabled: false },
+                            },
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+                chart = deproxy(AgCharts.create(options));
+                stubChartImageLoader(chart);
+                await compare();
+                expectWarningsCalls().toHaveLength(0);
+            });
+
+            it("drops oversized block image under default 'hide' so text still renders inside the tile", async () => {
+                // Test canvas is 800x600 (prepareEnterpriseTestOptions); split into four tiles each
+                // ~400x300 of usable label space. An image declared at 1200x1200 exceeds every tile,
+                // so the default 'hide' strategy must drop the image and keep the text-only label.
+                const options: AgChartOptions = {
+                    animation: { enabled: false },
+                    data: [
+                        { name: 'Alpha', value: 4 },
+                        { name: 'Beta', value: 3 },
+                        { name: 'Gamma', value: 2 },
+                        { name: 'Delta', value: 1 },
+                    ],
+                    series: [
+                        {
+                            type: 'treemap',
+                            labelKey: 'name',
+                            sizeKey: 'value',
+                            tile: {
+                                label: {
+                                    enabled: true,
+                                    fontSize: 16,
+                                    minimumFontSize: 10,
+                                    formatter: ({ datum }) => {
+                                        const d = datum as { name: string };
+                                        return [
+                                            {
+                                                type: 'image',
+                                                url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221200%22 height=%221200%22/%3E',
+                                                width: 1200,
+                                                height: 1200,
+                                                block: true,
+                                                backgroundFill: '#888',
+                                            },
+                                            { text: d.name, fontWeight: 'bold' },
+                                        ];
+                                    },
+                                },
+                                secondaryLabel: { enabled: false },
+                            },
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+                chart = AgCharts.create(options);
+                await compare();
+                // Image is dropped before reaching the renderer, so no image load is attempted.
+                expectWarningsCalls().toHaveLength(0);
+            });
+
+            it('keeps every rendered block-leading image inside its tile across mixed tile sizes', async () => {
+                // Regression: each tile's rendered image-box (including padding/backgroundFill)
+                // must stay within its tile bounds. Repros the docs `inline-images-treemap`
+                // example, mixing very small tiles where the image would otherwise be tight.
+                const options: AgChartOptions = {
+                    animation: { enabled: false },
+                    data: [
+                        {
+                            name: 'Hardware',
+                            children: [
+                                { name: 'Apple', value: 383 },
+                                { name: 'NVIDIA', value: 244 },
+                                { name: 'Intel', value: 87 },
+                                { name: 'Tesla', value: 67 },
+                            ],
+                        },
+                        {
+                            name: 'Software',
+                            children: [
+                                { name: 'Google', value: 333 },
+                                { name: 'Meta', value: 196 },
+                                { name: 'SAP', value: 58 },
+                                { name: 'Shopify', value: 36 },
+                            ],
+                        },
+                        {
+                            name: 'Services',
+                            children: [
+                                { name: 'Netflix', value: 38 },
+                                { name: 'Spotify', value: 21 },
+                                { name: 'Airbnb', value: 24 },
+                                { name: 'Uber', value: 32 },
+                                { name: 'PayPal', value: 27 },
+                                { name: 'Stripe', value: 14 },
+                            ],
+                        },
+                    ],
+                    series: [
+                        {
+                            type: 'treemap',
+                            labelKey: 'name',
+                            sizeKey: 'value',
+                            tile: {
+                                label: {
+                                    enabled: true,
+                                    fontSize: 16,
+                                    minimumFontSize: 10,
+                                    formatter: ({ datum }) => {
+                                        const d = datum as { name: string; value: number };
+                                        return [
+                                            {
+                                                type: 'image',
+                                                url: ICONS[d.name] ?? ICONS.Alpha,
+                                                width: 36,
+                                                height: 36,
+                                                block: true,
+                                                padding: 6,
+                                                backgroundFill: 'rgba(0, 0, 0, 0.35)',
+                                                borderRadius: 8,
+                                            },
+                                            { text: d.name, fontWeight: 'bold' },
+                                            { text: `\n$${d.value}B` },
+                                        ];
+                                    },
+                                },
+                                secondaryLabel: { enabled: false },
+                            },
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+                chart = deproxy(AgCharts.create(options));
+                stubChartImageLoader(chart);
+                // The visual snapshot is the guard: an image overflowing its tile shifts pixels
+                // against the committed baseline. Small tiles drop their image, larger tiles keep it.
+                await compare();
+                expectWarningsCalls().toHaveLength(0);
+            });
+
+            it('centres a leading+trailing block-image label inside short tiles without vertical overflow', async () => {
+                // AG-15933: a formatter returning a leading block image, middle-aligned text, and a
+                // trailing block image rendered mis-centred (~18px off) on a 'middle' baseline,
+                // overflowing short tiles. Repros the docs example at a narrow/tall size that yields
+                // several short tiles.
+                const block = (name: string) => ({
+                    type: 'image' as const,
+                    url: ICONS[name] ?? ICONS.Alpha,
+                    width: 36,
+                    height: 36,
+                    block: true,
+                    padding: 6,
+                    backgroundFill: 'rgba(0, 0, 0, 0.35)',
+                    borderRadius: 8,
+                });
+                const options: AgChartOptions = {
+                    width: 312,
+                    height: 1053,
+                    animation: { enabled: false },
+                    data: [
+                        {
+                            name: 'Hardware',
+                            children: [
+                                { name: 'Apple', value: 383 },
+                                { name: 'NVIDIA', value: 244 },
+                                { name: 'Intel', value: 87 },
+                                { name: 'Tesla', value: 67 },
+                            ],
+                        },
+                        {
+                            name: 'Software',
+                            children: [
+                                { name: 'Google', value: 333 },
+                                { name: 'Meta', value: 196 },
+                                { name: 'SAP', value: 58 },
+                                { name: 'Shopify', value: 36 },
+                            ],
+                        },
+                    ],
+                    series: [
+                        {
+                            type: 'treemap',
+                            labelKey: 'name',
+                            sizeKey: 'value',
+                            tile: {
+                                label: {
+                                    enabled: true,
+                                    fontSize: 16,
+                                    minimumFontSize: 10,
+                                    formatter: ({ datum }) => {
+                                        const d = datum as { name: string };
+                                        return [
+                                            block(d.name),
+                                            { text: d.name, fontWeight: 'bold', verticalAlign: 'middle' },
+                                            block(d.name),
+                                        ];
+                                    },
+                                },
+                                secondaryLabel: { enabled: false },
+                            },
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+                chart = deproxy(AgCharts.create(options));
+                stubChartImageLoader(chart);
+                // The ~18px mis-centring this guards against is a visual regression: a label
+                // overflowing its short tile shifts pixels against the committed baseline.
+                await compare();
+                expectWarningsCalls().toHaveLength(0);
+            });
         });
     });
 

@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { type Image, loadImage } from 'skia-canvas';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 import { cachedTextMeasurer, wrapText } from 'ag-charts-core';
 import type { TextWrap } from 'ag-charts-types';
@@ -408,64 +409,440 @@ describe('Text', () => {
         });
     });
 
-    // CRT-1041: getBBox() for segmented (rich) text must account for the vertical offset
-    // applied by calcSegmentedTopOffset. Before the fix, the accessibility proxy element for
-    // multi-line footnote captions was mispositioned because getBBox().y was not adjusted.
-    describe('CRT-1041 segmented text getBBox', () => {
-        const mockScene = setUpMockScene(canvasCtx);
+    describe('image segments', () => {
+        // Pre-loaded skia-canvas images for visual snapshot tests. The ImageLoader path used in
+        // production resolves async via HTMLImageElement; in tests we stub it so drawImage gets a
+        // ready-to-render image and the snapshot reflects the actual image content.
+        let inlineImage: Image;
+        let blockImage: Image;
+        let blockImage2: Image;
+        const ICON_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">' +
+                '<rect width="24" height="24" rx="4" fill="#2b7cd3"/>' +
+                '<path d="M7 12l3 3 7-7" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
+                '</svg>'
+        )}`;
+        const LOGO_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36">' +
+                '<circle cx="18" cy="18" r="16" fill="#1f77b4"/>' +
+                '<text x="18" y="24" text-anchor="middle" font-family="Verdana" font-size="18" fill="white" font-weight="bold">A</text>' +
+                '</svg>'
+        )}`;
+        // A second, visually distinct block logo so stacked/side-by-side block rows are
+        // distinguishable in the snapshots.
+        const LOGO2_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36">' +
+                '<rect x="2" y="2" width="32" height="32" rx="6" fill="#d62728"/>' +
+                '<text x="18" y="24" text-anchor="middle" font-family="Verdana" font-size="18" fill="white" font-weight="bold">B</text>' +
+                '</svg>'
+        )}`;
 
-        const SEGMENTED_TEXT = [
-            { text: 'Line 1', fontSize: 15, fontFamily: 'Verdana' },
-            { text: '\nLine 2', fontSize: 15, fontFamily: 'Verdana' },
-        ];
-
-        it('should return getBBox().y equal to text.y for top baseline', () => {
-            const text = new Text();
-            Object.assign(text, { ...BASE_OPTIONS, text: SEGMENTED_TEXT, textBaseline: 'top', x: 100, y: 400 });
-            text.setScene(mockScene);
-            const bbox = text.getBBox();
-            expect(bbox.y).toBeCloseTo(400, 0);
+        beforeAll(async () => {
+            inlineImage = await loadImage(ICON_SVG);
+            blockImage = await loadImage(LOGO_SVG);
+            blockImage2 = await loadImage(LOGO2_SVG);
         });
 
-        it('should return getBBox().y less than text.y for alphabetic baseline', () => {
-            const text = new Text();
-            Object.assign(text, { ...BASE_OPTIONS, text: SEGMENTED_TEXT, textBaseline: 'alphabetic', x: 100, y: 400 });
-            text.setScene(mockScene);
-            const bbox = text.getBBox();
-            expect(bbox.y).toBeLessThan(400);
-        });
+        function makeImageLoaderScene(imagesByUri: Record<string, Image>): IScene {
+            return {
+                ...setUpMockScene(canvasCtx),
+                imageLoader: {
+                    loadImage: (uri: string) => imagesByUri[uri] as unknown as HTMLImageElement,
+                    waitingToLoad: () => false,
+                    destroy: () => {},
+                    on: () => () => {},
+                    off: () => {},
+                    once: () => () => {},
+                    emit: () => {},
+                } as any,
+            };
+        }
 
-        it('should return getBBox().y less than text.y for middle baseline', () => {
-            const text = new Text();
-            Object.assign(text, { ...BASE_OPTIONS, text: SEGMENTED_TEXT, textBaseline: 'middle', x: 100, y: 400 });
-            text.setScene(mockScene);
-            const bbox = text.getBBox();
-            expect(bbox.y).toBeLessThan(400);
-        });
+        it('renders an inline image segment alongside text with the reserved box placed at the segment offset', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 800, canvasCtx.nodeCanvas.height ?? 600);
 
-        it('should return getBBox().y less than text.y for bottom baseline', () => {
-            const text = new Text();
-            Object.assign(text, { ...BASE_OPTIONS, text: SEGMENTED_TEXT, textBaseline: 'bottom', x: 100, y: 400 });
-            text.setScene(mockScene);
-            const bbox = text.getBBox();
-            expect(bbox.y).toBeLessThan(400);
-        });
-
-        it('should not adjust getBBox().y for non-segmented multi-line text', () => {
             const text = new Text();
             Object.assign(text, {
                 ...BASE_OPTIONS,
-                text: 'Line 1\nLine 2',
-                textBaseline: 'alphabetic',
+                text: [
+                    { text: 'Hello ', fontWeight: 'bold' as const },
+                    { type: 'image', url: ICON_SVG, width: 24, height: 24, verticalAlign: 'middle' },
+                    { text: ' world' },
+                ],
                 x: 100,
-                y: 400,
+                y: 60,
             });
-            text.setScene(mockScene);
-            const bbox = text.getBBox();
-            // Non-segmented text uses computeBBox which handles baselines differently
-            expect(bbox).toBeDefined();
-            expect(bbox.width).toBeGreaterThan(0);
-            expect(bbox.height).toBeGreaterThan(0);
+            text.setScene(makeImageLoaderScene({ [ICON_SVG]: inlineImage }));
+
+            ctx.save();
+            text.render({
+                ctx,
+                direction: 'ltr',
+                width: canvasCtx.nodeCanvas.width,
+                height: canvasCtx.nodeCanvas.height,
+                devicePixelRatio: 1,
+                debugNodes: {},
+            });
+            ctx.restore();
+
+            const imageData = extractImageData(canvasCtx);
+            expect(imageData).toMatchImageSnapshot();
+        });
+
+        it('renders a block-leading image with a two-line text column laid out to its right', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 800, canvasCtx.nodeCanvas.height ?? 600);
+
+            const text = new Text();
+            Object.assign(text, {
+                ...BASE_OPTIONS,
+                textBaseline: 'middle',
+                text: [
+                    {
+                        type: 'image',
+                        url: LOGO_SVG,
+                        width: 36,
+                        height: 36,
+                        block: true,
+                        borderRadius: 8,
+                    },
+                    { text: 'Apple', fontWeight: 'bold' as const },
+                    { text: '\n$2900B' },
+                ],
+                x: 120,
+                y: 80,
+            });
+            text.setScene(makeImageLoaderScene({ [LOGO_SVG]: blockImage }));
+
+            ctx.save();
+            text.render({
+                ctx,
+                direction: 'ltr',
+                width: canvasCtx.nodeCanvas.width,
+                height: canvasCtx.nodeCanvas.height,
+                devicePixelRatio: 1,
+                debugNodes: {},
+            });
+            ctx.restore();
+
+            const imageData = extractImageData(canvasCtx);
+            expect(imageData).toMatchImageSnapshot();
+        });
+
+        function renderInlineImageSegmentSnapshot(extra: Record<string, unknown>) {
+            const ctx = canvasCtx.getRenderContext2D();
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 800, canvasCtx.nodeCanvas.height ?? 600);
+
+            const text = new Text();
+            Object.assign(text, {
+                ...BASE_OPTIONS,
+                text: [
+                    { text: 'Before ' },
+                    { type: 'image', url: ICON_SVG, width: 24, height: 24, ...extra },
+                    { text: ' after' },
+                ],
+                x: 100,
+                y: 60,
+            });
+            text.setScene(makeImageLoaderScene({ [ICON_SVG]: inlineImage }));
+
+            ctx.save();
+            text.render({
+                ctx,
+                direction: 'ltr',
+                width: canvasCtx.nodeCanvas.width,
+                height: canvasCtx.nodeCanvas.height,
+                devicePixelRatio: 1,
+                debugNodes: {},
+            });
+            ctx.restore();
+
+            return extractImageData(canvasCtx);
+        }
+
+        it('renders an inline image segment with padding around the icon', () => {
+            expect(renderInlineImageSegmentSnapshot({ padding: 8, backgroundFill: '#e0e0e0' })).toMatchImageSnapshot();
+        });
+
+        it('renders an inline image segment with a rounded background', () => {
+            expect(
+                renderInlineImageSegmentSnapshot({
+                    padding: 4,
+                    backgroundFill: '#333',
+                    borderRadius: 8,
+                    verticalAlign: 'middle',
+                })
+            ).toMatchImageSnapshot();
+        });
+
+        it('renders an inline image segment with backgroundFill aligned to the icon box', () => {
+            expect(renderInlineImageSegmentSnapshot({ backgroundFill: '#d0e7ff' })).toMatchImageSnapshot();
+        });
+
+        // Block-image position, mixing and decoration scenarios are validated by rendering real
+        // (stubbed) images and snapshotting the output, so block positioning can be reviewed by eye.
+
+        function renderSegmentsSnapshot(text: unknown[], imagesByUri: Record<string, Image>, x = 200, y = 120) {
+            const ctx = canvasCtx.getRenderContext2D();
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 800, canvasCtx.nodeCanvas.height ?? 600);
+
+            const node = new Text();
+            Object.assign(node, { ...BASE_OPTIONS, textBaseline: 'middle', text, x, y });
+            node.setScene(makeImageLoaderScene(imagesByUri));
+
+            ctx.save();
+            node.render({
+                ctx,
+                direction: 'ltr',
+                width: canvasCtx.nodeCanvas.width,
+                height: canvasCtx.nodeCanvas.height,
+                devicePixelRatio: 1,
+                debugNodes: {},
+            });
+            ctx.restore();
+            return extractImageData(canvasCtx);
+        }
+
+        const BLOCK_A = 'https://example.com/blockA.png';
+        const BLOCK_B = 'https://example.com/blockB.png';
+        const INLINE = 'https://example.com/inline.png';
+
+        describe('block position within the segments array', () => {
+            it('renders a mid-line block:true image inline (text, block, text — block flag ignored) visually', () => {
+                // A real block row would left-anchor the image; mid-line it must flow inline between
+                // 'Before ' and ' after' on the same line instead.
+                expect(
+                    renderSegmentsSnapshot(
+                        [
+                            { text: 'Before ' },
+                            { type: 'image', url: BLOCK_A, width: 24, height: 24, block: true, borderRadius: 6 },
+                            { text: ' after' },
+                        ],
+                        { [BLOCK_A]: blockImage }
+                    )
+                ).toMatchImageSnapshot();
+            });
+
+            it('starts a new block row after a newline-terminated text segment (header, block, body) visually', () => {
+                // 'Header' is its own line above the block row; the block image sits below it with the
+                // body column flowing to its right.
+                expect(
+                    renderSegmentsSnapshot(
+                        [
+                            { text: 'Header\n' },
+                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { text: 'Body' },
+                        ],
+                        { [BLOCK_A]: blockImage }
+                    )
+                ).toMatchImageSnapshot();
+            });
+
+            it('renders the leading/trailing block stack visually', () => {
+                expect(
+                    renderSegmentsSnapshot(
+                        [
+                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { text: 'Alpha', fontWeight: 'bold' as const },
+                            { text: '\nbeta\n' },
+                            { type: 'image', url: BLOCK_B, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { text: 'Gamma' },
+                        ],
+                        { [BLOCK_A]: blockImage, [BLOCK_B]: blockImage2 }
+                    )
+                ).toMatchImageSnapshot();
+            });
+
+            it('renders a trailing block image inline (no newline between the two blocks) visually', () => {
+                expect(
+                    renderSegmentsSnapshot(
+                        [
+                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { text: 'Alpha ', fontWeight: 'bold' as const },
+                            { text: 'beta' },
+                            { type: 'image', url: BLOCK_B, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { text: 'Gamma' },
+                        ],
+                        { [BLOCK_A]: blockImage, [BLOCK_B]: blockImage2 }
+                    )
+                ).toMatchImageSnapshot();
+            });
+        });
+
+        describe('multiple block images', () => {
+            it('renders three side-by-side block images visually', () => {
+                expect(
+                    renderSegmentsSnapshot(
+                        [
+                            { type: 'image', url: BLOCK_A, width: 32, height: 32, block: true },
+                            { type: 'image', url: BLOCK_B, width: 32, height: 32, block: true },
+                            { type: 'image', url: BLOCK_A, width: 32, height: 32, block: true },
+                            { text: 'Three icons' },
+                        ],
+                        { [BLOCK_A]: blockImage, [BLOCK_B]: blockImage2 }
+                    )
+                ).toMatchImageSnapshot();
+            });
+        });
+
+        describe('mixing block and inline images', () => {
+            it('starts a block row after a newline-terminated inline row visually', () => {
+                // First row is an inline image + text; the `\n` ends it, so the block image opens a
+                // new row below with its own text column to the right.
+                expect(
+                    renderSegmentsSnapshot(
+                        [
+                            { type: 'image', url: INLINE, width: 20, height: 20, verticalAlign: 'middle' },
+                            { text: 'top\n' },
+                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { text: 'bottom' },
+                        ],
+                        { [BLOCK_A]: blockImage, [INLINE]: inlineImage }
+                    )
+                ).toMatchImageSnapshot();
+            });
+
+            it('renders a block + inline image mix visually', () => {
+                expect(
+                    renderSegmentsSnapshot(
+                        [
+                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { text: 'Name ' },
+                            { type: 'image', url: INLINE, width: 20, height: 20, verticalAlign: 'middle' },
+                            { text: ' tag\nsecond line' },
+                        ],
+                        { [BLOCK_A]: blockImage, [INLINE]: inlineImage }
+                    )
+                ).toMatchImageSnapshot();
+            });
+        });
+
+        describe('block image verticalAlign', () => {
+            it.each(['top', 'middle', 'bottom'] as const)(
+                "renders a tall block image with verticalAlign='%s' beside a short text column",
+                (verticalAlign) => {
+                    expect(
+                        renderSegmentsSnapshot(
+                            [
+                                { type: 'image', url: BLOCK_A, width: 36, height: 72, block: true, verticalAlign },
+                                { text: 'Single line' },
+                            ],
+                            { [BLOCK_A]: blockImage }
+                        )
+                    ).toMatchImageSnapshot();
+                }
+            );
+        });
+
+        describe('multi-line text column', () => {
+            it('renders a multi-line column beside a block image visually', () => {
+                expect(
+                    renderSegmentsSnapshot(
+                        [
+                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { text: 'Title', fontWeight: 'bold' as const },
+                            { text: '\nSubtitle\nDetail line' },
+                        ],
+                        { [BLOCK_A]: blockImage }
+                    )
+                ).toMatchImageSnapshot();
+            });
+        });
+
+        describe('block image decorations', () => {
+            it.each([
+                ['padding', { padding: 8, backgroundFill: '#e0e0e0' }],
+                ['rounded background', { padding: 4, backgroundFill: '#333', borderRadius: 10 }],
+                ['border', { border: { enabled: true, stroke: '#0a0', strokeWidth: 2 }, padding: 4 }],
+            ] as const)('renders a block image with %s', (_name, extra) => {
+                expect(
+                    renderSegmentsSnapshot(
+                        [
+                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, ...extra },
+                            { text: 'Decorated', fontWeight: 'bold' as const },
+                        ],
+                        { [BLOCK_A]: blockImage }
+                    )
+                ).toMatchImageSnapshot();
+            });
+        });
+
+        describe('inline image segment styling (visual)', () => {
+            it.each(['top', 'middle', 'bottom', 'alphabetic'] as const)(
+                "positions a tall inline image with verticalAlign='%s' relative to the text",
+                (verticalAlign) => {
+                    expect(
+                        renderInlineImageSegmentSnapshot({ width: 20, height: 44, verticalAlign })
+                    ).toMatchImageSnapshot();
+                }
+            );
+
+            it('renders an inline image with padding, rounded background and a border', () => {
+                expect(
+                    renderInlineImageSegmentSnapshot({
+                        padding: 4,
+                        backgroundFill: '#d0e7ff',
+                        borderRadius: 6,
+                        border: { enabled: true, stroke: '#0a0', strokeWidth: 2 },
+                        verticalAlign: 'middle',
+                    })
+                ).toMatchImageSnapshot();
+            });
+
+            it('renders an image-only line sized to the image box', () => {
+                expect(
+                    renderSegmentsSnapshot([{ type: 'image', url: BLOCK_A, width: 40, height: 40, block: true }], {
+                        [BLOCK_A]: blockImage,
+                    })
+                ).toMatchImageSnapshot();
+            });
+        });
+
+        describe('per-segment text styling (visual)', () => {
+            it.each(['top', 'middle', 'bottom'] as const)(
+                "anchors a large text segment with verticalAlign='%s' beside normal text",
+                (verticalAlign) => {
+                    expect(
+                        renderSegmentsSnapshot(
+                            [
+                                { text: 'Base ', fontSize: 14, fontFamily: 'Verdana' },
+                                { text: 'BIG', fontSize: 30, fontFamily: 'Verdana', verticalAlign },
+                                { text: ' tail', fontSize: 14, fontFamily: 'Verdana' },
+                            ],
+                            {}
+                        )
+                    ).toMatchImageSnapshot();
+                }
+            );
+
+            it('renders an italic segment beside a normal segment', () => {
+                expect(
+                    renderSegmentsSnapshot(
+                        [
+                            { text: 'normal ', fontSize: 20, fontFamily: 'Verdana' },
+                            { text: 'italic', fontSize: 20, fontFamily: 'Verdana', fontStyle: 'italic' },
+                        ],
+                        {}
+                    )
+                ).toMatchImageSnapshot();
+            });
+
+            it('widens the line gap when a segment declares a larger lineHeight', () => {
+                expect(
+                    renderSegmentsSnapshot(
+                        [
+                            { text: 'A', fontSize: 14, fontFamily: 'Verdana', lineHeight: 50 },
+                            { text: '\nB', fontSize: 14, fontFamily: 'Verdana' },
+                        ],
+                        {}
+                    )
+                ).toMatchImageSnapshot();
+            });
         });
     });
 

@@ -129,7 +129,9 @@ export function toPlainText(text?: NormalisedTextOrSegments, fallback = ''): str
     if (text == null) {
         return fallback;
     } else if (isArray(text)) {
-        return text.map((segment) => toTextString(segment.text)).join('');
+        return text
+            .map((segment) => (segment.type === 'image' ? (segment.alt ?? '') : toTextString(segment.text)))
+            .join('');
     } else if (isString(text)) {
         return text;
     } else {

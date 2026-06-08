@@ -1,8 +1,46 @@
-import type { TextSegment, TextValue } from 'ag-charts-types';
+import type { TextValue } from 'ag-charts-types';
 
-import type { NormalisedTextOrSegments } from '../../types/normalised-options/normalisedCommonOptions';
+import type {
+    NormalisedContentSegment,
+    NormalisedTextOrSegments,
+} from '../../types/normalised-options/normalisedCommonOptions';
 import { EllipsisChar, type FontOptions, TrimCharsRegex, TrimEdgeGuard } from '../../types/text';
 import { isArray, isDate, isNumber } from '../types/typeGuards';
+
+// CSS generic family keywords — must remain unquoted; quoting changes their
+// meaning from keyword to literal family-name lookup.
+const CSS_GENERIC_FAMILIES = new Set([
+    'serif',
+    'sans-serif',
+    'monospace',
+    'cursive',
+    'fantasy',
+    'system-ui',
+    'ui-serif',
+    'ui-sans-serif',
+    'ui-monospace',
+    'ui-rounded',
+    'emoji',
+    'math',
+    'fangsong',
+]);
+
+// Quote multi-word / digit-containing family names so canvas font shorthand
+// parses correctly; preserve already-quoted tokens and CSS generic keywords.
+function quoteFontFamily(fontFamily: string | undefined): string {
+    if (!fontFamily) return '';
+    return fontFamily
+        .split(',')
+        .map((part) => {
+            const trimmed = part.trim();
+            if (!trimmed) return trimmed;
+            if (trimmed.startsWith('"') || trimmed.startsWith("'")) return trimmed;
+            if (CSS_GENERIC_FAMILIES.has(trimmed)) return trimmed;
+            if (/\s/.test(trimmed)) return `"${trimmed}"`;
+            return trimmed;
+        })
+        .join(', ');
+}
 
 export function toFontString({ fontSize, fontStyle, fontWeight, fontFamily }: FontOptions) {
     let fontString = '';
@@ -13,7 +51,7 @@ export function toFontString({ fontSize, fontStyle, fontWeight, fontFamily }: Fo
         fontString += `${fontWeight === 700 ? 'bold' : fontWeight} `;
     }
     fontString += `${fontSize}px`;
-    fontString += ` ${fontFamily}`;
+    fontString += ` ${quoteFontFamily(fontFamily)}`;
     return fontString;
 }
 
@@ -84,8 +122,9 @@ export function isTextTruncated(str: string) {
     return str.endsWith(EllipsisChar);
 }
 
-export function isSegmentTruncated(segment: TextSegment | undefined) {
-    return toTextString(segment?.text).endsWith(EllipsisChar);
+export function isSegmentTruncated(segment: NormalisedContentSegment | undefined) {
+    if (!segment || segment.type === 'image') return false;
+    return toTextString(segment.text).endsWith(EllipsisChar);
 }
 
 // Segment a string into grapheme clusters, ensuring surrogate pairs,

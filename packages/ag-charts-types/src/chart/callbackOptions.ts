@@ -1,4 +1,4 @@
-import type { TextSegment, TextValue } from '../series/cartesian/commonOptions';
+import type { ImageSegment, TextSegment, TextValue } from '../series/cartesian/commonOptions';
 import type { ContextDefault, CssColor, DatumDefault } from './types';
 
 type AgItemType = 'positive' | 'negative' | 'total' | 'subtotal' | 'up' | 'down' | 'low' | 'high';
@@ -79,7 +79,7 @@ export type Styler<P, S> = (params: P) => S | undefined;
 export type Renderer<P, R = never> = (params: P) => TextValue | R | undefined;
 export type Listener<E> = (event: E) => void;
 
-type NormalisedTextOrSegments = TextValue | (Omit<TextSegment, 'color'> & { color?: CssColor })[];
+type NormalisedTextOrSegments = TextValue | ((Omit<TextSegment, 'color'> & { color?: CssColor }) | ImageSegment)[];
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export type NormalisedCallbackParams<P, O extends Partial<Record<keyof P, unknown>> = {}> = Omit<

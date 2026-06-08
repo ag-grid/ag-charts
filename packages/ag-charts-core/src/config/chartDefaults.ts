@@ -24,6 +24,7 @@ import {
     type AgTooltipRendererDataRow,
     type AgTooltipRendererResult,
     type FormatterPropertyType,
+    type ImageSegment,
     type TextSegment,
     type ToolbarButton,
 } from 'ag-charts-types';
@@ -45,6 +46,8 @@ import {
     callback,
     callbackDefs,
     callbackOf,
+    color,
+    constant,
     date,
     defined,
     greaterThan,
@@ -152,17 +155,38 @@ const tooltipPlacementValidator = union(
 );
 export const rangeValidator = or(positiveNumber, union('exact', 'nearest', 'area'));
 export const seriesTooltipRangeValidator = or(positiveNumber, union('exact', 'nearest'));
+const verticalAlignValidator = union('alphabetic', 'top', 'middle', 'bottom', 'hanging', 'ideographic');
+
+const textSegmentValidator = optionsDefs<TextSegment>({
+    type: constant('text'),
+    text: required(string),
+    verticalAlign: verticalAlignValidator,
+    lineHeight: positiveNumber,
+    ...fontOptionsDef,
+});
+
+const imageSegmentValidator = optionsDefs<ImageSegment>({
+    type: required(constant('image')),
+    url: required(string),
+    width: required(positiveNumber),
+    height: required(positiveNumber),
+    alt: string,
+    verticalAlign: verticalAlignValidator,
+    overflowStrategy: union('keep', 'hide'),
+    padding,
+    borderRadius: positiveNumber,
+    border: borderOptionsDef,
+    backgroundFill: color,
+    block: boolean,
+});
+
+const segmentValidator = or(textSegmentValidator, imageSegmentValidator);
+
 export const textOrSegments = or(
     string,
     number,
     date,
-    arrayOfDefs<TextSegment>(
-        {
-            text: required(string),
-            ...fontOptionsDef,
-        },
-        'text segments array'
-    )
+    arrayOf(segmentValidator, 'text or image segments array', false)
 );
 
 const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {

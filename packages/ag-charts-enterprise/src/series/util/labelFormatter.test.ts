@@ -237,5 +237,100 @@ describe('label formatter', () => {
             expect(output!.label).toBe(undefined);
             expect(output!.secondaryLabel).not.toBe(undefined);
         });
+
+        it('formats both labels when the primary is a segments array', () => {
+            const padding = 10;
+            const spacing = 10;
+            const boxWidth = 1000;
+            const boxHeight = 1000;
+            const output = formatLabels(
+                [{ text: 'Hello' }],
+                {
+                    enabled: true,
+                    fontFamily: 'Verdana',
+                    fontSize: 20,
+                    minimumFontSize: 10,
+                    wrapping: 'never',
+                    overflowStrategy: 'hide',
+                    spacing,
+                },
+                'World',
+                {
+                    enabled: true,
+                    fontFamily: 'Verdana',
+                    fontSize: 10,
+                    minimumFontSize: 5,
+                    wrapping: 'never',
+                    overflowStrategy: 'hide',
+                },
+                { padding },
+                () => ({ width: boxWidth, height: boxHeight, meta: undefined })
+            );
+
+            expect(output!.label).not.toBe(undefined);
+            expect(output!.secondaryLabel).not.toBe(undefined);
+            // Geometry: combined block fits within the supplied box (minus padding + spacing).
+            expect(output!.width).toBeLessThanOrEqual(boxWidth - 2 * padding);
+            expect(output!.height).toBeLessThanOrEqual(boxHeight - 2 * padding);
+            expect(output!.height).toBe(output!.label!.height + output!.secondaryLabel!.height + spacing);
+        });
+
+        it('formats both labels when the secondary is a segments array', () => {
+            const output = formatLabels(
+                'Hello',
+                {
+                    enabled: true,
+                    fontFamily: 'Verdana',
+                    fontSize: 20,
+                    minimumFontSize: 10,
+                    wrapping: 'never',
+                    overflowStrategy: 'hide',
+                    spacing: 10,
+                },
+                [{ text: 'World' }],
+                {
+                    enabled: true,
+                    fontFamily: 'Verdana',
+                    fontSize: 10,
+                    minimumFontSize: 5,
+                    wrapping: 'never',
+                    overflowStrategy: 'hide',
+                },
+                { padding: 10 },
+                () => ({ width: 1000, height: 1000, meta: undefined })
+            );
+
+            expect(output!.label).not.toBe(undefined);
+            expect(output!.secondaryLabel).not.toBe(undefined);
+        });
+
+        it('returns label-only when the secondary cannot fit beneath the segments primary', () => {
+            const output = formatLabels(
+                [{ text: 'Hello' }],
+                {
+                    enabled: true,
+                    fontFamily: 'Verdana',
+                    fontSize: 20,
+                    minimumFontSize: 10,
+                    wrapping: 'never',
+                    overflowStrategy: 'hide',
+                    spacing: 10,
+                },
+                'World',
+                {
+                    enabled: true,
+                    fontFamily: 'Verdana',
+                    fontSize: 200,
+                    minimumFontSize: 200,
+                    wrapping: 'never',
+                    overflowStrategy: 'hide',
+                },
+                { padding: 10 },
+                () => ({ width: 200, height: 60, meta: undefined })
+            );
+
+            expect(output!.label).not.toBe(undefined);
+            expect(output!.secondaryLabel).toBe(undefined);
+        });
     });
 });

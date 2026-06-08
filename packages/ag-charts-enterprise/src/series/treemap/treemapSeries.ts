@@ -46,6 +46,10 @@ const {
 class TreemapNode extends _ModuleSupport.HierarchyNode<TreemapNode> {
     labelValue: string | undefined = undefined;
     secondaryLabelValue: string | undefined = undefined;
+    // Leaf-only: preserves the formatter's segment output so image segments survive the
+    // squarify step. Group titles still use the string-typed labelValue.
+    labelText: NormalisedTextOrSegments | undefined = undefined;
+    secondaryLabelText: NormalisedTextOrSegments | undefined = undefined;
     label: LabelLayout | undefined = undefined;
     secondaryLabel: LabelLayout | undefined = undefined;
     bbox: _ModuleSupport.BBox | undefined = undefined;
@@ -505,13 +509,18 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
             node.labelValue = toPlainText(labelValue);
             node.secondaryLabelValue = toPlainText(secondaryLabelValue);
+            // Image-bearing segment arrays are only preserved for leaf tiles. Group titles use the
+            // plain-text representation so the (smaller) group header stays text-only — formatter
+            // output for groups that returns image segments is rendered as its `alt`-text fallback.
+            node.labelText = isLeaf ? labelValue : undefined;
+            node.secondaryLabelText = isLeaf ? secondaryLabelValue : undefined;
         });
 
         const { width, height } = seriesRect;
         this.squarify(rootNode!, new BBox(0, 0, width, height));
 
         this.rootNode?.walk((node) => {
-            const { bbox, children, labelValue, secondaryLabelValue } = node;
+            const { bbox, children, labelValue, secondaryLabelValue, labelText, secondaryLabelText } = node;
 
             node.label = undefined;
             node.secondaryLabel = undefined;
@@ -525,9 +534,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                     meta: null,
                 };
                 const formatting = formatLabels(
-                    labelValue,
+                    labelText ?? labelValue,
                     this.properties.tile.label,
-                    secondaryLabelValue,
+                    secondaryLabelText ?? secondaryLabelValue,
                     this.properties.tile.secondaryLabel,
                     { padding: tile.padding },
                     () => layout

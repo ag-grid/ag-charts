@@ -1,16 +1,24 @@
 import {
+    BLOCK_IMAGE_SPACING,
     type BoxBounds,
     Debug,
     type FontOptions,
     LineSplitter,
+    Logger,
+    type MeasuredImageSegment,
+    type NormalisedContentSegment,
     type NormalisedTextOrSegments,
     type RequireOptional,
     SceneRefChangeDetection,
     type TextMetricsBox,
+    blockStripHeight,
+    blockStripWidth,
     cachedTextMeasurer,
     createSvgElement,
+    imageBoxAroundBaseline,
     isArray,
     measureTextSegments,
+    resolvePadding,
     toFontString,
     toPlainText,
     toTextString,
@@ -19,10 +27,11 @@ import type { FontStyle, FontWeight, Opacity, Padding, PixelSize } from 'ag-char
 
 import { BBox } from '../bbox';
 import { Group } from '../group';
-import type { IScene, NodeOptions, RenderContext } from '../node';
+import type { IScene, Node, NodeOptions, RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
 import { DebugSelectors } from '../sceneDebug';
 import { Rotatable, type RotatableType, Translatable, type TranslatableType } from '../transformable';
+import { ImageSegmentNode } from './imageSegmentNode';
 import { Rect } from './rect';
 import { Shape, type ShapeColor } from './shape';
 import { setSvgFontAttributes } from './svgUtils';
@@ -54,7 +63,16 @@ export class Text<D = unknown> extends Shape<D> {
     private static readonly defaultFontSize = 10;
 
     private richText?: Group;
-    private textMap?: Map<Text, BoxBounds>;
+    private textMap?: Map<Node, BoxBounds>;
+    // Cached `measureTextSegments` output for the current `text` array. Invalidated by:
+    //   - `onTextChange` (text reassignment)
+    //   - `markDirty` (any layout-affecting field — all of which use `@SceneChangeDetection`,
+    //     which calls `markDirty` via its onChange hook).
+    // Any future field that affects segment layout must either be `@SceneChangeDetection`-tracked
+    // or invalidate this cache explicitly, otherwise it will silently serve stale metrics.
+    private segmentMetrics?: ReturnType<typeof measureTextSegments>;
+    private generatingTextMap = false;
+    private suppressedDirtyDuringGenerate = false;
 
     @SceneChangeDetection()
     x: number = 0;
@@ -66,18 +84,36 @@ export class Text<D = unknown> extends Shape<D> {
     private onTextChange() {
         this.richText?.clear();
         this.textMap?.clear();
+        this.segmentMetrics = undefined;
 
         if (isArray(this.text)) {
             this.lines = [];
             this.richText ??= new Group();
+            // Set parent so markDirty from segment children (e.g. ImageSegmentNode on async
+            // image load) propagates up through Text to any cached parent group; otherwise
+            // a titleGroup with renderToOffscreenCanvas would keep showing its stale bitmap.
+            this.richText.parentNode = this;
             this.richText.setScene(this.scene);
-            this.richText.append(
-                this.text
-                    .flatMap((s) => toTextString(s.text).split(LineSplitter))
-                    .filter(Boolean)
-                    .map(() => new Text({ trimText: false }))
-            );
+            const children: Node[] = [];
+            for (const segment of this.text) {
+                if (segment.type === 'image') {
+                    children.push(new ImageSegmentNode());
+                } else {
+                    for (const line of toTextString(segment.text).split(LineSplitter)) {
+                        if (line) children.push(new Text({ trimText: false }));
+                    }
+                }
+            }
+            this.richText.append(children);
         } else {
+            // Reverting to plain text: drop the empty richText Group entirely so any external
+            // holder cannot keep it alive and inadvertently mark this Text dirty later. Children
+            // were already detached by `clear()` above.
+            if (this.richText) {
+                this.richText.parentNode = undefined;
+                this.richText.setScene();
+                this.richText = undefined;
+            }
             const lines = toTextString(this.text).split(LineSplitter);
             this.lines = this.trimText ? lines.map((line) => line.trim()) : lines;
         }
@@ -218,15 +254,32 @@ export class Text<D = unknown> extends Shape<D> {
             case 'alphabetic':
                 return lineMetrics[0]?.ascent ?? 0;
 
-            case 'middle':
-                return lineMetrics.length === 1
-                    ? lineMetrics[0].ascent +
-                          lineMetrics[0].segments.reduce(
-                              (offsetY, segment) =>
-                                  Math.min(offsetY, cachedTextMeasurer(segment).baselineDistance('middle')),
-                              0
-                          )
-                    : height / 2;
+            case 'middle': {
+                // The single-line shortcut uses text-baseline metrics to anchor the row tightly to
+                // the glyph middle. It is only valid for a pure-text line: a row carrying a
+                // block-image strip or an inline image has its ascent dominated by the image box,
+                // so the glyph offset no longer matches the row centre. Those rows (and multi-line
+                // labels) centre on height/2 instead, so the box centres on y.
+                const line = lineMetrics[0];
+                const isPureTextLine =
+                    lineMetrics.length === 1 &&
+                    line.segments.length > 0 &&
+                    !line.blockImages?.length &&
+                    line.segments.every((s) => s.type !== 'image');
+                if (isPureTextLine) {
+                    return (
+                        line.ascent +
+                        line.segments.reduce(
+                            (offsetY, segment) =>
+                                segment.type === 'image'
+                                    ? offsetY
+                                    : Math.min(offsetY, cachedTextMeasurer(segment).baselineDistance('middle')),
+                            0
+                        )
+                    );
+                }
+                return height / 2;
+            }
 
             case 'bottom':
                 return height;
@@ -253,7 +306,7 @@ export class Text<D = unknown> extends Shape<D> {
         const bbox = super.getBBox();
         if (!this.textMap?.size || !isArray(this.text)) return bbox;
 
-        const { height, lineMetrics } = measureTextSegments(this.text, this);
+        const { height, lineMetrics } = this.getSegmentMetrics(this.text);
         const offsetTop = Text.calcSegmentedTopOffset(height, lineMetrics, this.textBaseline);
         const y = this.y - offsetTop;
         if (bbox.y === y) return bbox;
@@ -300,21 +353,224 @@ export class Text<D = unknown> extends Shape<D> {
         if (!isArray(this.text) || this.textMap?.size) return;
 
         this.textMap ??= new Map();
-
-        let offsetY = 0;
-        const textNodes = this.richText!.children();
-        for (const { width, height, ascent, segments } of measureTextSegments(this.text, this).lineMetrics) {
-            let offsetX = 0;
-            for (const { color, textMetrics, ...segment } of segments) {
-                const textNode = textNodes.next().value as Text;
-                textNode.x = this.x - width / 2 + offsetX;
-                textNode.y = ascent + offsetY;
-                textNode.setProperties({ ...segment, fill: color ?? this.fill });
-                const textBBox = textNode.getBBox();
-                this.textMap.set(textNode, textBBox);
-                offsetX += textMetrics.width;
+        this.generatingTextMap = true;
+        this.suppressedDirtyDuringGenerate = false;
+        try {
+            this.buildTextMap(this.text);
+        } finally {
+            this.generatingTextMap = false;
+            if (this.suppressedDirtyDuringGenerate) {
+                this.suppressedDirtyDuringGenerate = false;
+                // Propagate the accumulated child-dirty signal up once now that the map is whole.
+                // Bypass our own override to avoid wiping the textMap we just built.
+                super.markDirty();
             }
-            offsetY += height;
+        }
+    }
+
+    private getSegmentMetrics(text: NormalisedContentSegment[]): ReturnType<typeof measureTextSegments> {
+        this.segmentMetrics ??= measureTextSegments(text, this);
+        return this.segmentMetrics;
+    }
+
+    private buildTextMap(text: NormalisedContentSegment[]) {
+        const childNodes = this.richText!.children();
+        const { width: totalWidth, lineMetrics } = this.getSegmentMetrics(text);
+
+        // Block-row strips anchor at `labelLeft` (the leftmost edge of the wrapped row), while
+        // single-segment lines anchor at `this.x - line.width / 2` so they centre on the label
+        // origin. That asymmetry is deliberate: block layouts have a fixed left edge so the
+        // strip+column geometry is preserved; line-only content centres as before.
+        const labelLeft = this.x - totalWidth / 2;
+        let offsetY = 0;
+
+        for (let lineIndex = 0; lineIndex < lineMetrics.length; ) {
+            const line = lineMetrics[lineIndex];
+
+            if (line.blockImages?.length) {
+                const span = line.blockRowSpan ?? 1;
+                const nextOffsetY = this.layoutBlockRow(lineMetrics, lineIndex, span, offsetY, labelLeft, childNodes);
+                if (nextOffsetY == null) return;
+                offsetY = nextOffsetY;
+                lineIndex += span;
+                continue;
+            }
+
+            offsetY = this.renderLine(line, this.x - line.width / 2, offsetY, childNodes);
+            lineIndex += 1;
+        }
+    }
+
+    // Lay out a block-image row: the leading image strip anchored at `labelLeft`, then the text
+    // column (`span` wrapped lines) flowing to its right. Returns the advanced offsetY, or null
+    // if the child-node supply diverged from the line metrics (caller abandons the map).
+    private layoutBlockRow(
+        lineMetrics: ReturnType<typeof measureTextSegments>['lineMetrics'],
+        lineIndex: number,
+        span: number,
+        offsetY: number,
+        labelLeft: number,
+        childNodes: IterableIterator<Node>
+    ): number | null {
+        const strip = lineMetrics[lineIndex].blockImages!;
+        const stripWidth = blockStripWidth(strip);
+        const stripHeight = blockStripHeight(strip);
+
+        let innerColHeight = 0;
+        for (let k = 0; k < span; k++) {
+            innerColHeight += lineMetrics[lineIndex + k].height;
+        }
+        const rowHeight = Math.max(stripHeight, innerColHeight);
+
+        // Lay out each image in the strip left-to-right. Each image anchors inside the row height
+        // per its own verticalAlign; the text column anchors independently per the first text
+        // segment's verticalAlign.
+        let stripX = labelLeft;
+        for (let s = 0; s < strip.length; s++) {
+            const blockSeg = strip[s];
+            const blockBox = blockSeg.textMetrics;
+            const imageAlign = blockSeg.verticalAlign ?? 'middle';
+            const imageOffset = Text.calcAnchoredOffset(imageAlign, rowHeight, blockBox.height);
+
+            const imageChild = childNodes.next().value;
+            if (!imageChild) {
+                this.abandonTextMap();
+                return null;
+            }
+            Text.applyImageSegment(imageChild as ImageSegmentNode, blockSeg, stripX, offsetY + imageOffset);
+            this.textMap!.set(imageChild, (imageChild as ImageSegmentNode).getBBox());
+
+            stripX += blockBox.width + (s < strip.length - 1 ? BLOCK_IMAGE_SPACING : 0);
+        }
+
+        const firstTextSegment = Text.findFirstTextSegment(lineMetrics, lineIndex, span);
+        const columnLeft = labelLeft + stripWidth + BLOCK_IMAGE_SPACING;
+        let innerOffsetY =
+            offsetY +
+            Text.calcAnchoredOffset(firstTextSegment?.verticalAlign ?? 'alphabetic', rowHeight, innerColHeight);
+
+        for (let k = 0; k < span; k++) {
+            innerOffsetY = this.renderLine(lineMetrics[lineIndex + k], columnLeft, innerOffsetY, childNodes);
+        }
+
+        return offsetY + rowHeight;
+    }
+
+    private static findFirstTextSegment(
+        lineMetrics: ReturnType<typeof measureTextSegments>['lineMetrics'],
+        startIndex: number,
+        span: number
+    ) {
+        for (let k = 0; k < span; k++) {
+            const seg = lineMetrics[startIndex + k].segments.find((s) => s.type !== 'image');
+            if (seg) return seg;
+        }
+        return undefined;
+    }
+
+    private renderLine(
+        line: ReturnType<typeof measureTextSegments>['lineMetrics'][number],
+        lineLeft: number,
+        offsetY: number,
+        childNodes: IterableIterator<Node>
+    ): number {
+        const { height, ascent, textAscent, textDescent, segments } = line;
+        const baseline = offsetY + ascent;
+        let offsetX = 0;
+        for (const measured of segments) {
+            const node = childNodes.next().value;
+            if (!node) {
+                // Child supply diverged from the line metrics. Abandon the partial map so the next
+                // render rebuilds from scratch instead of serving a half-populated textMap.
+                this.abandonTextMap();
+                return offsetY + height;
+            }
+
+            if (measured.type === 'image') {
+                // The image box is placed relative to the text baseline per its verticalAlign; the
+                // text stays put. The line was already grown to contain this extent during measurement.
+                const boxWidth = measured.textMetrics.width;
+                const boxHeight = measured.textMetrics.height;
+                const { above } = imageBoxAroundBaseline(measured.verticalAlign, boxHeight, textAscent, textDescent);
+                const imageNode = node as ImageSegmentNode;
+                Text.applyImageSegment(imageNode, measured, lineLeft + offsetX, baseline - above);
+                this.textMap!.set(imageNode, imageNode.getBBox());
+                offsetX += boxWidth;
+                continue;
+            }
+
+            const { color, textMetrics, verticalAlign, ...segment } = measured;
+            const textNode = node as Text;
+            const segmentBaseline: CanvasTextBaseline = verticalAlign ?? 'alphabetic';
+            textNode.x = lineLeft + offsetX;
+            textNode.y = Text.calcSegmentY(segmentBaseline, offsetY, ascent, height);
+            textNode.setProperties({ ...segment, textBaseline: segmentBaseline, fill: color ?? this.fill });
+            const textBBox = textNode.getBBox();
+            this.textMap!.set(textNode, textBBox);
+            offsetX += textMetrics.width;
+        }
+        return offsetY + height;
+    }
+
+    private abandonTextMap() {
+        this.textMap?.clear();
+        this.segmentMetrics = undefined;
+    }
+
+    // Anchor a child of `childHeight` inside a container of `totalHeight` according to verticalAlign.
+    // Used to position the block-leading image and its text column independently within the label.
+    private static calcAnchoredOffset(verticalAlign: CanvasTextBaseline, totalHeight: number, childHeight: number) {
+        const slack = Math.max(0, totalHeight - childHeight);
+        switch (verticalAlign) {
+            case 'middle':
+                return slack / 2;
+            case 'bottom':
+            case 'ideographic':
+            case 'alphabetic':
+                return slack;
+            case 'top':
+            case 'hanging':
+            default:
+                return 0;
+        }
+    }
+
+    private static applyImageSegment(node: ImageSegmentNode, segment: MeasuredImageSegment, x: number, y: number) {
+        const { top, right, bottom, left } = resolvePadding(segment.padding);
+        node.x = x;
+        node.y = y;
+        node.boxWidth = segment.textMetrics.width;
+        node.boxHeight = segment.textMetrics.height;
+        node.imageWidth = segment.width;
+        node.imageHeight = segment.height;
+        node.paddingTop = top;
+        node.paddingRight = right;
+        node.paddingBottom = bottom;
+        node.paddingLeft = left;
+        node.borderRadius = segment.borderRadius ?? 0;
+        node.backgroundFill = segment.backgroundFill;
+        node.border = segment.border;
+        node.url = segment.url;
+    }
+
+    private static calcSegmentY(
+        verticalAlign: CanvasTextBaseline,
+        lineTop: number,
+        ascent: number,
+        height: number
+    ): number {
+        switch (verticalAlign) {
+            case 'top':
+            case 'hanging':
+                return lineTop;
+            case 'middle':
+                return lineTop + height / 2;
+            case 'bottom':
+            case 'ideographic':
+                return lineTop + height;
+            case 'alphabetic':
+            default:
+                return lineTop + ascent;
         }
     }
 
@@ -329,7 +585,7 @@ export class Text<D = unknown> extends Shape<D> {
         if (isArray(this.text) && this.richText) {
             this.generateTextMap();
             const richTextBBox = this.richText.getBBox();
-            const { width, height, lineMetrics } = measureTextSegments(this.text, this);
+            const { width, height, lineMetrics } = this.getSegmentMetrics(this.text);
 
             let translateX = 0;
             switch (this.textAlign) {
@@ -367,7 +623,17 @@ export class Text<D = unknown> extends Shape<D> {
     }
 
     override markDirty(property?: string) {
+        if (this.generatingTextMap) {
+            // Child setters during buildTextMap trigger markDirty that propagates back here
+            // through richText.parentNode. Skip both the local-cache clear (would wipe entries
+            // mid-iteration) and the super.markDirty() propagation (would fan out N×K parent
+            // invalidations during the build). The accumulated dirty signal is flushed once at
+            // the end of generateTextMap.
+            this.suppressedDirtyDuringGenerate = true;
+            return;
+        }
         this.textMap?.clear();
+        this.segmentMetrics = undefined;
         return super.markDirty(property);
     }
 
@@ -504,6 +770,10 @@ export class Text<D = unknown> extends Shape<D> {
 
         if (isArray(text)) {
             for (const segment of text) {
+                if (segment.type === 'image') {
+                    Logger.warnOnce('SVG export drops inline image segments; text content is preserved.');
+                    continue;
+                }
                 const segmentElement = createSvgElement('tspan');
 
                 setSvgFontAttributes(segmentElement, {
@@ -545,7 +815,7 @@ export class Text<D = unknown> extends Shape<D> {
         if (text == null) {
             return false;
         }
-        return isArray(text) ? true : toTextString(text) !== '';
+        return isArray(text) ? text.length > 0 : toTextString(text) !== '';
     }
 }
 
