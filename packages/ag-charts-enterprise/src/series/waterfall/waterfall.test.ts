@@ -999,10 +999,8 @@ describe('WaterfallSeries', () => {
     });
 
     describe('AG-17484: synthetic datum and original-index itemId for total/subtotal bars', () => {
-        // Augmented order: 2020(real,orig0), 2021(real,orig1), Sub(synthetic), 2022(real,orig2),
-        //                  2023(real,orig3), Total(synthetic).
-        // So the subtotal (datumIndex 2) and total (datumIndex 5) consume index slots, shifting
-        // the real bars 2022/2023 to augmented datumIndex 3/4 while their original indices stay 2/3.
+        // Augmented order [2020, 2021, Sub, 2022, 2023, Total]: the synthetic subtotal/total consume
+        // index slots, so real bars 2022/2023 sit at datumIndex 3/4 while their original indices stay 2/3.
         const DATA = [
             { year: '2020', spending: 10 },
             { year: '2021', spending: -20 },
@@ -1064,11 +1062,20 @@ describe('WaterfallSeries', () => {
             expect(params.total?.itemType).toBe('total');
             expect(params.positive?.datum).toEqual(DATA[0]);
             expect(params.negative?.datum).toEqual(DATA[1]);
+
+            // totalLabel exposes the synthetic bar's axisLabel and is undefined for real bars.
+            expect(params.subtotal?.totalLabel).toBe('Subtotal');
+            expect(params.total?.totalLabel).toBe('Total');
+            expect(params.positive?.totalLabel).toBeUndefined();
+            expect(params.negative?.totalLabel).toBeUndefined();
         });
 
         it('AC1/AC3/AC5: itemStyler receives datum=undefined for synthetic bars and the original datum for real bars', async () => {
-            const calls: { itemType: string; datum: unknown }[] = [];
-            const styler = (p: any) => (calls.push({ itemType: p.itemType, datum: p.datum }), {});
+            const calls: { itemType: string; datum: unknown; totalLabel: unknown }[] = [];
+            const styler = (p: any) => (
+                calls.push({ itemType: p.itemType, datum: p.datum, totalLabel: p.totalLabel }),
+                {}
+            );
             const series = await createWaterfall({
                 ...(TOTALS_OPTIONS.series![0] as AgWaterfallSeriesOptions),
                 item: {
@@ -1085,6 +1092,11 @@ describe('WaterfallSeries', () => {
             expect(realCalls.length).toBeGreaterThan(0);
             expect(syntheticCalls.every((c) => c.datum === undefined)).toBe(true);
             expect(realCalls.every((c) => c.datum != null && typeof c.datum === 'object')).toBe(true);
+
+            // totalLabel: the synthetic bar's axisLabel, undefined for real bars.
+            expect(calls.filter((c) => c.itemType === 'subtotal').every((c) => c.totalLabel === 'Subtotal')).toBe(true);
+            expect(calls.filter((c) => c.itemType === 'total').every((c) => c.totalLabel === 'Total')).toBe(true);
+            expect(realCalls.every((c) => c.totalLabel === undefined)).toBe(true);
         });
 
         it('AC2: node datum is undefined for synthetic bars and the original object for real bars', async () => {
@@ -1114,6 +1126,29 @@ describe('WaterfallSeries', () => {
             const subtotal = nodeData.find((n) => n.itemType === 'subtotal')!;
             expect(subtotal.itemId).toBeUndefined();
             expect(series.findNodeDatum(subtotal.datumIndex)).toBe(subtotal);
+        });
+
+        it('highlighting a synthetic bar invokes its itemStyler with highlighted-item', async () => {
+            // The item-highlight overlay must render for synthetic bars even though their datum is
+            // undefined, otherwise the styler only ever sees the base-layer unhighlighted-item state.
+            const calls: { itemType: string; highlightState: string }[] = [];
+            const styler = (p: any) => (calls.push({ itemType: p.itemType, highlightState: p.highlightState }), {});
+            const series = await createWaterfall({
+                ...(TOTALS_OPTIONS.series![0] as AgWaterfallSeriesOptions),
+                item: {
+                    positive: { itemStyler: styler },
+                    negative: { itemStyler: styler },
+                    total: { itemStyler: styler },
+                },
+            });
+            const total = getNodeData(series).find((n) => n.itemType === 'total')!;
+
+            calls.length = 0;
+            chart.ctx.highlightManager.updateHighlight(chart.id, total);
+            await waitForChartStability(chart);
+
+            const totalStates = new Set(calls.filter((c) => c.itemType === 'total').map((c) => c.highlightState));
+            expect(totalStates.has('highlighted-item')).toBe(true);
         });
     });
 });
