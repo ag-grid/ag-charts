@@ -65,7 +65,9 @@ import { Group, TranslatableGroup } from '../../scene/group';
 import { type Node, PointerEvents } from '../../scene/node';
 import type { Selection } from '../../scene/selection';
 import type { Path } from '../../scene/shape/path';
+import { Sector } from '../../scene/shape/sector';
 import { Transformable } from '../../scene/transformable';
+import { boxCollidesSector } from '../../scene/util/sector';
 import type { TypedEvent, TypedEventListener } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import type { ChartAxis } from '../chartAxis';
@@ -149,6 +151,8 @@ export type PickResult = {
     datums: SeriesNodeDatum[];
     distance: number;
 };
+
+export type PickNodesInBBoxPredicate = (selectionBox: BoxBounds, node: Node<unknown>) => boolean;
 
 export type INodeEventConstructor<
     TDatum extends SeriesNodeDatum,
@@ -1071,6 +1075,39 @@ export abstract class Series<
         throw new Error('AG Charts - Series.pickNodeMainAxisFirst() not implemented');
     }
 
+    public pickNodesInBBoxPredicate(): PickNodesInBBoxPredicate {
+        // By default, pickNodesInBBox just used boxes for hit-testing because it's easier and faster. Series with more
+        // complicated shapes (e.g. sectors or pie/donut, paths for maps) need to override this predicate to implement
+        // their own hit-testing computation.
+        const { containment } = this.properties.selection;
+        const unreachable = (a: never): never => a;
+        switch (containment) {
+            case 'any':
+                return (selectionBox: BoxBounds, node: Node<unknown>): boolean => {
+                    if (node instanceof Sector) {
+                        const offset = Transformable.fromCanvasPoint(this.contentGroup, selectionBox.x, selectionBox.y);
+                        const seriesSelectionBox: BoxBounds = {
+                            x: offset.x,
+                            y: offset.y,
+                            width: selectionBox.width,
+                            height: selectionBox.height,
+                        };
+                        return boxCollidesSector(seriesSelectionBox, node);
+                    } else {
+                        const nodeBox = Transformable.toCanvas(this.contentGroup, node.getBBox());
+                        return boxCollides(selectionBox, nodeBox.x, nodeBox.y, nodeBox.width, nodeBox.height);
+                    }
+                };
+            case 'all':
+                return (selectionBox: BoxBounds, node: Node<unknown>): boolean => {
+                    const nodeBox = Transformable.toCanvas(this.contentGroup, node.getBBox());
+                    return boxContains(selectionBox, nodeBox.x, nodeBox.y, nodeBox.width, nodeBox.height);
+                };
+            default:
+                return unreachable(containment);
+        }
+    }
+
     public *pickNodesInBBox(selectionBox: BoxBounds): Iterable<TDatum> {
         function* walkNodes(node: Group, callback: (node: Node) => TDatum | undefined): Iterable<TDatum> {
             for (const child of node.children()) {
@@ -1088,22 +1125,10 @@ export abstract class Series<
             }
         }
 
-        const predicate: (bounds: BoxBounds, x: number, y: number, width: number, height: number) => boolean = (() => {
-            const { containment } = this.properties.selection;
-            const unreachable = (a: never): never => a;
-            switch (containment) {
-                case 'any':
-                    return boxCollides;
-                case 'all':
-                    return boxContains;
-                default:
-                    return unreachable(containment);
-            }
-        })();
+        const predicate: PickNodesInBBoxPredicate = this.pickNodesInBBoxPredicate();
 
         yield* walkNodes(this.contentGroup, (node) => {
-            const { x, y, width, height } = Transformable.toCanvas(this.contentGroup, node.getBBox());
-            if (predicate(selectionBox, x, y, width, height)) {
+            if (predicate(selectionBox, node)) {
                 return node.unsafeDatum;
             }
             return undefined;
