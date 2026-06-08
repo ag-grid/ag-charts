@@ -1390,7 +1390,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (typeof value !== 'string' || !value.startsWith('var(--')) continue;
 
             const propertyKey = value.slice(4, -1);
-            const [mainKey, fallbackKey] = propertyKey.split(',');
+            const [mainKey, ...fallbackKeys] = propertyKey.split(',');
 
             // Only process external css variables.
             if (propertyKey.startsWith('--ag-charts')) continue;
@@ -1401,8 +1401,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             // Only process color values.
             let isValid = Color.validColorString(propertyValue);
 
-            if (!isValid && fallbackKey != null) {
-                const trimmedKey = fallbackKey.trim();
+            if (!isValid && fallbackKeys.length > 0) {
+                const trimmedKey = fallbackKeys.join(',').trim();
 
                 // Use the fallback if it is a variable or value.
                 propertyValue = computedStyle.getPropertyValue(trimmedKey) || trimmedKey;
