@@ -405,11 +405,7 @@ jobs:
         env:
             PR_NUMBER: ${{ github.event.pull_request.number }}
         steps:
-            # The job's same-repo gate (head.repo.full_name == github.repository)
-            # is the repo-wide guard for untrusted PRs (see pr-review.yml): fork
-            # PRs never reach here, so this local action runs only trusted
-            # same-repo code, and only same-repo PRs can hold the contents:write
-            # token gh-pages publishing needs. Plain checkout, consistent with ci.yml.
+            # Needed for the local shared action below; same-repo gate (job if) is the guard.
             - name: Checkout
               uses: actions/checkout@v4
               with:
@@ -428,10 +424,7 @@ jobs:
               if: steps.download.outcome == 'success'
               run: |
                   set -euo pipefail
-                  # actions/upload-artifact@v4 strips the least-common-ancestor
-                  # of uploaded paths, so the two bundles land somewhere under
-                  # _umd/ but not at a predictable absolute path. Find them by
-                  # filename instead.
+                  # upload-artifact@v4 strips the common path prefix, so find by filename.
                   COMMUNITY=$(find _umd -type f -name 'ag-charts-community.min.js' -print -quit)
                   ENTERPRISE=$(find _umd -type f -name 'ag-charts-enterprise.min.js' -print -quit)
                   if [ -z "$COMMUNITY" ] && [ -z "$ENTERPRISE" ]; then
@@ -444,9 +437,6 @@ jobs:
                       ls -laR _umd || true
                       exit 1
                   fi
-                  # The shared pr-preview-publish action copies each file (and its
-                  # sibling .map, emitted alongside by build:umd's post-minify
-                  # plugin), writes .nojekyll, and deploys to gh-pages.
                   {
                       echo "files<<__FILES_EOF__"
                       echo "$COMMUNITY"
