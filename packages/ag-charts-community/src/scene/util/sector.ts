@@ -93,35 +93,46 @@ function arcIntersections(
         [endAngle, startAngle] = [startAngle, endAngle];
     }
 
-    // Solving the quadratic equation:
-    // 1. y = k * x + y0
-    // 2. (x - cx)^2 + (y - cy)^2 = r^2
-    const k = (y2 - y1) / (x2 - x1);
-    const y0 = y1 - k * x1;
+    // Intersection points of the line segment and the circle (cx, cy, r).
+    const points: { x: number; y: number }[] = [];
+    if (x1 === x2) {
+        // Vertical segment: parametrising as y = k * x + y0 is impossible (infinite slope), so
+        // solve (x1 - cx)^2 + (y - cy)^2 = r^2 for y directly.
+        const dd = Math.pow(r, 2) - Math.pow(x1 - cx, 2);
+        if (dd < 0) {
+            return 0;
+        }
+        const root = Math.sqrt(dd);
+        points.push({ x: x1, y: cy + root }, { x: x1, y: cy - root });
+    } else {
+        // Solving the quadratic equation:
+        // 1. y = k * x + y0
+        // 2. (x - cx)^2 + (y - cy)^2 = r^2
+        const k = (y2 - y1) / (x2 - x1);
+        const y0 = y1 - k * x1;
 
-    const a = Math.pow(k, 2) + 1;
-    const b = 2 * (k * (y0 - cy) - cx);
-    const c = Math.pow(cx, 2) + Math.pow(y0 - cy, 2) - Math.pow(r, 2);
-    const d = Math.pow(b, 2) - 4 * a * c;
-    if (d < 0) {
-        return 0;
+        const a = Math.pow(k, 2) + 1;
+        const b = 2 * (k * (y0 - cy) - cx);
+        const c = Math.pow(cx, 2) + Math.pow(y0 - cy, 2) - Math.pow(r, 2);
+        const d = Math.pow(b, 2) - 4 * a * c;
+        if (d < 0) {
+            return 0;
+        }
+
+        const i1x = (-b + Math.sqrt(d)) / 2 / a;
+        const i2x = (-b - Math.sqrt(d)) / 2 / a;
+        points.push({ x: i1x, y: k * i1x + y0 }, { x: i2x, y: k * i2x + y0 });
     }
 
-    const i1x = (-b + Math.sqrt(d)) / 2 / a;
-    const i2x = (-b - Math.sqrt(d)) / 2 / a;
-
     let intersections = 0;
-    for (const x of [i1x, i2x]) {
-        const isXInsideLine = x >= Math.min(x1, x2) && x <= Math.max(x1, x2);
-        if (!isXInsideLine) {
+    for (const { x, y } of points) {
+        const isInsideLine =
+            x >= Math.min(x1, x2) && x <= Math.max(x1, x2) && y >= Math.min(y1, y2) && y <= Math.max(y1, y2);
+        if (!isInsideLine) {
             continue;
         }
 
-        const y = k * x + y0;
-
-        const adjacent = x - cx;
-        const opposite = y - cy;
-        const angle = Math.atan2(opposite, adjacent);
+        const angle = Math.atan2(y - cy, x - cx);
         if (isBetweenAngles(angle, startAngle, endAngle)) {
             intersections++;
         }
