@@ -105,14 +105,14 @@ For full control, provide a function that receives the data domain and current v
         buttons: [
             {
                 label: 'Last 1M',
-                value: (_start, _end, _windowStart, windowEnd) => {
+                value: ({ windowEnd }) => {
                     const month = 30 * 24 * 60 * 60 * 1000;
                     return [Number(windowEnd) - month, windowEnd];
                 },
             },
             {
                 label: '1M Centre',
-                value: (_start, _end, windowStart, windowEnd) => {
+                value: ({ windowStart, windowEnd }) => {
                     const mid = (Number(windowStart) + Number(windowEnd)) / 2;
                     const halfMonth = (30 * 24 * 60 * 60 * 1000) / 2;
                     return [mid - halfMonth, mid + halfMonth];
@@ -120,7 +120,7 @@ For full control, provide a function that receives the data domain and current v
             },
             {
                 label: '< 1M',
-                value: (_start, _end, windowStart, windowEnd) => {
+                value: ({ windowStart, windowEnd }) => {
                     const month = 30 * 24 * 60 * 60 * 1000;
                     return [Number(windowStart) - month, Number(windowEnd) - month];
                 },
@@ -137,7 +137,7 @@ Use the Navigator to zoom into the middle of the data, then try the buttons:
 - '1M Centre' and '3M Centre' - Zooms to 1 or 3 months centred on the midpoint of the current window.
 - '< 1M' and '1M >' - Pan the entire window one month backward or forward.
 
-The function receives:
+The function receives a single params object with these properties:
 
 - `start` and `end` - The full data domain bounds.
 - `windowStart` and `windowEnd` - The currently visible range.

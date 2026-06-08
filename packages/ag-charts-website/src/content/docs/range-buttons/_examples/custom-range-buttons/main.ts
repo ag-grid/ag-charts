@@ -37,7 +37,7 @@ const options: AgFinancialChartOptions = {
                         },
                         {
                             label: 'All Data',
-                            value: (start, end) => [start, end],
+                            value: ({ start, end }) => [start, end],
                         },
                     ],
                 },
