@@ -405,6 +405,14 @@ jobs:
         env:
             PR_NUMBER: ${{ github.event.pull_request.number }}
         steps:
+            # Needed so the local-path shared action below resolves (the job
+            # otherwise has an empty workspace; download-artifact + peaceiris
+            # are remote actions that did not require it before).
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
             - name: Download UMD artifact
               id: download
               uses: actions/download-artifact@v4
@@ -413,7 +421,7 @@ jobs:
                   name: pr-preview-umd
                   path: _umd
 
-            - name: Stage publish tree
+            - name: Resolve UMD bundle paths
               id: stage
               if: steps.download.outcome == 'success'
               run: |
@@ -434,30 +442,24 @@ jobs:
                       ls -laR _umd || true
                       exit 1
                   fi
-                  DEST="_publish/pr-${PR_NUMBER}"
-                  mkdir -p "$DEST"
-                  cp "$COMMUNITY" "$ENTERPRISE" "$DEST/"
-                  # Sourcemaps are emitted alongside each .min.js by the build:umd
-                  # post-minification plugin (see esbuild.config.cjs). Copy them if
-                  # present so Plunker stack traces resolve to original sources.
-                  for MAP in "${COMMUNITY}.map" "${ENTERPRISE}.map"; do
-                      [ -f "$MAP" ] && cp "$MAP" "$DEST/"
-                  done
-                  # .nojekyll at root disables Jekyll on gh-pages; keep_files preserves it across pushes.
-                  touch _publish/.nojekyll
+                  # The shared pr-preview-publish action copies each file (and its
+                  # sibling .map, emitted alongside by build:umd's post-minify
+                  # plugin), writes .nojekyll, and deploys to gh-pages.
+                  {
+                      echo "files<<__FILES_EOF__"
+                      echo "$COMMUNITY"
+                      echo "$ENTERPRISE"
+                      echo "__FILES_EOF__"
+                  } >> "$GITHUB_OUTPUT"
                   echo "publish=true" >> "$GITHUB_OUTPUT"
 
-            - name: Deploy to gh-pages
+            - name: Publish PR preview to gh-pages
               if: steps.stage.outputs.publish == 'true'
-              uses: peaceiris/actions-gh-pages@v3
+              uses: ./external/ag-shared/github/actions/pr-preview-publish
               with:
+                  pr_number: ${{ env.PR_NUMBER }}
+                  files: ${{ steps.stage.outputs.files }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
-                  publish_dir: _publish
-                  publish_branch: gh-pages
-                  keep_files: true
-                  commit_message: 'pr-preview: publish pr-${{ env.PR_NUMBER }}'
-                  user_name: 'github-actions[bot]'
-                  user_email: 'github-actions[bot]@users.noreply.github.com'
 
             - name: Post sticky PR comment
               if: steps.stage.outputs.publish == 'true'
