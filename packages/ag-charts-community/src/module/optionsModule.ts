@@ -1410,7 +1410,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
 
             if (!isValid) {
-                Logger.warnOnce(`CSS property [var(${propertyKey})] is not a valid color, ignoring.`);
+                Logger.warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
                 delete optionsNode[key];
                 continue;
             }
