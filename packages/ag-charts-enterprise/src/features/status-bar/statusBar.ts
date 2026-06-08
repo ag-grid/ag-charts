@@ -6,6 +6,7 @@ import {
     ZIndexMap,
     cachedTextMeasurer,
     calcLineHeight,
+    isNumericValue,
 } from 'ag-charts-core';
 
 type NormalisedStatusBarOptions = _ModuleSupport.NormalisedStatusBarOptions;
@@ -393,8 +394,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             value.setFont(opts[labelStyle]);
             value.fill = opts[labelStyle].color;
             // Intl.NumberFormat.format accepts bigint natively, so a bigint OHLC/volume renders full-precision.
-            value.text =
-                typeof datumValue === 'number' || typeof datumValue === 'bigint' ? formatter.format(datumValue) : '';
+            value.text = isNumericValue(datumValue) ? formatter.format(datumValue) : '';
         }
     }
 

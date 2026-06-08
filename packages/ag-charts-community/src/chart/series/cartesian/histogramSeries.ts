@@ -13,6 +13,7 @@ import {
     isBigInt,
     isDate,
     isNumber,
+    isNumericValue,
     maxValue,
     mergeDefaults,
     tickStep,
@@ -329,7 +330,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 if (isDate(xValue)) {
                     xValue = xValue.getTime();
                 }
-                if (!isNumber(xValue) && typeof xValue !== 'bigint') return [];
+                if (!isNumericValue(xValue)) return [];
 
                 for (let i = 0; i < binCount; i++) {
                     const nextBin = bins[i];
