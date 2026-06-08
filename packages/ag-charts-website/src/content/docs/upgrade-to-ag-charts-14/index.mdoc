@@ -90,6 +90,10 @@ All histogram callbacks (`tooltip.renderer`, `label.formatter`, `seriesNodeClick
 
 - `separationLinesColor` is removed. Use `groupedCategoryLinesColor` instead.
 
+### Range Buttons
+
+- `AgRangesButtonValueFunction` now receives a single params object instead of positional arguments. Replace `(start, end, windowStart, windowEnd, source) => [...]` with `({ start, end, windowStart, windowEnd, source }) => [...]`.
+
 {% /expandingSection %}
 
 ## Behaviour Changes

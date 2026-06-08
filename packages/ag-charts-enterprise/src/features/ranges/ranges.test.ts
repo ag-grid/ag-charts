@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import { setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
-import type { AgRangesButtonValueSource } from 'ag-charts-types';
+import type { AgRangesButtonValueFunctionParams, AgRangesButtonValueSource } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -35,13 +35,7 @@ describe('Ranges', () => {
                     buttons: [
                         {
                             label: 'Custom',
-                            value: (
-                                _start: Date | number,
-                                _end: Date | number,
-                                _windowStart: Date | number,
-                                _windowEnd: Date | number,
-                                source: AgRangesButtonValueSource
-                            ): [Date | number | undefined, Date | number | undefined] => {
+                            value: ({ source }: AgRangesButtonValueFunctionParams) => {
                                 receivedSources.push(source);
                                 return [5, 15];
                             },
@@ -55,6 +49,43 @@ describe('Ranges', () => {
 
             // The range-check source should have been received during initial button enablement validation
             expect(receivedSources).toContain('range-check');
+        });
+    });
+
+    describe('AG-16892 button value function params object', () => {
+        it('should pass a params object with the domain and window bounds', async () => {
+            const receivedParams: AgRangesButtonValueFunctionParams[] = [];
+
+            const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+                data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                ranges: {
+                    enabled: true,
+                    buttons: [
+                        {
+                            label: 'Custom',
+                            value: (params: AgRangesButtonValueFunctionParams) => {
+                                receivedParams.push(params);
+                                return [5, 15];
+                            },
+                        },
+                    ],
+                },
+            } as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expect(receivedParams.length).toBeGreaterThan(0);
+            const params = receivedParams[0];
+            expect(typeof params.start).toBe('number');
+            expect(typeof params.end).toBe('number');
+            expect(typeof params.windowStart).toBe('number');
+            expect(typeof params.windowEnd).toBe('number');
         });
     });
 });

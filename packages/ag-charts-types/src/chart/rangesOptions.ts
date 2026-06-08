@@ -88,10 +88,20 @@ export type AgRangesButtonValue =
 
 export type AgRangesButtonValuePair = [Date | number, Date | number];
 export type AgRangesButtonValueSource = AgZoomEventSource;
+
+export interface AgRangesButtonValueFunctionParams {
+    /** The start of the full data domain. */
+    start: Date | number;
+    /** The end of the full data domain. */
+    end: Date | number;
+    /** The start of the currently visible range. */
+    windowStart: Date | number;
+    /** The end of the currently visible range. */
+    windowEnd: Date | number;
+    /** What triggered the function call, such as a button press or an out-of-range check. */
+    source: AgRangesButtonValueSource;
+}
+
 export type AgRangesButtonValueFunction = (
-    start: Date | number,
-    end: Date | number,
-    windowStart: Date | number,
-    windowEnd: Date | number,
-    source: AgRangesButtonValueSource
+    params: AgRangesButtonValueFunctionParams
 ) => [Date | number | undefined, Date | number | undefined];

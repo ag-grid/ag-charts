@@ -32,7 +32,7 @@ const options: AgChartOptions<DataType> = {
             { label: 'Teenagers', value: [15, 19] },
             { label: 'Young Adults', value: [20, 29] },
             { label: 'Middle Aged Very Long Label Very Long Label Very Long Label Very Long Label', value: [30, 65] },
-            { label: 'Retired', value: (_start, end) => [66, end] },
+            { label: 'Retired', value: ({ end }) => [66, end] },
             { label: 'Invalid', value: () => [0, 20] },
             { label: 'All Ages', value: undefined },
         ],

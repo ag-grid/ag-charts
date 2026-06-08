@@ -40,11 +40,11 @@ const options: AgFinancialChartOptions = {
                         },
                         {
                             label: 'All Domain Function',
-                            value: (start, end) => [start, end],
+                            value: ({ start, end }) => [start, end],
                         },
                         {
                             label: 'Visible Window Function',
-                            value: (_domainStart, _domainEnd, _windowStart, windowEnd) => {
+                            value: ({ windowEnd }) => {
                                 const start = new Date(
                                     (typeof windowEnd === 'number' ? windowEnd : windowEnd.getTime()) - 1 * MONTH
                                 );

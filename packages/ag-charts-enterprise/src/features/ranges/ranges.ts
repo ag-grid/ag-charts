@@ -469,7 +469,11 @@ export class Ranges extends AbstractModuleInstance {
         }
 
         if (typeof value === 'function') {
-            return { fn: value, valid: true };
+            return {
+                fn: (start, end, windowStart, windowEnd, source) =>
+                    value({ start, end, windowStart, windowEnd, source }),
+                valid: true,
+            };
         }
 
         if (isTimeInterval(value) || isTimeIntervalUnit(value)) {

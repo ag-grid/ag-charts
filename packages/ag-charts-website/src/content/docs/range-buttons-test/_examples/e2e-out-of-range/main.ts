@@ -32,7 +32,7 @@ const options: AgFinancialChartOptions = {
                         { label: 'February 2025 (out)', value: [new Date(2025, 1, 0), new Date(2025, 1, 27)] },
                         {
                             label: 'Window +1 Second (out)',
-                            value: (_start, _end, windowStart, windowEnd) => {
+                            value: ({ windowStart, windowEnd }) => {
                                 return [windowStart, Number(windowEnd) + 1];
                             },
                         },
