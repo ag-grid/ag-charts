@@ -1,4 +1,4 @@
-import CodeShiki, { type Language } from '@ag-website-shared/components//code/CodeShiki';
+import CodeShiki, { type Language } from '@ag-website-shared/components/code/CodeShiki';
 import type { FunctionComponent } from 'react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 
