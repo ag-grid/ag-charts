@@ -449,3 +449,4 @@ export type { ToolbarButtonOptions, ToolbarEventMap } from './components/toolbar
 export { FloatingToolbar } from './components/toolbar/floatingToolbar';
 export type { FloatingToolbarAnchor } from './components/toolbar/floatingToolbar';
 export type { LocaleManager } from './locale/localeManager';
+export { pickSectorsInBBoxPredicate } from './chart/series/polar/pieUtil';
