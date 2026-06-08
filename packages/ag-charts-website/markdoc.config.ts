@@ -32,12 +32,12 @@ import {
     gridVersionPatch,
 } from '@utils/markdoc/functions/libraryVersions';
 
-import prism from './plugins/prism';
+import agShiki from './plugins/shiki';
 import versionsData from './src/content/versions/ag-charts-versions.json';
 import { link } from './src/utils/markdoc/tags/link';
 
 export default defineMarkdocConfig({
-    extends: [prism()],
+    extends: [agShiki()],
     nodes: {
         heading,
         link,

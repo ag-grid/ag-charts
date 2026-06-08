@@ -193,7 +193,7 @@ export function ModuleMappings({
             </div>
             {selectedDependenciesSnippet && (
                 <div className={styles.moduleSnippet}>
-                    <Snippet framework={framework} content={selectedDependenciesSnippet} copyToClipboard />
+                    <Snippet framework={framework} shiki={true} content={selectedDependenciesSnippet} copyToClipboard />
                 </div>
             )}
         </>
