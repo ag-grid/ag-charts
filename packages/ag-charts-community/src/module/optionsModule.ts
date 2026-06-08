@@ -354,9 +354,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     options = {} as any;
                 } else {
                     ChartOptions.debug('>>> AgCharts.createOrUpdate() - applying preset', cleared);
-                    // `this.activeTheme` (recomputed below) carries the preset's theme for render-time
-                    // stylers but not the user's `theme.overrides`; pass those separately so the preset
-                    // can honour creation-time overrides such as the annotation toolbar buttons.
                     options = presetDef.create(cleared, presetTheme, () => this.activeTheme, activeTheme.overrides);
                     activeTheme = sanitizeThemeModules(getChartTheme(options.theme));
                 }
