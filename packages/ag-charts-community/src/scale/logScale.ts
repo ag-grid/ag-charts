@@ -69,6 +69,10 @@ export class LogScale extends ContinuousScale<number> {
     override niceDomain(ticks: ScaleTickParams<number>, domain: number[] = this.domain): number[] {
         if (domain.length < 2) return [];
 
+        // Log scales narrow bigint to Number (AC #9); generateTicks passes the raw dataDomain here before the
+        // scale's setter narrows it, so a bigint endpoint would otherwise throw under Math.min/Math.log.
+        domain = domain.map(Number);
+
         const { base } = this;
         const [d0, d1] = domain;
 
@@ -89,6 +93,8 @@ export class LogScale extends ContinuousScale<number> {
         if (!domain || domain.length < 2 || tickCount < 1) {
             return;
         }
+        // See niceDomain: narrow a raw bigint domain to Number before Math.min/Math.log.
+        domain = domain.map(Number);
         const base = this.base;
         const [d0, d1] = domain;
 

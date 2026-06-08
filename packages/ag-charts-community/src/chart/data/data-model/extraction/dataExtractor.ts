@@ -348,7 +348,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
 
             // Store the computed sort order entry for this key definition
             keySortOrders.set(keyDefIndex, trackerToSortOrderEntry(tracker));
-            this.warnMixedTimezoneColumn(keyDef.property, typeTracker.type, tzTracker);
+            this.warnMixedTimezoneColumn(keyDef.property, typeTracker.type, tzTracker, keyDef.timeDomain === true);
         }
         return {
             invalidData,
@@ -480,7 +480,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             if (typeTracker.mixedDateAtIndex != null) {
                 this.warnMixedDateColumn(columnScope, def.property, typeTracker.mixedDateAtIndex);
             }
-            this.warnMixedTimezoneColumn(def.property, typeTracker.type, tzTracker);
+            this.warnMixedTimezoneColumn(def.property, typeTracker.type, tzTracker, def.timeDomain === true);
 
             columns.push(column);
             allColumnScopes.push(columnScopes);
@@ -516,10 +516,16 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
         );
     }
 
-    private warnMixedTimezoneColumn(key: K, columnType: ColumnValueType | undefined, tracker: TimezoneTracker) {
+    private warnMixedTimezoneColumn(
+        key: K,
+        columnType: ColumnValueType | undefined,
+        tracker: TimezoneTracker,
+        isTimeDomain: boolean
+    ) {
         const { explicit, implicit } = tracker;
-        // Only date-tagged columns interpret ISO strings as instants; mixed offsets in a category column are not ambiguous.
-        if (columnType !== 'date' || explicit == null || implicit == null) return;
+        // Only a time-domain column interprets ISO strings as instants; on a category axis the same strings are
+        // opaque labels, so mixed offsets are not ambiguous and must not warn (value-sniffing alone tags them 'date').
+        if (!isTimeDomain || columnType !== 'date' || explicit == null || implicit == null) return;
         Logger.warnOnce(
             `Time axis: column "${String(key)}" contains both timezone-explicit values (e.g. "${explicit.value}", row ${explicit.index}) and timezone-implicit values (e.g. "${implicit.value}", row ${implicit.index}). Ambiguous timezone semantics may produce unexpected positions — points without an explicit offset are interpreted as local time. Use explicit offsets (Z or ±HH:MM) for cross-environment determinism.`
         );

@@ -10,6 +10,7 @@ import {
     computeExtremesAggregation,
     computeExtremesAggregationPartial,
     epochColumnForTimeScale,
+    narrowBigIntColumn,
     narrowBigIntColumnRelative,
     simpleMemorize2,
 } from 'ag-charts-core';
@@ -69,11 +70,14 @@ export function aggregateRangeAreaDataFromDataModel(
         dataModel.resolveColumnNeedsValueOf(series, 'yHighValue', processedData) ??
         dataModel.resolveColumnNeedsValueOf(series, 'yLowValue', processedData);
 
-    const { values: xValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
+    const { values: epochXValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
         scale,
         rawXValues,
         rawXNeedsValueOf
     );
+    // Narrow bigint x absolutely to match aggregationDomain's Number-narrowed d0/d1; otherwise `xValue - d0`
+    // mixes a bigint with a Number and throws in the aggregation hot path.
+    const xValues = narrowBigIntColumn(epochXValues);
     const highValues = yNeedsValueOf ? rawHighValues : narrowBigIntColumnRelative(rawHighValues);
     const lowValues = yNeedsValueOf ? rawLowValues : narrowBigIntColumnRelative(rawLowValues);
 
@@ -119,11 +123,14 @@ export function aggregateRangeAreaDataFromDataModelPartial(
         dataModel.resolveColumnNeedsValueOf(series, 'yHighValue', processedData) ??
         dataModel.resolveColumnNeedsValueOf(series, 'yLowValue', processedData);
 
-    const { values: xValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
+    const { values: epochXValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
         scale,
         rawXValues,
         rawXNeedsValueOf
     );
+    // Narrow bigint x absolutely to match aggregationDomain's Number-narrowed d0/d1; otherwise `xValue - d0`
+    // mixes a bigint with a Number and throws in the aggregation hot path.
+    const xValues = narrowBigIntColumn(epochXValues);
     const highValues = yNeedsValueOf ? rawHighValues : narrowBigIntColumnRelative(rawHighValues);
     const lowValues = yNeedsValueOf ? rawLowValues : narrowBigIntColumnRelative(rawLowValues);
 

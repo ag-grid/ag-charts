@@ -412,7 +412,9 @@ export abstract class FlowProportionSeries<
             for (const [index, datum] of linkData.entries()) {
                 const fromId: string = fromIdValues[index];
                 const toId: string = toIdValues[index];
-                const size: number = sizeValues == null ? 1 : sizeValues[index];
+                // Node sizes drive visual proportions/angles, so narrow a bigint sizeKey to Number here; the
+                // downstream accumulation (acc + size, totalSize +=, ratios * size) mixes it with Numbers.
+                const size: number = sizeValues == null ? 1 : Number(sizeValues[index]);
                 const fromNode = nodesById.get(fromId);
                 const toNode = nodesById.get(toId);
                 if (size <= 0 || fromNode == null || toNode == null) continue;

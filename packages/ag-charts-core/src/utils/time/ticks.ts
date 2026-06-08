@@ -223,8 +223,9 @@ export function tickFormat(
         }
     }
     const formatter = createNumberFormatter(options);
-    // A bigint tick renders full-precision rather than narrowing to Number.
-    return (n) => (typeof n === 'bigint' ? n.toLocaleString() : formatter(Number(n)));
+    // A bigint tick renders full-precision rather than narrowing to Number; pin en-US grouping to match
+    // createNumberFormatter and the rest of the chart's numeric ticks (toLocaleString() defaults to the runtime locale).
+    return (n) => (typeof n === 'bigint' ? n.toLocaleString('en-US') : formatter(Number(n)));
 }
 
 function bigIntTickStep(extent: bigint, count: number): bigint {

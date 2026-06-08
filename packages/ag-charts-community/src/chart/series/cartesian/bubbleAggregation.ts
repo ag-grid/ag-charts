@@ -340,8 +340,9 @@ export function aggregateBubbleDataFromDataModel(
 ): BubbleAggregation | undefined {
     const rawXValues = dataModel.resolveColumnById(series, 'xValue', processedData, 'object');
     const rawYValues = dataModel.resolveColumnById(series, 'yValue', processedData, 'mixed-numeric');
+    // Narrow the size column like x/y: the quantisation ratio mixes it with the Number-narrowed size domain.
     const sizeValues = hasSizeKey
-        ? dataModel.resolveColumnById(series, 'sizeValue', processedData, 'mixed-numeric')
+        ? narrowBigIntColumn(dataModel.resolveColumnById(series, 'sizeValue', processedData, 'mixed-numeric'))
         : undefined;
 
     const xDomain = dataModel.getDomain(series, 'xValue', 'value', processedData);

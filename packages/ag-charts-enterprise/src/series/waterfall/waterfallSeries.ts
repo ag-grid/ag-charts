@@ -123,7 +123,7 @@ interface WaterfallNodeDatumParams {
     totalLabel: string | undefined;
     datum: unknown;
     xDatum: any;
-    value: number | undefined;
+    value: AgNumericValue | undefined;
     // bigint-capable so a cumulative beyond Number.MAX_VALUE survives to yScale.convert().
     cumulativeValue: AgNumericValue | undefined;
     trailingValue: AgNumericValue | undefined;
@@ -509,15 +509,17 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         rawValue?: AgNumericValue,
         cumulativeValue?: AgNumericValue,
         trailingValue?: AgNumericValue
-    ): number | undefined {
-        // Display value narrows to Number; Number()ing both operands avoids a bigint/number subtraction throw.
+    ): AgNumericValue | undefined {
+        // Preserve the original (possibly bigint) value so the label and label-formatter callback keep full
+        // precision (AC 9.2.1/9.2.2); the bar geometry uses the separately-narrowed cumulativeValue, not this.
         if (isTotal) {
-            return cumulativeValue == null ? undefined : Number(cumulativeValue);
+            return cumulativeValue;
         }
         if (isSubtotal) {
-            return Number(cumulativeValue ?? 0) - Number(trailingValue ?? 0);
+            // subtractValues stays exact for bigint cumulatives (Number()ing each first would round beyond 2^53).
+            return subtractValues(cumulativeValue ?? 0, trailingValue ?? 0);
         }
-        return rawValue == null ? undefined : Number(rawValue);
+        return rawValue;
     }
 
     /**

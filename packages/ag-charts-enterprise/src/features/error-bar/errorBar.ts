@@ -10,6 +10,7 @@ import {
     type Scale,
     type ScaleType,
     type SeriesPluginModuleInstance,
+    findMinMax,
     isDefined,
     mergeDefaults,
 } from 'ag-charts-core';
@@ -174,7 +175,8 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
                 const id = { x: xErrorsID, y: yErrorsID }[direction];
                 const lowerDomain = dataModel.getDomain(series, `${id}-lower`, 'value', processedData).domain;
                 const upperDomain = dataModel.getDomain(series, `${id}-upper`, 'value', processedData).domain;
-                const domain = [Math.min(...lowerDomain, ...upperDomain), Math.max(...lowerDomain, ...upperDomain)];
+                // findMinMax is bigint-safe (Math.min/max throw on bigint) and fixNumericExtent keeps exact endpoints.
+                const domain = findMinMax([...lowerDomain, ...upperDomain]);
                 return fixNumericExtent(domain);
             }
         }
@@ -256,12 +258,13 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         }
 
         // The datum has an error value for `key`. TempValidate this user input value:
-        if (typeof value !== 'number') {
+        if (typeof value !== 'number' && typeof value !== 'bigint') {
             Logger.warnOnce(`Found [${key}] error value of type ${typeof value}. Expected number type`);
             return;
         }
 
-        return value + offset;
+        // Narrow a bigint error value to Number for the screen-space offset (whisker positioning is pixel-space).
+        return Number(value) + offset;
     }
 
     private getDatum(nodeData: ErrorBarNodeDatum[], datumIndex: number) {

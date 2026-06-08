@@ -15,6 +15,7 @@ import {
     compactAggregationIndices,
     createAggregationIndices,
     epochColumnForTimeScale,
+    narrowBigIntColumn,
     narrowBigIntColumnRelative,
     nextPowerOf2,
     simpleMemorize2,
@@ -430,11 +431,14 @@ export function aggregateAreaDataFromDataModel(
     const rawXNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, yKey, processedData);
 
-    const { values: xValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
+    const { values: epochXValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
         scale,
         rawXValues,
         rawXNeedsValueOf
     );
+    // Narrow bigint x absolutely to match aggregationDomain's Number-narrowed d0/d1; otherwise `xValue - d0`
+    // mixes a bigint with a Number and throws in the aggregation hot path.
+    const xValues = narrowBigIntColumn(epochXValues);
     const yValues = yNeedsValueOf ? rawYValues : narrowBigIntColumnRelative(rawYValues);
 
     // When existingFilters provided, bypass memoization to enable TypedArray reuse
@@ -479,11 +483,14 @@ export function aggregateAreaDataFromDataModelPartial(
     const rawXNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, yKey, processedData);
 
-    const { values: xValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
+    const { values: epochXValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
         scale,
         rawXValues,
         rawXNeedsValueOf
     );
+    // Narrow bigint x absolutely to match aggregationDomain's Number-narrowed d0/d1; otherwise `xValue - d0`
+    // mixes a bigint with a Number and throws in the aggregation hot path.
+    const xValues = narrowBigIntColumn(epochXValues);
     const yValues = yNeedsValueOf ? rawYValues : narrowBigIntColumnRelative(rawYValues);
 
     const [d0, d1] = aggregationDomain(scale, domainInput);

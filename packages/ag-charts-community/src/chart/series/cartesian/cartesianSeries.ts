@@ -1481,7 +1481,9 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             const x1 = xValues[i];
 
             if (x1 != null && x0 != null) {
-                const interval = x1.valueOf() - x0.valueOf();
+                // Narrow via Number so a bigint valueOf() doesn't throw under Math.sign/abs/min; a time
+                // interval is always within the Number-safe range (Date spans < 2^53 ms).
+                const interval = Number(x1.valueOf()) - Number(x0.valueOf());
                 const sign = Math.sign(interval) as 1 | 0 | -1;
                 if (sign === 0) continue;
                 if (sortOrder !== undefined && sign !== sortOrder) return; // Unsorted
