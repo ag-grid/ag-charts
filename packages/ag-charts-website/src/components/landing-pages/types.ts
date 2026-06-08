@@ -158,6 +158,8 @@ export interface FeatureGridItem {
     description: string;
     /** Link URL for the feature card */
     link: string;
+    /** Whether the link is external */
+    external?: boolean;
 }
 
 export interface FeatureGridSection {
