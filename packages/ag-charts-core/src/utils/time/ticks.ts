@@ -223,9 +223,9 @@ export function tickFormat(
         }
     }
     const formatter = createNumberFormatter(options);
-    // A bigint tick renders full-precision rather than narrowing to Number; pin en-US grouping to match
-    // createNumberFormatter and the rest of the chart's numeric ticks (toLocaleString() defaults to the runtime locale).
-    return (n) => (typeof n === 'bigint' ? n.toLocaleString('en-US') : formatter(Number(n)));
+    // Route bigint through the formatter too: it applies the format's prefix/suffix and pins en-US grouping
+    // for bigint full-precision, so a bigint tick honours the user's label format rather than emitting a bare number.
+    return (n) => formatter(typeof n === 'bigint' ? n : Number(n));
 }
 
 function bigIntTickStep(extent: bigint, count: number): bigint {
