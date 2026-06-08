@@ -15,12 +15,13 @@ ErrorDocument 404 ${urlWithBaseUrl('/404.html')}
 # add MIME types for serving example files
 AddType text/javascript mjs ts jsx
 
-# Content-Security-Policy — report-only while validating the tightened policy.
+# Content-Security-Policy — enforced (the report-only validation window is complete).
 # Charts is served from /charts on www.ag-grid.com and inherits the grid root CSP, so
-# this block overrides it for charts pages (see getCspHtaccessBlock). The trial-form
-# origin is env-split, so the policy is generated per environment. Flip to enforce
-# once the report-only window is clean.
-${getCspHtaccessBlock({ env }, 'report-only')}
+# this block overrides it for charts pages (see getCspHtaccessBlock). In enforce mode
+# the block unsets BOTH inherited headers (the grid root policy and the legacy wildcard)
+# and sets this enforced policy. The trial-form origin is env-split, so the policy is
+# generated per environment.
+${getCspHtaccessBlock({ env }, 'enforce')}
 
 ${getRedirectRules()}
 
