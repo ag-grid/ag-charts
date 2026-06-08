@@ -7,7 +7,7 @@ import type { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
 import { Sector } from '../../../scene/shape/sector';
 import { Transformable } from '../../../scene/transformable';
-import { boxCollidesSector } from '../../../scene/util/sector';
+import { boxOverlapsSector } from '../../../scene/util/sector';
 import type { Marker } from '../../marker/marker';
 import type { PickNodesInBBoxPredicate, SeriesNodePickMatch } from '../series';
 
@@ -188,7 +188,7 @@ export function pickSectorsInBBoxPredicate(series: {
                         width: selectionBox.width,
                         height: selectionBox.height,
                     };
-                    return boxCollidesSector(seriesSelectionBox, node);
+                    return boxOverlapsSector(seriesSelectionBox, node);
                 }
                 return false;
             };
