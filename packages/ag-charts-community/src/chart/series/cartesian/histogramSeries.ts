@@ -273,8 +273,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const heightAgg = makeAggregate('groupAgg');
         props.push(areaPlot ? area('groupAgg', heightAgg) : heightAgg);
         if (areaPlot) {
-            // areaPlot is a rendering concern only, so `aggregatedValue` is sourced from an
-            // un-adjusted `rawAgg` aggregate rather than the area-divided `groupAgg`.
+            // areaPlot only affects rendering, so `aggregatedValue` uses un-adjusted `rawAgg`, not area-divided `groupAgg`.
             props.push(makeAggregate('rawAgg'));
         }
 

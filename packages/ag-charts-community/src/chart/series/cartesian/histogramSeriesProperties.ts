@@ -32,8 +32,7 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly binIndex: number;
     readonly binRange: [number, number];
     readonly aggregatedValue: number;
-    // The bar's plotted height on the value axis (area-adjusted when areaPlot is on). Unlike
-    // `aggregatedValue` (which is raw, for callbacks), this is what the crosshair snaps to.
+    // Plotted bar height the crosshair snaps to (area-adjusted); the raw value is `aggregatedValue`.
     readonly cumulativeValue: number;
     readonly frequency: number;
     readonly label?: {

@@ -276,9 +276,8 @@ export class DataModel<
     }
 
     /**
-     * Provides a convenience iterator to iterate over the original source rows that belong to a
-     * specific DataGroup. Unlike {@link forEachGroupDatum}, which yields extracted column values,
-     * this yields the full user-supplied datum objects.
+     * Iterates over the original source rows belonging to a DataGroup. Unlike {@link forEachGroupDatum}
+     * (extracted column values), this yields the full user-supplied datum objects.
      *
      * @param scope to which datums should belong
      * @param group containing the datums

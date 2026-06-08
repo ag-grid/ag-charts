@@ -289,8 +289,8 @@ describe('HistogramSeries', () => {
     });
 
     describe('bin callback params', () => {
-        // Intentionally unordered, interleaved input with extra marker fields so we can prove
-        // callbacks receive the full source rows (not extracted values), and bin [20,30] is empty.
+        // Unordered input with marker fields, so callbacks must yield full source rows (not extracted
+        // values); bin [20,30] is left empty.
         const sourceData = [
             { x: 35, y: 4, label: 'd' },
             { x: 2, y: 1, label: 'a' },
@@ -330,8 +330,8 @@ describe('HistogramSeries', () => {
             ]);
             expect(nodes.map((n) => n.frequency)).toEqual([3, 0, 0, 1]);
 
-            // AC1: datum is the array of full source rows belonging to the bin, not extracted values.
-            // (Row order within a bin is not guaranteed, so compare order-independently.)
+            // AC1: datum is the bin's full source rows, not extracted values; row order within a bin
+            // isn't guaranteed, so compare order-independently.
             expect(nodes[0].datum).toHaveLength(3);
             expect(nodes[0].datum).toEqual(
                 expect.arrayContaining([
@@ -374,8 +374,8 @@ describe('HistogramSeries', () => {
         });
 
         it('carries the area-adjusted plotted height as cumulativeValue for the crosshair', async () => {
-            // The value-axis crosshair snaps to the bar's plotted height via `cumulativeValue`, which
-            // stays area-adjusted even though `aggregatedValue` is raw. Bin width is 10, so 6 -> 0.6.
+            // Crosshair snaps to the plotted height (`cumulativeValue`, area-adjusted), not the raw
+            // `aggregatedValue`. Bin width is 10, so 6 -> 0.6.
             chart = createChart({ aggregation: 'sum', yKey: 'y', areaPlot: true });
             await waitForChartStability(chart);
             const firstBin = nodeDataOf(chart)[0];
@@ -479,8 +479,7 @@ describe('HistogramSeries', () => {
         });
 
         it('resolves distinct tooltip content for each of two consecutive empty bins', async () => {
-            // Empty bins all share groupIndex -1, so a groupIndex-keyed lookup would return the
-            // first empty bin's content for both. Each bin is keyed by its positional binIndex.
+            // Empty bins all share groupIndex -1; keying by positional binIndex keeps them distinct.
             const renderer = vi.fn((_params: any) => ({}));
             chart = createChart({ tooltip: { renderer } });
             await waitForChartStability(chart);
