@@ -1723,7 +1723,7 @@ exports[`AG-15850 activeChange > waterfall > mouse 1`] = `
   [
     {
       "activeItem": {
-        "itemId": 1,
+        "itemId": "1",
         "seriesId": "WaterfallSeries-1",
         "type": "series-node",
       },
@@ -1751,12 +1751,7 @@ exports[`AG-15850 activeChange > waterfall > mouse 2`] = `
         "type": "series-node",
       },
       "dataIdKey": undefined,
-      "datum": {
-        "axisLabel": "Subtotal 1",
-        "index": 4,
-        "myX": "Subtotal 1",
-        "totalType": "subtotal",
-      },
+      "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
       "source": "user-interaction",
@@ -1771,7 +1766,7 @@ exports[`AG-15850 activeChange > waterfall > mouse 3`] = `
   [
     {
       "activeItem": {
-        "itemId": 8,
+        "itemId": "7",
         "seriesId": "WaterfallSeries-1",
         "type": "series-node",
       },
@@ -1838,12 +1833,7 @@ exports[`AG-15850 activeChange > waterfall > setState 2`] = `
         "type": "series-node",
       },
       "dataIdKey": undefined,
-      "datum": {
-        "axisLabel": "Subtotal 1",
-        "index": 4,
-        "myX": "Subtotal 1",
-        "totalType": "subtotal",
-      },
+      "datum": undefined,
       "frozen": false,
       "preventDefault": [Function],
       "source": "state-change",
