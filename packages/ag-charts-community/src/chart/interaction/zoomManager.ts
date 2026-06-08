@@ -104,12 +104,16 @@ export type UpdateZoomParams = UpdateZoomSourcing & {
     changes: UpdateZoomChanges;
 };
 
+export interface UpdateZoomWithParams {
+    start: Date | number;
+    end: Date | number;
+    windowStart: Date | number;
+    windowEnd: Date | number;
+    source: AgZoomEventSource;
+}
+
 export type UpdateZoomWithFunction = (
-    start: Date | number,
-    end: Date | number,
-    windowStart: Date | number,
-    windowEnd: Date | number,
-    source: AgZoomEventSource
+    params: UpdateZoomWithParams
 ) => [Date | number | undefined, Date | number | undefined];
 
 function refreshCoreState(nextAxes: Array<CartesianAxisLike> | Array<SimpleAxis>, state: CoreZoomStateSafeRetrieval) {
@@ -541,7 +545,13 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const [domainStart, domainEnd] = extents;
         const { start: windowStart, end: windowEnd } = range;
 
-        const result = fn(domainStart, domainEnd, windowStart as Date | number, windowEnd as Date | number, source);
+        const result = fn({
+            start: domainStart,
+            end: domainEnd,
+            windowStart: windowStart as Date | number,
+            windowEnd: windowEnd as Date | number,
+            source,
+        });
         if (!this.isValidUpdateWithResult(result)) {
             this.resetZoom({ source, sourceDetail });
             return;
@@ -568,7 +578,13 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const [domainStart, domainEnd] = extents;
         const { start: windowStart, end: windowEnd } = range;
 
-        const result = fn(domainStart, domainEnd, windowStart as Date | number, windowEnd as Date | number, source);
+        const result = fn({
+            start: domainStart,
+            end: domainEnd,
+            windowStart: windowStart as Date | number,
+            windowEnd: windowEnd as Date | number,
+            source,
+        });
         if (!this.isValidUpdateWithResult(result)) {
             return true; // This will be treated as [undefined, undefined]
         }

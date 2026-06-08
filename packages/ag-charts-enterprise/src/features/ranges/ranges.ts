@@ -461,7 +461,7 @@ export class Ranges extends AbstractModuleInstance {
         if (value == null) return { valid: true };
 
         if (typeof value === 'number') {
-            return { fn: (_start, end) => [Number(end) - value, undefined], valid: true };
+            return { fn: ({ end }) => [Number(end) - value, undefined], valid: true };
         }
 
         if (Array.isArray(value)) {
@@ -469,11 +469,7 @@ export class Ranges extends AbstractModuleInstance {
         }
 
         if (typeof value === 'function') {
-            return {
-                fn: (start, end, windowStart, windowEnd, source) =>
-                    value({ start, end, windowStart, windowEnd, source }),
-                valid: true,
-            };
+            return { fn: (params) => value(params), valid: true };
         }
 
         if (isTimeInterval(value) || isTimeIntervalUnit(value)) {
@@ -482,7 +478,7 @@ export class Ranges extends AbstractModuleInstance {
 
             if (isValidDate(domainMax)) {
                 const start = intervalAgo(value, domainMax);
-                return { fn: (d0) => [start ?? d0, undefined], valid: true };
+                return { fn: ({ start: domainStart }) => [start ?? domainStart, undefined], valid: true };
             }
 
             return { valid: false };
