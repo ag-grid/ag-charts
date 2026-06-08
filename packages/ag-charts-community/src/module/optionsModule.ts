@@ -354,7 +354,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     options = {} as any;
                 } else {
                     ChartOptions.debug('>>> AgCharts.createOrUpdate() - applying preset', cleared);
-                    options = presetDef.create(cleared, presetTheme, () => this.activeTheme);
+                    options = presetDef.create(cleared, presetTheme, () => this.activeTheme, activeTheme.overrides);
                     activeTheme = sanitizeThemeModules(getChartTheme(options.theme));
                 }
             }

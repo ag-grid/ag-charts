@@ -1378,6 +1378,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             if ((this.width == null || this.height == null) && this._firstAutoSize) {
                 skipAnimations = false;
                 this._firstAutoSize = false;
+            } else if (this.chartAnimationPhase === 'initial') {
+                // A resize during the initial phase (e.g. the size monitor re-measuring
+                // after a series-type switch) must not cancel the pending entry animation.
+                skipAnimations = false;
             }
 
             let updateType = ChartUpdateType.PERFORM_LAYOUT;

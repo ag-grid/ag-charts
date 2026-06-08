@@ -46,21 +46,21 @@ const options: AgChartOptions = {
         buttons: [
             {
                 label: 'Last 1M',
-                value: (_start, _end, _windowStart, windowEnd) => {
+                value: ({ windowEnd }) => {
                     const month = 30 * 24 * 60 * 60 * 1000;
                     return [Number(windowEnd) - month, windowEnd];
                 },
             },
             {
                 label: 'Last 3M',
-                value: (_start, _end, _windowStart, windowEnd) => {
+                value: ({ windowEnd }) => {
                     const months = 3 * 30 * 24 * 60 * 60 * 1000;
                     return [Number(windowEnd) - months, windowEnd];
                 },
             },
             {
                 label: '1M Centre',
-                value: (_start, _end, windowStart, windowEnd) => {
+                value: ({ windowStart, windowEnd }) => {
                     const mid = (Number(windowStart) + Number(windowEnd)) / 2;
                     const halfMonth = (30 * 24 * 60 * 60 * 1000) / 2;
                     return [mid - halfMonth, mid + halfMonth];
@@ -68,7 +68,7 @@ const options: AgChartOptions = {
             },
             {
                 label: '3M Centre',
-                value: (_start, _end, windowStart, windowEnd) => {
+                value: ({ windowStart, windowEnd }) => {
                     const mid = (Number(windowStart) + Number(windowEnd)) / 2;
                     const halfRange = (3 * 30 * 24 * 60 * 60 * 1000) / 2;
                     return [mid - halfRange, mid + halfRange];
@@ -76,14 +76,14 @@ const options: AgChartOptions = {
             },
             {
                 label: '< 1M',
-                value: (_start, _end, windowStart, windowEnd) => {
+                value: ({ windowStart, windowEnd }) => {
                     const month = 30 * 24 * 60 * 60 * 1000;
                     return [Number(windowStart) - month, Number(windowEnd) - month];
                 },
             },
             {
                 label: '1M >',
-                value: (_start, _end, windowStart, windowEnd) => {
+                value: ({ windowStart, windowEnd }) => {
                     const month = 30 * 24 * 60 * 60 * 1000;
                     return [Number(windowStart) + month, Number(windowEnd) + month];
                 },

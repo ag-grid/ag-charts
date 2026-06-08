@@ -9,9 +9,15 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { AgChartInstance, AgFinancialChartOptions } from 'ag-charts-types';
+import type {
+    AgAnnotationsToolbarButton,
+    AgChartInstance,
+    AgFinancialChartOptions,
+    AgThemeOverrides,
+} from 'ag-charts-types';
 
 import { setupEnterpriseModules } from '../setup';
+import { priceVolume } from './priceVolumePreset';
 import { getStockData } from './test/stockData';
 
 const EXAMPLES: Record<string, AgFinancialChartOptions> = {
@@ -109,5 +115,29 @@ describe('priceVolumePreset', () => {
                 await compareImageDataUrl();
             }
         );
+    });
+
+    describe('toolbar button theme override (AG-17364)', () => {
+        const userButtons: AgAnnotationsToolbarButton[] = [
+            { icon: 'trend-line-drawing', tooltip: 'toolbarAnnotationsLineAnnotations', value: 'line-menu' },
+            { icon: 'text-annotation', tooltip: 'toolbarAnnotationsTextAnnotations', value: 'text-menu' },
+            { icon: 'delete', tooltip: 'toolbarAnnotationsClearAll', value: 'clear' },
+        ];
+
+        const presetButtons = (overrides?: AgThemeOverrides) =>
+            priceVolume({ data: getStockData() }, undefined, () => ({}) as any, overrides).annotations?.toolbar
+                ?.buttons;
+
+        it('prefers the user-specified buttons from the theme overrides', () => {
+            const buttons = presetButtons({
+                common: { annotations: { toolbar: { buttons: userButtons } } },
+            });
+            expect(buttons).toEqual(userButtons);
+        });
+
+        it('falls back to the six default buttons without an override', () => {
+            expect(presetButtons()).toHaveLength(6);
+            expect(presetButtons({ common: {} })).toHaveLength(6);
+        });
     });
 });
