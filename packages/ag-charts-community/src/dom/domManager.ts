@@ -155,7 +155,7 @@ export class DOMManager extends BaseManager {
     private readonly element: HTMLElement;
     private pendingContainer?: HTMLElement = undefined;
     private container?: HTMLElement = undefined;
-    private documentRoot?: HTMLElement = undefined;
+    private shadowDocumentRoot?: HTMLElement = undefined;
     private initiallyConnected?: boolean = undefined;
     containerSize?: Size = undefined;
     private readonly tabGuards?: GuardedElement;
@@ -354,7 +354,7 @@ export class DOMManager extends BaseManager {
         // Check if we transitioned from disconnected to connected
         if (this.initiallyConnected === true || this.container?.isConnected === false) return;
 
-        this.documentRoot = this.getShadowDocumentRoot(this.container);
+        this.shadowDocumentRoot = this.getShadowDocumentRoot(this.container);
         this.initiallyConnected = true;
         // Remove styles from our DOM tree before re-adding to correct location
         for (const id of this.rootElements['styles'].children.keys()) {
@@ -432,7 +432,7 @@ export class DOMManager extends BaseManager {
         //
         // Note we do this before relocating the new container to avoid temporarily adding new styles to the page,
         // which may cause a style recalculation
-        if (this.documentRoot != null) {
+        if (this.shadowDocumentRoot != null) {
             for (const id of this.rootElements['styles'].children.keys()) {
                 this.removeChild('styles', id);
             }
@@ -441,7 +441,7 @@ export class DOMManager extends BaseManager {
         this.container = pendingContainer;
         this.pendingContainer = undefined;
         this.agDocument.setContainer(pendingContainer);
-        this.documentRoot = this.getShadowDocumentRoot(pendingContainer);
+        this.shadowDocumentRoot = this.getShadowDocumentRoot(pendingContainer);
         this.initiallyConnected = pendingContainer.isConnected;
 
         // If we moved from a shadow DOM to outside, we need to ensure the page styles are present
@@ -659,8 +659,8 @@ export class DOMManager extends BaseManager {
 
         // If in a shadow-DOM case, use the shadow-DOMs bounding-box, intersected with the window
         // viewport.
-        if (this.documentRoot != null) {
-            this._cachedRawOverlayRect = BBox.fromObject(this.documentRoot.getBoundingClientRect());
+        if (this.shadowDocumentRoot != null) {
+            this._cachedRawOverlayRect = BBox.fromObject(this.shadowDocumentRoot.getBoundingClientRect());
             return this._cachedRawOverlayRect;
         }
 
@@ -769,11 +769,11 @@ export class DOMManager extends BaseManager {
             // Add to our DOM tree as we don't know if this is a shadow DOM case or not, or even necessarily
             // which Document we might be attached to.
             styleElement = this.addChild('styles', id);
-        } else if (this.documentRoot == null && !DOMManager.headStyles.has(id)) {
+        } else if (this.shadowDocumentRoot == null && !DOMManager.headStyles.has(id)) {
             // Add to document head as failsafe fallback.
             styleElement = addStyleElement(this.agDocument.head);
             DOMManager.headStyles.add(id);
-        } else if (this.documentRoot != null) {
+        } else if (this.shadowDocumentRoot != null) {
             // Add to our DOM tree to avoid contaminating outside of the shadow DOM.
             styleElement = this.addChild('styles', id);
         }
@@ -957,6 +957,11 @@ export class DOMManager extends BaseManager {
     updateCSSVariableWatchers(cssVariables?: Record<string, string>) {
         if (!cssVariables) return;
 
+        if (this.shadowDocumentRoot) {
+            this.updateCSSVariableWatchersShadowDOM(cssVariables);
+            return;
+        }
+
         const existingWatchers = new Set();
         for (let i = 0; i < this.element.children.length; i++) {
             const child = this.element.children.item(i) as HTMLElement | null;
@@ -986,6 +991,43 @@ export class DOMManager extends BaseManager {
                 sensorElement.remove();
                 styleElement.remove();
             });
+        }
+    }
+
+    private updateCSSVariableWatchersShadowDOM(cssVariables: Record<string, string>) {
+        const shadowRoot = this.shadowDocumentRoot?.getRootNode() as HTMLElement | undefined;
+        if (!shadowRoot || !('addEventListener' in shadowRoot)) return;
+
+        // Attach a single event listener to the shadow root to catch the bubbled events for every property, rather
+        // than a different event for each property.
+        const handleTransitionEnd = () => {
+            this.eventsHub.emit('chart:request-refresh', null);
+        };
+        shadowRoot.addEventListener('transitionend', handleTransitionEnd);
+        this.cleanup.register(() => {
+            shadowRoot.removeEventListener('transitionend', handleTransitionEnd);
+        });
+
+        const existingWatchers = new Set();
+        for (let i = 0; i < shadowRoot.children.length; i++) {
+            const child = shadowRoot.children.item(i) as HTMLElement | null;
+            if (child?.dataset.variableName != null) {
+                existingWatchers.add(child.dataset.variableName);
+            }
+        }
+
+        for (const key of strictObjectKeys(cssVariables)) {
+            const property = key.slice(4, -1);
+            if (existingWatchers.has(property)) continue;
+
+            // Unlike normal DOM, here we transition directly on the color property since we need to combine the style
+            // and sensor into a single element.
+            const styleElement = createElement('div');
+            styleElement.style.color = key;
+            styleElement.style.transition = 'color 1ms';
+            styleElement.dataset.variableName = property;
+
+            shadowRoot.prepend(styleElement);
         }
     }
 
