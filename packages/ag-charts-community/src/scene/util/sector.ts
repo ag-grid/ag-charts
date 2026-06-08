@@ -222,10 +222,10 @@ export function boxOverlapsSector(box: BoxBounds, sector: SectorBoundaries): boo
     }
 
     // Check if any corner of `box` is in `sector`:
-    if (isPointInSector(top, left, sector) ||
-        isPointInSector(top, right, sector) ||
-        isPointInSector(bottom, left, sector) ||
-        isPointInSector(bottom, right, sector)) {
+    if (isPointInSector(left, top, sector) ||
+        isPointInSector(right, top, sector) ||
+        isPointInSector(left, bottom, sector) ||
+        isPointInSector(right, bottom, sector)) {
         console.log((sector as any).datum?.datum?.name, `found box corner in sector`);
         return true;
     }
