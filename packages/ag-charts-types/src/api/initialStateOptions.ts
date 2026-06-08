@@ -47,9 +47,9 @@ export interface AgInitialStateZoomOptions {
 
 export interface AgInitialStateZoomRange {
     /** The start value of the zoom range. */
-    start?: AgStateSerializableDate | AgStateSerializableBigInt | string | number | bigint;
+    start?: AgStateSerializableDate | AgStateSerializableBigInt | string | number;
     /** The end value of the zoom range. */
-    end?: AgStateSerializableDate | AgStateSerializableBigInt | string | number | bigint;
+    end?: AgStateSerializableDate | AgStateSerializableBigInt | string | number;
 }
 
 export interface AgInitialStateZoomRatio {

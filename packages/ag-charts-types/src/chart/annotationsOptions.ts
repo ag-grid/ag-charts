@@ -516,7 +516,7 @@ interface Extendable {
     extendEnd?: boolean;
 }
 
-export type ValueType = string | number | bigint | AgStateSerializableDate | AgStateSerializableBigInt;
+export type ValueType = string | number | AgStateSerializableDate | AgStateSerializableBigInt;
 export type AgAnnotationValue = ValueType | AgGroupingValueType;
 export interface AgGroupingValueType {
     /** The value at the annotation position. */
