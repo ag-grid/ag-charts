@@ -1,13 +1,13 @@
-import type { DomainWithMetadata, ScaleType } from 'ag-charts-core';
+import type { ScaleType } from 'ag-charts-core';
 import {
     AGGREGATION_MIN_RANGE,
     AGGREGATION_THRESHOLD,
-    aggregationDomain,
     aggregationRangeFittingPoints,
     compactAggregationIndices,
     createAggregationIndices,
     epochColumnForTimeScale,
     getMidpointsForIndices,
+    narrowAggregationX,
     narrowBigIntColumn,
     nextPowerOf2,
     simpleMemorize2,
@@ -273,16 +273,15 @@ export function computeBarAggregationPartial(
  * @internal
  */
 function aggregateBarData(
-    scale: ScaleType,
     xValues: any[],
     yStartValues: any[] | undefined,
     yEndValues: any[],
-    domainInput: DomainWithMetadata<number>,
+    d0: number,
+    d1: number,
     smallestKeyInterval: AgNumericValue | undefined,
     xNeedsValueOf: boolean,
     yNeedsValueOf: boolean
 ): BarSeriesDataAggregationFilter[] | undefined {
-    const [d0, d1] = aggregationDomain(scale, domainInput);
     return computeBarAggregation([d0, d1], xValues, yStartValues, yEndValues, {
         smallestKeyInterval,
         xNeedsValueOf,
@@ -343,17 +342,16 @@ export function aggregateBarDataFromDataModel(
         rawXValues,
         rawXNeedsValueOf
     );
-    // Narrow bigint x absolutely to match aggregationDomain's Number-narrowed d0/d1; otherwise `xValue - d0`
-    // mixes a bigint with a Number and throws in the aggregation hot path.
-    const xValues = narrowBigIntColumn(epochXValues);
+    // Subtract the bigint domain-min from x and [d0,d1] together so a high-magnitude narrow-range x keeps full
+    // bucketing precision; falls back to an absolute narrow + aggregationDomain for non-bigint columns.
+    const { xValues, domain } = narrowAggregationX(scale, epochXValues, domainInput);
     const yStartValues =
         yNeedsValueOf || rawYStartValues == null ? rawYStartValues : narrowBigIntColumn(rawYStartValues);
     const yEndValues = yNeedsValueOf ? rawYEndValues : narrowBigIntColumn(rawYEndValues);
 
     // When existingFilters provided, bypass memoization to enable array reuse
     if (existingFilters) {
-        const [d0, d1] = aggregationDomain(scale, domainInput);
-        return computeBarAggregation([d0, d1], xValues, yStartValues, yEndValues, {
+        return computeBarAggregation(domain, xValues, yStartValues, yEndValues, {
             smallestKeyInterval: processedData.reduced?.smallestKeyInterval,
             xNeedsValueOf,
             yNeedsValueOf,
@@ -362,11 +360,11 @@ export function aggregateBarDataFromDataModel(
     }
 
     return memoizedAggregateBarData(
-        scale,
         xValues,
         yStartValues,
         yEndValues,
-        domainInput,
+        domain[0],
+        domain[1],
         processedData.reduced?.smallestKeyInterval,
         xNeedsValueOf,
         yNeedsValueOf
@@ -418,16 +416,15 @@ export function aggregateBarDataFromDataModelPartial(
         rawXValues,
         rawXNeedsValueOf
     );
-    // Narrow bigint x absolutely to match aggregationDomain's Number-narrowed d0/d1; otherwise `xValue - d0`
-    // mixes a bigint with a Number and throws in the aggregation hot path.
-    const xValues = narrowBigIntColumn(epochXValues);
+    // Subtract the bigint domain-min from x and [d0,d1] together so a high-magnitude narrow-range x keeps full
+    // bucketing precision; falls back to an absolute narrow + aggregationDomain for non-bigint columns.
+    const { xValues, domain } = narrowAggregationX(scale, epochXValues, domainInput);
     const yStartValues =
         yNeedsValueOf || rawYStartValues == null ? rawYStartValues : narrowBigIntColumn(rawYStartValues);
     const yEndValues = yNeedsValueOf ? rawYEndValues : narrowBigIntColumn(rawYEndValues);
 
-    const [d0, d1] = aggregationDomain(scale, domainInput);
     // TODO: Use memoized version of computeBarAggregationPartial
-    return computeBarAggregationPartial([d0, d1], xValues, yStartValues, yEndValues, {
+    return computeBarAggregationPartial(domain, xValues, yStartValues, yEndValues, {
         smallestKeyInterval: processedData.reduced?.smallestKeyInterval,
         xNeedsValueOf,
         yNeedsValueOf,

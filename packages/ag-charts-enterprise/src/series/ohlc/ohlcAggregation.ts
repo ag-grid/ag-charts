@@ -1,16 +1,10 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type {
-    DomainWithMetadata,
-    ExtremesAggregationFilter,
-    ExtremesPartialAggregationResult,
-    ScaleType,
-} from 'ag-charts-core';
+import type { ExtremesAggregationFilter, ExtremesPartialAggregationResult, ScaleType } from 'ag-charts-core';
 import {
-    aggregationDomain,
     computeExtremesAggregation,
     computeExtremesAggregationPartial,
     epochColumnForTimeScale,
-    narrowBigIntColumn,
+    narrowAggregationX,
     narrowBigIntColumnRelative,
     simpleMemorize2,
 } from 'ag-charts-core';
@@ -29,16 +23,15 @@ export type OhlcPartialAggregationResult = ExtremesPartialAggregationResult;
 // ============================================================================
 
 function aggregateOhlcData(
-    scale: ScaleType,
     xValues: any[],
     highValues: any[],
     lowValues: any[],
-    domainInput: DomainWithMetadata<number>,
+    d0: number,
+    d1: number,
     smallestKeyInterval: AgNumericValue | undefined,
     xNeedsValueOf: boolean,
     yNeedsValueOf: boolean
 ): OhlcSeriesDataAggregationFilter[] | undefined {
-    const [d0, d1] = aggregationDomain(scale, domainInput);
     return computeExtremesAggregation([d0, d1], xValues, highValues, lowValues, {
         smallestKeyInterval,
         xNeedsValueOf,
@@ -75,16 +68,15 @@ export function aggregateOhlcDataFromDataModel(
         rawXValues,
         rawXNeedsValueOf
     );
-    // Narrow bigint x absolutely to match aggregationDomain's Number-narrowed d0/d1; otherwise `xValue - d0`
-    // mixes a bigint with a Number and throws in the aggregation hot path.
-    const xValues = narrowBigIntColumn(epochXValues);
+    // Subtract the bigint domain-min from x and [d0,d1] together so a high-magnitude narrow-range x keeps full
+    // bucketing precision; falls back to an absolute narrow + aggregationDomain for non-bigint columns.
+    const { xValues, domain } = narrowAggregationX(scale, epochXValues, domainInput);
     const highValues = yNeedsValueOf ? rawHighValues : narrowBigIntColumnRelative(rawHighValues);
     const lowValues = yNeedsValueOf ? rawLowValues : narrowBigIntColumnRelative(rawLowValues);
 
     // When existingFilters provided, bypass memoization to enable array reuse
     if (existingFilters) {
-        const [d0, d1] = aggregationDomain(scale, domainInput);
-        return computeExtremesAggregation([d0, d1], xValues, highValues, lowValues, {
+        return computeExtremesAggregation(domain, xValues, highValues, lowValues, {
             smallestKeyInterval: processedData.reduced?.smallestKeyInterval,
             xNeedsValueOf,
             yNeedsValueOf,
@@ -93,11 +85,11 @@ export function aggregateOhlcDataFromDataModel(
     }
 
     return memoizedAggregateOhlcData(
-        scale,
         xValues,
         highValues,
         lowValues,
-        domainInput,
+        domain[0],
+        domain[1],
         processedData.reduced?.smallestKeyInterval,
         xNeedsValueOf,
         yNeedsValueOf
@@ -128,14 +120,13 @@ export function aggregateOhlcDataFromDataModelPartial(
         rawXValues,
         rawXNeedsValueOf
     );
-    // Narrow bigint x absolutely to match aggregationDomain's Number-narrowed d0/d1; otherwise `xValue - d0`
-    // mixes a bigint with a Number and throws in the aggregation hot path.
-    const xValues = narrowBigIntColumn(epochXValues);
+    // Subtract the bigint domain-min from x and [d0,d1] together so a high-magnitude narrow-range x keeps full
+    // bucketing precision; falls back to an absolute narrow + aggregationDomain for non-bigint columns.
+    const { xValues, domain } = narrowAggregationX(scale, epochXValues, domainInput);
     const highValues = yNeedsValueOf ? rawHighValues : narrowBigIntColumnRelative(rawHighValues);
     const lowValues = yNeedsValueOf ? rawLowValues : narrowBigIntColumnRelative(rawLowValues);
 
-    const [d0, d1] = aggregationDomain(scale, domainInput);
-    return computeExtremesAggregationPartial([d0, d1], xValues, highValues, lowValues, {
+    return computeExtremesAggregationPartial(domain, xValues, highValues, lowValues, {
         smallestKeyInterval: processedData.reduced?.smallestKeyInterval,
         targetRange,
         xNeedsValueOf,

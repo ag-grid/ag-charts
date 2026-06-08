@@ -4,6 +4,7 @@ import {
     aggregationXRatioForXValue,
     clamp,
     epochColumnForTimeScale,
+    narrowAggregationX,
     narrowBigIntColumn,
 } from 'ag-charts-core';
 
@@ -288,18 +289,17 @@ export function computeBubbleAggregation(
  * @internal
  */
 function aggregateBubbleData(
-    xScale: ScaleType,
     yScale: ScaleType,
     xValues: any[],
     yValues: any[],
     sizeValues: any[] | undefined,
-    xDomainInput: DomainWithMetadata<any>,
+    xDomain: [number, number],
     yDomainInput: DomainWithMetadata<any>,
     sizeDomain: number[],
     xNeedsValueOf: boolean,
     yNeedsValueOf: boolean
 ): BubbleAggregation | undefined {
-    const [xd0, xd1] = aggregationDomain(xScale, xDomainInput);
+    const [xd0, xd1] = xDomain;
     const [yd0, yd1] = aggregationDomain(yScale, yDomainInput);
     return computeBubbleAggregation(
         [xd0, xd1],
@@ -352,22 +352,22 @@ export function aggregateBubbleDataFromDataModel(
     const rawXNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'yValue', processedData);
 
-    // Narrow bigints absolutely to match aggregationDomain's narrowing of the domain; parse ISO time x to epoch ms first.
+    // Parse ISO time x to epoch ms first, then subtract the bigint domain-min from x and [xd0,xd1] together so a
+    // high-magnitude narrow-range x keeps full quadtree precision; non-bigint columns narrow absolutely.
     const { values: epochXValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
         xScale,
         rawXValues,
         rawXNeedsValueOf
     );
-    const xValues = narrowBigIntColumn(epochXValues);
+    const { xValues, domain: xNumericDomain } = narrowAggregationX(xScale, epochXValues, xDomain);
     const yValues = yNeedsValueOf ? rawYValues : narrowBigIntColumn(rawYValues);
 
     return aggregateBubbleData(
-        xScale,
         yScale,
         xValues,
         yValues,
         sizeValues,
-        xDomain,
+        xNumericDomain,
         yDomain,
         sizeDomain,
         xNeedsValueOf,

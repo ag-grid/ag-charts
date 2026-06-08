@@ -5,9 +5,7 @@ import {
     AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_MIN_RANGE,
     AGGREGATION_THRESHOLD,
-    type DomainWithMetadata,
     type ScaleType,
-    aggregationDomain,
     aggregationIndexForXRatio,
     aggregationRangeFittingPoints,
     aggregationXRatioForDatumIndex,
@@ -15,7 +13,7 @@ import {
     compactAggregationIndices,
     createAggregationIndices,
     epochColumnForTimeScale,
-    narrowBigIntColumn,
+    narrowAggregationX,
     narrowBigIntColumnRelative,
     nextPowerOf2,
     simpleMemorize2,
@@ -347,14 +345,13 @@ export function computeLineAggregationPartial(
  * @internal
  */
 function aggregateLineData(
-    scale: ScaleType,
     xValues: any[],
     yValues: any[],
-    domainInput: DomainWithMetadata<any>,
+    d0: number,
+    d1: number,
     xNeedsValueOf: boolean,
     yNeedsValueOf: boolean
 ): LineSeriesDataAggregationFilter[] | undefined {
-    const [d0, d1] = aggregationDomain(scale, domainInput);
     return computeLineAggregation([d0, d1], xValues, yValues, { xNeedsValueOf, yNeedsValueOf });
 }
 
@@ -400,22 +397,21 @@ export function aggregateLineDataFromDataModel(
         rawXValues,
         rawXNeedsValueOf
     );
-    // Narrow bigint x absolutely to match aggregationDomain's Number-narrowed d0/d1; otherwise `xValue - d0`
-    // mixes a bigint with a Number and throws in the aggregation hot path.
-    const xValues = narrowBigIntColumn(epochXValues);
+    // Subtract the bigint domain-min from x and [d0,d1] together so a high-magnitude narrow-range x keeps full
+    // bucketing precision; falls back to an absolute narrow + aggregationDomain for non-bigint columns.
+    const { xValues, domain } = narrowAggregationX(scale, epochXValues, domainInput);
     const yValues = yNeedsValueOf ? rawYValues : narrowBigIntColumnRelative(rawYValues);
 
     // When existingFilters provided, bypass memoization to enable array reuse
     if (existingFilters) {
-        const [d0, d1] = aggregationDomain(scale, domainInput);
-        return computeLineAggregation([d0, d1], xValues, yValues, {
+        return computeLineAggregation(domain, xValues, yValues, {
             xNeedsValueOf,
             yNeedsValueOf,
             existingFilters,
         });
     }
 
-    return memoizedAggregateLineData(scale, xValues, yValues, domainInput, xNeedsValueOf, yNeedsValueOf);
+    return memoizedAggregateLineData(xValues, yValues, domain[0], domain[1], xNeedsValueOf, yNeedsValueOf);
 }
 
 /**
@@ -452,13 +448,10 @@ export function aggregateLineDataFromDataModelPartial(
         rawXValues,
         rawXNeedsValueOf
     );
-    // Narrow bigint x absolutely to match aggregationDomain's Number-narrowed d0/d1; otherwise `xValue - d0`
-    // mixes a bigint with a Number and throws in the aggregation hot path.
-    const xValues = narrowBigIntColumn(epochXValues);
+    const { xValues, domain } = narrowAggregationX(scale, epochXValues, domainInput);
     const yValues = yNeedsValueOf ? rawYValues : narrowBigIntColumnRelative(rawYValues);
 
-    const [d0, d1] = aggregationDomain(scale, domainInput);
-    return computeLineAggregationPartial([d0, d1], xValues, yValues, {
+    return computeLineAggregationPartial(domain, xValues, yValues, {
         xNeedsValueOf,
         yNeedsValueOf,
         targetRange,

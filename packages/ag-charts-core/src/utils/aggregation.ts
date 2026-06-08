@@ -114,6 +114,87 @@ export function narrowBigIntColumnRelative(values: any[]): any[] {
     return converted;
 }
 
+const offsetNumericColumnCache = new WeakMap<readonly unknown[], { offset: bigint; result: any[] }>();
+
+/**
+ * Narrow a bigint column to Number after subtracting an explicit bigint `offset`. Unlike
+ * {@link narrowBigIntColumnRelative} (which subtracts the column's own minimum), the caller supplies the
+ * offset so a column and its domain can be narrowed against the SAME origin — required when the narrowed
+ * values are bucketed against a narrowed domain (see {@link narrowAggregationX}).
+ * @returns the input `values` unchanged when the column holds no bigint and `offset` is zero.
+ */
+export function narrowBigIntColumnByOffset(values: any[], offset: bigint): any[] {
+    const cached = offsetNumericColumnCache.get(values);
+    if (cached?.offset === offset) return cached.result;
+
+    const offsetNum = Number(offset);
+    const result = values.map((v) => {
+        if (typeof v === 'bigint') return Number(v - offset);
+        if (typeof v === 'number') return v - offsetNum;
+        return v;
+    });
+    offsetNumericColumnCache.set(values, { offset, result });
+    return result;
+}
+
+/**
+ * Bigint [min, max] of a number-scale aggregation X domain, or `undefined` when the domain is empty, holds a
+ * non-bigint endpoint, or the scale isn't `number` (time epochs are always within the Number-exact range).
+ * Used to subtract a common offset from the X column and its [d0, d1] so a high-magnitude narrow-range bigint
+ * domain keeps full bucketing precision instead of collapsing onto one double.
+ */
+export function bigIntAggregationExtent(
+    scale: ScaleType,
+    domainInput: DomainWithMetadata<any>
+): { min: bigint; max: bigint } | undefined {
+    if (scale !== 'number') return undefined;
+
+    const { domain, sortMetadata } = domainInput;
+    if (domain.length === 0) return undefined;
+
+    const first = domain[0];
+    const last = domain.at(-1);
+    if (sortMetadata?.sortOrder === 1) {
+        return typeof first === 'bigint' && typeof last === 'bigint' ? { min: first, max: last } : undefined;
+    }
+    if (sortMetadata?.sortOrder === -1) {
+        return typeof first === 'bigint' && typeof last === 'bigint' ? { min: last, max: first } : undefined;
+    }
+
+    // Unsorted: bigint-safe relational scan; bail to the absolute path if any endpoint isn't bigint.
+    let min: bigint | undefined;
+    let max: bigint | undefined;
+    for (const d of domain) {
+        if (typeof d !== 'bigint') return undefined;
+        if (min === undefined || d < min) min = d;
+        if (max === undefined || d > max) max = d;
+    }
+    if (min === undefined || max === undefined) return undefined;
+    return { min, max };
+}
+
+/**
+ * Narrow an aggregation X column to Number together with its [d0, d1] domain. For a bigint number-scale
+ * domain the bigint domain-min is subtracted from BOTH before crossing to Number, so a high-magnitude
+ * narrow-range column keeps full bucketing precision (mirrors the bigint scale.convert() path) rather than collapsing
+ * every value onto one double. Otherwise the column is narrowed absolutely and the domain comes from
+ * {@link aggregationDomain}.
+ */
+export function narrowAggregationX(
+    scale: ScaleType,
+    epochXValues: any[],
+    domainInput: DomainWithMetadata<any>
+): { xValues: any[]; domain: [number, number] } {
+    const extent = bigIntAggregationExtent(scale, domainInput);
+    if (extent !== undefined) {
+        return {
+            xValues: narrowBigIntColumnByOffset(epochXValues, extent.min),
+            domain: [0, Number(extent.max - extent.min)],
+        };
+    }
+    return { xValues: narrowBigIntColumn(epochXValues), domain: aggregationDomain(scale, domainInput) };
+}
+
 function estimateSmallestPixelIntervalIter(
     xValues: any[],
     d0: number,
