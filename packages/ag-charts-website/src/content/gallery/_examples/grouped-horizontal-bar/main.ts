@@ -86,7 +86,6 @@ const options: AgChartOptions = {
                     type: 'line',
                     value: 'Jul',
                     strokeWidth: 0,
-                    fillOpacity: 0,
                     label: {
                         text: '→ JUL',
                         position: 'inside-right',

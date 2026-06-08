@@ -4,10 +4,6 @@ import type { AxisValue, CssColor, FontFamilyFull, Opacity, PixelSize } from './
 export interface AgCommonCrossLineOptions<LabelType = AgBaseCrossLineLabelOptions> {
     /** Whether to show the Cross Line. */
     enabled?: boolean;
-    /** The colour to use for the fill of the range. */
-    fill?: CssColor;
-    /** The opacity of the fill for the range. */
-    fillOpacity?: Opacity;
     /** The colour of the stroke for the lines. */
     stroke?: CssColor;
     /** The width in pixels of the stroke for the lines. */
@@ -38,6 +34,10 @@ export interface AgRangeCrossLineOptions<
     type: 'range';
     /** The `[start, end]` data values bounding the shaded region. */
     range: [TValue, TValue];
+    /** The colour to use for the fill of the range. */
+    fill?: CssColor;
+    /** The opacity of the fill for the range. */
+    fillOpacity?: Opacity;
 }
 
 export type AgBaseCrossLineOptions<TValue = AxisValue, LabelType = AgBaseCrossLineLabelOptions> =
@@ -46,7 +46,12 @@ export type AgBaseCrossLineOptions<TValue = AxisValue, LabelType = AgBaseCrossLi
 
 export interface AgCrossLineThemeOptions<
     LabelType = AgBaseCrossLineLabelOptions,
-> extends AgCommonCrossLineOptions<LabelType> {}
+> extends AgCommonCrossLineOptions<LabelType> {
+    /** The colour to use for the fill of the range. */
+    fill?: CssColor;
+    /** The opacity of the fill for the range. */
+    fillOpacity?: Opacity;
+}
 
 export interface AgBaseCrossLineLabelOptions extends Omit<AgChartLabelStyleOptions, 'fontFamily'> {
     /** The text to show in the label. */

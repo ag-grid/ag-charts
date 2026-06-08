@@ -116,8 +116,6 @@ const options: AgChartOptions = {
                 {
                     type: 'line',
                     value: -321,
-                    fill: '#330066',
-                    fillOpacity: 0.1,
                     stroke: '#330066',
                     strokeOpacity: 0.3,
                     lineDash: [10, 2],
