@@ -16,6 +16,7 @@ import type {
     AgRangeAreaSeriesOptions,
     AgRangeBarSeriesOptions,
     AgRangesOptions,
+    AgThemeOverrides,
     AgZoomOptions,
     DatumDefault,
 } from 'ag-charts-types';
@@ -62,7 +63,8 @@ const toolbarButtons: AgAnnotationsToolbarButton[] = [
 export function priceVolume(
     opts: AgPriceVolumePreset & AgBaseFinancialPresetOptions,
     _presetTheme: any,
-    getTheme: () => ChartTheme
+    getTheme: () => ChartTheme,
+    themeOverrides?: AgThemeOverrides
 ): AgCartesianChartOptions<DatumDefault, never> {
     const {
         dateKey = 'date',
@@ -87,6 +89,9 @@ export function priceVolume(
 
     const priceSeries = createPriceSeries(chartType, dateKey, highKey, lowKey, openKey, closeKey);
     const volumeSeries = createVolumeSeries(getTheme, dateKey, openKey, closeKey, volume, volumeKey);
+
+    const userToolbarButtons = themeOverrides?.common?.annotations?.toolbar?.buttons;
+    const buttons = userToolbarButtons ?? toolbarButtons;
 
     const miniChart = volume
         ? {
@@ -128,7 +133,7 @@ export function priceVolume(
             snap: true,
             toolbar: {
                 enabled: toolbar,
-                buttons: toolbarButtons,
+                buttons,
                 padding: 0,
             },
             data,
