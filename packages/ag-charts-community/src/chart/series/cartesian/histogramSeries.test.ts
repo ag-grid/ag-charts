@@ -477,6 +477,29 @@ describe('HistogramSeries', () => {
                 ])
             );
         });
+
+        it('resolves distinct tooltip content for each of two consecutive empty bins', async () => {
+            // Empty bins all share groupIndex -1, so a groupIndex-keyed lookup would return the
+            // first empty bin's content for both. Each bin is keyed by its positional binIndex.
+            const renderer = vi.fn((_params: any) => ({}));
+            chart = createChart({ tooltip: { renderer } });
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0] as any;
+            const emptyBins = (series.getNodeData() as any[]).filter((n) => n.frequency === 0);
+            expect(emptyBins.map((n) => n.binIndex)).toEqual([1, 2]);
+
+            for (const node of emptyBins) {
+                renderer.mockClear();
+                series.getTooltipContent(node.datumIndex);
+                expect(renderer).toHaveBeenCalledTimes(1);
+                expect(renderer.mock.calls[0][0]).toMatchObject({
+                    binIndex: node.binIndex,
+                    binRange: node.binRange,
+                    frequency: 0,
+                });
+            }
+        });
     });
 
     describe('Series Labels', () => {

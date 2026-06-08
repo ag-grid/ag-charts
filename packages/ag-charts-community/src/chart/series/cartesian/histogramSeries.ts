@@ -14,6 +14,7 @@ import {
     tickStep,
 } from 'ag-charts-core';
 import type {
+    AgHistogramSeriesBinParams,
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
     AgHistogramSeriesStyle,
@@ -91,8 +92,6 @@ type HistogramAnimationData = CartesianAnimationDataOf<HistogramSeriesTypes>;
 
 interface CalculatedBin {
     domain: [number, number];
-    /** Index into `processedData.groups` (-1 when the bin is empty); used for data-model lookups. */
-    groupIndex: number;
     /** Zero-based positional index of the bin within the series; defined for every bin, including empty ones. */
     binIndex: number;
     datum: any[];
@@ -340,9 +339,9 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 const total = groupAgg[0] + groupAgg[1];
                 // `aggregatedValue` ignores areaPlot's width-division (see `rawAgg` in processData).
                 const aggregatedValue = rawAgg ? rawAgg[0] + rawAgg[1] : total;
-                return { domain, datum, groupIndex, binIndex, frequency, total, aggregatedValue };
+                return { domain, datum, binIndex, frequency, total, aggregatedValue };
             } else {
-                return { domain, datum: [], groupIndex: -1, binIndex, frequency: 0, total: 0, aggregatedValue: 0 };
+                return { domain, datum: [], binIndex, frequency: 0, total: 0, aggregatedValue: 0 };
             }
         });
 
@@ -448,6 +447,12 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         };
     }
 
+    /** The standardised bin metadata passed to every histogram callback. */
+    private binParams(bin: CalculatedBin): AgHistogramSeriesBinParams<any> {
+        const { datum, binIndex, domain: binRange, aggregatedValue, frequency } = bin;
+        return { datum, binIndex, binRange, aggregatedValue, frequency };
+    }
+
     /**
      * Creates label data for a histogram bin if labels are enabled.
      */
@@ -460,7 +465,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         h: number
     ): HistogramNodeDatum['label'] {
         const { label, yKey, xKey, xName, yName } = ctx;
-        const { total, datum, domain: binRange, binIndex, frequency, aggregatedValue } = bin;
+        const { total, datum } = bin;
 
         if (!label.enabled || total === 0) {
             return undefined;
@@ -470,12 +475,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             x: x + w / 2,
             y: y + h / 2,
             text: this.getLabelText<AgHistogramSeriesLabelFormatterParams>(total, datum, yKey!, 'y', [], label, {
+                ...this.binParams(bin),
                 value: total,
-                datum,
-                binIndex,
-                binRange,
-                aggregatedValue,
-                frequency,
                 xKey,
                 yKey,
                 xName,
@@ -490,25 +491,16 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
      */
     private createSkeletonNodeDatum(ctx: HistogramSeriesNodeDatumContext, bin: CalculatedBin): HistogramNodeDatum {
         const { xKey, yKey } = ctx;
-        const { domain: binRange, datum, groupIndex, binIndex, frequency, total, aggregatedValue } = bin;
+        const { domain: binRange, datum, binIndex, frequency, total, aggregatedValue } = bin;
         const [binStart, binEnd] = binRange;
         const { getDataId } = this.properties;
-        const customId =
-            getDataId == null
-                ? undefined
-                : this.cachedCallWithContext(getDataId, {
-                      datum,
-                      binIndex,
-                      binRange,
-                      aggregatedValue,
-                      frequency,
-                  });
+        const customId = getDataId == null ? undefined : this.cachedCallWithContext(getDataId, this.binParams(bin));
         const itemId = customId ?? `bin:${binStart},${binEnd}`;
 
         return {
             series: this,
             itemId,
-            datumIndex: groupIndex,
+            datumIndex: binIndex,
             datum,
             binIndex,
             binRange,
@@ -539,7 +531,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
      */
     private updateNodeDatum(ctx: HistogramSeriesNodeDatumContext, node: HistogramNodeDatum, bin: CalculatedBin): void {
         const { xScale, yScale, yAxisReversed } = ctx;
-        const { domain: binRange, datum, groupIndex, binIndex, frequency, total, aggregatedValue } = bin;
+        const { domain: binRange, datum, binIndex, frequency, total, aggregatedValue } = bin;
         const mutableNode = node as Mutable<HistogramNodeDatum>;
 
         const [xDomainMin, xDomainMax] = binRange;
@@ -555,7 +547,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const y = Math.min(yZeroPx, yMaxPx);
 
         // Update properties
-        mutableNode.datumIndex = groupIndex;
+        mutableNode.datumIndex = binIndex;
         mutableNode.datum = datum;
         mutableNode.binIndex = binIndex;
         mutableNode.aggregatedValue = aggregatedValue;
@@ -746,7 +738,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 binRange: datum.binRange,
                 aggregatedValue: datum.aggregatedValue,
                 frequency: datum.frequency,
-                value: datum.aggregatedValue,
+                value: datum.cumulativeValue,
                 xKey,
                 yKey,
                 xName,
@@ -800,11 +792,11 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             return;
         }
 
-        const bin = this.calculatedBins.find((b) => b.groupIndex === datumIndex);
+        const bin = this.calculatedBins[datumIndex];
         if (bin == null) {
             return;
         }
-        const { binIndex, frequency, aggregatedValue, datum } = bin;
+        const { frequency, aggregatedValue, datum } = bin;
         const binRange = bin.domain;
         const [rangeMin, rangeMax]: number[] = binRange;
 
@@ -848,16 +840,12 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             },
             {
                 seriesId,
-                datum,
                 title: yName,
                 xKey: xKey as any, // HistogramSeries is an outlier since it's callbacks don't use TDatum.
                 xName,
                 yKey: yKey as any, // HistogramSeries is an outlier since it's callbacks don't use TDatum.
                 yName,
-                binIndex,
-                binRange,
-                aggregatedValue,
-                frequency,
+                ...this.binParams(bin),
                 ...this.getItemStyle(datumIndex, false),
             }
         );
