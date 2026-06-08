@@ -998,22 +998,24 @@ export class DOMManager extends BaseManager {
         const shadowRoot = this.shadowDocumentRoot?.getRootNode() as HTMLElement | undefined;
         if (!shadowRoot || !('addEventListener' in shadowRoot)) return;
 
-        // Attach a single event listener to the shadow root to catch the bubbled events for every property, rather
-        // than a different event for each property.
-        const handleTransitionEnd = () => {
-            this.eventsHub.emit('chart:request-refresh', null);
-        };
-        shadowRoot.addEventListener('transitionend', handleTransitionEnd);
-        this.cleanup.register(() => {
-            shadowRoot.removeEventListener('transitionend', handleTransitionEnd);
-        });
-
         const existingWatchers = new Set();
         for (let i = 0; i < shadowRoot.children.length; i++) {
             const child = shadowRoot.children.item(i) as HTMLElement | null;
             if (child?.dataset.variableName != null) {
                 existingWatchers.add(child.dataset.variableName);
             }
+        }
+
+        // Attach a single event listener to the shadow root to catch the bubbled events for every property, rather
+        // than a different event for each property.
+        if (existingWatchers.size === 0) {
+            const handleTransitionEnd = () => {
+                this.eventsHub.emit('chart:request-refresh', null);
+            };
+            shadowRoot.addEventListener('transitionend', handleTransitionEnd);
+            this.cleanup.register(() => {
+                shadowRoot.removeEventListener('transitionend', handleTransitionEnd);
+            });
         }
 
         for (const key of strictObjectKeys(cssVariables)) {
