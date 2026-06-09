@@ -13,6 +13,7 @@ import {
     minValue,
     subtractValues,
     timeValueToNumber,
+    toNumber,
     transformIntegratedCategoryValue,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
@@ -422,18 +423,24 @@ function normalisePropertyFnBuilder({
         return result;
     };
 
+    // Normalisation maps to an angle/ratio with Number factors, so narrow bigint endpoints/values to
+    // Number — a bigint would otherwise throw when mixed. Missing/non-finite values pass through so
+    // absent data still normalises to NaN rather than warning via toNumber.
+    const toRenderValue = (value: unknown): number => (isFiniteNumericValue(value) ? toNumber(value) : Number(value));
+
     return function normalisePropertyResetFn() {
         return function normalisePropertyResultFn(pData: ProcessedData<any>, pIdx: number) {
             let [start, end] = pData.domain.values[pIdx];
             if (rangeMin != null) start = rangeMin;
             if (rangeMax != null) end = rangeMax;
-            const span = end - start;
+            const startValue = toRenderValue(start);
+            const span = toRenderValue(end) - startValue;
 
             pData.domain.values[pIdx] = [normaliseTo[0], normaliseTo[1]];
 
             const column = pData.columns[pIdx];
             for (let datumIndex = 0; datumIndex < column.length; datumIndex += 1) {
-                column[datumIndex] = normalise(column[datumIndex], start, span);
+                column[datumIndex] = normalise(toRenderValue(column[datumIndex]), startValue, span);
             }
         };
     };
