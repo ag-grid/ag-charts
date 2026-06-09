@@ -66,8 +66,12 @@ type WaterfallNodePointDatum = _ModuleSupport.DataModelSeriesNodeDatum['point'] 
 
 interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
-    readonly itemId?: never;
+    // Original data-array index for real bars, as a string so the active-state round-trip
+    // resolves via `node.itemId`; synthetic total/subtotal bars leave it unset (→ `datumIndex`).
+    readonly itemId?: string;
     readonly itemType: AgWaterfallSeriesItemType;
+    // Axis label for synthetic total/subtotal bars; unset for real positive/negative bars.
+    readonly totalLabel?: string;
     readonly cumulativeValue: number;
     readonly width: number;
     readonly height: number;
@@ -111,6 +115,8 @@ interface WaterfallSeriesNodeDatumContext extends _ModuleSupport.CartesianCreate
 /** Parameters for creating/updating a WaterfallNodeDatum */
 interface WaterfallNodeDatumParams {
     datumIndex: number;
+    itemId: string | undefined;
+    totalLabel: string | undefined;
     datum: unknown;
     xDatum: any;
     value: number | undefined;
@@ -292,6 +298,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         // Scratch object for params - reused across iterations
         const paramsScratch: WaterfallNodeDatumParams = {
             datumIndex: 0,
+            itemId: undefined,
+            totalLabel: undefined,
             datum: undefined,
             xDatum: undefined,
             value: undefined,
@@ -299,6 +307,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             trailingValue: undefined,
             datumType: undefined,
         };
+
+        // Synthetic total/subtotal bars occupy augmented index slots absent from the user data.
+        // Count those preceding each real bar to recover its original (unshifted) data index.
+        let syntheticCount = 0;
 
         for (const [datumIndex, datum] of ctx.rawData.entries()) {
             const datumType = ctx.totalTypeValues[datumIndex];
@@ -326,7 +338,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
             // Update scratch params
             paramsScratch.datumIndex = datumIndex;
-            paramsScratch.datum = datum;
+            paramsScratch.itemId = isTotalOrSubtotal ? undefined : String(datumIndex - syntheticCount);
+            paramsScratch.totalLabel = isTotalOrSubtotal ? String(xDatum) : undefined;
+            paramsScratch.datum = isTotalOrSubtotal ? undefined : datum;
             paramsScratch.xDatum = xDatum;
             paramsScratch.value = value;
             paramsScratch.cumulativeValue = cumulativeValue;
@@ -350,6 +364,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                     isTotalOrSubtotal
                 );
                 ctx.pointData.push(pathPoint);
+            }
+
+            if (isTotalOrSubtotal) {
+                syntheticCount += 1;
             }
         }
     }
@@ -503,7 +521,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         params: WaterfallNodeDatumParams
     ): WaterfallNodeDatum {
         const { xKey, yKey, crisp } = ctx;
-        const { datumIndex, datum, xDatum, value, cumulativeValue, datumType } = params;
+        const { datumIndex, itemId, totalLabel, datum, xDatum, value, cumulativeValue, datumType } = params;
 
         const isPositive = (value ?? 0) >= 0;
         const seriesItemType = this.getSeriesItemType(isPositive, datumType);
@@ -511,6 +529,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         return {
             index: datumIndex,
             series: this,
+            itemId,
+            totalLabel,
             itemType: seriesItemType,
             datum,
             datumIndex,
@@ -540,7 +560,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     ): void {
         const { xScale, yScale, barAlongX, barWidth, valueAxisReversed, xKey, yKey, xName, yName, yDomain, crisp } =
             ctx;
-        const { datumIndex, datum, xDatum, value, cumulativeValue, trailingValue, datumType } = params;
+        const { datumIndex, itemId, totalLabel, datum, xDatum, value, cumulativeValue, trailingValue, datumType } =
+            params;
         const mutableNode = node as Mutable<WaterfallNodeDatum>;
 
         const x = Math.round(xScale.convert(xDatum));
@@ -564,6 +585,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         // Update properties
         mutableNode.index = datumIndex;
+        mutableNode.itemId = itemId;
+        mutableNode.totalLabel = totalLabel;
         mutableNode.itemType = seriesItemType;
         mutableNode.datum = datum;
         mutableNode.datumIndex = datumIndex;
@@ -596,6 +619,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 label,
                 {
                     itemType,
+                    totalLabel,
                     value,
                     datum,
                     xKey,
@@ -774,14 +798,14 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     }
 
     private getItemStyle(
-        nodeDatum: Pick<WaterfallNodeDatum, 'datum' | 'datumIndex'> | undefined,
+        nodeDatum: Pick<WaterfallNodeDatum, 'datum' | 'datumIndex' | 'totalLabel'> | undefined,
         isHighlight: boolean,
         highlightState?: _ModuleSupport.HighlightState,
         itemType: AgWaterfallSeriesItemType = 'total',
         selectionState?: _ModuleSupport.SelectionState
     ): Required<AgWaterfallSeriesStyle> {
         const { properties } = this;
-        const { datumIndex = 0, datum } = nodeDatum ?? {};
+        const { datumIndex = 0, datum, totalLabel } = nodeDatum ?? {};
 
         const propertyItemId = itemType === 'subtotal' ? 'total' : itemType;
         const item = properties.item[propertyItemId];
@@ -798,7 +822,14 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const params = this.makeItemStylerParams(itemType, datumIndex, datum, isHighlight, style);
+                    const params = this.makeItemStylerParams(
+                        itemType,
+                        datumIndex,
+                        datum,
+                        totalLabel,
+                        isHighlight,
+                        style
+                    );
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`, 'item', propertyItemId],
                         this.callWithContext(itemStyler, params)
@@ -817,6 +848,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         itemType: AgWaterfallSeriesItemType,
         datumIndex: number,
         datum: unknown,
+        totalLabel: string | undefined,
         isHighlight: boolean,
         style: Required<AgWaterfallSeriesStyle>
     ) {
@@ -831,6 +863,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         return {
             seriesId,
             itemType,
+            totalLabel,
             datum,
             xKey,
             yKey,
@@ -939,6 +972,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     }) {
         const params: RequireOptional<AgWaterfallSeriesLabelFormatterParams> = {
             itemType: 'positive',
+            totalLabel: undefined,
             xKey: this.properties.xKey,
             xName: this.properties.xName ?? this.properties.xName,
             yKey: this.properties.yKey,
@@ -947,6 +981,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         labelSelection.each((textNode, datum) => {
             params.itemType = datum.itemType;
+            params.totalLabel = datum.totalLabel;
             const styleOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex)?.opacity ?? 1;
             textNode.visible = true;
             textNode.fillOpacity = styleOpacity;
@@ -963,7 +998,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yRaw`, processedData)[datumIndex];
         const yCurrTotalValues = dataModel.resolveColumnById<number>(this, 'yCurrentTotal', processedData);
@@ -978,6 +1012,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const datumType = totalTypeValues[datumIndex];
+
+        // Synthetic total/subtotal bars expose no user datum to the renderer or axis formatters.
+        const datum =
+            this.isTotal(datumType) || this.isSubtotal(datumType)
+                ? undefined
+                : processedData.dataSources.get(this.id)?.data[datumIndex];
+
         const isPositive = (yValue ?? 0) >= 0;
 
         const seriesItemType = this.getSeriesItemType(isPositive, datumType);
@@ -1024,7 +1065,18 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                     },
                 ],
             },
-            { seriesId, datum, title: yName, itemType: seriesItemType, xKey, xName, yKey, yName, ...format }
+            {
+                seriesId,
+                datum,
+                title: yName,
+                itemType: seriesItemType,
+                totalLabel: nodeDatum?.totalLabel,
+                xKey,
+                xName,
+                yKey,
+                yName,
+                ...format,
+            }
         );
     }
 

@@ -1873,10 +1873,10 @@ describe('AG-15850 activeChange', () => {
             expect(calls?.[0]?.[0]?.datum?.myX).toEqual('Positive 2');
             expect(calls).toMatchSnapshot();
 
-            // hover on another waterfall bar (Subtotal 1)
+            // hover on another waterfall bar (Subtotal 1) — synthetic, so datum is undefined
             await hover(365, 204);
             calls = popCalls();
-            expect(calls?.[0]?.[0]?.datum?.myX).toEqual('Subtotal 1');
+            expect(calls?.[0]?.[0]?.datum).toBeUndefined();
             expect(calls).toMatchSnapshot();
 
             // hover on a legend item (Negative 3)
@@ -1903,10 +1903,10 @@ describe('AG-15850 activeChange', () => {
             expect(calls?.[0]?.[0]?.datum?.myX).toEqual('Positive 2');
             expect(calls).toMatchSnapshot();
 
-            // Subtotal 1
+            // Subtotal 1 — synthetic, so datum is undefined
             await setActiveItem({ type: 'series-node', itemId: 5, seriesId: 'WaterfallSeries-1' });
             calls = popCalls();
-            expect(calls?.[0]?.[0]?.datum?.myX).toEqual('Subtotal 1');
+            expect(calls?.[0]?.[0]?.datum).toBeUndefined();
             expect(calls).toMatchSnapshot();
 
             // Negative 3
