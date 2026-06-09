@@ -83,12 +83,12 @@ export type Listener<E> = (event: E) => void;
  * A text segment whose colour has been normalised to a resolved CSS colour string, with theme
  * colour references no longer permitted.
  */
-interface NormalisedTextSegment extends Omit<TextSegment, 'color'> {
+export interface NormalisedTextSegment extends Omit<TextSegment, 'color'> {
     /** Resolved colour for this segment. */
     color?: CssColor;
 }
 
-type NormalisedTextOrSegments = TextValue | (NormalisedTextSegment | ImageSegment)[];
+export type NormalisedTextOrSegments = TextValue | (NormalisedTextSegment | ImageSegment)[];
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export type NormalisedCallbackParams<P, O extends Partial<Record<keyof P, unknown>> = {}> = Omit<
