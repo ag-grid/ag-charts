@@ -12,12 +12,20 @@ import {
     intervalMilliseconds,
     intervalStep,
     intervalUnit,
+    isISO8601,
     lowestGranularityForInterval,
     lowestGranularityUnitForTicks,
     lowestGranularityUnitForValue,
     normalisedTimeExtentWithMetadata,
+    timeValueToNumber,
 } from 'ag-charts-core';
-import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
+import type {
+    AgTimeInterval,
+    AgTimeIntervalUnit,
+    AgTimeValue,
+    DateFormatterStyle,
+    FormatterParams,
+} from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
@@ -27,6 +35,13 @@ import type { AxisTickFormatParams } from './axis';
 import { CartesianAxis } from './cartesianAxis';
 
 type TimeBound = Date | number | undefined;
+
+// Coerces a time-axis bound to `Date | number`; non-time inputs pass through so existing validation surfaces the error.
+export function coerceTimeBound(value: AgTimeValue | undefined): TimeBound {
+    if (typeof value === 'bigint') return Number(value);
+    if (isISO8601(value)) return new Date(value);
+    return value;
+}
 
 export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTimeAxisOptions> extends CartesianAxis<
     TimeScale,
@@ -74,7 +89,13 @@ export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTim
 
     override normaliseDataDomain(d: DomainWithMetadata<Date>) {
         const { min, max, preferredMin, preferredMax } = this.options;
-        const { extent, clipped } = normalisedTimeExtentWithMetadata(d, min, max, preferredMin, preferredMax);
+        const { extent, clipped } = normalisedTimeExtentWithMetadata(
+            d,
+            coerceTimeBound(min),
+            coerceTimeBound(max),
+            coerceTimeBound(preferredMin),
+            coerceTimeBound(preferredMax)
+        );
         return { domain: extent, clipped };
     }
 
@@ -83,7 +104,12 @@ export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTim
 
         const { boundSeries, direction } = this;
         const { min, max } = this.options;
-        this.minimumTimeGranularity = minimumTimeAxisDatumGranularity(boundSeries, direction, min, max);
+        this.minimumTimeGranularity = minimumTimeAxisDatumGranularity(
+            boundSeries,
+            direction,
+            coerceTimeBound(min),
+            coerceTimeBound(max)
+        );
     }
 
     override tickFormatParams(
@@ -101,14 +127,14 @@ export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTim
     }
 
     override datumFormatParams(
-        value: number | Date,
+        value: AgTimeValue,
         params: FormatDatumParams,
         _fractionDigits: number | undefined,
         timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined,
         style: DateFormatterStyle
     ): FormatterParams<any> {
-        if (typeof value === 'number') {
-            value = new Date(value);
+        if (!(value instanceof Date)) {
+            value = new Date(timeValueToNumber(value));
         }
 
         if (timeInterval == null) {

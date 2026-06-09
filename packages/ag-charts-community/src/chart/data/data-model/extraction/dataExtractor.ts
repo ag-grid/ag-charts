@@ -1,4 +1,5 @@
-import { Logger, first, isNumberObject, iterate } from 'ag-charts-core';
+import { Logger, first, isISO8601, isNumberObject, iterate, timeValueToNumber } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { ContinuousDomain } from '../../dataDomain';
 import {
@@ -21,7 +22,7 @@ import { createArray } from '../utils/helpers';
 
 /** Tracks ordering/uniqueness during key extraction */
 interface KeyExtractionTracker {
-    lastValue: number | undefined;
+    lastValue: AgNumericValue | undefined;
     sortOrder: 1 | -1 | 0; // 0 = undetermined, 1 = ascending, -1 = descending
     isUnique: boolean;
     isOrdered: boolean;
@@ -32,27 +33,41 @@ function createKeyTracker(): KeyExtractionTracker {
 }
 
 function updateKeyTracker(tracker: KeyExtractionTracker, value: unknown): void {
-    // Only track numeric values (including Date.valueOf())
-    const numericValue = typeof value === 'number' ? value : (value as Date)?.valueOf?.();
-    if (typeof numericValue !== 'number' || !Number.isFinite(numericValue)) return;
+    // Resolve to a comparable value: bigint stays exact, ISO 8601 strings parse to epoch ms, Date narrows
+    // via valueOf(). Without this, bigint/ISO keys are skipped and the series is wrongly flagged unordered.
+    let current: AgNumericValue | undefined;
+    if (typeof value === 'number') {
+        current = Number.isFinite(value) ? value : undefined;
+    } else if (typeof value === 'bigint') {
+        current = value;
+    } else if (isISO8601(value)) {
+        const epoch = timeValueToNumber(value);
+        current = Number.isFinite(epoch) ? epoch : undefined;
+    } else {
+        const viaValueOf = (value as Date)?.valueOf?.();
+        current = typeof viaValueOf === 'number' && Number.isFinite(viaValueOf) ? viaValueOf : undefined;
+    }
+    if (current === undefined) return;
 
-    if (tracker.lastValue === undefined) {
-        tracker.lastValue = numericValue;
+    const { lastValue } = tracker;
+    if (lastValue === undefined) {
+        tracker.lastValue = current;
         return;
     }
 
-    const diff = numericValue - tracker.lastValue;
-    if (diff === 0) {
+    // A column is uniformly typed here, so `===` is exact; the relational `>` for direction stays type-safe
+    // (and never throws as `bigint - number` subtraction would) if a malformed mixed column slips through.
+    if (current === lastValue) {
         tracker.isUnique = false;
     } else if (tracker.isOrdered) {
-        const direction = diff > 0 ? 1 : -1;
+        const direction = current > lastValue ? 1 : -1;
         if (tracker.sortOrder === 0) {
             tracker.sortOrder = direction;
         } else if (tracker.sortOrder !== direction) {
             tracker.isOrdered = false;
         }
     }
-    tracker.lastValue = numericValue;
+    tracker.lastValue = current;
 }
 
 function trackerToSortOrderEntry(tracker: KeyExtractionTracker): SortOrderEntry {
@@ -68,6 +83,8 @@ interface ColumnTypeTracker {
     type: ColumnValueType | undefined;
     /** Row index where `number` and `bigint` were first observed to mix; used for the one-shot warning. */
     mixedAtIndex: number | undefined;
+    /** Row index where a date column was first observed to mix with a non-date, non-numeric value. */
+    mixedDateAtIndex: number | undefined;
 }
 
 function valueColumnType(value: unknown): ColumnValueType | undefined {
@@ -76,33 +93,69 @@ function valueColumnType(value: unknown): ColumnValueType | undefined {
             return 'number';
         case 'bigint':
             return 'bigint';
+        case 'boolean':
+            return 'boolean';
         case 'string':
-            return 'string';
+            return isISO8601(value) ? 'date' : 'string';
         case 'object':
             if (value == null) return undefined;
-            // A NumberObject ({ valueOf(): number }) is numeric, not a date.
-            return isNumberObject(value) ? 'number' : 'date';
+            if (value instanceof Date) return 'date';
+            return isNumberObject(value) ? 'number' : 'object';
         default:
             return undefined;
     }
 }
 
-function updateColumnTypeTracker(tracker: ColumnTypeTracker, value: unknown, datumIndex: number): void {
+function updateColumnTypeTracker(
+    tracker: ColumnTypeTracker,
+    value: unknown,
+    datumIndex: number
+): ColumnValueType | undefined {
     const observed = valueColumnType(value);
-    if (observed == null) return;
+    if (observed == null) return undefined;
 
-    if (tracker.type == null) {
+    if (tracker.type == null || tracker.type === observed) {
         tracker.type = observed;
-    } else if (tracker.type !== observed && isNumericColumnType(tracker.type) && isNumericColumnType(observed)) {
-        // TODO(AG-16654, PR5): number<->date coexistence (epoch number + Date in one column) should also
-        // promote to 'date'; only number<->bigint mixing is handled today.
+    } else if (isDateColumnType(tracker.type) || isDateColumnType(observed)) {
+        // A date column tolerates numeric epochs, but mixing in strings/booleans/objects is incompatible:
+        // those values cannot be placed on a time axis, so flag the column for a one-shot warning.
+        const otherType = isDateColumnType(tracker.type) ? observed : tracker.type;
+        if (!isNumericColumnType(otherType)) {
+            tracker.mixedDateAtIndex ??= datumIndex;
+        }
+        tracker.type = 'date';
+    } else if (isNumericColumnType(tracker.type) && isNumericColumnType(observed)) {
+        // Mixed number/bigint narrows bigints to Number (lossy beyond ±(2^53 - 1)); warned once at series level.
         tracker.mixedAtIndex ??= datumIndex;
         tracker.type = 'mixed-numeric';
     }
+
+    return observed;
 }
 
 function isNumericColumnType(type: ColumnValueType): boolean {
     return type === 'number' || type === 'bigint' || type === 'mixed-numeric';
+}
+
+function isDateColumnType(type: ColumnValueType): boolean {
+    return type === 'date';
+}
+
+// Explicit timezone iff the ISO string ends with `Z` or a trailing `±HH:MM` offset.
+const ISO_8601_EXPLICIT_TZ = /(Z|[+-]\d{2}:\d{2})$/;
+
+interface TimezoneTracker {
+    explicit: { value: string; index: number } | undefined;
+    implicit: { value: string; index: number } | undefined;
+}
+
+function updateTimezoneTracker(tracker: TimezoneTracker, value: unknown, datumIndex: number): void {
+    if (typeof value !== 'string') return;
+    if (ISO_8601_EXPLICIT_TZ.test(value)) {
+        tracker.explicit ??= { value, index: datumIndex };
+    } else {
+        tracker.implicit ??= { value, index: datumIndex };
+    }
 }
 
 /**
@@ -236,6 +289,12 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
 
             // Track ordering/uniqueness for this key definition
             const tracker = createKeyTracker();
+            const typeTracker: ColumnTypeTracker = {
+                type: undefined,
+                mixedAtIndex: undefined,
+                mixedDateAtIndex: undefined,
+            };
+            const tzTracker: TimezoneTracker = { explicit: undefined, implicit: undefined };
 
             for (const scope of keyScopes ?? []) {
                 const data = sources.get(scope)?.data ?? [];
@@ -270,6 +329,9 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                         keys.push(result.value);
                         // Track ordering/uniqueness for valid keys
                         updateKeyTracker(tracker, result.value);
+                        if (updateColumnTypeTracker(typeTracker, result.value, datumIndex) === 'date') {
+                            updateTimezoneTracker(tzTracker, result.value, datumIndex);
+                        }
                         continue;
                     }
 
@@ -301,6 +363,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
 
             // Store the computed sort order entry for this key definition
             keySortOrders.set(keyDefIndex, trackerToSortOrderEntry(tracker));
+            this.warnMixedTimezoneColumn(keyDef.property, typeTracker.type, tzTracker, keyDef.timeDomain === true);
         }
         return {
             invalidData,
@@ -364,7 +427,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
         const columns: unknown[][] = [];
         const allColumnScopes: Set<ScopeId>[] = [];
         const columnNeedValueOf: boolean[] = [];
-        const columnValueType: ColumnValueType[] = [];
+        const columnValueType: (ColumnValueType | undefined)[] = [];
         let maxDataLength = 0;
         const valueProcessors = valueDefs.map((def) => getProcessValue(def));
 
@@ -382,7 +445,12 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             const column = new Array<unknown>();
             const invalidKeys = scopeInvalidKeys.get(columnScope);
             let needsValueOf = false;
-            const typeTracker: ColumnTypeTracker = { type: undefined, mixedAtIndex: undefined };
+            const typeTracker: ColumnTypeTracker = {
+                type: undefined,
+                mixedAtIndex: undefined,
+                mixedDateAtIndex: undefined,
+            };
+            const tzTracker: TimezoneTracker = { explicit: undefined, implicit: undefined };
             for (let datumIndex = 0; datumIndex < columnSource.length; datumIndex++) {
                 if (columnSource[datumIndex] == null || typeof columnSource[datumIndex] !== 'object') {
                     // Count non-object items as invalid data
@@ -401,8 +469,8 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                     this.markScopeDatumInvalid(def.scopes, columnSource, datumIndex, invalidData, invalidDataCount);
                 } else if (result.missing) {
                     this.markScopeDatumMissing(def.scopes, columnSource, datumIndex, missingData);
-                } else {
-                    updateColumnTypeTracker(typeTracker, result.value, datumIndex);
+                } else if (updateColumnTypeTracker(typeTracker, result.value, datumIndex) === 'date') {
+                    updateTimezoneTracker(tzTracker, result.value, datumIndex);
                 }
 
                 if (invalidKey) {
@@ -424,11 +492,16 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             if (typeTracker.type === 'mixed-numeric' && typeTracker.mixedAtIndex != null) {
                 this.warnMixedNumericColumn(columnScope, def.property, typeTracker.mixedAtIndex);
             }
+            if (typeTracker.mixedDateAtIndex != null) {
+                this.warnMixedDateColumn(columnScope, def.property, typeTracker.mixedDateAtIndex);
+            }
+            this.warnMixedTimezoneColumn(def.property, typeTracker.type, tzTracker, def.timeDomain === true);
 
             columns.push(column);
             allColumnScopes.push(columnScopes);
             columnNeedValueOf.push(needsValueOf);
-            columnValueType.push(typeTracker.type ?? 'number');
+            // Leave unobserved columns undefined rather than guessing 'number', so type assertions don't false-positive.
+            columnValueType.push(typeTracker.type);
             maxDataLength = Math.max(maxDataLength, column.length);
         }
 
@@ -445,8 +518,31 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
     private warnMixedNumericColumn(seriesId: ScopeId, key: K, atIndex: number) {
         Logger.warnOnce(
             `Series "${seriesId}": column "${String(key)}" mixes 'number' and 'bigint' values ` +
-                `(first detected at row ${atIndex}). Each column must be uniformly typed. ` +
-                `The series renders empty; other series in this chart are unaffected.`
+                `(first detected at row ${atIndex}); the bigints are narrowed to Number and may lose precision ` +
+                `beyond ±(2^53 - 1) (Number.MAX_SAFE_INTEGER). Use one numeric type per column.`
+        );
+    }
+
+    private warnMixedDateColumn(seriesId: ScopeId, key: K, atIndex: number) {
+        Logger.warnOnce(
+            `Series "${seriesId}": column "${String(key)}" mixes date/time values with non-date values ` +
+                `(first detected at row ${atIndex}). Each column must be uniformly typed; the non-date values ` +
+                `cannot be placed on a time axis and may render at invalid positions.`
+        );
+    }
+
+    private warnMixedTimezoneColumn(
+        key: K,
+        columnType: ColumnValueType | undefined,
+        tracker: TimezoneTracker,
+        isTimeDomain: boolean
+    ) {
+        const { explicit, implicit } = tracker;
+        // Only a time-domain column interprets ISO strings as instants; on a category axis the same strings are
+        // opaque labels, so mixed offsets are not ambiguous and must not warn (value-sniffing alone tags them 'date').
+        if (!isTimeDomain || columnType !== 'date' || explicit == null || implicit == null) return;
+        Logger.warnOnce(
+            `Time axis: column "${String(key)}" contains both timezone-explicit values (e.g. "${explicit.value}", row ${explicit.index}) and timezone-implicit values (e.g. "${implicit.value}", row ${implicit.index}). Ambiguous timezone semantics may produce unexpected positions — points without an explicit offset are interpreted as local time. Use explicit offsets (Z or ±HH:MM) for cross-environment determinism.`
         );
     }
 

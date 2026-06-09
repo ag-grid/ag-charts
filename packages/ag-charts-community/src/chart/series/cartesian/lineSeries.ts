@@ -6,6 +6,7 @@ import {
     extent,
     isDefined,
     mergeDefaults,
+    toNumber,
 } from 'ag-charts-core';
 import {
     type AgDrawingMode,
@@ -33,7 +34,7 @@ import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
 import type { DataModel, DataModelOptions, DatumPropertyDefinition, ProcessedData } from '../../data/dataModel';
-import { fixNumericExtent } from '../../data/dataModel';
+import { extendDomainToZero, fixNumericExtent } from '../../data/dataModel';
 import {
     animationValidation,
     createDatumId,
@@ -321,22 +322,21 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         );
 
         if (this.isNormalized() && yAxis instanceof NumberAxis && !(yAxis instanceof LogAxis)) {
-            const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
-                ? [Math.min(yExtent[0], 0), Math.max(yExtent[1], 0)]
-                : [];
-            return { domain: fixNumericExtent(fixedYExtent) };
+            return { domain: fixNumericExtent(extendDomainToZero(yExtent)) };
         } else {
             return { domain: fixNumericExtent(yExtent) };
         }
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]) {
-        return this.domainForVisibleRange(
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]): [number, number] {
+        // domainForVisibleRange may yield a bigint; narrow once for this number-typed range contract.
+        const [y0, y1] = this.domainForVisibleRange(
             ChartAxisDirection.Y,
             [this.yCumulativeKey(this.processedData!)],
             'xValue',
             visibleRange
         );
+        return [toNumber(y0), toNumber(y1)];
     }
 
     override getZoomRangeFittingItems(
@@ -460,11 +460,16 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             xAxis,
             yAxis,
             rawData,
-            xValues: dataModel.resolveColumnById(this, 'xValue', processedData),
-            yRawValues: dataModel.resolveColumnById(this, 'yValueRaw', processedData),
-            yCumulativeValues: dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData),
+            xValues: dataModel.resolveColumnById(this, 'xValue', processedData, 'object'),
+            yRawValues: dataModel.resolveColumnById(this, 'yValueRaw', processedData, 'mixed-numeric'),
+            yCumulativeValues: dataModel.resolveColumnById(
+                this,
+                this.yCumulativeKey(processedData),
+                processedData,
+                'mixed-numeric'
+            ),
             selectionValues: this.properties.selectedKey
-                ? dataModel.resolveColumnById(this, 'selectedRaw', processedData)
+                ? dataModel.resolveColumnById(this, 'selectedRaw', processedData, 'boolean')
                 : undefined,
             xScale,
             yScale,
@@ -540,7 +545,8 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                 (existingNode as any).datumIndex = datumIndex;
                 (existingNode as any).point = { x: scratch.x, y: scratch.y, size: ctx.size };
                 (existingNode as any).midPoint = { x: scratch.x, y: scratch.y };
-                (existingNode as any).cumulativeValue = scratch.yCumulative;
+                // Metadata only; position already used the exact bigint, so narrowing here is fine.
+                (existingNode as any).cumulativeValue = Number(scratch.yCumulative);
                 (existingNode as any).yValue = scratch.yDatum;
                 (existingNode as any).xValue = scratch.xDatum;
                 (existingNode as any).labelText = labelText;
@@ -554,7 +560,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                     xKey: ctx.xKey,
                     point: { x: scratch.x, y: scratch.y, size: ctx.size },
                     midPoint: { x: scratch.x, y: scratch.y },
-                    cumulativeValue: scratch.yCumulative,
+                    cumulativeValue: Number(scratch.yCumulative),
                     yValue: scratch.yDatum,
                     xValue: scratch.xDatum,
                     capDefaults: ctx.capDefaults,
@@ -838,8 +844,8 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             marker,
             hideWithSize0,
             isHighlight,
-            xColumn: dataModel.resolveColumnById<any>(this, 'xValue', processedData),
-            yColumn: dataModel.resolveColumnById<any>(this, 'yValueRaw', processedData),
+            xColumn: dataModel.resolveColumnById(this, 'xValue', processedData, 'object'),
+            yColumn: dataModel.resolveColumnById(this, 'yValueRaw', processedData, 'mixed-numeric'),
             xDomain: dataModel.getDomain(this, 'xValue', 'key', processedData).domain,
             yDomain: dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData).domain,
             xKey,
@@ -981,8 +987,8 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
     ): AgLineSeriesMarkerItemStylerParams<unknown, unknown> {
         const { xKey, yKey } = this.properties;
 
-        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
+        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData, 'object')[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData, 'mixed-numeric')[datumIndex];
         const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData).domain;
         const yDomain = dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData).domain;
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
@@ -1011,8 +1017,8 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const datum = processedData.dataSources.get(this.id)?.data?.[datumIndex];
-        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
+        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData, 'object')[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData, 'mixed-numeric')[datumIndex];
 
         if (xValue === undefined && !allowNullKeys) return;
 

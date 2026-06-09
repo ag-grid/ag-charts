@@ -24,11 +24,12 @@ export class DomainInitializer<K extends string> {
         sortOrderEntry?: SortOrderEntry
     ): IDataDomain {
         const isDiscrete = def.valueType === 'category';
+        const coerceDates = def.timeDomain === true;
 
         let domain = bandedDomains.get(def);
         if (!domain && this.ctx.bandingConfig?.enableBanding !== false) {
             domain = new BandedDomain(
-                isDiscrete ? () => new DiscreteDomain() : () => new ContinuousDomain(),
+                isDiscrete ? () => new DiscreteDomain(coerceDates) : () => new ContinuousDomain(),
                 this.ctx.bandingConfig,
                 isDiscrete
             );
@@ -45,7 +46,7 @@ export class DomainInitializer<K extends string> {
             return domain;
         }
 
-        return isDiscrete ? new DiscreteDomain() : new ContinuousDomain();
+        return isDiscrete ? new DiscreteDomain(coerceDates) : new ContinuousDomain();
     }
 
     /**

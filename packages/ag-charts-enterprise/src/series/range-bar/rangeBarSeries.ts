@@ -24,8 +24,11 @@ import {
     type RequireOptional,
     areScalingEqual,
     findMinMax,
+    isContinuous,
     mergeDefaults,
+    toNumber,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import {
     type RangeBarSeriesDataAggregationFilter,
@@ -87,8 +90,8 @@ type RangeBarItemId = `${string}-${string}`;
  */
 interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<RangeBarNodeDatum> {
     // Data arrays (resolved from dataModel - worth caching)
-    readonly yLowValues: any[];
-    readonly yHighValues: any[];
+    readonly yLowValues: AgNumericValue[];
+    readonly yHighValues: AgNumericValue[];
 
     // Computed positioning (involves scale conversions - worth caching)
     readonly barWidth: number;
@@ -119,10 +122,10 @@ interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateN
 interface PreparedRangeBarNodeDatumState {
     datum: any;
     xValue: any;
-    yLowValue: number;
-    yHighValue: number;
-    rawLowValue: any;
-    rawHighValue: any;
+    yLowValue: AgNumericValue;
+    yHighValue: AgNumericValue;
+    rawLowValue: AgNumericValue;
+    rawHighValue: AgNumericValue;
 }
 
 /**
@@ -136,8 +139,9 @@ interface NodeDatumParams {
     groupedDataIndex: number;
     x: number;
     width: number;
-    yLow: number;
-    yHigh: number;
+    // bigint-capable so yScale.convert() keeps full precision; x/width are pixel-space.
+    yLow: AgNumericValue;
+    yHigh: AgNumericValue;
     crisp: boolean;
 }
 
@@ -152,8 +156,8 @@ interface LabelUpdateParams {
     rectY: number;
     rectWidth: number;
     rectHeight: number;
-    yLowValue: number;
-    yHighValue: number;
+    yLowValue: AgNumericValue;
+    yHighValue: AgNumericValue;
     datum: any;
 }
 
@@ -161,8 +165,8 @@ interface RangeBarNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum
     readonly index: number;
     readonly yLowKey: string;
     readonly yHighKey: string;
-    readonly yLowValue: number;
-    readonly yHighValue: number;
+    readonly yLowValue: AgNumericValue;
+    readonly yHighValue: AgNumericValue;
     readonly width: number;
     readonly height: number;
     readonly labels: RangeBarNodeLabelDatum[];
@@ -369,8 +373,15 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         }
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]) {
-        return this.domainForVisibleRange(ChartAxisDirection.Y, ['yHighValue', 'yLowValue'], 'xValue', visibleRange);
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]): [number, number] {
+        // domainForVisibleRange may yield a bigint; narrow once for this number-typed range contract.
+        const [y0, y1] = this.domainForVisibleRange(
+            ChartAxisDirection.Y,
+            ['yHighValue', 'yLowValue'],
+            'xValue',
+            visibleRange
+        );
+        return [toNumber(y0), toNumber(y1)];
     }
 
     /**
@@ -423,8 +434,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yAxis,
             rawData,
             xValues: dataModel.resolveKeysById(this, `xValue`, processedData),
-            yLowValues: dataModel.resolveColumnById(this, `yLowValue`, processedData),
-            yHighValues: dataModel.resolveColumnById(this, `yHighValue`, processedData),
+            yLowValues: dataModel.resolveColumnById(this, `yLowValue`, processedData, 'mixed-numeric'),
+            yHighValues: dataModel.resolveColumnById(this, `yHighValue`, processedData, 'mixed-numeric'),
             xScale,
             yScale,
             groupOffset,
@@ -465,7 +476,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const rawLowValue = ctx.yLowValues[datumIndex];
         const rawHighValue = ctx.yHighValues[datumIndex];
 
-        if (!Number.isFinite(rawLowValue?.valueOf()) || !Number.isFinite(rawHighValue?.valueOf())) return undefined;
+        // isContinuous accepts any bigint; Number.isFinite rejects every bigint (it never coerces them).
+        if (!isContinuous(rawLowValue) || !isContinuous(rawHighValue)) return undefined;
 
         const [yLowValue, yHighValue] =
             rawLowValue < rawHighValue ? [rawLowValue, rawHighValue] : [rawHighValue, rawLowValue];
@@ -745,8 +757,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 xValue: undefined,
                 yLowValue: 0,
                 yHighValue: 0,
-                rawLowValue: undefined,
-                rawHighValue: undefined,
+                rawLowValue: 0,
+                rawHighValue: 0,
             },
             labelParamsScratch: {
                 labels: [],
@@ -1227,8 +1239,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
-        const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData)[datumIndex];
-        const yLowValue = dataModel.resolveColumnById(this, `yLowValue`, processedData)[datumIndex];
+        const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData, 'mixed-numeric')[datumIndex];
+        const yLowValue = dataModel.resolveColumnById(this, `yLowValue`, processedData, 'mixed-numeric')[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         const allowNullKeys = this.properties.allowNullKeys ?? false;

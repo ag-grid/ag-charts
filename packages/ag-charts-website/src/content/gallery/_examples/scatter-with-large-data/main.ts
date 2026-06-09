@@ -116,8 +116,9 @@ const options: AgChartOptions = {
     formatter: {
         y(params) {
             if (params.type !== 'number') return;
-            const pq = params.value < 0 ? 'p' : 'q';
-            return `${pq}${Math.abs(params.value).toFixed(params.fractionDigits)}`;
+            const numericValue = Number(params.value);
+            const pq = numericValue < 0 ? 'p' : 'q';
+            return `${pq}${Math.abs(numericValue).toFixed(params.fractionDigits)}`;
         },
     },
 };

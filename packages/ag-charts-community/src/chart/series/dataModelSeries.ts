@@ -16,8 +16,7 @@ import { type SeriesNodeDatum } from './seriesTypes';
 import { findNodeDatumInArray } from './util';
 
 export interface DataModelSeriesNodeDatum extends SeriesNodeDatum {
-    // Data-model series identify nodes by their numeric `datumIndex` (and chart-level `dataIdKey`).
-    // The exception is aggregated series such as histogram, whose bins carry an explicit stable id.
+    // Optional: only aggregated series (e.g. histogram bins) set it; 1:1 series match on datumIndex instead.
     itemId?: string;
 }
 
@@ -218,7 +217,7 @@ export abstract class DataModelSeries<
         if (!dataModel || !processedData) return [];
         return this.dataModelPropertyIsKey(xKey)
             ? dataModel.resolveKeysById(this, xKey, processedData)
-            : dataModel.resolveColumnById(this, xKey, processedData);
+            : dataModel.resolveColumnById(this, xKey, processedData, 'object');
     }
 
     protected sortOrder(xKey: string): -1 | 1 | undefined {

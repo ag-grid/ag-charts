@@ -8,7 +8,7 @@ import {
     spanRange,
     stepPoints,
 } from 'ag-charts-core';
-import type { AgSeriesMarkerStyle } from 'ag-charts-types';
+import type { AgNumericValue, AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import { type FromToFns, NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Path } from '../../../scene/shape/path';
@@ -79,8 +79,8 @@ export interface LineSeriesDatumContext extends CartesianMarkerLikeContext<LineN
     readonly yKey: string;
 
     // Additional data arrays specific to line series
-    readonly yRawValues: any[];
-    readonly yCumulativeValues: any[];
+    readonly yRawValues: AgNumericValue[];
+    readonly yCumulativeValues: AgNumericValue[];
     readonly selectionValues: ArrayLike<any> | undefined;
 
     // Pre-computed values (computed once, reused for all datums)
@@ -109,7 +109,8 @@ export interface LineNodeDatumScratch {
     datum: any;
     xDatum: any;
     yDatum: any;
-    yCumulative: number;
+    // Kept raw (possibly bigint) so yScale.convert() positions values beyond Number.MAX_VALUE proportionally.
+    yCumulative: AgNumericValue;
     selected: boolean | undefined;
     x: number;
     y: number;

@@ -667,7 +667,7 @@ exports[`DataModel > grouped processing - calculated grouping > should generated
     },
   ],
   "columnValueType": [
-    "number",
+    undefined,
   ],
   "columns": [
     [

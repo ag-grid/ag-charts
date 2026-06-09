@@ -1,5 +1,6 @@
 import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
 import { BaseProperties, Property, isObject } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import {
     Background,
@@ -43,7 +44,7 @@ export class MeasurerTypeProperties extends Localisable(Background(Stroke(LineSt
     @Property
     public statistics = new MeasurerStatistics();
 
-    public getVolume: (from: DataPoint['x'], to: DataPoint['x']) => number | undefined = () => undefined;
+    public getVolume: (from: DataPoint['x'], to: DataPoint['x']) => AgNumericValue | undefined = () => undefined;
 
     @Property
     text = new LineTextProperties();

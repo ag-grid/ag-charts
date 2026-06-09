@@ -10,6 +10,7 @@ import {
     isDate,
     isDefined,
     isFiniteNumber,
+    isFiniteNumericValue,
     isFunction,
     isHtmlElement,
     isObject,
@@ -485,7 +486,8 @@ export const or = (...validators: Validator[]) =>
     );
 
 // Helpers
-const isComparable = (value: unknown): value is number | Date => isFiniteNumber(value) || isValidDate(value);
+const isComparable = (value: unknown): value is number | bigint | Date =>
+    isFiniteNumericValue(value) || isValidDate(value);
 const isValidDateValue = (value: unknown) =>
     isDate(value) || ((isFiniteNumber(value) || isString(value)) && isValidDate(new Date(value)));
 
@@ -497,6 +499,8 @@ export const color = attachDescription(isColor, 'a color string');
 export const date = attachDescription(isValidDateValue, 'a date');
 export const defined = attachDescription(isDefined, 'a defined value');
 export const number = attachDescription(isFiniteNumber, 'a number');
+// For fields that opt into bigint; do NOT widen the global `number` validator instead.
+export const numericValue = attachDescription(isFiniteNumericValue, 'a number or bigint');
 export const object = attachDescription(isObject, 'an object');
 export const string = attachDescription(isString, 'a string');
 

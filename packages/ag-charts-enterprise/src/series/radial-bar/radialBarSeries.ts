@@ -14,7 +14,10 @@ import {
     angleBetween,
     isDefined,
     isGradientFill,
+    maxValue,
+    minValue,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import { readDatum } from '../../utils/datum';
@@ -136,7 +139,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         if (direction === ChartAxisDirection.Angle) {
             const xExtent = dataModel.getDomain(this, 'angleValue-end', 'value', processedData).domain;
-            const fixedXExtent = [Math.min(xExtent[0], 0), Math.max(xExtent[1], 0)];
+            // minValue/maxValue (not Math.min/max, which throw on bigint) keep an exact bigint extent.
+            const fixedXExtent = [minValue(xExtent[0], 0), maxValue(xExtent[1], 0)];
             return { domain: fixNumericExtent(fixedXExtent) };
         } else {
             return dataModel.getDomain(this, 'radiusValue', 'key', processedData);
@@ -252,9 +256,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         }
 
         const radiusValues = dataModel.resolveKeysById<number>(this, 'radiusValue', processedData);
-        const angleStartValues = dataModel.resolveColumnById(this, `angleValue-start`, processedData);
-        const angleEndValues = dataModel.resolveColumnById(this, `angleValue-end`, processedData);
-        const angleRawValues = dataModel.resolveColumnById(this, `angleValue-raw`, processedData);
+        const angleStartValues = dataModel.resolveColumnById(this, `angleValue-start`, processedData, 'mixed-numeric');
+        const angleEndValues = dataModel.resolveColumnById(this, `angleValue-end`, processedData, 'mixed-numeric');
+        const angleRawValues = dataModel.resolveColumnById(this, `angleValue-raw`, processedData, 'mixed-numeric');
 
         const angleRangeIndex = dataModel.resolveProcessedDataIndexById(this, `angleValue-range`);
 
@@ -284,7 +288,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const getLabelNodeDatum = (
             datum: RadialColumnNodeDatum,
-            angleDatum: number,
+            angleDatum: AgNumericValue,
             x: number,
             y: number
         ): RadialBarLabelNodeDatum | undefined => {
@@ -561,7 +565,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const radiusValue = dataModel.resolveKeysById(this, `radiusValue`, processedData)[datumIndex];
-        const angleValue = dataModel.resolveColumnById(this, `angleValue-raw`, processedData)[datumIndex];
+        const angleValue = dataModel.resolveColumnById(this, `angleValue-raw`, processedData, 'mixed-numeric')[
+            datumIndex
+        ];
 
         // eslint-disable-next-line sonarjs/different-types-comparison
         if (radiusValue === undefined && !this.properties.allowNullKeys) return;

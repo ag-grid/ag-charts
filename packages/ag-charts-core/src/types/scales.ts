@@ -68,6 +68,10 @@ export interface Scale<D, R, I = number> {
     domain: D[];
     range: R[];
     getDomainMinMax(): [D, D] | [undefined, undefined];
+    /** Domain minimum, preserving the domain value type (so a bigint domain flows through as bigint). */
+    readonly domainMin: D | undefined;
+    /** Domain maximum, preserving the domain value type (so a bigint domain flows through as bigint). */
+    readonly domainMax: D | undefined;
     normalizeDomains(...domains: DomainWithMetadata<D>[]): NormalizedDomain<D>;
     toDomain(value: number): D | undefined;
     convert(value: D, options?: { clamp?: boolean; alignment?: ScaleAlignment; alignmentExclusive?: boolean }): R;

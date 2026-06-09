@@ -1,15 +1,18 @@
-import type { DomainWithMetadata, ScaleType } from 'ag-charts-core';
+import type { ScaleType } from 'ag-charts-core';
 import {
     AGGREGATION_MIN_RANGE,
     AGGREGATION_THRESHOLD,
-    aggregationDomain,
     aggregationRangeFittingPoints,
     compactAggregationIndices,
     createAggregationIndices,
+    epochColumnForTimeScale,
     getMidpointsForIndices,
+    narrowAggregationX,
+    narrowBigIntColumn,
     nextPowerOf2,
     simpleMemorize2,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import type { DataModel } from '../../data/dataModel';
 import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
@@ -72,7 +75,7 @@ export function computeBarAggregation(
     yStartValues: any[] | undefined,
     yEndValues: any[],
     options: {
-        smallestKeyInterval: number | undefined;
+        smallestKeyInterval: AgNumericValue | undefined;
         xNeedsValueOf: boolean;
         yNeedsValueOf: boolean;
         existingFilters?: BarSeriesDataAggregationFilter[];
@@ -191,7 +194,7 @@ export function computeBarAggregationPartial(
     yStartValues: any[] | undefined,
     yEndValues: any[],
     options: {
-        smallestKeyInterval: number | undefined;
+        smallestKeyInterval: AgNumericValue | undefined;
         xNeedsValueOf: boolean;
         yNeedsValueOf: boolean;
         targetRange: number;
@@ -270,16 +273,15 @@ export function computeBarAggregationPartial(
  * @internal
  */
 function aggregateBarData(
-    scale: ScaleType,
     xValues: any[],
     yStartValues: any[] | undefined,
     yEndValues: any[],
-    domainInput: DomainWithMetadata<number>,
-    smallestKeyInterval: number | undefined,
+    d0: number,
+    d1: number,
+    smallestKeyInterval: AgNumericValue | undefined,
     xNeedsValueOf: boolean,
     yNeedsValueOf: boolean
 ): BarSeriesDataAggregationFilter[] | undefined {
-    const [d0, d1] = aggregationDomain(scale, domainInput);
     return computeBarAggregation([d0, d1], xValues, yStartValues, yEndValues, {
         smallestKeyInterval,
         xNeedsValueOf,
@@ -315,27 +317,41 @@ export function aggregateBarDataFromDataModel(
     series: ScopeProvider,
     existingFilters?: BarSeriesDataAggregationFilter[]
 ): BarSeriesDataAggregationFilter[] | undefined {
-    const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
+    const rawXValues = dataModel.resolveKeysById(series, 'xValue', processedData);
 
     const isStacked = dataModel.hasColumnById(series, 'yValue-start');
-    const yStartValues = isStacked ? dataModel.resolveColumnById(series, 'yValue-start', processedData) : undefined;
-    const yEndValues = isStacked
-        ? dataModel.resolveColumnById(series, 'yValue-end', processedData)
-        : dataModel.resolveColumnById(series, 'yValue-raw', processedData);
+    const rawYStartValues = isStacked
+        ? dataModel.resolveColumnById(series, 'yValue-start', processedData, 'mixed-numeric')
+        : undefined;
+    const rawYEndValues = isStacked
+        ? dataModel.resolveColumnById(series, 'yValue-end', processedData, 'mixed-numeric')
+        : dataModel.resolveColumnById(series, 'yValue-raw', processedData, 'mixed-numeric');
 
     const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
-    const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    const rawXNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(
         series,
         isStacked ? 'yValue-end' : 'yValue-raw',
         processedData
     );
 
+    // Split-mode aggregation keys off each value's sign, so narrow bigints absolutely (sign-preserving).
+    const { values: epochXValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
+        scale,
+        rawXValues,
+        rawXNeedsValueOf
+    );
+    // Subtract the bigint domain-min from x and [d0,d1] together so a high-magnitude narrow-range x keeps full
+    // bucketing precision; falls back to an absolute narrow + aggregationDomain for non-bigint columns.
+    const { xValues, domain } = narrowAggregationX(scale, epochXValues, domainInput);
+    const yStartValues =
+        yNeedsValueOf || rawYStartValues == null ? rawYStartValues : narrowBigIntColumn(rawYStartValues);
+    const yEndValues = yNeedsValueOf ? rawYEndValues : narrowBigIntColumn(rawYEndValues);
+
     // When existingFilters provided, bypass memoization to enable array reuse
     if (existingFilters) {
-        const [d0, d1] = aggregationDomain(scale, domainInput);
-        return computeBarAggregation([d0, d1], xValues, yStartValues, yEndValues, {
+        return computeBarAggregation(domain, xValues, yStartValues, yEndValues, {
             smallestKeyInterval: processedData.reduced?.smallestKeyInterval,
             xNeedsValueOf,
             yNeedsValueOf,
@@ -344,11 +360,11 @@ export function aggregateBarDataFromDataModel(
     }
 
     return memoizedAggregateBarData(
-        scale,
         xValues,
         yStartValues,
         yEndValues,
-        domainInput,
+        domain[0],
+        domain[1],
         processedData.reduced?.smallestKeyInterval,
         xNeedsValueOf,
         yNeedsValueOf
@@ -375,26 +391,40 @@ export function aggregateBarDataFromDataModelPartial(
     targetRange: number,
     existingFilters?: BarSeriesDataAggregationFilter[]
 ): PartialBarAggregationResult | undefined {
-    const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
+    const rawXValues = dataModel.resolveKeysById(series, 'xValue', processedData);
 
     const isStacked = dataModel.hasColumnById(series, 'yValue-start');
-    const yStartValues = isStacked ? dataModel.resolveColumnById(series, 'yValue-start', processedData) : undefined;
-    const yEndValues = isStacked
-        ? dataModel.resolveColumnById(series, 'yValue-end', processedData)
-        : dataModel.resolveColumnById(series, 'yValue-raw', processedData);
+    const rawYStartValues = isStacked
+        ? dataModel.resolveColumnById(series, 'yValue-start', processedData, 'mixed-numeric')
+        : undefined;
+    const rawYEndValues = isStacked
+        ? dataModel.resolveColumnById(series, 'yValue-end', processedData, 'mixed-numeric')
+        : dataModel.resolveColumnById(series, 'yValue-raw', processedData, 'mixed-numeric');
 
     const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
-    const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    const rawXNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(
         series,
         isStacked ? 'yValue-end' : 'yValue-raw',
         processedData
     );
 
-    const [d0, d1] = aggregationDomain(scale, domainInput);
+    // Split-mode aggregation keys off each value's sign, so narrow bigints absolutely (sign-preserving).
+    const { values: epochXValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
+        scale,
+        rawXValues,
+        rawXNeedsValueOf
+    );
+    // Subtract the bigint domain-min from x and [d0,d1] together so a high-magnitude narrow-range x keeps full
+    // bucketing precision; falls back to an absolute narrow + aggregationDomain for non-bigint columns.
+    const { xValues, domain } = narrowAggregationX(scale, epochXValues, domainInput);
+    const yStartValues =
+        yNeedsValueOf || rawYStartValues == null ? rawYStartValues : narrowBigIntColumn(rawYStartValues);
+    const yEndValues = yNeedsValueOf ? rawYEndValues : narrowBigIntColumn(rawYEndValues);
+
     // TODO: Use memoized version of computeBarAggregationPartial
-    return computeBarAggregationPartial([d0, d1], xValues, yStartValues, yEndValues, {
+    return computeBarAggregationPartial(domain, xValues, yStartValues, yEndValues, {
         smallestKeyInterval: processedData.reduced?.smallestKeyInterval,
         xNeedsValueOf,
         yNeedsValueOf,

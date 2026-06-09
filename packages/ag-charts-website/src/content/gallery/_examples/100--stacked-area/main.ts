@@ -148,7 +148,7 @@ const options: AgCartesianChartOptions = {
         const { value, type } = params;
 
         if (type === 'number' && params.property === 'y') {
-            return `${value.toFixed(1)} Mtoe`;
+            return `${Number(value).toFixed(1)} Mtoe`;
         }
 
         if (type === 'date') {

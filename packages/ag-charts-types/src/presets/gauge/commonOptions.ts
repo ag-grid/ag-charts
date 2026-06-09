@@ -1,5 +1,6 @@
 import type { AgAxisLabelFormatterParams, AgBaseAxisLabelOptions } from '../../chart/axisOptions';
 import type { Formatter } from '../../chart/callbackOptions';
+import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgSelectionOptions, AgSelectionStyleOptions } from '../../chart/selectionOptions';
 import type { AgCssColorOrRef } from '../../chart/themeParamsOptions';
 import type {
@@ -74,9 +75,9 @@ __VERIFY_AXIS_LABEL_OPTIONS = __AXIS_LABEL_OPTIONS;
 
 export interface AgGaugeSegmentationInterval {
     /** The segmentation interval. If the configured interval results in too many items given the chart size, it will be ignored. */
-    step?: number;
+    step?: AgNumericValue;
     /** Array of values for specified intervals along the gauge. */
-    values?: number[];
+    values?: AgNumericValue[];
     /** Number of evenly-divided segments in the gauge. */
     count?: number;
 }
@@ -98,7 +99,7 @@ export interface AgGaugeColorStop {
     /** Colour of this category. */
     color?: string;
     /** Stop value of this category. Defaults the maximum value if unset. */
-    stop?: number;
+    stop?: AgNumericValue;
 }
 
 export interface FillsOptions {

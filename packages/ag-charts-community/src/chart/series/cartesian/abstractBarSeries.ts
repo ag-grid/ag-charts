@@ -3,11 +3,13 @@ import {
     type Point,
     Property,
     type Scaling,
+    addValues,
     extent,
     findMinMax,
     isFiniteNumber,
+    subtractValues,
 } from 'ag-charts-core';
-import type { Direction } from 'ag-charts-types';
+import type { AgNumericValue, Direction } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { IrregularBandScale } from '../../../scale/irregularBandScale';
@@ -67,18 +69,24 @@ export type AbstractBarSeriesAnimationData<TTypes extends AbstractBarSeriesTypes
 >;
 
 export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> extends CartesianSeries<TTypes> {
-    protected smallestDataInterval?: number = undefined;
-    protected largestDataInterval?: number = undefined;
+    protected smallestDataInterval?: AgNumericValue = undefined;
+    protected largestDataInterval?: AgNumericValue = undefined;
 
     protected padBandExtent(keys: any[], alignStart?: boolean) {
         const ratio = typeof alignStart === 'boolean' ? 1 : 0.5;
-        const scalePadding = isFiniteNumber(this.smallestDataInterval) ? this.smallestDataInterval * ratio : 0;
-        const keysExtent = extent(keys) ?? [Number.NaN, Number.NaN];
+        // Band positioning is finite-precision, so narrow the interval here before the padding arithmetic.
+        const interval = this.smallestDataInterval == null ? Number.NaN : Number(this.smallestDataInterval);
+        const scalePadding = isFiniteNumber(interval) ? interval * ratio : 0;
+        const rawExtent = extent(keys);
+        if (rawExtent == null) return fixNumericExtent([Number.NaN, Number.NaN]);
+        // Keep endpoints exact so a bigint key axis positions at full precision; only the padding is narrowed.
+        const keysExtent: AgNumericValue[] = [rawExtent[0], rawExtent[1]];
         if (typeof alignStart === 'boolean') {
-            keysExtent[alignStart ? 0 : 1] -= (alignStart ? 1 : -1) * scalePadding;
+            const i = alignStart ? 0 : 1;
+            keysExtent[i] = subtractValues(keysExtent[i], (alignStart ? 1 : -1) * scalePadding);
         } else {
-            keysExtent[0] -= scalePadding;
-            keysExtent[1] += scalePadding;
+            keysExtent[0] = subtractValues(keysExtent[0], scalePadding);
+            keysExtent[1] = addValues(keysExtent[1], scalePadding);
         }
         return fixNumericExtent(keysExtent);
     }

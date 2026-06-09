@@ -1,3 +1,5 @@
+import type { AgNumericValue } from 'ag-charts-types';
+
 import {
     accumulatedValue,
     area as actualArea,
@@ -81,7 +83,7 @@ export const accumulatedPropertyValue = (property: string, groupId: string = pro
     processor: accumulatedValue(true),
 });
 
-export const sum = (groupId: string): AggregatePropertyDefinition<any, any> => ({
+export const sum = (groupId: string): AggregatePropertyDefinition<any, any, [AgNumericValue, AgNumericValue]> => ({
     id: `sum-${groupId}`,
     matchGroupIds: [groupId],
     type: 'aggregate',
@@ -101,7 +103,7 @@ export const rowCountProperty = (prop: string) => ({ ...actualRowCountProperty(p
 
 export const groupCount = () => ({ ...actualGroupCount(`groupCount`), scopes: ['test'] });
 
-export const area = (groupId: string, aggFn: AggregatePropertyDefinition<any, any>) => ({
+export const area = (groupId: string, aggFn: AggregatePropertyDefinition<any, any, any>) => ({
     ...actualArea(`area-${groupId}`, aggFn),
     scopes: ['test'],
 });

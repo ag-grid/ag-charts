@@ -37,8 +37,8 @@ const options: AgCartesianChartOptions = {
             tooltip: {
                 renderer: (params) => {
                     const { binRange, frequency } = params;
-                    const binStart = Math.round(binRange[0]);
-                    const binEnd = Math.round(binRange[1]);
+                    const binStart = Math.round(Number(binRange[0]));
+                    const binEnd = Math.round(Number(binRange[1]));
                     const percentage = ((frequency / data.length) * 100).toFixed(1);
 
                     return {

@@ -25,6 +25,7 @@ import {
     toPlainText,
     toRadians,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';
 import { formatWithContext } from '../../utils/formatter';
@@ -564,8 +565,9 @@ export class RadialGaugeSeries
         const scaleStyle = scaleProps.getStyle(bar.enabled, defaultColorRange, scale);
 
         if (segments == null && cornersOnAllItems) {
-            const segmentStart = Math.min(...scale.domain);
-            const segmentEnd = Math.max(...scale.domain);
+            // convert() maps these whole-domain endpoints to the range ends, so a Number-narrow is precision-safe.
+            const segmentStart = Number(scale.domainMin);
+            const segmentEnd = Number(scale.domainMax);
             const datum = { value, segmentStart, segmentEnd };
             const appliedCornerRadius = Math.min(cornerRadius, (outerRadius - innerRadius) / 2);
             const angleInset = appliedCornerRadius / ((innerRadius + outerRadius) / 2);
@@ -737,7 +739,9 @@ export class RadialGaugeSeries
             const target = targets[i];
             const { value: targetValue, text, size, shape, style } = target;
 
-            if (targetValue < Math.min(...scale.domain) || targetValue > Math.max(...scale.domain)) {
+            // Exact bigint comparison: domainMin/Max flow the domain value type through unchanged.
+            const { domainMin, domainMax } = scale;
+            if (domainMin == null || domainMax == null || targetValue < domainMin || targetValue > domainMax) {
                 continue;
             }
 
@@ -1291,7 +1295,7 @@ export class RadialGaugeSeries
         return true;
     }
 
-    formatLabelText(datum?: { label: number | undefined; secondaryLabel: number | undefined }) {
+    formatLabelText(datum?: { label: AgNumericValue | undefined; secondaryLabel: AgNumericValue | undefined }) {
         const { labelSelection, radius, textAlign, verticalAlign } = this;
         const { spacing: padding, innerRadiusRatio } = this.properties;
 
@@ -1324,10 +1328,10 @@ export class RadialGaugeSeries
     private animateLabelText(params: { from?: number; phase?: _ModuleSupport.AnimationPhase } = {}) {
         const { animationManager } = this.ctx;
 
-        let labelFrom: number | undefined;
-        let labelTo: number | undefined;
-        let secondaryLabelFrom: number | undefined;
-        let secondaryLabelTo: number | undefined;
+        let labelFrom: AgNumericValue | undefined;
+        let labelTo: AgNumericValue | undefined;
+        let secondaryLabelFrom: AgNumericValue | undefined;
+        let secondaryLabelTo: AgNumericValue | undefined;
         this.labelSelection.each((label, datum) => {
             // Reset animation
             label.opacity = 1;
@@ -1345,16 +1349,18 @@ export class RadialGaugeSeries
             // Ignore
         } else if (labelTo == null || secondaryLabelTo == null) {
             this.formatLabelText();
-        } else if (labelFrom === labelTo && secondaryLabelFrom === secondaryLabelTo) {
+        } else if (Number(labelFrom) === Number(labelTo) && Number(secondaryLabelFrom) === Number(secondaryLabelTo)) {
+            // Number() compare so a value type change (`5n === 5` is false) doesn't force a no-op animation.
             this.formatLabelText({ label: labelTo, secondaryLabel: secondaryLabelTo });
         } else {
             const animationId = `${this.id}_labels`;
 
+            // The count-up tween narrows to Number; onStop re-formats from the full-precision label values.
             animationManager.animate({
                 id: animationId,
                 groupId: 'label',
-                from: { label: labelFrom, secondaryLabel: secondaryLabelFrom },
-                to: { label: labelTo, secondaryLabel: secondaryLabelTo },
+                from: { label: Number(labelFrom), secondaryLabel: Number(secondaryLabelFrom) },
+                to: { label: Number(labelTo), secondaryLabel: Number(secondaryLabelTo) },
                 phase: params.phase ?? 'update',
                 onUpdate: (datum) => this.formatLabelText(datum),
                 onStop: () => this.formatLabelText({ label: labelTo, secondaryLabel: secondaryLabelTo }),

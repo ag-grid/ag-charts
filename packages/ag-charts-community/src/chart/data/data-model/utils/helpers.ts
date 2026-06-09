@@ -3,6 +3,7 @@
  * Extracted from dataModel.ts as part of Phase 2.1 refactoring.
  */
 import { isObject } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import type { DataChangeDescription } from '../../dataChangeDescription';
 import type { MissMap, ScopeId, ScopeProvider } from '../../dataModelTypes';
@@ -35,17 +36,38 @@ export function toKeyString(keys: any[]): string {
     return keys.map(keyToString).join('-');
 }
 
+/** Type guard: every entry is a bigint, so the array can be returned as an exact `bigint[]`. */
+function isBigIntArray(values: ReadonlyArray<number | Date | bigint>): values is readonly bigint[] {
+    return values.every((v) => typeof v === 'bigint');
+}
+
 /**
- * Fixes a numeric extent to ensure both values are finite numbers.
- * Returns empty array if extent is null or contains non-finite values.
+ * Fixes a numeric extent to a uniformly-typed array, or `[]` when the input is null or contains a non-finite
+ * value. The extent may be a `[min, max]` pair or the flat-mapped per-key domains a clipped range produces
+ * (e.g. OHLC's `[highMin, highMax, lowMin, lowMax]`), so every entry is preserved for the scale to span. An
+ * all-bigint extent is kept exact for full-precision positioning; otherwise Date/number entries narrow to
+ * Number. The result is never a mixed number/bigint array (a numeric column is uniformly typed by this point).
  */
-export function fixNumericExtent(extent: Array<number | Date | bigint> | null): [] | [number, number] {
+export function fixNumericExtent(extent: ReadonlyArray<number | Date | bigint> | null): number[] | bigint[] {
     if (extent == null) return [];
-    // Retain exact bigint endpoints so the scale positions and labels them at full precision; Date and
-    // number values still narrow to Number. Downstream consumers branch on `typeof` at runtime.
-    const mapped = extent.map((v) => (typeof v === 'bigint' ? v : Number(v)));
-    const allFinite = mapped.every((v) => typeof v === 'bigint' || Number.isFinite(v));
-    return allFinite ? (mapped as unknown as [number, number]) : [];
+    if (isBigIntArray(extent)) return [...extent];
+    const mapped = extent.map((v) => Number(v));
+    return mapped.every(Number.isFinite) ? mapped : [];
+}
+
+/**
+ * Extends a numeric `[min, max]` extent to include the zero baseline, so bars and areas anchor at zero.
+ * Both endpoints keep their type: a bigint extent emits `0n` baselines; a numeric `0` would narrow them.
+ */
+export function extendDomainToZero(extent: ReadonlyArray<AgNumericValue>): [] | [number, number] | [bigint, bigint] {
+    if (extent.length < 2) return [];
+    const [e0, e1] = extent;
+    if (typeof e0 === 'bigint' && typeof e1 === 'bigint') {
+        return [e0 < 0n ? e0 : 0n, e1 > 0n ? e1 : 0n];
+    }
+    const n0 = Number(e0);
+    const n1 = Number(e1);
+    return Number.isFinite(n1 - n0) ? [Math.min(n0, 0), Math.max(n1, 0)] : [];
 }
 
 /**

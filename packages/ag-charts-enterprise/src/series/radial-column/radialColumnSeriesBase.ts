@@ -13,8 +13,11 @@ import {
     type Point,
     isDefined,
     isGradientFill,
+    maxValue,
+    minValue,
     normalizeAngle360,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
 import { type RadialSeriesStyleResult, getItemStyle, getStyle } from '../util/radialUtil';
@@ -147,9 +150,8 @@ export abstract class RadialColumnSeriesBase<
             return dataModel.getDomain(this, 'angleValue', 'key', processedData);
         } else {
             const yExtent = dataModel.getDomain(this, 'radiusValue-end', 'value', processedData).domain;
-            const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
-                ? [Math.min(yExtent[0], 0), Math.max(yExtent[1], 0)]
-                : [];
+            // minValue/maxValue (not Math.min/max, which throw on bigint) keep an exact bigint extent.
+            const fixedYExtent = [minValue(yExtent[0], 0), maxValue(yExtent[1], 0)];
             return { domain: fixNumericExtent(fixedYExtent) };
         }
     }
@@ -268,9 +270,14 @@ export abstract class RadialColumnSeriesBase<
         }
 
         const angleValues = dataModel.resolveKeysById(this, `angleValue`, processedData);
-        const radiusStartValues = dataModel.resolveColumnById(this, `radiusValue-start`, processedData);
-        const radiusEndValues = dataModel.resolveColumnById(this, `radiusValue-end`, processedData);
-        const radiusRawValues = dataModel.resolveColumnById(this, `radiusValue-raw`, processedData);
+        const radiusStartValues = dataModel.resolveColumnById(
+            this,
+            `radiusValue-start`,
+            processedData,
+            'mixed-numeric'
+        );
+        const radiusEndValues = dataModel.resolveColumnById(this, `radiusValue-end`, processedData, 'mixed-numeric');
+        const radiusRawValues = dataModel.resolveColumnById(this, `radiusValue-raw`, processedData, 'mixed-numeric');
 
         let groupPaddingInner = 0;
         let groupPaddingOuter = 0;
@@ -299,7 +306,7 @@ export abstract class RadialColumnSeriesBase<
 
         const getLabelNodeDatum = (
             datum: RadialColumnNodeDatum,
-            radiusDatum: number,
+            radiusDatum: AgNumericValue,
             x: number,
             y: number
         ): RadialColumnLabelNodeDatum | undefined => {
@@ -576,7 +583,9 @@ export abstract class RadialColumnSeriesBase<
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const angleValue = dataModel.resolveKeysById(this, `angleValue`, processedData)[datumIndex];
-        const radiusValue = dataModel.resolveColumnById(this, `radiusValue-raw`, processedData)[datumIndex];
+        const radiusValue = dataModel.resolveColumnById(this, `radiusValue-raw`, processedData, 'mixed-numeric')[
+            datumIndex
+        ];
 
         // eslint-disable-next-line sonarjs/different-types-comparison
         if (angleValue === undefined && !this.properties.allowNullKeys) return;

@@ -18,8 +18,13 @@ import {
     ChartAxisDirection,
     DebugMetrics,
     areScalingEqual,
+    isContinuous,
     isFiniteNumber,
+    maxValue,
     mergeDefaults,
+    minValue,
+    toNumber,
+    zeroLike,
 } from 'ag-charts-core';
 import type {
     AgBarSeriesItemStylerParams,
@@ -28,6 +33,7 @@ import type {
     AgBarSeriesStyle,
     AgBarSeriesStylerParams,
     AgErrorBoundSeriesTooltipRendererParams,
+    AgNumericValue,
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
@@ -44,7 +50,7 @@ import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
-import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
+import { DataModel, type ProcessedData, extendDomainToZero, fixNumericExtent } from '../../data/dataModel';
 import type { GroupedData, PropertyDefinition } from '../../data/dataModelTypes';
 import {
     LARGEST_KEY_INTERVAL,
@@ -188,9 +194,10 @@ interface NodeDatumParams {
     datumIndex: number;
     x: number;
     width: number;
-    yStart: number;
-    yEnd: number;
-    yRange: number;
+    // Kept raw (possibly bigint) so yScale.convert() positions values beyond Number.MAX_VALUE proportionally.
+    yStart: AgNumericValue;
+    yEnd: AgNumericValue;
+    yRange: AgNumericValue;
     featherRatio: number;
     opacity: number;
 }
@@ -455,16 +462,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 ? dataModel.getDomain(this, 'yFilterValue-raw', 'value', processedData).domain
                 : undefined;
             if (yFilterExtent != null) {
-                yExtent = [Math.min(yExtent[0], yFilterExtent[0]), Math.max(yExtent[1], yFilterExtent[1])];
+                // minValue/maxValue (not Math.min/max, which throw on bigint) preserve exact bigint endpoints.
+                yExtent = [minValue(yExtent[0], yFilterExtent[0]), maxValue(yExtent[1], yFilterExtent[1])];
             }
         }
 
         const yAxis = this.getValueAxis();
         if (yAxis instanceof NumberAxis && !(yAxis instanceof LogAxis)) {
-            const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
-                ? [Math.min(0, yExtent[0]), Math.max(0, yExtent[1])]
-                : [];
-            return { domain: fixNumericExtent(fixedYExtent) };
+            return { domain: fixNumericExtent(extendDomainToZero(yExtent)) };
         } else {
             return { domain: fixNumericExtent(yExtent) };
         }
@@ -475,7 +480,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         if (selfDirection !== direction) return [];
         const yKey = this.yCumulativeKey(this.dataModel!);
         const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, [yKey], 'xValue', visibleRange);
-        return [Math.min(y0, 0), Math.max(y1, 0)];
+        // domainForVisibleRange may yield a bigint; minValue/maxValue avoid the Math.min/max throw, toNumber narrows once.
+        return [toNumber(minValue(y0, 0)), toNumber(maxValue(y1, 0))];
     }
 
     override getZoomRangeFittingItems(
@@ -587,20 +593,24 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
 
-        let yStartValues: number[] | undefined;
-        let yEndValues: number[] | undefined;
-        let yFilterValues: number[] | undefined;
+        let yStartValues: AgNumericValue[] | undefined;
+        let yEndValues: AgNumericValue[] | undefined;
+        let yFilterValues: AgNumericValue[] | undefined;
         if (filteredValueExceedUnfiltered) {
-            yStartValues = dataModel.resolveColumnById(this, 'yFilterValue-start', processedData);
-            yEndValues = dataModel.resolveColumnById(this, 'yFilterValue-end', processedData);
+            yStartValues = dataModel.resolveColumnById(this, 'yFilterValue-start', processedData, 'mixed-numeric');
+            yEndValues = dataModel.resolveColumnById(this, 'yFilterValue-end', processedData, 'mixed-numeric');
             yFilterValues = undefined;
         } else {
             const isCrossFilteringEnabled = dataModel.hasColumnById(this, 'yFilterValue-raw');
 
-            yStartValues = isStacked ? dataModel.resolveColumnById(this, 'yValue-start', processedData) : undefined;
-            yEndValues = isStacked ? dataModel.resolveColumnById(this, 'yValue-end', processedData) : undefined;
+            yStartValues = isStacked
+                ? dataModel.resolveColumnById(this, 'yValue-start', processedData, 'mixed-numeric')
+                : undefined;
+            yEndValues = isStacked
+                ? dataModel.resolveColumnById(this, 'yValue-end', processedData, 'mixed-numeric')
+                : undefined;
             yFilterValues = isCrossFilteringEnabled
-                ? dataModel.resolveColumnById(this, 'yFilterValue-raw', processedData)
+                ? dataModel.resolveColumnById(this, 'yFilterValue-raw', processedData, 'mixed-numeric')
                 : undefined;
         }
 
@@ -608,7 +618,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             dataSource: rawData,
             rawData: rawData.data,
             xValues: dataModel.resolveKeysById(this, 'xValue', processedData),
-            yRawValues: dataModel.resolveColumnById(this, 'yValue-raw', processedData),
+            yRawValues: dataModel.resolveColumnById(this, 'yValue-raw', processedData, 'mixed-numeric'),
             yStartValues,
             yEndValues,
             yFilterValues,
@@ -621,7 +631,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             barWidth,
             range,
             yReversed: yAxis.isReversed(),
-            bboxBottom: yScale.convert(0),
+            // 0n keeps a bigint y-domain on the full-precision convert() path (a numeric 0 narrows to Number).
+            bboxBottom: yScale.convert(0n),
             labelSpacing: label.spacing + (typeof label.padding === 'number' ? label.padding : 0),
             crisp:
                 dataAggregationFilter == null &&
@@ -662,10 +673,11 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         ctx: BarSeriesNodeDatumContext,
         nodeDatumScratch: PreparedBarNodeDatumState,
         datumIndex: number,
-        yStart: number,
-        yEnd: number
+        yStart: AgNumericValue,
+        yEnd: AgNumericValue
     ): PreparedBarNodeDatumState | undefined {
-        if (!Number.isFinite(yEnd)) {
+        // isContinuous accepts any bigint; Number.isFinite rejects every bigint (it never coerces them).
+        if (!isContinuous(yEnd)) {
             return undefined;
         }
 
@@ -820,23 +832,24 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const phantom = node.phantom;
         const prevY = params.yStart;
         const yValue = phantom ? prepared.yFilterValue! : (prepared.yFilterValue ?? prepared.yRawValue);
-        const cumulativeValue = phantom ? prepared.yFilterValue! : (prepared.yFilterValue ?? params.yEnd);
+        // Metadata only (tooltips/error-bars); geometry below uses the exact bigint, so narrowing here is fine.
+        const cumulativeValue = phantom ? prepared.yFilterValue! : (prepared.yFilterValue ?? Number(params.yEnd));
         const nodeLabelText = phantom ? undefined : prepared.labelText;
 
-        let currY: number;
-        if (phantom) {
-            currY = params.yEnd;
-        } else if (prepared.yFilterValue == null) {
+        // Non-filtered: params.yEnd stays in domain space (possibly bigint) for a full-precision convert().
+        // Cross-filter: yFilterValue is already Number-narrowed, so yStart narrows here too and currY is Number.
+        let currY: AgNumericValue;
+        if (phantom || prepared.yFilterValue == null) {
             currY = params.yEnd;
         } else {
-            currY = params.yStart + prepared.yFilterValue;
+            currY = Number(params.yStart) + prepared.yFilterValue;
         }
 
-        let nodeYRange: number;
-        if (phantom) {
+        let nodeYRange: AgNumericValue;
+        if (phantom || prepared.yFilterValue == null) {
             nodeYRange = params.yRange;
         } else {
-            nodeYRange = Math.max(params.yStart + (prepared.yFilterValue ?? -Infinity), params.yRange);
+            nodeYRange = Math.max(Number(params.yStart) + prepared.yFilterValue, Number(params.yRange));
         }
 
         let crossScale: number | undefined;
@@ -993,16 +1006,19 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 nodeDatumParamsScratch.width = width;
                 nodeDatumParamsScratch.opacity = opacity;
                 if (ctx.isStacked) {
-                    nodeDatumParamsScratch.yStart = Number(ctx.yStartValues![yMinIndex]);
-                    nodeDatumParamsScratch.yEnd = Number(ctx.yEndValues![yMaxIndex]);
+                    // Keep domain space (possibly bigint) so yScale.convert() keeps full precision; only the bucket index comes from the aggregation.
+                    nodeDatumParamsScratch.yStart = ctx.yStartValues![yMinIndex];
+                    nodeDatumParamsScratch.yEnd = ctx.yEndValues![yMaxIndex];
                     nodeDatumParamsScratch.featherRatio = 0;
                 } else {
-                    const yEndMax = Number(ctx.yRawValues[yMaxIndex]);
-                    const yEndMin = Number(ctx.yRawValues[yMinIndex]);
+                    const yEndMax = ctx.yRawValues[yMaxIndex];
+                    const yEndMin = ctx.yRawValues[yMinIndex];
 
                     nodeDatumParamsScratch.yStart = 0;
                     nodeDatumParamsScratch.yEnd = yEndMax;
-                    nodeDatumParamsScratch.featherRatio = (positive ? 1 : -1) * sign * (1 - yEndMin / yEndMax);
+                    // Narrow here: a bigint pair would otherwise divide as truncating integers.
+                    nodeDatumParamsScratch.featherRatio =
+                        (positive ? 1 : -1) * sign * (1 - toNumber(yEndMin) / toNumber(yEndMax));
                 }
                 nodeDatumParamsScratch.yRange = nodeDatumParamsScratch.yEnd;
 
@@ -1056,8 +1072,11 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 const yRawValue = ctx.yRawValues[datumIndex];
                 if (yRawValue == null) continue;
                 const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
-                const yStart = ctx.isStacked ? Number(ctx.yStartValues?.[datumIndex]) : 0;
-                const yEnd = ctx.isStacked ? Number(ctx.yEndValues?.[datumIndex]) : yRawValue;
+                // Pass raw (possibly bigint) bounds through; zeroLike() matches the baseline to the value type
+                // (0n for bigint) so it shares the value's full-precision convert() path.
+                const baseline = zeroLike(yRawValue);
+                const yStart = ctx.isStacked ? (ctx.yStartValues?.[datumIndex] ?? baseline) : baseline;
+                const yEnd = ctx.isStacked ? ctx.yEndValues?.[datumIndex] : yRawValue;
                 let yRange = yEnd;
                 if (ctx.isStacked) {
                     yRange = aggregation[yRangeIndex][isPositive ? 1 : 0];
@@ -1103,12 +1122,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             if (yRawValue == null) continue;
 
             const x = xPosition(datumIndex);
-            const yEnd = Number(yRawValue);
+            // Raw (possibly bigint) value; Number() would collapse values beyond Number.MAX_VALUE to Infinity.
+            const yEnd = yRawValue;
 
             nodeDatumParamsScratch.datumIndex = datumIndex;
             nodeDatumParamsScratch.x = x;
             nodeDatumParamsScratch.width = width;
-            nodeDatumParamsScratch.yStart = 0;
+            // zeroLike() so a bigint value's baseline stays bigint and shares its full-precision convert() path.
+            nodeDatumParamsScratch.yStart = zeroLike(yEnd);
             nodeDatumParamsScratch.yEnd = yEnd;
             nodeDatumParamsScratch.yRange = yEnd;
             nodeDatumParamsScratch.featherRatio = 0;
@@ -1382,7 +1403,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const { xKey, yKey, stackGroup } = this.properties;
 
         const datum = processedData.dataSources.get(seriesId)?.data?.[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, 'yValue-raw', processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, 'yValue-raw', processedData, 'mixed-numeric')[datumIndex];
         const xDomain = dataModel.getDomain(this, 'xValue', 'key', processedData).domain;
         const yDomain = dataModel.getDomain(this, this.yCumulativeKey(dataModel), 'value', processedData).domain;
 
@@ -1610,7 +1631,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         const datum = processedData.dataSources.get(this.id)?.data?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, 'xValue', processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, 'yValue-raw', processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, 'yValue-raw', processedData, 'mixed-numeric')[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
