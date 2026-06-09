@@ -1,5 +1,6 @@
-import type { ContextCallbackParams } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, Listener } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
+import type { AgNodeClickEvent } from '../../chart/eventOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, PixelSize } from '../../chart/types';
@@ -12,37 +13,43 @@ import type {
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgHistogramSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
-    extends
-        Omit<AgCartesianSeriesTooltipRendererParams<AgHistogramBinDatum<TDatum>, TContext>, 'yKey'>,
-        FillOptions,
-        StrokeOptions {
-    /** yKey as specified on series options. */
-    readonly yKey?: DatumKey<TDatum>;
-    /** Range for x values. */
-    readonly xRange: [number, number];
-    /** Number of values within xRange. */
+/**
+ * The standard set of bin data exposed to every histogram callback (tooltip, label formatter,
+ * node click/double-click, context menu and `getDataId`).
+ */
+export interface AgHistogramSeriesBinParams<TDatum = DatumDefault> {
+    /** The raw source rows grouped into the bin. */
+    readonly datum: TDatum[];
+    /** Zero-based positional index of the bin within the series. Defined for every bin, including empty ones. */
+    readonly binIndex: number;
+    /** The bin's start and end bounds on the x-axis. */
+    readonly binRange: [number, number];
+    /** The aggregated `yKey` value for the bin. */
+    readonly aggregatedValue: number;
+    /** The number of source rows within the bin. */
     readonly frequency: number;
 }
 
-export type AgHistogramSeriesLabelFormatterParams<TDatum = DatumDefault> = AgHistogramSeriesOptionsKeys<TDatum> &
-    AgHistogramSeriesOptionsNames;
-
-export interface AgHistogramBinDatum<TDatum> {
-    data: TDatum[];
-    aggregatedValue: number;
-    frequency: number;
-    domain: [number, number];
+export interface AgHistogramSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
+    extends
+        Omit<AgCartesianSeriesTooltipRendererParams<TDatum[], TContext>, 'xKey' | 'yKey' | 'datum'>,
+        AgHistogramSeriesBinParams<TDatum>,
+        FillOptions,
+        StrokeOptions {
+    /** xKey as specified on series options. */
+    readonly xKey: DatumKey<TDatum>;
+    /** yKey as specified on series options. */
+    readonly yKey?: DatumKey<TDatum>;
 }
 
-export interface AgHistogramSeriesGetDataIdParams<TContext = ContextDefault> extends ContextCallbackParams<TContext> {
-    /** The lower bound of the bin. */
-    binStart: number;
-    /** The upper bound of the bin. */
-    binEnd: number;
-    /** The index of the bin. */
-    binIndex: number;
+export interface AgHistogramSeriesLabelFormatterParams<TDatum = DatumDefault>
+    extends AgHistogramSeriesOptionsKeys<TDatum>, AgHistogramSeriesOptionsNames, AgHistogramSeriesBinParams<TDatum> {
+    /** The default label value that would have been used without a formatter. */
+    readonly value: any;
 }
+
+export interface AgHistogramSeriesGetDataIdParams<TDatum = DatumDefault, TContext = ContextDefault>
+    extends ContextCallbackParams<TContext>, AgHistogramSeriesBinParams<TDatum> {}
 
 export interface AgHistogramSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each bar. */
@@ -54,7 +61,7 @@ export interface AgHistogramSeriesThemeableOptions<TDatum = DatumDefault, TConte
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Configuration for the labels shown on bars. */
-    label?: AgChartLabelOptions<TDatum, AgHistogramSeriesLabelFormatterParams<TDatum>, TContext>;
+    label?: AgChartLabelOptions<TDatum[], AgHistogramSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgHistogramSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
@@ -91,15 +98,33 @@ export interface AgHistogramSeriesOptionsNames {
     yName?: string;
 }
 
+/** Node click/double-click event fired for a histogram bin. */
+export interface AgHistogramSeriesNodeClickEvent<TDatum = DatumDefault, TContext = ContextDefault>
+    extends Omit<AgNodeClickEvent<'seriesNodeClick', TDatum, TContext>, 'datum'>, AgHistogramSeriesBinParams<TDatum> {}
+
+export interface AgHistogramSeriesNodeDoubleClickEvent<TDatum = DatumDefault, TContext = ContextDefault>
+    extends
+        Omit<AgNodeClickEvent<'seriesNodeDoubleClick', TDatum, TContext>, 'datum'>,
+        AgHistogramSeriesBinParams<TDatum> {}
+
+export interface AgHistogramSeriesListeners<TDatum = DatumDefault, TContext = ContextDefault> {
+    /** The listener to call when a histogram bin is clicked. */
+    seriesNodeClick?: Listener<AgHistogramSeriesNodeClickEvent<TDatum, TContext>>;
+    /** The listener to call when a histogram bin is double-clicked. */
+    seriesNodeDoubleClick?: Listener<AgHistogramSeriesNodeDoubleClickEvent<TDatum, TContext>>;
+}
+
 export interface AgHistogramSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'selection'>,
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'selection' | 'listeners'>,
         AgBaseCartesianSeriesAxisOptions,
         AgHistogramSeriesOptionsKeys<TDatum>,
         AgHistogramSeriesOptionsNames,
-        AgHistogramSeriesThemeableOptions<TDatum, TContext> {
+        Omit<AgHistogramSeriesThemeableOptions<TDatum, TContext>, 'listeners'> {
     /** Configuration for Histogram Series. */
     type: 'histogram';
+    /** A map of event names to event listeners. */
+    listeners?: AgHistogramSeriesListeners<TDatum, TContext>;
     /**
      * A callback to provide a stable identifier for each bin, exposed as `itemId` in events and active state.
      *
@@ -107,5 +132,5 @@ export interface AgHistogramSeriesOptions<TDatum = DatumDefault, TContext = Cont
      *
      * If not supplied, an identifier is generated from the bin boundaries.
      */
-    getDataId?: (params: AgHistogramSeriesGetDataIdParams<TContext>) => string;
+    getDataId?: (params: AgHistogramSeriesGetDataIdParams<TDatum, TContext>) => string;
 }

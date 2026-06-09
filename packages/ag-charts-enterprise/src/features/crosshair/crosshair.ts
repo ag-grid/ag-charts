@@ -413,7 +413,9 @@ export class Crosshair
         const isYKey = seriesKeyProperties.includes('yKey') && matchingAxisId;
         const isXKey = seriesKeyProperties.includes('xKey') && matchingAxisId;
 
-        const datumValue = aggregatedValue ?? cumulativeValue;
+        // Histogram exposes a raw, area-independent `aggregatedValue` for callbacks rather than the
+        // plotted height, so prefer `cumulativeValue` (the drawn value) when present.
+        const datumValue = cumulativeValue ?? aggregatedValue;
         if (isYKey && datumValue !== undefined) {
             const position = axisCtx.scale.convert(datumValue) + halfBandwidth;
             const isInRange = this.isInRange(position);
