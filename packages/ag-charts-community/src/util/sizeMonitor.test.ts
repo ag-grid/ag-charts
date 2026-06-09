@@ -114,4 +114,40 @@ describe('SizeMonitor', () => {
             expect(sizes[1]).toMatchObject({ width: 900, height: 700 });
         });
     });
+
+    describe('refresh() re-reads an observed element after it gains a size', () => {
+        it('emits the laid-out size when a detached element is later attached', () => {
+            const sizeMonitor = new SizeMonitor(createMockAgDocument());
+
+            // Observed while detached: clientWidth/Height 0, so the initial read emits nothing.
+            let measured = { width: 0, height: 0 };
+            const element = document.createElement('div');
+            Object.defineProperty(element, 'clientWidth', { get: () => measured.width });
+            Object.defineProperty(element, 'clientHeight', { get: () => measured.height });
+            vi.spyOn(element.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue({
+                paddingLeft: '0px',
+                paddingRight: '0px',
+                paddingTop: '0px',
+                paddingBottom: '0px',
+            } as any);
+
+            const sizes: Size[] = [];
+            sizeMonitor.observe(element, (size) => sizes.push({ ...size }));
+            expect(sizes).toHaveLength(0);
+
+            // Element is attached and laid out; refresh() re-reads the now-available size.
+            measured = { width: 400, height: 250 };
+            sizeMonitor.refresh(element);
+
+            expect(sizes).toHaveLength(1);
+            expect(sizes[0]).toMatchObject({ width: 400, height: 250 });
+        });
+
+        it('is a no-op for an element that is not observed', () => {
+            const sizeMonitor = new SizeMonitor(createMockAgDocument());
+            const element = mockElement({ clientWidth: 400, clientHeight: 250 });
+
+            expect(() => sizeMonitor.refresh(element)).not.toThrow();
+        });
+    });
 });
