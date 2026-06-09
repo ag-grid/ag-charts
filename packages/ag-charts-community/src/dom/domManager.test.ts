@@ -424,13 +424,11 @@ describe('DOMManager', () => {
             doc.body.append(container);
             const dm = new DOMManager(eventsHub, undefined, doc, container);
 
-            // ResizeObserver reports a fractional content-box at fractional zoom (e.g. 110% → DPR 1.1).
+            // A fractional content-box arrives at fractional zoom (e.g. 110% → DPR 1.1).
             dm.containerSize = { width: 108.9, height: 99.9, pixelRatio: 1.1 };
             (dm as any).updateContainerSize();
 
-            // The scene/canvas floor the size (Chart.parentResize); canvas-center must use the same
-            // integer size, otherwise the rendered child sub-pixel-mismatches the observed container
-            // and the ResizeObserver ping-pongs by 1px on each resize step.
+            // canvas-center must match the floored canvas size, else the observer ping-pongs by 1px.
             expect(centerSize(dm)).toEqual({ width: '108px', height: '99px' });
         });
 
@@ -439,8 +437,7 @@ describe('DOMManager', () => {
             doc.body.append(container);
             const dm = new DOMManager(eventsHub, undefined, doc, container);
 
-            // A drag-resize parks the container near one CSS pixel; the observer reports values that
-            // straddle the integer due to sub-pixel layout. The applied size must not oscillate.
+            // The observer reports sub-pixel values straddling an integer while dragging; the applied size must not oscillate.
             const heights: string[] = [];
             for (const reported of [99.9, 99.4, 99.7, 99.2, 99.8]) {
                 dm.containerSize = { width: 200, height: reported, pixelRatio: 1.1 };
