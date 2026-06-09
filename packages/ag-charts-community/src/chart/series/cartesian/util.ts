@@ -6,7 +6,8 @@ import {
     isArray,
     isDate,
     isEmptyObject,
-    isNumber,
+    isISO8601,
+    isNumericValue,
     isObject,
     isString,
 } from 'ag-charts-core';
@@ -195,13 +196,13 @@ function predictGroupedCategoryAxisType(value: unknown) {
 }
 
 function predictTimeAxisType(key: string, value: unknown) {
-    if (isDate(value) || (TIME_AXIS_KEYS.has(key) && isNumber(value))) {
+    if (isDate(value) || (TIME_AXIS_KEYS.has(key) && (isNumericValue(value) || isISO8601(value)))) {
         return CARTESIAN_AXIS_TYPE.TIME;
     }
 }
 
 function predictOrdinalTimeAxisType(key: string, value: unknown) {
-    if (isDate(value) || (TIME_AXIS_KEYS.has(key) && isNumber(value))) {
+    if (isDate(value) || (TIME_AXIS_KEYS.has(key) && (isNumericValue(value) || isISO8601(value)))) {
         return CARTESIAN_AXIS_TYPE.ORDINAL_TIME;
     }
 }

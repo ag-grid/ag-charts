@@ -78,13 +78,13 @@ const options: AgCartesianChartOptions = {
     formatter: {
         x: (params) => {
             if (params.type !== 'number') return;
-            const degrees = Math.trunc(params.value);
+            const degrees = Math.trunc(Number(params.value));
             const orientation = degrees > 0 ? 'E' : degrees < 0 ? 'W' : '';
             return `${Math.abs(degrees)}° ${orientation}`;
         },
         y: (params) => {
             if (params.type !== 'number') return;
-            const degrees = Math.trunc(params.value);
+            const degrees = Math.trunc(Number(params.value));
             const orientation = degrees > 0 ? 'N' : degrees < 0 ? 'S' : '';
             return `${Math.abs(degrees)}° ${orientation}`;
         },

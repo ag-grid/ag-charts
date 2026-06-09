@@ -1,3 +1,4 @@
+import type { AgNumericValue } from '../../chart/dataValues';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
@@ -17,14 +18,14 @@ import type {
 export type AgRadialGaugeTargetPlacement = 'inside' | 'outside' | 'middle';
 
 export interface AgRadialGaugeLabelFormatterParams {
-    value: number;
+    value: AgNumericValue;
 }
 
 export interface AgRadialGaugeScaleInterval {
     /** Array of values in scale units for specified intervals along the scale. The values in this array must be compatible with the scale type. */
-    values?: number[];
+    values?: AgNumericValue[];
     /** The scale interval. Expressed in the units of the scale. If the configured interval results in too many items given the chart size, it will be ignored. */
-    step?: number;
+    step?: AgNumericValue;
 }
 
 export interface AgRadialGaugeScaleLabel<TContext = ContextDefault> extends AgGaugeScaleLabel<TContext> {}
@@ -33,9 +34,9 @@ export interface AgRadialGaugeSeriesStyle extends FillOptions, StrokeOptions, Li
 
 export interface AgRadialGaugeScale<TContext = ContextDefault> extends FillsOptions, AgRadialGaugeSeriesStyle {
     /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
-    min?: number;
+    min?: AgNumericValue;
     /** Minimum value of the scale. Any values exceeding this number will be clipped to this minimum. */
-    max?: number;
+    max?: AgNumericValue;
     /** Configuration for the scale labels. */
     label?: AgRadialGaugeScaleLabel<TContext>;
     /** Configuration for the ticks interval. */
@@ -47,7 +48,7 @@ export interface AgRadialGaugeTooltipRendererParams extends AgSeriesTooltipRende
     ContextDefault
 > {
     /** Value of the Gauge */
-    value: number;
+    value: AgNumericValue;
 }
 
 export interface AgRadialGaugeBarStyle extends FillsOptions, AgRadialGaugeSeriesStyle {
@@ -73,7 +74,7 @@ export interface AgRadialGaugeTargetLabelOptions extends AgChartLabelOptions<nev
 
 export interface AgRadialGaugeTarget extends AgRadialGaugeSeriesStyle {
     /** Value to use to position the target */
-    value: number;
+    value: AgNumericValue;
     /** Text to use for the target label. */
     text?: string;
     /** The shape to use for the markers. You can also supply a custom marker by providing a `AgMarkerShapeFn` function. */
@@ -153,7 +154,7 @@ export interface AgRadialGaugePreset<TContext = ContextDefault> extends AgRadial
     /** Configuration for the Radial Gauge. */
     type: 'radial-gauge';
     /** Value of the Radial Gauge. */
-    value: number;
+    value: AgNumericValue;
     /** Configuration for the targets. */
     targets?: AgRadialGaugeTarget[];
 }

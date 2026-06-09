@@ -18,8 +18,12 @@ import {
     type RequireOptional,
     easeOut,
     isContinuous,
+    maxValue,
     mergeDefaults,
+    minValue,
+    subtractValues,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
@@ -103,11 +107,11 @@ interface WaterfallSeriesNodeDatumContext extends _ModuleSupport.CartesianCreate
     readonly lineStrokeWidth: number;
     readonly yDomain: number[];
     // Data arrays
-    readonly yRawValues: (number | undefined)[];
+    readonly yRawValues: (AgNumericValue | undefined)[];
     readonly totalTypeValues: (AgWaterfallSeriesItemType | undefined)[];
-    readonly yCurrValues: number[];
-    readonly yPrevValues: number[];
-    readonly yCurrTotalValues: number[];
+    readonly yCurrValues: AgNumericValue[];
+    readonly yPrevValues: AgNumericValue[];
+    readonly yCurrTotalValues: AgNumericValue[];
     // Mutable state for connector line points (built during populateNodeData)
     pointData: WaterfallNodePointDatum[];
 }
@@ -119,9 +123,10 @@ interface WaterfallNodeDatumParams {
     totalLabel: string | undefined;
     datum: unknown;
     xDatum: any;
-    value: number | undefined;
-    cumulativeValue: number | undefined;
-    trailingValue: number | undefined;
+    value: AgNumericValue | undefined;
+    // bigint-capable so a cumulative beyond Number.MAX_VALUE survives to yScale.convert().
+    cumulativeValue: AgNumericValue | undefined;
+    trailingValue: AgNumericValue | undefined;
     datumType: AgWaterfallSeriesItemType | undefined;
 }
 
@@ -283,7 +288,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         } else {
             const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent');
             const yExtent = values[yCurrIndex];
-            const fixedYExtent = [Math.min(0, yExtent[0]), Math.max(0, yExtent[1])];
+            // minValue/maxValue (not Math.min/max, which throw on bigint) keep an exact bigint extent.
+            const fixedYExtent = [minValue(0, yExtent[0]), maxValue(0, yExtent[1])];
             return { domain: fixNumericExtent(fixedYExtent) };
         }
     }
@@ -293,7 +299,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     }
 
     protected override populateNodeData(ctx: WaterfallSeriesNodeDatumContext): void {
-        let trailingSubtotal = 0;
+        let trailingSubtotal: AgNumericValue = 0;
 
         // Scratch object for params - reused across iterations
         const paramsScratch: WaterfallNodeDatumParams = {
@@ -418,15 +424,16 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const yScale = yAxis.scale;
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-        const yRawValues = dataModel.resolveColumnById(this, `yRaw`, processedData);
+        const yRawValues = dataModel.resolveColumnById(this, `yRaw`, processedData, 'mixed-numeric');
         const totalTypeValues = dataModel.resolveColumnById<AgWaterfallSeriesItemType | undefined>(
             this,
             `totalTypeValue`,
-            processedData
+            processedData,
+            'object'
         );
-        const yCurrValues = dataModel.resolveColumnById<number>(this, 'yCurrent', processedData);
-        const yPrevValues = dataModel.resolveColumnById<number>(this, 'yPrevious', processedData);
-        const yCurrTotalValues = dataModel.resolveColumnById<number>(this, 'yCurrentTotal', processedData);
+        const yCurrValues = dataModel.resolveColumnById(this, 'yCurrent', processedData, 'mixed-numeric');
+        const yPrevValues = dataModel.resolveColumnById(this, 'yPrevious', processedData, 'mixed-numeric');
+        const yCurrTotalValues = dataModel.resolveColumnById(this, 'yCurrentTotal', processedData, 'mixed-numeric');
 
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
 
@@ -481,8 +488,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         datumIndex: number,
         isTotal: boolean,
         isSubtotal: boolean,
-        trailingSubtotal: number
-    ): { cumulativeValue: number | undefined; trailingValue: number | undefined } {
+        trailingSubtotal: AgNumericValue
+    ): { cumulativeValue: AgNumericValue | undefined; trailingValue: AgNumericValue | undefined } {
         if (isTotal || isSubtotal) {
             return {
                 cumulativeValue: ctx.yCurrTotalValues[datumIndex],
@@ -499,15 +506,18 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     private computeDisplayValue(
         isTotal: boolean,
         isSubtotal: boolean,
-        rawValue?: number,
-        cumulativeValue?: number,
-        trailingValue?: number
-    ): number | undefined {
+        rawValue?: AgNumericValue,
+        cumulativeValue?: AgNumericValue,
+        trailingValue?: AgNumericValue
+    ): AgNumericValue | undefined {
+        // Preserve the original (possibly bigint) value so the label and label-formatter callback keep full
+        // precision (AC 9.2.1/9.2.2); the bar geometry uses the separately-narrowed cumulativeValue, not this.
         if (isTotal) {
             return cumulativeValue;
         }
         if (isSubtotal) {
-            return (cumulativeValue ?? 0) - (trailingValue ?? 0);
+            // subtractValues stays exact for bigint cumulatives (Number()ing each first would round beyond 2^53).
+            return subtractValues(cumulativeValue ?? 0, trailingValue ?? 0);
         }
         return rawValue;
     }
@@ -534,7 +544,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             itemType: seriesItemType,
             datum,
             datumIndex,
-            cumulativeValue: cumulativeValue ?? 0,
+            cumulativeValue: Number(cumulativeValue ?? 0),
             xValue: xDatum,
             yValue: value,
             yKey,
@@ -590,7 +600,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         mutableNode.itemType = seriesItemType;
         mutableNode.datum = datum;
         mutableNode.datumIndex = datumIndex;
-        mutableNode.cumulativeValue = cumulativeValue ?? 0;
+        mutableNode.cumulativeValue = Number(cumulativeValue ?? 0);
         mutableNode.xValue = xDatum;
         mutableNode.yValue = value;
         mutableNode.x = rectX;
@@ -665,8 +675,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     private createPointDatum(
         ctx: WaterfallSeriesNodeDatumContext,
         nodeDatum: WaterfallNodeDatum,
-        cumulativeValue: number | undefined,
-        trailingValue: number | undefined,
+        cumulativeValue: AgNumericValue | undefined,
+        trailingValue: AgNumericValue | undefined,
         isTotalOrSubtotal: boolean
     ): WaterfallNodePointDatum {
         const { yScale, barAlongX, categoryAxisReversed, lineStrokeWidth } = ctx;
@@ -999,12 +1009,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yRaw`, processedData)[datumIndex];
-        const yCurrTotalValues = dataModel.resolveColumnById<number>(this, 'yCurrentTotal', processedData);
+        const yValue = dataModel.resolveColumnById(this, `yRaw`, processedData, 'mixed-numeric')[datumIndex];
+        const yCurrTotalValues = dataModel.resolveColumnById(this, 'yCurrentTotal', processedData, 'mixed-numeric');
         const totalTypeValues = dataModel.resolveColumnById<AgWaterfallSeriesItemType | undefined>(
             this,
             `totalTypeValue`,
-            processedData
+            processedData,
+            'object'
         );
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
@@ -1023,14 +1034,14 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const seriesItemType = this.getSeriesItemType(isPositive, datumType);
 
-        let total: number;
+        let total: AgNumericValue;
         if (this.isTotal(datumType)) {
             total = yCurrTotalValues[datumIndex];
         } else if (this.isSubtotal(datumType)) {
             total = yCurrTotalValues[datumIndex];
             for (let previousIndex = datumIndex - 1; previousIndex >= 0; previousIndex -= 1) {
                 if (this.isSubtotal(totalTypeValues[previousIndex])) {
-                    total = total - yCurrTotalValues[previousIndex];
+                    total = subtractValues(total, yCurrTotalValues[previousIndex]);
                     break;
                 }
             }

@@ -1,4 +1,8 @@
+import { Logger } from 'ag-charts-core';
+
 import type {
+    ColumnValueType,
+    ColumnValueTypeMapping,
     GroupedData,
     ProcessedData,
     ProcessedDataDef,
@@ -11,6 +15,39 @@ import { COLUMN_SORT_ORDERS, DOMAIN_RANGES, KEY_SORT_ORDERS } from '../../dataMo
 import { RangeLookup } from '../../rangeLookup';
 import { type SortOrder, valuesSortOrder } from '../../sortOrder';
 import type { DataModelContext } from '../dataModelContext';
+
+const NUMERIC_COLUMN_TYPES = new Set<ColumnValueType>(['number', 'bigint', 'mixed-numeric']);
+
+// 'object' is caller-typed (the caller asserts the element type), so any runtime tag is accepted.
+function isCompatibleColumnType(expected: ColumnValueType, actual: ColumnValueType): boolean {
+    switch (expected) {
+        case 'number':
+        case 'bigint':
+        case 'mixed-numeric':
+            return NUMERIC_COLUMN_TYPES.has(actual) || actual === 'date';
+        case 'date':
+            return actual === 'date' || NUMERIC_COLUMN_TYPES.has(actual);
+        case 'string':
+            return actual === 'string';
+        case 'boolean':
+            return actual === 'boolean';
+        case 'object':
+            return true;
+    }
+}
+
+// A null actualType (e.g. all-empty column) is a no-op, not a mismatch.
+function assertColumnValueType(
+    scope: ScopeProvider,
+    searchId: string,
+    expectedType: ColumnValueType,
+    actualType: ColumnValueType | undefined
+): void {
+    if (actualType == null || isCompatibleColumnType(expectedType, actualType)) return;
+    Logger.warnOnce(
+        `column '${searchId}' for scope '${scope.id}' was resolved as '${expectedType}' but holds '${actualType}' values; check the series data types.`
+    );
+}
 
 /**
  * DataModelResolvers handles lookups and resolution of processed data.
@@ -75,17 +112,31 @@ export class DataModelResolvers<D extends object, K extends keyof D & string> {
         return this.ctx.scopeCache.get(scope.id)?.get(searchId) != null;
     }
 
-    resolveColumnById<T = any>(
+    resolveColumnById<T extends Exclude<ColumnValueType, 'object'>>(
         scope: ScopeProvider,
         searchId: string,
-        processedData: UngroupedData<any> | GroupedData<any>
-    ): T[] {
+        processedData: UngroupedData<any> | GroupedData<any>,
+        expectedType: T
+    ): ColumnValueTypeMapping[T][];
+    resolveColumnById<E = unknown>(
+        scope: ScopeProvider,
+        searchId: string,
+        processedData: UngroupedData<any> | GroupedData<any>,
+        expectedType: 'object'
+    ): E[];
+    resolveColumnById<E>(
+        scope: ScopeProvider,
+        searchId: string,
+        processedData: UngroupedData<any> | GroupedData<any>,
+        expectedType: ColumnValueType
+    ): E[] {
         const index = this.resolveProcessedDataIndexById(scope, searchId);
         const column = processedData.columns?.[index];
         if (column == null) {
             throw new Error(`AG Charts - didn't find column for [${searchId}, ${scope.id}]`);
         }
-        return column;
+        assertColumnValueType(scope, searchId, expectedType, processedData.columnValueType?.[index]);
+        return column as E[];
     }
 
     resolveColumnNeedsValueOf(

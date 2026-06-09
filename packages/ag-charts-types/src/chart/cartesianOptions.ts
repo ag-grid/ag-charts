@@ -27,6 +27,7 @@ import type {
     AgCrossLineThemeOptions,
 } from './crossLineOptions';
 import type { AgBaseCrosshairLabel, AgCrosshairLabel, AgCrosshairOptions } from './crosshairOptions';
+import type { AgTimeValue } from './dataValues';
 import type { AxisValue, ContextDefault, DatumDefault, Degree, PixelSize, Ratio, TextWrap } from './types';
 
 /** Configuration for axes in cartesian charts. */
@@ -283,7 +284,7 @@ export interface AgTimeAxisOptions<TContext = ContextDefault>
             >,
             'interval'
         >,
-        AgContinuousAxisOptions<Date | number, AgTimeInterval | AgTimeIntervalUnit | number> {
+        AgContinuousAxisOptions<AgTimeValue, AgTimeInterval | AgTimeIntervalUnit | number> {
     type?: 'time';
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel<TContext>;
@@ -301,7 +302,7 @@ export interface AgUnitTimeAxisOptions<TContext = ContextDefault>
             >,
             'interval'
         >,
-        AgBaseContinuousAxisOptions<Date | number> {
+        AgBaseContinuousAxisOptions<AgTimeValue> {
     type?: 'unit-time';
     /** Add cross-lines or regions corresponding to data values. */
     crossLines?: AgCartesianCrossLineOptions<Date | number>[];

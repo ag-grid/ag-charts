@@ -1,5 +1,12 @@
 import type { DomainWithMetadata, ScaleType } from 'ag-charts-core';
-import { aggregationDomain, aggregationXRatioForXValue, clamp } from 'ag-charts-core';
+import {
+    aggregationDomain,
+    aggregationXRatioForXValue,
+    clamp,
+    epochColumnForTimeScale,
+    narrowAggregationX,
+    narrowBigIntColumn,
+} from 'ag-charts-core';
 
 const SIZE_QUANTIZATION = 3;
 const FILTER_DATUM_THRESHOLD = 5;
@@ -282,18 +289,17 @@ export function computeBubbleAggregation(
  * @internal
  */
 function aggregateBubbleData(
-    xScale: ScaleType,
     yScale: ScaleType,
     xValues: any[],
     yValues: any[],
     sizeValues: any[] | undefined,
-    xDomainInput: DomainWithMetadata<any>,
+    xDomain: [number, number],
     yDomainInput: DomainWithMetadata<any>,
     sizeDomain: number[],
     xNeedsValueOf: boolean,
     yNeedsValueOf: boolean
 ): BubbleAggregation | undefined {
-    const [xd0, xd1] = aggregationDomain(xScale, xDomainInput);
+    const [xd0, xd1] = xDomain;
     const [yd0, yd1] = aggregationDomain(yScale, yDomainInput);
     return computeBubbleAggregation(
         [xd0, xd1],
@@ -332,24 +338,36 @@ export function aggregateBubbleDataFromDataModel(
     hasSizeKey: boolean,
     series: any
 ): BubbleAggregation | undefined {
-    const xValues = dataModel.resolveColumnById(series, 'xValue', processedData);
-    const yValues = dataModel.resolveColumnById(series, 'yValue', processedData);
-    const sizeValues = hasSizeKey ? dataModel.resolveColumnById(series, 'sizeValue', processedData) : undefined;
+    const rawXValues = dataModel.resolveColumnById(series, 'xValue', processedData, 'object');
+    const rawYValues = dataModel.resolveColumnById(series, 'yValue', processedData, 'mixed-numeric');
+    // Narrow the size column like x/y: the quantisation ratio mixes it with the Number-narrowed size domain.
+    const sizeValues = hasSizeKey
+        ? narrowBigIntColumn(dataModel.resolveColumnById(series, 'sizeValue', processedData, 'mixed-numeric'))
+        : undefined;
 
     const xDomain = dataModel.getDomain(series, 'xValue', 'value', processedData);
     const yDomain = dataModel.getDomain(series, 'yValue', 'value', processedData);
     const sizeDomain = hasSizeKey ? sizeScale.domain : [0, 0];
 
-    const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    const rawXNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'yValue', processedData);
 
-    return aggregateBubbleData(
+    // Parse ISO time x to epoch ms first, then subtract the bigint domain-min from x and [xd0,xd1] together so a
+    // high-magnitude narrow-range x keeps full quadtree precision; non-bigint columns narrow absolutely.
+    const { values: epochXValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
         xScale,
+        rawXValues,
+        rawXNeedsValueOf
+    );
+    const { xValues, domain: xNumericDomain } = narrowAggregationX(xScale, epochXValues, xDomain);
+    const yValues = yNeedsValueOf ? rawYValues : narrowBigIntColumn(rawYValues);
+
+    return aggregateBubbleData(
         yScale,
         xValues,
         yValues,
         sizeValues,
-        xDomain,
+        xNumericDomain,
         yDomain,
         sizeDomain,
         xNeedsValueOf,

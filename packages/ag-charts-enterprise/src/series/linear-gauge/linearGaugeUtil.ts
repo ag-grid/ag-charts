@@ -1,5 +1,6 @@
 import { type TextAlign, _ModuleSupport } from 'ag-charts-community';
 import { cachedTextMeasurer, isArray, measureTextSegments, toPlainText, toTextString } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { getLabelText } from '../gauge-util/label';
 import { type LabelFormatting, formatSingleLabel } from '../util/labelFormatter';
@@ -209,7 +210,7 @@ export function formatLinearGaugeLabels(
     selection: _ModuleSupport.Selection<LinearGaugeLabelDatum, _ModuleSupport.Text<LinearGaugeLabelDatum>>,
     opts: { padding: number; horizontal: boolean },
     bboxes: { seriesRect: _ModuleSupport.BBox; gaugeRect: _ModuleSupport.BBox; barRect: _ModuleSupport.BBox },
-    datumOverrides?: { label: number | undefined }
+    datumOverrides?: { label: AgNumericValue | undefined }
 ) {
     const { seriesRect, gaugeRect, barRect } = bboxes;
     const { padding, horizontal } = opts;

@@ -31,6 +31,7 @@ import {
 } from 'ag-charts-community-test';
 import { ChartAxisDirection, type DeepReadonly } from 'ag-charts-core';
 import { WheelDeltaMode, dispatchEvent, wheelEvent } from 'ag-charts-test';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -162,7 +163,7 @@ describe('Zoom', () => {
 
     describe('visibleDomain', () => {
         it('should match the zoomed domain for cartesian number axes', async () => {
-            let lastVisibleDomain: [number, number] | undefined;
+            let lastVisibleDomain: [AgNumericValue, AgNumericValue] | undefined;
             const baseOptions: AgCartesianChartOptions = {
                 data: [
                     { x: 0, y: 0 },

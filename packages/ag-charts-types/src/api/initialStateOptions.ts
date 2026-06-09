@@ -4,7 +4,7 @@ import type { Ratio } from '../chart/types';
 import type { AgAutoScaledAxes } from '../chart/zoomOptions';
 import type { AgPriceVolumeChartType } from '../presets/financial/priceVolumeOptions';
 import type { AgActiveState } from './activeState';
-import type { AgStateSerializableDate } from './stateTypes';
+import type { AgStateSerializableBigInt, AgStateSerializableDate } from './stateTypes';
 
 // Theme
 export interface AgInitialStateThemeableOptions {
@@ -47,9 +47,9 @@ export interface AgInitialStateZoomOptions {
 
 export interface AgInitialStateZoomRange {
     /** The start value of the zoom range. */
-    start?: AgStateSerializableDate | string | number;
+    start?: AgStateSerializableDate | AgStateSerializableBigInt | string | number;
     /** The end value of the zoom range. */
-    end?: AgStateSerializableDate | string | number;
+    end?: AgStateSerializableDate | AgStateSerializableBigInt | string | number;
 }
 
 export interface AgInitialStateZoomRatio {

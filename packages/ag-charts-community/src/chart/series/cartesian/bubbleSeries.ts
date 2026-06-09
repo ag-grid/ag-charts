@@ -21,6 +21,7 @@ import {
     isArray,
     measureTextSegments,
     rescaleVisibleRange,
+    toNumber,
     toPlainText,
 } from 'ag-charts-core';
 import {
@@ -397,9 +398,13 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const { sizeKey, marker } = properties;
         const x = this.axes[ChartAxisDirection.X]!.scale.convert(xValue);
         const sizeValues =
-            sizeKey == null ? undefined : this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!);
+            sizeKey == null
+                ? undefined
+                : this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!, 'number');
         const sizeValue =
-            sizeValues == null ? marker.size : sizeScale.convert(clampArray(sizeValues[index], sizeScale.domain));
+            sizeValues == null
+                ? marker.size
+                : sizeScale.convert(clampArray(sizeValues[index], sizeScale.domain as readonly number[]));
         const r = 0.5 * sizeValue * pixelSize;
         return [x - r, x + r];
     }
@@ -409,9 +414,13 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const { sizeKey, marker } = properties;
         const y = this.axes[ChartAxisDirection.Y]!.scale.convert(yValues[0]);
         const sizeValues =
-            sizeKey == null ? undefined : this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!);
+            sizeKey == null
+                ? undefined
+                : this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!, 'number');
         const sizeValue =
-            sizeValues == null ? marker.size : sizeScale.convert(clampArray(sizeValues[index], sizeScale.domain));
+            sizeValues == null
+                ? marker.size
+                : sizeScale.convert(clampArray(sizeValues[index], sizeScale.domain as readonly number[]));
         const r = 0.5 * sizeValue * pixelSize;
         return [y - r, y + r];
     }
@@ -439,8 +448,10 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         return { domain: fixNumericExtent(extent(ext)) };
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]) {
-        return this.domainForVisibleRange(ChartAxisDirection.Y, ['yValue'], 'xValue', visibleRange);
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]): [number, number] {
+        // domainForVisibleRange may yield a bigint; narrow once for this number-typed range contract.
+        const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, ['yValue'], 'xValue', visibleRange);
+        return [toNumber(y0), toNumber(y1)];
     }
 
     override getVisibleItems(
@@ -582,7 +593,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             labelTextDomain = [];
         }
 
-        const xDataValues = dataModel.resolveColumnById(this, `xValue`, processedData);
+        const xDataValues = dataModel.resolveColumnById(this, `xValue`, processedData, 'object');
 
         return {
             // Axes (from template method parameters)
@@ -593,17 +604,17 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             rawData,
             xValues: xDataValues, // Base interface field
             xDataValues, // BubbleSeries-specific alias
-            yDataValues: dataModel.resolveColumnById(this, `yValue`, processedData),
+            yDataValues: dataModel.resolveColumnById(this, `yValue`, processedData, 'object'),
             sizeDataValues:
-                sizeKey == null ? undefined : dataModel.resolveColumnById<number>(this, `sizeValue`, processedData),
+                sizeKey == null ? undefined : dataModel.resolveColumnById(this, `sizeValue`, processedData, 'number'),
             labelDataValues:
-                labelKey == null ? undefined : dataModel.resolveColumnById(this, `labelValue`, processedData),
+                labelKey == null ? undefined : dataModel.resolveColumnById(this, `labelValue`, processedData, 'object'),
             selectedDataValues:
                 selectedKey == null
                     ? undefined
-                    : dataModel.resolveColumnById<boolean>(this, `selectedValue`, processedData),
+                    : dataModel.resolveColumnById(this, `selectedValue`, processedData, 'boolean'),
             colorDataValues:
-                colorKey == null ? undefined : dataModel.resolveColumnById<number>(this, `colorValue`, processedData),
+                colorKey == null ? undefined : dataModel.resolveColumnById(this, `colorValue`, processedData, 'number'),
 
             // Scales
             xScale,
@@ -1374,8 +1385,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const datum = processedData.dataSources.get(this.id)?.data?.[datumIndex];
-        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
+        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData, 'object')[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData, 'object')[datumIndex];
 
         const allowNullKeys = this.properties.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return;
@@ -1383,7 +1394,12 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const data: TooltipContentDataRow[] = [];
 
         if (this.isLabelEnabled() && labelKey != null) {
-            const value = dataModel.resolveColumnById<number>(this, `labelValue`, processedData)[datumIndex];
+            const value = dataModel.resolveColumnById<string | number | Date>(
+                this,
+                `labelValue`,
+                processedData,
+                'object'
+            )[datumIndex];
             const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'category',
                 value,
@@ -1420,7 +1436,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             name: string | undefined,
             property: FormatterPropertyType
         ): number | undefined => {
-            const value = dataModel.resolveColumnById<number>(this, columnId, processedData)[datumIndex];
+            const value = dataModel.resolveColumnById(this, columnId, processedData, 'number')[datumIndex];
             if (value == null) return undefined;
             const domain = dataModel.getDomain(this, columnId, 'value', processedData).domain;
             const content = formatManager.format(this.callWithContext.bind(this), {

@@ -10,6 +10,7 @@ import type {
     AgLinearGaugeSeriesStyle,
     AgLinearGaugeTargetPlacement,
     AgLinearGaugeTooltipRendererParams,
+    AgNumericValue,
     FontStyle,
     FontWeight,
     OverflowStrategy,
@@ -77,7 +78,7 @@ export interface LinearGaugeLabelDatum extends _ModuleSupport.SeriesNodeDatum {
     avoidCollisions: boolean;
     spacing: number;
     text: NormalisedTextOrSegments | undefined;
-    value: number;
+    value: AgNumericValue;
     fill: string | undefined;
     fontStyle: FontStyle | undefined;
     fontWeight: FontWeight | undefined;
@@ -386,7 +387,8 @@ export function createLinearGradient(
     scale: _ModuleSupport.LinearScale,
     horizontal: boolean
 ): InternalAgGradientColor {
-    const colorStops = getColorStops(fills, defaultColorRange, scale.domain, fillMode);
+    // Colour-stop positions are fractional thresholds — Number is correct (no bigint precision benefit).
+    const colorStops = getColorStops(fills, defaultColorRange, scale.domain.map(Number), fillMode);
     return {
         type: 'gradient',
         gradient: 'linear',

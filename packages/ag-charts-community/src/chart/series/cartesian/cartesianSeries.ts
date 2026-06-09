@@ -13,8 +13,11 @@ import {
     findMinIndex,
     findMinMax,
     isFiniteNumber,
+    isFiniteNumericValue,
+    maxValue,
+    minValue,
 } from 'ag-charts-core';
-import type { AgDrawingMode, AgSeriesSegmentation, SelectionState } from 'ag-charts-types';
+import type { AgDrawingMode, AgNumericValue, AgSeriesSegmentation, SelectionState } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { AnimationValue } from '../../../motion/animation';
@@ -1208,7 +1211,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         crossAxisKey: string,
         visibleRange: [any, any],
         indices?: number[]
-    ): [number, number] {
+    ): [AgNumericValue, AgNumericValue] {
         const { processedData, dataModel } = this;
 
         const [r0, r1] = visibleRange;
@@ -1222,17 +1225,18 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
         const allAxisValues = axisKeys.map((axisKey) => this.keysOrValues(axisKey));
 
-        let axisMin = Infinity;
-        let axisMax = -Infinity;
+        let axisMin: AgNumericValue = Infinity;
+        let axisMax: AgNumericValue = -Infinity;
         for (const [i, crossAxisValue] of crossAxisValues.entries()) {
             const [x0, x1] = this.xCoordinateRange(crossAxisValue, 0, i);
             if (x1 < r0 || x0 > r1) continue;
 
             for (let j = 0; j < axisKeys.length; j++) {
                 const axisValue = allAxisValues[j][i];
-                if (typeof axisValue === 'number' && Number.isFinite(axisValue)) {
-                    axisMin = Math.min(axisMin, axisValue);
-                    axisMax = Math.max(axisMax, axisValue);
+                // isFiniteNumericValue/minValue/maxValue include bigint and stay exact; Math.min/max would throw on bigint.
+                if (isFiniteNumericValue(axisValue)) {
+                    axisMin = minValue(axisMin, axisValue);
+                    axisMax = maxValue(axisMax, axisValue);
                 }
             }
         }
@@ -1240,7 +1244,11 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         return axisMin > axisMax ? [Number.NaN, Number.NaN] : [axisMin, axisMax];
     }
 
-    protected domainForClippedRange(direction: ChartAxisDirection, axisKeys: string[], crossAxisKey: string) {
+    protected domainForClippedRange(
+        direction: ChartAxisDirection,
+        axisKeys: string[],
+        crossAxisKey: string
+    ): AgNumericValue[] {
         const { processedData, dataModel, axes } = this;
 
         const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
@@ -1265,16 +1273,17 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         const allAxisValues = axisKeys.map((axisKey) => this.keysOrValues(axisKey));
         const range0 = crossAxisRange[0].valueOf();
         const range1 = crossAxisRange[1].valueOf();
-        let axisMin = Infinity;
-        let axisMax = -Infinity;
+        let axisMin: AgNumericValue = Infinity;
+        let axisMax: AgNumericValue = -Infinity;
         for (const [i, crossAxisValue] of crossAxisValues.entries()) {
             const c = crossAxisValue.valueOf();
             if (c < range0 || c > range1) continue;
             for (let j = 0; j < axisKeys.length; j++) {
                 const axisValue = allAxisValues[j][i];
-                if (typeof axisValue === 'number' && Number.isFinite(axisValue)) {
-                    axisMin = Math.min(axisMin, axisValue);
-                    axisMax = Math.max(axisMax, axisValue);
+                // isFiniteNumericValue/minValue/maxValue include bigint and stay exact; Math.min/max would throw on bigint.
+                if (isFiniteNumericValue(axisValue)) {
+                    axisMin = minValue(axisMin, axisValue);
+                    axisMax = maxValue(axisMax, axisValue);
                 }
             }
         }
@@ -1369,7 +1378,9 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         if (!dataModel || !processedData) return Infinity;
 
         const crossValues = this.keysOrValues(crossAxisKey);
-        const allAxisValues = axisKeys.map((axisKey) => dataModel.resolveColumnById(this, axisKey, processedData));
+        const allAxisValues = axisKeys.map((axisKey) =>
+            dataModel.resolveColumnById(this, axisKey, processedData, 'object')
+        );
 
         const shouldFlipXY = this.shouldFlipXY();
 
@@ -1470,7 +1481,9 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             const x1 = xValues[i];
 
             if (x1 != null && x0 != null) {
-                const interval = x1.valueOf() - x0.valueOf();
+                // Narrow via Number so a bigint valueOf() doesn't throw under Math.sign/abs/min; a time
+                // interval is always within the Number-safe range (Date spans < 2^53 ms).
+                const interval = Number(x1.valueOf()) - Number(x0.valueOf());
                 const sign = Math.sign(interval) as 1 | 0 | -1;
                 if (sign === 0) continue;
                 if (sortOrder !== undefined && sign !== sortOrder) return; // Unsorted

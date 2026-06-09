@@ -15,7 +15,10 @@ import {
     extent,
     isContinuous,
     isDefined,
+    maxValue,
     mergeDefaults,
+    minValue,
+    toNumber,
 } from 'ag-charts-core';
 import {
     type AgAreaSeriesLabelFormatterParams,
@@ -25,6 +28,7 @@ import {
     type AgAreaSeriesStylerResult,
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
+    type AgNumericValue,
     type AgSeriesMarkerStyle,
 } from 'ag-charts-types';
 
@@ -42,9 +46,10 @@ import type { Text } from '../../../scene/shape/text';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';
+import { addAccumulated } from '../../data/aggregateFunctions';
 import type { DataController } from '../../data/dataController';
 import type { DataModel, DatumPropertyDefinition, ProcessedData } from '../../data/dataModel';
-import { fixNumericExtent } from '../../data/dataModel';
+import { extendDomainToZero, fixNumericExtent } from '../../data/dataModel';
 import type { PropertyDefinition } from '../../data/dataModelTypes';
 import {
     animationValidation,
@@ -146,8 +151,9 @@ type AreaStylerApply = MarkerStyleApply<
 >;
 
 interface StackRange {
-    leading: number;
-    trailing: number;
+    // Kept raw (possibly bigint) so a stack beyond Number.MAX_VALUE positions proportionally via yScale.convert().
+    leading: AgNumericValue;
+    trailing: AgNumericValue;
     dataValid: boolean;
     breakBefore: boolean;
 }
@@ -164,8 +170,8 @@ interface AreaSeriesCreateNodeDatumContext extends CartesianMarkerLikeContext<Ma
     readonly yKey: string;
 
     // Additional data arrays specific to area series
-    readonly yRawValues: any[];
-    readonly yCumulativeValues: any[];
+    readonly yRawValues: AgNumericValue[];
+    readonly yCumulativeValues: AgNumericValue[];
     readonly selectedValues: boolean[] | undefined;
     readonly invalidData: boolean[] | undefined;
 
@@ -197,7 +203,7 @@ interface AreaNodeDatumScratch {
     datum: any;
     xDatum: any;
     yDatum: any;
-    yCumulative: number;
+    yCumulative: AgNumericValue;
     selected: boolean | undefined;
     x: number;
     y: number;
@@ -438,10 +444,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         );
 
         if (yAxis instanceof NumberAxis && !(yAxis instanceof LogAxis)) {
-            const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
-                ? [Math.min(yExtent[0], 0), Math.max(yExtent[1], 0)]
-                : [];
-            return { domain: fixNumericExtent(fixedYExtent) };
+            return { domain: fixNumericExtent(extendDomainToZero(yExtent)) };
         } else {
             return { domain: fixNumericExtent(yExtent) };
         }
@@ -454,7 +457,8 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             'xValue',
             visibleRange
         );
-        return [Math.min(y0, 0), Math.max(y1, 0)];
+        // domainForVisibleRange may yield a bigint; minValue/maxValue avoid the Math.min/max throw, toNumber narrows once.
+        return [toNumber(minValue(y0, 0)), toNumber(maxValue(y1, 0))];
     }
 
     override getZoomRangeFittingItems(
@@ -578,7 +582,12 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const invalidData = processedData.invalidData?.get(this.id);
 
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
-        const yValues = dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData);
+        const yValues = dataModel.resolveColumnById(
+            this,
+            this.yCumulativeKey(processedData),
+            processedData,
+            'mixed-numeric'
+        );
 
         let [m0, m1] = visibleRangeIndices(1, metaIndices.length - 1, xAxis.range, (metaIndex) => {
             const startIndex = metaIndices[metaIndex];
@@ -659,7 +668,8 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                 if (invalidData?.[datumIndex]) continue;
 
                 const yValue = yValues[datumIndex];
-                if (!Number.isFinite(yValue)) continue;
+                // isContinuous accepts any bigint; Number.isFinite rejects every bigint (it never coerces them).
+                if (!isContinuous(yValue)) continue;
 
                 const xDatum = xValues[datumIndex];
                 bucketPoints.push({
@@ -728,7 +738,8 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             }
 
             const yValue = yValues[datumIndex];
-            if (!Number.isFinite(yValue)) {
+            // isContinuous accepts any bigint; Number.isFinite rejects every bigint (it never coerces them).
+            if (!isContinuous(yValue)) {
                 return true;
             }
         }
@@ -749,7 +760,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 
         let xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
-        let yValues = dataModel.resolveColumnById(this, this.yValueKey(), processedData);
+        let yValues = dataModel.resolveColumnById(this, this.yValueKey(), processedData, 'mixed-numeric');
 
         const connectMissingData = !this.isStacked() && this.properties.connectMissingData;
 
@@ -813,13 +824,15 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
 
             const leadingValue = yValues[leadingIndex];
             const trailingValue = yValues[trailingIndex];
-            const missingLeading = !Number.isFinite(leadingValue);
-            const missingTrailing = !Number.isFinite(trailingValue);
+            // addAccumulated below promotes the numeric baseline to bigint so a stack beyond Number.MAX_VALUE
+            // accumulates exactly (number + bigint would otherwise throw).
+            const missingLeading = !isContinuous(leadingValue);
+            const missingTrailing = !isContinuous(trailingValue);
             const dataValid = !missingLeading && !missingTrailing;
 
             if (dataValid) {
-                leading += leadingValue;
-                trailing += trailingValue;
+                leading = addAccumulated(leading, leadingValue);
+                trailing = addAccumulated(trailing, trailingValue);
             }
 
             if (stackIndex !== 0 && dataValid !== trackingValidData) {
@@ -981,12 +994,14 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             // Data arrays (resolved once)
             rawData: processedData.dataSources.get(this.id)?.data ?? [],
             xValues: dataModel.resolveKeysById(this, 'xValue', processedData),
-            yRawValues: dataModel.resolveColumnById(this, 'yValueRaw', processedData),
+            yRawValues: dataModel.resolveColumnById(this, 'yValueRaw', processedData, 'mixed-numeric'),
             yCumulativeValues: stacked
-                ? dataModel.resolveColumnById(this, 'yValueCumulative', processedData)
-                : dataModel.resolveColumnById(this, 'yValueRaw', processedData),
+                ? dataModel.resolveColumnById(this, 'yValueCumulative', processedData, 'mixed-numeric')
+                : dataModel.resolveColumnById(this, 'yValueRaw', processedData, 'mixed-numeric'),
             selectedValues:
-                selectedKey == null ? undefined : dataModel.resolveColumnById(this, 'selectedRaw', processedData),
+                selectedKey == null
+                    ? undefined
+                    : dataModel.resolveColumnById(this, 'selectedRaw', processedData, 'boolean'),
             invalidData: processedData.invalidData?.get(this.id),
 
             // Scales (cached)
@@ -1029,7 +1044,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
      * Uses cached context values to avoid repeated lookups.
      */
     private computeMarkerCoordinate(ctx: AreaSeriesCreateNodeDatumContext, scratch: AreaNodeDatumScratch): void {
-        let currY: number | undefined;
+        let currY: AgNumericValue | undefined;
 
         // if not normalized, the invalid data points will be processed as `undefined` in processData()
         // if normalized, the invalid data points will be processed as 0 rather than `undefined`
@@ -1065,8 +1080,9 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
 
         scratch.datum = ctx.rawData[datumIndex];
         scratch.yDatum = ctx.yRawValues[datumIndex];
-        scratch.yCumulative = +ctx.yCumulativeValues[datumIndex];
-        scratch.validPoint = Number.isFinite(scratch.yDatum) && ctx.invalidData?.[datumIndex] !== true;
+        // Keep raw (possibly bigint) so yScale.convert() positions values beyond Number.MAX_VALUE proportionally.
+        scratch.yCumulative = ctx.yCumulativeValues[datumIndex];
+        scratch.validPoint = isContinuous(scratch.yDatum) && ctx.invalidData?.[datumIndex] !== true;
 
         // Compute marker coordinates
         this.computeMarkerCoordinate(ctx, scratch);
@@ -1085,7 +1101,8 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                 existingNode.datum = scratch.datum;
                 existingNode.datumIndex = datumIndex;
                 existingNode.midPoint = { x: scratch.x, y: scratch.y };
-                existingNode.cumulativeValue = scratch.yCumulative;
+                // Metadata only (tooltips/error-bars); position already used the exact bigint, so narrowing here is fine.
+                existingNode.cumulativeValue = Number(scratch.yCumulative);
                 existingNode.yValue = scratch.yDatum;
                 existingNode.xValue = scratch.xDatum;
                 existingNode.point = { x: scratch.x, y: scratch.y, size: ctx.markerSize };
@@ -1096,7 +1113,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                     datum: scratch.datum,
                     datumIndex,
                     midPoint: { x: scratch.x, y: scratch.y },
-                    cumulativeValue: scratch.yCumulative,
+                    cumulativeValue: Number(scratch.yCumulative),
                     yValue: scratch.yDatum,
                     xValue: scratch.xDatum,
                     yKey: ctx.yKey,
@@ -1561,7 +1578,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const { xKey, yKey } = this.properties;
 
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData, 'mixed-numeric')[datumIndex];
         const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData).domain;
         const yDomain = dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData).domain;
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
@@ -1591,7 +1608,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
 
         const datum = processedData.dataSources.get(this.id)?.data?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData, 'mixed-numeric')[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         if (xValue === undefined && !allowNullKeys) return;

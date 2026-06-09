@@ -1,5 +1,6 @@
 import type { DomainWithMetadata, NormalizedDomain } from 'ag-charts-core';
-import { Color, Logger, clamp } from 'ag-charts-core';
+import { Color, Logger, clamp, toNumber } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { AbstractScale } from './abstractScale';
 import { Invalidating } from './invalidating';
@@ -58,7 +59,7 @@ export class ColorScale extends AbstractScale<number, string> {
      * `domain` (which carries interpolation pivots) so that colour-stop
      * positions do not distort the legend axis range.
      */
-    displayDomain?: [number, number];
+    displayDomain?: [AgNumericValue, AgNumericValue];
 
     private parsedRange = this.range.map(convertColorStringToOklcha);
 
@@ -103,8 +104,11 @@ export class ColorScale extends AbstractScale<number, string> {
         return;
     }
 
-    convert(x: number) {
+    convert(x: AgNumericValue) {
         this.refresh();
+
+        // Colour derives from the value's position in the Number domain, so finite precision suffices.
+        const xn = toNumber(x);
 
         const { domain, range, parsedRange } = this;
         const d0 = domain[0];
@@ -112,11 +116,11 @@ export class ColorScale extends AbstractScale<number, string> {
         const r0 = range[0];
         const r1 = range.at(-1)!;
 
-        if (x <= d0) {
+        if (xn <= d0) {
             return r0;
         }
 
-        if (x >= d1) {
+        if (xn >= d1) {
             return r1;
         }
 
@@ -124,19 +128,19 @@ export class ColorScale extends AbstractScale<number, string> {
         let q: number;
 
         if (domain.length === 2) {
-            const t = (x - d0) / (d1 - d0);
+            const t = (xn - d0) / (d1 - d0);
             const step = 1 / (range.length - 1);
             index = range.length <= 2 ? 0 : Math.min(Math.floor(t * (range.length - 1)), range.length - 2);
             q = (t - index * step) / step;
         } else {
             for (index = 0; index < domain.length - 2; index++) {
-                if (x < domain[index + 1]) {
+                if (xn < domain[index + 1]) {
                     break;
                 }
             }
             const a = domain[index];
             const b = domain[index + 1];
-            q = (x - a) / (b - a);
+            q = (xn - a) / (b - a);
         }
 
         if (this.mode === 'discrete') {

@@ -17,7 +17,7 @@ import { UnitTimeScale } from '../../scale/unitTimeScale';
 import type { FormatDatumParams } from '../chartAxis';
 import type { AxisTickFormatParams } from './axis';
 import { DiscreteTimeAxis } from './discreteTimeAxis';
-import { calculateDefaultUnit } from './timeAxis';
+import { calculateDefaultUnit, coerceTimeBound } from './timeAxis';
 
 type UnitInterval = AgTimeInterval | AgTimeIntervalUnit | undefined;
 
@@ -73,7 +73,7 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale, NormalisedUnit
         } else {
             const { boundSeries, direction } = this;
             const { min, max } = this.options;
-            defaultUnit = calculateDefaultUnit(boundSeries, direction, min, max);
+            defaultUnit = calculateDefaultUnit(boundSeries, direction, coerceTimeBound(min), coerceTimeBound(max));
         }
 
         if (!objectsEqual(this.defaultUnit, defaultUnit)) {
@@ -89,7 +89,13 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale, NormalisedUnit
 
     override normaliseDataDomain(d: DomainWithMetadata<Date>) {
         const { min, max, preferredMin, preferredMax } = this.options;
-        const { extent, clipped } = normalisedTimeExtentWithMetadata(d, min, max, preferredMin, preferredMax);
+        const { extent, clipped } = normalisedTimeExtentWithMetadata(
+            d,
+            coerceTimeBound(min),
+            coerceTimeBound(max),
+            coerceTimeBound(preferredMin),
+            coerceTimeBound(preferredMax)
+        );
         return { domain: extent, clipped };
     }
 

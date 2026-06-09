@@ -8,7 +8,8 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { CallbackParamRules, DeepRequired, DynamicContext, Mutable, RequireOptional } from 'ag-charts-core';
-import { ChartAxisDirection, deepClone, mergeDefaults } from 'ag-charts-core';
+import { ChartAxisDirection, deepClone, isNumericValue, mergeDefaults, toNumber } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotNode } from './boxPlotNode';
@@ -57,11 +58,11 @@ interface BoxPlotSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
 /** Context object caching expensive lookups for createNodeData(). */
 interface BoxPlotSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<BoxPlotNodeDatum> {
     // Box plot specific data arrays
-    readonly minValues: any[];
-    readonly q1Values: any[];
-    readonly medianValues: any[];
-    readonly q3Values: any[];
-    readonly maxValues: any[];
+    readonly minValues: AgNumericValue[];
+    readonly q1Values: AgNumericValue[];
+    readonly medianValues: AgNumericValue[];
+    readonly q3Values: AgNumericValue[];
+    readonly maxValues: AgNumericValue[];
 
     // Computed positioning (involves scale conversions - worth caching)
     readonly barWidth: number;
@@ -196,8 +197,15 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         return { domain: fixNumericExtent(yExtent) };
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]) {
-        return this.domainForVisibleRange(ChartAxisDirection.Y, ['maxValue', 'minValue'], 'xValue', visibleRange);
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]): [number, number] {
+        // domainForVisibleRange may yield a bigint; narrow once for this number-typed range contract.
+        const [y0, y1] = this.domainForVisibleRange(
+            ChartAxisDirection.Y,
+            ['maxValue', 'minValue'],
+            'xValue',
+            visibleRange
+        );
+        return [toNumber(y0), toNumber(y1)];
     }
 
     /**
@@ -221,11 +229,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             yAxis,
             rawData: processedData.dataSources.get(this.id)?.data ?? [],
             xValues: dataModel.resolveKeysById(this, 'xValue', processedData),
-            minValues: dataModel.resolveColumnById(this, 'minValue', processedData),
-            q1Values: dataModel.resolveColumnById(this, 'q1Value', processedData),
-            medianValues: dataModel.resolveColumnById(this, 'medianValue', processedData),
-            q3Values: dataModel.resolveColumnById(this, 'q3Value', processedData),
-            maxValues: dataModel.resolveColumnById(this, 'maxValue', processedData),
+            minValues: dataModel.resolveColumnById(this, 'minValue', processedData, 'mixed-numeric'),
+            q1Values: dataModel.resolveColumnById(this, 'q1Value', processedData, 'mixed-numeric'),
+            medianValues: dataModel.resolveColumnById(this, 'medianValue', processedData, 'mixed-numeric'),
+            q3Values: dataModel.resolveColumnById(this, 'q3Value', processedData, 'mixed-numeric'),
+            maxValues: dataModel.resolveColumnById(this, 'maxValue', processedData, 'mixed-numeric'),
             xScale: xAxis.scale,
             yScale: yAxis.scale,
             groupOffset,
@@ -246,7 +254,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
      */
     private validateBoxPlotValues(minValue: any, q1Value: any, medianValue: any, q3Value: any, maxValue: any): boolean {
         return (
-            [minValue, q1Value, medianValue, q3Value, maxValue].every((value) => typeof value === 'number') &&
+            // Accept bigint as well as number; the ordering comparisons below are valid for both (and mixed).
+            [minValue, q1Value, medianValue, q3Value, maxValue].every(isNumericValue) &&
             minValue <= q1Value &&
             q1Value <= medianValue &&
             medianValue <= q3Value &&
@@ -549,11 +558,13 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
-        const minValue = dataModel.resolveColumnById(this, `minValue`, processedData)[datumIndex];
-        const q1Value = dataModel.resolveColumnById(this, `q1Value`, processedData)[datumIndex];
-        const medianValue = dataModel.resolveColumnById(this, `medianValue`, processedData)[datumIndex];
-        const q3Value = dataModel.resolveColumnById(this, `q3Value`, processedData)[datumIndex];
-        const maxValue = dataModel.resolveColumnById(this, `maxValue`, processedData)[datumIndex];
+        const minValue = dataModel.resolveColumnById(this, `minValue`, processedData, 'mixed-numeric')[datumIndex];
+        const q1Value = dataModel.resolveColumnById(this, `q1Value`, processedData, 'mixed-numeric')[datumIndex];
+        const medianValue = dataModel.resolveColumnById(this, `medianValue`, processedData, 'mixed-numeric')[
+            datumIndex
+        ];
+        const q3Value = dataModel.resolveColumnById(this, `q3Value`, processedData, 'mixed-numeric')[datumIndex];
+        const maxValue = dataModel.resolveColumnById(this, `maxValue`, processedData, 'mixed-numeric')[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         const allowNullKeys = this.properties.allowNullKeys ?? false;

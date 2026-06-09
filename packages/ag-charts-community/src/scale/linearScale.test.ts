@@ -305,7 +305,6 @@ describe('LinearScale', () => {
 
             expect(scale.domain).toEqual([0, 100]);
             expect(scale.domain.every((v) => typeof v === 'number')).toBe(true);
-            expect(() => Math.min(...scale.domain)).not.toThrow();
         });
 
         test('clamps to the range bounds', () => {
@@ -388,22 +387,20 @@ describe('LinearScale', () => {
             const scale = new LinearScale();
             scale.range = [0, 600];
 
-            const { ticks } = scale.ticks(tickParams, [0n, 100n] as unknown as number[]);
+            const { ticks } = scale.ticks(tickParams, [0n, 100n]);
             expect(ticks).toEqual([0n, 20n, 40n, 60n, 80n, 100n]);
         });
 
         test('nices a BigInt domain outward to step multiples', () => {
             const scale = new LinearScale();
-            expect(scale.niceDomain(tickParams, [13n, 97n] as unknown as number[])).toEqual([0n, 100n]);
+            expect(scale.niceDomain(tickParams, [13n, 97n])).toEqual([0n, 100n]);
         });
 
         test('honours a custom interval when nicing a BigInt domain', () => {
             const scale = new LinearScale();
             // With interval 30 the bounds must snap to multiples of 30 (Number path), not the auto
             // bigint step that would otherwise produce [0, 100].
-            expect(scale.niceDomain({ ...tickParams, interval: 30 }, [13n, 97n] as unknown as number[])).toEqual([
-                0, 120,
-            ]);
+            expect(scale.niceDomain({ ...tickParams, interval: 30 }, [13n, 97n])).toEqual([0, 120]);
         });
 
         // AC AG-16608 #15e / #16: ticks beyond Number.MAX_SAFE_INTEGER keep exact values.
@@ -412,7 +409,7 @@ describe('LinearScale', () => {
             scale.range = [0, 600];
 
             const span = 10n ** 21n;
-            const { ticks } = scale.ticks(tickParams, [0n, span] as unknown as number[]);
+            const { ticks } = scale.ticks(tickParams, [0n, span]);
             expect(ticks).toEqual([0n, 2n * 10n ** 20n, 4n * 10n ** 20n, 6n * 10n ** 20n, 8n * 10n ** 20n, span]);
         });
 
@@ -421,7 +418,7 @@ describe('LinearScale', () => {
             scale.range = [0, 100];
 
             // A custom interval is a Number concept; the bigint domain narrows and the Number path runs.
-            const { ticks } = scale.ticks({ ...tickParams, interval: 25 }, [0n, 100n] as unknown as number[]);
+            const { ticks } = scale.ticks({ ...tickParams, interval: 25 }, [0n, 100n]);
             expect(ticks).toEqual([0, 25, 50, 75, 100]);
         });
     });

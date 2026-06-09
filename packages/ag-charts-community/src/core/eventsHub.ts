@@ -17,6 +17,7 @@ import type {
     AgAutoScaledAxes,
     AgCartesianAxisPosition,
     AgContextMenuItemShowOn,
+    AgNumericValue,
     AgScrollbarPlacement,
     AgTimeInterval,
     AgTimeIntervalUnit,
@@ -420,7 +421,7 @@ export interface HighlightNodeDatum extends SeriesNodeDatum {
     readonly radiusKey?: string;
     readonly colorValue?: number;
     readonly cumulativeValue?: number;
-    readonly aggregatedValue?: number;
+    readonly aggregatedValue?: AgNumericValue;
     readonly legendItemName?: string;
 }
 

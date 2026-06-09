@@ -23,7 +23,9 @@ import {
     type Point,
     type Scale,
     mergeDefaults,
+    toNumber,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import {
     type OhlcSeriesDataAggregationFilter,
@@ -63,11 +65,11 @@ export interface OhlcNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDa
     readonly itemId?: never;
     readonly itemType: AgOhlcSeriesItemType;
 
-    readonly openValue: number;
-    readonly closeValue: number;
-    readonly highValue?: number;
-    readonly lowValue?: number;
-    readonly aggregatedValue: number;
+    readonly openValue: AgNumericValue;
+    readonly closeValue: AgNumericValue;
+    readonly highValue?: AgNumericValue;
+    readonly lowValue?: AgNumericValue;
+    readonly aggregatedValue: AgNumericValue;
 
     readonly isRising: boolean;
 
@@ -115,10 +117,11 @@ class OhlcSeriesNodeEvent<
 interface PreparedOhlcNodeDatumState {
     datum: any;
     xValue: any;
-    openValue: number;
-    closeValue: number;
-    highValue: number;
-    lowValue: number;
+    // Kept as AgNumericValue (bigint preserved, not narrowed) so yScale.convert() positions at full precision.
+    openValue: AgNumericValue;
+    closeValue: AgNumericValue;
+    highValue: AgNumericValue;
+    lowValue: AgNumericValue;
     isRising: boolean;
     itemType: 'up' | 'down';
 }
@@ -133,10 +136,10 @@ interface OhlcSeriesNodeDatumContext {
     // Data arrays (resolved from dataModel - worth caching)
     readonly rawData: any[];
     readonly xValues: any[];
-    readonly openValues: any[];
-    readonly closeValues: any[];
-    readonly highValues: any[];
-    readonly lowValues: any[];
+    readonly openValues: AgNumericValue[];
+    readonly closeValues: AgNumericValue[];
+    readonly highValues: AgNumericValue[];
+    readonly lowValues: AgNumericValue[];
 
     // Scales (axis lookups - worth caching)
     readonly xScale: Scale<any, any>;
@@ -372,8 +375,15 @@ export abstract class OhlcSeriesBase<
         return { domain: fixNumericExtent(yExtent) };
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]) {
-        return this.domainForVisibleRange(ChartAxisDirection.Y, ['highValue', 'lowValue'], 'xValue', visibleRange);
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]): [number, number] {
+        // domainForVisibleRange may yield a bigint; narrow once for this number-typed range contract.
+        const [y0, y1] = this.domainForVisibleRange(
+            ChartAxisDirection.Y,
+            ['highValue', 'lowValue'],
+            'xValue',
+            visibleRange
+        );
+        return [toNumber(y0), toNumber(y1)];
     }
 
     override getZoomRangeFittingItems(
@@ -445,10 +455,10 @@ export abstract class OhlcSeriesBase<
         return {
             rawData,
             xValues: dataModel.resolveKeysById(this, 'xValue', processedData),
-            openValues: dataModel.resolveColumnById(this, 'openValue', processedData),
-            closeValues: dataModel.resolveColumnById(this, 'closeValue', processedData),
-            highValues: dataModel.resolveColumnById(this, 'highValue', processedData),
-            lowValues: dataModel.resolveColumnById(this, 'lowValue', processedData),
+            openValues: dataModel.resolveColumnById(this, 'openValue', processedData, 'mixed-numeric'),
+            closeValues: dataModel.resolveColumnById(this, 'closeValue', processedData, 'mixed-numeric'),
+            highValues: dataModel.resolveColumnById(this, 'highValue', processedData, 'mixed-numeric'),
+            lowValues: dataModel.resolveColumnById(this, 'lowValue', processedData, 'mixed-numeric'),
             xScale,
             yScale,
             xAxis,
@@ -934,10 +944,10 @@ export abstract class OhlcSeriesBase<
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
-        const openValue = dataModel.resolveColumnById(this, `openValue`, processedData)[datumIndex];
-        const highValue = dataModel.resolveColumnById(this, `highValue`, processedData)[datumIndex];
-        const lowValue = dataModel.resolveColumnById(this, `lowValue`, processedData)[datumIndex];
-        const closeValue = dataModel.resolveColumnById(this, `closeValue`, processedData)[datumIndex];
+        const openValue = dataModel.resolveColumnById(this, `openValue`, processedData, 'mixed-numeric')[datumIndex];
+        const highValue = dataModel.resolveColumnById(this, `highValue`, processedData, 'mixed-numeric')[datumIndex];
+        const lowValue = dataModel.resolveColumnById(this, `lowValue`, processedData, 'mixed-numeric')[datumIndex];
+        const closeValue = dataModel.resolveColumnById(this, `closeValue`, processedData, 'mixed-numeric')[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         const allowNullKeys = this.properties.allowNullKeys ?? false;

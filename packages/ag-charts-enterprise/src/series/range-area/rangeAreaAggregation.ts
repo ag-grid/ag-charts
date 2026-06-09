@@ -1,16 +1,14 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type {
-    DomainWithMetadata,
-    ExtremesAggregationFilter,
-    ExtremesPartialAggregationResult,
-    ScaleType,
-} from 'ag-charts-core';
+import type { ExtremesAggregationFilter, ExtremesPartialAggregationResult, ScaleType } from 'ag-charts-core';
 import {
-    aggregationDomain,
     computeExtremesAggregation,
     computeExtremesAggregationPartial,
+    epochColumnForTimeScale,
+    narrowAggregationX,
+    narrowBigIntColumnRelative,
     simpleMemorize2,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 type ScopeProvider = _ModuleSupport.ScopeProvider;
 type ProcessedData = _ModuleSupport.ProcessedData<any>;
@@ -25,16 +23,15 @@ export type RangeAreaPartialAggregationResult = ExtremesPartialAggregationResult
 // ============================================================================
 
 function aggregateRangeAreaData(
-    scale: ScaleType,
     xValues: any[],
     highValues: any[],
     lowValues: any[],
-    domainInput: DomainWithMetadata<number>,
-    smallestKeyInterval: number | undefined,
+    d0: number,
+    d1: number,
+    smallestKeyInterval: AgNumericValue | undefined,
     xNeedsValueOf: boolean,
     yNeedsValueOf: boolean
 ): RangeAreaSeriesDataAggregationFilter[] | undefined {
-    const [d0, d1] = aggregationDomain(scale, domainInput);
     return computeExtremesAggregation([d0, d1], xValues, highValues, lowValues, {
         smallestKeyInterval,
         xNeedsValueOf,
@@ -55,21 +52,31 @@ export function aggregateRangeAreaDataFromDataModel(
     series: ScopeProvider,
     existingFilters?: RangeAreaSeriesDataAggregationFilter[]
 ): RangeAreaSeriesDataAggregationFilter[] | undefined {
-    const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
-    const highValues = dataModel.resolveColumnById(series, 'yHighValue', processedData);
-    const lowValues = dataModel.resolveColumnById(series, 'yLowValue', processedData);
+    const rawXValues = dataModel.resolveKeysById(series, 'xValue', processedData);
+    const rawHighValues = dataModel.resolveColumnById(series, 'yHighValue', processedData, 'mixed-numeric');
+    const rawLowValues = dataModel.resolveColumnById(series, 'yLowValue', processedData, 'mixed-numeric');
 
     const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
-    const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    const rawXNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf =
         dataModel.resolveColumnNeedsValueOf(series, 'yHighValue', processedData) ??
         dataModel.resolveColumnNeedsValueOf(series, 'yLowValue', processedData);
 
+    const { values: epochXValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
+        scale,
+        rawXValues,
+        rawXNeedsValueOf
+    );
+    // Subtract the bigint domain-min from x and [d0,d1] together so a high-magnitude narrow-range x keeps full
+    // bucketing precision; falls back to an absolute narrow + aggregationDomain for non-bigint columns.
+    const { xValues, domain } = narrowAggregationX(scale, epochXValues, domainInput);
+    const highValues = yNeedsValueOf ? rawHighValues : narrowBigIntColumnRelative(rawHighValues);
+    const lowValues = yNeedsValueOf ? rawLowValues : narrowBigIntColumnRelative(rawLowValues);
+
     // When existingFilters provided, bypass memoization to enable array reuse
     if (existingFilters) {
-        const [d0, d1] = aggregationDomain(scale, domainInput);
-        return computeExtremesAggregation([d0, d1], xValues, highValues, lowValues, {
+        return computeExtremesAggregation(domain, xValues, highValues, lowValues, {
             smallestKeyInterval: processedData.reduced?.smallestKeyInterval,
             xNeedsValueOf,
             yNeedsValueOf,
@@ -78,11 +85,11 @@ export function aggregateRangeAreaDataFromDataModel(
     }
 
     return memoizedAggregateRangeAreaData(
-        scale,
         xValues,
         highValues,
         lowValues,
-        domainInput,
+        domain[0],
+        domain[1],
         processedData.reduced?.smallestKeyInterval,
         xNeedsValueOf,
         yNeedsValueOf
@@ -97,19 +104,29 @@ export function aggregateRangeAreaDataFromDataModelPartial(
     targetRange: number,
     existingFilters?: RangeAreaSeriesDataAggregationFilter[]
 ): RangeAreaPartialAggregationResult | undefined {
-    const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
-    const highValues = dataModel.resolveColumnById(series, 'yHighValue', processedData);
-    const lowValues = dataModel.resolveColumnById(series, 'yLowValue', processedData);
+    const rawXValues = dataModel.resolveKeysById(series, 'xValue', processedData);
+    const rawHighValues = dataModel.resolveColumnById(series, 'yHighValue', processedData, 'mixed-numeric');
+    const rawLowValues = dataModel.resolveColumnById(series, 'yLowValue', processedData, 'mixed-numeric');
 
     const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
-    const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    const rawXNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
     const yNeedsValueOf =
         dataModel.resolveColumnNeedsValueOf(series, 'yHighValue', processedData) ??
         dataModel.resolveColumnNeedsValueOf(series, 'yLowValue', processedData);
 
-    const [d0, d1] = aggregationDomain(scale, domainInput);
-    return computeExtremesAggregationPartial([d0, d1], xValues, highValues, lowValues, {
+    const { values: epochXValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
+        scale,
+        rawXValues,
+        rawXNeedsValueOf
+    );
+    // Subtract the bigint domain-min from x and [d0,d1] together so a high-magnitude narrow-range x keeps full
+    // bucketing precision; falls back to an absolute narrow + aggregationDomain for non-bigint columns.
+    const { xValues, domain } = narrowAggregationX(scale, epochXValues, domainInput);
+    const highValues = yNeedsValueOf ? rawHighValues : narrowBigIntColumnRelative(rawHighValues);
+    const lowValues = yNeedsValueOf ? rawLowValues : narrowBigIntColumnRelative(rawLowValues);
+
+    return computeExtremesAggregationPartial(domain, xValues, highValues, lowValues, {
         smallestKeyInterval: processedData.reduced?.smallestKeyInterval,
         targetRange,
         xNeedsValueOf,

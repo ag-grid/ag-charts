@@ -70,8 +70,7 @@ test.describe('api-ref-page', () => {
 
     setupIntrinsicAssertions(test);
 
-    // TODO: AG-16140 disable this test temporarily while converting axis docs to use dictionary
-    test.skip('can expand axis label nav', async ({ page }) => {
+    test('can expand axis label nav', async ({ page }) => {
         await gotoUrl(page, toPageUrl('options/axes/number/#reference-AgNumberAxisOptions-label'));
 
         const highlight = page.locator('.highlight').first();
@@ -86,6 +85,22 @@ test.describe('api-ref-page', () => {
         await consoleLogs.expectLogs([
             '%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold',
         ]);
+    });
+
+    // Series colour options type as the `AgCssColorOrRef` union; the reference renderer throws on the
+    // union unless every member is a named interface. setupIntrinsicAssertions fails on the resulting
+    // console error, and the visible `fill` row proves the section rendered through the union.
+    test('renders the bar series options page through the colour-ref union', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/series/bar/#reference-AgBarSeriesOptions-fill'));
+        await expect(getNavigationProperty(page, /^fill/)).toBeVisible();
+
+        // Expanding the `fill` code block is the only path that renders TypeCodeBlock -> CodeShiki.
+        // `fill` types as the `AgColorType` union, so its members resolve to a `string[]` code sample;
+        // this guards the regression where CodeShiki dropped its array handling and threw
+        // "code.trimEnd is not a function" on expansion. setupIntrinsicAssertions fails the test on the
+        // resulting pageerror, and the rendered `<pre>` proves the union block highlighted successfully.
+        await page.getByRole('button', { name: 'See more details about fill', exact: true }).click();
+        await expect(page.locator('#reference-AgBarSeriesOptions-fill-details pre').first()).toBeVisible();
     });
 
     // The themes API page roots its search index at AgChartTheme, whose tree is far larger than the

@@ -6,22 +6,27 @@ export function valuesSortOrder(values: any[], needsValueOf: boolean): SortOrder
 
     let order = 0 as 1 | -1 | 0;
 
-    let v0 = values[0];
-    for (let i = 1; i < valuesLength; i++) {
-        const v1 = values[i];
-        if (v1 == null) continue;
+    let prev: number | bigint | undefined;
+    for (let i = 0; i < valuesLength; i++) {
+        const value = values[i];
+        if (value == null) continue;
 
         // Skip valueOf() call when we know the column contains only primitives
-        const primitive = needsValueOf ? v1.valueOf() : v1;
-        if (typeof primitive !== 'number') return;
+        const primitive = needsValueOf ? value.valueOf() : value;
+        if (typeof primitive !== 'number' && typeof primitive !== 'bigint') return;
 
-        const diff = Math.sign(v1 - v0) as 1 | -1 | 0;
-        if (diff !== 0) {
-            if (order !== 0 && order !== diff) return;
-            order = diff;
+        if (prev !== undefined) {
+            // Relational comparison is bigint-safe and works across number/bigint; Math.sign(v1 - v0) throws on bigint.
+            let diff: 1 | -1 | 0 = 0;
+            if (primitive > prev) diff = 1;
+            else if (primitive < prev) diff = -1;
+            if (diff !== 0) {
+                if (order !== 0 && order !== diff) return;
+                order = diff;
+            }
         }
 
-        v0 = v1;
+        prev = primitive;
     }
 
     return order === 0 ? 1 : order;

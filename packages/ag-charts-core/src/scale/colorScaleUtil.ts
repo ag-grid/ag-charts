@@ -1,6 +1,6 @@
-import type { AgColorScaleColorStop } from 'ag-charts-types';
+import type { AgColorScaleColorStop, AgNumericValue } from 'ag-charts-types';
 
-import { clamp } from '../utils/data/numbers';
+import { clamp, toNumber, toNumberOrUndefined } from '../utils/data/numbers';
 
 /** Colour mode for colour scale operations. */
 export type ColorScaleMode = 'continuous' | 'discrete';
@@ -30,7 +30,7 @@ export interface ColorScaleState {
      * of `domain`, which carries interpolation pivots derived from the fill
      * stops. When omitted, defaults to `[domain[0], domain.at(-1)]`.
      */
-    displayDomain?: [number, number];
+    displayDomain?: [AgNumericValue, AgNumericValue];
 }
 
 function findNextDefinedStop(fills: Array<{ stop?: number }>, from: number): number {
@@ -56,11 +56,12 @@ export function resolveStopPositions(
             nextDefinedStopIndex = findNextDefinedStop(fills, i);
         }
 
-        const stop = fills[i]?.stop;
+        // Narrow a bigint stop to Number; mixing bigint with the Number domain below throws.
+        const stop = toNumberOrUndefined(fills[i]?.stop);
 
         if (stop == null) {
-            const stop0 = fills[previousDefinedStopIndex]?.stop;
-            const stop1 = fills[nextDefinedStopIndex]?.stop;
+            const stop0 = toNumberOrUndefined(fills[previousDefinedStopIndex]?.stop);
+            const stop1 = toNumberOrUndefined(fills[nextDefinedStopIndex]?.stop);
             const value0 = stop0 ?? d0;
             const value1 = stop1 ?? d1;
             const offset = isDiscrete && stop0 == null ? 1 : 0;
@@ -106,14 +107,16 @@ interface ColorBins {
  */
 export function computeColorBins(
     fills: ColorScaleColorStop[],
-    domain: [number, number],
+    domain: [AgNumericValue, AgNumericValue],
     mode: ColorScaleMode
 ): ColorBins {
     if (fills.length === 0) {
         return { domain: [], range: [], bins: [] };
     }
 
-    const [d0, d1] = domain;
+    // Narrow a bigint domain to Number; mixing bigint with number in the maths below throws.
+    const d0 = toNumber(domain[0]);
+    const d1 = toNumber(domain[1]);
     const isDiscrete = mode === 'discrete';
     const resolvedStops = resolveStopPositions(fills, d0, d1, isDiscrete);
     const resolvedColors = fills.map((fill) => fill.color);
@@ -167,7 +170,10 @@ export function deriveNormalizedStops(colorScale: ColorScaleState): GradientColo
     const { domain, range, mode, displayDomain } = colorScale;
     if (range.length === 0) return [];
 
-    const [d0, d1] = displayDomain ?? [domain[0], domain.at(-1)!];
+    // Narrow a bigint `displayDomain` to Number for the [0,1] fraction maths below.
+    const [d0, d1] = displayDomain
+        ? [toNumber(displayDomain[0]), toNumber(displayDomain[1])]
+        : [domain[0], domain.at(-1)!];
     const extent = d1 - d0 || 1;
 
     if (mode === 'discrete') {

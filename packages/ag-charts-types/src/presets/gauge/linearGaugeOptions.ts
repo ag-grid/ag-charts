@@ -1,3 +1,4 @@
+import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgChartAutoSizedLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { AgMarkerShape, ContextDefault, DatumDefault, Degree, Direction, PixelSize } from '../../chart/types';
@@ -16,9 +17,9 @@ export interface AgLinearGaugeSeriesStyle extends FillOptions, StrokeOptions, Li
 
 export interface AgLinearGaugeScaleInterval {
     /** Array of values in scale units for specified intervals along the scale. The values in this array must be compatible with the scale type. */
-    values?: number[];
+    values?: AgNumericValue[];
     /** The scale interval. Expressed in the units of the scale. If the configured interval results in too many items given the chart size, it will be ignored. */
-    step?: number;
+    step?: AgNumericValue;
 }
 
 export interface AgLinearGaugeScaleLabel<TContext = ContextDefault> extends AgGaugeScaleLabel<TContext> {
@@ -28,9 +29,9 @@ export interface AgLinearGaugeScaleLabel<TContext = ContextDefault> extends AgGa
 
 export interface AgLinearGaugeScale<TContext = ContextDefault> extends AgLinearGaugeSeriesStyle, FillsOptions {
     /** Maximum value of the scale. Any values exceeding this number will be clipped to this maximum. */
-    min?: number;
+    min?: AgNumericValue;
     /** Minimum value of the scale. Any values exceeding this number will be clipped to this minimum. */
-    max?: number;
+    max?: AgNumericValue;
     /** Configuration for the scale labels. */
     label?: AgLinearGaugeScaleLabel<TContext>;
     /** Configuration for the ticks interval. */
@@ -42,7 +43,7 @@ export interface AgLinearGaugeTooltipRendererParams extends AgSeriesTooltipRende
     ContextDefault
 > {
     /** Value of the Gauge */
-    value: number;
+    value: AgNumericValue;
 }
 
 export interface AgLinearGaugeBarStyle extends AgLinearGaugeSeriesStyle, FillsOptions {
@@ -58,7 +59,7 @@ export type AgLinearGaugeMarkerShape = AgMarkerShape | 'line';
 
 export interface AgLinearGaugeTarget extends AgLinearGaugeSeriesStyle {
     /** Value to use to position the target */
-    value: number;
+    value: AgNumericValue;
     /** Text to use for the target label. */
     text?: string;
     /** The shape to use for the markers. You can also supply a custom marker by providing a `AgMarkerShapeFn` function. */
@@ -128,7 +129,7 @@ export interface AgLinearGaugePreset<TContext = ContextDefault> extends AgLinear
     /** Configuration for the Linear Gauge. */
     type: 'linear-gauge';
     /** Value of the Linear Gauge. */
-    value: number;
+    value: AgNumericValue;
     /** Scale of the Linear Gauge. */
     scale?: AgLinearGaugeScale<TContext>;
     /** Configuration for the targets. */

@@ -1,5 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { type Bounds4, type BoxBounds, type DynamicContext, type Point, Vec4 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { type PositionedScene, layoutScenesColumn, layoutScenesRow } from '../../../utils/sceneLayout';
 import type { AnnotationContext } from '../annotationTypes';
@@ -9,7 +10,7 @@ import type { MeasurerTypeProperties, QuickDatePriceRangeProperties } from './me
 export interface Statistics {
     dateRange?: { bars: number; value: number };
     priceRange?: { percentage: number; value: number };
-    volume?: number;
+    volume?: AgNumericValue;
 }
 
 export class MeasurerStatisticsScene extends _ModuleSupport.Group {
@@ -280,10 +281,11 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
     }
 
     private formatVolume(
-        volume: number,
+        volume: AgNumericValue,
         localeManager?: DynamicContext<_ModuleSupport.ChartRegistry>['localeManager']
     ) {
-        const volumeString = Number.isNaN(volume) ? '' : this.volumeFormatter.format(volume);
+        const isMissing = typeof volume === 'number' && Number.isNaN(volume);
+        const volumeString = isMissing ? '' : this.volumeFormatter.format(volume);
         return localeManager?.t('measurerVolume', { value: volumeString }) ?? volumeString;
     }
 }

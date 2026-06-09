@@ -11,7 +11,8 @@ import type {
     Point,
     RequireOptional,
 } from 'ag-charts-core';
-import { ChartAxisDirection, SeriesZIndexMap } from 'ag-charts-core';
+import { ChartAxisDirection, SeriesZIndexMap, maxValue } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
@@ -266,7 +267,9 @@ export abstract class BaseFunnelSeries<
             return { domain: this.padBandExtent(keys) };
         } else {
             const yExtent = this.domainForClippedRange(direction, ['yValue'], 'xValue');
-            const maxExtent = Math.max(...yExtent);
+            // maxValue preserves an exact bigint; Math.max throws on bigint operands.
+            let maxExtent: AgNumericValue = -Infinity;
+            for (const v of yExtent) maxExtent = maxValue(maxExtent, v);
             const fixedYExtent = [-maxExtent, maxExtent];
             return { domain: fixNumericExtent(fixedYExtent) };
         }
@@ -314,7 +317,7 @@ export abstract class BaseFunnelSeries<
         if (!isVisible) return context;
 
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
-        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
+        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData, 'mixed-numeric');
 
         const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
 
@@ -460,7 +463,7 @@ export abstract class BaseFunnelSeries<
         datumIndex: number;
         rect: Bounds;
         barAlongX: boolean;
-        yDatum: number;
+        yDatum: AgNumericValue;
         datum: any;
         visible: boolean;
     }): FunnelNodeLabelDatum | undefined;
@@ -571,7 +574,7 @@ export abstract class BaseFunnelSeries<
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, 'xValue', processedData)[datumIndex];
-        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData, 'mixed-numeric')[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         const allowNullKeys = this.properties.allowNullKeys ?? false;

@@ -18,6 +18,8 @@ import type { DataChangeDescription, DataChangeDescriptionListener } from './dat
 import type {
     AggregatePropertyDefinition,
     BandedReducerStats,
+    ColumnValueType,
+    ColumnValueTypeMapping,
     DataGroup,
     DataModelOptions,
     GroupDatumIteratorOutput,
@@ -46,6 +48,7 @@ export * from './dataModelTypes';
 
 export {
     fixNumericExtent,
+    extendDomainToZero,
     getMissCount,
     datumKeys,
     getPathComponents,
@@ -255,12 +258,26 @@ export class DataModel<
         return this.resolvers.hasColumnById(scope, searchId);
     }
 
-    resolveColumnById<T = any>(
+    resolveColumnById<T extends Exclude<ColumnValueType, 'object'>>(
         scope: ScopeProvider,
         searchId: string,
-        processedData: UngroupedData<any> | GroupedData<any>
-    ): T[] {
-        return this.resolvers.resolveColumnById<T>(scope, searchId, processedData);
+        processedData: UngroupedData<any> | GroupedData<any>,
+        expectedType: T
+    ): ColumnValueTypeMapping[T][];
+    resolveColumnById<E = unknown>(
+        scope: ScopeProvider,
+        searchId: string,
+        processedData: UngroupedData<any> | GroupedData<any>,
+        expectedType: 'object'
+    ): E[];
+    resolveColumnById<E>(
+        scope: ScopeProvider,
+        searchId: string,
+        processedData: UngroupedData<any> | GroupedData<any>,
+        expectedType: ColumnValueType
+    ): E[] {
+        // Forward to the resolver's 'object' overload; the impl validates against the real tag.
+        return this.resolvers.resolveColumnById<E>(scope, searchId, processedData, expectedType as 'object');
     }
 
     resolveColumnNeedsValueOf(

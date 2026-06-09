@@ -12,6 +12,7 @@ import {
 import type {
     AgChartLabelFormatterParams,
     AgGradientColorMode,
+    AgNumericValue,
     AgRadialGaugeLabelFormatterParams,
     AgRadialGaugeMarkerShape,
     AgRadialGaugeOptions,
@@ -87,7 +88,7 @@ export type RadialGaugeLabelDatum = {
     centerX: number;
     centerY: number;
     text: string | undefined;
-    value: number;
+    value: AgNumericValue;
     fill: string | undefined;
     fontStyle: FontStyle | undefined;
     fontWeight: FontWeight | undefined;
@@ -446,7 +447,8 @@ export function createConicGradient(
     const conicAngle = normalizeAngle360((startAngle + endAngle) / 2 + Math.PI);
     const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
 
-    const colorStops = getColorStops(fills, defaultColorRange, domain, fillMode).map(
+    // Colour-stop positions are fractional thresholds — Number is correct (no bigint precision benefit).
+    const colorStops = getColorStops(fills, defaultColorRange, domain.map(Number), fillMode).map(
         ({ color, stop }): GradientColorStop => {
             stop = Math.min(Math.max(stop, 0), 1);
             const angle = startAngle + sweepAngle * stop;

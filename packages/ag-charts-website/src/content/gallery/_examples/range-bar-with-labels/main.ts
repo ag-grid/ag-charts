@@ -26,8 +26,8 @@ const data = getData();
 const allSalaries = data.flatMap((d) => [d.low, d.high]);
 const avgSalary = allSalaries.reduce((a, b) => a + b, 0) / allSalaries.length;
 
-const formatter = ({ value }: { value: number | Date | string | string[] }) =>
-    value.toLocaleString('en-GB', {
+const formatter = ({ value }: { value: number | bigint | Date | string | string[] }) =>
+    Number(value).toLocaleString('en-GB', {
         style: 'currency',
         currency: 'GBP',
         notation: 'compact',

@@ -24,10 +24,10 @@ exports[`DataExtractor > empty data set processing > should generated the expect
     },
   ],
   "columnValueType": [
-    "number",
-    "number",
-    "number",
-    "number",
+    undefined,
+    undefined,
+    undefined,
+    undefined,
   ],
   "columns": [
     [],

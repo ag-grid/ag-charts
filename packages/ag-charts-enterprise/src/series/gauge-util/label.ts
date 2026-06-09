@@ -1,10 +1,11 @@
 import type { AgChartLabelFormatterParams, RichFormatter, _ModuleSupport } from 'ag-charts-community';
 import { type NormalisedTextOrSegments, isArray } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { formatWithContext } from '../../utils/formatter';
 
 interface GaugeLabelDatum {
-    value: number;
+    value: AgNumericValue;
     text?: NormalisedTextOrSegments;
     formatter?: RichFormatter<AgChartLabelFormatterParams<any>>;
 }
@@ -18,17 +19,23 @@ export const fadeInFns: _ModuleSupport.FromToFns<_ModuleSupport.Node, any, any> 
     toFn: () => ({ opacity: 1 }),
 };
 
-export function formatLabel(value: number | undefined, scale: { min: number; max: number }) {
+export function formatLabel(value: AgNumericValue | undefined, scale: { min: AgNumericValue; max: AgNumericValue }) {
     if (value == null) return '';
 
-    const { min, max } = scale;
+    // bigint is exact and integral; render full-precision and skip decimal-place estimation.
+    if (typeof value === 'bigint') {
+        return value.toLocaleString();
+    }
+
+    const min = Number(scale.min);
+    const max = Number(scale.max);
     const minLog10 = min === 0 ? 0 : Math.ceil(Math.log10(Math.abs(min)));
     const maxLog10 = max === 0 ? 0 : Math.ceil(Math.log10(Math.abs(max)));
     const dp = Math.max(2 - Math.max(minLog10, maxLog10), 0);
     return value.toFixed(dp);
 }
 
-export function getLabelText(seriesId: string, ctx: Ctx, datum: GaugeLabelDatum, valueOverride?: number) {
+export function getLabelText(seriesId: string, ctx: Ctx, datum: GaugeLabelDatum, valueOverride?: AgNumericValue) {
     if (datum.text != null) return datum.text;
 
     const value = valueOverride ?? datum.value;
