@@ -335,8 +335,11 @@ export class CartesianChart extends Chart {
         const axisOffsets = new Map<string, number>();
 
         for (const [position, axes] of entries(axisGroups)) {
-            // Adjust offset for pixel ratio to prevent alignment issues with series rendering.
-            let currentOffset = getSize(position !== 'left' && position !== 'right', scene) % scene.pixelRatio;
+            // Snap the axis-area depth to the device-pixel grid for crisp series rendering, measured
+            // along the dimension the axis is offset across (height for top/bottom, width for
+            // left/right) so the offset is stable when the parallel dimension resizes.
+            const isHorizontalAxis = position === 'top' || position === 'bottom';
+            let currentOffset = getSize(!isHorizontalAxis, scene) % scene.pixelRatio;
             let totalAxisWidth = 0;
 
             for (const axis of axes ?? []) {
