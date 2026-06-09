@@ -1,5 +1,6 @@
 import { getOffscreenCanvas } from 'ag-charts-core';
 
+import { deviceDimension } from '../util/pixel';
 import { clearContext, debugContext } from './canvasUtil';
 
 interface CanvasOptions {
@@ -11,7 +12,7 @@ interface CanvasOptions {
 }
 
 function canvasDimensions(width: number, height: number, pixelRatio: number) {
-    return [Math.floor(width * pixelRatio), Math.floor(height * pixelRatio)] as const;
+    return [deviceDimension(pixelRatio, width), deviceDimension(pixelRatio, height)] as const;
 }
 
 let fallbackCanvas: OffscreenCanvas | undefined;
