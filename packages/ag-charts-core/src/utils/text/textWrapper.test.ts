@@ -1,14 +1,32 @@
 import { vi } from 'vitest';
 
-import type { ITextMeasurer } from '../../types/text';
-import { EllipsisChar } from './textUtils';
-import { clipLines, truncateLine, wrapLines } from './textWrapper';
+import type { ContentSegment, ImageSegment, TextSegment } from 'ag-charts-types';
 
-// Mock cachedTextMeasurer so wrapLines uses our fixed-width measurer.
-const mockMeasurer = createMockMeasurer(10);
-vi.mock('../../rendering/textMeasurer', () => ({
-    cachedTextMeasurer: () => mockMeasurer,
-    measureTextSegments: vi.fn(),
+import { measureTextSegments } from '../../rendering/textMeasurer';
+import type { ITextMeasurer, MeasuredSegment } from '../../types/text';
+import { EllipsisChar } from './textUtils';
+import { clipLines, truncateLine, wrapLines, wrapTextSegments } from './textWrapper';
+
+// Mock only the canvas leaf so the real cachedTextMeasurer, measureTextSegments and
+// wrapTextSegments run their actual logic against deterministic metrics: every grapheme cluster
+// (codepoint, so surrogate pairs count as one) is CHAR_WIDTH px wide and every line LINE_HEIGHT px
+// tall. No layout logic is re-implemented here.
+const { CHAR_WIDTH, LINE_HEIGHT } = vi.hoisted(() => ({ CHAR_WIDTH: 10, LINE_HEIGHT: 20 }));
+
+vi.mock('../canvas', () => ({
+    // jsdom has no canvas, so cachedTextMeasurer's real createCanvasContext throws. This stand-in
+    // only needs a writable `font` (cachedTextMeasurer assigns it) and a measureText returning
+    // fixed metrics; wrapping never reads the font back or calls baselineDistance.
+    createCanvasContext: () => ({
+        font: '',
+        measureText: (text: string) => ({
+            width: [...text].length * CHAR_WIDTH,
+            fontBoundingBoxAscent: 16,
+            fontBoundingBoxDescent: 4,
+            emHeightAscent: 16,
+            emHeightDescent: 4,
+        }),
+    }),
 }));
 
 // Fixed-width mock: each grapheme cluster costs `charWidth` pixels.
@@ -43,6 +61,10 @@ function createMockMeasurer(charWidth = 10): ITextMeasurer {
         },
     };
 }
+
+// Used by the truncateLine/clipLines suites (which take an explicit measurer) and the wrapLines
+// width assertions. Identical metrics to the mocked canvas, so it agrees with the real measurer.
+const mockMeasurer = createMockMeasurer(10);
 
 // Helper: returns true if the string contains any lone UTF-16 surrogates.
 function hasLoneSurrogates(str: string): boolean {
@@ -474,5 +496,352 @@ describe('clipLines', () => {
         // 2 lines × 20px = 40px, maxHeight = 40px → exact fit
         const lines = ['Hello', 'World'];
         expect(clipLines(lines, measurer, { font, maxWidth: 100, maxHeight: 40 })).toEqual(lines);
+    });
+});
+
+const text = (t: string, extra?: Partial<TextSegment>): TextSegment => ({ text: t, ...extra });
+const image = (label: string, extra?: Partial<ImageSegment>): ImageSegment => ({
+    type: 'image',
+    url: `https://example.com/${label}.png`,
+    width: 30,
+    height: 30,
+    ...extra,
+});
+
+const baseFont = { fontSize: 14, fontFamily: 'Verdana' } as const;
+
+function imageUrls(result: MeasuredSegment[]): string[] {
+    return result.filter((s): s is MeasuredSegment & { type: 'image' } => s.type === 'image').map((s) => s.url);
+}
+
+function textOf(result: MeasuredSegment[]): string {
+    return result
+        .filter((s) => s.type !== 'image')
+        .map((s) => (s as { text: string }).text)
+        .join('');
+}
+
+describe('wrapTextSegments — image segment overflow', () => {
+    it('keeps everything when content fits', () => {
+        const segments: ContentSegment[] = [text('AB '), image('flag', { width: 20, height: 20 }), text(' CD')];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 200 });
+        expect(imageUrls(result)).toEqual(['https://example.com/flag.png']);
+        expect(textOf(result)).toBe('AB  CD');
+    });
+
+    it("drops a 'hide' image rightmost-first to keep text intact", () => {
+        // Width budget: 70px. With image: 20 + 30 + 40 = 90 (overflow). Without image: 20 + 40 = 60 (fits).
+        const segments: ContentSegment[] = [
+            text('AB'),
+            image('hideMe', { width: 30, height: 30, overflowStrategy: 'hide' }),
+            text(' XYZ'),
+        ];
+        const result = wrapTextSegments(segments, {
+            font: baseFont,
+            maxWidth: 70,
+            overflow: 'ellipsis',
+            textWrap: 'never',
+        });
+        // The 'hide' image is dropped first so the full text fits without truncation.
+        expect(imageUrls(result)).toEqual([]);
+        expect(textOf(result)).not.toMatch(/…/);
+        expect(textOf(result)).toBe('AB XYZ');
+    });
+
+    it("preserves a 'keep' image by dropping trailing text rather than truncating", () => {
+        // Width budget: 50px. Keep image (30px) fits alone; the long preceding text would force
+        // truncation if kept, so the wrapper drops the text instead and the image survives.
+        const segments: ContentSegment[] = [
+            text('AAAAAAAAAA'), // 100px
+            image('keepMe', { width: 30, height: 30, overflowStrategy: 'keep' }),
+        ];
+        const result = wrapTextSegments(segments, {
+            font: baseFont,
+            maxWidth: 50,
+            overflow: 'ellipsis',
+            textWrap: 'never',
+        });
+        expect(imageUrls(result)).toEqual(['https://example.com/keepMe.png']);
+        expect(textOf(result)).not.toMatch(/…/);
+    });
+
+    it("drops a 'keep' image when the image alone exceeds the width budget", () => {
+        // Image is 200px wide; maxWidth is 100. No matter what gets dropped the image cannot fit,
+        // so the keep flag yields and the surrounding text takes the full width.
+        const segments: ContentSegment[] = [
+            image('huge', { width: 200, height: 30, overflowStrategy: 'keep' }),
+            text('ABC'),
+        ];
+        const result = wrapTextSegments(segments, {
+            font: baseFont,
+            maxWidth: 100,
+            overflow: 'ellipsis',
+            textWrap: 'never',
+        });
+        expect(imageUrls(result)).toEqual([]);
+        expect(textOf(result)).toBe('ABC');
+    });
+
+    it("drops 'hide' images before 'keep' images when both are present and content overflows", () => {
+        const segments: ContentSegment[] = [
+            text('A'),
+            image('hide1', { width: 30, height: 30, overflowStrategy: 'hide' }),
+            text('B'),
+            image('keep1', { width: 30, height: 30, overflowStrategy: 'keep' }),
+            text('C'),
+        ];
+        const result = wrapTextSegments(segments, {
+            font: baseFont,
+            maxWidth: 60,
+            overflow: 'ellipsis',
+            textWrap: 'never',
+        });
+        // 'hide' image must be gone; 'keep' image stays unless we have no other choice.
+        expect(imageUrls(result)).not.toContain('https://example.com/hide1.png');
+    });
+
+    it('returns content unchanged when no images present (fast path)', () => {
+        const segments: ContentSegment[] = [text('Hello'), text(' world')];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 500 });
+        expect(textOf(result)).toBe('Hello world');
+    });
+
+    it('preserves \\n in trailing text segment so the layout wraps to a new line', () => {
+        const segments: ContentSegment[] = [image('logo', { width: 28, height: 28 }), text(' Apple'), text('\n$2900B')];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 500 });
+
+        // Newline is encoded as a trailing \n on the preceding text segment.
+        const joined = result.map((s) => (s.type === 'image' ? '[img]' : s.text)).join('');
+        expect(joined).toBe('[img] Apple\n$2900B');
+
+        // Re-measuring the wrap output with the real measurer sees two lines.
+        const remeasured = measureTextSegments(result, baseFont);
+        expect(remeasured.lineMetrics).toHaveLength(2);
+        expect(remeasured.lineMetrics[0].segments).toHaveLength(2);
+        expect(remeasured.lineMetrics[1].segments).toHaveLength(1);
+    });
+
+    it('preserves \\n when previous line ended with an image via a synthetic newline segment', () => {
+        const segments: ContentSegment[] = [
+            text('Title'),
+            image('badge', { width: 20, height: 20 }),
+            text('\nSubtitle'),
+        ];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 500 });
+
+        // Synthetic newline-only text segment is inserted so the renderer creates a new line.
+        const remeasured = measureTextSegments(result, baseFont);
+        expect(remeasured.lineMetrics).toHaveLength(2);
+        expect(remeasured.lineMetrics[1].segments).toHaveLength(1);
+        expect(remeasured.lineMetrics[1].segments[0]).toMatchObject({ text: 'Subtitle' });
+    });
+});
+
+describe('wrapTextSegments — block-leading image', () => {
+    it('keeps a block image at the front and wraps subsequent segments unchanged when there is room', () => {
+        const segments: ContentSegment[] = [
+            image('logo', { width: 36, height: 36, block: true }),
+            text('Apple', { fontWeight: 'bold' }),
+            text('\n$2900B'),
+        ];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 500 });
+
+        expect(result[0].type).toBe('image');
+        expect((result[0] as MeasuredSegment & { type: 'image' }).block).toBe(true);
+        // The trailing text segments are preserved and the newline survives.
+        expect(textOf(result)).toBe('Apple\n$2900B');
+    });
+
+    it('reduces the wrap width by the block image width + spacing', () => {
+        // maxWidth = 100. Image width = 30 → text column has 100 - 30 - 4 = 66px available.
+        // 'AB CD EF' (8 chars × 10px = 80px) doesn't fit on one line within the column → wraps.
+        const segments: ContentSegment[] = [image('logo', { width: 30, height: 30, block: true }), text('AB CD EF')];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 100 });
+
+        // Text wraps into multiple lines within the reduced column.
+        expect(textOf(result)).toContain('\n');
+    });
+
+    it("drops an oversized block image under 'hide' (default) and renders the remaining text alone", () => {
+        // Image width = 200 exceeds maxWidth = 100 → with default 'hide', drop the image and
+        // wrap the text segment through the inline path.
+        const segments: ContentSegment[] = [image('huge', { width: 200, height: 50, block: true }), text('label')];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 100 });
+
+        expect(imageUrls(result)).toEqual([]);
+        expect(textOf(result)).toBe('label');
+    });
+
+    it("drops an oversized block image under 'keep' too — the image cannot fit on its own", () => {
+        // Even under 'keep' an image that exceeds the label box on its own cannot be preserved;
+        // the wrapper drops it and renders the text at full width.
+        const segments: ContentSegment[] = [
+            image('huge', { width: 200, height: 50, block: true, overflowStrategy: 'keep' }),
+            text('label'),
+        ];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 100 });
+
+        expect(imageUrls(result)).toEqual([]);
+        expect(textOf(result)).toBe('label');
+    });
+
+    it('honours a per-segment lineHeight when computing total wrap height', () => {
+        // Without lineHeight, two LINE_HEIGHT-tall lines fit inside maxHeight.
+        const naturalFit = wrapTextSegments([text('Foo'), text('\nBar')], {
+            font: baseFont,
+            maxWidth: 200,
+            maxHeight: LINE_HEIGHT * 2 + 10,
+        });
+        expect(textOf(naturalFit)).toBe('Foo\nBar');
+
+        // With lineHeight: 40 on the first segment, the first line consumes 40px so the second
+        // line no longer fits in the budget and gets dropped/truncated.
+        const overrideFit = wrapTextSegments([text('Foo', { lineHeight: 40 }), text('\nBar')], {
+            font: baseFont,
+            maxWidth: 200,
+            maxHeight: LINE_HEIGHT * 2 + 10,
+            overflow: 'ellipsis',
+        });
+        expect(textOf(overrideFit)).not.toContain('Bar');
+    });
+
+    it('treats block:true mid-line (no preceding \\n) as inline', () => {
+        // Block boundary requires the image to be at index 0 or the preceding text to end with \n.
+        const segments: ContentSegment[] = [
+            text('Prefix '),
+            image('inline', { width: 20, height: 20, block: true }),
+            text(' suffix'),
+        ];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 500 });
+        expect(result[0].type).not.toBe('image');
+        expect(textOf(result)).toBe('Prefix  suffix');
+    });
+
+    it('treats adjacent block:true images mid-line as inline (no spurious block strip)', () => {
+        // Regression for AG-15933: text, block-image, block-image, text. Neither image follows a
+        // \n or index 0, so the run is mid-line and both images stay inline — the second must not
+        // be promoted to a block strip while the first remains inline (which corrupted layout).
+        const segments: ContentSegment[] = [
+            text('Prefix '),
+            image('a', { width: 20, height: 20, block: true }),
+            image('b', { width: 20, height: 20, block: true }),
+            text(' suffix'),
+        ];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 500 });
+
+        expect(imageUrls(result)).toEqual(['https://example.com/a.png', 'https://example.com/b.png']);
+        // The whole row stays a single inline line — no block markers.
+        const remeasured = measureTextSegments(result, baseFont);
+        expect(remeasured.lineMetrics).toHaveLength(1);
+        expect(remeasured.lineMetrics[0].blockImages).toBeUndefined();
+    });
+
+    it('opens a new block row when block:true follows a \\n line break', () => {
+        const segments: ContentSegment[] = [
+            image('logo1', { width: 30, height: 30, block: true }),
+            text('Foo\n'),
+            image('logo2', { width: 30, height: 30, block: true }),
+            text('Bar'),
+        ];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 500 });
+
+        // Both block images survive and their text columns ('Foo', 'Bar') sit between them.
+        expect(imageUrls(result)).toEqual(['https://example.com/logo1.png', 'https://example.com/logo2.png']);
+        expect(textOf(result)).toBe('Foo\nBar');
+
+        // Re-measure to confirm the structure: two block rows, one text line each.
+        const remeasured = measureTextSegments(result, baseFont);
+        const markers = remeasured.lineMetrics.filter((l) => l.blockImages?.length);
+        expect(markers).toHaveLength(2);
+        expect(markers[0].blockRowSpan).toBe(1);
+        expect(markers[1].blockRowSpan).toBe(1);
+    });
+
+    it('stacks a leading inline group above subsequent block rows', () => {
+        // First segment is non-block text ending with \n → leading inline group; the block image
+        // that follows opens a new row beneath it.
+        const segments: ContentSegment[] = [
+            text('Header\n'),
+            image('logo', { width: 30, height: 30, block: true }),
+            text('Body'),
+        ];
+        const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 500 });
+
+        const remeasured = measureTextSegments(result, baseFont);
+        // Two rows: line 0 'Header' (no block marker), line 1 block-image + 'Body'.
+        expect(remeasured.lineMetrics).toHaveLength(2);
+        expect(remeasured.lineMetrics[0].blockImages).toBeUndefined();
+        expect(remeasured.lineMetrics[1].blockImages).toBeDefined();
+    });
+});
+
+// Regression coverage for the AG-15933 follow-up that removed the speculative
+// `textWrap: 'never'` override on axis-tick labels containing image segments. The wrapper must
+// honour the user-supplied wrap mode (or theme default) when the label mixes text and image segments.
+describe('wrapTextSegments — non-never wrap modes with image segments', () => {
+    it("wraps trailing text to a new line under 'on-space' when image + text overflow the first line", () => {
+        // maxWidth 60. Image is 30px → fits on line 1. Trailing 'AB CD EF' is 80px and cannot
+        // fit on the same line; 'on-space' must wrap it to a new line within the budget.
+        const segments: ContentSegment[] = [image('icon', { width: 30, height: 30 }), text(' AB CD EF')];
+        const result = wrapTextSegments(segments, {
+            font: baseFont,
+            maxWidth: 60,
+            textWrap: 'on-space',
+        });
+
+        expect(imageUrls(result)).toEqual(['https://example.com/icon.png']);
+        // Text should still be readable across the wrap — no '…' truncation, content preserved.
+        expect(textOf(result)).not.toMatch(/…/);
+        expect(textOf(result).replace(/\s+/g, ' ').trim()).toBe('AB CD EF');
+        // And the wrap should have introduced at least one line break in the text output.
+        expect(textOf(result)).toContain('\n');
+    });
+
+    it("hyphenates long words under 'hyphenate' while preserving the inline image", () => {
+        // 'longword' is 8 chars × 10px = 80px; maxWidth (after the image + space) is well below.
+        // 'hyphenate' must break the word with hyphens; the image must still be present.
+        const segments: ContentSegment[] = [image('icon', { width: 30, height: 30 }), text(' longword')];
+        const result = wrapTextSegments(segments, {
+            font: baseFont,
+            maxWidth: 60,
+            textWrap: 'hyphenate',
+        });
+
+        expect(imageUrls(result)).toEqual(['https://example.com/icon.png']);
+        expect(textOf(result)).not.toMatch(/…/);
+        // The 'longword' grapheme content survives the hyphenation; reconstructing without
+        // hyphens recovers the original characters.
+        expect(textOf(result).replace(/[\s-]/g, '')).toContain('longword');
+    });
+
+    it("breaks text at any boundary under 'always' while preserving the inline image", () => {
+        const segments: ContentSegment[] = [image('icon', { width: 30, height: 30 }), text(' AAAAAAAA')];
+        const result = wrapTextSegments(segments, {
+            font: baseFont,
+            maxWidth: 60,
+            textWrap: 'always',
+        });
+
+        expect(imageUrls(result)).toEqual(['https://example.com/icon.png']);
+        expect(textOf(result)).not.toMatch(/…/);
+        // Every 'A' from the input survives — 'always' wraps but does not truncate.
+        const aCount = (textOf(result).match(/A/g) ?? []).length;
+        expect(aCount).toBe(8);
+    });
+
+    it("respects 'on-space' even when overflowStrategy is 'keep' and the line wraps", () => {
+        // Keep image alongside text that needs to wrap: image stays put, text wraps normally.
+        const segments: ContentSegment[] = [
+            image('icon', { width: 30, height: 30, overflowStrategy: 'keep' }),
+            text(' AB CD EF'),
+        ];
+        const result = wrapTextSegments(segments, {
+            font: baseFont,
+            maxWidth: 60,
+            textWrap: 'on-space',
+        });
+
+        expect(imageUrls(result)).toEqual(['https://example.com/icon.png']);
+        expect(textOf(result).replace(/\s+/g, ' ').trim()).toBe('AB CD EF');
     });
 });

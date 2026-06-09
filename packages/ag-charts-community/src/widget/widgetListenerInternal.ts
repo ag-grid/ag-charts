@@ -39,9 +39,18 @@ function makeMouseDrag<K extends DragEvents>(
     };
 }
 
-function getTouchOffsets(current: Targetable, { pageX, pageY }: Touch): { offsetX: number; offsetY: number } {
-    const { x, y } = current.getElement().getBoundingClientRect();
-    return { offsetX: pageX - x, offsetY: pageY - y };
+export function getTouchOffsets(current: Targetable, touch: Touch): { offsetX: number; offsetY: number } {
+    const elem = current.getElement();
+    const rect = elem.getBoundingClientRect();
+    // clientX/Y matches rect.x/y's coordinate space; pageX/Y would be wrong by the page scroll offset.
+    const clientWidth = elem.clientWidth;
+    const clientHeight = elem.clientHeight;
+    const scaleX = rect.width > 0 && clientWidth > 0 ? clientWidth / rect.width : 1;
+    const scaleY = rect.height > 0 && clientHeight > 0 ? clientHeight / rect.height : 1;
+    return {
+        offsetX: (touch.clientX - rect.x) * scaleX,
+        offsetY: (touch.clientY - rect.y) * scaleY,
+    };
 }
 
 function makeTouchDrag<K extends DragEvents>(

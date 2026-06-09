@@ -1,4 +1,4 @@
-import { BaseProperties, Property, type RequireOptional, isArray } from 'ag-charts-core';
+import { BaseProperties, type NormalisedTextOrSegments, Property, type RequireOptional, isArray } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
@@ -11,7 +11,6 @@ import type {
     PaddingOptions,
     RichFormatter,
     Styler,
-    TextOrSegments,
 } from 'ag-charts-types';
 
 import type { ContextFormatter } from '../module/axisContext';
@@ -94,7 +93,7 @@ export class Label<TParams = never, TDatum = any>
     ) {
         const { formatter, format } = this;
 
-        let result: TextOrSegments | undefined;
+        let result: NormalisedTextOrSegments | undefined;
         if (formatter != null) {
             result ??= formatWithContext(formatter, params);
         }

@@ -58,7 +58,7 @@ export interface RadarPathPoint {
     arc?: boolean;
 }
 
-interface RadarSeriesNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<number, RadarNodeDatum> {
+interface RadarSeriesNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<RadarNodeDatum> {
     styles: _ModuleSupport.SeriesNodeStyleContext<AgSeriesMarkerStyle>;
 }
 

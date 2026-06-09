@@ -1,4 +1,4 @@
-import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import {
     type CallbackParamRules,
     type DynamicContext,
@@ -21,8 +21,7 @@ import type {
     AgChordSeriesOptions,
 } from 'ag-charts-types';
 
-import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
-import type { FlowProportionNodeDatumIndex } from '../flow-proportion/flowDatumIndex';
+import { type FlowLinkDatumIndex, type FlowNodeDatumIndex, toFlowNodeOffset } from '../flow-proportion/flowDatumIndex';
 import {
     type FlowProportionLinkDatum,
     type FlowProportionNodeDatum,
@@ -63,11 +62,8 @@ interface ChordNodeLabelDatum {
     radius: number;
     size: number;
     nodeDatum: ChordNodeDatum;
-    datumIndex: FlowProportionNodeDatumIndex;
+    datumIndex: _ModuleSupport.DatumIndex;
 }
-
-type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
-    Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'>;
 
 interface ChordNodeDataContext extends FlowProportionSeriesContext<
     ChordNodeDatum,
@@ -414,26 +410,27 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected override getNodeStyle(
         nodeDatum: Partial<ChordNodeDatum>,
-        fromNodeDatumIndex: number,
+        fromNodeDatumIndex: FlowNodeDatumIndex,
         isHighlight: boolean
     ) {
         const { properties } = this;
         const { fills, strokes, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
         const { itemStyler } = properties.node;
 
+        const nodeOffset = toFlowNodeOffset(fromNodeDatumIndex);
         const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum.datumIndex);
         const selectionStyle = this.getSelectionStyle(nodeDatum.datumIndex);
         const baseStyle = mergeDefaults(
             selectionStyle,
             highlightStyle,
-            properties.node.getStyle(fills, strokes, fromNodeDatumIndex)
+            properties.node.getStyle(fills, strokes, nodeOffset)
         );
 
         let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
         if (itemStyler != null && nodeDatum.datumIndex != null) {
             const overrides = this.cachedDatumCallback(
-                createDatumId(nodeDatum.datumIndex.index, 'node', isHighlight ? 'highlight' : 'node'),
+                createDatumId(nodeDatum.datumIndex, 'node', isHighlight ? 'highlight' : 'node'),
                 () => {
                     const params = this.makeItemStylerParams(nodeDatum, isHighlight, style);
                     return this.callWithContext(itemStyler, params);
@@ -492,7 +489,7 @@ export class ChordSeries extends FlowProportionSeries<
 
         datumSelection.each((sector, datum) => {
             const { datumIndex } = datum;
-            const style = this.getNodeStyle(datum, datumIndex.index, isHighlight);
+            const style = this.getNodeStyle(datum, datumIndex, isHighlight);
 
             sector.setStyleProperties(style, fillBBox);
 
@@ -511,25 +508,27 @@ export class ChordSeries extends FlowProportionSeries<
         datumSelection: _ModuleSupport.Selection<ChordLinkDatum, ChordLink<ChordLinkDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) =>
-            createDatumId(datum.type, datum.index, datum.fromNode.id, datum.toNode.id)
+            createDatumId(datum.type, datum.datumIndex, datum.fromNode.id, datum.toNode.id)
         );
     }
 
     protected override getLinkStyle(
-        { datumIndex, datum }: Partial<ChordLinkDatum>,
-        fromNodeDatumIndex: FlowProportionNodeDatumIndex,
+        datum: ChordLinkDatum['datum'],
+        datumIndex: FlowLinkDatumIndex,
+        fromNodeDatumIndex: FlowNodeDatumIndex,
         isHighlight: boolean
     ) {
         const { id: seriesId, properties } = this;
         const { fills, strokes, fillGradientDefaults, fillPatternDefaults, fillImageDefaults } = properties;
         const { itemStyler } = properties.link;
 
+        const nodeOffset = toFlowNodeOffset(fromNodeDatumIndex);
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
         const baseStyle = mergeDefaults(
             selectionStyle,
             highlightStyle,
-            properties.link.getStyle(fills, strokes, fromNodeDatumIndex.index)
+            properties.link.getStyle(fills, strokes, nodeOffset)
         );
 
         let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
@@ -537,7 +536,7 @@ export class ChordSeries extends FlowProportionSeries<
         if (itemStyler != null && datumIndex != null) {
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             const overrides = this.cachedDatumCallback(
-                createDatumId(datumIndex.index, 'link', isHighlight ? 'highlight' : 'node'),
+                createDatumId(datumIndex, 'link', isHighlight ? 'highlight' : 'node'),
                 () => {
                     const highlightState = this.getHighlightStateString(
                         activeHighlight,
@@ -577,8 +576,7 @@ export class ChordSeries extends FlowProportionSeries<
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((link, datum) => {
-            const fromNodeDatumIndex = datum.fromNode.datumIndex;
-            const style = this.getLinkStyle(datum, fromNodeDatumIndex, isHighlight);
+            const style = this.getLinkStyle(datum, datum.datumIndex, datum.fromNode.datumIndex, isHighlight);
 
             link.centerX = datum.centerX;
             link.centerY = datum.centerY;
@@ -601,83 +599,6 @@ export class ChordSeries extends FlowProportionSeries<
         const y = (height - size) / 2;
         const bbox = new BBox(x, y, width, height);
         return { series: bbox, axis: bbox };
-    }
-
-    override getTooltipContent(datumIndex: FlowProportionNodeDatumIndex): _ModuleSupport.TooltipContent | undefined {
-        const {
-            id: seriesId,
-            linksProcessedData,
-            nodesProcessedData,
-            properties,
-            ctx: { formatManager },
-        } = this;
-        const { fromKey, toKey, sizeKey, sizeName, tooltip } = properties;
-
-        // This needs refactoring
-        const seriesDatum = this.contextNodeData?.nodeData.find(
-            (d) => d.datumIndex.type === datumIndex.type && d.datumIndex.index === datumIndex.index
-        );
-        if (seriesDatum == null) return;
-
-        const nodeIndex =
-            seriesDatum.type === FlowProportionDatumType.Link ? seriesDatum.fromNode.index : seriesDatum.index;
-        const title =
-            seriesDatum.type === FlowProportionDatumType.Link
-                ? `${seriesDatum.fromNode.label} - ${seriesDatum.toNode.label}`
-                : seriesDatum.label;
-        const datum =
-            datumIndex.type === FlowProportionDatumType.Link
-                ? linksProcessedData?.dataSources.get(this.id)?.data[datumIndex.index]
-                : nodesProcessedData?.dataSources.get(this.id)?.data[datumIndex.index];
-        const size = seriesDatum.size;
-
-        let format: Required<NodeStyle>;
-        if (seriesDatum.type === FlowProportionDatumType.Link) {
-            const fromNodeDatumIndex = seriesDatum.fromNode.datumIndex;
-            format = this.getLinkStyle({ datumIndex, datum }, fromNodeDatumIndex, false);
-        } else {
-            const label = seriesDatum.label;
-            format = this.getNodeStyle({ datumIndex, datum, size, label }, datumIndex.index, false);
-        }
-
-        const data: _ModuleSupport.TooltipContentDataRow[] = [];
-        if (sizeKey != null) {
-            const content = formatManager.format(this.callWithContext.bind(this), {
-                type: 'number',
-                value: size,
-                datum,
-                seriesId,
-                legendItemName: undefined,
-                key: sizeKey,
-                source: 'tooltip',
-                property: 'size',
-                domain: [],
-                boundSeries: this.getFormatterContext('size'),
-                fractionDigits: undefined,
-                visibleDomain: undefined,
-            });
-            data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? String(size) });
-        }
-
-        return this.formatTooltipWithContext(
-            tooltip,
-            {
-                title,
-                symbol: this.legendItemSymbol(seriesDatum.type, nodeIndex, format),
-                data,
-            },
-            {
-                seriesId,
-                datum,
-                title,
-                fromKey,
-                toKey,
-                sizeKey,
-                sizeName,
-                size,
-                ...format,
-            }
-        );
     }
 
     protected computeFocusBounds(

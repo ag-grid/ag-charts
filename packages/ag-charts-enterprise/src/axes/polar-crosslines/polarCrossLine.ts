@@ -381,7 +381,9 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
         let outerRadius, innerRadius;
 
         if (type === 'line') {
-            outerRadius = getRadius(scale.convert(this.value));
+            // On a band scale `convert` returns the band's leading edge; offset to the band centre.
+            const bandwidth = Math.abs(scale.bandwidth ?? 0);
+            outerRadius = getRadius(scale.convert(this.value)) + bandwidth / 2;
             innerRadius = outerRadius;
         } else {
             const bandwidth = Math.abs(scale?.bandwidth ?? 0);
@@ -429,7 +431,16 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
     }
 
     private updateRadiusSectorNode(visible: boolean) {
-        const { axisInnerRadius, axisOuterRadius, scale, sectorNode: sector, shape, innerRadius, outerRadius } = this;
+        const {
+            axisInnerRadius,
+            axisOuterRadius,
+            scale,
+            sectorNode: sector,
+            shape,
+            innerRadius,
+            outerRadius,
+            type,
+        } = this;
         if (!visible || shape !== 'circle' || !scale) {
             sector.visible = false;
             return;
@@ -440,11 +451,18 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
         sector.startAngle = 0;
         sector.endAngle = 2 * Math.PI;
 
-        const padding = this.getRadiusPadding();
-        const r0 = clamp(axisInnerRadius, innerRadius + padding, axisOuterRadius);
-        const r1 = clamp(axisInnerRadius, outerRadius - padding, axisOuterRadius);
-        sector.innerRadius = Math.min(r0, r1);
-        sector.outerRadius = Math.max(r0, r1);
+        if (type === 'line') {
+            // A radius line is a single ring stroke at its converted radius, not a filled band.
+            const r = clamp(axisInnerRadius, outerRadius, axisOuterRadius);
+            sector.innerRadius = r;
+            sector.outerRadius = r;
+        } else {
+            const padding = this.getRadiusPadding();
+            const r0 = clamp(axisInnerRadius, innerRadius + padding, axisOuterRadius);
+            const r1 = clamp(axisInnerRadius, outerRadius - padding, axisOuterRadius);
+            sector.innerRadius = Math.min(r0, r1);
+            sector.outerRadius = Math.max(r0, r1);
+        }
 
         this.setSectorNodeProps(sector);
     }
@@ -505,7 +523,8 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
     }
 
     private setSectorNodeProps(node: _ModuleSupport.Path | _ModuleSupport.Sector) {
-        node.fill = this.fill;
+        // A `line` cross-line is a single stroke; only the `range` variant is filled.
+        node.fill = this.type === 'range' ? this.fill : undefined;
         node.fillOpacity = this.fillOpacity ?? 1;
         node.stroke = this.stroke;
         node.strokeOpacity = this.strokeOpacity ?? 1;

@@ -13,7 +13,6 @@ function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-const reference = getInterfacesReference();
 const type = capitalizeFirstLetter(Astro.props?.pageTitle?.type);
 const name = capitalizeFirstLetter(Astro.props?.pageTitle?.name);
 ---
@@ -28,7 +27,6 @@ const name = capitalizeFirstLetter(Astro.props?.pageTitle?.name);
         rootInterface="AgChartOptions"
         breadcrumbs={['options']}
         basePath="options"
-        reference={reference}
         specialTypes={{
             AgAnnotation: 'InterfaceArray',
             AgChartAxesOptions: 'InterfaceRecord',

@@ -1,15 +1,19 @@
-import { describe, expect, test } from 'vitest';
+import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
+import { beforeAll, describe, expect, test } from 'vitest';
 
-import type { TextAlign } from 'ag-charts-types';
+import type { AgChartOptions, TextAlign } from 'ag-charts-types';
 
+import { AgCharts } from '../api/agCharts';
 import { Transformable } from '../scene/transformable';
 import type { Chart } from './chart';
 import type { ChartCaption } from './chartCaption';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
+    deproxy,
     expectWarningsCalls,
     extractImageData,
+    prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -258,6 +262,124 @@ describe('Caption', () => {
                 expect(proxyBBox.y).toBeGreaterThanOrEqual(0);
                 expect(proxyBBox.y + proxyBBox.height).toBeLessThanOrEqual(chart.height!);
             }
+        });
+    });
+
+    describe('image segments', () => {
+        // Captions accept `ContentSegment[]` directly (caption.ts), so `block: true` image segments
+        // render through the same Text shape as treemap labels. These snapshots capture how block
+        // images behave inside the centred caption layout.
+        const iconSvg = (letter: string, fill: string) =>
+            `data:image/svg+xml;utf8,${encodeURIComponent(
+                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36">` +
+                    `<rect x="2" y="2" width="32" height="32" rx="6" fill="${fill}"/>` +
+                    `<text x="18" y="24" text-anchor="middle" font-family="Verdana" font-size="18"` +
+                    ` fill="white" font-weight="bold">${letter}</text></svg>`
+            )}`;
+        const LOGO = iconSvg('A', '#1f77b4');
+        const INLINE = iconSvg('i', '#2ca02c');
+        const URLS = { LOGO, INLINE };
+
+        let preloaded: Record<string, SkiaImage> = {};
+        beforeAll(async () => {
+            const entries = await Promise.all(
+                Object.values(URLS).map(async (url) => [url, await skiaLoadImage(url)] as const)
+            );
+            preloaded = Object.fromEntries(entries);
+        });
+
+        function stubChartImageLoader(chartInstance: Chart) {
+            const imageLoader = (chartInstance.ctx.scene as any).imageLoader;
+            imageLoader.loadImage = (uri: string) => preloaded[uri] as unknown as HTMLImageElement;
+        }
+
+        async function createStubbedChart(options: AgChartOptions) {
+            chart = deproxy(AgCharts.create(prepareTestOptions({ ...options })) as any);
+            stubChartImageLoader(chart);
+            await compare();
+            expectWarningsCalls().toHaveLength(0);
+        }
+
+        test('leading block image with a multi-line title column', async () => {
+            await createStubbedChart({
+                title: {
+                    text: [
+                        { type: 'image', url: LOGO, width: 40, height: 40, block: true, borderRadius: 8 },
+                        { text: 'Quarterly Report', fontWeight: 'bold' },
+                        { text: '\nFY 2025' },
+                    ],
+                },
+            });
+        });
+
+        test('block image in the subtitle', async () => {
+            await createStubbedChart({
+                title: { text: 'Sales Overview' },
+                subtitle: {
+                    text: [
+                        { type: 'image', url: LOGO, width: 28, height: 28, block: true },
+                        { text: 'North America', color: '#2ca02c' },
+                    ],
+                },
+            });
+        });
+
+        test('block and inline image mix in a caption', async () => {
+            await createStubbedChart({
+                title: {
+                    text: [
+                        { type: 'image', url: LOGO, width: 40, height: 40, block: true, borderRadius: 8 },
+                        { text: 'Revenue ' },
+                        { type: 'image', url: INLINE, width: 20, height: 20, verticalAlign: 'middle' },
+                        { text: ' growth\nyear over year' },
+                    ],
+                },
+            });
+        });
+
+        test.each(['left', 'center', 'right'] as const)(
+            'block image with textAlign=%s (block rows left-anchored within the centred caption)',
+            async (textAlign) => {
+                await createStubbedChart({
+                    title: {
+                        textAlign,
+                        text: [
+                            { type: 'image', url: LOGO, width: 36, height: 36, block: true },
+                            { text: 'Aligned title', fontWeight: 'bold' },
+                            { text: '\nsecond line' },
+                        ],
+                    },
+                });
+            }
+        );
+
+        test('narrow caption wraps the text column beside the block image', async () => {
+            await createStubbedChart({
+                title: {
+                    maxWidth: 260,
+                    text: [
+                        { type: 'image', url: LOGO, width: 40, height: 40, block: true },
+                        {
+                            text: 'A long caption title that must wrap into the narrow column beside the block image',
+                            fontWeight: 'bold',
+                        },
+                    ],
+                },
+            });
+        });
+
+        test("oversized block image is dropped under default 'hide' so the title text still renders", async () => {
+            await createStubbedChart({
+                title: {
+                    maxWidth: 300,
+                    text: [
+                        // Image far wider than the available caption width — the default 'hide'
+                        // overflow strategy drops it and keeps the text.
+                        { type: 'image', url: LOGO, width: 600, height: 600, block: true },
+                        { text: 'Text survives oversized image', fontWeight: 'bold' },
+                    ],
+                },
+            });
         });
     });
 });

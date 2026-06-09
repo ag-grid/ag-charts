@@ -41,6 +41,7 @@ import {
     tooltipOptionsDefs,
 } from './chartDefaults';
 import {
+    colorOrRef,
     colorStopsOrderValidator,
     fillOptionsDef,
     fontOptionsDef,
@@ -51,7 +52,7 @@ import {
 const fillsOptionsDef: OptionsDefs<FillsOptions> = {
     fills: and(
         arrayLength(2),
-        arrayOf(optionsDefs<AgGaugeColorStop>({ color: color, stop: number }, '')),
+        arrayOf(optionsDefs<AgGaugeColorStop>({ color: colorOrRef, stop: number }, '')),
         colorStopsOrderValidator
     ),
     fillMode: union('continuous', 'discrete'),

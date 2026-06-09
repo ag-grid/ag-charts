@@ -29,7 +29,10 @@ export class LRUCache<V, K = string> {
         this.store.set(key, value);
 
         if (this.store.size > this.maxCacheSize) {
-            this.store.delete(this.store.keys().next().value);
+            const oldest = this.store.keys().next();
+            if (!oldest.done) {
+                this.store.delete(oldest.value);
+            }
         }
 
         return value;

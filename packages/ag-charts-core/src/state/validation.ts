@@ -81,9 +81,18 @@ export interface ValidatorResult extends ValidationResult<any> {
 export interface ValidatorContext {
     path: string;
     options: any;
+    params?: ValidateParams;
 }
 
-export interface ValidateParams {}
+export interface ValidateParams {
+    /**
+     * Skip required-field and discriminant enforcement on nodes with `enabled: false`. The second
+     * validation pass in `optionsModule` opts in: `removeDisabledOptions` has by then stripped a
+     * disabled node down to `{ enabled: false }`, so re-validating it would warn about the
+     * just-removed properties. The first pass (raw user options) leaves this off.
+     */
+    skipDisabledNodeValidation?: boolean;
+}
 
 export enum ErrorType {
     Enterprise = 'enterprise',
@@ -186,6 +195,11 @@ export function validate<T>(
     const optionsKeys = new Set(Object.keys(options));
     const unusedKeys = [];
 
+    // When the caller opts in, a node stripped to `{ enabled: false }` by `removeDisabledOptions`
+    // skips required-field/discriminant enforcement so it does not warn about discarded properties.
+    const optionsDisabled =
+        params.skipDisabledNodeValidation === true && (options as { enabled?: unknown }).enabled === false;
+
     let schemaKeys = schemaKeyCache.get(optionsDefs);
     if (schemaKeys === undefined) {
         schemaKeys = Object.keys(optionsDefs);
@@ -207,6 +221,10 @@ export function validate<T>(
                 error.setUnionType(type, path);
             }
             invalid.push(...nestedResult.invalid);
+        } else if (optionsDisabled) {
+            // Disabled node with no resolvable discriminant: preserve the `enabled` flag and skip
+            // the `type` requirement, since its other properties have already been stripped.
+            Object.assign(cleared, { enabled: false });
         } else {
             const keywords = joinFormatted(validTypes, 'or', (val) => `'${val}'`);
             invalid.push(
@@ -226,12 +244,12 @@ export function validate<T>(
             if (!validatorOrDefs[undocumentedSymbol]) {
                 unusedKeys.push(key);
             }
-            if (!required) continue;
+            if (!required || optionsDisabled) continue;
         }
 
         const keyPath = extendPath(path, key);
         if (isFunction(validatorOrDefs)) {
-            const context: ValidatorContext = { options, path: keyPath };
+            const context: ValidatorContext = { options, path: keyPath, params };
             const validatorResult = validatorOrDefs(value, context);
             const objectResult = typeof validatorResult === 'object';
 
@@ -628,7 +646,7 @@ export const arrayOf = (validator: Validator, description?: string, strict: bool
 
             for (let i = 0; i < value.length; i++) {
                 const options = value[i];
-                const result = validator(options, { options, path: `${context.path}[${i}]` });
+                const result = validator(options, { options, path: `${context.path}[${i}]`, params: context.params });
                 if (typeof result === 'object') {
                     updateValidity(result.valid);
                     invalid.push(...result.invalid);
@@ -664,7 +682,7 @@ export const arrayOfDefs = <T>(defs: OptionsDefs<T>, description = 'an object ar
 
         for (let i = 0; i < value.length; i++) {
             const indexPath = `${context.path}[${i}]`;
-            const result = validate(value[i], defs, indexPath);
+            const result = validate(value[i], defs, indexPath, context.params);
             if (!hasRequiredInPath(result.invalid, indexPath)) {
                 cleared.push(result.cleared);
             }

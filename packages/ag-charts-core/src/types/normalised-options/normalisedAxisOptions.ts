@@ -37,6 +37,8 @@ import type {
     AgTimeIntervalUnit,
     AgUnitTimeAxisOptions,
     ContextDefault,
+    CssColor,
+    Opacity,
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
@@ -72,7 +74,7 @@ type AxisLabelRequiredKeys =
  * the user-facing types where it's actually defined (per invariant I2 — only the
  * formattable subtypes carry it).
  */
-type FontFamilyMorph = { fontFamily: string };
+type FontFamilyMorph = { color?: CssColor; fontFamily: string };
 
 export type NormalisedBaseAxisLabelOptions<TContext = ContextDefault> = Normalised<
     AgBaseAxisLabelOptions<TContext>,
@@ -165,7 +167,7 @@ export type NormalisedAxisContinuousIntervalOptions<
 export type NormalisedAxisTitleOptions = Normalised<
     AgAxisCaptionOptions,
     'enabled' | 'text' | 'spacing' | 'fontSize' | 'fontFamily' | 'fontWeight' | 'color' | 'wrapping' | 'truncate',
-    { fontFamily: string }
+    { color?: CssColor; fontFamily: string }
 >;
 
 export type NormalisedTimeAxisParentLevelOptions<TContext = ContextDefault> = Normalised<
@@ -417,10 +419,16 @@ export type NormalisedAxisCrossLineLabelOptions = Normalised<
     { fontFamily: string }
 >;
 
-type CrossLineLabelMorph = { label?: NormalisedAxisCrossLineLabelOptions };
+// The cross-lines theme template applies `fill`/`fillOpacity` to every cross-line, so the
+// normalised shape carries them on both variants — via the morph, as they are not common keys.
+interface CrossLineLabelMorph {
+    label?: NormalisedAxisCrossLineLabelOptions;
+    fill?: CssColor;
+    fillOpacity?: Opacity;
+}
 
 export type NormalisedAxisCrossLineOptions = Normalised<
     AgBaseCrossLineOptions,
-    'enabled' | 'fill' | 'stroke' | 'strokeWidth' | 'fillOpacity',
+    'enabled' | 'stroke' | 'strokeWidth',
     CrossLineLabelMorph
 >;

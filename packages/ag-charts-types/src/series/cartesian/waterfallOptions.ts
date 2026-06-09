@@ -15,16 +15,23 @@ import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, St
 
 export type AgWaterfallSeriesItemType = 'positive' | 'negative' | 'total' | 'subtotal';
 
+interface AgWaterfallSeriesTotalLabelParams {
+    /** The axis label of the `total` or `subtotal` bar, or `undefined` for `positive` and `negative` bars. */
+    totalLabel: string | undefined;
+}
+
 export type AgWaterfallSeriesItemStylerParams<
     TDatum = DatumDefault,
     TContext = ContextDefault,
 > = DatumItemCallbackParams<AgWaterfallSeriesItemType, TDatum, HighlightState> &
     ContextCallbackParams<TContext> &
     AgWaterfallSeriesOptionsKeys<TDatum> &
+    AgWaterfallSeriesTotalLabelParams &
     Required<AgWaterfallSeriesStyle>;
 
 export type AgWaterfallSeriesLabelFormatterParams<TDatum = DatumDefault> = AgWaterfallSeriesOptionsKeys<TDatum> &
-    AgWaterfallSeriesOptionsNames & { itemType: AgWaterfallSeriesItemType };
+    AgWaterfallSeriesOptionsNames &
+    AgWaterfallSeriesTotalLabelParams & { itemType: AgWaterfallSeriesItemType };
 
 export interface AgWaterfallSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each bar. */
@@ -32,7 +39,10 @@ export interface AgWaterfallSeriesStyle extends FillOptions, StrokeOptions, Line
 }
 
 export interface AgWaterfallSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgCartesianSeriesTooltipRendererParams<TDatum, TContext>, AgWaterfallSeriesStyle {
+    extends
+        AgCartesianSeriesTooltipRendererParams<TDatum, TContext>,
+        AgWaterfallSeriesStyle,
+        AgWaterfallSeriesTotalLabelParams {
     /** The type of datum. This can be `positive`, `negative`, `total` or `subtotal`. */
     itemType: AgWaterfallSeriesItemType;
 }

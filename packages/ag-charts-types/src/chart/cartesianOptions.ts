@@ -27,7 +27,7 @@ import type {
     AgCrossLineThemeOptions,
 } from './crossLineOptions';
 import type { AgBaseCrosshairLabel, AgCrosshairLabel, AgCrosshairOptions } from './crosshairOptions';
-import type { ContextDefault, DatumDefault, Degree, PixelSize, Ratio, TextWrap } from './types';
+import type { AxisValue, ContextDefault, DatumDefault, Degree, PixelSize, Ratio, TextWrap } from './types';
 
 /** Configuration for axes in cartesian charts. */
 export interface AgBaseCartesianAxisOptions<
@@ -40,7 +40,7 @@ export interface AgBaseCartesianAxisOptions<
     /** Value on the first perpendicular axis' domain where this axis should intersect. */
     crossAt?: AgCartesianAxisCrossAt;
     /** Add cross-lines or regions corresponding to data values. */
-    crossLines?: AgCartesianCrossLineOptions[];
+    crossLines?: AgCartesianCrossLineOptions<AxisValue>[];
     /** Sets the axis thickness regardless of its content. */
     thickness?: PixelSize;
     /**
@@ -287,6 +287,8 @@ export interface AgTimeAxisOptions<TContext = ContextDefault>
     type?: 'time';
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel<TContext>;
+    /** Add cross-lines or regions corresponding to data values. */
+    crossLines?: AgCartesianCrossLineOptions<Date | number>[];
 }
 
 export interface AgUnitTimeAxisOptions<TContext = ContextDefault>
@@ -301,6 +303,8 @@ export interface AgUnitTimeAxisOptions<TContext = ContextDefault>
         >,
         AgBaseContinuousAxisOptions<Date | number> {
     type?: 'unit-time';
+    /** Add cross-lines or regions corresponding to data values. */
+    crossLines?: AgCartesianCrossLineOptions<Date | number>[];
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel<TContext>;
     /** The size of each band. */
@@ -335,6 +339,8 @@ export interface AgOrdinalTimeAxisOptions<TContext = ContextDefault> extends AgB
     TContext
 > {
     type?: 'ordinal-time';
+    /** Add cross-lines or regions corresponding to data values. */
+    crossLines?: AgCartesianCrossLineOptions<Date | number>[];
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel<TContext>;
     /** Configuration for the axis ticks interval. */
@@ -373,6 +379,8 @@ export interface AgNumberAxisOptions<TContext = ContextDefault>
         >,
         AgContinuousAxisOptions<number, number> {
     type?: 'number';
+    /** Add cross-lines or regions corresponding to data values. */
+    crossLines?: AgCartesianCrossLineOptions<number>[];
 }
 
 export interface AgLogAxisOptions<TContext = ContextDefault>
@@ -389,6 +397,8 @@ export interface AgLogAxisOptions<TContext = ContextDefault>
     type?: 'log';
     /** The base of the logarithm used. */
     base?: number;
+    /** Add cross-lines or regions corresponding to data values. */
+    crossLines?: AgCartesianCrossLineOptions<number>[];
 }
 
 export type AgCartesianAxisPosition = 'top' | 'right' | 'bottom' | 'left';
@@ -505,7 +515,10 @@ export interface AgUnitTimeAxisThemeOptions<CrossLineLabelType = AgBaseCrossLine
         AgCartesianAxisThemeOptions<AgUnitTimeAxisOptions<TContext>>,
         AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType> {}
 
-export interface AgCartesianCrossLineOptions extends AgBaseCrossLineOptions<AgCartesianCrossLineLabelOptions> {}
+export type AgCartesianCrossLineOptions<TValue = AxisValue> = AgBaseCrossLineOptions<
+    TValue,
+    AgCartesianCrossLineLabelOptions
+>;
 
 export interface AgCartesianCrossLineLabelOptions extends AgBaseCrossLineLabelOptions {
     /** The position of the Cross Line label. */

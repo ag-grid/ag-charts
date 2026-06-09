@@ -17,6 +17,7 @@ import type { AgScatterSeriesOptions, AgScatterSeriesThemeableOptions } from '..
 import type { AgWaterfallSeriesOptions, AgWaterfallSeriesThemeableOptions } from '../series/cartesian/waterfallOptions';
 import type { AgAxisLabelFormatterParams } from './axisOptions';
 import type { RichFormatter } from './callbackOptions';
+import type { AgCssColorOrRef } from './themeParamsOptions';
 import type {
     ContextDefault,
     CssColor,
@@ -60,7 +61,7 @@ export interface AgNavigatorMiniChartLabelOptions<TContext = ContextDefault> {
     /** Spacing in pixels between the axis labels and the Mini Chart. */
     spacing?: PixelSize;
     /** The colour to use for the labels. */
-    color?: CssColor;
+    color?: AgCssColorOrRef;
     /** Avoid axis label collision by automatically reducing the number of labels displayed. If set to `false`, axis labels may collide. */
     avoidCollisions?: boolean;
     /** Format string used when rendering labels. */

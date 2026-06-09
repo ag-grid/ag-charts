@@ -5,9 +5,9 @@ import type {
     AgContinuousAxisOptions,
     AgNumericAxisFormattableLabelOptions,
 } from './axisOptions';
-import type { AgBaseCrossLineLabelOptions, AgBaseCrossLineOptions } from './crossLineOptions';
+import type { AgBaseCrossLineLabelOptions, AgBaseCrossLineOptions, AgCrossLineThemeOptions } from './crossLineOptions';
 import type { AgPolarAxisShape } from './polarAxisOptions';
-import type { ContextDefault, Degree, Ratio } from './types';
+import type { AxisValue, ContextDefault, Degree, Ratio } from './types';
 
 interface AgRadiusAxisFormattableLabelOptions<
     TContext = ContextDefault,
@@ -27,7 +27,7 @@ export interface AgRadiusNumberAxisOptions<TContext = ContextDefault>
     /** Configuration for the title shown next to the axis. */
     title?: AgAxisCaptionOptions;
     /** Add cross lines or regions corresponding to data values. */
-    crossLines?: AgRadiusCrossLineOptions[];
+    crossLines?: AgRadiusCrossLineOptions<number>[];
     /**
      * The ratio of the inner radius of the axis as a proportion of the overall radius.
      *  Used to create an inner circle.
@@ -45,7 +45,7 @@ export interface AgRadiusCategoryAxisOptions<TContext = ContextDefault> extends 
     /** Configuration for the title shown next to the axis. */
     title?: AgAxisCaptionOptions;
     /** Add cross lines or regions corresponding to data values. */
-    crossLines?: AgRadiusCrossLineOptions[];
+    crossLines?: AgRadiusCrossLineOptions<AxisValue>[];
     /**
      * The ratio of the inner radius of the axis as a proportion of the overall radius.
      *  Used to create an inner circle.
@@ -68,13 +68,16 @@ export interface AgRadiusCategoryAxisOptions<TContext = ContextDefault> extends 
     paddingOuter?: Ratio;
 }
 
-export interface AgRadiusCrossLineOptions extends AgBaseCrossLineOptions<AgRadiusCrossLineLabelOptions> {}
-export interface AgRadiusCrossLineThemeOptions extends Omit<AgRadiusCrossLineOptions, 'type'> {}
+export type AgRadiusCrossLineOptions<TValue = AxisValue> = AgBaseCrossLineOptions<
+    TValue,
+    AgRadiusCrossLineLabelOptions
+>;
+export interface AgRadiusCrossLineThemeOptions extends AgCrossLineThemeOptions<AgRadiusCrossLineLabelOptions> {}
 
 export interface AgRadiusAxesCrossLineThemeOptions {
     crossLines?: AgRadiusCrossLineThemeOptions;
 }
 
-interface AgRadiusCrossLineLabelOptions extends AgBaseCrossLineLabelOptions {
+export interface AgRadiusCrossLineLabelOptions extends AgBaseCrossLineLabelOptions {
     positionAngle?: Degree;
 }

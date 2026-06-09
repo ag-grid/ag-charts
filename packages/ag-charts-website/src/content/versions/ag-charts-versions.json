@@ -4,7 +4,8 @@
         "date": "June 24th, 2026",
         "highlights": [
             {
-                "text": "Async Data"
+                "text": "Async Data",
+                "path": "./async-data/"
             },
             {
                 "text": "Image in Label"

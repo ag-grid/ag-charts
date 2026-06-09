@@ -6,12 +6,12 @@ import type { CaptionLike } from './captionLike';
 import type { ChartHighlight } from './chartHighlight';
 import type { ChartType } from './chartType';
 import type { SeriesProperties } from './series/seriesProperties';
-import type { DatumIndexType, ISeries, SeriesNodeDatum } from './series/seriesTypes';
+import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
 
 export type ChartServiceEvent = RequireOptional<Omit<AgSelectionChangeEvent<unknown, unknown>, 'context'>>;
 export type ChartServiceEventType = ChartServiceEvent['type'];
 
-type BaseSeries = ISeries<DatumIndexType, SeriesNodeDatum<DatumIndexType>, SeriesProperties<object>>;
+type BaseSeries = ISeries<SeriesNodeDatum, SeriesProperties<object>>;
 
 // Subset of chart.ts exposed in the module context:
 export interface ChartService {

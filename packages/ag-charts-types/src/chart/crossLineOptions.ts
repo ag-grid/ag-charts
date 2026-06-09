@@ -1,24 +1,9 @@
 import type { AgChartLabelStyleOptions } from './labelOptions';
 import type { AxisValue, CssColor, FontFamilyFull, Opacity, PixelSize } from './types';
 
-export interface AgCrossLineThemeOptions<LabelType = AgBaseCrossLineLabelOptions> extends Omit<
-    AgBaseCrossLineOptions<LabelType>,
-    'type' | 'value' | 'range'
-> {}
-
-export interface AgBaseCrossLineOptions<LabelType = AgBaseCrossLineLabelOptions> {
+export interface AgCommonCrossLineOptions<LabelType = AgBaseCrossLineLabelOptions> {
     /** Whether to show the Cross Line. */
     enabled?: boolean;
-    /** Type of Cross Line to render, defaults to `line`. */
-    type: 'line' | 'range';
-    /** The data value at which the line should be positioned. This property is used if the Cross Line type is `line`. */
-    value?: AxisValue;
-    /** The range of values from the data used to display lines at a desired chart region. This property is only used for Cross Line type `range`. */
-    range?: [AxisValue, AxisValue];
-    /** The colour to use for the fill of the range. */
-    fill?: CssColor;
-    /** The opacity of the fill for the range. */
-    fillOpacity?: Opacity;
     /** The colour of the stroke for the lines. */
     stroke?: CssColor;
     /** The width in pixels of the stroke for the lines. */
@@ -29,6 +14,43 @@ export interface AgBaseCrossLineOptions<LabelType = AgBaseCrossLineLabelOptions>
     lineDash?: PixelSize[];
     /** Configuration for the Cross Line label. */
     label?: LabelType;
+}
+
+export interface AgLineCrossLineOptions<
+    TValue = AxisValue,
+    LabelType = AgBaseCrossLineLabelOptions,
+> extends AgCommonCrossLineOptions<LabelType> {
+    /** Renders the Cross Line as a single line positioned at `value`. */
+    type: 'line';
+    /** The data value at which the line should be positioned. */
+    value: TValue;
+}
+
+export interface AgRangeCrossLineOptions<
+    TValue = AxisValue,
+    LabelType = AgBaseCrossLineLabelOptions,
+> extends AgCommonCrossLineOptions<LabelType> {
+    /** Renders the Cross Line as a shaded band spanning `range`. */
+    type: 'range';
+    /** The `[start, end]` data values bounding the shaded region. */
+    range: [TValue, TValue];
+    /** The colour to use for the fill of the range. */
+    fill?: CssColor;
+    /** The opacity of the fill for the range. */
+    fillOpacity?: Opacity;
+}
+
+export type AgBaseCrossLineOptions<TValue = AxisValue, LabelType = AgBaseCrossLineLabelOptions> =
+    | AgLineCrossLineOptions<TValue, LabelType>
+    | AgRangeCrossLineOptions<TValue, LabelType>;
+
+export interface AgCrossLineThemeOptions<
+    LabelType = AgBaseCrossLineLabelOptions,
+> extends AgCommonCrossLineOptions<LabelType> {
+    /** The colour to use for the fill of the range. */
+    fill?: CssColor;
+    /** The opacity of the fill for the range. */
+    fillOpacity?: Opacity;
 }
 
 export interface AgBaseCrossLineLabelOptions extends Omit<AgChartLabelStyleOptions, 'fontFamily'> {

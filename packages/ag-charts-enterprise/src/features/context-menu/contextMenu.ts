@@ -24,8 +24,7 @@ type ContextMenuCallback = _ModuleSupport.ContextMenuCallback<AgContextMenuItemS
 
 const { getItemId, ContextMenuRegistry } = _ModuleSupport;
 type UnknownSeries = _ModuleSupport.ISeries<
-    _ModuleSupport.DatumIndexType,
-    unknown,
+    _ModuleSupport.SeriesNodeDatum,
     _ModuleSupport.SeriesProperties<object>,
     unknown
 >;
@@ -52,8 +51,13 @@ const DATUM_KEYS = [
     'yKey',
 ] as const satisfies readonly (keyof AgContextMenuGetItemsParamsSeriesNode)[];
 
-type PickedNode = _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> & {
+type PickedNode = _ModuleSupport.SeriesNodeDatum & {
     [K in (typeof DATUM_KEYS)[number]]?: string;
+} & {
+    binIndex?: number;
+    binRange?: [number, number];
+    aggregatedValue?: number;
+    frequency?: number;
 };
 
 export class ContextMenu extends AbstractModuleInstance {
@@ -155,6 +159,12 @@ export class ContextMenu extends AbstractModuleInstance {
                     if (this.pickedNode[k] !== undefined) {
                         params[k] = this.pickedNode[k];
                     }
+                }
+
+                // Histogram bins carry standardised bin metadata; binIndex is always set for histogram nodes.
+                if (this.pickedNode.binIndex !== undefined) {
+                    const { binIndex, binRange, aggregatedValue, frequency } = this.pickedNode;
+                    Object.assign(params, { binIndex, binRange, aggregatedValue, frequency });
                 }
                 return params;
             }

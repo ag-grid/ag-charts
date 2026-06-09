@@ -349,10 +349,10 @@ describe('AG-14631 context enterprise', () => {
         }
 
         beforeEach(async () => {
-            alwaysAction = newFreezable((_params: AgChartContextMenuEvent<TContext>) => {});
-            seriesAreaAction = newFreezable((_params: AgSeriesAreaContextMenuActionEvent<TContext>) => {});
-            seriesNodeAction = newFreezable((_params: AgNodeContextMenuActionEvent<TDatum, TContext>) => {});
-            legendItemAction = newFreezable((_params: AgChartLegendContextMenuEvent<TContext>) => {});
+            alwaysAction = newFreezable((_params: AgChartContextMenuEvent<TContext>): void => {});
+            seriesAreaAction = newFreezable((_params: AgSeriesAreaContextMenuActionEvent<TContext>): void => {});
+            seriesNodeAction = newFreezable((_params: AgNodeContextMenuActionEvent<TDatum, TContext>): void => {});
+            legendItemAction = newFreezable((_params: AgChartLegendContextMenuEvent<TContext>): void => {});
             chartContext = { name: 'chart context' } as const;
             series0Context = { name: 'series 0 context' } as const;
             series1Context = { name: 'series 1 context' } as const;
@@ -1873,10 +1873,10 @@ describe('AG-15850 activeChange', () => {
             expect(calls?.[0]?.[0]?.datum?.myX).toEqual('Positive 2');
             expect(calls).toMatchSnapshot();
 
-            // hover on another waterfall bar (Subtotal 1)
+            // hover on another waterfall bar (Subtotal 1) — synthetic, so datum is undefined
             await hover(365, 204);
             calls = popCalls();
-            expect(calls?.[0]?.[0]?.datum?.myX).toEqual('Subtotal 1');
+            expect(calls?.[0]?.[0]?.datum).toBeUndefined();
             expect(calls).toMatchSnapshot();
 
             // hover on a legend item (Negative 3)
@@ -1903,10 +1903,10 @@ describe('AG-15850 activeChange', () => {
             expect(calls?.[0]?.[0]?.datum?.myX).toEqual('Positive 2');
             expect(calls).toMatchSnapshot();
 
-            // Subtotal 1
+            // Subtotal 1 — synthetic, so datum is undefined
             await setActiveItem({ type: 'series-node', itemId: 5, seriesId: 'WaterfallSeries-1' });
             calls = popCalls();
-            expect(calls?.[0]?.[0]?.datum?.myX).toEqual('Subtotal 1');
+            expect(calls?.[0]?.[0]?.datum).toBeUndefined();
             expect(calls).toMatchSnapshot();
 
             // Negative 3
@@ -2126,13 +2126,13 @@ describe('AG-15850 activeChange', () => {
             // Hover on a node (A)
             await hover(43, 119);
             calls = popCalls();
-            expect(calls?.[0]?.[0]?.activeItem?.itemId).toEqual('node-0');
+            expect(calls?.[0]?.[0]?.activeItem?.itemId).toEqual('A');
             expect(calls).toMatchSnapshot();
 
             // Hover on another node (E)
             await hover(757, 357);
             calls = popCalls();
-            expect(calls?.[0]?.[0]?.activeItem?.itemId).toEqual('node-4');
+            expect(calls?.[0]?.[0]?.activeItem?.itemId).toEqual('E');
             expect(calls).toMatchSnapshot();
 
             // Hover miss
@@ -2153,14 +2153,14 @@ describe('AG-15850 activeChange', () => {
             expect(calls?.[0]?.[0]?.datum).toEqual({ myFrom: 'B', myTo: 'E', mySize: 25 });
             expect(calls).toMatchSnapshot();
 
-            await setActiveItem({ type: 'series-node', itemId: 'node-0', seriesId: 'SankeySeries-1' });
+            await setActiveItem({ type: 'series-node', itemId: 'A', seriesId: 'SankeySeries-1' });
             calls = popCalls();
-            expect(calls?.[0]?.[0]?.activeItem?.itemId).toEqual('node-0');
+            expect(calls?.[0]?.[0]?.activeItem?.itemId).toEqual('A');
             expect(calls).toMatchSnapshot();
 
-            await setActiveItem({ type: 'series-node', itemId: 'node-4', seriesId: 'SankeySeries-1' });
+            await setActiveItem({ type: 'series-node', itemId: 'E', seriesId: 'SankeySeries-1' });
             calls = popCalls();
-            expect(calls?.[0]?.[0]?.activeItem?.itemId).toEqual('node-4');
+            expect(calls?.[0]?.[0]?.activeItem?.itemId).toEqual('E');
             expect(calls).toMatchSnapshot();
 
             await setActiveItem(undefined);
@@ -2171,7 +2171,7 @@ describe('AG-15850 activeChange', () => {
             await setActiveItem({ type: 'series-node', itemId: 'link-1', seriesId: 'SankeySeries-1' });
             expect(popCalls().length).toBe(1);
 
-            await setActiveItem({ type: 'series-node', itemId: 'node-0', seriesId: 'SankeySeries-2' });
+            await setActiveItem({ type: 'series-node', itemId: 'A', seriesId: 'SankeySeries-2' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "SankeySeries-2"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
@@ -2239,13 +2239,13 @@ describe('AG-15850 activeChange', () => {
             // Hover on a node (A)
             await hover(640, 404);
             calls = popCalls();
-            expect(calls?.[0]?.[0]?.activeItem?.itemId).toEqual('node-0');
+            expect(calls?.[0]?.[0]?.activeItem?.itemId).toEqual('A');
             expect(calls).toMatchSnapshot();
 
             // Hover on another node (E)
             await hover(565, 98);
             calls = popCalls();
-            expect(calls?.[0]?.[0]?.activeItem?.itemId).toEqual('node-4');
+            expect(calls?.[0]?.[0]?.activeItem?.itemId).toEqual('E');
             expect(calls).toMatchSnapshot();
 
             // Hover miss
@@ -2266,14 +2266,14 @@ describe('AG-15850 activeChange', () => {
             expect(calls?.[0]?.[0]?.datum).toEqual({ myFrom: 'B', myTo: 'E', mySize: 25 });
             expect(calls).toMatchSnapshot();
 
-            await setActiveItem({ type: 'series-node', itemId: 'node-0', seriesId: 'ChordSeries-1' });
+            await setActiveItem({ type: 'series-node', itemId: 'A', seriesId: 'ChordSeries-1' });
             calls = popCalls();
-            expect(calls?.[0]?.[0]?.activeItem?.itemId).toEqual('node-0');
+            expect(calls?.[0]?.[0]?.activeItem?.itemId).toEqual('A');
             expect(calls).toMatchSnapshot();
 
-            await setActiveItem({ type: 'series-node', itemId: 'node-4', seriesId: 'ChordSeries-1' });
+            await setActiveItem({ type: 'series-node', itemId: 'E', seriesId: 'ChordSeries-1' });
             calls = popCalls();
-            expect(calls?.[0]?.[0]?.activeItem?.itemId).toEqual('node-4');
+            expect(calls?.[0]?.[0]?.activeItem?.itemId).toEqual('E');
             expect(calls).toMatchSnapshot();
 
             await setActiveItem(undefined);
@@ -2281,16 +2281,16 @@ describe('AG-15850 activeChange', () => {
         });
 
         test('setState series-area seriesId not found', async () => {
-            await setActiveItem({ type: 'series-node', itemId: 'node-0', seriesId: 'ChordSeries-1' });
+            await setActiveItem({ type: 'series-node', itemId: 'A', seriesId: 'ChordSeries-1' });
             expect(popCalls().length).toBe(1);
 
-            await setActiveItem({ type: 'series-node', itemId: 'node-0', seriesId: 'ChordSeries-2' });
+            await setActiveItem({ type: 'series-node', itemId: 'A', seriesId: 'ChordSeries-2' });
             expectWarningsCalls().toEqual([['AG Charts - Cannot find seriesId: "ChordSeries-2"']]);
             expect(popCalls()).toEqual([[INACTIVE_SETSTATE_EVENT]]);
         });
 
         test('setState series-area link not found', async () => {
-            await setActiveItem({ type: 'series-node', itemId: 'node-0', seriesId: 'ChordSeries-1' });
+            await setActiveItem({ type: 'series-node', itemId: 'A', seriesId: 'ChordSeries-1' });
             expect(popCalls().length).toBe(1);
 
             await setActiveItem({ type: 'series-node', itemId: 'link-1000', seriesId: 'ChordSeries-1' });
@@ -2299,7 +2299,7 @@ describe('AG-15850 activeChange', () => {
         });
 
         test('setState series-area node not found', async () => {
-            await setActiveItem({ type: 'series-node', itemId: 'node-0', seriesId: 'ChordSeries-1' });
+            await setActiveItem({ type: 'series-node', itemId: 'A', seriesId: 'ChordSeries-1' });
             expect(popCalls().length).toBe(1);
 
             await setActiveItem({ type: 'series-node', itemId: 'node-1000', seriesId: 'ChordSeries-1' });

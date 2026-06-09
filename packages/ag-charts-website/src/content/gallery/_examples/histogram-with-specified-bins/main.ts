@@ -58,14 +58,14 @@ const options: AgCartesianChartOptions<DataType> = {
                 bins: [gradeBoundaries[grade as keyof typeof gradeBoundaries]],
                 areaPlot: true,
                 tooltip: {
-                    renderer: ({ datum, xName }) => {
-                        const [minScore, maxScore] = datum.domain;
+                    renderer: ({ binRange, frequency, xName }) => {
+                        const [minScore, maxScore] = binRange;
                         const scoreRange = minScore === maxScore ? `${minScore}` : `${minScore} - ${maxScore}`;
 
                         return {
                             heading: scoreRange,
                             title: `Grade ${xName}`,
-                            data: [{ label: 'Students', value: datum.frequency.toFixed(0) }],
+                            data: [{ label: 'Students', value: frequency.toFixed(0) }],
                         };
                     },
                 },

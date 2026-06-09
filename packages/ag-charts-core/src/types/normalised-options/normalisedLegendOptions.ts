@@ -9,6 +9,7 @@ import type {
     AgPaginationMarkerOptions,
     AgPaginationMarkerStyle,
     BorderOptions,
+    CssColor,
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
@@ -25,7 +26,7 @@ export type NormalisedLegendLineOptions = Normalised<AgChartLegendLineOptions, '
 export type NormalisedLegendLabelOptions = Normalised<
     AgChartLegendLabelOptions,
     'color' | 'fontWeight' | 'fontSize' | 'fontFamily',
-    { fontFamily: string }
+    { color: CssColor; fontFamily: string }
 >;
 
 export type NormalisedPaginationMarkerStyle = Normalised<
@@ -39,7 +40,7 @@ export type NormalisedPaginationMarkerOptions = Normalised<AgPaginationMarkerOpt
 export type NormalisedPaginationLabelOptions = Normalised<
     AgPaginationLabelOptions,
     'color' | 'fontSize' | 'fontFamily',
-    { fontFamily: string }
+    { color: CssColor; fontFamily: string }
 >;
 
 // --- Composed normalised types ---

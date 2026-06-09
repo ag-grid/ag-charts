@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { mapValues } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
@@ -10,7 +10,10 @@ import type { ChartOrProxy } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    clickAction,
     deproxy,
+    doubleClickAction,
+    expectWarningsCalls,
     extractImageData,
     hoverAction,
     prepareTestOptions,
@@ -170,6 +173,331 @@ describe('HistogramSeries', () => {
             await waitForChartStability(chart);
 
             await compare();
+        });
+    });
+
+    describe('getDataId', () => {
+        const nodeDataOf = (c: any) => (deproxy(c).series[0] as any).getNodeData() as any[];
+        const itemIdsOf = (c: any) => nodeDataOf(c).map((n) => n.itemId);
+
+        const createBinnedChart = (
+            series: Partial<NonNullable<AgCartesianChartOptions['series']>[number]> = {},
+            data?: any[]
+        ) => {
+            const options: AgCartesianChartOptions = {
+                data: data ?? [{ x: 1 }, { x: 5 }, { x: 12 }, { x: 18 }],
+                series: [
+                    {
+                        type: 'histogram',
+                        xKey: 'x',
+                        bins: [
+                            [0, 10],
+                            [10, 20],
+                        ],
+                        ...(series as object),
+                    },
+                ],
+            };
+            prepareTestOptions(options as any);
+            return AgCharts.create(options);
+        };
+
+        it('auto-generates an id from the bin boundaries', async () => {
+            chart = createBinnedChart();
+            await waitForChartStability(chart);
+
+            expect(itemIdsOf(chart)).toEqual(['bin:0,10', 'bin:10,20']);
+        });
+
+        it('disambiguates negative and fractional bin boundaries', async () => {
+            chart = createBinnedChart(
+                {
+                    bins: [
+                        [-10, -5],
+                        [-5, 0.5],
+                    ],
+                },
+                [{ x: -8 }, { x: -1 }]
+            );
+            await waitForChartStability(chart);
+
+            expect(itemIdsOf(chart)).toEqual(['bin:-10,-5', 'bin:-5,0.5']);
+        });
+
+        it('uses the getDataId callback to override the id', async () => {
+            const getDataId = vi.fn((p: { binIndex: number }) => `b${p.binIndex}`);
+            chart = createBinnedChart({ getDataId });
+            await waitForChartStability(chart);
+
+            expect(itemIdsOf(chart)).toEqual(['b0', 'b1']);
+            expect(getDataId).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    binIndex: 0,
+                    binRange: [0, 10],
+                    aggregatedValue: 2,
+                    frequency: 2,
+                    datum: [{ x: 1 }, { x: 5 }],
+                })
+            );
+        });
+
+        it('passes the chart context to the callback', async () => {
+            const context = { tenant: 'acme' };
+            const getDataId = vi.fn((p: { context?: any }) => `${p.context?.tenant}`);
+            chart = createBinnedChart({ context, getDataId });
+            await waitForChartStability(chart);
+
+            expect(itemIdsOf(chart)).toEqual(['acme', 'acme']);
+        });
+
+        it('keeps ids stable across a data update that preserves bin boundaries', async () => {
+            chart = createBinnedChart();
+            await waitForChartStability(chart);
+            const before = itemIdsOf(chart);
+            const frequenciesBefore = nodeDataOf(chart).map((n) => n.frequency);
+
+            await chart.update({
+                data: [{ x: 2 }, { x: 3 }, { x: 14 }],
+                series: [
+                    {
+                        type: 'histogram',
+                        xKey: 'x',
+                        bins: [
+                            [0, 10],
+                            [10, 20],
+                        ],
+                    },
+                ],
+            });
+            await waitForChartStability(chart);
+
+            // The update changes bin contents (so it definitely applied) but not boundaries.
+            expect(nodeDataOf(chart).map((n) => n.frequency)).not.toEqual(frequenciesBefore);
+            expect(itemIdsOf(chart)).toEqual(before);
+        });
+
+        it('falls back to the default id when the callback throws', async () => {
+            const getDataId = () => {
+                throw new Error('boom');
+            };
+            chart = createBinnedChart({ getDataId });
+            await waitForChartStability(chart);
+
+            expect(itemIdsOf(chart)).toEqual(['bin:0,10', 'bin:10,20']);
+            expectWarningsCalls().toHaveLength(1);
+        });
+    });
+
+    describe('bin callback params', () => {
+        // Unordered input with marker fields, so callbacks must yield full source rows (not extracted
+        // values); bin [20,30] is left empty.
+        const sourceData = [
+            { x: 35, y: 4, label: 'd' },
+            { x: 2, y: 1, label: 'a' },
+            { x: 8, y: 3, label: 'c' },
+            { x: 5, y: 2, label: 'b' },
+        ];
+        const bins: [number, number][] = [
+            [0, 10],
+            [10, 20],
+            [20, 30],
+            [30, 40],
+        ];
+
+        const createChart = (series: Partial<NonNullable<AgCartesianChartOptions['series']>[number]> = {}) => {
+            const options: AgCartesianChartOptions = {
+                data: sourceData,
+                series: [{ type: 'histogram', xKey: 'x', bins, ...(series as object) }],
+            };
+            prepareTestOptions(options as any);
+            return AgCharts.create(options);
+        };
+
+        const nodeDataOf = (c: any) => (deproxy(c).series[0] as any).getNodeData() as any[];
+
+        it('exposes positional bin metadata and raw source rows for every bin (AC1, AC2, TC1)', async () => {
+            chart = createChart();
+            await waitForChartStability(chart);
+            const nodes = nodeDataOf(chart);
+
+            // One node per bin, including empty bins, indexed positionally (never -1).
+            expect(nodes.map((n) => n.binIndex)).toEqual([0, 1, 2, 3]);
+            expect(nodes.map((n) => n.binRange)).toEqual([
+                [0, 10],
+                [10, 20],
+                [20, 30],
+                [30, 40],
+            ]);
+            expect(nodes.map((n) => n.frequency)).toEqual([3, 0, 0, 1]);
+
+            // AC1: datum is the bin's full source rows, not extracted values; row order within a bin
+            // isn't guaranteed, so compare order-independently.
+            expect(nodes[0].datum).toHaveLength(3);
+            expect(nodes[0].datum).toEqual(
+                expect.arrayContaining([
+                    { x: 2, y: 1, label: 'a' },
+                    { x: 5, y: 2, label: 'b' },
+                    { x: 8, y: 3, label: 'c' },
+                ])
+            );
+
+            // TC1: an empty bin is still a positioned bin.
+            expect(nodes[2].binIndex).toBe(2);
+            expect(nodes[2].binRange).toEqual([20, 30]);
+            expect(nodes[2].datum).toEqual([]);
+            expect(nodes[2].frequency).toBe(0);
+            expect(nodes[2].aggregatedValue).toBe(0);
+        });
+
+        it.each([
+            { aggregation: 'count', yKey: 'y', expected: 3 },
+            { aggregation: 'sum', yKey: 'y', expected: 6 },
+            { aggregation: 'mean', yKey: 'y', expected: 2 },
+            { aggregation: 'count', yKey: undefined, expected: 3 },
+        ] as const)(
+            'computes aggregatedValue for $aggregation aggregation (yKey=$yKey) (AC3)',
+            async ({ aggregation, yKey, expected }) => {
+                chart = createChart({ aggregation, yKey });
+                await waitForChartStability(chart);
+                const firstBin = nodeDataOf(chart)[0];
+
+                // frequency is always the row count, regardless of aggregation mode.
+                expect(firstBin.frequency).toBe(3);
+                expect(firstBin.aggregatedValue).toBe(expected);
+            }
+        );
+
+        it('does not let areaPlot change aggregatedValue (AC3)', async () => {
+            chart = createChart({ aggregation: 'sum', yKey: 'y', areaPlot: true });
+            await waitForChartStability(chart);
+            expect(nodeDataOf(chart)[0].aggregatedValue).toBe(6);
+        });
+
+        it('carries the area-adjusted plotted height as cumulativeValue for the crosshair', async () => {
+            // Crosshair snaps to the plotted height (`cumulativeValue`, area-adjusted), not the raw
+            // `aggregatedValue`. Bin width is 10, so 6 -> 0.6.
+            chart = createChart({ aggregation: 'sum', yKey: 'y', areaPlot: true });
+            await waitForChartStability(chart);
+            const firstBin = nodeDataOf(chart)[0];
+            expect(firstBin.aggregatedValue).toBe(6);
+            expect(firstBin.cumulativeValue).toBeCloseTo(0.6);
+        });
+
+        it('keeps cumulativeValue and aggregatedValue equal without areaPlot', async () => {
+            chart = createChart({ aggregation: 'sum', yKey: 'y' });
+            await waitForChartStability(chart);
+            const firstBin = nodeDataOf(chart)[0];
+            expect(firstBin.cumulativeValue).toBe(6);
+            expect(firstBin.aggregatedValue).toBe(6);
+        });
+
+        const clickFirstBin = async (c: any) => {
+            const series = deproxy(c).series[0] as any;
+            const node = series.getNodeData()[0];
+            const { x, y } = Transformable.toCanvasPoint(
+                series.contentGroup,
+                node.x + node.width / 2,
+                node.y + node.height / 2
+            );
+            await clickAction(x, y)(c);
+            await waitForChartStability(c);
+        };
+
+        it('fires seriesNodeClick with the bin params (AC1, AC2)', async () => {
+            const seriesNodeClick = vi.fn();
+            chart = createChart({ listeners: { seriesNodeClick } });
+            await waitForChartStability(chart);
+
+            await clickFirstBin(chart);
+
+            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+            const event = seriesNodeClick.mock.calls[0][0];
+            expect(event).toMatchObject({
+                type: 'seriesNodeClick',
+                binIndex: 0,
+                binRange: [0, 10],
+                aggregatedValue: 3,
+                frequency: 3,
+            });
+            expect(event.datum).toHaveLength(3);
+            expect(event.datum).toEqual(
+                expect.arrayContaining([
+                    { x: 2, y: 1, label: 'a' },
+                    { x: 5, y: 2, label: 'b' },
+                    { x: 8, y: 3, label: 'c' },
+                ])
+            );
+        });
+
+        it('fires seriesNodeDoubleClick with the bin params', async () => {
+            const seriesNodeDoubleClick = vi.fn();
+            chart = createChart({ listeners: { seriesNodeDoubleClick } });
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0] as any;
+            const node = series.getNodeData()[0];
+            const { x, y } = Transformable.toCanvasPoint(
+                series.contentGroup,
+                node.x + node.width / 2,
+                node.y + node.height / 2
+            );
+            await doubleClickAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            expect(seriesNodeDoubleClick).toHaveBeenCalledTimes(1);
+            expect(seriesNodeDoubleClick).toHaveBeenCalledWith(
+                expect.objectContaining({ type: 'seriesNodeDoubleClick', binIndex: 0, binRange: [0, 10] })
+            );
+        });
+
+        it('passes the bin params to the tooltip renderer (AC1, AC2)', async () => {
+            const renderer = vi.fn((_params: any) => ({}));
+            chart = createChart({ tooltip: { renderer } });
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0] as any;
+            const node = series.getNodeData()[0];
+            const { x, y } = Transformable.toCanvasPoint(
+                series.contentGroup,
+                node.x + node.width / 2,
+                node.y + node.height / 2
+            );
+            await hoverAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            expect(renderer).toHaveBeenCalledTimes(1);
+            const params = renderer.mock.calls[0][0];
+            expect(params).toMatchObject({ binIndex: 0, binRange: [0, 10], aggregatedValue: 3, frequency: 3 });
+            expect(params.datum).toHaveLength(3);
+            expect(params.datum).toEqual(
+                expect.arrayContaining([
+                    { x: 2, y: 1, label: 'a' },
+                    { x: 5, y: 2, label: 'b' },
+                    { x: 8, y: 3, label: 'c' },
+                ])
+            );
+        });
+
+        it('resolves distinct tooltip content for each of two consecutive empty bins', async () => {
+            // Empty bins all share groupIndex -1; keying by positional binIndex keeps them distinct.
+            const renderer = vi.fn((_params: any) => ({}));
+            chart = createChart({ tooltip: { renderer } });
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0] as any;
+            const emptyBins = (series.getNodeData() as any[]).filter((n) => n.frequency === 0);
+            expect(emptyBins.map((n) => n.binIndex)).toEqual([1, 2]);
+
+            for (const node of emptyBins) {
+                renderer.mockClear();
+                series.getTooltipContent(node.datumIndex);
+                expect(renderer).toHaveBeenCalledTimes(1);
+                expect(renderer.mock.calls[0][0]).toMatchObject({
+                    binIndex: node.binIndex,
+                    binRange: node.binRange,
+                    frequency: 0,
+                });
+            }
         });
     });
 

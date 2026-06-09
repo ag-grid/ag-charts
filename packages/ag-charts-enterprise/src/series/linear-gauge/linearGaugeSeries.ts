@@ -6,12 +6,12 @@ import {
     type AgSeriesMarkerStyle,
     type FontStyle,
     type FontWeight,
-    type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
     type ChartAnimationPhase,
     type DynamicContext,
+    type NormalisedTextOrSegments,
     type Point,
     StateMachine,
     cachedTextMeasurer,
@@ -27,6 +27,7 @@ import {
 
 import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
+import { getGaugeTooltipInfo } from '../gauge-util/gaugeTooltip';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
 import { findGaugeNodeDatum, pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
@@ -34,7 +35,6 @@ import {
     type LinearGaugeLabelDatum,
     LinearGaugeLabelProperties,
     type LinearGaugeNodeDatum,
-    type LinearGaugeNodeDatumIndex,
     LinearGaugeSeriesProperties,
     type LinearGaugeTargetDatum,
     type LinearGaugeTargetDatumLabel,
@@ -64,8 +64,7 @@ const {
     NiceMode,
 } = _ModuleSupport;
 
-type DatumIndexType = _ModuleSupport.DatumIndexType;
-type SeriesNodeDatum<I extends DatumIndexType> = _ModuleSupport.SeriesNodeDatum<I>;
+type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum;
 
 interface TargetLabel {
     enabled: boolean;
@@ -102,7 +101,6 @@ type GaugeAnimationEvent = {
 };
 
 interface LinearGaugeNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<
-    LinearGaugeNodeDatumIndex,
     LinearGaugeNodeDatum,
     LinearGaugeLabelDatum
 > {
@@ -123,7 +121,6 @@ const verticalTargetPlacementRotation: Record<AgLinearGaugeTargetPlacement, numb
 };
 
 export class LinearGaugeSeries extends _ModuleSupport.Series<
-    LinearGaugeNodeDatumIndex,
     LinearGaugeNodeDatum,
     AgLinearGaugeOptions,
     LinearGaugeSeriesProperties,
@@ -404,7 +401,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return {
             series: this,
             datum: undefined,
-            datumIndex: { type: NodeDataType.Node },
+            datumIndex: 0,
             placement,
             avoidCollisions,
             spacing,
@@ -462,15 +459,18 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return label.spacing + labelSize;
     }
 
-    private tickFormatter(domain: number[], ticks: number[]): (value: number, index: number) => TextOrSegments {
+    private tickFormatter(
+        domain: number[],
+        ticks: number[]
+    ): (value: number, index: number) => NormalisedTextOrSegments {
         const { format, formatter } = this.properties.scale.label;
-        let tickFormatter: ((value: number) => TextOrSegments) | undefined;
+        let tickFormatter: ((value: number) => NormalisedTextOrSegments) | undefined;
         if (format != null) {
             tickFormatter = tickFormat(ticks, typeof format === 'string' ? format : undefined);
         }
 
-        return (value: number, index: number): TextOrSegments => {
-            let r: TextOrSegments | undefined = undefined;
+        return (value: number, index: number): NormalisedTextOrSegments => {
+            let r: NormalisedTextOrSegments | undefined = undefined;
             if (formatter) {
                 r ??= formatWithContext(this.ctx, formatter, {
                     type: 'number',
@@ -623,7 +623,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                     series: this,
                     itemId: `value`,
                     datum,
-                    datumIndex: { type: NodeDataType.Node },
+                    datumIndex: 0,
                     type: NodeDataType.Node,
                     x0: originX + x0 - barCornerXInset - barXInset,
                     y0: originY + y0 - barCornerYInset - barYInset,
@@ -653,7 +653,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 series: this,
                 itemId: `scale`,
                 datum,
-                datumIndex: { type: NodeDataType.Node },
+                datumIndex: 0,
                 type: NodeDataType.Node,
                 x0: originX + x0 - scaleCornerXInset,
                 y0: originY + y0 - scaleCornerYInset,
@@ -702,7 +702,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                         series: this,
                         itemId: `value-${i}`,
                         datum,
-                        datumIndex: { type: NodeDataType.Node },
+                        datumIndex: 0,
                         type: NodeDataType.Node,
                         x0: originX + (horizontal ? itemStart : x0),
                         y0: originY + (horizontal ? y0 : itemStart),
@@ -726,7 +726,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                     series: this,
                     itemId: `scale-${i}`,
                     datum,
-                    datumIndex: { type: NodeDataType.Node },
+                    datumIndex: 0,
                     type: NodeDataType.Node,
                     x0: originX + (horizontal ? itemStart : x0),
                     y0: originY + (horizontal ? y0 : itemStart),
@@ -775,7 +775,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 itemId: `target-${i}`,
                 midPoint: targetPoint,
                 datum: { value: targetValue },
-                datumIndex: { type: NodeDataType.Target, index: i },
+                datumIndex: i + 1,
                 type: NodeDataType.Target,
                 value: targetValue,
                 text,
@@ -799,7 +799,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         };
     }
 
-    override findNodeDatum(itemId: AgActiveItemState['itemId']): SeriesNodeDatum<DatumIndexType> | undefined {
+    override findNodeDatum(itemId: AgActiveItemState['itemId']): SeriesNodeDatum | undefined {
         return findGaugeNodeDatum(this, itemId);
     }
 
@@ -1285,24 +1285,13 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     override getTooltipContent(
-        datumIndex: LinearGaugeNodeDatumIndex | undefined
+        datumIndex: _ModuleSupport.DatumIndex | undefined
     ): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, properties } = this;
         const { tooltip } = properties;
         if (datumIndex == null) return;
 
-        let value: number | undefined;
-        let text: string | undefined;
-        let fallbackLabel: string;
-        if (datumIndex.type === NodeDataType.Node) {
-            value = properties.value;
-            text = properties.label.text;
-            fallbackLabel = this.ctx.localeManager.t('ariaLabelGaugeValue');
-        } else {
-            ({ value, text } = properties.targets[datumIndex.index]);
-            fallbackLabel = this.ctx.localeManager.t('ariaLabelGaugeTarget');
-        }
-
+        const { value, text, fallbackLabel } = getGaugeTooltipInfo(this, datumIndex);
         if (value == null) return;
 
         return this.formatTooltipWithContext(
@@ -1326,11 +1315,11 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return this.formatLabel(this.properties.value);
     }
 
-    getCategoryValue(_datumIndex: LinearGaugeNodeDatumIndex) {
+    getCategoryValue(_datumIndex: _ModuleSupport.DatumIndex) {
         return;
     }
 
-    datumIndexForCategoryValue(_categoryValue: any): LinearGaugeNodeDatumIndex | undefined {
+    datumIndexForCategoryValue(_categoryValue: any): _ModuleSupport.DatumIndex | undefined {
         return;
     }
 

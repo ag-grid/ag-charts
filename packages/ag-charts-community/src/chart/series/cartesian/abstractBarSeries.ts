@@ -43,7 +43,7 @@ export abstract class AbstractBarSeriesProperties<T extends object> extends Cart
 
 export interface AbstractBarSeriesNodeDataContext<
     TDatum extends CartesianSeriesNodeDatum,
-    TLabel extends SeriesNodeDatum<number> = TDatum,
+    TLabel extends SeriesNodeDatum = TDatum,
 > extends CartesianSeriesNodeDataContext<TDatum, TLabel> {
     groupScale: Scaling | undefined;
 }

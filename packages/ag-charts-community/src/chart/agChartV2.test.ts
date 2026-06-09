@@ -1,9 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { mapValues } from 'ag-charts-core';
 import type { AgCartesianAxisOptions, AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
+import { AnimationManager } from './interaction/animationManager';
 import * as examples from './test/examples';
 import type { ChartTestCase } from './test/utils';
 import {
@@ -183,6 +184,57 @@ describe('AgChartV2', () => {
                     await chart.update(cycle);
                 }
             }
+        });
+
+        describe('AG-17373 entry animation on series-type switch', () => {
+            const DATA = [
+                { os: 'Windows', share: 72.04 },
+                { os: 'macOS', share: 16.91 },
+                { os: 'Linux', share: 4.36 },
+                { os: 'Other', share: 6.69 },
+            ];
+            const barOptions = (width = 800, height = 600): AgChartOptions => {
+                const opts: AgChartOptions = {
+                    data: DATA,
+                    series: [{ type: 'bar', xKey: 'os', yKey: 'share' }],
+                };
+                prepareTestOptions(opts);
+                opts.width = width;
+                opts.height = height;
+                return opts;
+            };
+            const pieOptions = (width = 800, height = 600): AgChartOptions => {
+                const opts: AgChartOptions = {
+                    data: DATA,
+                    series: [{ type: 'pie', calloutLabelKey: 'os', angleKey: 'share' }],
+                };
+                prepareTestOptions(opts);
+                opts.width = width;
+                opts.height = height;
+                return opts;
+            };
+
+            it('does not let a resize skip the entry animation after a series-type switch', async () => {
+                chart = AgCharts.create(barOptions());
+                await waitForChartStability(chart);
+
+                // A series-type switch resets the animation phase to 'initial', queuing an
+                // entry animation. The size monitor then re-measures the transferred scene,
+                // firing a resize. That resize must not force-skip the pending animation.
+                const resizeSkips: string[] = [];
+                const skipSpy = vi.spyOn(AnimationManager.prototype, 'skipCurrentBatch').mockImplementation(() => {
+                    const stack = new Error().stack ?? '';
+                    if (stack.includes('.resize ')) {
+                        resizeSkips.push(stack);
+                    }
+                });
+
+                await chart.update(pieOptions(801, 601));
+                await waitForChartStability(chart);
+                skipSpy.mockRestore();
+
+                expect(resizeSkips).toHaveLength(0);
+            }, 15_000);
         });
     });
 

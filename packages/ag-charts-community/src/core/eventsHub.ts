@@ -28,7 +28,7 @@ import type {
 import { DataSet } from '../chart/data/dataSet';
 import type { ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
 import type { ChartLegendType } from '../chart/legend/legendDatum';
-import type { DatumIndexType, ISeries, SeriesNodeDatum } from '../chart/series/seriesTypes';
+import type { ISeries, SeriesNodeDatum } from '../chart/series/seriesTypes';
 import type { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';
 import type { SelectionInterface } from '../scene/selection';
@@ -76,7 +76,7 @@ export interface SeriesAreaClickEvent {
     readonly type: 'click' | 'dblclick';
     readonly consumed: boolean;
     readonly sourceEvent: MouseEvent | TouchEvent | KeyboardEvent;
-    readonly clickedNode: SeriesNodeDatum<DatumIndexType> | undefined;
+    readonly clickedNode: SeriesNodeDatum | undefined;
 }
 
 export interface DataModelSeriesDiff {
@@ -184,7 +184,7 @@ export interface ActiveLoadMementoEvent {
     readonly chartId: string;
     readonly activeItem: Readonly<AgActiveItemState> | undefined;
     reject(): void;
-    setDatum(nodeDatum: SeriesNodeDatum<DatumIndexType> | undefined): void;
+    setDatum(nodeDatum: SeriesNodeDatum | undefined): void;
 }
 
 interface AnnotationsRestoreEvent {
@@ -413,7 +413,7 @@ export interface UpdateRequestEvent {
     readonly opts?: UpdateOpts;
 }
 
-export interface HighlightNodeDatum<I extends DatumIndexType = DatumIndexType> extends SeriesNodeDatum<I> {
+export interface HighlightNodeDatum extends SeriesNodeDatum {
     readonly xKey?: string;
     readonly yKey?: string;
     readonly angleKey?: string;
@@ -421,7 +421,6 @@ export interface HighlightNodeDatum<I extends DatumIndexType = DatumIndexType> e
     readonly colorValue?: number;
     readonly cumulativeValue?: number;
     readonly aggregatedValue?: number;
-    readonly domain?: [number, number];
     readonly legendItemName?: string;
 }
 

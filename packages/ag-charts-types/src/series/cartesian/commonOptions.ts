@@ -1,3 +1,4 @@
+import type { AgCssColorOrRef } from '../../chart/themeParamsOptions';
 import type {
     CssColor,
     DatumKey,
@@ -229,7 +230,7 @@ export interface FontOptions {
  */
 export interface TextOptions extends FontOptions {
     /** The colour for text elements. */
-    color?: CssColor;
+    color?: AgCssColorOrRef;
 }
 
 export type Padding = PixelSize | PaddingOptions;
@@ -263,8 +264,91 @@ export interface Visible {
 export type TextValue = string | number | Date;
 
 export interface TextSegment extends TextOptions {
+    /**
+     * Discriminator separating text segments from image segments. Optional on text segments.
+     */
+    type?: 'text';
     /** A segment of text. */
     text: TextValue;
+    /**
+     * Baseline used to align this segment vertically against the rest of the line. Useful when a segment with
+     * a larger `fontSize` (an emoji or an icon glyph) should centre against text rendered at the default size.
+     *
+     * Default: `'alphabetic'`
+     */
+    verticalAlign?: 'alphabetic' | 'top' | 'middle' | 'bottom' | 'hanging' | 'ideographic';
+    /**
+     * Explicit line height in pixels for the line containing this segment. When several segments on the same
+     * line declare a `lineHeight`, the largest value wins. When omitted, the line uses the natural font line
+     * height of its tallest segment.
+     */
+    lineHeight?: PixelSize;
 }
 
-export type TextOrSegments = TextValue | TextSegment[];
+/**
+ * Inline image embedded alongside text segments. Reserves a box of `width` x `height` so that
+ * async image loading does not reflow the surrounding layout.
+ */
+export interface ImageSegment {
+    /** Discriminator marking this entry as an image rather than a text segment. */
+    type: 'image';
+    /** URL of the image. */
+    url: string;
+    /** Box width in pixels. Required to keep layout stable before the image decodes. */
+    width: PixelSize;
+    /** Box height in pixels. Required to keep layout stable before the image decodes. */
+    height: PixelSize;
+    /**
+     * Textual description of the image, used for the plain-text representation surfaced to
+     * accessibility tooling and consumers that flatten labels to strings (tooltips, exports).
+     * Omitting `alt` causes an image-only label to read as empty.
+     */
+    alt?: string;
+    /**
+     * Positions the image box vertically relative to the adjacent text; the text position stays
+     * fixed and only the image moves.
+     *
+     * - `'top'` — the image's top edge aligns with the top of the text (the image extends below it).
+     * - `'middle'` — the image's centre aligns with the text's midline.
+     * - `'bottom'` — the image's bottom edge aligns with the text's descender line (the image extends above it).
+     * - `'alphabetic'` — the image's bottom edge sits on the text baseline (like a text glyph).
+     *
+     * Default: `'alphabetic'`
+     */
+    verticalAlign?: 'alphabetic' | 'top' | 'middle' | 'bottom' | 'hanging' | 'ideographic';
+    /**
+     * Drop priority when the label exceeds its allotted box. `'hide'` images are dropped before
+     * text is truncated. `'keep'` images take priority over text: trailing text segments are
+     * dropped to fit the image, and the image itself is only dropped when it cannot fit the
+     * label box on its own.
+     *
+     * Default: `'hide'`
+     */
+    overflowStrategy?: 'keep' | 'hide';
+    /** Padding around the image inside its reserved box. */
+    padding?: Padding;
+    /** Rounds the corners of the image and the background/border decoration. */
+    borderRadius?: PixelSize;
+    /** Border drawn around the image box. */
+    border?: BorderOptions;
+    /**
+     * Background colour drawn underneath the image. Also used as the placeholder fill while the
+     * image loads, and as the fallback fill if loading fails.
+     */
+    backgroundFill?: CssColor;
+    /**
+     * When `true`, this image starts a block row: it is anchored to the left of the label and
+     * subsequent segments flow into a wrapped column to its right. A block row begins when this
+     * image is the first segment of the label, when the preceding segment is also a block image,
+     * or when the preceding text segment ends with a `\n` line break. Multiple block rows stack
+     * vertically. When the flag appears mid-line (preceded by inline content with no `\n`), it
+     * is ignored and the image renders inline.
+     *
+     * Default: `false`
+     */
+    block?: boolean;
+}
+
+export type ContentSegment = TextSegment | ImageSegment;
+
+export type TextOrSegments = TextValue | ContentSegment[];

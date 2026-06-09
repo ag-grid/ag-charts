@@ -1,6 +1,5 @@
-import type { Size } from 'ag-charts-core';
+import type { NormalisedTextOrSegments, Size } from 'ag-charts-core';
 import { findMinMax } from 'ag-charts-core';
-import type { TextOrSegments } from 'ag-charts-types';
 
 import type { FromToFns } from '../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../motion/fromToMotion';
@@ -17,7 +16,7 @@ export enum NiceMode {
 
 export interface TickDatum {
     index: number;
-    tickLabel: TextOrSegments | undefined;
+    tickLabel: NormalisedTextOrSegments | undefined;
     tick: any;
     tickId: string;
     translation: number;

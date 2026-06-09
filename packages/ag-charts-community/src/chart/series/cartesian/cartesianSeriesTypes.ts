@@ -26,7 +26,7 @@ export interface CartesianSeriesNodeDatum extends DataModelSeriesNodeDatum {
 
 export interface CartesianSeriesNodeDataContext<
     TDatum extends CartesianSeriesNodeDatum = CartesianSeriesNodeDatum,
-    TLabel extends SeriesNodeDatum<number> = TDatum,
+    TLabel extends SeriesNodeDatum = TDatum,
 > extends DataModelSeriesNodeDataContext<TDatum, TLabel> {
     scales: { [key in ChartAxisDirection]?: Scaling };
     animationValid?: boolean;
@@ -163,7 +163,7 @@ export interface CartesianSeriesTypes {
     /** Node datum type containing processed data for rendering */
     readonly datum: CartesianSeriesNodeDatum;
     /** Label datum type (defaults to same as datum in most series) */
-    readonly label: SeriesNodeDatum<number>;
+    readonly label: SeriesNodeDatum;
     /** Context returned by createNodeData() containing nodeData and labelData arrays */
     readonly context: CartesianSeriesNodeDataContext<this['datum'], this['label']>;
     /** Stack context for stacked series (AreaSeries), never for most series */

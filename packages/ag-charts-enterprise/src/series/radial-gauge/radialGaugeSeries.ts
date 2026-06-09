@@ -7,13 +7,13 @@ import {
     type FontStyle,
     type FontWeight,
     type TextAlign,
-    type TextOrSegments,
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
     type ChartAnimationPhase,
     type DynamicContext,
+    type NormalisedTextOrSegments,
     type Point,
     StateMachine,
     isBetweenAngles,
@@ -29,6 +29,7 @@ import {
 import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';
 import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
+import { getGaugeTooltipInfo } from '../gauge-util/gaugeTooltip';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
 import { findGaugeNodeDatum, pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
@@ -38,7 +39,6 @@ import {
     NodeDataType,
     type RadialGaugeLabelDatum,
     type RadialGaugeNodeDatum,
-    type RadialGaugeNodeDatumIndex,
     RadialGaugeSeriesProperties,
     type RadialGaugeTargetDatum,
     type RadialGaugeTargetDatumLabel,
@@ -68,8 +68,7 @@ const {
     Marker,
 } = _ModuleSupport;
 
-type DatumIndexType = _ModuleSupport.DatumIndexType;
-type SeriesNodeDatum<I extends DatumIndexType> = _ModuleSupport.SeriesNodeDatum<I>;
+type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum;
 
 interface TargetLabel {
     enabled: boolean;
@@ -116,11 +115,10 @@ interface RadialGaugeNeedleDatum {
 interface RadialGaugeTickDatum {
     index: number;
     value: number;
-    text: TextOrSegments;
+    text: NormalisedTextOrSegments;
 }
 
 interface RadialGaugeNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<
-    RadialGaugeNodeDatumIndex,
     RadialGaugeNodeDatum,
     RadialGaugeLabelDatum
 > {
@@ -150,7 +148,6 @@ const insideLabelPlacements: Array<{ textAlign: CanvasTextAlign; textBaseline: C
 
 export class RadialGaugeSeries
     extends _ModuleSupport.Series<
-        RadialGaugeNodeDatumIndex,
         RadialGaugeNodeDatum,
         AgRadialGaugeOptions,
         RadialGaugeSeriesProperties,
@@ -356,7 +353,7 @@ export class RadialGaugeSeries
         const tickData: RadialGaugeTickDatum[] = [];
 
         for (const [index, value] of ticks.entries()) {
-            let text: TextOrSegments | undefined;
+            let text: NormalisedTextOrSegments | undefined;
             if (label.formatter) {
                 text = formatWithContext(this.ctx, label.formatter, {
                     type: 'number',
@@ -577,7 +574,7 @@ export class RadialGaugeSeries
                 series: this,
                 itemId: `value`,
                 datum,
-                datumIndex: { type: NodeDataType.Node },
+                datumIndex: 0,
                 type: NodeDataType.Node,
                 centerX,
                 centerY,
@@ -596,7 +593,7 @@ export class RadialGaugeSeries
                 series: this,
                 itemId: `scale`,
                 datum,
-                datumIndex: { type: NodeDataType.Node },
+                datumIndex: 0,
                 type: NodeDataType.Node,
                 centerX,
                 centerY,
@@ -628,7 +625,7 @@ export class RadialGaugeSeries
                     series: this,
                     itemId: `value-${i}`,
                     datum,
-                    datumIndex: { type: NodeDataType.Node },
+                    datumIndex: 0,
                     type: NodeDataType.Node,
                     centerX,
                     centerY,
@@ -647,7 +644,7 @@ export class RadialGaugeSeries
                     series: this,
                     itemId: `scale-${i}`,
                     datum,
-                    datumIndex: { type: NodeDataType.Node },
+                    datumIndex: 0,
                     type: NodeDataType.Node,
                     centerX,
                     centerY,
@@ -756,7 +753,7 @@ export class RadialGaugeSeries
                     y: targetRadius * Math.sin(targetAngle) + centerY,
                 },
                 datum: { value: targetValue },
-                datumIndex: { type: NodeDataType.Target, index: i },
+                datumIndex: i + 1,
                 type: NodeDataType.Target,
                 value: targetValue,
                 text,
@@ -783,7 +780,7 @@ export class RadialGaugeSeries
         };
     }
 
-    override findNodeDatum(itemId: AgActiveItemState['itemId']): SeriesNodeDatum<DatumIndexType> | undefined {
+    override findNodeDatum(itemId: AgActiveItemState['itemId']): SeriesNodeDatum | undefined {
         return findGaugeNodeDatum(this, itemId);
     }
 
@@ -1417,22 +1414,11 @@ export class RadialGaugeSeries
         return [];
     }
 
-    override getTooltipContent(datumIndex: RadialGaugeNodeDatumIndex): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: _ModuleSupport.DatumIndex): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, properties } = this;
         const { tooltip } = properties;
 
-        let value: number | undefined;
-        let text: string | undefined;
-        let fallbackLabel: string;
-        if (datumIndex.type === NodeDataType.Node) {
-            value = properties.value;
-            text = properties.label.text;
-            fallbackLabel = this.ctx.localeManager.t('ariaLabelGaugeValue');
-        } else {
-            ({ value, text } = properties.targets[datumIndex.index]);
-            fallbackLabel = this.ctx.localeManager.t('ariaLabelGaugeTarget');
-        }
-
+        const { value, text, fallbackLabel } = getGaugeTooltipInfo(this, datumIndex);
         if (value == null) return;
 
         return this.formatTooltipWithContext(
@@ -1469,11 +1455,11 @@ export class RadialGaugeSeries
         return description.join('. ');
     }
 
-    getCategoryValue(_datumIndex: RadialGaugeNodeDatumIndex) {
+    getCategoryValue(_datumIndex: _ModuleSupport.DatumIndex) {
         return;
     }
 
-    datumIndexForCategoryValue(_categoryValue: any): RadialGaugeNodeDatumIndex | undefined {
+    datumIndexForCategoryValue(_categoryValue: any): _ModuleSupport.DatumIndex | undefined {
         return;
     }
 

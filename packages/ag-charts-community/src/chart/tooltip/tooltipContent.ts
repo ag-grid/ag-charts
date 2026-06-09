@@ -1,5 +1,5 @@
-import { Logger, getDocument, toPlainText, toTextString } from 'ag-charts-core';
-import type { AgTooltipMode, TextOrSegments, TextValue } from 'ag-charts-types';
+import { Logger, type NormalisedTextOrSegments, getDocument, toPlainText, toTextString } from 'ag-charts-core';
+import type { AgTooltipMode, TextValue } from 'ag-charts-types';
 
 import { sanitizeHtml } from '../../util/sanitize';
 import { type LegendSymbolOptions, legendSymbolSvg } from '../legend/legendSymbol';
@@ -16,8 +16,8 @@ export type TooltipContentDataRow =
     | { label: undefined; fallbackLabel: string; value: TextValue; missing?: boolean };
 
 export type TooltipStructuredContent = {
-    heading?: TextOrSegments;
-    title?: TextOrSegments;
+    heading?: NormalisedTextOrSegments;
+    title?: NormalisedTextOrSegments;
     symbol?: LegendSymbolOptions;
     data?: TooltipContentDataRow[];
 };
@@ -32,7 +32,7 @@ export interface TooltipPaginationState {
 }
 
 interface GroupedStructuredContent {
-    heading?: TextOrSegments;
+    heading?: NormalisedTextOrSegments;
     items: Omit<TooltipStructuredContent, 'heading'>[];
 }
 
@@ -40,11 +40,11 @@ type GroupedTooltipContent =
     | ({ type: 'structured' } & GroupedStructuredContent)
     | { type: 'raw'; rawHtmlString: string };
 
-function textOrSegmentsIsDefined(value: TextOrSegments | undefined): value is TextOrSegments {
+function textOrSegmentsIsDefined(value: NormalisedTextOrSegments | undefined): value is NormalisedTextOrSegments {
     if (value == null) {
         return false;
     } else if (Array.isArray(value)) {
-        return value.some((segment) => textOrSegmentsIsDefined(segment.text));
+        return value.some((segment) => segment.type !== 'image' && textOrSegmentsIsDefined(segment.text));
     } else {
         return toTextString(value).trim() !== '';
     }
@@ -72,7 +72,7 @@ export function hasAllMissingData(content: TooltipContent): boolean {
 
 function aggregateTooltipContent(content: TooltipContent[]): GroupedTooltipContent[] {
     const out: GroupedTooltipContent[] = [];
-    const groupedContents = new Map<TextOrSegments, GroupedStructuredContent>();
+    const groupedContents = new Map<NormalisedTextOrSegments, GroupedStructuredContent>();
     for (const item of content) {
         // Filter out items with all missing data
         if (hasAllMissingData(item)) continue;

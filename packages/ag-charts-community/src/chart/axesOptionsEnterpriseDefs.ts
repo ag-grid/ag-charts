@@ -3,8 +3,11 @@ import {
     arrayOfDefs,
     boolean,
     constant,
+    date,
+    defined,
     number,
     numberFormatValidator,
+    or,
     ratio,
     union,
 } from 'ag-charts-core';
@@ -13,7 +16,6 @@ import type {
     AgAngleNumberAxisOptions,
     AgOrdinalTimeAxisOptions,
     AgRadiusCategoryAxisOptions,
-    AgRadiusCrossLineOptions,
     AgRadiusNumberAxisOptions,
 } from 'ag-charts-types';
 
@@ -21,15 +23,17 @@ import {
     cartesianAxisBandHighlightOptions,
     cartesianAxisCrosshairOptions,
     cartesianAxisOptionsDefs,
+    cartesianCrossLineLabelOptionsDefs,
     cartesianTimeAxisLabel,
     cartesianTimeAxisParentLevel,
     commonAxisCaptionOptionsDefs,
     commonAxisLabelOptionsDefs,
     commonAxisOptionsDefs,
     commonCrossLineLabelOptionsDefs,
-    commonCrossLineOptionsDefs,
     continuousAxisOptions,
+    crossLineOptionsDefs,
     discreteTimeAxisIntervalOptionsDefs,
+    radiusCrossLineLabelOptionsDefs,
 } from './axesOptionsDefs';
 
 export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> = {
@@ -42,6 +46,10 @@ export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> =
     parentLevel: cartesianTimeAxisParentLevel,
     interval: discreteTimeAxisIntervalOptionsDefs,
     crosshair: cartesianAxisCrosshairOptions(true, true),
+    crossLines: arrayOfDefs(
+        crossLineOptionsDefs(or(number, date), cartesianCrossLineLabelOptionsDefs),
+        'a cross-line options array'
+    ),
     bandHighlight: cartesianAxisBandHighlightOptions,
     bandAlignment: union('justify', 'start', 'center', 'end'),
     skipNullBars: boolean,
@@ -51,7 +59,10 @@ export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> =
     ...commonAxisOptionsDefs,
     ...continuousAxisOptions(number),
     type: constant('angle-number'),
-    crossLines: arrayOfDefs(commonCrossLineOptionsDefs),
+    crossLines: arrayOfDefs(
+        crossLineOptionsDefs(number, commonCrossLineLabelOptionsDefs),
+        'a cross-line options array'
+    ),
     startAngle: number,
     endAngle: number,
     label: {
@@ -71,7 +82,10 @@ export const angleCategoryAxisOptionsDefs: OptionsDefs<AgAngleCategoryAxisOption
     ...commonAxisOptionsDefs,
     type: constant('angle-category'),
     shape: union('polygon', 'circle'),
-    crossLines: arrayOfDefs(commonCrossLineOptionsDefs),
+    crossLines: arrayOfDefs(
+        crossLineOptionsDefs(defined, commonCrossLineLabelOptionsDefs),
+        'a cross-line options array'
+    ),
     startAngle: number,
     endAngle: number,
     paddingInner: ratio,
@@ -93,15 +107,9 @@ export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions>
     positionAngle: number,
     innerRadiusRatio: ratio,
     title: commonAxisCaptionOptionsDefs,
-    crossLines: arrayOfDefs<AgRadiusCrossLineOptions>(
-        {
-            ...commonCrossLineOptionsDefs,
-            label: {
-                ...commonCrossLineLabelOptionsDefs,
-                positionAngle: number,
-            },
-        },
-        'cross-line options'
+    crossLines: arrayOfDefs(
+        crossLineOptionsDefs(number, radiusCrossLineLabelOptionsDefs),
+        'a cross-line options array'
     ),
     label: {
         ...commonAxisLabelOptionsDefs,
@@ -119,15 +127,9 @@ export const radiusCategoryAxisOptionsDefs: OptionsDefs<AgRadiusCategoryAxisOpti
     groupPaddingInner: ratio,
     label: commonAxisLabelOptionsDefs,
     title: commonAxisCaptionOptionsDefs,
-    crossLines: arrayOfDefs<AgRadiusCrossLineOptions>(
-        {
-            ...commonCrossLineOptionsDefs,
-            label: {
-                ...commonCrossLineLabelOptionsDefs,
-                positionAngle: number,
-            },
-        },
-        'cross-line options'
+    crossLines: arrayOfDefs(
+        crossLineOptionsDefs(defined, radiusCrossLineLabelOptionsDefs),
+        'a cross-line options array'
     ),
 };
 

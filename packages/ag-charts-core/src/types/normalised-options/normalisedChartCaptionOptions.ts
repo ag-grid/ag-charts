@@ -1,6 +1,7 @@
-import type { AgChartCaptionOptions, ContextDefault } from 'ag-charts-types';
+import type { AgChartCaptionOptions, ContextDefault, CssColor } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
+import type { NormalisedTextOrSegments } from './normalisedCommonOptions';
 
 /**
  * Post-options-module shape for `title`/`subtitle`/`footnote`. `fontFamily` is
@@ -14,7 +15,7 @@ import type { Normalised } from './normalise';
 export type NormalisedChartCaptionOptions<TContext = ContextDefault> = Normalised<
     AgChartCaptionOptions<TContext>,
     never,
-    { fontFamily?: string }
+    { color?: CssColor; fontFamily?: string; text?: NormalisedTextOrSegments }
 > & {
     layoutStyle?: 'block' | 'overlay';
     truncate?: boolean;

@@ -1,6 +1,7 @@
-import type { FontFamily, FontSize, FontStyle, FontWeight, TextSegment } from 'ag-charts-types';
+import type { FontFamily, FontSize, FontStyle, FontWeight, ImageSegment } from 'ag-charts-types';
 
 import type { Writeable } from './global';
+import type { NormalisedTextSegment } from './normalised-options/normalisedCommonOptions';
 import type { Size } from './scene';
 
 export const EllipsisChar = '\u2026';
@@ -32,16 +33,40 @@ export interface MultilineTextMetricsBox {
     lineMetrics: LineMetricsBox[];
 }
 
-export interface MeasuredSegment extends Omit<TextSegment, 'text'> {
+export interface MeasuredTextSegment extends Omit<NormalisedTextSegment, 'text'> {
     text: string;
     fontSize: number;
     textMetrics: TextMetricsBox;
 }
 
+export interface MeasuredImageSegment extends ImageSegment {
+    /** Box equivalent for layout: width + horizontal padding, height + vertical padding, ascent = height. */
+    textMetrics: TextMetricsBox;
+}
+
+export type MeasuredSegment = MeasuredTextSegment | MeasuredImageSegment;
+
 export interface SegmentsLineMetrics extends Size {
     ascent: number;
     descent: number;
+    /**
+     * Ascent/descent of the line's text segments alone, ignoring inline images. Inline image boxes
+     * are positioned relative to these (not the full `ascent`/`descent`, which the image itself may
+     * have inflated), so an image aligns to the text rather than to the line box. Equal to
+     * `ascent`/`descent` on a line with no inline images.
+     */
+    textAscent: number;
+    textDescent: number;
     segments: MeasuredSegment[];
+    /**
+     * Present on the first line of a block row: the leading block-image strip, anchored to the left
+     * of the row. Multiple images are laid out side-by-side in the order given, separated by
+     * `BLOCK_IMAGE_SPACING`. The next `blockRowSpan` line metrics describe the text column that
+     * wraps to the right of the entire strip.
+     */
+    blockImages?: MeasuredImageSegment[];
+    /** Number of consecutive line-metric entries that belong to this block row. Always ≥ 1 when `blockImages` is set. */
+    blockRowSpan?: number;
 }
 
 export interface MultilineSegmentsMetricsBox {

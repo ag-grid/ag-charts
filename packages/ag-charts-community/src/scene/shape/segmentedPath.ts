@@ -30,7 +30,12 @@ export class SegmentedPath<D = any> extends Path<D> {
         ctx.save();
         const Path2DCtor = getPath2D();
         const inverse = new Path2DCtor();
-        rect(inverse, { x0: 0, y0: 0, x1: ctx.canvas.width, y1: ctx.canvas.height }, false);
+        // `ctx.canvas` is in device pixels but the context transform draws in logical units, so the
+        // full-canvas mask must use logical dimensions or it under-covers when the ratio is below 1.
+        const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
+        const canvasWidth = ctx.canvas.width / pixelRatio;
+        const canvasHeight = ctx.canvas.height / pixelRatio;
+        rect(inverse, { x0: 0, y0: 0, x1: canvasWidth, y1: canvasHeight }, false);
         for (const s of this.segments) {
             rect(inverse, s.clipRect);
         }

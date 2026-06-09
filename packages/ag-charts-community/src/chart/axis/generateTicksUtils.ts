@@ -2,6 +2,7 @@ import {
     type BoxBounds,
     EllipsisChar,
     type ITextMeasurer,
+    type NormalisedTextOrSegments,
     type Scale,
     ScaleAlignment,
     type ScaleTickParams,
@@ -34,7 +35,7 @@ import {
     toTimeInterval,
     wrapTextOrSegments,
 } from 'ag-charts-core';
-import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, TextOrSegments } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
@@ -86,7 +87,7 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
         fractionDigits: number | undefined,
         timeInterval: AnyTimeInterval | undefined,
         dateStyle: DateFormatterStyle
-    ): (value: any, index: number) => TextOrSegments | undefined;
+    ): (value: any, index: number) => NormalisedTextOrSegments | undefined;
 }
 
 export interface TickData<D = any> {
@@ -241,7 +242,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
             const isPrimary = primaryTicksIndices?.has(i) ?? false;
             const inputText = axisFormatter(isPrimary, tick, i);
 
-            let wrappedLabel: TextOrSegments | null = null;
+            let wrappedLabel: NormalisedTextOrSegments | null = null;
             if (label.avoidCollisions) {
                 wrappedLabel = wrapTextOrSegments(inputText, wrapOptions) || null;
                 if (wrappedLabel === EllipsisChar) {

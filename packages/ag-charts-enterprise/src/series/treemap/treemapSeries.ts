@@ -7,14 +7,13 @@ import {
     type FontStyle,
     type FontWeight,
     type TextAlign,
-    type TextOrSegments,
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
     type CallbackParamRules,
-    type DistantObject,
     type InternalAgColorType,
+    type NormalisedTextOrSegments,
     type Point,
     type RequireOptional,
     cachedTextMeasurer,
@@ -47,6 +46,10 @@ const {
 class TreemapNode extends _ModuleSupport.HierarchyNode<TreemapNode> {
     labelValue: string | undefined = undefined;
     secondaryLabelValue: string | undefined = undefined;
+    // Leaf-only: preserves the formatter's segment output so image segments survive the
+    // squarify step. Group titles still use the string-typed labelValue.
+    labelText: NormalisedTextOrSegments | undefined = undefined;
+    secondaryLabelText: NormalisedTextOrSegments | undefined = undefined;
     label: LabelLayout | undefined = undefined;
     secondaryLabel: LabelLayout | undefined = undefined;
     bbox: _ModuleSupport.BBox | undefined = undefined;
@@ -63,7 +66,7 @@ interface Padding {
 }
 
 interface LabelLayout {
-    text: TextOrSegments;
+    text: NormalisedTextOrSegments;
     fontSize: number;
     lineHeight: number;
     fontStyle: FontStyle;
@@ -101,15 +104,9 @@ const verticalAlignFactors: Record<VerticalAlign, number | undefined> = {
     bottom: 1,
 };
 
-class DistantGroup<D> extends _ModuleSupport.Group<D> implements DistantObject {
-    distanceSquared(x: number, y: number): number {
-        return this.getBBox().distanceSquared(x, y);
-    }
-}
-
 export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     TreemapNode,
-    DistantGroup<TreemapNode>,
+    _ModuleSupport.Rect<TreemapNode>,
     AgTreemapSeriesOptions,
     TreemapSeriesProperties
 > {
@@ -326,14 +323,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     }
 
     protected getItemStyle(
-        nodeDatum: Pick<TreemapNode, 'datumIndex' | 'datum' | 'depth' | 'colorValue'>,
+        nodeDatum: Pick<TreemapNode, 'path' | 'datumIndex' | 'datum' | 'depth' | 'colorValue'>,
         isLeaf: boolean,
         isHighlight: boolean
     ) {
         const { properties, colorScale } = this;
         const { itemStyler, colorKey } = properties;
         const { missingDataFill } = properties.colorScale;
-        const rootIndex = nodeDatum.datumIndex?.[0] ?? 0;
+        const rootIndex = nodeDatum.path?.[0] ?? 0;
 
         const fills = isLeaf ? properties.fills : properties.undocumentedGroupFills;
         const strokes = isLeaf ? properties.strokes : properties.undocumentedGroupStrokes;
@@ -364,7 +361,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
         if (itemStyler != null && nodeDatum != null) {
             const overrides = this.cachedDatumCallback(
-                createDatumId(this.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
+                createDatumId(nodeDatum.datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
                     const params = this.makeItemStylerParams(
                         nodeDatum,
@@ -412,9 +409,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     override updateSelections() {
         const highlightedNode = this.getActiveHighlightNode();
 
-        this.highlightSelection.update(highlightedNode == null ? [] : [highlightedNode], undefined, (node) =>
-            this.getDatumId(node)
-        );
+        const getDatumId = (node: TreemapNode) => node.datumIndex;
+        this.highlightSelection.update(highlightedNode == null ? [] : [highlightedNode], undefined, getDatumId);
 
         if (!this.nodeDataRefresh) {
             return;
@@ -430,8 +426,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             group.append([new Text({ tag: TextNodeTag.Primary }), new Text({ tag: TextNodeTag.Secondary })]);
         };
 
-        this.datumSelection.update(descendants, undefined, (node) => this.getDatumId(node));
-        this.labelSelection.update(descendants, updateLabelGroup, (node) => this.getDatumId(node));
+        this.datumSelection.update(descendants, undefined, (node) => node.datumIndex);
+        this.labelSelection.update(descendants, updateLabelGroup, (node) => node.datumIndex);
     }
 
     protected override getActiveHighlightNode(): TreemapNode | undefined {
@@ -455,7 +451,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             const isLeaf = children.length === 0;
 
             const labelStyle = isLeaf ? tile.label : group.label;
-            let labelValue: TextOrSegments | undefined;
+            let labelValue: NormalisedTextOrSegments | undefined;
             if (labelStyle.enabled && datum != null && depth != null && labelKey != null) {
                 const value = (datum as any)[labelKey];
                 labelValue = this.getLabelText<AgTreemapSeriesLabelFormatterParams>(
@@ -483,7 +479,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 labelValue = undefined;
             }
 
-            let secondaryLabelValue: TextOrSegments | undefined;
+            let secondaryLabelValue: NormalisedTextOrSegments | undefined;
             if (tile.secondaryLabel.enabled && isLeaf && datum != null && depth != null && secondaryLabelKey != null) {
                 const value = (datum as any)[secondaryLabelKey];
                 secondaryLabelValue = this.getLabelText<AgTreemapSeriesLabelFormatterParams>(
@@ -513,13 +509,18 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
             node.labelValue = toPlainText(labelValue);
             node.secondaryLabelValue = toPlainText(secondaryLabelValue);
+            // Image-bearing segment arrays are only preserved for leaf tiles. Group titles use the
+            // plain-text representation so the (smaller) group header stays text-only — formatter
+            // output for groups that returns image segments is rendered as its `alt`-text fallback.
+            node.labelText = isLeaf ? labelValue : undefined;
+            node.secondaryLabelText = isLeaf ? secondaryLabelValue : undefined;
         });
 
         const { width, height } = seriesRect;
         this.squarify(rootNode!, new BBox(0, 0, width, height));
 
         this.rootNode?.walk((node) => {
-            const { bbox, children, labelValue, secondaryLabelValue } = node;
+            const { bbox, children, labelValue, secondaryLabelValue, labelText, secondaryLabelText } = node;
 
             node.label = undefined;
             node.secondaryLabel = undefined;
@@ -533,9 +534,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                     meta: null,
                 };
                 const formatting = formatLabels(
-                    labelValue,
+                    labelText ?? labelValue,
                     this.properties.tile.label,
-                    secondaryLabelValue,
+                    secondaryLabelText ?? secondaryLabelValue,
                     this.properties.tile.secondaryLabel,
                     { padding: tile.padding },
                     () => layout
@@ -752,10 +753,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     private getGroupHighlightState(
         isHighlight: boolean,
         highlightedNode: TreemapNode | undefined,
-        nodeDatum: Pick<TreemapNode, 'datumIndex' | 'depth'> & Partial<Pick<TreemapNode, 'children'>>
+        nodeDatum: Pick<TreemapNode, 'path' | 'datumIndex' | 'depth'> & Partial<Pick<TreemapNode, 'children'>>
     ): _ModuleSupport.HierarchyHighlightState {
-        const nodeIndex = nodeDatum.datumIndex;
-        const highlightedIndex = highlightedNode?.datumIndex;
+        const nodeIndex = nodeDatum.path;
+        const highlightedIndex = highlightedNode?.path;
         const isDescendant = this.isDescendantDatumIndex(nodeIndex, highlightedIndex);
 
         // For leaf nodes
@@ -822,12 +823,12 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     public override getHighlightStateString(
         _datum: _ModuleSupport.HighlightNodeDatum | undefined,
         isHighlight?: boolean,
-        datumIndex?: number[]
+        datumIndex?: _ModuleSupport.DatumIndex
     ): AgTreemapHighlightState {
         if (datumIndex == null) {
             return toHierarchyHighlightString(HierarchyHighlightState.None);
         }
-        const nodeDatum = datumIndex.reduce((node, idx) => node?.children[idx], this.rootNode);
+        const nodeDatum = this.dfsFind(datumIndex);
         const highlightedNode = this.getActiveHighlightNode();
         if (nodeDatum == null) {
             return toHierarchyHighlightString(HierarchyHighlightState.None);
@@ -860,7 +861,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
     override pickNodesExactShape(point: Point): TreemapNode[] {
         const nodes = super.pickNodesExactShape(point) as TreemapNode[];
-        nodes.sort((a, b) => b.datumIndex.length - a.datumIndex.length);
+        nodes.sort((a, b) => b.path.length - a.path.length);
         return nodes;
     }
 
@@ -876,13 +877,13 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         return this.pickNodeNearestDistantObject(point, this.datumSelection.nodes());
     }
 
-    override getTooltipContent(datumIndex: number[]): _ModuleSupport.TooltipContent | undefined {
+    override getTooltipContent(datumIndex: _ModuleSupport.DatumIndex): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, properties, ctx } = this;
         const { formatManager } = ctx;
         const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } =
             properties;
 
-        const nodeDatum = datumIndex.reduce((n, i) => n?.children[i], this.rootNode);
+        const nodeDatum = this.dfsFind(datumIndex);
         if (nodeDatum == null) return;
         const { datum, depth, children } = nodeDatum;
         if (datum == null || depth == null) return;
@@ -992,7 +993,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         );
     }
 
-    protected computeFocusBounds(node: _ModuleSupport.Group): _ModuleSupport.BBox | undefined {
+    protected computeFocusBounds(node: _ModuleSupport.Rect): _ModuleSupport.BBox | undefined {
         return Transformable.toCanvas(this.contentGroup, node.getBBox());
     }
 

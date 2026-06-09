@@ -11,6 +11,8 @@ import svgr from 'vite-plugin-svgr';
 import agCacheSitemap from '../../external/ag-website-shared/plugins/agCacheSitemap';
 import agLinkChecker from '../../external/ag-website-shared/plugins/agLinkChecker';
 import agMkcertPreview from '../../external/ag-website-shared/plugins/agMkcertPreview';
+import agSitemapFilterNoindex from '../../external/ag-website-shared/plugins/agSitemapFilterNoindex';
+import agSitemapLastmod from '../../external/ag-website-shared/plugins/agSitemapLastmod';
 import agSourcemapCors from '../../external/ag-website-shared/plugins/agSourcemapCors';
 import { SITEMAP_CACHE_DIR } from '../../external/ag-website-shared/src/constants';
 import agAutoRedirect from './plugins/agAutoRedirect';
@@ -25,6 +27,7 @@ import { urlWithBaseUrl } from './src/utils/urlWithBaseUrl';
 const { NODE_ENV } = process.env;
 
 const DEFAULT_BASE_URL = '/';
+const PRODUCTION_SITE_URLS = ['https://ag-grid.com', 'https://www.ag-grid.com'];
 const dotenv = {
     parsed: loadEnv(NODE_ENV, process.cwd(), ''),
 };
@@ -65,6 +68,7 @@ console.log(
             PUBLIC_GALLERY_IMAGE_DPR_ENHANCEMENT,
             HTACCESS,
             CHECK_REDIRECTS,
+            CHECK_LINKS,
             PUBLIC_ENABLE_HOT_RELOAD,
         },
         null,
@@ -166,12 +170,14 @@ export default defineConfig({
         react(),
         markdoc(),
         sitemap(getSitemapConfig()),
-        agHtaccessGen({ include: HTACCESS === 'true' }),
+        agHtaccessGen({ htaccessEnv: HTACCESS }),
         agLinkChecker({ include: CHECK_LINKS === 'true', prefix: PUBLIC_BASE_URL }),
         agRedirectsChecker({
             skip: CHECK_REDIRECTS !== 'true',
         }),
 
+        agSitemapFilterNoindex({ enabled: PRODUCTION_SITE_URLS.includes(PUBLIC_SITE_URL) }),
+        agSitemapLastmod(),
         agCacheSitemap({
             cacheFolder: SITEMAP_CACHE_DIR,
         }),

@@ -1,0 +1,74 @@
+---
+title: 'Block Image Segments Test'
+---
+
+These examples stress-test `block: true` image segments across every context that accepts rich-text
+segment arrays (`ContentSegment[]`): captions, axis labels and series labels. The goal is to surface
+layout and positioning issues early, so each example packs in as many edge cases as possible. A block
+image anchors to the left of a layout row while text flows into the column to its right; multiple
+block rows stack vertically.
+
+## Captions — content variety
+
+What to test:
+
+- Two stacked block rows in the title (block, text, `\n`, block, text) with decorated block images.
+- A block image followed by an inline image in the subtitle.
+- An oversized block image in the footnote is dropped under the default `hide` strategy while the text
+  still renders.
+
+{% chartExampleRunner title="Block Images in Captions" name="block-captions" type="generated" /%}
+
+## Captions — alignment
+
+What to test:
+
+- The same block-leading content rendered with `textAlign` left, center and right.
+- Block rows stay left-anchored within the caption box while single lines follow the alignment.
+
+{% chartExampleRunner title="Block Image Caption Alignment" name="block-caption-alignment" type="generated" /%}
+
+## Axis labels — both axes
+
+What to test:
+
+- An x category axis whose labels are a block image, the category text, and a trailing inline marker.
+- A y number axis whose labels are a block image followed by the value.
+
+{% chartExampleRunner title="Block Images in Axis Labels" name="block-axis-labels" type="generated" /%}
+
+## Axis labels — rotated
+
+What to test:
+
+- Long category labels rotated 45°, each with a leading block icon, laid out without overlap or
+  clipping.
+
+{% chartExampleRunner title="Rotated Block Image Axis Labels" name="block-axis-rotated" type="generated" /%}
+
+## Series labels — arrangement matrix
+
+What to test (one edge case per tile):
+
+- Leading block; two stacked block rows; a trailing block kept inline (no `\n`); two and three
+  side-by-side blocks; block + inline mix; tall image with `verticalAlign` top/bottom; asymmetric
+  padding + background fill; border + radius; an oversized image dropped under `hide`; and a long
+  label wrapping into the narrow column.
+
+{% chartExampleRunner title="Block Image Arrangement Matrix" name="block-treemap-arrangements" type="generated" /%}
+
+## Series labels — heatmap
+
+What to test:
+
+- Block image labels inside small heatmap cells, exercising tight label boxes.
+
+{% chartExampleRunner title="Block Images in Heatmap Cells" name="block-heatmap" type="generated" /%}
+
+## Series labels — sunburst
+
+What to test:
+
+- Block image labels inside sunburst slices of varying angular width.
+
+{% chartExampleRunner title="Block Images in Sunburst Slices" name="block-sunburst" type="generated" /%}

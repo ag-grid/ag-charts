@@ -10,15 +10,20 @@ name: Jira Agent Pipeline
 #   recycle             — /fr --ci --recycle --prior <merged|abandoned> <KEY>      (new -rN PR after prior PR merged/closed)
 #
 # A single `→ In Progress` JIRA rule dispatches `jira-resume`; the cheap
-# `resume-preflight` job reads AI pr-url + the PR's GitHub state and routes to
-# one of resume-build / resume-iterate / resume-recycle (no AI-status guard in
-# the rule — the preflight does the disambiguation JIRA can't, since it can see
-# whether the PR is open / merged / closed). See ag-dev-prompts
+# `resume-preflight` job reads AI pr-url + the PR's GitHub state + whether
+# AI plan is populated, and emits a route (triage / build / iterate / recycle)
+# that the single `resume-run` job runs as a parameterised stage (no AI-status
+# guard in the rule — the preflight does the disambiguation JIRA can't: it sees
+# whether the PR is open / merged / closed, and whether a build-ready plan
+# exists yet).
+# First-pass triage hands back to Needs Review for plan review; the human's
+# next drag (now finding a plan) routes to build. See ag-dev-prompts
 # docs/jira-agent-pipeline.md §"Re-engagement after Needs Review".
 #
-# Each stage is its own job, gated on the dispatch event_type, the
-# workflow_dispatch `stage` input, the `resume-preflight` route output, or —
-# for ci-failure-iterate — the `workflow_run.completed` event on main CI.
+# Each stage is its own job, gated on the `resume-preflight` route output
+# (the normal path), a forced `workflow_dispatch` stage input (dry-run /
+# debugging), or — for ci-failure-iterate / ci-success-handler — the
+# `workflow_run.completed` event on main CI (CI-driven, not JIRA-driven).
 #
 # The heavy lifting (App-token mint, MCP setup, status/state/PR/cost
 # writebacks, Claude invocation, trace digest, artefact upload) lives in
@@ -29,8 +34,8 @@ name: Jira Agent Pipeline
 #
 # Consumption channel: ag-dev-prompts is a private repo, so the shared
 # actions are pulled via the @ag-grid/dev-prompts npm package on GitHub
-# Packages (see `install-ag-dev-prompts` and the `pr-review.yml` workflow
-# which uses the same pattern). ag-charts tracks the `canary` dist-tag
+# Packages (see the shared `external/ag-shared/github/actions/install-ag-dev-prompts`
+# action and the `pr-review.yml` workflow which uses the same pattern). ag-charts tracks the `canary` dist-tag
 # during the in-flight rollout; ag-grid + ag-studio will pin to `latest`.
 #
 # ----------------------------------------------------------------------------
@@ -40,13 +45,12 @@ name: Jira Agent Pipeline
 #   workflow_dispatch:
 #       gh workflow run jira-agent-pipeline.yml -f issue_key=AG-XXXXX -f stage=triage
 #
-#   repository_dispatch (from Jira Automation):
+#   repository_dispatch (from the single `→ In Progress → jira-resume` rule):
 #       POST /repos/ag-grid/ag-charts/dispatches
 #       Authorization: Bearer <installation-token>
 #       Body:
-#         {"event_type":"jira-triage",     "client_payload":{"issue_key":"AG-XXXXX"}}
-#         {"event_type":"jira-build",      "client_payload":{"issue_key":"AG-XXXXX"}}
-#         {"event_type":"jira-pr-iterate", "client_payload":{"issue_key":"AG-XXXXX"}}
+#         {"event_type":"jira-resume", "client_payload":{"issue_key":"AG-XXXXX"}}
+#       The resume-preflight then routes triage / build / iterate / recycle.
 #
 #   workflow_run (auto — fires when the main CI workflow completes on
 #       an agent-shaped branch. The `branches:` filter on the trigger
@@ -74,8 +78,14 @@ name: Jira Agent Pipeline
 #   Repository secrets:
 #       JIRA_AGENT_APP_PRIVATE_KEY  - GitHub App PEM
 #       ANTHROPIC_API_KEY           - Anthropic Enterprise admin key
-#       JIRA_API_TOKEN              - Atlassian API token (service account)
-#       JIRA_EMAIL                  - Service-account email
+#
+#   Organisation secrets (ag-grid org; repo must be in the secret's access list):
+#       JIRA_AI_BOT_API_TOKEN       - Atlassian API token (jira-ai-bot service account; SCOPED token)
+#       JIRA_AI_BOT_EMAIL           - jira-ai-bot service-account email
+#
+#   NOTE: the token is a *scoped* Atlassian API token, so the pipeline's REST
+#   calls go through the api.atlassian.com gateway (cloudId path), resolved
+#   automatically from JIRA_SITE_URL. No extra config needed here.
 #
 #   Repository variables:
 #       JIRA_AGENT_APP_ID           - GitHub App ID
@@ -87,8 +97,14 @@ name: Jira Agent Pipeline
 # ============================================================================
 
 on:
+    # One JIRA-facing entry point: every human gesture is `→ In Progress`,
+    # which the JIRA rule turns into a single `jira-resume` dispatch. The
+    # resume-preflight then routes triage / build / iterate / recycle from
+    # observable state (AI pr-url + PR state + AI plan presence) — JIRA no
+    # longer pre-selects the stage via per-status rules. The legacy
+    # jira-triage / jira-build / jira-pr-iterate dispatch types are retired.
     repository_dispatch:
-        types: [jira-triage, jira-build, jira-pr-iterate, jira-resume]
+        types: [jira-resume]
     workflow_dispatch:
         inputs:
             issue_key:
@@ -99,17 +115,18 @@ on:
                 description: 'Pipeline stage to run'
                 type: choice
                 required: true
-                default: triage
+                default: resume
                 options:
+                    # `resume` runs the resume-preflight router (triage / build
+                    # / iterate / recycle decided from the ticket's real state) —
+                    # the manual mirror of the → In Progress path. The others
+                    # FORCE a specific stage (debugging / dry-run), bypassing the
+                    # router. `recycle` is not directly forceable — its
+                    # prior_pr_outcome only comes from the preflight.
+                    - resume
                     - triage
                     - build
                     - pr-iterate
-                    # `resume` runs the resume-preflight router (build / iterate
-                    # / recycle decided from the PR's real state) — the manual
-                    # entry to dry-run the → In Progress path. `recycle` is an
-                    # internal route, not a directly-dispatchable stage: its
-                    # prior_pr_outcome only comes from the preflight.
-                    - resume
     workflow_run:
         # Auto-react when the main CI workflow completes on an agent-authored
         # branch — failure → ci-failure-iterate, success → ci-success-handler
@@ -139,165 +156,22 @@ env:
     DEV_PROMPTS_CHANNEL: canary
 
 jobs:
-    # -------------------------------------------------------------------- triage
-    triage:
-        if: |
-            (github.event_name == 'repository_dispatch' && github.event.action == 'jira-triage') ||
-            (github.event_name == 'workflow_dispatch'   && inputs.stage == 'triage')
-        runs-on: ubuntu-latest
-        timeout-minutes: 30
-        permissions:
-            contents: read
-            packages: read
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 1
-
-            # Mint a read token for ag-dev-prompts so setup-nx's postinstall
-            # (rulesync-fetch) can clone the private prompts repo and render
-            # .claude/settings.json. The orchestrator mints its own token for
-            # its own broader scopes; this one is read-only for fetch.sh.
-            - name: Mint ag-dev-prompts read token
-              id: prompts-token
-              uses: actions/create-github-app-token@v1
-              with:
-                  app-id: ${{ vars.JIRA_AGENT_APP_ID }}
-                  private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
-                  owner: ag-grid
-                  repositories: ag-dev-prompts
-
-            - name: Setup Nx (renders .claude/settings.json)
-              uses: ./.github/actions/setup-nx
-              env:
-                  GITHUB_TOKEN: ${{ steps.prompts-token.outputs.token }}
-              with:
-                  cache_mode: ro
-                  fetch_base: skip
-
-            - name: Install @ag-grid/dev-prompts
-              uses: ./.github/actions/install-ag-dev-prompts
-              with:
-                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
-
-            - uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-pipeline
-              with:
-                  stage: triage
-                  issue_key: ${{ env.ISSUE_KEY }}
-                  jira_agent_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
-                  jira_agent_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
-                  anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-                  jira_email: ${{ secrets.JIRA_EMAIL }}
-                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
-                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
-
-    # -------------------------------------------------------------------- build
-    build:
-        if: |
-            (github.event_name == 'repository_dispatch' && github.event.action == 'jira-build') ||
-            (github.event_name == 'workflow_dispatch'   && inputs.stage == 'build')
-        runs-on: ubuntu-latest
-        timeout-minutes: 60
-        permissions:
-            contents: read
-            packages: read
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 1
-
-            - name: Mint ag-dev-prompts read token
-              id: prompts-token
-              uses: actions/create-github-app-token@v1
-              with:
-                  app-id: ${{ vars.JIRA_AGENT_APP_ID }}
-                  private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
-                  owner: ag-grid
-                  repositories: ag-dev-prompts
-
-            - name: Setup Nx (renders .claude/settings.json)
-              uses: ./.github/actions/setup-nx
-              env:
-                  GITHUB_TOKEN: ${{ steps.prompts-token.outputs.token }}
-              with:
-                  cache_mode: ro
-                  fetch_base: skip
-
-            - name: Install @ag-grid/dev-prompts
-              uses: ./.github/actions/install-ag-dev-prompts
-              with:
-                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
-
-            - uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-pipeline
-              with:
-                  stage: build
-                  issue_key: ${{ env.ISSUE_KEY }}
-                  jira_agent_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
-                  jira_agent_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
-                  anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-                  jira_email: ${{ secrets.JIRA_EMAIL }}
-                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
-                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
-
-    # ---------------------------------------------------------------- pr-iterate
-    pr-iterate:
-        if: |
-            (github.event_name == 'repository_dispatch' && github.event.action == 'jira-pr-iterate') ||
-            (github.event_name == 'workflow_dispatch'   && inputs.stage == 'pr-iterate')
-        runs-on: ubuntu-latest
-        timeout-minutes: 60
-        permissions:
-            contents: read
-            packages: read
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 1
-
-            - name: Mint ag-dev-prompts read token
-              id: prompts-token
-              uses: actions/create-github-app-token@v1
-              with:
-                  app-id: ${{ vars.JIRA_AGENT_APP_ID }}
-                  private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
-                  owner: ag-grid
-                  repositories: ag-dev-prompts
-
-            - name: Setup Nx (renders .claude/settings.json)
-              uses: ./.github/actions/setup-nx
-              env:
-                  GITHUB_TOKEN: ${{ steps.prompts-token.outputs.token }}
-              with:
-                  cache_mode: ro
-                  fetch_base: skip
-
-            - name: Install @ag-grid/dev-prompts
-              uses: ./.github/actions/install-ag-dev-prompts
-              with:
-                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
-
-            - uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-pipeline
-              with:
-                  stage: pr-iterate
-                  issue_key: ${{ env.ISSUE_KEY }}
-                  jira_agent_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
-                  jira_agent_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
-                  anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-                  jira_email: ${{ secrets.JIRA_EMAIL }}
-                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
-                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
-
-    # -------------------------------------------------- resume-preflight
-    # The `→ In Progress` router. A single JIRA rule dispatches `jira-resume`
-    # on every transition to In Progress; this cheap job reads the ticket's
-    # AI pr-url + the named PR's GitHub state and emits the route the three
-    # resume-* jobs below gate on. No App token, no agent — mirrors
-    # ci-failure-preflight. See ag-dev-prompts docs/jira-agent-pipeline.md
-    # §"Re-engagement after Needs Review".
-    resume-preflight:
+    # -------------------------------------------------- preflight
+    # The single cheap gate for both human (→ In Progress) and CI-failure
+    # re-entry. No App token, no agent. Branches by event:
+    #   • repository_dispatch jira-resume / workflow_dispatch resume → the
+    #     resume router (AI pr-url + PR state + AI plan) emits `stage`
+    #     (triage / build / pr-iterate / recycle) + prior_pr_outcome.
+    #   • workflow_run · failure → the ci-failure eligibility walk (PR author +
+    #     AI status + branch shape) emits `ci_failure_eligible` + run_url.
+    # The success conclusion is handled by ci-success-handler (terminal REST
+    # work, not a gate). A forced workflow_dispatch stage bypasses this job
+    # entirely (agent-run runs it directly from inputs.stage).
+    preflight:
         if: |
             (github.event_name == 'repository_dispatch' && github.event.action == 'jira-resume') ||
-            (github.event_name == 'workflow_dispatch'   && inputs.stage == 'resume')
+            (github.event_name == 'workflow_dispatch'   && inputs.stage == 'resume') ||
+            (github.event_name == 'workflow_run'        && github.event.workflow_run.conclusion == 'failure')
         runs-on: ubuntu-latest
         timeout-minutes: 5
         permissions:
@@ -305,221 +179,60 @@ jobs:
             pull-requests: read
             packages: read
         outputs:
-            route: ${{ steps.gate.outputs.route }}
-            prior_pr_outcome: ${{ steps.gate.outputs.prior_pr_outcome }}
-            issue_key: ${{ steps.gate.outputs.issue_key }}
+            stage: ${{ steps.resume.outputs.stage }}
+            prior_pr_outcome: ${{ steps.resume.outputs.prior_pr_outcome }}
+            ci_failure_eligible: ${{ steps.cifail.outputs.eligible }}
+            ci_failure_run_url: ${{ steps.cifail.outputs.run_url }}
+            issue_key: ${{ steps.resume.outputs.issue_key || steps.cifail.outputs.issue_key }}
         steps:
             - uses: actions/checkout@v4
               with:
                   fetch-depth: 1
 
             - name: Install @ag-grid/dev-prompts
-              uses: ./.github/actions/install-ag-dev-prompts
+              uses: ./external/ag-shared/github/actions/install-ag-dev-prompts
               with:
                   channel: ${{ env.DEV_PROMPTS_CHANNEL }}
 
-            - id: gate
+            # → In Progress router (every non-workflow_run event that passes the
+            # job gate is a resume dispatch / workflow_dispatch resume).
+            - id: resume
+              if: github.event_name != 'workflow_run'
               uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-resume-preflight
               with:
                   issue_key: ${{ env.ISSUE_KEY }}
-                  jira_email: ${{ secrets.JIRA_EMAIL }}
-                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_email: ${{ secrets.JIRA_AI_BOT_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_AI_BOT_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
-    # -------------------------------------------------- resume-build
-    # route == build → no PR yet, run the first build.
-    resume-build:
-        needs: resume-preflight
-        if: needs.resume-preflight.outputs.route == 'build'
-        runs-on: ubuntu-latest
-        timeout-minutes: 60
-        permissions:
-            contents: read
-            packages: read
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 1
-
-            - name: Mint ag-dev-prompts read token
-              id: prompts-token
-              uses: actions/create-github-app-token@v1
-              with:
-                  app-id: ${{ vars.JIRA_AGENT_APP_ID }}
-                  private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
-                  owner: ag-grid
-                  repositories: ag-dev-prompts
-
-            - name: Setup Nx (renders .claude/settings.json)
-              uses: ./.github/actions/setup-nx
-              env:
-                  GITHUB_TOKEN: ${{ steps.prompts-token.outputs.token }}
-              with:
-                  cache_mode: ro
-                  fetch_base: skip
-
-            - name: Install @ag-grid/dev-prompts
-              uses: ./.github/actions/install-ag-dev-prompts
-              with:
-                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
-
-            - uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-pipeline
-              with:
-                  stage: build
-                  issue_key: ${{ needs.resume-preflight.outputs.issue_key }}
-                  jira_agent_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
-                  jira_agent_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
-                  anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-                  jira_email: ${{ secrets.JIRA_EMAIL }}
-                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
-                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
-
-    # -------------------------------------------------- resume-iterate
-    # route == iterate → an open PR exists, resume its branch.
-    resume-iterate:
-        needs: resume-preflight
-        if: needs.resume-preflight.outputs.route == 'iterate'
-        runs-on: ubuntu-latest
-        timeout-minutes: 60
-        permissions:
-            contents: read
-            packages: read
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 1
-
-            - name: Mint ag-dev-prompts read token
-              id: prompts-token
-              uses: actions/create-github-app-token@v1
-              with:
-                  app-id: ${{ vars.JIRA_AGENT_APP_ID }}
-                  private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
-                  owner: ag-grid
-                  repositories: ag-dev-prompts
-
-            - name: Setup Nx (renders .claude/settings.json)
-              uses: ./.github/actions/setup-nx
-              env:
-                  GITHUB_TOKEN: ${{ steps.prompts-token.outputs.token }}
-              with:
-                  cache_mode: ro
-                  fetch_base: skip
-
-            - name: Install @ag-grid/dev-prompts
-              uses: ./.github/actions/install-ag-dev-prompts
-              with:
-                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
-
-            - uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-pipeline
-              with:
-                  stage: pr-iterate
-                  issue_key: ${{ needs.resume-preflight.outputs.issue_key }}
-                  jira_agent_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
-                  jira_agent_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
-                  anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-                  jira_email: ${{ secrets.JIRA_EMAIL }}
-                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
-                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
-
-    # -------------------------------------------------- resume-recycle
-    # route == recycle → prior PR merged/closed; cut a new -rN branch + PR.
-    # prior_pr_outcome (merged | abandoned) drives the recycle stage.
-    resume-recycle:
-        needs: resume-preflight
-        if: needs.resume-preflight.outputs.route == 'recycle'
-        runs-on: ubuntu-latest
-        timeout-minutes: 60
-        permissions:
-            contents: read
-            packages: read
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 1
-
-            - name: Mint ag-dev-prompts read token
-              id: prompts-token
-              uses: actions/create-github-app-token@v1
-              with:
-                  app-id: ${{ vars.JIRA_AGENT_APP_ID }}
-                  private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
-                  owner: ag-grid
-                  repositories: ag-dev-prompts
-
-            - name: Setup Nx (renders .claude/settings.json)
-              uses: ./.github/actions/setup-nx
-              env:
-                  GITHUB_TOKEN: ${{ steps.prompts-token.outputs.token }}
-              with:
-                  cache_mode: ro
-                  fetch_base: skip
-
-            - name: Install @ag-grid/dev-prompts
-              uses: ./.github/actions/install-ag-dev-prompts
-              with:
-                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
-
-            - uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-pipeline
-              with:
-                  stage: recycle
-                  issue_key: ${{ needs.resume-preflight.outputs.issue_key }}
-                  recycle_from: ${{ needs.resume-preflight.outputs.prior_pr_outcome }}
-                  jira_agent_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
-                  jira_agent_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
-                  anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-                  jira_email: ${{ secrets.JIRA_EMAIL }}
-                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
-                  jira_site_url: ${{ vars.JIRA_SITE_URL }}
-
-    # -------------------------------------------------- ci-failure-iterate
-    # Preflight is intentionally cheap: parse the branch, look up the PR
-    # author via the default token, query AI status via Jira REST. No App
-    # token mint, no agent invocation. A shallow checkout + npm install of
-    # @ag-grid/dev-prompts is required to resolve the shared preflight
-    # action; skipped runs (no eligible workflow_run) avoid this entirely.
-    ci-failure-preflight:
-        # The `branches: ['ghabot-ag-*']` filter on the workflow_run trigger
-        # already constrains the branch shape, so the only gate left here is
-        # the conclusion. The shared preflight action does the full
-        # eligibility walk (PR author + AI status + Jira key extraction).
-        if: |
-            github.event_name == 'workflow_run' &&
-            github.event.workflow_run.conclusion == 'failure'
-        runs-on: ubuntu-latest
-        timeout-minutes: 5
-        permissions:
-            contents: read
-            pull-requests: read
-            packages: read
-        outputs:
-            eligible: ${{ steps.gate.outputs.eligible }}
-            issue_key: ${{ steps.gate.outputs.issue_key }}
-            run_url: ${{ steps.gate.outputs.run_url }}
-            head_sha: ${{ steps.gate.outputs.head_sha }}
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 1
-
-            - name: Install @ag-grid/dev-prompts
-              uses: ./.github/actions/install-ag-dev-prompts
-              with:
-                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
-
-            - id: gate
+            # CI-failure re-entry eligibility walk (workflow_run · failure only).
+            - id: cifail
+              if: github.event_name == 'workflow_run'
               uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-ci-failure-preflight
               with:
                   head_branch: ${{ github.event.workflow_run.head_branch }}
                   head_sha: ${{ github.event.workflow_run.head_sha }}
                   run_url: ${{ github.event.workflow_run.html_url }}
-                  jira_email: ${{ secrets.JIRA_EMAIL }}
-                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_email: ${{ secrets.JIRA_AI_BOT_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_AI_BOT_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
-    ci-failure-iterate:
-        needs: ci-failure-preflight
-        if: needs.ci-failure-preflight.outputs.eligible == 'true'
+    # -------------------------------------------------- agent-run
+    # The single agent job for every stage that runs `/fr` via jira-pipeline:
+    # the resume routes (triage / build / pr-iterate / recycle) AND ci-failure-
+    # iterate. They share the entire bootstrap (token mint → setup-nx → install
+    # → jira-pipeline) and differ only in the `stage` (+ ci_failure_run_url /
+    # recycle_from), so one parameterised job replaces the four near-identical
+    # ones. Stage precedence: ci-failure-iterate (preflight eligible) → the
+    # resume route → a forced workflow_dispatch stage. `!cancelled()` lets the
+    # gate evaluate even when preflight is skipped (the forced-dispatch path).
+    agent-run:
+        needs: preflight
+        if: |
+            !cancelled() &&
+            (needs.preflight.outputs.stage != '' ||
+             needs.preflight.outputs.ci_failure_eligible == 'true' ||
+             (github.event_name == 'workflow_dispatch' && inputs.stage != 'resume'))
         runs-on: ubuntu-latest
         timeout-minutes: 60
         permissions:
@@ -548,25 +261,30 @@ jobs:
                   fetch_base: skip
 
             - name: Install @ag-grid/dev-prompts
-              uses: ./.github/actions/install-ag-dev-prompts
+              uses: ./external/ag-shared/github/actions/install-ag-dev-prompts
               with:
                   channel: ${{ env.DEV_PROMPTS_CHANNEL }}
 
             - uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/jira-pipeline
               with:
-                  stage: ci-failure-iterate
-                  issue_key: ${{ needs.ci-failure-preflight.outputs.issue_key }}
-                  ci_failure_run_url: ${{ needs.ci-failure-preflight.outputs.run_url }}
+                  # ci-failure-iterate wins when the failure preflight is eligible;
+                  # otherwise the resume route, or a forced workflow_dispatch stage.
+                  stage: ${{ needs.preflight.outputs.ci_failure_eligible == 'true' && 'ci-failure-iterate' || needs.preflight.outputs.stage || inputs.stage }}
+                  issue_key: ${{ needs.preflight.outputs.issue_key || env.ISSUE_KEY }}
+                  ci_failure_run_url: ${{ needs.preflight.outputs.ci_failure_run_url }}
+                  recycle_from: ${{ needs.preflight.outputs.prior_pr_outcome }}
                   jira_agent_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
                   jira_agent_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-                  jira_email: ${{ secrets.JIRA_EMAIL }}
-                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_email: ${{ secrets.JIRA_AI_BOT_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_AI_BOT_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
 
     # -------------------------------------------------- ci-success-handler
-    # Symmetric counterpart to ci-failure-preflight. Fires on the same
-    # workflow_run trigger but when the upstream CI finished successfully.
+    # The workflow_run · success counterpart to the preflight failure branch:
+    # same trigger, but when the upstream CI finished successfully. Kept as its
+    # own job (not folded into preflight) because it does terminal REST work,
+    # not gating, and pr-plnkr gates on its outputs.
     # No agent invocation — pure REST work: verify the run is still the
     # PR head, transition the JIRA workflow to Needs Review, mark AI
     # status: done, clear AI failure, zero the recovery counter. See the
@@ -593,7 +311,7 @@ jobs:
                   fetch-depth: 1
 
             - name: Install @ag-grid/dev-prompts
-              uses: ./.github/actions/install-ag-dev-prompts
+              uses: ./external/ag-shared/github/actions/install-ag-dev-prompts
               with:
                   channel: ${{ env.DEV_PROMPTS_CHANNEL }}
 
@@ -603,8 +321,8 @@ jobs:
                   head_branch: ${{ github.event.workflow_run.head_branch }}
                   head_sha: ${{ github.event.workflow_run.head_sha }}
                   run_url: ${{ github.event.workflow_run.html_url }}
-                  jira_email: ${{ secrets.JIRA_EMAIL }}
-                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_email: ${{ secrets.JIRA_AI_BOT_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_AI_BOT_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
                   # Live-test snippet — the ci.yml `pr_preview` job publishes
                   # per-PR UMD bundles to gh-pages, so the reviewer can paste
@@ -666,7 +384,7 @@ jobs:
                   fetch_base: skip
 
             - name: Install @ag-grid/dev-prompts
-              uses: ./.github/actions/install-ag-dev-prompts
+              uses: ./external/ag-shared/github/actions/install-ag-dev-prompts
               with:
                   channel: ${{ env.DEV_PROMPTS_CHANNEL }}
 
@@ -679,6 +397,6 @@ jobs:
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   jira_agent_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
                   jira_agent_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
-                  jira_email: ${{ secrets.JIRA_EMAIL }}
-                  jira_api_token: ${{ secrets.JIRA_API_TOKEN }}
+                  jira_email: ${{ secrets.JIRA_AI_BOT_EMAIL }}
+                  jira_api_token: ${{ secrets.JIRA_AI_BOT_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}

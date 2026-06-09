@@ -4,7 +4,6 @@ import type { AgCartesianChartOptions, AgChartOptions, AgPolarChartOptions } fro
 
 import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { Chart } from './chart';
-import type { DatumIndexType } from './series/seriesTypes';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
@@ -69,7 +68,7 @@ describe('Chart highlighting', () => {
         await compare();
     });
 
-    type HighlightGetter = (chart: Chart) => HighlightNodeDatum<DatumIndexType> | undefined;
+    type HighlightGetter = (chart: Chart) => HighlightNodeDatum | undefined;
 
     type HighlightTestCase = {
         name: string;
@@ -82,7 +81,7 @@ describe('Chart highlighting', () => {
     const defaultHighlightDatum = (
         chartInstance: Chart,
         testCase: HighlightTestCase
-    ): HighlightNodeDatum<DatumIndexType> | undefined => {
+    ): HighlightNodeDatum | undefined => {
         const seriesIndex = testCase.seriesIndex ?? 0;
         const datumIndex = testCase.datumIndex ?? 0;
         const series = chartInstance.series[seriesIndex] as unknown as {
@@ -93,26 +92,26 @@ describe('Chart highlighting', () => {
             series?.contextNodeData ?? (series as any)?.['contextNodeData'] ?? (series as any)._contextNodeData;
 
         if (!context) {
-            const fallback = (series as any).getNodeData?.() as HighlightNodeDatum<DatumIndexType>[] | undefined;
+            const fallback = (series as any).getNodeData?.() as HighlightNodeDatum[] | undefined;
             return fallback?.[datumIndex] ?? fallback?.[0];
         }
 
-        const pickFromEntry = (entry: { nodeData?: HighlightNodeDatum<DatumIndexType>[] } | undefined) =>
+        const pickFromEntry = (entry: { nodeData?: HighlightNodeDatum[] } | undefined) =>
             entry?.nodeData?.[datumIndex] ?? entry?.nodeData?.[0];
 
         if (Array.isArray(context)) {
-            for (const entry of context as Array<{ nodeData?: HighlightNodeDatum<DatumIndexType>[] }>) {
+            for (const entry of context as Array<{ nodeData?: HighlightNodeDatum[] }>) {
                 const candidate = pickFromEntry(entry);
                 if (candidate) return candidate;
             }
-            const fallback = (series as any).getNodeData?.() as HighlightNodeDatum<DatumIndexType>[] | undefined;
+            const fallback = (series as any).getNodeData?.() as HighlightNodeDatum[] | undefined;
             return fallback?.[datumIndex] ?? fallback?.[0];
         }
 
-        const candidate = pickFromEntry(context as { nodeData?: HighlightNodeDatum<DatumIndexType>[] });
+        const candidate = pickFromEntry(context as { nodeData?: HighlightNodeDatum[] });
         if (candidate) return candidate;
 
-        const fallback = (series as any).getNodeData?.() as HighlightNodeDatum<DatumIndexType>[] | undefined;
+        const fallback = (series as any).getNodeData?.() as HighlightNodeDatum[] | undefined;
         return fallback?.[datumIndex] ?? fallback?.[0];
     };
 
@@ -601,7 +600,6 @@ describe('Chart highlighting', () => {
                     y: { position: 'left', type: 'number' },
                 },
                 highlight: {
-                    // @ts-expect-error Undocumented
                     enabled: false,
                 },
                 series: [
@@ -636,7 +634,6 @@ describe('Chart highlighting', () => {
                     y: { position: 'left', type: 'number' },
                 },
                 highlight: {
-                    // @ts-expect-error Undocumented
                     enabled: false,
                 },
                 series: [
@@ -662,6 +659,47 @@ describe('Chart highlighting', () => {
                 seriesIndex: 0,
                 datumIndex: 2,
             });
+        });
+
+        const seriesHighlightEnabled = (chartInstance: Chart, seriesIndex: number) =>
+            (chartInstance.series[seriesIndex] as unknown as { properties: { highlight: { enabled: boolean } } })
+                .properties.highlight.enabled;
+
+        it('cascades chart highlight.enabled = false to series that do not override it', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                highlight: { enabled: false },
+                series: [
+                    { type: 'bar', xKey: 'category', yKey: 'apples' },
+                    { type: 'bar', xKey: 'category', yKey: 'oranges', highlight: { enabled: true } },
+                ],
+            });
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            expect(seriesHighlightEnabled(chart, 0)).toBe(false);
+            expect(seriesHighlightEnabled(chart, 1)).toBe(true);
+        });
+
+        it('leaves series highlight.enabled = true by default when chart highlight is unset', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'apples' }],
+            });
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            expect(seriesHighlightEnabled(chart, 0)).toBe(true);
         });
     });
 

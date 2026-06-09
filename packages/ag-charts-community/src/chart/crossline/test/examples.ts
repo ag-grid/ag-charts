@@ -12,7 +12,8 @@ const AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
     loadExampleOptions('area-with-negative-values');
 
 type CrossLinesRangeConfig = Record<string, { vertical: [Date, Date]; horizontal: [number, number] }>;
-type InvalidCrossLineConfig = Record<string, Partial<AgCartesianCrossLineOptions>>;
+// Deliberately malformed cross-line options used to exercise validation warnings.
+type InvalidCrossLineConfig = Record<string, Record<string, unknown>>;
 
 const baseChartOptions: AgCartesianChartOptions = {
     data: DATA_OIL_PETROLEUM,
@@ -70,7 +71,7 @@ const baseChartOptions: AgCartesianChartOptions = {
     },
 };
 
-const baseCrossLineOptions: AgCartesianCrossLineOptions = {
+const baseCrossLineOptions = {
     type: 'range',
     fill: '#dbddf0',
     stroke: '#5157b7',
@@ -90,12 +91,23 @@ const createChartOptions = (rangeConfig: CrossLinesRangeConfig): Record<string, 
             ...baseChartOptions,
             axes: mapValues(baseChartOptions['axes'] ?? {}, (axis) => {
                 const range = axis.position === 'bottom' ? rangeConfig[name].vertical : rangeConfig[name].horizontal;
-                return { ...axis, crossLines: [{ ...baseCrossLineOptions, range }] };
+                return { ...axis, crossLines: [{ ...baseCrossLineOptions, range }] as AgCartesianCrossLineOptions[] };
             }),
         };
     }
 
     return result;
+};
+
+// Fill-free base for the invalid examples: `fill`/`fillOpacity` are valid only on the `range`
+// variant, so spreading them here would add unrelated "unknown option" warnings to the line cases.
+const baseInvalidCrossLineOptions = {
+    stroke: '#5157b7',
+    label: {
+        text: 'Price Peak',
+        color: 'black',
+        fontSize: 14,
+    },
 };
 
 const createChartOptionsWithInvalidCrossLines = (
@@ -111,7 +123,7 @@ const createChartOptionsWithInvalidCrossLines = (
                 return axis.position === 'left'
                     ? {
                           ...axis,
-                          crossLines: [{ ...baseCrossLineOptions, type: undefined, ...invalidCrossLineOptions }] as any,
+                          crossLines: [{ ...baseInvalidCrossLineOptions, ...invalidCrossLineOptions }] as any,
                       }
                     : axis;
             }),
@@ -155,7 +167,7 @@ const invalidCrossLinesOptions: InvalidCrossLineConfig = {
     },
     INVALID_RANGE_LENGTH_CROSSLINE: {
         type: 'range',
-        range: [128, 134, 135] as any,
+        range: [128, 134, 135],
     },
     INVALID_RANGE_WITHOUT_TYPE_CROSSLINE: {
         range: [128, 134],
@@ -174,6 +186,12 @@ const invalidCrossLinesOptions: InvalidCrossLineConfig = {
     INVALID_LINE_WITH_RANGE_TYPE_CROSSLINE: {
         type: 'range',
         value: 128,
+    },
+    INVALID_FILL_ON_LINE_TYPE_CROSSLINE: {
+        type: 'line',
+        value: 128,
+        fill: '#dbddf0',
+        fillOpacity: 0.4,
     },
 };
 
@@ -208,21 +226,32 @@ export const INVALID_LINE_VALUE_CROSSLINES = invalidChartOptions['INVALID_LINE_V
 export const INVALID_RANGE_WITH_LINE_TYPE_CROSSLINE = invalidChartOptions['INVALID_RANGE_WITH_LINE_TYPE_CROSSLINE'];
 export const INVALID_LINE_WITHOUT_TYPE_CROSSLINE = invalidChartOptions['INVALID_LINE_WITHOUT_TYPE_CROSSLINE'];
 export const INVALID_LINE_WITH_RANGE_TYPE_CROSSLINE = invalidChartOptions['INVALID_LINE_WITH_RANGE_TYPE_CROSSLINE'];
+export const INVALID_FILL_ON_LINE_TYPE_CROSSLINE = invalidChartOptions['INVALID_FILL_ON_LINE_TYPE_CROSSLINE'];
 
 export const DEFAULT_LABEL_POSITION_CROSSLINES: AgCartesianChartOptions = chartOptions['LABEL'];
 
-const xAxisCrossLineStyle = {
-    fill: 'rgba(0,118,0,0.5)',
-    fillOpacity: 0.2,
+// `fill`/`fillOpacity` are valid on the `range` variant only, so line cross-lines use the
+// stroke-only variants to avoid "unknown option" warnings.
+const xAxisLineCrossLineStyle = {
     stroke: 'green',
     strokeWidth: 1,
 };
 
-const yAxisCrossLineStyle = {
-    fill: 'pink',
-    fillOpacity: 0.2,
+const yAxisLineCrossLineStyle = {
     stroke: 'red',
     strokeWidth: 1,
+};
+
+const xAxisCrossLineStyle = {
+    ...xAxisLineCrossLineStyle,
+    fill: 'rgba(0,118,0,0.5)',
+    fillOpacity: 0.2,
+};
+
+const yAxisCrossLineStyle = {
+    ...yAxisLineCrossLineStyle,
+    fill: 'pink',
+    fillOpacity: 0.2,
 };
 
 export const SCATTER_CROSSLINES: AgCartesianChartOptions = {
@@ -258,7 +287,7 @@ export const SCATTER_CROSSLINES: AgCartesianChartOptions = {
                         text: '60',
                         position: 'right',
                     },
-                    ...yAxisCrossLineStyle,
+                    ...yAxisLineCrossLineStyle,
                 },
             ],
         },
@@ -288,7 +317,7 @@ export const SCATTER_CROSSLINES: AgCartesianChartOptions = {
                     label: {
                         text: '2008',
                     },
-                    ...xAxisCrossLineStyle,
+                    ...xAxisLineCrossLineStyle,
                 },
             ],
         },
@@ -337,7 +366,7 @@ export const LINE_CROSSLINES: AgCartesianChartOptions = {
                         text: '27',
                         position: 'top',
                     },
-                    ...xAxisCrossLineStyle,
+                    ...xAxisLineCrossLineStyle,
                 },
             ],
         },
@@ -368,7 +397,7 @@ export const LINE_CROSSLINES: AgCartesianChartOptions = {
                         text: '0.87',
                         position: 'top-right',
                     },
-                    ...yAxisCrossLineStyle,
+                    ...yAxisLineCrossLineStyle,
                 },
             ],
         },
@@ -423,7 +452,7 @@ export const AREA_CROSSLINES: AgCartesianChartOptions = {
                         text: '-700',
                         position: 'top-left',
                     },
-                    ...yAxisCrossLineStyle,
+                    ...yAxisLineCrossLineStyle,
                 },
             ],
         },
@@ -459,7 +488,7 @@ export const COLUMN_CROSSLINES: AgCartesianChartOptions = {
                     label: {
                         text: '2012',
                     },
-                    ...xAxisCrossLineStyle,
+                    ...xAxisLineCrossLineStyle,
                 },
             ],
         },
@@ -485,7 +514,7 @@ export const COLUMN_CROSSLINES: AgCartesianChartOptions = {
                         position: 'right',
                         rotation: -90,
                     },
-                    ...yAxisCrossLineStyle,
+                    ...yAxisLineCrossLineStyle,
                 },
             ],
         },
@@ -517,7 +546,7 @@ export const BAR_CROSSLINES: AgCartesianChartOptions = {
                         position: 'right',
                         rotation: -90,
                     },
-                    ...yAxisCrossLineStyle,
+                    ...yAxisLineCrossLineStyle,
                 },
             ],
         },
@@ -547,7 +576,7 @@ export const BAR_CROSSLINES: AgCartesianChartOptions = {
                     label: {
                         text: '3.6',
                     },
-                    ...xAxisCrossLineStyle,
+                    ...xAxisLineCrossLineStyle,
                 },
             ],
         },
@@ -591,7 +620,7 @@ export const DUAL_LEFT_AXES_CROSSLINE_LINE: AgCartesianChartOptions = {
                     type: 'line',
                     value: 130,
                     label: { text: 'Price threshold', position: 'right' },
-                    ...yAxisCrossLineStyle,
+                    ...yAxisLineCrossLineStyle,
                 },
             ],
         },
@@ -636,7 +665,7 @@ export const LEFT_RIGHT_AXES_CROSSLINE: AgCartesianChartOptions = {
                     type: 'line',
                     value: 1300,
                     label: { text: 'Volume threshold', position: 'left' },
-                    ...yAxisCrossLineStyle,
+                    ...yAxisLineCrossLineStyle,
                 },
                 {
                     type: 'range',
@@ -663,7 +692,7 @@ export const DUAL_RIGHT_AXES_CROSSLINE: AgCartesianChartOptions = {
                     type: 'line',
                     value: 130,
                     label: { text: 'Price threshold', position: 'left' },
-                    ...yAxisCrossLineStyle,
+                    ...yAxisLineCrossLineStyle,
                 },
             ],
         },
@@ -698,7 +727,7 @@ export const DUAL_BOTTOM_AXES_CROSSLINE: AgCartesianChartOptions = {
                     type: 'line',
                     value: new Date(2019, 6, 1),
                     label: { text: 'Jul 2019', position: 'top' },
-                    ...xAxisCrossLineStyle,
+                    ...xAxisLineCrossLineStyle,
                 },
             ],
         },

@@ -5,7 +5,6 @@ import {
     type AgRangeBarSeriesStyle,
     type AgRangeBarSeriesStylerParams,
     type SelectionState,
-    type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -20,6 +19,7 @@ import {
     type DomainWithMetadata,
     type DynamicContext,
     type Mutable,
+    type NormalisedTextOrSegments,
     type Point,
     type RequireOptional,
     areScalingEqual,
@@ -69,7 +69,7 @@ const {
 
 interface RangeBarNodeLabelDatum extends Readonly<Point> {
     datumIndex: number;
-    text: TextOrSegments;
+    text: NormalisedTextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     datum: any;

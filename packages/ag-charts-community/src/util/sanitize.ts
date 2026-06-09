@@ -1,9 +1,8 @@
-import { createElement, toPlainText } from 'ag-charts-core';
-import type { TextOrSegments } from 'ag-charts-types';
+import { type NormalisedTextOrSegments, createElement, toPlainText } from 'ag-charts-core';
 
 let element: HTMLElement | null = null;
 
-export function sanitizeHtml(text: TextOrSegments): string {
+export function sanitizeHtml(text: NormalisedTextOrSegments): string {
     const plainText = toPlainText(text);
     if (plainText === '') return '';
 

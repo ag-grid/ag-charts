@@ -64,6 +64,7 @@ const themeTemplate: ExtensibleTheme<'sunburst'> = {
         sectorSpacing: 2,
         padding: 3,
         highlight: {
+            enabled: { $circular: { $path: '/highlight/enabled' } },
             unhighlightedItem: {
                 fillOpacity: 0.6,
                 strokeOpacity: 0.6,

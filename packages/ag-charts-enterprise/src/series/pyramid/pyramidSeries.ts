@@ -3,7 +3,6 @@ import {
     type AgPyramidSeriesLabelFormatterParams,
     type AgPyramidSeriesOptions,
     type AgPyramidSeriesStyle,
-    type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -11,6 +10,7 @@ import {
     type ChartAnimationPhase,
     type DomainWithMetadata,
     type DynamicContext,
+    type NormalisedTextOrSegments,
     type Point,
     StateMachine,
     type Writeable,
@@ -41,7 +41,7 @@ const {
 } = _ModuleSupport;
 
 type PyramidNodeLabelDatum = Readonly<Point> & {
-    readonly text: TextOrSegments;
+    readonly text: NormalisedTextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
     readonly visible: boolean;
@@ -726,7 +726,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
-        let minDatum: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType> | undefined;
+        let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
 
         this.datumSelection.each((node, datum) => {
             const distanceSquared = node.distanceSquared(x, y);

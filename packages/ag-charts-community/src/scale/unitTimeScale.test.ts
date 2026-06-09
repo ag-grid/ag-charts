@@ -40,6 +40,48 @@ describe('UnitTimeScale', () => {
         expect(convertedValue).toBeCloseTo(92, 0);
     });
 
+    describe('convert extrapolation beyond domain bounds', () => {
+        const DAY_MS = 24 * 60 * 60 * 1000;
+
+        it('extrapolates a value beyond max to a finite position past the last band', () => {
+            const scale = createScale([new Date(2024, 0, 1), new Date(2024, 0, 10)], 'day');
+
+            const lastBand = scale.convert(new Date(2024, 0, 10));
+            const beyondMax = scale.convert(new Date(new Date(2024, 0, 10).valueOf() + DAY_MS));
+
+            expect(Number.isFinite(beyondMax)).toBe(true);
+            expect(beyondMax).toBeGreaterThan(lastBand);
+        });
+
+        it('extrapolates a value before min to a finite position before the first band', () => {
+            const scale = createScale([new Date(2024, 0, 1), new Date(2024, 0, 10)], 'day');
+
+            const firstBand = scale.convert(new Date(2024, 0, 1));
+            const beforeMin = scale.convert(new Date(new Date(2024, 0, 1).valueOf() - DAY_MS));
+
+            expect(Number.isFinite(beforeMin)).toBe(true);
+            expect(beforeMin).toBeLessThan(firstBand);
+        });
+
+        it('leaves the in-bounds conversion unchanged', () => {
+            const scale = new UnitTimeScale();
+            scale.range = [0, 100];
+            scale.domain = [new Date(2022, 0, 1), new Date(2022, 11, 1)];
+            scale.interval = 'month';
+
+            expect(scale.convert(new Date(2022, 11, 31))).toBeCloseTo(92, 0);
+        });
+
+        it('returns NaN when the domain has fewer than two bands', () => {
+            const scale = new UnitTimeScale();
+            scale.range = [0, 100];
+            scale.domain = [new Date(2024, 0, 1)];
+            scale.interval = 'day';
+
+            expect(scale.convert(new Date(2024, 0, 5))).toBeNaN();
+        });
+    });
+
     describe('ticksFromNumericBands equivalence', () => {
         it('produces ticks for daily interval with year tick step', () => {
             const domain: [Date, Date] = [new Date(2020, 0, 1), new Date(2024, 0, 1)];

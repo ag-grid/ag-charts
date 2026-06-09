@@ -997,4 +997,158 @@ describe('WaterfallSeries', () => {
             expect(html).toContain('Spending');
         });
     });
+
+    describe('AG-17484: synthetic datum and original-index itemId for total/subtotal bars', () => {
+        // Augmented order [2020, 2021, Sub, 2022, 2023, Total]: the synthetic subtotal/total consume
+        // index slots, so real bars 2022/2023 sit at datumIndex 3/4 while their original indices stay 2/3.
+        const DATA = [
+            { year: '2020', spending: 10 },
+            { year: '2021', spending: -20 },
+            { year: '2022', spending: 30 },
+            { year: '2023', spending: 40 },
+        ];
+        const TOTALS_OPTIONS: AgCartesianChartOptions = {
+            data: DATA,
+            series: [
+                {
+                    type: 'waterfall',
+                    xKey: 'year',
+                    yKey: 'spending',
+                    totals: [
+                        { totalType: 'subtotal', index: 1, axisLabel: 'Subtotal' },
+                        { totalType: 'total', index: 3, axisLabel: 'Total' },
+                    ],
+                },
+            ],
+        };
+
+        const createWaterfall = async (series: AgWaterfallSeriesOptions) => {
+            const options: AgCartesianChartOptions = { ...TOTALS_OPTIONS, series: [series] };
+            prepareEnterpriseTestOptions(options as any);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            return chart.series[0] as WaterfallSeries;
+        };
+
+        const getNodeData = (series: WaterfallSeries) => {
+            const nodeData = series['contextNodeData']?.nodeData as
+                | { itemType: string; datum: unknown; datumIndex: number; itemId?: string }[]
+                | undefined;
+            expect(nodeData).toBeDefined();
+            return nodeData!;
+        };
+
+        it('AC1/AC3: tooltip.renderer receives datum=undefined for total/subtotal and the original datum for real bars', async () => {
+            const params: Record<string, any> = {};
+            const series = await createWaterfall({
+                ...(TOTALS_OPTIONS.series![0] as AgWaterfallSeriesOptions),
+                item: {
+                    positive: { tooltip: { renderer: (p) => ((params.positive = p), 'P') } },
+                    negative: { tooltip: { renderer: (p) => ((params.negative = p), 'N') } },
+                    total: { tooltip: { renderer: (p) => ((params[p.itemType] = p), 'T') } },
+                },
+            });
+            const nodeData = getNodeData(series);
+
+            const indexOfType = (itemType: string) => nodeData.findIndex((n) => n.itemType === itemType);
+            series.getTooltipContent(indexOfType('positive'));
+            series.getTooltipContent(indexOfType('negative'));
+            series.getTooltipContent(indexOfType('subtotal'));
+            series.getTooltipContent(indexOfType('total'));
+
+            expect(params.subtotal?.datum).toBeUndefined();
+            expect(params.subtotal?.itemType).toBe('subtotal');
+            expect(params.total?.datum).toBeUndefined();
+            expect(params.total?.itemType).toBe('total');
+            expect(params.positive?.datum).toEqual(DATA[0]);
+            expect(params.negative?.datum).toEqual(DATA[1]);
+
+            // totalLabel exposes the synthetic bar's axisLabel and is undefined for real bars.
+            expect(params.subtotal?.totalLabel).toBe('Subtotal');
+            expect(params.total?.totalLabel).toBe('Total');
+            expect(params.positive?.totalLabel).toBeUndefined();
+            expect(params.negative?.totalLabel).toBeUndefined();
+        });
+
+        it('AC1/AC3/AC5: itemStyler receives datum=undefined for synthetic bars and the original datum for real bars', async () => {
+            const calls: { itemType: string; datum: unknown; totalLabel: unknown }[] = [];
+            const styler = (p: any) => (
+                calls.push({ itemType: p.itemType, datum: p.datum, totalLabel: p.totalLabel }),
+                {}
+            );
+            const series = await createWaterfall({
+                ...(TOTALS_OPTIONS.series![0] as AgWaterfallSeriesOptions),
+                item: {
+                    positive: { itemStyler: styler },
+                    negative: { itemStyler: styler },
+                    total: { itemStyler: styler },
+                },
+            });
+            getNodeData(series);
+
+            const syntheticCalls = calls.filter((c) => c.itemType === 'total' || c.itemType === 'subtotal');
+            const realCalls = calls.filter((c) => c.itemType === 'positive' || c.itemType === 'negative');
+            expect(syntheticCalls.length).toBeGreaterThan(0);
+            expect(realCalls.length).toBeGreaterThan(0);
+            expect(syntheticCalls.every((c) => c.datum === undefined)).toBe(true);
+            expect(realCalls.every((c) => c.datum != null && typeof c.datum === 'object')).toBe(true);
+
+            // totalLabel: the synthetic bar's axisLabel, undefined for real bars.
+            expect(calls.filter((c) => c.itemType === 'subtotal').every((c) => c.totalLabel === 'Subtotal')).toBe(true);
+            expect(calls.filter((c) => c.itemType === 'total').every((c) => c.totalLabel === 'Total')).toBe(true);
+            expect(realCalls.every((c) => c.totalLabel === undefined)).toBe(true);
+        });
+
+        it('AC2: node datum is undefined for synthetic bars and the original object for real bars', async () => {
+            const series = await createWaterfall(TOTALS_OPTIONS.series![0] as AgWaterfallSeriesOptions);
+            const nodeData = getNodeData(series);
+
+            // The nodeClick/nodeDoubleClick/activeChange event payload is built directly from
+            // `node.datum` (SeriesNodeEvent), so asserting it here covers those surfaces.
+            const byType = (itemType: string) => nodeData.filter((n) => n.itemType === itemType);
+            expect(byType('subtotal').every((n) => n.datum === undefined)).toBe(true);
+            expect(byType('total').every((n) => n.datum === undefined)).toBe(true);
+            expect(byType('positive')[0]?.datum).toEqual(DATA[0]);
+        });
+
+        it('AC6: real-bar itemId is the original data index and round-trips via findNodeDatum', async () => {
+            const series = await createWaterfall(TOTALS_OPTIONS.series![0] as AgWaterfallSeriesOptions);
+            const nodeData = getNodeData(series);
+
+            // 2022 is a real bar after the subtotal: augmented datumIndex 3, original index 2.
+            const shifted = nodeData.find((n) => n.datumIndex === 3)!;
+            expect(shifted.itemType).toBe('positive');
+            expect(shifted.itemId).toBe('2');
+            // The public event itemId (getItemId → node.itemId when set) resolves back to this node.
+            expect(series.findNodeDatum('2')).toBe(shifted);
+
+            // Synthetic bars carry no original-data itemId and resolve via their numeric datumIndex.
+            const subtotal = nodeData.find((n) => n.itemType === 'subtotal')!;
+            expect(subtotal.itemId).toBeUndefined();
+            expect(series.findNodeDatum(subtotal.datumIndex)).toBe(subtotal);
+        });
+
+        it('highlighting a synthetic bar invokes its itemStyler with highlighted-item', async () => {
+            // The item-highlight overlay must render for synthetic bars even though their datum is
+            // undefined, otherwise the styler only ever sees the base-layer unhighlighted-item state.
+            const calls: { itemType: string; highlightState: string }[] = [];
+            const styler = (p: any) => (calls.push({ itemType: p.itemType, highlightState: p.highlightState }), {});
+            const series = await createWaterfall({
+                ...(TOTALS_OPTIONS.series![0] as AgWaterfallSeriesOptions),
+                item: {
+                    positive: { itemStyler: styler },
+                    negative: { itemStyler: styler },
+                    total: { itemStyler: styler },
+                },
+            });
+            const total = getNodeData(series).find((n) => n.itemType === 'total')!;
+
+            calls.length = 0;
+            chart.ctx.highlightManager.updateHighlight(chart.id, total);
+            await waitForChartStability(chart);
+
+            const totalStates = new Set(calls.filter((c) => c.itemType === 'total').map((c) => c.highlightState));
+            expect(totalStates.has('highlighted-item')).toBe(true);
+        });
+    });
 });

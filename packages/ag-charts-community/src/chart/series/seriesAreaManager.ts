@@ -55,7 +55,7 @@ import {
     type SeriesNodePickIntent,
     type UnknownSeries,
 } from './series';
-import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
+import type { DatumIndex, SeriesNodeDatum } from './seriesTypes';
 import { getDatumRefPoint } from './util';
 
 type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
@@ -92,10 +92,10 @@ export interface SeriesAreaChartDependencies {
     hasPgUpPgDownSupport(): boolean;
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
     getUpdateType(): ChartUpdateType;
-    getTooltipContent: <DatumIndex extends DatumIndexType>(
+    getTooltipContent: (
         series: PickedNode['series'],
         datumIndex: DatumIndex,
-        removeThisDatum: unknown,
+        removeThisDatum: SeriesNodeDatum,
         purpose: 'aria-label' | 'tooltip'
     ) => TooltipContent[];
     chartType: ChartType;
@@ -205,7 +205,7 @@ export class SeriesAreaManager extends BaseManager {
         series: undefined as UnknownSeries | undefined,
         seriesIndex: 0,
         datumIndex: 0,
-        datum: undefined as SeriesNodeDatum<DatumIndexType> | undefined,
+        datum: undefined as SeriesNodeDatum | undefined,
         pendingViewportFocus: undefined as PickViewportFocusInputs['where'] | undefined,
     };
 
@@ -1095,7 +1095,7 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private getDatumAriaText(datum: SeriesNodeDatum<DatumIndexType>, tooltipContent: TooltipContent[]): string {
+    private getDatumAriaText(datum: SeriesNodeDatum, tooltipContent: TooltipContent[]): string {
         const description = tooltipContent == null ? '' : tooltipContentAriaLabel(tooltipContent);
         return this.chart.ctx.localeManager.t('ariaAnnounceHoverDatum', {
             datum: datum.series.getDatumAriaText?.(datum, description) ?? description,
@@ -1129,8 +1129,8 @@ export class SeriesAreaManager extends BaseManager {
         // Clear tooltip/highlight state, but without broadcasting an AgActiveChangeEvent.
         if (this.getHoverDevice() === 'setState') {
             this.clearCachedEvents();
-            this.chart.ctx.highlightManager.updateHighlight(this.id, undefined);
-            this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined);
+            this.chart.ctx.highlightManager.updateHighlight(this.id);
+            this.chart.ctx.tooltipManager.removeTooltip(this.id);
         }
     }
 
@@ -1420,12 +1420,9 @@ export class SeriesAreaManager extends BaseManager {
 
     // Do not return undefined tooltip content if we're obtaining it to update the series-area aria-label.
     // (CRT-869, CRT-901, CRT-871, CRT-909).
-    private getTooltipContent(datum: SeriesNodeDatum<DatumIndexType>, purpose: 'aria-label'): TooltipContent[];
-    private getTooltipContent(datum: SeriesNodeDatum<DatumIndexType>, purpose: 'tooltip'): TooltipContent[] | undefined;
-    private getTooltipContent(
-        datum: SeriesNodeDatum<DatumIndexType>,
-        purpose: 'aria-label' | 'tooltip'
-    ): TooltipContent[] | undefined {
+    private getTooltipContent(datum: SeriesNodeDatum, purpose: 'aria-label'): TooltipContent[];
+    private getTooltipContent(datum: SeriesNodeDatum, purpose: 'tooltip'): TooltipContent[] | undefined;
+    private getTooltipContent(datum: SeriesNodeDatum, purpose: 'aria-label' | 'tooltip'): TooltipContent[] | undefined {
         const { series, datumIndex } = datum;
         let result: TooltipContent[] | undefined;
 
@@ -1455,8 +1452,8 @@ export class SeriesAreaManager extends BaseManager {
         if (!this.isState(InteractionState.Hoverable)) return;
         this.setHoverDevice('pointer');
         this.clearCachedEvents();
-        this.chart.ctx.highlightManager.updateHighlight(this.id, undefined);
-        this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined);
+        this.chart.ctx.highlightManager.updateHighlight(this.id);
+        this.chart.ctx.tooltipManager.removeTooltip(this.id);
     }
 
     private onActiveLoadMemento(event: ActiveLoadMementoEvent) {
@@ -1497,8 +1494,8 @@ export class SeriesAreaManager extends BaseManager {
                     this.pickManager.maybeActivate(undefined, () => {
                         this.activeState.lastActive = undefined;
                         this.clearCachedEvents();
-                        this.chart.ctx.highlightManager.updateHighlight(this.id, undefined);
-                        this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined);
+                        this.chart.ctx.highlightManager.updateHighlight(this.id);
+                        this.chart.ctx.tooltipManager.removeTooltip(this.id);
                     });
                 }
             } else {

@@ -13,6 +13,27 @@ export interface AgChordSeriesOptions<TDatum = DatumDefault, TContext = ContextD
         AgChordSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Chord Series. */
     type: 'chord';
+    /**
+     * A callback to provide a stable identifier for each node, exposed as `itemId` in events and active state.
+     *
+     * The returned identifier must be unique across nodes and links, which share one `itemId` namespace
+     * (links default to `link-<index>`).
+     *
+     * If not supplied, the node name is used as its identifier.
+     */
+    getDataId?: (params: AgChordSeriesGetDataIdParams<TDatum, TContext>) => string;
+}
+
+export interface AgChordSeriesGetDataIdParams<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends ContextCallbackParams<TContext> {
+    /** The name of the node, derived from the `fromKey`/`toKey` values or the supplied `nodes`. */
+    nodeName: string;
+    /** The index of the node, in the order nodes are first encountered. Not a stable identifier. */
+    index: number;
+    /** The node datum, or an empty object for nodes derived implicitly from link data. */
+    datum: TDatum;
 }
 
 export interface AgChordSeriesLinkItemStylerParams<TDatum, TContext = ContextDefault>

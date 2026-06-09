@@ -11,7 +11,7 @@ import { deproxy, prepareTestOptions, setupMockCanvas, setupMockConsole, waitFor
 describe('Chart Heap Memory', { retry: 5 }, () => {
     setupMockConsole();
 
-    let chart: Chart;
+    let chart: Chart | undefined;
 
     function genData(dMax = 30, sMax = 80) {
         const result = [];

@@ -14,10 +14,11 @@ import {
     tickStep,
 } from 'ag-charts-core';
 import type {
-    AgHistogramBinDatum,
+    AgHistogramSeriesBinParams,
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
     AgHistogramSeriesStyle,
+    SelectionState as PublicSelectionState,
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
@@ -60,7 +61,7 @@ import {
     type SeriesNodeStyleContext,
 } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import type { HighlightState } from '../seriesTypes';
+import type { HighlightState, SeriesNodeEventTypes } from '../seriesTypes';
 import { getItemStyles } from '../util';
 import {
     collapsedStartingBarPosition,
@@ -71,6 +72,7 @@ import {
 } from './barUtil';
 import {
     CartesianSeries,
+    CartesianSeriesNodeEvent,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
@@ -90,10 +92,14 @@ type HistogramAnimationData = CartesianAnimationDataOf<HistogramSeriesTypes>;
 
 interface CalculatedBin {
     domain: [number, number];
-    groupIndex: number;
+    /** Zero-based positional index of the bin within the series; defined for every bin, including empty ones. */
+    binIndex: number;
     datum: any[];
     frequency: number;
+    /** Bar height value; area-adjusted when areaPlot is enabled. */
     total: number;
+    /** Raw aggregated yKey value, independent of areaPlot. */
+    aggregatedValue: number;
 }
 
 interface HistogramSeriesNodeDataContext extends CartesianSeriesNodeDataContext<HistogramNodeDatum> {
@@ -124,11 +130,34 @@ interface HistogramSeriesNodeDatumContext extends CartesianCreateNodeDataContext
     readonly label: HistogramSeriesProperties['label'];
 }
 
+class HistogramSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends CartesianSeriesNodeEvent<TEvent> {
+    readonly binIndex: number;
+    readonly binRange: [number, number];
+    readonly aggregatedValue: number;
+    readonly frequency: number;
+
+    constructor(
+        type: TEvent,
+        nativeEvent: Event,
+        datum: HistogramNodeDatum,
+        series: HistogramSeries,
+        selectionState: PublicSelectionState | undefined
+    ) {
+        super(type, nativeEvent, datum, series, selectionState);
+        this.binIndex = datum.binIndex;
+        this.binRange = datum.binRange;
+        this.aggregatedValue = datum.aggregatedValue;
+        this.frequency = datum.frequency;
+    }
+}
+
 export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     static override readonly className = 'HistogramSeries';
     static readonly type = 'histogram' as const;
 
     override properties = new HistogramSeriesProperties();
+
+    protected override readonly NodeEvent = HistogramSeriesNodeEvent;
 
     constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
@@ -226,30 +255,26 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const visibleProps = visible ? {} : { forceValue: 0 };
 
         const props: PropertyDefinition<any>[] = [keyProperty(xKey, xScaleType), SORT_DOMAIN_GROUPS];
-        if (yKey) {
-            let aggProp: AggregatePropertyDefinition<any, any, any> = groupCount('groupAgg', { visible });
 
-            if (aggregation === 'count') {
-                // Nothing to do.
-            } else if (aggregation === 'sum') {
-                aggProp = groupSum('groupAgg', { visible });
-            } else if (aggregation === 'mean') {
-                aggProp = groupAverage('groupAgg', { visible });
-            }
-            if (areaPlot) {
-                aggProp = area('groupAgg', aggProp);
-            }
-            props.push(valueProperty(yKey, yScaleType, { invalidValue: undefined, ...visibleProps }), aggProp);
-        } else {
+        const makeAggregate = (id: string): AggregatePropertyDefinition<any, any, any> => {
+            if (yKey != null && aggregation === 'sum') return groupSum(id, { visible });
+            if (yKey != null && aggregation === 'mean') return groupAverage(id, { visible });
+            return groupCount(id, { visible });
+        };
+
+        if (yKey == null) {
             // Special property - data model needs at least one value property to perform grouping.
             props.push(rowCountProperty('count'));
+        } else {
+            props.push(valueProperty(yKey, yScaleType, { invalidValue: undefined, ...visibleProps }));
+        }
 
-            let aggProp = groupCount('groupAgg', { visible });
-
-            if (areaPlot) {
-                aggProp = area('groupAgg', aggProp);
-            }
-            props.push(aggProp);
+        // `groupAgg` drives the bar height and the y-axis domain; it is area-adjusted when areaPlot is on.
+        const heightAgg = makeAggregate('groupAgg');
+        props.push(areaPlot ? area('groupAgg', heightAgg) : heightAgg);
+        if (areaPlot) {
+            // areaPlot only affects rendering, so `aggregatedValue` uses un-adjusted `rawAgg`, not area-divided `groupAgg`.
+            props.push(makeAggregate('rawAgg'));
         }
 
         let calculatedBinDomains: [number, number][] = [];
@@ -302,18 +327,20 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             groups.set(createDatumId(...domain), { group, groupIndex });
         }
 
-        this.calculatedBins = calculatedBinDomains.map((domain): CalculatedBin => {
+        this.calculatedBins = calculatedBinDomains.map((domain, binIndex): CalculatedBin => {
             const g = groups.get(createDatumId(...domain));
 
             if (g) {
                 const { group, groupIndex } = g;
-                const [[negativeAgg, positiveAgg] = [0, 0]] = group.aggregation;
+                const [groupAgg = [0, 0], rawAgg] = group.aggregation;
                 const datum = [...dataModel.forEachDatum(this, processedData, group, groupIndex)];
                 const frequency = this.frequency(group);
-                const total = negativeAgg + positiveAgg;
-                return { domain, datum, groupIndex, frequency, total };
+                const total = groupAgg[0] + groupAgg[1];
+                // `aggregatedValue` ignores areaPlot's width-division (see `rawAgg` in processData).
+                const aggregatedValue = rawAgg ? rawAgg[0] + rawAgg[1] : total;
+                return { domain, datum, binIndex, frequency, total, aggregatedValue };
             } else {
-                return { domain, datum: [], groupIndex: -1, frequency: 0, total: 0 };
+                return { domain, datum: [], binIndex, frequency: 0, total: 0, aggregatedValue: 0 };
             }
         });
 
@@ -419,6 +446,12 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         };
     }
 
+    /** The standardised bin metadata passed to every histogram callback. */
+    private binParams(bin: CalculatedBin): AgHistogramSeriesBinParams<any> {
+        const { datum, binIndex, domain: binRange, aggregatedValue, frequency } = bin;
+        return { datum, binIndex, binRange, aggregatedValue, frequency };
+    }
+
     /**
      * Creates label data for a histogram bin if labels are enabled.
      */
@@ -441,8 +474,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             x: x + w / 2,
             y: y + h / 2,
             text: this.getLabelText<AgHistogramSeriesLabelFormatterParams>(total, datum, yKey!, 'y', [], label, {
+                ...this.binParams(bin),
                 value: total,
-                datum,
                 xKey,
                 yKey,
                 xName,
@@ -457,15 +490,22 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
      */
     private createSkeletonNodeDatum(ctx: HistogramSeriesNodeDatumContext, bin: CalculatedBin): HistogramNodeDatum {
         const { xKey, yKey } = ctx;
-        const { domain, datum, groupIndex, frequency, total } = bin;
+        const { domain: binRange, datum, binIndex, frequency, total, aggregatedValue } = bin;
+        const [binStart, binEnd] = binRange;
+        const { getDataId } = this.properties;
+        const customId = getDataId == null ? undefined : this.cachedCallWithContext(getDataId, this.binParams(bin));
+        const itemId = customId ?? `bin:${binStart},${binEnd}`;
 
         return {
             series: this,
-            datumIndex: groupIndex,
+            itemId,
+            datumIndex: binIndex,
             datum,
-            aggregatedValue: total,
+            binIndex,
+            binRange,
+            aggregatedValue,
+            cumulativeValue: total,
             frequency,
-            domain,
             yKey,
             xKey,
             x: 0,
@@ -490,10 +530,10 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
      */
     private updateNodeDatum(ctx: HistogramSeriesNodeDatumContext, node: HistogramNodeDatum, bin: CalculatedBin): void {
         const { xScale, yScale, yAxisReversed } = ctx;
-        const { domain, datum, groupIndex, frequency, total } = bin;
+        const { domain: binRange, datum, binIndex, frequency, total, aggregatedValue } = bin;
         const mutableNode = node as Mutable<HistogramNodeDatum>;
 
-        const [xDomainMin, xDomainMax] = domain;
+        const [xDomainMin, xDomainMax] = binRange;
         const xMinPx = xScale.convert(xDomainMin);
         const xMaxPx = xScale.convert(xDomainMax);
 
@@ -506,11 +546,13 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const y = Math.min(yZeroPx, yMaxPx);
 
         // Update properties
-        mutableNode.datumIndex = groupIndex;
+        mutableNode.datumIndex = binIndex;
         mutableNode.datum = datum;
-        mutableNode.aggregatedValue = total;
+        mutableNode.binIndex = binIndex;
+        mutableNode.aggregatedValue = aggregatedValue;
+        mutableNode.cumulativeValue = total;
         mutableNode.frequency = frequency;
-        mutableNode.domain = domain;
+        mutableNode.binRange = binRange;
         mutableNode.x = x;
         mutableNode.y = y;
         mutableNode.xValue = xMinPx;
@@ -608,7 +650,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         }
 
         return datumSelection.update(nodeData, undefined, (datum: HistogramNodeDatum) =>
-            createDatumId(...datum.domain)
+            createDatumId(...datum.binRange)
         );
     }
 
@@ -687,15 +729,21 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const { isHighlight = false } = opts;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const { xKey, yKey, xName, yName } = this.properties;
         opts.labelSelection.each((text, datum) => {
-            const style = getLabelStyles(
-                this,
-                datum,
-                this.properties,
-                this.properties.label,
-                isHighlight,
-                activeHighlight
-            );
+            const params: AgHistogramSeriesLabelFormatterParams = {
+                datum: datum.datum as any[],
+                binIndex: datum.binIndex,
+                binRange: datum.binRange,
+                aggregatedValue: datum.aggregatedValue,
+                frequency: datum.frequency,
+                value: datum.cumulativeValue,
+                xKey,
+                yKey,
+                xName,
+                yName,
+            };
+            const style = getLabelStyles(this, datum, params, this.properties.label, isHighlight, activeHighlight);
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (enabled && labelEnabled && datum?.label) {
                 text.text = datum.label.text;
@@ -743,19 +791,13 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             return;
         }
 
-        const group = processedData.groups[datumIndex];
-        const { aggregation, keys } = group;
-        const [[negativeAgg, positiveAgg] = [0, 0]] = aggregation;
-        const frequency = this.frequency(group);
-        const domain = keys;
-        const [rangeMin, rangeMax]: number[] = domain;
-        const aggregatedValue = negativeAgg + positiveAgg;
-        const datum: AgHistogramBinDatum<any> = {
-            data: [...dataModel.forEachDatum(this, processedData, group, datumIndex)],
-            aggregatedValue,
-            frequency,
-            domain: domain as any,
-        };
+        const bin = this.calculatedBins[datumIndex];
+        if (bin == null) {
+            return;
+        }
+        const { frequency, aggregatedValue, datum } = bin;
+        const binRange = bin.domain;
+        const [rangeMin, rangeMax]: number[] = binRange;
 
         const data: TooltipContentDataRow[] = [
             {
@@ -797,14 +839,12 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             },
             {
                 seriesId,
-                datum,
                 title: yName,
                 xKey: xKey as any, // HistogramSeries is an outlier since it's callbacks don't use TDatum.
                 xName,
                 yKey: yKey as any, // HistogramSeries is an outlier since it's callbacks don't use TDatum.
                 yName,
-                xRange: [rangeMin, rangeMax] satisfies [number, number],
-                frequency,
+                ...this.binParams(bin),
                 ...this.getItemStyle(datumIndex, false),
             }
         );
@@ -884,7 +924,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             this.ctx.animationManager,
             [data.datumSelection],
             fns,
-            (node) => createDatumId(...node.unsafeDatum.domain),
+            (node) => createDatumId(...node.unsafeDatum.binRange),
             dataDiff
         );
 

@@ -1,5 +1,4 @@
-import type { TextOrSegments } from 'ag-charts-types';
-
+import type { NormalisedTextOrSegments } from '../../types/normalised-options/normalisedCommonOptions';
 import type { Point, SizedPoint } from '../../types/scene';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
 
@@ -14,7 +13,7 @@ export type LabelPlacement =
     | 'bottom-right';
 
 export interface MeasuredLabel {
-    readonly text: TextOrSegments;
+    readonly text: NormalisedTextOrSegments;
     readonly width: number;
     readonly height: number;
 }

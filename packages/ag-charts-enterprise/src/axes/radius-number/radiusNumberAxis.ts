@@ -1,5 +1,11 @@
-import { type FormatterParams, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
-import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedRadiusNumberAxisOptions } from 'ag-charts-core';
+import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
+import type {
+    AxisID,
+    DomainWithMetadata,
+    DynamicContext,
+    NormalisedRadiusNumberAxisOptions,
+    NormalisedTextOrSegments,
+} from 'ag-charts-core';
 import { normalisedExtentWithMetadata } from 'ag-charts-core';
 
 import { RadiusAxis } from '../radius/radiusAxis';
@@ -8,7 +14,7 @@ const { LinearScale } = _ModuleSupport;
 interface TickDatum {
     tick: any;
     tickId: string;
-    tickLabel: TextOrSegments | undefined;
+    tickLabel: NormalisedTextOrSegments | undefined;
     translation: number;
 }
 

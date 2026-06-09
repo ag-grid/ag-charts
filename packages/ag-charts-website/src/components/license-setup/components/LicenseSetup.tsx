@@ -158,7 +158,7 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework }) =
                     </p>
 
                     {dependenciesSnippet && (
-                        <Snippet framework={framework} content={dependenciesSnippet} copyToClipboard />
+                        <Snippet shiki={true} framework={framework} content={dependenciesSnippet} copyToClipboard />
                     )}
 
                     <Note>
@@ -170,7 +170,13 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework }) =
                     <p>Or install using npm:</p>
 
                     {npmInstallSnippet && (
-                        <Snippet framework={framework} content={npmInstallSnippet} language="bash" copyToClipboard />
+                        <Snippet
+                            shiki={true}
+                            framework={framework}
+                            content={npmInstallSnippet}
+                            language="bash"
+                            copyToClipboard
+                        />
                     )}
 
                     <h3 id="set-up-your-application">
@@ -195,6 +201,7 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework }) =
                         framework={framework}
                         content={bootstrapSnippet[library as keyof typeof bootstrapSnippet]}
                         copyToClipboard
+                        shiki={true}
                     />
                 </div>
             </form>

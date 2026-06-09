@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
+import type { SeriesNodeDatum } from './seriesTypes';
 import { findNodeDatumInArray } from './util';
 
-type TestNode = SeriesNodeDatum<DatumIndexType>;
+type TestNode = SeriesNodeDatum;
 
 function mockNode(overrides: Partial<TestNode> & { datum?: unknown; datumIndex?: any }): TestNode {
     return {

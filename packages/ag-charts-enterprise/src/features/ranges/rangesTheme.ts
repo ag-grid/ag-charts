@@ -1,4 +1,10 @@
-import type { AgRangesButtonStyles, AgRangesOptions, AgRangesStateStyles, WithThemeParams } from 'ag-charts-community';
+import type {
+    AgRangesButtonStyles,
+    AgRangesButtonValueFunctionParams,
+    AgRangesOptions,
+    AgRangesStateStyles,
+    WithThemeParams,
+} from 'ag-charts-community';
 import { FONT_SIZE_RATIO } from 'ag-charts-core';
 
 const DAY = 1000 * 60 * 60 * 24;
@@ -106,7 +112,7 @@ export const rangesTheme: WithThemeParams<AgRangesOptions> = {
             {
                 label: 'toolbarRangeYearToDate',
                 ariaLabel: 'toolbarRangeYearToDateAria',
-                value: (_start: Date | number, end: Date | number) => [
+                value: ({ end }: AgRangesButtonValueFunctionParams) => [
                     new Date(`${new Date(end).getFullYear()}-01-01`).getTime(),
                     undefined,
                 ],

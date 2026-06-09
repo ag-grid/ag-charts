@@ -315,6 +315,10 @@ export class UnitTimeScale extends DiscreteTimeScale {
      * Optimized convert for UnitTimeScale with O(1) boundary checks.
      * Uses linear params for fast bounds checking while delegating actual
      * conversion to parent for accuracy in edge cases.
+     *
+     * Out-of-bounds values are linearly extrapolated rather than dropped, so
+     * line/area series draw a connecting segment to the axis edge (clipped by
+     * the canvas) when an explicit min/max is set — matching the `time` axis.
      */
     override convert(value: Date, options?: { clamp?: boolean; alignment?: ScaleAlignment }): number {
         this.refresh();
@@ -329,7 +333,12 @@ export class UnitTimeScale extends DiscreteTimeScale {
             const boundaries = this.getDomainBoundaries();
             if (boundaries != null) {
                 const t = value.valueOf();
-                if (t < boundaries.d0 || t >= boundaries.dNext) return Number.NaN;
+                if (t < boundaries.d0 || t >= boundaries.dNext) {
+                    // Extrapolate via the parent's linear-interpolation path. Undefined
+                    // when there are fewer than two bands — fall back to NaN (the
+                    // datum is dropped, as before).
+                    return super.convert(value, { ...options, alignment: ScaleAlignment.Interpolate });
+                }
             }
         }
 

@@ -6,6 +6,7 @@ import type {
     AgGradientLegendScaleOptions,
     BorderOptions,
     ContextDefault,
+    CssColor,
     Padding,
 } from 'ag-charts-types';
 
@@ -21,8 +22,8 @@ import type { Normalised } from './normalise';
  */
 export type NormalisedGradientLegendLabelOptions<TContext = ContextDefault> = Normalised<
     AgGradientLegendLabelOptions<TContext>,
-    'color' | 'fontSize' | 'fontFamily' | 'fontWeight' | 'minSpacing',
-    { fontFamily: string }
+    'fontSize' | 'fontFamily' | 'fontWeight' | 'minSpacing',
+    { color: CssColor; fontFamily: string }
 >;
 
 /**
