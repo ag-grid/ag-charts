@@ -1,6 +1,5 @@
 import type {
     AgBarHighlightStyleOptions,
-    AgColorRef,
     AgColorRefMixOnto,
     AgColorScale,
     AgColorScaleColorStop,
@@ -66,7 +65,7 @@ export const themeOperator = (value: unknown) => {
 };
 
 // Validator for public theme operators.
-const themeParams = union(
+const themeParams = [
     'accentColor',
     'axisColor',
     'backgroundColor',
@@ -107,21 +106,21 @@ const themeParams = union(
     'tooltipSubtleTextColor',
     'crosshairLabelBackgroundColor',
     'crosshairLabelTextColor',
-    'separationLinesColor'
-);
-export const colorRef = attachDescription(
-    or(
-        optionsDefs<AgColorRefMixOnto>({
-            ref: required(themeParams),
-            mix: required(ratio),
-            // `onto` is required, but making it optional improves the warning message, and the case of mix being
-            // required with it is still handled.
-            onto: themeParams,
-        }),
-        optionsDefs<AgColorRef>({ ref: required(themeParams), mix: ratio })
-    ),
+    'separationLinesColor',
+];
+const themeParamsValidator = union(...themeParams);
+const colorRefDef = attachDescription(
+    optionsDefs<AgColorRefMixOnto>({
+        ref: themeParamsValidator,
+        mix: ratio,
+        onto: themeParamsValidator,
+    }),
     'a color ref'
 );
+const colorRefMixOnto = attachDescription((value: unknown) => {
+    return !isObject(value) || !('onto' in value) || 'mix' in value;
+}, 'where a color ref with [onto] must also have [mix]');
+const colorRef = and(colorRefDef, colorRefMixOnto);
 export const colorOrRef = or(color, colorRef);
 
 const colorStop = optionsDefs<AgGradientColorStop>({ color: colorOrRef, stop: ratio }, '');
