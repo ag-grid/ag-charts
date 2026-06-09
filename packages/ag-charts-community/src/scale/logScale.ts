@@ -70,7 +70,7 @@ export class LogScale extends ContinuousScale<number> {
         if (domain.length < 2) return [];
 
         // Log scales narrow bigint to Number (AC #9); generateTicks passes the raw dataDomain here before the
-        // scale's setter narrows it, so a bigint endpoint would otherwise throw under Math.min/Math.log.
+        // scale's setter narrows it, so a bigint endpoint would otherwise throw under Math.log/Math.floor.
         domain = domain.map(Number);
 
         const { base } = this;

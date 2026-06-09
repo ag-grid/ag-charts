@@ -127,7 +127,7 @@ export abstract class ContinuousScale<D extends number | bigint | Date, I = numb
         // Use cached domain values to avoid valueOf() calls
         let d0: number = this.d0Cache;
         let d1: number = this.d1Cache;
-        // A bigint reaching here is on a transform (log/time) scale and narrows to Number (AC #9).
+        // A bigint reaching here has no exact bigint domain (or is on a transform scale) and narrows to Number.
         let x: number;
         if (typeof value === 'number') {
             x = value;

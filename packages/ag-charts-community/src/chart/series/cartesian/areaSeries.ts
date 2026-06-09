@@ -668,7 +668,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                 if (invalidData?.[datumIndex]) continue;
 
                 const yValue = yValues[datumIndex];
-                // isContinuous accepts bigint where Number.isFinite would drop a value beyond Number.MAX_VALUE.
+                // isContinuous accepts any bigint; Number.isFinite rejects every bigint (it never coerces them).
                 if (!isContinuous(yValue)) continue;
 
                 const xDatum = xValues[datumIndex];
@@ -738,7 +738,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             }
 
             const yValue = yValues[datumIndex];
-            // isContinuous accepts bigint where Number.isFinite would drop a value beyond Number.MAX_VALUE.
+            // isContinuous accepts any bigint; Number.isFinite rejects every bigint (it never coerces them).
             if (!isContinuous(yValue)) {
                 return true;
             }

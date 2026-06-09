@@ -487,7 +487,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
         const currentSpanPoints = ctx.spanPoints.at(-1);
 
-        // isContinuous accepts bigint where Number.isFinite would drop a value beyond Number.MAX_VALUE.
+        // isContinuous accepts any bigint; Number.isFinite rejects every bigint (it never coerces them).
         if (isContinuous(scratch.yHighValue) && isContinuous(scratch.yLowValue)) {
             scratch.inverted = scratch.yLowValue > scratch.yHighValue;
             scratch.x = ctx.xScale.convert(scratch.xValue) + ctx.xOffset;
@@ -548,7 +548,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         endIndex: number
     ): boolean {
         for (let i = startIndex; i <= endIndex; i++) {
-            // isContinuous accepts bigint where Number.isFinite would drop a value beyond Number.MAX_VALUE.
+            // isContinuous accepts any bigint; Number.isFinite rejects every bigint (it never coerces them).
             if (!isContinuous(yHighValues[i]) || !isContinuous(yLowValues[i])) {
                 return true;
             }

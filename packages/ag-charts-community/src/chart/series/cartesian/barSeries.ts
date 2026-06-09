@@ -631,7 +631,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             barWidth,
             range,
             yReversed: yAxis.isReversed(),
-            // 0n so a bigint y-domain takes the full-precision convert() path; a numeric 0 against it yields NaN.
+            // 0n keeps a bigint y-domain on the full-precision convert() path (a numeric 0 narrows to Number).
             bboxBottom: yScale.convert(0n),
             labelSpacing: label.spacing + (typeof label.padding === 'number' ? label.padding : 0),
             crisp:
@@ -676,7 +676,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         yStart: AgNumericValue,
         yEnd: AgNumericValue
     ): PreparedBarNodeDatumState | undefined {
-        // isContinuous accepts bigint where Number.isFinite would drop a value beyond Number.MAX_VALUE.
+        // isContinuous accepts any bigint; Number.isFinite rejects every bigint (it never coerces them).
         if (!isContinuous(yEnd)) {
             return undefined;
         }
@@ -836,8 +836,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const cumulativeValue = phantom ? prepared.yFilterValue! : (prepared.yFilterValue ?? Number(params.yEnd));
         const nodeLabelText = phantom ? undefined : prepared.labelText;
 
-        // Stay in domain space (possibly bigint) so yScale.convert() positions proportionally; the cross-filter
-        // branch recombines in Number space, so a bigint baseline beyond MAX_VALUE degrades there rather than throws.
+        // Non-filtered: params.yEnd stays in domain space (possibly bigint) for a full-precision convert().
+        // Cross-filter: yFilterValue is already Number-narrowed, so yStart narrows here too and currY is Number.
         let currY: AgNumericValue;
         if (phantom || prepared.yFilterValue == null) {
             currY = params.yEnd;
@@ -1072,8 +1072,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 const yRawValue = ctx.yRawValues[datumIndex];
                 if (yRawValue == null) continue;
                 const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
-                // Pass raw (possibly bigint) bounds through; the baseline must match the value type (0n for
-                // bigint) or convert() yields NaN against a bigint domain.
+                // Pass raw (possibly bigint) bounds through; zeroLike() matches the baseline to the value type
+                // (0n for bigint) so it shares the value's full-precision convert() path.
                 const baseline = zeroLike(yRawValue);
                 const yStart = ctx.isStacked ? (ctx.yStartValues?.[datumIndex] ?? baseline) : baseline;
                 const yEnd = ctx.isStacked ? ctx.yEndValues?.[datumIndex] : yRawValue;
@@ -1128,7 +1128,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             nodeDatumParamsScratch.datumIndex = datumIndex;
             nodeDatumParamsScratch.x = x;
             nodeDatumParamsScratch.width = width;
-            // 0n baseline for a bigint value so convert() takes the bigint path; a numeric 0 against it yields NaN.
+            // zeroLike() so a bigint value's baseline stays bigint and shares its full-precision convert() path.
             nodeDatumParamsScratch.yStart = zeroLike(yEnd);
             nodeDatumParamsScratch.yEnd = yEnd;
             nodeDatumParamsScratch.yRange = yEnd;

@@ -476,7 +476,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const rawLowValue = ctx.yLowValues[datumIndex];
         const rawHighValue = ctx.yHighValues[datumIndex];
 
-        // isContinuous accepts bigint where Number.isFinite would drop a value beyond Number.MAX_VALUE.
+        // isContinuous accepts any bigint; Number.isFinite rejects every bigint (it never coerces them).
         if (!isContinuous(rawLowValue) || !isContinuous(rawHighValue)) return undefined;
 
         const [yLowValue, yHighValue] =

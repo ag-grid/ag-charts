@@ -94,7 +94,7 @@ export class MementoCaretaker {
             return { __type: 'date', value: this[key].toISOString() };
         }
         if (typeof this[key] === 'bigint') {
-            // Encode as a base-10 string; JSON numbers cannot represent bigints beyond 2^53 without precision loss.
+            // Encode as a base-10 string; JSON numbers (doubles) lose integer precision beyond ±(2^53 - 1).
             return { __type: 'bigint', value: this[key].toString() };
         }
         return value;

@@ -608,7 +608,6 @@ function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailin
                         const isBigInt = typeof currentVal === 'bigint';
                         if (!isBigInt && !isFiniteNumber(currentVal)) continue;
 
-                        // isNegative() uses Math.sign(), which throws on bigint — compare directly.
                         const useNegative = separateNegative && (isBigInt ? currentVal < 0n : isNegative(currentVal));
                         const accValue = useNegative ? stackNegative : stackPositive;
                         if (mode === 'normal') {

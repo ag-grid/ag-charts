@@ -125,7 +125,7 @@ function updateColumnTypeTracker(
         }
         tracker.type = 'date';
     } else if (isNumericColumnType(tracker.type) && isNumericColumnType(observed)) {
-        // Mixed number/bigint narrows bigints to Number (lossy beyond ±2^53); warned once at series level.
+        // Mixed number/bigint narrows bigints to Number (lossy beyond ±(2^53 - 1)); warned once at series level.
         tracker.mixedAtIndex ??= datumIndex;
         tracker.type = 'mixed-numeric';
     }
@@ -519,7 +519,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
         Logger.warnOnce(
             `Series "${seriesId}": column "${String(key)}" mixes 'number' and 'bigint' values ` +
                 `(first detected at row ${atIndex}); the bigints are narrowed to Number and may lose precision ` +
-                `beyond ±2^53. Use one numeric type per column.`
+                `beyond ±(2^53 - 1) (Number.MAX_SAFE_INTEGER). Use one numeric type per column.`
         );
     }
 

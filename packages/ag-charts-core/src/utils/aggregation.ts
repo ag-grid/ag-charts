@@ -121,7 +121,8 @@ const offsetNumericColumnCache = new WeakMap<readonly unknown[], { offset: bigin
  * {@link narrowBigIntColumnRelative} (which subtracts the column's own minimum), the caller supplies the
  * offset so a column and its domain can be narrowed against the SAME origin — required when the narrowed
  * values are bucketed against a narrowed domain (see {@link narrowAggregationX}).
- * @returns the input `values` unchanged when the column holds no bigint and `offset` is zero.
+ * @returns a new array with bigint entries narrowed to Number (offset subtracted); cached per input array,
+ * so a repeat call with the same offset reuses the prior result.
  */
 export function narrowBigIntColumnByOffset(values: any[], offset: bigint): any[] {
     const cached = offsetNumericColumnCache.get(values);
