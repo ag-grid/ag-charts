@@ -1,5 +1,6 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
+import { getDocument } from 'ag-charts-core';
 import type { AgBaseChartThemeOptions, AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
@@ -1169,6 +1170,107 @@ describe('CartesianAxis', () => {
             expect(labelNodes.length).toBeGreaterThan(0);
             const truncatedNodes = labelNodes.filter((node: any) => node.datum.textUntruncated != null);
             expect(truncatedNodes.length).toBeGreaterThan(0);
+        });
+    });
+
+    // At a fractional DPR a resizing axis must not oscillate; a sawtooth position is the 1px jitter.
+    describe('axis position stability at fractional DPR', () => {
+        const PIXEL_RATIO = 2.2;
+
+        let container: HTMLElement;
+
+        beforeEach(() => {
+            container = getDocument().createElement('div');
+            getDocument().body.append(container);
+        });
+
+        afterEach(() => container.remove());
+
+        // Drive the auto-size path; explicit width/height would short-circuit the device-pixel offset.
+        const resizeTo = async (chartInstance: any, width: number, height: number) => {
+            chartInstance.ctx.domManager.containerSize = { width, height, pixelRatio: PIXEL_RATIO };
+            chartInstance.ctx.eventsHub.emit('dom:resize', null);
+            await waitForChartStability(chart);
+        };
+
+        const createAutoSizedChart = () => {
+            const options: AgCartesianChartOptions = {
+                container,
+                data: [
+                    { x: 'A', y: 1 },
+                    { x: 'B', y: 4 },
+                    { x: 'C', y: 2 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            };
+            chart = AgCharts.create(options);
+            return deproxy(chart as any) as any;
+        };
+
+        it('keeps the bottom axis Y position fixed as the container width grows', async () => {
+            const chartInstance = createAutoSizedChart();
+
+            const positions = new Set<number>();
+            for (let width = 300; width <= 320; width++) {
+                await resizeTo(chartInstance, width, 200);
+                const bottomAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
+                positions.add(bottomAxis.translation.y);
+            }
+
+            expect(positions.size).toBe(1);
+        });
+
+        it('keeps the left axis X position fixed as the container height grows', async () => {
+            const chartInstance = createAutoSizedChart();
+
+            const positions = new Set<number>();
+            for (let height = 300; height <= 320; height++) {
+                await resizeTo(chartInstance, 400, height);
+                const leftAxis = chartInstance.axes.find((axis: any) => axis.position === 'left');
+                positions.add(leftAxis.translation.x);
+            }
+
+            expect(positions.size).toBe(1);
+        });
+
+        // Resizing along the axis's own depth direction moves it monotonically; a reversal is the jitter.
+        const directionReversals = (sequence: number[]) => {
+            let reversals = 0;
+            let previousDirection = 0;
+            for (let i = 1; i < sequence.length; i++) {
+                const direction = Math.sign(Math.round((sequence[i] - sequence[i - 1]) * 1000));
+                if (direction !== 0) {
+                    if (previousDirection !== 0 && direction !== previousDirection) reversals++;
+                    previousDirection = direction;
+                }
+            }
+            return reversals;
+        };
+
+        it('moves the left axis X position monotonically as the container width grows', async () => {
+            const chartInstance = createAutoSizedChart();
+
+            const positions: number[] = [];
+            for (let width = 300; width <= 320; width++) {
+                await resizeTo(chartInstance, width, 200);
+                const leftAxis = chartInstance.axes.find((axis: any) => axis.position === 'left');
+                positions.push(leftAxis.translation.x);
+            }
+
+            expect(directionReversals(positions)).toBe(0);
+        });
+
+        it('moves the bottom axis Y position monotonically as the container height grows', async () => {
+            const chartInstance = createAutoSizedChart();
+
+            const positions: number[] = [];
+            for (let height = 300; height <= 320; height++) {
+                await resizeTo(chartInstance, 400, height);
+                const bottomAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
+                positions.push(bottomAxis.translation.y);
+            }
+
+            expect(directionReversals(positions)).toBe(0);
         });
     });
 });

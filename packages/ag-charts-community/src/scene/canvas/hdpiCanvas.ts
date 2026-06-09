@@ -1,3 +1,4 @@
+import { deviceDimension } from '../util/pixel';
 import { clearContext, debugContext } from './canvasUtil';
 
 // Work-around for typing issues with Angular 13+ (see AG-6969),
@@ -37,8 +38,8 @@ export class HdpiCanvas {
         this.element.style.display = 'block';
         this.element.style.width = (width ?? this.width) + 'px';
         this.element.style.height = (height ?? this.height) + 'px';
-        this.element.width = Math.round((width ?? this.width) * this.pixelRatio);
-        this.element.height = Math.round((height ?? this.height) * this.pixelRatio);
+        this.element.width = deviceDimension(this.pixelRatio, width ?? this.width);
+        this.element.height = deviceDimension(this.pixelRatio, height ?? this.height);
 
         this.context = this.element.getContext('2d', { willReadFrequently })!;
         this.context.direction = this.direction;
@@ -63,8 +64,8 @@ export class HdpiCanvas {
         if (!(width > 0 && height > 0)) return;
 
         const { element, context } = this;
-        element.width = Math.round(width * pixelRatio);
-        element.height = Math.round(height * pixelRatio);
+        element.width = deviceDimension(pixelRatio, width);
+        element.height = deviceDimension(pixelRatio, height);
         context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
         element.style.width = width + 'px';

@@ -413,6 +413,42 @@ describe('DOMManager', () => {
         });
     });
 
+    describe('canvas-center sizing at fractional DPR', () => {
+        const centerSize = (dm: DOMManager) => {
+            const center = dm.getParent('canvas-center').style;
+            return { width: center.width, height: center.height };
+        };
+
+        it('floors a fractional container size so the observed subtree matches the floored canvas size', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
+
+            // A fractional content-box arrives at fractional zoom (e.g. 110% → DPR 1.1).
+            dm.containerSize = { width: 108.9, height: 99.9, pixelRatio: 1.1 };
+            (dm as any).updateContainerSize();
+
+            // canvas-center must match the floored canvas size, else the observer ping-pongs by 1px.
+            expect(centerSize(dm)).toEqual({ width: '108px', height: '99px' });
+        });
+
+        it('keeps canvas-center size stable across the float jitter ResizeObserver reports while dragging', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
+
+            // The observer reports sub-pixel values straddling an integer while dragging; the applied size must not oscillate.
+            const heights: string[] = [];
+            for (const reported of [99.9, 99.4, 99.7, 99.2, 99.8]) {
+                dm.containerSize = { width: 200, height: reported, pixelRatio: 1.1 };
+                (dm as any).updateContainerSize();
+                heights.push(dm.getParent('canvas-center').style.height);
+            }
+
+            expect(new Set(heights)).toEqual(new Set(['99px']));
+        });
+    });
+
     describe('destroy()', () => {
         it('removes children it owns but leaves a transferred (re-homed) child intact', () => {
             const container = doc.createElement('div');

@@ -385,8 +385,9 @@ export class DOMManager extends BaseManager {
 
     private updateContainerSize() {
         const visibility = this.containerSize == null ? 'hidden' : '';
-        const width = this.containerSize ? `${this.containerSize.width ?? 0}px` : '';
-        const height = this.containerSize ? `${this.containerSize.height ?? 0}px` : '';
+        // Floor to the canvas's integer render size; a fractional size ping-pongs the ResizeObserver by 1px.
+        const width = this.containerSize ? `${Math.floor(this.containerSize.width ?? 0)}px` : '';
+        const height = this.containerSize ? `${Math.floor(this.containerSize.height ?? 0)}px` : '';
 
         const last = this._lastCenterSize;
         if (last?.visibility !== visibility || last?.width !== width || last?.height !== height) {

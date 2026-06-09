@@ -1,10 +1,18 @@
 const HALF_PIXEL_EPSILON = 1e-8;
 
-function roundToDevicePixel(pixelRatio: number, value: number) {
+/**
+ * Round `value * pixelRatio` to a whole device pixel, nudging exact half-pixel ties up so tiny
+ * floating-point jitter near a `.5` boundary does not flip the result ±1px across recomputations.
+ */
+export function deviceDimension(pixelRatio: number, value: number) {
     const scaled = value * pixelRatio;
     const fractional = scaled - Math.floor(scaled);
     const stable = Math.abs(fractional - 0.5) < HALF_PIXEL_EPSILON ? scaled + HALF_PIXEL_EPSILON : scaled;
-    return Math.round(stable) / pixelRatio;
+    return Math.round(stable);
+}
+
+function roundToDevicePixel(pixelRatio: number, value: number) {
+    return deviceDimension(pixelRatio, value) / pixelRatio;
 }
 
 export function align(pixelRatio: number, start: number, length?: number) {
