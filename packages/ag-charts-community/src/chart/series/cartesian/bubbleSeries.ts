@@ -9,11 +9,9 @@ import {
     type PlacedLabel,
     type Point,
     type RequireOptional,
-    type Scale,
     type SizedPoint,
     cachedTextMeasurer,
     clamp,
-    clampArray,
     dateToNumber,
     extent,
     findDiscreteColorBinLabel,
@@ -33,6 +31,7 @@ import {
     type AgBubbleSeriesStylerResult,
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
+    type AgNumericValue,
     type AgScatterSeriesItemStylerParams,
     type AgScatterSeriesStylerParams,
     type AgScatterSeriesStylerResult,
@@ -230,7 +229,7 @@ interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<Bubble
     readonly colorDataValues: number[] | undefined;
 
     // Additional scale (size is BubbleSeries-specific)
-    readonly sizeScale: Scale<any, number>;
+    readonly sizeScale: ContinuousScale<AgNumericValue>;
 
     // Property lookups (BubbleSeries-specific)
     readonly sizeKey: string | undefined;
@@ -393,35 +392,23 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         return this.colorScaleValid;
     }
 
-    override xCoordinateRange(xValue: any, pixelSize: number, index: number): [number, number] {
+    private resolveScaledSize(index: number): number {
         const { properties, sizeScale } = this;
         const { sizeKey, marker } = properties;
+        if (sizeKey == null) return marker.size;
+        const sizeValues = this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!, 'number');
+        return sizeScale.convertClamped(sizeValues[index]);
+    }
+
+    override xCoordinateRange(xValue: any, pixelSize: number, index: number): [number, number] {
         const x = this.axes[ChartAxisDirection.X]!.scale.convert(xValue);
-        const sizeValues =
-            sizeKey == null
-                ? undefined
-                : this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!, 'number');
-        const sizeValue =
-            sizeValues == null
-                ? marker.size
-                : sizeScale.convert(clampArray(sizeValues[index], sizeScale.domain as readonly number[]));
-        const r = 0.5 * sizeValue * pixelSize;
+        const r = 0.5 * this.resolveScaledSize(index) * pixelSize;
         return [x - r, x + r];
     }
 
     override yCoordinateRange(yValues: any[], pixelSize: number, index: number): [number, number] {
-        const { properties, sizeScale } = this;
-        const { sizeKey, marker } = properties;
         const y = this.axes[ChartAxisDirection.Y]!.scale.convert(yValues[0]);
-        const sizeValues =
-            sizeKey == null
-                ? undefined
-                : this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!, 'number');
-        const sizeValue =
-            sizeValues == null
-                ? marker.size
-                : sizeScale.convert(clampArray(sizeValues[index], sizeScale.domain as readonly number[]));
-        const r = 0.5 * sizeValue * pixelSize;
+        const r = 0.5 * this.resolveScaledSize(index) * pixelSize;
         return [y - r, y + r];
     }
 
@@ -831,10 +818,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         }
 
         // Compute marker size
-        const markerSize =
-            sizeValue == null
-                ? ctx.sizeScale.range[0]
-                : ctx.sizeScale.convert(clampArray(sizeValue, ctx.sizeScale.domain));
+        const markerSize = sizeValue == null ? ctx.sizeScale.range[0] : ctx.sizeScale.convertClamped(sizeValue);
 
         const colorValue = ctx.colorDataValues?.[datumIndex];
 
@@ -1634,12 +1618,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             stylerResult = resolved ?? {};
         }
 
-        // Bubble exposes the scale floor as `minSize`; scatter exposes the fixed size as `size`. Both
-        // resolve to the shared `marker.size` backing field, discriminated by `this.type`.
-        const floorOverride =
-            this.type === 'bubble'
-                ? (stylerResult as AgBubbleSeriesStylerResult).minSize
-                : (stylerResult as AgScatterSeriesStylerResult).size;
+        const floorOverride = this.getSizeFloorOverride(stylerResult);
 
         return {
             fill: stylerResult.fill ?? properties.fill!,
@@ -1653,6 +1632,14 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             strokeOpacity: stylerResult.strokeOpacity ?? properties.strokeOpacity,
             strokeWidth: stylerResult.strokeWidth ?? properties.strokeWidth,
         };
+    }
+
+    // Bubble and scatter share the `marker.size` backing field but expose it under different styler keys:
+    // bubble as the scale floor `minSize`, scatter as the fixed `size`. Subclasses override to pick their key.
+    protected getSizeFloorOverride(
+        stylerResult: AgBubbleSeriesStylerResult | AgScatterSeriesStylerResult
+    ): number | undefined {
+        return (stylerResult as AgBubbleSeriesStylerResult).minSize;
     }
 
     public getSizeRange(): [number, number] {

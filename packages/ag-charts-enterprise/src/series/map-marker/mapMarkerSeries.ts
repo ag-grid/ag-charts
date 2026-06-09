@@ -13,7 +13,6 @@ import {
     type SizedPoint,
     StateMachine,
     cachedTextMeasurer,
-    clampArray,
     findDiscreteColorBinLabel,
     formatValue,
     mergeDefaults,
@@ -451,9 +450,7 @@ export class MapMarkerSeries
     }
 
     private calculateMarkerSize(sizeValue: number | undefined): number {
-        return sizeValue == null
-            ? this.properties.size
-            : this.sizeScale.convert(clampArray(sizeValue, this.sizeScale.domain as readonly number[]));
+        return sizeValue == null ? this.properties.size : this.sizeScale.convertClamped(sizeValue);
     }
 
     private buildNodeDatum(
@@ -810,7 +807,7 @@ export class MapMarkerSeries
         }
 
         if (sizeValue != null) {
-            baseStyle.size = sizeScale.convert(clampArray(sizeValue, sizeScale.domain as readonly number[]));
+            baseStyle.size = sizeScale.convertClamped(sizeValue);
         }
 
         let style = baseStyle;

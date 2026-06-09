@@ -70,8 +70,8 @@ export interface AgMapMarkerSeriesStyle extends FillOptions, StrokeOptions, Line
     /** The shape to use for the markers. You can also supply a custom marker by providing a `AgMarkerShapeFn` function. */
     shape?: AgMarkerShape;
     /**
-     * The size in pixels of the markers. When `sizeKey` is present this is the fixed size used for the
-     * no-`sizeKey` case only; the scale lower bound is controlled by `minSize` instead.
+     * The size in pixels of the markers. Used as the fixed marker size only when `sizeKey` is absent; when
+     * `sizeKey` is present the scale lower bound is controlled by `minSize` instead.
      */
     size?: PixelSize;
 }

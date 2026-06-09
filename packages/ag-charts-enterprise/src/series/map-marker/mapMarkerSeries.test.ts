@@ -774,6 +774,35 @@ describe('MapMarkerSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
 
+        it('clamps reversed-sizeDomain out-of-domain values to minSize, not maxSize (TC2)', async () => {
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                series: [
+                    { type: 'map-shape-background' },
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        sizeKey: 'population',
+                        // Reversed domain: larger sizeKey values map to smaller markers. Every population value
+                        // exceeds the domain, so they clamp to its high end (100), which maps to minSize.
+                        sizeDomain: [100, 0],
+                        minSize: 10,
+                        maxSize: 40,
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const markerSizes: number[] = chart.series[1].contextNodeData?.nodeData.map((d: any) => d.point.size);
+            expect(markerSizes.length).toBeGreaterThan(0);
+            // Directional clamp maps out-of-domain-high values to minSize (10); the non-directional
+            // convert({ clamp: true }) would have mapped them to maxSize (40).
+            expect([...new Set(markerSizes)]).toEqual([10]);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
         it('ignores minSize and uses size as the fixed marker size when sizeKey is absent (AC11)', async () => {
             const options: AgChartOptions = {
                 ...SIMPLIFIED_EXAMPLE,

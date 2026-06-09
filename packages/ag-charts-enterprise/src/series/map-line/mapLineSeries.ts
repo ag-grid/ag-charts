@@ -12,7 +12,6 @@ import {
     Logger,
     type Point,
     cachedTextMeasurer,
-    clampArray,
     findDiscreteColorBinLabel,
     formatValue,
     mergeDefaults,
@@ -507,7 +506,7 @@ export class MapLineSeries
         const style = mergeDefaults(selectionStyle, highlightStyle, baseStyle);
 
         if (sizeValue != null) {
-            style.strokeWidth = sizeScale.convert(clampArray(sizeValue, sizeScale.domain as readonly number[]));
+            style.strokeWidth = sizeScale.convertClamped(sizeValue);
         }
 
         let overrides;

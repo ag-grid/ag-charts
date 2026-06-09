@@ -108,6 +108,12 @@ const POSITION_DIRECTIONS = {
     right: ChartAxisDirection.Y,
 };
 
+const SIZE_BOUND_KEYS: Record<string, [min: string, max: string]> = {
+    bubble: ['minSize', 'maxSize'],
+    'map-marker': ['minSize', 'maxSize'],
+    'map-line': ['minStrokeWidth', 'maxStrokeWidth'],
+};
+
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     public static readonly OPTIONS_CLONE_OPTS_SLOW: CloneOptions = {
         shallow: new Set(['data', 'container']),
@@ -698,12 +704,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     // When the user explicitly sets both size bounds inverted (min > max), warn and drop both so theme
     // defaults re-apply. A single bound is resolved at render time (min is authoritative) and is not checked here.
     private validateSizeBounds(series: SeriesOptionsTypes) {
-        const sizeBoundKeys: Record<string, [min: string, max: string]> = {
-            bubble: ['minSize', 'maxSize'],
-            'map-marker': ['minSize', 'maxSize'],
-            'map-line': ['minStrokeWidth', 'maxStrokeWidth'],
-        };
-        const keys = sizeBoundKeys[series.type];
+        const keys = SIZE_BOUND_KEYS[series.type];
         if (keys == null) return;
 
         const [minKey, maxKey] = keys;
