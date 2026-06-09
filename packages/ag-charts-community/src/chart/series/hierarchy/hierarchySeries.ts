@@ -1,5 +1,15 @@
 import type { ChartAnimationPhase, DynamicContext } from 'ag-charts-core';
-import { Logger, type Point, StateMachine, arraysEqual, clamp, mergeDefaults } from 'ag-charts-core';
+import {
+    Logger,
+    type Point,
+    StateMachine,
+    arraysEqual,
+    clamp,
+    isFiniteNumericValue,
+    isNumericValue,
+    mergeDefaults,
+    toNumber,
+} from 'ag-charts-core';
 import type { AgActiveItemState, FillOptions, StrokeOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
@@ -201,9 +211,10 @@ export abstract class HierarchySeries<
             const children = childrenKey == null ? undefined : datum[childrenKey];
             const isLeaf = children == null || children.length === 0;
 
+            // Accept bigint sizes (coerced to Number) so out-of-safe-range integers still drive tile area.
             let sizeValue = sizeKey == null ? undefined : datum[sizeKey];
-            if (Number.isFinite(sizeValue)) {
-                sizeValue = Math.max(sizeValue, 0);
+            if (isFiniteNumericValue(sizeValue)) {
+                sizeValue = Math.max(toNumber(sizeValue), 0);
             } else {
                 sizeValue = isLeaf ? 1 : 0;
             }
@@ -211,8 +222,9 @@ export abstract class HierarchySeries<
             const sumSize = sizeValue;
             maxDepth = Math.max(maxDepth, depth);
 
-            const colorValue = colorKey == null ? undefined : datum[colorKey];
-            if (typeof colorValue === 'number') {
+            let colorValue = colorKey == null ? undefined : datum[colorKey];
+            if (isNumericValue(colorValue)) {
+                colorValue = toNumber(colorValue);
                 minColor = Math.min(minColor, colorValue);
                 maxColor = Math.max(maxColor, colorValue);
             }
