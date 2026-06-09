@@ -747,6 +747,33 @@ describe('MapMarkerSeries', () => {
             `);
         });
 
+        it('renders the range midpoint, not NaN, when the size domain collapses to a single value', async () => {
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                series: [
+                    { type: 'map-shape-background' },
+                    // A zero-width sizeDomain collapses the scale domain.
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        sizeKey: 'population',
+                        sizeDomain: [5, 5],
+                        minSize: 10,
+                        maxSize: 30,
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const markerSizes: number[] = chart.series[1].contextNodeData?.nodeData.map((d: any) => d.point.size);
+            expect(markerSizes.length).toBeGreaterThan(0);
+            // Zero-width domains resolve to the range midpoint (10 + 30) / 2, never NaN/Infinity.
+            expect([...new Set(markerSizes)]).toEqual([20]);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
         it('ignores minSize and uses size as the fixed marker size when sizeKey is absent (AC11)', async () => {
             const options: AgChartOptions = {
                 ...SIMPLIFIED_EXAMPLE,

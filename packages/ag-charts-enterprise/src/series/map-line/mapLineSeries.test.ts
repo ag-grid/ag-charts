@@ -635,5 +635,33 @@ describe('MapLineSeries', () => {
               ]
             `);
         });
+
+        it('renders the range midpoint, not NaN, when the size domain collapses to a single value', async () => {
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                series: [
+                    // A zero-width sizeDomain collapses the scale domain.
+                    {
+                        type: 'map-line',
+                        idKey: 'name',
+                        sizeKey: 'dailyVehicles',
+                        sizeDomain: [5, 5],
+                        minStrokeWidth: 10,
+                        maxStrokeWidth: 30,
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const strokeWidths: number[] = chart.series[0].contextNodeData?.nodeData.map(
+                (d: any) => d.style?.strokeWidth
+            );
+            expect(strokeWidths.length).toBeGreaterThan(0);
+            // Zero-width domains resolve to the range midpoint (10 + 30) / 2, never NaN/Infinity.
+            expect([...new Set(strokeWidths)]).toEqual([20]);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
     });
 });

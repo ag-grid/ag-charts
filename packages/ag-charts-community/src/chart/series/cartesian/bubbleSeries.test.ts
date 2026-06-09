@@ -1220,6 +1220,26 @@ describe('BubbleSeries', () => {
             expect(nodeSizes(chart)).toEqual([30, 20, 10]);
         });
 
+        it('renders the range midpoint, not NaN, when the size domain collapses to a single value', async () => {
+            const options = {
+                // Every sizeKey value is identical, so the size domain has zero width.
+                data: [
+                    { x: 1, y: 1, s: 5 },
+                    { x: 2, y: 2, s: 5 },
+                    { x: 3, y: 3, s: 5 },
+                ],
+                series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', minSize: 10, maxSize: 30 }],
+                legend: { enabled: false },
+                axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+            } as AgCartesianChartOptions;
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            // Zero-width domains resolve to the range midpoint (10 + 30) / 2, never NaN/Infinity.
+            expect(nodeSizes(chart)).toEqual([20, 20, 20]);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
         it('clamps the upper bound up to minSize when only minSize is set, without warning (AC8, AC9)', async () => {
             // Default maxSize is 30; minSize 40 is authoritative so both resolve to 40.
             await createBubble({ minSize: 40, sizeDomain: [0, 100] });
