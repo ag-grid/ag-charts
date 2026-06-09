@@ -1594,7 +1594,7 @@ describe('DataSelection', () => {
                             test('screenshot', async () => {
                                 await mouseClick(POINT_IMG1, { ctrlKey });
                                 await mouseMove(POINT_MISS);
-                                await compareExact('diskusage-treemap-highlighted-none-selected-img1');
+                                await compareExact('diskusage-treemap-highlighted-none-selected-img1-movie-mnt-vid2');
                             });
                             test('getSelection', async () => {
                                 await mouseClick(POINT_IMG1, { ctrlKey });
