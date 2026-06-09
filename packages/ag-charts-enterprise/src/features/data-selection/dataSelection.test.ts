@@ -2561,5 +2561,77 @@ describe('DataSelection', () => {
                 });
             });
         });
+
+        describe('sunburst', () => {
+            type D = AccountingDatum;
+            type C = unknown;
+            type I = AgSelectionItem<D>;
+            let selectionChange: SelectionChangeRecorder<D, C>;
+            const { data, series, theme, legend, title } = createDiskUsageOptions('sunburst');
+
+            const POINT_MISS: CanvasPoint = { canvasX: 20, canvasY: 20 };
+
+            describe('without module clash', () => {
+                beforeEach(async () => {
+                    selectionChange = createSelectionChangeRecorder();
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        theme,
+                        legend,
+                        title,
+                        selection: {
+                            enabled: true,
+                            enableClick: false,
+                            enableDrag: true,
+                        },
+                        listeners: { selectionChange },
+                    });
+                });
+                describe('initial', () => {
+                    test('screenshot', async () => {
+                        await compareExact('diskusage-sunburst-highlighted-none-selected-none');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+                describe('box in sector selects that one sector', () => {
+                    const start: CanvasPoint = { canvasX: 210.5, canvasY: 318 };
+                    const end: CanvasPoint = { canvasX: 231.5, canvasY: 275 };
+
+                    test('screenshot', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        await compareExact('diskusage-sunburst-box-in-sector-candidacy');
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        await compareExact('diskusage-sunburst-box-in-sector-selection');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+            });
+        });
     });
 });
