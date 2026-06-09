@@ -79,7 +79,16 @@ export type Styler<P, S> = (params: P) => S | undefined;
 export type Renderer<P, R = never> = (params: P) => TextValue | R | undefined;
 export type Listener<E> = (event: E) => void;
 
-type NormalisedTextOrSegments = TextValue | ((Omit<TextSegment, 'color'> & { color?: CssColor }) | ImageSegment)[];
+/**
+ * A text segment whose colour has been normalised to a resolved CSS colour string, with theme
+ * colour references no longer permitted.
+ */
+interface NormalisedTextSegment extends Omit<TextSegment, 'color'> {
+    /** Resolved colour for this segment. */
+    color?: CssColor;
+}
+
+type NormalisedTextOrSegments = TextValue | (NormalisedTextSegment | ImageSegment)[];
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export type NormalisedCallbackParams<P, O extends Partial<Record<keyof P, unknown>> = {}> = Omit<

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { extractSearchData, normalizeType } from './apiReferenceHelpers';
+import { extractSearchData, formatTypeToCode, normalizeType } from './apiReferenceHelpers';
 
 // Regression for the themes-api page failing to load with "RangeError: Maximum call stack size
 // exceeded". The crash was not infinite recursion — `extractSearchData` builds a finite but very
@@ -46,6 +46,88 @@ describe('normalizeType', () => {
 
         expect(() => normalizeType(colorOrRef as any)).not.toThrow();
         expect(normalizeType(colorOrRef as any)).toBe('CssColor | AgColorRef | AgColorRefMixOnto');
+    });
+});
+
+// Regression for the Options page crashing when expanding an Axes or Series section. The `formatter`
+// option uses `RichFormatter`, whose normalised return type wrapped its segment variant in an inline
+// `{ color?: CssColor }` object literal. The generator emitted that as a nameless `typeLiteral`, and
+// rendering the formatter's code sample threw "Avoid using type-literals...". Naming the variant as an
+// interface keeps it expandable. Mirrors the generator emission for `RichFormatter`'s return type.
+describe('RichFormatter normalised return type', () => {
+    const baseReference = {
+        CssColor: { kind: 'typeAlias', name: 'CssColor', type: 'string' },
+        ImageSegment: {
+            kind: 'interface',
+            name: 'ImageSegment',
+            members: [{ kind: 'member', name: 'url', type: 'string', optional: false }],
+        },
+        NormalisedTextOrSegments: {
+            kind: 'typeAlias',
+            name: 'NormalisedTextOrSegments',
+            type: {
+                kind: 'union',
+                type: [
+                    'TextValue',
+                    { kind: 'array', type: { kind: 'union', type: ['NormalisedTextSegment', 'ImageSegment'] } },
+                ],
+            },
+        },
+    };
+
+    it('renders without throwing when the segment variant is a named interface', () => {
+        const reference = new Map<string, any>(
+            Object.entries({
+                ...baseReference,
+                NormalisedTextSegment: {
+                    kind: 'interface',
+                    name: 'NormalisedTextSegment',
+                    members: [
+                        { kind: 'member', name: 'text', type: 'TextValue', optional: false },
+                        { kind: 'member', name: 'color', type: 'CssColor', optional: true },
+                    ],
+                },
+            })
+        );
+        const node = reference.get('NormalisedTextOrSegments');
+        expect(() => formatTypeToCode(node, { name: 'formatter' } as any, reference, new Set())).not.toThrow();
+    });
+
+    it('throws when the segment variant is a nameless type-literal (the pre-fix shape)', () => {
+        const reference = new Map<string, any>(
+            Object.entries({
+                ...baseReference,
+                NormalisedTextOrSegments: {
+                    kind: 'typeAlias',
+                    name: 'NormalisedTextOrSegments',
+                    type: {
+                        kind: 'union',
+                        type: [
+                            'TextValue',
+                            {
+                                kind: 'array',
+                                type: {
+                                    kind: 'union',
+                                    type: [
+                                        {
+                                            kind: 'typeLiteral',
+                                            members: [
+                                                { kind: 'member', name: 'color', type: 'CssColor', optional: true },
+                                            ],
+                                        },
+                                        'ImageSegment',
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                },
+            })
+        );
+        const node = reference.get('NormalisedTextOrSegments');
+        expect(() => formatTypeToCode(node, { name: 'formatter' } as any, reference, new Set())).toThrow(
+            /type-literals/
+        );
     });
 });
 
