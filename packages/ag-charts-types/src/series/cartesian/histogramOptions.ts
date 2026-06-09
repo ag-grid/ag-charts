@@ -15,7 +15,7 @@ import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, St
 
 /**
  * The standard set of bin data exposed to every histogram callback (tooltip, label formatter,
- * node click/double-click, context menu and `getDataId`).
+ * node click/double-click, context menu and `getItemId`).
  */
 export interface AgHistogramSeriesBinParams<TDatum = DatumDefault> {
     /** The raw source rows grouped into the bin. */
@@ -48,7 +48,7 @@ export interface AgHistogramSeriesLabelFormatterParams<TDatum = DatumDefault>
     readonly value: any;
 }
 
-export interface AgHistogramSeriesGetDataIdParams<TDatum = DatumDefault, TContext = ContextDefault>
+export interface AgHistogramSeriesGetItemIdParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends ContextCallbackParams<TContext>, AgHistogramSeriesBinParams<TDatum> {}
 
 export interface AgHistogramSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
@@ -132,5 +132,5 @@ export interface AgHistogramSeriesOptions<TDatum = DatumDefault, TContext = Cont
      *
      * If not supplied, an identifier is generated from the bin boundaries.
      */
-    getDataId?: (params: AgHistogramSeriesGetDataIdParams<TDatum, TContext>) => string;
+    getItemId?: (params: AgHistogramSeriesGetItemIdParams<TDatum, TContext>) => string;
 }

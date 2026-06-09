@@ -345,9 +345,9 @@ export abstract class FlowProportionSeries<
         this.processedNodes = processedNodes;
     }
 
-    private callGetDataId(params: { nodeName: string; index: number; datum: unknown }): string | undefined {
-        const { getDataId } = this.properties;
-        return getDataId == null ? undefined : this.cachedCallWithContext(getDataId, params);
+    private callGetItemId(params: { nodeName: string; index: number; datum: unknown }): string | undefined {
+        const { getItemId } = this.properties;
+        return getItemId == null ? undefined : this.cachedCallWithContext(getItemId, params);
     }
 
     override findNodeDatum(itemId: AgActiveItemState['itemId']): TDatum<TNodeDatum, TLinkDatum> | undefined {
@@ -876,7 +876,7 @@ export abstract class FlowProportionSeries<
         const { nodeName } = info;
         const nodeIdValue = this.readDataIdKey(datum, info);
         const offset = toFlowNodeOffset(datumIndex);
-        const computedId = this.callGetDataId({ nodeName, index: offset, datum });
+        const computedId = this.callGetItemId({ nodeName, index: offset, datum });
         return computedId ?? (nodeIdValue == null ? nodeName : String(nodeIdValue));
     }
 

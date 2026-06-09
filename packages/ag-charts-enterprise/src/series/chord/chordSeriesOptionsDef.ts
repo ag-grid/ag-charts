@@ -22,7 +22,7 @@ export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
     toKey: required(string),
     sizeKey: string,
     sizeName: string,
-    getDataId: callbackOf(string),
+    getItemId: callbackOf(string),
 };
 
 // @ts-expect-error undocumented option

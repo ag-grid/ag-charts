@@ -130,7 +130,7 @@ The default aggregation method is `sum`. Use the `aggregation` option to change 
 
 ## Bin Identifiers
 
-Each bin has a stable identifier, surfaced as the `itemId` in node events and active state. By default this identifier is generated from the bin boundaries. Use `getDataId` to map a bin to an identifier from your own domain. The returned value must be unique across the bins in the series.
+Each bin has a stable identifier, surfaced as the `itemId` in node events and active state. By default this identifier is generated from the bin boundaries. Use `getItemId` to map a bin to an identifier from your own domain. The returned value must be unique across the bins in the series.
 
 ```js format="snippet"
 {
@@ -138,7 +138,7 @@ Each bin has a stable identifier, surfaced as the `itemId` in node events and ac
         {
             type: 'histogram',
             xKey: 'age',
-            getDataId: ({ binRange }) => `${binRange[0]}-${binRange[1]}yrs`,
+            getItemId: ({ binRange }) => `${binRange[0]}-${binRange[1]}yrs`,
         },
     ],
 }

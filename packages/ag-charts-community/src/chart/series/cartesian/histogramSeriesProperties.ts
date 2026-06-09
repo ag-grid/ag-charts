@@ -1,7 +1,7 @@
 import type { InternalAgColorType, NormalisedTextOrSegments, RequireOptional } from 'ag-charts-core';
 import { Property } from 'ag-charts-core';
 import type {
-    AgHistogramSeriesGetDataIdParams,
+    AgHistogramSeriesGetItemIdParams,
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
     AgHistogramSeriesStyle,
@@ -95,7 +95,7 @@ export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHisto
     binCount?: number;
 
     @Property
-    getDataId?: (params: AgHistogramSeriesGetDataIdParams) => string = undefined;
+    getItemId?: (params: AgHistogramSeriesGetItemIdParams) => string = undefined;
 
     @Property
     readonly shadow = new DropShadow();

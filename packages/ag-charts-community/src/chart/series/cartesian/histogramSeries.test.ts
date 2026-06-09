@@ -176,7 +176,7 @@ describe('HistogramSeries', () => {
         });
     });
 
-    describe('getDataId', () => {
+    describe('getItemId', () => {
         const nodeDataOf = (c: any) => (deproxy(c).series[0] as any).getNodeData() as any[];
         const itemIdsOf = (c: any) => nodeDataOf(c).map((n) => n.itemId);
 
@@ -224,13 +224,13 @@ describe('HistogramSeries', () => {
             expect(itemIdsOf(chart)).toEqual(['bin:-10,-5', 'bin:-5,0.5']);
         });
 
-        it('uses the getDataId callback to override the id', async () => {
-            const getDataId = vi.fn((p: { binIndex: number }) => `b${p.binIndex}`);
-            chart = createBinnedChart({ getDataId });
+        it('uses the getItemId callback to override the id', async () => {
+            const getItemId = vi.fn((p: { binIndex: number }) => `b${p.binIndex}`);
+            chart = createBinnedChart({ getItemId });
             await waitForChartStability(chart);
 
             expect(itemIdsOf(chart)).toEqual(['b0', 'b1']);
-            expect(getDataId).toHaveBeenCalledWith(
+            expect(getItemId).toHaveBeenCalledWith(
                 expect.objectContaining({
                     binIndex: 0,
                     binRange: [0, 10],
@@ -243,8 +243,8 @@ describe('HistogramSeries', () => {
 
         it('passes the chart context to the callback', async () => {
             const context = { tenant: 'acme' };
-            const getDataId = vi.fn((p: { context?: any }) => `${p.context?.tenant}`);
-            chart = createBinnedChart({ context, getDataId });
+            const getItemId = vi.fn((p: { context?: any }) => `${p.context?.tenant}`);
+            chart = createBinnedChart({ context, getItemId });
             await waitForChartStability(chart);
 
             expect(itemIdsOf(chart)).toEqual(['acme', 'acme']);
@@ -277,10 +277,10 @@ describe('HistogramSeries', () => {
         });
 
         it('falls back to the default id when the callback throws', async () => {
-            const getDataId = () => {
+            const getItemId = () => {
                 throw new Error('boom');
             };
-            chart = createBinnedChart({ getDataId });
+            chart = createBinnedChart({ getItemId });
             await waitForChartStability(chart);
 
             expect(itemIdsOf(chart)).toEqual(['bin:0,10', 'bin:10,20']);
@@ -391,14 +391,14 @@ describe('HistogramSeries', () => {
             expect(firstBin.aggregatedValue).toBe(6);
         });
 
-        const clickFirstBin = async (c: any) => {
+        const firstBinCanvasPoint = (c: any) => {
             const series = deproxy(c).series[0] as any;
             const node = series.getNodeData()[0];
-            const { x, y } = Transformable.toCanvasPoint(
-                series.contentGroup,
-                node.x + node.width / 2,
-                node.y + node.height / 2
-            );
+            return Transformable.toCanvasPoint(series.contentGroup, node.x + node.width / 2, node.y + node.height / 2);
+        };
+
+        const clickFirstBin = async (c: any) => {
+            const { x, y } = firstBinCanvasPoint(c);
             await clickAction(x, y)(c);
             await waitForChartStability(c);
         };
@@ -434,13 +434,7 @@ describe('HistogramSeries', () => {
             chart = createChart({ listeners: { seriesNodeDoubleClick } });
             await waitForChartStability(chart);
 
-            const series = deproxy(chart).series[0] as any;
-            const node = series.getNodeData()[0];
-            const { x, y } = Transformable.toCanvasPoint(
-                series.contentGroup,
-                node.x + node.width / 2,
-                node.y + node.height / 2
-            );
+            const { x, y } = firstBinCanvasPoint(chart);
             await doubleClickAction(x, y)(chart);
             await waitForChartStability(chart);
 
@@ -455,13 +449,7 @@ describe('HistogramSeries', () => {
             chart = createChart({ tooltip: { renderer } });
             await waitForChartStability(chart);
 
-            const series = deproxy(chart).series[0] as any;
-            const node = series.getNodeData()[0];
-            const { x, y } = Transformable.toCanvasPoint(
-                series.contentGroup,
-                node.x + node.width / 2,
-                node.y + node.height / 2
-            );
+            const { x, y } = firstBinCanvasPoint(chart);
             await hoverAction(x, y)(chart);
             await waitForChartStability(chart);
 

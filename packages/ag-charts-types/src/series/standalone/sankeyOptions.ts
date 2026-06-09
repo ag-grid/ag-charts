@@ -21,10 +21,10 @@ export interface AgSankeySeriesOptions<TDatum = DatumDefault, TContext = Context
      *
      * If not supplied, the node name is used as its identifier.
      */
-    getDataId?: (params: AgSankeySeriesGetDataIdParams<TDatum, TContext>) => string;
+    getItemId?: (params: AgSankeySeriesGetItemIdParams<TDatum, TContext>) => string;
 }
 
-export interface AgSankeySeriesGetDataIdParams<
+export interface AgSankeySeriesGetItemIdParams<
     TDatum = DatumDefault,
     TContext = ContextDefault,
 > extends ContextCallbackParams<TContext> {

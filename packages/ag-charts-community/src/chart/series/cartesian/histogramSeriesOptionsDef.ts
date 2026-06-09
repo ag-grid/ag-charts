@@ -49,5 +49,5 @@ export const histogramSeriesOptionsDef: OptionsDefs<AgHistogramSeriesOptions> = 
     yKeyAxis: string,
     xName: string,
     yName: string,
-    getDataId: callbackOf(string),
+    getItemId: callbackOf(string),
 };

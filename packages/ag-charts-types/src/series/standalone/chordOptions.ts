@@ -21,10 +21,10 @@ export interface AgChordSeriesOptions<TDatum = DatumDefault, TContext = ContextD
      *
      * If not supplied, the node name is used as its identifier.
      */
-    getDataId?: (params: AgChordSeriesGetDataIdParams<TDatum, TContext>) => string;
+    getItemId?: (params: AgChordSeriesGetItemIdParams<TDatum, TContext>) => string;
 }
 
-export interface AgChordSeriesGetDataIdParams<
+export interface AgChordSeriesGetItemIdParams<
     TDatum = DatumDefault,
     TContext = ContextDefault,
 > extends ContextCallbackParams<TContext> {
