@@ -54,6 +54,7 @@ import {
     htmlElement,
     lessThan,
     number,
+    numericValue,
     object,
     optionsDefs,
     or,
@@ -184,7 +185,9 @@ const segmentValidator = or(textSegmentValidator, imageSegmentValidator);
 
 export const textOrSegments = or(
     string,
-    number,
+    // Accept bigint as well as number: a label/formatter may return an out-of-safe-range bigint value
+    // (AG-16608), which stringifies for display like any number.
+    numericValue,
     date,
     arrayOf(segmentValidator, 'text or image segments array', false)
 );
