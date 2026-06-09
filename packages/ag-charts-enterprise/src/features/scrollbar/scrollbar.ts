@@ -9,6 +9,7 @@ import {
     ZIndexMap,
     clamp,
     definedZoomState,
+    isNumberEqual,
 } from 'ag-charts-core';
 
 import { ZoomScrollPanner } from '../zoom-interaction/zoomScrollPanner';
@@ -415,7 +416,18 @@ export class Scrollbar extends AbstractModuleInstance {
             seriesRect,
             zoomManager.getAxisZooms()
         );
-        const newZoom = { [direction]: { min: newAxisZooms[axisId].min, max: newAxisZooms[axisId].max } };
+
+        // At the extent the pan is a no-op; committing it would persist a span left marginally below 1 by
+        // floating-point noise, tripping the `span < 1` auto-visibility check. Report capped to let the
+        // page scroll instead.
+        const next = newAxisZooms[axisId];
+        const current = zoomManager.getAxisZoom(axisId);
+        if (isNumberEqual(next.min, current.min) && isNumberEqual(next.max, current.max)) {
+            baseEvent.capped();
+            return;
+        }
+
+        const newZoom = { [direction]: { min: next.min, max: next.max } };
         zoomManager.updateZoom({ source: 'user-interaction', sourceDetail: 'scrollbar' }, newZoom);
 
         const zoom = this.getZoom();

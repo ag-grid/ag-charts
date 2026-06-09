@@ -1,14 +1,17 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    clickAction,
     deproxy,
     extractImageData,
+    scrollAction,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { WheelDeltaMode } from 'ag-charts-test';
 import type { AgCartesianAxisPosition, AgCartesianChartOptions } from 'ag-charts-types';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
@@ -405,5 +408,44 @@ describe('Scrollbar visibility on barWidth change', () => {
             ...IMAGE_SNAPSHOT_DEFAULTS,
             customSnapshotIdentifier: 'ag-17008-scrollbar-successive-barwidth-changes',
         });
+    });
+
+    // At full extent a scrollbar pan is a no-op; skipping the zoom update keeps the span at exactly 1 so
+    // floating-point re-anchoring can't drop it below 1 and reveal the scrollbar.
+    it('does not issue a zoom update when wheel-scrolling an axis already at its extent', async () => {
+        const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+            width: 400,
+            height: 300,
+            data: BAR_DATA,
+            series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            scrollbar: { enabled: true },
+            zoom: { enabled: false, enableScrolling: true },
+        });
+
+        proxy = AgCharts.create(options);
+        await waitForChartStability(proxy);
+
+        // Bars fit → full extent.
+        expect(getZoomX()?.min).toBe(0);
+        expect(getZoomX()?.max).toBe(1);
+
+        const cx = options.width! / 2;
+        const cy = options.height! / 2;
+        await clickAction(cx, cy)(proxy);
+
+        const zoomManager = (deproxy(proxy) as any).ctx.zoomManager;
+        const updateZoomSpy = vi.spyOn(zoomManager, 'updateZoom');
+
+        // Sustained horizontal scroll in one direction, then partially back — the reported gesture.
+        await scrollAction(cx, cy, 0, 50, WheelDeltaMode.Pixels, 30)(proxy);
+        await scrollAction(cx, cy, 0, 50, WheelDeltaMode.Pixels, 30)(proxy);
+        await scrollAction(cx, cy, 0, 50, WheelDeltaMode.Pixels, -10)(proxy);
+        await scrollAction(cx, cy, 0, 50, WheelDeltaMode.Pixels, 30)(proxy);
+        await waitForChartStability(proxy);
+
+        // No zoom update is issued at the extent, so no dirty span can reach the scrollbar.
+        expect(updateZoomSpy).not.toHaveBeenCalled();
+        expect(getZoomX()?.min).toBe(0);
+        expect(getZoomX()?.max).toBe(1);
     });
 });
