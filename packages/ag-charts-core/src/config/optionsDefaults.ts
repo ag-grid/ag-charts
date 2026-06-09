@@ -65,14 +65,62 @@ export const themeOperator = (value: unknown) => {
     return keys.length === 1 && keys[0].startsWith('$');
 };
 
+// Validator for public theme operators.
+const themeParams = union(
+    'accentColor',
+    'axisColor',
+    'backgroundColor',
+    'borderColor',
+    'borderRadius',
+    'chartBackgroundColor',
+    'chartPadding',
+    'focusShadow',
+    'foregroundColor',
+    'fontFamily',
+    'fontSize',
+    'fontWeight',
+    'gridLineColor',
+    'popupShadow',
+    'subtleTextColor',
+    'textColor',
+    'chromeBackgroundColor',
+    'chromeFontFamily',
+    'chromeFontSize',
+    'chromeFontWeight',
+    'chromeTextColor',
+    'chromeSubtleTextColor',
+    'buttonBackgroundColor',
+    'buttonBorder',
+    'buttonFontWeight',
+    'buttonTextColor',
+    'inputBackgroundColor',
+    'inputBorder',
+    'inputTextColor',
+    'menuBackgroundColor',
+    'menuBorder',
+    'menuTextColor',
+    'panelBackgroundColor',
+    'panelSubtleTextColor',
+    'tooltipBackgroundColor',
+    'tooltipBorder',
+    'tooltipTextColor',
+    'tooltipSubtleTextColor',
+    'crosshairLabelBackgroundColor',
+    'crosshairLabelTextColor',
+    'separationLinesColor'
+);
 export const colorRef = attachDescription(
     or(
-        optionsDefs<AgColorRefMixOnto>({ ref: required(string), mix: required(ratio), onto: required(string) }),
-        optionsDefs<AgColorRef>({ ref: required(string), mix: ratio })
+        optionsDefs<AgColorRefMixOnto>({
+            ref: required(themeParams),
+            mix: required(ratio),
+            onto: required(themeParams),
+        }),
+        optionsDefs<AgColorRef>({ ref: required(themeParams), mix: ratio })
     ),
     'a color ref'
 );
-export const colorOrRef = or(colorRef, color);
+export const colorOrRef = or(color, colorRef);
 
 const colorStop = optionsDefs<AgGradientColorStop>({ color: colorOrRef, stop: ratio }, '');
 export const colorStopsOrderValidator = attachDescription((value) => {
