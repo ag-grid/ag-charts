@@ -192,19 +192,26 @@ export abstract class ContinuousScale<D extends number | bigint | Date, I = numb
         return unpackDomainMinMax(this.domain);
     }
 
-    // Returns the exact (possibly bigint) endpoint; d0Cache/d1Cache order even when bigints narrow to equal Numbers.
+    // Returns the exact (possibly bigint) endpoint stored at the given index, preferring the retained
+    // bigint over its Number-narrowed copy.
     private exactEndpoint(index: 0 | 1): D {
         return ((index === 0 ? this.d0Big : this.d1Big) ?? this._domain[index]) as D;
     }
 
+    // True when endpoint 0 is the minimum. Compares exact values so two bigints that narrow to the same
+    // Number (differ below one ULP) are still ordered correctly, whatever the stored order.
+    private startIsMin(): boolean {
+        return this.exactEndpoint(0) <= this.exactEndpoint(1);
+    }
+
     override get domainMin(): D | undefined {
         if (this._domain.length < 2) return this._domain.at(0);
-        return this.exactEndpoint(this.d0Cache <= this.d1Cache ? 0 : 1);
+        return this.exactEndpoint(this.startIsMin() ? 0 : 1);
     }
 
     override get domainMax(): D | undefined {
         if (this._domain.length < 2) return this._domain.at(0);
-        return this.exactEndpoint(this.d0Cache <= this.d1Cache ? 1 : 0);
+        return this.exactEndpoint(this.startIsMin() ? 1 : 0);
     }
 
     protected getPixelRange() {
