@@ -2631,6 +2631,102 @@ describe('DataSelection', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
+                describe('squarish box selects multiple sectors', () => {
+                    const start: CanvasPoint = { canvasX: 374.5, canvasY: 324 };
+                    const end: CanvasPoint = { canvasX: 595.5, canvasY: 79 };
+
+                    test('screenshot', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        await compareExact('diskusage-sunburst-squarish-box-candidacy');
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        await compareExact('diskusage-sunburst-squarish-box-sector-selection');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+                describe('tall box selects multiple sectors', () => {
+                    const start: CanvasPoint = { canvasX: 411.5, canvasY: 532 };
+                    const end: CanvasPoint = { canvasX: 417.5, canvasY: 62 };
+
+                    test('screenshot', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        await compareExact('diskusage-sunburst-tall-box-candidacy');
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        await compareExact('diskusage-sunburst-tall-box-sector-selection');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+                describe('wide box selects multiple sectors', () => {
+                    const start: CanvasPoint = { canvasX: 125.5, canvasY: 316 };
+                    const end: CanvasPoint = { canvasX: 651.5, canvasY: 324 };
+
+                    test('screenshot', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        await compareExact('diskusage-sunburst-wide-box-candidacy');
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        await compareExact('diskusage-sunburst-wide-box-sector-selection');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
             });
         });
     });
