@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { extractSearchData } from './apiReferenceHelpers';
+import { extractSearchData, normalizeType } from './apiReferenceHelpers';
 
 // Regression for the themes-api page failing to load with "RangeError: Maximum call stack size
 // exceeded". The crash was not infinite recursion — `extractSearchData` builds a finite but very
@@ -28,6 +28,26 @@ function makeLargeReference(breadth: number) {
     };
     return new Map<string, any>(Object.entries(reference));
 }
+
+describe('normalizeType', () => {
+    it('throws on a nameless type-literal so genuinely-anonymous user-facing typings stay flagged', () => {
+        expect(() => normalizeType({ kind: 'typeLiteral', members: [] } as any)).toThrow(/type-literals/);
+    });
+
+    it('renders the AgCssColorOrRef union without throwing once the color-ref members are interfaces', () => {
+        const colorOrRef = {
+            kind: 'union',
+            type: [
+                { kind: 'typeRef', type: 'CssColor' },
+                { kind: 'typeRef', type: 'AgColorRef' },
+                { kind: 'typeRef', type: 'AgColorRefMixOnto' },
+            ],
+        };
+
+        expect(() => normalizeType(colorOrRef as any)).not.toThrow();
+        expect(normalizeType(colorOrRef as any)).toBe('CssColor | AgColorRef | AgColorRefMixOnto');
+    });
+});
 
 describe('extractSearchData', () => {
     it('flattens a large reference without overflowing the argument limit', () => {

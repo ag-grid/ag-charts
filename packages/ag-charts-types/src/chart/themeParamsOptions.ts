@@ -6,8 +6,15 @@ type ColorKeys<T> = {
 export type AgThemeColorParam = ColorKeys<Required<AgChartThemeParams>>;
 
 // A color ref operation must have `mix` if it has `onto`, they are not independently optional.
-export type AgColorRef = { ref: AgThemeColorParam; mix?: number };
-export type AgColorRefMixOnto = { ref: AgThemeColorParam; mix: number; onto: AgThemeColorParam };
+export interface AgColorRef {
+    ref: AgThemeColorParam;
+    mix?: number;
+}
+export interface AgColorRefMixOnto {
+    ref: AgThemeColorParam;
+    mix: number;
+    onto: AgThemeColorParam;
+}
 
 export type AgCssColorOrRef = CssColor | AgColorRef | AgColorRefMixOnto;
 
