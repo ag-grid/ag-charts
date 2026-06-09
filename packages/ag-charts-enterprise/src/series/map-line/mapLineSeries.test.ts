@@ -602,4 +602,38 @@ describe('MapLineSeries', () => {
             getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
         });
     });
+
+    describe('AG-17481 size scaling (AC12)', () => {
+        const sizeRange = async (seriesOverrides: object): Promise<[number, number]> => {
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                series: [{ type: 'map-line', idKey: 'name', sizeKey: 'dailyVehicles', ...seriesOverrides }],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            return chart.series[0].sizeScale.range;
+        };
+
+        it('uses minStrokeWidth as the lower bound when sizeKey is present', async () => {
+            expect(await sizeRange({ minStrokeWidth: 2, maxStrokeWidth: 8 })).toEqual([2, 8]);
+        });
+
+        it('defaults minStrokeWidth to strokeWidth when not set', async () => {
+            // strokeWidth theme default 1, maxStrokeWidth theme default 3.
+            expect(await sizeRange({})).toEqual([1, 3]);
+            expect(await sizeRange({ strokeWidth: 2 })).toEqual([2, 3]);
+        });
+
+        it('warns and reverts to theme defaults when both bounds are inverted', async () => {
+            expect(await sizeRange({ minStrokeWidth: 8, maxStrokeWidth: 2 })).toEqual([1, 3]);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - series[].minStrokeWidth (8) cannot be greater than maxStrokeWidth (2), reverting both to theme defaults.",
+                ],
+              ]
+            `);
+        });
+    });
 });

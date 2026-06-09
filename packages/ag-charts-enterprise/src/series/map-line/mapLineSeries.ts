@@ -12,6 +12,7 @@ import {
     Logger,
     type Point,
     cachedTextMeasurer,
+    clampArray,
     findDiscreteColorBinLabel,
     formatValue,
     mergeDefaults,
@@ -364,8 +365,11 @@ export class MapLineSeries
 
         const columns = this.resolveLineDataColumns(processedData);
 
+        // `minStrokeWidth` is the explicit lower bound when `sizeKey` is present, defaulting to `strokeWidth`.
+        // It is authoritative: raise the upper bound to it when a smaller `maxStrokeWidth` would invert the range.
+        const minStrokeWidth = properties.minStrokeWidth ?? properties.strokeWidth;
         const maxStrokeWidth = properties.maxStrokeWidth ?? properties.strokeWidth;
-        sizeScale.range = [Math.min(properties.strokeWidth, maxStrokeWidth), maxStrokeWidth];
+        sizeScale.range = [minStrokeWidth, Math.max(minStrokeWidth, maxStrokeWidth)];
         const measurer = cachedTextMeasurer(label);
 
         const projectedGeometries = this.prepareProjectedLineGeometries(
@@ -491,7 +495,7 @@ export class MapLineSeries
         const style = mergeDefaults(selectionStyle, highlightStyle, baseStyle);
 
         if (sizeValue != null) {
-            style.strokeWidth = sizeScale.convert(sizeValue, { clamp: true });
+            style.strokeWidth = sizeScale.convert(clampArray(sizeValue, sizeScale.domain));
         }
 
         let overrides;

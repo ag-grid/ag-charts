@@ -20,6 +20,7 @@ import { testLegendItemName } from '../../test/legendItemName';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
+    deproxy,
     expectWarningsCalls,
     extractImageData,
     getSeriesAggregationInternals,
@@ -79,7 +80,7 @@ describe('BubbleSeries', () => {
                     xKey: `x${i}`,
                     yKey: `y${i}`,
                     sizeKey: `s${i}`,
-                    size: 20,
+                    minSize: 20,
                     maxSize: 50,
                 })),
                 legend: { enabled: false },
@@ -577,7 +578,7 @@ describe('BubbleSeries', () => {
                             stroke: 'lime', // not ignored (but no effect)
                         };
                     } else if (params.seriesId === 'BubbleSeries-2') {
-                        return { shape: 'heart', fill: 'fuchsia', size: 2, maxSize: 200, lineDash: [5, 3] };
+                        return { shape: 'heart', fill: 'fuchsia', minSize: 2, maxSize: 200, lineDash: [5, 3] };
                     }
                     return {};
                 }
@@ -600,7 +601,7 @@ describe('BubbleSeries', () => {
                                 xKey: 'height',
                                 yKey: 'weight',
                                 sizeKey: 'age',
-                                size: 30,
+                                minSize: 30,
                                 maxSize: 100,
                                 context: c1,
 
@@ -616,7 +617,7 @@ describe('BubbleSeries', () => {
                                 xKey: 'height',
                                 yKey: 'weight',
                                 sizeKey: 'age',
-                                size: 30,
+                                minSize: 30,
                                 maxSize: 100,
                                 context: c2,
 
@@ -661,7 +662,7 @@ describe('BubbleSeries', () => {
                                 xKey: 'height',
                                 yKey: 'weight',
                                 sizeKey: 'age',
-                                size: 30,
+                                minSize: 30,
                                 maxSize: 100,
                                 styler: () => {
                                     return {
@@ -679,7 +680,7 @@ describe('BubbleSeries', () => {
                                 xKey: 'height',
                                 yKey: 'weight',
                                 sizeKey: 'age',
-                                size: 30,
+                                minSize: 30,
                                 maxSize: 100,
                                 styler: () => {
                                     return {
@@ -738,7 +739,7 @@ describe('BubbleSeries', () => {
                             xKey: 'height',
                             yKey: 'weight',
                             sizeKey: 'age',
-                            size: 30,
+                            minSize: 30,
                             maxSize: 100,
 
                             styler: styler.frozen,
@@ -754,7 +755,7 @@ describe('BubbleSeries', () => {
                             xKey: 'height',
                             yKey: 'weight',
                             sizeKey: 'age',
-                            size: 30,
+                            minSize: 30,
                             maxSize: 100,
 
                             styler: styler.frozen,
@@ -788,7 +789,7 @@ describe('BubbleSeries', () => {
                             xKey: 'height',
                             yKey: 'weight',
                             sizeKey: 'age',
-                            size: 20,
+                            minSize: 20,
                             maxSize: 50,
                             itemStyler,
                         },
@@ -1098,7 +1099,7 @@ describe('BubbleSeries', () => {
                         xKey: 'x',
                         yKey: 'y',
                         sizeKey: 'size',
-                        size: 6,
+                        minSize: 6,
                         maxSize: 30,
                         selection: {
                             enabled: true,
@@ -1178,6 +1179,110 @@ describe('BubbleSeries', () => {
             const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeUndefined();
             expect(series.ensureBucketLookupFeature()?.getIndexSet(0)).toBeUndefined();
+        });
+    });
+
+    describe('AG-17481 size scaling', () => {
+        const nodeSizes = (c: AgChartInstance) =>
+            (deproxy(c).series[0] as unknown as { getNodeData(): Array<{ point: { size: number } }> })
+                .getNodeData()
+                .map((d) => d.point.size);
+
+        const createBubble = async (seriesOverrides: object) => {
+            const options = {
+                data: [
+                    { x: 1, y: 1, s: 0 },
+                    { x: 2, y: 2, s: 50 },
+                    { x: 3, y: 3, s: 200 },
+                ],
+                series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', ...seriesOverrides }],
+                legend: { enabled: false },
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            } as AgCartesianChartOptions;
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+        };
+
+        it('clamps out-of-domain values to [minSize, maxSize] (AC3, AC4)', async () => {
+            await createBubble({ minSize: 10, maxSize: 30, sizeDomain: [0, 100] });
+            // s=0 -> minSize; s=50 -> midpoint; s=200 (above the domain) -> maxSize.
+            expect(nodeSizes(chart)).toEqual([10, 20, 30]);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
+        it('reverses the mapping and clamps with a reversed sizeDomain (AC5, AC6)', async () => {
+            await createBubble({ minSize: 10, maxSize: 30, sizeDomain: [100, 0] });
+            // reversed: s=0 -> maxSize; s=50 -> midpoint; s=200 (above the domain) -> minSize.
+            expect(nodeSizes(chart)).toEqual([30, 20, 10]);
+        });
+
+        it('clamps the upper bound up to minSize when only minSize is set, without warning (AC8, AC9)', async () => {
+            // Default maxSize is 30; minSize 40 is authoritative so both resolve to 40.
+            await createBubble({ minSize: 40, sizeDomain: [0, 100] });
+            expect(nodeSizes(chart)).toEqual([40, 40, 40]);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
+        it('clamps to minSize when only maxSize is set below the default minSize, without warning (AC10)', async () => {
+            // Default minSize is 7; maxSize 5 is below it, so the authoritative minSize wins and both resolve to 7.
+            await createBubble({ maxSize: 5, sizeDomain: [0, 100] });
+            expect(nodeSizes(chart)).toEqual([7, 7, 7]);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
+        it('warns and reverts to theme defaults when both bounds are inverted (AC7)', async () => {
+            await createBubble({ minSize: 30, maxSize: 5, sizeDomain: [0, 100] });
+            // Reverted to theme defaults [7, 30]: s=0 -> 7, s=50 -> 18.5, s=200 -> 30.
+            expect(nodeSizes(chart)).toEqual([7, 18.5, 30]);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - series[].minSize (30) cannot be greater than maxSize (5), reverting both to theme defaults.",
+                ],
+              ]
+            `);
+        });
+
+        it('rejects the removed size and domain options (AC1, AC2)', async () => {
+            await createBubble({ size: 10, domain: [0, 100] });
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Unknown option \`series[0].size\`; Did you mean \`sizeDomain\`, \`minSize\`, \`maxSize\` or \`sizeName\`? Ignoring.",
+                ],
+                [
+                  "AG Charts - Unknown option \`series[0].domain\`; Did you mean \`sizeDomain\`? Ignoring.",
+                ],
+              ]
+            `);
+        });
+
+        it('leaves the Scatter Series API unchanged: size accepted, minSize rejected (TC1)', async () => {
+            const options = {
+                data: [
+                    { x: 1, y: 1 },
+                    { x: 2, y: 2 },
+                ],
+                series: [{ type: 'scatter', xKey: 'x', yKey: 'y', size: 12, minSize: 5 } as object],
+                legend: { enabled: false },
+            } as AgCartesianChartOptions;
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // `size` is honoured (fixed marker size); `minSize` is rejected as an unknown option.
+            expect(nodeSizes(chart)).toEqual([12, 12]);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Unknown option \`series[0].minSize\`, ignoring.",
+                ],
+              ]
+            `);
         });
     });
 });

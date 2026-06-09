@@ -69,7 +69,10 @@ export interface AgMapMarkerSeriesOptionsNames {
 export interface AgMapMarkerSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** The shape to use for the markers. You can also supply a custom marker by providing a `AgMarkerShapeFn` function. */
     shape?: AgMarkerShape;
-    /** The size in pixels of the markers. */
+    /**
+     * The size in pixels of the markers. When `sizeKey` is present this is the fixed size used for the
+     * no-`sizeKey` case only; the scale lower bound is controlled by `minSize` instead.
+     */
     size?: PixelSize;
 }
 
@@ -90,9 +93,17 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = DatumDefault, TConte
     extends
         AgMapMarkerSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'> {
-    /** Determines the largest size a marker can be in pixels. */
+    /**
+     * Determines the smallest size a marker can be in pixels when `sizeKey` is present. Defaults to `size` when not set.
+     */
+    minSize?: PixelSize;
+    /** Determines the largest size a marker can be in pixels when `sizeKey` is present. */
     maxSize?: PixelSize;
-    /** Explicitly specifies the extent of the domain for series `sizeKey`. */
+    /**
+     * Explicitly specifies the extent of the domain of `sizeKey` values to map onto the `[minSize, maxSize]` range.
+     *
+     * Reverse the bounds (e.g. `[100, 0]`) to invert the mapping so that larger values produce smaller markers.
+     */
     sizeDomain?: [number, number];
     /** Configuration for colour scale with fills, domain, and mode. */
     colorScale?: AgColorScale;

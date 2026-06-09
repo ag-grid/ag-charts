@@ -39,7 +39,7 @@ const options: AgChartOptions = {
             idKey: 'name',
             sizeKey: 'dailyVehicles',
             sizeName: 'Daily Vehicles',
-            strokeWidth: 1,
+            minStrokeWidth: 1,
             maxStrokeWidth: 3,
         },
     ],

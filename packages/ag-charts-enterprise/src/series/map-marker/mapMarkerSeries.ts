@@ -13,6 +13,7 @@ import {
     type SizedPoint,
     StateMachine,
     cachedTextMeasurer,
+    clampArray,
     findDiscreteColorBinLabel,
     formatValue,
     mergeDefaults,
@@ -440,7 +441,9 @@ export class MapMarkerSeries
     }
 
     private calculateMarkerSize(sizeValue: number | undefined): number {
-        return sizeValue == null ? this.properties.size : this.sizeScale.convert(sizeValue, { clamp: true });
+        return sizeValue == null
+            ? this.properties.size
+            : this.sizeScale.convert(clampArray(sizeValue, this.sizeScale.domain));
     }
 
     private buildNodeDatum(
@@ -553,8 +556,11 @@ export class MapMarkerSeries
 
         const columns = this.resolveDataColumns(processedData);
 
+        // `minSize` is the explicit lower bound when `sizeKey` is present, defaulting to `size`. It is
+        // authoritative: raise the upper bound to it when a smaller `maxSize` would invert the range.
+        const markerMinSize = properties.minSize ?? properties.size;
         const markerMaxSize = properties.maxSize ?? properties.size;
-        sizeScale.range = [Math.min(properties.size, markerMaxSize), markerMaxSize];
+        sizeScale.range = [markerMinSize, Math.max(markerMinSize, markerMaxSize)];
         const measurer = cachedTextMeasurer(label);
 
         const projectedGeometries = this.prepareProjectedGeometries(
@@ -794,7 +800,7 @@ export class MapMarkerSeries
         }
 
         if (sizeValue != null) {
-            baseStyle.size = sizeScale.convert(sizeValue, { clamp: true });
+            baseStyle.size = sizeScale.convert(clampArray(sizeValue, sizeScale.domain));
         }
 
         let style = baseStyle;

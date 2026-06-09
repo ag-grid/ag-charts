@@ -26,10 +26,9 @@ import { CartesianSeriesProperties } from './cartesianSeries';
 
 class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys | AgScatterSeriesOptionsKeys> {
     /**
-     * The series `sizeKey` values along with the `size` and `maxSize` configs will be used to
-     * determine the size of the marker. All values will be mapped to a marker size within the
-     * `[size, maxSize]` range, where the largest values will correspond to the `maxSize` and the
-     * lowest to the `size`.
+     * When `sizeKey` is present, `sizeKey` values are mapped onto the `[minSize, maxSize]` pixel range,
+     * with the lowest values corresponding to `minSize` (the inherited `size` field) and the highest to
+     * `maxSize`. Without a `sizeKey`, `size` is used as the fixed marker size.
      */
     @Property
     @SceneChangeDetection()
@@ -37,7 +36,7 @@ class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys | AgScat
 
     @Property
     @SceneArrayChangeDetection()
-    domain?: readonly [number, number];
+    sizeDomain?: readonly [number, number];
 }
 
 class BubbleSeriesLabel extends Label<AgBubbleSeriesLabelFormatterParams> {
@@ -45,7 +44,7 @@ class BubbleSeriesLabel extends Label<AgBubbleSeriesLabelFormatterParams> {
     placement: LabelPlacement = 'top';
 }
 
-export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSeriesOptions> {
+export class BubbleScatterSeriesProperties extends CartesianSeriesProperties<AgBubbleSeriesOptions> {
     @Property
     xKey!: string;
 
@@ -87,15 +86,6 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
 
     @ProxyProperty('marker.shape')
     shape!: AgMarkerShape;
-
-    @ProxyProperty('marker.size')
-    size!: number;
-
-    @ProxyProperty('marker.maxSize')
-    maxSize!: number;
-
-    @ProxyProperty('marker.domain')
-    domain?: [number, number];
 
     @ProxyProperty('marker.fill')
     fill?: InternalAgColorType;
@@ -141,4 +131,20 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
 
     // No validation. Not a part of the options contract.
     readonly marker = new BubbleSeriesMarker();
+}
+
+export class BubbleSeriesProperties extends BubbleScatterSeriesProperties {
+    @ProxyProperty('marker.size')
+    minSize!: number;
+
+    @ProxyProperty('marker.maxSize')
+    maxSize!: number;
+
+    @ProxyProperty('marker.sizeDomain')
+    sizeDomain?: [number, number];
+}
+
+export class ScatterSeriesProperties extends BubbleScatterSeriesProperties {
+    @ProxyProperty('marker.size')
+    size!: number;
 }

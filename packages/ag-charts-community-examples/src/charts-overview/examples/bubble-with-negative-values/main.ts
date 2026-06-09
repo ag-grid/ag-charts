@@ -26,7 +26,7 @@ const options: AgChartOptions = {
             sizeName: 'Population',
             labelKey: 'city',
             labelName: 'City',
-            size: 5,
+            minSize: 5,
             maxSize: 100,
             fillOpacity: 0.5,
             strokeOpacity: 0.5,

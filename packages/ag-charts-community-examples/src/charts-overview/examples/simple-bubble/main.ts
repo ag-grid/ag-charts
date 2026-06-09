@@ -23,7 +23,7 @@ const options: AgChartOptions = {
             yName: 'Magnitude',
             sizeKey: 'minDistance',
             sizeName: 'Minimum Distance',
-            size: 5,
+            minSize: 5,
             maxSize: 100,
             fill: '#41874b',
             stroke: '#41874b',

@@ -60,9 +60,17 @@ export interface AgMapLineSeriesOptionsNames {
 
 export interface AgMapLineSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgMapLineSeriesStyle, Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'> {
-    /** Determines the largest width a stroke can be in pixels. */
+    /**
+     * Determines the smallest width a stroke can be in pixels when `sizeKey` is present. Defaults to `strokeWidth` when not set.
+     */
+    minStrokeWidth?: PixelSize;
+    /** Determines the largest width a stroke can be in pixels when `sizeKey` is present. */
     maxStrokeWidth?: PixelSize;
-    /** Explicitly specifies the extent of the domain for series `sizeKey`. */
+    /**
+     * Explicitly specifies the extent of the domain of `sizeKey` values to map onto the `[minStrokeWidth, maxStrokeWidth]` range.
+     *
+     * Reverse the bounds (e.g. `[100, 0]`) to invert the mapping so that larger values produce thinner strokes.
+     */
     sizeDomain?: number[];
     /** Configuration for the labels shown on top of the line. */
     label?: AgMapLineSeriesLabel<TDatum, TContext>;
