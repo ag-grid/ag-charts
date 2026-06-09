@@ -200,7 +200,6 @@ export function boxCollidesSector(box: BBox, sector: SectorBoundaries) {
     );
 }
 
-
 export function boxOverlapsSector(box: BoxBounds, sector: SectorBoundaries): boolean {
     const { startAngle, endAngle, innerRadius, outerRadius } = sector;
     const top = box.y;
@@ -224,83 +223,57 @@ export function boxOverlapsSector(box: BoxBounds, sector: SectorBoundaries): boo
 
     // Check if any corner of `sector` is in `box`:
     const pointInBox = (x: number, y: number): boolean => x >= left && x <= right && y >= top && y <= bottom;
-    if (pointInBox(startX0, startY0) ||
+    if (
+        pointInBox(startX0, startY0) ||
         pointInBox(startX1, startY1) ||
         pointInBox(endX0, endY0) ||
-        pointInBox(endX1, endY1)) {
-        console.log((sector as any).datum?.datum?.name, `found sector corner in box`);
+        pointInBox(endX1, endY1)
+    ) {
         return true;
     }
 
     // Check if any corner of `box` is in `sector`:
-    if (isPointInSector(left, top, sector) ||
+    if (
+        isPointInSector(left, top, sector) ||
         isPointInSector(right, top, sector) ||
         isPointInSector(left, bottom, sector) ||
-        isPointInSector(right, bottom, sector)) {
-        console.log((sector as any).datum?.datum?.name, `found box corner in sector`);
+        isPointInSector(right, bottom, sector)
+    ) {
         return true;
     }
-
-    // Check if the `box` and `sector` paths cross-over:
-    // TODO use temp variables for debugging. In production, we will OR-short-circuit these:
-    const topStart    = segmentIntersection(left, top,    right, top,    startX0, startY0, startX1, startY1);
-    const topEnd      = segmentIntersection(left, top,    right, top,    endX0,   endY0,   endX1,   endY1);
-    const bottomStart = segmentIntersection(left, bottom, right, bottom, startX0, startY0, startX1, startY1);
-    const bottomEnd   = segmentIntersection(left, bottom, right, bottom, endX0,   endY0,   endX1,   endY1);
-
-    const leftStart   = segmentIntersection(left,  top, left,  bottom, startX0, startY0, startX1, startY1);
-    const leftEnd     = segmentIntersection(left,  top, left,  bottom, endX0,   endY0,   endX1,   endY1);
-    const rightStart  = segmentIntersection(right, top, right, bottom, startX0, startY0, startX1, startY1);
-    const rightEnd    = segmentIntersection(right, top, right, bottom, endX0,   endY0,   endX1,   endY1);
-
-    const topOuter    = arcIntersections(0, 0, outerRadius, startAngle, endAngle, false, left,  top,    right, top);
-    const bottomOuter = arcIntersections(0, 0, outerRadius, startAngle, endAngle, false, left,  bottom, right, bottom);
-    const leftOuter   = arcIntersections(0, 0, outerRadius, startAngle, endAngle, false, left,  top,    left,  bottom);
-    const rightOuter  = arcIntersections(0, 0, outerRadius, startAngle, endAngle, false, right, top,    right, bottom);
-
-    const topInner    = arcIntersections(0, 0, innerRadius, startAngle, endAngle, false, left,  top,    right, top);
-    const bottomInner = arcIntersections(0, 0, innerRadius, startAngle, endAngle, false, left,  bottom, right, bottom);
-    const leftInner   = arcIntersections(0, 0, innerRadius, startAngle, endAngle, false, left,  top,    left,  bottom);
-    const rightInner  = arcIntersections(0, 0, innerRadius, startAngle, endAngle, false, right, top,    right, bottom);
-
-    const result = !!(topStart || topEnd || bottomStart || bottomEnd || leftStart || leftEnd || rightStart || rightEnd || topOuter || bottomOuter || leftOuter || rightOuter || topInner || bottomInner || leftInner || rightInner);
-
-    const debugdump = {
-        result,
-        ins: {
-            top,
-            bottom,
-            left,
-            right,
-            startX0,
-            startY0,
-            startX1,
-            startY1,
-        },
-        outs: {
-            topStart,
-            topEnd,
-            bottomStart,
-            bottomEnd,
-            leftStart,
-            leftEnd,
-            rightStart,
-            rightEnd,
-            topOuter,
-            bottomOuter,
-            leftOuter,
-            rightOuter,
-            topInner,
-            bottomInner,
-            leftInner,
-            rightInner,
-        },
-        json: {},
-    };
-    debugdump.json = {stringified: JSON.stringify(debugdump)};
-
-    console.log((sector as any).datum?.datum?.name, debugdump );
-    return result;
+    // Check if the lines of `box` and the lines of `sector` cross-over:
+    if (
+        segmentIntersection(left, top, right, top, startX0, startY0, startX1, startY1) ||
+        segmentIntersection(left, top, right, top, endX0, endY0, endX1, endY1) ||
+        segmentIntersection(left, bottom, right, bottom, startX0, startY0, startX1, startY1) ||
+        segmentIntersection(left, bottom, right, bottom, endX0, endY0, endX1, endY1) ||
+        segmentIntersection(left, top, left, bottom, startX0, startY0, startX1, startY1) ||
+        segmentIntersection(left, top, left, bottom, endX0, endY0, endX1, endY1) ||
+        segmentIntersection(right, top, right, bottom, startX0, startY0, startX1, startY1) ||
+        segmentIntersection(right, top, right, bottom, endX0, endY0, endX1, endY1)
+    ) {
+        return true;
+    }
+    // Check if the lines of `box` and the arcs of `sector` cross over:
+    if (
+        arcIntersections(0, 0, outerRadius, startAngle, endAngle, false, left, top, right, top) ||
+        arcIntersections(0, 0, outerRadius, startAngle, endAngle, false, left, bottom, right, bottom) ||
+        arcIntersections(0, 0, outerRadius, startAngle, endAngle, false, left, top, left, bottom) ||
+        arcIntersections(0, 0, outerRadius, startAngle, endAngle, false, right, top, right, bottom)
+    ) {
+        return true;
+    }
+    if (innerRadius > 0) {
+        if (
+            arcIntersections(0, 0, innerRadius, startAngle, endAngle, false, left, top, right, top) ||
+            arcIntersections(0, 0, innerRadius, startAngle, endAngle, false, left, bottom, right, bottom) ||
+            arcIntersections(0, 0, innerRadius, startAngle, endAngle, false, left, top, left, bottom) ||
+            arcIntersections(0, 0, innerRadius, startAngle, endAngle, false, right, top, right, bottom)
+        ) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // https://ag-grid.atlassian.net/wiki/spaces/AG/pages/3090087939/Sector+Corner+Radii
