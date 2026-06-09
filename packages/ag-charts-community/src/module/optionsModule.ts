@@ -21,6 +21,7 @@ import {
     isArray,
     isKeyOf,
     isObject,
+    isObjectLike,
     isPlainObject,
     isSymbol,
     joinFormatted,
@@ -1384,22 +1385,39 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     ) {
         processedCSSVariables ??= {};
 
-        if (!optionsNode || !isObject(optionsNode) || !container) {
+        if (!optionsNode || !isObjectLike(optionsNode) || !container) {
             return processedCSSVariables;
         }
 
-        for (const key of Object.keys(optionsNode)) {
+        for (const key of Object.keys(optionsNode) as any[]) {
             const value = optionsNode[key];
             if (typeof value !== 'string' || !value.startsWith('var(--')) continue;
 
             const propertyKey = value.slice(4, -1);
+            const [mainKey, ...fallbackKeys] = propertyKey.split(',');
 
             // Only process external css variables.
             if (propertyKey.startsWith('--ag-charts')) continue;
 
+            const computedStyle = getComputedStyle(container);
+            let propertyValue = computedStyle.getPropertyValue(mainKey);
+
             // Only process color values.
-            const propertyValue = getComputedStyle(container).getPropertyValue(propertyKey);
-            if (!Color.validColorString(propertyValue)) continue;
+            let isValid = Color.validColorString(propertyValue);
+
+            if (!isValid && fallbackKeys.length > 0) {
+                const trimmedKey = fallbackKeys.join(',').trim();
+
+                // Use the fallback if it is a variable or value.
+                propertyValue = computedStyle.getPropertyValue(trimmedKey) || trimmedKey;
+                isValid = Color.validColorString(propertyValue);
+            }
+
+            if (!isValid) {
+                Logger.warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
+                delete optionsNode[key];
+                continue;
+            }
 
             processedCSSVariables[value] ??= propertyValue;
         }
@@ -1411,6 +1429,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (options.container == null) return;
 
         return jsonWalk(options, ChartOptions.processCSSVariablesJSON, new Set(['data']), undefined, options.container);
+    }
+
+    processCSSVariablesPartial(partialOptions: PlainObject | undefined, container: HTMLElement | null | undefined) {
+        if (partialOptions == null || container == null) return;
+
+        return jsonWalk(partialOptions, ChartOptions.processCSSVariablesJSON, new Set(['data']), undefined, container);
     }
 
     private specialOverridesDefaults(options: Partial<ChartSpecialOverrides>) {
