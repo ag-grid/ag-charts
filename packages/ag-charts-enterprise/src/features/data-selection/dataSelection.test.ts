@@ -448,6 +448,25 @@ function createDiskUsageOptions(
     };
 }
 
+function findName<D extends { name?: string; children?: D[] }>(data: D[] | undefined, name: string): D {
+    expect(data).toBeDefined();
+    let result: D | undefined;
+    const stack: D[] = [...data!];
+    while (result === undefined && stack.length > 0) {
+        const node = stack.pop()!;
+        if (node.name === name) {
+            result = node;
+        } else if (node.children) {
+            stack.push(...node.children);
+        }
+    }
+    if (!result) {
+        console.error(`Cannot find ${JSON.stringify(name)}`);
+    }
+    expect(result).toBeDefined();
+    return result!;
+}
+
 describe('DataSelection', () => {
     setupMockConsole();
 
@@ -1460,21 +1479,6 @@ describe('DataSelection', () => {
             let selectionChange: SelectionChangeRecorder<D, C>;
 
             const { data, series, theme, legend, title } = createDiskUsageOptions('treemap');
-            function findName(name: string): D {
-                expect(data).toBeDefined();
-                let result: D | undefined;
-                const stack: D[] = [...data!];
-                while (result === undefined && stack.length > 0) {
-                    const node = stack.pop()!;
-                    if (node.name === name) {
-                        result = node;
-                    } else if (node.children) {
-                        stack.push(...node.children);
-                    }
-                }
-                expect(result).toBeDefined();
-                return result!;
-            }
 
             const seriesId = 'TreemapSeries-1' as const;
             const POINT_MOVIE: CanvasPoint = { canvasX: 160, canvasY: 258 };
@@ -1482,10 +1486,10 @@ describe('DataSelection', () => {
             const POINT_MNT: CanvasPoint = { canvasX: 605, canvasY: 96 };
             const POINT_IMG1: CanvasPoint = { canvasX: 84, canvasY: 522 };
             const POINT_MISS: CanvasPoint = { canvasX: 20, canvasY: 20 };
-            const DATUM_MOVIE: D = findName('movie.mp4');
-            const DATUM_VID2: D = findName('vid2.mp4');
-            const DATUM_MNT: D = findName('mnt/');
-            const DATUM_IMG1: D = findName('img1.jpg');
+            const DATUM_MOVIE: D = findName(data, 'movie.mp4');
+            const DATUM_VID2: D = findName(data, 'vid2.mp4');
+            const DATUM_MNT: D = findName(data, 'mnt/');
+            const DATUM_IMG1: D = findName(data, 'img1.jpg');
             const ITEM_MOVIE: AgSelectionItem<D> = { datum: DATUM_MOVIE, seriesId, itemId: 13 };
             const ITEM_VID2: AgSelectionItem<D> = { datum: DATUM_VID2, seriesId, itemId: 22 };
             const ITEM_MNT: AgSelectionItem<D> = { datum: DATUM_MNT, seriesId, itemId: 15 };
@@ -2563,13 +2567,14 @@ describe('DataSelection', () => {
         });
 
         describe('sunburst', () => {
-            type D = AccountingDatum;
+            type D = DiskDatum;
             type C = unknown;
             type I = AgSelectionItem<D>;
             let selectionChange: SelectionChangeRecorder<D, C>;
             const { data, series, theme, legend, title } = createDiskUsageOptions('sunburst');
 
             const POINT_MISS: CanvasPoint = { canvasX: 20, canvasY: 20 };
+            const seriesId = 'SunburstSeries-1';
 
             describe('without module clash', () => {
                 beforeEach(async () => {
@@ -2602,6 +2607,7 @@ describe('DataSelection', () => {
                 describe('box in sector selects that one sector', () => {
                     const start: CanvasPoint = { canvasX: 210.5, canvasY: 318 };
                     const end: CanvasPoint = { canvasX: 231.5, canvasY: 275 };
+                    const added: I[] = [{ itemId: 20, seriesId, datum: findName(data, 'videos/') }];
 
                     test('screenshot', async () => {
                         await mouseDown(start);
@@ -2619,7 +2625,7 @@ describe('DataSelection', () => {
 
                         await mouseUp(end);
                         await mouseMove(POINT_MISS);
-                        expect(getChartSelectionArray()).toEqual([]);
+                        expect(getChartSelectionArray()).toEqual(added);
                     });
                     test('selectionChange', async () => {
                         await mouseDown(start);
@@ -2628,12 +2634,32 @@ describe('DataSelection', () => {
 
                         await mouseUp(end);
                         await mouseMove(POINT_MISS);
-                        expect(selectionChange.popEvents()).toEqual([]);
+                        expect(selectionChange.popEvents()).toEqual([uiChangeEvent<D, C>({ added, removed: [] })]);
                     });
                 });
                 describe('squarish box selects multiple sectors', () => {
                     const start: CanvasPoint = { canvasX: 374.5, canvasY: 324 };
                     const end: CanvasPoint = { canvasX: 595.5, canvasY: 79 };
+                    const added: I[] = [
+                        { seriesId, itemId: 0, datum: findName(data, '/') },
+                        { seriesId, itemId: 1, datum: findName(data, 'usr/') },
+                        { seriesId, itemId: 2, datum: findName(data, 'bin/') },
+                        { seriesId, itemId: 3, datum: findName(data, 'bash') },
+                        { seriesId, itemId: 4, datum: findName(data, 'ls') },
+                        { seriesId, itemId: 5, datum: findName(data, 'lib/') },
+                        { seriesId, itemId: 6, datum: findName(data, 'libc.so') },
+                        { seriesId, itemId: 7, datum: findName(data, 'libm.so') },
+                        { seriesId, itemId: 8, datum: findName(data, 'home/') },
+                        { seriesId, itemId: 9, datum: findName(data, 'Pictures/') },
+                        { seriesId, itemId: 10, datum: findName(data, 'img1.jpg') },
+                        { seriesId, itemId: 11, datum: findName(data, 'img2.png') },
+                        { seriesId, itemId: 12, datum: findName(data, 'Movies/') },
+                        { seriesId, itemId: 13, datum: findName(data, 'movie.mp4') },
+                        { seriesId, itemId: 15, datum: findName(data, 'mnt/') },
+                        { seriesId, itemId: 19, datum: findName(data, 'miniSD/') },
+                        { seriesId, itemId: 23, datum: findName(data, 'photos/') },
+                        { seriesId, itemId: 25, datum: findName(data, 'photo2.jpg') },
+                    ];
 
                     test('screenshot', async () => {
                         await mouseDown(start);
@@ -2651,7 +2677,7 @@ describe('DataSelection', () => {
 
                         await mouseUp(end);
                         await mouseMove(POINT_MISS);
-                        expect(getChartSelectionArray()).toEqual([]);
+                        expect(getChartSelectionArray()).toEqual(added);
                     });
                     test('selectionChange', async () => {
                         await mouseDown(start);
@@ -2660,12 +2686,22 @@ describe('DataSelection', () => {
 
                         await mouseUp(end);
                         await mouseMove(POINT_MISS);
-                        expect(selectionChange.popEvents()).toEqual([]);
+                        expect(selectionChange.popEvents()).toEqual([uiChangeEvent<D, C>({ added, removed: [] })]);
                     });
                 });
                 describe('tall box selects multiple sectors', () => {
                     const start: CanvasPoint = { canvasX: 411.5, canvasY: 532 };
                     const end: CanvasPoint = { canvasX: 417.5, canvasY: 62 };
+                    const added: I[] = [
+                        { seriesId, itemId: 0, datum: findName(data, '/') },
+                        { seriesId, itemId: 1, datum: findName(data, 'usr/') },
+                        { seriesId, itemId: 2, datum: findName(data, 'bin/') },
+                        { seriesId, itemId: 3, datum: findName(data, 'bash') },
+                        { seriesId, itemId: 8, datum: findName(data, 'home/') },
+                        { seriesId, itemId: 12, datum: findName(data, 'Movies/') },
+                        { seriesId, itemId: 13, datum: findName(data, 'movie.mp4') },
+                        { seriesId, itemId: 14, datum: findName(data, 'clip.mov') },
+                    ];
 
                     test('screenshot', async () => {
                         await mouseDown(start);
@@ -2683,7 +2719,7 @@ describe('DataSelection', () => {
 
                         await mouseUp(end);
                         await mouseMove(POINT_MISS);
-                        expect(getChartSelectionArray()).toEqual([]);
+                        expect(getChartSelectionArray()).toEqual(added);
                     });
                     test('selectionChange', async () => {
                         await mouseDown(start);
@@ -2692,12 +2728,22 @@ describe('DataSelection', () => {
 
                         await mouseUp(end);
                         await mouseMove(POINT_MISS);
-                        expect(selectionChange.popEvents()).toEqual([]);
+                        expect(selectionChange.popEvents()).toEqual([uiChangeEvent<D, C>({ added, removed: [] })]);
                     });
                 });
                 describe('wide box selects multiple sectors', () => {
                     const start: CanvasPoint = { canvasX: 125.5, canvasY: 316 };
                     const end: CanvasPoint = { canvasX: 651.5, canvasY: 324 };
+                    const added: I[] = [
+                        { seriesId, itemId: 0, datum: findName(data, '/') },
+                        { seriesId, itemId: 8, datum: findName(data, 'home/') },
+                        { seriesId, itemId: 12, datum: findName(data, 'Movies/') },
+                        { seriesId, itemId: 13, datum: findName(data, 'movie.mp4') },
+                        { seriesId, itemId: 15, datum: findName(data, 'mnt/') },
+                        { seriesId, itemId: 19, datum: findName(data, 'miniSD/') },
+                        { seriesId, itemId: 20, datum: findName(data, 'videos/') },
+                        { seriesId, itemId: 21, datum: findName(data, 'vid1.mp4') },
+                    ];
 
                     test('screenshot', async () => {
                         await mouseDown(start);
@@ -2715,7 +2761,7 @@ describe('DataSelection', () => {
 
                         await mouseUp(end);
                         await mouseMove(POINT_MISS);
-                        expect(getChartSelectionArray()).toEqual([]);
+                        expect(getChartSelectionArray()).toEqual(added);
                     });
                     test('selectionChange', async () => {
                         await mouseDown(start);
@@ -2724,7 +2770,7 @@ describe('DataSelection', () => {
 
                         await mouseUp(end);
                         await mouseMove(POINT_MISS);
-                        expect(selectionChange.popEvents()).toEqual([]);
+                        expect(selectionChange.popEvents()).toEqual([uiChangeEvent<D, C>({ added, removed: [] })]);
                     });
                 });
             });
