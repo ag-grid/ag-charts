@@ -151,11 +151,19 @@ export type AgSeriesAreaContextMenuActionEvent<TContext = ContextDefault> = AgCh
     'seriesContextMenuAction',
     TContext
 >;
-export type AgNodeContextMenuActionEvent<TDatum = DatumDefault, TContext = ContextDefault> = AgNodeClickEvent<
-    'nodeContextMenuAction',
-    TDatum,
-    TContext
->;
+export interface AgNodeContextMenuActionEvent<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgNodeClickEvent<'nodeContextMenuAction', TDatum, TContext> {
+    /** Histogram series only: zero-based positional index of the bin within the series. */
+    binIndex?: number;
+    /** Histogram series only: the bin's start and end bounds on the x-axis. */
+    binRange?: [number, number];
+    /** Histogram series only: the aggregated `yKey` value for the bin. */
+    aggregatedValue?: number;
+    /** Histogram series only: the number of source rows within the bin. */
+    frequency?: number;
+}
 
 export interface AgBaseChartListeners<TDatum, TContext = ContextDefault> {
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in any series is clicked.

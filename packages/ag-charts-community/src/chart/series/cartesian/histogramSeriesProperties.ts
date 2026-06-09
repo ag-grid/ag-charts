@@ -28,9 +28,12 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly bottomRightCornerRadius: boolean;
     readonly bottomLeftCornerRadius: boolean;
     readonly clipBBox?: BBox;
+    readonly binIndex: number;
+    readonly binRange: [number, number];
     readonly aggregatedValue: number;
+    // Plotted bar height the crosshair snaps to (area-adjusted); the raw value is `aggregatedValue`.
+    readonly cumulativeValue: number;
     readonly frequency: number;
-    readonly domain: [number, number];
     readonly label?: {
         readonly text: NormalisedTextOrSegments;
         readonly x: number;
@@ -101,7 +104,7 @@ export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHisto
     readonly label = new Label<AgHistogramSeriesLabelFormatterParams>();
 
     @Property
-    readonly tooltip = makeSeriesTooltip<AgHistogramSeriesTooltipRendererParams<HistogramNodeDatum>>();
+    readonly tooltip = makeSeriesTooltip<AgHistogramSeriesTooltipRendererParams>();
 
     getStyle(): RequireOptional<AgHistogramSeriesStyle> & { opacity: number } {
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } = this;

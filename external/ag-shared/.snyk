@@ -14,10 +14,6 @@ ignore:
         reason: Not included in final production build
         expires: 2026-09-06T00:00:00.000Z
         created: 2026-04-28T12:12:51.000Z
-    - '@nx/devkit@20.8.4 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2':
-        reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
-        created: 2026-05-28T00:00:00.000Z
   SNYK-JS-MINIMATCH-15353389:
     - 'glob@11.1.0 > minimatch@10.1.1':
         reason: Used in build & dev - not included in final production build
@@ -31,10 +27,6 @@ ignore:
         reason: Build dependency - not included in final production build
         expires: 2026-09-06T00:00:00.000Z
         created: 2026-04-28T12:12:51.000Z
-    - '@nx/devkit@20.8.4 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2':
-        reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
-        created: 2026-05-28T00:00:00.000Z
   SNYK-JS-MINIMATCH-15309438:
     - 'glob@11.1.0 > minimatch@10.1.1':
         reason: Used in dev - ReDOS attack would only affect developer machines
@@ -48,10 +40,6 @@ ignore:
         reason: Build dependency - not included in final production build
         expires: 2026-09-06T00:00:00.000Z
         created: 2026-04-28T12:12:51.000Z
-    - '@nx/devkit@20.8.4 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2':
-        reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
-        created: 2026-05-28T00:00:00.000Z
   SNYK-JS-ISAACSBRACEEXPANSION-15208653:
     - 'glob@11.1.0 > minimatch@10.1.1 > @isaacs/brace-expansion@5.0.0':
         reason: Not included in final production build
@@ -67,8 +55,8 @@ ignore:
         expires: 2026-09-06T00:00:00.000Z
         created: 2026-04-28T12:12:51.000Z
   SNYK-JS-TMP-16881240:
-    - '@nx/devkit@20.8.4 > tmp@0.2.1':
-        reason: Used in build & dev - not included in final production build
-        expires: 2026-09-06T00:00:00.000Z
+    - '@nx/devkit@20.8.4 > tmp@0.2.5':
+        reason: Build dependency - not included in final production build
+        expires: 2026-08-28T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
 patch: {}

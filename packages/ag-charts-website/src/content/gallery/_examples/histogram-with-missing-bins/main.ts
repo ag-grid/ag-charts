@@ -46,14 +46,13 @@ const options: AgChartOptions = {
                 formatter: ({ value }) => value.toFixed(1),
             },
             tooltip: {
-                renderer: ({ datum }) => {
-                    const binStart = datum.domain[0];
-                    const binEnd = datum.domain[1];
-                    const meanValue = datum.frequency;
+                renderer: ({ binRange, frequency }) => {
+                    const binStart = binRange[0];
+                    const binEnd = binRange[1];
 
                     return {
                         title: `${binStart} - ${binEnd} in³`,
-                        data: [{ label: 'Frequency', value: `${meanValue.toFixed(1)} vehicles` }],
+                        data: [{ label: 'Frequency', value: `${frequency.toFixed(1)} vehicles` }],
                     };
                 },
             },

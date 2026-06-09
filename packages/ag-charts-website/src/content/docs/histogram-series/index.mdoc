@@ -138,7 +138,33 @@ Each bin has a stable identifier, surfaced as the `itemId` in node events and ac
         {
             type: 'histogram',
             xKey: 'age',
-            getDataId: ({ binStart, binEnd }) => `${binStart}-${binEnd}yrs`,
+            getDataId: ({ binRange }) => `${binRange[0]}-${binRange[1]}yrs`,
+        },
+    ],
+}
+```
+
+## Bin Data in Callbacks
+
+Histogram callbacks - `tooltip.renderer`, `label.formatter`, `listeners.seriesNodeClick`, `listeners.seriesNodeDoubleClick`, and context menu items - all receive the same bin data:
+
+- `datum`: the array of source data rows grouped into the bin.
+- `binIndex`: the zero-based position of the bin in the series, defined for empty bins too.
+- `binRange`: the bin's `[start, end]` bounds on the x-axis.
+- `aggregatedValue`: the aggregated `yKey` value for the bin.
+- `frequency`: the number of source rows in the bin.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'histogram',
+            xKey: 'age',
+            listeners: {
+                seriesNodeClick: ({ binRange, frequency, datum }) => {
+                    console.log(`${frequency} people aged ${binRange[0]}-${binRange[1]}`, datum);
+                },
+            },
         },
     ],
 }

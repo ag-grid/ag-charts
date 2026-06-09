@@ -34,8 +34,8 @@ name: Jira Agent Pipeline
 #
 # Consumption channel: ag-dev-prompts is a private repo, so the shared
 # actions are pulled via the @ag-grid/dev-prompts npm package on GitHub
-# Packages (see `install-ag-dev-prompts` and the `pr-review.yml` workflow
-# which uses the same pattern). ag-charts tracks the `canary` dist-tag
+# Packages (see the shared `external/ag-shared/github/actions/install-ag-dev-prompts`
+# action and the `pr-review.yml` workflow which uses the same pattern). ag-charts tracks the `canary` dist-tag
 # during the in-flight rollout; ag-grid + ag-studio will pin to `latest`.
 #
 # ----------------------------------------------------------------------------
@@ -190,7 +190,7 @@ jobs:
                   fetch-depth: 1
 
             - name: Install @ag-grid/dev-prompts
-              uses: ./.github/actions/install-ag-dev-prompts
+              uses: ./external/ag-shared/github/actions/install-ag-dev-prompts
               with:
                   channel: ${{ env.DEV_PROMPTS_CHANNEL }}
 
@@ -261,7 +261,7 @@ jobs:
                   fetch_base: skip
 
             - name: Install @ag-grid/dev-prompts
-              uses: ./.github/actions/install-ag-dev-prompts
+              uses: ./external/ag-shared/github/actions/install-ag-dev-prompts
               with:
                   channel: ${{ env.DEV_PROMPTS_CHANNEL }}
 
@@ -311,7 +311,7 @@ jobs:
                   fetch-depth: 1
 
             - name: Install @ag-grid/dev-prompts
-              uses: ./.github/actions/install-ag-dev-prompts
+              uses: ./external/ag-shared/github/actions/install-ag-dev-prompts
               with:
                   channel: ${{ env.DEV_PROMPTS_CHANNEL }}
 
@@ -384,7 +384,7 @@ jobs:
                   fetch_base: skip
 
             - name: Install @ag-grid/dev-prompts
-              uses: ./.github/actions/install-ag-dev-prompts
+              uses: ./external/ag-shared/github/actions/install-ag-dev-prompts
               with:
                   channel: ${{ env.DEV_PROMPTS_CHANNEL }}
 

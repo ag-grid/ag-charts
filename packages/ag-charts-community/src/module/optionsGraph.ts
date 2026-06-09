@@ -46,7 +46,8 @@ export interface OptionsGraphAccessor {
     resolvePartial<T extends PlainObject>(
         path: Array<string>,
         partialOptions?: T,
-        resolveOptions?: OptionsGraphAccessorResolvePartialOptions
+        resolveOptions?: OptionsGraphAccessorResolvePartialOptions,
+        csssVariables?: Record<string, string>
     ): Partial<T> | undefined;
     clearSafe(): void;
 }
@@ -84,8 +85,8 @@ export function createOptionsGraph(
             resolveAnnotationThemes() {
                 return optionsGraph.resolveAnnotationThemes();
             },
-            resolvePartial(path, partialOptions, resolveOptions) {
-                return optionsGraph.resolvePartial(path, partialOptions, resolveOptions);
+            resolvePartial(path, partialOptions, resolveOptions, partialCssVariables) {
+                return optionsGraph.resolvePartial(path, partialOptions, resolveOptions, partialCssVariables);
             },
             clearSafe() {
                 return optionsGraph.clearSafe();
@@ -182,7 +183,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         public readonly palette: PlainObject = {},
         private readonly overrides: PlainObject | undefined = undefined,
         private readonly internalParams: Map<unknown, unknown> = new Map(),
-        private readonly cssVariables: Record<string, string> = {}
+        private cssVariables: Record<string, string> = {}
     ) {
         super({
             cachedNeighboursEdge: PATH_EDGE,
@@ -367,7 +368,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             permissivePath?: boolean;
             pick?: boolean;
             proxyPaths?: Record<string, Array<string>>;
-        }
+        },
+        cssVariables?: Record<string, string>
     ): Partial<T> | undefined {
         if (!partialOptions) return;
 
@@ -384,6 +386,10 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         }
 
         if (partialKeys.length === 0) return {};
+
+        if (cssVariables) {
+            this.cssVariables = { ...this.cssVariables, ...cssVariables };
+        }
 
         const parentVertex = this.findVertexAtPath(path);
         if (!parentVertex) {
@@ -587,7 +593,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             const operator = operations[operation];
             const operatorFn = typeof operator === 'function' ? operator : operator.resolve;
             const resolved = operatorFn?.(this, vertex, operationValues ?? []);
-            return resolved === RESOLVED_TO_BRANCH ? undefined : resolved;
+            return resolved === RESOLVED_TO_BRANCH ? undefined : this.resolveValueOrSymbol(resolved);
         }
 
         let value = this.getVertexValue(valueVertex);
@@ -1083,7 +1089,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             const operator = operations[operation];
             const operatorFn = typeof operator === 'function' ? operator : operator.resolve;
             const resolved = operatorFn?.(this, vertex, operationValues ?? []);
-            return resolved === RESOLVED_TO_BRANCH ? undefined : resolved;
+            return resolved === RESOLVED_TO_BRANCH ? undefined : this.resolveValueOrSymbol(resolved);
         }
 
         return this.resolveValueOrSymbol(this.getVertexValue(valueVertex));

@@ -53,6 +53,11 @@ const DATUM_KEYS = [
 
 type PickedNode = _ModuleSupport.SeriesNodeDatum & {
     [K in (typeof DATUM_KEYS)[number]]?: string;
+} & {
+    binIndex?: number;
+    binRange?: [number, number];
+    aggregatedValue?: number;
+    frequency?: number;
 };
 
 export class ContextMenu extends AbstractModuleInstance {
@@ -154,6 +159,12 @@ export class ContextMenu extends AbstractModuleInstance {
                     if (this.pickedNode[k] !== undefined) {
                         params[k] = this.pickedNode[k];
                     }
+                }
+
+                // Histogram bins carry standardised bin metadata; binIndex is always set for histogram nodes.
+                if (this.pickedNode.binIndex !== undefined) {
+                    const { binIndex, binRange, aggregatedValue, frequency } = this.pickedNode;
+                    Object.assign(params, { binIndex, binRange, aggregatedValue, frequency });
                 }
                 return params;
             }
