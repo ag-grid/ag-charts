@@ -114,7 +114,9 @@ export const colorRef = attachDescription(
         optionsDefs<AgColorRefMixOnto>({
             ref: required(themeParams),
             mix: required(ratio),
-            onto: required(themeParams),
+            // `onto` is required, but making it optional improves the warning message, and the case of mix being
+            // required with it is still handled.
+            onto: themeParams,
         }),
         optionsDefs<AgColorRef>({ ref: required(themeParams), mix: ratio })
     ),
