@@ -93,6 +93,12 @@ test.describe('api-ref-page', () => {
     test('renders the bar series options page through the colour-ref union', async ({ page }) => {
         await gotoUrl(page, toPageUrl('options/series/bar/#reference-AgBarSeriesOptions-fill'));
         await expect(getNavigationProperty(page, /^fill/)).toBeVisible();
+
+        // Expanding the `fill` code block is the only path that renders TypeCodeBlock -> CodeShiki. The
+        // union resolves to a `string[]` code sample, so this guards the regression where CodeShiki
+        // dropped its array handling and threw "code.trimEnd is not a function" on expansion.
+        await page.getByRole('button', { name: 'See more details about fill', exact: true }).click();
+        await expect(page.locator('[class*="expandedContent"] pre').first()).toBeVisible();
     });
 
     // The themes API page roots its search index at AgChartTheme, whose tree is far larger than the
