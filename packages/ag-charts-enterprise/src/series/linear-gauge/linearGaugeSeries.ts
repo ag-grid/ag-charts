@@ -1211,7 +1211,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
         if (this.labelsHaveExplicitText()) {
             // Ignore
-        } else if (labelFrom === labelTo) {
+        } else if (Number(labelFrom) === Number(labelTo)) {
+            // Number() compare so a value type change (`5n === 5` is false) doesn't force a no-op animation.
             this.formatLabelText({ label: labelTo });
         } else {
             const animationId = `${this.id}_labels`;

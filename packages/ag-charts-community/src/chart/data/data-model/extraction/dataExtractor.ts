@@ -1,4 +1,5 @@
-import { Logger, first, isISO8601, isNumberObject, iterate } from 'ag-charts-core';
+import { Logger, first, isISO8601, isNumberObject, iterate, timeValueToNumber } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { ContinuousDomain } from '../../dataDomain';
 import {
@@ -21,7 +22,7 @@ import { createArray } from '../utils/helpers';
 
 /** Tracks ordering/uniqueness during key extraction */
 interface KeyExtractionTracker {
-    lastValue: number | undefined;
+    lastValue: AgNumericValue | undefined;
     sortOrder: 1 | -1 | 0; // 0 = undetermined, 1 = ascending, -1 = descending
     isUnique: boolean;
     isOrdered: boolean;
@@ -32,27 +33,41 @@ function createKeyTracker(): KeyExtractionTracker {
 }
 
 function updateKeyTracker(tracker: KeyExtractionTracker, value: unknown): void {
-    // Only track numeric values (including Date.valueOf())
-    const numericValue = typeof value === 'number' ? value : (value as Date)?.valueOf?.();
-    if (typeof numericValue !== 'number' || !Number.isFinite(numericValue)) return;
+    // Resolve to a comparable value: bigint stays exact, ISO 8601 strings parse to epoch ms, Date narrows
+    // via valueOf(). Without this, bigint/ISO keys are skipped and the series is wrongly flagged unordered.
+    let current: AgNumericValue | undefined;
+    if (typeof value === 'number') {
+        current = Number.isFinite(value) ? value : undefined;
+    } else if (typeof value === 'bigint') {
+        current = value;
+    } else if (isISO8601(value)) {
+        const epoch = timeValueToNumber(value);
+        current = Number.isFinite(epoch) ? epoch : undefined;
+    } else {
+        const viaValueOf = (value as Date)?.valueOf?.();
+        current = typeof viaValueOf === 'number' && Number.isFinite(viaValueOf) ? viaValueOf : undefined;
+    }
+    if (current === undefined) return;
 
-    if (tracker.lastValue === undefined) {
-        tracker.lastValue = numericValue;
+    const { lastValue } = tracker;
+    if (lastValue === undefined) {
+        tracker.lastValue = current;
         return;
     }
 
-    const diff = numericValue - tracker.lastValue;
-    if (diff === 0) {
+    // A column is uniformly typed here, so `===` is exact; the relational `>` for direction stays type-safe
+    // (and never throws as `bigint - number` subtraction would) if a malformed mixed column slips through.
+    if (current === lastValue) {
         tracker.isUnique = false;
     } else if (tracker.isOrdered) {
-        const direction = diff > 0 ? 1 : -1;
+        const direction = current > lastValue ? 1 : -1;
         if (tracker.sortOrder === 0) {
             tracker.sortOrder = direction;
         } else if (tracker.sortOrder !== direction) {
             tracker.isOrdered = false;
         }
     }
-    tracker.lastValue = numericValue;
+    tracker.lastValue = current;
 }
 
 function trackerToSortOrderEntry(tracker: KeyExtractionTracker): SortOrderEntry {

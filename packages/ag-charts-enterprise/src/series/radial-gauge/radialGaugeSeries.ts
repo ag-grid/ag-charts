@@ -1349,7 +1349,8 @@ export class RadialGaugeSeries
             // Ignore
         } else if (labelTo == null || secondaryLabelTo == null) {
             this.formatLabelText();
-        } else if (labelFrom === labelTo && secondaryLabelFrom === secondaryLabelTo) {
+        } else if (Number(labelFrom) === Number(labelTo) && Number(secondaryLabelFrom) === Number(secondaryLabelTo)) {
+            // Number() compare so a value type change (`5n === 5` is false) doesn't force a no-op animation.
             this.formatLabelText({ label: labelTo, secondaryLabel: secondaryLabelTo });
         } else {
             const animationId = `${this.id}_labels`;

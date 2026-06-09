@@ -500,7 +500,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const { label, yKey, xKey, xName, yName } = ctx;
         const { total, datum } = bin;
 
-        if (!label.enabled || total === 0) {
+        // Number() coercion: a bigint `0n` total is an empty bin too, but `0n === 0` is false.
+        if (!label.enabled || Number(total) === 0) {
             return undefined;
         }
 

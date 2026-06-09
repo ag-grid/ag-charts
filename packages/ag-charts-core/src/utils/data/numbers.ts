@@ -46,12 +46,17 @@ export function subtractValues(a: AgNumericValue, b: AgNumericValue): AgNumericV
 /** Smaller of two operands via comparison, preserving an exact `bigint` (`Math.min` throws on bigint). */
 export function minValue(a: AgNumericValue, b: AgNumericValue): AgNumericValue {
     if (typeof a === 'number' && typeof b === 'number') return Math.min(a, b);
+    // A NaN number operand can't be ordered against a bigint; surface it like Math.min rather than the bigint.
+    if (typeof a === 'number' && Number.isNaN(a)) return a;
+    if (typeof b === 'number' && Number.isNaN(b)) return b;
     return a < b ? a : b;
 }
 
 /** Returns the larger of two operands, preserving an exact `bigint`. Mirror of {@link minValue}. */
 export function maxValue(a: AgNumericValue, b: AgNumericValue): AgNumericValue {
     if (typeof a === 'number' && typeof b === 'number') return Math.max(a, b);
+    if (typeof a === 'number' && Number.isNaN(a)) return a;
+    if (typeof b === 'number' && Number.isNaN(b)) return b;
     return a > b ? a : b;
 }
 

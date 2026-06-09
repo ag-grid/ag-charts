@@ -496,12 +496,15 @@ function animationValidationProcessValue(def: DatumPropertyDefinition<unknown>, 
         return validation;
     }
 
-    // For continuous values, scan the column
-    let lastValue = column[0]?.valueOf();
+    // For continuous values, scan the column. finiteKey() resolves bigint (exact), ISO 8601 strings (epoch ms)
+    // and Date alike, so an ISO-string value isn't misread as unordered the way raw valueOf() + isContinuous() is.
+    let lastValue = column[0] == null ? undefined : finiteKey(column[0]);
     for (let d = 1; validation !== 0 && d < column.length; d++) {
-        const keyValue = column[d]?.valueOf();
-        if (!isContinuous(keyValue) || lastValue > keyValue) validation &= ~ANIMATION_VALIDATION_ORDERED_KEYS;
-        if (isContinuous(keyValue) && lastValue === keyValue) validation &= ~ANIMATION_VALIDATION_UNIQUE_KEYS;
+        const keyValue = column[d] == null ? undefined : finiteKey(column[d]);
+        if (keyValue === undefined || (lastValue !== undefined && lastValue > keyValue)) {
+            validation &= ~ANIMATION_VALIDATION_ORDERED_KEYS;
+        }
+        if (keyValue !== undefined && lastValue === keyValue) validation &= ~ANIMATION_VALIDATION_UNIQUE_KEYS;
         lastValue = keyValue;
     }
 
