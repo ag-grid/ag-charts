@@ -701,6 +701,11 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         const pathArray = [...this.getPathArray(target), path];
         const pathVertex = this.findVertexAtPath(pathArray) ?? this.addVertex(path);
 
+        // If the grafted value is a public operation, let it resolve normally as it will resolve to a unique leaf and
+        // does not need to be handled like other values. Private operations will not reach this point.
+        const operation = getOperation(value);
+        if (operation) return;
+
         this.value$1.set(pathArray.join('.'), value);
 
         this.buildGraphFromValue(target, pathVertex, edgeValue, pathArray, ontoObject);
