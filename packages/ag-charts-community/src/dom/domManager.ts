@@ -369,6 +369,13 @@ export class DOMManager extends BaseManager {
         for (const [id, styles] of this.styles) {
             this.addStyles(id, styles);
         }
+
+        // A container observed while detached had no laid-out size to read; now that it is
+        // attached, re-measure so the chart autosizes to fill it instead of latching the
+        // unmeasured pre-attachment state.
+        if (this.container != null) {
+            this.sizeMonitor.refresh(this.container);
+        }
     }
 
     setSizeOptions(minWidth: number = 300, minHeight: number = 300, optionsWidth?: number, optionsHeight?: number) {

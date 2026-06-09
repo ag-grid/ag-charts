@@ -121,20 +121,34 @@ export class SizeMonitor {
         this.elements.set(element, entry);
 
         if (!opts?.skipInitialRead) {
-            // Synchronous initial size read — cross-window ResizeObserver
-            // may delay its first callback until the target window gains focus.
-            // Use content-box dimensions to match ResizeObserver's contentRect,
-            // avoiding a spurious second resize from border-box/content-box mismatch.
-            const style = element.ownerDocument.defaultView?.getComputedStyle(element);
-            const width =
-                element.clientWidth -
-                (Number.parseFloat(style?.paddingLeft ?? '0') + Number.parseFloat(style?.paddingRight ?? '0'));
-            const height =
-                element.clientHeight -
-                (Number.parseFloat(style?.paddingTop ?? '0') + Number.parseFloat(style?.paddingBottom ?? '0'));
-            if (width > 0 || height > 0) {
-                this.checkSize(entry, element, width, height);
-            }
+            this.readSize(entry, element);
+        }
+    }
+
+    // Synchronously read an element's size for cases the ResizeObserver may not cover: a
+    // cross-window observer can defer its first callback until the window gains focus, and an
+    // element observed while detached gets no layout-driven callback until it is attached.
+    private readSize(entry: Entry, element: HTMLElement) {
+        // Content-box dimensions match ResizeObserver's contentRect, avoiding a spurious
+        // second resize from border-box/content-box mismatch.
+        const style = element.ownerDocument.defaultView?.getComputedStyle(element);
+        const width =
+            element.clientWidth -
+            (Number.parseFloat(style?.paddingLeft ?? '0') + Number.parseFloat(style?.paddingRight ?? '0'));
+        const height =
+            element.clientHeight -
+            (Number.parseFloat(style?.paddingTop ?? '0') + Number.parseFloat(style?.paddingBottom ?? '0'));
+        if (width > 0 || height > 0) {
+            this.checkSize(entry, element, width, height);
+        }
+    }
+
+    // Re-read an already-observed element's size, e.g. after it transitions from detached to
+    // attached and gains a laid-out size the initial read could not see.
+    refresh(element: HTMLElement) {
+        const entry = this.elements.get(element);
+        if (entry) {
+            this.readSize(entry, element);
         }
     }
 
