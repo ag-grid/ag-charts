@@ -24,7 +24,7 @@ export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
     toKey: required(string),
     sizeKey: string,
     sizeName: string,
-    getDataId: callbackOf(string),
+    getItemId: callbackOf(string),
 };
 
 // @ts-expect-error undocumented option

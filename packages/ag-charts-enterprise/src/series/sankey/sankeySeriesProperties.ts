@@ -1,5 +1,5 @@
 import {
-    type AgSankeySeriesGetDataIdParams,
+    type AgSankeySeriesGetItemIdParams,
     type AgSankeySeriesLabelFormatterParams,
     type AgSankeySeriesLinkItemStylerParams,
     type AgSankeySeriesLinkOptions,
@@ -159,7 +159,7 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
     sizeName: string | undefined = undefined;
 
     @Property
-    getDataId?: (params: AgSankeySeriesGetDataIdParams) => string = undefined;
+    getItemId?: (params: AgSankeySeriesGetItemIdParams) => string = undefined;
 
     @Property
     readonly fillGradientDefaults = new FillGradientDefaults();

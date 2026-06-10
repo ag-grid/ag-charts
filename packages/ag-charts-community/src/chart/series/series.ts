@@ -1574,8 +1574,12 @@ export abstract class Series<
         }
     }
 
-    public cachedCallWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> | undefined {
-        return this.ctx.callbackCache.call([this.properties, this.ctx.chartService], fn, params);
+    public cachedCallWithContext<F extends Callback>(
+        fn: F,
+        params: CallbackParam<F>,
+        cacheKey?: string
+    ): ReturnType<F> | undefined {
+        return this.ctx.callbackCache.call([this.properties, this.ctx.chartService], fn, params, cacheKey);
     }
 
     public callWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> {

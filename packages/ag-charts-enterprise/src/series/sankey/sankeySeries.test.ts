@@ -303,7 +303,7 @@ describe('SankeySeries', () => {
         });
     });
 
-    describe('getDataId', () => {
+    describe('getItemId', () => {
         const DATA = [
             { from: 'A', to: 'B', size: 5 },
             { from: 'B', to: 'C', size: 5 },
@@ -327,11 +327,11 @@ describe('SankeySeries', () => {
             expect(getNodeItemIds(chart)).toEqual(['A', 'B', 'C']);
         });
 
-        it('uses the getDataId callback to override the node itemId', async () => {
-            const getDataId = vi.fn((p: { nodeName: string }) => `node:${p.nodeName}`);
+        it('uses the getItemId callback to override the node itemId', async () => {
+            const getItemId = vi.fn((p: { nodeName: string }) => `node:${p.nodeName}`);
             const options: AgStandaloneChartOptions = {
                 data: DATA,
-                series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', getDataId }],
+                series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', getItemId }],
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -339,15 +339,15 @@ describe('SankeySeries', () => {
             await waitForChartStability(chart);
 
             expect(getNodeItemIds(chart)).toEqual(['node:A', 'node:B', 'node:C']);
-            expect(getDataId).toHaveBeenCalledWith(expect.objectContaining({ nodeName: 'A' }));
+            expect(getItemId).toHaveBeenCalledWith(expect.objectContaining({ nodeName: 'A' }));
         });
 
         it('passes the chart context to the callback', async () => {
             const context = { tenant: 'acme' };
-            const getDataId = vi.fn((p: { nodeName: string; context?: any }) => `${p.context?.tenant}:${p.nodeName}`);
+            const getItemId = vi.fn((p: { nodeName: string; context?: any }) => `${p.context?.tenant}:${p.nodeName}`);
             const options: AgStandaloneChartOptions = {
                 data: DATA,
-                series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', context, getDataId }],
+                series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', context, getItemId }],
             };
             prepareEnterpriseTestOptions(options as any);
 
