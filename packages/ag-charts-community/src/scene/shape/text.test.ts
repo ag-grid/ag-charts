@@ -583,6 +583,14 @@ describe('Text', () => {
             expect(renderInlineImageSegmentSnapshot({ backgroundFill: '#d0e7ff' })).toMatchImageSnapshot();
         });
 
+        it('clips the image to a circle when cornerRadius is set with no padding', () => {
+            // No padding means the image fills the box, so the corner-radius clip rounds the image
+            // itself — a half-box radius yields a circle.
+            expect(
+                renderInlineImageSegmentSnapshot({ cornerRadius: 12, verticalAlign: 'middle' })
+            ).toMatchImageSnapshot();
+        });
+
         it('warns and still paints the background box when the image url is empty', () => {
             // The warning fires only after the background paint, so reaching it proves render no
             // longer early-returns on an empty url (box visuals covered by the snapshots above).

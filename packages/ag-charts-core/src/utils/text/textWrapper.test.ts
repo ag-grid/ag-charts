@@ -635,6 +635,59 @@ describe('wrapTextSegments — image segment overflow', () => {
         expect(remeasured.lineMetrics[1].segments).toHaveLength(1);
         expect(remeasured.lineMetrics[1].segments[0]).toMatchObject({ text: 'Subtitle' });
     });
+
+    describe('wraps an overflowing inline image to a new line instead of dropping it', () => {
+        // 'ABCD' = 40px, image = 30px → 70px overflows a 50px line, but the image fits on its own.
+        const segments: ContentSegment[] = [text('ABCD'), image('flag', { width: 30, height: 30 })];
+
+        it('keeps the image and moves it to the next line when wrapping is enabled', () => {
+            const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 50 });
+
+            expect(imageUrls(result)).toEqual(['https://example.com/flag.png']);
+            // The image flows onto a second line below the text rather than being dropped.
+            const remeasured = measureTextSegments(result, baseFont);
+            expect(remeasured.lineMetrics).toHaveLength(2);
+            expect(remeasured.lineMetrics[1].segments).toHaveLength(1);
+            expect(remeasured.lineMetrics[1].segments[0].type).toBe('image');
+        });
+
+        it('keeps the image inline when there is room (wider box)', () => {
+            const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 200 });
+
+            expect(imageUrls(result)).toEqual(['https://example.com/flag.png']);
+            expect(measureTextSegments(result, baseFont).lineMetrics).toHaveLength(1);
+        });
+
+        it("drops the image only when it cannot fit on a line of its own ('hide')", () => {
+            // Image (30px) is wider than the whole box (20px); no line can hold it, so it drops.
+            const tight: ContentSegment[] = [text('AB'), image('flag', { width: 30, height: 30 })];
+            const result = wrapTextSegments(tight, { font: baseFont, maxWidth: 20 });
+
+            expect(imageUrls(result)).toEqual([]);
+            expect(textOf(result)).toBe('AB');
+        });
+
+        it('does not wrap the image to a new line when wrapping is disabled', () => {
+            const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 50, textWrap: 'never' });
+
+            // With 'never', the image cannot move to a new line and the default 'hide' drops it.
+            expect(imageUrls(result)).toEqual([]);
+        });
+
+        it('drops the image when there is no vertical room for another line', () => {
+            // First text line commits 20px; maxHeight only allows that one line, so the image
+            // cannot wrap below and is dropped instead.
+            const stacked: ContentSegment[] = [text('AA\nBB'), image('flag', { width: 30, height: 30 })];
+            const result = wrapTextSegments(stacked, {
+                font: baseFont,
+                maxWidth: 50,
+                maxHeight: LINE_HEIGHT,
+                overflow: 'ellipsis',
+            });
+
+            expect(imageUrls(result)).toEqual([]);
+        });
+    });
 });
 
 describe('wrapTextSegments — block-leading image', () => {

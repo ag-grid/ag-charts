@@ -83,7 +83,18 @@ export class ImageSegmentNode extends Node {
                 const imgY = y + this.paddingTop;
                 // 4-arg drawImage scales the entire image to the destination box. The size hint passed
                 // to the loader ensures SVGs have concrete intrinsic dimensions, so 4-arg is reliable.
-                ctx.drawImage(image, imgX, imgY, this.imageWidth, this.imageHeight);
+                if (cornerRadius > 0) {
+                    // Clip to the same rounded box path so the image corners match the background.
+                    // With padding the image is inset and unaffected; with no padding the image fills
+                    // the box and is rounded (a circle at a large radius).
+                    ctx.save();
+                    this.tracePath(ctx, x, y, boxWidth, boxHeight, cornerRadius);
+                    ctx.clip();
+                    ctx.drawImage(image, imgX, imgY, this.imageWidth, this.imageHeight);
+                    ctx.restore();
+                } else {
+                    ctx.drawImage(image, imgX, imgY, this.imageWidth, this.imageHeight);
+                }
             }
         } else {
             Logger.warnOnce('Image segment has an empty url; rendering background only.');

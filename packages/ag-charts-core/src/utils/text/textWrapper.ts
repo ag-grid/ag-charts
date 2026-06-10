@@ -615,9 +615,29 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
                 continue;
             }
 
-            // An image segment that doesn't fit cannot be subdivided. Stop fitting this label;
-            // overflow-strategy-based dropping is handled by the caller (wrapInlineSegmentsWithOverflow).
             if (segment.type === 'image') {
+                const imageWidth = segment.textMetrics.width;
+                const imageHeight = segment.textMetrics.height;
+                // Wrap the image to a new line rather than dropping it, when wrapping is enabled,
+                // the current line already has content, and the image fits on a line of its own
+                // within the remaining height. This keeps width-shrinking monotonic (inline → next
+                // line → drop) instead of dropping the image at an in-between width.
+                if (
+                    options.textWrap !== 'never' &&
+                    lineWidth > 0 &&
+                    imageWidth <= options.maxWidth &&
+                    totalHeight + imageHeight <= maxHeight
+                ) {
+                    appendLineBreak(result, options.font);
+                    lineWidth = imageWidth;
+                    totalHeight += imageHeight;
+                    result.push(segment);
+                    continue;
+                }
+
+                // The image cannot be subdivided and has no line to wrap to. Stop fitting this
+                // label; overflow-strategy-based dropping is handled by the caller
+                // (wrapInlineSegmentsWithOverflow).
                 truncateLastSegment();
                 return result;
             }
