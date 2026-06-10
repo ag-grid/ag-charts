@@ -14,7 +14,7 @@ AG Charts accepts `bigint` data values for integers beyond `Number.MAX_SAFE_INTE
 -   **Data-space values → `AgNumericValue`.** Any option compared against, or interpolated with, the user's data: axis `min`/`max`, cross-line `value`/`range`, size/colour domains, thresholds, annotation coordinates, gauge values, zoom window bounds.
 -   **Presentation values → `number`.** Pixels, ratios (0–1), opacities, durations, angles, counts/indices, font sizes. Prefer the semantic aliases (`PixelSize`, `Ratio`, `Opacity`, `DurationMs`) over bare `number`.
 -   The test: "could this value legitimately equal a value in the user's data?" If yes, it must admit `bigint`.
--   When widening a type, also switch its option-def validator from `number` to `numericValue` (`ag-charts-core/src/state/validation.ts`) and make the consuming runtime path bigint-safe (see below), with a value-preserving regression test (same value as `number` and `bigint` must render identically).
+-   When widening a type, also switch its option-def validator from `number` to `numericValue` (or `positiveNumberNonZero` to `positiveNumericValueNonZero`; both in `ag-charts-core/src/state/validation.ts`) and make the consuming runtime path bigint-safe (see below), with a value-preserving regression test (same value as `number` and `bigint` must render identically).
 
 ## Utilities to use instead of `Math.*` and operators
 
