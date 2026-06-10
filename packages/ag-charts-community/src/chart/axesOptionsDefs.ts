@@ -22,12 +22,14 @@ import {
     lineDashOptionsDef,
     number,
     numberFormatValidator,
+    numericValue,
     object,
     optionsDefs,
     or,
     padding,
     positiveNumber,
     positiveNumberNonZero,
+    positiveNumericValueNonZero,
     ratio,
     required,
     string,
@@ -354,7 +356,7 @@ export function continuousAxisOptions(
         interval: {
             step: supportTimeInterval
                 ? or(positiveNumberNonZero, timeIntervalUnit, timeInterval)
-                : positiveNumberNonZero,
+                : positiveNumericValueNonZero,
             values: arrayOf(validDatum),
             minSpacing: and(positiveNumber, lessThan('maxSpacing')),
             maxSpacing: and(positiveNumber, greaterThan('minSpacing')),
@@ -419,7 +421,7 @@ export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOp
 
 export const numberAxisOptionsDefs: OptionsDefs<AgNumberAxisOptions> = {
     ...cartesianAxisOptionsDefs,
-    ...continuousAxisOptions(number),
+    ...continuousAxisOptions(numericValue),
     type: constant('number'),
     label: cartesianNumericAxisLabel,
     crosshair: cartesianAxisCrosshairOptions(true),
@@ -431,7 +433,7 @@ export const numberAxisOptionsDefs: OptionsDefs<AgNumberAxisOptions> = {
 
 export const logAxisOptionsDefs: OptionsDefs<AgLogAxisOptions> = {
     ...cartesianAxisOptionsDefs,
-    ...continuousAxisOptions(number),
+    ...continuousAxisOptions(numericValue),
     type: constant('log'),
     base: and(
         positiveNumberNonZero,

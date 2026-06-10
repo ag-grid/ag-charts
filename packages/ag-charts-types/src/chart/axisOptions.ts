@@ -107,7 +107,7 @@ export interface AgBaseContinuousAxisOptions<TDatum extends AgTimeValue = number
 
 export interface AgContinuousAxisOptions<
     TDatum extends AgTimeValue = number,
-    TInterval extends AgTimeInterval | AgTimeIntervalUnit | number = number,
+    TInterval extends AgTimeInterval | AgTimeIntervalUnit | AgNumericValue = number,
 > extends AgBaseContinuousAxisOptions<TDatum> {
     /** If `true`, the range will be rounded up to ensure nice equal spacing between the ticks.
      *
@@ -119,7 +119,7 @@ export interface AgContinuousAxisOptions<
 }
 
 export interface AgAxisContinuousIntervalOptions<
-    T extends AgTimeInterval | AgTimeIntervalUnit | number,
+    T extends AgTimeInterval | AgTimeIntervalUnit | AgNumericValue,
 > extends AgAxisBaseIntervalOptions {
     /** The axis interval. Expressed in the units of the axis. If the configured interval results in too many items given the chart size, it will be ignored. */
     step?: T;

@@ -27,7 +27,7 @@ import type {
     AgCrossLineThemeOptions,
 } from './crossLineOptions';
 import type { AgBaseCrosshairLabel, AgCrosshairLabel, AgCrosshairOptions } from './crosshairOptions';
-import type { AgTimeValue } from './dataValues';
+import type { AgNumericValue, AgTimeValue } from './dataValues';
 import type { AxisValue, ContextDefault, DatumDefault, Degree, PixelSize, Ratio, TextWrap } from './types';
 
 /** Configuration for axes in cartesian charts. */
@@ -378,7 +378,7 @@ export interface AgNumberAxisOptions<TContext = ContextDefault>
             >,
             'interval'
         >,
-        AgContinuousAxisOptions<number, number> {
+        AgContinuousAxisOptions<AgNumericValue, AgNumericValue> {
     type?: 'number';
     /** Add cross-lines or regions corresponding to data values. */
     crossLines?: AgCartesianCrossLineOptions<number>[];
@@ -394,7 +394,7 @@ export interface AgLogAxisOptions<TContext = ContextDefault>
             >,
             'interval'
         >,
-        AgContinuousAxisOptions<number, number> {
+        AgContinuousAxisOptions<AgNumericValue, AgNumericValue> {
     type?: 'log';
     /** The base of the logarithm used. */
     base?: number;

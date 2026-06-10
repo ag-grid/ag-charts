@@ -7,6 +7,7 @@ import {
     defined,
     number,
     numberFormatValidator,
+    numericValue,
     or,
     ratio,
     union,
@@ -57,7 +58,7 @@ export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> =
 
 export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> = {
     ...commonAxisOptionsDefs,
-    ...continuousAxisOptions(number),
+    ...continuousAxisOptions(numericValue),
     type: constant('angle-number'),
     crossLines: arrayOfDefs(
         crossLineOptionsDefs(number, commonCrossLineLabelOptionsDefs),
@@ -101,7 +102,7 @@ angleCategoryAxisOptionsDefs.innerRadiusRatio = ratio;
 
 export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions> = {
     ...commonAxisOptionsDefs,
-    ...continuousAxisOptions(number),
+    ...continuousAxisOptions(numericValue),
     type: constant('radius-number'),
     shape: union('polygon', 'circle'),
     positionAngle: number,

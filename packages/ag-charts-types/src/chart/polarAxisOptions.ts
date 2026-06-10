@@ -5,6 +5,7 @@ import type {
     AgNumericAxisFormattableLabelOptions,
 } from './axisOptions';
 import type { AgBaseCrossLineLabelOptions, AgBaseCrossLineOptions, AgCrossLineThemeOptions } from './crossLineOptions';
+import type { AgNumericValue } from './dataValues';
 import type { AxisValue, ContextDefault, Degree, Ratio } from './types';
 
 export type AgPolarAxisShape = 'polygon' | 'circle';
@@ -41,7 +42,7 @@ export interface AgAngleAxesCrossLineThemeOptions {
 export interface AgAngleNumberAxisOptions<TContext = ContextDefault>
     extends
         Omit<AgBaseAxisOptions<AgAngleAxisFormattableLabelOptions<TContext>, TContext>, 'interval'>,
-        AgContinuousAxisOptions<number, number> {
+        AgContinuousAxisOptions<AgNumericValue, AgNumericValue> {
     type?: 'angle-number';
     /** Angle in degrees to start ticks positioning from. */
     startAngle?: Degree;

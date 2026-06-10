@@ -556,6 +556,11 @@ export const numberRange = (min: number, max: number) =>
 
 export const positiveNumber = numberMin(0);
 export const positiveNumberNonZero = numberMin(0, false);
+// For fields that opt into bigint; do NOT widen positiveNumberNonZero instead.
+export const positiveNumericValueNonZero = attachDescription(
+    (value) => isFiniteNumericValue(value) && value > 0,
+    'a number or bigint greater than 0'
+);
 
 export const ratio = numberRange(0, 1);
 
