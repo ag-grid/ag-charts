@@ -1,5 +1,6 @@
 import type { AstroUserConfig } from 'astro';
 
+import { SITE_BASE_URL } from '../../constants';
 import { urlWithBaseUrl } from '../urlWithBaseUrl';
 import type { CspEnv } from './cspRules';
 import { getCspHtaccessBlock } from './cspRules';
@@ -30,6 +31,12 @@ Options -Indexes
 }
 
 export function getRedirectRules() {
+    // mod_alias `RedirectMatch` matches against the full request URL-path (e.g. `/charts/react/`),
+    // even when the .htaccess lives inside the base folder — unlike mod_rewrite, it does not strip
+    // the directory prefix. So patterns must be base-aware to match the deployed paths. Rule
+    // definitions stay base-relative (`^/react/?$`); the base is spliced in here, matching how
+    // `from` rules get the base via `urlWithBaseUrl`.
+    const basePath = (SITE_BASE_URL ?? '').replace(/\/$/, '');
     return `${SITE_301_REDIRECTS.map((redirect) => {
         const { from, fromPattern, to } = redirect as any;
         if (!to) {
@@ -41,10 +48,13 @@ export function getRedirectRules() {
             console.warn('Missing `from` in redirect', redirect);
             return;
         }
-        return from
-            ? `Redirect 301 ${urlWithBaseUrl(from)} ${urlWithBaseUrl(to)}`
-            : // NOTE: Redirect matches might not have the base url
-              `RedirectMatch 301 "${fromPattern}" "${urlWithBaseUrl(to)}"`;
+        if (from) {
+            return `Redirect 301 ${urlWithBaseUrl(from)} ${urlWithBaseUrl(to)}`;
+        }
+        const baseAwarePattern = fromPattern.startsWith('^')
+            ? `^${basePath}${fromPattern.slice(1)}`
+            : `${basePath}${fromPattern}`;
+        return `RedirectMatch 301 "${baseAwarePattern}" "${urlWithBaseUrl(to)}"`;
     })
         .filter(Boolean)
         .join('\n')}`;
