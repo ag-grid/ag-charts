@@ -208,11 +208,9 @@ export class ContinuousDomain<T extends number | Date> implements IDataDomain<T>
     }
 
     extend(value: T | bigint) {
-        // Coerce ISO 8601 strings to Date so the extent is computed as instants (the column keeps the raw string).
-        let v: unknown = value;
-        if (typeof v === 'string') {
-            v = coerceIso8601Date(v);
-        }
+        // ISO 8601 strings are ignored here: continuous string columns are parsed to epoch ms once
+        // (ensureEpochColumn) and their domains extended from the epoch column, never the raw strings.
+        const v: unknown = value;
         if (typeof v !== 'number' && typeof v !== 'bigint' && !(v instanceof Date)) {
             return;
         }
@@ -267,6 +265,10 @@ export class BandedDomain<T = any> extends BandedStructure<DomainBand<T>> implem
         super(config);
         this.domainFactory = domainFactory;
         this.isDiscrete = isDiscrete;
+    }
+
+    get discrete(): boolean {
+        return this.isDiscrete;
     }
 
     /**

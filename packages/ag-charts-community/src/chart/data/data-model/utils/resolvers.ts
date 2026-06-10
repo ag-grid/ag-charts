@@ -1,4 +1,4 @@
-import { Logger } from 'ag-charts-core';
+import { Logger, getEpochColumn } from 'ag-charts-core';
 
 import type {
     ColumnValueType,
@@ -228,7 +228,14 @@ export class DataModelResolvers<D extends object, K extends keyof D & string> {
         const entry = sortOrders.get(index);
         // Recalculate if missing or marked dirty by incremental cache management
         if (entry == null || entry.isDirty) {
-            const newEntry: SortOrderEntry = { sortOrder: valuesSortOrder(values, needsValueOf) };
+            // Reuse the parse-once epoch column for ISO-string time columns rather than re-parsing.
+            const epochs = getEpochColumn(values);
+            const newEntry: SortOrderEntry = {
+                sortOrder:
+                    epochs != null && epochs !== values
+                        ? valuesSortOrder(epochs, false)
+                        : valuesSortOrder(values, needsValueOf),
+            };
             sortOrders.set(index, newEntry);
             return newEntry.sortOrder;
         }

@@ -1,3 +1,5 @@
+import { ensureEpochColumn } from 'ag-charts-core';
+
 import { BandedDomain, ContinuousDomain, DiscreteDomain, type IDataDomain } from '../../dataDomain';
 import type { InternalDatumPropertyDefinition, SortOrderEntry } from '../../dataModelTypes';
 import type { DataModelContext } from '../dataModelContext';
@@ -54,6 +56,11 @@ export class DomainInitializer<K extends string> {
      * Note: For BandedDomain, bands should already be initialized before calling this method.
      */
     extendDomainFromData(domain: IDataDomain, data: any[], invalidData?: boolean[]): void {
+        // Continuous domains cannot interpret ISO 8601 strings; substitute the parse-once epoch column.
+        const isContinuousDomain = domain instanceof BandedDomain ? !domain.discrete : ContinuousDomain.is(domain);
+        if (isContinuousDomain) {
+            data = ensureEpochColumn(data);
+        }
         if (domain instanceof BandedDomain) {
             // Bands should already be initialized by recomputeDomains()
             // This preserves the selective dirty marking from updateBandsForChanges()

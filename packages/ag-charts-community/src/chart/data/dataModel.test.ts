@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { getEpochColumn } from 'ag-charts-core';
+
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';
 import * as examples from '../test/examples';
 import { expectWarningsCalls, setupMockConsole } from '../test/utils';
@@ -90,6 +92,34 @@ describe('DataModel', () => {
                     const result = dataModel.processData(data)!;
 
                     expect(result.reduced?.smallestKeyInterval).toEqual(1);
+                });
+            });
+
+            describe('ISO 8601 datetime string data', () => {
+                const isoTimeValue = { ...value('date'), timeDomain: true };
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('kp'), isoTimeValue, value('vp1')],
+                });
+                const isoDates = ['2024-01-01T00:00:00Z', '2024-01-02T00:00:00Z', '2024-01-03T00:00:00Z'];
+                const data = basicDataSet(isoDates.map((date, kp) => ({ kp, date, vp1: kp * 2 })));
+
+                it('should keep raw ISO strings in the column', () => {
+                    const result = dataModel.processData(data)!;
+
+                    expect(result.columns[0]).toEqual(isoDates);
+                });
+
+                it('should compute the domain as epoch milliseconds', () => {
+                    const result = dataModel.processData(data)!;
+
+                    expect(result.domain.values[0]).toEqual([Date.parse(isoDates[0]), Date.parse(isoDates[2])]);
+                });
+
+                it('should materialise the parse-once epoch column for the ISO column', () => {
+                    const result = dataModel.processData(data)!;
+
+                    expect(getEpochColumn(result.columns[0])).toEqual(isoDates.map((d) => Date.parse(d)));
+                    expect(getEpochColumn(result.columns[1])).toBeUndefined();
                 });
             });
 
