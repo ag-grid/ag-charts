@@ -3,6 +3,7 @@ import { boxContains, isBetweenAngles, toRadians } from 'ag-charts-core';
 import type { AgSelectionContainment } from 'ag-charts-types';
 
 import type { FromToMotionPropFn, FromToMotionPropFnContext, NodeUpdateState } from '../../../motion/fromToMotion';
+import { BBox } from '../../../scene/bbox';
 import type { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
 import { Sector } from '../../../scene/shape/sector';
@@ -181,13 +182,10 @@ export function pickSectorsInBBoxPredicate(series: {
         case 'any':
             return (selectionBox: BoxBounds, node: Node<unknown>): boolean => {
                 if (node instanceof Sector) {
-                    const offset = Transformable.fromCanvasPoint(series.contentGroup, selectionBox.x, selectionBox.y);
-                    const seriesSelectionBox: BoxBounds = {
-                        x: offset.x,
-                        y: offset.y,
-                        width: selectionBox.width,
-                        height: selectionBox.height,
-                    };
+                    const seriesSelectionBox = Transformable.fromCanvas(
+                        series.contentGroup,
+                        new BBox(selectionBox.x, selectionBox.y, selectionBox.width, selectionBox.height)
+                    );
                     return boxOverlapsSector(seriesSelectionBox, node);
                 }
                 return false;
