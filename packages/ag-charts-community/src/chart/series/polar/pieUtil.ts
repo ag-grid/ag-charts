@@ -194,8 +194,11 @@ export function pickSectorsInBBoxPredicate(series: {
             };
         case 'all':
             return (selectionBox: BoxBounds, node: Node<unknown>): boolean => {
-                const { x, y, width, height } = Transformable.toCanvas(series.contentGroup, node.getBBox());
-                return boxContains(selectionBox, x, y, width, height);
+                if (node instanceof Sector) {
+                    const { x, y, width, height } = Transformable.toCanvas(series.contentGroup, node.getBBox());
+                    return boxContains(selectionBox, x, y, width, height);
+                }
+                return false;
             };
         default:
             return unreachable(containment);
