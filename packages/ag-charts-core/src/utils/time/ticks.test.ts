@@ -1,4 +1,26 @@
-import { createBigIntTicks, createTicks, niceBigIntDomain } from './ticks';
+import { createBigIntBins, createBigIntTicks, createTicks, niceBigIntDomain, tickFormat } from './ticks';
+
+describe('tickFormat', () => {
+    test('formats a bigint tick with the chart-wide en-US grouping', () => {
+        // GAP AG-16608 §9.2.2 — the bigint branch calls toLocaleString() with no locale argument, so the
+        // grouping separators follow the runtime's default locale instead of the pinned 'en-US' used by
+        // createNumberFormatter and every other numeric tick, diverging in non-US environments.
+        const spy = vi.spyOn(BigInt.prototype, 'toLocaleString');
+        const format = tickFormat([0, 1]);
+        format!(9_007_199_254_740_993n);
+
+        expect(spy).toHaveBeenCalledWith('en-US');
+        spy.mockRestore();
+    });
+
+    test('applies the user tick format prefix and suffix to a bigint tick', () => {
+        // The bigint branch must run the user's format string (prefix/suffix), not just emit a bare
+        // grouped number — number ticks already honour the format, so bigint ticks should too.
+        const format = tickFormat([0, 1], '$#{,} USD');
+
+        expect(format!(9_007_199_254_740_993n)).toBe('$9,007,199,254,740,993 USD');
+    });
+});
 
 describe('ticks', () => {
     test('createTicks', () => {
@@ -96,5 +118,43 @@ describe('niceBigIntDomain', () => {
 
     test('leaves already-nice bounds unchanged', () => {
         expect(niceBigIntDomain(0n, 100n, 5)).toEqual([0n, 100n]);
+    });
+});
+
+describe('createBigIntBins', () => {
+    test('produces contiguous equal-width bins covering a nice domain', () => {
+        expect(createBigIntBins(0n, 100n, 5)).toEqual([
+            [0n, 20n],
+            [20n, 40n],
+            [40n, 60n],
+            [60n, 80n],
+            [80n, 100n],
+        ]);
+    });
+
+    test('extends a non-nice domain outward to step multiples', () => {
+        const bins = createBigIntBins(13n, 97n, 5);
+        expect(bins[0][0]).toBe(0n);
+        expect(bins.at(-1)![1]).toBe(100n);
+    });
+
+    test('returns contiguous bins (each bin starts where the previous ends)', () => {
+        const bins = createBigIntBins(-37n, 91n, 6);
+        for (let i = 1; i < bins.length; i++) {
+            expect(bins[i][0]).toBe(bins[i - 1][1]);
+        }
+    });
+
+    test('returns a single bin for a degenerate domain', () => {
+        expect(createBigIntBins(42n, 42n, 5)).toEqual([[42n, 42n]]);
+    });
+
+    test('stays exact for spans beyond Number.MAX_SAFE_INTEGER', () => {
+        const bins = createBigIntBins(0n, 10n ** 21n, 5);
+        expect(bins[0][0]).toBe(0n);
+        expect(bins.at(-1)![1]).toBe(10n ** 21n);
+        for (let i = 1; i < bins.length; i++) {
+            expect(bins[i][0]).toBe(bins[i - 1][1]);
+        }
     });
 });

@@ -70,6 +70,11 @@ describe('Strings Utilities', () => {
             const result = stringifyValue({ key: 'value' });
             expect(result).toBe('{"key":"value"}');
         });
+
+        it('stringifies a bigint without throwing (AG-16608)', () => {
+            expect(() => stringifyValue(9_007_199_254_740_993n)).not.toThrow();
+            expect(stringifyValue(9_007_199_254_740_993n)).toBe('9007199254740993');
+        });
     });
 
     describe('countLines', () => {
