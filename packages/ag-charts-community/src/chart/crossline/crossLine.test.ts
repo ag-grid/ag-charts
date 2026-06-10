@@ -273,7 +273,7 @@ const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: st
             seriesTypes: repeat('line', 2),
         }),
         warningMessages: [
-            'AG Charts - Option `axes.y.crossLines[0][type=range].range` cannot be set to `[null,134]`; expecting a number array and an array of exactly 2 items, ignoring.',
+            'AG Charts - Option `axes.y.crossLines[0][type=range].range` cannot be set to `[null,134]`; expecting a number or bigint array and an array of exactly 2 items, ignoring.',
         ],
     },
     INVALID_RANGE_LENGTH_CROSSLINE: {
@@ -283,7 +283,7 @@ const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: st
             seriesTypes: repeat('line', 2),
         }),
         warningMessages: [
-            'AG Charts - Option `axes.y.crossLines[0][type=range].range` cannot be set to `[128,134,135]`; expecting a number array and an array of exactly 2 items, ignoring.',
+            'AG Charts - Option `axes.y.crossLines[0][type=range].range` cannot be set to `[128,134,135]`; expecting a number or bigint array and an array of exactly 2 items, ignoring.',
         ],
     },
     INVALID_RANGE_WITHOUT_TYPE_CROSSLINE: {
@@ -303,7 +303,7 @@ const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: st
             seriesTypes: repeat('line', 2),
         }),
         warningMessages: [
-            'AG Charts - Option `axes.y.crossLines[0][type=line].value` cannot be set to `"a string instead of number"`; expecting a number, ignoring.',
+            'AG Charts - Option `axes.y.crossLines[0][type=line].value` cannot be set to `"a string instead of number"`; expecting a number or bigint, ignoring.',
         ],
     },
     INVALID_RANGE_WITH_LINE_TYPE_CROSSLINE: {
@@ -313,7 +313,7 @@ const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: st
             seriesTypes: repeat('line', 2),
         }),
         warningMessages: [
-            'AG Charts - Option `axes.y.crossLines[0][type=line].value` is required and has not been provided; expecting a number, ignoring.',
+            'AG Charts - Option `axes.y.crossLines[0][type=line].value` is required and has not been provided; expecting a number or bigint, ignoring.',
             'AG Charts - Unknown option `axes.y.crossLines[0][type=line].range`, ignoring.',
         ],
     },
@@ -334,7 +334,7 @@ const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: st
             seriesTypes: repeat('line', 2),
         }),
         warningMessages: [
-            'AG Charts - Option `axes.y.crossLines[0][type=range].range` is required and has not been provided; expecting a number array and an array of exactly 2 items, ignoring.',
+            'AG Charts - Option `axes.y.crossLines[0][type=range].range` is required and has not been provided; expecting a number or bigint array and an array of exactly 2 items, ignoring.',
             'AG Charts - Unknown option `axes.y.crossLines[0][type=range].value`, ignoring.',
         ],
     },
