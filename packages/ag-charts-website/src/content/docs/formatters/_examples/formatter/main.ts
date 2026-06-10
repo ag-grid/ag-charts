@@ -63,7 +63,7 @@ const options: AgCartesianChartOptions = {
             sizeName: 'Deaths',
             labelKey: 'location',
             labelName: 'Location',
-            size: 5,
+            minSize: 5,
             maxSize: 100,
             label: {
                 enabled: true,

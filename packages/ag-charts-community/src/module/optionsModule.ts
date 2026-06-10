@@ -20,6 +20,7 @@ import {
     hasRequiredInPath,
     isArray,
     isKeyOf,
+    isNumericValue,
     isObject,
     isObjectLike,
     isPlainObject,
@@ -106,6 +107,12 @@ const POSITION_DIRECTIONS = {
     bottom: ChartAxisDirection.X,
     left: ChartAxisDirection.Y,
     right: ChartAxisDirection.Y,
+};
+
+const SIZE_BOUND_KEYS: Record<string, [min: string, max: string]> = {
+    bubble: ['minSize', 'maxSize'],
+    'map-marker': ['minSize', 'maxSize'],
+    'map-line': ['minStrokeWidth', 'maxStrokeWidth'],
 };
 
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
@@ -676,6 +683,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const displayNullData = (options as any).displayNullData;
 
         const processedSeries = (options.series as SeriesOptionsTypes[])?.map((series) => {
+            this.validateSizeBounds(series);
+
             const seriesDef = ModuleRegistry.getSeriesModule(series.type);
             const visibleDefined = Boolean(seriesDef?.options?.visible);
 
@@ -691,6 +700,25 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         });
 
         options.series = this.setSeriesGroupingOptions(processedSeries ?? []);
+    }
+
+    // When the user explicitly sets both size bounds inverted (min > max), warn and drop both so theme
+    // defaults re-apply. A single bound is resolved at render time (min is authoritative) and is not checked here.
+    private validateSizeBounds(series: SeriesOptionsTypes) {
+        const keys = SIZE_BOUND_KEYS[series.type];
+        if (keys == null) return;
+
+        const [minKey, maxKey] = keys;
+        const seriesOptions = series as unknown as Record<string, unknown>;
+        const minValue = seriesOptions[minKey];
+        const maxValue = seriesOptions[maxKey];
+        if (isNumericValue(minValue) && isNumericValue(maxValue) && minValue > maxValue) {
+            Logger.warnOnce(
+                `series[].${minKey} (${minValue}) cannot be greater than ${maxKey} (${maxValue}), reverting both to theme defaults.`
+            );
+            delete seriesOptions[minKey];
+            delete seriesOptions[maxKey];
+        }
     }
 
     /**

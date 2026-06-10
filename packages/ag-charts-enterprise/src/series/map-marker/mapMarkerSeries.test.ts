@@ -704,4 +704,121 @@ describe('MapMarkerSeries', () => {
             await compare();
         });
     });
+
+    describe('AG-17481 size scaling', () => {
+        const sizeRange = async (markerOverrides: object): Promise<[number, number]> => {
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                series: [
+                    { type: 'map-shape-background' },
+                    { type: 'map-marker', idKey: 'name', sizeKey: 'population', ...markerOverrides },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            return chart.series[1].sizeScale.range;
+        };
+
+        it('uses minSize as the lower bound when sizeKey is present (AC9)', async () => {
+            expect(await sizeRange({ minSize: 5, maxSize: 50 })).toEqual([5, 50]);
+        });
+
+        it('defaults minSize to size when not set (AC10)', async () => {
+            // size defaults to 6, maxSize theme default 30.
+            expect(await sizeRange({})).toEqual([6, 30]);
+            expect(await sizeRange({ size: 12 })).toEqual([12, 30]);
+        });
+
+        it('clamps the upper bound up to minSize without warning', async () => {
+            expect(await sizeRange({ minSize: 40 })).toEqual([40, 40]);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
+        it('warns and reverts to theme defaults when both bounds are inverted', async () => {
+            const range = await sizeRange({ minSize: 30, maxSize: 5 });
+            expect(range).toEqual([6, 30]);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - series[].minSize (30) cannot be greater than maxSize (5), reverting both to theme defaults.",
+                ],
+              ]
+            `);
+        });
+
+        it('renders the range midpoint, not NaN, when the size domain collapses to a single value', async () => {
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                series: [
+                    { type: 'map-shape-background' },
+                    // A zero-width sizeDomain collapses the scale domain.
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        sizeKey: 'population',
+                        sizeDomain: [5, 5],
+                        minSize: 10,
+                        maxSize: 30,
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const markerSizes: number[] = chart.series[1].contextNodeData?.nodeData.map((d: any) => d.point.size);
+            expect(markerSizes.length).toBeGreaterThan(0);
+            // Zero-width domains resolve to the range midpoint (10 + 30) / 2, never NaN/Infinity.
+            expect([...new Set(markerSizes)]).toEqual([20]);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
+        it('clamps reversed-sizeDomain out-of-domain values to minSize, not maxSize (TC2)', async () => {
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                series: [
+                    { type: 'map-shape-background' },
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        sizeKey: 'population',
+                        // Reversed domain: larger sizeKey values map to smaller markers. Every population value
+                        // exceeds the domain, so they clamp to its high end (100), which maps to minSize.
+                        sizeDomain: [100, 0],
+                        minSize: 10,
+                        maxSize: 40,
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const markerSizes: number[] = chart.series[1].contextNodeData?.nodeData.map((d: any) => d.point.size);
+            expect(markerSizes.length).toBeGreaterThan(0);
+            // Directional clamp maps out-of-domain-high values to minSize (10); the non-directional
+            // convert({ clamp: true }) would have mapped them to maxSize (40).
+            expect([...new Set(markerSizes)]).toEqual([10]);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
+        it('ignores minSize and uses size as the fixed marker size when sizeKey is absent (AC11)', async () => {
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                series: [
+                    { type: 'map-shape-background' },
+                    { type: 'map-marker', idKey: 'name', size: 12, minSize: 40, maxSize: 50 },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const markerSizes: number[] = chart.series[1].contextNodeData?.nodeData.map((d: any) => d.point.size);
+            expect(markerSizes.length).toBeGreaterThan(0);
+            expect([...new Set(markerSizes)]).toEqual([12]);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+    });
 });

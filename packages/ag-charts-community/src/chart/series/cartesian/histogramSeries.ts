@@ -527,8 +527,11 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const { xKey, yKey } = ctx;
         const { domain: binRange, datum, binIndex, frequency, total, aggregatedValue } = bin;
         const [binStart, binEnd] = binRange;
-        const { getDataId } = this.properties;
-        const customId = getDataId == null ? undefined : this.cachedCallWithContext(getDataId, this.binParams(bin));
+        const { getItemId } = this.properties;
+        const customId =
+            getItemId == null
+                ? undefined
+                : this.cachedCallWithContext(getItemId, this.binParams(bin), `${this.id}:${binStart},${binEnd}`);
         const itemId = customId ?? `bin:${binStart},${binEnd}`;
 
         return {

@@ -30,7 +30,8 @@ import type {
 
 export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeableOptions> = {
     title: string,
-    domain: arrayOf(numericValue),
+    sizeDomain: arrayOf(numericValue),
+    minSize: positiveNumber,
     maxSize: positiveNumber,
     showInMiniChart: boolean,
     label: {
@@ -39,12 +40,13 @@ export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeabl
     },
     tooltip: tooltipOptionsDefs,
     styler: callbackDefs<AgBubbleSeriesStylerResult>({
-        ...markerOptionsDefs,
+        ...without(markerOptionsDefs, ['size']),
+        minSize: positiveNumber,
         maxSize: positiveNumber,
     }),
     maxRenderedItems: number,
     ...commonSeriesThemeableOptionsDefs,
-    ...without(markerOptionsDefs, ['enabled']),
+    ...without(markerOptionsDefs, ['enabled', 'size']),
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
     colorScale: enterprise(colorScaleOptionsDef),
 };

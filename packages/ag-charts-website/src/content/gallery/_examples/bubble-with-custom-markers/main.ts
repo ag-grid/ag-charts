@@ -51,7 +51,7 @@ const options: AgChartOptions<DataType> = {
             xName: 'Season',
             yKey: 'y',
             sizeKey: 'y',
-            size: 3,
+            minSize: 3,
             maxSize: 25,
             shape: rainDrop,
         },

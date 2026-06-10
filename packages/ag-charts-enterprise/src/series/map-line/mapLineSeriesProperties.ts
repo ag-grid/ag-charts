@@ -72,6 +72,9 @@ export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOpt
     readonly colorScale = new ColorScaleProperties();
 
     @Property
+    minStrokeWidth?: number = undefined;
+
+    @Property
     maxStrokeWidth?: number = undefined;
 
     @Property

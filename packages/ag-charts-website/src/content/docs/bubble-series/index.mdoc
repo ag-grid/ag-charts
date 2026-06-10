@@ -43,18 +43,18 @@ In this configuration:
 
 The values defined by `sizeKey` are used to calculate the marker size domain for each series. Markers are sized proportionally between the lowest and highest values.
 
-It is possible to use `size` to set the minimum possible marker size, and `maxSize` to set the maximum possible marker size.
+Use `minSize` to set the smallest possible marker size, and `maxSize` to set the largest possible marker size.
 
-To manually set the value domain used to calculate the size, use `domain`. This is particularly useful when showing multiple Bubble Series in the same chart.
+To manually set the value domain used to calculate the size, use `sizeDomain`. This is particularly useful when showing multiple Bubble Series in the same chart. Values outside the domain are clamped to `minSize` or `maxSize`.
 
 ```js format="snippet"
 {
     series: [
         {
             //...
-            size: 10, //defaults to 7
+            minSize: 10, //defaults to 7
             maxSize: 20, //defaults to 30
-            domain: [0, 100], //defaults to the series data domain
+            sizeDomain: [0, 100], //defaults to the series data domain
         },
     ],
 }
@@ -66,6 +66,8 @@ Using the above configuration
 - A value of 0 will be represented by a marker of size 10.
 - A value of 100 will be represented by a marker of size 20.
 - A value of 50 will be represented by a marker the size of 15.
+
+To reverse the mapping so that larger values produce smaller markers, reverse the `sizeDomain` bounds, for example `sizeDomain: [100, 0]`.
 
 ### Customisation
 

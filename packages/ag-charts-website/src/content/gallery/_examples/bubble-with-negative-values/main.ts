@@ -31,7 +31,7 @@ const options: AgCartesianChartOptions = {
             sizeName: 'Population',
             labelKey: 'city',
             labelName: 'City',
-            size: 5,
+            minSize: 5,
             maxSize: 100,
         },
     ],

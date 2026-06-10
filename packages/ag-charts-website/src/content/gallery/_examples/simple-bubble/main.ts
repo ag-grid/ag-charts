@@ -30,7 +30,7 @@ const options: AgChartOptions<DataType> = {
             yName: 'Magnitude',
             sizeKey: 'minDistance',
             sizeName: 'Minimum Distance',
-            size: 5,
+            minSize: 5,
             maxSize: 100,
         },
     ],

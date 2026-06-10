@@ -61,7 +61,7 @@ In this configuration:
 
 {% chartExampleRunner title="Marker Size" name="marker-size" type="generated" /%}
 
-To vary the size of the marker to denote the magnitude of the data values use `sizeKey`, `size` and `maxSize`.
+To vary the size of the marker to denote the magnitude of the data values use `sizeKey`, `minSize` and `maxSize`.
 
 ```js format="snippet"
 {
@@ -73,7 +73,7 @@ To vary the size of the marker to denote the magnitude of the data values use `s
             longitudeKey: 'lon',
             sizeKey: 'count',
             sizeName: 'Count',
-            size: 3,
+            minSize: 3,
             maxSize: 50,
         },
     ],
@@ -84,8 +84,10 @@ In this configuration:
 
 - `sizeKey` provides the numerical values determining the size of each marker.
 - `sizeName` is optional and configures the display name reflected in [Tooltips](./tooltips/).
-- `size` provides the size of the marker for the smallest data point.
+- `minSize` provides the size of the marker for the smallest data point. It defaults to `size` when not set.
 - `maxSize` provides the size for the largest data point.
+
+When `sizeKey` is not set, `size` is used as the fixed size for every marker.
 
 ## Customisation
 

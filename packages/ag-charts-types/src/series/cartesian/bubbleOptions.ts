@@ -50,12 +50,16 @@ export interface AgBubbleSeriesStylerParams<TDatum, TContext>
         AgBubbleSeriesOptionsKeys<TDatum>,
         SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
-        AgBubbleSeriesStyle {
+        Omit<AgBubbleSeriesStyle, 'size'> {
+    /** The smallest size a marker can be in pixels. */
+    minSize: PixelSize;
     /** The largest size a marker can be in pixels. */
     maxSize: PixelSize;
 }
 
-export interface AgBubbleSeriesStylerResult extends AgBubbleSeriesStyle {
+export interface AgBubbleSeriesStylerResult extends Omit<AgBubbleSeriesStyle, 'size'> {
+    /** The smallest size a marker can be in pixels. */
+    minSize?: PixelSize;
     /** The largest size a marker can be in pixels. */
     maxSize?: PixelSize;
 }
@@ -71,12 +75,24 @@ export type BubbleSeriesItemStylerParams<TDatum = DatumDefault, TContext = Conte
 export type AgBubbleSeriesItemStylerParams<TDatum, TContext> = BubbleSeriesItemStylerParams<TDatum, TContext>;
 
 export interface AgBubbleSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBubbleSeriesStyle, AgBaseCartesianThemeableOptions<TDatum, TContext> {
-    /** Explicitly specifies the extent of the domain for series `sizeKey`. */
-    domain?: [AgNumericValue, AgNumericValue];
-    /** Determines the smallest size a marker can be in pixels. */
-    size?: PixelSize;
-    /** Determines the largest size a marker can be in pixels. */
+    extends Omit<AgBubbleSeriesStyle, 'size'>, AgBaseCartesianThemeableOptions<TDatum, TContext> {
+    /**
+     * Explicitly specifies the extent of the domain of `sizeKey` values to map onto the `[minSize, maxSize]` range.
+     *
+     * Reverse the bounds (e.g. `[100, 0]`) to invert the mapping so that larger values produce smaller markers.
+     */
+    sizeDomain?: [AgNumericValue, AgNumericValue];
+    /**
+     * Determines the smallest size a marker can be in pixels. `sizeKey` values at the lower end of `sizeDomain` map to this size.
+     *
+     * Default: `7`
+     */
+    minSize?: PixelSize;
+    /**
+     * Determines the largest size a marker can be in pixels. `sizeKey` values at the upper end of `sizeDomain` map to this size.
+     *
+     * Default: `30`
+     */
     maxSize?: PixelSize;
     /** Determines the largest number of items that can be rendered at once. If there are more items, they will be aggregated to resemble similar visual appearance.
      *

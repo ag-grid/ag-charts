@@ -41,12 +41,18 @@ export function callWithContext<F extends Callback>(
 export class CallbackCache {
     private cache: WeakMap<Function, Map<string, any>> = new WeakMap();
 
-    call<F extends Callback>(callers: Caller | Caller[], fn: F, params: CallbackParam<F>): ReturnType<F> | undefined {
+    call<F extends Callback>(
+        callers: Caller | Caller[],
+        fn: F,
+        params: CallbackParam<F>,
+        cacheKey?: string
+    ): ReturnType<F> | undefined {
         let serialisedParams: string;
         let paramCache = this.cache.get(fn);
 
         try {
-            serialisedParams = JSON.stringify(params);
+            // An explicit key avoids stringifying params that carry bulk data (e.g. a row array).
+            serialisedParams = cacheKey ?? JSON.stringify(params);
         } catch {
             // Unable to serialise params!
             // No caching possible.

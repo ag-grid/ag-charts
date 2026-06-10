@@ -102,6 +102,9 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     size: number = 6;
 
     @Property
+    minSize: number | undefined;
+
+    @Property
     maxSize: number | undefined;
 
     @Property

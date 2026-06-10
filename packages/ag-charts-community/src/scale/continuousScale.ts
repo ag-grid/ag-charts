@@ -1,5 +1,5 @@
 import type { DomainWithMetadata, NormalizedDomain } from 'ag-charts-core';
-import { findMinMax } from 'ag-charts-core';
+import { findMinMax, maxValue, minValue, toNumber } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { AbstractScale } from './abstractScale';
@@ -161,6 +161,27 @@ export abstract class ContinuousScale<D extends number | bigint | Date, I = numb
 
         const r0 = range[0];
         return r0 + ((x - d0) / (d1 - d0)) * (range[1] - r0);
+    }
+
+    /**
+     * Converts `value` after clamping it into the domain extent. Unlike `convert(value, { clamp: true })`,
+     * which clamps the output by sorted range order, clamping the input keeps reversed domains oriented so
+     * out-of-domain values map to the correct endpoint.
+     */
+    convertClamped(value: AgNumericValue): number {
+        const { d0Big, d1Big } = this;
+        // Mirror convert()'s bigint guard: clamp on the exact endpoints so the still-bigint result
+        // reaches convertBigInt and keeps full precision, rather than narrowing the input first.
+        if (typeof value === 'bigint' && d0Big != null && d1Big != null) {
+            const lo = minValue(d0Big, d1Big);
+            const hi = maxValue(d0Big, d1Big);
+            return this.convert(minValue(hi, maxValue(lo, value)));
+        }
+
+        const { d0Cache, d1Cache } = this;
+        const lo = Math.min(d0Cache, d1Cache);
+        const hi = Math.max(d0Cache, d1Cache);
+        return this.convert(Math.min(hi, Math.max(lo, toNumber(value))));
     }
 
     invert(x: number, _nearest?: boolean) {

@@ -3122,6 +3122,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
       },
       "maxRenderedItems": 2000,
       "maxSize": 100,
+      "minSize": 5,
       "selection": {
         "enabled": false,
         "selectedItem": {
@@ -3135,7 +3136,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
         },
       },
       "shape": "circle",
-      "size": 5,
       "sizeKey": "magnitude",
       "sizeName": "Magnitude",
       "stroke": "#2b5c95",
@@ -5513,6 +5513,7 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
       },
       "maxRenderedItems": 2000,
       "maxSize": 30,
+      "minSize": 0,
       "selection": {
         "enabled": false,
         "selectedItem": {
@@ -5526,7 +5527,6 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
         },
       },
       "shape": "circle",
-      "size": 0,
       "sizeKey": "size",
       "sizeName": "Commits",
       "stroke": "#2b5c95",
@@ -5864,6 +5864,7 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
       "labelName": "City",
       "maxRenderedItems": 2000,
       "maxSize": 100,
+      "minSize": 5,
       "selection": {
         "enabled": false,
         "selectedItem": {
@@ -5877,7 +5878,6 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
         },
       },
       "shape": "circle",
-      "size": 5,
       "sizeKey": "population",
       "sizeName": "Population",
       "stroke": "#2b5c95",
