@@ -180,7 +180,7 @@ export function pickSectorsInBBoxPredicate(series: {
     switch (containment) {
         case 'any':
             return (selectionBox: BoxBounds, node: Node<unknown>): boolean => {
-                if (node.visible && node instanceof Sector) {
+                if (node instanceof Sector) {
                     const offset = Transformable.fromCanvasPoint(series.contentGroup, selectionBox.x, selectionBox.y);
                     const seriesSelectionBox: BoxBounds = {
                         x: offset.x,

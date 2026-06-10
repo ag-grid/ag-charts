@@ -1101,7 +1101,7 @@ export abstract class Series<
                 // Note: Some series-type include `datum` values in the scene-graph that not assignable to `TDatum`.
                 // For example: line-series `SegmentedPath` include segmentation data in `datum`). So add some basic
                 // check for `datumIndex` to filter out datums that definitely not assignable to `TDatum`.
-                if (child.datum != null && typeof child.datum === 'object' && 'datumIndex' in child.datum) {
+                if (child.visible && typeof child.datum === 'object' && child.datum && 'datumIndex' in child.datum) {
                     const result = callback(child);
                     if (result !== undefined) {
                         yield result;
