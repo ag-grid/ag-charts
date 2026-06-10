@@ -72,6 +72,51 @@ function setupObserver(agDocument: AgDocument, element: HTMLElement, cb: (inters
     return observer;
 }
 
+interface PositionObserver {
+    /** Re-frame the observer around `rect`, an already-measured bounding rect (no extra layout read). */
+    reframe: (rect: DOMRect) => void;
+    disconnect: () => void;
+}
+
+// Detect a viewport-position change of the canvas (a container move with no resize or scroll, which
+// fires none of the cache-invalidation events) without polling getBoundingClientRect on a hot path.
+// An IntersectionObserver framed exactly around the element's current rect fires the moment it
+// shifts; the callback invalidates the stale cache, so the next read re-measures passively.
+function setupPositionObserver(
+    agDocument: AgDocument,
+    element: HTMLElement,
+    onMoved: () => void
+): PositionObserver | undefined {
+    let observer: IntersectionObserver | undefined;
+    let supported = true;
+
+    const reframe = (rect: DOMRect) => {
+        if (!supported) return;
+        observer?.disconnect();
+        const { innerWidth, innerHeight } = agDocument;
+        // rootMargin insets the viewport root to the element's current edges; the observer then fires
+        // when the element crosses that boundary, i.e. when it has moved by any amount.
+        const rootMargin = [-rect.top, -(innerWidth - rect.right), -(innerHeight - rect.bottom), -rect.left]
+            .map((m) => `${Math.round(m)}px`)
+            .join(' ');
+
+        observer = agDocument.createIntersectionObserver(
+            (records) => {
+                // Threshold 1 → a fully-framed element sits at ratio 1; any move drops it below 1.
+                if (records.some((record) => record.intersectionRatio < 1)) {
+                    onMoved();
+                }
+            },
+            { threshold: 1, rootMargin }
+        );
+        // IntersectionObserver is absent in some environments (e.g. jsdom); skip silently if so.
+        supported = observer != null;
+        observer?.observe(element);
+    };
+
+    return { reframe, disconnect: () => observer?.disconnect() };
+}
+
 type LiveDOMElement = {
     element: HTMLElement;
     children: Map<string, StrictHTMLElement>;
@@ -161,6 +206,7 @@ export class DOMManager extends BaseManager {
     private readonly tabGuards?: GuardedElement;
 
     private readonly observer?: IntersectionObserver;
+    private readonly positionObserver?: PositionObserver;
     private readonly sizeMonitor: SizeMonitor;
     private readonly cursorState = new StateTracker('default');
     private _lastCursor: string | undefined = undefined;
@@ -214,6 +260,10 @@ export class DOMManager extends BaseManager {
             }
             hidden = intersectionRatio === 0;
         });
+
+        this.positionObserver = setupPositionObserver(agDocument, this.rootElements['canvas'].element, () =>
+            this.invalidateRectCaches()
+        );
 
         this.setSizeOptions();
         this.updateContainerSize();
@@ -293,6 +343,7 @@ export class DOMManager extends BaseManager {
         super.destroy();
 
         this.observer?.unobserve(this.element);
+        this.positionObserver?.disconnect();
         this.sizeMonitor.unobserve(this.rootElements['canvas'].element);
         if (this.container) {
             this.sizeMonitor.unobserve(this.container);
@@ -558,17 +609,12 @@ export class DOMManager extends BaseManager {
 
     /** Get the main chart area client bound rect. */
     getBoundingClientRect() {
-        this._cachedCanvasRect ??= this.rootElements['canvas'].element.getBoundingClientRect();
+        if (this._cachedCanvasRect == null) {
+            this._cachedCanvasRect = this.rootElements['canvas'].element.getBoundingClientRect();
+            // Re-frame the move detector around the fresh rect so a later translation is caught.
+            this.positionObserver?.reframe(this._cachedCanvasRect);
+        }
         return this._cachedCanvasRect;
-    }
-
-    /**
-     * Drop the cached viewport rects so the next read re-measures. Use before positioning an
-     * overlay against the canvas: a container move with no resize/scroll leaves the cached rect
-     * stale, since none of the cache-invalidation events fire on a pure translation.
-     */
-    refreshCanvasRect() {
-        this.invalidateRectCaches();
     }
 
     /** Ancestor CSS `scale(sx, sy)` applied to the canvas — maps canvas-local offsets to screen pixels. */
