@@ -459,38 +459,28 @@ describe('imageSegmentStyle', () => {
         expect(style.boxSizing).toEqual('border-box');
         expect(style.objectFit).toEqual('contain');
         expect(style.verticalAlign).toEqual('middle');
-        // No decoration requested — background/radius/border resolve to empty.
+        // No decoration requested — background/radius resolve to empty.
         expect(style.backgroundColor).toEqual('');
         expect(style.borderRadius).toEqual('');
-        expect(style.border).toEqual('');
         expect(style.padding).toEqual('0px 0px 0px 0px');
     });
 
-    test('maps padding, background, radius and border decoration', () => {
+    test('maps padding, background and corner radius decoration', () => {
         const style = imageSegmentStyle({
             ...base,
             padding: 2,
             backgroundFill: 'red',
-            borderRadius: 4,
-            border: { stroke: 'blue', strokeWidth: 1 },
+            cornerRadius: 4,
         });
         expect(style.padding).toEqual('2px 2px 2px 2px');
         expect(style.backgroundColor).toEqual('red');
         expect(style.borderRadius).toEqual('4px');
-        expect(style.border).toEqual('1px solid blue');
-    });
-
-    test('omits the border when disabled or zero-width', () => {
-        expect(imageSegmentStyle({ ...base, border: { stroke: 'blue', strokeWidth: 0 } }).border).toEqual('');
-        expect(
-            imageSegmentStyle({ ...base, border: { enabled: false, stroke: 'blue', strokeWidth: 2 } }).border
-        ).toEqual('');
     });
 
     test('maps each verticalAlign to a CSS equivalent', () => {
         expect(imageSegmentStyle({ ...base, verticalAlign: 'top' }).verticalAlign).toEqual('top');
         expect(imageSegmentStyle({ ...base, verticalAlign: 'bottom' }).verticalAlign).toEqual('bottom');
-        expect(imageSegmentStyle({ ...base, verticalAlign: 'alphabetic' }).verticalAlign).toEqual('baseline');
+        expect(imageSegmentStyle({ ...base, verticalAlign: 'baseline' }).verticalAlign).toEqual('baseline');
         expect(imageSegmentStyle({ ...base, verticalAlign: 'hanging' }).verticalAlign).toEqual('text-top');
     });
 });

@@ -155,7 +155,7 @@ const tooltipPlacementValidator = union(
 );
 export const rangeValidator = or(positiveNumber, union('exact', 'nearest', 'area'));
 export const seriesTooltipRangeValidator = or(positiveNumber, union('exact', 'nearest'));
-const verticalAlignValidator = union('alphabetic', 'top', 'middle', 'bottom', 'hanging', 'ideographic');
+const verticalAlignValidator = union('baseline', 'top', 'middle', 'bottom', 'hanging', 'ideographic');
 
 const textSegmentValidator = optionsDefs<TextSegment>({
     type: constant('text'),
@@ -174,8 +174,7 @@ const imageSegmentValidator = optionsDefs<ImageSegment>({
     verticalAlign: verticalAlignValidator,
     overflowStrategy: union('keep', 'hide'),
     padding,
-    borderRadius: positiveNumber,
-    border: borderOptionsDef,
+    cornerRadius: positiveNumber,
     backgroundFill: color,
     block: boolean,
 });

@@ -363,7 +363,7 @@ describe('TreemapSeries', () => {
                                                     block: true,
                                                     padding: 6,
                                                     backgroundFill: 'rgba(0, 0, 0, 0.35)',
-                                                    borderRadius: 8,
+                                                    cornerRadius: 8,
                                                     verticalAlign,
                                                 },
                                                 { text: d.name, fontWeight: 'bold', verticalAlign },
@@ -417,7 +417,7 @@ describe('TreemapSeries', () => {
                                             block: true,
                                             padding: 4,
                                             backgroundFill: 'rgba(0, 0, 0, 0.35)',
-                                            borderRadius: 6,
+                                            cornerRadius: 6,
                                         };
                                         return [
                                             icon,
@@ -546,7 +546,7 @@ describe('TreemapSeries', () => {
                                                 block: true,
                                                 padding: 6,
                                                 backgroundFill: 'rgba(0, 0, 0, 0.35)',
-                                                borderRadius: 8,
+                                                cornerRadius: 8,
                                             },
                                             { text: d.name, fontWeight: 'bold' },
                                             { text: `\n$${d.value}B` },
@@ -580,7 +580,7 @@ describe('TreemapSeries', () => {
                     block: true,
                     padding: 6,
                     backgroundFill: 'rgba(0, 0, 0, 0.35)',
-                    borderRadius: 8,
+                    cornerRadius: 8,
                 });
                 const options: AgChartOptions = {
                     width: 312,

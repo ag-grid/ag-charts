@@ -33,7 +33,13 @@ const options: AgChartOptions = {
     title: {
         text: [
             { text: 'Top Markets ' },
-            { type: 'image', url: 'https://flagcdn.com/40x30/us.png', width: 24, height: 18, verticalAlign: 'middle' },
+            {
+                type: 'image',
+                url: '${baseWWWUrl}/example-assets/flags/us.png',
+                width: 24,
+                height: 18,
+                verticalAlign: 'middle',
+            },
             { text: ' 2025', fontWeight: 'bold' },
         ],
         fontSize: 22,
@@ -73,7 +79,7 @@ const options: AgChartOptions = {
                 formatter: ({ value }) => [
                     {
                         type: 'image',
-                        url: `https://flagcdn.com/24x18/${value}.png`,
+                        url: '${baseWWWUrl}/example-assets/flags/' + `${value}.png`,
                         width: 20,
                         height: 15,
                         verticalAlign: 'middle',

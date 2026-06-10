@@ -23,7 +23,7 @@ const A = icon('A', '#1f77b4');
 // left-anchored within the caption box, so this highlights how alignment interacts with the
 // otherwise-centred single lines.
 const blockText = (label: string) => [
-    { type: 'image' as const, url: A, width: 32, height: 32, block: true, borderRadius: 6 },
+    { type: 'image' as const, url: A, width: 32, height: 32, block: true, cornerRadius: 6 },
     { text: label, fontWeight: 'bold' as const },
     { text: '\nsecond line of text' },
 ];

@@ -47,7 +47,7 @@ const data: TileDatum[] = [
     { name: 'valign top', value: 100, layout: 'valign-top' },
     { name: 'valign bottom', value: 100, layout: 'valign-bottom' },
     { name: 'padding + fill', value: 100, layout: 'decor-padding' },
-    { name: 'border + radius', value: 100, layout: 'decor-border' },
+    { name: 'rounded corners', value: 100, layout: 'decor-border' },
     { name: 'oversized hide', value: 100, layout: 'oversized-hide' },
     { name: 'long wrap', value: 100, layout: 'long-wrap' },
 ];
@@ -56,26 +56,26 @@ const formatLabel = (datum: TileDatum) => {
     switch (datum.layout) {
         case 'leading':
             return [
-                { type: 'image' as const, url: A, width: 32, height: 32, block: true, borderRadius: 6 },
+                { type: 'image' as const, url: A, width: 32, height: 32, block: true, cornerRadius: 6 },
                 { text: 'Leading', fontWeight: 'bold' as const },
                 { text: '\nblock image' },
             ];
         case 'stacked-rows':
             // block, text, `\n`, block, text → two stacked block rows.
             return [
-                { type: 'image' as const, url: A, width: 28, height: 28, block: true, borderRadius: 6 },
+                { type: 'image' as const, url: A, width: 28, height: 28, block: true, cornerRadius: 6 },
                 { text: 'Row one', fontWeight: 'bold' as const },
                 { text: '\nmore text\n' },
-                { type: 'image' as const, url: B, width: 28, height: 28, block: true, borderRadius: 6 },
+                { type: 'image' as const, url: B, width: 28, height: 28, block: true, cornerRadius: 6 },
                 { text: 'Row two' },
             ];
         case 'inline-trailing':
             // Same shape as stacked-rows but NO `\n` before the second block, so it renders inline.
             return [
-                { type: 'image' as const, url: A, width: 28, height: 28, block: true, borderRadius: 6 },
+                { type: 'image' as const, url: A, width: 28, height: 28, block: true, cornerRadius: 6 },
                 { text: 'Alpha ', fontWeight: 'bold' as const },
                 { text: 'beta' },
-                { type: 'image' as const, url: B, width: 28, height: 28, block: true, borderRadius: 6 },
+                { type: 'image' as const, url: B, width: 28, height: 28, block: true, cornerRadius: 6 },
                 { text: 'Gamma' },
             ];
         case 'side-by-side-2':
@@ -93,7 +93,7 @@ const formatLabel = (datum: TileDatum) => {
             ];
         case 'block-inline-mix':
             return [
-                { type: 'image' as const, url: A, width: 30, height: 30, block: true, borderRadius: 6 },
+                { type: 'image' as const, url: A, width: 30, height: 30, block: true, cornerRadius: 6 },
                 { text: 'Name ', fontWeight: 'bold' as const },
                 { type: 'image' as const, url: INLINE, width: 16, height: 16, verticalAlign: 'middle' as const },
                 { text: ' tag' },
@@ -144,10 +144,9 @@ const formatLabel = (datum: TileDatum) => {
                     height: 30,
                     block: true,
                     padding: 4,
-                    borderRadius: 10,
-                    border: { enabled: true, stroke: '#222', strokeWidth: 2 },
+                    cornerRadius: 10,
                 },
-                { text: 'Border + radius' },
+                { text: 'Rounded corners' },
             ];
         case 'oversized-hide':
             // Image far larger than the tile — default `hide` drops it, keeping the text.
@@ -157,7 +156,7 @@ const formatLabel = (datum: TileDatum) => {
             ];
         case 'long-wrap':
             return [
-                { type: 'image' as const, url: A, width: 28, height: 28, block: true, borderRadius: 6 },
+                { type: 'image' as const, url: A, width: 28, height: 28, block: true, cornerRadius: 6 },
                 {
                     text: 'A long label that should wrap into the narrow column beside the block image',
                     fontWeight: 'bold' as const,

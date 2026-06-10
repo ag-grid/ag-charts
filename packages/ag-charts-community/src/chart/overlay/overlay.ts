@@ -27,7 +27,7 @@ function imageVerticalAlignToCss(verticalAlign: ImageSegment['verticalAlign']): 
         case 'bottom':
         case 'ideographic':
             return 'bottom';
-        case 'alphabetic':
+        case 'baseline':
             return 'baseline';
         case 'hanging':
             return 'text-top';
@@ -38,12 +38,10 @@ function imageVerticalAlignToCss(verticalAlign: ImageSegment['verticalAlign']): 
 }
 
 // Maps an image segment's decoration to the CSS for its overlay <img>. Mirrors the canvas
-// ImageSegmentNode: a padded box (`border-box` + `object-fit: contain`), optional background,
-// rounded corners and border. Exported for unit testing — jsdom cannot host a real <img>.
+// ImageSegmentNode: a padded box (`border-box` + `object-fit: contain`), optional background and
+// rounded corners. Exported for unit testing — jsdom cannot host a real <img>.
 export function imageSegmentStyle(segment: ImageSegment): Partial<CSSStyleDeclaration> {
     const { top, right, bottom, left } = resolvePadding(segment.padding);
-    const { border } = segment;
-    const hasBorder = (border?.enabled ?? true) && !!border?.stroke && (border?.strokeWidth ?? 0) > 0;
     return {
         boxSizing: 'border-box',
         objectFit: 'contain',
@@ -52,8 +50,7 @@ export function imageSegmentStyle(segment: ImageSegment): Partial<CSSStyleDeclar
         padding: `${top}px ${right}px ${bottom}px ${left}px`,
         verticalAlign: imageVerticalAlignToCss(segment.verticalAlign),
         backgroundColor: segment.backgroundFill ?? '',
-        borderRadius: segment.borderRadius == null ? '' : `${segment.borderRadius}px`,
-        border: hasBorder && border ? `${border.strokeWidth}px solid ${border.stroke}` : '',
+        borderRadius: segment.cornerRadius == null ? '' : `${segment.cornerRadius}px`,
     };
 }
 

@@ -57,7 +57,7 @@ const options: AgChartOptions = {
             label: {
                 // Numeric y labels also get a leading block icon.
                 formatter: ({ value }) => [
-                    { type: 'image', url: STAR, width: 16, height: 16, block: true, borderRadius: 4 },
+                    { type: 'image', url: STAR, width: 16, height: 16, block: true, cornerRadius: 4 },
                     { text: `${value}` },
                 ],
             },
