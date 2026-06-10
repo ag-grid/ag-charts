@@ -2576,7 +2576,7 @@ describe('DataSelection', () => {
             const POINT_MISS: CanvasPoint = { canvasX: 20, canvasY: 20 };
             const seriesId = 'SunburstSeries-1';
 
-            describe('without module clash', () => {
+            describe('containment any', () => {
                 beforeEach(async () => {
                     selectionChange = createSelectionChangeRecorder();
                     chart = await createChartInstance({
@@ -2589,6 +2589,7 @@ describe('DataSelection', () => {
                             enabled: true,
                             enableClick: false,
                             enableDrag: true,
+                            containment: 'any',
                         },
                         listeners: { selectionChange },
                     });
@@ -2612,11 +2613,11 @@ describe('DataSelection', () => {
                     test('screenshot', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
-                        await compareExact('diskusage-sunburst-box-in-sector-candidacy');
+                        await compareExact('diskusage-sunburst-any-box-in-sector-candidacy');
 
                         await mouseUp(end);
                         await mouseMove(POINT_MISS);
-                        await compareExact('diskusage-sunburst-box-in-sector-selection');
+                        await compareExact('diskusage-sunburst-any-box-in-sector-selection');
                     });
                     test('getSelection', async () => {
                         await mouseDown(start);
@@ -2664,11 +2665,11 @@ describe('DataSelection', () => {
                     test('screenshot', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
-                        await compareExact('diskusage-sunburst-squarish-box-candidacy');
+                        await compareExact('diskusage-sunburst-any-squarish-box-candidacy');
 
                         await mouseUp(end);
                         await mouseMove(POINT_MISS);
-                        await compareExact('diskusage-sunburst-squarish-box-sector-selection');
+                        await compareExact('diskusage-sunburst-any-squarish-box-sector-selection');
                     });
                     test('getSelection', async () => {
                         await mouseDown(start);
@@ -2706,11 +2707,11 @@ describe('DataSelection', () => {
                     test('screenshot', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
-                        await compareExact('diskusage-sunburst-tall-box-candidacy');
+                        await compareExact('diskusage-sunburst-any-tall-box-candidacy');
 
                         await mouseUp(end);
                         await mouseMove(POINT_MISS);
-                        await compareExact('diskusage-sunburst-tall-box-sector-selection');
+                        await compareExact('diskusage-sunburst-any-tall-box-sector-selection');
                     });
                     test('getSelection', async () => {
                         await mouseDown(start);
@@ -2748,11 +2749,11 @@ describe('DataSelection', () => {
                     test('screenshot', async () => {
                         await mouseDown(start);
                         await mouseMove(end);
-                        await compareExact('diskusage-sunburst-wide-box-candidacy');
+                        await compareExact('diskusage-sunburst-any-wide-box-candidacy');
 
                         await mouseUp(end);
                         await mouseMove(POINT_MISS);
-                        await compareExact('diskusage-sunburst-wide-box-sector-selection');
+                        await compareExact('diskusage-sunburst-any-wide-box-sector-selection');
                     });
                     test('getSelection', async () => {
                         await mouseDown(start);
@@ -2773,6 +2774,69 @@ describe('DataSelection', () => {
                         expect(selectionChange.popEvents()).toEqual([uiChangeEvent<D, C>({ added, removed: [] })]);
                     });
                 });
+            });
+            describe('containment all', () => {
+                beforeEach(async () => {
+                    selectionChange = createSelectionChangeRecorder();
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        theme,
+                        legend,
+                        title,
+                        selection: {
+                            enabled: true,
+                            enableClick: false,
+                            enableDrag: true,
+                            containment: 'all',
+                        },
+                        listeners: { selectionChange },
+                    });
+                });
+                describe('initial', () => {
+                    test('screenshot', async () => {
+                        await compareExact('diskusage-sunburst-highlighted-none-selected-none');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+                describe.skip('northeast box', () => {
+                    const start: CanvasPoint = {canvasX: 334, canvasY: 388};
+                    const end: CanvasPoint = {canvasX: 592, canvasY: 71};
+                    const added: I[] = [];
+
+                    test('screenshot', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        await compareExact('diskusage-sunburst-all-northeast-box-candidacy');
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        await compareExact('diskusage-sunburst-all-northeast-box-candidacy');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(getChartSelectionArray()).toEqual(added);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(selectionChange.popEvents()).toEqual([uiChangeEvent<D, C>({ added, removed: [] })]);
+                    });
+                })
             });
         });
     });
