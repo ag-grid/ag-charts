@@ -104,6 +104,32 @@ describe('MapShapeSeries', () => {
         });
     });
 
+    describe('Bring to front on highlight', () => {
+        it('does not raise the hovered datum when highlight is disabled', async () => {
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                series: [{ type: 'map-shape', idKey: 'name', highlight: { enabled: false } }],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const seriesImpl = chart.series[0] as MapShapeSeries;
+            const node = seriesImpl['contextNodeData']?.nodeData[2];
+
+            (chart as Chart).ctx.highlightManager.updateHighlight(chart.id, node);
+            // Re-run the render that populates the highlight overlay. A highlight-disabled series must
+            // leave the overlay empty so the hovered datum is never raised above overlapping series,
+            // regardless of any unrelated update that re-renders it while highlighted.
+            seriesImpl.update();
+            await waitForChartStability(chart);
+
+            const raisedNodes = Array.from(seriesImpl.highlightNodeGroup.children());
+            expect(raisedNodes).toHaveLength(0);
+        });
+    });
+
     describe('Heatmap', () => {
         it('should render a simple chart', async () => {
             const options: AgChartOptions = { ...HEATMAP_EXAMPLE };

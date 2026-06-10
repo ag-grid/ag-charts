@@ -43,6 +43,10 @@ export abstract class TopologySeries<
     }
 
     protected getHighlightedDatum(): TDatum | undefined {
+        // Mirror `isSeriesHighlighted`: with highlight disabled there is no highlighted datum, so the
+        // highlight overlay stays empty and the hovered datum is not raised above overlapping series.
+        if (!this.properties.highlight.enabled) return undefined;
+
         let highlightedDatum: TDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
         const { legendItemName } = this.properties;
         const matchingLegendItemName =
