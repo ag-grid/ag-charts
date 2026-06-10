@@ -20,6 +20,7 @@ import {
     hasRequiredInPath,
     isArray,
     isKeyOf,
+    isNumericValue,
     isObject,
     isObjectLike,
     isPlainObject,
@@ -711,7 +712,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const seriesOptions = series as unknown as Record<string, unknown>;
         const minValue = seriesOptions[minKey];
         const maxValue = seriesOptions[maxKey];
-        if (typeof minValue === 'number' && typeof maxValue === 'number' && minValue > maxValue) {
+        if (isNumericValue(minValue) && isNumericValue(maxValue) && minValue > maxValue) {
             Logger.warnOnce(
                 `series[].${minKey} (${minValue}) cannot be greater than ${maxKey} (${maxValue}), reverting both to theme defaults.`
             );

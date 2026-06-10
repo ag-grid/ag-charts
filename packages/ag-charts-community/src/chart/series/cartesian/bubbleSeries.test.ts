@@ -1267,6 +1267,23 @@ describe('BubbleSeries', () => {
             `);
         });
 
+        it('rejects bigint size bounds and reverts to theme defaults', async () => {
+            await createBubble({ minSize: 30n, maxSize: 5n, sizeDomain: [0, 100] });
+            // minSize/maxSize are pixel sizes validated as finite numbers, so bigints are rejected by
+            // option validation before the inverted-bounds check; both fall back to theme defaults [7, 30].
+            expect(nodeSizes(chart)).toEqual([7, 18.5, 30]);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`series[0].minSize\` cannot be set to \`30\`; expecting a number greater than or equal to 0, ignoring.",
+                ],
+                [
+                  "AG Charts - Option \`series[0].maxSize\` cannot be set to \`5\`; expecting a number greater than or equal to 0, ignoring.",
+                ],
+              ]
+            `);
+        });
+
         it('rejects the removed size and domain options (AC1, AC2)', async () => {
             await createBubble({ size: 10, domain: [0, 100] });
             expectWarningsCalls().toMatchInlineSnapshot(`

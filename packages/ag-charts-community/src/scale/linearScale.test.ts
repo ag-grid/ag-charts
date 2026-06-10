@@ -374,6 +374,77 @@ describe('LinearScale', () => {
         });
     });
 
+    describe('convertClamped', () => {
+        test('passes in-domain values through unchanged', () => {
+            const scale = new LinearScale();
+            scale.domain = [0, 100];
+            scale.range = [0, 100];
+
+            expect(scale.convertClamped(0)).toBe(0);
+            expect(scale.convertClamped(50)).toBe(50);
+            expect(scale.convertClamped(100)).toBe(100);
+        });
+
+        test('clamps out-of-domain values to the range endpoints', () => {
+            const scale = new LinearScale();
+            scale.domain = [0, 100];
+            scale.range = [0, 100];
+
+            expect(scale.convertClamped(-50)).toBe(0);
+            expect(scale.convertClamped(150)).toBe(100);
+        });
+
+        test('clamps a reversed domain to the correctly oriented endpoint', () => {
+            const scale = new LinearScale();
+            scale.domain = [100, 0];
+            scale.range = [0, 100];
+
+            // Reversed domain: the high value maps to range start, the low value to range end.
+            expect(scale.convertClamped(100)).toBe(0);
+            expect(scale.convertClamped(0)).toBe(100);
+            // Out-of-domain values clamp to the matching endpoint rather than the sorted-range bound.
+            expect(scale.convertClamped(150)).toBe(0);
+            expect(scale.convertClamped(-50)).toBe(100);
+        });
+
+        describe('bigint', () => {
+            test('matches convert for in-domain values', () => {
+                const scale = new LinearScale();
+                scale.domain = [0n, 100n];
+                scale.range = [0, 100];
+
+                for (const v of [0n, 25n, 50n, 75n, 100n]) {
+                    expect(scale.convertClamped(v)).toBe(scale.convert(v));
+                }
+            });
+
+            test('clamps out-of-domain bigints to the range endpoints', () => {
+                const scale = new LinearScale();
+                scale.domain = [0n, 100n];
+                scale.range = [0, 100];
+
+                expect(scale.convertClamped(-50n)).toBe(0);
+                expect(scale.convertClamped(150n)).toBe(100);
+            });
+
+            // A Number-narrowed clamp loses sub-ULP detail at high magnitudes: at 1e18 the float64
+            // ULP (~128) swallows a +1 offset, collapsing it onto the lower endpoint. The bigint
+            // path must clamp on the exact endpoints so the offset survives into convert().
+            test('preserves sub-ULP precision at high magnitudes', () => {
+                const base = 10n ** 18n;
+                const scale = new LinearScale();
+                scale.domain = [base, base + 1000n];
+                scale.range = [0, 1000];
+
+                expect(Number(base + 1n)).toBe(Number(base));
+                expect(scale.convertClamped(base + 1n)).toBeGreaterThan(0);
+                expect(scale.convertClamped(base + 1n)).toBeCloseTo(scale.convert(base + 1n));
+                expect(scale.convertClamped(base - 100n)).toBe(0);
+                expect(scale.convertClamped(base + 5000n)).toBe(1000);
+            });
+        });
+    });
+
     describe('ticks bigint', () => {
         const tickParams: ScaleTickParams<number> = {
             nice: [true, true],
