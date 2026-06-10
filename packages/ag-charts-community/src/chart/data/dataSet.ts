@@ -118,7 +118,7 @@ export class DataSet<T = unknown> {
     }
 
     getDatumAt(datumIndex: number): T | undefined {
-        return this.data.at(datumIndex);
+        return this.data[datumIndex];
     }
 
     /**
