@@ -210,48 +210,34 @@ describe('DOMManager', () => {
             expect(spy).toHaveBeenCalledTimes(1);
         });
 
-        it('should invalidate the cached rect when the position observer fires on a container move', () => {
-            // jsdom has no IntersectionObserver; stub one that captures the observer callback so a
-            // container move (which fires no scroll/resize/fullscreenchange) can be simulated.
-            let intersectionCallback: IntersectionObserverCallback | undefined;
-            const stubObserver = vi.fn().mockImplementation((cb: IntersectionObserverCallback) => {
-                intersectionCallback = cb;
-                return { observe: vi.fn(), disconnect: vi.fn(), unobserve: vi.fn() };
-            });
-            vi.stubGlobal('IntersectionObserver', stubObserver);
+        it('should re-measure the cached rect on pointer re-entry after a container move', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
 
-            try {
-                const container = doc.createElement('div');
-                doc.body.append(container);
-                const dm = new DOMManager(eventsHub, undefined, doc, container);
+            const canvasEl = dm.getParent('canvas');
+            const chartEl = canvasEl.closest('.ag-charts-wrapper') as HTMLElement;
+            expect(chartEl).not.toBeNull();
 
-                const canvasEl = dm.getParent('canvas');
-                const rectAt = (left: number, top: number) =>
-                    ({ ...new DOMRect(0, 0, 0, 0).toJSON(), left, top }) as DOMRect;
-                const spy = vi.spyOn(canvasEl, 'getBoundingClientRect').mockReturnValue(rectAt(0, 0));
+            const rectAt = (left: number, top: number) =>
+                ({ ...new DOMRect(0, 0, 0, 0).toJSON(), left, top }) as DOMRect;
+            const spy = vi.spyOn(canvasEl, 'getBoundingClientRect').mockReturnValue(rectAt(0, 0));
 
-                // Populate the cache at the original position.
-                expect(dm.getBoundingClientRect().left).toBe(0);
+            // Populate the cache at the original position.
+            expect(dm.getBoundingClientRect().left).toBe(0);
 
-                // Container moved within the page: no scroll/resize/fullscreenchange fires, so without
-                // the position observer the cache would stay stale at the pre-move position.
-                spy.mockReturnValue(rectAt(200, 150));
-                expect(dm.getBoundingClientRect().left).toBe(0);
+            // Container moved within the page: no scroll/resize/fullscreenchange fires, so the cache
+            // stays stale at the pre-move position.
+            spy.mockReturnValue(rectAt(200, 150));
+            expect(dm.getBoundingClientRect().left).toBe(0);
 
-                // The position observer fires (ratio < 1 → the framed element has moved), invalidating
-                // the cache so the next read re-measures.
-                expect(intersectionCallback).toBeDefined();
-                intersectionCallback!(
-                    [{ intersectionRatio: 0 } as IntersectionObserverEntry],
-                    {} as IntersectionObserver
-                );
+            // The pointer must leave and re-enter the chart to hover it again; that re-entry
+            // invalidates the cache so the next positioning read re-measures the moved rect.
+            chartEl.dispatchEvent(new Event('pointerenter'));
 
-                const rect = dm.getBoundingClientRect();
-                expect(rect.left).toBe(200);
-                expect(rect.top).toBe(150);
-            } finally {
-                vi.unstubAllGlobals();
-            }
+            const rect = dm.getBoundingClientRect();
+            expect(rect.left).toBe(200);
+            expect(rect.top).toBe(150);
         });
     });
 
