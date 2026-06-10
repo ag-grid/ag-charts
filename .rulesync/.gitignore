@@ -26,5 +26,6 @@ mcp.json
 !/rules/dom-performance.md
 !/rules/entry-point-hygiene.md
 !/rules/module-support.md
+!/rules/numeric-values.md
 !/rules/series.md
 !/rules/server-side-rendering.md
