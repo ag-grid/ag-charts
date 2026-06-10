@@ -13,9 +13,9 @@ export type AgZoomOnDataChangeStrategy = 'reset' | 'preserveDomain' | 'preserveR
 
 export interface AgZoomRange {
     /** The start of the axis zoom range. */
-    start?: Date | string | number;
+    start?: Date | string | number | bigint;
     /** The end of the axis zoom range. */
-    end?: Date | string | number;
+    end?: Date | string | number | bigint;
 }
 
 export interface AgZoomRatio {
