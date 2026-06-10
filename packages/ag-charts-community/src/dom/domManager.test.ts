@@ -241,7 +241,10 @@ describe('DOMManager', () => {
                 // The position observer fires (ratio < 1 → the framed element has moved), invalidating
                 // the cache so the next read re-measures.
                 expect(intersectionCallback).toBeDefined();
-                intersectionCallback!([{ intersectionRatio: 0 } as IntersectionObserverEntry], {} as IntersectionObserver);
+                intersectionCallback!(
+                    [{ intersectionRatio: 0 } as IntersectionObserverEntry],
+                    {} as IntersectionObserver
+                );
 
                 const rect = dm.getBoundingClientRect();
                 expect(rect.left).toBe(200);
