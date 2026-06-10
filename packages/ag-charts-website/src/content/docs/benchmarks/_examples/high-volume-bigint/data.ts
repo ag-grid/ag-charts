@@ -1,9 +1,13 @@
-const points = 1000000;
+const startPrice = 100;
+const maxDailyPriceChange = 5;
+const days = 1000000;
 
-// Base value just beyond Number.MAX_SAFE_INTEGER (2^53 - 1 = 9_007_199_254_740_991).
-// Every y value is a bigint and stays outside the safe-integer range.
-const yBase = 9_007_199_254_740_993n;
-const maxDelta = 5_000_000_000_000_000_000n; // wei-scale jitter
+// Same random walk as axes-1M-number, linearly mapped into bigint space so the
+// only difference between the two benchmarks is the y-value type. The walk is
+// scaled to wei-style magnitudes and offset by a base larger than its swing, so
+// every value stays beyond Number.MAX_SAFE_INTEGER (2^53 - 1).
+const priceBase = 10_000_000_000_000_000_000_000n;
+const priceScale = 1_000_000_000_000n;
 
 function sfc32(a: number, b: number, c: number, d: number) {
     return function () {
@@ -30,11 +34,12 @@ function seedRandom(seed = 1337): () => number {
 }
 
 export function getData() {
+    let currentPrice = startPrice;
     const random = seedRandom();
-    return Array.from({ length: points }, (_, i) => {
-        // Scale a [0, 1) float into a bigint delta without losing magnitude.
-        const delta = (BigInt(Math.floor(random() * 1_000_000)) * maxDelta) / 1_000_000n;
-        const y = yBase + delta;
-        return { x: i, y };
-    });
+    return Array.from({ length: days }, (_, index) => {
+        const price = priceBase + BigInt(Math.round(currentPrice * 1_000_000)) * priceScale;
+        currentPrice += (random() * 2 - 1) * maxDailyPriceChange;
+
+        return { index, price };
+    }).reverse();
 }

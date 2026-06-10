@@ -1,8 +1,6 @@
-const points = 1000000;
 const startPrice = 100;
 const maxDailyPriceChange = 5;
-const stepMs = 60 * 1000; // one point per minute
-const startTime = Date.UTC(2024, 0, 1, 0, 0, 0);
+const days = 1000000;
 
 function sfc32(a: number, b: number, c: number, d: number) {
     return function () {
@@ -31,14 +29,14 @@ function seedRandom(seed = 1337): () => number {
 export function getData() {
     let currentPrice = startPrice;
     const random = seedRandom();
-    return Array.from({ length: points }, (_, i) => {
+    return Array.from({ length: days }, (_, i) => {
         const price = currentPrice;
         currentPrice += (random() * 2 - 1) * maxDailyPriceChange;
 
-        // Timestamps are supplied as strict ISO 8601 strings; the time axis
-        // parses them on demand.
-        const timestamp = new Date(startTime + i * stepMs).toISOString();
+        // Same instants as axes-1M-time, supplied as strict ISO 8601 strings so the
+        // only difference between the two benchmarks is the timestamp representation.
+        const timestamp = new Date(2024, 0, 1, -i).toISOString();
 
         return { timestamp, price };
-    });
+    }).reverse();
 }

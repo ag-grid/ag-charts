@@ -1,14 +1,36 @@
 // @ag-skip-fws
 /* @ag-options-extract */
-import { AgCartesianChartOptions, AgCharts, VERSION } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NavigatorModule,
+    NumberAxisModule,
+    TimeAxisModule,
+    VERSION,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
 import { ChartRef, performInitialLoad, performZoom } from './benchmarkUtils';
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    LegendModule,
+    LineSeriesModule,
+    NavigatorModule,
+    NumberAxisModule,
+    TimeAxisModule,
+    ZoomModule,
+]);
+
+(window as any).agChartsDebug = 'scene:stats:verbose';
+
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    data: [],
+    data: getData(),
     animation: { enabled: false },
     zoom: {
         enabled: true,
@@ -28,19 +50,16 @@ const options: AgCartesianChartOptions = {
         },
     ],
     axes: {
-        x: { type: 'time' },
-        y: { type: 'number' },
+        x: { type: 'time', nice: false },
     },
 };
 /* @ag-options-end */
-
-const data = getData();
-options.data = data;
 
 const chartRef: ChartRef = { current: AgCharts.create(options) };
 const container = document.getElementById('myChart')!;
 
 const seriesCount = options.series!.length;
+const data = getData();
 
 /** inScope */
 function getBenchmarkConfig(): BenchmarkConfig {
@@ -73,9 +92,9 @@ function getBenchmarkConfig(): BenchmarkConfig {
             warmupUpdates: 2,
         },
         metadata: {
-            dataPoints: options.data!.length,
+            dataPoints: data.length,
             seriesCount: seriesCount,
-            seriesType: 'line',
+            axisType: 'time',
             dataType: 'iso-8601-string',
             version: VERSION,
         },

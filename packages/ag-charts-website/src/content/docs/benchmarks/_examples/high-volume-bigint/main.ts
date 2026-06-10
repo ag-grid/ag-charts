@@ -6,6 +6,8 @@ import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
 import { ChartRef, performInitialLoad, performZoom } from './benchmarkUtils';
 import { getData } from './data';
 
+(window as any).agChartsDebug = 'scene:stats:verbose';
+
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     // `data` is assigned after the extract block: the dataset holds bigint values, which the example
@@ -24,14 +26,13 @@ const options: AgCartesianChartOptions = {
     series: [
         {
             type: 'line',
-            xKey: 'x',
-            yKey: 'y',
+            xKey: 'index',
+            yKey: 'price',
             marker: { enabled: false },
         },
     ],
     axes: {
-        x: { type: 'number' },
-        y: { type: 'number' },
+        x: { type: 'number', nice: false },
     },
 };
 /* @ag-options-end */
@@ -77,7 +78,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
         metadata: {
             dataPoints: data.length,
             seriesCount: seriesCount,
-            seriesType: 'line',
+            axisType: 'number',
             dataType: 'bigint',
             version: VERSION,
         },
