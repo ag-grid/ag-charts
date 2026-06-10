@@ -1,6 +1,46 @@
 import { describe, expect, it } from 'vitest';
 
+import type { AgNumericValue } from 'ag-charts-types';
+
+import type { ReducerOutputPropertyDefinition } from './dataModelTypes';
 import { LARGEST_KEY_INTERVAL, SMALLEST_KEY_INTERVAL } from './processors';
+
+function foldKeys(def: ReducerOutputPropertyDefinition<'smallestKeyInterval' | 'largestKeyInterval'>, keys: unknown[]) {
+    const reduce = def.reducer();
+    return keys.reduce<AgNumericValue | undefined>((acc, key) => reduce(acc, [key]), def.initialValue);
+}
+
+describe('interval reducers', () => {
+    it('finds the smallest gap between number keys', () => {
+        expect(foldKeys(SMALLEST_KEY_INTERVAL, [0, 10, 13, 100])).toBe(3);
+    });
+
+    it('finds the largest gap between number keys', () => {
+        expect(foldKeys(LARGEST_KEY_INTERVAL, [0, 10, 13, 100])).toBe(87);
+    });
+
+    it('skips non-finite keys without disturbing the running predecessor', () => {
+        expect(foldKeys(SMALLEST_KEY_INTERVAL, [0, Number.NaN, 5, Infinity, 6])).toBe(1);
+    });
+
+    it('measures Date-keyed gaps as elapsed milliseconds', () => {
+        const t = Date.UTC(2024, 0, 1);
+        expect(foldKeys(SMALLEST_KEY_INTERVAL, [new Date(t), new Date(t + 1000), new Date(t + 1500)])).toBe(500);
+    });
+
+    it('measures ISO 8601 string-keyed gaps as elapsed milliseconds', () => {
+        const isoKeys = ['2024-01-01T00:00:00.000Z', '2024-01-01T00:00:01.000Z', '2024-01-01T00:00:01.500Z'];
+        expect(foldKeys(SMALLEST_KEY_INTERVAL, isoKeys)).toBe(500);
+        expect(foldKeys(LARGEST_KEY_INTERVAL, isoKeys)).toBe(1000);
+    });
+
+    // At 2^60 the gap is below the Number ULP (256), so coerce-then-subtract would collapse it to zero.
+    it('preserves exact gaps between large-magnitude bigint keys', () => {
+        const base = 2n ** 60n;
+        expect(foldKeys(SMALLEST_KEY_INTERVAL, [base, base + 8n, base + 24n])).toBe(8n);
+        expect(foldKeys(LARGEST_KEY_INTERVAL, [base, base + 8n, base + 24n])).toBe(16n);
+    });
+});
 
 describe('interval reducer combiners', () => {
     it('SMALLEST_KEY_INTERVAL.combineResults ignores non-finite values', () => {

@@ -1,16 +1,23 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { mapValues } from 'ag-charts-core';
-import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartOptions, AgNumericValue } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import { Transformable } from '../../../scene/transformable';
+import {
+    BIG,
+    STRIPPED_NUMBER_AXES,
+    expectPixelIdenticalAcrossMagnitude,
+    magnitudePair,
+} from '../../test/bigintExamples';
 import { type ChartTestCase, COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES } from '../../test/examples-gallery';
 import type { ChartOrProxy } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     clickAction,
+    createChart as createMagnitudeChart,
     deproxy,
     doubleClickAction,
     expectWarningsCalls,
@@ -389,6 +396,40 @@ describe('HistogramSeries', () => {
             const firstBin = nodeDataOf(chart)[0];
             expect(firstBin.cumulativeValue).toBe(6);
             expect(firstBin.aggregatedValue).toBe(6);
+        });
+
+        it('skips the label for a non-empty bin whose bigint total is exactly 0n', async () => {
+            // Two rows in [0,10) sum to a bigint 0n; the label must still be skipped (`Number(0n) === 0`),
+            // where the natural `0n === 0` would be false and wrongly render a "0" label (AG-16608).
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 2, y: 5n },
+                    { x: 5, y: -5n },
+                    { x: 12, y: 7n },
+                ],
+                series: [
+                    {
+                        type: 'histogram',
+                        xKey: 'x',
+                        yKey: 'y',
+                        aggregation: 'sum',
+                        bins: [
+                            [0, 10],
+                            [10, 20],
+                        ],
+                        label: { enabled: true },
+                    },
+                ],
+            };
+            prepareTestOptions(options as any);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const [zeroBin, nonZeroBin] = nodeDataOf(chart);
+            expect(zeroBin.frequency).toBe(2);
+            expect(zeroBin.aggregatedValue).toBe(0n); // genuinely bigint 0n, so `0n === 0` would be false
+            expect(zeroBin.label).toBeUndefined();
+            expect(nonZeroBin.label).toBeDefined();
         });
 
         const firstBinCanvasPoint = (c: any) => {
@@ -793,6 +834,126 @@ describe('HistogramSeries', () => {
             await waitForChartStability(chart);
 
             await compare();
+        });
+    });
+
+    describe('bigint aggregation (AG-16608)', () => {
+        setupMockCanvas();
+
+        it('sums a bigint yKey column at full precision (aggregation: sum)', async () => {
+            const big = 9_007_199_254_740_993n; // 2^53 + 1, not exactly representable as a Number
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 1, y: big },
+                    { x: 2, y: big },
+                    { x: 3, y: big },
+                ],
+                series: [{ type: 'histogram', xKey: 'x', yKey: 'y', aggregation: 'sum', bins: [[0, 10]] }],
+            };
+            prepareTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const series = chart.series.find((v: any) => v.type === 'histogram');
+            expect(series).toBeDefined();
+
+            const context: SeriesNodeDataContext<any, any> = (series as any)['contextNodeData'];
+            const bin = context.nodeData.find((n: any) => n.aggregatedValue != null);
+            expect(bin).toBeDefined();
+            // A narrowing convert() would round this sum; the bigint path keeps it exact.
+            expect(bin!.aggregatedValue).toBe(3n * big);
+        });
+    });
+
+    describe('bigint bins (AG-16608)', () => {
+        it('computes bin boundaries in BigInt at full precision', async () => {
+            const base = 9_007_199_254_740_993n; // 2^53 + 1 — not representable as a Number
+            const xs = [base, base + 10n, base + 25n, base + 40n, base + 80n];
+            const options: AgChartOptions = {
+                data: xs.map((x) => ({ x })),
+                series: [{ type: 'histogram', xKey: 'x', binCount: 10 }],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0] as unknown as {
+                calculatedBins: { domain: [bigint, bigint]; frequency: number }[];
+            };
+            const bins = series.calculatedBins;
+
+            expect(bins.length).toBeGreaterThan(0);
+            for (const bin of bins) {
+                expect(typeof bin.domain[0]).toBe('bigint');
+                expect(typeof bin.domain[1]).toBe('bigint');
+            }
+            for (let i = 1; i < bins.length; i++) {
+                expect(bins[i].domain[0]).toBe(bins[i - 1].domain[1]);
+            }
+            expect(bins[0].domain[0] <= base).toBe(true);
+            expect(bins.at(-1)!.domain[1] >= base + 80n).toBe(true);
+
+            const totalFrequency = bins.reduce((acc, bin) => acc + bin.frequency, 0);
+            expect(totalFrequency).toBe(xs.length);
+        });
+
+        it('falls back to Number bins (no RangeError) when the extent mixes a bigint and a fractional number', async () => {
+            // BigInt(25.5) throws RangeError, so a non-integral endpoint must defer to the Number path.
+            const options: AgChartOptions = {
+                data: [{ x: 10n }, { x: 12n }, { x: 18n }, { x: 20n }, { x: 25.5 }],
+                series: [{ type: 'histogram', xKey: 'x', binCount: 5 }],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0] as unknown as {
+                calculatedBins: { domain: [AgNumericValue, AgNumericValue]; frequency: number }[];
+            };
+            const bins = series.calculatedBins;
+
+            expect(bins.length).toBeGreaterThan(0);
+            for (const bin of bins) {
+                expect(typeof bin.domain[0]).toBe('number');
+                expect(typeof bin.domain[1]).toBe('number');
+            }
+            const totalFrequency = bins.reduce((acc, bin) => acc + bin.frequency, 0);
+            expect(totalFrequency).toBe(5);
+            // The mixed-numeric warning is emitted for value columns, not key columns.
+            expectWarningsCalls().toHaveLength(0);
+        });
+    });
+
+    describe('bigint values (AG-16608)', () => {
+        it('renders a histogram of out-of-safe-range bigint x values', async () => {
+            const base = BIG;
+            chart = AgCharts.create(
+                prepareTestOptions({
+                    data: [base, base + 10n, base + 25n, base + 40n, base + 80n, base + 95n].map((x) => ({ x })),
+                    series: [{ type: 'histogram', xKey: 'x', binCount: 5 }],
+                    axes: { x: { type: 'number' }, y: { type: 'number' } },
+                })
+            );
+            await compare();
+        });
+    });
+
+    describe('bigint magnitude invariance (AG-16608)', () => {
+        const xs = (values: number[]) => (toValue: (v: number) => number | bigint) =>
+            values.map((x) => ({ x: toValue(x) }));
+
+        it('bins a histogram identically when x is scaled beyond Number.MAX_VALUE', async () => {
+            await expectPixelIdenticalAcrossMagnitude(
+                ctx,
+                createMagnitudeChart,
+                magnitudePair(
+                    { series: [{ type: 'histogram', xKey: 'x', binCount: 5 }], axes: STRIPPED_NUMBER_AXES },
+                    xs([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+                )
+            );
         });
     });
 });

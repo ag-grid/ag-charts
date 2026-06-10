@@ -14,6 +14,17 @@ import type {
 
 import { AgCharts } from '../../../api/agCharts';
 import {
+    BIG,
+    HIGH_VOLUME_COUNT,
+    HIGH_VOLUME_SIGNALS,
+    NEG_BIG,
+    STRIPPED_NUMBER_AXES,
+    expectPixelIdenticalAcrossMagnitude,
+    magnitudePair,
+    scaleToBigIntFinite,
+    stripAxes,
+} from '../../test/bigintExamples';
+import {
     DATA_FRACTIONAL_LOG_AXIS,
     DATA_INVALID_DOMAIN_LOG_AXIS,
     DATA_NEGATIVE_LOG_AXIS,
@@ -27,6 +38,7 @@ import type { CartesianOrPolarTestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    createChart,
     deproxy,
     extractImageData,
     hoverAction,
@@ -224,6 +236,30 @@ describe('LineSeries', () => {
     });
 
     const ctx = setupMockCanvas();
+
+    describe('bigint timestamps on a time axis (render hardening)', () => {
+        it('renders bigint epoch timestamps on a time axis without error (<=1000 pts)', async () => {
+            // GAP AG-16608 §9.1.2 — minTimeInterval() runs Math.sign/Math.abs/Math.min over a bigint
+            // interval, throwing "Cannot convert a BigInt value to a number" during time-axis granularity
+            // computation before the chart can render (small datasets bypass the aggregation path).
+            const options: AgCartesianChartOptions = {
+                data: Array.from({ length: 50 }, (_, i) => ({
+                    x: 1_700_000_000_000n + BigInt(i) * 86_400_000n,
+                    y: Math.sin(i / 5),
+                })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'time', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            } as unknown as AgCartesianChartOptions;
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expect(console.error).not.toHaveBeenCalled();
+        });
+    });
 
     describe('#create', () => {
         beforeEach(() => {
@@ -2230,6 +2266,163 @@ describe('LineSeries', () => {
             chart = AgCharts.create(options);
 
             await compare();
+        });
+    });
+
+    describe('bigint values (AG-16608)', () => {
+        const categoryNumberAxes = { x: { type: 'category' as const }, y: { type: 'number' as const } };
+
+        it('renders a plain line series with out-of-safe-range bigint values', async () => {
+            chart = AgCharts.create(
+                prepareTestOptions({
+                    data: [
+                        { x: 'a', y: BIG },
+                        { x: 'b', y: BIG * 2n },
+                        { x: 'c', y: NEG_BIG },
+                    ],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: categoryNumberAxes,
+                })
+            );
+            await compare();
+        });
+
+        it('renders a stacked line series with bigint values', async () => {
+            chart = AgCharts.create(
+                prepareTestOptions({
+                    data: [
+                        { x: 'a', a: BIG, b: BIG * 2n },
+                        { x: 'b', a: BIG * 3n, b: BIG },
+                    ],
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'a', stacked: true },
+                        { type: 'line', xKey: 'x', yKey: 'b', stacked: true },
+                    ],
+                    axes: categoryNumberAxes,
+                })
+            );
+            await compare();
+        });
+
+        it('renders a 100%-stacked line series with bigint values (normalizedTo degrades to Number)', async () => {
+            chart = AgCharts.create(
+                prepareTestOptions({
+                    data: [
+                        { x: 'a', a: BIG, b: BIG * 2n },
+                        { x: 'b', a: BIG * 3n, b: BIG },
+                    ],
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'a', stacked: true, normalizedTo: 100 },
+                        { type: 'line', xKey: 'x', yKey: 'b', stacked: true, normalizedTo: 100 },
+                    ],
+                    axes: categoryNumberAxes,
+                })
+            );
+            await compare();
+        });
+    });
+
+    describe('ISO datetime (AG-16654)', () => {
+        it('renders a line series with ISO-8601 datetime-string x values on a time axis', async () => {
+            chart = AgCharts.create(
+                prepareTestOptions({
+                    data: [
+                        { time: '2024-01-15T09:00:00Z', y: 12 },
+                        { time: '2024-01-15T10:00:00Z', y: 15 },
+                        { time: '2024-01-15T11:00:00Z', y: 11 },
+                        { time: '2024-01-15T12:00:00Z', y: 18 },
+                    ],
+                    series: [{ type: 'line', xKey: 'time', yKey: 'y' }],
+                    axes: { x: { type: 'time' }, y: { type: 'number' } },
+                })
+            );
+            await compare();
+        });
+    });
+
+    describe('bigint magnitude invariance (AG-16608)', () => {
+        const single = (ys: number[]) => (toValue: (v: number) => number | bigint) =>
+            ys.map((y, i) => ({ x: i + 1, y: toValue(y) }));
+        const paired = (rows: Array<[number, number]>) => (toValue: (v: number) => number | bigint) =>
+            rows.map(([a, b], i) => ({ x: i + 1, a: toValue(a), b: toValue(b) }));
+
+        it('positions a non-stacked line series identically when scaled beyond Number.MAX_VALUE', async () => {
+            await expectPixelIdenticalAcrossMagnitude(
+                ctx,
+                createChart,
+                magnitudePair(
+                    { series: [{ type: 'line', xKey: 'x', yKey: 'y' }], axes: STRIPPED_NUMBER_AXES },
+                    single([3, 4, 5])
+                )
+            );
+        });
+
+        it('positions a straddling-zero line series identically when scaled beyond Number.MAX_VALUE', async () => {
+            await expectPixelIdenticalAcrossMagnitude(
+                ctx,
+                createChart,
+                magnitudePair(
+                    { series: [{ type: 'line', xKey: 'x', yKey: 'y' }], axes: STRIPPED_NUMBER_AXES },
+                    single([-3, 4, -5])
+                )
+            );
+        });
+
+        it('positions a stacked line series identically when scaled beyond Number.MAX_VALUE', async () => {
+            await expectPixelIdenticalAcrossMagnitude(
+                ctx,
+                createChart,
+                magnitudePair(
+                    {
+                        series: [
+                            { type: 'line', xKey: 'x', yKey: 'a', stacked: true },
+                            { type: 'line', xKey: 'x', yKey: 'b', stacked: true },
+                        ],
+                        axes: STRIPPED_NUMBER_AXES,
+                    },
+                    paired([
+                        [1, 2],
+                        [2, 2],
+                        [2, 3],
+                    ])
+                )
+            );
+        });
+    });
+
+    // Above AGGREGATION_THRESHOLD, a bigint series must render identically to its Number baseline.
+    describe('bigint high-volume aggregation invariance (AG-16608)', () => {
+        const N = HIGH_VOLUME_COUNT;
+        const STRIPPED_TIME_AXES = stripAxes({ x: { type: 'time', nice: false }, y: { type: 'number', nice: false } });
+
+        it.each(HIGH_VOLUME_SIGNALS)(
+            'renders a %s high-volume bigint line identically to its Number baseline',
+            async (_label, sig) => {
+                await expectPixelIdenticalAcrossMagnitude(
+                    ctx,
+                    createChart,
+                    magnitudePair(
+                        { series: [{ type: 'line', xKey: 'x', yKey: 'y' }], axes: STRIPPED_NUMBER_AXES },
+                        (toValue) => Array.from({ length: N }, (_, i) => ({ x: i + 1, y: toValue(sig(i)) })),
+                        scaleToBigIntFinite
+                    )
+                );
+            }
+        );
+
+        it('renders high-volume ISO-string x identically to numeric epoch x on a time axis', async () => {
+            const startMs = Date.UTC(2024, 0, 1);
+            const at = (i: number) => startMs + i * 60_000;
+            const base = { series: [{ type: 'line', xKey: 'x', yKey: 'y' }], axes: STRIPPED_TIME_AXES };
+            const small = {
+                ...base,
+                data: Array.from({ length: N }, (_, i) => ({ x: at(i), y: Math.sin(i / 10) })),
+            } as AgChartOptions;
+            const large = {
+                ...base,
+                data: Array.from({ length: N }, (_, i) => ({ x: new Date(at(i)).toISOString(), y: Math.sin(i / 10) })),
+            } as AgChartOptions;
+            await expectPixelIdenticalAcrossMagnitude(ctx, createChart, { small, large });
         });
     });
 });

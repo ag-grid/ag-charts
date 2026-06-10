@@ -188,4 +188,38 @@ describe('TimeScale', () => {
             });
         });
     });
+
+    describe('convert coercion', () => {
+        function scaleOverYear() {
+            const scale = new TimeScale();
+            scale.range = [0, 600];
+            scale.domain = [new Date(Date.UTC(2024, 0, 1)), new Date(Date.UTC(2024, 11, 31))];
+            return scale;
+        }
+
+        it('coerces ISO 8601 strings to the same position as the equivalent Date', () => {
+            const scale = scaleOverYear();
+            const iso = scale.convert('2024-07-01T00:00:00Z');
+            const date = scale.convert(new Date('2024-07-01T00:00:00Z'));
+            expect(iso).toBeCloseTo(date);
+            expect(Number.isFinite(iso)).toBe(true);
+        });
+
+        it('coerces a bigint epoch to the same position as the equivalent number', () => {
+            const scale = scaleOverYear();
+            const epoch = Date.UTC(2024, 6, 1);
+            expect(scale.convert(BigInt(epoch))).toBeCloseTo(scale.convert(epoch));
+        });
+
+        it('returns NaN for an out-of-range bigint epoch', () => {
+            const scale = scaleOverYear();
+            // Far beyond Date's representable range (±8.64e15 ms) -> Invalid Date.
+            expect(Number.isNaN(scale.convert(10n ** 30n))).toBe(true);
+        });
+
+        it('returns NaN for a non-ISO string', () => {
+            const scale = scaleOverYear();
+            expect(Number.isNaN(scale.convert('not a date'))).toBe(true);
+        });
+    });
 });

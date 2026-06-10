@@ -234,5 +234,22 @@ describe('LogScale', () => {
             expect(scale.domain).toEqual([1, 1000]);
             expect(() => scale.convert(10n)).not.toThrow();
         });
+
+        test('niceDomain and ticks accept a raw bigint domain argument without throwing', () => {
+            // GAP AG-16608 §9.1.7 — generateTicks passes the raw dataDomain (which now retains bigint
+            // endpoints) to niceDomain/ticks BEFORE scale.domain narrows it, so Math.min(...domain) and
+            // Math.log(bigint) throw "Cannot convert a BigInt value to a number" and the log axis never renders.
+            const scale = new LogScale();
+            const ticks = {
+                nice: [true, true] as [boolean, boolean],
+                interval: undefined,
+                tickCount: 5 as number | undefined,
+                minTickCount: 0,
+                maxTickCount: Infinity,
+            };
+
+            expect(() => scale.niceDomain(ticks, [1n, 1000n] as unknown as number[])).not.toThrow();
+            expect(() => scale.ticks(ticks, [1n, 1000n] as unknown as number[])).not.toThrow();
+        });
     });
 });

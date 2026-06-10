@@ -450,4 +450,55 @@ describe('CrossLine', () => {
             await waitForChartStability(chart);
         });
     });
+
+    // AG-16608 — value-preserving widening checks: the same cross-line value supplied as `number`
+    // and as `bigint` must render pixel-identically and without validation warnings.
+    describe('#bigint values (AG-16608)', () => {
+        const buildOptions = (crossLines: AgCartesianCrossLineOptions[]): AgCartesianChartOptions => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 0, y: 10 },
+                    { x: 1, y: 60 },
+                    { x: 2, y: 35 },
+                    { x: 3, y: 90 },
+                ],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left', crossLines },
+                },
+            };
+            prepareTestOptions(options);
+            return options;
+        };
+
+        // Renders the number variant, then updates the SAME chart to the bigint variant — the mock
+        // canvas only tracks the first chart per test, so cross-create snapshots would compare a
+        // stale canvas against itself.
+        const compareVariants = async (
+            numberCrossLines: AgCartesianCrossLineOptions[],
+            bigintCrossLines: AgCartesianCrossLineOptions[]
+        ) => {
+            chart = AgCharts.create(buildOptions(numberCrossLines));
+            await waitForChartStability(chart);
+            const numberImage = ctx.snapshot();
+
+            await (chart as any).update(buildOptions(bigintCrossLines));
+            await waitForChartStability(chart);
+            const bigintImage = ctx.snapshot();
+
+            expect(bigintImage).toMatchImage(numberImage);
+        };
+
+        it('renders a bigint line value identically to a number value', async () => {
+            await compareVariants(
+                [{ type: 'line', value: 50, label: { text: 'th' } }],
+                [{ type: 'line', value: 50n, label: { text: 'th' } }]
+            );
+        });
+
+        it('renders a bigint range identically to a number range', async () => {
+            await compareVariants([{ type: 'range', range: [30, 70] }], [{ type: 'range', range: [30n, 70n] }]);
+        });
+    });
 });

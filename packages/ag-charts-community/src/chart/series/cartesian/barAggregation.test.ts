@@ -1,6 +1,9 @@
 import { AGGREGATION_INDEX_X_MAX, AGGREGATION_INDEX_X_MIN, AGGREGATION_SPAN } from 'ag-charts-core';
 
-import { computeBarAggregation, computeBarAggregationPartial } from './barAggregation';
+import type { DataModel } from '../../data/dataModel';
+import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
+import { BIG } from '../../test/bigintExamples';
+import { aggregateBarDataFromDataModel, computeBarAggregation, computeBarAggregationPartial } from './barAggregation';
 
 // Sentinel value for empty buckets in Uint32Array (-1 as unsigned)
 const EMPTY_INDEX = 0xffffffff;
@@ -613,5 +616,112 @@ describe('computeBarAggregationPartial', () => {
                 }
             }
         });
+    });
+});
+
+describe('aggregateBarDataFromDataModel - bigint and ISO 8601 time values (render hardening)', () => {
+    // Exercises the real aggregation entry point (where high-volume bigint/ISO columns must be narrowed),
+    // above AGGREGATION_THRESHOLD, rather than the lower-level compute function. Non-stacked: x via keys,
+    // value via the 'yValue-raw' column.
+    const series: ScopeProvider = { id: 'series-1' };
+    const stubDataModel = (xValues: any[], yValues: any[], domain: any[]) =>
+        ({
+            resolveKeysById: () => xValues,
+            hasColumnById: () => false,
+            resolveColumnById: () => yValues,
+            getDomain: () => ({ domain, sortMetadata: { sortOrder: 1 as const } }),
+            resolveColumnNeedsValueOf: () => false,
+        }) as unknown as DataModel<any, any, any>;
+
+    it('aggregates bigint y values beyond MAX_SAFE_INTEGER', () => {
+        const N = 2000;
+        const xValues = Array.from({ length: N }, (_, i) => i);
+        const yValues = Array.from({ length: N }, (_, i) => BIG + BigInt(i) * 1_000_000_000n);
+
+        const result = aggregateBarDataFromDataModel(
+            'number',
+            stubDataModel(xValues, yValues, [0, N - 1]),
+            {} as ProcessedData<any>,
+            series
+        );
+
+        expect(result).toBeDefined();
+        expect(result![0].positiveIndices.length).toBeGreaterThan(0);
+    });
+
+    it('aggregates bigint x values beyond MAX_SAFE_INTEGER on a number axis (>1000 pts)', () => {
+        // GAP AG-16608 §9.1.1 — the X column is never narrowed (only Y is), so `xValue - d0` throws on a bigint x.
+        const N = 2000;
+        const xValues = Array.from({ length: N }, (_, i) => BIG + BigInt(i) * 1_000_000_000n);
+        const yValues = Array.from({ length: N }, (_, i) => Math.abs(Math.sin(i / 10)));
+
+        const result = aggregateBarDataFromDataModel(
+            'number',
+            stubDataModel(xValues, yValues, [xValues[0], xValues[N - 1]]),
+            {} as ProcessedData<any>,
+            series
+        );
+
+        expect(result).toBeDefined();
+        expect(result![0].positiveIndices.length).toBeGreaterThan(0);
+    });
+
+    it('aggregates ISO 8601 string timestamps on a time scale', () => {
+        const N = 2000;
+        const startMs = Date.UTC(2024, 0, 1);
+        const xValues = Array.from({ length: N }, (_, i) => new Date(startMs + i * 60_000).toISOString());
+        const yValues = Array.from({ length: N }, (_, i) => Math.abs(Math.sin(i / 10)));
+        const domain = [new Date(xValues[0]), new Date(xValues[N - 1])];
+
+        const result = aggregateBarDataFromDataModel(
+            'time',
+            stubDataModel(xValues, yValues, domain),
+            {} as ProcessedData<any>,
+            series
+        );
+
+        expect(result).toBeDefined();
+        expect(result![0].positiveIndices.length).toBeGreaterThan(0);
+    });
+
+    // High-magnitude narrow-range X downsampling fidelity: the domain min must be subtracted in bigint before
+    // narrowing or distinct X values collapse onto one double and the per-bucket X extrema are lost.
+    it('downsampling keeps the true min/max X when the X span is below the double ULP at that magnitude', () => {
+        const N = 2000;
+        const BASE = 2n ** 60n + 123_456_789n;
+        const DELTA = 100n;
+        const spikeIndex = 1000;
+        const dipIndex = 1500;
+
+        const xValues = Array.from({ length: N }, () => BASE);
+        xValues[spikeIndex] = BASE + DELTA;
+        xValues[dipIndex] = BASE - DELTA;
+        const yValues = Array.from({ length: N }, () => 1); // constant positive Y, so only X extrema drive selection
+        const domain = [BASE - DELTA, BASE + DELTA];
+
+        const result = aggregateBarDataFromDataModel(
+            'number',
+            stubDataModel(xValues, yValues, domain),
+            {} as ProcessedData<any>,
+            series
+        );
+        expect(result).toBeDefined();
+
+        const selectedIndices = new Set<number>();
+        for (const filter of result!) {
+            for (let i = 0; i < filter.maxRange; i++) {
+                const aggIndex = i * AGGREGATION_SPAN;
+                const xMin = filter.positiveIndexData[aggIndex + AGGREGATION_INDEX_X_MIN];
+                const xMax = filter.positiveIndexData[aggIndex + AGGREGATION_INDEX_X_MAX];
+                if (xMin !== EMPTY_INDEX) selectedIndices.add(xMin);
+                if (xMax !== EMPTY_INDEX) selectedIndices.add(xMax);
+            }
+        }
+        const selectedX = Array.from(selectedIndices, (idx) => xValues[idx]);
+        const maxSelectedX = selectedX.reduce((a, b) => (b > a ? b : a), selectedX[0]);
+        const minSelectedX = selectedX.reduce((a, b) => (b < a ? b : a), selectedX[0]);
+
+        expect(maxSelectedX).toBe(BASE + DELTA);
+        expect(minSelectedX).toBe(BASE - DELTA);
     });
 });

@@ -103,3 +103,62 @@ describe('NumberAxis BigInt labels', () => {
         expectWarningsCalls().toMatchInlineSnapshot(`[]`);
     });
 });
+
+// AG-16608 — value-preserving widening checks: the same value supplied as `number` and as `bigint`
+// must render pixel-identically and without validation warnings.
+describe('NumberAxis bigint bounds and interval (AG-16608)', () => {
+    setupMockConsole();
+    const ctx = setupMockCanvas();
+
+    let chart: AgChartInstance | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const buildOptions = (yAxis: object): AgCartesianChartOptions => {
+        const options: AgCartesianChartOptions = {
+            data: [
+                { x: 0, y: 10 },
+                { x: 1, y: 60 },
+                { x: 2, y: 35 },
+                { x: 3, y: 90 },
+            ],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'number', position: 'left', ...yAxis },
+            },
+        };
+        prepareTestOptions(options);
+        return options;
+    };
+
+    // Renders the number variant, then updates the SAME chart to the bigint variant — the mock
+    // canvas only tracks the first chart per test, so cross-create snapshots would compare a
+    // stale canvas against itself.
+    const compareVariants = async (numberAxis: object, bigintAxis: object) => {
+        chart = AgCharts.create(buildOptions(numberAxis));
+        await waitForChartStability(chart);
+        const numberImage = ctx.snapshot();
+
+        await chart.update(buildOptions(bigintAxis));
+        await waitForChartStability(chart);
+        const bigintImage = ctx.snapshot();
+
+        expect(bigintImage).toMatchImage(numberImage);
+    };
+
+    it('renders bigint min/max identically to number min/max', async () => {
+        await compareVariants({ min: 0, max: 100, nice: false }, { min: 0n, max: 100n, nice: false });
+    });
+
+    it('renders bigint preferredMin/preferredMax identically to numbers', async () => {
+        await compareVariants({ preferredMin: -20, preferredMax: 120 }, { preferredMin: -20n, preferredMax: 120n });
+    });
+
+    it('renders a bigint interval step identically to a number step', async () => {
+        await compareVariants({ interval: { step: 25 } }, { interval: { step: 25n } });
+    });
+});

@@ -1,4 +1,7 @@
-import { computeBubbleAggregation } from './bubbleAggregation';
+import type { DataModel } from '../../data/dataModel';
+import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
+import { BIG } from '../../test/bigintExamples';
+import { aggregateBubbleDataFromDataModel, computeBubbleAggregation } from './bubbleAggregation';
 
 const SIZE_QUANTIZATION = 3;
 
@@ -464,5 +467,126 @@ describe('computeBubbleAggregation', () => {
             expect(result!.yd0).toBe(0);
             expect(result!.yd1).toBe(49);
         });
+    });
+});
+
+describe('aggregateBubbleDataFromDataModel - bigint and ISO 8601 time values (render hardening)', () => {
+    // Exercises the real aggregation entry point (where high-volume bigint/ISO columns must be narrowed)
+    // rather than the lower-level compute function. x via the raw 'object' column; no size key.
+    const series: ScopeProvider = { id: 'series-1' };
+    const stubDataModel = (xValues: any[], yValues: any[], xDomain: any[], yDomain: any[]) =>
+        ({
+            resolveColumnById: (_s: unknown, id: string) => (id === 'xValue' ? xValues : yValues),
+            getDomain: (_s: unknown, id: string) => ({
+                domain: id === 'xValue' ? xDomain : yDomain,
+                sortMetadata: { sortOrder: 1 as const },
+            }),
+            resolveColumnNeedsValueOf: () => false,
+        }) as unknown as DataModel<any, any, any>;
+
+    it('aggregates bigint y values beyond MAX_SAFE_INTEGER', () => {
+        const N = 2000;
+        const xValues = Array.from({ length: N }, (_, i) => i);
+        const yValues = Array.from({ length: N }, (_, i) => BIG + BigInt(i) * 1_000_000_000n);
+        // y domain is the actual bigint extent, as the real pipeline derives it, so ratios stay within [0, 1].
+        const yDomain = [yValues[0], yValues[N - 1]];
+
+        const result = aggregateBubbleDataFromDataModel(
+            'number',
+            'number',
+            stubDataModel(xValues, yValues, [0, N - 1], yDomain),
+            {} as ProcessedData<any>,
+            undefined,
+            false,
+            series
+        );
+
+        expect(result).toBeDefined();
+        expect(result!.filters.length).toBeGreaterThan(0);
+    });
+
+    it('aggregates bigint size values beyond MAX_SAFE_INTEGER (size column must be narrowed like x/y)', () => {
+        // GAP AG-16608 §9.1.1 — x and y are narrowed but the size column is passed raw, so the
+        // quantisation `sizeValue - sd0` (sd0 from the Number-narrowed size scale) throws on a bigint size.
+        const N = 2000;
+        const xValues = Array.from({ length: N }, (_, i) => i);
+        const yValues = Array.from({ length: N }, (_, i) => Math.sin(i / 10));
+        const sizeValues = Array.from({ length: N }, (_, i) => BIG + BigInt(i) * 1_000_000_000n);
+        const resolveSizeColumn = (id: string) => {
+            if (id === 'xValue') return xValues;
+            if (id === 'sizeValue') return sizeValues;
+            return yValues;
+        };
+        const sizeStub = {
+            resolveColumnById: (_s: unknown, id: string) => resolveSizeColumn(id),
+            getDomain: (_s: unknown, id: string) => ({
+                domain: id === 'xValue' ? [0, N - 1] : [-1, 1],
+                sortMetadata: { sortOrder: 1 as const },
+            }),
+            resolveColumnNeedsValueOf: () => false,
+        } as unknown as DataModel<any, any, any>;
+        // The real size scale is a LinearScale with a Number-narrowed domain, so sd0/sd1 are numbers.
+        const sizeScale = { domain: [Number(sizeValues[0]), Number(sizeValues[N - 1])] };
+
+        const result = aggregateBubbleDataFromDataModel(
+            'number',
+            'number',
+            sizeStub,
+            {} as ProcessedData<any>,
+            sizeScale,
+            true,
+            series
+        );
+
+        expect(result).toBeDefined();
+        expect(result!.filters.length).toBeGreaterThan(0);
+    });
+
+    it('aggregates ISO 8601 string timestamps on a time scale', () => {
+        const N = 2000;
+        const startMs = Date.UTC(2024, 0, 1);
+        const xValues = Array.from({ length: N }, (_, i) => new Date(startMs + i * 60_000).toISOString());
+        const yValues = Array.from({ length: N }, (_, i) => Math.sin(i / 10));
+        const xDomain = [new Date(xValues[0]), new Date(xValues[N - 1])];
+
+        const result = aggregateBubbleDataFromDataModel(
+            'time',
+            'number',
+            stubDataModel(xValues, yValues, xDomain, [-1, 1]),
+            {} as ProcessedData<any>,
+            undefined,
+            false,
+            series
+        );
+
+        expect(result).toBeDefined();
+        expect(result!.filters.length).toBeGreaterThan(0);
+    });
+
+    // The quadtree partitions by xRatio = (x - xd0) / (xd1 - xd0). The domain min must be subtracted in bigint
+    // before narrowing or a high-magnitude narrow-range X column collapses onto one double, leaving xd0 === xd1
+    // (zero-width domain) so every xRatio degenerates and no point can be spatially separated.
+    it('downsampling keeps a non-degenerate X domain when the X span is below the double ULP at that magnitude', () => {
+        const N = 2000;
+        const BASE = 2n ** 60n + 123_456_789n;
+        const DELTA = 100n; // < half-ULP (128): BASE ± DELTA narrow to the same double as BASE absolutely
+
+        const xValues = Array.from({ length: N }, (_, i) => BASE - DELTA + BigInt(i % 3) * DELTA); // {BASE-DELTA, BASE, BASE+DELTA}
+        const yValues = Array.from({ length: N }, (_, i) => Math.sin(i / 10));
+        const xDomain = [BASE - DELTA, BASE + DELTA];
+
+        const result = aggregateBubbleDataFromDataModel(
+            'number',
+            'number',
+            stubDataModel(xValues, yValues, xDomain, [-1, 1]),
+            {} as ProcessedData<any>,
+            undefined,
+            false,
+            series
+        );
+        expect(result).toBeDefined();
+
+        // A naive absolute narrow collapses the X domain to zero width (xd0 === xd1), degenerating every xRatio.
+        expect(result!.xd1).toBeGreaterThan(result!.xd0);
     });
 });

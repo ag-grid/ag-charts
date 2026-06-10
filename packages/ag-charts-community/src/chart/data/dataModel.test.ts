@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { type Mock, describe, expect, it } from 'vitest';
 
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';
 import * as examples from '../test/examples';
@@ -28,7 +28,26 @@ import {
 import type { GroupByFn } from './dataModel';
 import { DataModel, KEY_SORT_ORDERS, getPathComponents } from './dataModel';
 import { DataSet } from './dataSet';
-import { SMALLEST_KEY_INTERVAL, SORT_DOMAIN_GROUPS, rangedValueProperty } from './processors';
+import {
+    SMALLEST_KEY_INTERVAL,
+    SORT_DOMAIN_GROUPS,
+    keyProperty,
+    rangedValueProperty,
+    valueProperty,
+} from './processors';
+
+const ISO_SCOPE = 'test';
+
+function scoped<T extends object>(def: T): T & { scopes: string[] } {
+    return { ...def, scopes: [ISO_SCOPE] };
+}
+
+function drainWarnings(): string {
+    const warnMock = console.warn as Mock;
+    const text = warnMock.mock.calls.flat().join('\n');
+    warnMock.mockClear();
+    return text;
+}
 
 describe('DataModel', () => {
     setupMockConsole();
@@ -1621,6 +1640,30 @@ describe('DataModel', () => {
 `);
         });
 
+        it('should warn once when a date column mixes in a non-date value', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('id'), value('when')],
+            });
+
+            const data = [
+                { id: 'A', when: new Date(2024, 0, 1) },
+                { id: 'B', when: true },
+                { id: 'C', when: new Date(2024, 0, 3) },
+            ];
+
+            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const processedData = dataModel.processData(sources);
+
+            expect(processedData!.columnValueType).toEqual(['date']);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Series "test": column "when" mixes date/time values with non-date values (first detected at row 1). Each column must be uniformly typed; the non-date values cannot be placed on a time axis and may render at invalid positions.",
+  ],
+]
+`);
+        });
+
         it('should preserve the columnValueType tag across incremental reprocessing', () => {
             const dataModel = new DataModel<any, any>({
                 props: [categoryKey('id'), value('count')],
@@ -1689,6 +1732,49 @@ describe('DataModel', () => {
             expect(result.type).toEqual('grouped');
             expect(resolveGroupColumn(result, 0, 0)).toEqual([5n]); // first stack layer
             expect(resolveGroupColumn(result, 0, 1)).toEqual([12n]); // stacked on top: 5n + 7n
+        });
+    });
+
+    describe('stacking on a date column (AG-16608)', () => {
+        it('should reject a stacked date-tagged column with a warning and render empty', () => {
+            const dataModel = new DataModel<any, any, true>({
+                props: [categoryKey('kp'), ...accumulatedGroupValues(['a', 'b'], 'all')],
+                groupByKeys: true,
+            });
+            const data = basicDataSet([
+                { kp: 'Q1', a: new Date(2024, 0, 1), b: new Date(2024, 0, 2) },
+                { kp: 'Q2', a: new Date(2024, 0, 3), b: new Date(2024, 0, 4) },
+            ]);
+
+            const result = dataModel.processData(data)!;
+
+            expect(result.columnValueType).toEqual(['date', 'date']);
+            expect(result.domain.values[0]).toEqual([]);
+            expect(result.domain.values[1]).toEqual([]);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Series "test": column "a" is date-typed; stacking is not meaningful for date data. The series renders empty; other series in this chart are unaffected.",
+  ],
+  [
+    "AG Charts - Series "test": column "b" is date-typed; stacking is not meaningful for date data. The series renders empty; other series in this chart are unaffected.",
+  ],
+]
+`);
+        });
+
+        it('should not reject a stacked number column', () => {
+            const dataModel = new DataModel<any, any, true>({
+                props: [categoryKey('kp'), ...accumulatedGroupValues(['a', 'b'], 'all')],
+                groupByKeys: true,
+            });
+            const data = basicDataSet([{ kp: 'Q1', a: 5, b: 7 }]);
+
+            const result = dataModel.processData(data)!;
+
+            expect(result.columnValueType).toEqual(['number', 'number']);
+            expect(resolveGroupColumn(result, 0, 0)).toEqual([5]);
+            expect(resolveGroupColumn(result, 0, 1)).toEqual([12]);
         });
     });
 
@@ -2512,6 +2598,26 @@ describe('DataModel', () => {
                 expect(entry!.isUnique).toBe(true);
             });
 
+            it('should track bigint keys beyond the safe-integer range', () => {
+                const dataModel = new DataModel<any, any>({
+                    props: [rangeKey('x'), value('y')],
+                });
+                // Ascending bigints past Number.MAX_SAFE_INTEGER must be tracked relationally, not skipped, so
+                // a bigint-keyed series is still recognised as ordered/unique for animation (AG-16608).
+                const data = basicDataSet([
+                    { x: 9_007_199_254_740_993n, y: 10 },
+                    { x: 9_007_199_254_740_995n, y: 20 },
+                    { x: 9_007_199_254_740_999n, y: 30 },
+                ]);
+
+                const result = dataModel.processData(data)!;
+                const entry = result[KEY_SORT_ORDERS].get(0);
+
+                expect(entry).toBeDefined();
+                expect(entry!.sortOrder).toBe(1);
+                expect(entry!.isUnique).toBe(true);
+            });
+
             it('should handle single-element data', () => {
                 const dataModel = new DataModel<any, any>({
                     props: [rangeKey('x'), value('y')],
@@ -2800,6 +2906,218 @@ describe('DataModel', () => {
             expect(domainTimes.length).toBeGreaterThan(0);
             expect(domainTimes.at(0)).toBeLessThanOrEqual(earliestInitial);
             expect(domainTimes.at(-1)).toBeGreaterThanOrEqual(latestSeen);
+        });
+    });
+
+    describe('ISO 8601 / time-axis data extraction', () => {
+        function timeKeyModel() {
+            return new DataModel<any, any>({
+                props: [scoped(keyProperty('x', 'time')), scoped(valueProperty('y', 'number'))],
+            });
+        }
+
+        it('accepts ISO 8601 strings on a time axis and preserves the original string', () => {
+            const model = timeKeyModel();
+            const result = model.processData(
+                basicDataSet([
+                    { x: '2024-01-15', y: 1 },
+                    { x: '2024-02-15T10:30:00', y: 2 },
+                ])
+            )!;
+
+            const keys = [...result.keys[0].get(ISO_SCOPE)!];
+            expect(keys).toEqual(['2024-01-15', '2024-02-15T10:30:00']);
+        });
+
+        it('tracks ascending ISO 8601 keys as ordered for animation', () => {
+            const model = timeKeyModel();
+            // ISO strings parse to epoch ms in the sort tracker; without that they would be skipped and the
+            // series wrongly flagged unordered (AG-16608).
+            const result = model.processData(
+                basicDataSet([
+                    { x: '2024-01-15', y: 1 },
+                    { x: '2024-02-15T10:30:00', y: 2 },
+                    { x: '2024-03-15', y: 3 },
+                ])
+            )!;
+
+            const entry = result[KEY_SORT_ORDERS].get(0);
+            expect(entry).toBeDefined();
+            expect(entry!.sortOrder).toBe(1);
+            expect(entry!.isUnique).toBe(true);
+        });
+
+        it('rejects a non-ISO string on a time axis with a format-naming warning', () => {
+            const model = timeKeyModel();
+            model.processData(
+                basicDataSet([
+                    { x: '2024-01-15', y: 1 },
+                    { x: 'not a date', y: 2 },
+                ])
+            );
+
+            const warnings = drainWarnings();
+            expect(warnings).toContain('not a date');
+            expect(warnings).toContain('row 1');
+            expect(warnings).toContain('ISO 8601');
+        });
+
+        it("promotes a column mixing Date, ISO string and epoch number/bigint to the 'date' tag", () => {
+            const model = new DataModel<any, any>({
+                props: [scoped(valueProperty('v', 'time'))],
+            });
+            const result = model.processData(
+                basicDataSet([
+                    { v: new Date('2024-01-01T00:00:00Z') },
+                    { v: '2024-02-01' },
+                    { v: Date.UTC(2024, 2, 1) },
+                    { v: BigInt(Date.UTC(2024, 3, 1)) },
+                ])
+            )!;
+
+            expect(result.columnValueType).toEqual(['date']);
+        });
+
+        it('rejects ISO 8601 strings on a numeric axis', () => {
+            const model = new DataModel<any, any>({
+                props: [scoped(keyProperty('x', 'number')), scoped(valueProperty('y', 'number'))],
+            });
+            const result = model.processData(
+                basicDataSet([
+                    { x: 1, y: 1 },
+                    { x: '2024-01-15', y: 2 },
+                ])
+            )!;
+
+            const invalid = result.invalidData?.get(ISO_SCOPE) ?? [];
+            expect(invalid[1]).toBe(true);
+            expect(drainWarnings()).toContain('invalid value of type [string]');
+        });
+
+        it('warns once when a column mixes timezone-explicit and timezone-implicit ISO strings', () => {
+            const model = timeKeyModel();
+            const result = model.processData(
+                basicDataSet([
+                    { x: '2024-01-15T10:30:00Z', y: 1 },
+                    { x: '2024-02-15', y: 2 },
+                    { x: '2024-03-15T08:00:00+05:30', y: 3 },
+                ])
+            )!;
+
+            const keys = [...result.keys[0].get(ISO_SCOPE)!];
+            expect(keys).toEqual(['2024-01-15T10:30:00Z', '2024-02-15', '2024-03-15T08:00:00+05:30']);
+
+            const warnings = drainWarnings();
+            expect(warnings).toContain('column "x"');
+            expect(warnings).toContain('timezone-explicit');
+            expect(warnings).toContain('timezone-implicit');
+            expect(warnings).toContain('local time');
+            expect(warnings).toContain('2024-01-15T10:30:00Z');
+            expect(warnings).toContain('2024-02-15');
+            expect(warnings.match(/timezone-explicit/g)).toHaveLength(1);
+        });
+
+        it('does not warn for an all-timezone-explicit ISO column', () => {
+            const model = timeKeyModel();
+            model.processData(
+                basicDataSet([
+                    { x: '2024-01-15T10:30:00Z', y: 1 },
+                    { x: '2024-02-15T08:00:00+05:30', y: 2 },
+                ])
+            );
+
+            expect(drainWarnings()).not.toContain('timezone-explicit');
+        });
+
+        it('does not warn for an all-timezone-implicit ISO column', () => {
+            const model = timeKeyModel();
+            model.processData(
+                basicDataSet([
+                    { x: '2024-01-15', y: 1 },
+                    { x: '2024-02-15T08:00:00', y: 2 },
+                ])
+            );
+
+            expect(drainWarnings()).not.toContain('timezone-explicit');
+        });
+
+        it('does not warn for Date + UTC-explicit ISO + epoch values (all unambiguous UTC instants)', () => {
+            const model = timeKeyModel();
+            const result = model.processData(
+                basicDataSet([
+                    { x: new Date('2024-01-01T00:00:00Z'), y: 1 },
+                    { x: '2024-02-01T00:00:00Z', y: 2 },
+                    { x: Date.UTC(2024, 2, 1), y: 3 },
+                ])
+            )!;
+
+            expect([...result.keys[0].get(ISO_SCOPE)!]).toHaveLength(3);
+            expect(drainWarnings()).not.toContain('timezone-explicit');
+        });
+
+        it('uses ISO 8601 strings as-is on a category axis (no time validation, no parsing)', () => {
+            const model = new DataModel<any, any, false>({
+                props: [scoped(keyProperty('x')), scoped(valueProperty('y', 'number'))],
+                groupByKeys: false,
+            });
+            const result = model.processData(
+                basicDataSet([
+                    { x: '2024-01-15', y: 1 },
+                    { x: 'not a date', y: 2 },
+                ])
+            )!;
+
+            const keys = [...result.keys[0].get(ISO_SCOPE)!];
+            expect(keys).toEqual(['2024-01-15', 'not a date']);
+        });
+
+        it('does not warn about timezone ambiguity for mixed-offset ISO strings on a category axis', () => {
+            // GAP AG-16654 §9.2.2 — a category axis keeps ISO strings as opaque labels (no instant
+            // interpretation), but the value sniffer still tags the column 'date', so the timezone-ambiguity
+            // warning fires spuriously even though the offsets are never interpreted as instants.
+            const model = new DataModel<any, any, false>({
+                props: [scoped(keyProperty('x')), scoped(valueProperty('y', 'number'))],
+                groupByKeys: false,
+            });
+            model.processData(
+                basicDataSet([
+                    { x: '2024-01-15T10:00:00Z', y: 1 },
+                    { x: '2024-01-15T11:00:00', y: 2 },
+                ])
+            );
+
+            expect(drainWarnings()).not.toContain('timezone-explicit');
+        });
+
+        it('derives a Date key domain from ISO 8601 strings on a time axis (AG-16654)', () => {
+            const model = timeKeyModel();
+            const result = model.processData(
+                basicDataSet([
+                    { x: '2024-01-15T09:00:00Z', y: 1 },
+                    { x: '2024-01-15T12:00:00Z', y: 2 },
+                ])
+            )!;
+
+            const domain = result.domain.keys[0];
+            expect(domain.length).toBeGreaterThan(0);
+            expect(domain.every((d: unknown) => d instanceof Date)).toBe(true);
+            expect((domain[0] as Date).getTime()).toBe(new Date('2024-01-15T09:00:00Z').getTime());
+            expect((domain.at(-1) as Date).getTime()).toBe(new Date('2024-01-15T12:00:00Z').getTime());
+        });
+
+        it('keeps ISO-shaped strings as labels in a category-axis domain (AG-16654 guard)', () => {
+            const model = new DataModel<any, any, false>({
+                props: [scoped(keyProperty('x')), scoped(valueProperty('y', 'number'))],
+                groupByKeys: false,
+            });
+            const result = model.processData(
+                basicDataSet([
+                    { x: '2024-01-15', y: 1 },
+                    { x: '2024-02-20', y: 2 },
+                ])
+            )!;
+
+            expect(result.domain.keys[0]).toEqual(['2024-01-15', '2024-02-20']);
         });
     });
 });
