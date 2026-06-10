@@ -71,6 +71,7 @@ The minimum supported version of TypeScript is now 5.8.
 
 - `size` is removed from `AgBubbleSeriesOptions`. Use `minSize` instead.
 - `domain` is removed from `AgBubbleSeriesOptions`. Use `sizeDomain` instead.
+- `size` is renamed to `minSize` on `AgBubbleSeriesStylerParams` and `AgBubbleSeriesStylerResult`. The item styler is unchanged: it still receives and returns `size` (the resolved per-marker size).
 
 ### Waterfall Series
 
@@ -124,6 +125,11 @@ This release includes the following behaviour changes:
 
 - Out-of-domain values now clamp to `[minSize, maxSize]` instead of extrapolating beyond the bounds.
 - Setting both `minSize` and `maxSize` explicitly with `minSize > maxSize` now emits a warning and falls back to theme defaults. Use `sizeDomain: [max, min]` to reverse the size scale.
+
+### Map Marker and Map Line Series
+
+- Map Marker gains `minSize` and Map Line gains `minStrokeWidth` as the explicit lower bound of the size scale when `sizeKey` is set. Each defaults to `size`/`strokeWidth` respectively. When `sizeKey` is absent, `size`/`strokeWidth` remain the fixed marker size and line width.
+- Setting both bounds explicitly with the lower bound greater than the upper bound now emits a warning and falls back to theme defaults.
 
 ### Scrollbar
 

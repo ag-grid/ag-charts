@@ -40,7 +40,7 @@ const options: AgCartesianChartOptions = {
             labelName: 'Instrument',
             label: { enabled: true },
             maxSize: 50,
-            size: 15,
+            minSize: 15,
             strokeWidth: 2,
             itemStyler: ({ datum }) => {
                 return {

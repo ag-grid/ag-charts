@@ -23,7 +23,7 @@ const options: AgChartOptions = {
             sizeKey: 'size',
             sizeName: 'Commits',
             title: 'Punch Card',
-            size: 0,
+            minSize: 0,
             maxSize: 30,
             fill: '#cc5b58',
             fillOpacity: 0.85,

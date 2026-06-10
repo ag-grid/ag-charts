@@ -69,7 +69,7 @@ See the [Colour Scale](./colour-scale/) page for more details about customising 
 
 {% chartExampleRunner title="Stroke Width" name="stroke-width" type="generated" /%}
 
-To vary the width of the line to denote the magnitude of the data values use `sizeKey`, `strokeWidth` and `maxStrokeWidth`.
+To vary the width of the line to denote the magnitude of the data values use `sizeKey`, `minStrokeWidth` and `maxStrokeWidth`.
 
 ```js format="snippet"
 {
@@ -79,7 +79,7 @@ To vary the width of the line to denote the magnitude of the data values use `si
             idKey: 'name',
             sizeKey: 'dailyVehicles',
             sizeName: 'Daily Vehicles',
-            strokeWidth: 1,
+            minStrokeWidth: 1,
             maxStrokeWidth: 3,
         },
     ],
@@ -90,8 +90,10 @@ In this configuration:
 
 - `sizeKey` is set to 'dailyVehicles', which supplies numerical values for the size scale.
 - `sizeName` is optional and configures the display name reflected in [Tooltips](./tooltips/).
-- `strokeWidth` is used for the smallest value in the size scale.
+- `minStrokeWidth` is used for the smallest value in the size scale. It defaults to `strokeWidth` when not set.
 - `maxStrokeWidth` is used for the largest value in the size scale.
+
+When `sizeKey` is not set, `strokeWidth` is used as the fixed width for every line.
 
 ## Background Lines
 

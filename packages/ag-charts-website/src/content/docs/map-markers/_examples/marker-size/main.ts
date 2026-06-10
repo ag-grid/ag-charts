@@ -38,7 +38,7 @@ const options: AgChartOptions = {
             longitudeKey: 'lon',
             sizeKey: 'count',
             sizeName: 'Count',
-            size: 3,
+            minSize: 3,
             maxSize: 50,
         },
     ],

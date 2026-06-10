@@ -31,7 +31,7 @@ const options: AgChartOptions = {
         sizeKey: 'size',
         sizeName: 'Commits',
         strokeWidth: 0,
-        size: 0,
+        minSize: 0,
         maxSize: 40,
     })),
     axes: {

@@ -311,6 +311,7 @@ export const ohlcSeriesThemeableOptionsDef: OptionsDefs<AgOhlcSeriesThemeableOpt
 
 export const mapLineSeriesThemeableOptionsDef: OptionsDefs<AgMapLineSeriesThemeableOptions> = {
     colorScale: colorScaleOptionsDef,
+    minStrokeWidth: positiveNumber,
     maxStrokeWidth: positiveNumber,
     itemStyler: callbackDefs<AgMapLineSeriesStyle>({
         ...strokeOptionsDef,
@@ -332,6 +333,7 @@ export const mapLineBackgroundSeriesThemeableOptionsDef: OptionsDefs<AgMapLineBa
 
 export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesThemeableOptions> = {
     colorScale: colorScaleOptionsDef,
+    minSize: positiveNumber,
     maxSize: positiveNumber,
     sizeDomain: arrayOf(positiveNumber),
     label: {
