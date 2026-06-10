@@ -941,14 +941,6 @@ export class DOMManager extends BaseManager {
         const window = document.defaultView;
         if (window == null) return;
 
-        // A container move with no resize or scroll (e.g. a drag-and-drop reposition) fires none of
-        // the cache-invalidation events below, leaving the canvas rect stale. The pointer must leave
-        // and re-enter the chart to interact with it again, so invalidating on re-entry guarantees the
-        // next positioning read re-measures — without any layout read on the hover hot path.
-        const invalidateOnPointerEnter = () => this.invalidateRectCaches();
-        this.element.addEventListener('pointerenter', invalidateOnPointerEnter);
-        this.cleanup.register(() => this.element.removeEventListener('pointerenter', invalidateOnPointerEnter));
-
         if (this.mode === 'minimal') {
             const unregister = globalListenerRegistry.subscribe(window, {
                 invalidateRects: () => this.invalidateRectCaches(),
@@ -957,6 +949,11 @@ export class DOMManager extends BaseManager {
             this.cleanup.register(unregister);
             return;
         }
+
+        // A container move with no resize fires no invalidation event; re-entry re-measures the rect.
+        const invalidateOnPointerEnter = () => this.invalidateRectCaches();
+        this.element.addEventListener('pointerenter', invalidateOnPointerEnter);
+        this.cleanup.register(() => this.element.removeEventListener('pointerenter', invalidateOnPointerEnter));
 
         const invalidateRects = () => this.invalidateRectCaches();
         const invalidateAll = () => this.invalidateAllCaches();
