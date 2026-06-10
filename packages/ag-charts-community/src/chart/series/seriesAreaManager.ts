@@ -55,7 +55,7 @@ import {
     type SeriesNodePickIntent,
     type UnknownSeries,
 } from './series';
-import type { DatumIndex, SeriesNodeDatum } from './seriesTypes';
+import { type DatumIndex, SelectionState, type SeriesNodeDatum } from './seriesTypes';
 import { getDatumRefPoint } from './util';
 
 type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
@@ -1097,9 +1097,35 @@ export class SeriesAreaManager extends BaseManager {
 
     private getDatumAriaText(datum: SeriesNodeDatum, tooltipContent: TooltipContent[]): string {
         const description = tooltipContent == null ? '' : tooltipContentAriaLabel(tooltipContent);
-        return this.chart.ctx.localeManager.t('ariaAnnounceHoverDatum', {
+        const datumText = this.chart.ctx.localeManager.t('ariaAnnounceHoverDatum', {
             datum: datum.series.getDatumAriaText?.(datum, description) ?? description,
         });
+
+        const dataSelectionStateText = this.getSelectedStateAriaText(datum);
+        if (dataSelectionStateText === undefined) {
+            return datumText;
+        } else {
+            return [datumText, dataSelectionStateText].join(', ');
+        }
+    }
+
+    private getSelectedStateAriaText(datum: SeriesNodeDatum): string | undefined {
+        const selectionState = datum.series.getDataSelectionState(datum.datumIndex);
+        switch (selectionState) {
+            case SelectionState.Item:
+                return this.chart.ctx.localeManager.t('ariaAnnounceSelectedItem');
+
+            case SelectionState.None:
+            case SelectionState.OtherItem:
+                return this.chart.ctx.localeManager.t('ariaAnnounceUnselectedItem');
+
+            case SelectionState.OtherSeries:
+            case undefined:
+                return undefined;
+
+            default:
+                return selectionState satisfies never; // check for exhaustiveness
+        }
     }
 
     private clearHighlight(delayed: boolean = false) {

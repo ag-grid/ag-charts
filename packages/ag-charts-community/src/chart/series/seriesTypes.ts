@@ -127,6 +127,7 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     getCategoryValue(datumIndex: number): any;
     datumIndexForCategoryValue(categoryValue: any): DatumIndex | undefined;
     isHighlightEnabled(): boolean;
+    getDataSelectionState(datumIndex: DatumIndex | undefined): SelectionState | undefined;
     getSelectionStateString(
         datumIndex: DatumIndex | undefined,
         selectionState?: SelectionState

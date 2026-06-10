@@ -814,7 +814,7 @@ export abstract class Series<
         return HighlightState.OtherSeries;
     }
 
-    protected getDataSelectionState(datumIndex: DatumIndex | undefined): SelectionState | undefined {
+    public getDataSelectionState(datumIndex: DatumIndex | undefined): SelectionState | undefined {
         return this.ctx.dataSelectionService?.getDataSelectionState(this, datumIndex);
     }
 

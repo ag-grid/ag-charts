@@ -3,6 +3,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaInitSeriesArea: 'interactive chart',
     // Screen reader announcement when focusing an item in the chart
     ariaAnnounceHoverDatum: '${datum}',
+    // Screen reader announcement for a datum item in the 'selected-item' state
+    ariaAnnounceSelectedItem: 'selected',
+    // Screen reader announcement for a datum item in the 'unselected-item' state
+    ariaAnnounceUnselectedItem: 'unselected',
     // Screen reader announcement when focusing a chart
     ariaAnnounceChart: 'chart, ${seriesCount}[number] series',
     // Screen reader announcement when focusing a standalone chart (gauges, pyramid)
