@@ -49,7 +49,7 @@ export interface AgAngleNumberAxisOptions<TContext = ContextDefault>
     /** Angle in degrees to end ticks positioning at. It should be greater than `startAngle`. */
     endAngle?: Degree;
     /** Add cross lines or regions corresponding to data values. */
-    crossLines?: AgAngleCrossLineOptions<number>[];
+    crossLines?: AgAngleCrossLineOptions<AgNumericValue>[];
 }
 
 export type AgAngleAxisLabelOrientation = 'fixed' | 'parallel' | 'perpendicular';

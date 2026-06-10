@@ -48,7 +48,7 @@ export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> =
     interval: discreteTimeAxisIntervalOptionsDefs,
     crosshair: cartesianAxisCrosshairOptions(true, true),
     crossLines: arrayOfDefs(
-        crossLineOptionsDefs(or(number, date), cartesianCrossLineLabelOptionsDefs),
+        crossLineOptionsDefs(or(numericValue, date), cartesianCrossLineLabelOptionsDefs),
         'a cross-line options array'
     ),
     bandHighlight: cartesianAxisBandHighlightOptions,
@@ -61,7 +61,7 @@ export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> =
     ...continuousAxisOptions(numericValue),
     type: constant('angle-number'),
     crossLines: arrayOfDefs(
-        crossLineOptionsDefs(number, commonCrossLineLabelOptionsDefs),
+        crossLineOptionsDefs(numericValue, commonCrossLineLabelOptionsDefs),
         'a cross-line options array'
     ),
     startAngle: number,
@@ -109,7 +109,7 @@ export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions>
     innerRadiusRatio: ratio,
     title: commonAxisCaptionOptionsDefs,
     crossLines: arrayOfDefs(
-        crossLineOptionsDefs(number, radiusCrossLineLabelOptionsDefs),
+        crossLineOptionsDefs(numericValue, radiusCrossLineLabelOptionsDefs),
         'a cross-line options array'
     ),
     label: {

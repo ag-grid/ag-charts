@@ -289,7 +289,7 @@ export interface AgTimeAxisOptions<TContext = ContextDefault>
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel<TContext>;
     /** Add cross-lines or regions corresponding to data values. */
-    crossLines?: AgCartesianCrossLineOptions<Date | number>[];
+    crossLines?: AgCartesianCrossLineOptions<AgTimeValue>[];
 }
 
 export interface AgUnitTimeAxisOptions<TContext = ContextDefault>
@@ -305,7 +305,7 @@ export interface AgUnitTimeAxisOptions<TContext = ContextDefault>
         AgBaseContinuousAxisOptions<AgTimeValue> {
     type?: 'unit-time';
     /** Add cross-lines or regions corresponding to data values. */
-    crossLines?: AgCartesianCrossLineOptions<Date | number>[];
+    crossLines?: AgCartesianCrossLineOptions<AgTimeValue>[];
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel<TContext>;
     /** The size of each band. */
@@ -341,7 +341,7 @@ export interface AgOrdinalTimeAxisOptions<TContext = ContextDefault> extends AgB
 > {
     type?: 'ordinal-time';
     /** Add cross-lines or regions corresponding to data values. */
-    crossLines?: AgCartesianCrossLineOptions<Date | number>[];
+    crossLines?: AgCartesianCrossLineOptions<AgTimeValue>[];
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel<TContext>;
     /** Configuration for the axis ticks interval. */
@@ -381,7 +381,7 @@ export interface AgNumberAxisOptions<TContext = ContextDefault>
         AgContinuousAxisOptions<AgNumericValue, AgNumericValue> {
     type?: 'number';
     /** Add cross-lines or regions corresponding to data values. */
-    crossLines?: AgCartesianCrossLineOptions<number>[];
+    crossLines?: AgCartesianCrossLineOptions<AgNumericValue>[];
 }
 
 export interface AgLogAxisOptions<TContext = ContextDefault>
@@ -399,7 +399,7 @@ export interface AgLogAxisOptions<TContext = ContextDefault>
     /** The base of the logarithm used. */
     base?: number;
     /** Add cross-lines or regions corresponding to data values. */
-    crossLines?: AgCartesianCrossLineOptions<number>[];
+    crossLines?: AgCartesianCrossLineOptions<AgNumericValue>[];
 }
 
 export type AgCartesianAxisPosition = 'top' | 'right' | 'bottom' | 'left';

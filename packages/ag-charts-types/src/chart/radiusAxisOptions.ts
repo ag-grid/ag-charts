@@ -28,7 +28,7 @@ export interface AgRadiusNumberAxisOptions<TContext = ContextDefault>
     /** Configuration for the title shown next to the axis. */
     title?: AgAxisCaptionOptions;
     /** Add cross lines or regions corresponding to data values. */
-    crossLines?: AgRadiusCrossLineOptions<number>[];
+    crossLines?: AgRadiusCrossLineOptions<AgNumericValue>[];
     /**
      * The ratio of the inner radius of the axis as a proportion of the overall radius.
      *  Used to create an inner circle.

@@ -426,7 +426,7 @@ export const numberAxisOptionsDefs: OptionsDefs<AgNumberAxisOptions> = {
     label: cartesianNumericAxisLabel,
     crosshair: cartesianAxisCrosshairOptions(true),
     crossLines: arrayOfDefs(
-        crossLineOptionsDefs(number, cartesianCrossLineLabelOptionsDefs),
+        crossLineOptionsDefs(numericValue, cartesianCrossLineLabelOptionsDefs),
         'a cross-line options array'
     ),
 };
@@ -442,7 +442,7 @@ export const logAxisOptionsDefs: OptionsDefs<AgLogAxisOptions> = {
     label: cartesianNumericAxisLabel,
     crosshair: cartesianAxisCrosshairOptions(true),
     crossLines: arrayOfDefs(
-        crossLineOptionsDefs(number, cartesianCrossLineLabelOptionsDefs),
+        crossLineOptionsDefs(numericValue, cartesianCrossLineLabelOptionsDefs),
         'a cross-line options array'
     ),
 };
@@ -455,7 +455,7 @@ export const timeAxisOptionsDefs: OptionsDefs<AgTimeAxisOptions> = {
     parentLevel: cartesianTimeAxisParentLevel,
     crosshair: cartesianAxisCrosshairOptions(true, true),
     crossLines: arrayOfDefs(
-        crossLineOptionsDefs(or(number, date), cartesianCrossLineLabelOptionsDefs),
+        crossLineOptionsDefs(or(numericValue, date), cartesianCrossLineLabelOptionsDefs),
         'a cross-line options array'
     ),
 };
@@ -479,7 +479,7 @@ export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
     preferredMax: and(or(number, date), greaterThan('preferredMin'), greaterThan('min')),
     interval: discreteTimeAxisIntervalOptionsDefs,
     crossLines: arrayOfDefs(
-        crossLineOptionsDefs(or(number, date), cartesianCrossLineLabelOptionsDefs),
+        crossLineOptionsDefs(or(numericValue, date), cartesianCrossLineLabelOptionsDefs),
         'a cross-line options array'
     ),
 };
