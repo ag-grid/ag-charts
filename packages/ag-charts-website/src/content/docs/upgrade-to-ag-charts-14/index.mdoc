@@ -99,6 +99,14 @@ Accepting these as input is backwards-compatible. Several output types — value
 
 If a callback assigns one of these to a `number`-typed variable, or does number-only arithmetic on it, narrow it with `Number(value)`. Runtime values are unchanged: they remain `number` unless your data supplies `bigint` or ISO 8601 values.
 
+Data-space input options also accept `bigint`, so fixed bounds can match `bigint` data exactly:
+
+- Continuous-axis `min`, `max`, `preferredMin`, `preferredMax` and `interval.step`.
+- Cross-line `value` and `range`.
+- Colour-scale `domain` and fill `stop` values.
+- Annotation `y` coordinates and channel heights.
+- The `start` and `end` of an initial zoom range.
+
 ### Theme Params
 
 - `separationLinesColor` is removed. Use `groupedCategoryLinesColor` instead.
