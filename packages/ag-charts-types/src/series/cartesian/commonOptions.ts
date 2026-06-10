@@ -1,3 +1,4 @@
+import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgCssColorOrRef } from '../../chart/themeParamsOptions';
 import type {
     CssColor,
@@ -73,7 +74,7 @@ export interface AgColorScaleColorStop {
     /** Colour at this position. */
     color: CssColor;
     /** Position of this colour in the data domain. In continuous mode, the colour appears exactly at this value. In discrete mode, this is the first value of the next bin. */
-    stop?: number;
+    stop?: AgNumericValue;
     /** Display name for this bin, used in legend and tooltip labels. */
     name?: string;
 }
@@ -82,7 +83,7 @@ export interface AgColorScale {
     /** Configuration for two or more colours, and the values they are rendered at. */
     fills?: AgColorScaleColorStop[];
     /** Fixed domain for the colour scale. If unset, the domain is derived from the data extent. */
-    domain?: [number, number];
+    domain?: [AgNumericValue, AgNumericValue];
     /**
      * Whether the fills should be rendered as a continuous gradient or discrete bins.
      *
