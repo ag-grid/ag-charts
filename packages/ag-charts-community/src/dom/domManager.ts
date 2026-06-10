@@ -562,6 +562,15 @@ export class DOMManager extends BaseManager {
         return this._cachedCanvasRect;
     }
 
+    /**
+     * Drop the cached viewport rects so the next read re-measures. Use before positioning an
+     * overlay against the canvas: a container move with no resize/scroll leaves the cached rect
+     * stale, since none of the cache-invalidation events fire on a pure translation.
+     */
+    refreshCanvasRect() {
+        this.invalidateRectCaches();
+    }
+
     /** Ancestor CSS `scale(sx, sy)` applied to the canvas — maps canvas-local offsets to screen pixels. */
     getCanvasScale(): { scaleX: number; scaleY: number } {
         if (this._cachedCanvasScale != null) return this._cachedCanvasScale;

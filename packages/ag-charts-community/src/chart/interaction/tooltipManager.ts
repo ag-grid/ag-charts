@@ -156,6 +156,7 @@ export class TooltipManager {
             return;
         }
 
+        this.domManager.refreshCanvasRect();
         const canvasRect = this.domManager.getBoundingClientRect();
         const boundingRect = this.tooltip.bounds === 'extended' ? this.domManager.getOverlayClientRect() : canvasRect;
 

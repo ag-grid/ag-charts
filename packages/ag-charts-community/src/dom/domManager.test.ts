@@ -209,6 +209,31 @@ describe('DOMManager', () => {
             // Only one real call (re-populates cache, then cache hits)
             expect(spy).toHaveBeenCalledTimes(1);
         });
+
+        it('should refresh the cached rect when the container moves with no scroll/resize event', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
+
+            const canvasEl = dm.getParent('canvas');
+            const rectAt = (left: number, top: number) =>
+                ({ ...new DOMRect(0, 0, 0, 0).toJSON(), left, top }) as DOMRect;
+            const spy = vi.spyOn(canvasEl, 'getBoundingClientRect').mockReturnValue(rectAt(0, 0));
+
+            // Populate the cache at the original position.
+            expect(dm.getBoundingClientRect().left).toBe(0);
+
+            // Container moved within the page: no scroll, resize, or fullscreenchange fires,
+            // so the cache stays stale at the pre-move position.
+            spy.mockReturnValue(rectAt(200, 150));
+            expect(dm.getBoundingClientRect().left).toBe(0);
+
+            // The overlay-positioning chokepoint refreshes the rect before reading it.
+            dm.refreshCanvasRect();
+            const rect = dm.getBoundingClientRect();
+            expect(rect.left).toBe(200);
+            expect(rect.top).toBe(150);
+        });
     });
 
     describe('getOverlayClientRect() scrollable container', () => {
