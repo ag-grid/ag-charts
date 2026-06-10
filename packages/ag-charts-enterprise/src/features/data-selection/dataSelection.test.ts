@@ -2804,10 +2804,21 @@ describe('DataSelection', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
-                describe.skip('northeast box', () => {
-                    const start: CanvasPoint = {canvasX: 334, canvasY: 388};
-                    const end: CanvasPoint = {canvasX: 592, canvasY: 71};
-                    const added: I[] = [];
+                describe('northeast box', () => {
+                    const start: CanvasPoint = { canvasX: 334, canvasY: 388 };
+                    const end: CanvasPoint = { canvasX: 592, canvasY: 71 };
+                    const added: I[] = [
+                        { seriesId, itemId: 0, datum: findName(data, '/') },
+                        { seriesId, itemId: 1, datum: findName(data, 'usr/') },
+                        { seriesId, itemId: 2, datum: findName(data, 'bin/') },
+                        { seriesId, itemId: 3, datum: findName(data, 'bash') },
+                        { seriesId, itemId: 4, datum: findName(data, 'ls') },
+                        { seriesId, itemId: 5, datum: findName(data, 'lib/') },
+                        { seriesId, itemId: 6, datum: findName(data, 'libc.so') },
+                        { seriesId, itemId: 7, datum: findName(data, 'libm.so') },
+                        { seriesId, itemId: 9, datum: findName(data, 'Pictures/') },
+                        { seriesId, itemId: 10, datum: findName(data, 'img1.jpg') },
+                    ];
 
                     test('screenshot', async () => {
                         await mouseDown(start);
@@ -2816,7 +2827,7 @@ describe('DataSelection', () => {
 
                         await mouseUp(end);
                         await mouseMove(POINT_MISS);
-                        await compareExact('diskusage-sunburst-all-northeast-box-candidacy');
+                        await compareExact('diskusage-sunburst-all-northeast-box-selection');
                     });
                     test('getSelection', async () => {
                         await mouseDown(start);
@@ -2836,7 +2847,7 @@ describe('DataSelection', () => {
                         await mouseMove(POINT_MISS);
                         expect(selectionChange.popEvents()).toEqual([uiChangeEvent<D, C>({ added, removed: [] })]);
                     });
-                })
+                });
             });
         });
     });
