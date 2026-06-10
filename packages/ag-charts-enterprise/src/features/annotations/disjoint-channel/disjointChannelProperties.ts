@@ -1,5 +1,6 @@
 import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
-import { BaseProperties, Logger, Property, isObject } from 'ag-charts-core';
+import { BaseProperties, Logger, Property, isNumericValue, isObject, subtractValues } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import {
     Annotation,
@@ -25,10 +26,10 @@ export class DisjointChannelProperties extends Annotation(
     type = AnnotationType.DisjointChannel as const;
 
     @Property
-    startHeight!: number;
+    startHeight!: AgNumericValue;
 
     @Property
-    endHeight!: number;
+    endHeight!: AgNumericValue;
 
     @Property
     text = new ChannelTextProperties();
@@ -41,9 +42,9 @@ export class DisjointChannelProperties extends Annotation(
             end: { x: this.end.x, y: this.end.y },
         };
 
-        if (typeof bottom.start.y === 'number' && typeof bottom.end.y === 'number') {
-            bottom.start.y -= this.startHeight;
-            bottom.end.y -= this.endHeight;
+        if (isNumericValue(bottom.start.y) && isNumericValue(bottom.end.y)) {
+            bottom.start.y = subtractValues(bottom.start.y, this.startHeight);
+            bottom.end.y = subtractValues(bottom.end.y, this.endHeight);
         } else {
             Logger.warnOnce(`Annotation [${this.type}] can only be used with a numeric y-axis.`);
         }

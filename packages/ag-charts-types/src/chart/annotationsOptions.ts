@@ -8,6 +8,7 @@ import type {
     Visible,
 } from '../series/cartesian/commonOptions';
 import type { ToolbarButton, ToolbarSwitch } from './buttonOptions';
+import type { AgNumericValue } from './dataValues';
 import type { CssColor, PixelSize } from './types';
 
 // *********
@@ -268,7 +269,7 @@ export interface AgParallelChannelAnnotation extends AgChannelAnnotationStyles, 
     /** Configuration for the parallel-channel annotation.*/
     type: 'parallel-channel';
     /** The height of the annotation along the y-axis. */
-    height: number;
+    height: AgNumericValue;
     /** Configuration for the channel text. */
     text?: AgChannelAnnotationText;
     /** Configuration for the line in the middle of the channel. */
@@ -279,9 +280,9 @@ export interface AgDisjointChannelAnnotation extends AgChannelAnnotationStyles, 
     /** Configuration for the disjoint-channel annotation.*/
     type: 'disjoint-channel';
     /** The height of the annotation along the y-axis at the start. */
-    startHeight: number;
+    startHeight: AgNumericValue;
     /** The height of the annotation along the y-axis at the end. */
-    endHeight: number;
+    endHeight: AgNumericValue;
     /** Configuration for the channel text. */
     text?: AgChannelAnnotationText;
 }
@@ -483,7 +484,7 @@ export interface AgAnnotationPoint {
     /** The x-value of the point. */
     x: AgAnnotationValue;
     /** The y-value of the point. */
-    y: number;
+    y: AgNumericValue | AgStateSerializableBigInt;
 }
 
 interface Writeable {
@@ -516,7 +517,7 @@ interface Extendable {
     extendEnd?: boolean;
 }
 
-export type ValueType = string | number | AgStateSerializableDate | AgStateSerializableBigInt;
+export type ValueType = string | number | bigint | AgStateSerializableDate | AgStateSerializableBigInt;
 export type AgAnnotationValue = ValueType | AgGroupingValueType;
 export interface AgGroupingValueType {
     /** The value at the annotation position. */
