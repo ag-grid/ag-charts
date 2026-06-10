@@ -171,22 +171,22 @@ exports[`aglint/change-detection 1`] = `
 * Mutable tuples are not allowed. Use readonly tuples instead                                                                                                                                                                              aglint/change-detection
   115:5  error  Decorator @SceneArrayChangeDetection cannot assign property 'optionalMutableNumberTuple' to type '[number, number] | undefined'.
 * Mutable tuples are not allowed. Use readonly tuples instead                                                                                                                                                                  aglint/change-detection
-  117:5  error  Decorator @SceneArrayChangeDetection cannot assign property 'requiredUnion1' to type 'number | readonly [number, number]'.
+  119:5  error  Decorator @SceneArrayChangeDetection cannot assign property 'requiredUnion1' to type 'number | readonly [number, number]'.
 * Switch to @SceneObjectChangeDetection for (primitive | object | array) union properties                                                                                                                                            aglint/change-detection
-  118:5  error  Decorator @SceneArrayChangeDetection cannot assign property 'optionalUnion1' to type 'number | readonly [number, number] | undefined'.
+  120:5  error  Decorator @SceneArrayChangeDetection cannot assign property 'optionalUnion1' to type 'number | readonly [number, number] | undefined'.
 * Switch to @SceneObjectChangeDetection for (primitive | object | array) union properties                                                                                                                                aglint/change-detection
-  119:5  error  Decorator @SceneArrayChangeDetection cannot assign property 'requiredUnion2' to type 'number | readonly string[]'.
+  121:5  error  Decorator @SceneArrayChangeDetection cannot assign property 'requiredUnion2' to type 'number | readonly string[]'.
 * Switch to @SceneObjectChangeDetection for (primitive | object | array) union properties                                                                                                                                                    aglint/change-detection
-  120:5  error  Decorator @SceneArrayChangeDetection cannot assign property 'optionalUnion2' to type 'number | readonly string[] | undefined'.
+  122:5  error  Decorator @SceneArrayChangeDetection cannot assign property 'optionalUnion2' to type 'number | readonly string[] | undefined'.
 * Switch to @SceneObjectChangeDetection for (primitive | object | array) union properties                                                                                                                                        aglint/change-detection
-  125:5  error  Decorator @SceneArrayChangeDetection cannot assign property 'requiredUnion5' to type 'string | object | readonly boolean[]'.
+  127:5  error  Decorator @SceneArrayChangeDetection cannot assign property 'requiredUnion5' to type 'string | object | readonly boolean[]'.
 * Switch to @SceneObjectChangeDetection for (primitive | object | array) union properties                                                                                                                                          aglint/change-detection
-  126:5  error  Decorator @SceneArrayChangeDetection cannot assign property 'optionalUnion5' to type 'string | object | readonly boolean[] | undefined'.
+  128:5  error  Decorator @SceneArrayChangeDetection cannot assign property 'optionalUnion5' to type 'string | object | readonly boolean[] | undefined'.
 * Switch to @SceneObjectChangeDetection for (primitive | object | array) union properties                                                                                                                              aglint/change-detection
-  127:5  error  Decorator @SceneArrayChangeDetection cannot assign property 'requiredUnion6' to type 'object | object[]'.
+  129:5  error  Decorator @SceneArrayChangeDetection cannot assign property 'requiredUnion6' to type 'object | object[]'.
 * Mutable arrays are not allowed. Use readonly arrays instead.
 * SceneArrayChangeDetection should only be applied to readonly (string | number | boolean)[] types                                                                                     aglint/change-detection
-  128:5  error  Decorator @SceneArrayChangeDetection cannot assign property 'optionalUnion6' to type 'object | object[] | undefined'.
+  130:5  error  Decorator @SceneArrayChangeDetection cannot assign property 'optionalUnion6' to type 'object | object[] | undefined'.
 * Mutable arrays are not allowed. Use readonly arrays instead.
 * SceneArrayChangeDetection should only be applied to readonly (string | number | boolean)[] types                                                                         aglint/change-detection
 
