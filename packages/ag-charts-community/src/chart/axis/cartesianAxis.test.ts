@@ -1273,4 +1273,48 @@ describe('CartesianAxis', () => {
             expect(directionReversals(positions)).toBe(0);
         });
     });
+
+    describe('AG-17541 toggling axis labels off removes them', () => {
+        const baseOptions = (labelEnabled: boolean): AgCartesianChartOptions => ({
+            data: CATEGORY_DATA,
+            axes: {
+                x: { type: 'category', position: 'bottom', label: { enabled: labelEnabled } },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+        });
+
+        const bottomAxisLabelNodes = () => {
+            const chartInstance = deproxy(chart as any) as any;
+            const categoryAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
+            expect(categoryAxis).toBeDefined();
+            const labelNodes: any[] = Array.from(categoryAxis.tickLabelGroupSelection.nodes());
+            return labelNodes;
+        };
+
+        it('removes the label nodes when labels are disabled at runtime', async () => {
+            const options = baseOptions(true);
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expect(bottomAxisLabelNodes().length).toBeGreaterThan(0);
+
+            const disabled = baseOptions(false);
+            prepareTestOptions(disabled);
+            await chart.update(disabled);
+            await waitForChartStability(chart);
+
+            expect(bottomAxisLabelNodes()).toHaveLength(0);
+        });
+
+        it('renders no label nodes when labels are disabled from the initial options', async () => {
+            const options = baseOptions(false);
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expect(bottomAxisLabelNodes()).toHaveLength(0);
+        });
+    });
 });
