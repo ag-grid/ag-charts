@@ -3,12 +3,19 @@
 #
 # Claude Code PreToolUse hook (matcher: Bash). A read-only gate: when the Bash
 # command is a `git commit` (incl. `--amend`, and chained forms like
-# `git add -A && git commit ...`), it checks whether the staged, formattable
-# files are already prettier-formatted. If any are not, it DENIES the commit
-# with an actionable message so the model formats + re-stages + re-commits.
+# `git add -A && git commit ...`), it checks whether the STAGED content of the
+# formattable files (the index blobs — exactly what will be committed, not the
+# working tree) is already prettier-formatted. If any are not, it DENIES the
+# commit with an actionable message so the model formats + re-stages + re-commits.
 #
 # It never mutates files, never stages, never stashes. The model performs the
 # actual formatting through its own tool call, keeping its view in sync.
+#
+# Formatting is verified with the repo's own prettier on the staged blob:
+#   - prettier is exactly what `nx format` invokes under the hood (verified
+#     byte-identical output), so the gate agrees with the canonical formatter.
+#   - `.prettierignore` is honoured (ignored paths echo unchanged via
+#     --stdin-filepath, so they are never flagged) — matching `nx format`.
 #
 # Reads hook JSON on stdin: { "tool_input": { "command": "..." }, "cwd": "...", ... }
 
@@ -40,26 +47,36 @@ printf '%s' "$CMD" | grep -Eq 'commit-tree|--dry-run' && allow
 ROOT=$(git -C "${CWD:-.}" rev-parse --show-toplevel 2>/dev/null) || allow
 cd "$ROOT" || allow
 
-# Staged, formattable files.
-mapfile -t STAGED < <(git diff --cached --name-only --diff-filter=ACMR 2>/dev/null | while IFS= read -r f; do
-    ch_is_formattable "$f" && printf '%s\n' "$f"
-done)
-[ "${#STAGED[@]}" -gt 0 ] || allow
+# Resolve the repo's prettier (same binary nx format uses). Fall back to npx.
+PRETTIER="$ROOT/node_modules/.bin/prettier"
+prettier_fmt() {
+    # Format the staged blob of "$1" to stdout. Ignored/unparseable paths echo
+    # their input unchanged (prettier honours .prettierignore for --stdin-filepath).
+    if [ -x "$PRETTIER" ]; then
+        git show ":$1" 2>/dev/null | "$PRETTIER" --stdin-filepath "$1" 2>/dev/null
+    else
+        git show ":$1" 2>/dev/null | npx --no-install prettier --stdin-filepath "$1" 2>/dev/null
+    fi
+}
 
-export NX_DAEMON=false
-CSV=$(IFS=,; printf '%s' "${STAGED[*]}")
+# Collect staged, formattable files whose staged blob is not already formatted.
+# cmp -s compares exact bytes (catches trailing-newline differences too).
+needs_fmt=()
+while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    ch_is_formattable "$f" || continue
+    git cat-file -e ":$f" 2>/dev/null || continue
+    cmp -s <(git show ":$f" 2>/dev/null) <(prettier_fmt "$f") || needs_fmt+=("$f")
+done < <(git diff --cached --name-only --diff-filter=ACMR 2>/dev/null)
 
-# Read-only formatting check. Exit 0 → already formatted. Benign "no files
-# matched" (root configs nx can't map) is treated as already-OK, not a block.
-if yarn nx format:check --files "$CSV" >/tmp/.ch-precommit.$$ 2>&1; then
-    rm -f "/tmp/.ch-precommit.$$"
-    allow
-fi
-if grep -q "No files matching the pattern were found" "/tmp/.ch-precommit.$$" 2>/dev/null; then
-    rm -f "/tmp/.ch-precommit.$$"
-    allow
-fi
-rm -f "/tmp/.ch-precommit.$$"
+[ "${#needs_fmt[@]}" -gt 0 ] || allow
 
-# Staged files need formatting → block with a concrete fix.
-deny "Staged files are not formatted. Run: \`yarn nx format --files ${CSV} && git add ${STAGED[*]}\` then re-commit. (auto-format pre-commit gate)"
+# Build a safely-quoted fix command naming only the offending files.
+CSV=""
+QUOTED=""
+for f in "${needs_fmt[@]}"; do
+    CSV="${CSV:+$CSV,}$f"
+    QUOTED="${QUOTED:+$QUOTED }$(printf '%q' "$f")"
+done
+
+deny "Staged files are not formatted (checked against the staged index): ${needs_fmt[*]}. Run: yarn nx format --files \"${CSV}\" && git add ${QUOTED} — then re-commit. (auto-format pre-commit gate)"
