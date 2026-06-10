@@ -665,3 +665,39 @@ describe('MapLineSeries', () => {
         });
     });
 });
+
+describe('MapLineSeries bigint size domain (AG-16608)', () => {
+    setupMockConsole();
+    const ctx = setupMockCanvas();
+
+    let chart: ReturnType<typeof AgCharts.create> | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const buildOptions = (sizeDomain: [number, number] | [bigint, bigint]): AgChartOptions => {
+        const options: AgChartOptions = {
+            ...VARIABLE_STROKE_EXAMPLE,
+            series: [{ ...VARIABLE_STROKE_EXAMPLE.series![0], sizeDomain } as never],
+        };
+        prepareEnterpriseTestOptions(options);
+        return options;
+    };
+
+    // Renders the number variant, then updates the SAME chart to the bigint variant — the mock
+    // canvas only tracks the first chart per test, so cross-create snapshots would compare a
+    // stale canvas against itself.
+    it('renders a bigint sizeDomain identically to numbers', async () => {
+        chart = AgCharts.create(buildOptions([0, 200_000]));
+        await waitForChartStability(chart);
+        const numberImage = ctx.snapshot();
+
+        await chart.update(buildOptions([0n, 200_000n]));
+        await waitForChartStability(chart);
+        const bigintImage = ctx.snapshot();
+
+        expect(bigintImage).toMatchImage(numberImage);
+    });
+});
