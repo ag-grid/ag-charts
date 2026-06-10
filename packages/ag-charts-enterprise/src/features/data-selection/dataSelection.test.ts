@@ -2973,10 +2973,20 @@ describe('DataSelection', () => {
                     });
                 });
                 describe('northeast box', () => {
-                    const start: CanvasPoint = { canvasX: 334, canvasY: 388 };
-                    const end: CanvasPoint = { canvasX: 592, canvasY: 71 };
-                    // Placeholder — populate with the expected sectors once the drag geometry is confirmed.
-                    const added: I[] = [];
+                    const start: CanvasPoint = { canvasX: 375, canvasY: 324 };
+                    const end: CanvasPoint = { canvasX: 727, canvasY: 5 };
+                    const added: I[] = [
+                        { datum: { sector: 'C-NE', value: 1 }, itemId: 0, seriesId: 'pieid' },
+                        { datum: { sector: 'C-SE', value: 1 }, itemId: 1, seriesId: 'pieid' },
+                        { datum: { sector: 'C-SW', value: 1 }, itemId: 2, seriesId: 'pieid' },
+                        { datum: { sector: 'C-NW', value: 1 }, itemId: 3, seriesId: 'pieid' },
+                        { datum: { sector: 'I-NE', value: 1 }, itemId: 0, seriesId: 'donut1id' },
+                        { datum: { sector: 'I-SE', value: 1 }, itemId: 1, seriesId: 'donut1id' },
+                        { datum: { sector: 'I-NW', value: 1 }, itemId: 3, seriesId: 'donut1id' },
+                        { datum: { sector: 'O-NE', value: 1 }, itemId: 0, seriesId: 'donut2id' },
+                        { datum: { sector: 'O-SE', value: 1 }, itemId: 1, seriesId: 'donut2id' },
+                        { datum: { sector: 'O-NW', value: 1 }, itemId: 3, seriesId: 'donut2id' },
+                    ];
 
                     test('screenshot', async () => {
                         await mouseDown(start);
@@ -3036,10 +3046,13 @@ describe('DataSelection', () => {
                     });
                 });
                 describe('northeast box', () => {
-                    const start: CanvasPoint = { canvasX: 334, canvasY: 388 };
-                    const end: CanvasPoint = { canvasX: 592, canvasY: 71 };
-                    // Placeholder — populate with the expected sectors once the drag geometry is confirmed.
-                    const added: I[] = [];
+                    const start: CanvasPoint = { canvasX: 375, canvasY: 324 };
+                    const end: CanvasPoint = { canvasX: 727, canvasY: 5 };
+                    const added: I[] = [
+                        { datum: { sector: 'C-NE', value: 1 }, itemId: 0, seriesId: 'pieid' },
+                        { datum: { sector: 'I-NE', value: 1 }, itemId: 0, seriesId: 'donut1id' },
+                        { datum: { sector: 'O-NE', value: 1 }, itemId: 0, seriesId: 'donut2id' },
+                    ];
 
                     test('screenshot', async () => {
                         await mouseDown(start);
