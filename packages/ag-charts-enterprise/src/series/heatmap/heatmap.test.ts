@@ -3,9 +3,11 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import { type AgChartOptions, AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
+    BIG,
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
+    NEG_BIG,
     assertTooltipSuppressedForMissing,
     computeLegendBBox,
     deproxy,
@@ -19,7 +21,7 @@ import {
 } from 'ag-charts-community-test';
 import { classCast } from 'ag-charts-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 import { HeatmapSeries } from './heatmapSeries';
 
 // Drives a hover at the canvas point of the given datum index and waits for chart stability.
@@ -1272,6 +1274,56 @@ describe('HeatmapSeries', () => {
             // plain text the stubbed image would not render and the baseline would diff.
             await compare();
             expectWarningsCalls().toHaveLength(0);
+        });
+    });
+
+    describe('bigint values (AG-16608)', () => {
+        it('renders a heatmap series with out-of-safe-range bigint colour values', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: [
+                        { col: 'a', row: 'x', temp: BIG },
+                        { col: 'a', row: 'y', temp: NEG_BIG },
+                        { col: 'b', row: 'x', temp: BIG * 2n },
+                    ],
+                    series: [{ type: 'heatmap', xKey: 'col', yKey: 'row', colorKey: 'temp' }],
+                    axes: { x: { type: 'category' }, y: { type: 'category' } },
+                    legend: { enabled: false },
+                })
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        // AG-16608 — value-preserving widening check: the same colour-scale domain/stops supplied as
+        // `number` and as `bigint` must render pixel-identically and without validation warnings.
+        it('renders a bigint colorScale domain and stops identically to numbers', async () => {
+            // Renders the number variant, then updates the SAME chart to the bigint variant — the
+            // mock canvas only tracks the first chart per test, so cross-create snapshots would
+            // compare a stale canvas against itself.
+            const buildOptions = (colorScale: object) =>
+                prepareEnterpriseTestOptions({
+                    ...EXAMPLE_OPTIONS,
+                    series: [{ ...EXAMPLE_OPTIONS.series![0], colorScale } as never],
+                });
+
+            chart = AgCharts.create(
+                buildOptions({
+                    domain: [0, 60],
+                    fills: [{ color: 'yellow', stop: 20 }, { color: 'red', stop: 40 }, { color: 'blue' }],
+                })
+            );
+            await waitForChartStability(chart);
+            const numberImage = ctx.snapshot();
+
+            await chart.update(
+                buildOptions({
+                    domain: [0n, 60n],
+                    fills: [{ color: 'yellow', stop: 20n }, { color: 'red', stop: 40n }, { color: 'blue' }],
+                })
+            );
+            await waitForChartStability(chart);
+            const bigintImage = ctx.snapshot();
+
+            expect(bigintImage).toMatchImage(numberImage);
         });
     });
 });

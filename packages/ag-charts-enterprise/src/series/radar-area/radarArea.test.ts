@@ -10,6 +10,7 @@ import {
     type AgRadarAreaSeriesStyle,
 } from 'ag-charts-community';
 import {
+    BIG,
     MIN_UNHIGHLIGHT_DELAY,
     type MockRadarAreaStyler,
     expectWarningsCalls,
@@ -924,6 +925,28 @@ describe('RadarAreaSeries', () => {
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
+        });
+    });
+
+    describe('bigint values (AG-16608)', () => {
+        // Out-of-safe-range bigint radius values that would lose precision if narrowed to Number.
+        const plainData = [
+            { subject: 'Maths', grade: BIG },
+            { subject: 'Physics', grade: BIG * 2n },
+            { subject: 'Biology', grade: BIG * 3n },
+        ];
+
+        it('renders a radar-area series with out-of-safe-range bigint radius values', async () => {
+            const options: AgChartOptions = {
+                data: plainData,
+                series: [{ type: 'radar-area', angleKey: 'subject', radiusKey: 'grade' }],
+                axes: { angle: { type: 'angle-category' }, radius: { type: 'radius-number' } },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
 });

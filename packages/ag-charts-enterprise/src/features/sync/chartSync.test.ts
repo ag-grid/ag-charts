@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { type AgCartesianChartOptions, type AgChartInstance, AgCharts } from 'ag-charts-community';
 import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
@@ -95,6 +95,43 @@ describe('ChartSync', () => {
             expect(remainingAnimationTime[1]).toBeGreaterThan(6000);
             expect(remainingAnimationTime[2]).toBeGreaterThan(6000);
             expect(remainingAnimationTime[3]).toBeGreaterThan(6000);
+        });
+    });
+
+    describe('bigint domain synchronization (AG-16608)', () => {
+        const BIG = 9_007_199_254_740_993n; // Number.MAX_SAFE_INTEGER + 2
+        const bigintLineChart = (data: object[]): AgCartesianChartOptions =>
+            prepareEnterpriseTestOptions({
+                data,
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                sync: { axes: 'y' },
+            } as AgCartesianChartOptions);
+
+        it('should converge both charts onto the union bigint Y-domain', async () => {
+            const errorSpy = vi.spyOn(console, 'error');
+            const bigintData = [
+                { x: 0, y: BIG },
+                { x: 1, y: BIG * 3n },
+                { x: 2, y: BIG * 2n },
+                { x: 3, y: BIG * 4n },
+            ];
+            // The second chart carries a larger maximum, so a working sync must widen the first chart's
+            // domain to match.
+            charts = [
+                AgCharts.create(bigintLineChart(bigintData)),
+                AgCharts.create(bigintLineChart([...bigintData, { x: 4, y: BIG * 8n }])),
+            ];
+            await waitForAllChartStability();
+
+            const yDomain = (c: AgChartInstance<AgCartesianChartOptions>) =>
+                deproxy(c).axes.find((axis) => axis.direction === ChartAxisDirection.Y)!.dataDomain.domain;
+            expect(yDomain(charts[0])).toEqual(yDomain(charts[1]));
+            expect(errorSpy).not.toHaveBeenCalled();
+            errorSpy.mockRestore();
         });
     });
 });

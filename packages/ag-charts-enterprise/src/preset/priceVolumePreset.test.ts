@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    deproxy,
     extractImageData,
     prepareFinancialTestOptions,
     setupMockCanvas,
@@ -81,6 +82,33 @@ describe('priceVolumePreset', () => {
         const imageRaw = ctx.getActiveCanvasInstances()[canvasCount];
         expect(imageRaw.getContext('2d').getImageData(0, 0, imageRaw.width, imageRaw.height)).toMatchImage(reference);
     };
+
+    it('renders a bigint volume in the status bar with full precision (AG-16608 §9.1.5)', async () => {
+        // GAP — statusBar.updateHighlight gated on `typeof === 'number'`, so a bigint volume rendered as an
+        // empty readout. Intl.NumberFormat accepts bigint, so the Vol field must format the same as a number.
+        const numberData = getStockData()
+            .slice(0, 40)
+            .map((d) => ({ ...d, volume: Math.round(d.volume) }));
+        const bigintData = numberData.map((d) => ({ ...d, volume: BigInt(d.volume) }));
+
+        const volumeText = async (data: unknown[]) => {
+            chart = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({ chartType: 'candlestick', data } as AgFinancialChartOptions)
+            );
+            await waitForChartStability(chart);
+            const statusBar = deproxy(chart).modulesManager.getModule<any>('statusBar');
+            const text: string | undefined = statusBar.labels.find((l: any) => l.title?.text === 'Vol')?.value.text;
+            chart.destroy();
+            (chart as unknown) = undefined;
+            return text;
+        };
+
+        const bigintVolume = await volumeText(bigintData);
+        const numberVolume = await volumeText(numberData);
+
+        expect(bigintVolume).toBeTruthy();
+        expect(bigintVolume).toBe(numberVolume);
+    });
 
     describe('#createFinancialChart', () => {
         it.each(Object.entries(EXAMPLES))(

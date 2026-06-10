@@ -162,6 +162,23 @@ describe('SankeySeries', () => {
             });
         });
 
+        it('renders a bigint sizeKey without error (AG-16608 §9.1.1)', async () => {
+            // GAP — sankey node-size accumulation (acc + link.size, column.size +=, height * size) mixes a
+            // bigint size with a Number seed/divisor, throwing "Cannot mix BigInt and other types".
+            const options: AgStandaloneChartOptions = {
+                data: [
+                    { from: 'A', to: 'B', size: 9_007_199_254_740_993n },
+                    { from: 'B', to: 'C', size: 9_007_199_254_740_994n },
+                ],
+                series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expect(console.error).not.toHaveBeenCalled();
+        });
+
         it('should avoid crossovers for nodes with similar sizes', async () => {
             const options: AgStandaloneChartOptions = {
                 data: [

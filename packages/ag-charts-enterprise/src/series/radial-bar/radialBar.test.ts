@@ -10,6 +10,7 @@ import {
     type AgRadialSeriesStylerParams,
 } from 'ag-charts-community';
 import {
+    BIG,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     type MockRadialColumnStyler,
@@ -24,7 +25,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 
 describe('RadialBarSeries', () => {
     setupMockConsole();
@@ -888,4 +889,115 @@ describe('RadialBarSeries', () => {
             await compare();
         });
     });
+
+    describe('bigint values (AG-16608)', () => {
+        const polarAxes = {
+            angle: { type: 'angle-number' as const },
+            radius: { type: 'radius-category' as const },
+        };
+        const plainData = [
+            { quarter: 'Q1', value: BIG },
+            { quarter: 'Q2', value: BIG * 2n },
+            { quarter: 'Q3', value: BIG * 3n },
+        ];
+        const pairedData = [
+            { quarter: 'Q1', value: BIG, value2: BIG * 2n },
+            { quarter: 'Q2', value: BIG * 2n, value2: BIG * 3n },
+            { quarter: 'Q3', value: BIG * 3n, value2: BIG },
+        ];
+
+        it('renders a plain radial-bar series with out-of-safe-range bigint values', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: plainData,
+                    series: [{ type: 'radial-bar', angleKey: 'value', radiusKey: 'quarter' }],
+                    axes: polarAxes,
+                })
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('renders a stacked radial-bar series with bigint values', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: pairedData,
+                    series: [
+                        { type: 'radial-bar', angleKey: 'value', radiusKey: 'quarter', stacked: true },
+                        { type: 'radial-bar', angleKey: 'value2', radiusKey: 'quarter', stacked: true },
+                    ],
+                    axes: polarAxes,
+                })
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('renders a grouped radial-bar series with bigint values', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: pairedData,
+                    series: [
+                        { type: 'radial-bar', angleKey: 'value', radiusKey: 'quarter', grouped: true },
+                        { type: 'radial-bar', angleKey: 'value2', radiusKey: 'quarter', grouped: true },
+                    ],
+                    axes: polarAxes,
+                })
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('renders a 100%-stacked radial-bar series with bigint values', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: pairedData,
+                    series: [
+                        {
+                            type: 'radial-bar',
+                            angleKey: 'value',
+                            radiusKey: 'quarter',
+                            stacked: true,
+                            normalizedTo: 100,
+                        },
+                        {
+                            type: 'radial-bar',
+                            angleKey: 'value2',
+                            radiusKey: 'quarter',
+                            stacked: true,
+                            normalizedTo: 100,
+                        },
+                    ],
+                    axes: polarAxes,
+                })
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        // Guards the bigint grid-tick sort; the mixed-numeric warnings are a cross-config artefact, not the regression.
+        it('renders bigint values on a radius-number axis without throwing (regression: grid tick sort)', async () => {
+            const options: AgPolarChartOptions = {
+                data: [
+                    { category: 'A', value: BIG },
+                    { category: 'B', value: BIG * 2n },
+                    { category: 'C', value: BIG * 3n },
+                ],
+                series: [{ type: 'radial-bar', angleKey: 'category', radiusKey: 'value' }],
+                axes: { angle: { type: 'angle-category' }, radius: { type: 'radius-number' } } as any,
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - column 'angleValue-start' for scope 'RadialBarSeries-1' was resolved as 'mixed-numeric' but holds 'string' values; check the series data types.",
+                ],
+                [
+                  "AG Charts - column 'angleValue-end' for scope 'RadialBarSeries-1' was resolved as 'mixed-numeric' but holds 'string' values; check the series data types.",
+                ],
+                [
+                  "AG Charts - column 'angleValue-raw' for scope 'RadialBarSeries-1' was resolved as 'mixed-numeric' but holds 'string' values; check the series data types.",
+                ],
+              ]
+            `);
+        });
+    });
+
+    // Magnitude-invariance is omitted: the angle-number scale routes through Number, so MAX_VALUE-scaling overflows it.
 });

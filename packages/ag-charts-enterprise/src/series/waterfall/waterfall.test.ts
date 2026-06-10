@@ -9,18 +9,23 @@ import {
     type WaterfallSeriesTotalMeta,
 } from 'ag-charts-community';
 import {
+    BIG,
     IMAGE_SNAPSHOT_DEFAULTS,
+    NEG_BIG,
     deproxy,
+    expectPixelIdenticalAcrossMagnitude,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
+    magnitudePair,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
+    stripAxes,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 import type { WaterfallSeries } from './waterfallSeries';
 
 describe('WaterfallSeries', () => {
@@ -131,6 +136,40 @@ describe('WaterfallSeries', () => {
             })),
         };
     }
+
+    it('preserves bigint value precision in the data label and formatter callback (AG-16608 §9.2.1/9.2.2)', async () => {
+        // GAP — computeDisplayValue() Number()s the raw value before it reaches getLabelText, so a bigint
+        // beyond 2^53 is float64-rounded in both the rendered label text and the label-formatter `value`.
+        const BIG_VALUE = 9_007_199_254_740_993n; // Number()-rounds to ...992
+        let captured: unknown;
+        const options: AgCartesianChartOptions = {
+            data: [{ type: 'Revenue', value: BIG_VALUE }],
+            series: [
+                {
+                    type: 'waterfall',
+                    xKey: 'type',
+                    yKey: 'value',
+                    item: {
+                        positive: {
+                            label: {
+                                enabled: true,
+                                formatter: (params: any) => {
+                                    captured = params.value;
+                                    return String(params.value);
+                                },
+                            },
+                        },
+                    },
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        expect(typeof captured).toBe('bigint');
+        expect(captured).toBe(BIG_VALUE);
+    });
 
     it(`should render a waterfall chart as expected`, async () => {
         const options: AgChartOptions = { ...WATERFALL_COLUMN_OPTIONS };
@@ -1149,6 +1188,58 @@ describe('WaterfallSeries', () => {
 
             const totalStates = new Set(calls.filter((c) => c.itemType === 'total').map((c) => c.highlightState));
             expect(totalStates.has('highlighted-item')).toBe(true);
+        });
+    });
+
+    describe('bigint values (AG-16608)', () => {
+        it('renders a plain waterfall series with out-of-safe-range bigint values', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: [
+                        { x: 'a', amount: BIG },
+                        { x: 'b', amount: NEG_BIG },
+                        { x: 'c', amount: BIG * 2n },
+                    ],
+                    series: [{ type: 'waterfall', xKey: 'x', yKey: 'amount' }],
+                    axes: { x: { type: 'category' }, y: { type: 'number' } },
+                })
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
+
+    describe('ISO datetime (AG-16654)', () => {
+        it('renders a waterfall series with ISO-8601 datetime-string x values on a unit-time axis', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: [
+                        { time: '2024-01-15T09:00:00Z', amount: 12 },
+                        { time: '2024-01-15T10:00:00Z', amount: -5 },
+                        { time: '2024-01-15T11:00:00Z', amount: 8 },
+                        { time: '2024-01-15T12:00:00Z', amount: -3 },
+                    ],
+                    series: [{ type: 'waterfall', xKey: 'time', yKey: 'amount' }],
+                    axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
+                })
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
+
+    describe('bigint magnitude invariance (AG-16608)', () => {
+        const amounts = (values: number[]) => (toValue: (v: number) => number | bigint) =>
+            values.map((amount, i) => ({ x: `c${i}`, amount: toValue(amount) }));
+
+        it('positions a plain waterfall series identically when scaled beyond Number.MAX_VALUE', async () => {
+            await expectPixelIdenticalAcrossMagnitude(
+                ctx,
+                createEnterpriseChart,
+                magnitudePair(
+                    {
+                        series: [{ type: 'waterfall', xKey: 'x', yKey: 'amount' }],
+                        axes: stripAxes({ x: { type: 'category' }, y: { type: 'number', nice: false } }),
+                    },
+                    amounts([3, -2, 4])
+                )
+            );
         });
     });
 });

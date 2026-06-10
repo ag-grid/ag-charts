@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
     AgAreaSeriesOptions,
@@ -599,5 +599,33 @@ describe('Crosshair', () => {
         expect(visibleText(xLabels).some((t) => t.includes('null'))).toBe(false);
         expect(visibleText(yLabels).some((t) => t.includes('null'))).toBe(false);
         expect(visibleText(yLabels).some((t) => /\d/.test(t))).toBe(true);
+    });
+
+    it('AG-16608 should follow the pointer over bigint axis domains without error', async () => {
+        // Out-of-safe-range y-values: the crosshair label readback inverts the scale on a bigint domain.
+        const BIG = 9_007_199_254_740_993n; // Number.MAX_SAFE_INTEGER + 2
+        const errorSpy = vi.spyOn(console, 'error');
+        const options: AgCartesianChartOptions = {
+            data: [
+                { x: 0, y: BIG },
+                { x: 1, y: BIG * 3n },
+                { x: 2, y: BIG * 2n },
+                { x: 3, y: BIG * 4n },
+            ],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: {
+                x: { type: 'number', position: 'bottom', crosshair: { enabled: true, snap: false } },
+                y: { type: 'number', position: 'left', crosshair: { enabled: true, snap: false } },
+            },
+        };
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        await hoverAction(480, 250)(chart);
+        await waitForChartStability(chart);
+
+        expect(errorSpy).not.toHaveBeenCalled();
+        errorSpy.mockRestore();
     });
 });
