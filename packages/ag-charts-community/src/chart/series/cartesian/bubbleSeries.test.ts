@@ -1437,3 +1437,47 @@ describe('BubbleSeries', () => {
         });
     });
 });
+
+describe('BubbleSeries bigint size domain (AG-16608)', () => {
+    setupMockConsole();
+    const ctx = setupMockCanvas();
+
+    let chart: AgChartInstance | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const buildOptions = (domain: [number, number] | [bigint, bigint]): AgCartesianChartOptions => {
+        const options: AgCartesianChartOptions = {
+            data: [
+                { x: 0, y: 10, size: 20 },
+                { x: 1, y: 60, size: 45 },
+                { x: 2, y: 35, size: 80 },
+            ],
+            series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'size', domain } as never],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+        };
+        prepareTestOptions(options);
+        return options;
+    };
+
+    // Renders the number variant, then updates the SAME chart to the bigint variant — the mock
+    // canvas only tracks the first chart per test, so cross-create snapshots would compare a
+    // stale canvas against itself.
+    it('renders a bigint domain identically to numbers', async () => {
+        chart = AgCharts.create(buildOptions([0, 100]));
+        await waitForChartStability(chart);
+        const numberImage = ctx.snapshot();
+
+        await chart.update(buildOptions([0n, 100n]));
+        await waitForChartStability(chart);
+        const bigintImage = ctx.snapshot();
+
+        expect(bigintImage).toMatchImage(numberImage);
+    });
+});
