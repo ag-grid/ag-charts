@@ -9,6 +9,7 @@ import type {
     AgBubbleSeriesStylerResult,
     AgBubbleSeriesTooltipRendererParams,
     AgMarkerShape,
+    AgNumericValue,
     AgScatterSeriesItemStylerParams,
     AgScatterSeriesOptionsKeys,
     AgScatterSeriesStylerParams,
@@ -37,7 +38,7 @@ class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys | AgScat
 
     @Property
     @SceneArrayChangeDetection()
-    domain?: readonly [number, number];
+    domain?: readonly [AgNumericValue, AgNumericValue];
 }
 
 class BubbleSeriesLabel extends Label<AgBubbleSeriesLabelFormatterParams> {
@@ -95,7 +96,7 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     maxSize!: number;
 
     @ProxyProperty('marker.domain')
-    domain?: [number, number];
+    domain?: [AgNumericValue, AgNumericValue];
 
     @ProxyProperty('marker.fill')
     fill?: InternalAgColorType;

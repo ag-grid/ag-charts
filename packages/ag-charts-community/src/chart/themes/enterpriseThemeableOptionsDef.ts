@@ -24,6 +24,7 @@ import {
     overflowStrategy,
     positiveNumber,
     positiveNumberNonZero,
+    positiveNumericValue,
     ratio,
     seriesLabelOptionsDefs,
     shadowOptionsDefs,
@@ -316,7 +317,7 @@ export const mapLineSeriesThemeableOptionsDef: OptionsDefs<AgMapLineSeriesThemea
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     }),
-    sizeDomain: arrayOf(positiveNumber),
+    sizeDomain: arrayOf(positiveNumericValue),
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
@@ -333,7 +334,7 @@ export const mapLineBackgroundSeriesThemeableOptionsDef: OptionsDefs<AgMapLineBa
 export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesThemeableOptions> = {
     colorScale: colorScaleOptionsDef,
     maxSize: positiveNumber,
-    sizeDomain: arrayOf(positiveNumber),
+    sizeDomain: arrayOf(positiveNumericValue),
     label: {
         placement: union('top', 'bottom', 'left', 'right'),
         ...seriesLabelOptionsDefs,

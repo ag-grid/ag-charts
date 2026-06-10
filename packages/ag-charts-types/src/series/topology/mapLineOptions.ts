@@ -1,4 +1,5 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
+import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, GeoJSON, Opacity, PixelSize } from '../../chart/types';
@@ -63,7 +64,7 @@ export interface AgMapLineSeriesThemeableOptions<TDatum = DatumDefault, TContext
     /** Determines the largest width a stroke can be in pixels. */
     maxStrokeWidth?: PixelSize;
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
-    sizeDomain?: number[];
+    sizeDomain?: AgNumericValue[];
     /** Configuration for the labels shown on top of the line. */
     label?: AgMapLineSeriesLabel<TDatum, TContext>;
     /** Series-specific tooltip configuration. */

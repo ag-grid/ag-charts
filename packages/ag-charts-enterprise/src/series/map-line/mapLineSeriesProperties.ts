@@ -4,6 +4,7 @@ import type {
     AgMapLineSeriesOptions,
     AgMapLineSeriesStyle,
     AgMapLineSeriesTooltipRendererParams,
+    AgNumericValue,
     Opacity,
     Styler,
 } from 'ag-charts-community';
@@ -65,7 +66,7 @@ export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOpt
     colorName?: string;
 
     @Property
-    sizeDomain?: [number, number];
+    sizeDomain?: [AgNumericValue, AgNumericValue];
 
     @Property
     readonly colorScale = new ColorScaleProperties();

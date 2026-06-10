@@ -6,6 +6,7 @@ import type {
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, LabelPlacement, PixelSize } from '../../chart/types';
@@ -72,7 +73,7 @@ export type AgBubbleSeriesItemStylerParams<TDatum, TContext> = BubbleSeriesItemS
 export interface AgBubbleSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBubbleSeriesStyle, AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
-    domain?: [number, number];
+    domain?: [AgNumericValue, AgNumericValue];
     /** Determines the smallest size a marker can be in pixels. */
     size?: PixelSize;
     /** Determines the largest size a marker can be in pixels. */

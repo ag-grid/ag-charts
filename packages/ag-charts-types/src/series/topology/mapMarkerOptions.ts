@@ -1,4 +1,5 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
+import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type {
@@ -93,7 +94,7 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = DatumDefault, TConte
     /** Determines the largest size a marker can be in pixels. */
     maxSize?: PixelSize;
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
-    sizeDomain?: [number, number];
+    sizeDomain?: [AgNumericValue, AgNumericValue];
     /** Configuration for colour scale with fills, domain, and mode. */
     colorScale?: AgColorScale;
     /** Configuration for the labels shown on top of data points. */

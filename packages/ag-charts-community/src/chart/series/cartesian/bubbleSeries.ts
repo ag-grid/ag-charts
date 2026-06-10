@@ -32,6 +32,7 @@ import {
     type AgBubbleSeriesStylerResult,
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
+    type AgNumericValue,
     type AgScatterSeriesItemStylerParams,
     type AgScatterSeriesStylerParams,
     type AgScatterSeriesStylerResult,
@@ -365,7 +366,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         });
 
         const sizeKeyIdx = sizeKey ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`) : undefined;
-        const mutableMarkerDomain: [number, number] | undefined = marker.domain
+        const mutableMarkerDomain: [AgNumericValue, AgNumericValue] | undefined = marker.domain
             ? [marker.domain[0], marker.domain[1]]
             : undefined;
         this.sizeScale.domain =
