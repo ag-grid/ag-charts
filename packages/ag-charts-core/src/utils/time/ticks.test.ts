@@ -1,4 +1,11 @@
-import { createBigIntBins, createBigIntTicks, createTicks, niceBigIntDomain, tickFormat } from './ticks';
+import {
+    createBigIntBins,
+    createBigIntTickBins,
+    createBigIntTicks,
+    createTicks,
+    niceBigIntDomain,
+    tickFormat,
+} from './ticks';
 
 describe('tickFormat', () => {
     test('formats a bigint tick with the chart-wide en-US grouping', () => {
@@ -103,6 +110,35 @@ describe('createBigIntTicks', () => {
     });
 });
 
+describe('createBigIntTickBins', () => {
+    test('aligns bin boundaries to nice tick steps with a leading bin covering the minimum', () => {
+        // Mirrors the Number histogram path for domain [2, 97] with the default bin count of 10:
+        // step 10, ticks 10..90, plus the leading [0, 10] bin.
+        const bins = createBigIntTickBins(2n, 97n, 10);
+        expect(bins[0]).toEqual([0n, 10n]);
+        expect(bins.at(-1)).toEqual([90n, 100n]);
+        expect(bins).toHaveLength(10);
+        expect(bins.every(([a, b]) => a % 10n === 0n && b - a === 10n)).toBe(true);
+    });
+
+    test('is magnitude-invariant for scaled domains beyond Number.MAX_VALUE', () => {
+        const scale = 10n ** 309n;
+        const small = createBigIntTickBins(2n, 97n, 10);
+        const scaled = createBigIntTickBins(2n * scale, 97n * scale, 10);
+        expect(scaled).toEqual(small.map(([a, b]) => [a * scale, b * scale]));
+    });
+
+    test('adds a leading bin even when the minimum sits on a tick', () => {
+        const bins = createBigIntTickBins(0n, 100n, 10);
+        expect(bins[0]).toEqual([-10n, 0n]);
+        expect(bins.at(-1)).toEqual([100n, 110n]);
+    });
+
+    test('returns a single degenerate bin for a zero-width domain', () => {
+        expect(createBigIntTickBins(42n, 42n, 5)).toEqual([[42n, 42n]]);
+    });
+});
+
 describe('niceBigIntDomain', () => {
     test('extends endpoints outward to step multiples', () => {
         expect(niceBigIntDomain(13n, 97n, 5)).toEqual([0n, 100n]);
@@ -128,10 +164,31 @@ describe('createBigIntBins', () => {
         ]);
     });
 
-    test('extends a non-nice domain outward to step multiples', () => {
-        const bins = createBigIntBins(13n, 97n, 5);
-        expect(bins[0][0]).toBe(0n);
-        expect(bins.at(-1)![1]).toBe(100n);
+    test('returns exactly `count` equal-width bins anchored at the domain minimum', () => {
+        expect(createBigIntBins(13n, 97n, 4)).toEqual([
+            [13n, 34n],
+            [34n, 55n],
+            [55n, 76n],
+            [76n, 97n],
+        ]);
+    });
+
+    test('is magnitude-invariant: a scaled Number domain yields proportionally identical boundaries', () => {
+        // Number path for [1, 10] with 5 bins: [1, 2.8], [2.8, 4.6], [4.6, 6.4], [6.4, 8.2], [8.2, 10].
+        const edge = (tenths: bigint) => tenths * 10n ** 308n;
+        expect(createBigIntBins(10n ** 309n, 10n ** 310n, 5)).toEqual([
+            [edge(10n), edge(28n)],
+            [edge(28n), edge(46n)],
+            [edge(46n), edge(64n)],
+            [edge(64n), edge(82n)],
+            [edge(82n), edge(100n)],
+        ]);
+    });
+
+    test('always produces the requested bin count', () => {
+        for (const count of [1, 2, 3, 7, 13]) {
+            expect(createBigIntBins(13n, 9871n, count)).toHaveLength(count);
+        }
     });
 
     test('returns contiguous bins (each bin starts where the previous ends)', () => {
