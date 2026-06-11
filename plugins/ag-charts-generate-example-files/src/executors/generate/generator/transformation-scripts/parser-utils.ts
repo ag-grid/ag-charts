@@ -211,6 +211,9 @@ function isDeclareStatement(node) {
 }
 
 export function tsNodeIsTypeDeclaration(node: any): boolean {
+    if (ts.isTypeAliasDeclaration(node) || ts.isInterfaceDeclaration(node)) {
+        return true;
+    }
     if (ts.isFunctionDeclaration(node) || ts.isVariableStatement(node)) {
         return isDeclareStatement(node);
     }

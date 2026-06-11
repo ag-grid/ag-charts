@@ -9,6 +9,7 @@ import type {
     AgChartAutoSizedSecondaryLabelOptions,
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
+import type { AgSelectionOptions, AgSelectionStyleOptions } from '../../chart/selectionOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type {
     ContextDefault,
@@ -65,6 +66,8 @@ export interface AgTreemapSeriesGroupOptions<TDatum, TContext = ContextDefault>
     cornerRadius?: PixelSize;
     /** Highlight overrides for groups. */
     highlight?: AgTreemapSeriesGroupHighlightOptions;
+    /** Selection overrides for groups. */
+    selection?: AgSelectionOptions<AgSelectionStyleOptions, AgSelectionStyleOptions>;
 }
 
 export interface AgTreemapSeriesTileStyle extends FillOptions, StrokeOptions {}
@@ -134,11 +137,13 @@ export interface AgTreemapSeriesTileOptions<TDatum, TContext = ContextDefault>
     cornerRadius?: PixelSize;
     /** Highlight overrides for tiles. */
     highlight?: AgTreemapSeriesTileHighlightOptions;
+    /** Selection overrides for tiles. */
+    selection?: AgSelectionOptions<AgSelectionStyleOptions, AgSelectionStyleOptions>;
 }
 
 export interface AgTreemapSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
     AgBaseSeriesThemeableOptions<TDatum, TContext>,
-    'highlight' | 'showInLegend' | 'selection'
+    'highlight' | 'showInLegend'
 > {
     /** The colours to cycle through for the fills of the groups and tiles. */
     fills?: AgColorType[];

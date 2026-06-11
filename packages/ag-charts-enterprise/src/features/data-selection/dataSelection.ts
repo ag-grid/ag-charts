@@ -27,7 +27,7 @@ import {
     rollbackChanges,
     setSelected,
     setSelectedRange,
-    toBBox,
+    toCanvasBBox,
     toggleSelection,
 } from './dataSelectionUtil';
 import { IntervalSet } from './intervalSet';
@@ -57,11 +57,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private supportsSelectionDrag(): boolean {
-        return (
-            this.supportsSelection() &&
-            this.ctx.chartService.getChartType() !== 'topology' &&
-            this.ctx.chartService.getChartType() !== 'polar'
-        );
+        return this.supportsSelection() && this.ctx.chartService.getChartType() !== 'topology';
     }
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
@@ -97,7 +93,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
                 for (let datumIndex = 0; datumIndex < it.selection.getLength(); datumIndex++) {
                     if (it.selection.isSelected(datumIndex)) {
                         const itemId = it.dataSet.getItemIdFromIndex(datumIndex);
-                        const datum = it.dataSet.data[datumIndex];
+                        const datum = it.dataSet.getDatumAt(datumIndex);
                         const seriesId = it.seriesId;
                         yield { seriesId, itemId, datum };
                     }
@@ -233,8 +229,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             return;
         }
 
-        const seriesBounds = toBBox(dragStartEvent, dragMoveEvent);
-        const canvasBounds = _ModuleSupport.Transformable.toCanvas(this.ctx.chartService.seriesRoot, seriesBounds);
+        const canvasBounds = toCanvasBBox(this.ctx.chartService.seriesRoot, dragStartEvent, dragMoveEvent);
 
         this.service.totalCandidacyCount = 0;
         for (const series of this.iterateSelectableSeries()) {
@@ -244,7 +239,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             const bitfield = this.service.enableCandidacy(series.id, data);
             bitfield.clear();
 
-            for (const { datumIndex } of series.pickNodesInBBox(seriesBounds)) {
+            for (const { datumIndex } of series.pickNodesInBBox(canvasBounds)) {
                 bitfield.setBit(datumIndex);
                 this.service.totalCandidacyCount++;
             }
@@ -282,7 +277,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             clearAllSelections(changes, this.service);
         }
 
-        const bbox = toBBox(dragStartEvent, dragEndEvent);
+        const canvasBounds = toCanvasBBox(this.ctx.chartService.seriesRoot, dragStartEvent, dragEndEvent);
         const intervalSet = new IntervalSet();
 
         for (const series of this.iterateSelectableSeries()) {
@@ -292,7 +287,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             const bucketLookup = series.ensureBucketLookupFeature();
             const getRangeOfAggregateIndex = bucketLookup?.getRangeReader();
 
-            for (const nodeDatum of series.pickNodesInBBox(bbox)) {
+            for (const nodeDatum of series.pickNodesInBBox(canvasBounds)) {
                 const datumIndex = nodeDatum.datumIndex;
                 const indexSet = bucketLookup?.getIndexSet(datumIndex);
                 if (getRangeOfAggregateIndex) {
