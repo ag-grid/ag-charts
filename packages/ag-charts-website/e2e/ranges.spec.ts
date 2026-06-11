@@ -123,7 +123,7 @@ test.describe('range buttons', () => {
         await expect(canvas).toHaveScreenshot('range-buttons-dropdown-3.png');
 
         // Resets on zoom
-        await page.mouse.dblclick(200, 400);
+        await page.mouse.dblclick(200, 200);
         await expect(canvas).toHaveScreenshot('range-buttons-dropdown-4.png');
     });
 

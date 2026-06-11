@@ -7,7 +7,9 @@ import {
     type AgChartOptions,
     AgCharts,
     type AgErrorBarItemStylerParams,
+    AgHierarchyChartOptions,
     AgInitialStateZoomOptions,
+    type AgPolarChartOptions,
     AgSelectionChangeEvent,
     AgSelectionItem,
 } from 'ag-charts-community';
@@ -259,6 +261,89 @@ function createBarStackMixOptions(): AgCartesianChartOptions<StackMixDatum, unkn
     };
 }
 
+type RingDatum = { sector: string; value: number };
+function createPieDonutOptions(): AgPolarChartOptions<RingDatum, unknown> {
+    // Three concentric rings — a pie in the centre encircled by two donuts. Every
+    // ring is split into the same four equal-angle quadrants (each value: 1 → 90°),
+    // so a drag-box over a compass quadrant maps to obvious sectors when debugging.
+    // With the default rotation, sectors run clockwise from 12 o'clock: NE, SE, SW, NW.
+    const center: RingDatum[] = [
+        { sector: 'C-NE', value: 1 },
+        { sector: 'C-SE', value: 1 },
+        { sector: 'C-SW', value: 1 },
+        { sector: 'C-NW', value: 1 },
+    ];
+    const inner: RingDatum[] = [
+        { sector: 'I-NE', value: 1 },
+        { sector: 'I-SE', value: 1 },
+        { sector: 'I-SW', value: 1 },
+        { sector: 'I-NW', value: 1 },
+    ];
+    const outer: RingDatum[] = [
+        { sector: 'O-NE', value: 1 },
+        { sector: 'O-SE', value: 1 },
+        { sector: 'O-SW', value: 1 },
+        { sector: 'O-NW', value: 1 },
+    ];
+    return {
+        data: center,
+        series: [
+            // Centre pie (uses root data)
+            {
+                id: 'pieid',
+                type: 'pie',
+                angleKey: 'value',
+                sectorLabelKey: 'sector',
+                outerRadiusRatio: 0.33,
+            },
+            // Inner donut encircling the pie (own data)
+            {
+                id: 'donut1id',
+                type: 'donut',
+                data: inner,
+                angleKey: 'value',
+                sectorLabelKey: 'sector',
+                innerRadiusRatio: 0.33,
+                outerRadiusRatio: 0.66,
+            },
+            // Outer donut encircling the inner donut (own data)
+            {
+                id: 'donut2id',
+                type: 'donut',
+                data: outer,
+                angleKey: 'value',
+                sectorLabelKey: 'sector',
+                innerRadiusRatio: 0.66,
+                outerRadiusRatio: 1,
+            },
+        ],
+        // Disable the legend (we're not testing that):
+        legend: { enabled: false },
+        theme: {
+            overrides: {
+                pie: {
+                    series: {
+                        // Show sector labels so selected sectors are obvious in image snapshots:
+                        sectorLabel: { enabled: true },
+                        selection: {
+                            // Make selected items in the image snapshots more obvious by increasing strokeWidth
+                            selectedItem: { strokeWidth: 5 },
+                        },
+                    },
+                },
+                donut: {
+                    series: {
+                        sectorLabel: { enabled: true },
+                        selection: {
+                            selectedItem: { strokeWidth: 5 },
+                        },
+                    },
+                },
+            },
+        },
+    };
+}
+
 type BioDatum = { height: number; weight: number; age: number };
 function createBubbleBioStatOptions(): { data: BioDatum[]; series: [AgBubbleSeriesOptions<BioDatum>] } {
     return {
@@ -304,6 +389,166 @@ function createBubbleBioStatOptions(): { data: BioDatum[]; series: [AgBubbleSeri
             },
         ],
     };
+}
+
+type DiskDatum = {
+    name: string;
+    inode: number;
+    size?: number;
+    children?: DiskDatum[];
+};
+
+function createDiskUsageOptions(
+    type: 'treemap' | 'sunburst',
+    dataIdKey?: string
+): AgHierarchyChartOptions<DiskDatum, unknown> {
+    const data: DiskDatum[] = [
+        {
+            name: '/',
+            inode: 100000,
+            children: [
+                {
+                    name: 'usr/',
+                    inode: 100034,
+                    children: [
+                        {
+                            name: 'bin/',
+                            inode: 100101,
+                            children: [
+                                { name: 'bash', inode: 200001, size: 12 },
+                                { name: 'ls', inode: 200002, size: 8 },
+                            ],
+                        },
+                        {
+                            name: 'lib/',
+                            inode: 100102,
+                            children: [
+                                { name: 'libc.so', inode: 200003, size: 20 },
+                                { name: 'libm.so', inode: 200004, size: 14 },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    name: 'home/',
+                    inode: 100035,
+                    children: [
+                        {
+                            name: 'Pictures/',
+                            inode: 100201,
+                            children: [
+                                { name: 'img1.jpg', inode: 200005, size: 30 },
+                                { name: 'img2.png', inode: 200006, size: 25 },
+                            ],
+                        },
+                        {
+                            name: 'Movies/',
+                            inode: 100202,
+                            children: [
+                                { name: 'movie.mp4', inode: 200007, size: 120 },
+                                { name: 'clip.mov', inode: 200008, size: 60 },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    name: 'mnt/',
+                    inode: 100036,
+                    children: [
+                        {
+                            name: 'SD/',
+                            inode: 100301,
+                            children: [
+                                { name: 'file1.dat', inode: 200009, size: 10 },
+                                { name: 'file2.dat', inode: 200010, size: 15 },
+                            ],
+                        },
+                        {
+                            name: 'miniSD/',
+                            inode: 100302,
+                            children: [
+                                {
+                                    name: 'videos/',
+                                    inode: 100401,
+                                    children: [
+                                        { name: 'vid1.mp4', inode: 200011, size: 50 },
+                                        { name: 'vid2.mp4', inode: 200012, size: 70 },
+                                    ],
+                                },
+                                {
+                                    name: 'photos/',
+                                    inode: 100402,
+                                    children: [
+                                        { name: 'photo1.jpg', inode: 200013, size: 18 },
+                                        { name: 'photo2.jpg', inode: 200014, size: 22 },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        },
+    ];
+
+    const formatter = (p: { datum: { name: string } }) => p.datum.name;
+    const strokeWidth = 6;
+
+    return {
+        data,
+        series: [
+            {
+                type,
+                labelKey: 'name',
+                sizeKey: 'size',
+                ...(dataIdKey ? { dataIdKey } : {}),
+            },
+        ],
+        title: {
+            text: 'Disk Usage',
+        },
+        theme: {
+            overrides: {
+                treemap: {
+                    series: {
+                        group: {
+                            label: { formatter },
+                            selection: { selectedItem: { strokeWidth } },
+                        },
+                        tile: {
+                            label: { formatter },
+                            selection: { selectedItem: { strokeWidth } },
+                        },
+                    },
+                },
+                sunburst: {
+                    series: {
+                        label: { formatter },
+                        selection: { selectedItem: { strokeWidth } },
+                    },
+                },
+            },
+        },
+    };
+}
+
+function findName<D extends { name?: string; children?: D[] }>(data: D[] | undefined, name: string): D {
+    expect(data).toBeDefined();
+    let result: D | undefined;
+    const stack: D[] = [...data!];
+    while (result === undefined && stack.length > 0) {
+        const node = stack.pop()!;
+        if (node.name === name) {
+            result = node;
+        } else if (node.children) {
+            stack.push(...node.children);
+        }
+    }
+    if (!result) {
+        console.error(`Cannot find ${JSON.stringify(name)}`);
+    }
+    expect(result).toBeDefined();
+    return result!;
 }
 
 describe('DataSelection', () => {
@@ -1311,6 +1556,149 @@ describe('DataSelection', () => {
                 });
             });
         });
+
+        describe('treemap', () => {
+            type D = DiskDatum;
+            type C = unknown;
+            let selectionChange: SelectionChangeRecorder<D, C>;
+
+            const { data, series, theme, legend, title } = createDiskUsageOptions('treemap');
+
+            const seriesId = 'TreemapSeries-1' as const;
+            const POINT_MOVIE: CanvasPoint = { canvasX: 160, canvasY: 258 };
+            const POINT_VID2: CanvasPoint = { canvasX: 496, canvasY: 223 };
+            const POINT_MNT: CanvasPoint = { canvasX: 605, canvasY: 96 };
+            const POINT_IMG1: CanvasPoint = { canvasX: 84, canvasY: 522 };
+            const POINT_MISS: CanvasPoint = { canvasX: 20, canvasY: 20 };
+            const DATUM_MOVIE: D = findName(data, 'movie.mp4');
+            const DATUM_VID2: D = findName(data, 'vid2.mp4');
+            const DATUM_MNT: D = findName(data, 'mnt/');
+            const DATUM_IMG1: D = findName(data, 'img1.jpg');
+            const ITEM_MOVIE: AgSelectionItem<D> = { datum: DATUM_MOVIE, seriesId, itemId: 13 };
+            const ITEM_VID2: AgSelectionItem<D> = { datum: DATUM_VID2, seriesId, itemId: 22 };
+            const ITEM_MNT: AgSelectionItem<D> = { datum: DATUM_MNT, seriesId, itemId: 15 };
+            const ITEM_IMG1: AgSelectionItem<D> = { datum: DATUM_IMG1, seriesId, itemId: 10 };
+            const ADDED_MOVIE = uiChangeEvent<D, C>({ added: [ITEM_MOVIE], removed: [] });
+            const ADDED_VID2 = uiChangeEvent<D, C>({ added: [ITEM_VID2], removed: [] });
+            const ADDED_MNT = uiChangeEvent<D, C>({ added: [ITEM_MNT], removed: [] });
+            const ADDED_IMG1 = uiChangeEvent<D, C>({ added: [ITEM_IMG1], removed: [] });
+            const REMOVED_MOVIE = uiChangeEvent<D, C>({ added: [], removed: [ITEM_MOVIE] });
+            const REMOVED_MNT_VID2 = uiChangeEvent<D, C>({ added: [], removed: [ITEM_MNT, ITEM_VID2] });
+            const ADDED_IMG1_REMOVED_MOVIE_MNT_VID2 = uiChangeEvent<D, C>({
+                added: [ITEM_IMG1],
+                removed: [ITEM_MOVIE, ITEM_MNT, ITEM_VID2],
+            });
+            describe('single', () => {
+                beforeEach(async () => {
+                    selectionChange = createSelectionChangeRecorder();
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        theme,
+                        legend,
+                        title,
+                        selection: {
+                            enabled: true,
+                            clickMode: 'single',
+                        },
+                        listeners: { selectionChange },
+                    });
+                });
+
+                describe('select 3 points', () => {
+                    beforeEach(async () => {
+                        await mouseClick(POINT_MOVIE);
+                        await mouseClick(POINT_VID2, { ctrlKey });
+                        await mouseClick(POINT_MNT, { ctrlKey });
+                        await mouseMove(POINT_MISS);
+                    });
+                    describe('initial', () => {
+                        test('screenshot', async () => {
+                            await compareExact('diskusage-treemap-highlighted-none-selected-movie-mnt-vid2');
+                        });
+                        test('getSelection', () => {
+                            expect(getChartSelectionArray()).toEqual([ITEM_MOVIE, ITEM_MNT, ITEM_VID2]);
+                        });
+                        test('selectionChange', () => {
+                            expect(selectionChange.popEvents()).toEqual([ADDED_MOVIE, ADDED_VID2, ADDED_MNT]);
+                        });
+                    });
+                    describe('follow-up', () => {
+                        beforeEach(() => {
+                            selectionChange.popEvents(); // pop event of initial selection.
+                        });
+                        describe('click on selected node sets that node to the sole selection', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_MOVIE);
+                                await mouseMove(POINT_MISS);
+                                await compareExact('diskusage-treemap-highlighted-none-selected-movie');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_MOVIE);
+                                await mouseMove(POINT_MISS);
+                                expect(getChartSelectionArray()).toEqual([ITEM_MOVIE]);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_MOVIE);
+                                await mouseMove(POINT_MISS);
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_MNT_VID2]);
+                            });
+                        });
+                        describe('ctrl-click on selected node removes that node only', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_MOVIE, { ctrlKey });
+                                await mouseMove(POINT_MISS);
+                                await compareExact('diskusage-treemap-highlighted-none-selected-vid2-mnt');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_MOVIE, { ctrlKey });
+                                await mouseMove(POINT_MISS);
+                                expect(getChartSelectionArray()).toEqual([ITEM_MNT, ITEM_VID2]);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_MOVIE, { ctrlKey });
+                                await mouseMove(POINT_MISS);
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_MOVIE]);
+                            });
+                        });
+                        describe('click on unselected node sets that node to the sole selection', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_IMG1);
+                                await mouseMove(POINT_MISS);
+                                await compareExact('diskusage-treemap-highlighted-none-selected-img1');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_IMG1);
+                                await mouseMove(POINT_MISS);
+                                expect(getChartSelectionArray()).toEqual([ITEM_IMG1]);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_IMG1);
+                                await mouseMove(POINT_MISS);
+                                expect(selectionChange.popEvents()).toEqual([ADDED_IMG1_REMOVED_MOVIE_MNT_VID2]);
+                            });
+                        });
+                        describe('ctrl-click on unselected node adds that node only', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_IMG1, { ctrlKey });
+                                await mouseMove(POINT_MISS);
+                                await compareExact('diskusage-treemap-highlighted-none-selected-img1-movie-mnt-vid2');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_IMG1, { ctrlKey });
+                                await mouseMove(POINT_MISS);
+                                expect(getChartSelectionArray()).toEqual([ITEM_IMG1, ITEM_MOVIE, ITEM_MNT, ITEM_VID2]);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_IMG1, { ctrlKey });
+                                await mouseMove(POINT_MISS);
+                                expect(selectionChange.popEvents()).toEqual([ADDED_IMG1]);
+                            });
+                        });
+                    });
+                });
+            });
+        });
     });
 
     describe('drag modifiers', () => {
@@ -2257,6 +2645,441 @@ describe('DataSelection', () => {
                         await mouseMove(POINT_C, { metaKey });
                         await mouseUp(POINT_C, { metaKey });
                         expect(selectionChange.popEvents()).toEqual([ADDED_a0]);
+                    });
+                });
+            });
+        });
+
+        describe('sunburst', () => {
+            type D = DiskDatum;
+            type C = unknown;
+            type I = AgSelectionItem<D>;
+            let selectionChange: SelectionChangeRecorder<D, C>;
+            const { data, series, theme, legend, title } = createDiskUsageOptions('sunburst');
+
+            const POINT_MISS: CanvasPoint = { canvasX: 20, canvasY: 20 };
+            const seriesId = 'SunburstSeries-1';
+
+            describe('containment any', () => {
+                beforeEach(async () => {
+                    selectionChange = createSelectionChangeRecorder();
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        theme,
+                        legend,
+                        title,
+                        selection: {
+                            enabled: true,
+                            enableClick: false,
+                            enableDrag: true,
+                            containment: 'any',
+                        },
+                        listeners: { selectionChange },
+                    });
+                });
+                describe('initial', () => {
+                    test('screenshot', async () => {
+                        await compareExact('diskusage-sunburst-highlighted-none-selected-none');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+                describe('box in sector selects that one sector', () => {
+                    const start: CanvasPoint = { canvasX: 210.5, canvasY: 318 };
+                    const end: CanvasPoint = { canvasX: 231.5, canvasY: 275 };
+                    const added: I[] = [{ itemId: 20, seriesId, datum: findName(data, 'videos/') }];
+
+                    test('screenshot', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        await compareExact('diskusage-sunburst-any-box-in-sector-candidacy');
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        await compareExact('diskusage-sunburst-any-box-in-sector-selection');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(getChartSelectionArray()).toEqual(added);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(selectionChange.popEvents()).toEqual([uiChangeEvent<D, C>({ added, removed: [] })]);
+                    });
+                });
+                describe('squarish box selects multiple sectors', () => {
+                    const start: CanvasPoint = { canvasX: 374.5, canvasY: 324 };
+                    const end: CanvasPoint = { canvasX: 595.5, canvasY: 79 };
+                    const added: I[] = [
+                        { seriesId, itemId: 0, datum: findName(data, '/') },
+                        { seriesId, itemId: 1, datum: findName(data, 'usr/') },
+                        { seriesId, itemId: 2, datum: findName(data, 'bin/') },
+                        { seriesId, itemId: 3, datum: findName(data, 'bash') },
+                        { seriesId, itemId: 4, datum: findName(data, 'ls') },
+                        { seriesId, itemId: 5, datum: findName(data, 'lib/') },
+                        { seriesId, itemId: 6, datum: findName(data, 'libc.so') },
+                        { seriesId, itemId: 7, datum: findName(data, 'libm.so') },
+                        { seriesId, itemId: 8, datum: findName(data, 'home/') },
+                        { seriesId, itemId: 9, datum: findName(data, 'Pictures/') },
+                        { seriesId, itemId: 10, datum: findName(data, 'img1.jpg') },
+                        { seriesId, itemId: 11, datum: findName(data, 'img2.png') },
+                        { seriesId, itemId: 12, datum: findName(data, 'Movies/') },
+                        { seriesId, itemId: 13, datum: findName(data, 'movie.mp4') },
+                        { seriesId, itemId: 15, datum: findName(data, 'mnt/') },
+                        { seriesId, itemId: 19, datum: findName(data, 'miniSD/') },
+                        { seriesId, itemId: 23, datum: findName(data, 'photos/') },
+                        { seriesId, itemId: 25, datum: findName(data, 'photo2.jpg') },
+                    ];
+
+                    test('screenshot', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        await compareExact('diskusage-sunburst-any-squarish-box-candidacy');
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        await compareExact('diskusage-sunburst-any-squarish-box-sector-selection');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(getChartSelectionArray()).toEqual(added);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(selectionChange.popEvents()).toEqual([uiChangeEvent<D, C>({ added, removed: [] })]);
+                    });
+                });
+                describe('tall box selects multiple sectors', () => {
+                    const start: CanvasPoint = { canvasX: 411.5, canvasY: 532 };
+                    const end: CanvasPoint = { canvasX: 417.5, canvasY: 62 };
+                    const added: I[] = [
+                        { seriesId, itemId: 0, datum: findName(data, '/') },
+                        { seriesId, itemId: 1, datum: findName(data, 'usr/') },
+                        { seriesId, itemId: 2, datum: findName(data, 'bin/') },
+                        { seriesId, itemId: 3, datum: findName(data, 'bash') },
+                        { seriesId, itemId: 8, datum: findName(data, 'home/') },
+                        { seriesId, itemId: 12, datum: findName(data, 'Movies/') },
+                        { seriesId, itemId: 13, datum: findName(data, 'movie.mp4') },
+                        { seriesId, itemId: 14, datum: findName(data, 'clip.mov') },
+                    ];
+
+                    test('screenshot', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        await compareExact('diskusage-sunburst-any-tall-box-candidacy');
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        await compareExact('diskusage-sunburst-any-tall-box-sector-selection');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(getChartSelectionArray()).toEqual(added);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(selectionChange.popEvents()).toEqual([uiChangeEvent<D, C>({ added, removed: [] })]);
+                    });
+                });
+                describe('wide box selects multiple sectors', () => {
+                    const start: CanvasPoint = { canvasX: 125.5, canvasY: 316 };
+                    const end: CanvasPoint = { canvasX: 651.5, canvasY: 324 };
+                    const added: I[] = [
+                        { seriesId, itemId: 0, datum: findName(data, '/') },
+                        { seriesId, itemId: 8, datum: findName(data, 'home/') },
+                        { seriesId, itemId: 12, datum: findName(data, 'Movies/') },
+                        { seriesId, itemId: 13, datum: findName(data, 'movie.mp4') },
+                        { seriesId, itemId: 15, datum: findName(data, 'mnt/') },
+                        { seriesId, itemId: 19, datum: findName(data, 'miniSD/') },
+                        { seriesId, itemId: 20, datum: findName(data, 'videos/') },
+                        { seriesId, itemId: 21, datum: findName(data, 'vid1.mp4') },
+                    ];
+
+                    test('screenshot', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        await compareExact('diskusage-sunburst-any-wide-box-candidacy');
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        await compareExact('diskusage-sunburst-any-wide-box-sector-selection');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(getChartSelectionArray()).toEqual(added);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(selectionChange.popEvents()).toEqual([uiChangeEvent<D, C>({ added, removed: [] })]);
+                    });
+                });
+            });
+            describe('containment all', () => {
+                beforeEach(async () => {
+                    selectionChange = createSelectionChangeRecorder();
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        theme,
+                        legend,
+                        title,
+                        selection: {
+                            enabled: true,
+                            enableClick: false,
+                            enableDrag: true,
+                            containment: 'all',
+                        },
+                        listeners: { selectionChange },
+                    });
+                });
+                describe('initial', () => {
+                    test('screenshot', async () => {
+                        await compareExact('diskusage-sunburst-highlighted-none-selected-none');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+                describe('northeast box', () => {
+                    const start: CanvasPoint = { canvasX: 334, canvasY: 388 };
+                    const end: CanvasPoint = { canvasX: 592, canvasY: 71 };
+                    const added: I[] = [
+                        { seriesId, itemId: 0, datum: findName(data, '/') },
+                        { seriesId, itemId: 1, datum: findName(data, 'usr/') },
+                        { seriesId, itemId: 2, datum: findName(data, 'bin/') },
+                        { seriesId, itemId: 3, datum: findName(data, 'bash') },
+                        { seriesId, itemId: 4, datum: findName(data, 'ls') },
+                        { seriesId, itemId: 5, datum: findName(data, 'lib/') },
+                        { seriesId, itemId: 6, datum: findName(data, 'libc.so') },
+                        { seriesId, itemId: 7, datum: findName(data, 'libm.so') },
+                        { seriesId, itemId: 9, datum: findName(data, 'Pictures/') },
+                        { seriesId, itemId: 10, datum: findName(data, 'img1.jpg') },
+                    ];
+
+                    test('screenshot', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        await compareExact('diskusage-sunburst-all-northeast-box-candidacy');
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        await compareExact('diskusage-sunburst-all-northeast-box-selection');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(getChartSelectionArray()).toEqual(added);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(selectionChange.popEvents()).toEqual([uiChangeEvent<D, C>({ added, removed: [] })]);
+                    });
+                });
+            });
+        });
+
+        describe('pie/donut', () => {
+            type D = RingDatum;
+            type C = unknown;
+            type I = AgSelectionItem<D>;
+            let selectionChange: SelectionChangeRecorder<D, C>;
+            const { data, series, theme, legend } = createPieDonutOptions();
+
+            const POINT_MISS: CanvasPoint = { canvasX: 20, canvasY: 20 };
+
+            describe('containment any', () => {
+                beforeEach(async () => {
+                    selectionChange = createSelectionChangeRecorder();
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        theme,
+                        legend,
+                        selection: {
+                            enabled: true,
+                            enableClick: false,
+                            enableDrag: true,
+                            containment: 'any',
+                        },
+                        listeners: { selectionChange },
+                    });
+                });
+                describe('initial', () => {
+                    test('screenshot', async () => {
+                        await compareExact('piedonut-highlighted-none-selected-none');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+                describe('northeast box', () => {
+                    const start: CanvasPoint = { canvasX: 375, canvasY: 324 };
+                    const end: CanvasPoint = { canvasX: 727, canvasY: 5 };
+                    const added: I[] = [
+                        { datum: { sector: 'C-NE', value: 1 }, itemId: 0, seriesId: 'pieid' },
+                        { datum: { sector: 'C-SE', value: 1 }, itemId: 1, seriesId: 'pieid' },
+                        { datum: { sector: 'C-SW', value: 1 }, itemId: 2, seriesId: 'pieid' },
+                        { datum: { sector: 'C-NW', value: 1 }, itemId: 3, seriesId: 'pieid' },
+                        { datum: { sector: 'I-NE', value: 1 }, itemId: 0, seriesId: 'donut1id' },
+                        { datum: { sector: 'I-SE', value: 1 }, itemId: 1, seriesId: 'donut1id' },
+                        { datum: { sector: 'I-NW', value: 1 }, itemId: 3, seriesId: 'donut1id' },
+                        { datum: { sector: 'O-NE', value: 1 }, itemId: 0, seriesId: 'donut2id' },
+                        { datum: { sector: 'O-SE', value: 1 }, itemId: 1, seriesId: 'donut2id' },
+                        { datum: { sector: 'O-NW', value: 1 }, itemId: 3, seriesId: 'donut2id' },
+                    ];
+
+                    test('screenshot', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        await compareExact('piedonut-any-northeast-box-candidacy');
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        await compareExact('piedonut-any-northeast-box-selection');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(getChartSelectionArray()).toEqual(added);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(selectionChange.popEvents()).toEqual([uiChangeEvent<D, C>({ added, removed: [] })]);
+                    });
+                });
+            });
+            describe('containment all', () => {
+                beforeEach(async () => {
+                    selectionChange = createSelectionChangeRecorder();
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        theme,
+                        legend,
+                        selection: {
+                            enabled: true,
+                            enableClick: false,
+                            enableDrag: true,
+                            containment: 'all',
+                        },
+                        listeners: { selectionChange },
+                    });
+                });
+                describe('initial', () => {
+                    test('screenshot', async () => {
+                        await compareExact('piedonut-highlighted-none-selected-none');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+                describe('northeast box', () => {
+                    const start: CanvasPoint = { canvasX: 375, canvasY: 324 };
+                    const end: CanvasPoint = { canvasX: 727, canvasY: 5 };
+                    const added: I[] = [
+                        { datum: { sector: 'C-NE', value: 1 }, itemId: 0, seriesId: 'pieid' },
+                        { datum: { sector: 'I-NE', value: 1 }, itemId: 0, seriesId: 'donut1id' },
+                        { datum: { sector: 'O-NE', value: 1 }, itemId: 0, seriesId: 'donut2id' },
+                    ];
+
+                    test('screenshot', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        await compareExact('piedonut-all-northeast-box-candidacy');
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        await compareExact('piedonut-all-northeast-box-selection');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(getChartSelectionArray()).toEqual(added);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(selectionChange.popEvents()).toEqual([uiChangeEvent<D, C>({ added, removed: [] })]);
                     });
                 });
             });
