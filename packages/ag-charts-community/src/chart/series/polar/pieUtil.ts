@@ -1,10 +1,16 @@
-import type { InternalAgColorType, Point } from 'ag-charts-core';
-import { isBetweenAngles, toRadians } from 'ag-charts-core';
+import type { BoxBounds, InternalAgColorType, Point } from 'ag-charts-core';
+import { boxContains, isBetweenAngles, toRadians } from 'ag-charts-core';
+import type { AgSelectionContainment } from 'ag-charts-types';
 
 import type { FromToMotionPropFn, FromToMotionPropFnContext, NodeUpdateState } from '../../../motion/fromToMotion';
-import type { Sector } from '../../../scene/shape/sector';
+import { BBox } from '../../../scene/bbox';
+import type { Group } from '../../../scene/group';
+import type { Node } from '../../../scene/node';
+import { Sector } from '../../../scene/shape/sector';
+import { Transformable } from '../../../scene/transformable';
+import { boxOverlapsSector } from '../../../scene/util/sector';
 import type { Marker } from '../../marker/marker';
-import type { SeriesNodePickMatch } from '../series';
+import type { PickNodesInBBoxPredicate, SeriesNodePickMatch } from '../series';
 
 type AnimatableSectorDatum = {
     radius: number;
@@ -164,4 +170,39 @@ export function pickByMatchingAngle(series: SectorSeries, point: Point): SeriesN
         }
     }
     return undefined;
+}
+
+export function pickSectorsInBBoxPredicate(series: {
+    properties: { selection: { containment: AgSelectionContainment } };
+    contentGroup: Group;
+}): PickNodesInBBoxPredicate {
+    const unreachable = (a: never): never => a;
+    const containment = series.properties.selection.containment;
+    switch (containment) {
+        case 'any':
+            return (selectionBox: BoxBounds, node: Node<unknown>): boolean => {
+                if (node instanceof Sector) {
+                    const seriesSelectionBox = Transformable.fromCanvas(
+                        series.contentGroup,
+                        new BBox(selectionBox.x, selectionBox.y, selectionBox.width, selectionBox.height)
+                    );
+                    // boxOverlapsSector assumes an origin-centred sector, so shift the box into the
+                    // sector's local frame to honour a non-zero centre offset (selectedOffset).
+                    seriesSelectionBox.x -= node.centerX;
+                    seriesSelectionBox.y -= node.centerY;
+                    return boxOverlapsSector(seriesSelectionBox, node);
+                }
+                return false;
+            };
+        case 'all':
+            return (selectionBox: BoxBounds, node: Node<unknown>): boolean => {
+                if (node instanceof Sector) {
+                    const { x, y, width, height } = Transformable.toCanvas(series.contentGroup, node.getBBox());
+                    return boxContains(selectionBox, x, y, width, height);
+                }
+                return false;
+            };
+        default:
+            return unreachable(containment);
+    }
 }

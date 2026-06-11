@@ -26,6 +26,7 @@ import {
     positiveNumberNonZero,
     positiveNumericValue,
     ratio,
+    selectionOptionsDef,
     seriesLabelOptionsDefs,
     shadowOptionsDefs,
     shapeHighlightOptionsDef,
@@ -96,6 +97,13 @@ import { commonAxisLabelOptionsDefs } from '../axesOptionsDefs';
 const hierarchyHighlightStyleOptionsDef = {
     ...fillOptionsDef,
     ...strokeOptionsDef,
+    opacity: ratio,
+};
+
+const hierarchySelectionStyleOptionsDef = {
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
     opacity: ratio,
 };
 
@@ -665,6 +673,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
             highlightedItem: hierarchyHighlightStyleOptionsDef,
             unhighlightedItem: hierarchyHighlightStyleOptionsDef,
         },
+        selection: selectionOptionsDef(hierarchySelectionStyleOptionsDef),
         label: {
             ...seriesLabelOptionsDefs,
             spacing: positiveNumber,
@@ -700,6 +709,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
             unhighlightedItem: hierarchyHighlightStyleOptionsDef,
             unhighlightedBranch: hierarchyHighlightStyleOptionsDef,
         },
+        selection: selectionOptionsDef(hierarchySelectionStyleOptionsDef),
         ...fillOptionsDef,
         ...strokeOptionsDef,
     },

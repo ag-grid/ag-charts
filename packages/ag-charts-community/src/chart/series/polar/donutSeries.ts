@@ -78,7 +78,12 @@ import { isUnselected } from '../seriesProperties';
 import type { HighlightState, SeriesNodeEventTypes } from '../seriesTypes';
 import type { DonutInnerLabel, DonutTitle } from './donutSeriesProperties';
 import { DonutSeriesProperties } from './donutSeriesProperties';
-import { pickByMatchingAngle, preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
+import {
+    pickByMatchingAngle,
+    pickSectorsInBBoxPredicate,
+    preparePieSeriesAnimationFunctions,
+    resetPieSelectionsFn,
+} from './pieUtil';
 import {
     DEFAULT_POLAR_DIRECTION_KEYS,
     DEFAULT_POLAR_DIRECTION_NAMES,
@@ -1673,6 +1678,10 @@ export class DonutSeries extends PolarSeries<
 
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
         return pickByMatchingAngle(this, point);
+    }
+
+    protected override pickNodesInBBoxPredicate() {
+        return pickSectorsInBBoxPredicate(this);
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {

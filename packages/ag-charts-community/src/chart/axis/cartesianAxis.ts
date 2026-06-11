@@ -826,7 +826,8 @@ export abstract class CartesianAxis<
         this.gridLineGroupSelection.update(this.options.gridLine.enabled ? gridLines : [], undefined, getDatumId);
         this.gridFillGroupSelection.update(this.options.gridLine.enabled ? gridFills : [], undefined, getDatumId);
         this.tickLineGroupSelection.update(tickLines, undefined, getDatumId);
-        this.tickLabelGroupSelection.update(labels, undefined, getDatumId);
+        const labelsEnabled = this.options.label.enabled || (this.primaryLabel?.enabled ?? false);
+        this.tickLabelGroupSelection.update(labelsEnabled ? labels : [], undefined, getDatumId);
     }
 
     protected updateGridLines() {

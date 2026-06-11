@@ -124,6 +124,9 @@ class TreemapSeriesGroup extends BaseProperties {
 
     @Property
     readonly highlight = new TreemapSeriesGroupHighlight();
+
+    @Property
+    readonly selection = new _ModuleSupport.SeriesSelectionProperties();
 }
 
 class TreemapSeriesTile extends BaseProperties {
@@ -165,6 +168,9 @@ class TreemapSeriesTile extends BaseProperties {
 
     @Property
     readonly highlight = new TreemapSeriesTileHighlight();
+
+    @Property
+    readonly selection = new _ModuleSupport.SeriesSelectionProperties();
 }
 
 export class TreemapSeriesProperties extends HierarchySeriesProperties<AgTreemapSeriesOptions> {
