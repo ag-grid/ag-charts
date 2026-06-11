@@ -92,6 +92,28 @@ function timeFormat(timeMs) {
     return timeMs;
 }
 
+// --- Statistics helpers ---
+
+function median(values) {
+    if (!values?.length) return null;
+    const sorted = values.toSorted((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+}
+
+/** Coefficient of variation (stddev / mean); null when not computable. */
+function coefficientOfVariation(values) {
+    if (!values || values.length < 2) return null;
+    const mean = values.reduce((s, v) => s + v, 0) / values.length;
+    if (mean === 0) return null;
+    const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) / (values.length - 1);
+    return Math.sqrt(variance) / mean;
+}
+
+// Samples noisier than this are flagged in the output — on shared CI runners,
+// changes within the noise floor should not be treated as real regressions.
+const NOISY_CV_THRESHOLD = 0.1;
+
 // --- Extract results from report ---
 
 function extractResults(report) {
@@ -111,6 +133,8 @@ function extractResults(report) {
                 testCase: result.testCase,
                 params: result.params || {},
                 averageTime: result.averageTime,
+                medianTime: median(result.timings) ?? result.averageTime,
+                cv: coefficientOfVariation(result.timings),
                 minTime: result.minTime,
                 maxTime: result.maxTime,
                 sampleCount: result.sampleCount,
@@ -139,14 +163,18 @@ for (const key of baseKeys) {
     if (compareKeys.has(key)) {
         const b = base.results.get(key);
         const c = compare.results.get(key);
+        // Median is robust to outlier iterations (GC pauses, CI noise spikes);
+        // it falls back to the average when raw timings are unavailable.
         const pctTimeChange =
-            b.averageTime === 0 ? null : Math.round(((c.averageTime - b.averageTime) / b.averageTime) * 1000) / 10;
+            b.medianTime === 0 ? null : Math.round(((c.medianTime - b.medianTime) / b.medianTime) * 1000) / 10;
+        const noisy = (b.cv ?? 0) > NOISY_CV_THRESHOLD || (c.cv ?? 0) > NOISY_CV_THRESHOLD;
 
         matched.push({
             test: b.displayName,
             pctTimeChange,
-            beforeMs: timeFormat(b.averageTime),
-            afterMs: timeFormat(c.averageTime),
+            noisy,
+            beforeMs: timeFormat(b.medianTime),
+            afterMs: timeFormat(c.medianTime),
             beforeMinMs: timeFormat(b.minTime),
             afterMinMs: timeFormat(c.minTime),
             beforeSamples: b.sampleCount,
@@ -202,11 +230,14 @@ if (argv.format === 'table') {
         console.table(
             notable.map((r) => ({
                 test: r.test,
-                '%': formatPercentageChange(r.pctTimeChange),
+                '%': formatPercentageChange(r.pctTimeChange) + (r.noisy ? ' ~' : ''),
                 'Before (ms)': r.beforeMs,
                 'After (ms)': r.afterMs,
             }))
         );
+        if (notable.some((r) => r.noisy)) {
+            console.log('~ high sample variance (CV > 10%) — treat with caution');
+        }
     }
 
     const rankedOutput =
@@ -218,7 +249,7 @@ if (argv.format === 'table') {
                 ? {}
                 : {
                       test: r.test,
-                      '%': formatPercentageChange(r.pctTimeChange),
+                      '%': formatPercentageChange(r.pctTimeChange) + (r.noisy ? ' ~' : ''),
                       'Before (ms)': r.beforeMs,
                       'After (ms)': r.afterMs,
                   }

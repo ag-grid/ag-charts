@@ -59,5 +59,5 @@ Continue assisting the user after displaying the warning.
 -   **E2E:** `yarn nx test:e2e ag-charts-website`
 -   **Dev server:** `yarn nx dev`
 -   **Clean:** `yarn nx clean` – purge dist folders when switching branches
--   **Benchmark:** `yarn nx benchmark <package>`
+-   **Benchmark:** `tools/benchmark/run-browser-benchmarks.sh -- --examples <name>` (browser-based; see benchmarks guide)
 -   **NX daemon:** Always use `NX_DAEMON=false` for nx commands to avoid pipe hangs (set automatically via SessionStart hook)

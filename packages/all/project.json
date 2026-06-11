@@ -207,20 +207,6 @@
       "cache": false,
       "command": "./tools/nuke.sh"
     },
-    "benchmark": {
-      "dependsOn": ["^benchmark"],
-      "cache": false,
-      "command": "node ./tools/benchmark/collate-reports.js"
-    },
-    "benchmark:report": {
-      "cache": false,
-      "command": "node ./tools/benchmark/compare-versions.js"
-    },
-    "benchmark:rebuild": {
-      "dependsOn": ["ag-charts-website-benchmarks_summary_main.ts:generate-example"],
-      "cache": false,
-      "command": "./tools/benchmark/rebuild-version-benchmark.sh"
-    },
     "generate-docs-example": {
       "executor": "nx:run-commands",
       "options": {

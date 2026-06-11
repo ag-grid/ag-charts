@@ -192,7 +192,7 @@
       "cache": true,
       "options": {
         "cwd": "{projectRoot}",
-        "commands": ["[ -d benchmarks ] && npx depcruise src benchmarks || npx depcruise src"]
+        "commands": ["npx depcruise src"]
       }
     },
     "lint:circular": {
@@ -235,39 +235,6 @@
       "inputs": ["default", "buildOutputExcludes", "^production"],
       "outputs": [],
       "cache": true
-    },
-    "benchmark": {
-      "executor": "nx:run-commands",
-      "cache": false,
-      "inputs": ["jsOutputs"],
-      "outputs": ["{workspaceRoot}/reports/{projectRoot}/benchmarks"],
-      "options": {
-        "commands": [
-          "find {projectRoot}/benchmarks -name '*.test.ts' | xargs node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/benchmarks/jest.config.ts --runInBand"
-        ],
-        "env": {
-          "AG_BENCHMARK_LATEST_VERSION": "1"
-        }
-      },
-      "parallelism": false,
-      "configurations": {
-        "update": {
-          "commands": [
-            "find {projectRoot}/benchmarks -name '*.test.ts' | xargs node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/benchmarks/jest.config.ts --runInBand -u"
-          ]
-        },
-        "ci": {
-          "commands": [
-            "find {projectRoot}/benchmarks -name '*.test.ts' | xargs node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/benchmarks/jest.config.ts --runInBand -u"
-          ],
-          "env": {
-            "AG_BENCHMARK_REPEAT_LIMIT": "3"
-          }
-        },
-        "build": {
-          "commands": ["echo \"Skipping benchmark execution, just building dependencies.\""]
-        }
-      }
     },
     "e2e": {
       "inputs": ["default", "buildOutputExcludes", "^production"],

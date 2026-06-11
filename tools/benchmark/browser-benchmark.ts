@@ -16,14 +16,9 @@ import { chromium } from 'playwright';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
-const WORKSPACE_ROOT = path.resolve(__dirname, '../..');
-const EXAMPLES_DIR = path.resolve(WORKSPACE_ROOT, 'packages/ag-charts-website/src/content/docs/benchmarks/_examples');
+import { discoverExamples } from './benchmark-examples';
 
-// Examples that don't use the standard benchmark harness
-const EXCLUDED_EXAMPLES = new Set([
-    'summary', // Static comparison dashboard — no getBenchmarkConfig()
-    'high-freq-high-volume', // Streaming demo using animation-loop pattern — no initBenchmark()
-]);
+const WORKSPACE_ROOT = path.resolve(__dirname, '../..');
 
 interface BenchmarkExampleResult {
     status: 'success' | 'error' | 'timeout';
@@ -47,14 +42,6 @@ interface BenchmarkReport {
         totalDurationMs: number;
     };
     examples: Record<string, BenchmarkExampleResult>;
-}
-
-function discoverExamples(): string[] {
-    const entries = fs.readdirSync(EXAMPLES_DIR, { withFileTypes: true });
-    return entries
-        .filter((e) => e.isDirectory() && !EXCLUDED_EXAMPLES.has(e.name))
-        .map((e) => e.name)
-        .sort();
 }
 
 async function main() {
@@ -131,7 +118,9 @@ async function main() {
         // --enable-precise-memory-info gives byte-accurate `performance.memory` (vs. default ~5MB
         // quantisation) so the harness can detect GCs reliably. --js-flags=--expose-gc is harmless
         // here but useful if examples want to call `gc()` manually during teardown.
-        args: ['--enable-precise-memory-info', '--js-flags=--expose-gc'],
+        // --disable-gpu/--use-gl pin software rasterisation so rendering timings don't vary with
+        // the (absent or virtualised) GPU on CI runner hardware.
+        args: ['--enable-precise-memory-info', '--js-flags=--expose-gc', '--disable-gpu', '--use-gl=swiftshader'],
     });
     const context = await browser.newContext({
         viewport: { width: vpWidth, height: vpHeight },

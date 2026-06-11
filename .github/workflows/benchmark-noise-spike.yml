@@ -1,0 +1,81 @@
+name: Benchmark Noise Spike
+
+# TEMPORARY — AG-16452 noise-validation spike.
+#
+# Measures GitHub-hosted runner noise for the browser benchmarks by running
+# the SAME commit's benchmarks N times back-to-back on one runner (an A/A
+# test). Delete this workflow once results are recorded on the PR.
+#
+# Acceptance criteria (see noise-stats.js): median A/A delta < 3%, p95 < 8%.
+
+on:
+    workflow_dispatch:
+        inputs:
+            examples:
+                description: 'Comma-separated example subset'
+                type: string
+                default: simple-chart,large-dataset,high-perf-line,high-freq-area,axes-1M-time,data-selection-zoom
+                required: true
+            repeats:
+                description: 'Number of back-to-back runs'
+                type: number
+                default: 5
+                required: true
+
+env:
+    NX_NO_CLOUD: true
+    NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+    NX_BRANCH: ${{ github.ref }}
+    BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+
+permissions:
+    contents: read
+
+jobs:
+    noise-spike:
+        runs-on: ubuntu-24.04
+        timeout-minutes: 120
+        env:
+            AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
+                  fetch_base: skip
+
+            - name: Install Playwright Chromium
+              run: npx playwright install chromium
+
+            - name: Build website
+              env:
+                  # Must match the --port the static server is started on below.
+                  PUBLIC_SITE_URL: http://localhost:4601
+                  PUBLIC_HTTPS_SERVER: 'false'
+              run: yarn nx build ag-charts-website
+
+            - name: Run repeated benchmarks
+              run: |
+                  mkdir -p reports/noise-spike
+                  for i in $(seq 1 ${{ inputs.repeats }}); do
+                    echo "=== Run $i/${{ inputs.repeats }} ==="
+                    ./tools/benchmark/serve-and-run.sh \
+                        --dist dist/packages/ag-charts-website \
+                        --port 4601 \
+                        --output "reports/noise-spike/run-${i}.json" \
+                        -- --examples "${{ inputs.examples }}"
+                  done
+
+            - name: Analyse noise
+              run: node ./tools/benchmark/noise-stats.js reports/noise-spike/run-*.json
+
+            - name: Upload results
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: noise-spike-results
+                  path: reports/noise-spike/*
+                  retention-days: 7
