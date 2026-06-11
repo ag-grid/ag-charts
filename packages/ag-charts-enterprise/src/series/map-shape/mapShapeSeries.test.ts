@@ -105,10 +105,25 @@ describe('MapShapeSeries', () => {
     });
 
     describe('Bring to front on highlight', () => {
-        it('does not raise the hovered datum when highlight is disabled', async () => {
+        const hoverFirstShape = async (series: any) => {
+            const [datum] = series.contextNodeData?.nodeData ?? [];
+            expect(datum).toBeDefined();
+            const midPoint = series.datumMidPoint(datum);
+            const { x, y } = _ModuleSupport.Transformable.toCanvasPoint(series.contentGroup, midPoint.x, midPoint.y);
+            await hoverAction(x, y)(chart);
+            await waitForChartStability(chart);
+        };
+
+        // Hovering raises the shape into the highlight overlay so it draws above overlapping series; a
+        // highlight-disabled series must leave the overlay empty. The enabled case (raises) guards the
+        // disabled case (does not) from passing vacuously.
+        it.each([
+            { enabled: true, raisedShapes: 1 },
+            { enabled: false, raisedShapes: 0 },
+        ])('raises the hovered shape only when highlight.enabled is $enabled', async ({ enabled, raisedShapes }) => {
             const options: AgChartOptions = {
                 ...SIMPLIFIED_EXAMPLE,
-                series: [{ type: 'map-shape', idKey: 'name', highlight: { enabled: false } }],
+                series: [{ type: 'map-shape', idKey: 'name', highlight: { enabled } }],
             };
             prepareEnterpriseTestOptions(options);
 
@@ -116,17 +131,15 @@ describe('MapShapeSeries', () => {
             await waitForChartStability(chart);
 
             const seriesImpl = chart.series[0] as MapShapeSeries;
-            const node = seriesImpl['contextNodeData']?.nodeData[2];
+            await hoverFirstShape(seriesImpl);
 
-            (chart as Chart).ctx.highlightManager.updateHighlight(chart.id, node);
-            // Re-run the render that populates the highlight overlay. A highlight-disabled series must
-            // leave the overlay empty so the hovered datum is never raised above overlapping series,
-            // regardless of any unrelated update that re-renders it while highlighted.
+            // The hover-update optimisation skips re-rendering a highlight-disabled series, so drive the
+            // render directly to populate the overlay — the overlay must stay empty regardless of what
+            // re-renders the series while it holds the active highlight.
             seriesImpl.update();
             await waitForChartStability(chart);
 
-            const raisedNodes = Array.from(seriesImpl.highlightNodeGroup.children());
-            expect(raisedNodes).toHaveLength(0);
+            expect(Array.from(seriesImpl.highlightNodeGroup.children())).toHaveLength(raisedShapes);
         });
     });
 
