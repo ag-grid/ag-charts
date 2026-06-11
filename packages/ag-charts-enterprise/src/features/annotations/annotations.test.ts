@@ -817,7 +817,12 @@ describe('Annotations', () => {
                 { type: 'parallel-channel', start: { x: X_START, y: 60 }, end: { x: X_END, y: 80 }, height: 20 },
             ]);
             const bigintImage = await applyAnnotations([
-                { type: 'parallel-channel', start: { x: X_START, y: big(60n) }, end: { x: X_END, y: big(80n) }, height: big(20n) },
+                {
+                    type: 'parallel-channel',
+                    start: { x: X_START, y: big(60n) },
+                    end: { x: X_END, y: big(80n) },
+                    height: big(20n),
+                },
             ]);
             expect(numberImage).not.toMatchImage(baseline, { writeDiff: false });
             expect(bigintImage).toMatchImage(numberImage);
