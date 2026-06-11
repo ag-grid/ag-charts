@@ -722,6 +722,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         return this.pickNodeNearestDistantObject(point, this.datumSelection.nodes());
     }
 
+    protected override pickNodesInBBoxPredicate() {
+        return _ModuleSupport.pickSectorsInBBoxPredicate(this);
+    }
+
     protected override animateEmptyUpdateReady() {
         fromToMotion<
             SunburstNode,

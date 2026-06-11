@@ -1,4 +1,4 @@
-import { angleBetween, isBetweenAngles, normalizeAngle180, normalizeAngle360 } from 'ag-charts-core';
+import { type BoxBounds, angleBetween, isBetweenAngles, normalizeAngle180, normalizeAngle360 } from 'ag-charts-core';
 
 import { BBox } from '../bbox';
 import { segmentIntersection } from '../intersection';
@@ -93,35 +93,46 @@ function arcIntersections(
         [endAngle, startAngle] = [startAngle, endAngle];
     }
 
-    // Solving the quadratic equation:
-    // 1. y = k * x + y0
-    // 2. (x - cx)^2 + (y - cy)^2 = r^2
-    const k = (y2 - y1) / (x2 - x1);
-    const y0 = y1 - k * x1;
+    // Intersection points of the line segment and the circle (cx, cy, r).
+    const points: { x: number; y: number }[] = [];
+    if (x1 === x2) {
+        // Vertical segment: parametrising as y = k * x + y0 is impossible (infinite slope), so
+        // solve (x1 - cx)^2 + (y - cy)^2 = r^2 for y directly.
+        const dd = Math.pow(r, 2) - Math.pow(x1 - cx, 2);
+        if (dd < 0) {
+            return 0;
+        }
+        const root = Math.sqrt(dd);
+        points.push({ x: x1, y: cy + root }, { x: x1, y: cy - root });
+    } else {
+        // Solving the quadratic equation:
+        // 1. y = k * x + y0
+        // 2. (x - cx)^2 + (y - cy)^2 = r^2
+        const k = (y2 - y1) / (x2 - x1);
+        const y0 = y1 - k * x1;
 
-    const a = Math.pow(k, 2) + 1;
-    const b = 2 * (k * (y0 - cy) - cx);
-    const c = Math.pow(cx, 2) + Math.pow(y0 - cy, 2) - Math.pow(r, 2);
-    const d = Math.pow(b, 2) - 4 * a * c;
-    if (d < 0) {
-        return 0;
+        const a = Math.pow(k, 2) + 1;
+        const b = 2 * (k * (y0 - cy) - cx);
+        const c = Math.pow(cx, 2) + Math.pow(y0 - cy, 2) - Math.pow(r, 2);
+        const d = Math.pow(b, 2) - 4 * a * c;
+        if (d < 0) {
+            return 0;
+        }
+
+        const i1x = (-b + Math.sqrt(d)) / 2 / a;
+        const i2x = (-b - Math.sqrt(d)) / 2 / a;
+        points.push({ x: i1x, y: k * i1x + y0 }, { x: i2x, y: k * i2x + y0 });
     }
 
-    const i1x = (-b + Math.sqrt(d)) / 2 / a;
-    const i2x = (-b - Math.sqrt(d)) / 2 / a;
-
     let intersections = 0;
-    for (const x of [i1x, i2x]) {
-        const isXInsideLine = x >= Math.min(x1, x2) && x <= Math.max(x1, x2);
-        if (!isXInsideLine) {
+    for (const { x, y } of points) {
+        const isInsideLine =
+            x >= Math.min(x1, x2) && x <= Math.max(x1, x2) && y >= Math.min(y1, y2) && y <= Math.max(y1, y2);
+        if (!isInsideLine) {
             continue;
         }
 
-        const y = k * x + y0;
-
-        const adjacent = x - cx;
-        const opposite = y - cy;
-        const angle = Math.atan2(opposite, adjacent);
+        const angle = Math.atan2(y - cy, x - cx);
         if (isBetweenAngles(angle, startAngle, endAngle)) {
             intersections++;
         }
@@ -187,6 +198,82 @@ export function boxCollidesSector(box: BBox, sector: SectorBoundaries) {
         lineCollidesSector({ start: topLeft, end: topRight }, sector) ||
         lineCollidesSector({ start: bottomLeft, end: bottomRight }, sector)
     );
+}
+
+export function boxOverlapsSector(box: BoxBounds, sector: SectorBoundaries): boolean {
+    const { startAngle, endAngle, innerRadius, outerRadius } = sector;
+    const top = box.y;
+    const bottom = box.y + box.height;
+    const left = box.x;
+    const right = box.x + box.width;
+
+    const sinStartAngle = Math.sin(startAngle);
+    const cosStartAngle = Math.cos(startAngle);
+    const sinEndAngle = Math.sin(endAngle);
+    const cosEndAngle = Math.cos(endAngle);
+
+    const startX0 = innerRadius * cosStartAngle;
+    const startY0 = innerRadius * sinStartAngle;
+    const startX1 = outerRadius * cosStartAngle;
+    const startY1 = outerRadius * sinStartAngle;
+    const endX0 = innerRadius * cosEndAngle;
+    const endY0 = innerRadius * sinEndAngle;
+    const endX1 = outerRadius * cosEndAngle;
+    const endY1 = outerRadius * sinEndAngle;
+
+    // Check if any corner of `sector` is in `box`:
+    const pointInBox = (x: number, y: number): boolean => x >= left && x <= right && y >= top && y <= bottom;
+    if (
+        pointInBox(startX0, startY0) ||
+        pointInBox(startX1, startY1) ||
+        pointInBox(endX0, endY0) ||
+        pointInBox(endX1, endY1)
+    ) {
+        return true;
+    }
+
+    // Check if any corner of `box` is in `sector`:
+    if (
+        isPointInSector(left, top, sector) ||
+        isPointInSector(right, top, sector) ||
+        isPointInSector(left, bottom, sector) ||
+        isPointInSector(right, bottom, sector)
+    ) {
+        return true;
+    }
+    // Check if the lines of `box` and the lines of `sector` cross-over:
+    if (
+        segmentIntersection(left, top, right, top, startX0, startY0, startX1, startY1) ||
+        segmentIntersection(left, top, right, top, endX0, endY0, endX1, endY1) ||
+        segmentIntersection(left, bottom, right, bottom, startX0, startY0, startX1, startY1) ||
+        segmentIntersection(left, bottom, right, bottom, endX0, endY0, endX1, endY1) ||
+        segmentIntersection(left, top, left, bottom, startX0, startY0, startX1, startY1) ||
+        segmentIntersection(left, top, left, bottom, endX0, endY0, endX1, endY1) ||
+        segmentIntersection(right, top, right, bottom, startX0, startY0, startX1, startY1) ||
+        segmentIntersection(right, top, right, bottom, endX0, endY0, endX1, endY1)
+    ) {
+        return true;
+    }
+    // Check if the lines of `box` and the arcs of `sector` cross over:
+    if (
+        arcIntersections(0, 0, outerRadius, startAngle, endAngle, false, left, top, right, top) ||
+        arcIntersections(0, 0, outerRadius, startAngle, endAngle, false, left, bottom, right, bottom) ||
+        arcIntersections(0, 0, outerRadius, startAngle, endAngle, false, left, top, left, bottom) ||
+        arcIntersections(0, 0, outerRadius, startAngle, endAngle, false, right, top, right, bottom)
+    ) {
+        return true;
+    }
+    if (innerRadius > 0) {
+        if (
+            arcIntersections(0, 0, innerRadius, startAngle, endAngle, false, left, top, right, top) ||
+            arcIntersections(0, 0, innerRadius, startAngle, endAngle, false, left, bottom, right, bottom) ||
+            arcIntersections(0, 0, innerRadius, startAngle, endAngle, false, left, top, left, bottom) ||
+            arcIntersections(0, 0, innerRadius, startAngle, endAngle, false, right, top, right, bottom)
+        ) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // https://ag-grid.atlassian.net/wiki/spaces/AG/pages/3090087939/Sector+Corner+Radii
