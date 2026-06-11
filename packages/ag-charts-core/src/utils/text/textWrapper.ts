@@ -568,12 +568,28 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
             wrappedLines = wrappedLines.slice(0, truncationIndex + 1);
         }
 
-        const lastLine = wrappedLines.at(-1);
-        for (const wrappedLine of wrappedLines) {
-            const cleanLine = unguardTextEdges(wrappedLine);
+        // A text segment's own leading/trailing whitespace is meaningful — it forms the gap to an
+        // adjacent image segment (e.g. a flag image followed by " Germany "). The edge guard keeps it
+        // through the outer trims, but a wrap break can still land on it (`textWrap` trims break
+        // points), so restore it onto the first/last content line of the wrapped output.
+        const leadingWs = segment.text.slice(0, segment.text.length - segment.text.trimStart().length);
+        const trailingWs = segment.text.slice(segment.text.trimEnd().length);
+        const cleanLines = wrappedLines.map(unguardTextEdges);
+        const firstContentIndex = cleanLines.findIndex((line) => line.trim() !== '');
+        const lastContentIndex = cleanLines.findLastIndex((line) => line.trim() !== '');
+
+        const lastIndex = cleanLines.length - 1;
+        for (let i = 0; i < cleanLines.length; i++) {
+            let cleanLine = cleanLines[i];
+            if (leadingWs && i === firstContentIndex) {
+                cleanLine = leadingWs + cleanLine.trimStart();
+            }
+            if (trailingWs && i === lastContentIndex) {
+                cleanLine = cleanLine.trimEnd() + trailingWs;
+            }
             const textMetrics = measurer.measureText(cleanLine);
             const subSegment = { ...segment, text: cleanLine, textMetrics };
-            if (wrappedLine === lastLine) {
+            if (i === lastIndex) {
                 lineWidth += textMetrics.width;
             } else {
                 subSegment.text += '\n';
