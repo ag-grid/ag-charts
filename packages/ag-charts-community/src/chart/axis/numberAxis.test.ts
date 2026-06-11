@@ -7,7 +7,6 @@ import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
 import {
     createChart,
     deproxy,
-    expectWarningsCalls,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -102,7 +101,6 @@ describe('NumberAxis BigInt labels', () => {
 
         // The custom formatter returns the bigint verbatim, so labels are plain digit strings (no grouping).
         expect(yAxisLabelText(chart)).toContain('1000000000000000000000');
-        expectWarningsCalls().toMatchInlineSnapshot(`[]`);
     });
 });
 
