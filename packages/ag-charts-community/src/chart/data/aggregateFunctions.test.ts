@@ -9,7 +9,7 @@ describe('aggregateFunctions bigint support (AG-16608)', () => {
         });
 
         it('sums bigint values in bigint so a large-magnitude total stays exact', () => {
-            // The negative side keeps its untouched Number seed; the positive side promotes to bigint.
+            // Both sides receive a bigint operand, so both totals promote from their Number seeds to bigint.
             expect(sumValues([2n, -3n, 5n])).toEqual([-3n, 7n]);
         });
 
