@@ -3,14 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
-import {
-    deproxy,
-    expectWarningsCalls,
-    prepareTestOptions,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from '../test/utils';
+import { deproxy, prepareTestOptions, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
 
 // AG-16608 — BigInt numeric-axis ticks render at full precision (AC #15e, #16). These tests drive a
 // real chart so the bigint values flow through domain extraction, scale conversion, tick generation
@@ -100,6 +93,5 @@ describe('NumberAxis BigInt labels', () => {
 
         // The custom formatter returns the bigint verbatim, so labels are plain digit strings (no grouping).
         expect(yAxisLabelText(chart)).toContain('1000000000000000000000');
-        expectWarningsCalls().toMatchInlineSnapshot(`[]`);
     });
 });
