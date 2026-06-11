@@ -133,3 +133,20 @@ export function distribute(min: number, max: number, maxCount: number) {
     values.push(max);
     return values;
 }
+
+/**
+ * Push `newElements` (in reverse) at the end of `target`.
+ *
+ * Like `target.push(...newElements.slice().reverse())` but without the
+ * temporary array memory allocation.
+ *
+ * @param target The array to append elements to.
+ * @param newElements The elements to append (iterated in reverse).
+ * @return Returns `target`.
+ */
+export function reversePush<T>(target: T[], newElements: T[]): T[] {
+    for (let i = newElements.length - 1; i >= 0; i--) {
+        target.push(newElements[i]);
+    }
+    return target;
+}

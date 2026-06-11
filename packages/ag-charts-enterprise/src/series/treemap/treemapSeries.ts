@@ -344,7 +344,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         const highlightStyle = isLeaf
             ? this.getTileHighlightStyle(tileHighlightState, groupHighlightState, highlightedNode)
             : this.getGroupHighlightStyle(groupHighlightState);
-        const selectionStyle = this.getSelectionStyle(nodeDatum.datumIndex);
+        const selectionStyle = isLeaf
+            ? this.getTileSelectionStyle(nodeDatum.datumIndex)
+            : this.getGroupSelectionStyle(nodeDatum.datumIndex);
         const baseStyle = mergeDefaults(
             selectionStyle,
             highlightStyle,
@@ -818,6 +820,18 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             default:
                 return undefined;
         }
+    }
+
+    public getTileSelectionStyle(datumIndex?: _ModuleSupport.DatumIndex) {
+        const selectionState = this.getDataSelectionState(datumIndex);
+        if (selectionState === undefined) return undefined;
+        return this.properties.tile.selection.getStyle(selectionState);
+    }
+
+    public getGroupSelectionStyle(datumIndex?: _ModuleSupport.DatumIndex) {
+        const selectionState = this.getDataSelectionState(datumIndex);
+        if (selectionState === undefined) return undefined;
+        return this.properties.group.selection.getStyle(selectionState);
     }
 
     public override getHighlightStateString(

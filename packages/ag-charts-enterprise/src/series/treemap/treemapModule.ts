@@ -73,6 +73,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                         strokeOpacity: 0.2,
                     },
                 },
+                selection: SERIES_SELECTION_THEME,
             },
             tile: {
                 label: {
@@ -116,6 +117,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                         strokeOpacity: 0.2,
                     },
                 },
+                selection: SERIES_SELECTION_THEME,
             },
             selection: SERIES_SELECTION_THEME,
         },

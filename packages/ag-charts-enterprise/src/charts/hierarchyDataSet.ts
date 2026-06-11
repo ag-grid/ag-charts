@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { Logger, reversePush } from 'ag-charts-core';
 
 type TransactionCollectionState<T> = _ModuleSupport.TransactionCollectionState<T>;
 type DataChangeDescriptionListener = _ModuleSupport.DataChangeDescriptionListener;
@@ -11,6 +11,8 @@ const { DataSet } = _ModuleSupport;
  * Extends ID-based transaction logic to find, update, and remove items nested within children arrays.
  */
 export class HierarchyDataSet<T = unknown> extends DataSet<T> {
+    private dfsOrdering?: T[];
+
     constructor(
         data: T[],
         dataIdKey: string | undefined,
@@ -19,18 +21,29 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
         super(data, dataIdKey);
     }
 
-    override size(): number {
-        const stack: any[] = [...this.data];
-        let total = 0;
+    private getDfsOrdering(): T[] {
+        if (this.dfsOrdering !== undefined) return this.dfsOrdering;
+
+        this.dfsOrdering = [];
+        // push to stack in reverse, so that the first child is visited first:
+        const stack = reversePush<any>([], this.data);
         let node: (typeof stack)[number];
         while ((node = stack.pop()) !== undefined) {
-            total++;
+            this.dfsOrdering.push(node);
             const children = node[this.childrenKey];
             if (children instanceof Array) {
-                stack.push(...children);
+                reversePush(stack, children);
             }
         }
-        return total;
+        return this.dfsOrdering;
+    }
+
+    override size(): number {
+        return this.getDfsOrdering().length;
+    }
+
+    override getDatumAt(datumIndex: number): T | undefined {
+        return this.getDfsOrdering().at(datumIndex);
     }
 
     /**
