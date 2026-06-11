@@ -1345,9 +1345,15 @@ describe('Zoom', () => {
             const numberZoom = chart.getState().zoom;
             chart.destroy();
 
-            // The serialisable initial-state type only admits the `{ __type: 'bigint' }` form, but raw
-            // bigint endpoints are accepted at runtime; the cast exercises that runtime path.
-            await prepareChart(undefined, { rangeX: { start: 3n, end: 6n } as never }, numberAxesOptions, false);
+            // Provided state must be pre-encoded (the memento contract), so bigint endpoints arrive in
+            // the `{ __type: 'bigint' }` form and decode back to bigints before the zoom range applies.
+            const encodedBigint = (value: string) => ({ __type: 'bigint', value }) as never;
+            await prepareChart(
+                undefined,
+                { rangeX: { start: encodedBigint('3'), end: encodedBigint('6') } },
+                numberAxesOptions,
+                false
+            );
             await waitForChartStability(chart);
             const bigintZoom = chart.getState().zoom;
 
