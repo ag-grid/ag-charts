@@ -32,7 +32,8 @@ export async function createEnterpriseChart<T extends AgChartOptions<any, any>>(
     return chart;
 }
 
-// Returns the image so the assertion stays in the caller: this file is cruised as production code and cannot depend on the test runner.
+// Returns the image so each caller chooses its own matcher (snapshot vs pixel comparison).
+// Note: the mock canvas only tracks the first chart created per test, so call this at most once per test.
 export async function renderEnterpriseChartImage(
     ctx: Parameters<typeof extractImageData>[0],
     options: AgChartOptions

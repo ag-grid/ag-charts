@@ -424,8 +424,8 @@ function normalisePropertyFnBuilder({
     };
 
     // Normalisation maps to an angle/ratio with Number factors, so narrow bigint endpoints/values to
-    // Number — a bigint would otherwise throw when mixed. Missing/non-finite values pass through so
-    // absent data still normalises to NaN rather than warning via toNumber.
+    // Number — a bigint would otherwise throw when mixed. Missing values keep raw coercion semantics
+    // (null -> 0, undefined -> NaN) without warning via toNumber.
     const toRenderValue = (value: unknown): number => (isFiniteNumericValue(value) ? toNumber(value) : Number(value));
 
     return function normalisePropertyResetFn() {

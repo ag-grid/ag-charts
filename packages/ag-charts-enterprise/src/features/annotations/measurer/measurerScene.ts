@@ -409,7 +409,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             throw new Error('Can not create a price range measurement of a non-numeric y-axis');
         }
 
-        // Narrowed for the statistics readout; Number precision is sufficient at the render boundary.
+        // Number precision is sufficient at the render boundary.
         return toNumber(endY) - toNumber(startY);
     }
 

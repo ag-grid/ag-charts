@@ -1,5 +1,5 @@
 import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedNumberAxisOptions } from 'ag-charts-core';
-import { Logger, normalisedExtentWithMetadata, zeroLike } from 'ag-charts-core';
+import { Logger, normalisedExtentWithMetadata, toNumber, zeroLike } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
@@ -13,8 +13,8 @@ export class LogAxis extends NumberAxis {
     protected override getVisibleDomain(domain: AgNumericValue[]): [number, number] {
         // Narrow to Number before any Math.* call — log scales narrow bigint anyway (see LogScale),
         // and Math.log/Math.min throw a TypeError when handed a bigint.
-        const d0 = Number(domain[0]);
-        const d1 = Number(domain[1]);
+        const d0 = toNumber(domain[0]);
+        const d1 = toNumber(domain[1]);
         const [r0, r1] = this.visibleRange;
 
         if (domain.length < 2) {
@@ -57,7 +57,7 @@ export class LogAxis extends NumberAxis {
             );
             return { domain: [], clipped };
         } else if (
-            // zeroLike-aware: a bigint domain endpoint of 0n must also be rejected (0n === 0 is false).
+            // zeroLike: 0n === 0 is false, so a strict comparison would miss bigint zero.
             extent[0] === zeroLike(extent[0]) ||
             extent[1] === zeroLike(extent[1]) ||
             d.domain[0] === zeroLike(d.domain[0]) ||

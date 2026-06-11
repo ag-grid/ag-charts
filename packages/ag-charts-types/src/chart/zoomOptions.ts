@@ -1,5 +1,6 @@
 import type { Toggleable } from '../series/cartesian/commonOptions';
 import type { ToolbarButton } from './buttonOptions';
+import type { AgTimeValue } from './dataValues';
 import type { Ratio } from './types';
 
 export type AgZoomAnchorPoint = 'pointer' | 'start' | 'middle' | 'end';
@@ -13,9 +14,9 @@ export type AgZoomOnDataChangeStrategy = 'reset' | 'preserveDomain' | 'preserveR
 
 export interface AgZoomRange {
     /** The start of the axis zoom range. */
-    start?: Date | string | number | bigint;
+    start?: AgTimeValue;
     /** The end of the axis zoom range. */
-    end?: Date | string | number | bigint;
+    end?: AgTimeValue;
 }
 
 export interface AgZoomRatio {

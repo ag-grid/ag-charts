@@ -4,7 +4,7 @@ export function rangeAlignment(start: unknown, end: unknown): [ScaleAlignment | 
     const startValue = start?.valueOf();
     const endValue = end?.valueOf();
 
-    // isNumericValue: a bigint range endpoint must align like a number (mixed comparison is safe).
+    // Mixed number/bigint comparison is safe here.
     if (!isNumericValue(startValue) || !isNumericValue(endValue)) return [undefined, undefined];
 
     return startValue < endValue
