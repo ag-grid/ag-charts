@@ -896,9 +896,8 @@ describe('wrapTextSegments — non-never wrap modes with image segments', () => 
     });
 
     it("preserves a text segment's leading and trailing space (image gaps) across a wrap", () => {
-        // The flag/text/arrow label pattern: the gap on each side of the country name is the leading
-        // and trailing space of the text segment. When the label wraps narrow, a break can land on
-        // that edge whitespace; it must be restored so the flag and text never end up touching.
+        // Flag/text/arrow label: the space on each side of the country name is the gap to its neighbours.
+        // A narrow wrap can break on that edge whitespace, so it must be restored or they end up touching.
         const segments: ContentSegment[] = [
             image('flag', { width: 20, height: 13, overflowStrategy: 'keep' }),
             text(' Germany '),

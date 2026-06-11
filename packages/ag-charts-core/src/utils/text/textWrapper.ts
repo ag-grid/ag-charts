@@ -568,10 +568,8 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
             wrappedLines = wrappedLines.slice(0, truncationIndex + 1);
         }
 
-        // A text segment's own leading/trailing whitespace is meaningful — it forms the gap to an
-        // adjacent image segment (e.g. a flag image followed by " Germany "). The edge guard keeps it
-        // through the outer trims, but a wrap break can still land on it (`textWrap` trims break
-        // points), so restore it onto the first/last content line of the wrapped output.
+        // A text segment's edge whitespace is the gap to an adjacent image (e.g. flag then " Germany ").
+        // A wrap break can trim it, so restore it onto the first/last content line of the output.
         const leadingWs = segment.text.slice(0, segment.text.length - segment.text.trimStart().length);
         const trailingWs = segment.text.slice(segment.text.trimEnd().length);
         const cleanLines = wrappedLines.map(unguardTextEdges);
@@ -634,10 +632,8 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
             if (segment.type === 'image') {
                 const imageWidth = segment.textMetrics.width;
                 const imageHeight = segment.textMetrics.height;
-                // Wrap the image to a new line rather than dropping it, when wrapping is enabled,
-                // the current line already has content, and the image fits on a line of its own
-                // within the remaining height. This keeps width-shrinking monotonic (inline → next
-                // line → drop) instead of dropping the image at an in-between width.
+                // When the image overflows but fits on its own line, wrap it rather than drop it — keeps
+                // width-shrinking monotonic (inline → next line → drop), not dropping at a mid width.
                 if (
                     options.textWrap !== 'never' &&
                     lineWidth > 0 &&
@@ -651,9 +647,8 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
                     continue;
                 }
 
-                // The image cannot be subdivided and has no line to wrap to. Stop fitting this
-                // label; overflow-strategy-based dropping is handled by the caller
-                // (wrapInlineSegmentsWithOverflow).
+                // No line to wrap to and images can't be subdivided, so stop fitting. The caller
+                // (wrapInlineSegmentsWithOverflow) handles overflow-strategy-based dropping.
                 truncateLastSegment();
                 return result;
             }

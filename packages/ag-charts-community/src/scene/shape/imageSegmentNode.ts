@@ -4,10 +4,8 @@ import { BBox } from '../bbox';
 import type { ImageLoader } from '../image/imageLoader';
 import { type IScene, Node, type RenderContext, SceneChangeDetection } from '../node';
 
-// Renders an inline image segment: optional background fill, then the image itself drawn inside the
-// padded box. Async loading is handled via the scene's ImageLoader cache — rendering is non-blocking
-// and re-runs once the image decodes. The image-error warning is emitted once per URL by the shared
-// handler in scene.ts.
+// Renders an inline image segment: optional background fill, then the image inside the padded box.
+// Loading is async via the scene's ImageLoader cache (non-blocking, re-runs on decode).
 export class ImageSegmentNode extends Node {
     @SceneChangeDetection() x: number = 0;
     @SceneChangeDetection() y: number = 0;
@@ -84,9 +82,8 @@ export class ImageSegmentNode extends Node {
                 // 4-arg drawImage scales the entire image to the destination box. The size hint passed
                 // to the loader ensures SVGs have concrete intrinsic dimensions, so 4-arg is reliable.
                 if (cornerRadius > 0) {
-                    // Clip to the same rounded box path so the image corners match the background.
-                    // With padding the image is inset and unaffected; with no padding the image fills
-                    // the box and is rounded (a circle at a large radius).
+                    // Clip to the rounded box path so the corners match the background; with no
+                    // padding the image fills the box and is rounded (a circle at a large radius).
                     ctx.save();
                     this.tracePath(ctx, x, y, boxWidth, boxHeight, cornerRadius);
                     ctx.clip();
