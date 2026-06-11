@@ -119,9 +119,13 @@ export abstract class ContinuousScale<D extends number | bigint | Date, I = numb
         const clamp = options?.clamp ?? this.defaultClamp;
 
         // Full-precision BigInt ratio for linear scales: keeps adjacent high-magnitude bigints monotonic
-        // where a float64 narrow would collapse them. Log/time scales narrow to Number below.
-        if (typeof value === 'bigint' && this.d0Big != null && this.d1Big != null && this.transform == null) {
-            return convertBigInt(value, this.d0Big, this.d1Big, range, clamp);
+        // where a float64 narrow would collapse them. Finite Number values (e.g. a zero baseline) must
+        // also take this path, as the narrowed d0Cache/d1Cache endpoints may be ±Infinity for a bigint
+        // domain. Log/time scales narrow to Number below.
+        if (this.d0Big != null && this.d1Big != null && this.transform == null) {
+            if (typeof value === 'bigint' || (typeof value === 'number' && Number.isFinite(value))) {
+                return convertBigInt(value, this.d0Big, this.d1Big, range, clamp);
+            }
         }
 
         // Use cached domain values to avoid valueOf() calls
@@ -255,11 +259,12 @@ const BIGINT_RATIO_SCALE = 10n ** 12n;
  * difference nor the domain span loses precision when narrowed. Only the final [0,1] ratio crosses
  * to Number. Mirrors the equality/clamp short-circuits of the Number path.
  */
-function convertBigInt(value: bigint, d0: bigint, d1: bigint, range: number[], clamp: boolean): number {
+function convertBigInt(value: number | bigint, d0: bigint, d1: bigint, range: number[], clamp: boolean): number {
     const r0 = range[0];
     const r1 = range[1];
 
     // Same short-circuit order as the Number path: clamp, then zero-width domain, then endpoints.
+    // Mixed-type relational comparisons (number vs bigint) are exact in JavaScript.
     if (clamp) {
         const lo = d0 < d1 ? d0 : d1;
         const hi = d0 < d1 ? d1 : d0;
@@ -271,11 +276,28 @@ function convertBigInt(value: bigint, d0: bigint, d1: bigint, range: number[], c
         return (r0 + r1) / 2;
     }
 
-    if (value === d0) return r0;
-    if (value === d1) return r1;
+    // Decompose a finite Number value into an exact integer part plus a sub-integer remainder, so the
+    // ratio is computed in BigInt regardless of the value's type.
+    let whole: bigint;
+    let fraction = 0;
+    if (typeof value === 'number') {
+        const truncated = Math.trunc(value);
+        whole = BigInt(truncated);
+        fraction = value - truncated;
+    } else {
+        whole = value;
+    }
 
-    const ratioBig = ((value - d0) * BIGINT_RATIO_SCALE) / (d1 - d0);
-    const ratio = Number(ratioBig) / Number(BIGINT_RATIO_SCALE);
+    if (fraction === 0) {
+        if (whole === d0) return r0;
+        if (whole === d1) return r1;
+    }
+
+    const span = d1 - d0;
+    const ratioBig = ((whole - d0) * BIGINT_RATIO_SCALE) / span;
+    // The fractional remainder contributes `fraction / span`; for spans beyond Number.MAX_VALUE this
+    // term underflows to zero, which is below pixel precision anyway.
+    const ratio = Number(ratioBig) / Number(BIGINT_RATIO_SCALE) + fraction / Number(span);
     return r0 + ratio * (r1 - r0);
 }
 

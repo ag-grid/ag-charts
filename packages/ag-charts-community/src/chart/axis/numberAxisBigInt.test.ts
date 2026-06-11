@@ -67,4 +67,31 @@ describe('NumberAxis BigInt labels', () => {
         expect(labels).toContain('9,007,199,254,740,993');
         expect(labels).toContain('9,007,199,254,740,995');
     });
+
+    it('accepts a bigint returned from a label formatter (AG-16608)', async () => {
+        // A formatter receives the raw bigint tick value and may return it; output validation must
+        // accept the bigint (not reject it as an invalid callback result) and render it like a number.
+        const span = 10n ** 21n;
+        const options: AgCartesianChartOptions = {
+            data: [
+                { x: 0, y: 0n },
+                { x: 1, y: span },
+            ],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: {
+                    type: 'number',
+                    position: 'left',
+                    label: { formatter: ({ value }) => value },
+                },
+            },
+        };
+        prepareTestOptions(options);
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        // The custom formatter returns the bigint verbatim, so labels are plain digit strings (no grouping).
+        expect(yAxisLabelText(chart)).toContain('1000000000000000000000');
+    });
 });

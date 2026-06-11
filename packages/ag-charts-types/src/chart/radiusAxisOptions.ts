@@ -6,6 +6,7 @@ import type {
     AgNumericAxisFormattableLabelOptions,
 } from './axisOptions';
 import type { AgBaseCrossLineLabelOptions, AgBaseCrossLineOptions, AgCrossLineThemeOptions } from './crossLineOptions';
+import type { AgNumericValue } from './dataValues';
 import type { AgPolarAxisShape } from './polarAxisOptions';
 import type { AxisValue, ContextDefault, Degree, Ratio } from './types';
 
@@ -18,7 +19,7 @@ interface AgRadiusAxisLabelOptions<TContext = ContextDefault> extends AgBaseAxis
 export interface AgRadiusNumberAxisOptions<TContext = ContextDefault>
     extends
         Omit<AgBaseAxisOptions<AgRadiusAxisFormattableLabelOptions<TContext>, TContext>, 'interval'>,
-        AgContinuousAxisOptions<number, number> {
+        AgContinuousAxisOptions<AgNumericValue, AgNumericValue> {
     type?: 'radius-number';
     /** The rotation angle of axis line and labels in degrees. */
     positionAngle?: Degree;
@@ -27,7 +28,7 @@ export interface AgRadiusNumberAxisOptions<TContext = ContextDefault>
     /** Configuration for the title shown next to the axis. */
     title?: AgAxisCaptionOptions;
     /** Add cross lines or regions corresponding to data values. */
-    crossLines?: AgRadiusCrossLineOptions<number>[];
+    crossLines?: AgRadiusCrossLineOptions<AgNumericValue>[];
     /**
      * The ratio of the inner radius of the axis as a proportion of the overall radius.
      *  Used to create an inner circle.

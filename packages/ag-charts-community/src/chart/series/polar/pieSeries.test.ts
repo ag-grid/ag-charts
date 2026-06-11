@@ -84,6 +84,36 @@ describe('PieSeries', () => {
             });
             await compare();
         });
+
+        test('normalises bigint angle data without error (AG-16608)', async () => {
+            // The angle normalise post-processor maps the domain span with Number factors; a bigint
+            // angleKey column previously threw 'Cannot mix BigInt and other types'. The same values as
+            // bigint must render identically and emit no warnings.
+            const numberData = [
+                { label: 'A', value: 4159000 },
+                { label: 'B', value: 97000 },
+                { label: 'C', value: 456000 },
+                { label: 'D', value: 1215000 },
+            ];
+            const makeSeries = (data: object[]): AgPieSeriesOptions[] => [
+                { type: 'pie', data, angleKey: 'value', calloutLabelKey: 'label', sectorLabelKey: 'value' },
+            ];
+
+            chart = await createChart({ ...options, series: makeSeries(numberData) });
+            const numberImage = ctx.snapshot();
+            chart.destroy();
+
+            // Without the fix the post-processor throws and the chart logs a console.error 'update error'
+            // (a stale canvas would let an image comparison alone pass spuriously, so assert that too).
+            const errorSpy = vi.spyOn(console, 'error');
+            const bigintData = numberData.map((d) => ({ ...d, value: BigInt(d.value) }));
+            chart = await createChart({ ...options, series: makeSeries(bigintData) });
+            const bigintImage = ctx.snapshot();
+
+            expect(errorSpy).not.toHaveBeenCalled();
+            expect(bigintImage).toMatchImage(numberImage);
+            errorSpy.mockRestore();
+        });
     });
 
     describe('#validation', () => {

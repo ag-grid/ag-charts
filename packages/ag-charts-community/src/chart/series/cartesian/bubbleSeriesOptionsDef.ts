@@ -11,6 +11,7 @@ import {
     markerOptionsDefs,
     multiSeriesHighlightOptionsDef,
     number,
+    numericValue,
     positiveNumber,
     required,
     seriesLabelOptionsDefs,
@@ -29,7 +30,7 @@ import type {
 
 export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeableOptions> = {
     title: string,
-    sizeDomain: arrayOf(number),
+    sizeDomain: arrayOf(numericValue),
     minSize: positiveNumber,
     maxSize: positiveNumber,
     showInMiniChart: boolean,

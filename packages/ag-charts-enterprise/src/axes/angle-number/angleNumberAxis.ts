@@ -6,6 +6,7 @@ import {
     findMinMax,
     isNumberEqual,
     normalisedExtentWithMetadata,
+    toNumberOrUndefined,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
@@ -86,7 +87,8 @@ export class AngleNumberAxis extends AngleAxis<AgNumericValue, LinearAngleScale,
             const tickCount = Math.max(minTickCount, Math.min(maxTickCount, preferredTickCount));
             const tickParams: ScaleTickParams<number> = {
                 nice: [nice, nice],
-                interval: step,
+                // A custom interval step is a Number concept (matches LinearScale.ticks).
+                interval: toNumberOrUndefined(step),
                 tickCount,
                 minTickCount,
                 maxTickCount,

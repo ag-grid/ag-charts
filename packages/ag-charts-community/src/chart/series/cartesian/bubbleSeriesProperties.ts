@@ -9,6 +9,7 @@ import type {
     AgBubbleSeriesStylerResult,
     AgBubbleSeriesTooltipRendererParams,
     AgMarkerShape,
+    AgNumericValue,
     AgScatterSeriesItemStylerParams,
     AgScatterSeriesOptionsKeys,
     AgScatterSeriesStylerParams,
@@ -36,7 +37,7 @@ class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys | AgScat
 
     @Property
     @SceneArrayChangeDetection()
-    sizeDomain?: readonly [number, number];
+    sizeDomain?: readonly [AgNumericValue, AgNumericValue];
 }
 
 class BubbleSeriesLabel extends Label<AgBubbleSeriesLabelFormatterParams> {

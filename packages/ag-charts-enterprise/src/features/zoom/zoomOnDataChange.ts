@@ -7,7 +7,7 @@ import type {
     ZoomMinMax,
     ZoomMinMaxDirection,
 } from 'ag-charts-core';
-import { ChartAxisDirection, Logger, clamp, definedZoomState } from 'ag-charts-core';
+import { ChartAxisDirection, Logger, clamp, definedZoomState, isNumericValue, toNumber } from 'ag-charts-core';
 
 const { userInteraction } = _ModuleSupport;
 
@@ -136,8 +136,9 @@ export class ZoomOnDataChange {
         if (!ctx?.continuous || ctx.scale.domain.length === 0) return;
 
         const [min, max]: [unknown, unknown] = ctx.scale.getDomainMinMax();
-        if (typeof min === 'number' && typeof max === 'number') {
-            return { domainMin: min, domainMax: max };
+        if (isNumericValue(min) && isNumericValue(max)) {
+            // The interpolation below is ratio maths in Number space; sub-ULP bigint precision is not needed.
+            return { domainMin: toNumber(min), domainMax: toNumber(max) };
         } else if (min instanceof Date && max instanceof Date) {
             return { domainMin: min.getTime(), domainMax: max.getTime() };
         } else {

@@ -298,22 +298,51 @@ export function createBigIntTicks(start: bigint, stop: bigint, count: number): b
     return ascending ? ticks : ticks.reverse();
 }
 
-/** Contiguous, equal-width BigInt bins covering the domain (histogram bucketing); always at least one bin. */
+/**
+ * Exactly `count` contiguous, equal-width BigInt bins (histogram bucketing), splitting the domain
+ * evenly from its minimum. The Number path additionally snaps the first edge down to an absolute
+ * power of 10; that snap is scale-dependent so it is deliberately not replicated here — an even split
+ * keeps the bin count and boundary proportions identical for a BigInt domain that is a pure scaling
+ * of a Number domain.
+ */
 export function createBigIntBins(start: bigint, stop: bigint, count: number): [bigint, bigint][] {
+    const lo = start < stop ? start : stop;
+    const hi = start < stop ? stop : start;
+    if (lo === hi) return [[lo, hi]];
+
+    // NaN-safe clamp to a positive integer — BigInt(NaN) throws.
+    const segments = BigInt(Number.isFinite(count) ? Math.max(1, Math.floor(count)) : 1);
+    const span = hi - lo;
+
+    const bins: [bigint, bigint][] = [];
+    for (let i = 0n; i < segments; i += 1n) {
+        const a = lo + (i * span) / segments;
+        const b = i === segments - 1n ? hi : lo + ((i + 1n) * span) / segments;
+        bins.push([a, b]);
+    }
+    return bins;
+}
+
+/**
+ * Tick-aligned BigInt bins for when no bin count is specified, mirroring the Number path that expands
+ * nice tick positions into bins: each tick within the domain starts a bin one step wide, plus a leading
+ * bin so the domain minimum is always covered.
+ */
+export function createBigIntTickBins(start: bigint, stop: bigint, count: number): [bigint, bigint][] {
     const lo = start < stop ? start : stop;
     const hi = start < stop ? stop : start;
 
     const step = lo === hi ? 0n : bigIntTickStep(hi - lo, count);
     if (step <= 0n) return [[lo, hi]];
 
-    const niceLo = floorToStep(lo, step);
-    const niceHi = ceilToStep(hi, step);
+    const first = ceilToStep(lo, step);
+    const last = floorToStep(hi, step);
 
-    const bins: [bigint, bigint][] = [];
-    for (let edge = niceLo; edge < niceHi; edge += step) {
+    const bins: [bigint, bigint][] = [[first - step, first]];
+    for (let edge = first; edge <= last; edge += step) {
         bins.push([edge, edge + step]);
     }
-    return bins.length > 0 ? bins : [[niceLo, niceHi]];
+    return bins;
 }
 
 /** Nice BigInt domain bounds — extends the endpoints outward to the surrounding step multiples. */

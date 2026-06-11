@@ -14,6 +14,7 @@ import type {
     AgHighlightStyleOptions,
     AgImageFill,
     AgLineHighlightStyleOptions,
+    AgNumericValue,
     AgPatternColor,
     AgSelectionContainment,
     AgSelectionStyleOptions,
@@ -44,6 +45,7 @@ import {
     constant,
     defined,
     number,
+    numericValue,
     optionsDefs,
     or,
     positiveNumber,
@@ -90,7 +92,7 @@ export const colorStopsOrderValidator = attachDescription((value) => {
 export const gradientColorStops = and(arrayLength(2), arrayOf(colorStop), colorStopsOrderValidator);
 
 const colorScaleColorStop = optionsDefs<AgColorScaleColorStop>(
-    { color: required(colorOrRef), stop: number, name: string },
+    { color: required(colorOrRef), stop: numericValue, name: string },
     'a color scale color stop'
 );
 export const colorScaleOptionsDef = optionsDefs<AgColorScale>(
@@ -98,9 +100,10 @@ export const colorScaleOptionsDef = optionsDefs<AgColorScale>(
         fills: and(arrayLength(2), arrayOf(colorScaleColorStop), colorStopsOrderValidator),
         domain: and(
             arrayLength(2),
-            arrayOf(number),
+            arrayOf(numericValue),
             attachDescription(
-                (value) => (value as number[])[0] <= (value as number[])[1],
+                // Mixed bigint/number comparison is safe — only arithmetic mixing throws.
+                (value) => (value as AgNumericValue[])[0] <= (value as AgNumericValue[])[1],
                 'domain to be in ascending order'
             )
         ),

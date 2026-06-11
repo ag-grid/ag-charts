@@ -5,6 +5,7 @@ import type {
     AgMapMarkerSeriesStyle,
     AgMapMarkerSeriesTooltipRendererParams,
     AgMarkerShape,
+    AgNumericValue,
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -107,7 +108,7 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     maxSize: number | undefined;
 
     @Property
-    sizeDomain?: [number, number];
+    sizeDomain?: [AgNumericValue, AgNumericValue];
 
     @Property
     fill: InternalAgColorType = 'black';

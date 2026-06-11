@@ -135,8 +135,8 @@ export interface AgZoomEvent<TContext = ContextDefault> {
 }
 
 export interface AgZoomEventRange {
-    start?: Date | string | number;
-    end?: Date | string | number;
+    start?: Date | string | number | bigint;
+    end?: Date | string | number | bigint;
 }
 
 export interface AgZoomEventRatio {

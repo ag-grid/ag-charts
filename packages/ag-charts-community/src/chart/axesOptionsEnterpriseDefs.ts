@@ -7,6 +7,7 @@ import {
     defined,
     number,
     numberFormatValidator,
+    numericValue,
     or,
     ratio,
     union,
@@ -47,7 +48,7 @@ export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> =
     interval: discreteTimeAxisIntervalOptionsDefs,
     crosshair: cartesianAxisCrosshairOptions(true, true),
     crossLines: arrayOfDefs(
-        crossLineOptionsDefs(or(number, date), cartesianCrossLineLabelOptionsDefs),
+        crossLineOptionsDefs(or(numericValue, date), cartesianCrossLineLabelOptionsDefs),
         'a cross-line options array'
     ),
     bandHighlight: cartesianAxisBandHighlightOptions,
@@ -57,10 +58,10 @@ export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> =
 
 export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> = {
     ...commonAxisOptionsDefs,
-    ...continuousAxisOptions(number),
+    ...continuousAxisOptions(numericValue),
     type: constant('angle-number'),
     crossLines: arrayOfDefs(
-        crossLineOptionsDefs(number, commonCrossLineLabelOptionsDefs),
+        crossLineOptionsDefs(numericValue, commonCrossLineLabelOptionsDefs),
         'a cross-line options array'
     ),
     startAngle: number,
@@ -101,14 +102,14 @@ angleCategoryAxisOptionsDefs.innerRadiusRatio = ratio;
 
 export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions> = {
     ...commonAxisOptionsDefs,
-    ...continuousAxisOptions(number),
+    ...continuousAxisOptions(numericValue),
     type: constant('radius-number'),
     shape: union('polygon', 'circle'),
     positionAngle: number,
     innerRadiusRatio: ratio,
     title: commonAxisCaptionOptionsDefs,
     crossLines: arrayOfDefs(
-        crossLineOptionsDefs(number, radiusCrossLineLabelOptionsDefs),
+        crossLineOptionsDefs(numericValue, radiusCrossLineLabelOptionsDefs),
         'a cross-line options array'
     ),
     label: {

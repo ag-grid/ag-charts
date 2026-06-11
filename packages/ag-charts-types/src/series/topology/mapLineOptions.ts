@@ -1,4 +1,5 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
+import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, GeoJSON, Opacity, PixelSize } from '../../chart/types';
@@ -71,7 +72,7 @@ export interface AgMapLineSeriesThemeableOptions<TDatum = DatumDefault, TContext
      *
      * Reverse the bounds (e.g. `[100, 0]`) to invert the mapping so that larger values produce thinner strokes.
      */
-    sizeDomain?: number[];
+    sizeDomain?: AgNumericValue[];
     /** Configuration for the labels shown on top of the line. */
     label?: AgMapLineSeriesLabel<TDatum, TContext>;
     /** Series-specific tooltip configuration. */

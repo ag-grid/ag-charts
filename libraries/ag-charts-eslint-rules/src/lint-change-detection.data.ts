@@ -113,6 +113,8 @@ class TestSceneArrayChangeDetection extends Node {
     @SceneArrayChangeDetection() optionalMutableNumberArray?: number[] = [];
     @SceneArrayChangeDetection() requiredMutableNumberTuple: [number, number] = [0, 0];
     @SceneArrayChangeDetection() optionalMutableNumberTuple?: [number, number];
+    @SceneArrayChangeDetection() optionalReadonlyNumericValueTuple?: readonly [number | bigint, number | bigint];
+    @SceneArrayChangeDetection() optionalReadonlyNumericValueArray?: readonly (number | bigint)[];
 
     @SceneArrayChangeDetection() requiredUnion1: number | readonly [number, number] = 0;
     @SceneArrayChangeDetection() optionalUnion1?: number | readonly [number, number];

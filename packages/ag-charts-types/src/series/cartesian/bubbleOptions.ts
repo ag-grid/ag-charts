@@ -6,6 +6,7 @@ import type {
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, LabelPlacement, PixelSize } from '../../chart/types';
@@ -80,7 +81,7 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = DatumDefault, TContext 
      *
      * Reverse the bounds (e.g. `[100, 0]`) to invert the mapping so that larger values produce smaller markers.
      */
-    sizeDomain?: [number, number];
+    sizeDomain?: [AgNumericValue, AgNumericValue];
     /**
      * Determines the smallest size a marker can be in pixels. `sizeKey` values at the lower end of `sizeDomain` map to this size.
      *

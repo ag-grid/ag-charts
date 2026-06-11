@@ -365,7 +365,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         });
 
         const sizeKeyIdx = sizeKey ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`) : undefined;
-        const mutableMarkerDomain: [number, number] | undefined = marker.sizeDomain
+        const mutableMarkerDomain: [AgNumericValue, AgNumericValue] | undefined = marker.sizeDomain
             ? [marker.sizeDomain[0], marker.sizeDomain[1]]
             : undefined;
         this.sizeScale.domain =

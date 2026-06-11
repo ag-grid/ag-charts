@@ -17,6 +17,14 @@ export function toNumber(value: AgNumericValue): number {
     return n;
 }
 
+/**
+ * Like {@link toNumber} but accepts any value: bigints warn on out-of-range magnitudes, while all
+ * other values keep raw `Number()` coercion semantics (`null` → 0, `undefined`/invalid → NaN).
+ */
+export function narrowToNumber(value: unknown): number {
+    return typeof value === 'bigint' ? toNumber(value) : Number(value);
+}
+
 /** Like {@link toNumber} but passes `null`/`undefined` through and stays silent on out-of-range magnitudes. */
 export function toNumberOrUndefined(value: AgNumericValue | undefined): number | undefined {
     return value == null ? undefined : Number(value);

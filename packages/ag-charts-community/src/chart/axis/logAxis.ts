@@ -1,5 +1,6 @@
 import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedNumberAxisOptions } from 'ag-charts-core';
-import { Logger, normalisedExtentWithMetadata } from 'ag-charts-core';
+import { Logger, narrowToNumber, normalisedExtentWithMetadata, zeroLike } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
 import { LogScale } from '../../scale/logScale';
@@ -9,12 +10,15 @@ export class LogAxis extends NumberAxis {
     static override readonly className = 'LogAxis';
     static override readonly type = 'log' as const;
 
-    protected override getVisibleDomain(domain: number[]): [number, number] {
-        const [d0, d1] = domain;
+    protected override getVisibleDomain(domain: AgNumericValue[]): [number, number] {
+        // Narrow to Number before any Math.* call — log scales narrow bigint anyway (see LogScale),
+        // and Math.log/Math.min throw a TypeError when handed a bigint.
+        const d0 = narrowToNumber(domain[0]);
+        const d1 = narrowToNumber(domain[1]);
         const [r0, r1] = this.visibleRange;
 
         if (domain.length < 2) {
-            return [d0, d1] as [number, number];
+            return [d0, d1];
         }
 
         const min = Math.min(d0, d1);
@@ -35,7 +39,7 @@ export class LogAxis extends NumberAxis {
         return [Number.NaN, Number.NaN];
     }
 
-    override normaliseDataDomain(d: DomainWithMetadata<number>) {
+    override normaliseDataDomain(d: DomainWithMetadata<AgNumericValue>) {
         const { min, max, preferredMin, preferredMax } = this.options;
         const { extent, clipped } = normalisedExtentWithMetadata(
             d.domain,
@@ -52,7 +56,13 @@ export class LogAxis extends NumberAxis {
                 `The log axis domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.`
             );
             return { domain: [], clipped };
-        } else if (extent[0] === 0 || extent[1] === 0 || d.domain[0] === 0 || d.domain[1] === 0) {
+        } else if (
+            // zeroLike: 0n === 0 is false, so a strict comparison would miss bigint zero.
+            extent[0] === zeroLike(extent[0]) ||
+            extent[1] === zeroLike(extent[1]) ||
+            d.domain[0] === zeroLike(d.domain[0]) ||
+            d.domain[1] === zeroLike(d.domain[1])
+        ) {
             Logger.warn(
                 `The log axis domain contains a value of 0, the chart data cannot be rendered. See log axis documentation for more information.`
             );

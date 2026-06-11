@@ -37,6 +37,8 @@ export default {
             const allowed =
                 flags.Number |
                 flags.NumberLiteral |
+                flags.BigInt |
+                flags.BigIntLiteral |
                 flags.String |
                 flags.StringLiteral |
                 flags.Boolean |
@@ -101,11 +103,11 @@ export default {
                 return type.types.every((t) => isAllowedPrimitiveArray(t, fallback));
             }
             if (isTupleType(type)) {
-                return type.resolvedTypeArguments?.every(isAllowedPrimitive) ?? fallback;
+                return type.resolvedTypeArguments?.every(checkAllowedType) ?? fallback;
             }
             if (isArrayType(type)) {
                 const typeArgs = type.typeArguments || [];
-                return typeArgs.length === 1 && isAllowedPrimitive(typeArgs[0]);
+                return typeArgs.length === 1 && checkAllowedType(typeArgs[0]);
             }
             return fallback;
         }

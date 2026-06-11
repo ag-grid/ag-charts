@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type Bounds4, Vec2, Vec4, isDate, isNumber } from 'ag-charts-core';
+import { type Bounds4, Vec2, Vec4, isDate, isNumericValue, toNumber } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -390,10 +390,11 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         const endY = getGroupingValue(datum.end.y);
         const startY = getGroupingValue(datum.start.y);
 
-        if (!isNumber(endY) || !isNumber(startY)) {
+        if (!isNumericValue(endY) || !isNumericValue(startY)) {
             throw new Error('Can not create a price range measurement of a non-numeric y-axis');
         }
-        return (endY - startY) / startY;
+        // The percentage is a display ratio; Number precision is sufficient at the render boundary.
+        return (toNumber(endY) - toNumber(startY)) / toNumber(startY);
     }
 
     private getPriceRangeValue(datum: MeasurerTypeProperties) {
@@ -404,11 +405,12 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         const endY = getGroupingValue(datum.end.y);
         const startY = getGroupingValue(datum.start.y);
 
-        if (!isNumber(endY) || !isNumber(startY)) {
+        if (!isNumericValue(endY) || !isNumericValue(startY)) {
             throw new Error('Can not create a price range measurement of a non-numeric y-axis');
         }
 
-        return endY - startY;
+        // Number precision is sufficient at the render boundary.
+        return toNumber(endY) - toNumber(startY);
     }
 
     private getVolume(datum: MeasurerTypeProperties) {

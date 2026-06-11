@@ -1,4 +1,5 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
+import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type {
@@ -104,7 +105,7 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = DatumDefault, TConte
      *
      * Reverse the bounds (e.g. `[100, 0]`) to invert the mapping so that larger values produce smaller markers.
      */
-    sizeDomain?: [number, number];
+    sizeDomain?: [AgNumericValue, AgNumericValue];
     /** Configuration for colour scale with fills, domain, and mode. */
     colorScale?: AgColorScale;
     /** Configuration for the labels shown on top of data points. */

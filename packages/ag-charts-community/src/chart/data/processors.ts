@@ -11,6 +11,7 @@ import {
     maxValue,
     memo,
     minValue,
+    narrowToNumber,
     subtractValues,
     timeValueToNumber,
     transformIntegratedCategoryValue,
@@ -427,13 +428,16 @@ function normalisePropertyFnBuilder({
             let [start, end] = pData.domain.values[pIdx];
             if (rangeMin != null) start = rangeMin;
             if (rangeMax != null) end = rangeMax;
-            const span = end - start;
+            // Normalisation maps to an angle/ratio with Number factors, so narrow bigint
+            // endpoints/values to Number — a bigint would otherwise throw when mixed.
+            const startValue = narrowToNumber(start);
+            const span = narrowToNumber(end) - startValue;
 
             pData.domain.values[pIdx] = [normaliseTo[0], normaliseTo[1]];
 
             const column = pData.columns[pIdx];
             for (let datumIndex = 0; datumIndex < column.length; datumIndex += 1) {
-                column[datumIndex] = normalise(column[datumIndex], start, span);
+                column[datumIndex] = normalise(narrowToNumber(column[datumIndex]), startValue, span);
             }
         };
     };

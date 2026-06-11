@@ -1,5 +1,6 @@
 import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
-import { BaseProperties, Logger, Property, isObject } from 'ag-charts-core';
+import { BaseProperties, Logger, Property, isNumericValue, isObject, subtractValues } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import {
     Annotation,
@@ -26,7 +27,7 @@ export class ParallelChannelProperties extends Annotation(
     type = AnnotationType.ParallelChannel as const;
 
     @Property
-    height!: number;
+    height!: AgNumericValue;
 
     @Property
     middle = new ChannelAnnotationMiddleProperties();
@@ -42,9 +43,9 @@ export class ParallelChannelProperties extends Annotation(
             end: { x: this.end.x, y: this.end.y },
         };
 
-        if (typeof bottom.start.y === 'number' && typeof bottom.end.y === 'number') {
-            bottom.start.y -= this.height;
-            bottom.end.y -= this.height;
+        if (isNumericValue(bottom.start.y) && isNumericValue(bottom.end.y)) {
+            bottom.start.y = subtractValues(bottom.start.y, this.height);
+            bottom.end.y = subtractValues(bottom.end.y, this.height);
         } else {
             Logger.warnOnce(`Annotation [${this.type}] can only be used with a numeric y-axis.`);
         }
