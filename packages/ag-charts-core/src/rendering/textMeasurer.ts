@@ -140,7 +140,7 @@ export function imageSegmentBox(segment: ImageSegment): TextMetricsBox {
  * Vertical alignment accepted on text and image segments. `'baseline'` is the public spelling of
  * the canvas `'alphabetic'` baseline; the other values map 1:1 onto `CanvasTextBaseline`.
  */
-export type SegmentVerticalAlign = 'baseline' | 'top' | 'middle' | 'bottom' | 'hanging' | 'ideographic';
+export type SegmentVerticalAlign = 'baseline' | 'top' | 'middle' | 'bottom';
 
 /** Translates a public segment `verticalAlign` to the canvas `textBaseline` used internally. */
 export function toCanvasTextBaseline(verticalAlign: SegmentVerticalAlign | undefined): CanvasTextBaseline | undefined {

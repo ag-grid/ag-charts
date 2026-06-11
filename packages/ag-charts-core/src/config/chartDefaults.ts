@@ -155,7 +155,7 @@ const tooltipPlacementValidator = union(
 );
 export const rangeValidator = or(positiveNumber, union('exact', 'nearest', 'area'));
 export const seriesTooltipRangeValidator = or(positiveNumber, union('exact', 'nearest'));
-const verticalAlignValidator = union('baseline', 'top', 'middle', 'bottom', 'hanging', 'ideographic');
+const verticalAlignValidator = union('baseline', 'top', 'middle', 'bottom');
 
 const textSegmentValidator = optionsDefs<TextSegment>({
     type: constant('text'),

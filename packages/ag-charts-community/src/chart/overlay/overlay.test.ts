@@ -481,6 +481,6 @@ describe('imageSegmentStyle', () => {
         expect(imageSegmentStyle({ ...base, verticalAlign: 'top' }).verticalAlign).toEqual('top');
         expect(imageSegmentStyle({ ...base, verticalAlign: 'bottom' }).verticalAlign).toEqual('bottom');
         expect(imageSegmentStyle({ ...base, verticalAlign: 'baseline' }).verticalAlign).toEqual('baseline');
-        expect(imageSegmentStyle({ ...base, verticalAlign: 'hanging' }).verticalAlign).toEqual('text-top');
+        expect(imageSegmentStyle({ ...base, verticalAlign: 'middle' }).verticalAlign).toEqual('middle');
     });
 });

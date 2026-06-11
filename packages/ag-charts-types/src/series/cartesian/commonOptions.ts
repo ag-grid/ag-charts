@@ -276,7 +276,7 @@ export interface TextSegment extends TextOptions {
      *
      * Default: `'baseline'`
      */
-    verticalAlign?: 'baseline' | 'top' | 'middle' | 'bottom' | 'hanging' | 'ideographic';
+    verticalAlign?: 'baseline' | 'top' | 'middle' | 'bottom';
     /**
      * Explicit line height in pixels for the line containing this segment. When several segments on the same
      * line declare a `lineHeight`, the largest value wins. When omitted, the line uses the natural font line
@@ -317,7 +317,7 @@ export interface ImageSegment {
      *
      * Default: `'baseline'`
      */
-    verticalAlign?: 'baseline' | 'top' | 'middle' | 'bottom' | 'hanging' | 'ideographic';
+    verticalAlign?: 'baseline' | 'top' | 'middle' | 'bottom';
     /**
      * Drop priority when the label exceeds its allotted box. `'hide'` images are dropped before
      * text is truncated. `'keep'` images take priority over text: trailing text segments are

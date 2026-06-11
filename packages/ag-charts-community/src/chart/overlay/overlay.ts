@@ -25,12 +25,9 @@ function imageVerticalAlignToCss(verticalAlign: ImageSegment['verticalAlign']): 
         case 'top':
             return 'top';
         case 'bottom':
-        case 'ideographic':
             return 'bottom';
         case 'baseline':
             return 'baseline';
-        case 'hanging':
-            return 'text-top';
         case 'middle':
         default:
             return 'middle';
