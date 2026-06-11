@@ -247,7 +247,7 @@ export interface AgPaginationMarkerOptions {
     /** If set, overrides the marker shape for the pagination buttons. If not set, the pagination buttons will default to the `'triangle'` marker shape. */
     shape?: AgMarkerShape;
     /** The inner padding in pixels between a pagination button and the pagination label. */
-    padding?: PixelSize;
+    padding?: Padding;
 }
 
 export interface AgPaginationMarkerStyle {

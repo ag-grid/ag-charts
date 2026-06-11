@@ -35,7 +35,11 @@ export type NormalisedPaginationMarkerStyle = Normalised<
     { fill: string }
 >;
 
-export type NormalisedPaginationMarkerOptions = Normalised<AgPaginationMarkerOptions, 'size' | 'shape' | 'padding'>;
+export type NormalisedPaginationMarkerOptions = Normalised<
+    AgPaginationMarkerOptions,
+    'size' | 'shape' | 'padding',
+    { padding: NormalisedPaddingOptions }
+>;
 
 export type NormalisedPaginationLabelOptions = Normalised<
     AgPaginationLabelOptions,

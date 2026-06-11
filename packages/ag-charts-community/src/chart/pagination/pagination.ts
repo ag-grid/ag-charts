@@ -107,12 +107,12 @@ export class Pagination {
         this.nextButton.size = markerSize;
         this.previousButton.size = markerSize;
 
-        this.labelNode.x = markerSize / 2 + markerPadding;
+        this.labelNode.x = markerSize / 2 + markerPadding.left;
     }
 
     private updateButtonPositions(opts: NormalisedLegendPaginationOptions) {
         const labelBBox = this.labelNode.getBBox();
-        const endX = labelBBox.width + (opts.marker.size / 2 + opts.marker.padding) * 2;
+        const endX = labelBBox.width + opts.marker.size + opts.marker.padding.left + opts.marker.padding.right;
 
         if (this.isRtl && this.orientation === 'horizontal') {
             this.nextButton.translationX = 0;

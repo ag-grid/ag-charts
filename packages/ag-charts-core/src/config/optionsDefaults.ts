@@ -461,10 +461,10 @@ export const textAlign = union('left', 'center', 'right');
 export const overflowStrategy = union('ellipsis', 'hide');
 
 export const paddingOptions = optionsDefs<PaddingOptions>(
-    { top: number, right: number, bottom: number, left: number },
+    { top: positiveNumber, right: positiveNumber, bottom: positiveNumber, left: positiveNumber },
     'padding object'
 );
-export const padding = or(number, paddingOptions);
+export const padding = or(positiveNumber, paddingOptions);
 
 export const borderOptionsDef: OptionsDefs<BorderOptions> = {
     enabled: boolean,
