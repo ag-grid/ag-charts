@@ -9,8 +9,6 @@ import {
 
 ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule, TimeAxisModule]);
 
-// Dates are supplied as strict ISO 8601 strings rather than Date objects. The
-// time axis parses them on demand; offsets are honoured as written.
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: { text: 'Hourly Readings' },
