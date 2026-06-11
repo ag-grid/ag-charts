@@ -244,4 +244,10 @@ export class AgDocument {
         if (Ctor == null) return;
         return new Ctor(callback, options);
     }
+
+    createMutationObserver(callback: MutationCallback): MutationObserver | undefined {
+        const Ctor: typeof MutationObserver | undefined = (this.window as any).MutationObserver;
+        if (Ctor == null) return;
+        return new Ctor(callback);
+    }
 }

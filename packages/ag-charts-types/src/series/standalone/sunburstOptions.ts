@@ -46,7 +46,7 @@ export interface AgSunburstSeriesHighlightOptions {
 
 export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
     AgBaseSeriesThemeableOptions<TDatum, TContext>,
-    'highlight' | 'showInLegend' | 'selection'
+    'highlight' | 'showInLegend'
 > {
     /** Options for the label in a sector. */
     label?: AgChartAutoSizedLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>, TContext>;
