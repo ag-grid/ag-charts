@@ -28,4 +28,5 @@ mcp.json
 !/rules/module-support.md
 !/rules/numeric-values.md
 !/rules/series.md
+!/rules/test-harness-contracts.md
 !/rules/server-side-rendering.md
