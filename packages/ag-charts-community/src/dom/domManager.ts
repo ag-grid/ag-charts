@@ -161,6 +161,7 @@ export class DOMManager extends BaseManager {
     private readonly tabGuards?: GuardedElement;
 
     private readonly observer?: IntersectionObserver;
+    private attachObserver?: MutationObserver;
     private readonly sizeMonitor: SizeMonitor;
     private readonly cursorState = new StateTracker('default');
     private _lastCursor: string | undefined = undefined;
@@ -293,6 +294,8 @@ export class DOMManager extends BaseManager {
         super.destroy();
 
         this.observer?.unobserve(this.element);
+        this.attachObserver?.disconnect();
+        this.attachObserver = undefined;
         this.sizeMonitor.unobserve(this.rootElements['canvas'].element);
         if (this.container) {
             this.sizeMonitor.unobserve(this.container);
@@ -355,9 +358,30 @@ export class DOMManager extends BaseManager {
         DOMManager.batchedUpdateContainer.splice(0);
     }
 
+    // The disconnected→connected re-measure runs from updateStylesLocation, which only fires off a
+    // deferred flush. A container attached after all updates have settled schedules no further flush,
+    // so without this the chart latches its unmeasured pre-attachment size. Run the re-measure once
+    // on attachment, independent of flush timing.
+    private observeAttachTransition(container: HTMLElement) {
+        this.attachObserver?.disconnect();
+        this.attachObserver = undefined;
+        if (this.mode === 'minimal' || this.initiallyConnected !== false) return;
+
+        const root = container.ownerDocument.documentElement;
+        this.attachObserver = this.agDocument.createMutationObserver(() => {
+            if (this.container?.isConnected === true) {
+                this.updateStylesLocation();
+            }
+        });
+        this.attachObserver?.observe(root, { childList: true, subtree: true });
+    }
+
     private updateStylesLocation() {
         // Check if we transitioned from disconnected to connected
         if (this.initiallyConnected === true || this.container?.isConnected === false) return;
+
+        this.attachObserver?.disconnect();
+        this.attachObserver = undefined;
 
         this.shadowDocumentRoot = this.getShadowDocumentRoot(this.container);
         this.initiallyConnected = true;
@@ -456,6 +480,7 @@ export class DOMManager extends BaseManager {
         this.agDocument.setContainer(pendingContainer);
         this.shadowDocumentRoot = this.getShadowDocumentRoot(pendingContainer);
         this.initiallyConnected = pendingContainer.isConnected;
+        this.observeAttachTransition(pendingContainer);
 
         // If we moved from a shadow DOM to outside, we need to ensure the page styles are present
         // Or if the container is added lazily, we need to ensure styles are added before the container

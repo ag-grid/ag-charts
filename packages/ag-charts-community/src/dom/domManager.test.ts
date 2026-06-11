@@ -116,14 +116,14 @@ describe('DOMManager', () => {
             expect(dm.containerSize).toMatchObject({ width: 400, height: 250 });
         });
 
-        it('should measure the container size when attachment happens after the deferred flush completes', () => {
+        it('should measure the container size when attachment happens after the deferred flush completes', async () => {
             const container = doc.createElement('div');
             const dm = new DOMManager(eventsHub, 'late-416e', doc, container);
 
             // The deferred flush completes while the container is still detached, mirroring an
             // async-data flow where all updates settle before the container is appended.
             dm.setDeferring(false);
-            vi.runAllTimers();
+            await vi.runAllTimersAsync();
             expect(dm.containerSize).toBeUndefined();
 
             // Attach to the document and give it a laid-out size. jsdom never fires a
@@ -138,7 +138,7 @@ describe('DOMManager', () => {
                 paddingTop: '0px',
                 paddingBottom: '0px',
             } as any);
-            vi.runAllTimers();
+            await vi.runAllTimersAsync();
 
             expect(dm.containerSize).toMatchObject({ width: 400, height: 250 });
         });

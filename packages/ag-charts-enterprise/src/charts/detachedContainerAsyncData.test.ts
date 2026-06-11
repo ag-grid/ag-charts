@@ -32,13 +32,18 @@ describe('Chart on a detached container with async data and a series-type switch
         const container = document.createElement('div');
         Object.defineProperty(container, 'clientWidth', { get: () => size.width });
         Object.defineProperty(container, 'clientHeight', { get: () => size.height });
-        vi.spyOn(window, 'getComputedStyle').mockReturnValue({
+        vi.spyOn(globalThis, 'getComputedStyle').mockReturnValue({
             paddingLeft: '0px',
             paddingRight: '0px',
             paddingTop: '0px',
             paddingBottom: '0px',
         } as CSSStyleDeclaration);
-        return { container, size };
+        const attach = () => {
+            size.width = 400;
+            size.height = 250;
+            document.body.appendChild(container);
+        };
+        return { container, attach };
     };
 
     // Mirrors the AG Charts Studio flow: create on a detached element, switch the
@@ -74,24 +79,12 @@ describe('Chart on a detached container with async data and a series-type switch
     };
 
     it('should autosize to the container when attached before updates settle (control)', async () => {
-        const { container, size } = setupMeasurableContainer();
-        const attach = () => {
-            size.width = 400;
-            size.height = 250;
-            document.body.appendChild(container);
-        };
-
+        const { container, attach } = setupMeasurableContainer();
         expect(await runScenario(container, attach, 'early')).toEqual([400, 250]);
     });
 
     it('should autosize to the container once it is attached after all updates settle', async () => {
-        const { container, size } = setupMeasurableContainer();
-        const attach = () => {
-            size.width = 400;
-            size.height = 250;
-            document.body.appendChild(container);
-        };
-
+        const { container, attach } = setupMeasurableContainer();
         expect(await runScenario(container, attach, 'late')).toEqual([400, 250]);
     });
 });
