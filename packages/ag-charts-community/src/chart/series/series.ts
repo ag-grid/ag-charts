@@ -1098,10 +1098,15 @@ export abstract class Series<
     public *pickNodesInBBox(selectionBox: BoxBounds): Iterable<TDatum> {
         function* walkNodes(node: Group, callback: (node: Node) => TDatum | undefined): Iterable<TDatum> {
             for (const child of node.children()) {
+                // Check if this scene-node is interactive:
+                if (!child.visible || child.pointerEvents === PointerEvents.None) {
+                    continue;
+                }
+
                 // Note: Some series-type include `datum` values in the scene-graph that not assignable to `TDatum`.
                 // For example: line-series `SegmentedPath` include segmentation data in `datum`). So add some basic
                 // check for `datumIndex` to filter out datums that definitely not assignable to `TDatum`.
-                if (child.datum != null && typeof child.datum === 'object' && 'datumIndex' in child.datum) {
+                if (typeof child.datum === 'object' && child.datum != null && 'datumIndex' in child.datum) {
                     const result = callback(child);
                     if (result !== undefined) {
                         yield result;

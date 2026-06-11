@@ -200,6 +200,16 @@ export function boxCollidesSector(box: BBox, sector: SectorBoundaries) {
     );
 }
 
+/**
+ * Tests whether an axis-aligned `box` overlaps the filled area of a `sector` (annular wedge).
+ *
+ * Pre-condition: the sector is centred at the origin (0, 0). A `Sector.centerX` / `Sector.centerY`
+ * offset is intentionally NOT applied here — the only callers pass origin-centred sectors, so the
+ * centre is assumed to be (0, 0) to avoid redundant arithmetic. `box` must be supplied in the same
+ * (sector-local) coordinate space.
+ *
+ * @returns `true` when `box` and the sector overlap; a shared edge or single touching point counts.
+ */
 export function boxOverlapsSector(box: BoxBounds, sector: SectorBoundaries): boolean {
     const { startAngle, endAngle, innerRadius, outerRadius } = sector;
     const top = box.y;

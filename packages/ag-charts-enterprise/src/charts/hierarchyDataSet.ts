@@ -43,7 +43,7 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
     }
 
     override getDatumAt(datumIndex: number): T | undefined {
-        return this.getDfsOrdering().at(datumIndex);
+        return this.getDfsOrdering()[datumIndex];
     }
 
     /**
