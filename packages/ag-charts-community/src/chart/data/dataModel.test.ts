@@ -3095,7 +3095,7 @@ describe('DataModel', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
 
-        it('derives a Date key domain from ISO 8601 strings on a time axis (AG-16654)', () => {
+        it('derives an instant key domain from ISO 8601 strings on a time axis (AG-16654)', () => {
             const model = timeKeyModel();
             const result = model.processData(
                 basicDataSet([
@@ -3104,11 +3104,13 @@ describe('DataModel', () => {
                 ])
             )!;
 
+            // ISO strings are parsed once to epoch ms (ensureEpochColumn) before extending continuous
+            // domains, so the domain holds instants (epoch numbers or Dates), never raw strings.
             const domain = result.domain.keys[0];
             expect(domain.length).toBeGreaterThan(0);
-            expect(domain.every((d: unknown) => d instanceof Date)).toBe(true);
-            expect((domain[0] as Date).getTime()).toBe(new Date('2024-01-15T09:00:00Z').getTime());
-            expect((domain.at(-1) as Date).getTime()).toBe(new Date('2024-01-15T12:00:00Z').getTime());
+            const epochs = domain.map((d: unknown) => (d instanceof Date ? d.getTime() : d));
+            expect(epochs[0]).toBe(Date.parse('2024-01-15T09:00:00Z'));
+            expect(epochs.at(-1)).toBe(Date.parse('2024-01-15T12:00:00Z'));
         });
 
         it('keeps ISO-shaped strings as labels in a category-axis domain (AG-16654 guard)', () => {
