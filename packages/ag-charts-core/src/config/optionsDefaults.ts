@@ -320,7 +320,7 @@ const colorObjectDefs: OptionsDefs<Exclude<AgColorType, CssColor>> = {
 };
 const colorObject = typeUnion<Exclude<AgColorType, AgCssColorOrRef>>(colorObjectDefs as any, 'a color object');
 
-export const colorUnion = or(colorRef, color, optionsDefs(colorObject, 'a color object'));
+export const colorUnion = or(color, optionsDefs(colorObject, 'a color object'), colorRef);
 
 export const fillOptionsDef: OptionsDefs<FillOptions> = {
     fill: colorUnion,
