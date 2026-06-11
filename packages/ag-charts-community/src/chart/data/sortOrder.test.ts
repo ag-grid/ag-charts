@@ -52,7 +52,7 @@ describe('valuesSortOrder', () => {
     });
 
     it('returns undefined when a numeric column contains NaN', () => {
-        expect(valuesSortOrder([1, NaN, 3], false)).toBeUndefined();
+        expect(valuesSortOrder([1, Number.NaN, 3], false)).toBeUndefined();
     });
 
     it('detects ascending Date columns via valueOf', () => {
