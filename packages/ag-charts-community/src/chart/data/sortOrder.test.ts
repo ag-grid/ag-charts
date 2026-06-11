@@ -24,8 +24,23 @@ describe('valuesSortOrder', () => {
         expect(valuesSortOrder([1, null, 2, null, 3], false)).toBe(1);
     });
 
+    // Sort-order detection must treat bigint columns like number columns; bailing on
+    // `typeof primitive !== 'number'` would report every bigint column as unsorted, disabling
+    // the sorted fast-paths (extent / clipped-range) for bigint data.
     it('detects ascending bigint columns', () => {
         expect(valuesSortOrder([10n ** 22n, 10n ** 22n + 1n, 10n ** 22n + 2n], false)).toBe(1);
+    });
+
+    it('detects descending bigint columns', () => {
+        expect(valuesSortOrder([3n, 2n, 1n], false)).toBe(-1);
+    });
+
+    it('returns undefined for unsorted bigint columns', () => {
+        expect(valuesSortOrder([1n, 3n, 2n], false)).toBeUndefined();
+    });
+
+    it('stays exact for adjacent bigints beyond MAX_SAFE_INTEGER', () => {
+        expect(valuesSortOrder([9_007_199_254_740_993n, 9_007_199_254_740_994n], false)).toBe(1);
     });
 
     it('detects ascending ISO 8601 datetime string columns', () => {

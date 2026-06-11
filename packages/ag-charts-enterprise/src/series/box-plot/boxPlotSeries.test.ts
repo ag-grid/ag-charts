@@ -10,20 +10,25 @@ import {
     AgCharts,
 } from 'ag-charts-community';
 import {
+    BIG,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     type MockBoxPlotStyler,
+    NEG_BIG,
+    expectPixelIdenticalAcrossMagnitude,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
+    magnitudePair,
     newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
+    stripAxes,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 
 const BOX_PLOT_BAR_OPTIONS: AgChartOptions = {
     data: [
@@ -1057,6 +1062,155 @@ describe('BoxPlotSeries', () => {
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compareSnapshot(chart);
+        });
+    });
+
+    describe('bigint values (AG-16608)', () => {
+        const categoryNumberAxes = { x: { type: 'category' as const }, y: { type: 'number' as const } };
+
+        it('renders a plain box-plot series with out-of-safe-range bigint values', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: [
+                        { x: 'a', min: NEG_BIG, q1: NEG_BIG / 2n, median: 0n, q3: BIG / 2n, max: BIG },
+                        { x: 'b', min: NEG_BIG * 2n, q1: NEG_BIG, median: BIG / 2n, q3: BIG, max: BIG * 2n },
+                    ],
+                    series: [
+                        {
+                            type: 'box-plot',
+                            xKey: 'x',
+                            minKey: 'min',
+                            q1Key: 'q1',
+                            medianKey: 'median',
+                            q3Key: 'q3',
+                            maxKey: 'max',
+                        },
+                    ],
+                    axes: categoryNumberAxes,
+                })
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('renders a grouped box-plot series with bigint values', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: [
+                        {
+                            x: 'a',
+                            min: NEG_BIG,
+                            q1: NEG_BIG / 2n,
+                            median: 0n,
+                            q3: BIG / 2n,
+                            max: BIG,
+                            min2: NEG_BIG * 2n,
+                            q12: NEG_BIG,
+                            median2: BIG / 2n,
+                            q32: BIG,
+                            max2: BIG * 2n,
+                        },
+                        {
+                            x: 'b',
+                            min: NEG_BIG * 2n,
+                            q1: NEG_BIG,
+                            median: BIG / 2n,
+                            q3: BIG,
+                            max: BIG * 2n,
+                            min2: NEG_BIG,
+                            q12: NEG_BIG / 2n,
+                            median2: 0n,
+                            q32: BIG / 2n,
+                            max2: BIG,
+                        },
+                    ],
+                    series: [
+                        {
+                            type: 'box-plot',
+                            xKey: 'x',
+                            minKey: 'min',
+                            q1Key: 'q1',
+                            medianKey: 'median',
+                            q3Key: 'q3',
+                            maxKey: 'max',
+                        },
+                        {
+                            type: 'box-plot',
+                            xKey: 'x',
+                            minKey: 'min2',
+                            q1Key: 'q12',
+                            medianKey: 'median2',
+                            q3Key: 'q32',
+                            maxKey: 'max2',
+                        },
+                    ],
+                    axes: categoryNumberAxes,
+                })
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
+
+    describe('ISO datetime (AG-16654)', () => {
+        it('renders a box-plot series with ISO-8601 datetime-string x values on a unit-time axis', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: [
+                        { time: '2024-01-15T09:00:00Z', min: 3, q1: 4, median: 5, q3: 6, max: 7 },
+                        { time: '2024-01-15T10:00:00Z', min: 4, q1: 5, median: 6, q3: 7, max: 8 },
+                        { time: '2024-01-15T11:00:00Z', min: 2, q1: 3, median: 4, q3: 5, max: 6 },
+                    ],
+                    series: [
+                        {
+                            type: 'box-plot',
+                            xKey: 'time',
+                            minKey: 'min',
+                            q1Key: 'q1',
+                            medianKey: 'median',
+                            q3Key: 'q3',
+                            maxKey: 'max',
+                        },
+                    ],
+                    axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
+                })
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
+
+    describe('bigint magnitude invariance (AG-16608)', () => {
+        const boxes =
+            (rows: Array<[number, number, number, number, number]>) => (toValue: (v: number) => number | bigint) =>
+                rows.map(([min, q1, median, q3, max], i) => ({
+                    x: `c${i}`,
+                    min: toValue(min),
+                    q1: toValue(q1),
+                    median: toValue(median),
+                    q3: toValue(q3),
+                    max: toValue(max),
+                }));
+
+        it('positions a plain box-plot series identically when scaled beyond Number.MAX_VALUE', async () => {
+            await expectPixelIdenticalAcrossMagnitude(
+                ctx,
+                createEnterpriseChart,
+                magnitudePair(
+                    {
+                        series: [
+                            {
+                                type: 'box-plot',
+                                xKey: 'x',
+                                minKey: 'min',
+                                q1Key: 'q1',
+                                medianKey: 'median',
+                                q3Key: 'q3',
+                                maxKey: 'max',
+                            },
+                        ],
+                        axes: stripAxes({ x: { type: 'category' }, y: { type: 'number', nice: false } }),
+                    },
+                    boxes([
+                        [-4, -2, 0, 2, 4],
+                        [-8, -4, 2, 4, 8],
+                    ])
+                )
+            );
         });
     });
 });

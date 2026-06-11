@@ -3,6 +3,7 @@ import { EventEmitter } from 'ag-charts-core';
 import { Group } from '../../../scene/group';
 import { Selection } from '../../../scene/selection';
 import { DataSet } from '../../data/dataSet';
+import { BIG } from '../../test/bigintExamples';
 import type { SeriesTooltip } from '../seriesTooltip';
 import { HierarchyNode, HierarchySeries } from './hierarchySeries';
 import { HierarchySeriesProperties } from './hierarchySeriesProperties';
@@ -93,6 +94,36 @@ describe('HierarchySeries', () => {
 
         expect(series.rootNode).toMatchSnapshot();
         expect(series.rootNode!.sumSize).toBe(5 + 1 + 2 + 3 + 5 + 1 + 2 + 4 + 5 + 6 + 3 + 7);
+    });
+
+    it('coerces out-of-safe-range bigint size and colour to Number (AG-16608)', () => {
+        const series = new ExampleHierarchySeries({
+            eventsHub: new EventEmitter(),
+        } as any);
+        series.properties.sizeKey = 'size';
+        series.properties.colorKey = 'color';
+        series.setChartData(
+            DataSet.wrap([
+                {
+                    size: BIG,
+                    color: BIG,
+                    children: [
+                        { size: BIG, color: BIG * 2n },
+                        { size: BIG * 2n, color: BIG * 3n },
+                    ],
+                },
+            ])
+        );
+        series.processData();
+
+        // Before the fix bigint sizes collapsed to 1/0 (sumSize 2) and the colour domain
+        // to [Infinity, -Infinity]; both must now flow through, coerced to Number.
+        expect(series.rootNode!.sumSize).toBe(Number(BIG) + Number(BIG) + Number(BIG * 2n));
+        expect(series.colorDomain).toEqual([Number(BIG), Number(BIG * 3n)]);
+
+        const leaf = series.rootNode!.children[0].children[0];
+        expect(typeof leaf.sizeValue).toBe('number');
+        expect(typeof leaf.colorValue).toBe('number');
     });
 
     it('handles an empty dataset', () => {

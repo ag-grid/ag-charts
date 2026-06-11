@@ -8,6 +8,7 @@ import type {
 } from 'ag-charts-community';
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
+    BIG,
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
@@ -21,7 +22,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 
 const FUNNEL_EXAMPLE: AgChartOptions = {
     title: {
@@ -663,6 +664,21 @@ describe('FunnelSeries', () => {
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
+        });
+    });
+
+    describe('bigint values (AG-16608)', () => {
+        it('renders a funnel series with out-of-safe-range bigint values', async () => {
+            expect(
+                await renderEnterpriseChartImage(ctx, {
+                    data: [
+                        { stage: 'a', value: BIG * 3n },
+                        { stage: 'b', value: BIG * 2n },
+                        { stage: 'c', value: BIG },
+                    ],
+                    series: [{ type: 'funnel', stageKey: 'stage', valueKey: 'value' }],
+                })
+            ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
     });
 });

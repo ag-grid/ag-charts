@@ -7,6 +7,9 @@ import {
     computeExtremesAggregation,
 } from 'ag-charts-core';
 
+import { describeExtremesAggregationEntryPoint } from '../../test/aggregationSharedTests';
+import { aggregateRangeBarDataFromDataModel } from './rangeBarAggregation';
+
 // Semantic constants for Range Bar data access
 const START = AGGREGATION_INDEX_X_MIN;
 const HIGH = AGGREGATION_INDEX_Y_MAX;
@@ -515,4 +518,10 @@ describe('computeExtremesAggregation', () => {
             }
         });
     });
+});
+
+describeExtremesAggregationEntryPoint('aggregateRangeBarDataFromDataModel', {
+    aggregate: aggregateRangeBarDataFromDataModel,
+    highColumnId: 'yHighValue',
+    lowColumnId: 'yLowValue',
 });

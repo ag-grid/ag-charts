@@ -9,10 +9,12 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
+import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
 import type { CartesianTestCase } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    createChart,
     expectWarningMessages,
     extractImageData,
     prepareTestOptions,
@@ -448,6 +450,46 @@ describe('CrossLine', () => {
 
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
+        });
+    });
+
+    // Value-preserving widening checks: the same cross-line value supplied as `number`
+    // and as `bigint` must render pixel-identically and without validation warnings.
+    describe('#bigint values (AG-16608)', () => {
+        const buildOptions = (crossLines: AgCartesianCrossLineOptions[]): AgCartesianChartOptions => ({
+            data: [
+                { x: 0, y: 10 },
+                { x: 1, y: 60 },
+                { x: 2, y: 35 },
+                { x: 3, y: 90 },
+            ],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'number', position: 'left', crossLines },
+            },
+        });
+
+        const compareVariants = (
+            numberCrossLines: AgCartesianCrossLineOptions[],
+            bigintCrossLines: AgCartesianCrossLineOptions[]
+        ) =>
+            expectPixelIdenticalAcrossUpdate(
+                ctx,
+                createChart,
+                buildOptions(numberCrossLines),
+                buildOptions(bigintCrossLines)
+            );
+
+        it('renders a bigint line value identically to a number value', async () => {
+            await compareVariants(
+                [{ type: 'line', value: 50, label: { text: 'th' } }],
+                [{ type: 'line', value: 50n, label: { text: 'th' } }]
+            );
+        });
+
+        it('renders a bigint range identically to a number range', async () => {
+            await compareVariants([{ type: 'range', range: [30, 70] }], [{ type: 'range', range: [30n, 70n] }]);
         });
     });
 });

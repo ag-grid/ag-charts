@@ -22,6 +22,7 @@ import {
     mergeDefaults,
     minValue,
     subtractValues,
+    zeroLike,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
@@ -288,8 +289,12 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         } else {
             const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent');
             const yExtent = values[yCurrIndex];
-            // minValue/maxValue (not Math.min/max, which throw on bigint) keep an exact bigint extent.
-            const fixedYExtent = [minValue(0, yExtent[0]), maxValue(0, yExtent[1])];
+            // minValue/maxValue (not Math.min/max, which throw on bigint) keep an exact bigint extent, and
+            // zeroLike keeps the baseline the same type so fixNumericExtent never sees a mixed extent.
+            const fixedYExtent = [
+                minValue(zeroLike(yExtent[0]), yExtent[0]),
+                maxValue(zeroLike(yExtent[1]), yExtent[1]),
+            ];
             return { domain: fixNumericExtent(fixedYExtent) };
         }
     }

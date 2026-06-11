@@ -310,7 +310,8 @@ export function createBigIntBins(start: bigint, stop: bigint, count: number): [b
     const hi = start < stop ? stop : start;
     if (lo === hi) return [[lo, hi]];
 
-    const segments = BigInt(Math.max(1, Math.floor(count) || 1));
+    // NaN-safe clamp to a positive integer — BigInt(NaN) throws.
+    const segments = BigInt(Number.isFinite(count) ? Math.max(1, Math.floor(count)) : 1);
     const span = hi - lo;
 
     const bins: [bigint, bigint][] = [];

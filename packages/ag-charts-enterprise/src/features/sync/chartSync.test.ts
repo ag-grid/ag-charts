@@ -97,4 +97,41 @@ describe('ChartSync', () => {
             expect(remainingAnimationTime[3]).toBeGreaterThan(6000);
         });
     });
+
+    describe('bigint domain synchronization (AG-16608)', () => {
+        const BIG = 9_007_199_254_740_993n; // Number.MAX_SAFE_INTEGER + 2
+        const bigintLineChart = (data: object[]): AgCartesianChartOptions =>
+            prepareEnterpriseTestOptions({
+                data,
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                sync: { axes: 'y' },
+            } as AgCartesianChartOptions);
+
+        it('should converge both charts onto the union bigint Y-domain', async () => {
+            const bigintData = [
+                { x: 0, y: BIG },
+                { x: 1, y: BIG * 3n },
+                { x: 2, y: BIG * 2n },
+                { x: 3, y: BIG * 4n },
+            ];
+            // The second chart carries a larger maximum, so a working sync must widen the first chart's
+            // domain to match.
+            charts = [
+                AgCharts.create(bigintLineChart(bigintData)),
+                AgCharts.create(bigintLineChart([...bigintData, { x: 4, y: BIG * 8n }])),
+            ];
+            await waitForAllChartStability();
+
+            const yDomain = (c: AgChartInstance<AgCartesianChartOptions>) =>
+                deproxy(c).axes.find((axis) => axis.direction === ChartAxisDirection.Y)!.dataDomain.domain;
+            // The nice number axis extends the low end to the Number 0; the high end stays the exact
+            // bigint union maximum contributed by the second chart.
+            expect(yDomain(charts[0])).toEqual([0, BIG * 8n]);
+            expect(yDomain(charts[1])).toEqual([0, BIG * 8n]);
+        });
+    });
 });

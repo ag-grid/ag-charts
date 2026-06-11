@@ -179,6 +179,84 @@ describe('RadialGaugeSeries', () => {
         });
     });
 
+    describe('bigint values (AG-16608)', () => {
+        // A value beyond Number.MAX_SAFE_INTEGER that would lose precision if narrowed to Number.
+        const BIG_VALUE = 9_007_199_254_740_993n;
+        const BIG_MAX = 9_007_199_254_740_999n;
+
+        const renderAndGetCaption = async (overrides: Partial<AgRadialGaugeOptions>) => {
+            const options: AgRadialGaugeOptions = {
+                ...EXAMPLE_OPTIONS,
+                value: BIG_VALUE,
+                scale: { min: 0n, max: BIG_MAX },
+                ...overrides,
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.createGauge(options));
+            await waitForChartStability(chart);
+            return chart.series[0].getCaptionText();
+        };
+
+        it('should render with bigint value, scale and target without throwing', async () => {
+            await renderAndGetCaption({ targets: [{ value: BIG_VALUE }] });
+            await compare();
+        });
+
+        it('should render the bigint value label at full precision', async () => {
+            const caption = await renderAndGetCaption({});
+            expect(caption).toContain(BIG_VALUE.toLocaleString());
+        });
+
+        it('should render with a bigint scale.interval.step without throwing', async () => {
+            const caption = await renderAndGetCaption({
+                scale: { min: 0n, max: BIG_MAX, interval: { step: 2_000_000_000_000_000n } },
+            });
+            expect(caption).toContain(BIG_VALUE.toLocaleString());
+        });
+
+        it('should render with bigint scale.interval.values without throwing', async () => {
+            const caption = await renderAndGetCaption({
+                scale: {
+                    min: 0n,
+                    max: BIG_MAX,
+                    interval: { values: [0n, 3_000_000_000_000_000n, 6_000_000_000_000_000n] },
+                },
+            });
+            expect(caption).toContain(BIG_VALUE.toLocaleString());
+        });
+
+        it('should render with bigint colour stop values without throwing', async () => {
+            const caption = await renderAndGetCaption({
+                bar: {
+                    fills: [
+                        { color: '#0f0', stop: 0n },
+                        { color: '#ff0', stop: 4_000_000_000_000_000n },
+                        { color: '#f00', stop: BIG_MAX },
+                    ],
+                    fillMode: 'discrete',
+                },
+            });
+            expect(caption).toContain(BIG_VALUE.toLocaleString());
+        });
+
+        it('should render with a bigint segmentation step without throwing', async () => {
+            const caption = await renderAndGetCaption({
+                segmentation: { enabled: true, interval: { step: 2_000_000_000_000_000n } },
+            });
+            expect(caption).toContain(BIG_VALUE.toLocaleString());
+        });
+
+        it('should render with bigint segmentation values without throwing', async () => {
+            const caption = await renderAndGetCaption({
+                segmentation: {
+                    enabled: true,
+                    interval: { values: [3_000_000_000_000_000n, 6_000_000_000_000_000n] },
+                },
+            });
+            expect(caption).toContain(BIG_VALUE.toLocaleString());
+        });
+    });
+
     it('it should export image as expected (AG-12985)', async () => {
         const options: AgRadialGaugeOptions = { ...EXAMPLE_OPTIONS };
         prepareEnterpriseTestOptions(options);
