@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { type AgCartesianChartOptions, type AgChartInstance, AgCharts } from 'ag-charts-community';
 import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
@@ -112,7 +112,6 @@ describe('ChartSync', () => {
             } as AgCartesianChartOptions);
 
         it('should converge both charts onto the union bigint Y-domain', async () => {
-            const errorSpy = vi.spyOn(console, 'error');
             const bigintData = [
                 { x: 0, y: BIG },
                 { x: 1, y: BIG * 3n },
@@ -130,8 +129,6 @@ describe('ChartSync', () => {
             const yDomain = (c: AgChartInstance<AgCartesianChartOptions>) =>
                 deproxy(c).axes.find((axis) => axis.direction === ChartAxisDirection.Y)!.dataDomain.domain;
             expect(yDomain(charts[0])).toEqual(yDomain(charts[1]));
-            expect(errorSpy).not.toHaveBeenCalled();
-            errorSpy.mockRestore();
         });
     });
 });

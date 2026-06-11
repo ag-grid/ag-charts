@@ -44,9 +44,9 @@ describe('ChordSeries', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    it('renders a bigint sizeKey without error (AG-16608 §9.1.1)', async () => {
-        // GAP — chord node-size accumulation (acc + link.size, totalSize +=, Math.max(.../totalSize)) mixes a
-        // bigint size with a Number seed/divisor, throwing "Cannot mix BigInt and other types".
+    it('renders a bigint sizeKey without error (AG-16608)', async () => {
+        // Chord node-size accumulation must not mix a bigint size with a Number seed/divisor
+        // ("Cannot mix BigInt and other types").
         const options: AgChartOptions = {
             data: [
                 { from: 'A', to: 'B', size: 9_007_199_254_740_993n },
@@ -58,8 +58,6 @@ describe('ChordSeries', () => {
         prepareEnterpriseTestOptions(options);
         chart = deproxy(AgCharts.create(options));
         await waitForChartStability(chart);
-
-        expect(console.error).not.toHaveBeenCalled();
     });
 
     describe('Series', () => {

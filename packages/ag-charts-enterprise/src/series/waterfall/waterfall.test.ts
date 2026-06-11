@@ -137,9 +137,9 @@ describe('WaterfallSeries', () => {
         };
     }
 
-    it('preserves bigint value precision in the data label and formatter callback (AG-16608 §9.2.1/9.2.2)', async () => {
-        // GAP — computeDisplayValue() Number()s the raw value before it reaches getLabelText, so a bigint
-        // beyond 2^53 is float64-rounded in both the rendered label text and the label-formatter `value`.
+    it('preserves bigint value precision in the data label and formatter callback (AG-16608)', async () => {
+        // The raw value must reach the label text and label-formatter `value` un-narrowed; a bigint
+        // beyond 2^53 would otherwise be float64-rounded in both.
         const BIG_VALUE = 9_007_199_254_740_993n; // Number()-rounds to ...992
         let captured: unknown;
         const options: AgCartesianChartOptions = {

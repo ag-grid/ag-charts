@@ -877,7 +877,7 @@ describe('RadarLineSeries', () => {
                 series: [{ type: 'radar-line', angleKey: 'subject', radiusKey: 'grade' }],
                 axes: { angle: { type: 'angle-category' }, radius: { type: 'radius-number' } },
             };
-            prepareEnterpriseTestOptions(options as any);
+            prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
             await compare();

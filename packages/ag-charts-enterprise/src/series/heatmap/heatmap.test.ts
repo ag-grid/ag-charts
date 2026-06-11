@@ -11,6 +11,7 @@ import {
     assertTooltipSuppressedForMissing,
     computeLegendBBox,
     deproxy,
+    expectPixelIdenticalAcrossUpdate,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
@@ -21,7 +22,7 @@ import {
 } from 'ag-charts-community-test';
 import { classCast } from 'ag-charts-test';
 
-import { prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 import { HeatmapSeries } from './heatmapSeries';
 
 // Drives a hover at the canvas point of the given datum index and waits for chart stability.
@@ -1293,37 +1294,26 @@ describe('HeatmapSeries', () => {
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
 
-        // AG-16608 — value-preserving widening check: the same colour-scale domain/stops supplied as
-        // `number` and as `bigint` must render pixel-identically and without validation warnings.
+        // The same colour-scale domain/stops supplied as `number` and as `bigint` must render
+        // pixel-identically and without validation warnings.
         it('renders a bigint colorScale domain and stops identically to numbers', async () => {
-            // Renders the number variant, then updates the SAME chart to the bigint variant — the
-            // mock canvas only tracks the first chart per test, so cross-create snapshots would
-            // compare a stale canvas against itself.
-            const buildOptions = (colorScale: object) =>
-                prepareEnterpriseTestOptions({
-                    ...EXAMPLE_OPTIONS,
-                    series: [{ ...EXAMPLE_OPTIONS.series![0], colorScale } as never],
-                });
+            const buildOptions = (colorScale: object): AgChartOptions => ({
+                ...EXAMPLE_OPTIONS,
+                series: [{ ...EXAMPLE_OPTIONS.series![0], colorScale } as never],
+            });
 
-            chart = AgCharts.create(
+            await expectPixelIdenticalAcrossUpdate(
+                ctx,
+                createEnterpriseChart,
                 buildOptions({
                     domain: [0, 60],
                     fills: [{ color: 'yellow', stop: 20 }, { color: 'red', stop: 40 }, { color: 'blue' }],
-                })
-            );
-            await waitForChartStability(chart);
-            const numberImage = ctx.snapshot();
-
-            await chart.update(
+                }),
                 buildOptions({
                     domain: [0n, 60n],
                     fills: [{ color: 'yellow', stop: 20n }, { color: 'red', stop: 40n }, { color: 'blue' }],
                 })
             );
-            await waitForChartStability(chart);
-            const bigintImage = ctx.snapshot();
-
-            expect(bigintImage).toMatchImage(numberImage);
         });
     });
 });

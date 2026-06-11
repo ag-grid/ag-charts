@@ -15,6 +15,7 @@ import {
     clickAction,
     computeLegendBBox,
     deproxy,
+    expectPixelIdenticalAcrossUpdate,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
@@ -23,7 +24,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import { ukData } from '../map-test/ukData';
 import ukTopology from '../map-test/ukTopology.json';
 import type { MapMarkerSeries } from './mapMarkerSeries';
@@ -821,40 +822,19 @@ describe('MapMarkerSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
-});
+    describe('bigint size domain (AG-16608)', () => {
+        it('renders a bigint sizeDomain identically to numbers', async () => {
+            const buildOptions = (sizeDomain: [number, number] | [bigint, bigint]): AgChartOptions => ({
+                ...SIZE_EXAMPLE,
+                series: [SIZE_EXAMPLE.series![0], { ...SIZE_EXAMPLE.series![1], sizeDomain } as never],
+            });
 
-describe('MapMarkerSeries bigint size domain (AG-16608)', () => {
-    setupMockConsole();
-    const ctx = setupMockCanvas();
-
-    let chart: ReturnType<typeof AgCharts.create> | undefined;
-
-    afterEach(() => {
-        chart?.destroy();
-        chart = undefined;
-    });
-
-    const buildOptions = (sizeDomain: [number, number] | [bigint, bigint]): AgChartOptions => {
-        const options: AgChartOptions = {
-            ...SIZE_EXAMPLE,
-            series: [SIZE_EXAMPLE.series![0], { ...SIZE_EXAMPLE.series![1], sizeDomain } as never],
-        };
-        prepareEnterpriseTestOptions(options);
-        return options;
-    };
-
-    // Renders the number variant, then updates the SAME chart to the bigint variant — the mock
-    // canvas only tracks the first chart per test, so cross-create snapshots would compare a
-    // stale canvas against itself.
-    it('renders a bigint sizeDomain identically to numbers', async () => {
-        chart = AgCharts.create(buildOptions([0, 60_000_000]));
-        await waitForChartStability(chart);
-        const numberImage = ctx.snapshot();
-
-        await chart.update(buildOptions([0n, 60_000_000n]));
-        await waitForChartStability(chart);
-        const bigintImage = ctx.snapshot();
-
-        expect(bigintImage).toMatchImage(numberImage);
+            await expectPixelIdenticalAcrossUpdate(
+                ctx,
+                createEnterpriseChart,
+                buildOptions([0, 60_000_000]),
+                buildOptions([0n, 60_000_000n])
+            );
+        });
     });
 });

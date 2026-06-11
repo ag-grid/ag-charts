@@ -8,14 +8,15 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     NEG_BIG,
     STRIPPED_NUMBER_AXES,
+    STRIPPED_UNIT_TIME_AXES,
     expectPixelIdenticalAcrossMagnitude,
     expectWarningsCalls,
     extractImageData,
+    isoEpochPair,
     magnitudePair,
     scaleToBigIntFinite,
     setupMockCanvas,
     setupMockConsole,
-    stripAxes,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -399,7 +400,6 @@ describe('OhlcSeries', () => {
     describe('bigint high-volume aggregation invariance (AG-16608)', () => {
         const N = HIGH_VOLUME_COUNT;
         const keys = { xKey: 'x', lowKey: 'low', openKey: 'open', closeKey: 'close', highKey: 'high' } as const;
-        const STRIPPED_TIME_AXES = stripAxes({ x: { type: 'unit-time' }, y: { type: 'number', nice: false } });
         const bar = (toValue: (v: number) => number | bigint, base: number, i: number) => ({
             x: i + 1,
             low: toValue(base - 5),
@@ -424,22 +424,14 @@ describe('OhlcSeries', () => {
         );
 
         it('renders high-volume ISO-string x identically to numeric epoch x on a time axis', async () => {
-            const startMs = Date.UTC(2024, 0, 1);
-            const at = (i: number) => startMs + i * 60_000;
-            const base = { series: [{ type: 'ohlc', ...keys }], axes: STRIPPED_TIME_AXES };
-            const row = (x: number | string, i: number) => {
-                const b = Math.sin(i / 10) * 5;
-                return { x, low: b - 5, open: b - 2, close: b + 2, high: b + 5 };
-            };
-            const small = {
-                ...base,
-                data: Array.from({ length: N }, (_, i) => row(at(i), i)),
-            } as AgChartOptions;
-            const large = {
-                ...base,
-                data: Array.from({ length: N }, (_, i) => row(new Date(at(i)).toISOString(), i)),
-            } as AgChartOptions;
-            await expectPixelIdenticalAcrossMagnitude(ctx, createEnterpriseChart, { small, large });
+            await expectPixelIdenticalAcrossMagnitude(
+                ctx,
+                createEnterpriseChart,
+                isoEpochPair({ series: [{ type: 'ohlc', ...keys }], axes: STRIPPED_UNIT_TIME_AXES }, N, (x, i) => {
+                    const b = Math.sin(i / 10) * 5;
+                    return { x, low: b - 5, open: b - 2, close: b + 2, high: b + 5 };
+                })
+            );
         });
     });
 });

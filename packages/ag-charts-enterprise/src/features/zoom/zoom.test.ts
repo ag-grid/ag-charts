@@ -1307,18 +1307,14 @@ describe('Zoom', () => {
         };
 
         it('should scroll-zoom a bigint-axis chart without error', async () => {
-            const errorSpy = vi.spyOn(console, 'error');
             await prepareChart(undefined, undefined, BIGINT_EXAMPLE_OPTIONS);
             await scrollAction(cx, cy, -1)(chart);
             await waitForChartStability(chart);
 
             expect(chart.getState().zoom).toBeDefined();
-            expect(errorSpy).not.toHaveBeenCalled();
-            errorSpy.mockRestore();
         });
 
         it('should round-trip getState/setState on a bigint-axis chart', async () => {
-            const errorSpy = vi.spyOn(console, 'error');
             await prepareChart(undefined, { ratioX: { start: 0.2, end: 0.6 } }, BIGINT_EXAMPLE_OPTIONS, false);
             await waitForChartStability(chart);
 
@@ -1329,15 +1325,11 @@ describe('Zoom', () => {
             // The bigint-derived zoom range must survive the encode/decode round-trip exactly (the float
             // ratio can drift by 1 ULP, which is pre-existing and unrelated to bigint).
             expect(chart.getState().zoom?.rangeY).toEqual(saved.zoom?.rangeY);
-            expect(errorSpy).not.toHaveBeenCalled();
-            errorSpy.mockRestore();
         });
 
-        // AG-16608 — value-preserving widening check: the same zoom range endpoints supplied as
-        // `number` and as `bigint` must produce the same zoom state.
+        // The same zoom range endpoints supplied as `number` and as `bigint` must produce the
+        // same zoom state.
         it('should produce the same zoom for bigint and number rangeX endpoints', async () => {
-            const errorSpy = vi.spyOn(console, 'error');
-
             // Explicit number axes: on the default category x-axis a bigint is a type-distinct
             // category key, which is out of scope for the continuous-axis range widening.
             const numberAxesOptions: AgChartOptions = {
@@ -1353,6 +1345,8 @@ describe('Zoom', () => {
             const numberZoom = chart.getState().zoom;
             chart.destroy();
 
+            // The serialisable initial-state type only admits the `{ __type: 'bigint' }` form, but raw
+            // bigint endpoints are accepted at runtime; the cast exercises that runtime path.
             await prepareChart(undefined, { rangeX: { start: 3n, end: 6n } as never }, numberAxesOptions, false);
             await waitForChartStability(chart);
             const bigintZoom = chart.getState().zoom;
@@ -1362,14 +1356,11 @@ describe('Zoom', () => {
             expect(numberZoom?.ratioX).toBeDefined();
             expect(numberZoom?.ratioX).not.toEqual({ start: 0, end: 1 });
             expect(bigintZoom).toEqual(numberZoom);
-            expect(errorSpy).not.toHaveBeenCalled();
-            errorSpy.mockRestore();
         });
 
         it('should preserve the domain across a data update on a bigint axis without error', async () => {
-            // Exercises the zoomOnDataChange preserveDomain interpolation, which narrows the
-            // bigint domain to Number (it previously logged "Unexpected range types").
-            const errorSpy = vi.spyOn(console, 'error');
+            // The zoomOnDataChange preserveDomain interpolation must narrow a bigint domain to
+            // Number without reporting "Unexpected range types".
             await prepareChart(
                 { onDataChange: { strategy: 'preserveDomain' } },
                 { ratioX: { start: 0.2, end: 0.6 } },
@@ -1382,8 +1373,6 @@ describe('Zoom', () => {
             await waitForChartStability(chart);
 
             expect(chart.getState().zoom?.ratioX).toBeDefined();
-            expect(errorSpy).not.toHaveBeenCalled();
-            errorSpy.mockRestore();
         });
     });
 });

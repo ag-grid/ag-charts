@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { type AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 import { extractImageData, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
@@ -758,7 +758,6 @@ describe('Annotations', () => {
         it('should accept a raw bigint coordinate in initial state without error', async () => {
             // A provided initial state may hold raw bigint coordinates (not the serialised __type form);
             // restoring it must not throw when the state is re-encoded.
-            const errorSpy = vi.spyOn(console, 'error');
             await prepareChart(
                 {
                     annotations: [
@@ -771,14 +770,11 @@ describe('Annotations', () => {
                 },
                 NUMERIC_AXIS_OPTIONS
             );
-
-            expect(errorSpy).not.toHaveBeenCalled();
-            errorSpy.mockRestore();
         });
 
-        // AG-16608 — value-preserving widening checks: the same annotation y-value supplied as
-        // `number` and as `bigint` must render pixel-identically and without errors. Uses the
-        // standard time-axis options; only `y` (and channel heights) carry the widened values.
+        // The same annotation y-value supplied as `number` and as `bigint` must render
+        // pixel-identically and without errors. Uses the standard time-axis options; only `y`
+        // (and channel heights) carry the widened values.
         const X_START = { __type: 'date' as const, value: '2024-03-01' };
         const X_END = { __type: 'date' as const, value: '2024-09-01' };
 

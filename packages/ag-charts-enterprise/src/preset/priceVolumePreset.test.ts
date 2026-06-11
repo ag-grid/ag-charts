@@ -83,24 +83,34 @@ describe('priceVolumePreset', () => {
         expect(imageRaw.getContext('2d').getImageData(0, 0, imageRaw.width, imageRaw.height)).toMatchImage(reference);
     };
 
-    it('renders a bigint volume in the status bar with full precision (AG-16608 §9.1.5)', async () => {
-        // GAP — statusBar.updateHighlight gated on `typeof === 'number'`, so a bigint volume rendered as an
-        // empty readout. Intl.NumberFormat accepts bigint, so the Vol field must format the same as a number.
+    // Minimal view of the (private) StatusBar label structure read by the status-bar text accessor.
+    interface StatusBarLabels {
+        labels: Array<{ title?: { text?: string }; value: { text?: string } }>;
+    }
+
+    const statusBarLabelText = (instance: AgChartInstance<AgFinancialChartOptions>, title: string) => {
+        const statusBar = deproxy(instance).modulesManager.getModule<StatusBarLabels>('statusBar');
+        return statusBar?.labels.find((label) => label.title?.text === title)?.value.text;
+    };
+
+    it('renders a bigint volume in the status bar with full precision (AG-16608)', async () => {
+        // A bigint volume must produce a Vol readout formatted identically to its number equivalent;
+        // Intl.NumberFormat accepts bigint directly.
         const numberData = getStockData()
             .slice(0, 40)
             .map((d) => ({ ...d, volume: Math.round(d.volume) }));
         const bigintData = numberData.map((d) => ({ ...d, volume: BigInt(d.volume) }));
 
         const volumeText = async (data: unknown[]) => {
-            chart = AgCharts.createFinancialChart(
+            const instance = AgCharts.createFinancialChart(
                 prepareFinancialTestOptions({ chartType: 'candlestick', data } as AgFinancialChartOptions)
             );
-            await waitForChartStability(chart);
-            const statusBar = deproxy(chart).modulesManager.getModule<any>('statusBar');
-            const text: string | undefined = statusBar.labels.find((l: any) => l.title?.text === 'Vol')?.value.text;
-            chart.destroy();
-            (chart as unknown) = undefined;
-            return text;
+            try {
+                await waitForChartStability(instance);
+                return statusBarLabelText(instance, 'Vol');
+            } finally {
+                instance.destroy();
+            }
         };
 
         const bigintVolume = await volumeText(bigintData);

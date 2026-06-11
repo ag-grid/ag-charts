@@ -18,17 +18,18 @@ import {
     type MockRangeAreaStyler,
     NEG_BIG,
     STRIPPED_NUMBER_AXES,
+    STRIPPED_UNIT_TIME_AXES,
     expectPixelIdenticalAcrossMagnitude,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
+    isoEpochPair,
     magnitudePair,
     newFreezableMock,
     scaleToBigIntFinite,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
-    stripAxes,
     testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
@@ -1715,7 +1716,6 @@ describe('RangeAreaSeries', () => {
 
     describe('bigint high-volume aggregation invariance (AG-16608)', () => {
         const N = HIGH_VOLUME_COUNT;
-        const STRIPPED_TIME_AXES = stripAxes({ x: { type: 'unit-time' }, y: { type: 'number', nice: false } });
         const row = (toValue: (v: number) => number | bigint, base: number, i: number) => ({
             x: i + 1,
             lo: toValue(base - 5),
@@ -1741,17 +1741,18 @@ describe('RangeAreaSeries', () => {
         );
 
         it('renders high-volume ISO-string x identically to numeric epoch x on a time axis', async () => {
-            const startMs = Date.UTC(2024, 0, 1);
-            const at = (i: number) => startMs + i * 60_000;
-            const base = {
-                series: [{ type: 'range-area', xKey: 'x', yLowKey: 'lo', yHighKey: 'hi' }],
-                axes: STRIPPED_TIME_AXES,
-            };
-            const data = (x: (i: number) => number | string) =>
-                Array.from({ length: N }, (_, i) => ({ x: x(i), lo: Math.sin(i / 10) - 1, hi: Math.sin(i / 10) + 1 }));
-            const small = { ...base, data: data(at) } as AgChartOptions;
-            const large = { ...base, data: data((i) => new Date(at(i)).toISOString()) } as AgChartOptions;
-            await expectPixelIdenticalAcrossMagnitude(ctx, createEnterpriseChart, { small, large });
+            await expectPixelIdenticalAcrossMagnitude(
+                ctx,
+                createEnterpriseChart,
+                isoEpochPair(
+                    {
+                        series: [{ type: 'range-area', xKey: 'x', yLowKey: 'lo', yHighKey: 'hi' }],
+                        axes: STRIPPED_UNIT_TIME_AXES,
+                    },
+                    N,
+                    (x, i) => ({ x, lo: Math.sin(i / 10) - 1, hi: Math.sin(i / 10) + 1 })
+                )
+            );
         });
     });
 

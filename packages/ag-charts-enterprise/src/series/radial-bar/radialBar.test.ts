@@ -967,35 +967,23 @@ describe('RadialBarSeries', () => {
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
 
-        // Guards the bigint grid-tick sort; the mixed-numeric warnings are a cross-config artefact, not the regression.
-        it('renders bigint values on a radius-number axis without throwing (regression: grid tick sort)', async () => {
+        // Guards the bigint grid-tick sort on the value (angle-number) axis.
+        it('renders bigint values on an explicit angle-number axis without warnings (grid tick sort)', async () => {
             const options: AgPolarChartOptions = {
                 data: [
                     { category: 'A', value: BIG },
                     { category: 'B', value: BIG * 2n },
                     { category: 'C', value: BIG * 3n },
                 ],
-                series: [{ type: 'radial-bar', angleKey: 'category', radiusKey: 'value' }],
-                axes: { angle: { type: 'angle-category' }, radius: { type: 'radius-number' } } as any,
+                series: [{ type: 'radial-bar', angleKey: 'value', radiusKey: 'category' }],
+                axes: { angle: { type: 'angle-number' }, radius: { type: 'radius-category' } },
             };
-            prepareEnterpriseTestOptions(options as any);
+            prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            expectWarningsCalls().toMatchInlineSnapshot(`
-              [
-                [
-                  "AG Charts - column 'angleValue-start' for scope 'RadialBarSeries-1' was resolved as 'mixed-numeric' but holds 'string' values; check the series data types.",
-                ],
-                [
-                  "AG Charts - column 'angleValue-end' for scope 'RadialBarSeries-1' was resolved as 'mixed-numeric' but holds 'string' values; check the series data types.",
-                ],
-                [
-                  "AG Charts - column 'angleValue-raw' for scope 'RadialBarSeries-1' was resolved as 'mixed-numeric' but holds 'string' values; check the series data types.",
-                ],
-              ]
-            `);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
 
