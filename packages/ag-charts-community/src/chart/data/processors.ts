@@ -11,9 +11,9 @@ import {
     maxValue,
     memo,
     minValue,
+    narrowToNumber,
     subtractValues,
     timeValueToNumber,
-    toNumber,
     transformIntegratedCategoryValue,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
@@ -423,24 +423,21 @@ function normalisePropertyFnBuilder({
         return result;
     };
 
-    // Normalisation maps to an angle/ratio with Number factors, so narrow bigint endpoints/values to
-    // Number — a bigint would otherwise throw when mixed. Missing values keep raw coercion semantics
-    // (null -> 0, undefined -> NaN) without warning via toNumber.
-    const toRenderValue = (value: unknown): number => (isFiniteNumericValue(value) ? toNumber(value) : Number(value));
-
     return function normalisePropertyResetFn() {
         return function normalisePropertyResultFn(pData: ProcessedData<any>, pIdx: number) {
             let [start, end] = pData.domain.values[pIdx];
             if (rangeMin != null) start = rangeMin;
             if (rangeMax != null) end = rangeMax;
-            const startValue = toRenderValue(start);
-            const span = toRenderValue(end) - startValue;
+            // Normalisation maps to an angle/ratio with Number factors, so narrow bigint
+            // endpoints/values to Number — a bigint would otherwise throw when mixed.
+            const startValue = narrowToNumber(start);
+            const span = narrowToNumber(end) - startValue;
 
             pData.domain.values[pIdx] = [normaliseTo[0], normaliseTo[1]];
 
             const column = pData.columns[pIdx];
             for (let datumIndex = 0; datumIndex < column.length; datumIndex += 1) {
-                column[datumIndex] = normalise(toRenderValue(column[datumIndex]), startValue, span);
+                column[datumIndex] = normalise(narrowToNumber(column[datumIndex]), startValue, span);
             }
         };
     };

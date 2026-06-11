@@ -1,16 +1,10 @@
 import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedNumberAxisOptions } from 'ag-charts-core';
-import { Logger, normalisedExtentWithMetadata, toNumber, zeroLike } from 'ag-charts-core';
+import { Logger, narrowToNumber, normalisedExtentWithMetadata, zeroLike } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
 import { LogScale } from '../../scale/logScale';
 import { NumberAxis } from './numberAxis';
-
-// Invalid domains legitimately hold undefined entries, so only bigints route through toNumber
-// (which warns when the value exceeds the representable Number range).
-function narrowDomainValue(value: AgNumericValue | undefined): number {
-    return typeof value === 'bigint' ? toNumber(value) : Number(value);
-}
 
 export class LogAxis extends NumberAxis {
     static override readonly className = 'LogAxis';
@@ -19,8 +13,8 @@ export class LogAxis extends NumberAxis {
     protected override getVisibleDomain(domain: AgNumericValue[]): [number, number] {
         // Narrow to Number before any Math.* call — log scales narrow bigint anyway (see LogScale),
         // and Math.log/Math.min throw a TypeError when handed a bigint.
-        const d0 = narrowDomainValue(domain[0]);
-        const d1 = narrowDomainValue(domain[1]);
+        const d0 = narrowToNumber(domain[0]);
+        const d1 = narrowToNumber(domain[1]);
         const [r0, r1] = this.visibleRange;
 
         if (domain.length < 2) {

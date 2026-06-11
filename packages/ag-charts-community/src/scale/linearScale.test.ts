@@ -299,10 +299,20 @@ describe('LinearScale', () => {
             }
         });
 
-        test('narrows the public domain to Number for spreading consumers', () => {
+        test('selects the true bigint extremes beyond Number.MAX_VALUE', () => {
+            const scale = new LinearScale();
+            // Number()-narrowing maps every over-large endpoint to ±Infinity, so the true extreme is lost.
+            const max = BigInt(Number.MAX_VALUE);
+            const { domain } = scale.normalizeDomains({ domain: [-3n * max, -12n * max, 7n * max, 12n * max] });
+
+            expect(domain).toEqual([-12n * max, 12n * max]);
+        });
+
+        test('narrows the public domain array to Number', () => {
             const scale = new LinearScale();
             scale.domain = [0n, 100n];
 
+            // Exact endpoints are reached via domainMin/domainMax, not the narrowed array.
             expect(scale.domain).toEqual([0, 100]);
             expect(scale.domain.every((v) => typeof v === 'number')).toBe(true);
         });
@@ -442,6 +452,57 @@ describe('LinearScale', () => {
                 expect(scale.convertClamped(base - 100n)).toBe(0);
                 expect(scale.convertClamped(base + 5000n)).toBe(1000);
             });
+        });
+    });
+
+    describe('domainMin / domainMax', () => {
+        test('returns the true min/max of a Number domain regardless of order', () => {
+            const scale = new LinearScale();
+            scale.domain = [100, 0];
+
+            expect(scale.domainMin).toBe(0);
+            expect(scale.domainMax).toBe(100);
+        });
+
+        test('flows the exact bigint endpoints through (no Number narrowing)', () => {
+            const scale = new LinearScale();
+            scale.domain = [0n, 100n];
+
+            expect(scale.domainMin).toBe(0n);
+            expect(scale.domainMax).toBe(100n);
+        });
+
+        test('orders bigint endpoints by value for a descending domain', () => {
+            const scale = new LinearScale();
+            scale.domain = [100n, 0n];
+
+            expect(scale.domainMin).toBe(0n);
+            expect(scale.domainMax).toBe(100n);
+        });
+
+        test('preserves bigint precision beyond Number.MAX_SAFE_INTEGER', () => {
+            const lo = 10n ** 18n;
+            const hi = lo + 1n;
+            expect(Number(lo)).toBe(Number(hi)); // both collapse to the same Number
+
+            const scale = new LinearScale();
+            scale.domain = [lo, hi];
+
+            expect(scale.domainMin).toBe(lo);
+            expect(scale.domainMax).toBe(hi);
+        });
+
+        test('orders narrow-collapsed bigint endpoints by exact value for a descending domain', () => {
+            const hi = 10n ** 18n + 1n;
+            const lo = 10n ** 18n;
+            expect(Number(hi)).toBe(Number(lo)); // both collapse to the same Number, so the caches tie
+
+            const scale = new LinearScale();
+            // Descending + narrow-collapse: ordering must come from the exact bigints, not the tied caches.
+            scale.domain = [hi, lo];
+
+            expect(scale.domainMin).toBe(lo);
+            expect(scale.domainMax).toBe(hi);
         });
     });
 

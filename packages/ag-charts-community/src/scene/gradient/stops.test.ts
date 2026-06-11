@@ -56,6 +56,13 @@ describe('stops', () => {
                 const fills = [{}, {}, {}];
                 expect(resolveStopPositions(fills, -100, 100, false)).toEqual([-100, 0, 100]);
             });
+
+            test('bigint stops are narrowed to Number (AG-16608)', () => {
+                // Gauge AgGaugeColorStop allows bigint stops at runtime; the parameter type is Number.
+                const fills = [{ stop: 0n }, { stop: 60n }, { stop: 100n }] as unknown as Array<{ stop?: number }>;
+                expect(() => resolveStopPositions(fills, 0, 100, false)).not.toThrow();
+                expect(resolveStopPositions(fills, 0, 100, false)).toEqual([0, 60, 100]);
+            });
         });
 
         describe('discrete mode', () => {
@@ -153,6 +160,25 @@ describe('stops', () => {
                 expect(result[0]).toEqual({ stop: 0, color: 'red' });
                 expect(result[1]).toEqual({ stop: 0.6, color: 'yellow' });
                 expect(result[2]).toEqual({ stop: 1, color: 'green' });
+            });
+
+            test('bigint stops produce the same normalised gradient as Number stops (AG-16608)', () => {
+                const result = getColorStops(
+                    [
+                        { color: 'red', stop: 0n },
+                        { color: 'yellow', stop: 60n },
+                        { color: 'green', stop: 100n },
+                    ] as unknown as Array<{ color: string; stop?: number }>,
+                    defaults,
+                    [0, 100],
+                    'continuous'
+                );
+
+                expect(result).toEqual([
+                    { stop: 0, color: 'red' },
+                    { stop: 0.6, color: 'yellow' },
+                    { stop: 1, color: 'green' },
+                ]);
             });
 
             test('string fills are treated as colour-only entries', () => {
