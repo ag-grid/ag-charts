@@ -10,12 +10,9 @@ import {
     getDocument,
 } from 'ag-charts-core';
 import type {
-    AgChartCaptionOptions,
-    AgChartFooterOptions,
     AgChartInstance,
     AgChartOptions,
     AgChartState,
-    AgChartSubtitleOptions,
     AgDataTransaction,
     AgInitialStateLegendOptions,
     AgSelectionItem,
@@ -55,12 +52,6 @@ export interface FactoryApi {
         apiStartTime?: number
     ): AgChartProxy;
     updateUserDelta(chart: AgChartInstance, deltaOptions: DeepPartial<AgChartOptions>, apiStartTime?: number): void;
-}
-
-interface InternalDownloadOptions extends DownloadOptions {
-    title?: AgChartCaptionOptions;
-    subtitle?: AgChartSubtitleOptions;
-    footnote?: AgChartFooterOptions;
 }
 
 /**
@@ -275,7 +266,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
     private async prepareResizedChart(
         proxy: AgChartInstanceProxy,
         chart: NonNullable<AgChartInstanceProxy['chart']>,
-        opts: InternalDownloadOptions = {}
+        opts: DownloadOptions = {}
     ) {
         const width: number = opts.width ?? chart.width ?? chart.ctx.scene.canvas.width;
         const height: number = opts.height ?? chart.height ?? chart.ctx.scene.canvas.height;
@@ -292,10 +283,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             // @ts-expect-error undocumented option
             processedOverrides.overrideDevicePixelRatio = 1;
         }
-        const userOptions: AgChartOptions = { ...chart.getOptions() };
-        if (opts.title != null) userOptions.title = { ...userOptions.title, ...opts.title };
-        if (opts.subtitle != null) userOptions.subtitle = { ...userOptions.subtitle, ...opts.subtitle };
-        if (opts.footnote != null) userOptions.footnote = { ...userOptions.footnote, ...opts.footnote };
+        const userOptions = chart.getOptions();
 
         if (ModuleRegistry.isEnterprise()) {
             // Disable enterprise features that may interfere with image generation.
