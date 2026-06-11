@@ -183,6 +183,22 @@ describe('ErrorBars', () => {
         await compare();
     });
 
+    it('renders bigint error values on a number axis without error (AG-16608)', async () => {
+        // The error-bar domain may hold exact bigint endpoints, which Math.min/Math.max cannot consume.
+        const base = 9_007_199_254_740_993n; // beyond MAX_SAFE_INTEGER
+        chart = await createEnterpriseChart({
+            data: [
+                { x: 0, y: base + 2n, lo: base, hi: base + 4n },
+                { x: 1, y: base + 6n, lo: base + 4n, hi: base + 8n },
+            ],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y', errorBar: { yLowerKey: 'lo', yUpperKey: 'hi' } }],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+        });
+    });
+
     it('should render 1 bar series as expected', async () => {
         chart = await createEnterpriseChart({ series: [{ ...SERIES_CANADA, type: 'bar' }] });
         await compare();

@@ -70,6 +70,10 @@ describe('Strings Utilities', () => {
             const result = stringifyValue({ key: 'value' });
             expect(result).toBe('{"key":"value"}');
         });
+
+        it('stringifies a bigint without throwing', () => {
+            expect(stringifyValue(9_007_199_254_740_993n)).toBe('9007199254740993');
+        });
     });
 
     describe('countLines', () => {

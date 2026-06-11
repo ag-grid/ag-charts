@@ -15,6 +15,7 @@ import {
     clickAction,
     computeLegendBBox,
     deproxy,
+    expectPixelIdenticalAcrossUpdate,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
@@ -23,7 +24,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import { ukData } from '../map-test/ukData';
 import ukTopology from '../map-test/ukTopology.json';
 import type { MapMarkerSeries } from './mapMarkerSeries';
@@ -819,6 +820,21 @@ describe('MapMarkerSeries', () => {
             expect(markerSizes.length).toBeGreaterThan(0);
             expect([...new Set(markerSizes)]).toEqual([12]);
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+    });
+    describe('bigint size domain (AG-16608)', () => {
+        it('renders a bigint sizeDomain identically to numbers', async () => {
+            const buildOptions = (sizeDomain: [number, number] | [bigint, bigint]): AgChartOptions => ({
+                ...SIZE_EXAMPLE,
+                series: [SIZE_EXAMPLE.series![0], { ...SIZE_EXAMPLE.series![1], sizeDomain } as never],
+            });
+
+            await expectPixelIdenticalAcrossUpdate(
+                ctx,
+                createEnterpriseChart,
+                buildOptions([0, 60_000_000]),
+                buildOptions([0n, 60_000_000n])
+            );
         });
     });
 });

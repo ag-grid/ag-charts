@@ -7,6 +7,9 @@ import {
     computeExtremesAggregation,
 } from 'ag-charts-core';
 
+import { describeExtremesAggregationEntryPoint } from '../../test/aggregationSharedTests';
+import { aggregateOhlcDataFromDataModel } from './ohlcAggregation';
+
 // Semantic constants for OHLC data access
 const OPEN = AGGREGATION_INDEX_X_MIN;
 const HIGH = AGGREGATION_INDEX_Y_MAX;
@@ -494,4 +497,10 @@ describe('computeExtremesAggregation', () => {
             }
         });
     });
+});
+
+describeExtremesAggregationEntryPoint('aggregateOhlcDataFromDataModel', {
+    aggregate: aggregateOhlcDataFromDataModel,
+    highColumnId: 'highValue',
+    lowColumnId: 'lowValue',
 });

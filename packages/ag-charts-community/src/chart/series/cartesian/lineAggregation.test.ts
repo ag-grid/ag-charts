@@ -1,4 +1,13 @@
-import { computeLineAggregation } from './lineAggregation';
+import { describe, expect, it } from 'vitest';
+
+import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
+import { stubAggregationDataModel } from '../../test/aggregationStubs';
+import { aggregateLineDataFromDataModel, computeLineAggregation } from './lineAggregation';
+
+const series: ScopeProvider = { id: 'series-1' };
+// Line aggregation resolves both x and y through `resolveColumnById`.
+const stubLineDataModel = (xValues: any[], yValues: any[], domain: any[]) =>
+    stubAggregationDataModel([], { xValue: xValues, yValue: yValues }, domain);
 
 describe('computeLineAggregation', () => {
     describe('threshold behaviour', () => {
@@ -297,6 +306,85 @@ describe('computeLineAggregation', () => {
         });
     });
 
+    describe('bigint and ISO 8601 time values (render hardening)', () => {
+        it('aggregates bigint y values beyond MAX_SAFE_INTEGER (regression: high-volume bigint threw on Float64 write)', () => {
+            const N = 2000;
+            const base = 9_007_199_254_740_993n; // Number.MAX_SAFE_INTEGER + 2
+            const xValues = Array.from({ length: N }, (_, i) => i);
+            const yValues = Array.from({ length: N }, (_, i) => base + BigInt(i) * 1_000_000_000n);
+
+            const result = aggregateLineDataFromDataModel(
+                'number',
+                stubLineDataModel(xValues, yValues, [0, N - 1]),
+                {} as ProcessedData<any>,
+                'yValue',
+                series
+            );
+
+            expect(result).toBeDefined();
+            expect(result![0].indices.length).toBeGreaterThan(0);
+        });
+
+        it('aggregates bigint x values beyond MAX_SAFE_INTEGER on a number axis (>1000 pts)', () => {
+            // The X column is not narrowed (only Y is), so a bigint x reaches createAggregationIndices
+            // and `xValue - d0` must not throw "Cannot convert a BigInt value to a number".
+            const N = 2000;
+            const base = 9_007_199_254_740_993n; // Number.MAX_SAFE_INTEGER + 2
+            const xValues = Array.from({ length: N }, (_, i) => base + BigInt(i) * 1_000_000_000n);
+            const yValues = Array.from({ length: N }, (_, i) => Math.sin(i / 10));
+
+            const result = aggregateLineDataFromDataModel(
+                'number',
+                stubLineDataModel(xValues, yValues, [xValues[0], xValues[N - 1]]),
+                {} as ProcessedData<any>,
+                'yValue',
+                series
+            );
+
+            expect(result).toBeDefined();
+            expect(result![0].indices.length).toBeGreaterThan(0);
+        });
+
+        it('aggregates bigint timestamp x values on a time scale (>1000 pts)', () => {
+            // Bigint epoch timestamps on a time axis hit the same un-narrowed X path.
+            const N = 2000;
+            const baseMs = 1_700_000_000_000n;
+            const xValues = Array.from({ length: N }, (_, i) => baseMs + BigInt(i) * 60_000n);
+            const yValues = Array.from({ length: N }, (_, i) => Math.sin(i / 10));
+
+            const result = aggregateLineDataFromDataModel(
+                'time',
+                stubLineDataModel(xValues, yValues, [xValues[0], xValues[N - 1]]),
+                {} as ProcessedData<any>,
+                'yValue',
+                series
+            );
+
+            expect(result).toBeDefined();
+            expect(result![0].indices.length).toBeGreaterThan(0);
+        });
+
+        it('aggregates ISO 8601 string timestamps on a time scale (regression: high-volume ISO rendered blank)', () => {
+            const N = 2000;
+            const startMs = Date.UTC(2024, 0, 1);
+            const xValues = Array.from({ length: N }, (_, i) => new Date(startMs + i * 60_000).toISOString());
+            const yValues = Array.from({ length: N }, (_, i) => Math.sin(i / 10));
+            // The column keeps raw ISO strings (as the real pipeline does); the domain is the parsed extent.
+            const domain = [new Date(xValues[0]), new Date(xValues[N - 1])];
+
+            const result = aggregateLineDataFromDataModel(
+                'time',
+                stubLineDataModel(xValues, yValues, domain),
+                {} as ProcessedData<any>,
+                'yValue',
+                series
+            );
+
+            expect(result).toBeDefined();
+            expect(result![0].indices.length).toBeGreaterThan(0);
+        });
+    });
+
     describe('filter structure', () => {
         it('should return filters with correct structure', () => {
             const xValues = Array.from({ length: 2000 }, (_, i) => i);
@@ -357,5 +445,82 @@ describe('computeLineAggregation', () => {
                 }
             }
         });
+    });
+});
+
+describe('aggregateLineDataFromDataModel - bigint downsampling fidelity (high magnitude, narrow range)', () => {
+    // When the Y span is below the double ULP at that magnitude, the endpoints must be subtracted in bigint
+    // before narrowing or distinct values collapse onto one double and the extrema are lost.
+    it('captures the true min/max when the Y span is below the double ULP at that magnitude', () => {
+        const N = 2000;
+        const BASE = 2n ** 60n + 123_456_789n; // off the power-of-2 boundary: uniform ULP (256) around it
+        const DELTA = 100n; // < half-ULP (128), so BASE, BASE ± DELTA all narrow to the same double
+        const spikeIndex = 1000; // interior to its bucket, so a collapsed downsampler cannot surface it
+        const dipIndex = 1500;
+
+        const xValues = Array.from({ length: N }, (_, i) => i);
+        const yValues = Array.from({ length: N }, () => BASE);
+        yValues[spikeIndex] = BASE + DELTA;
+        yValues[dipIndex] = BASE - DELTA;
+        const domain = [0, N - 1];
+
+        const result = aggregateLineDataFromDataModel(
+            'number',
+            stubLineDataModel(xValues, yValues, domain),
+            {} as ProcessedData<any>,
+            'yValue',
+            series
+        );
+        expect(result).toBeDefined();
+
+        // Coarsest level: the spike/dip share a bucket with baseline neighbours but must still surface.
+        const coarsest = result!.reduce((a, b) => (b.maxRange < a.maxRange ? b : a), result![0]);
+        // A naive narrow collapses the span to zero width, leaving this level empty and the series blank.
+        expect(coarsest.indices.length).toBeGreaterThan(0);
+
+        const selectedY = Array.from(coarsest.indices, (idx) => yValues[idx]);
+        const maxSelected = selectedY.reduce((a, b) => (b > a ? b : a), selectedY[0]);
+        const minSelected = selectedY.reduce((a, b) => (b < a ? b : a), selectedY[0]);
+
+        expect(maxSelected).toBe(BASE + DELTA);
+        expect(minSelected).toBe(BASE - DELTA);
+    });
+});
+
+describe('aggregateLineDataFromDataModel - bigint X downsampling fidelity (high magnitude, narrow range)', () => {
+    // The X column feeds the bucket assignment, which subtracts the domain min. When the X span is below the
+    // double ULP at that magnitude, that min must be subtracted in bigint before narrowing or every distinct X
+    // collapses onto one double: the whole series falls into a single bucket and the per-bucket X extrema are lost.
+    it('captures the true min/max X when the X span is below the double ULP at that magnitude', () => {
+        const N = 2000;
+        const BASE = 2n ** 60n + 123_456_789n; // off the power-of-2 boundary: uniform ULP (256) around it
+        const DELTA = 100n; // < half-ULP (128), so BASE, BASE ± DELTA all narrow to the same double
+        const spikeIndex = 1000; // the max X, interior to the data so a collapsed downsampler cannot surface it
+        const dipIndex = 1500; // the min X
+
+        const xValues = Array.from({ length: N }, () => BASE);
+        xValues[spikeIndex] = BASE + DELTA;
+        xValues[dipIndex] = BASE - DELTA;
+        const yValues = Array.from({ length: N }, () => 0); // constant Y, so only X extrema drive selection
+        const domain = [BASE - DELTA, BASE + DELTA]; // the bigint X extent
+
+        const result = aggregateLineDataFromDataModel(
+            'number',
+            stubLineDataModel(xValues, yValues, domain),
+            {} as ProcessedData<any>,
+            'yValue',
+            series
+        );
+        expect(result).toBeDefined();
+
+        // A naive absolute narrow collapses the X span to zero width, leaving a single representative.
+        const selectedIndices = new Set<number>();
+        for (const filter of result!) for (const idx of filter.indices) selectedIndices.add(idx);
+        const selectedX = Array.from(selectedIndices, (idx) => xValues[idx]);
+        const maxSelectedX = selectedX.reduce((a, b) => (b > a ? b : a), selectedX[0]);
+        const minSelectedX = selectedX.reduce((a, b) => (b < a ? b : a), selectedX[0]);
+
+        expect(maxSelectedX).toBe(BASE + DELTA);
+        expect(minSelectedX).toBe(BASE - DELTA);
     });
 });

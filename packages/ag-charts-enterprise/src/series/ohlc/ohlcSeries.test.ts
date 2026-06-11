@@ -2,15 +2,25 @@ import { describe, expect, it } from 'vitest';
 
 import { type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
+    BIG,
+    HIGH_VOLUME_COUNT,
+    HIGH_VOLUME_SIGNALS,
     IMAGE_SNAPSHOT_DEFAULTS,
+    NEG_BIG,
+    STRIPPED_NUMBER_AXES,
+    STRIPPED_UNIT_TIME_AXES,
+    expectPixelIdenticalAcrossMagnitude,
     expectWarningsCalls,
     extractImageData,
+    isoEpochPair,
+    magnitudePair,
+    scaleToBigIntFinite,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 
 const OHLC_OPTIONS: AgChartOptions = {
     data: [
@@ -322,6 +332,106 @@ describe('OhlcSeries', () => {
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compareSnapshot(chart);
+        });
+    });
+
+    describe.each(['ohlc', 'candlestick'] as const)('%s', (seriesType) => {
+        const keys = { xKey: 'x', lowKey: 'low', openKey: 'open', closeKey: 'close', highKey: 'high' } as const;
+
+        describe('bigint values (AG-16608)', () => {
+            it(`renders a plain ${seriesType} series with out-of-safe-range bigint values`, async () => {
+                expect(
+                    await renderEnterpriseChartImage(ctx, {
+                        data: [
+                            { x: 1, low: BIG, open: BIG * 2n, close: BIG * 3n, high: BIG * 4n },
+                            { x: 2, low: BIG * 2n, open: BIG * 3n, close: BIG * 2n, high: BIG * 5n },
+                            { x: 3, low: NEG_BIG, open: 0n, close: BIG, high: BIG * 2n },
+                        ],
+                        series: [{ type: seriesType, ...keys }],
+                        axes: { x: { type: 'number' }, y: { type: 'number' } },
+                    })
+                ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            });
+        });
+
+        describe('ISO datetime (AG-16654)', () => {
+            it(`renders a ${seriesType} series with ISO-8601 datetime-string x values on a unit-time axis`, async () => {
+                expect(
+                    await renderEnterpriseChartImage(ctx, {
+                        data: [
+                            { x: '2024-01-15T09:00:00Z', low: 3, open: 4, close: 6, high: 7 },
+                            { x: '2024-01-15T10:00:00Z', low: 5, open: 6, close: 5, high: 8 },
+                            { x: '2024-01-15T11:00:00Z', low: 2, open: 3, close: 4, high: 5 },
+                        ],
+                        series: [{ type: seriesType, ...keys }],
+                        axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
+                    })
+                ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            });
+        });
+
+        describe('bigint magnitude invariance (AG-16608)', () => {
+            const bars = (rows: Array<[number, number, number, number]>) => (toValue: (v: number) => number | bigint) =>
+                rows.map(([low, open, close, high], i) => ({
+                    x: i + 1,
+                    low: toValue(low),
+                    open: toValue(open),
+                    close: toValue(close),
+                    high: toValue(high),
+                }));
+
+            it(`positions a plain ${seriesType} series identically when scaled beyond Number.MAX_VALUE`, async () => {
+                await expectPixelIdenticalAcrossMagnitude(
+                    ctx,
+                    createEnterpriseChart,
+                    magnitudePair(
+                        { series: [{ type: seriesType, ...keys }], axes: STRIPPED_NUMBER_AXES },
+                        bars([
+                            [1, 2, 3, 4],
+                            [2, 3, 2, 5],
+                            [1, 2, 4, 5],
+                        ])
+                    )
+                );
+            });
+        });
+    });
+
+    describe('bigint high-volume aggregation invariance (AG-16608)', () => {
+        const N = HIGH_VOLUME_COUNT;
+        const keys = { xKey: 'x', lowKey: 'low', openKey: 'open', closeKey: 'close', highKey: 'high' } as const;
+        const bar = (toValue: (v: number) => number | bigint, base: number, i: number) => ({
+            x: i + 1,
+            low: toValue(base - 5),
+            open: toValue(base - 2),
+            close: toValue(base + 2),
+            high: toValue(base + 5),
+        });
+
+        it.each(HIGH_VOLUME_SIGNALS)(
+            'renders a %s high-volume bigint ohlc series identically to its Number baseline',
+            async (_label, sig) => {
+                await expectPixelIdenticalAcrossMagnitude(
+                    ctx,
+                    createEnterpriseChart,
+                    magnitudePair(
+                        { series: [{ type: 'ohlc', ...keys }], axes: STRIPPED_NUMBER_AXES },
+                        (toValue) => Array.from({ length: N }, (_, i) => bar(toValue, sig(i), i)),
+                        scaleToBigIntFinite
+                    )
+                );
+            }
+        );
+
+        it('renders high-volume ISO-string x identically to numeric epoch x on a time axis', async () => {
+            await expectPixelIdenticalAcrossMagnitude(
+                ctx,
+                createEnterpriseChart,
+                isoEpochPair({ series: [{ type: 'ohlc', ...keys }], axes: STRIPPED_UNIT_TIME_AXES }, N, (x, i) => {
+                    const b = Math.sin(i / 10) * 5;
+                    return { x, low: b - 5, open: b - 2, close: b + 2, high: b + 5 };
+                })
+            );
         });
     });
 });

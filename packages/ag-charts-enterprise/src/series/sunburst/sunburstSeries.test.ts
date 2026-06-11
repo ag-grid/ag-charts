@@ -10,6 +10,7 @@ import type {
 } from 'ag-charts-community';
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
+    BIG,
     type Chart,
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -1165,6 +1166,38 @@ describe('SunburstSeries', () => {
             stubChartImageLoader(chart);
             // The snapshot is the guard: if the series flattened the formatter's segment array to
             // plain text the stubbed image would not render and the baseline would diff.
+            await compare();
+        });
+    });
+
+    describe('bigint values (AG-16608)', () => {
+        it('renders out-of-safe-range bigint colour values across the colour range', async () => {
+            // Colours beyond Number.MAX_SAFE_INTEGER must span the colour domain, not collapse to one colour.
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        name: 'root',
+                        children: [
+                            { name: 'A', size: 1, color: BIG },
+                            { name: 'B', size: 1, color: BIG * 2n },
+                            { name: 'C', size: 1, color: BIG * 3n },
+                        ],
+                    },
+                ],
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'size',
+                        colorKey: 'color',
+                        colorScale: { fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }] },
+                    },
+                ],
+                animation: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
             await compare();
         });
     });

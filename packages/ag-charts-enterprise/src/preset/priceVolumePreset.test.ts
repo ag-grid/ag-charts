@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    deproxy,
     extractImageData,
     prepareFinancialTestOptions,
     setupMockCanvas,
@@ -81,6 +82,43 @@ describe('priceVolumePreset', () => {
         const imageRaw = ctx.getActiveCanvasInstances()[canvasCount];
         expect(imageRaw.getContext('2d').getImageData(0, 0, imageRaw.width, imageRaw.height)).toMatchImage(reference);
     };
+
+    // Minimal view of the (private) StatusBar label structure read by the status-bar text accessor.
+    interface StatusBarLabels {
+        labels: Array<{ title?: { text?: string }; value: { text?: string } }>;
+    }
+
+    const statusBarLabelText = (instance: AgChartInstance<AgFinancialChartOptions>, title: string) => {
+        const statusBar = deproxy(instance).modulesManager.getModule<StatusBarLabels>('statusBar');
+        return statusBar?.labels.find((label) => label.title?.text === title)?.value.text;
+    };
+
+    it('renders a bigint volume in the status bar with full precision (AG-16608)', async () => {
+        // A bigint volume must produce a Vol readout formatted identically to its number equivalent;
+        // Intl.NumberFormat accepts bigint directly.
+        const numberData = getStockData()
+            .slice(0, 40)
+            .map((d) => ({ ...d, volume: Math.round(d.volume) }));
+        const bigintData = numberData.map((d) => ({ ...d, volume: BigInt(d.volume) }));
+
+        const volumeText = async (data: unknown[]) => {
+            const instance = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({ chartType: 'candlestick', data } as AgFinancialChartOptions)
+            );
+            try {
+                await waitForChartStability(instance);
+                return statusBarLabelText(instance, 'Vol');
+            } finally {
+                instance.destroy();
+            }
+        };
+
+        const bigintVolume = await volumeText(bigintData);
+        const numberVolume = await volumeText(numberData);
+
+        expect(bigintVolume).toBeTruthy();
+        expect(bigintVolume).toBe(numberVolume);
+    });
 
     describe('#createFinancialChart', () => {
         it.each(Object.entries(EXAMPLES))(

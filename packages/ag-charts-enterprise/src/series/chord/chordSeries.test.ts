@@ -44,6 +44,22 @@ describe('ChordSeries', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
+    it('renders a bigint sizeKey without error (AG-16608)', async () => {
+        // Chord node-size accumulation must not mix a bigint size with a Number seed/divisor
+        // ("Cannot mix BigInt and other types").
+        const options: AgChartOptions = {
+            data: [
+                { from: 'A', to: 'B', size: 9_007_199_254_740_993n },
+                { from: 'B', to: 'C', size: 9_007_199_254_740_994n },
+                { from: 'C', to: 'A', size: 9_007_199_254_740_995n },
+            ],
+            series: [{ type: 'chord', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
+        };
+        prepareEnterpriseTestOptions(options);
+        chart = deproxy(AgCharts.create(options));
+        await waitForChartStability(chart);
+    });
+
     describe('Series', () => {
         it('should render tension', async () => {
             const options: AgChartOptions = {
