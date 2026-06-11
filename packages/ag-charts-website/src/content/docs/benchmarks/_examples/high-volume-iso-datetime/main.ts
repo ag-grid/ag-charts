@@ -30,7 +30,10 @@ ModuleRegistry.registerModules([
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData(),
+    // `data` is assigned after the extract block: embedding the million-row generated dataset in the
+    // example options-extraction output would bloat generated artefacts. The benchmark fills it in
+    // before any run.
+    data: [],
     animation: { enabled: false },
     zoom: {
         enabled: true,
@@ -55,11 +58,13 @@ const options: AgCartesianChartOptions = {
 };
 /* @ag-options-end */
 
+const data = getData();
+options.data = data;
+
 const chartRef: ChartRef = { current: AgCharts.create(options) };
 const container = document.getElementById('myChart')!;
 
 const seriesCount = options.series!.length;
-const data = getData();
 
 /** inScope */
 function getBenchmarkConfig(): BenchmarkConfig {
