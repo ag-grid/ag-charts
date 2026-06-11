@@ -117,6 +117,10 @@ export class DataSet<T = unknown> {
         return changeDesc ? changeDesc.indexMap.finalLength : this.data.length;
     }
 
+    getDatumAt(datumIndex: number): T | undefined {
+        return this.data[datumIndex];
+    }
+
     /**
      * Queues a transaction (applied on commit).
      * Normalizes AG Grid-compatible format (add/addIndex) to internal format (prepend/append).
@@ -136,22 +140,22 @@ export class DataSet<T = unknown> {
 
         if (this.idArrayCache === undefined) {
             this.idArrayCache = [];
-            for (let i = 0; i < this.data.length; i++) {
-                this.idArrayCache.push(this.getIdValue(this.data[i]));
+            for (let i = 0; i < this.size(); i++) {
+                this.idArrayCache.push(this.getIdValue(this.getDatumAt(i)!));
             }
         }
         return this.idArrayCache;
     }
 
     getItemIdFromIndex(datumIndex: number): string | number {
-        const datum: T | undefined = this.data.at(datumIndex);
+        const datum: T | undefined = this.getDatumAt(datumIndex);
         const itemId = datum ? this.getIdValue(datum) : undefined;
         return itemId ?? datumIndex;
     }
 
     getIndexFromItemId(itemId: string | number): number | undefined {
         if (typeof itemId === 'number') {
-            if (!Number.isInteger(itemId) || itemId < 0 || itemId >= this.data.length) {
+            if (!Number.isInteger(itemId) || itemId < 0 || itemId >= this.size()) {
                 return undefined;
             } else {
                 return itemId;

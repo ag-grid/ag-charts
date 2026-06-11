@@ -52,6 +52,7 @@ function getImports(bindings, componentFileNames: string[], { typeParts }): stri
     } = bindings;
 
     const type = components[chartApi(bindings)];
+    const declaredTypeNames = bindings.declaredTypeNames ?? [];
     const bImports = bindings.imports.map((i) => ({
         ...i,
         imports: i.imports.filter((imp) => imp !== 'AgCharts'),
@@ -59,7 +60,7 @@ function getImports(bindings, componentFileNames: string[], { typeParts }): stri
     bImports.push({
         module: enterprise ? `'ag-charts-enterprise'` : `'ag-charts-community'`,
         isNamespaced: false,
-        imports: typeParts,
+        imports: typeParts.filter((imp) => !declaredTypeNames.includes(imp)),
     });
 
     const imports = [`import { Component${bindings.usesChartApi ? ', ViewChild' : ''} } from '@angular/core';`];

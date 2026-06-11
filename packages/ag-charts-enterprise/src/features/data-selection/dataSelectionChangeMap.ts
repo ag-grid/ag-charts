@@ -10,7 +10,7 @@ type Entry = AgSelectionItem<unknown>;
 
 function makeChangeItem(seriesId: SeriesId, data: DataSet, datumIndex: number): Entry {
     const itemId: ItemId = data.getItemIdFromIndex(datumIndex);
-    const datum = data.data[datumIndex];
+    const datum = data.getDatumAt(datumIndex);
     type Rules1 = RequireOptional<AgSelectionChangeEvent<unknown, unknown>['added'][number]>;
     type Rules2 = RequireOptional<AgSelectionChangeEvent<unknown, unknown>['removed'][number]>;
     return { seriesId, itemId, datum } satisfies Rules1 satisfies Rules2;

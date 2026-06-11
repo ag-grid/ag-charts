@@ -104,6 +104,45 @@ describe('MapShapeSeries', () => {
         });
     });
 
+    describe('Bring to front on highlight', () => {
+        const hoverFirstShape = async (series: any) => {
+            const [datum] = series.contextNodeData?.nodeData ?? [];
+            expect(datum).toBeDefined();
+            const midPoint = series.datumMidPoint(datum);
+            const { x, y } = _ModuleSupport.Transformable.toCanvasPoint(series.contentGroup, midPoint.x, midPoint.y);
+            await hoverAction(x, y)(chart);
+            await waitForChartStability(chart);
+        };
+
+        // Hovering raises the shape into the highlight overlay so it draws above overlapping series; a
+        // highlight-disabled series must leave the overlay empty. The enabled case (raises) guards the
+        // disabled case (does not) from passing vacuously.
+        it.each([
+            { enabled: true, raisedShapes: 1 },
+            { enabled: false, raisedShapes: 0 },
+        ])('raises the hovered shape only when highlight.enabled is $enabled', async ({ enabled, raisedShapes }) => {
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                series: [{ type: 'map-shape', idKey: 'name', highlight: { enabled } }],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const seriesImpl = chart.series[0] as MapShapeSeries;
+            await hoverFirstShape(seriesImpl);
+
+            // The hover-update optimisation skips re-rendering a highlight-disabled series, so drive the
+            // render directly to populate the overlay — the overlay must stay empty regardless of what
+            // re-renders the series while it holds the active highlight.
+            seriesImpl.update();
+            await waitForChartStability(chart);
+
+            expect(Array.from(seriesImpl.highlightNodeGroup.children())).toHaveLength(raisedShapes);
+        });
+    });
+
     describe('Heatmap', () => {
         it('should render a simple chart', async () => {
             const options: AgChartOptions = { ...HEATMAP_EXAMPLE };

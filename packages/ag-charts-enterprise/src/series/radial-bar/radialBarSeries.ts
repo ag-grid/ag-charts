@@ -606,6 +606,10 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         return this.pickNodeNearestDistantObject(point, this.itemSelection.nodes());
     }
 
+    protected override pickNodesInBBoxPredicate() {
+        return _ModuleSupport.pickSectorsInBBoxPredicate(this);
+    }
+
     private legendItemSymbol() {
         const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = getStyle(
             this,
