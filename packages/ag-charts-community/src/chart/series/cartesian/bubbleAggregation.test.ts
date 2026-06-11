@@ -1,5 +1,6 @@
 import type { DataModel } from '../../data/dataModel';
 import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
+import { stubAggregationDataModel } from '../../test/aggregationStubs';
 import { BIG } from '../../test/bigintExamples';
 import { aggregateBubbleDataFromDataModel, computeBubbleAggregation } from './bubbleAggregation';
 
@@ -474,15 +475,17 @@ describe('aggregateBubbleDataFromDataModel - bigint and ISO 8601 time values (re
     // Exercises the real aggregation entry point (where high-volume bigint/ISO columns must be narrowed)
     // rather than the lower-level compute function. x via the raw 'object' column; no size key.
     const series: ScopeProvider = { id: 'series-1' };
+    // Bubble aggregation reads a per-column domain (x and y), so the shared stub's single domain is
+    // overridden with an id-dispatching one.
+    const withDomains = (model: DataModel<any, any, any>, domains: Record<string, any[]>) =>
+        Object.assign(model, {
+            getDomain: (_s: unknown, id: string) => ({ domain: domains[id], sortMetadata: { sortOrder: 1 as const } }),
+        });
     const stubDataModel = (xValues: any[], yValues: any[], xDomain: any[], yDomain: any[]) =>
-        ({
-            resolveColumnById: (_s: unknown, id: string) => (id === 'xValue' ? xValues : yValues),
-            getDomain: (_s: unknown, id: string) => ({
-                domain: id === 'xValue' ? xDomain : yDomain,
-                sortMetadata: { sortOrder: 1 as const },
-            }),
-            resolveColumnNeedsValueOf: () => false,
-        }) as unknown as DataModel<any, any, any>;
+        withDomains(stubAggregationDataModel([], { xValue: xValues, yValue: yValues }, xDomain), {
+            xValue: xDomain,
+            yValue: yDomain,
+        });
 
     it('aggregates bigint y values beyond MAX_SAFE_INTEGER', () => {
         const N = 2000;
@@ -506,25 +509,16 @@ describe('aggregateBubbleDataFromDataModel - bigint and ISO 8601 time values (re
     });
 
     it('aggregates bigint size values beyond MAX_SAFE_INTEGER (size column must be narrowed like x/y)', () => {
-        // GAP AG-16608 §9.1.1 — x and y are narrowed but the size column is passed raw, so the
-        // quantisation `sizeValue - sd0` (sd0 from the Number-narrowed size scale) throws on a bigint size.
+        // x and y are narrowed before quantisation, and the size column must be narrowed the same way:
+        // `sizeValue - sd0` (sd0 from the Number-narrowed size scale) must not throw on a bigint size.
         const N = 2000;
         const xValues = Array.from({ length: N }, (_, i) => i);
         const yValues = Array.from({ length: N }, (_, i) => Math.sin(i / 10));
         const sizeValues = Array.from({ length: N }, (_, i) => BIG + BigInt(i) * 1_000_000_000n);
-        const resolveSizeColumn = (id: string) => {
-            if (id === 'xValue') return xValues;
-            if (id === 'sizeValue') return sizeValues;
-            return yValues;
-        };
-        const sizeStub = {
-            resolveColumnById: (_s: unknown, id: string) => resolveSizeColumn(id),
-            getDomain: (_s: unknown, id: string) => ({
-                domain: id === 'xValue' ? [0, N - 1] : [-1, 1],
-                sortMetadata: { sortOrder: 1 as const },
-            }),
-            resolveColumnNeedsValueOf: () => false,
-        } as unknown as DataModel<any, any, any>;
+        const sizeStub = withDomains(
+            stubAggregationDataModel([], { xValue: xValues, yValue: yValues, sizeValue: sizeValues }, [0, N - 1]),
+            { xValue: [0, N - 1], yValue: [-1, 1] }
+        );
         // The real size scale is a LinearScale with a Number-narrowed domain, so sd0/sd1 are numbers.
         const sizeScale = { domain: [Number(sizeValues[0]), Number(sizeValues[N - 1])] };
 

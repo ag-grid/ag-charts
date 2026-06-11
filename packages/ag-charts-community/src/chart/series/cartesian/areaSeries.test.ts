@@ -26,10 +26,11 @@ import {
     HIGH_VOLUME_SIGNALS,
     NEG_BIG,
     STRIPPED_NUMBER_AXES,
+    STRIPPED_TIME_AXES,
     expectPixelIdenticalAcrossMagnitude,
+    isoEpochPair,
     magnitudePair,
     scaleToBigIntFinite,
-    stripAxes,
 } from '../../test/bigintExamples';
 import { CUSTOM_SVG_PATHS, INVALID_CUSTOM_SVG_PATHS } from '../../test/customSvgPaths';
 import {
@@ -2430,7 +2431,6 @@ describe('AreaSeries', () => {
     // Above AGGREGATION_THRESHOLD, a bigint series must render identically to its Number baseline.
     describe('bigint high-volume aggregation invariance (AG-16608)', () => {
         const N = HIGH_VOLUME_COUNT;
-        const STRIPPED_TIME_AXES = stripAxes({ x: { type: 'time', nice: false }, y: { type: 'number', nice: false } });
 
         it.each(HIGH_VOLUME_SIGNALS)(
             'renders a %s high-volume bigint area identically to its Number baseline',
@@ -2448,18 +2448,11 @@ describe('AreaSeries', () => {
         );
 
         it('renders high-volume ISO-string x identically to numeric epoch x on a time axis', async () => {
-            const startMs = Date.UTC(2024, 0, 1);
-            const at = (i: number) => startMs + i * 60_000;
-            const base = { series: [{ type: 'area', xKey: 'x', yKey: 'y' }], axes: STRIPPED_TIME_AXES };
-            const small = {
-                ...base,
-                data: Array.from({ length: N }, (_, i) => ({ x: at(i), y: Math.sin(i / 10) })),
-            } as AgChartOptions;
-            const large = {
-                ...base,
-                data: Array.from({ length: N }, (_, i) => ({ x: new Date(at(i)).toISOString(), y: Math.sin(i / 10) })),
-            } as AgChartOptions;
-            await expectPixelIdenticalAcrossMagnitude(ctx, createChart, { small, large });
+            await expectPixelIdenticalAcrossMagnitude(
+                ctx,
+                createChart,
+                isoEpochPair({ series: [{ type: 'area', xKey: 'x', yKey: 'y' }], axes: STRIPPED_TIME_AXES }, N)
+            );
         });
     });
 

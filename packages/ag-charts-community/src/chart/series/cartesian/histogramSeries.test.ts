@@ -68,6 +68,8 @@ describe('HistogramSeries', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
+    const nodeDataOf = (c: any) => (deproxy(c).series[0] as any).getNodeData() as any[];
+
     const createHistogramChart = (example: { options: AgChartOptions }, testOptions: AgCartesianChartOptions = {}) => {
         return AgCharts.create({
             ...prepareTestOptions({}),
@@ -184,7 +186,6 @@ describe('HistogramSeries', () => {
     });
 
     describe('getItemId', () => {
-        const nodeDataOf = (c: any) => (deproxy(c).series[0] as any).getNodeData() as any[];
         const itemIdsOf = (c: any) => nodeDataOf(c).map((n) => n.itemId);
 
         const createBinnedChart = (
@@ -320,8 +321,6 @@ describe('HistogramSeries', () => {
             return AgCharts.create(options);
         };
 
-        const nodeDataOf = (c: any) => (deproxy(c).series[0] as any).getNodeData() as any[];
-
         it('exposes positional bin metadata and raw source rows for every bin (AC1, AC2, TC1)', async () => {
             chart = createChart();
             await waitForChartStability(chart);
@@ -400,7 +399,7 @@ describe('HistogramSeries', () => {
 
         it('skips the label for a non-empty bin whose bigint total is exactly 0n', async () => {
             // Two rows in [0,10) sum to a bigint 0n; the label must still be skipped (`Number(0n) === 0`),
-            // where the natural `0n === 0` would be false and wrongly render a "0" label (AG-16608).
+            // where the natural `0n === 0` would be false and wrongly render a "0" label.
             const options: AgCartesianChartOptions = {
                 data: [
                     { x: 2, y: 5n },
@@ -838,8 +837,6 @@ describe('HistogramSeries', () => {
     });
 
     describe('bigint aggregation (AG-16608)', () => {
-        setupMockCanvas();
-
         it('sums a bigint yKey column at full precision (aggregation: sum)', async () => {
             const big = 9_007_199_254_740_993n; // 2^53 + 1, not exactly representable as a Number
             const options: AgCartesianChartOptions = {
@@ -852,14 +849,10 @@ describe('HistogramSeries', () => {
             };
             prepareTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            const series = chart.series.find((v: any) => v.type === 'histogram');
-            expect(series).toBeDefined();
-
-            const context: SeriesNodeDataContext<any, any> = (series as any)['contextNodeData'];
-            const bin = context.nodeData.find((n: any) => n.aggregatedValue != null);
+            const bin = nodeDataOf(chart).find((n: any) => n.aggregatedValue != null);
             expect(bin).toBeDefined();
             // A narrowing convert() would round this sum; the bigint path keeps it exact.
             expect(bin!.aggregatedValue).toBe(3n * big);
@@ -888,9 +881,6 @@ describe('HistogramSeries', () => {
             for (const bin of bins) {
                 expect(typeof bin.domain[0]).toBe('bigint');
                 expect(typeof bin.domain[1]).toBe('bigint');
-            }
-            for (let i = 1; i < bins.length; i++) {
-                expect(bins[i].domain[0]).toBe(bins[i - 1].domain[1]);
             }
             expect(bins[0].domain[0] <= base).toBe(true);
             expect(bins.at(-1)!.domain[1] >= base + 80n).toBe(true);

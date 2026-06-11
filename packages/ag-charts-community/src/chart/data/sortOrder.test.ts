@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { valuesSortOrder } from './sortOrder';
 
 describe('valuesSortOrder - bigint columns (render hardening)', () => {
-    // GAP AG-16608 §9.1.x — the `typeof primitive !== 'number'` bail reports every bigint column as
-    // unsorted, disabling the sorted fast-paths (extent / clipped-range) for bigint data.
+    // Sort-order detection must treat bigint columns like number columns; bailing on
+    // `typeof primitive !== 'number'` would report every bigint column as unsorted, disabling
+    // the sorted fast-paths (extent / clipped-range) for bigint data.
 
     it('reports an ascending bigint column as sorted ascending', () => {
         expect(valuesSortOrder([1n, 2n, 3n], false)).toBe(1);

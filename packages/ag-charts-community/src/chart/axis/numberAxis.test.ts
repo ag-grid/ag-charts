@@ -3,7 +3,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
+import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
 import {
+    createChart,
     deproxy,
     expectWarningsCalls,
     prepareTestOptions,
@@ -12,9 +14,9 @@ import {
     waitForChartStability,
 } from '../test/utils';
 
-// AG-16608 — BigInt numeric-axis ticks render at full precision (AC #15e, #16). These tests drive a
-// real chart so the bigint values flow through domain extraction, scale conversion, tick generation
-// and the axis label formatter end-to-end.
+// BigInt numeric-axis ticks must render at full precision. These tests drive a real chart so the
+// bigint values flow through domain extraction, scale conversion, tick generation and the axis
+// label formatter end-to-end.
 describe('NumberAxis BigInt labels', () => {
     setupMockConsole();
     setupMockCanvas();
@@ -36,7 +38,7 @@ describe('NumberAxis BigInt labels', () => {
             .filter((text): text is string => text != null && text !== '');
     };
 
-    const createChart = async (data: unknown[]): Promise<AgChartInstance> => {
+    const createLineChart = async (data: unknown[]): Promise<AgChartInstance> => {
         const options: AgCartesianChartOptions = {
             data: data as AgCartesianChartOptions['data'],
             series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -49,7 +51,7 @@ describe('NumberAxis BigInt labels', () => {
 
     it('renders exact labels for a span larger than Number.MAX_SAFE_INTEGER (AC #16)', async () => {
         const span = 10n ** 21n;
-        chart = await createChart([
+        chart = await createLineChart([
             { x: 0, y: 0n },
             { x: 1, y: span },
         ]);
@@ -64,7 +66,7 @@ describe('NumberAxis BigInt labels', () => {
         // A unit-span window straddling 2^53: each integer is its own tick. Odd values above 2^53
         // (…991, …993, …995) are unrepresentable as Number — they would collapse onto an even
         // neighbour — so their exact labels prove the tick value reached the formatter as a BigInt.
-        chart = await createChart([
+        chart = await createLineChart([
             { x: 0, y: 9_007_199_254_740_990n },
             { x: 1, y: 9_007_199_254_740_995n },
         ]);
@@ -104,51 +106,28 @@ describe('NumberAxis BigInt labels', () => {
     });
 });
 
-// AG-16608 — value-preserving widening checks: the same value supplied as `number` and as `bigint`
+// Value-preserving widening checks: the same value supplied as `number` and as `bigint`
 // must render pixel-identically and without validation warnings.
 describe('NumberAxis bigint bounds and interval (AG-16608)', () => {
     setupMockConsole();
     const ctx = setupMockCanvas();
 
-    let chart: AgChartInstance | undefined;
-
-    afterEach(() => {
-        chart?.destroy();
-        chart = undefined;
+    const buildOptions = (yAxis: object): AgCartesianChartOptions => ({
+        data: [
+            { x: 0, y: 10 },
+            { x: 1, y: 60 },
+            { x: 2, y: 35 },
+            { x: 3, y: 90 },
+        ],
+        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+        axes: {
+            x: { type: 'number', position: 'bottom' },
+            y: { type: 'number', position: 'left', ...yAxis },
+        },
     });
 
-    const buildOptions = (yAxis: object): AgCartesianChartOptions => {
-        const options: AgCartesianChartOptions = {
-            data: [
-                { x: 0, y: 10 },
-                { x: 1, y: 60 },
-                { x: 2, y: 35 },
-                { x: 3, y: 90 },
-            ],
-            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            axes: {
-                x: { type: 'number', position: 'bottom' },
-                y: { type: 'number', position: 'left', ...yAxis },
-            },
-        };
-        prepareTestOptions(options);
-        return options;
-    };
-
-    // Renders the number variant, then updates the SAME chart to the bigint variant — the mock
-    // canvas only tracks the first chart per test, so cross-create snapshots would compare a
-    // stale canvas against itself.
-    const compareVariants = async (numberAxis: object, bigintAxis: object) => {
-        chart = AgCharts.create(buildOptions(numberAxis));
-        await waitForChartStability(chart);
-        const numberImage = ctx.snapshot();
-
-        await chart.update(buildOptions(bigintAxis));
-        await waitForChartStability(chart);
-        const bigintImage = ctx.snapshot();
-
-        expect(bigintImage).toMatchImage(numberImage);
-    };
+    const compareVariants = (numberAxis: object, bigintAxis: object) =>
+        expectPixelIdenticalAcrossUpdate(ctx, createChart, buildOptions(numberAxis), buildOptions(bigintAxis));
 
     it('renders bigint min/max identically to number min/max', async () => {
         await compareVariants({ min: 0, max: 100, nice: false }, { min: 0n, max: 100n, nice: false });

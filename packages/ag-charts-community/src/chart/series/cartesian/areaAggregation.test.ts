@@ -1,5 +1,5 @@
-import type { DataModel } from '../../data/dataModel';
 import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
+import { stubAggregationDataModel } from '../../test/aggregationStubs';
 import { BIG } from '../../test/bigintExamples';
 import { aggregateAreaDataFromDataModel, computeAreaAggregation } from './areaAggregation';
 
@@ -425,12 +425,7 @@ describe('aggregateAreaDataFromDataModel - bigint and ISO 8601 time values (rend
     // above AGGREGATION_THRESHOLD, rather than the lower-level compute function.
     const series: ScopeProvider = { id: 'series-1' };
     const stubDataModel = (xValues: any[], yValues: any[], domain: any[]) =>
-        ({
-            resolveKeysById: () => xValues,
-            resolveColumnById: () => yValues,
-            getDomain: () => ({ domain, sortMetadata: { sortOrder: 1 as const } }),
-            resolveColumnNeedsValueOf: () => false,
-        }) as unknown as DataModel<any, any, any>;
+        stubAggregationDataModel(xValues, { yValue: yValues }, domain);
 
     it('aggregates bigint y values beyond MAX_SAFE_INTEGER', () => {
         const N = 2000;
@@ -450,7 +445,7 @@ describe('aggregateAreaDataFromDataModel - bigint and ISO 8601 time values (rend
     });
 
     it('aggregates bigint x values beyond MAX_SAFE_INTEGER on a number axis (>1000 pts)', () => {
-        // GAP AG-16608 §9.1.1 — the X column is never narrowed (only Y is), so `xValue - d0` throws on a bigint x.
+        // The X column is not narrowed by the aggregator (only Y is), so `xValue - d0` must handle bigint x.
         const N = 2000;
         const xValues = Array.from({ length: N }, (_, i) => BIG + BigInt(i) * 1_000_000_000n);
         const yValues = Array.from({ length: N }, (_, i) => Math.sin(i / 10));

@@ -18,10 +18,11 @@ import {
     HIGH_VOLUME_SIGNALS,
     NEG_BIG,
     STRIPPED_NUMBER_AXES,
+    STRIPPED_TIME_AXES,
     expectPixelIdenticalAcrossMagnitude,
+    isoEpochPair,
     magnitudePair,
     scaleToBigIntFinite,
-    stripAxes,
 } from '../../test/bigintExamples';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
@@ -2843,6 +2844,7 @@ describe('BarSeries', () => {
                         { time: '2024-01-15T12:00:00Z', y: 18 },
                     ],
                     series: [{ type: 'bar', xKey: 'time', yKey: 'y' }],
+                    // Bars need a banded time axis, so `unit-time` stands in for the continuous `time` type.
                     axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
                 })
             );
@@ -2853,7 +2855,6 @@ describe('BarSeries', () => {
     // Above AGGREGATION_THRESHOLD, a bigint series must render identically to its Number baseline.
     describe('bigint high-volume aggregation invariance (AG-16608)', () => {
         const N = HIGH_VOLUME_COUNT;
-        const STRIPPED_TIME_AXES = stripAxes({ x: { type: 'time', nice: false }, y: { type: 'number', nice: false } });
 
         it.each(HIGH_VOLUME_SIGNALS)(
             'renders a %s high-volume bigint bar identically to its Number baseline',
@@ -2871,18 +2872,11 @@ describe('BarSeries', () => {
         );
 
         it('renders high-volume ISO-string x identically to numeric epoch x on a time axis', async () => {
-            const startMs = Date.UTC(2024, 0, 1);
-            const at = (i: number) => startMs + i * 60_000;
-            const base = { series: [{ type: 'bar', xKey: 'x', yKey: 'y' }], axes: STRIPPED_TIME_AXES };
-            const small = {
-                ...base,
-                data: Array.from({ length: N }, (_, i) => ({ x: at(i), y: Math.sin(i / 10) })),
-            } as AgChartOptions;
-            const large = {
-                ...base,
-                data: Array.from({ length: N }, (_, i) => ({ x: new Date(at(i)).toISOString(), y: Math.sin(i / 10) })),
-            } as AgChartOptions;
-            await expectPixelIdenticalAcrossMagnitude(ctx, createChart, { small, large });
+            await expectPixelIdenticalAcrossMagnitude(
+                ctx,
+                createChart,
+                isoEpochPair({ series: [{ type: 'bar', xKey: 'x', yKey: 'y' }], axes: STRIPPED_TIME_AXES }, N)
+            );
         });
     });
 

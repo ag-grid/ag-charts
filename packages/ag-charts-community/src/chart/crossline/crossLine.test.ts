@@ -9,10 +9,12 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
+import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
 import type { CartesianTestCase } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    createChart,
     expectWarningMessages,
     extractImageData,
     prepareTestOptions,
@@ -451,44 +453,33 @@ describe('CrossLine', () => {
         });
     });
 
-    // AG-16608 — value-preserving widening checks: the same cross-line value supplied as `number`
+    // Value-preserving widening checks: the same cross-line value supplied as `number`
     // and as `bigint` must render pixel-identically and without validation warnings.
     describe('#bigint values (AG-16608)', () => {
-        const buildOptions = (crossLines: AgCartesianCrossLineOptions[]): AgCartesianChartOptions => {
-            const options: AgCartesianChartOptions = {
-                data: [
-                    { x: 0, y: 10 },
-                    { x: 1, y: 60 },
-                    { x: 2, y: 35 },
-                    { x: 3, y: 90 },
-                ],
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                axes: {
-                    x: { type: 'number', position: 'bottom' },
-                    y: { type: 'number', position: 'left', crossLines },
-                },
-            };
-            prepareTestOptions(options);
-            return options;
-        };
+        const buildOptions = (crossLines: AgCartesianCrossLineOptions[]): AgCartesianChartOptions => ({
+            data: [
+                { x: 0, y: 10 },
+                { x: 1, y: 60 },
+                { x: 2, y: 35 },
+                { x: 3, y: 90 },
+            ],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'number', position: 'left', crossLines },
+            },
+        });
 
-        // Renders the number variant, then updates the SAME chart to the bigint variant — the mock
-        // canvas only tracks the first chart per test, so cross-create snapshots would compare a
-        // stale canvas against itself.
-        const compareVariants = async (
+        const compareVariants = (
             numberCrossLines: AgCartesianCrossLineOptions[],
             bigintCrossLines: AgCartesianCrossLineOptions[]
-        ) => {
-            chart = AgCharts.create(buildOptions(numberCrossLines));
-            await waitForChartStability(chart);
-            const numberImage = ctx.snapshot();
-
-            await (chart as any).update(buildOptions(bigintCrossLines));
-            await waitForChartStability(chart);
-            const bigintImage = ctx.snapshot();
-
-            expect(bigintImage).toMatchImage(numberImage);
-        };
+        ) =>
+            expectPixelIdenticalAcrossUpdate(
+                ctx,
+                createChart,
+                buildOptions(numberCrossLines),
+                buildOptions(bigintCrossLines)
+            );
 
         it('renders a bigint line value identically to a number value', async () => {
             await compareVariants(

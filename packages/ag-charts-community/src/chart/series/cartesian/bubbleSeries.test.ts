@@ -20,10 +20,12 @@ import {
     HIGH_VOLUME_SIGNALS,
     NEG_BIG,
     STRIPPED_NUMBER_AXES,
+    STRIPPED_TIME_AXES,
     expectPixelIdenticalAcrossMagnitude,
+    expectPixelIdenticalAcrossUpdate,
+    isoEpochPair,
     magnitudePair,
     scaleToBigIntFinite,
-    stripAxes,
 } from '../../test/bigintExamples';
 import * as examples from '../../test/examples';
 import { type MockBubbleStyler, newFreezableMock } from '../../test/freezableMock';
@@ -1372,7 +1374,6 @@ describe('BubbleSeries', () => {
     // Above AGGREGATION_THRESHOLD, a bigint series must render identically to its Number baseline.
     describe('bigint high-volume aggregation invariance (AG-16608)', () => {
         const N = HIGH_VOLUME_COUNT;
-        const STRIPPED_TIME_AXES = stripAxes({ x: { type: 'time', nice: false }, y: { type: 'number', nice: false } });
 
         it.each(HIGH_VOLUME_SIGNALS)(
             'renders a %s high-volume bigint bubble series identically to its Number baseline',
@@ -1394,25 +1395,15 @@ describe('BubbleSeries', () => {
         );
 
         it('renders high-volume ISO-string x identically to numeric epoch x on a time axis', async () => {
-            const startMs = Date.UTC(2024, 0, 1);
-            const at = (i: number) => startMs + i * 60_000;
-            const base = {
-                series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'size' }],
-                axes: STRIPPED_TIME_AXES,
-            };
-            const small = {
-                ...base,
-                data: Array.from({ length: N }, (_, i) => ({ x: at(i), y: Math.sin(i / 10), size: 5 })),
-            } as AgChartOptions;
-            const large = {
-                ...base,
-                data: Array.from({ length: N }, (_, i) => ({
-                    x: new Date(at(i)).toISOString(),
-                    y: Math.sin(i / 10),
-                    size: 5,
-                })),
-            } as AgChartOptions;
-            await expectPixelIdenticalAcrossMagnitude(ctx, createChart, { small, large });
+            await expectPixelIdenticalAcrossMagnitude(
+                ctx,
+                createChart,
+                isoEpochPair(
+                    { series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'size' }], axes: STRIPPED_TIME_AXES },
+                    N,
+                    (x, i) => ({ x, y: Math.sin(i / 10), size: 5 })
+                )
+            );
         });
     });
 
@@ -1442,42 +1433,20 @@ describe('BubbleSeries bigint size domain (AG-16608)', () => {
     setupMockConsole();
     const ctx = setupMockCanvas();
 
-    let chart: AgChartInstance | undefined;
-
-    afterEach(() => {
-        chart?.destroy();
-        chart = undefined;
+    const buildOptions = (sizeDomain: [number, number] | [bigint, bigint]): AgCartesianChartOptions => ({
+        data: [
+            { x: 0, y: 10, size: 20 },
+            { x: 1, y: 60, size: 45 },
+            { x: 2, y: 35, size: 80 },
+        ],
+        series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'size', sizeDomain } as never],
+        axes: {
+            x: { type: 'number', position: 'bottom' },
+            y: { type: 'number', position: 'left' },
+        },
     });
 
-    const buildOptions = (domain: [number, number] | [bigint, bigint]): AgCartesianChartOptions => {
-        const options: AgCartesianChartOptions = {
-            data: [
-                { x: 0, y: 10, size: 20 },
-                { x: 1, y: 60, size: 45 },
-                { x: 2, y: 35, size: 80 },
-            ],
-            series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'size', domain } as never],
-            axes: {
-                x: { type: 'number', position: 'bottom' },
-                y: { type: 'number', position: 'left' },
-            },
-        };
-        prepareTestOptions(options);
-        return options;
-    };
-
-    // Renders the number variant, then updates the SAME chart to the bigint variant — the mock
-    // canvas only tracks the first chart per test, so cross-create snapshots would compare a
-    // stale canvas against itself.
-    it('renders a bigint domain identically to numbers', async () => {
-        chart = AgCharts.create(buildOptions([0, 100]));
-        await waitForChartStability(chart);
-        const numberImage = ctx.snapshot();
-
-        await chart.update(buildOptions([0n, 100n]));
-        await waitForChartStability(chart);
-        const bigintImage = ctx.snapshot();
-
-        expect(bigintImage).toMatchImage(numberImage);
+    it('renders a bigint sizeDomain identically to numbers', async () => {
+        await expectPixelIdenticalAcrossUpdate(ctx, createChart, buildOptions([0, 100]), buildOptions([0n, 100n]));
     });
 });

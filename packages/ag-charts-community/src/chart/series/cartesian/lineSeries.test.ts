@@ -19,10 +19,11 @@ import {
     HIGH_VOLUME_SIGNALS,
     NEG_BIG,
     STRIPPED_NUMBER_AXES,
+    STRIPPED_TIME_AXES,
     expectPixelIdenticalAcrossMagnitude,
+    isoEpochPair,
     magnitudePair,
     scaleToBigIntFinite,
-    stripAxes,
 } from '../../test/bigintExamples';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
@@ -236,30 +237,6 @@ describe('LineSeries', () => {
     });
 
     const ctx = setupMockCanvas();
-
-    describe('bigint timestamps on a time axis (render hardening)', () => {
-        it('renders bigint epoch timestamps on a time axis without error (<=1000 pts)', async () => {
-            // GAP AG-16608 §9.1.2 — minTimeInterval() runs Math.sign/Math.abs/Math.min over a bigint
-            // interval, throwing "Cannot convert a BigInt value to a number" during time-axis granularity
-            // computation before the chart can render (small datasets bypass the aggregation path).
-            const options: AgCartesianChartOptions = {
-                data: Array.from({ length: 50 }, (_, i) => ({
-                    x: 1_700_000_000_000n + BigInt(i) * 86_400_000n,
-                    y: Math.sin(i / 5),
-                })),
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                axes: {
-                    x: { type: 'time', position: 'bottom' },
-                    y: { type: 'number', position: 'left' },
-                },
-            } as unknown as AgCartesianChartOptions;
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-
-            expect(console.error).not.toHaveBeenCalled();
-        });
-    });
 
     describe('#create', () => {
         beforeEach(() => {
@@ -2320,6 +2297,26 @@ describe('LineSeries', () => {
             );
             await compare();
         });
+
+        it('renders bigint epoch timestamps on a time axis (<=1000 pts)', async () => {
+            // minTimeInterval() must not run Math.sign/Math.abs/Math.min over a bigint interval —
+            // that throws "Cannot convert a BigInt value to a number" during time-axis granularity
+            // computation before the chart can render (small datasets bypass the aggregation path).
+            const options: AgCartesianChartOptions = {
+                data: Array.from({ length: 50 }, (_, i) => ({
+                    x: 1_700_000_000_000n + BigInt(i) * 86_400_000n,
+                    y: Math.sin(i / 5),
+                })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'time', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            } as unknown as AgCartesianChartOptions;
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
     });
 
     describe('ISO datetime (AG-16654)', () => {
@@ -2393,7 +2390,6 @@ describe('LineSeries', () => {
     // Above AGGREGATION_THRESHOLD, a bigint series must render identically to its Number baseline.
     describe('bigint high-volume aggregation invariance (AG-16608)', () => {
         const N = HIGH_VOLUME_COUNT;
-        const STRIPPED_TIME_AXES = stripAxes({ x: { type: 'time', nice: false }, y: { type: 'number', nice: false } });
 
         it.each(HIGH_VOLUME_SIGNALS)(
             'renders a %s high-volume bigint line identically to its Number baseline',
@@ -2411,18 +2407,11 @@ describe('LineSeries', () => {
         );
 
         it('renders high-volume ISO-string x identically to numeric epoch x on a time axis', async () => {
-            const startMs = Date.UTC(2024, 0, 1);
-            const at = (i: number) => startMs + i * 60_000;
-            const base = { series: [{ type: 'line', xKey: 'x', yKey: 'y' }], axes: STRIPPED_TIME_AXES };
-            const small = {
-                ...base,
-                data: Array.from({ length: N }, (_, i) => ({ x: at(i), y: Math.sin(i / 10) })),
-            } as AgChartOptions;
-            const large = {
-                ...base,
-                data: Array.from({ length: N }, (_, i) => ({ x: new Date(at(i)).toISOString(), y: Math.sin(i / 10) })),
-            } as AgChartOptions;
-            await expectPixelIdenticalAcrossMagnitude(ctx, createChart, { small, large });
+            await expectPixelIdenticalAcrossMagnitude(
+                ctx,
+                createChart,
+                isoEpochPair({ series: [{ type: 'line', xKey: 'x', yKey: 'y' }], axes: STRIPPED_TIME_AXES }, N)
+            );
         });
     });
 });

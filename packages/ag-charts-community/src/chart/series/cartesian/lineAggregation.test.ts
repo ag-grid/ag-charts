@@ -1,17 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import type { DataModel } from '../../data/dataModel';
 import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
+import { stubAggregationDataModel } from '../../test/aggregationStubs';
 import { aggregateLineDataFromDataModel, computeLineAggregation } from './lineAggregation';
 
-// Minimal DataModel stub driving the real aggregation entry point.
 const series: ScopeProvider = { id: 'series-1' };
+// Line aggregation resolves both x and y through `resolveColumnById`.
 const stubLineDataModel = (xValues: any[], yValues: any[], domain: any[]) =>
-    ({
-        resolveColumnById: (_s: unknown, id: string) => (id === 'xValue' ? xValues : yValues),
-        getDomain: () => ({ domain, sortMetadata: { sortOrder: 1 as const } }),
-        resolveColumnNeedsValueOf: () => false,
-    }) as unknown as DataModel<any, any, any>;
+    stubAggregationDataModel([], { xValue: xValues, yValue: yValues }, domain);
 
 describe('computeLineAggregation', () => {
     describe('threshold behaviour', () => {
@@ -330,8 +326,8 @@ describe('computeLineAggregation', () => {
         });
 
         it('aggregates bigint x values beyond MAX_SAFE_INTEGER on a number axis (>1000 pts)', () => {
-            // GAP AG-16608 §9.1.1 — the X column is never narrowed (only Y is), so a bigint x reaches
-            // createAggregationIndices and `xValue - d0` throws "Cannot convert a BigInt value to a number".
+            // The X column is not narrowed (only Y is), so a bigint x reaches createAggregationIndices
+            // and `xValue - d0` must not throw "Cannot convert a BigInt value to a number".
             const N = 2000;
             const base = 9_007_199_254_740_993n; // Number.MAX_SAFE_INTEGER + 2
             const xValues = Array.from({ length: N }, (_, i) => base + BigInt(i) * 1_000_000_000n);
@@ -350,7 +346,7 @@ describe('computeLineAggregation', () => {
         });
 
         it('aggregates bigint timestamp x values on a time scale (>1000 pts)', () => {
-            // GAP AG-16608 §9.1.2 — bigint epoch timestamps on a time axis hit the same un-narrowed X path.
+            // Bigint epoch timestamps on a time axis hit the same un-narrowed X path.
             const N = 2000;
             const baseMs = 1_700_000_000_000n;
             const xValues = Array.from({ length: N }, (_, i) => baseMs + BigInt(i) * 60_000n);

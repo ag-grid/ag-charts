@@ -1,4 +1,4 @@
-import { type Mock, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';
 import * as examples from '../test/examples';
@@ -40,13 +40,6 @@ const ISO_SCOPE = 'test';
 
 function scoped<T extends object>(def: T): T & { scopes: string[] } {
     return { ...def, scopes: [ISO_SCOPE] };
-}
-
-function drainWarnings(): string {
-    const warnMock = console.warn as Mock;
-    const text = warnMock.mock.calls.flat().join('\n');
-    warnMock.mockClear();
-    return text;
 }
 
 describe('DataModel', () => {
@@ -2603,7 +2596,7 @@ describe('DataModel', () => {
                     props: [rangeKey('x'), value('y')],
                 });
                 // Ascending bigints past Number.MAX_SAFE_INTEGER must be tracked relationally, not skipped, so
-                // a bigint-keyed series is still recognised as ordered/unique for animation (AG-16608).
+                // a bigint-keyed series is still recognised as ordered/unique for animation.
                 const data = basicDataSet([
                     { x: 9_007_199_254_740_993n, y: 10 },
                     { x: 9_007_199_254_740_995n, y: 20 },
@@ -2932,7 +2925,7 @@ describe('DataModel', () => {
         it('tracks ascending ISO 8601 keys as ordered for animation', () => {
             const model = timeKeyModel();
             // ISO strings parse to epoch ms in the sort tracker; without that they would be skipped and the
-            // series wrongly flagged unordered (AG-16608).
+            // series wrongly flagged unordered.
             const result = model.processData(
                 basicDataSet([
                     { x: '2024-01-15', y: 1 },
@@ -2956,10 +2949,17 @@ describe('DataModel', () => {
                 ])
             );
 
-            const warnings = drainWarnings();
-            expect(warnings).toContain('not a date');
-            expect(warnings).toContain('row 1');
-            expect(warnings).toContain('ISO 8601');
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - unsupported value [not a date] at row 1 on a time axis; expected Date, epoch number/bigint, or strict ISO 8601 string (e.g. '2024-01-15', '2024-01-15T10:30:00Z'). The value is ignored.",
+                ],
+                [
+                  "AG Charts - invalid value of type [string] for [test / undefined] ignored:",
+                  "[not a date]",
+                ],
+              ]
+            `);
         });
 
         it("promotes a column mixing Date, ISO string and epoch number/bigint to the 'date' tag", () => {
@@ -2991,7 +2991,14 @@ describe('DataModel', () => {
 
             const invalid = result.invalidData?.get(ISO_SCOPE) ?? [];
             expect(invalid[1]).toBe(true);
-            expect(drainWarnings()).toContain('invalid value of type [string]');
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - invalid value of type [string] for [test / undefined] ignored:",
+                  "[2024-01-15]",
+                ],
+              ]
+            `);
         });
 
         it('warns once when a column mixes timezone-explicit and timezone-implicit ISO strings', () => {
@@ -3007,14 +3014,13 @@ describe('DataModel', () => {
             const keys = [...result.keys[0].get(ISO_SCOPE)!];
             expect(keys).toEqual(['2024-01-15T10:30:00Z', '2024-02-15', '2024-03-15T08:00:00+05:30']);
 
-            const warnings = drainWarnings();
-            expect(warnings).toContain('column "x"');
-            expect(warnings).toContain('timezone-explicit');
-            expect(warnings).toContain('timezone-implicit');
-            expect(warnings).toContain('local time');
-            expect(warnings).toContain('2024-01-15T10:30:00Z');
-            expect(warnings).toContain('2024-02-15');
-            expect(warnings.match(/timezone-explicit/g)).toHaveLength(1);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Time axis: column "x" contains both timezone-explicit values (e.g. "2024-01-15T10:30:00Z", row 0) and timezone-implicit values (e.g. "2024-02-15", row 1). Ambiguous timezone semantics may produce unexpected positions — points without an explicit offset are interpreted as local time. Use explicit offsets (Z or ±HH:MM) for cross-environment determinism.",
+                ],
+              ]
+            `);
         });
 
         it('does not warn for an all-timezone-explicit ISO column', () => {
@@ -3026,7 +3032,7 @@ describe('DataModel', () => {
                 ])
             );
 
-            expect(drainWarnings()).not.toContain('timezone-explicit');
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
 
         it('does not warn for an all-timezone-implicit ISO column', () => {
@@ -3038,7 +3044,7 @@ describe('DataModel', () => {
                 ])
             );
 
-            expect(drainWarnings()).not.toContain('timezone-explicit');
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
 
         it('does not warn for Date + UTC-explicit ISO + epoch values (all unambiguous UTC instants)', () => {
@@ -3052,7 +3058,7 @@ describe('DataModel', () => {
             )!;
 
             expect([...result.keys[0].get(ISO_SCOPE)!]).toHaveLength(3);
-            expect(drainWarnings()).not.toContain('timezone-explicit');
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
 
         it('uses ISO 8601 strings as-is on a category axis (no time validation, no parsing)', () => {
@@ -3072,9 +3078,9 @@ describe('DataModel', () => {
         });
 
         it('does not warn about timezone ambiguity for mixed-offset ISO strings on a category axis', () => {
-            // GAP AG-16654 §9.2.2 — a category axis keeps ISO strings as opaque labels (no instant
-            // interpretation), but the value sniffer still tags the column 'date', so the timezone-ambiguity
-            // warning fires spuriously even though the offsets are never interpreted as instants.
+            // A category axis keeps ISO strings as opaque labels (no instant interpretation); even though
+            // the value sniffer tags the column 'date', the timezone-ambiguity warning must not fire because
+            // the offsets are never interpreted as instants.
             const model = new DataModel<any, any, false>({
                 props: [scoped(keyProperty('x')), scoped(valueProperty('y', 'number'))],
                 groupByKeys: false,
@@ -3086,7 +3092,7 @@ describe('DataModel', () => {
                 ])
             );
 
-            expect(drainWarnings()).not.toContain('timezone-explicit');
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
 
         it('derives a Date key domain from ISO 8601 strings on a time axis (AG-16654)', () => {
