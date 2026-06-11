@@ -950,6 +950,11 @@ export class DOMManager extends BaseManager {
             return;
         }
 
+        // A container move with no resize fires no invalidation event; re-entry re-measures the rect.
+        const invalidateOnPointerEnter = () => this.invalidateRectCaches();
+        this.element.addEventListener('pointerenter', invalidateOnPointerEnter);
+        this.cleanup.register(() => this.element.removeEventListener('pointerenter', invalidateOnPointerEnter));
+
         const invalidateRects = () => this.invalidateRectCaches();
         const invalidateAll = () => this.invalidateAllCaches();
 
