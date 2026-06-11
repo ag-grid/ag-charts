@@ -23,7 +23,7 @@ import {
     minValue,
     subtractValues,
 } from 'ag-charts-core';
-import type { AgNumericValue } from 'ag-charts-types';
+import type { AgNumericValue, SelectionState } from 'ag-charts-types';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
@@ -70,8 +70,8 @@ type WaterfallNodePointDatum = _ModuleSupport.DataModelSeriesNodeDatum['point'] 
 
 interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
-    // Original data-array index for real bars, as a string so the active-state round-trip
-    // resolves via `node.itemId`; synthetic total/subtotal bars leave it unset (→ `datumIndex`).
+    // Set only for synthetic total/subtotal bars that carry a user-supplied `totals.itemId`. Real
+    // bars leave it unset so `getItemId` resolves via `dataIdKey`, then `datumIndex`.
     readonly itemId?: string;
     readonly itemType: AgWaterfallSeriesItemType;
     // Axis label for synthetic total/subtotal bars; unset for real positive/negative bars.
@@ -147,11 +147,32 @@ interface WaterfallSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
 
 type WaterfallAnimationData = _ModuleSupport.AbstractBarSeriesAnimationData<WaterfallSeriesTypes>;
 
+class WaterfallSeriesNodeEvent<
+    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
+> extends _ModuleSupport.CartesianSeriesNodeEvent<TEvent> {
+    readonly itemType: AgWaterfallSeriesItemType;
+    readonly totalLabel: string | undefined;
+
+    constructor(
+        type: TEvent,
+        nativeEvent: Event,
+        datum: WaterfallNodeDatum,
+        series: WaterfallSeries,
+        selectionState: SelectionState | undefined
+    ) {
+        super(type, nativeEvent, datum, series, selectionState);
+        this.itemType = datum.itemType;
+        this.totalLabel = datum.totalLabel;
+    }
+}
+
 export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallSeriesTypes> {
     static override readonly className = 'WaterfallSeries';
     static readonly type = 'waterfall' as const;
 
     override properties = new WaterfallSeriesProperties();
+
+    protected override readonly NodeEvent = WaterfallSeriesNodeEvent;
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -314,10 +335,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             datumType: undefined,
         };
 
-        // Synthetic total/subtotal bars occupy augmented index slots absent from the user data.
-        // Count those preceding each real bar to recover its original (unshifted) data index.
-        let syntheticCount = 0;
-
         for (const [datumIndex, datum] of ctx.rawData.entries()) {
             const datumType = ctx.totalTypeValues[datumIndex];
             const isSubtotal = this.isSubtotal(datumType);
@@ -342,9 +359,15 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
             const value = this.computeDisplayValue(isTotal, isSubtotal, rawValue, cumulativeValue, trailingValue);
 
+            // Real bars leave itemId unset so it resolves via dataIdKey (then datumIndex); synthetic
+            // bars have no data row, so a user-supplied totals `itemId` is their only stable identifier.
+            const totalItemId = isTotalOrSubtotal
+                ? (datum as { itemId?: string | number } | undefined)?.itemId
+                : undefined;
+
             // Update scratch params
             paramsScratch.datumIndex = datumIndex;
-            paramsScratch.itemId = isTotalOrSubtotal ? undefined : String(datumIndex - syntheticCount);
+            paramsScratch.itemId = totalItemId == null ? undefined : String(totalItemId);
             paramsScratch.totalLabel = isTotalOrSubtotal ? String(xDatum) : undefined;
             paramsScratch.datum = isTotalOrSubtotal ? undefined : datum;
             paramsScratch.xDatum = xDatum;
@@ -370,10 +393,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                     isTotalOrSubtotal
                 );
                 ctx.pointData.push(pathPoint);
-            }
-
-            if (isTotalOrSubtotal) {
-                syntheticCount += 1;
             }
         }
     }
@@ -619,7 +638,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         // Update label - skip expensive getLabelText() when labels are disabled
         if (label.enabled) {
-            const itemType = seriesItemType === 'subtotal' ? 'total' : seriesItemType;
             const labelText = this.getLabelText<AgWaterfallSeriesLabelFormatterParams>(
                 value,
                 datum,
@@ -628,7 +646,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 yDomain,
                 label,
                 {
-                    itemType,
+                    itemType: seriesItemType,
                     totalLabel,
                     value,
                     datum,

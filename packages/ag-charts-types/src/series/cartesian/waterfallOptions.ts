@@ -136,6 +136,12 @@ export interface WaterfallSeriesTotalMeta {
     index: number;
     /** The label to display at the axis position where the total value is positioned. */
     axisLabel: string;
+    /**
+     * A stable identifier for this total bar, surfaced as `itemId` in node events and `activeItem`.
+     * Synthetic total/subtotal bars have no entry in the data array, so this is the only way to give
+     * them a user-controlled identifier; when omitted, `itemId` falls back to the bar's positional index.
+     */
+    itemId?: string | number;
 }
 
 export interface AgWaterfallSeriesItemOptions<TDatum, TContext = ContextDefault> extends AgWaterfallSeriesStyle {

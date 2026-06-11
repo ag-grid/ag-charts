@@ -24,6 +24,9 @@ export class WaterfallSeriesTotal extends BaseProperties {
 
     @Property
     axisLabel!: string;
+
+    @Property
+    itemId?: string | number;
 }
 
 class WaterfallSeriesItemTooltip extends BaseProperties {

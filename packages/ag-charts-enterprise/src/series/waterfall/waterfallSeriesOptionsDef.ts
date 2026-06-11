@@ -4,6 +4,8 @@ import {
     arrayOfDefs,
     commonSeriesOptionsDefs,
     constant,
+    number,
+    or,
     positiveNumber,
     positiveNumberNonZero,
     required,
@@ -28,6 +30,7 @@ export const waterfallSeriesOptionsDef: OptionsDefs<AgWaterfallSeriesOptions> = 
             totalType: required(union('total', 'subtotal')),
             index: required(positiveNumber),
             axisLabel: required(string),
+            itemId: or(string, number),
         },
         'a total definition options array'
     ),

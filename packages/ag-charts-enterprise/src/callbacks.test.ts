@@ -1307,7 +1307,9 @@ describe('AG-15850 activeChange', () => {
     let version: string | undefined = undefined;
 
     type ExpectedAgActiveChangeEventProperties = RequireOptional<
-        DeepReadonly<Omit<AgActiveChangeEvent<unknown, unknown>, 'preventDefault' | 'context'>>
+        DeepReadonly<
+            Omit<AgActiveChangeEvent<unknown, unknown>, 'preventDefault' | 'context' | 'itemType' | 'totalLabel'>
+        >
     >;
     function expectAgActiveChangeEvent(props: ExpectedAgActiveChangeEventProperties) {
         const { activeItem, dataIdKey, datum, frozen, source, type, ..._rest } = props;

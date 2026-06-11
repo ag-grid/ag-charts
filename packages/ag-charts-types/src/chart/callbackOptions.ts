@@ -1,7 +1,7 @@
 import type { ImageSegment, TextSegment, TextValue } from '../series/cartesian/commonOptions';
 import type { ContextDefault, CssColor, DatumDefault } from './types';
 
-type AgItemType = 'positive' | 'negative' | 'total' | 'subtotal' | 'up' | 'down' | 'low' | 'high';
+export type AgItemType = 'positive' | 'negative' | 'total' | 'subtotal' | 'up' | 'down' | 'low' | 'high';
 
 export interface AgChartCallbackParams<TDatum = DatumDefault, TContext = ContextDefault> {
     /** The data point associated with the label. */

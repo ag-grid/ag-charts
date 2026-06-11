@@ -1723,7 +1723,7 @@ exports[`AG-15850 activeChange > waterfall > mouse 1`] = `
   [
     {
       "activeItem": {
-        "itemId": "1",
+        "itemId": 1,
         "seriesId": "WaterfallSeries-1",
         "type": "series-node",
       },
@@ -1733,6 +1733,7 @@ exports[`AG-15850 activeChange > waterfall > mouse 1`] = `
         "myY": 145,
       },
       "frozen": false,
+      "itemType": "positive",
       "preventDefault": [Function],
       "source": "user-interaction",
       "type": "activeChange",
@@ -1753,8 +1754,10 @@ exports[`AG-15850 activeChange > waterfall > mouse 2`] = `
       "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
+      "itemType": "subtotal",
       "preventDefault": [Function],
       "source": "user-interaction",
+      "totalLabel": "Subtotal 1",
       "type": "activeChange",
     },
   ],
@@ -1766,7 +1769,7 @@ exports[`AG-15850 activeChange > waterfall > mouse 3`] = `
   [
     {
       "activeItem": {
-        "itemId": "7",
+        "itemId": 8,
         "seriesId": "WaterfallSeries-1",
         "type": "series-node",
       },
@@ -1776,6 +1779,7 @@ exports[`AG-15850 activeChange > waterfall > mouse 3`] = `
         "myY": -165,
       },
       "frozen": false,
+      "itemType": "negative",
       "preventDefault": [Function],
       "source": "user-interaction",
       "type": "activeChange",
@@ -1815,6 +1819,7 @@ exports[`AG-15850 activeChange > waterfall > setState 1`] = `
         "myY": 145,
       },
       "frozen": false,
+      "itemType": "positive",
       "preventDefault": [Function],
       "source": "state-change",
       "type": "activeChange",
@@ -1835,8 +1840,10 @@ exports[`AG-15850 activeChange > waterfall > setState 2`] = `
       "dataIdKey": undefined,
       "datum": undefined,
       "frozen": false,
+      "itemType": "subtotal",
       "preventDefault": [Function],
       "source": "state-change",
+      "totalLabel": "Subtotal 1",
       "type": "activeChange",
     },
   ],
@@ -1858,6 +1865,7 @@ exports[`AG-15850 activeChange > waterfall > setState 3`] = `
         "myY": -165,
       },
       "frozen": false,
+      "itemType": "negative",
       "preventDefault": [Function],
       "source": "state-change",
       "type": "activeChange",
