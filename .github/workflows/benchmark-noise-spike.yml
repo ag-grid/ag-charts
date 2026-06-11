@@ -9,6 +9,12 @@ name: Benchmark Noise Spike
 # Acceptance criteria (see noise-stats.js): median A/A delta < 3%, p95 < 8%.
 
 on:
+    # Temporary push trigger: workflow_dispatch only becomes available once the
+    # workflow exists on the default branch, but this spike must run (and be
+    # deleted) before merge.
+    push:
+        branches:
+            - ag-16452/charts-switch-to-browser-based-benchmark
     workflow_dispatch:
         inputs:
             examples:
@@ -58,15 +64,18 @@ jobs:
               run: yarn nx build ag-charts-website
 
             - name: Run repeated benchmarks
+              env:
+                  REPEATS: ${{ inputs.repeats || 5 }}
+                  EXAMPLES: ${{ inputs.examples || 'simple-chart,large-dataset,high-perf-line,high-freq-area,axes-1M-time,data-selection-zoom' }}
               run: |
                   mkdir -p reports/noise-spike
-                  for i in $(seq 1 ${{ inputs.repeats }}); do
-                    echo "=== Run $i/${{ inputs.repeats }} ==="
+                  for i in $(seq 1 "$REPEATS"); do
+                    echo "=== Run $i/$REPEATS ==="
                     ./tools/benchmark/serve-and-run.sh \
                         --dist dist/packages/ag-charts-website \
                         --port 4601 \
                         --output "reports/noise-spike/run-${i}.json" \
-                        -- --examples "${{ inputs.examples }}"
+                        -- --examples "$EXAMPLES"
                   done
 
             - name: Analyse noise
