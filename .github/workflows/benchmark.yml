@@ -197,7 +197,9 @@ jobs:
 
     benchmark:
         runs-on: ubuntu-24.04
-        timeout-minutes: 30
+        # Hosted runners are ~2x slower than the previous bare-metal runner;
+        # the slowest examples (e.g. data-selection-zoom) need generous headroom.
+        timeout-minutes: 45
         needs: [resolve, build]
         strategy:
             fail-fast: false
@@ -245,7 +247,7 @@ jobs:
                         --dist "${RUNNER_TEMP}/site-${role}" \
                         --port "${port}" \
                         --output "reports/browser-benchmarks/shards/${role}-${{ strategy.job-index }}.json" \
-                        -- --examples "${{ matrix.examples }}" || {
+                        -- --examples "${{ matrix.examples }}" --timeout 600000 || {
                       if [[ "${AG_BENCHMARK_SOFT_FAIL}" == "true" ]]; then
                         echo "::warning::${role} benchmarks had failures (soft-fail mode)"
                       else

@@ -20,7 +20,8 @@ on:
             examples:
                 description: 'Comma-separated example subset'
                 type: string
-                default: simple-chart,large-dataset,high-perf-line,high-freq-area,axes-1M-time,data-selection-zoom
+                # data-selection-zoom is excluded: it exceeds the per-example timeout on hosted runners
+                default: simple-chart,large-dataset,high-perf-line,high-freq-area,axes-1M-time,multi-series
                 required: true
             repeats:
                 description: 'Number of back-to-back runs'
@@ -66,16 +67,19 @@ jobs:
             - name: Run repeated benchmarks
               env:
                   REPEATS: ${{ inputs.repeats || 5 }}
-                  EXAMPLES: ${{ inputs.examples || 'simple-chart,large-dataset,high-perf-line,high-freq-area,axes-1M-time,data-selection-zoom' }}
+                  EXAMPLES: ${{ inputs.examples || 'simple-chart,large-dataset,high-perf-line,high-freq-area,axes-1M-time,multi-series' }}
               run: |
                   mkdir -p reports/noise-spike
                   for i in $(seq 1 "$REPEATS"); do
                     echo "=== Run $i/$REPEATS ==="
+                    # Individual example failures/timeouts must not abort the
+                    # spike — noise-stats analyses whatever succeeded.
                     ./tools/benchmark/serve-and-run.sh \
                         --dist dist/packages/ag-charts-website \
                         --port 4601 \
                         --output "reports/noise-spike/run-${i}.json" \
-                        -- --examples "$EXAMPLES"
+                        -- --examples "$EXAMPLES" \
+                        || echo "::warning::Run ${i} had failures"
                   done
 
             - name: Analyse noise
