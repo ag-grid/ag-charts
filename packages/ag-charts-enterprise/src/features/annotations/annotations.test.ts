@@ -800,6 +800,31 @@ describe('Annotations', () => {
             expect(bigintImage).toMatchImage(numberImage);
         });
 
+        it('renders bigint disjoint-channel startHeight/endHeight identically to numbers', async () => {
+            await prepareChart();
+            const baseline = ctx.snapshot();
+            const numberImage = await applyAnnotations([
+                {
+                    type: 'disjoint-channel',
+                    start: { x: X_START, y: 60 },
+                    end: { x: X_END, y: 80 },
+                    startHeight: 20,
+                    endHeight: 40,
+                },
+            ]);
+            const bigintImage = await applyAnnotations([
+                {
+                    type: 'disjoint-channel',
+                    start: { x: X_START, y: 60n },
+                    end: { x: X_END, y: 80n },
+                    startHeight: 20n,
+                    endHeight: 40n,
+                },
+            ]);
+            expect(numberImage).not.toMatchImage(baseline, { writeDiff: false });
+            expect(bigintImage).toMatchImage(numberImage);
+        });
+
         it('renders a bigint parallel-channel height identically to a number height', async () => {
             await prepareChart();
             const baseline = ctx.snapshot();

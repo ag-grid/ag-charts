@@ -16,6 +16,7 @@ import {
     isGradientFill,
     maxValue,
     minValue,
+    zeroLike,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
@@ -139,8 +140,12 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         if (direction === ChartAxisDirection.Angle) {
             const xExtent = dataModel.getDomain(this, 'angleValue-end', 'value', processedData).domain;
-            // minValue/maxValue (not Math.min/max, which throw on bigint) keep an exact bigint extent.
-            const fixedXExtent = [minValue(xExtent[0], 0), maxValue(xExtent[1], 0)];
+            // minValue/maxValue (not Math.min/max, which throw on bigint) keep an exact bigint extent, and
+            // zeroLike keeps the baseline the same type so fixNumericExtent never sees a mixed extent.
+            const fixedXExtent = [
+                minValue(xExtent[0], zeroLike(xExtent[0])),
+                maxValue(xExtent[1], zeroLike(xExtent[1])),
+            ];
             return { domain: fixNumericExtent(fixedXExtent) };
         } else {
             return dataModel.getDomain(this, 'radiusValue', 'key', processedData);
