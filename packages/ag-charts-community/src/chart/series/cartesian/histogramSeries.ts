@@ -7,6 +7,7 @@ import {
     type RequireOptional,
     addValues,
     createBigIntBins,
+    createBigIntTickBins,
     createTicks,
     deepClone,
     findMinMax,
@@ -212,7 +213,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         return (
             this.properties.bins ??
             (bigIntExtent
-                ? createBigIntBins(BigInt(x0), BigInt(x1), defaultBinCount)
+                ? createBigIntTickBins(BigInt(x0), BigInt(x1), defaultBinCount)
                 : this.deriveBins([Number(x0), Number(x1)]))
         );
     }
