@@ -11,14 +11,17 @@ function parseEpochValue(value: unknown): unknown {
 
 /**
  * Resolve the epoch-ms representation of a time column, parsing and caching on first use.
+ * The whole column is scanned for strings: mixed columns (e.g. Date objects first, ISO strings
+ * later) must still parse, and the result is cached by identity so a wrong guess would never
+ * self-correct.
  * @returns the input `values` unchanged when the column holds no strings.
  */
 export function ensureEpochColumn(values: unknown[]): unknown[] {
     const cached = epochColumnCache.get(values);
     if (cached !== undefined) return cached;
 
-    const sample = values.find((v) => v != null);
-    const converted = typeof sample === 'string' ? values.map(parseEpochValue) : values;
+    const hasStrings = values.some((v) => typeof v === 'string');
+    const converted = hasStrings ? values.map(parseEpochValue) : values;
     epochColumnCache.set(values, converted);
     return converted;
 }

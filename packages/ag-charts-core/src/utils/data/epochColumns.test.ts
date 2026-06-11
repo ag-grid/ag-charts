@@ -23,6 +23,12 @@ describe('epochColumns', () => {
         expect(ensureEpochColumn(column)).toEqual([epoch, epoch + 1000]);
     });
 
+    it('parses mixed columns whose first values are not strings', () => {
+        const epoch = Date.parse('2024-01-01T00:00:00Z');
+        const column = [new Date(epoch), epoch + 1000, '2024-01-01T00:00:02Z'];
+        expect(ensureEpochColumn(column)).toEqual([new Date(epoch), epoch + 1000, epoch + 2000]);
+    });
+
     it('invalidation forces a re-parse', () => {
         const column = ['2024-01-01'];
         const first = ensureEpochColumn(column);

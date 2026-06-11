@@ -162,7 +162,11 @@ function sawIsoStrings(tracker: TimezoneTracker): boolean {
     return tracker.explicit != null || tracker.implicit != null;
 }
 
-/** Extend a continuous domain from the epoch-ms representation of an ISO-string column. */
+/**
+ * Extend a continuous domain from the epoch-ms representation of an ISO-string column.
+ * Rows the streaming pass rejected hold `def.invalidValue`, which must be non-numeric
+ * (typically `undefined`) so that `extend` ignores it here.
+ */
 function extendDomainFromEpochColumn(domain: IDataDomain | undefined, column: unknown[]): void {
     // Discrete domains coerce ISO strings per value themselves (the domain keeps Date identity).
     if (!ContinuousDomain.is(domain)) return;
@@ -237,7 +241,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
         );
 
         // Continuous domains skip ISO 8601 strings during streaming extension; extend them now from
-        // the parse-once epoch columns (also pre-warming the cache for aggregation and sort-order detection).
+        // the parse-once epoch columns.
         for (const [valueDefIndex, def] of valueDefs.entries()) {
             if (columnHasIsoStrings[valueDefIndex]) {
                 extendDomainFromEpochColumn(dataDomain.get(def), columns[valueDefIndex]);

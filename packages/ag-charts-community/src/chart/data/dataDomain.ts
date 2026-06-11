@@ -208,8 +208,8 @@ export class ContinuousDomain<T extends number | Date> implements IDataDomain<T>
     }
 
     extend(value: T | bigint) {
-        // ISO 8601 strings are ignored here: continuous string columns are parsed to epoch ms once
-        // (ensureEpochColumn) and their domains extended from the epoch column, never the raw strings.
+        // Non-numeric values (including ISO 8601 strings, which must arrive pre-parsed via
+        // ensureEpochColumn) are ignored. Widen to unknown so typeof narrows the generic union.
         const v: unknown = value;
         if (typeof v !== 'number' && typeof v !== 'bigint' && !(v instanceof Date)) {
             return;

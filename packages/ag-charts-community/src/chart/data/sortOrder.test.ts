@@ -47,6 +47,14 @@ describe('valuesSortOrder', () => {
         expect(valuesSortOrder(['a', 'b', 'c'], true)).toBeUndefined();
     });
 
+    it('returns undefined when a column contains an unparseable ISO-like string', () => {
+        expect(valuesSortOrder(['2024-01-01', '2024-02-30', '2024-03-01'], true)).toBeUndefined();
+    });
+
+    it('returns undefined when a numeric column contains NaN', () => {
+        expect(valuesSortOrder([1, NaN, 3], false)).toBeUndefined();
+    });
+
     it('detects ascending Date columns via valueOf', () => {
         const values = [new Date(0), new Date(1000), new Date(2000)];
         expect(valuesSortOrder(values, true)).toBe(1);

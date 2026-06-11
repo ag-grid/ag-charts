@@ -22,6 +22,9 @@ export function valuesSortOrder(values: any[], needsValueOf: boolean): SortOrder
             if (!Number.isFinite(primitive)) return;
         }
         if (typeof primitive !== 'number' && typeof primitive !== 'bigint') return;
+        // NaN compares false against everything, which would silently read as a tie — treat the
+        // column as unsorted so downstream binary-search fast paths never run over invalid values.
+        if (typeof primitive === 'number' && Number.isNaN(primitive)) return;
 
         if (prev !== undefined) {
             // Relational comparison is bigint-safe and works across number/bigint; Math.sign(v1 - v0) throws on bigint.
