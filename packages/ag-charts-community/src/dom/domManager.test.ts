@@ -116,6 +116,63 @@ describe('DOMManager', () => {
             expect(dm.containerSize).toMatchObject({ width: 400, height: 250 });
         });
 
+        it('should measure the container size when attachment happens after the deferred flush completes', async () => {
+            const container = doc.createElement('div');
+            const dm = new DOMManager(eventsHub, 'late-416e', doc, container);
+
+            // The deferred flush completes while the container is still detached, mirroring an
+            // async-data flow where all updates settle before the container is appended.
+            dm.setDeferring(false);
+            await vi.runAllTimersAsync();
+            expect(dm.containerSize).toBeUndefined();
+
+            // Attach to the document and give it a laid-out size. jsdom never fires a
+            // layout-driven ResizeObserver callback, so the attach-transition re-measure
+            // is the only thing that can produce a size here.
+            doc.body.append(container);
+            Object.defineProperty(container, 'clientWidth', { value: 400, configurable: true });
+            Object.defineProperty(container, 'clientHeight', { value: 250, configurable: true });
+            vi.spyOn(doc.window, 'getComputedStyle').mockReturnValue({
+                paddingLeft: '0px',
+                paddingRight: '0px',
+                paddingTop: '0px',
+                paddingBottom: '0px',
+            } as any);
+            await vi.runAllTimersAsync();
+
+            expect(dm.containerSize).toMatchObject({ width: 400, height: 250 });
+        });
+
+        it('should measure the container size when a detached shadow-DOM host is later attached', async () => {
+            const component = doc.createElement('div');
+            const shadow = component.attachShadow({ mode: 'open' });
+            const container = doc.createElement('div');
+            shadow.appendChild(container);
+
+            const dm = new DOMManager(eventsHub, 'late-shadow', doc, container);
+
+            // The deferred flush completes while the shadow host is still detached.
+            dm.setDeferring(false);
+            await vi.runAllTimersAsync();
+            expect(dm.containerSize).toBeUndefined();
+
+            // Connecting the host connects the container; jsdom never fires a layout-driven
+            // ResizeObserver callback, so the attach-transition re-measure is the only thing
+            // that can produce a size here.
+            doc.body.append(component);
+            Object.defineProperty(container, 'clientWidth', { value: 400, configurable: true });
+            Object.defineProperty(container, 'clientHeight', { value: 250, configurable: true });
+            vi.spyOn(doc.window, 'getComputedStyle').mockReturnValue({
+                paddingLeft: '0px',
+                paddingRight: '0px',
+                paddingTop: '0px',
+                paddingBottom: '0px',
+            } as any);
+            await vi.runAllTimersAsync();
+
+            expect(dm.containerSize).toMatchObject({ width: 400, height: 250 });
+        });
+
         it('should keep styles inside the shadow root when attached to a shadow DOM', () => {
             const component = doc.createElement('div');
             const container = doc.createElement('div');

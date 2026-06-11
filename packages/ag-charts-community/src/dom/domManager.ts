@@ -161,6 +161,8 @@ export class DOMManager extends BaseManager {
     private readonly tabGuards?: GuardedElement;
 
     private readonly observer?: IntersectionObserver;
+    private attachObserver?: MutationObserver;
+    private attachIntersectionObserver?: IntersectionObserver;
     private readonly sizeMonitor: SizeMonitor;
     private readonly cursorState = new StateTracker('default');
     private _lastCursor: string | undefined = undefined;
@@ -293,6 +295,7 @@ export class DOMManager extends BaseManager {
         super.destroy();
 
         this.observer?.unobserve(this.element);
+        this.disconnectAttachObservers();
         this.sizeMonitor.unobserve(this.rootElements['canvas'].element);
         if (this.container) {
             this.sizeMonitor.unobserve(this.container);
@@ -355,9 +358,47 @@ export class DOMManager extends BaseManager {
         DOMManager.batchedUpdateContainer.splice(0);
     }
 
+    private disconnectAttachObservers() {
+        this.attachObserver?.disconnect();
+        this.attachObserver = undefined;
+        this.attachIntersectionObserver?.disconnect();
+        this.attachIntersectionObserver = undefined;
+    }
+
+    private readonly onAttachTransition = () => {
+        if (this.container?.isConnected === true) {
+            this.updateStylesLocation();
+        }
+    };
+
+    // The disconnected→connected re-measure runs from updateStylesLocation, which only fires off a
+    // deferred flush. A container attached after all updates have settled schedules no further flush,
+    // so without this the chart latches its unmeasured pre-attachment size. Run the re-measure once
+    // on attachment, independent of flush timing.
+    private observeAttachTransition(container: HTMLElement) {
+        this.disconnectAttachObservers();
+        if (this.mode === 'minimal' || this.initiallyConnected !== false) return;
+
+        // A MutationObserver on the document only sees light-DOM insertions; appending the container
+        // directly into a connected shadow root mutates the shadow tree, which the document cannot
+        // observe. An IntersectionObserver observes the target element itself, so it fires on
+        // connection across shadow boundaries — covering the case the MutationObserver misses.
+        this.attachObserver = this.agDocument.createMutationObserver(this.onAttachTransition);
+        this.attachObserver?.observe(container.ownerDocument.documentElement, { childList: true, subtree: true });
+
+        this.attachIntersectionObserver = this.agDocument.createIntersectionObserver((observedEntries) => {
+            if (observedEntries.some((entry) => entry.isIntersecting)) {
+                this.onAttachTransition();
+            }
+        });
+        this.attachIntersectionObserver?.observe(container);
+    }
+
     private updateStylesLocation() {
         // Check if we transitioned from disconnected to connected
         if (this.initiallyConnected === true || this.container?.isConnected === false) return;
+
+        this.disconnectAttachObservers();
 
         this.shadowDocumentRoot = this.getShadowDocumentRoot(this.container);
         this.initiallyConnected = true;
@@ -456,6 +497,7 @@ export class DOMManager extends BaseManager {
         this.agDocument.setContainer(pendingContainer);
         this.shadowDocumentRoot = this.getShadowDocumentRoot(pendingContainer);
         this.initiallyConnected = pendingContainer.isConnected;
+        this.observeAttachTransition(pendingContainer);
 
         // If we moved from a shadow DOM to outside, we need to ensure the page styles are present
         // Or if the container is added lazily, we need to ensure styles are added before the container
