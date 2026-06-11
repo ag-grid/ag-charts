@@ -304,12 +304,20 @@ describe('TreemapSeries', () => {
         });
 
         describe('block-leading image segments', () => {
+            // Letters drawn as vector paths rather than <text> so glyph rendering is identical
+            // across operating systems (system fonts differ between macOS and CI).
+            const LETTER_PATHS: Record<string, string> = {
+                A: 'M13 25L18 11L23 25M15.5 19.5L20.5 19.5',
+                B: 'M14 11L14 25M14 11L19 11Q23 11 23 14.5Q23 18 19 18L14 18M14 18L20 18Q24 18 24 21.5Q24 25 20 25L14 25',
+                G: 'M23 15Q23 11 18 11Q13 11 13 18Q13 25 18 25Q23 25 23 20L19 20',
+                D: 'M14 11L14 25M14 11L18 11Q24 11 24 18Q24 25 18 25L14 25',
+            };
             const iconSvg = (letter: string) =>
                 `data:image/svg+xml;utf8,${encodeURIComponent(
                     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36">` +
                         `<circle cx="18" cy="18" r="16" fill="#1f77b4"/>` +
-                        `<text x="18" y="24" text-anchor="middle" font-family="Verdana" font-size="18"` +
-                        ` fill="white" font-weight="bold">${letter}</text></svg>`
+                        `<path d="${LETTER_PATHS[letter]}" stroke="white" stroke-width="2.5" fill="none"` +
+                        ` stroke-linecap="round" stroke-linejoin="round"/></svg>`
                 )}`;
             const ICONS: Record<string, string> = {
                 Alpha: iconSvg('A'),

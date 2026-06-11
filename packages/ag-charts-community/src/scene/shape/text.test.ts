@@ -425,7 +425,7 @@ describe('Text', () => {
         const LOGO_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(
             '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36">' +
                 '<circle cx="18" cy="18" r="16" fill="#1f77b4"/>' +
-                '<text x="18" y="24" text-anchor="middle" font-family="Verdana" font-size="18" fill="white" font-weight="bold">A</text>' +
+                '<path d="M13 25L18 11L23 25M15.5 19.5L20.5 19.5" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
                 '</svg>'
         )}`;
         // A second, visually distinct block logo so stacked/side-by-side block rows are
@@ -433,7 +433,7 @@ describe('Text', () => {
         const LOGO2_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(
             '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36">' +
                 '<rect x="2" y="2" width="32" height="32" rx="6" fill="#d62728"/>' +
-                '<text x="18" y="24" text-anchor="middle" font-family="Verdana" font-size="18" fill="white" font-weight="bold">B</text>' +
+                '<path d="M14 11L14 25M14 11L19 11Q23 11 23 14.5Q23 18 19 18L14 18M14 18L20 18Q24 18 24 21.5Q24 25 20 25L14 25" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
                 '</svg>'
         )}`;
 
