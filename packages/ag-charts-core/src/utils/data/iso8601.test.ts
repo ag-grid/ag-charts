@@ -13,6 +13,8 @@ describe('isISO8601', () => {
         '2024-01-15T10:30Z',
         '2024-01-15T10:30',
         '2024-01-15T10:30+05:30',
+        // Calendar validation operates on the wall-clock date, even when the offset shifts the UTC day.
+        '2024-01-15T02:00:00+05:30',
     ];
 
     const rejected = [
@@ -44,9 +46,4 @@ describe('isISO8601', () => {
             expect(isISO8601(value)).toBe(false);
         }
     );
-
-    it('does not accept an offset form whose UTC day differs from the wall-clock day', () => {
-        // 02:00+05:30 lands on the previous UTC day; the date portion must still be honoured.
-        expect(isISO8601('2024-01-15T02:00:00+05:30')).toBe(true);
-    });
 });

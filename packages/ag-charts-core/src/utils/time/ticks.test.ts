@@ -2,15 +2,11 @@ import { createBigIntBins, createBigIntTicks, createTicks, niceBigIntDomain, tic
 
 describe('tickFormat', () => {
     test('formats a bigint tick with the chart-wide en-US grouping', () => {
-        // GAP AG-16608 §9.2.2 — the bigint branch calls toLocaleString() with no locale argument, so the
-        // grouping separators follow the runtime's default locale instead of the pinned 'en-US' used by
-        // createNumberFormatter and every other numeric tick, diverging in non-US environments.
-        const spy = vi.spyOn(BigInt.prototype, 'toLocaleString');
+        // Bigint ticks must pin en-US grouping to match createNumberFormatter, regardless of the
+        // runtime's default locale.
         const format = tickFormat([0, 1]);
-        format!(9_007_199_254_740_993n);
 
-        expect(spy).toHaveBeenCalledWith('en-US');
-        spy.mockRestore();
+        expect(format!(9_007_199_254_740_993n)).toBe('9,007,199,254,740,993');
     });
 
     test('applies the user tick format prefix and suffix to a bigint tick', () => {

@@ -71,8 +71,7 @@ describe('Strings Utilities', () => {
             expect(result).toBe('{"key":"value"}');
         });
 
-        it('stringifies a bigint without throwing (AG-16608)', () => {
-            expect(() => stringifyValue(9_007_199_254_740_993n)).not.toThrow();
+        it('stringifies a bigint without throwing', () => {
             expect(stringifyValue(9_007_199_254_740_993n)).toBe('9007199254740993');
         });
     });
