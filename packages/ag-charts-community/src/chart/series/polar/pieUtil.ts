@@ -186,6 +186,10 @@ export function pickSectorsInBBoxPredicate(series: {
                         series.contentGroup,
                         new BBox(selectionBox.x, selectionBox.y, selectionBox.width, selectionBox.height)
                     );
+                    // boxOverlapsSector assumes an origin-centred sector, so shift the box into the
+                    // sector's local frame to honour a non-zero centre offset (selectedOffset).
+                    seriesSelectionBox.x -= node.centerX;
+                    seriesSelectionBox.y -= node.centerY;
                     return boxOverlapsSector(seriesSelectionBox, node);
                 }
                 return false;

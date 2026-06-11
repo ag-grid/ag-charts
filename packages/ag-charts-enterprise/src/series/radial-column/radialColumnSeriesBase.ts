@@ -623,6 +623,10 @@ export abstract class RadialColumnSeriesBase<
         return this.pickNodeNearestDistantObject(point, this.itemSelection.nodes());
     }
 
+    protected override pickNodesInBBoxPredicate() {
+        return _ModuleSupport.pickSectorsInBBoxPredicate(this);
+    }
+
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
         const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = getStyle(
             this,

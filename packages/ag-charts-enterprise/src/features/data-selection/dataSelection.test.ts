@@ -9,6 +9,7 @@ import {
     type AgErrorBarItemStylerParams,
     AgHierarchyChartOptions,
     AgInitialStateZoomOptions,
+    type AgPolarChartOptions,
     AgSelectionChangeEvent,
     AgSelectionItem,
 } from 'ag-charts-community';
@@ -252,6 +253,89 @@ function createBarStackMixOptions(): AgCartesianChartOptions<StackMixDatum, unkn
                             selectedItem: {
                                 strokeWidth: 5,
                             },
+                        },
+                    },
+                },
+            },
+        },
+    };
+}
+
+type RingDatum = { sector: string; value: number };
+function createPieDonutOptions(): AgPolarChartOptions<RingDatum, unknown> {
+    // Three concentric rings — a pie in the centre encircled by two donuts. Every
+    // ring is split into the same four equal-angle quadrants (each value: 1 → 90°),
+    // so a drag-box over a compass quadrant maps to obvious sectors when debugging.
+    // With the default rotation, sectors run clockwise from 12 o'clock: NE, SE, SW, NW.
+    const center: RingDatum[] = [
+        { sector: 'C-NE', value: 1 },
+        { sector: 'C-SE', value: 1 },
+        { sector: 'C-SW', value: 1 },
+        { sector: 'C-NW', value: 1 },
+    ];
+    const inner: RingDatum[] = [
+        { sector: 'I-NE', value: 1 },
+        { sector: 'I-SE', value: 1 },
+        { sector: 'I-SW', value: 1 },
+        { sector: 'I-NW', value: 1 },
+    ];
+    const outer: RingDatum[] = [
+        { sector: 'O-NE', value: 1 },
+        { sector: 'O-SE', value: 1 },
+        { sector: 'O-SW', value: 1 },
+        { sector: 'O-NW', value: 1 },
+    ];
+    return {
+        data: center,
+        series: [
+            // Centre pie (uses root data)
+            {
+                id: 'pieid',
+                type: 'pie',
+                angleKey: 'value',
+                sectorLabelKey: 'sector',
+                outerRadiusRatio: 0.33,
+            },
+            // Inner donut encircling the pie (own data)
+            {
+                id: 'donut1id',
+                type: 'donut',
+                data: inner,
+                angleKey: 'value',
+                sectorLabelKey: 'sector',
+                innerRadiusRatio: 0.33,
+                outerRadiusRatio: 0.66,
+            },
+            // Outer donut encircling the inner donut (own data)
+            {
+                id: 'donut2id',
+                type: 'donut',
+                data: outer,
+                angleKey: 'value',
+                sectorLabelKey: 'sector',
+                innerRadiusRatio: 0.66,
+                outerRadiusRatio: 1,
+            },
+        ],
+        // Disable the legend (we're not testing that):
+        legend: { enabled: false },
+        theme: {
+            overrides: {
+                pie: {
+                    series: {
+                        // Show sector labels so selected sectors are obvious in image snapshots:
+                        sectorLabel: { enabled: true },
+                        selection: {
+                            // Make selected items in the image snapshots more obvious by increasing strokeWidth
+                            selectedItem: { strokeWidth: 5 },
+                        },
+                    },
+                },
+                donut: {
+                    series: {
+                        sectorLabel: { enabled: true },
+                        selection: {
+                            selectedItem: { strokeWidth: 5 },
                         },
                     },
                 },
@@ -2828,6 +2912,156 @@ describe('DataSelection', () => {
                         await mouseUp(end);
                         await mouseMove(POINT_MISS);
                         await compareExact('diskusage-sunburst-all-northeast-box-selection');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(getChartSelectionArray()).toEqual(added);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(selectionChange.popEvents()).toEqual([uiChangeEvent<D, C>({ added, removed: [] })]);
+                    });
+                });
+            });
+        });
+
+        describe('pie/donut', () => {
+            type D = RingDatum;
+            type C = unknown;
+            type I = AgSelectionItem<D>;
+            let selectionChange: SelectionChangeRecorder<D, C>;
+            const { data, series, theme, legend } = createPieDonutOptions();
+
+            const POINT_MISS: CanvasPoint = { canvasX: 20, canvasY: 20 };
+
+            describe('containment any', () => {
+                beforeEach(async () => {
+                    selectionChange = createSelectionChangeRecorder();
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        theme,
+                        legend,
+                        selection: {
+                            enabled: true,
+                            enableClick: false,
+                            enableDrag: true,
+                            containment: 'any',
+                        },
+                        listeners: { selectionChange },
+                    });
+                });
+                describe('initial', () => {
+                    test('screenshot', async () => {
+                        await compareExact('piedonut-highlighted-none-selected-none');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+                describe('northeast box', () => {
+                    const start: CanvasPoint = { canvasX: 375, canvasY: 324 };
+                    const end: CanvasPoint = { canvasX: 727, canvasY: 5 };
+                    const added: I[] = [
+                        { datum: { sector: 'C-NE', value: 1 }, itemId: 0, seriesId: 'pieid' },
+                        { datum: { sector: 'C-SE', value: 1 }, itemId: 1, seriesId: 'pieid' },
+                        { datum: { sector: 'C-SW', value: 1 }, itemId: 2, seriesId: 'pieid' },
+                        { datum: { sector: 'C-NW', value: 1 }, itemId: 3, seriesId: 'pieid' },
+                        { datum: { sector: 'I-NE', value: 1 }, itemId: 0, seriesId: 'donut1id' },
+                        { datum: { sector: 'I-SE', value: 1 }, itemId: 1, seriesId: 'donut1id' },
+                        { datum: { sector: 'I-NW', value: 1 }, itemId: 3, seriesId: 'donut1id' },
+                        { datum: { sector: 'O-NE', value: 1 }, itemId: 0, seriesId: 'donut2id' },
+                        { datum: { sector: 'O-SE', value: 1 }, itemId: 1, seriesId: 'donut2id' },
+                        { datum: { sector: 'O-NW', value: 1 }, itemId: 3, seriesId: 'donut2id' },
+                    ];
+
+                    test('screenshot', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        await compareExact('piedonut-any-northeast-box-candidacy');
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        await compareExact('piedonut-any-northeast-box-selection');
+                    });
+                    test('getSelection', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(getChartSelectionArray()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(getChartSelectionArray()).toEqual(added);
+                    });
+                    test('selectionChange', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        expect(selectionChange.popEvents()).toEqual([]);
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        expect(selectionChange.popEvents()).toEqual([uiChangeEvent<D, C>({ added, removed: [] })]);
+                    });
+                });
+            });
+            describe('containment all', () => {
+                beforeEach(async () => {
+                    selectionChange = createSelectionChangeRecorder();
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        theme,
+                        legend,
+                        selection: {
+                            enabled: true,
+                            enableClick: false,
+                            enableDrag: true,
+                            containment: 'all',
+                        },
+                        listeners: { selectionChange },
+                    });
+                });
+                describe('initial', () => {
+                    test('screenshot', async () => {
+                        await compareExact('piedonut-highlighted-none-selected-none');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+                describe('northeast box', () => {
+                    const start: CanvasPoint = { canvasX: 375, canvasY: 324 };
+                    const end: CanvasPoint = { canvasX: 727, canvasY: 5 };
+                    const added: I[] = [
+                        { datum: { sector: 'C-NE', value: 1 }, itemId: 0, seriesId: 'pieid' },
+                        { datum: { sector: 'I-NE', value: 1 }, itemId: 0, seriesId: 'donut1id' },
+                        { datum: { sector: 'O-NE', value: 1 }, itemId: 0, seriesId: 'donut2id' },
+                    ];
+
+                    test('screenshot', async () => {
+                        await mouseDown(start);
+                        await mouseMove(end);
+                        await compareExact('piedonut-all-northeast-box-candidacy');
+
+                        await mouseUp(end);
+                        await mouseMove(POINT_MISS);
+                        await compareExact('piedonut-all-northeast-box-selection');
                     });
                     test('getSelection', async () => {
                         await mouseDown(start);

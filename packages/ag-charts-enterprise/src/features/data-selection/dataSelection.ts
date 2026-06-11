@@ -57,11 +57,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private supportsSelectionDrag(): boolean {
-        return (
-            this.supportsSelection() &&
-            this.ctx.chartService.getChartType() !== 'topology' &&
-            this.ctx.chartService.getChartType() !== 'polar'
-        );
+        return this.supportsSelection() && this.ctx.chartService.getChartType() !== 'topology';
     }
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
