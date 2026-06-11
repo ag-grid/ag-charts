@@ -90,7 +90,7 @@ export function resolveOperation(operation: Operation): any {
     const palette = ChartTheme.getDefaultColors();
 
     // Create a graph with a stub line series with which to resolve the operation
-    const graph = new OptionsGraph({ line: { operation } }, { series: [{ type: 'line' }] }, params, palette);
+    const graph = new OptionsGraph({ line: { operation } }, { series: [{ type: 'line' }] }, params, params, palette);
     const resolved = graph.resolve();
 
     return resolved.operation;

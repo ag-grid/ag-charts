@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { PlainObject } from 'ag-charts-core';
+import { expectWarningsCalls, setupMockConsole } from 'ag-charts-test';
 
 import { OptionsGraph } from './optionsGraph';
 
@@ -15,6 +16,8 @@ function prepareOptions(options: PlainObject) {
 }
 
 describe('OptionsGraph', () => {
+    setupMockConsole();
+
     it('should merge chart defaults and user options', () => {
         const themeConfig = {
             line: {
@@ -197,7 +200,7 @@ describe('OptionsGraph', () => {
             ],
         });
 
-        const options = new OptionsGraph(themeConfig, userOptions, params, palette).resolve();
+        const options = new OptionsGraph(themeConfig, userOptions, params, params, palette).resolve();
         expect(options).toStrictEqual({
             title: 'User Options', // from user options
             background: 'grey', // from user options
@@ -360,7 +363,7 @@ describe('OptionsGraph', () => {
                 const palette = {
                     fills: ['red', 'green', 'blue'],
                 };
-                const options = new OptionsGraph(themeConfig, prepareOptions({}), {}, palette).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), {}, {}, palette).resolve();
                 expect(options).toStrictEqual({
                     items: [{ fill: 'red' }],
                     axes: expect.any(Object),
@@ -383,7 +386,7 @@ describe('OptionsGraph', () => {
                 const palette = {
                     fills: ['red', 'green', 'blue'],
                 };
-                const options = new OptionsGraph(themeConfig, prepareOptions({}), {}, palette).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), {}, {}, palette).resolve();
                 expect(options).toStrictEqual({
                     items: [
                         { fill: 'red' },
@@ -1121,7 +1124,7 @@ describe('OptionsGraph', () => {
                 const palette = {
                     strokes: ['red', 'green', 'blue'],
                 };
-                const options = new OptionsGraph(themeConfig, prepareOptions({}), {}, palette).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), {}, {}, palette).resolve();
                 expect(options).toStrictEqual({
                     item: {
                         enabled: true,
@@ -1243,6 +1246,38 @@ describe('OptionsGraph', () => {
                     fill: '#ff0000',
                     axes: expect.any(Object),
                 });
+            });
+
+            it('should warn on infinite loops', () => {
+                const params = {
+                    accentColor: { ref: 'gridLineColor' },
+                    gridLineColor: { ref: 'foregroundColor' },
+                    foregroundColor: { ref: 'accentColor' },
+                };
+                new OptionsGraph({}, prepareOptions({}), params).resolve();
+                expectWarningsCalls().toMatchInlineSnapshot(`
+                  [
+                    [
+                      "AG Charts - Infinite loop cycle found in theme params [accentColor -> gridLineColor -> foregroundColor -> accentColor], ignoring.",
+                    ],
+                  ]
+                `);
+            });
+
+            it('should warn on infinite loops through other operations', () => {
+                const params = {
+                    backgroundColor: 'white',
+                    textColor: { ref: 'subtleTextColor' },
+                    subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'backgroundColor' }, 0.38] },
+                };
+                new OptionsGraph({}, prepareOptions({}), params).resolve();
+                expectWarningsCalls().toMatchInlineSnapshot(`
+                  [
+                    [
+                      "AG Charts - Infinite loop cycle found in theme params [textColor -> subtleTextColor -> textColor], ignoring.",
+                    ],
+                  ]
+                `);
             });
         });
     });

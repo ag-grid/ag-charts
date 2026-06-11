@@ -586,7 +586,7 @@ function switchOperation(graph: OptionsGraphInterface, vertex: VertexInterface, 
 
 // --- LOCATION ---
 
-enum LocationOperation {
+export enum LocationOperation {
     Circular = '$circular',
     IsUserOption = '$isUserOption',
     MapPalette = '$mapPalette',
