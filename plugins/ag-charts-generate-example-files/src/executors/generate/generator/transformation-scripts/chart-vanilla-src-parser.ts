@@ -215,6 +215,9 @@ export function internalParser(js, html, exampleSettings: ExampleSettings, dirPa
         apply: (bindings, node) => {
             const declaration = tsGenerate(node, tsTree);
             bindings.declarations.push(declaration);
+            if (ts.isTypeAliasDeclaration(node) || ts.isInterfaceDeclaration(node)) {
+                bindings.declaredTypeNames.push(node.name.getText());
+            }
         },
     });
 
@@ -270,6 +273,7 @@ export function internalParser(js, html, exampleSettings: ExampleSettings, dirPa
             globals: [],
             init: [],
             declarations: [],
+            declaredTypeNames: [],
             callbackDependencies: {},
         },
         tsCollectors

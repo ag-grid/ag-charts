@@ -164,7 +164,7 @@ export async function vanillaToReactFunctionalTs(
         indexFile = `
             ${imports.join(`
             `)}
-
+${bindings.declarations.length > 0 ? '\n' + bindings.declarations.join('\n') + '\n' : ''}
             ${bindings.globals.join(`
             `)}
 
@@ -185,7 +185,7 @@ export async function vanillaToReactFunctionalTs(
         indexFile = `
             ${imports.join(`
             `)}
-
+${bindings.declarations.length > 0 ? '\n' + bindings.declarations.join('\n') + '\n' : ''}
             ${bindings.globals.join(`
             `)}
         `;
