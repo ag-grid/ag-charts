@@ -361,13 +361,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
             // Real bars leave itemId unset so it resolves via dataIdKey (then datumIndex); synthetic
             // bars have no data row, so a user-supplied totals `itemId` is their only stable identifier.
-            const totalItemId = isTotalOrSubtotal
-                ? (datum as { itemId?: string | number } | undefined)?.itemId
-                : undefined;
+            const totalItemId = isTotalOrSubtotal ? (datum as { itemId?: string } | undefined)?.itemId : undefined;
 
             // Update scratch params
             paramsScratch.datumIndex = datumIndex;
-            paramsScratch.itemId = totalItemId == null ? undefined : String(totalItemId);
+            paramsScratch.itemId = totalItemId;
             paramsScratch.totalLabel = isTotalOrSubtotal ? String(xDatum) : undefined;
             paramsScratch.datum = isTotalOrSubtotal ? undefined : datum;
             paramsScratch.xDatum = xDatum;

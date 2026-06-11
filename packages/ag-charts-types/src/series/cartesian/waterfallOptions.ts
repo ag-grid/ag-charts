@@ -141,7 +141,7 @@ export interface WaterfallSeriesTotalMeta {
      * Synthetic total/subtotal bars have no entry in the data array, so this is the only way to give
      * them a user-controlled identifier; when omitted, `itemId` falls back to the bar's positional index.
      */
-    itemId?: string | number;
+    itemId?: string;
 }
 
 export interface AgWaterfallSeriesItemOptions<TDatum, TContext = ContextDefault> extends AgWaterfallSeriesStyle {
