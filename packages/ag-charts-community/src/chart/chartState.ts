@@ -19,7 +19,6 @@ import type {
     AgFlashOnUpdateOptions,
     AgInitialFocus,
     AgNavigatorMiniChartOptions,
-    AgNavigatorMiniChartPadding,
     AgNavigatorOptions,
     AgRangesButton,
     AgRangesDropdown,
@@ -77,7 +76,7 @@ export type NormalisedAnnotationsOptions = AgAnnotationsOptions & {
 };
 
 export type NormalisedNavigatorMiniChartOptions = Omit<AgNavigatorMiniChartOptions, 'padding'> & {
-    padding: Required<AgNavigatorMiniChartPadding>;
+    padding: NormalisedPaddingOptions;
 };
 
 export type NormalisedNavigatorOptions = Omit<AgNavigatorOptions, 'miniChart'> & {

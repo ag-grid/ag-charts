@@ -16,6 +16,7 @@ import {
     fontOptionsDef,
     number,
     numberFormatValidator,
+    padding,
     positiveNumber,
     ratio,
     textOrSegments,
@@ -154,10 +155,7 @@ export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
     maxHandle: navigatorHandleOptionsDef,
     miniChart: {
         enabled: boolean,
-        padding: {
-            top: positiveNumber,
-            bottom: positiveNumber,
-        },
+        padding: padding,
         label: {
             enabled: boolean,
             avoidCollisions: boolean,
