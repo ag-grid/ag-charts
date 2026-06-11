@@ -108,7 +108,7 @@ test.describe('data-selection', () => {
                 await expect(page).toHaveScreenshot('selection-initial-focus.png', { animations: 'disabled' });
             });
             test('aria-label', async ({ page }) => {
-                expect(await readSwapchainText(page)).toBe('London; 9.1, unselected');
+                expect(await readSwapchainText(page)).toBe('London; population; 9.1, unselected');
             });
             test('getSelection', async ({ page }) => {
                 expect(await getChartSelection(page)).toEqual([NEW_YORK]);
@@ -132,7 +132,7 @@ test.describe('data-selection', () => {
                     });
                 });
                 test('aria-label', async ({ page }) => {
-                    expect(await readSwapchainText(page)).toBe('New York; 8.1, selected');
+                    expect(await readSwapchainText(page)).toBe('New York; population; 8.1, selected');
                 });
                 test('getSelection', async ({ page }) => {
                     expect(await getChartSelection(page)).toEqual([NEW_YORK]);
@@ -156,7 +156,7 @@ test.describe('data-selection', () => {
                         });
                     });
                     test('aria-label', async ({ page }) => {
-                        expect(await readSwapchainText(page)).toBe('Dubai; 4, unselected');
+                        expect(await readSwapchainText(page)).toBe('Dubai; population; 4, unselected');
                     });
                     test('getSelection', async ({ page }) => {
                         expect(await getChartSelection(page)).toEqual([NEW_YORK]);
@@ -179,7 +179,7 @@ test.describe('data-selection', () => {
                             });
                         });
                         test('aria-label', async ({ page }) => {
-                            expect(await readSwapchainText(page)).toBe('selected, Dubai; 4');
+                            expect(await readSwapchainText(page)).toBe('selected, Dubai; population; 4');
                         });
                         test('getSelection', async ({ page }) => {
                             expect(await getChartSelection(page)).toEqual([DUBAI]);
@@ -205,7 +205,7 @@ test.describe('data-selection', () => {
                                 });
                             });
                             test('aria-label', async ({ page }) => {
-                                expect(await readSwapchainText(page)).toBe('selected, Dubai; 4');
+                                expect(await readSwapchainText(page)).toBe('selected, Dubai; population; 4');
                             });
                             test('getSelection', async ({ page }) => {
                                 expect(await getChartSelection(page)).toEqual([DUBAI]);
@@ -232,7 +232,7 @@ test.describe('data-selection', () => {
                 await expect(page).toHaveScreenshot('selection-initial-focus.png', { animations: 'disabled' });
             });
             test('aria-label', async ({ page }) => {
-                expect(await readSwapchainText(page)).toBe('London; 9.1, unselected');
+                expect(await readSwapchainText(page)).toBe('London; population; 9.1, unselected');
             });
             test('getSelection', async ({ page }) => {
                 expect(await getChartSelection(page)).toEqual([NEW_YORK]);
@@ -256,7 +256,7 @@ test.describe('data-selection', () => {
                     });
                 });
                 test('aria-label', async ({ page }) => {
-                    expect(await readSwapchainText(page)).toBe('New York; 8.1, selected');
+                    expect(await readSwapchainText(page)).toBe('New York; population; 8.1, selected');
                 });
                 test('getSelection', async ({ page }) => {
                     expect(await getChartSelection(page)).toEqual([NEW_YORK]);
@@ -280,7 +280,7 @@ test.describe('data-selection', () => {
                         });
                     });
                     test('aria-label', async ({ page }) => {
-                        expect(await readSwapchainText(page)).toBe('Dubai; 4, unselected');
+                        expect(await readSwapchainText(page)).toBe('Dubai; population; 4, unselected');
                     });
                     test('getSelection', async ({ page }) => {
                         expect(await getChartSelection(page)).toEqual([NEW_YORK]);
@@ -303,7 +303,7 @@ test.describe('data-selection', () => {
                             });
                         });
                         test('aria-label', async ({ page }) => {
-                            expect(await readSwapchainText(page)).toBe('selected, Dubai; 4');
+                            expect(await readSwapchainText(page)).toBe('selected, Dubai; population; 4');
                         });
                         test('getSelection', async ({ page }) => {
                             expect(await getChartSelection(page)).toEqual([NEW_YORK, DUBAI]);
@@ -327,7 +327,7 @@ test.describe('data-selection', () => {
                                 });
                             });
                             test('aria-label', async ({ page }) => {
-                                expect(await readSwapchainText(page)).toBe('unselected, Dubai; 4');
+                                expect(await readSwapchainText(page)).toBe('unselected, Dubai; population; 4');
                             });
                             test('getSelection', async ({ page }) => {
                                 expect(await getChartSelection(page)).toEqual([NEW_YORK]);
