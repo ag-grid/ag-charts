@@ -651,9 +651,9 @@ export class SeriesAreaManager extends BaseManager {
         const payload: SeriesAreaClickEvent = { type, consumed, sourceEvent, clickedNode };
 
         const { datum } = this.focus;
-        const oldSelectionState = datum && datum.series.getDataSelectionState(datum.datumIndex);
+        const oldSelectionState = datum?.series.getDataSelectionState(datum.datumIndex);
         this.chart.ctx.eventsHub.emit('series-area:click', payload);
-        const newSelectionState = datum && datum.series.getDataSelectionState(datum.datumIndex);
+        const newSelectionState = datum?.series.getDataSelectionState(datum.datumIndex);
 
         if (oldSelectionState !== newSelectionState) {
             this.announceDataSelectionChange();
