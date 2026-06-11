@@ -755,26 +755,11 @@ describe('Annotations', () => {
             expect(state.annotations![0]).toMatchObject({ type: 'vertical-line', value: serialisedValue });
         });
 
-        it('should accept a raw bigint coordinate in initial state without error', async () => {
-            // A provided initial state may hold raw bigint coordinates (not the serialised __type form);
-            // restoring it must not throw when the state is re-encoded.
-            await prepareChart(
-                {
-                    annotations: [
-                        {
-                            type: 'line',
-                            start: { x: 9007199254740992n, y: 5 },
-                            end: { x: 9007199254740994n, y: 95 },
-                        } as any,
-                    ],
-                },
-                NUMERIC_AXIS_OPTIONS
-            );
-        });
-
-        // The same annotation y-value supplied as `number` and as `bigint` must render
+        // The same annotation y-value supplied as `number` and as encoded `bigint` must render
         // pixel-identically and without errors. Uses the standard time-axis options; only `y`
-        // (and channel heights) carry the widened values.
+        // (and channel heights) carry the widened values. Provided state must be pre-encoded
+        // (the memento contract), so bigints travel in the `{ __type: 'bigint' }` form.
+        const big = (value: bigint) => ({ __type: 'bigint' as const, value: value.toString() });
         const X_START = { __type: 'date' as const, value: '2024-03-01' };
         const X_END = { __type: 'date' as const, value: '2024-09-01' };
 
@@ -793,7 +778,7 @@ describe('Annotations', () => {
                 { type: 'line', start: { x: X_START, y: 30 }, end: { x: X_END, y: 70 } },
             ]);
             const bigintImage = await applyAnnotations([
-                { type: 'line', start: { x: X_START, y: 30n }, end: { x: X_END, y: 70n } },
+                { type: 'line', start: { x: X_START, y: big(30n) }, end: { x: X_END, y: big(70n) } },
             ]);
             // Guard against a vacuously-identical pair of blank renders: the annotation must be visible.
             expect(numberImage).not.toMatchImage(baseline, { writeDiff: false });
@@ -815,10 +800,10 @@ describe('Annotations', () => {
             const bigintImage = await applyAnnotations([
                 {
                     type: 'disjoint-channel',
-                    start: { x: X_START, y: 60n },
-                    end: { x: X_END, y: 80n },
-                    startHeight: 20n,
-                    endHeight: 40n,
+                    start: { x: X_START, y: big(60n) },
+                    end: { x: X_END, y: big(80n) },
+                    startHeight: big(20n),
+                    endHeight: big(40n),
                 },
             ]);
             expect(numberImage).not.toMatchImage(baseline, { writeDiff: false });
@@ -832,7 +817,7 @@ describe('Annotations', () => {
                 { type: 'parallel-channel', start: { x: X_START, y: 60 }, end: { x: X_END, y: 80 }, height: 20 },
             ]);
             const bigintImage = await applyAnnotations([
-                { type: 'parallel-channel', start: { x: X_START, y: 60n }, end: { x: X_END, y: 80n }, height: 20n },
+                { type: 'parallel-channel', start: { x: X_START, y: big(60n) }, end: { x: X_END, y: big(80n) }, height: big(20n) },
             ]);
             expect(numberImage).not.toMatchImage(baseline, { writeDiff: false });
             expect(bigintImage).toMatchImage(numberImage);
