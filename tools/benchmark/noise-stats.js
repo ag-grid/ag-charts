@@ -13,9 +13,14 @@
  * Usage:
  *   node noise-stats.js run1.json run2.json run3.json ...
  *
+ * Acceptance gates on the MEAN pairwise |delta| per test case (the expected
+ * error of a single head-vs-base comparison), restricted to test cases with a
+ * median >= 10ms — sub-10ms timings are dominated by timer quantisation and
+ * are not meaningful regression signals in relative terms.
+ *
  * Exit code 1 if acceptance criteria are breached:
- *   - median across-run |delta| < 3%
- *   - p95 across-run |delta| < 8%
+ *   - median of per-case mean A/A |delta| < 3%
+ *   - p95 of per-case mean A/A |delta| < 8%
  */
 
 const fs = require('fs');
@@ -66,6 +71,10 @@ for (const [runIdx, p] of inputPaths.entries()) {
     }
 }
 
+// Test cases faster than this are excluded from acceptance gating: relative
+// deltas on sub-10ms timings reflect timer quantisation, not runner noise.
+const MIN_GATED_MEDIAN_MS = 10;
+
 const rows = [];
 const acrossRunDeltas = [];
 
@@ -73,24 +82,38 @@ for (const [key, runs] of byKey) {
     if (runs.length < 2) continue;
     const medians = runs.map((r) => r.median);
     const acrossCv = cv(medians);
-    // Max pairwise % delta between any two runs' medians — the worst-case A/A error
-    const minMed = Math.min(...medians);
-    const maxMed = Math.max(...medians);
-    const maxDeltaPct = minMed === 0 ? null : ((maxMed - minMed) / minMed) * 100;
-    if (maxDeltaPct !== null) acrossRunDeltas.push(maxDeltaPct);
+    const caseMedian = median(medians);
+
+    // Mean pairwise % |delta| between runs' medians — the expected error of a
+    // single A/B comparison on this runner class.
+    const pairDeltas = [];
+    for (let i = 0; i < medians.length; i++) {
+        for (let j = i + 1; j < medians.length; j++) {
+            const lo = Math.min(medians[i], medians[j]);
+            if (lo === 0) continue;
+            pairDeltas.push((Math.abs(medians[i] - medians[j]) / lo) * 100);
+        }
+    }
+    const meanDeltaPct = pairDeltas.length ? pairDeltas.reduce((s, v) => s + v, 0) / pairDeltas.length : null;
+    const maxDeltaPct = pairDeltas.length ? Math.max(...pairDeltas) : null;
+
+    const gated = caseMedian >= MIN_GATED_MEDIAN_MS;
+    if (gated && meanDeltaPct !== null) acrossRunDeltas.push(meanDeltaPct);
 
     const withinCvs = runs.map((r) => r.withinCv).filter((v) => v !== null);
     rows.push({
         test: key,
         runs: runs.length,
-        'median (ms)': Math.round(median(medians) * 100) / 100,
+        'median (ms)': Math.round(caseMedian * 100) / 100,
         'within-run CV %': withinCvs.length ? Math.round(Math.max(...withinCvs) * 1000) / 10 : null,
         'across-run CV %': acrossCv === null ? null : Math.round(acrossCv * 1000) / 10,
+        'mean A/A delta %': meanDeltaPct === null ? null : Math.round(meanDeltaPct * 10) / 10,
         'max A/A delta %': maxDeltaPct === null ? null : Math.round(maxDeltaPct * 10) / 10,
+        gated,
     });
 }
 
-rows.sort((a, b) => (b['max A/A delta %'] ?? 0) - (a['max A/A delta %'] ?? 0));
+rows.sort((a, b) => (b['mean A/A delta %'] ?? 0) - (a['mean A/A delta %'] ?? 0));
 console.table(rows);
 
 if (acrossRunDeltas.length === 0) {
@@ -102,7 +125,9 @@ const sortedDeltas = [...acrossRunDeltas].sort((a, b) => a - b);
 const medianDelta = median(sortedDeltas);
 const p95Delta = sortedDeltas[Math.min(sortedDeltas.length - 1, Math.floor(sortedDeltas.length * 0.95))];
 
-console.log(`\nAcross-run A/A deltas over ${rows.length} test cases (${inputPaths.length} runs):`);
+console.log(
+    `\nMean A/A deltas over ${sortedDeltas.length} gated test cases (median >= ${MIN_GATED_MEDIAN_MS}ms; ${inputPaths.length} runs):`
+);
 console.log(`  median: ${medianDelta.toFixed(1)}%  (acceptance: < 3%)`);
 console.log(`  p95:    ${p95Delta.toFixed(1)}%  (acceptance: < 8%)`);
 

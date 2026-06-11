@@ -172,6 +172,7 @@ for (const key of baseKeys) {
         matched.push({
             test: b.displayName,
             pctTimeChange,
+            absDeltaMs: c.medianTime - b.medianTime,
             noisy,
             beforeMs: timeFormat(b.medianTime),
             afterMs: timeFormat(c.medianTime),
@@ -211,8 +212,9 @@ for (const err of compare.errors) {
 // Rank by time change
 const rankedByTime = matched.toSorted((a, b) => (a.pctTimeChange ?? -Infinity) - (b.pctTimeChange ?? -Infinity));
 
-// Notable regressions (>10%)
-const notable = rankedByTime.filter((r) => r.pctTimeChange !== null && r.pctTimeChange > 10);
+// Notable regressions: >10% AND >=2ms absolute — relative deltas on
+// micro-timings reflect timer quantisation rather than real regressions.
+const notable = rankedByTime.filter((r) => r.pctTimeChange !== null && r.pctTimeChange > 10 && r.absDeltaMs >= 2);
 
 // --- Output ---
 
