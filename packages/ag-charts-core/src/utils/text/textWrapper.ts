@@ -622,9 +622,13 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
             continue;
         }
 
+        // Height of the in-progress line's inline content not yet added to totalHeight. The fit and
+        // text-wrap paths account their own height; only the image-wrap below leaves a line behind.
+        let lineHeight = 0;
         for (const segment of segments) {
             if (lineWidth + segment.textMetrics.width <= options.maxWidth) {
                 lineWidth += segment.textMetrics.width;
+                lineHeight = Math.max(lineHeight, segment.textMetrics.height);
                 result.push(segment);
                 continue;
             }
@@ -632,17 +636,18 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
             if (segment.type === 'image') {
                 const imageWidth = segment.textMetrics.width;
                 const imageHeight = segment.textMetrics.height;
-                // When the image overflows but fits on its own line, wrap it rather than drop it — keeps
-                // width-shrinking monotonic (inline → next line → drop), not dropping at a mid width.
+                // Wrap the overflowing image to its own line rather than drop it (keeps width-shrinking
+                // monotonic). The text line it leaves behind must also fit, so count it under maxHeight.
                 if (
                     options.textWrap !== 'never' &&
                     lineWidth > 0 &&
                     imageWidth <= options.maxWidth &&
-                    totalHeight + imageHeight <= maxHeight
+                    totalHeight + lineHeight + imageHeight <= maxHeight
                 ) {
                     appendLineBreak(result, options.font);
                     lineWidth = imageWidth;
-                    totalHeight += imageHeight;
+                    totalHeight += lineHeight + imageHeight;
+                    lineHeight = 0;
                     result.push(segment);
                     continue;
                 }
@@ -654,6 +659,7 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
             }
 
             if (wrapOverflowingTextSegment(segment)) break;
+            lineHeight = 0;
         }
     }
 

@@ -524,11 +524,8 @@ function textOf(result: MeasuredSegment[]): string {
 // The text of the first text segment that carries visible content, used to assert that a
 // segment's leading whitespace (the gap to a preceding image) survives wrapping.
 function firstText(result: MeasuredSegment[]): string {
-    return (
-        (result.find((s) => s.type !== 'image' && (s as { text: string }).text.trim() !== '') ?? { text: '' }) as {
-            text: string;
-        }
-    ).text;
+    const seg = result.find((s): s is MeasuredSegment & { text: string } => s.type !== 'image' && s.text.trim() !== '');
+    return seg?.text ?? '';
 }
 
 describe('wrapTextSegments — image segment overflow', () => {
@@ -696,6 +693,21 @@ describe('wrapTextSegments — image segment overflow', () => {
             });
 
             expect(imageUrls(result)).toEqual([]);
+        });
+
+        it('drops the image when the text line it would leave behind exhausts the vertical room', () => {
+            // 'ABCD' (40px) fits inline but the image (30px) overflows the 50px width, so wrapping it
+            // needs a second line. maxHeight (40px) fits the image alone but not the 20px text line
+            // plus the image below it, so the image must drop rather than push the label past maxHeight.
+            const result = wrapTextSegments(segments, {
+                font: baseFont,
+                maxWidth: 50,
+                maxHeight: 40,
+                overflow: 'ellipsis',
+            });
+
+            expect(imageUrls(result)).toEqual([]);
+            expect(textOf(result)).toContain('ABCD');
         });
     });
 });

@@ -79,22 +79,25 @@ export class ImageSegmentNode extends Node {
             if (image) {
                 const imgX = x + this.paddingLeft;
                 const imgY = y + this.paddingTop;
-                // 4-arg drawImage scales the entire image to the destination box. The size hint passed
-                // to the loader ensures SVGs have concrete intrinsic dimensions, so 4-arg is reliable.
-                if (cornerRadius > 0) {
-                    // Clip to the rounded box path so the corners match the background; with no
-                    // padding the image fills the box and is rounded (a circle at a large radius).
+                // Clip to the rounded box so the image corners match the background; with no padding
+                // the image fills the box and rounds with it (a circle at a large radius).
+                const clipToCorners = cornerRadius > 0;
+                if (clipToCorners) {
                     ctx.save();
                     this.tracePath(ctx, x, y, boxWidth, boxHeight, cornerRadius);
                     ctx.clip();
-                    ctx.drawImage(image, imgX, imgY, this.imageWidth, this.imageHeight);
+                }
+                // 4-arg drawImage scales the image to the box; the loader size hint gives SVGs
+                // concrete intrinsic dimensions, so this is reliable.
+                ctx.drawImage(image, imgX, imgY, this.imageWidth, this.imageHeight);
+                if (clipToCorners) {
                     ctx.restore();
-                } else {
-                    ctx.drawImage(image, imgX, imgY, this.imageWidth, this.imageHeight);
                 }
             }
         } else {
-            Logger.warnOnce('Image segment has an empty url; rendering background only.');
+            Logger.warnOnce(
+                `Image segment has an empty url; rendering background only (${boxWidth}x${boxHeight} box).`
+            );
         }
 
         ctx.globalAlpha = previousAlpha;

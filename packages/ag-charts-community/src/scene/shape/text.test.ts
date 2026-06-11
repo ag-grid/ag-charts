@@ -592,10 +592,12 @@ describe('Text', () => {
         });
 
         it('warns and still paints the background box when the image url is empty', () => {
-            // The warning fires only after the background paint, so reaching it proves render no
-            // longer early-returns on an empty url (box visuals covered by the snapshots above).
+            // The warning is emitted only after the background paint, so asserting it fired confirms
+            // the empty-url path still renders the box (its pixels are covered by the snapshots above).
             renderInlineImageSegmentSnapshot({ url: '', backgroundFill: '#d0e7ff' });
-            expectWarningMessages(['AG Charts - Image segment has an empty url; rendering background only.']);
+            expectWarningMessages([
+                'AG Charts - Image segment has an empty url; rendering background only (24x24 box).',
+            ]);
         });
 
         // Block-image position, mixing and decoration scenarios are validated by rendering real
