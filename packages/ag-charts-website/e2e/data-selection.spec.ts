@@ -46,13 +46,13 @@ function selectionChange(
 
 async function initChartSelection(page: Page): Promise<void> {
     await page.evaluate(() => {
-        const initChartSelection: unknown = (window as any)?.agE2E?.initChartSelection;
-        if (initChartSelection == null) {
+        const agE2E_initChartSelection: unknown = (window as any)?.agE2E?.initChartSelection;
+        if (agE2E_initChartSelection == null) {
             throw new Error('window.agE2E.initChartSelection is not defined');
-        } else if (typeof initChartSelection !== 'function') {
+        } else if (typeof agE2E_initChartSelection !== 'function') {
             throw new Error('window.agE2E.initChartSelection is not a function');
         }
-        initChartSelection();
+        agE2E_initChartSelection();
     });
     await waitForChartUpdate(page.locator(SELECTORS.wrapper));
 }
@@ -60,13 +60,13 @@ async function initChartSelection(page: Page): Promise<void> {
 async function getChartSelection(page: Page): Promise<SelectionItem[]> {
     await waitForChartUpdate(page.locator(SELECTORS.wrapper));
     const selection = await page.evaluate(() => {
-        const getChartSelection: unknown = (window as any)?.agE2E?.getChartSelection;
-        if (getChartSelection == null) {
+        const agE2E_getChartSelection: unknown = (window as any)?.agE2E?.getChartSelection;
+        if (agE2E_getChartSelection == null) {
             throw new Error('window.agE2E.getChartSelection is not defined');
-        } else if (typeof getChartSelection !== 'function') {
+        } else if (typeof agE2E_getChartSelection !== 'function') {
             throw new Error('window.agE2E.getChartSelection is not a function');
         }
-        return getChartSelection();
+        return agE2E_getChartSelection();
     });
     expect(Array.isArray(selection)).toBe(true);
     // Shape is guaranteed by AgChartInstance.getSelection() and survives structured clone intact.
@@ -76,13 +76,13 @@ async function getChartSelection(page: Page): Promise<SelectionItem[]> {
 async function popEvents(page: Page): Promise<SelectionChangeEvent[]> {
     await waitForChartUpdate(page.locator(SELECTORS.wrapper));
     const events = await page.evaluate(() => {
-        const popEvents: unknown = (window as any)?.agE2E?.popEvents;
-        if (popEvents == null) {
+        const agE2E_popEvents: unknown = (window as any)?.agE2E?.popEvents;
+        if (agE2E_popEvents == null) {
             throw new Error('window.agE2E.popEvents is not defined');
-        } else if (typeof popEvents !== 'function') {
+        } else if (typeof agE2E_popEvents !== 'function') {
             throw new Error('window.agE2E.popEvents is not a function');
         }
-        return popEvents();
+        return agE2E_popEvents();
     });
     expect(Array.isArray(events)).toBe(true);
     return events as SelectionChangeEvent[];
