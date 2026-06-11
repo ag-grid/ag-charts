@@ -2,7 +2,7 @@ import { expect } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-types';
 
-import { type Chart, waitForChartStability } from './utils';
+import { type Chart, prepareTestOptions, waitForChartStability } from './utils';
 
 /** Shared fixtures for bigint / ISO-datetime series coverage. */
 
@@ -141,7 +141,9 @@ export async function expectPixelIdenticalAcrossUpdate(
     try {
         const beforeImage = ctx.snapshot();
         expectNonBlank(beforeImage);
-        await chart.publicApi!.update(after);
+        // `update()` bypasses the create-time preparation in `create`, so re-apply the test
+        // sizing/theme (and the animation-off default) before updating.
+        await chart.publicApi!.update(prepareTestOptions({ animation: { enabled: false }, ...after }));
         await waitForChartStability(chart);
         const afterImage = ctx.snapshot();
         expect(afterImage).toMatchImage(beforeImage);
