@@ -6,6 +6,8 @@ import { timeValueToNumber } from '../time/timeFormatDefaults';
 const epochColumnCache = new WeakMap<readonly unknown[], unknown[]>();
 
 function parseEpochValue(value: unknown): unknown {
+    // Strings only enter date-typed columns via strict isISO8601 gates upstream (extraction,
+    // continuity checks, sort-order detection), so Date.parse's leniency is not reachable here.
     return typeof value === 'string' ? timeValueToNumber(value) : value;
 }
 
