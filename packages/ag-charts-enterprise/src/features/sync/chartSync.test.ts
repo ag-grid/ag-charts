@@ -128,7 +128,10 @@ describe('ChartSync', () => {
 
             const yDomain = (c: AgChartInstance<AgCartesianChartOptions>) =>
                 deproxy(c).axes.find((axis) => axis.direction === ChartAxisDirection.Y)!.dataDomain.domain;
-            expect(yDomain(charts[0])).toEqual(yDomain(charts[1]));
+            // The nice number axis extends the low end to the Number 0; the high end stays the exact
+            // bigint union maximum contributed by the second chart.
+            expect(yDomain(charts[0])).toEqual([0, BIG * 8n]);
+            expect(yDomain(charts[1])).toEqual([0, BIG * 8n]);
         });
     });
 });
