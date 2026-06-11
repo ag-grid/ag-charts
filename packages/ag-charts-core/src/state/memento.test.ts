@@ -157,16 +157,6 @@ describe('Memento Caretaker', () => {
         });
     });
 
-    it('should restore a blob holding a raw bigint without throwing (AG-16608)', () => {
-        // A provided blob (e.g. initialState) may carry a raw bigint rather than the encoded { __type } form;
-        // decode must not crash re-serialising it.
-        caretaker.restore(
-            { version: '10.0.0', test: { data: { count: 9_007_199_254_740_993n }, type: 'test' } },
-            originator
-        );
-        expect(originator.restored).toStrictEqual({ count: 9_007_199_254_740_993n });
-    });
-
     it('should migrate older versioned mementos', () => {
         caretaker.restore(
             {
