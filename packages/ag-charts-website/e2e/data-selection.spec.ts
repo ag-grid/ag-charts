@@ -1,90 +1,218 @@
-// TODO: !!!IMPORTANT!!! Use DAMP not DRY.
+import type { Page } from '@playwright/test';
 
-// TODO Add wrapper function for the selection-test/examples/e2e-accessibility-click example agE2E callables
-//
-// -   window.agE2E.initChartSelection
-// -   window.agE2E.getChartSelection
-// -   window.agE2E.popEvents
-//
-// Use inspiration from files `tooltip.spec.ts` and `state.spec.ts` on how to do this.
-// Ensure that wrappers wait for stability where required to avoid test flakiness.
+import type { AgSelectionChangeEvent, AgSelectionChangeEventSource, AgSelectionItem } from 'ag-charts-types';
 
+import { expect, test } from './fixture';
+import {
+    SELECTORS,
+    gotoExample,
+    readSwapchainText,
+    setupIntrinsicAssertions,
+    toExamplePageUrl,
+    waitForChartUpdate,
+} from './util';
 
-// TODO: Test the following things for `test()` calls with these titles:
-// -   'screenshot': Expect the page to match a screenshot.
-// -   'aria-label': Expect the `readSwapchainText()` value to match a string.
-// -   'getSelection': Expect the `getChartSelection()` value to match an array of selection items.
-// -   'popEvents': Expect the `popEvents()` value to match an array of selectionChange events.
+// The example under test exposes three callables on `window.agE2E`:
+//   - initChartSelection(): selects 'New York' via chart.setSelection()
+//   - getChartSelection(): returns the current selection as an array
+//   - popEvents(): returns the selectionChange events emitted since the last call, then clears them
+// The wrappers below mirror the defensive style in state.spec.ts and wait for chart
+// stability so the destructive popEvents() accumulator is read at a settled point.
+
+type Datum = { population: number; city: string };
+type SelectionItem = AgSelectionItem<Datum>;
+
+// The structured-clone boundary of page.evaluate() strips the non-serialisable
+// `preventDefault` method (and any `undefined` `context`), so the events we read
+// back are plain objects of exactly these fields.
+type SelectionChangeEvent = Pick<AgSelectionChangeEvent<Datum, unknown>, 'type' | 'source' | 'added' | 'removed'>;
+
+const EXAMPLE_URL = toExamplePageUrl('selection-test', 'e2e-accessibility-click', 'vanilla').url;
+
+const NEW_YORK: SelectionItem = {
+    seriesId: 'myBarSeries',
+    itemId: 'New York',
+    datum: { population: 8.1, city: 'New York' },
+};
+const DUBAI: SelectionItem = { seriesId: 'myBarSeries', itemId: 'Dubai', datum: { population: 4, city: 'Dubai' } };
+
+function selectionChange(
+    source: AgSelectionChangeEventSource,
+    added: SelectionItem[],
+    removed: SelectionItem[]
+): SelectionChangeEvent {
+    return { type: 'selectionChange', source, added, removed };
+}
+
+async function initChartSelection(page: Page): Promise<void> {
+    await page.evaluate(() => {
+        const initChartSelection: unknown = (window as any)?.agE2E?.initChartSelection;
+        if (initChartSelection == null) {
+            throw new Error('window.agE2E.initChartSelection is not defined');
+        } else if (typeof initChartSelection !== 'function') {
+            throw new Error('window.agE2E.initChartSelection is not a function');
+        }
+        initChartSelection();
+    });
+    await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+}
+
+async function getChartSelection(page: Page): Promise<SelectionItem[]> {
+    await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+    const selection = await page.evaluate(() => {
+        const getChartSelection: unknown = (window as any)?.agE2E?.getChartSelection;
+        if (getChartSelection == null) {
+            throw new Error('window.agE2E.getChartSelection is not defined');
+        } else if (typeof getChartSelection !== 'function') {
+            throw new Error('window.agE2E.getChartSelection is not a function');
+        }
+        return getChartSelection();
+    });
+    expect(Array.isArray(selection)).toBe(true);
+    // Shape is guaranteed by AgChartInstance.getSelection() and survives structured clone intact.
+    return selection as SelectionItem[];
+}
+
+async function popEvents(page: Page): Promise<SelectionChangeEvent[]> {
+    await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+    const events = await page.evaluate(() => {
+        const popEvents: unknown = (window as any)?.agE2E?.popEvents;
+        if (popEvents == null) {
+            throw new Error('window.agE2E.popEvents is not defined');
+        } else if (typeof popEvents !== 'function') {
+            throw new Error('window.agE2E.popEvents is not a function');
+        }
+        return popEvents();
+    });
+    expect(Array.isArray(events)).toBe(true);
+    return events as SelectionChangeEvent[];
+}
+
+async function openExampleAndFocusFirstDatum(page: Page): Promise<void> {
+    await gotoExample(page, EXAMPLE_URL);
+    await initChartSelection(page);
+    await page.keyboard.press('Tab');
+}
+
 test.describe('data-selection', () => {
-    // TODO: Add relevant initialisation code here.
+    setupIntrinsicAssertions(test);
 
     test.describe('accessibility clicks', () => {
         test.beforeEach(async ({ page }) => {
-            // TODO:
-            // -   Open page selection-test/examples/e2e-accessibility-click
-            // -   Call initChartSelection using wrapper
-            // -   Tab into the chart to start keyboard navigation.
-            // Ensure to wait for chart stability where required to avoid test flakiness.
+            await openExampleAndFocusFirstDatum(page);
         });
+
+        // Focus is on the first datum (London, unselected); New York stays selected from initChartSelection.
         test.describe('checks', () => {
-            // aria-label should include the screenreader value of the first datum (unselected).
-            // getSelection/popEvents should include the initial selection from initChartSelection.
-            test('screenshot', async({ page }) => {});
-            test('aria-label', async({ page }) => {});
-            test('getSelection', async({ page }) => {});
-            test('popEvents', async({ page }) => {});
+            test('screenshot', async ({ page }) => {
+                await expect(page).toHaveScreenshot('selection-initial-focus.png', { animations: 'disabled' });
+            });
+            test('aria-label', async ({ page }) => {
+                expect(await readSwapchainText(page)).toBe('London; 9.1, unselected');
+            });
+            test('getSelection', async ({ page }) => {
+                expect(await getChartSelection(page)).toEqual([NEW_YORK]);
+            });
+            test('popEvents', async ({ page }) => {
+                expect(await popEvents(page)).toEqual([selectionChange('api-call', [NEW_YORK], [])]);
+            });
         });
+
         test.describe('press ArrowRight 1 time', () => {
             test.beforeEach(async ({ page }) => {
-                // TODO:
-                // -   popEvents() and ignore return.
-                // -   Release ArrowKey three times.
+                await popEvents(page); // discard the initChartSelection event
+                await page.keyboard.press('ArrowRight'); // London -> New York
             });
+
+            // Focus is on the second datum (New York, selected).
             test.describe('checks', () => {
-                // aria-label should include the screenreader value of the second datum (selected).
-                // getSelection should include the initial selection from initChartSelection.
-                // popEvents should be empty
-                test('screenshot', async({ page }) => {});
-                test('aria-label', async({ page }) => {});
-                test('getSelection', async({ page }) => {});
-                test('popEvents', async({ page }) => {});
+                test('screenshot', async ({ page }) => {
+                    await expect(page).toHaveScreenshot('selection-focus-new-york-selected.png', {
+                        animations: 'disabled',
+                    });
+                });
+                test('aria-label', async ({ page }) => {
+                    expect(await readSwapchainText(page)).toBe('New York; 8.1, selected');
+                });
+                test('getSelection', async ({ page }) => {
+                    expect(await getChartSelection(page)).toEqual([NEW_YORK]);
+                });
+                test('popEvents', async ({ page }) => {
+                    expect(await popEvents(page)).toEqual([]);
+                });
             });
+
             test.describe('press ArrowRight 2 times', () => {
                 test.beforeEach(async ({ page }) => {
-                    // TODO: press ArrowRight 2 more times
+                    await page.keyboard.press('ArrowRight'); // New York -> Tokyo
+                    await page.keyboard.press('ArrowRight'); // Tokyo -> Dubai
                 });
+
+                // Focus is on the last datum (Dubai, unselected).
                 test.describe('checks', () => {
-                    // aria-label should include the screenreader value of the last datum (unselected)
-                    // getSelection should include the initial selection from initChartSelection.
-                    // popEvents should be empty
-                    test('screenshot', async({ page }) => {});
-                    test('aria-label', async({ page }) => {});
-                    test('getSelection', async({ page }) => {});
-                    test('popEvents', async({ page }) => {});
+                    test('screenshot', async ({ page }) => {
+                        await expect(page).toHaveScreenshot('selection-focus-dubai-unselected.png', {
+                            animations: 'disabled',
+                        });
+                    });
+                    test('aria-label', async ({ page }) => {
+                        expect(await readSwapchainText(page)).toBe('Dubai; 4, unselected');
+                    });
+                    test('getSelection', async ({ page }) => {
+                        expect(await getChartSelection(page)).toEqual([NEW_YORK]);
+                    });
+                    test('popEvents', async ({ page }) => {
+                        expect(await popEvents(page)).toEqual([]);
+                    });
                 });
+
                 test.describe('press Space', () => {
                     test.beforeEach(async ({ page }) => {
-                        // TODO: press Space
+                        await page.keyboard.press('Space'); // single-click: select Dubai, deselect New York
                     });
+
+                    // Dubai becomes the only selected datum; the new state is announced first.
                     test.describe('checks', () => {
-                        // aria-label should include the screenreader value of the last datum, with the new selected state announced first
-                        // getSelection should include the last datum only
-                        // popEvents should be include 1 removed datum (New York) and 1 added datum (Dubai).
-                        test('screenshot', async({ page }) => {});
-                        test('aria-label', async({ page }) => {});
-                        test('getSelection', async({ page }) => {});
-                        test('popEvents', async({ page }) => {});
+                        test('screenshot', async ({ page }) => {
+                            await expect(page).toHaveScreenshot('selection-single-dubai-selected.png', {
+                                animations: 'disabled',
+                            });
+                        });
+                        test('aria-label', async ({ page }) => {
+                            expect(await readSwapchainText(page)).toBe('selected, Dubai; 4');
+                        });
+                        test('getSelection', async ({ page }) => {
+                            expect(await getChartSelection(page)).toEqual([DUBAI]);
+                        });
+                        test('popEvents', async ({ page }) => {
+                            expect(await popEvents(page)).toEqual([
+                                selectionChange('user-interaction', [DUBAI], [NEW_YORK]),
+                            ]);
+                        });
                     });
+
                     test.describe('press Space again', () => {
                         test.beforeEach(async ({ page }) => {
-                            // TODO: press Space
+                            await popEvents(page); // discard the previous Space event
+                            await page.keyboard.press('Space'); // no-op: Dubai is already the single selection
                         });
+
+                        // No change: Dubai stays selected and no new event is emitted.
                         test.describe('checks', () => {
-                            // No Change.
-                            test('screenshot', async({ page }) => {});
-                            test('aria-label', async({ page }) => {});
-                            test('getSelection', async({ page }) => {});
-                            test('popEvents', async({ page }) => {});
+                            test('screenshot', async ({ page }) => {
+                                await expect(page).toHaveScreenshot('selection-single-dubai-selected.png', {
+                                    animations: 'disabled',
+                                });
+                            });
+                            test('aria-label', async ({ page }) => {
+                                expect(await readSwapchainText(page)).toBe('selected, Dubai; 4');
+                            });
+                            test('getSelection', async ({ page }) => {
+                                expect(await getChartSelection(page)).toEqual([DUBAI]);
+                            });
+                            test('popEvents', async ({ page }) => {
+                                expect(await popEvents(page)).toEqual([]);
+                            });
                         });
                     });
                 });
@@ -92,72 +220,127 @@ test.describe('data-selection', () => {
         });
     });
 
-    test.describe('accessibility ctrl-clicks', () => { // Note: Same as 'accessibility clicks', but we'll press Ctrl+Space instead of just Space.
+    // Same as 'accessibility clicks', but we press Ctrl+Space instead of just Space.
+    test.describe('accessibility ctrl-clicks', () => {
         test.beforeEach(async ({ page }) => {
-            // TODO: same
+            await openExampleAndFocusFirstDatum(page);
         });
+
+        // Focus is on the first datum (London, unselected); New York stays selected from initChartSelection.
         test.describe('checks', () => {
-            // TODO: same
-            test('screenshot', async({ page }) => {});
-            test('aria-label', async({ page }) => {});
-            test('getSelection', async({ page }) => {});
-            test('popEvents', async({ page }) => {});
+            test('screenshot', async ({ page }) => {
+                await expect(page).toHaveScreenshot('selection-initial-focus.png', { animations: 'disabled' });
+            });
+            test('aria-label', async ({ page }) => {
+                expect(await readSwapchainText(page)).toBe('London; 9.1, unselected');
+            });
+            test('getSelection', async ({ page }) => {
+                expect(await getChartSelection(page)).toEqual([NEW_YORK]);
+            });
+            test('popEvents', async ({ page }) => {
+                expect(await popEvents(page)).toEqual([selectionChange('api-call', [NEW_YORK], [])]);
+            });
         });
+
         test.describe('press ArrowRight 1 time', () => {
             test.beforeEach(async ({ page }) => {
-                // TODO: same
+                await popEvents(page); // discard the initChartSelection event
+                await page.keyboard.press('ArrowRight'); // London -> New York
             });
+
+            // Focus is on the second datum (New York, selected).
             test.describe('checks', () => {
-                // TODO: same
-                test('screenshot', async({ page }) => {});
-                test('aria-label', async({ page }) => {});
-                test('getSelection', async({ page }) => {});
-                test('popEvents', async({ page }) => {});
+                test('screenshot', async ({ page }) => {
+                    await expect(page).toHaveScreenshot('selection-focus-new-york-selected.png', {
+                        animations: 'disabled',
+                    });
+                });
+                test('aria-label', async ({ page }) => {
+                    expect(await readSwapchainText(page)).toBe('New York; 8.1, selected');
+                });
+                test('getSelection', async ({ page }) => {
+                    expect(await getChartSelection(page)).toEqual([NEW_YORK]);
+                });
+                test('popEvents', async ({ page }) => {
+                    expect(await popEvents(page)).toEqual([]);
+                });
             });
+
             test.describe('press ArrowRight 2 times', () => {
                 test.beforeEach(async ({ page }) => {
-                    // TODO: same
+                    await page.keyboard.press('ArrowRight'); // New York -> Tokyo
+                    await page.keyboard.press('ArrowRight'); // Tokyo -> Dubai
                 });
+
+                // Focus is on the last datum (Dubai, unselected).
                 test.describe('checks', () => {
-                    // TODO: same
-                    test('screenshot', async({ page }) => {});
-                    test('aria-label', async({ page }) => {});
-                    test('getSelection', async({ page }) => {});
-                    test('popEvents', async({ page }) => {});
+                    test('screenshot', async ({ page }) => {
+                        await expect(page).toHaveScreenshot('selection-focus-dubai-unselected.png', {
+                            animations: 'disabled',
+                        });
+                    });
+                    test('aria-label', async ({ page }) => {
+                        expect(await readSwapchainText(page)).toBe('Dubai; 4, unselected');
+                    });
+                    test('getSelection', async ({ page }) => {
+                        expect(await getChartSelection(page)).toEqual([NEW_YORK]);
+                    });
+                    test('popEvents', async ({ page }) => {
+                        expect(await popEvents(page)).toEqual([]);
+                    });
                 });
+
                 test.describe('press Ctrl+Space', () => {
                     test.beforeEach(async ({ page }) => {
-                        // TODO: press Ctrl+Space
+                        await page.keyboard.press('Control+Space'); // ctrl-click: add Dubai to the existing selection
                     });
+
+                    // Dubai is added alongside New York; the new state is announced first.
                     test.describe('checks', () => {
-                        // aria-label should include the screenreader value of the last datum, with the new selected state announced first
-                        // getSelection should include the both the initial datum and the new datum.
-                        // popEvents should be include 0 removed datums and 1 added datum (Dubai).
-                        test('screenshot', async({ page }) => {});
-                        test('aria-label', async({ page }) => {});
-                        test('getSelection', async({ page }) => {});
-                        test('popEvents', async({ page }) => {});
+                        test('screenshot', async ({ page }) => {
+                            await expect(page).toHaveScreenshot('selection-multi-new-york-and-dubai-selected.png', {
+                                animations: 'disabled',
+                            });
+                        });
+                        test('aria-label', async ({ page }) => {
+                            expect(await readSwapchainText(page)).toBe('selected, Dubai; 4');
+                        });
+                        test('getSelection', async ({ page }) => {
+                            expect(await getChartSelection(page)).toEqual([NEW_YORK, DUBAI]);
+                        });
+                        test('popEvents', async ({ page }) => {
+                            expect(await popEvents(page)).toEqual([selectionChange('user-interaction', [DUBAI], [])]);
+                        });
                     });
+
                     test.describe('press Ctrl+Space again', () => {
                         test.beforeEach(async ({ page }) => {
-                            // TODO: press Ctrl+Space
+                            await popEvents(page); // discard the previous Ctrl+Space event
+                            await page.keyboard.press('Control+Space'); // ctrl-click again: toggle Dubai off
                         });
+
+                        // Back to how it was before the click: Dubai is unselected, announced first.
                         test.describe('checks', () => {
-                            // screenshot should match accessibility ctrl-clicks > press ArrowRight 1 time > press ArrowRight 2 times > checks (back to how it was before the initial keyboard-click).
-                            // aria-label should include the screenreader value of the last datum, with the new unselected state announced first
-                            // getSelection should include the initial selection from initChartSelection.
-                            // popEvents should be include 1 removed datum (Dubai).
-                            test('screenshot', async({ page }) => {});
-                            test('aria-label', async({ page }) => {});
-                            test('getSelection', async({ page }) => {});
-                            test('popEvents', async({ page }) => {});
+                            test('screenshot', async ({ page }) => {
+                                await expect(page).toHaveScreenshot('selection-focus-dubai-unselected.png', {
+                                    animations: 'disabled',
+                                });
+                            });
+                            test('aria-label', async ({ page }) => {
+                                expect(await readSwapchainText(page)).toBe('unselected, Dubai; 4');
+                            });
+                            test('getSelection', async ({ page }) => {
+                                expect(await getChartSelection(page)).toEqual([NEW_YORK]);
+                            });
+                            test('popEvents', async ({ page }) => {
+                                expect(await popEvents(page)).toEqual([
+                                    selectionChange('user-interaction', [], [DUBAI]),
+                                ]);
+                            });
                         });
                     });
                 });
             });
         });
     });
-
 });
-
-// TODO: finally - ensure that the file compiles, adding necessary imports, fixing TS errors, lint errors and so on. No need to run the tests themselves, I will run them and make necessary adjustments so that they run/pass; I just need help writing the DAMP boilerplate code.
