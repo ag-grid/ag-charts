@@ -80,12 +80,8 @@ export class MementoCaretaker {
     private decode(originator: MementoOriginator, encoded: unknown) {
         if (encoded == null) return encoded;
         try {
-            // Encode on the way in too: a provided blob (e.g. initialState) may hold a raw bigint/Date,
-            // which JSON.stringify cannot serialise without the replacer.
             // eslint-disable-next-line @typescript-eslint/unbound-method
-            const json = JSON.stringify(encoded, MementoCaretaker.encodeTypes);
-            // eslint-disable-next-line @typescript-eslint/unbound-method
-            return JSON.parse(json, MementoCaretaker.decodeTypes) as unknown;
+            return JSON.parse(JSON.stringify(encoded), MementoCaretaker.decodeTypes) as unknown;
         } catch (error: any) {
             throw new Error(`Failed to decode [${originator.mementoOriginatorKey}] value [${error}].`, {
                 cause: error,
