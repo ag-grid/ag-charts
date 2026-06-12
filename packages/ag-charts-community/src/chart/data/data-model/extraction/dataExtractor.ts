@@ -1,7 +1,15 @@
-import { Logger, first, isISO8601, isNumberObject, iterate, timeValueToNumber } from 'ag-charts-core';
+import {
+    Logger,
+    ensureEpochColumn,
+    first,
+    isISO8601,
+    isNumberObject,
+    iterate,
+    timeValueToNumber,
+} from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
-import { ContinuousDomain } from '../../dataDomain';
+import { ContinuousDomain, type IDataDomain } from '../../dataDomain';
 import {
     COLUMN_SORT_ORDERS,
     type ColumnValueType,
@@ -149,6 +157,25 @@ interface TimezoneTracker {
     implicit: { value: string; index: number } | undefined;
 }
 
+/** True when at least one ISO 8601 string was observed in a date-typed column. */
+function sawIsoStrings(tracker: TimezoneTracker): boolean {
+    return tracker.explicit != null || tracker.implicit != null;
+}
+
+/**
+ * Extend a continuous domain from the epoch-ms representation of an ISO-string column.
+ * Rows the streaming pass rejected hold `def.invalidValue`, which must be non-numeric
+ * (typically `undefined`) so that `extend` ignores it here.
+ */
+function extendDomainFromEpochColumn(domain: IDataDomain | undefined, column: unknown[]): void {
+    // Discrete domains coerce ISO strings per value themselves (the domain keeps Date identity).
+    if (!ContinuousDomain.is(domain)) return;
+    const epochs = ensureEpochColumn(column);
+    for (let i = 0; i < epochs.length; i++) {
+        domain.extend(epochs[i]);
+    }
+}
+
 function updateTimezoneTracker(tracker: TimezoneTracker, value: unknown, datumIndex: number): void {
     if (typeof value !== 'string') return;
     if (ISO_8601_EXPLICIT_TZ.test(value)) {
@@ -192,18 +219,41 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             missingData,
             allKeyMappings,
             keySortOrders,
+            keyHasIsoStrings,
         } = this.extractKeys(keyDefs, sources, getProcessValue);
 
-        const { columns, columnScopes, columnNeedValueOf, columnValueType, partialValidDataCount, maxDataLength } =
-            this.extractValues(
-                invalidData,
-                invalidDataCount,
-                missingData,
-                valueDefs,
-                sources,
-                invalidKeys,
-                getProcessValue
-            );
+        const {
+            columns,
+            columnScopes,
+            columnNeedValueOf,
+            columnValueType,
+            columnHasIsoStrings,
+            partialValidDataCount,
+            maxDataLength,
+        } = this.extractValues(
+            invalidData,
+            invalidDataCount,
+            missingData,
+            valueDefs,
+            sources,
+            invalidKeys,
+            getProcessValue
+        );
+
+        // Continuous domains skip ISO 8601 strings during streaming extension; extend them now from
+        // the parse-once epoch columns.
+        for (const [valueDefIndex, def] of valueDefs.entries()) {
+            if (columnHasIsoStrings[valueDefIndex]) {
+                extendDomainFromEpochColumn(dataDomain.get(def), columns[valueDefIndex]);
+            }
+        }
+        for (const [keyDefIndex, def] of keyDefs.entries()) {
+            if (!keyHasIsoStrings[keyDefIndex]) continue;
+            const domain = dataDomain.get(def);
+            for (const keys of new Set(allKeyMappings.get(def)?.values())) {
+                extendDomainFromEpochColumn(domain, keys);
+            }
+        }
 
         const propertyDomain = (def: InternalDatumPropertyDefinition<K>) => {
             const defDomain = dataDomain.get(def)!;
@@ -263,6 +313,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
         const missingData = new Map<ScopeId, boolean[]>();
         const allKeys = new Map<(typeof keyDefs)[number], Map<ScopeId, unknown[]>>();
         const keySortOrders = new Map<number, SortOrderEntry>();
+        const keyHasIsoStrings: boolean[] = [];
 
         let keyDefKeys: Map<ScopeId, unknown[]>;
         let scopeDataProcessed: Map<unknown[], ScopeId>;
@@ -364,6 +415,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             // Store the computed sort order entry for this key definition
             keySortOrders.set(keyDefIndex, trackerToSortOrderEntry(tracker));
             this.warnMixedTimezoneColumn(keyDef.property, typeTracker.type, tzTracker, keyDef.timeDomain === true);
+            keyHasIsoStrings.push(typeTracker.type === 'date' && sawIsoStrings(tzTracker));
         }
         return {
             invalidData,
@@ -373,6 +425,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             missingData,
             allKeyMappings: allKeys,
             keySortOrders,
+            keyHasIsoStrings,
         };
     }
 
@@ -428,6 +481,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
         const allColumnScopes: Set<ScopeId>[] = [];
         const columnNeedValueOf: boolean[] = [];
         const columnValueType: (ColumnValueType | undefined)[] = [];
+        const columnHasIsoStrings: boolean[] = [];
         let maxDataLength = 0;
         const valueProcessors = valueDefs.map((def) => getProcessValue(def));
 
@@ -502,6 +556,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             columnNeedValueOf.push(needsValueOf);
             // Leave unobserved columns undefined rather than guessing 'number', so type assertions don't false-positive.
             columnValueType.push(typeTracker.type);
+            columnHasIsoStrings.push(typeTracker.type === 'date' && sawIsoStrings(tzTracker));
             maxDataLength = Math.max(maxDataLength, column.length);
         }
 
@@ -510,6 +565,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             columnScopes: allColumnScopes,
             columnNeedValueOf,
             columnValueType,
+            columnHasIsoStrings,
             partialValidDataCount,
             maxDataLength,
         };

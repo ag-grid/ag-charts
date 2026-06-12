@@ -1,4 +1,4 @@
-import { first } from 'ag-charts-core';
+import { first, invalidateEpochColumn } from 'ag-charts-core';
 
 import {
     DataChangeDescription,
@@ -674,6 +674,8 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         extractValue: (cached: InsertionCacheValue | undefined, destIndex: number) => T,
         onRemove?: (removedValues: T[]) => void
     ): void {
+        // The array mutates in place, so any parse-once epoch column derived from it is now stale.
+        invalidateEpochColumn(target);
         changeDesc.applyToArray(
             target,
             (destIndex) => {

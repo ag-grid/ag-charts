@@ -1,8 +1,8 @@
 import type { AgNumericValue } from 'ag-charts-types';
 
 import type { DomainWithMetadata, ScaleType } from '../types/scales';
+import { ensureEpochColumn } from './data/epochColumns';
 import { nextPowerOf2 } from './data/numberArray';
-import { timeValueToNumber } from './time/timeFormatDefaults';
 
 export const AGGREGATION_INDEX_X_MIN = 0;
 export const AGGREGATION_INDEX_X_MAX = 1;
@@ -26,8 +26,6 @@ const SMALLEST_INTERVAL_MAX_INDEX_ADJUSTMENTS = 100;
 
 const TIME_SCALE_TYPES: ReadonlySet<ScaleType> = new Set<ScaleType>(['time', 'unit-time', 'ordinal-time']);
 
-const isoEpochColumnCache = new WeakMap<readonly unknown[], unknown[]>();
-
 /**
  * Parse an ISO-string time column to epoch ms (the bucketing maths cannot interpret a string).
  * @returns the input `xValues` unchanged when no parsing is required; `needsValueOf` is `false` once converted.
@@ -37,21 +35,8 @@ export function epochColumnForTimeScale(
     xValues: any[],
     xNeedsValueOf: boolean
 ): { values: any[]; needsValueOf: boolean } {
-    const values = resolveEpochColumn(scale, xValues, xNeedsValueOf);
+    const values = xNeedsValueOf || !TIME_SCALE_TYPES.has(scale) ? xValues : ensureEpochColumn(xValues);
     return { values, needsValueOf: values === xValues ? xNeedsValueOf : false };
-}
-
-function resolveEpochColumn(scale: ScaleType, xValues: any[], xNeedsValueOf: boolean): any[] {
-    if (xNeedsValueOf || !TIME_SCALE_TYPES.has(scale)) return xValues;
-
-    const cached = isoEpochColumnCache.get(xValues);
-    if (cached !== undefined) return cached;
-
-    const sample = xValues.find((v) => v != null);
-    const converted =
-        typeof sample === 'string' ? xValues.map((v) => (typeof v === 'string' ? timeValueToNumber(v) : v)) : xValues;
-    isoEpochColumnCache.set(xValues, converted);
-    return converted;
 }
 
 const numericColumnCache = new WeakMap<readonly unknown[], unknown[]>();
