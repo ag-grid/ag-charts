@@ -718,7 +718,7 @@ export const callbackOf = (validator: Validator, description?: string) =>
                 if (result == null) return;
                 const validatorResult = validator(result, { options: result, path: '' });
                 if (typeof validatorResult === 'object') {
-                    warnCallbackErrors(validatorResult, context, validatorDescription, result);
+                    warnCallbackErrors(validatorResult, context, validatorDescription);
                     if (validatorResult.valid) {
                         return validatorResult.cleared;
                     }
@@ -748,7 +748,7 @@ export const callbackDefs = <T>(defs: OptionsDefs<T>, description = 'an object')
                 const result = safeCall(value, args, context.path);
                 if (result == null) return;
                 const validatorResult = validate(result, defs);
-                warnCallbackErrors(validatorResult, context, validatorDescription, result);
+                warnCallbackErrors(validatorResult, context, validatorDescription);
                 return validatorResult.cleared;
             },
             { [markedSymbol]: true }
@@ -764,17 +764,9 @@ export function hasRequiredInPath(errors: ValidationError[], rootPath: string) {
 function warnCallbackErrors(
     validatorResult: Pick<ValidatorResult, 'invalid'>,
     context: ValidatorContext,
-    description: string | undefined,
-    result: unknown
+    description: string | undefined
 ) {
     if (validatorResult.invalid.length === 0) return;
-
-    if (isArray(result)) {
-        const expectedDescription = description ?? validatorResult.invalid[0]?.description ?? 'a valid value';
-        return warnOnce(
-            `Callback \`${context.path}\` returned an invalid value \`${stringifyValue(result, 50)}\`; expecting ${expectedDescription}, ignoring.`
-        );
-    }
 
     for (const error of validatorResult.invalid) {
         if (error instanceof UnknownError) {
