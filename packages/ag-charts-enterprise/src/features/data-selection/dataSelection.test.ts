@@ -4090,6 +4090,7 @@ describe('DataSelection', () => {
                             enableDrag: true,
                             enableClick: false,
                         },
+                        axes: { radius: { gridLine: { enabled: false } } },
                         navigator: { enabled: false },
                         scrollbar: { enabled: false },
                         zoom: { enabled: false },
