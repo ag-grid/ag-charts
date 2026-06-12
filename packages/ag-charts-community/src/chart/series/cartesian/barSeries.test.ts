@@ -2950,4 +2950,23 @@ describe('BarSeries', () => {
             );
         });
     });
+
+    describe('object-valued category data', () => {
+        it('should resolve object-valued category data without a data-type warning', async () => {
+            const category = (label: string) => ({ id: label, label, toString: () => label });
+            chart = AgCharts.create(
+                prepareTestOptions({
+                    data: [
+                        { x: category('A'), y: 10 },
+                        { x: category('B'), y: 20 },
+                        { x: category('C'), y: 15 },
+                    ],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                })
+            );
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+        });
+    });
 });

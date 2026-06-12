@@ -1687,6 +1687,23 @@ describe('DataModel', () => {
 `);
         });
 
+        it('should tag plain-object value columns as "object"', () => {
+            const dataModel = new DataModel<any, any>({
+                props: [categoryKey('id'), value('category')],
+            });
+
+            const category = (label: string) => ({ id: label, label, toString: () => label });
+            const data = [
+                { id: 'A', category: category('one') },
+                { id: 'B', category: category('two') },
+            ];
+
+            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const processedData = dataModel.processData(sources);
+
+            expect(processedData!.columnValueType).toEqual(['object']);
+        });
+
         it('should preserve the columnValueType tag across incremental reprocessing', () => {
             const dataModel = new DataModel<any, any>({
                 props: [categoryKey('id'), value('count')],

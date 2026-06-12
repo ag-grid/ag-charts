@@ -28,7 +28,9 @@ function isCompatibleColumnType(expected: ColumnValueType, actual: ColumnValueTy
         case 'date':
             return actual === 'date' || NUMERIC_COLUMN_TYPES.has(actual);
         case 'string':
-            return actual === 'string';
+            // String-asserting consumers toString-coerce their values, so a stringifiable
+            // object column (e.g. integrated category wrappers) is a compatible actual type.
+            return actual === 'string' || actual === 'object';
         case 'boolean':
             return actual === 'boolean';
         case 'object':

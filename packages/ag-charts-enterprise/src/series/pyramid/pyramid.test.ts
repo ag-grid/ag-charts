@@ -627,6 +627,28 @@ describe('PyramidSeries', () => {
         await compare();
     });
 
+    describe('object-valued category data', () => {
+        it('should resolve object-valued stage data without a data-type warning', async () => {
+            const stage = (label: string) => ({ id: label, label, toString: () => label });
+            const options: AgChartOptions = {
+                data: [
+                    { group: stage('Qualify'), value: 7910 },
+                    { group: stage('Develop'), value: 8170 },
+                    { group: stage('Propose'), value: 7260 },
+                    { group: stage('Close'), value: 4460 },
+                ],
+                series: [{ type: 'pyramid', stageKey: 'group', valueKey: 'value' }],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+            await compare();
+        });
+    });
+
     describe('bigint values (AG-16608)', () => {
         it('renders a pyramid series with out-of-safe-range bigint values', async () => {
             expect(
