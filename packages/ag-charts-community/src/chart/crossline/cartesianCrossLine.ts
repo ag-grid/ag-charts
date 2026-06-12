@@ -1,9 +1,17 @@
-import { BaseProperties, Property, type Scale, clampArray, createId, findMinMax, toRadians } from 'ag-charts-core';
+import {
+    BaseProperties,
+    type NormalisedPaddingOptions,
+    Property,
+    type Scale,
+    clampArray,
+    createId,
+    findMinMax,
+    toRadians,
+} from 'ag-charts-core';
 import type {
     AgCartesianAxisPosition,
     AgCartesianCrossLineLabelOptions,
     AgCrossLineLabelPosition,
-    Padding,
 } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
@@ -111,7 +119,7 @@ class CartesianCrossLineLabel extends LabelStyle implements AgCartesianCrossLine
     enabled!: boolean;
 
     @Property
-    override padding: Padding = 5;
+    override padding: NormalisedPaddingOptions = { top: 5, right: 5, bottom: 5, left: 5 };
 
     @Property
     text?: string;
@@ -394,16 +402,11 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         if (!bbox) return;
         const { width, height } = bbox;
 
-        const xPaddingDiff = typeof padding === 'number' ? 0 : (padding.right ?? 0) - (padding.left ?? 0);
-        const yPaddingDiff = typeof padding === 'number' ? 0 : (padding.bottom ?? 0) - (padding.top ?? 0);
+        const xPaddingDiff = padding.right - padding.left;
+        const yPaddingDiff = padding.bottom - padding.top;
 
         let xOffset = width / 2;
         let yOffset = height / 2;
-
-        if (typeof padding === 'number' && !crossLineLabel.hasBoxing()) {
-            xOffset += padding;
-            yOffset += padding;
-        }
 
         const x = bounds.x + (bounds.width * (anchor.rangeH + 1)) / 2 - xOffset * anchor.labelH - xPaddingDiff / 2;
         const y = bounds.y + (bounds.height * (anchor.rangeV + 1)) / 2 - yOffset * anchor.labelV - yPaddingDiff / 2;

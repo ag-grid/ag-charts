@@ -7,7 +7,13 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { FeatureCollection, Geometry, InternalAgColorType, NormalisedTextOrSegments } from 'ag-charts-core';
+import type {
+    FeatureCollection,
+    Geometry,
+    InternalAgColorType,
+    NormalisedPaddingOptions,
+    NormalisedTextOrSegments,
+} from 'ag-charts-core';
 import { Property } from 'ag-charts-core';
 
 import { AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
@@ -89,7 +95,7 @@ export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesO
     lineDashOffset: number = 0;
 
     @Property
-    padding: number = 0;
+    padding: NormalisedPaddingOptions = { top: 0, right: 0, bottom: 0, left: 0 };
 
     @Property
     itemStyler?: Styler<AgMapShapeSeriesItemStylerParams<unknown>, AgMapShapeSeriesStyle>;

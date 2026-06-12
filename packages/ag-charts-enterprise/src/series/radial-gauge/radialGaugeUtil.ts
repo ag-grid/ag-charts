@@ -209,7 +209,7 @@ export function formatRadialGaugeLabels(
             ? undefined
             : getLabelText(series.id, ctx, secondaryLabelDatum, datumOverrides?.secondaryLabel);
 
-    const params = { padding };
+    const params = { padding: { top: padding, right: padding, bottom: padding, left: padding } };
     const horizontalFactor = textAlign === 'center' ? 2 : 1;
     const verticalFactor = verticalAlign === 'middle' ? 2 : 1;
     const sizeFittingHeight = (height: number) => ({

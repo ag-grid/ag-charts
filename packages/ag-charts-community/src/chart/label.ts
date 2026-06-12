@@ -1,4 +1,11 @@
-import { BaseProperties, type NormalisedTextOrSegments, Property, type RequireOptional, isArray } from 'ag-charts-core';
+import {
+    BaseProperties,
+    type NormalisedPaddingOptions,
+    type NormalisedTextOrSegments,
+    Property,
+    type RequireOptional,
+    isArray,
+} from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
@@ -65,7 +72,7 @@ export class LabelStyle extends BaseProperties implements AgChartLabelStyleOptio
     fontFamily!: string;
 
     @Property
-    padding?: Padding;
+    padding?: NormalisedPaddingOptions;
 }
 
 export class Label<TParams = never, TDatum = any>

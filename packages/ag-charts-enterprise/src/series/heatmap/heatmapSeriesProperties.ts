@@ -9,7 +9,7 @@ import type {
     VerticalAlign,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { Property } from 'ag-charts-core';
+import { type NormalisedPaddingOptions, Property } from 'ag-charts-core';
 
 import { AutoSizedLabel } from '../util/autoSizedLabel';
 
@@ -55,7 +55,7 @@ export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmap
     verticalAlign: VerticalAlign = 'middle';
 
     @Property
-    itemPadding: number = 0;
+    itemPadding: NormalisedPaddingOptions = { top: 0, right: 0, bottom: 0, left: 0 };
 
     @Property
     itemStyler?: Styler<AgHeatmapSeriesItemStylerParams<unknown>, AgHeatmapSeriesStyle>;

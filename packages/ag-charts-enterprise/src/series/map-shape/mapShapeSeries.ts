@@ -290,7 +290,8 @@ export class MapShapeSeries
         const baseSize = isArray(labelText)
             ? measureTextSegments(labelText, label)
             : measurer.measureLines(String(labelText));
-        const aspectRatio = (baseSize.width + 2 * padding) / (baseSize.height + 2 * padding);
+        const aspectRatio =
+            (baseSize.width + padding.left + padding.right) / (baseSize.height + padding.top + padding.bottom);
 
         if (
             previousLabelLayout?.geometry === geometry &&

@@ -2,6 +2,7 @@ import {
     type FontOptions,
     Logger,
     type NormalisedContentSegment,
+    type NormalisedPaddingOptions,
     type NormalisedTextOrSegments,
     cachedTextMeasurer,
     findMaxValue,
@@ -80,7 +81,7 @@ export function generateLabelSecondaryLabelFontSizeCandidates(
 }
 
 type LayoutParams = {
-    padding: number;
+    padding: NormalisedPaddingOptions;
 };
 
 export type LabelFormatting = {
@@ -129,8 +130,8 @@ export function formatStackedLabels<Meta>(
 ) {
     const { spacing = 0 } = labelProps;
 
-    const widthAdjust = 2 * padding;
-    const heightAdjust = 2 * padding + spacing;
+    const widthAdjust = padding.left + padding.right;
+    const heightAdjust = padding.top + padding.bottom + spacing;
     const minimumHeight =
         (labelProps.minimumFontSize ?? labelProps.fontSize) +
         (secondaryLabelProps.minimumFontSize ?? secondaryLabelProps.fontSize);
@@ -223,7 +224,7 @@ function formatSingleSegmentsLabel<Meta>(
     // the way the plain-text path does — `minimumFontSize` is therefore not honoured for segment
     // arrays. Set `fontSize` on individual segments to control sizing, or rely on the segment
     // overflow handling (drop 'hide' images → truncate text → drop 'keep' images) to fit.
-    const sizeAdjust = 2 * padding;
+    const sizeAdjust = padding.top + padding.bottom;
     const baseFont = toBaseFont(props);
     const measurer = cachedTextMeasurer(baseFont);
     const lineHeight = props.lineHeight ?? measurer.lineHeight();
@@ -256,7 +257,7 @@ export function formatSingleLabel<Meta>(
     { padding }: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn<Meta>
 ): [LabelFormatting, Meta] | undefined {
-    const sizeAdjust = 2 * padding;
+    const sizeAdjust = padding.top + padding.bottom;
     const minimumFontSize = Math.min(props.minimumFontSize ?? props.fontSize, props.fontSize);
 
     const textSizeProps = {
@@ -326,10 +327,10 @@ function toBaseFont(props: AutoSizedBaseLabelOptions): FontOptions {
 function fixedFitting<Meta>(
     width: number,
     usableHeight: number,
-    padding: number,
+    padding: NormalisedPaddingOptions,
     meta: Meta
 ): SizeFittingHeightFn<Meta> {
-    return () => ({ width, height: usableHeight + 2 * padding, meta });
+    return () => ({ width, height: usableHeight + padding.top + padding.bottom, meta });
 }
 
 // Segments measure once at their declared font (no font-size bin-search), so the stacked
@@ -345,8 +346,8 @@ function formatStackedAnyLabels<Meta>(
 ): StackedLabelFormatting<Meta> | undefined {
     const { padding } = layoutParams;
     const { spacing = 0 } = labelProps;
-    const widthAdjust = 2 * padding;
-    const heightAdjust = 2 * padding + spacing;
+    const widthAdjust = padding.left + padding.right;
+    const heightAdjust = padding.top + padding.bottom + spacing;
 
     const labelBaseFont = toBaseFont(labelProps);
     const secondaryBaseFont = toBaseFont(secondaryLabelProps);
