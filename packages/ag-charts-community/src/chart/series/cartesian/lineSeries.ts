@@ -468,7 +468,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                 processedData,
                 'mixed-numeric'
             ),
-            selectionValues: this.properties.selectedKey
+            crossFilterSelectionValues: this.properties.selectedKey
                 ? dataModel.resolveColumnById(this, 'selectedRaw', processedData, 'boolean')
                 : undefined,
             xScale,
@@ -508,7 +508,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         scratch.xDatum = ctx.xValues[datumIndex];
         scratch.yDatum = ctx.yRawValues[datumIndex];
         scratch.yCumulative = ctx.yCumulativeValues[datumIndex];
-        scratch.selected = ctx.selectionValues?.[datumIndex];
+        scratch.crossFilterSelected = ctx.crossFilterSelectionValues?.[datumIndex];
 
         scratch.x = ctx.xScale.convert(scratch.xDatum) + ctx.xOffset;
         scratch.y = ctx.yScale.convert(scratch.yCumulative) + ctx.yOffset;
@@ -550,7 +550,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                 (existingNode as any).yValue = scratch.yDatum;
                 (existingNode as any).xValue = scratch.xDatum;
                 (existingNode as any).labelText = labelText;
-                (existingNode as any).selected = scratch.selected;
+                (existingNode as any).crossFilterSelected = scratch.crossFilterSelected;
             } else {
                 ctx.nodes.push({
                     series: this,
@@ -565,7 +565,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                     xValue: scratch.xDatum,
                     capDefaults: ctx.capDefaults,
                     labelText,
-                    selected: scratch.selected,
+                    crossFilterSelected: scratch.crossFilterSelected,
                 });
             }
             ctx.nodeIndex++;
@@ -615,7 +615,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             xDatum: undefined,
             yDatum: undefined,
             yCumulative: 0,
-            selected: undefined,
+            crossFilterSelected: undefined,
             x: 0,
             y: 0,
         };
@@ -889,7 +889,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                 contextNodeData.styles[thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
             thisSeries.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 applyPosition,
-                selected: datum.selected,
+                crossFilterSelected: datum.crossFilterSelected,
             });
             const nextDrawingMode =
                 constantDrawingMode ?? thisSeries.resolveMarkerDrawingModeForState(drawingMode, style);

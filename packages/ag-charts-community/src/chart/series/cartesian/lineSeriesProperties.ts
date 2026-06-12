@@ -27,6 +27,9 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
     @Property
     yName?: string;
 
+    // WARNING! This selectedKey is related to cross-filtering which is not an officially documented or supported
+    // feature. It has nothing to do with the official data selection API in the options contract. Do not use, or use
+    // with extreme caution.
     @Property
     selectedKey: string | undefined;
 
