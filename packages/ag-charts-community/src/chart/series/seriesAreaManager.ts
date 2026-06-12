@@ -55,7 +55,7 @@ import {
     type SeriesNodePickIntent,
     type UnknownSeries,
 } from './series';
-import type { DatumIndex, SeriesNodeDatum } from './seriesTypes';
+import { type DatumIndex, SelectionState, type SeriesNodeDatum } from './seriesTypes';
 import { getDatumRefPoint } from './util';
 
 type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
@@ -649,7 +649,15 @@ export class SeriesAreaManager extends BaseManager {
     ): void {
         const { type, sourceEvent } = event;
         const payload: SeriesAreaClickEvent = { type, consumed, sourceEvent, clickedNode };
+
+        const { datum } = this.focus;
+        const oldSelectionState = datum?.series.getDataSelectionState(datum.datumIndex);
         this.chart.ctx.eventsHub.emit('series-area:click', payload);
+        const newSelectionState = datum?.series.getDataSelectionState(datum.datumIndex);
+
+        if (oldSelectionState !== newSelectionState) {
+            this.announceDataSelectionChange();
+        }
     }
 
     private toCanvasCoordinates(event: { currentX: number; currentY: number }): { canvasX: number; canvasY: number } {
@@ -1091,15 +1099,65 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         if (mode === 'always') {
-            this.swapChain.update(this.getDatumAriaText(pick.datum, tooltipContent));
+            this.swapChain.update(this.getDatumAriaText('keynav', pick.datum, tooltipContent));
         }
     }
 
-    private getDatumAriaText(datum: SeriesNodeDatum, tooltipContent: TooltipContent[]): string {
+    private announceDataSelectionChange(): void {
+        const { datum } = this.focus;
+        if (datum !== undefined) {
+            const tooltipContent = this.getTooltipContent(datum, 'aria-label');
+            this.swapChain.update(this.getDatumAriaText('selectionChange', datum, tooltipContent));
+        }
+    }
+
+    private getDatumAriaText(
+        source: 'keynav' | 'selectionChange',
+        datum: SeriesNodeDatum,
+        tooltipContent: TooltipContent[]
+    ): string {
         const description = tooltipContent == null ? '' : tooltipContentAriaLabel(tooltipContent);
-        return this.chart.ctx.localeManager.t('ariaAnnounceHoverDatum', {
+        const datumText = this.chart.ctx.localeManager.t('ariaAnnounceHoverDatum', {
             datum: datum.series.getDatumAriaText?.(datum, description) ?? description,
         });
+
+        const dataSelectionStateText = this.getSelectedStateAriaText(datum);
+        if (dataSelectionStateText === undefined) {
+            return datumText;
+        } else {
+            // When using the Arrow/Tab keys, announce the 'selected/unselected' state at the end.
+            //
+            // When changing the selection state using the Space/Enter keys, announce the state first because that's the
+            // most relevant information. This is how most screenreaders prioritise selection state on native elements
+            // like a HTML tickbox.
+            switch (source) {
+                case 'keynav':
+                    return [datumText, dataSelectionStateText].join(', ');
+                case 'selectionChange':
+                    return [dataSelectionStateText, datumText].join(', ');
+                default:
+                    return source satisfies never; // check for exhaustiveness
+            }
+        }
+    }
+
+    private getSelectedStateAriaText(datum: SeriesNodeDatum): string | undefined {
+        const selectionState = datum.series.getDataSelectionState(datum.datumIndex);
+        switch (selectionState) {
+            case SelectionState.Item:
+                return this.chart.ctx.localeManager.t('ariaAnnounceSelectedItem');
+
+            case SelectionState.None:
+            case SelectionState.OtherItem:
+                return this.chart.ctx.localeManager.t('ariaAnnounceUnselectedItem');
+
+            case SelectionState.OtherSeries:
+            case undefined:
+                return undefined;
+
+            default:
+                return selectionState satisfies never; // check for exhaustiveness
+        }
     }
 
     private clearHighlight(delayed: boolean = false) {
