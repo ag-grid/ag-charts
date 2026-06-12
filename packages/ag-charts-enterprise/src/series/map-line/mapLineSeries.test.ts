@@ -631,7 +631,7 @@ describe('MapLineSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
               [
                 [
-                  "AG Charts - series[].minStrokeWidth (8) cannot be greater than maxStrokeWidth (2), reverting both to theme defaults.",
+                  "AG Charts - series[0].minStrokeWidth (8) cannot be greater than maxStrokeWidth (2), ignoring both.",
                 ],
               ]
             `);
@@ -663,6 +663,41 @@ describe('MapLineSeries', () => {
             // Zero-width domains resolve to the range midpoint (10 + 30) / 2, never NaN/Infinity.
             expect([...new Set(strokeWidths)]).toEqual([20]);
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
+        it('rejects a sizeDomain that is not a 2-element array and falls back to the data domain', async () => {
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                series: [
+                    {
+                        type: 'map-line',
+                        idKey: 'name',
+                        sizeKey: 'dailyVehicles',
+                        // Deliberately malformed: a 1-element array is not a valid sizeDomain.
+                        sizeDomain: [5],
+                        minStrokeWidth: 10,
+                        maxStrokeWidth: 30,
+                    } as never,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const strokeWidths: number[] = chart.series[0].contextNodeData?.nodeData.map(
+                (d: any) => d.style?.strokeWidth
+            );
+            expect(strokeWidths.length).toBeGreaterThan(0);
+            // The malformed sizeDomain is dropped, so widths resolve from the data domain within
+            // [minStrokeWidth, maxStrokeWidth] = [10, 30], never NaN.
+            expect(strokeWidths.every((width) => width >= 10 && width <= 30)).toBe(true);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`series[0].sizeDomain\` cannot be set to \`[5]\`; expecting a number or bigint greater than or equal to 0 array and an array of exactly 2 items, ignoring.",
+                ],
+              ]
+            `);
         });
     });
     describe('bigint size domain (AG-16608)', () => {

@@ -742,7 +742,7 @@ describe('MapMarkerSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
               [
                 [
-                  "AG Charts - series[].minSize (30) cannot be greater than maxSize (5), reverting both to theme defaults.",
+                  "AG Charts - series[1].minSize (30) cannot be greater than maxSize (5), ignoring both.",
                 ],
               ]
             `);
@@ -773,6 +773,40 @@ describe('MapMarkerSeries', () => {
             // Zero-width domains resolve to the range midpoint (10 + 30) / 2, never NaN/Infinity.
             expect([...new Set(markerSizes)]).toEqual([20]);
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
+        it('rejects a sizeDomain that is not a 2-element array and falls back to the data domain', async () => {
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                series: [
+                    { type: 'map-shape-background' },
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        sizeKey: 'population',
+                        // Deliberately malformed: a 1-element array is not a valid sizeDomain.
+                        sizeDomain: [5],
+                        minSize: 10,
+                        maxSize: 30,
+                    } as never,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const markerSizes: number[] = chart.series[1].contextNodeData?.nodeData.map((d: any) => d.point.size);
+            expect(markerSizes.length).toBeGreaterThan(0);
+            // The malformed sizeDomain is dropped, so sizes resolve from the data domain within
+            // [minSize, maxSize] = [10, 30], never NaN.
+            expect(markerSizes.every((size) => size >= 10 && size <= 30)).toBe(true);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`series[1].sizeDomain\` cannot be set to \`[5]\`; expecting a number or bigint greater than or equal to 0 array and an array of exactly 2 items, ignoring.",
+                ],
+              ]
+            `);
         });
 
         it('clamps reversed-sizeDomain out-of-domain values to minSize, not maxSize (TC2)', async () => {

@@ -1,5 +1,7 @@
 import {
     type OptionsDefs,
+    and,
+    arrayLength,
     arrayOf,
     boolean,
     callbackDefs,
@@ -30,7 +32,7 @@ import type {
 
 export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeableOptions> = {
     title: string,
-    sizeDomain: arrayOf(numericValue),
+    sizeDomain: and(arrayOf(numericValue), arrayLength(2, 2)),
     minSize: positiveNumber,
     maxSize: positiveNumber,
     showInMiniChart: boolean,
