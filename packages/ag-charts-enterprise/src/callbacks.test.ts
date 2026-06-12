@@ -757,6 +757,33 @@ describe('AG-15850 labels', () => {
         });
     });
 
+    describe('cone-funnel', () => {
+        beforeEach(async () => {
+            await createChart<AgCartesianChartOptions<D, C>>({
+                data: basicData,
+                series: [
+                    {
+                        type: 'cone-funnel',
+                        valueKey: 'myValue',
+                        stageKey: 'myCategory',
+                        label: {
+                            formatter: mockFormatter.frozen,
+                            itemStyler: mockItemStyler.frozen,
+                        },
+                    },
+                ],
+            });
+        });
+
+        test('formatter', () => {
+            expect(mockFormatter.mock.mock.calls).toMatchSnapshot();
+        });
+
+        test('itemStyler', () => {
+            expect(mockItemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+    });
+
     describe('map-shape', () => {
         beforeEach(async () => {
             await createChart({

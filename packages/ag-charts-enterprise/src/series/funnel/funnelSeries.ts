@@ -87,7 +87,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
             'y',
             yDomain,
             label,
-            { itemId: valueKey, value: yDatum, datum, stageKey, valueKey }
+            { itemId: this.resolveItemId(datum, datumIndex), value: yDatum, datum, stageKey, valueKey }
         );
 
         return {
@@ -96,7 +96,6 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
             textAlign: 'center',
             textBaseline: 'middle',
             text,
-            itemId: stageKey,
             datum,
             datumIndex,
             series: this,

@@ -147,7 +147,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
             'y',
             yDomain,
             label,
-            { itemId: valueKey, value: yDatum, datum, stageKey, valueKey }
+            { itemId: this.resolveItemId(datum, datumIndex), value: yDatum, datum, stageKey, valueKey }
         );
 
         return {
@@ -156,7 +156,6 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
             textAlign,
             textBaseline,
             text,
-            itemId: valueKey,
             datum,
             datumIndex,
             series: this,

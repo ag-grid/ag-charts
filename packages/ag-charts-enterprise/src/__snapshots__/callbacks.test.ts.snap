@@ -2327,6 +2327,110 @@ exports[`AG-15850 labels > chord > itemStyler 1`] = `
 ]
 `;
 
+exports[`AG-15850 labels > cone-funnel > formatter 1`] = `
+[
+  [
+    {
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "itemId": 0,
+      "seriesId": "ConeFunnelSeries-1",
+      "stageKey": "myCategory",
+      "value": 10,
+      "valueKey": "myValue",
+    },
+  ],
+  [
+    {
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "itemId": 1,
+      "seriesId": "ConeFunnelSeries-1",
+      "stageKey": "myCategory",
+      "value": 20,
+      "valueKey": "myValue",
+    },
+  ],
+]
+`;
+
+exports[`AG-15850 labels > cone-funnel > itemStyler 1`] = `
+[
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatA",
+        "mySize": 5,
+        "myValue": 10,
+        "myValue2": 7,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": 0,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "ConeFunnelSeries-1",
+      "stageKey": "myCategory",
+      "valueKey": "myValue",
+    },
+  ],
+  [
+    {
+      "border": {
+        "enabled": false,
+        "stroke": "rgba(70, 70, 70, 0.08)",
+        "strokeOpacity": undefined,
+        "strokeWidth": 1,
+      },
+      "color": "#464646",
+      "cornerRadius": 4,
+      "datum": {
+        "myCategory": "CatB",
+        "mySize": 10,
+        "myValue": 20,
+        "myValue2": 14,
+      },
+      "enabled": true,
+      "fill": undefined,
+      "fillOpacity": undefined,
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "fontStyle": undefined,
+      "fontWeight": 400,
+      "highlightState": "none",
+      "itemId": 1,
+      "itemType": undefined,
+      "padding": 8,
+      "seriesId": "ConeFunnelSeries-1",
+      "stageKey": "myCategory",
+      "valueKey": "myValue",
+    },
+  ],
+]
+`;
+
 exports[`AG-15850 labels > donut > formatter 1`] = `
 [
   [
@@ -2491,7 +2595,7 @@ exports[`AG-15850 labels > funnel > formatter 1`] = `
         "myValue": 10,
         "myValue2": 7,
       },
-      "itemId": "myValue",
+      "itemId": 0,
       "seriesId": "FunnelSeries-1",
       "stageKey": "myCategory",
       "value": 10,
@@ -2506,7 +2610,7 @@ exports[`AG-15850 labels > funnel > formatter 1`] = `
         "myValue": 20,
         "myValue2": 14,
       },
-      "itemId": "myValue",
+      "itemId": 1,
       "seriesId": "FunnelSeries-1",
       "stageKey": "myCategory",
       "value": 20,
@@ -2542,7 +2646,7 @@ exports[`AG-15850 labels > funnel > itemStyler 1`] = `
       "fontStyle": undefined,
       "fontWeight": 400,
       "highlightState": "none",
-      "itemId": "myCategory",
+      "itemId": 0,
       "itemType": undefined,
       "padding": 8,
       "seriesId": "FunnelSeries-1",
@@ -2574,7 +2678,7 @@ exports[`AG-15850 labels > funnel > itemStyler 1`] = `
       "fontStyle": undefined,
       "fontWeight": 400,
       "highlightState": "none",
-      "itemId": "myCategory",
+      "itemId": 1,
       "itemType": undefined,
       "padding": 8,
       "seriesId": "FunnelSeries-1",

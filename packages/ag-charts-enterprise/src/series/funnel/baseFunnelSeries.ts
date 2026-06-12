@@ -38,6 +38,7 @@ const {
     motion,
     checkCrisp,
     createDatumId,
+    getItemId,
 } = _ModuleSupport;
 
 export type Bounds = {
@@ -53,7 +54,6 @@ export type FunnelNodeLabelDatum = Readonly<Point> & {
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     datum: any;
-    itemId: string;
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
     visible: boolean;
 };
@@ -447,6 +447,10 @@ export abstract class BaseFunnelSeries<
         }
 
         return context;
+    }
+
+    protected resolveItemId(datum: unknown, datumIndex: number) {
+        return getItemId({ series: this, datum, datumIndex }, this.data?.dataIdKey);
     }
 
     protected abstract getItemStyle(
