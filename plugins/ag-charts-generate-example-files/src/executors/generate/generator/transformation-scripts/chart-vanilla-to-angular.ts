@@ -197,7 +197,7 @@ export async function vanillaToAngular(
             processFunction(handler.body, suppressOptionsClone, methodNames)
         );
 
-        indexFile = `${imports.join('\n')}${declarations.length > 0 ? '\n' + declarations.join('\n') : ''}
+        indexFile = `${imports.join('\n')}${declarations.length > 0 ? '\n\n' + declarations.join('\n') : ''}
 
         ${bindings.globals.join('\n')}
 
@@ -252,7 +252,7 @@ export async function vanillaToAngular(
             template = template.replace(placeholder, `<${selector} style="${style}"></${selector}>`);
         });
 
-        indexFile = `${imports.join('\n')}${declarations.length > 0 ? '\n' + declarations.join('\n') : ''}
+        indexFile = `${imports.join('\n')}${declarations.length > 0 ? '\n\n' + declarations.join('\n') : ''}
 
         ${bindings.globals.join('\n')}
         `;
