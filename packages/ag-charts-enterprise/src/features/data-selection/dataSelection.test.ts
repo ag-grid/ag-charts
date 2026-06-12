@@ -143,6 +143,61 @@ function createLineAccountingOptions(): AgCartesianChartOptions<AccountingDatum,
     };
 }
 
+// A dense dataset (>1000 points) where the marker spacing falls below 1px, so
+// `markerEnabled()` is false and — with `selection.enabled` — `hideWithSize0`
+// becomes true: the line/area path is drawn but every unselected marker is sized 0.
+const SINE_WAVE_POINT_COUNT = 1200;
+
+type SineWaveDatum = { x: number; y: number };
+function createLineSineWaveOptions(): AgCartesianChartOptions<SineWaveDatum, unknown> {
+    const data: SineWaveDatum[] = Array.from({ length: SINE_WAVE_POINT_COUNT }, (_, i) => ({
+        x: i,
+        y: Math.sin((i / SINE_WAVE_POINT_COUNT) * Math.PI * 8),
+    }));
+    return {
+        data,
+        series: [{ id: 'lineid', type: 'line', xKey: 'x', yKey: 'y' }],
+        axes: {
+            x: { type: 'number', position: 'bottom', crosshair: { enabled: false }, gridLine: { enabled: false } },
+            y: { type: 'number', position: 'left', crosshair: { enabled: false }, gridLine: { enabled: false } },
+        },
+        legend: { enabled: false },
+    };
+}
+
+function createAreaSineWaveOptions(): AgCartesianChartOptions<SineWaveDatum, unknown> {
+    const data: SineWaveDatum[] = Array.from({ length: SINE_WAVE_POINT_COUNT }, (_, i) => ({
+        x: i,
+        y: Math.sin((i / SINE_WAVE_POINT_COUNT) * Math.PI * 8),
+    }));
+    return {
+        data,
+        series: [{ id: 'areaid', type: 'area', xKey: 'x', yKey: 'y' }],
+        axes: {
+            x: { type: 'number', position: 'bottom', crosshair: { enabled: false }, gridLine: { enabled: false } },
+            y: { type: 'number', position: 'left', crosshair: { enabled: false }, gridLine: { enabled: false } },
+        },
+        legend: { enabled: false },
+    };
+}
+
+type SineWaveRangeDatum = { x: number; low: number; high: number };
+function createRangeAreaSineWaveOptions(): AgCartesianChartOptions<SineWaveRangeDatum, unknown> {
+    const data: SineWaveRangeDatum[] = Array.from({ length: SINE_WAVE_POINT_COUNT }, (_, i) => {
+        const mid = Math.sin((i / SINE_WAVE_POINT_COUNT) * Math.PI * 8);
+        return { x: i, low: mid - 0.25, high: mid + 0.25 };
+    });
+    return {
+        data,
+        series: [{ id: 'rangeareaid', type: 'range-area', xKey: 'x', yLowKey: 'low', yHighKey: 'high' }],
+        axes: {
+            x: { type: 'number', position: 'bottom', crosshair: { enabled: false }, gridLine: { enabled: false } },
+            y: { type: 'number', position: 'left', crosshair: { enabled: false }, gridLine: { enabled: false } },
+        },
+        legend: { enabled: false },
+    };
+}
+
 type StackMixDatum =
     | { cat: 'A' | 'B' | 'C' | 'D' | 'E'; s1: number; s2: number; s3: number; s4?: never; s5?: never; s6: number }
     | { cat: 'A' | 'B' | 'C' | 'D' | 'E'; s1?: never; s2?: never; s3?: never; s4: number; s5?: never; s6?: never }
@@ -2458,12 +2513,12 @@ describe('DataSelection', () => {
         });
 
         describe('line', () => {
-            type D = AccountingDatum;
-            type C = unknown;
-            type I = AgSelectionItem<D>;
-            let selectionChange: SelectionChangeRecorder<D, C>;
-
             describe('without module clash', () => {
+                type D = AccountingDatum;
+                type C = unknown;
+                type I = AgSelectionItem<D>;
+                let selectionChange: SelectionChangeRecorder<D, C>;
+
                 const { data = [], series = [], theme = {} } = createLineAccountingOptions();
 
                 const POINT_A = { canvasX: 262.5, canvasY: 440 };
@@ -2650,44 +2705,260 @@ describe('DataSelection', () => {
             });
 
             describe('hideWithSize0 large dataset', () => {
+                type D = SineWaveDatum;
+                type C = unknown;
+                type I = AgSelectionItem<D>;
+                let selectionChange: SelectionChangeRecorder<D, C>;
+
+                // Placeholder drag box dragged across part of the dense line. Adjust the
+                // coordinates to land on the intended span of markers once a snapshot exists.
+                const DRAG_FROM: CanvasPoint = { canvasX: 200, canvasY: 100 };
+                const DRAG_TO: CanvasPoint = { canvasX: 500, canvasY: 500 };
+
+                // Placeholder expected results — populate once the drag span and the
+                // resulting selection are finalised against a generated snapshot.
+                const SELECTION_PLACEHOLDER: I[] = [];
+                const SELECTIONCHANGE_PLACEHOLDER: AgSelectionChangeEvent<D, C>[] = [];
+
                 beforeEach(async () => {
-                    // TODO(Claude) Initialise a large dataset; new create*Options() function (at the top of the file with the other create functions).
-                    // ensure that it has at least 1000 data points. You can use a sine-wave to generate data points.
+                    const { data, series, axes, legend } = createLineSineWaveOptions();
+                    selectionChange = createSelectionChangeRecorder();
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        axes,
+                        legend,
+                        selection: {
+                            containment: 'any',
+                            enabled: true,
+                            enableDrag: true,
+                            enableClick: false,
+                        },
+                        navigator: { enabled: false },
+                        scrollbar: { enabled: false },
+                        zoom: { enabled: false },
+                        listeners: { selectionChange },
+                    });
                 });
                 describe('initial', () => {
-                    // TODO(Claude): Test that the line is rendered without marker, getSelection() is empty and so is selectionChange popEvents().
-                    test('screenshot', async () => {});
-                    test('getSelection', async () => {});
-                    test('selectionChange', async () => {})
+                    // The dense line is drawn, but every marker is hidden (size 0): hideWithSize0
+                    // is active and no datum is selected yet.
+                    test('screenshot', async () => {
+                        await compareExact('drag-modifiers-line-hidewithsize0-initial');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
                 });
                 describe('mousedown and mousemove', () => {
                     beforeEach(async () => {
-                        // TODO(Claude): Dispatch a mousedown and mousemove event with no modifiers. Use placeholder coordinates
+                        await mouseDown(DRAG_FROM);
+                        await mouseMove(DRAG_TO);
                     });
-                    // TODO(Claude): Test that the candidacy markers are rendered,  getSelection() and selectionChange still empty.
-                    test('screenshot', async () => {});
-                    test('getSelection', async () => {});
-                    test('selectionChange', async () => {})
+                    // Markers under the drag box render as selection candidates even though
+                    // hideWithSize0 hides every other marker. Nothing is committed yet.
+                    test('screenshot', async () => {
+                        await compareExact('drag-modifiers-line-hidewithsize0-candidacy');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
 
                     describe('mouseup', () => {
                         beforeEach(async () => {
-                            // TODO(Claude): Dispatch a mouseup at the currrent point with no modifiers.
+                            await mouseUp(DRAG_TO);
                         });
-                        // TODO(Claude): Test that the selection is complete,  getSelection() and selectionChange result. use a placeholder variable like an empty array.
-                        test('screenshot', async () => {});
-                        test('getSelection', async () => {});
-                        test('selectionChange', async () => {})
+                        // The candidate markers commit to the selection on mouseup.
+                        test('screenshot', async () => {
+                            await compareExact('drag-modifiers-line-hidewithsize0-selected');
+                        });
+                        test('getSelection', () => {
+                            expect(getChartSelectionArray()).toEqual(SELECTION_PLACEHOLDER);
+                        });
+                        test('selectionChange', () => {
+                            expect(selectionChange.popEvents()).toEqual(SELECTIONCHANGE_PLACEHOLDER);
+                        });
                     });
                 });
             });
         });
 
         describe('area', () => {
-            // TODO(Claude): same at the 'line > hideWithSize0 large dataset' nesting
+            describe('hideWithSize0 large dataset', () => {
+                type D = SineWaveDatum;
+                type C = unknown;
+                type I = AgSelectionItem<D>;
+                let selectionChange: SelectionChangeRecorder<D, C>;
+
+                // Placeholder drag box dragged across part of the dense area. Adjust the
+                // coordinates to land on the intended span of markers once a snapshot exists.
+                const DRAG_FROM: CanvasPoint = { canvasX: 200, canvasY: 100 };
+                const DRAG_TO: CanvasPoint = { canvasX: 500, canvasY: 500 };
+
+                // Placeholder expected results — populate once the drag span and the
+                // resulting selection are finalised against a generated snapshot.
+                const SELECTION_PLACEHOLDER: I[] = [];
+                const SELECTIONCHANGE_PLACEHOLDER: AgSelectionChangeEvent<D, C>[] = [];
+
+                beforeEach(async () => {
+                    const { data, series, axes, legend } = createAreaSineWaveOptions();
+                    selectionChange = createSelectionChangeRecorder();
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        axes,
+                        legend,
+                        selection: {
+                            containment: 'any',
+                            enabled: true,
+                            enableDrag: true,
+                            enableClick: false,
+                        },
+                        navigator: { enabled: false },
+                        scrollbar: { enabled: false },
+                        zoom: { enabled: false },
+                        listeners: { selectionChange },
+                    });
+                });
+                describe('initial', () => {
+                    // The dense area is drawn, but every marker is hidden (size 0): hideWithSize0
+                    // is active and no datum is selected yet.
+                    test('screenshot', async () => {
+                        await compareExact('drag-modifiers-area-hidewithsize0-initial');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+                describe('mousedown and mousemove', () => {
+                    beforeEach(async () => {
+                        await mouseDown(DRAG_FROM);
+                        await mouseMove(DRAG_TO);
+                    });
+                    // Markers under the drag box render as selection candidates even though
+                    // hideWithSize0 hides every other marker. Nothing is committed yet.
+                    test('screenshot', async () => {
+                        await compareExact('drag-modifiers-area-hidewithsize0-candidacy');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+
+                    describe('mouseup', () => {
+                        beforeEach(async () => {
+                            await mouseUp(DRAG_TO);
+                        });
+                        // The candidate markers commit to the selection on mouseup.
+                        test('screenshot', async () => {
+                            await compareExact('drag-modifiers-area-hidewithsize0-selected');
+                        });
+                        test('getSelection', () => {
+                            expect(getChartSelectionArray()).toEqual(SELECTION_PLACEHOLDER);
+                        });
+                        test('selectionChange', () => {
+                            expect(selectionChange.popEvents()).toEqual(SELECTIONCHANGE_PLACEHOLDER);
+                        });
+                    });
+                });
+            });
         });
 
         describe('range-area', () => {
-            // TODO(Claude): same at the 'line > hideWithSize0 large dataset' nesting
+            describe('hideWithSize0 large dataset', () => {
+                type D = SineWaveRangeDatum;
+                type C = unknown;
+                type I = AgSelectionItem<D>;
+                let selectionChange: SelectionChangeRecorder<D, C>;
+
+                // Placeholder drag box dragged across part of the dense range-area. Adjust the
+                // coordinates to land on the intended span of markers once a snapshot exists.
+                const DRAG_FROM: CanvasPoint = { canvasX: 200, canvasY: 100 };
+                const DRAG_TO: CanvasPoint = { canvasX: 500, canvasY: 500 };
+
+                // Placeholder expected results — populate once the drag span and the
+                // resulting selection are finalised against a generated snapshot.
+                const SELECTION_PLACEHOLDER: I[] = [];
+                const SELECTIONCHANGE_PLACEHOLDER: AgSelectionChangeEvent<D, C>[] = [];
+
+                beforeEach(async () => {
+                    const { data, series, axes, legend } = createRangeAreaSineWaveOptions();
+                    selectionChange = createSelectionChangeRecorder();
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        axes,
+                        legend,
+                        selection: {
+                            containment: 'any',
+                            enabled: true,
+                            enableDrag: true,
+                            enableClick: false,
+                        },
+                        navigator: { enabled: false },
+                        scrollbar: { enabled: false },
+                        zoom: { enabled: false },
+                        listeners: { selectionChange },
+                    });
+                });
+                describe('initial', () => {
+                    // The dense range-area is drawn, but every marker is hidden (size 0): hideWithSize0
+                    // is active and no datum is selected yet.
+                    test('screenshot', async () => {
+                        await compareExact('drag-modifiers-range-area-hidewithsize0-initial');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+                describe('mousedown and mousemove', () => {
+                    beforeEach(async () => {
+                        await mouseDown(DRAG_FROM);
+                        await mouseMove(DRAG_TO);
+                    });
+                    // Markers under the drag box render as selection candidates even though
+                    // hideWithSize0 hides every other marker. Nothing is committed yet.
+                    test('screenshot', async () => {
+                        await compareExact('drag-modifiers-range-area-hidewithsize0-candidacy');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+
+                    describe('mouseup', () => {
+                        beforeEach(async () => {
+                            await mouseUp(DRAG_TO);
+                        });
+                        // The candidate markers commit to the selection on mouseup.
+                        test('screenshot', async () => {
+                            await compareExact('drag-modifiers-range-area-hidewithsize0-selected');
+                        });
+                        test('getSelection', () => {
+                            expect(getChartSelectionArray()).toEqual(SELECTION_PLACEHOLDER);
+                        });
+                        test('selectionChange', () => {
+                            expect(selectionChange.popEvents()).toEqual(SELECTIONCHANGE_PLACEHOLDER);
+                        });
+                    });
+                });
+            });
         });
 
         describe('sunburst', () => {
