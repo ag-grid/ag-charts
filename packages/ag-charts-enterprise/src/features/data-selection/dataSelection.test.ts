@@ -4058,11 +4058,24 @@ describe('DataSelection', () => {
                 const DRAG_FROM: CanvasPoint = { canvasX: 300, canvasY: 200 };
                 const DRAG_TO: CanvasPoint = { canvasX: 500, canvasY: 400 };
 
-                // Placeholder expected results — populate once the drag span and the
-                // resulting selection (spanning both the radar-line and radar-area series)
-                // are finalised against a generated run. Tests not run.
-                const SELECTION: I[] = [];
-                const SELECTIONCHANGE: AgSelectionChangeEvent<D, C>[] = [];
+                const radarLineDatum = (itemId: number, datum: D): I => {
+                    return { datum, itemId, seriesId: 'radarlineid' };
+                };
+                const radarAreaDatum = (itemId: number, datum: D): I => {
+                    return { datum, itemId, seriesId: 'radarareaid' };
+                };
+
+                const SELECTION: I[] = [
+                    radarLineDatum(2, { areaValue: 8, axis: 'C', lineValue: 4 }),
+                    radarLineDatum(5, { areaValue: 7, axis: 'F', lineValue: 3 }),
+                    radarAreaDatum(0, { areaValue: 3, axis: 'A', lineValue: 5 }),
+                    radarAreaDatum(4, { areaValue: 4, axis: 'E', lineValue: 6 }),
+                    radarAreaDatum(6, { areaValue: 2, axis: 'G', lineValue: 9 }),
+                ];
+
+                const SELECTIONCHANGE: AgSelectionChangeEvent<D, C>[] = [
+                    uiChangeEvent<D, C>({ added: SELECTION, removed: [] }),
+                ];
 
                 beforeEach(async () => {
                     const { data, series, legend } = createRadarOptions();
