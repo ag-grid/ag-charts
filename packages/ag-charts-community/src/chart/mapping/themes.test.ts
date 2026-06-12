@@ -212,7 +212,7 @@ describe('themes.ts', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
               [
                 [
-                  "AG Charts - Option \`theme.palette.fills\` cannot be set to \`"red"\`; expecting a color ref, a color string or a color object array, ignoring.",
+                  "AG Charts - Option \`theme.palette.fills\` cannot be set to \`"red"\`; expecting a color string, a color object or a color ref and where a color ref with [onto] must also have [mix] array, ignoring.",
                 ],
                 [
                   "AG Charts - Option \`theme.palette.strokes\` cannot be set to \`"black"\`; expecting a color string array, ignoring.",
