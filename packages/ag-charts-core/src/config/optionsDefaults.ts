@@ -121,7 +121,10 @@ const colorRefMixOnto = attachDescription((value: unknown) => {
     return !isObject(value) || !('onto' in value) || 'mix' in value;
 }, 'where a color ref with [onto] must also have [mix]');
 const colorRef = and(colorRefDef, colorRefMixOnto);
-export const colorOrRef = or(color, colorRef);
+
+// `themeOperator` validator is required by the preset modules which perform a validation of the overrides before
+// processing the private operators.
+export const colorOrRef = or(color, themeOperator, colorRef);
 
 const colorStop = optionsDefs<AgGradientColorStop>({ color: colorOrRef, stop: ratio }, '');
 export const colorStopsOrderValidator = attachDescription((value) => {
@@ -320,7 +323,9 @@ const colorObjectDefs: OptionsDefs<Exclude<AgColorType, CssColor>> = {
 };
 const colorObject = typeUnion<Exclude<AgColorType, AgCssColorOrRef>>(colorObjectDefs as any, 'a color object');
 
-export const colorUnion = or(color, optionsDefs(colorObject, 'a color object'), colorRef);
+// `themeOperator` validator is required by the preset modules which perform a validation of the overrides before
+// processing the private operators.
+export const colorUnion = or(color, optionsDefs(colorObject, 'a color object'), themeOperator, colorRef);
 
 export const fillOptionsDef: OptionsDefs<FillOptions> = {
     fill: colorUnion,
