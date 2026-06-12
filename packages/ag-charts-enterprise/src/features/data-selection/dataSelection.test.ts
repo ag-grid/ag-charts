@@ -2989,12 +2989,6 @@ describe('DataSelection', () => {
                     lineDatum(730, 407),
                     lineDatum(731, 388),
                     lineDatum(732, 368),
-                    lineDatum(733, 349),
-                    lineDatum(734, 329),
-                    lineDatum(735, 309),
-                    lineDatum(736, 289),
-                    lineDatum(737, 269),
-                    lineDatum(738, 249),
                 ];
 
                 const SELECTIONCHANGE: AgSelectionChangeEvent<D, C>[] = [
@@ -3347,12 +3341,6 @@ describe('DataSelection', () => {
                     areaDatum(730, 407),
                     areaDatum(731, 388),
                     areaDatum(732, 368),
-                    areaDatum(733, 349),
-                    areaDatum(734, 329),
-                    areaDatum(735, 309),
-                    areaDatum(736, 289),
-                    areaDatum(737, 269),
-                    areaDatum(738, 249),
                 ];
 
                 const SELECTIONCHANGE: AgSelectionChangeEvent<D, C>[] = [
@@ -3443,6 +3431,19 @@ describe('DataSelection', () => {
                 };
 
                 const SELECTION: I[] = [
+                    rangeAreaDatum(231, -742, -1242),
+                    rangeAreaDatum(232, -739, -1239),
+                    rangeAreaDatum(233, -736, -1236),
+                    rangeAreaDatum(234, -732, -1232),
+                    rangeAreaDatum(235, -728, -1228),
+                    rangeAreaDatum(236, -724, -1224),
+                    rangeAreaDatum(237, -719, -1219),
+                    rangeAreaDatum(238, -713, -1213),
+                    rangeAreaDatum(239, -707, -1207),
+                    rangeAreaDatum(240, -701, -1201),
+                    rangeAreaDatum(241, -694, -1194),
+                    rangeAreaDatum(242, -687, -1187),
+                    rangeAreaDatum(243, -680, -1180),
                     rangeAreaDatum(244, -672, -1172),
                     rangeAreaDatum(245, -664, -1164),
                     rangeAreaDatum(246, -655, -1155),
@@ -3932,12 +3933,6 @@ describe('DataSelection', () => {
                     rangeAreaDatum(730, 657, 157),
                     rangeAreaDatum(731, 638, 138),
                     rangeAreaDatum(732, 618, 118),
-                    rangeAreaDatum(733, 599, 99),
-                    rangeAreaDatum(734, 579, 79),
-                    rangeAreaDatum(735, 559, 59),
-                    rangeAreaDatum(736, 539, 39),
-                    rangeAreaDatum(737, 519, 19),
-                    rangeAreaDatum(738, 499, -1),
                 ];
 
                 const SELECTIONCHANGE: AgSelectionChangeEvent<D, C>[] = [
