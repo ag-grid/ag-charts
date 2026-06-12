@@ -56,6 +56,8 @@ const chart = AgCharts.create(options);
         expect(output).toContain('AgChartOptions');
         // ...but the locally-declared MyDatumType must not be synthesised into the import.
         expect(output).not.toMatch(/import\s*{[^}]*\bMyDatumType\b[^}]*}\s*from\s*'ag-charts-community'/);
+        // The type declaration is separated from the imports by a blank line.
+        expect(output).toMatch(/from 'ag-charts-community';\n\ntype MyDatumType/);
     });
 
     test('interface declarations are preserved the same way', () => {
