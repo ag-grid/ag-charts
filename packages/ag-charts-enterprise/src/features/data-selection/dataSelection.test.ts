@@ -2704,8 +2704,7 @@ describe('DataSelection', () => {
                 });
             });
 
-            // FIXME: currently broken on latest/staging
-            describe.skip('hideWithSize0 large dataset', () => {
+            describe('hideWithSize0 large dataset', () => {
                 type D = SineWaveDatum;
                 type C = unknown;
                 type I = AgSelectionItem<D>;
@@ -3063,8 +3062,7 @@ describe('DataSelection', () => {
         });
 
         describe('area', () => {
-            // FIXME: currently broken on latest/staging
-            describe.skip('hideWithSize0 large dataset', () => {
+            describe('hideWithSize0 large dataset', () => {
                 type D = SineWaveDatum;
                 type C = unknown;
                 type I = AgSelectionItem<D>;
@@ -3422,8 +3420,7 @@ describe('DataSelection', () => {
         });
 
         describe('range-area', () => {
-            // FIXME: currently broken on latest/staging
-            describe.skip('hideWithSize0 large dataset', () => {
+            describe('hideWithSize0 large dataset', () => {
                 type D = SineWaveRangeDatum;
                 type C = unknown;
                 type I = AgSelectionItem<D>;
