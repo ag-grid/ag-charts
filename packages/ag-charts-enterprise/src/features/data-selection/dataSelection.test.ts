@@ -151,7 +151,11 @@ const SINE_WAVE_POINT_COUNT = 1200;
 // Integer y-values (sine scaled by 1000 and rounded) avoid floating-point
 // rounding drift between platforms, which otherwise breaks the exact-match
 // SELECTION assertions on CI.
-const sineWaveY = (x: number) => Math.round(Math.sin((x / SINE_WAVE_POINT_COUNT) * Math.PI * 8) * 1000);
+const sineWaveY = (x: number) => {
+    const y = Math.round(Math.sin((x / SINE_WAVE_POINT_COUNT) * Math.PI * 8) * 1000);
+    // add 0 to normalise `-0` to `0`:
+    return y + 0;
+};
 
 type SineWaveDatum = { x: number; y: number };
 function createLineSineWaveOptions(): AgCartesianChartOptions<SineWaveDatum, unknown> {
