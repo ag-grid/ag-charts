@@ -1,6 +1,5 @@
 import type {
     AgBarHighlightStyleOptions,
-    AgColorRef,
     AgColorRefMixOnto,
     AgColorScale,
     AgColorScaleColorStop,
@@ -67,14 +66,67 @@ export const themeOperator = (value: unknown) => {
     return keys.length === 1 && keys[0].startsWith('$');
 };
 
-export const colorRef = attachDescription(
-    or(
-        optionsDefs<AgColorRefMixOnto>({ ref: required(string), mix: required(ratio), onto: required(string) }),
-        optionsDefs<AgColorRef>({ ref: required(string), mix: ratio })
-    ),
+// Validator for public theme operators.
+const themeParams = [
+    'accentColor',
+    'axisColor',
+    'backgroundColor',
+    'borderColor',
+    'borderRadius',
+    'chartBackgroundColor',
+    'chartPadding',
+    'focusShadow',
+    'foregroundColor',
+    'fontFamily',
+    'fontSize',
+    'fontWeight',
+    'gridLineColor',
+    'popupShadow',
+    'subtleTextColor',
+    'textColor',
+    'chromeBackgroundColor',
+    'chromeFontFamily',
+    'chromeFontSize',
+    'chromeFontWeight',
+    'chromeTextColor',
+    'chromeSubtleTextColor',
+    'buttonBackgroundColor',
+    'buttonBorder',
+    'buttonFontWeight',
+    'buttonTextColor',
+    'inputBackgroundColor',
+    'inputBorder',
+    'inputTextColor',
+    'menuBackgroundColor',
+    'menuBorder',
+    'menuTextColor',
+    'panelBackgroundColor',
+    'panelSubtleTextColor',
+    'tooltipBackgroundColor',
+    'tooltipBorder',
+    'tooltipTextColor',
+    'tooltipSubtleTextColor',
+    'crosshairLabelBackgroundColor',
+    'crosshairLabelTextColor',
+    'separationLinesColor',
+];
+const themeParamsValidator = union(...themeParams);
+const colorRefDef = attachDescription(
+    optionsDefs<AgColorRefMixOnto>({
+        ref: themeParamsValidator,
+        mix: ratio,
+        onto: themeParamsValidator,
+    }),
     'a color ref'
 );
-export const colorOrRef = or(colorRef, color);
+const colorRefMixOnto = attachDescription((value: unknown) => {
+    return !isObject(value) || !('onto' in value) || 'mix' in value;
+}, 'where a color ref with [onto] must also have [mix]');
+const colorRef = and(colorRefDef, colorRefMixOnto);
+
+// `themeOperator` validator is required by the preset modules which perform a validation of the overrides before
+// processing the private operators.
+export const colorOrRef = or(color, themeOperator, colorRef);
 
 const colorStop = optionsDefs<AgGradientColorStop>({ color: colorOrRef, stop: ratio }, '');
 export const colorStopsOrderValidator = attachDescription((value) => {
@@ -274,7 +326,9 @@ const colorObjectDefs: OptionsDefs<Exclude<AgColorType, CssColor>> = {
 };
 const colorObject = typeUnion<Exclude<AgColorType, AgCssColorOrRef>>(colorObjectDefs as any, 'a color object');
 
-export const colorUnion = or(colorRef, color, optionsDefs(colorObject, 'a color object'));
+// `themeOperator` validator is required by the preset modules which perform a validation of the overrides before
+// processing the private operators.
+export const colorUnion = or(color, optionsDefs(colorObject, 'a color object'), themeOperator, colorRef);
 
 export const fillOptionsDef: OptionsDefs<FillOptions> = {
     fill: colorUnion,

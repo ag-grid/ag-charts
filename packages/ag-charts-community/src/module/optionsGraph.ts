@@ -1,6 +1,7 @@
 import {
     Debug,
     Graph,
+    Logger,
     ModuleRegistry,
     type PlainObject,
     type Vertex,
@@ -14,7 +15,7 @@ import {
 
 import type { ChartTheme } from '../chart/themes/chartTheme';
 import { type PaletteType, paletteType } from './coreModulesTypes';
-import { type Operation, getOperation, isOperation, operations } from './optionsGraphOperations';
+import { LocationOperation, type Operation, getOperation, isOperation, operations } from './optionsGraphOperations';
 import {
     AUTO_ENABLE_EDGE,
     AUTO_ENABLE_VALUE_EDGE,
@@ -69,6 +70,7 @@ export function createOptionsGraph(
             theme.config,
             options,
             theme.params,
+            theme.getThemeParameters(),
             theme.palette,
             theme.overrides,
             theme.getTemplateParameters(),
@@ -180,6 +182,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         private readonly config: PlainObject = {},
         private readonly userOptions: PlainObject = {},
         params: PlainObject | undefined = undefined,
+        fallbackParams: PlainObject = {},
         public readonly palette: PlainObject = {},
         private readonly overrides: PlainObject | undefined = undefined,
         private readonly internalParams: Map<unknown, unknown> = new Map(),
@@ -229,6 +232,11 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         if (params) {
             debug('build params');
             this.buildGraphFromObject(this.params, DEFAULTS_EDGE, params);
+            const hasCycle = this.findAndWarnParamsCycle(this.neighboursWithEdgeValue(this.params, PATH_EDGE));
+            if (hasCycle) {
+                this.params = this.addVertex('params');
+                this.buildGraphFromObject(this.params, DEFAULTS_EDGE, fallbackParams);
+            }
         }
 
         // Build the axes and series defaults onto the `axes` and `series` keys. While these values are arrays, we can
@@ -701,6 +709,11 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         const pathArray = [...this.getPathArray(target), path];
         const pathVertex = this.findVertexAtPath(pathArray) ?? this.addVertex(path);
 
+        // If the grafted value is a public operation, let it resolve normally as it will resolve to a unique leaf and
+        // does not need to be handled like other values. Private operations will not reach this point.
+        const operation = getOperation(value);
+        if (operation) return;
+
         this.value$1.set(pathArray.join('.'), value);
 
         this.buildGraphFromValue(target, pathVertex, edgeValue, pathArray, ontoObject);
@@ -929,8 +942,6 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         edgeValue: string,
         pathArrayVertex: Vertex<unknown> = this.EMPTY_PATH_ARRAY_VERTEX
     ) {
-        // TODO: check for circular from a 'root' vertex given from the 'buildGraphFromValue()' fn
-
         const operationValueVertex = this.addVertex(operationValue);
         this.addEdge(valueVertex, pathArrayVertex, PATH_ARRAY_EDGE);
         this.addEdge(valueVertex, operationValueVertex, OPERATION_VALUE_EDGE);
@@ -941,6 +952,58 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         } else if (isObjectLike(operationValue)) {
             this.buildGraphFromObject(operationValueVertex, edgeValue, operationValue, pathArrayVertex);
         }
+    }
+
+    private findAndWarnParamsCycle(
+        vertices: Array<Vertex<unknown> | undefined> | undefined,
+        visited?: Array<string>
+    ): boolean {
+        let result = false;
+        if (!this.params || !vertices) return result;
+
+        for (const vertex of vertices) {
+            if (!vertex) continue;
+
+            if (typeof vertex.value === 'string' && visited?.includes(vertex.value)) {
+                Logger.warnOnce(`Infinite loop cycle found in theme params [${visited.join(' -> ')}], ignoring.`);
+                return true;
+            }
+
+            const nextVisited = [...(visited ?? [])];
+
+            if (typeof vertex.value === 'string') {
+                nextVisited?.push(vertex.value);
+            }
+
+            // Since we only care about cycles in the params, we only need to check the default value edge.
+            const valueVertex = this.findNeighbour(vertex, DEFAULTS_EDGE);
+            if (!valueVertex) continue;
+
+            result ||= this.findAndWarnParamsCycleVertex(valueVertex, nextVisited);
+        }
+
+        return result;
+    }
+
+    private findAndWarnParamsCycleVertex(valueVertex: Vertex<unknown>, visited: Array<string>): boolean {
+        let result = false;
+
+        const operation = this.findNeighbourValue(valueVertex, OPERATION_EDGE);
+        if (!operation || !isOperation(operation)) return result;
+
+        const operationValues = this.neighboursWithEdgeValue(valueVertex, OPERATION_VALUE_EDGE);
+        if (!operationValues) return result;
+
+        if (operation === LocationOperation.Ref) {
+            const targetVertex = this.findNeighbourWithValue(this.params!, operationValues[0].value, PATH_EDGE);
+            result ||= this.findAndWarnParamsCycle([targetVertex], visited);
+        } else {
+            for (const operationValue of operationValues) {
+                result ||= this.findAndWarnParamsCycleVertex(operationValue, [...visited]);
+            }
+        }
+
+        return result;
     }
 
     /**
