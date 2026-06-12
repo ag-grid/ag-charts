@@ -628,7 +628,7 @@ describe('Time Axis Examples', () => {
         ];
 
         const labelTexts = (chartInstance: any, position: 'bottom' | 'left' = 'bottom'): string[] => {
-            const axis = deproxy(chartInstance).axes.find((a: any) => a.position === position);
+            const axis = deproxy(chartInstance).axes.find((a: any) => a.position === position) as any;
             expect(axis).toBeDefined();
             return Array.from(axis.tickLabelGroupSelection.nodes() as Iterable<any>)
                 .map((node) => node.text)
