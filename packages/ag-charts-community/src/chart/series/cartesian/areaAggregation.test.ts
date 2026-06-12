@@ -1,4 +1,7 @@
-import { computeAreaAggregation } from './areaAggregation';
+import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
+import { stubAggregationDataModel } from '../../test/aggregationStubs';
+import { BIG } from '../../test/bigintExamples';
+import { aggregateAreaDataFromDataModel, computeAreaAggregation } from './areaAggregation';
 
 describe('computeAreaAggregation', () => {
     describe('threshold behaviour', () => {
@@ -414,5 +417,101 @@ describe('computeAreaAggregation', () => {
                 }
             }
         });
+    });
+});
+
+describe('aggregateAreaDataFromDataModel - bigint and ISO 8601 time values (render hardening)', () => {
+    // Exercises the real aggregation entry point (where high-volume bigint/ISO columns must be narrowed),
+    // above AGGREGATION_THRESHOLD, rather than the lower-level compute function.
+    const series: ScopeProvider = { id: 'series-1' };
+    const stubDataModel = (xValues: any[], yValues: any[], domain: any[]) =>
+        stubAggregationDataModel(xValues, { yValue: yValues }, domain);
+
+    it('aggregates bigint y values beyond MAX_SAFE_INTEGER', () => {
+        const N = 2000;
+        const xValues = Array.from({ length: N }, (_, i) => i);
+        const yValues = Array.from({ length: N }, (_, i) => BIG + BigInt(i) * 1_000_000_000n);
+
+        const result = aggregateAreaDataFromDataModel(
+            'number',
+            stubDataModel(xValues, yValues, [0, N - 1]),
+            {} as ProcessedData<any>,
+            'yValue',
+            series
+        );
+
+        expect(result).toBeDefined();
+        expect(result![0].indices.length).toBeGreaterThan(0);
+    });
+
+    it('aggregates bigint x values beyond MAX_SAFE_INTEGER on a number axis (>1000 pts)', () => {
+        // The X column is not narrowed by the aggregator (only Y is), so `xValue - d0` must handle bigint x.
+        const N = 2000;
+        const xValues = Array.from({ length: N }, (_, i) => BIG + BigInt(i) * 1_000_000_000n);
+        const yValues = Array.from({ length: N }, (_, i) => Math.sin(i / 10));
+
+        const result = aggregateAreaDataFromDataModel(
+            'number',
+            stubDataModel(xValues, yValues, [xValues[0], xValues[N - 1]]),
+            {} as ProcessedData<any>,
+            'yValue',
+            series
+        );
+
+        expect(result).toBeDefined();
+        expect(result![0].indices.length).toBeGreaterThan(0);
+    });
+
+    it('aggregates ISO 8601 string timestamps on a time scale', () => {
+        const N = 2000;
+        const startMs = Date.UTC(2024, 0, 1);
+        const xValues = Array.from({ length: N }, (_, i) => new Date(startMs + i * 60_000).toISOString());
+        const yValues = Array.from({ length: N }, (_, i) => Math.sin(i / 10));
+        const domain = [new Date(xValues[0]), new Date(xValues[N - 1])];
+
+        const result = aggregateAreaDataFromDataModel(
+            'time',
+            stubDataModel(xValues, yValues, domain),
+            {} as ProcessedData<any>,
+            'yValue',
+            series
+        );
+
+        expect(result).toBeDefined();
+        expect(result![0].indices.length).toBeGreaterThan(0);
+    });
+
+    // High-magnitude narrow-range X downsampling fidelity: the domain min must be subtracted in bigint before
+    // narrowing or distinct X values collapse onto one double and the per-bucket X extrema are lost.
+    it('downsampling keeps the true min/max X when the X span is below the double ULP at that magnitude', () => {
+        const N = 2000;
+        const BASE = 2n ** 60n + 123_456_789n;
+        const DELTA = 100n;
+        const spikeIndex = 1000;
+        const dipIndex = 1500;
+
+        const xValues = Array.from({ length: N }, () => BASE);
+        xValues[spikeIndex] = BASE + DELTA;
+        xValues[dipIndex] = BASE - DELTA;
+        const yValues = Array.from({ length: N }, () => 0);
+        const domain = [BASE - DELTA, BASE + DELTA];
+
+        const result = aggregateAreaDataFromDataModel(
+            'number',
+            stubDataModel(xValues, yValues, domain),
+            {} as ProcessedData<any>,
+            'yValue',
+            series
+        );
+        expect(result).toBeDefined();
+
+        const selectedIndices = new Set<number>();
+        for (const filter of result!) for (const idx of filter.indices) selectedIndices.add(idx);
+        const selectedX = Array.from(selectedIndices, (idx) => xValues[idx]);
+        const maxSelectedX = selectedX.reduce((a, b) => (b > a ? b : a), selectedX[0]);
+        const minSelectedX = selectedX.reduce((a, b) => (b < a ? b : a), selectedX[0]);
+
+        expect(maxSelectedX).toBe(BASE + DELTA);
+        expect(minSelectedX).toBe(BASE - DELTA);
     });
 });
