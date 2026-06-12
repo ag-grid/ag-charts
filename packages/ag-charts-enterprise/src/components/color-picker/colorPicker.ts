@@ -129,7 +129,6 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
 
         const preventDefault = (event: Event) => event.preventDefault();
         const beginPaletteInteraction = (e: PointerEvent) => {
-            e.preventDefault();
             const currentTarget = e.currentTarget as HTMLDivElement;
             currentTarget.focus();
             const rect = currentTarget.getBoundingClientRect();
@@ -159,6 +158,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
             e.preventDefault();
         });
         paletteInput.addEventListener('pointerdown', beginPaletteInteraction);
+        paletteInput.addEventListener('mousedown', preventDefault);
         paletteInput.addEventListener('touchstart', preventDefault, { passive: false });
         paletteInput.addEventListener('touchmove', preventDefault, { passive: false });
         paletteInput.addEventListener('keydown', (e) => {
