@@ -1148,6 +1148,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
             this.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 crossFilterSelected: datum.crossFilterSelected,
+                hideWithSize0: false,
             });
             const nextDrawingMode = constantDrawingMode ?? this.resolveMarkerDrawingModeForState(drawingMode, style);
             if (node.__drawingMode !== nextDrawingMode) {

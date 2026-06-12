@@ -1453,11 +1453,13 @@ export abstract class Series<
         style: AgSeriesMarkerStyle,
         markerNode: Marker,
         point: { x: number; y: number; size?: number; focusSize?: number } | undefined,
-        fillBBox?: ShapeFillBBox,
-        { applyPosition = true, crossFilterSelected = true } = {}
+        fillBBox: ShapeFillBBox | undefined,
+        opts: { applyPosition?: boolean; crossFilterSelected?: boolean; hideWithSize0: boolean }
     ) {
         const { shape, size = 0 } = style;
-        const visible = this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y);
+        const { applyPosition = true, crossFilterSelected = true, hideWithSize0 } = opts;
+        const visible =
+            hideWithSize0 || (this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y));
 
         markerNode.setStyleProperties(style, fillBBox);
         markerNode.setVisibilityAndPosition(!!visible, shape!, size, applyPosition ? point : undefined);

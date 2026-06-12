@@ -1155,7 +1155,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         isHighlight: boolean;
         drawingMode: AgDrawingMode;
     }) {
-        const { contextNodeData } = this;
+        const { contextNodeData, hideWithSize0 } = this;
         if (!contextNodeData) {
             return;
         }
@@ -1174,7 +1174,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 contextNodeData.styles[itemType][
                     this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                 ];
-            this.applyMarkerStyle(style, node, datum.point, fillBBox);
+            this.applyMarkerStyle(style, node, datum.point, fillBBox, { hideWithSize0 });
             node.drawingMode = drawingMode;
         });
 

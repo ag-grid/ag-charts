@@ -510,7 +510,7 @@ export abstract class RadarSeries<
         drawingMode: AgDrawingMode
     ) {
         const fillBBox = this.getShapeFillBBox();
-        const { contextNodeData } = this;
+        const { contextNodeData, hideWithSize0 } = this;
         if (!contextNodeData) {
             return;
         }
@@ -523,7 +523,7 @@ export abstract class RadarSeries<
             const style =
                 datum.style ??
                 contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
-            this.applyMarkerStyle(style, node, datum.point, fillBBox);
+            this.applyMarkerStyle(style, node, datum.point, fillBBox, { hideWithSize0 });
 
             node.drawingMode = drawingMode;
         });
