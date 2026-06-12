@@ -1287,4 +1287,98 @@ describe('Zoom', () => {
             expect(preventDefaultSpy).not.toHaveBeenCalled();
         });
     });
+
+    describe('bigint axis domains (AG-16608)', () => {
+        // Out-of-safe-range y-values: zoom and state round-trips must flow bigint domains without error.
+        const BIG = 9_007_199_254_740_993n; // Number.MAX_SAFE_INTEGER + 2
+        const BIGINT_EXAMPLE_OPTIONS: AgChartOptions = {
+            data: [
+                { x: 0, y: BIG },
+                { x: 1, y: BIG * 3n },
+                { x: 2, y: BIG * 2n },
+                { x: 3, y: BIG * 4n },
+            ],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            zoom: { enabled: true, axes: 'xy' },
+        };
+
+        it('should scroll-zoom a bigint-axis chart without error', async () => {
+            await prepareChart(undefined, undefined, BIGINT_EXAMPLE_OPTIONS);
+            await scrollAction(cx, cy, -1)(chart);
+            await waitForChartStability(chart);
+
+            expect(chart.getState().zoom).toBeDefined();
+        });
+
+        it('should round-trip getState/setState on a bigint-axis chart', async () => {
+            await prepareChart(undefined, { ratioX: { start: 0.2, end: 0.6 } }, BIGINT_EXAMPLE_OPTIONS, false);
+            await waitForChartStability(chart);
+
+            const saved = chart.getState();
+            await chart.setState(saved);
+            await waitForChartStability(chart);
+
+            // The bigint-derived zoom range must survive the encode/decode round-trip exactly (the float
+            // ratio can drift by 1 ULP, which is pre-existing and unrelated to bigint).
+            expect(chart.getState().zoom?.rangeY).toEqual(saved.zoom?.rangeY);
+        });
+
+        // The same zoom range endpoints supplied as `number` and as `bigint` must produce the
+        // same zoom state.
+        it('should produce the same zoom for bigint and number rangeX endpoints', async () => {
+            // Explicit number axes: on the default category x-axis a bigint is a type-distinct
+            // category key, which is out of scope for the continuous-axis range widening.
+            const numberAxesOptions: AgChartOptions = {
+                ...EXAMPLE_OPTIONS,
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            await prepareChart(undefined, { rangeX: { start: 3, end: 6 } }, numberAxesOptions, false);
+            await waitForChartStability(chart);
+            const numberZoom = chart.getState().zoom;
+            chart.destroy();
+
+            // Provided state must be pre-encoded (the memento contract), so bigint endpoints arrive in
+            // the `{ __type: 'bigint' }` form and decode back to bigints before the zoom range applies.
+            const encodedBigint = (value: string) => ({ __type: 'bigint', value }) as never;
+            await prepareChart(
+                undefined,
+                { rangeX: { start: encodedBigint('3'), end: encodedBigint('6') } },
+                numberAxesOptions,
+                false
+            );
+            await waitForChartStability(chart);
+            const bigintZoom = chart.getState().zoom;
+
+            // A working rangeX yields a strict sub-range zoom; guard against both variants silently
+            // falling back to the full [0, 1] range.
+            expect(numberZoom?.ratioX).toBeDefined();
+            expect(numberZoom?.ratioX).not.toEqual({ start: 0, end: 1 });
+            expect(bigintZoom).toEqual(numberZoom);
+        });
+
+        it('should preserve the domain across a data update on a bigint axis without error', async () => {
+            // The zoomOnDataChange preserveDomain interpolation must narrow a bigint domain to
+            // Number without reporting "Unexpected range types".
+            await prepareChart(
+                { onDataChange: { strategy: 'preserveDomain' } },
+                { ratioX: { start: 0.2, end: 0.6 } },
+                BIGINT_EXAMPLE_OPTIONS,
+                false
+            );
+            await waitForChartStability(chart);
+
+            await chart.updateDelta({ data: [...BIGINT_EXAMPLE_OPTIONS.data!, { x: 4, y: BIG * 5n }] });
+            await waitForChartStability(chart);
+
+            expect(chart.getState().zoom?.ratioX).toBeDefined();
+        });
+    });
 });

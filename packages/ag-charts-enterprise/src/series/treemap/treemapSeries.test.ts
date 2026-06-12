@@ -9,6 +9,7 @@ import type {
 } from 'ag-charts-community';
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
+    BIG,
     type Chart,
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -1355,6 +1356,31 @@ describe('TreemapSeries', () => {
             const tooltip = document.querySelector('.ag-charts-tooltip');
             expect(tooltip?.textContent).toContain('Jan.14');
             expect(tooltip?.textContent).not.toContain('Mar.10');
+        });
+    });
+
+    describe('bigint values (AG-16608)', () => {
+        it('renders out-of-safe-range bigint tile sizes proportionally', async () => {
+            // Sizes beyond Number.MAX_SAFE_INTEGER must drive tile area, not collapse to equal tiles.
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        name: 'root',
+                        children: [
+                            { name: 'A', size: BIG },
+                            { name: 'B', size: BIG * 2n },
+                            { name: 'C', size: BIG * 3n },
+                        ],
+                    },
+                ],
+                series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'size', colorKey: undefined }],
+                animation: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
 });

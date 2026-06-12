@@ -14,6 +14,7 @@ import {
     assertTooltipPresentForAll,
     clickAction,
     deproxy,
+    expectPixelIdenticalAcrossUpdate,
     expectWarningMessages,
     expectWarningsCalls,
     extractImageData,
@@ -24,7 +25,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import { ukRoadData } from '../map-test/ukRoadData';
 import ukRoadTopology from '../map-test/ukRoadTopology.json';
 import type { MapLineSeries } from './mapLineSeries';
@@ -662,6 +663,21 @@ describe('MapLineSeries', () => {
             // Zero-width domains resolve to the range midpoint (10 + 30) / 2, never NaN/Infinity.
             expect([...new Set(strokeWidths)]).toEqual([20]);
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+    });
+    describe('bigint size domain (AG-16608)', () => {
+        it('renders a bigint sizeDomain identically to numbers', async () => {
+            const buildOptions = (sizeDomain: [number, number] | [bigint, bigint]): AgChartOptions => ({
+                ...VARIABLE_STROKE_EXAMPLE,
+                series: [{ ...VARIABLE_STROKE_EXAMPLE.series![0], sizeDomain } as never],
+            });
+
+            await expectPixelIdenticalAcrossUpdate(
+                ctx,
+                createEnterpriseChart,
+                buildOptions([0, 200_000]),
+                buildOptions([0n, 200_000n])
+            );
         });
     });
 });

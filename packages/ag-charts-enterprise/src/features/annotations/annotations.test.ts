@@ -720,4 +720,112 @@ describe('Annotations', () => {
             await compare();
         });
     });
+
+    describe('bigint coordinates (AG-16608)', () => {
+        // Beyond Number precision, so a faithful round-trip can only hold via the serialisable bigint form.
+        const BIGINT_X = 9007199254740993n;
+
+        const NUMERIC_AXIS_OPTIONS: AgCartesianChartOptions = {
+            data: [
+                { x: 9007199254740992n, y: 5 },
+                { x: 9007199254740994n, y: 95 },
+            ],
+            series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
+            axes: { y: { type: 'number' }, x: { type: 'number' } },
+            annotations: { enabled: true, toolbar: { enabled: false } },
+        };
+
+        it('should round-trip a bigint annotation coordinate through chart state', async () => {
+            const serialisedValue = { __type: 'bigint' as const, value: BIGINT_X.toString() };
+
+            await prepareChart(
+                {
+                    annotations: [
+                        {
+                            type: 'vertical-line',
+                            value: serialisedValue,
+                        },
+                    ],
+                },
+                NUMERIC_AXIS_OPTIONS
+            );
+
+            const state = chart.getState();
+            expect(state.annotations).toHaveLength(1);
+            expect(state.annotations![0]).toMatchObject({ type: 'vertical-line', value: serialisedValue });
+        });
+
+        // The same annotation y-value supplied as `number` and as encoded `bigint` must render
+        // pixel-identically and without errors. Uses the standard time-axis options; only `y`
+        // (and channel heights) carry the widened values. Provided state must be pre-encoded
+        // (the memento contract), so bigints travel in the `{ __type: 'bigint' }` form.
+        const big = (value: bigint) => ({ __type: 'bigint' as const, value: value.toString() });
+        const X_START = { __type: 'date' as const, value: '2024-03-01' };
+        const X_END = { __type: 'date' as const, value: '2024-09-01' };
+
+        // Applies annotations to the SAME chart via setState — the mock canvas only tracks the first
+        // chart per test, so cross-create snapshots would compare a stale canvas against itself.
+        const applyAnnotations = async (annotations: object[]) => {
+            await chart.setState({ ...chart.getState(), annotations });
+            await waitForChartStability(chart);
+            return ctx.snapshot();
+        };
+
+        it('renders a bigint y coordinate identically to a number y', async () => {
+            await prepareChart();
+            const baseline = ctx.snapshot();
+            const numberImage = await applyAnnotations([
+                { type: 'line', start: { x: X_START, y: 30 }, end: { x: X_END, y: 70 } },
+            ]);
+            const bigintImage = await applyAnnotations([
+                { type: 'line', start: { x: X_START, y: big(30n) }, end: { x: X_END, y: big(70n) } },
+            ]);
+            // Guard against a vacuously-identical pair of blank renders: the annotation must be visible.
+            expect(numberImage).not.toMatchImage(baseline, { writeDiff: false });
+            expect(bigintImage).toMatchImage(numberImage);
+        });
+
+        it('renders bigint disjoint-channel startHeight/endHeight identically to numbers', async () => {
+            await prepareChart();
+            const baseline = ctx.snapshot();
+            const numberImage = await applyAnnotations([
+                {
+                    type: 'disjoint-channel',
+                    start: { x: X_START, y: 60 },
+                    end: { x: X_END, y: 80 },
+                    startHeight: 20,
+                    endHeight: 40,
+                },
+            ]);
+            const bigintImage = await applyAnnotations([
+                {
+                    type: 'disjoint-channel',
+                    start: { x: X_START, y: big(60n) },
+                    end: { x: X_END, y: big(80n) },
+                    startHeight: big(20n),
+                    endHeight: big(40n),
+                },
+            ]);
+            expect(numberImage).not.toMatchImage(baseline, { writeDiff: false });
+            expect(bigintImage).toMatchImage(numberImage);
+        });
+
+        it('renders a bigint parallel-channel height identically to a number height', async () => {
+            await prepareChart();
+            const baseline = ctx.snapshot();
+            const numberImage = await applyAnnotations([
+                { type: 'parallel-channel', start: { x: X_START, y: 60 }, end: { x: X_END, y: 80 }, height: 20 },
+            ]);
+            const bigintImage = await applyAnnotations([
+                {
+                    type: 'parallel-channel',
+                    start: { x: X_START, y: big(60n) },
+                    end: { x: X_END, y: big(80n) },
+                    height: big(20n),
+                },
+            ]);
+            expect(numberImage).not.toMatchImage(baseline, { writeDiff: false });
+            expect(bigintImage).toMatchImage(numberImage);
+        });
+    });
 });

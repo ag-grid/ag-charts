@@ -10,21 +10,25 @@ import {
     type AgRadialSeriesStylerParams,
 } from 'ag-charts-community';
 import {
+    BIG,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     type MockRadialColumnStyler,
+    expectPixelIdenticalAcrossMagnitude,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
+    magnitudePair,
     newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
+    stripAxes,
     testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 
 describe('RadialColumnSeries', () => {
     setupMockConsole();
@@ -1050,6 +1054,109 @@ describe('RadialColumnSeries', () => {
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
+        });
+    });
+
+    describe.each(['radial-column', 'nightingale'] as const)('%s', (seriesType) => {
+        const polarAxes = {
+            angle: { type: 'angle-category' as const },
+            radius: { type: 'radius-number' as const },
+        };
+        const plainData = [
+            { quarter: 'Q1', value: BIG },
+            { quarter: 'Q2', value: BIG * 2n },
+            { quarter: 'Q3', value: BIG * 3n },
+        ];
+        const pairedData = [
+            { quarter: 'Q1', value: BIG, value2: BIG * 2n },
+            { quarter: 'Q2', value: BIG * 2n, value2: BIG * 3n },
+            { quarter: 'Q3', value: BIG * 3n, value2: BIG },
+        ];
+
+        describe('bigint values (AG-16608)', () => {
+            it(`renders a plain ${seriesType} series with out-of-safe-range bigint values`, async () => {
+                expect(
+                    await renderEnterpriseChartImage(ctx, {
+                        data: plainData,
+                        series: [{ type: seriesType, angleKey: 'quarter', radiusKey: 'value' }],
+                        axes: polarAxes,
+                    })
+                ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            });
+
+            it(`renders a stacked ${seriesType} series with bigint values`, async () => {
+                expect(
+                    await renderEnterpriseChartImage(ctx, {
+                        data: pairedData,
+                        series: [
+                            { type: seriesType, angleKey: 'quarter', radiusKey: 'value', stacked: true },
+                            { type: seriesType, angleKey: 'quarter', radiusKey: 'value2', stacked: true },
+                        ],
+                        axes: polarAxes,
+                    })
+                ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            });
+
+            it(`renders a grouped ${seriesType} series with bigint values`, async () => {
+                expect(
+                    await renderEnterpriseChartImage(ctx, {
+                        data: pairedData,
+                        series: [
+                            { type: seriesType, angleKey: 'quarter', radiusKey: 'value', grouped: true },
+                            { type: seriesType, angleKey: 'quarter', radiusKey: 'value2', grouped: true },
+                        ],
+                        axes: polarAxes,
+                    })
+                ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            });
+
+            it(`renders a 100%-stacked ${seriesType} series with bigint values`, async () => {
+                expect(
+                    await renderEnterpriseChartImage(ctx, {
+                        data: pairedData,
+                        series: [
+                            {
+                                type: seriesType,
+                                angleKey: 'quarter',
+                                radiusKey: 'value',
+                                stacked: true,
+                                normalizedTo: 100,
+                            },
+                            {
+                                type: seriesType,
+                                angleKey: 'quarter',
+                                radiusKey: 'value2',
+                                stacked: true,
+                                normalizedTo: 100,
+                            },
+                        ],
+                        axes: polarAxes,
+                    })
+                ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            });
+        });
+
+        describe('bigint magnitude invariance (AG-16608)', () => {
+            const values = (vals: number[]) => (toValue: (v: number) => number | bigint) =>
+                vals.map((value, i) => ({ quarter: `Q${i + 1}`, value: toValue(value) }));
+
+            it(`positions a plain ${seriesType} series identically when scaled beyond Number.MAX_VALUE`, async () => {
+                await expectPixelIdenticalAcrossMagnitude(
+                    ctx,
+                    createEnterpriseChart,
+                    magnitudePair(
+                        {
+                            series: [{ type: seriesType, angleKey: 'quarter', radiusKey: 'value' }],
+                            axes: stripAxes({
+                                angle: { type: 'angle-category' },
+                                radius: { type: 'radius-number', nice: false },
+                            }),
+                            legend: { enabled: false },
+                        },
+                        values([1, 2, 3])
+                    )
+                );
+            });
         });
     });
 });

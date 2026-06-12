@@ -16,6 +16,7 @@ import {
     maxValue,
     minValue,
     normalizeAngle360,
+    zeroLike,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
@@ -150,8 +151,12 @@ export abstract class RadialColumnSeriesBase<
             return dataModel.getDomain(this, 'angleValue', 'key', processedData);
         } else {
             const yExtent = dataModel.getDomain(this, 'radiusValue-end', 'value', processedData).domain;
-            // minValue/maxValue (not Math.min/max, which throw on bigint) keep an exact bigint extent.
-            const fixedYExtent = [minValue(yExtent[0], 0), maxValue(yExtent[1], 0)];
+            // minValue/maxValue (not Math.min/max, which throw on bigint) keep an exact bigint extent, and
+            // zeroLike keeps the baseline the same type so fixNumericExtent never sees a mixed extent.
+            const fixedYExtent = [
+                minValue(yExtent[0], zeroLike(yExtent[0])),
+                maxValue(yExtent[1], zeroLike(yExtent[1])),
+            ];
             return { domain: fixNumericExtent(fixedYExtent) };
         }
     }
