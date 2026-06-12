@@ -207,6 +207,44 @@ function createRangeAreaSineWaveOptions(): AgCartesianChartOptions<SineWaveRange
     };
 }
 
+// Radar-line and radar-area share a base class and the same hideWithSize0
+// mechanism. Unlike the cartesian cases, radar markers are hidden by
+// `marker.enabled` rather than point density, so a handful of points suffices.
+type RadarDatum = { axis: string; lineValue: number; areaValue: number };
+function createRadarOptions(): AgPolarChartOptions<RadarDatum, unknown> {
+    return {
+        data: [
+            { axis: 'A', lineValue: 5, areaValue: 3 },
+            { axis: 'B', lineValue: 7, areaValue: 6 },
+            { axis: 'C', lineValue: 4, areaValue: 8 },
+            { axis: 'D', lineValue: 8, areaValue: 5 },
+            { axis: 'E', lineValue: 6, areaValue: 4 },
+            { axis: 'F', lineValue: 3, areaValue: 7 },
+            { axis: 'G', lineValue: 9, areaValue: 2 },
+        ],
+        series: [
+            {
+                id: 'radarlineid',
+                type: 'radar-line',
+                angleKey: 'axis',
+                radiusKey: 'lineValue',
+                // Default radar-line marker.enabled is true — disable it explicitly so
+                // hideWithSize0 applies.
+                marker: { enabled: false },
+            },
+            {
+                id: 'radarareaid',
+                type: 'radar-area',
+                angleKey: 'axis',
+                radiusKey: 'areaValue',
+                // Default radar-area marker.enabled is false — hideWithSize0 applies
+                // without setting marker.enabled.
+            },
+        ],
+        legend: { enabled: false },
+    };
+}
+
 type StackMixDatum =
     | { cat: 'A' | 'B' | 'C' | 'D' | 'E'; s1: number; s2: number; s3: number; s4?: never; s5?: never; s6: number }
     | { cat: 'A' | 'B' | 'C' | 'D' | 'E'; s1?: never; s2?: never; s3?: never; s4: number; s5?: never; s6?: never }
@@ -3996,6 +4034,92 @@ describe('DataSelection', () => {
                         // The candidate markers commit to the selection on mouseup.
                         test('screenshot', async () => {
                             await compareExact('drag-modifiers-range-area-hidewithsize0-selected');
+                        });
+                        test('getSelection', () => {
+                            expect(getChartSelectionArray()).toEqual(SELECTION);
+                        });
+                        test('selectionChange', () => {
+                            expect(selectionChange.popEvents()).toEqual(SELECTIONCHANGE);
+                        });
+                    });
+                });
+            });
+        });
+
+        // radar-line and radar-area share a base class and the hideWithSize0 mechanism,
+        // so a single chart with one of each covers both.
+        describe('radars', () => {
+            describe('hideWithSize0', () => {
+                type D = RadarDatum;
+                type C = unknown;
+                type I = AgSelectionItem<D>;
+                let selectionChange: SelectionChangeRecorder<D, C>;
+
+                const DRAG_FROM: CanvasPoint = { canvasX: 300, canvasY: 200 };
+                const DRAG_TO: CanvasPoint = { canvasX: 500, canvasY: 400 };
+
+                // Placeholder expected results — populate once the drag span and the
+                // resulting selection (spanning both the radar-line and radar-area series)
+                // are finalised against a generated run. Tests not run.
+                const SELECTION: I[] = [];
+                const SELECTIONCHANGE: AgSelectionChangeEvent<D, C>[] = [];
+
+                beforeEach(async () => {
+                    const { data, series, legend } = createRadarOptions();
+                    selectionChange = createSelectionChangeRecorder();
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        legend,
+                        selection: {
+                            containment: 'any',
+                            enabled: true,
+                            enableDrag: true,
+                            enableClick: false,
+                        },
+                        navigator: { enabled: false },
+                        scrollbar: { enabled: false },
+                        zoom: { enabled: false },
+                        listeners: { selectionChange },
+                    });
+                });
+                describe('initial', () => {
+                    // Both radar paths are drawn, but every marker is hidden (size 0):
+                    // hideWithSize0 is active and no datum is selected yet.
+                    test('screenshot', async () => {
+                        await compareExact('drag-modifiers-radars-hidewithsize0-initial');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+                describe('mousedown and mousemove', () => {
+                    beforeEach(async () => {
+                        await mouseDown(DRAG_FROM);
+                        await mouseMove(DRAG_TO);
+                    });
+                    // Markers under the drag box render as selection candidates even though
+                    // hideWithSize0 hides every other marker. Nothing is committed yet.
+                    test('screenshot', async () => {
+                        await compareExact('drag-modifiers-radars-hidewithsize0-candidacy');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+
+                    describe('mouseup', () => {
+                        beforeEach(async () => {
+                            await mouseUp(DRAG_TO);
+                        });
+                        // The candidate markers commit to the selection on mouseup.
+                        test('screenshot', async () => {
+                            await compareExact('drag-modifiers-radars-hidewithsize0-selected');
                         });
                         test('getSelection', () => {
                             expect(getChartSelectionArray()).toEqual(SELECTION);
