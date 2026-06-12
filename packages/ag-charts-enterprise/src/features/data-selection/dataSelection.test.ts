@@ -670,6 +670,14 @@ describe('DataSelection', () => {
         });
     };
 
+    const compareLenient = async (name: string, threshold: number) => {
+        await compare({
+            ...IMAGE_SNAPSHOT_DEFAULTS,
+            customSnapshotIdentifier: name,
+            customDiffConfig: { threshold },
+        });
+    };
+
     type CanvasPoint = { readonly canvasX: number; readonly canvasY: number };
     type Modifiers = { altKey?: true; shiftKey?: true; ctrlKey?: true; metaKey?: true };
     const [altKey, shiftKey, ctrlKey, metaKey] = [true, true, true, true] as const;
@@ -4118,7 +4126,9 @@ describe('DataSelection', () => {
                     // Markers under the drag box render as selection candidates even though
                     // hideWithSize0 hides every other marker. Nothing is committed yet.
                     test('screenshot', async () => {
-                        await compareExact('drag-modifiers-radars-hidewithsize0-candidacy');
+                        // Add some leniency, the radar-line stroke opacity blending renders slightly different colours
+                        // locally and on CI.
+                        await compareLenient('drag-modifiers-radars-hidewithsize0-candidacy', 0.0038);
                     });
                     test('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual([]);
@@ -4133,7 +4143,9 @@ describe('DataSelection', () => {
                         });
                         // The candidate markers commit to the selection on mouseup.
                         test('screenshot', async () => {
-                            await compareExact('drag-modifiers-radars-hidewithsize0-selected');
+                            // Add some leniency, the radar-line stroke opacity blending renders slightly different
+                            // colours locally and on CI.
+                            await compareLenient('drag-modifiers-radars-hidewithsize0-selected', 0.0038);
                         });
                         test('getSelection', () => {
                             expect(getChartSelectionArray()).toEqual(SELECTION);
