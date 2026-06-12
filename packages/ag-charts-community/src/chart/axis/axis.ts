@@ -421,6 +421,9 @@ export abstract class Axis<
     applyOptions(options: TOptions): void {
         this.options = options;
         this.syncOptionDerivedState(options);
+        // Tick layouts are cached by domain/range/nice, none of which capture label or tick option
+        // changes; drop the cache so an updated configuration regenerates ticks and labels.
+        this.invalidateLayoutCache();
     }
 
     private syncOptionDerivedState(options: TOptions): void {

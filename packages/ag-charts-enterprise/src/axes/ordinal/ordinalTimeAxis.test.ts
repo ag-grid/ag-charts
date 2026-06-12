@@ -20,7 +20,7 @@ import {
 } from 'ag-charts-community-test';
 import { mapValues } from 'ag-charts-core';
 
-import { createEnterpriseChart } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 const DATA = [
     {
@@ -698,6 +698,50 @@ describe('Ordinal Time Axis Examples', () => {
 
             expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
+    });
+
+    it('renders only the parent tier when base labels are disabled', async () => {
+        const data = Array.from({ length: 1e3 }, (_, i) => ({
+            timestamp: new Date(2024, 0, 1, -i).getTime(),
+            price: 1,
+        })).reverse();
+
+        const baseLabelOptions = (labelEnabled: boolean): AgCartesianChartOptions => ({
+            data,
+            series: [{ type: 'line', xKey: 'timestamp', yKey: 'price', marker: { enabled: false } }],
+            axes: {
+                y: { type: 'number', position: 'left' },
+                x: {
+                    type: 'ordinal-time',
+                    position: 'bottom',
+                    label: { enabled: labelEnabled },
+                    parentLevel: { enabled: true, label: { enabled: true } },
+                },
+            },
+        });
+
+        const labelTexts = (chartInstance: _ModuleSupport.Chart): string[] => {
+            const axis = (chartInstance.axes as _ModuleSupport.ChartAxis[]).find((a) => a.type === 'ordinal-time')!;
+            return Array.from((axis as any).tickLabelGroupSelection.nodes() as Iterable<any>)
+                .map((node) => node.text)
+                .filter((text): text is string => text != null && text !== '');
+        };
+
+        const isParentTier = (text: string) => /[A-Za-z]/.test(text);
+
+        chart = await createEnterpriseChart(baseLabelOptions(true));
+        const withBase = labelTexts(chart);
+        // Base (numeric day) and parent (month name) tiers both present initially.
+        expect(withBase.some((t) => !isParentTier(t))).toBe(true);
+        expect(withBase.some(isParentTier)).toBe(true);
+
+        await chart.publicApi!.update(prepareEnterpriseTestOptions(baseLabelOptions(false)));
+        await waitForChartStability(chart);
+        const parentOnly = labelTexts(chart);
+
+        // Base tier removed; parent (month) tier retained.
+        expect(parentOnly.length).toBeGreaterThan(0);
+        expect(parentOnly.every(isParentTier)).toBe(true);
     });
 
     it('should render interval on as expected', async () => {
