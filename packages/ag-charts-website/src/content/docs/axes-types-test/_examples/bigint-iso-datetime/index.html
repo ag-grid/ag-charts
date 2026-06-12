@@ -1,0 +1,47 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <code>series:</code>
+        <select onchange="onSeriesChange(event.target.value)">
+            <optgroup label="community">
+                <option value="bar">bar</option>
+                <option value="line">line</option>
+                <option value="area">area</option>
+                <option value="scatter">scatter</option>
+                <option value="bubble">bubble</option>
+                <option value="histogram">histogram</option>
+            </optgroup>
+            <optgroup label="enterprise">
+                <option value="range-bar">range-bar</option>
+                <option value="range-area">range-area</option>
+                <option value="box-plot">box-plot</option>
+                <option value="waterfall">waterfall</option>
+                <option value="ohlc">ohlc</option>
+                <option value="candlestick">candlestick</option>
+                <option value="radial-bar">radial-bar</option>
+                <option value="radial-column">radial-column</option>
+                <option value="nightingale">nightingale</option>
+                <option value="pyramid">pyramid</option>
+                <option value="funnel">funnel</option>
+                <option value="heatmap">heatmap</option>
+            </optgroup>
+        </select>
+    </div>
+    <div class="controls-row">
+        <code>data:</code>
+        <select onchange="onDataModeChange(event.target.value)">
+            <option value="bigint-small">bigint-small</option>
+            <option value="bigint-large">bigint-large</option>
+            <option value="iso-datetime">iso-datetime</option>
+        </select>
+    </div>
+    <div class="controls-row">
+        <code>stacking:</code>
+        <select onchange="onStackingChange(event.target.value)">
+            <option value="none">none</option>
+            <option value="stacked">stacked</option>
+            <option value="grouped">grouped</option>
+            <option value="normalized">100%-stacked</option>
+        </select>
+    </div>
+</div>
+<div id="myChart"></div>

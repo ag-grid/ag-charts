@@ -102,6 +102,20 @@ Exercise:
 
 {% chartExampleRunner title="Range Area Series" name="high-perf-range-area" type="generated" initialLoadDeferred=true /%}
 
+## High-Volume Value Types
+
+### Bigint Values
+
+1,000,000 points where `y` is a `bigint` beyond `Number.MAX_SAFE_INTEGER`, plotted on number axes.
+
+{% chartExampleRunner title="Bigint Values" name="high-volume-bigint" type="generated" initialLoadDeferred=true /%}
+
+### ISO 8601 Datetime Strings
+
+1,000,000 points with ISO 8601 string timestamps on a time x-axis.
+
+{% chartExampleRunner title="ISO Datetime" name="high-volume-iso-datetime" type="generated" initialLoadDeferred=true /%}
+
 ## Axes Large Dataset
 
 ### Number Axis
