@@ -246,6 +246,16 @@ Base: ${base_ref}"
 log "Ensuring Playwright Chromium is installed..."
 npx playwright install chromium 2>/dev/null || log "Playwright install skipped (may already be present)"
 
+# Prefer the benchmark-only build target (skips non-benchmark pages and
+# thumbnails); refs that predate it fall back to the full site build.
+website_build_target() {
+    if npx nx show project ag-charts-website 2>/dev/null | grep -q '"build:benchmarks"'; then
+        echo 'build:benchmarks'
+    else
+        echo 'build'
+    fi
+}
+
 # Use timeout for build steps (macOS may need coreutils gtimeout)
 TIMEOUT_CMD=()
 if command -v timeout &>/dev/null; then
@@ -260,7 +270,7 @@ logStarBox "Phase 1: HEAD benchmarks (${branch})"
 
 log "Building ag-charts-website (timeout: ${BUILD_TIMEOUT}s)..."
 PUBLIC_SITE_URL="http://localhost:${HEAD_PORT}" PUBLIC_HTTPS_SERVER=false \
-    ${TIMEOUT_CMD[@]+"${TIMEOUT_CMD[@]}"} npx nx build ag-charts-website 2>&1 || {
+    ${TIMEOUT_CMD[@]+"${TIMEOUT_CMD[@]}"} npx nx "$(website_build_target)" ag-charts-website 2>&1 || {
     logError "Failed to build website for HEAD"
     exit 1
 }
@@ -333,7 +343,7 @@ if [[ -d "${worktree_dir}" ]]; then
         log "Building ag-charts-website in worktree (timeout: ${BUILD_TIMEOUT}s)..."
         cd "${worktree_dir}"
         PUBLIC_SITE_URL="http://localhost:${BASE_PORT}" PUBLIC_HTTPS_SERVER=false \
-            ${TIMEOUT_CMD[@]+"${TIMEOUT_CMD[@]}"} npx nx build ag-charts-website 2>&1 || {
+            ${TIMEOUT_CMD[@]+"${TIMEOUT_CMD[@]}"} npx nx "$(website_build_target)" ag-charts-website 2>&1 || {
             soft_fail_or_exit "Failed to build website in worktree"
         }
         cd "$root"

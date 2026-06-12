@@ -18,6 +18,8 @@ import type Flexsearch from 'flexsearch';
 
 import { entries } from 'ag-charts-core';
 
+import { getIsBenchmarkOnlyBuild } from '../../utils/env';
+
 type ApiReferenceType = Map<string, NodeTypes>;
 type PossibleTypeNode = NodeTypes | undefined | PossibleTypeNode[];
 
@@ -295,6 +297,7 @@ function collectSearchData(
 }
 
 export function getOptionsStaticPaths(reference: ApiReferenceType) {
+    if (getIsBenchmarkOnlyBuild()) return [];
     const getSubTypes = (ref: NodeTypes): string[] =>
         ref.kind === 'typeAlias' && isUnionNode(ref.type)
             ? ref.type.type.map((type) => (typeof type === 'string' ? type : (type as any).type))
@@ -331,6 +334,7 @@ export function getOptionsStaticPaths(reference: ApiReferenceType) {
 }
 
 export function getThemesApiStaticPaths(reference: ApiReferenceType) {
+    if (getIsBenchmarkOnlyBuild()) return [];
     const interfaceRef = reference.get('AgBaseChartThemeOverrides');
 
     if (interfaceRef?.kind !== 'interface') {

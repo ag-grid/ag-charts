@@ -1,4 +1,4 @@
-import { getIsDev } from '@utils/env';
+import { getIsBenchmarkOnlyBuild, getIsDev } from '@utils/env';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -47,8 +47,10 @@ export const getInternalFrameworkExamples = async ({
 }: {
     pages: DocsPage[];
 }): Promise<InternalFrameworkExample[]> => {
-    const internalFrameworkPageNames = INTERNAL_FRAMEWORKS.flatMap((internalFramework) => {
-        return pages.map((page) => {
+    const internalFrameworks = getIsBenchmarkOnlyBuild() ? (['vanilla'] as const) : INTERNAL_FRAMEWORKS;
+    const docsPages = getIsBenchmarkOnlyBuild() ? pages.filter((page) => page.id === 'benchmarks') : pages;
+    const internalFrameworkPageNames = internalFrameworks.flatMap((internalFramework) => {
+        return docsPages.map((page) => {
             return { internalFramework, pageName: page.id };
         });
     });
@@ -72,6 +74,7 @@ export const getInternalFrameworkExamples = async ({
 };
 
 export const getPagesList = (pages: DocsPage[]) => {
+    if (getIsBenchmarkOnlyBuild()) return [];
     return pages.filter(ignoreUnderscoreFiles);
 };
 

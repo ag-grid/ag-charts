@@ -15,6 +15,11 @@ name: Benchmark
 #              comment table and/or Slack notification.
 
 on:
+    # TEMPORARY (remove before merge): push trigger to validate the
+    # benchmark-only build path pre-merge.
+    push:
+        branches:
+            - ag-16452/charts-switch-to-browser-based-benchmark
     issue_comment:
         types: [created]
     workflow_dispatch:
@@ -37,7 +42,7 @@ env:
     NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
     NX_BRANCH: ${{ github.ref }}
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
-    AG_SHARD_COUNT: 4
+    AG_SHARD_COUNT: 5
 
 permissions:
     contents: read
@@ -69,6 +74,7 @@ jobs:
             needs.check-permissions.result == 'success' && (
                 github.event_name == 'workflow_dispatch' ||
                 github.event_name == 'schedule' ||
+                github.event_name == 'push' ||
                 (github.event_name == 'issue_comment' && needs.check-permissions.outputs.allowed == 'true')
             )
         env:
@@ -113,6 +119,10 @@ jobs:
                     fi
                     echo "branch=latest" >> $GITHUB_OUTPUT
                     echo "base=$release" >> $GITHUB_OUTPUT
+                  elif [[ "${{ github.event_name }}" == "push" ]] ; then
+                    # TEMPORARY pre-merge validation runs: compare against latest
+                    echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+                    echo "base=latest" >> $GITHUB_OUTPUT
                   else
                     # For manual workflow dispatch, use the current branch
                     echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
@@ -169,7 +179,16 @@ jobs:
               env:
                   PUBLIC_SITE_URL: http://localhost:${{ matrix.port }}
                   PUBLIC_HTTPS_SERVER: 'false'
-              run: yarn nx build ag-charts-website
+              # The benchmark-only build target skips all non-benchmark static
+              # paths and the thumbnail generation. Refs that predate it (older
+              # release-branch bases) fall back to the full site build.
+              run: |
+                  if yarn --silent nx show project ag-charts-website 2>/dev/null | grep -q '"build:benchmarks"'; then
+                    yarn nx build:benchmarks ag-charts-website
+                  else
+                    echo "build:benchmarks target not present on this ref; running full site build"
+                    yarn nx build ag-charts-website
+                  fi
 
             # Keep only what the benchmark pages need: the example pages
             # themselves, the dev-served library bundles, example-runner

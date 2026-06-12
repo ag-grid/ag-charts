@@ -35,6 +35,24 @@
         }
       }
     },
+    "build:benchmarks": {
+      "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
+      "dependsOn": ["^build", "^docs-resolved-interfaces", "generate-examples"],
+      "inputs": [
+        "^production",
+        "production",
+        "!{projectRoot}/vitest.config.mjs",
+        "{workspaceRoot}/external/ag-website-shared/**",
+        {
+          "externalDependencies": ["npm:astro"]
+        }
+      ],
+      "cache": false,
+      "command": "AG_BENCHMARK_ONLY_BUILD=true tsx ../../external/ag-website-shared/scripts/buildWithSitemapCache.ts --silent",
+      "options": {
+        "cwd": "{projectRoot}"
+      }
+    },
     "dev": {
       "executor": "nx:run-commands",
       "dependsOn": ["^build", "^docs-resolved-interfaces"],
