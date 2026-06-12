@@ -12,12 +12,14 @@ import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
 import type { Text } from '../scene/shape/text';
 import type { Label } from './label';
+import { getItemId } from './series/pickManager';
 import type { DatumIndex, SeriesNodeDatum } from './series/seriesTypes';
 
 interface SeriesLike {
     id: string;
     ctx: DynamicContext<ChartRegistry>;
     declarationOrder: number;
+    readonly data?: { readonly dataIdKey?: string };
     get visible(): boolean;
     cachedCallWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> | undefined;
     isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined): boolean;
@@ -62,8 +64,9 @@ export function getLabelStyles<TParams>(
             nodeDatum?.datumIndex
         );
 
-        const itemId: string | number | undefined =
-            typeof nodeDatum?.datumIndex === 'number' ? nodeDatum.datumIndex : nodeDatum?.itemId;
+        const itemId: string | number | undefined = nodeDatum
+            ? getItemId(nodeDatum, series.data?.dataIdKey)
+            : undefined;
 
         const styleParams: NormalisedCallbackParams<
             AgChartLabelStylerParams<unknown, unknown>,

@@ -182,8 +182,6 @@ export interface SeriesNodeDatum {
     readonly series: SeriesNodeDatumSeries;
     readonly itemId?: ItemId;
     readonly itemType?: ItemType;
-    // Waterfall total/subtotal bars: the axis label for the synthetic bar (no data row exists).
-    readonly totalLabel?: string;
     readonly datum: unknown;
     readonly datumIndex: DatumIndex;
     readonly point?: Readonly<Point> & SizedPoint;
