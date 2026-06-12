@@ -2648,6 +2648,46 @@ describe('DataSelection', () => {
                     });
                 });
             });
+
+            describe('hideWithSize0 large dataset', () => {
+                beforeEach(async () => {
+                    // TODO(Claude) Initialise a large dataset; new create*Options() function (at the top of the file with the other create functions).
+                    // ensure that it has at least 1000 data points. You can use a sine-wave to generate data points.
+                });
+                describe('initial', () => {
+                    // TODO(Claude): Test that the line is rendered without marker, getSelection() is empty and so is selectionChange popEvents().
+                    test('screenshot', async () => {});
+                    test('getSelection', async () => {});
+                    test('selectionChange', async () => {})
+                });
+                describe('mousedown and mousemove', () => {
+                    beforeEach(async () => {
+                        // TODO(Claude): Dispatch a mousedown and mousemove event with no modifiers. Use placeholder coordinates
+                    });
+                    // TODO(Claude): Test that the candidacy markers are rendered,  getSelection() and selectionChange still empty.
+                    test('screenshot', async () => {});
+                    test('getSelection', async () => {});
+                    test('selectionChange', async () => {})
+
+                    describe('mouseup', () => {
+                        beforeEach(async () => {
+                            // TODO(Claude): Dispatch a mouseup at the currrent point with no modifiers.
+                        });
+                        // TODO(Claude): Test that the selection is complete,  getSelection() and selectionChange result. use a placeholder variable like an empty array.
+                        test('screenshot', async () => {});
+                        test('getSelection', async () => {});
+                        test('selectionChange', async () => {})
+                    });
+                });
+            });
+        });
+
+        describe('area', () => {
+            // TODO(Claude): same at the 'line > hideWithSize0 large dataset' nesting
+        });
+
+        describe('range-area', () => {
+            // TODO(Claude): same at the 'line > hideWithSize0 large dataset' nesting
         });
 
         describe('sunburst', () => {
