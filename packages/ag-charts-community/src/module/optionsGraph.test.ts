@@ -1258,7 +1258,7 @@ describe('OptionsGraph', () => {
                 expectWarningsCalls().toMatchInlineSnapshot(`
                   [
                     [
-                      "AG Charts - Infinite loop cycle found in theme params [accentColor -> gridLineColor -> foregroundColor -> accentColor], ignoring.",
+                      "AG Charts - Infinite loop cycle found in theme params [accentColor -> gridLineColor -> foregroundColor], ignoring.",
                     ],
                   ]
                 `);
@@ -1274,7 +1274,7 @@ describe('OptionsGraph', () => {
                 expectWarningsCalls().toMatchInlineSnapshot(`
                   [
                     [
-                      "AG Charts - Infinite loop cycle found in theme params [textColor -> subtleTextColor -> textColor], ignoring.",
+                      "AG Charts - Infinite loop cycle found in theme params [textColor -> subtleTextColor], ignoring.",
                     ],
                   ]
                 `);
