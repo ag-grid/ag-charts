@@ -15,12 +15,6 @@ name: Benchmark
 #              comment table and/or Slack notification.
 
 on:
-    # TEMPORARY (remove before merge): push trigger to validate the reworked
-    # pipeline pre-merge — issue_comment/workflow_dispatch run the workflow
-    # file from the default branch, so they cannot exercise these changes yet.
-    push:
-        branches:
-            - ag-16452/charts-switch-to-browser-based-benchmark
     issue_comment:
         types: [created]
     workflow_dispatch:
@@ -75,7 +69,6 @@ jobs:
             needs.check-permissions.result == 'success' && (
                 github.event_name == 'workflow_dispatch' ||
                 github.event_name == 'schedule' ||
-                github.event_name == 'push' ||
                 (github.event_name == 'issue_comment' && needs.check-permissions.outputs.allowed == 'true')
             )
         env:
@@ -120,10 +113,6 @@ jobs:
                     fi
                     echo "branch=latest" >> $GITHUB_OUTPUT
                     echo "base=$release" >> $GITHUB_OUTPUT
-                  elif [[ "${{ github.event_name }}" == "push" ]] ; then
-                    # TEMPORARY pre-merge validation runs: compare against latest
-                    echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-                    echo "base=latest" >> $GITHUB_OUTPUT
                   else
                     # For manual workflow dispatch, use the current branch
                     echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
