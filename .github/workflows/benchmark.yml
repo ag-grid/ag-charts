@@ -62,6 +62,7 @@ jobs:
         runs-on: ubuntu-24.04
         timeout-minutes: 10
         permissions:
+            contents: read
             pull-requests: write
         needs: check-permissions
         # Only run if permissions check passed (success) or was skipped (for non-issue_comment events)
@@ -304,6 +305,7 @@ jobs:
         needs: [resolve, benchmark]
         if: ${{ !cancelled() && needs.resolve.result == 'success' }}
         permissions:
+            contents: read
             pull-requests: write
         env:
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
@@ -327,13 +329,19 @@ jobs:
                   path: reports/browser-benchmarks/shards
                   merge-multiple: true
 
+            # Soft-fail only covers failures within a shard; a wholly missing
+            # shard result would silently shrink the merged report, so the
+            # expected count is enforced here.
             - name: Merge shard results
+              env:
+                  SHARDS: ${{ needs.resolve.outputs.shards }}
               run: |
                   shopt -s nullglob
+                  expected=$(echo "$SHARDS" | jq length)
                   head_shards=(reports/browser-benchmarks/shards/head-*.json)
                   base_shards=(reports/browser-benchmarks/shards/base-*.json)
-                  if [[ ${#head_shards[@]} -eq 0 || ${#base_shards[@]} -eq 0 ]]; then
-                    echo "::error::Missing shard results (head: ${#head_shards[@]}, base: ${#base_shards[@]})"
+                  if [[ ${#head_shards[@]} -ne $expected || ${#base_shards[@]} -ne $expected ]]; then
+                    echo "::error::Missing shard results (expected ${expected}, head: ${#head_shards[@]}, base: ${#base_shards[@]})"
                     exit 1
                   fi
                   node ./tools/benchmark/merge-browser-results.js --output reports/browser-benchmarks/head.json "${head_shards[@]}"
