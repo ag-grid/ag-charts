@@ -1037,9 +1037,9 @@ describe('WaterfallSeries', () => {
         });
     });
 
-    describe('AG-17484: synthetic datum and original-index itemId for total/subtotal bars', () => {
+    describe('AG-17484: synthetic datum, itemType and itemId for total/subtotal bars', () => {
         // Augmented order [2020, 2021, Sub, 2022, 2023, Total]: the synthetic subtotal/total consume
-        // index slots, so real bars 2022/2023 sit at datumIndex 3/4 while their original indices stay 2/3.
+        // index slots, so real bars 2022/2023 sit at datumIndex 3/4.
         const DATA = [
             { year: '2020', spending: 10 },
             { year: '2021', spending: -20 },
@@ -1090,8 +1090,10 @@ describe('WaterfallSeries', () => {
             const nodeData = getNodeData(series);
 
             const indexOfType = (itemType: string) => nodeData.findIndex((n) => n.itemType === itemType);
-            series.getTooltipContent(indexOfType('positive'));
-            series.getTooltipContent(indexOfType('negative'));
+            const positiveIndex = indexOfType('positive');
+            const negativeIndex = indexOfType('negative');
+            series.getTooltipContent(positiveIndex);
+            series.getTooltipContent(negativeIndex);
             series.getTooltipContent(indexOfType('subtotal'));
             series.getTooltipContent(indexOfType('total'));
 
@@ -1102,19 +1104,17 @@ describe('WaterfallSeries', () => {
             expect(params.positive?.datum).toEqual(DATA[0]);
             expect(params.negative?.datum).toEqual(DATA[1]);
 
-            // totalLabel exposes the synthetic bar's axisLabel and is undefined for real bars.
-            expect(params.subtotal?.totalLabel).toBe('Subtotal');
-            expect(params.total?.totalLabel).toBe('Total');
-            expect(params.positive?.totalLabel).toBeUndefined();
-            expect(params.negative?.totalLabel).toBeUndefined();
+            // itemId uses the stable getItemId resolution: totals fall back to their axisLabel,
+            // real bars (no dataIdKey) fall back to their datumIndex.
+            expect(params.subtotal?.itemId).toBe('Subtotal');
+            expect(params.total?.itemId).toBe('Total');
+            expect(params.positive?.itemId).toBe(positiveIndex);
+            expect(params.negative?.itemId).toBe(negativeIndex);
         });
 
         it('AC1/AC3/AC5: itemStyler receives datum=undefined for synthetic bars and the original datum for real bars', async () => {
-            const calls: { itemType: string; datum: unknown; totalLabel: unknown }[] = [];
-            const styler = (p: any) => (
-                calls.push({ itemType: p.itemType, datum: p.datum, totalLabel: p.totalLabel }),
-                {}
-            );
+            const calls: { itemType: string; datum: unknown; itemId: unknown }[] = [];
+            const styler = (p: any) => (calls.push({ itemType: p.itemType, datum: p.datum, itemId: p.itemId }), {});
             const series = await createWaterfall({
                 ...(TOTALS_OPTIONS.series![0] as AgWaterfallSeriesOptions),
                 item: {
@@ -1132,10 +1132,11 @@ describe('WaterfallSeries', () => {
             expect(syntheticCalls.every((c) => c.datum === undefined)).toBe(true);
             expect(realCalls.every((c) => c.datum != null && typeof c.datum === 'object')).toBe(true);
 
-            // totalLabel: the synthetic bar's axisLabel, undefined for real bars.
-            expect(calls.filter((c) => c.itemType === 'subtotal').every((c) => c.totalLabel === 'Subtotal')).toBe(true);
-            expect(calls.filter((c) => c.itemType === 'total').every((c) => c.totalLabel === 'Total')).toBe(true);
-            expect(realCalls.every((c) => c.totalLabel === undefined)).toBe(true);
+            // itemId uses the stable getItemId resolution: totals fall back to their axisLabel,
+            // real bars (no dataIdKey) fall back to their numeric datumIndex.
+            expect(calls.filter((c) => c.itemType === 'subtotal').every((c) => c.itemId === 'Subtotal')).toBe(true);
+            expect(calls.filter((c) => c.itemType === 'total').every((c) => c.itemId === 'Total')).toBe(true);
+            expect(realCalls.every((c) => typeof c.itemId === 'number')).toBe(true);
         });
 
         it('AC2: node datum is undefined for synthetic bars and the original object for real bars', async () => {
@@ -1150,21 +1151,156 @@ describe('WaterfallSeries', () => {
             expect(byType('positive')[0]?.datum).toEqual(DATA[0]);
         });
 
-        it('AC6: real-bar itemId is the original data index and round-trips via findNodeDatum', async () => {
+        it('real-bar itemId is unset so it resolves via dataIdKey, then datumIndex', async () => {
             const series = await createWaterfall(TOTALS_OPTIONS.series![0] as AgWaterfallSeriesOptions);
             const nodeData = getNodeData(series);
 
-            // 2022 is a real bar after the subtotal: augmented datumIndex 3, original index 2.
-            const shifted = nodeData.find((n) => n.datumIndex === 3)!;
-            expect(shifted.itemType).toBe('positive');
-            expect(shifted.itemId).toBe('2');
-            // The public event itemId (getItemId → node.itemId when set) resolves back to this node.
-            expect(series.findNodeDatum('2')).toBe(shifted);
+            // Real bars carry no positional itemId, so getItemId falls back to datumIndex.
+            const real = nodeData.find((n) => n.itemType === 'positive')!;
+            expect(real.itemId).toBeUndefined();
+            expect(series.findNodeDatum(real.datumIndex)).toBe(real);
 
-            // Synthetic bars carry no original-data itemId and resolve via their numeric datumIndex.
+            // Synthetic bars without a totals `itemId` fall back to their axisLabel.
             const subtotal = nodeData.find((n) => n.itemType === 'subtotal')!;
-            expect(subtotal.itemId).toBeUndefined();
-            expect(series.findNodeDatum(subtotal.datumIndex)).toBe(subtotal);
+            expect(subtotal.itemId).toBe('Subtotal');
+            expect(series.findNodeDatum('Subtotal')).toBe(subtotal);
+        });
+
+        it('issue 2: real-bar itemId resolves via dataIdKey and totals expose a user-supplied itemId', async () => {
+            const options: AgCartesianChartOptions = {
+                data: DATA,
+                dataIdKey: 'year',
+                series: [
+                    {
+                        type: 'waterfall',
+                        xKey: 'year',
+                        yKey: 'spending',
+                        totals: [
+                            { totalType: 'subtotal', index: 1, axisLabel: 'Subtotal', itemId: 'sub-1' },
+                            { totalType: 'total', index: 3, axisLabel: 'Total' },
+                        ],
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            const series = chart.series[0] as WaterfallSeries;
+            const nodeData = getNodeData(series);
+
+            // Real bar: itemId unset on the node, so the event/active itemId resolves via dataIdKey
+            // (the `year` value) and round-trips through findNodeDatum.
+            const real = nodeData.find((n) => n.datumIndex === 0)!;
+            expect(real.itemId).toBeUndefined();
+            expect(series.findNodeDatum('2020')).toBe(real);
+
+            // Subtotal with a user-supplied itemId surfaces it on the node and round-trips.
+            const subtotal = nodeData.find((n) => n.itemType === 'subtotal')!;
+            expect(subtotal.itemId).toBe('sub-1');
+            expect(series.findNodeDatum('sub-1')).toBe(subtotal);
+
+            // Total without an itemId falls back to its axisLabel.
+            const total = nodeData.find((n) => n.itemType === 'total')!;
+            expect(total.itemId).toBe('Total');
+            expect(series.findNodeDatum('Total')).toBe(total);
+        });
+
+        it('itemId distinguishes totals that share an axisLabel into separate bars', async () => {
+            const options: AgCartesianChartOptions = {
+                data: DATA,
+                series: [
+                    {
+                        type: 'waterfall',
+                        xKey: 'year',
+                        yKey: 'spending',
+                        totals: [
+                            { totalType: 'subtotal', index: 1, axisLabel: 'Total', itemId: 'first' },
+                            { totalType: 'total', index: 3, axisLabel: 'Total', itemId: 'second' },
+                        ],
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            const series = chart.series[0] as WaterfallSeries;
+            const nodeData = getNodeData(series) as ({ x: number } & ReturnType<typeof getNodeData>[number])[];
+
+            // Both totals share the axisLabel 'Total' but carry distinct itemIds, so they remain two
+            // separate bars rather than collapsing onto a single band.
+            const first = nodeData.find((n) => n.itemId === 'first')!;
+            const second = nodeData.find((n) => n.itemId === 'second')!;
+            expect(first).toBeDefined();
+            expect(second).toBeDefined();
+            expect(first).not.toBe(second);
+            expect(first.x).not.toBe(second.x);
+
+            // Each resolves back to its own node via the user-supplied itemId.
+            expect(series.findNodeDatum('first')).toBe(first);
+            expect(series.findNodeDatum('second')).toBe(second);
+        });
+
+        it('issue 1: label formatter receives subtotal/total itemType distinctly', async () => {
+            const seen: string[] = [];
+            const label = { enabled: true, formatter: (p: any) => (seen.push(p.itemType), String(p.value)) };
+            await createWaterfall({
+                ...(TOTALS_OPTIONS.series![0] as AgWaterfallSeriesOptions),
+                item: {
+                    positive: { label },
+                    negative: { label },
+                    // The `total` bucket is shared by total and subtotal bars; the formatter must still
+                    // receive their distinct itemType.
+                    total: { label },
+                },
+            });
+
+            expect(seen).toContain('subtotal');
+            expect(seen).toContain('total');
+            expect(seen).toContain('positive');
+            expect(seen).toContain('negative');
+        });
+
+        it('issue 3: node click events carry itemType and itemId', async () => {
+            const series = await createWaterfall(TOTALS_OPTIONS.series![0] as AgWaterfallSeriesOptions);
+            const nodeData = series.getNodeData()!;
+            const events: any[] = [];
+            series.addEventListener('seriesNodeClick', (e) => events.push(e));
+
+            const total = nodeData.find((n) => n.itemType === 'total')!;
+            const real = nodeData.find((n) => n.itemType === 'positive')!;
+            series.fireNodeClickEvent(new Event('click'), total);
+            series.fireNodeClickEvent(new Event('click'), real);
+
+            // The total bar's itemId falls back to its axisLabel; the real bar resolves via datumIndex.
+            expect(events[0].itemType).toBe('total');
+            expect(events[0].itemId).toBe('Total');
+            expect(events[0].datum).toBeUndefined();
+            expect(events[1].itemType).toBe('positive');
+            expect(events[1].itemId).toBe(real.datumIndex);
+            expect(events[1].datum).toEqual(DATA[0]);
+        });
+
+        it('issue 3: activeChange events carry itemType and itemId', async () => {
+            const events: any[] = [];
+            const options: AgCartesianChartOptions = {
+                ...TOTALS_OPTIONS,
+                listeners: { activeChange: (e) => events.push(e) },
+            };
+            prepareEnterpriseTestOptions(options as any);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            const series = chart.series[0] as WaterfallSeries;
+            const total = series.getNodeData()!.find((n) => n.itemType === 'total')!;
+
+            // activeManager.update is the canonical hover simulation; JSDOM canvas hit-testing is
+            // stubbed so DOM events can't drive picking (testing.md). The activeItem itemId mirrors the
+            // node's, which falls back to its axisLabel.
+            chart.ctx.activeManager.update({ type: 'series-node', seriesId: series.id, itemId: total.itemId! }, total);
+
+            const totalEvent = events.find((e) => e.itemType === 'total');
+            expect(totalEvent).toBeDefined();
+            expect(totalEvent.activeItem.itemId).toBe('Total');
+            expect(totalEvent.datum).toBeUndefined();
         });
 
         it('highlighting a synthetic bar invokes its itemStyler with highlighted-item', async () => {

@@ -2733,6 +2733,7 @@ test.describe('state', () => {
             const DATUM7_ACTIVE_CHANGE = Object.freeze({
                 ...DATUM7_ACTIVE,
                 datum: { date: new Date('2026-02-10T00:00:00Z'), open: 3715, high: 3730, low: 3670, close: 3688 },
+                itemType: 'down',
                 preventDefault: PREVENT_DEFAULT_STUB,
                 type: 'activeChange',
             });

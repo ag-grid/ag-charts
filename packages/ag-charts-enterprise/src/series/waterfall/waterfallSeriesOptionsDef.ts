@@ -28,6 +28,7 @@ export const waterfallSeriesOptionsDef: OptionsDefs<AgWaterfallSeriesOptions> = 
             totalType: required(union('total', 'subtotal')),
             index: required(positiveNumber),
             axisLabel: required(string),
+            itemId: string,
         },
         'a total definition options array'
     ),
