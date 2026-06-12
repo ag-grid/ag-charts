@@ -117,6 +117,46 @@ describe('Memento Caretaker', () => {
         });
     });
 
+    it('should save and restore data with bigints', () => {
+        const bigValue = 9007199254740993n; // Number.MAX_SAFE_INTEGER + 2, beyond Number precision.
+        originator.data = { hello: 'world', count: bigValue };
+
+        const blob = caretaker.save(originator);
+        caretaker.restore(blob, originator);
+
+        expect(blob).toStrictEqual({
+            version: '10.0.0',
+            test: {
+                data: {
+                    hello: 'world',
+                    count: { __type: 'bigint', value: '9007199254740993' },
+                },
+                type: 'test',
+            },
+        });
+        expect(originator.restored).toStrictEqual({ hello: 'world', count: bigValue });
+    });
+
+    it('should not throw on a malformed bigint payload and leave it un-decoded', () => {
+        const blobMalformedBigInt = {
+            version: '10.0.0',
+            test: {
+                data: {
+                    fractional: { __type: 'bigint', value: '12.3' },
+                    nonString: { __type: 'bigint', value: 5 },
+                },
+                type: 'test',
+            },
+        };
+
+        caretaker.restore(blobMalformedBigInt, originator);
+        // Mirrors invalid-date handling: the payload flows through guardMemento rather than aborting.
+        expect(originator.restored).toStrictEqual({
+            fractional: { __type: 'bigint', value: '12.3' },
+            nonString: { __type: 'bigint', value: 5 },
+        });
+    });
+
     it('should migrate older versioned mementos', () => {
         caretaker.restore(
             {
