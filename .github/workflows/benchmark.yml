@@ -207,7 +207,7 @@ jobs:
     benchmark:
         runs-on: ubuntu-24.04
         # Hosted runners are ~2x slower than the previous bare-metal runner;
-        # the slowest examples (e.g. data-selection-zoom) need generous headroom.
+        # the slowest examples need generous headroom.
         timeout-minutes: 45
         needs: [resolve, build]
         strategy:

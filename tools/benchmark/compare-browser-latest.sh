@@ -17,7 +17,7 @@
 # Examples:
 #   ./tools/benchmark/compare-browser-latest.sh origin/b13.2.0
 #   ./tools/benchmark/compare-browser-latest.sh -j origin/latest
-#   ./tools/benchmark/compare-browser-latest.sh origin/latest -- --examples data-selection-zoom --test-cases line
+#   ./tools/benchmark/compare-browser-latest.sh origin/latest -- --examples data-selection-zoom-line-area --test-cases line
 
 set -euo pipefail
 
@@ -44,7 +44,7 @@ base_ref=${1:?Usage: compare-browser-latest.sh [-j] <base-ref> [-- <browser-benc
 shift
 
 # Anything after a `--` separator is forwarded verbatim to browser-benchmark.ts on both
-# the head and base runs (e.g. --examples data-selection-zoom --test-cases line).
+# the head and base runs (e.g. --examples data-selection-zoom-line-area --test-cases line).
 benchmark_args=()
 if [[ $# -gt 0 ]]; then
     if [[ "$1" == "--" ]]; then

@@ -1,0 +1,14 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <span>Series Type:</span>
+        <select onchange="setSeries(event.target.value)">
+            <option value="bar" selected>Bar</option>
+            <option value="stacked-bar">Stacked Bar</option>
+            <option value="range-bar">Range Bar</option>
+        </select>
+        <span class="gap-left">Selection:</span>
+        <button onclick="selectClear()">Clear</button>
+        <button onclick="selectHalf()">50% (drag left half)</button>
+    </div>
+</div>
+<div id="myChart"></div>

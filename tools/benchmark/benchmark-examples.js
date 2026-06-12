@@ -32,26 +32,17 @@ function discoverExamples() {
         .sort();
 }
 
-// Examples whose runtime dwarfs the rest — each gets a dedicated shard so it
-// doesn't drag a whole shard's worth of other examples onto the critical path.
-const ISOLATED_EXAMPLES = ['data-selection-zoom'];
-
 /**
- * Partition examples into shards. Isolated (heavy) examples each take a
- * dedicated shard; the rest are assigned round-robin over the sorted names.
- * Heavy example families share a common prefix (high-freq-*, high-perf-*,
- * axes-1M-*), so round-robin spreads each family evenly across shards.
+ * Partition examples into shards round-robin over the sorted names. Heavy
+ * example families share a common prefix (high-freq-*, high-perf-*, axes-1M-*,
+ * data-selection-zoom-*), so round-robin spreads each family evenly across
+ * shards.
  */
 function shardExamples(shardCount) {
     const names = discoverExamples();
-    const isolated = ISOLATED_EXAMPLES.filter((name) => names.includes(name));
-    const rest = names.filter((name) => !isolated.includes(name));
-    const restShardCount = Math.max(1, shardCount - isolated.length);
-
-    const shards = isolated.map((name) => [name]);
-    const restShards = Array.from({ length: restShardCount }, () => []);
-    rest.forEach((name, i) => restShards[i % restShardCount].push(name));
-    return [...shards, ...restShards].filter((shard) => shard.length > 0);
+    const shards = Array.from({ length: shardCount }, () => []);
+    names.forEach((name, i) => shards[i % shardCount].push(name));
+    return shards.filter((shard) => shard.length > 0);
 }
 
 module.exports = { discoverExamples, shardExamples, EXCLUDED_EXAMPLES };

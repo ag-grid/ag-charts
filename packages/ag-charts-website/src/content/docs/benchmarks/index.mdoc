@@ -131,9 +131,15 @@ Exercise:
 
 ## Data Selection at Scale
 
-Exercises the per-datum styling pipeline when `selection.enabled` is on across every series type that supports data selection. Two scenarios per series: zoom with no selection (cold path) and zoom with ~50% of datums selected (warm path).
+Exercises the per-datum styling pipeline when `selection.enabled` is on across every series type that supports data selection. Two scenarios per series: zoom with no selection (cold path) and zoom with ~50% of datums selected (warm path). Each series family runs as a separate example to keep a benchmark run within a single page session's memory budget.
 
-{% chartExampleRunner title="Data Selection Zoom" name="data-selection-zoom" type="generated" initialLoadDeferred=true /%}
+{% chartExampleRunner title="Data Selection Zoom (Line / Area)" name="data-selection-zoom-line-area" type="generated" initialLoadDeferred=true /%}
+
+{% chartExampleRunner title="Data Selection Zoom (Bar)" name="data-selection-zoom-bar" type="generated" initialLoadDeferred=true /%}
+
+{% chartExampleRunner title="Data Selection Zoom (Financial)" name="data-selection-zoom-financial" type="generated" initialLoadDeferred=true /%}
+
+{% chartExampleRunner title="Data Selection Zoom (Scatter / Bubble / Histogram)" name="data-selection-zoom-xy" type="generated" initialLoadDeferred=true /%}
 
 ## High-Frequency Data Updates
 
