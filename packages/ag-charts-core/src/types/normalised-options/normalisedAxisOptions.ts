@@ -1,3 +1,4 @@
+import type { NormalisedPaddingOptions } from 'ag-charts-core';
 import type {
     AgAngleAxisFormattableLabelOptions,
     AgAngleAxisLabelOptions,
@@ -74,54 +75,54 @@ type AxisLabelRequiredKeys =
  * the user-facing types where it's actually defined (per invariant I2 — only the
  * formattable subtypes carry it).
  */
-type FontFamilyMorph = { color?: CssColor; fontFamily: string };
+type AxisMorph = { color?: CssColor; fontFamily: string; padding: NormalisedPaddingOptions };
 
 export type NormalisedBaseAxisLabelOptions<TContext = ContextDefault> = Normalised<
     AgBaseAxisLabelOptions<TContext>,
     AxisLabelRequiredKeys,
-    FontFamilyMorph
+    AxisMorph
 >;
 
 export type NormalisedNumericAxisLabelOptions<TContext = ContextDefault> = Normalised<
     AgNumericAxisFormattableLabelOptions<TContext>,
     AxisLabelRequiredKeys,
-    FontFamilyMorph
+    AxisMorph
 >;
 
 export type NormalisedBaseCartesianAxisLabelOptions<TContext = ContextDefault> = Normalised<
     AgBaseCartesianAxisLabelOptions<TContext>,
     AxisLabelRequiredKeys,
-    FontFamilyMorph
+    AxisMorph
 >;
 
 export type NormalisedCartesianAxisLabelOptions<TContext = ContextDefault> = Normalised<
     AgCartesianAxisLabelOptions<TContext>,
     AxisLabelRequiredKeys,
-    FontFamilyMorph
+    AxisMorph
 >;
 
 export type NormalisedCartesianTimeAxisLabelOptions<TContext = ContextDefault> = Normalised<
     AgCartesianTimeAxisLabelOptions<TContext>,
     AxisLabelRequiredKeys,
-    FontFamilyMorph
+    AxisMorph
 >;
 
 export type NormalisedGroupedCategoryAxisLabelOptions<TContext = ContextDefault> = Normalised<
     AgGroupedCategoryAxisLabelOptions<TContext>,
     AxisLabelRequiredKeys,
-    FontFamilyMorph
+    AxisMorph
 >;
 
 export type NormalisedAngleAxisLabelOptions<TContext = ContextDefault> = Normalised<
     AgAngleAxisLabelOptions<TContext>,
     AxisLabelRequiredKeys | 'orientation',
-    FontFamilyMorph
+    AxisMorph
 >;
 
 export type NormalisedAngleAxisFormattableLabelOptions<TContext = ContextDefault> = Normalised<
     AgAngleAxisFormattableLabelOptions<TContext>,
     AxisLabelRequiredKeys | 'orientation',
-    FontFamilyMorph
+    AxisMorph
 >;
 
 // --- Line / tick / gridLine normalised shapes ---

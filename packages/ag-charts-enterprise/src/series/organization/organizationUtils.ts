@@ -1,12 +1,11 @@
 import {
     type CssColor,
     type FillOptions,
-    type PaddingOptions,
     type StrokeOptions,
     type TextAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { FontOptions } from 'ag-charts-core';
+import type { FontOptions, NormalisedPaddingOptions } from 'ag-charts-core';
 
 export function applyFillStyles(node: _ModuleSupport.Shape, styles: FillOptions) {
     node.fill = styles.fill;
@@ -46,7 +45,7 @@ export function applyTextBoxingStyles(
         strokeWidth?: number;
         strokeOpacity?: number;
         cornerRadius?: number;
-        padding?: PaddingOptions;
+        padding?: NormalisedPaddingOptions;
     }
 ) {
     const hasStroke = styles.stroke != null && (styles.strokeWidth ?? 0) > 0;
@@ -55,7 +54,7 @@ export function applyTextBoxingStyles(
         fill: styles.fill,
         fillOpacity: styles.fillOpacity,
         cornerRadius: styles.cornerRadius,
-        padding: styles.padding ?? 0,
+        padding: styles.padding ?? { top: 0, right: 0, bottom: 0, left: 0 },
         border: hasStroke
             ? {
                   enabled: true,

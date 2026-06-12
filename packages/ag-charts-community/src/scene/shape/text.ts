@@ -7,6 +7,7 @@ import {
     Logger,
     type MeasuredImageSegment,
     type NormalisedContentSegment,
+    type NormalisedPaddingOptions,
     type NormalisedTextOrSegments,
     type RequireOptional,
     SceneRefChangeDetection,
@@ -24,7 +25,7 @@ import {
     toPlainText,
     toTextString,
 } from 'ag-charts-core';
-import type { FontStyle, FontWeight, Opacity, Padding, PixelSize } from 'ag-charts-types';
+import type { FontStyle, FontWeight, Opacity, PixelSize } from 'ag-charts-types';
 
 import { BBox } from '../bbox';
 import { Group } from '../group';
@@ -45,7 +46,7 @@ export interface TextSizeProperties extends FontOptions {
 
 export interface TextBoxingProperties {
     cornerRadius?: PixelSize;
-    padding?: Padding;
+    padding?: NormalisedPaddingOptions;
     fill?: ShapeColor;
     fillOpacity?: Opacity;
     border?: {
@@ -176,7 +177,7 @@ export class Text<D = unknown> extends Shape<D> {
     lineHeight?: number;
 
     private boxing?: Rect;
-    private boxPadding: Padding = 0;
+    private boxPadding: NormalisedPaddingOptions = { top: 0, right: 0, bottom: 0, left: 0 };
     private readonly trimText: boolean;
 
     constructor(options?: NodeOptions & { trimText?: boolean }) {
@@ -744,7 +745,7 @@ export class Text<D = unknown> extends Shape<D> {
             this.boxing.stroke = stroke;
             this.boxing.strokeWidth = props.border?.strokeWidth ?? 0;
             this.boxing.strokeOpacity = props.border?.strokeOpacity ?? 1;
-            this.boxPadding = props.padding ?? 0;
+            this.boxPadding = props.padding ?? { top: 0, right: 0, bottom: 0, left: 0 };
         } else if (this.boxing) {
             this.boxing.destroy();
             this.boxing = undefined;

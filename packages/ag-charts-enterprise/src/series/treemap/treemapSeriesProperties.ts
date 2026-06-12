@@ -9,7 +9,7 @@ import type {
     VerticalAlign,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgColorType } from 'ag-charts-core';
+import type { InternalAgColorType, NormalisedPaddingOptions } from 'ag-charts-core';
 import { BaseProperties, Property } from 'ag-charts-core';
 
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
@@ -114,7 +114,7 @@ class TreemapSeriesGroup extends BaseProperties {
     gap: number = 0;
 
     @Property
-    padding: number = 0;
+    padding: NormalisedPaddingOptions = { top: 0, right: 0, bottom: 0, left: 0 };
 
     @Property
     interactive: boolean = true;
@@ -158,7 +158,7 @@ class TreemapSeriesTile extends BaseProperties {
     gap: number = 0;
 
     @Property
-    padding: number = 0;
+    padding: NormalisedPaddingOptions = { top: 0, right: 0, bottom: 0, left: 0 };
 
     @Property
     readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams>();

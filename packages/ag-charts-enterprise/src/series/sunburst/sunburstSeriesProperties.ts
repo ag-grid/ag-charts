@@ -7,7 +7,7 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { BaseProperties, Property } from 'ag-charts-core';
+import { BaseProperties, type NormalisedPaddingOptions, Property } from 'ag-charts-core';
 
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
@@ -67,7 +67,7 @@ export class SunburstSeriesProperties extends HierarchySeriesProperties<AgSunbur
     sectorSpacing?: number;
 
     @Property
-    padding?: number;
+    padding?: NormalisedPaddingOptions;
 
     @Property
     itemStyler?: Styler<AgSunburstSeriesItemStylerParams<unknown>, AgSunburstSeriesStyle>;

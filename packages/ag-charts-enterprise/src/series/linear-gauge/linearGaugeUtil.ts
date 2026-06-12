@@ -249,7 +249,12 @@ export function formatLinearGaugeLabels(
             const height: number = boundingHeight;
             const sizeFittingHeight = () => ({ width, height, meta: null });
 
-            const labelMeta = formatSingleLabel(toPlainText(labelText), labelDatum, { padding }, sizeFittingHeight);
+            const labelMeta = formatSingleLabel(
+                toPlainText(labelText),
+                labelDatum,
+                { padding: { top: padding, right: padding, bottom: padding, left: padding } },
+                sizeFittingHeight
+            );
             layout = labelMeta?.[0];
         } else {
             const measurer = cachedTextMeasurer(labelDatum);
