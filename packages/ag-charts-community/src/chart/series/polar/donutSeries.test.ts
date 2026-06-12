@@ -194,6 +194,24 @@ describe('DonutSeries', () => {
         });
     });
 
+    describe('object-valued category data', () => {
+        it('should resolve object-valued sector-label data without a data-type warning', async () => {
+            const label = (text: string) => ({ id: text, label: text, toString: () => text });
+            chart = await createChart({
+                ...options,
+                data: [
+                    { city: label('Berlin'), value: 150 },
+                    { city: label('Munich'), value: 100 },
+                    { city: label('Hamburg'), value: 180 },
+                ],
+                series: [{ type: 'donut', angleKey: 'value', sectorLabelKey: 'city', innerRadiusRatio: 0.5 }],
+            });
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+        });
+    });
+
     describe('null category key', () => {
         it('should reject null category key with warning', async () => {
             const opts: AgChartOptions = examples.DONUT_NULL_ANGLE_KEY_EXAMPLE;
