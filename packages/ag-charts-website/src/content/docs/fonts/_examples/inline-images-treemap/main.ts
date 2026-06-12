@@ -32,13 +32,13 @@ const options: AgChartOptions = {
                         return [
                             {
                                 type: 'image',
-                                url: `https://cdn.simpleicons.org/${d.slug}/ffffff`,
+                                url: '${baseWWWUrl}/example-assets/brand-icons/' + `${d.slug}.svg`,
                                 width: 36,
                                 height: 36,
                                 block: true,
                                 padding: 6,
                                 backgroundFill: 'rgba(0, 0, 0, 0.35)',
-                                borderRadius: 8,
+                                cornerRadius: 8,
                             },
                             { text: d.name, fontWeight: 'bold', verticalAlign: 'middle' },
                             { text: `\n$${d.value}B`, color: 'rgba(0, 0, 0, 0.6)' },

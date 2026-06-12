@@ -568,12 +568,26 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
             wrappedLines = wrappedLines.slice(0, truncationIndex + 1);
         }
 
-        const lastLine = wrappedLines.at(-1);
-        for (const wrappedLine of wrappedLines) {
-            const cleanLine = unguardTextEdges(wrappedLine);
+        // A text segment's edge whitespace is the gap to an adjacent image (e.g. flag then " Germany ").
+        // A wrap break can trim it, so restore it onto the first/last content line of the output.
+        const leadingWs = segment.text.slice(0, segment.text.length - segment.text.trimStart().length);
+        const trailingWs = segment.text.slice(segment.text.trimEnd().length);
+        const cleanLines = wrappedLines.map(unguardTextEdges);
+        const firstContentIndex = cleanLines.findIndex((line) => line.trim() !== '');
+        const lastContentIndex = cleanLines.findLastIndex((line) => line.trim() !== '');
+
+        const lastIndex = cleanLines.length - 1;
+        for (let i = 0; i < cleanLines.length; i++) {
+            let cleanLine = cleanLines[i];
+            if (leadingWs && i === firstContentIndex) {
+                cleanLine = leadingWs + cleanLine.trimStart();
+            }
+            if (trailingWs && i === lastContentIndex) {
+                cleanLine = cleanLine.trimEnd() + trailingWs;
+            }
             const textMetrics = measurer.measureText(cleanLine);
             const subSegment = { ...segment, text: cleanLine, textMetrics };
-            if (wrappedLine === lastLine) {
+            if (i === lastIndex) {
                 lineWidth += textMetrics.width;
             } else {
                 subSegment.text += '\n';
@@ -608,21 +622,44 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
             continue;
         }
 
+        // Height of the in-progress line's inline content not yet added to totalHeight. The fit and
+        // text-wrap paths account their own height; only the image-wrap below leaves a line behind.
+        let lineHeight = 0;
         for (const segment of segments) {
             if (lineWidth + segment.textMetrics.width <= options.maxWidth) {
                 lineWidth += segment.textMetrics.width;
+                lineHeight = Math.max(lineHeight, segment.textMetrics.height);
                 result.push(segment);
                 continue;
             }
 
-            // An image segment that doesn't fit cannot be subdivided. Stop fitting this label;
-            // overflow-strategy-based dropping is handled by the caller (wrapInlineSegmentsWithOverflow).
             if (segment.type === 'image') {
+                const imageWidth = segment.textMetrics.width;
+                const imageHeight = segment.textMetrics.height;
+                // Wrap the overflowing image to its own line rather than drop it (keeps width-shrinking
+                // monotonic). The text line it leaves behind must also fit, so count it under maxHeight.
+                if (
+                    options.textWrap !== 'never' &&
+                    lineWidth > 0 &&
+                    imageWidth <= options.maxWidth &&
+                    totalHeight + lineHeight + imageHeight <= maxHeight
+                ) {
+                    appendLineBreak(result, options.font);
+                    lineWidth = imageWidth;
+                    totalHeight += lineHeight + imageHeight;
+                    lineHeight = 0;
+                    result.push(segment);
+                    continue;
+                }
+
+                // No line to wrap to and images can't be subdivided, so stop fitting. The caller
+                // (wrapInlineSegmentsWithOverflow) handles overflow-strategy-based dropping.
                 truncateLastSegment();
                 return result;
             }
 
             if (wrapOverflowingTextSegment(segment)) break;
+            lineHeight = 0;
         }
     }
 

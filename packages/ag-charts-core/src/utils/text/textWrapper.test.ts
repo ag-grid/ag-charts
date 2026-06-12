@@ -521,6 +521,13 @@ function textOf(result: MeasuredSegment[]): string {
         .join('');
 }
 
+// The text of the first text segment that carries visible content, used to assert that a
+// segment's leading whitespace (the gap to a preceding image) survives wrapping.
+function firstText(result: MeasuredSegment[]): string {
+    const seg = result.find((s): s is MeasuredSegment & { text: string } => s.type !== 'image' && s.text.trim() !== '');
+    return seg?.text ?? '';
+}
+
 describe('wrapTextSegments — image segment overflow', () => {
     it('keeps everything when content fits', () => {
         const segments: ContentSegment[] = [text('AB '), image('flag', { width: 20, height: 20 }), text(' CD')];
@@ -634,6 +641,74 @@ describe('wrapTextSegments — image segment overflow', () => {
         expect(remeasured.lineMetrics).toHaveLength(2);
         expect(remeasured.lineMetrics[1].segments).toHaveLength(1);
         expect(remeasured.lineMetrics[1].segments[0]).toMatchObject({ text: 'Subtitle' });
+    });
+
+    describe('wraps an overflowing inline image to a new line instead of dropping it', () => {
+        // 'ABCD' = 40px, image = 30px → 70px overflows a 50px line, but the image fits on its own.
+        const segments: ContentSegment[] = [text('ABCD'), image('flag', { width: 30, height: 30 })];
+
+        it('keeps the image and moves it to the next line when wrapping is enabled', () => {
+            const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 50 });
+
+            expect(imageUrls(result)).toEqual(['https://example.com/flag.png']);
+            // The image flows onto a second line below the text rather than being dropped.
+            const remeasured = measureTextSegments(result, baseFont);
+            expect(remeasured.lineMetrics).toHaveLength(2);
+            expect(remeasured.lineMetrics[1].segments).toHaveLength(1);
+            expect(remeasured.lineMetrics[1].segments[0].type).toBe('image');
+        });
+
+        it('keeps the image inline when there is room (wider box)', () => {
+            const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 200 });
+
+            expect(imageUrls(result)).toEqual(['https://example.com/flag.png']);
+            expect(measureTextSegments(result, baseFont).lineMetrics).toHaveLength(1);
+        });
+
+        it("drops the image only when it cannot fit on a line of its own ('hide')", () => {
+            // Image (30px) is wider than the whole box (20px); no line can hold it, so it drops.
+            const tight: ContentSegment[] = [text('AB'), image('flag', { width: 30, height: 30 })];
+            const result = wrapTextSegments(tight, { font: baseFont, maxWidth: 20 });
+
+            expect(imageUrls(result)).toEqual([]);
+            expect(textOf(result)).toBe('AB');
+        });
+
+        it('does not wrap the image to a new line when wrapping is disabled', () => {
+            const result = wrapTextSegments(segments, { font: baseFont, maxWidth: 50, textWrap: 'never' });
+
+            // With 'never', the image cannot move to a new line and the default 'hide' drops it.
+            expect(imageUrls(result)).toEqual([]);
+        });
+
+        it('drops the image when there is no vertical room for another line', () => {
+            // First text line commits 20px; maxHeight only allows that one line, so the image
+            // cannot wrap below and is dropped instead.
+            const stacked: ContentSegment[] = [text('AA\nBB'), image('flag', { width: 30, height: 30 })];
+            const result = wrapTextSegments(stacked, {
+                font: baseFont,
+                maxWidth: 50,
+                maxHeight: LINE_HEIGHT,
+                overflow: 'ellipsis',
+            });
+
+            expect(imageUrls(result)).toEqual([]);
+        });
+
+        it('drops the image when the text line it would leave behind exhausts the vertical room', () => {
+            // 'ABCD' (40px) fits inline but the image (30px) overflows the 50px width, so wrapping it
+            // needs a second line. maxHeight (40px) fits the image alone but not the 20px text line
+            // plus the image below it, so the image must drop rather than push the label past maxHeight.
+            const result = wrapTextSegments(segments, {
+                font: baseFont,
+                maxWidth: 50,
+                maxHeight: 40,
+                overflow: 'ellipsis',
+            });
+
+            expect(imageUrls(result)).toEqual([]);
+            expect(textOf(result)).toContain('ABCD');
+        });
     });
 });
 
@@ -795,6 +870,9 @@ describe('wrapTextSegments — non-never wrap modes with image segments', () => 
         expect(textOf(result).replace(/\s+/g, ' ').trim()).toBe('AB CD EF');
         // And the wrap should have introduced at least one line break in the text output.
         expect(textOf(result)).toContain('\n');
+        // The text segment's leading space (the gap to the preceding image) must survive the wrap —
+        // a break landing on that edge whitespace must not strip it.
+        expect(firstText(result).startsWith(' ')).toBe(true);
     });
 
     it("hyphenates long words under 'hyphenate' while preserving the inline image", () => {
@@ -827,6 +905,27 @@ describe('wrapTextSegments — non-never wrap modes with image segments', () => 
         // Every 'A' from the input survives — 'always' wraps but does not truncate.
         const aCount = (textOf(result).match(/A/g) ?? []).length;
         expect(aCount).toBe(8);
+    });
+
+    it("preserves a text segment's leading and trailing space (image gaps) across a wrap", () => {
+        // Flag/text/arrow label: the space on each side of the country name is the gap to its neighbours.
+        // A narrow wrap can break on that edge whitespace, so it must be restored or they end up touching.
+        const segments: ContentSegment[] = [
+            image('flag', { width: 20, height: 13, overflowStrategy: 'keep' }),
+            text(' Germany '),
+            image('arrow', { width: 12, height: 12, overflowStrategy: 'hide' }),
+        ];
+        const result = wrapTextSegments(segments, {
+            font: baseFont,
+            maxWidth: 90,
+            maxHeight: 200,
+            textWrap: 'on-space',
+        });
+
+        expect(textOf(result)).not.toMatch(/…/);
+        // 'Germany' wraps onto its own line below the flag, but both its leading space (flag→text
+        // gap) and trailing space (text→arrow gap) survive — only the wrap line break is added.
+        expect(firstText(result).replace(/\n/g, '')).toBe(' Germany ');
     });
 
     it("respects 'on-space' even when overflowStrategy is 'keep' and the line wraps", () => {

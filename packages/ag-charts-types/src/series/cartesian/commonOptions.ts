@@ -275,9 +275,9 @@ export interface TextSegment extends TextOptions {
      * Baseline used to align this segment vertically against the rest of the line. Useful when a segment with
      * a larger `fontSize` (an emoji or an icon glyph) should centre against text rendered at the default size.
      *
-     * Default: `'alphabetic'`
+     * Default: `'baseline'`
      */
-    verticalAlign?: 'alphabetic' | 'top' | 'middle' | 'bottom' | 'hanging' | 'ideographic';
+    verticalAlign?: 'baseline' | 'top' | 'middle' | 'bottom';
     /**
      * Explicit line height in pixels for the line containing this segment. When several segments on the same
      * line declare a `lineHeight`, the largest value wins. When omitted, the line uses the natural font line
@@ -312,11 +312,13 @@ export interface ImageSegment {
      * - `'top'` — the image's top edge aligns with the top of the text (the image extends below it).
      * - `'middle'` — the image's centre aligns with the text's midline.
      * - `'bottom'` — the image's bottom edge aligns with the text's descender line (the image extends above it).
-     * - `'alphabetic'` — the image's bottom edge sits on the text baseline (like a text glyph).
+     * - `'baseline'` — the image's bottom edge sits on the text baseline (like a text glyph).
      *
-     * Default: `'alphabetic'`
+     * For block images (`block: true`) the default is `'middle'` instead.
+     *
+     * Default: `'baseline'`
      */
-    verticalAlign?: 'alphabetic' | 'top' | 'middle' | 'bottom' | 'hanging' | 'ideographic';
+    verticalAlign?: 'baseline' | 'top' | 'middle' | 'bottom';
     /**
      * Drop priority when the label exceeds its allotted box. `'hide'` images are dropped before
      * text is truncated. `'keep'` images take priority over text: trailing text segments are
@@ -328,10 +330,8 @@ export interface ImageSegment {
     overflowStrategy?: 'keep' | 'hide';
     /** Padding around the image inside its reserved box. */
     padding?: Padding;
-    /** Rounds the corners of the image and the background/border decoration. */
-    borderRadius?: PixelSize;
-    /** Border drawn around the image box. */
-    border?: BorderOptions;
+    /** Rounds the corners of the image and the background decoration. */
+    cornerRadius?: PixelSize;
     /**
      * Background colour drawn underneath the image. Also used as the placeholder fill while the
      * image loads, and as the fallback fill if loading fails.

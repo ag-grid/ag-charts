@@ -5,7 +5,7 @@ import { cachedTextMeasurer, wrapText } from 'ag-charts-core';
 import type { TextWrap } from 'ag-charts-types';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
-import { setupMockConsole } from '../../util/test/mockConsole';
+import { expectWarningMessages, setupMockConsole } from '../../util/test/mockConsole';
 import type { IScene } from '../node';
 import { Text } from './text';
 
@@ -425,7 +425,7 @@ describe('Text', () => {
         const LOGO_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(
             '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36">' +
                 '<circle cx="18" cy="18" r="16" fill="#1f77b4"/>' +
-                '<text x="18" y="24" text-anchor="middle" font-family="Verdana" font-size="18" fill="white" font-weight="bold">A</text>' +
+                '<path d="M13 25L18 11L23 25M15.5 19.5L20.5 19.5" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
                 '</svg>'
         )}`;
         // A second, visually distinct block logo so stacked/side-by-side block rows are
@@ -433,7 +433,7 @@ describe('Text', () => {
         const LOGO2_SVG = `data:image/svg+xml;utf8,${encodeURIComponent(
             '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36">' +
                 '<rect x="2" y="2" width="32" height="32" rx="6" fill="#d62728"/>' +
-                '<text x="18" y="24" text-anchor="middle" font-family="Verdana" font-size="18" fill="white" font-weight="bold">B</text>' +
+                '<path d="M14 11L14 25M14 11L19 11Q23 11 23 14.5Q23 18 19 18L14 18M14 18L20 18Q24 18 24 21.5Q24 25 20 25L14 25" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
                 '</svg>'
         )}`;
 
@@ -507,7 +507,7 @@ describe('Text', () => {
                         width: 36,
                         height: 36,
                         block: true,
-                        borderRadius: 8,
+                        cornerRadius: 8,
                     },
                     { text: 'Apple', fontWeight: 'bold' as const },
                     { text: '\n$2900B' },
@@ -573,7 +573,7 @@ describe('Text', () => {
                 renderInlineImageSegmentSnapshot({
                     padding: 4,
                     backgroundFill: '#333',
-                    borderRadius: 8,
+                    cornerRadius: 8,
                     verticalAlign: 'middle',
                 })
             ).toMatchImageSnapshot();
@@ -581,6 +581,23 @@ describe('Text', () => {
 
         it('renders an inline image segment with backgroundFill aligned to the icon box', () => {
             expect(renderInlineImageSegmentSnapshot({ backgroundFill: '#d0e7ff' })).toMatchImageSnapshot();
+        });
+
+        it('clips the image to a circle when cornerRadius is set with no padding', () => {
+            // No padding means the image fills the box, so the corner-radius clip rounds the image
+            // itself — a half-box radius yields a circle.
+            expect(
+                renderInlineImageSegmentSnapshot({ cornerRadius: 12, verticalAlign: 'middle' })
+            ).toMatchImageSnapshot();
+        });
+
+        it('warns and still paints the background box when the image url is empty', () => {
+            // The warning is emitted only after the background paint, so asserting it fired confirms
+            // the empty-url path still renders the box (its pixels are covered by the snapshots above).
+            renderInlineImageSegmentSnapshot({ url: '', backgroundFill: '#d0e7ff' });
+            expectWarningMessages([
+                'AG Charts - Image segment has an empty url; rendering background only (24x24 box).',
+            ]);
         });
 
         // Block-image position, mixing and decoration scenarios are validated by rendering real
@@ -620,7 +637,7 @@ describe('Text', () => {
                     renderSegmentsSnapshot(
                         [
                             { text: 'Before ' },
-                            { type: 'image', url: BLOCK_A, width: 24, height: 24, block: true, borderRadius: 6 },
+                            { type: 'image', url: BLOCK_A, width: 24, height: 24, block: true, cornerRadius: 6 },
                             { text: ' after' },
                         ],
                         { [BLOCK_A]: blockImage }
@@ -635,7 +652,7 @@ describe('Text', () => {
                     renderSegmentsSnapshot(
                         [
                             { text: 'Header\n' },
-                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, cornerRadius: 8 },
                             { text: 'Body' },
                         ],
                         { [BLOCK_A]: blockImage }
@@ -647,10 +664,10 @@ describe('Text', () => {
                 expect(
                     renderSegmentsSnapshot(
                         [
-                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, cornerRadius: 8 },
                             { text: 'Alpha', fontWeight: 'bold' as const },
                             { text: '\nbeta\n' },
-                            { type: 'image', url: BLOCK_B, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { type: 'image', url: BLOCK_B, width: 40, height: 40, block: true, cornerRadius: 8 },
                             { text: 'Gamma' },
                         ],
                         { [BLOCK_A]: blockImage, [BLOCK_B]: blockImage2 }
@@ -662,10 +679,10 @@ describe('Text', () => {
                 expect(
                     renderSegmentsSnapshot(
                         [
-                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, cornerRadius: 8 },
                             { text: 'Alpha ', fontWeight: 'bold' as const },
                             { text: 'beta' },
-                            { type: 'image', url: BLOCK_B, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { type: 'image', url: BLOCK_B, width: 40, height: 40, block: true, cornerRadius: 8 },
                             { text: 'Gamma' },
                         ],
                         { [BLOCK_A]: blockImage, [BLOCK_B]: blockImage2 }
@@ -699,7 +716,7 @@ describe('Text', () => {
                         [
                             { type: 'image', url: INLINE, width: 20, height: 20, verticalAlign: 'middle' },
                             { text: 'top\n' },
-                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, cornerRadius: 8 },
                             { text: 'bottom' },
                         ],
                         { [BLOCK_A]: blockImage, [INLINE]: inlineImage }
@@ -711,7 +728,7 @@ describe('Text', () => {
                 expect(
                     renderSegmentsSnapshot(
                         [
-                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, cornerRadius: 8 },
                             { text: 'Name ' },
                             { type: 'image', url: INLINE, width: 20, height: 20, verticalAlign: 'middle' },
                             { text: ' tag\nsecond line' },
@@ -744,7 +761,7 @@ describe('Text', () => {
                 expect(
                     renderSegmentsSnapshot(
                         [
-                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, borderRadius: 8 },
+                            { type: 'image', url: BLOCK_A, width: 40, height: 40, block: true, cornerRadius: 8 },
                             { text: 'Title', fontWeight: 'bold' as const },
                             { text: '\nSubtitle\nDetail line' },
                         ],
@@ -757,8 +774,7 @@ describe('Text', () => {
         describe('block image decorations', () => {
             it.each([
                 ['padding', { padding: 8, backgroundFill: '#e0e0e0' }],
-                ['rounded background', { padding: 4, backgroundFill: '#333', borderRadius: 10 }],
-                ['border', { border: { enabled: true, stroke: '#0a0', strokeWidth: 2 }, padding: 4 }],
+                ['rounded background', { padding: 4, backgroundFill: '#333', cornerRadius: 10 }],
             ] as const)('renders a block image with %s', (_name, extra) => {
                 expect(
                     renderSegmentsSnapshot(
@@ -773,7 +789,7 @@ describe('Text', () => {
         });
 
         describe('inline image segment styling (visual)', () => {
-            it.each(['top', 'middle', 'bottom', 'alphabetic'] as const)(
+            it.each(['top', 'middle', 'bottom', 'baseline'] as const)(
                 "positions a tall inline image with verticalAlign='%s' relative to the text",
                 (verticalAlign) => {
                     expect(
@@ -782,13 +798,12 @@ describe('Text', () => {
                 }
             );
 
-            it('renders an inline image with padding, rounded background and a border', () => {
+            it('renders an inline image with padding and a rounded background', () => {
                 expect(
                     renderInlineImageSegmentSnapshot({
                         padding: 4,
                         backgroundFill: '#d0e7ff',
-                        borderRadius: 6,
-                        border: { enabled: true, stroke: '#0a0', strokeWidth: 2 },
+                        cornerRadius: 6,
                         verticalAlign: 'middle',
                     })
                 ).toMatchImageSnapshot();

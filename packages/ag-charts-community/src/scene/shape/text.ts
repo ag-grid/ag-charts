@@ -19,6 +19,7 @@ import {
     isArray,
     measureTextSegments,
     resolvePadding,
+    toCanvasTextBaseline,
     toFontString,
     toPlainText,
     toTextString,
@@ -429,7 +430,7 @@ export class Text<D = unknown> extends Shape<D> {
         for (let s = 0; s < strip.length; s++) {
             const blockSeg = strip[s];
             const blockBox = blockSeg.textMetrics;
-            const imageAlign = blockSeg.verticalAlign ?? 'middle';
+            const imageAlign = toCanvasTextBaseline(blockSeg.verticalAlign) ?? 'middle';
             const imageOffset = Text.calcAnchoredOffset(imageAlign, rowHeight, blockBox.height);
 
             const imageChild = childNodes.next().value;
@@ -447,7 +448,11 @@ export class Text<D = unknown> extends Shape<D> {
         const columnLeft = labelLeft + stripWidth + BLOCK_IMAGE_SPACING;
         let innerOffsetY =
             offsetY +
-            Text.calcAnchoredOffset(firstTextSegment?.verticalAlign ?? 'alphabetic', rowHeight, innerColHeight);
+            Text.calcAnchoredOffset(
+                toCanvasTextBaseline(firstTextSegment?.verticalAlign) ?? 'alphabetic',
+                rowHeight,
+                innerColHeight
+            );
 
         for (let k = 0; k < span; k++) {
             innerOffsetY = this.renderLine(lineMetrics[lineIndex + k], columnLeft, innerOffsetY, childNodes);
@@ -491,7 +496,12 @@ export class Text<D = unknown> extends Shape<D> {
                 // text stays put. The line was already grown to contain this extent during measurement.
                 const boxWidth = measured.textMetrics.width;
                 const boxHeight = measured.textMetrics.height;
-                const { above } = imageBoxAroundBaseline(measured.verticalAlign, boxHeight, textAscent, textDescent);
+                const { above } = imageBoxAroundBaseline(
+                    toCanvasTextBaseline(measured.verticalAlign),
+                    boxHeight,
+                    textAscent,
+                    textDescent
+                );
                 const imageNode = node as ImageSegmentNode;
                 Text.applyImageSegment(imageNode, measured, lineLeft + offsetX, baseline - above);
                 this.textMap!.set(imageNode, imageNode.getBBox());
@@ -501,7 +511,7 @@ export class Text<D = unknown> extends Shape<D> {
 
             const { color, textMetrics, verticalAlign, ...segment } = measured;
             const textNode = node as Text;
-            const segmentBaseline: CanvasTextBaseline = verticalAlign ?? 'alphabetic';
+            const segmentBaseline: CanvasTextBaseline = toCanvasTextBaseline(verticalAlign) ?? 'alphabetic';
             textNode.x = lineLeft + offsetX;
             textNode.y = Text.calcSegmentY(segmentBaseline, offsetY, ascent, height);
             textNode.setProperties({ ...segment, textBaseline: segmentBaseline, fill: color ?? this.fill });
@@ -547,9 +557,8 @@ export class Text<D = unknown> extends Shape<D> {
         node.paddingRight = right;
         node.paddingBottom = bottom;
         node.paddingLeft = left;
-        node.borderRadius = segment.borderRadius ?? 0;
+        node.cornerRadius = segment.cornerRadius ?? 0;
         node.backgroundFill = segment.backgroundFill;
-        node.border = segment.border;
         node.url = segment.url;
     }
 

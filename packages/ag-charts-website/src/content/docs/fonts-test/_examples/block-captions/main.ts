@@ -32,7 +32,7 @@ const options: AgChartOptions = {
                 width: 40,
                 height: 40,
                 block: true,
-                borderRadius: 8,
+                cornerRadius: 8,
                 padding: 4,
                 backgroundFill: '#eef3fb',
             },
@@ -44,7 +44,7 @@ const options: AgChartOptions = {
                 width: 40,
                 height: 40,
                 block: true,
-                borderRadius: 8,
+                cornerRadius: 8,
                 padding: 4,
                 backgroundFill: '#fdeeee',
             },
@@ -55,7 +55,7 @@ const options: AgChartOptions = {
     // Subtitle: block image followed by an inline image inside the same line.
     subtitle: {
         text: [
-            { type: 'image', url: A, width: 24, height: 24, block: true, borderRadius: 6 },
+            { type: 'image', url: A, width: 24, height: 24, block: true, cornerRadius: 6 },
             { text: 'Region ' },
             { type: 'image', url: INLINE, width: 16, height: 16, verticalAlign: 'middle' },
             { text: ' overview, year over year' },

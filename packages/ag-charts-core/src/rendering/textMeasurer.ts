@@ -137,6 +137,17 @@ export function imageSegmentBox(segment: ImageSegment): TextMetricsBox {
 }
 
 /**
+ * Vertical alignment accepted on text and image segments. `'baseline'` is the public spelling of
+ * the canvas `'alphabetic'` baseline; the other values map 1:1 onto `CanvasTextBaseline`.
+ */
+export type SegmentVerticalAlign = 'baseline' | 'top' | 'middle' | 'bottom';
+
+/** Translates a public segment `verticalAlign` to the canvas `textBaseline` used internally. */
+export function toCanvasTextBaseline(verticalAlign: SegmentVerticalAlign | undefined): CanvasTextBaseline | undefined {
+    return verticalAlign === 'baseline' ? 'alphabetic' : verticalAlign;
+}
+
+/**
  * Vertical extent of an inline image box of `boxHeight`, positioned relative to the text baseline
  * per `verticalAlign`. The text stays fixed; the image moves. `above`/`below` are the distances the
  * box extends above and below the baseline (`above + below === boxHeight`), so the line can grow to
@@ -346,7 +357,7 @@ export function measureTextSegments(
         for (const seg of line.segments) {
             if (seg.type !== 'image') continue;
             const { above, below } = imageBoxAroundBaseline(
-                seg.verticalAlign,
+                toCanvasTextBaseline(seg.verticalAlign),
                 seg.textMetrics.height,
                 line.textAscent,
                 line.textDescent

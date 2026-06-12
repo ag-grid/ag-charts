@@ -78,7 +78,7 @@ In the above example:
 
 ### Aligning Segments Vertically
 
-When a segment uses a larger `fontSize` than the rest of the line — a flag emoji next to a country code, an icon glyph next to text — the segments share an alphabetic baseline by default, which can leave the larger glyph riding high. Set `verticalAlign` on the segment to centre it against the line instead.
+When a segment uses a larger `fontSize` than the rest of the line — a flag emoji next to a country code, an icon glyph next to text — the segments share a baseline by default, which can leave the larger glyph riding high. Set `verticalAlign` on the segment to centre it against the line instead.
 
 ```js format="snippet"
 {
@@ -96,7 +96,7 @@ When a segment uses a larger `fontSize` than the rest of the line — a flag emo
 }
 ```
 
-`verticalAlign` accepts `'alphabetic'` (default), `'top'`, `'middle'`, or `'bottom'`. The setting applies per-segment, so a single line can mix baseline-aligned text with centred emoji or icon glyphs.
+`verticalAlign` accepts `'baseline'` (default), `'top'`, `'middle'`, or `'bottom'`. The setting applies per-segment, so a single line can mix baseline-aligned text with centred emoji or icon glyphs.
 
 ## Inline Images
 
@@ -113,7 +113,7 @@ Place images alongside text in any label that accepts text segments — axis lab
                 formatter: ({ value }) => [
                     {
                         type: 'image',
-                        url: `https://flagcdn.com/40x30/${value}.png`,
+                        url: '${baseWWWUrl}/example-assets/flags/' + `${value}.png`,
                         width: 20,
                         height: 15,
                         verticalAlign: 'middle',
@@ -128,8 +128,8 @@ Place images alongside text in any label that accepts text segments — axis lab
 
 An image segment supports:
 
-- `verticalAlign` — alignment against the line baseline. Defaults to `'middle'`.
-- `padding`, `borderRadius`, `border`, `backgroundFill` — decoration drawn around the image, with the `backgroundFill` also acting as the placeholder while the image loads or if loading fails.
+- `verticalAlign` — alignment against the line. Inline images default to `'baseline'`; block images (`block: true`) default to `'middle'`.
+- `padding`, `cornerRadius`, `backgroundFill` — decoration drawn around the image, with the `backgroundFill` also acting as the placeholder while the image loads or if loading fails.
 - `overflowStrategy: 'hide' | 'keep'` — drop priority when a label exceeds its allotted box. `'hide'` images are dropped before text is truncated. `'keep'` images take priority over text: trailing text segments are dropped to fit the image, and the image itself is only dropped when it cannot fit the label box on its own.
 - `block: true` — starts a block row anchored to the left of the label, with subsequent segments wrapping into a column to its right. A block row begins at the start of the label or after a `\n` line break in the preceding text segment. Multiple block rows stack vertically.
 

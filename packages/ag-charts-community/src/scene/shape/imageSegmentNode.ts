@@ -1,13 +1,11 @@
-import type { BorderOptions } from 'ag-charts-types';
+import { Logger } from 'ag-charts-core';
 
 import { BBox } from '../bbox';
 import type { ImageLoader } from '../image/imageLoader';
 import { type IScene, Node, type RenderContext, SceneChangeDetection } from '../node';
 
-// Renders an inline image segment: optional background fill, optional rounded border, then the image
-// itself drawn inside the padded box. Async loading is handled via the scene's ImageLoader cache —
-// rendering is non-blocking and re-runs once the image decodes. The image-error warning is emitted
-// once per URL by the shared handler in scene.ts.
+// Renders an inline image segment: optional background fill, then the image inside the padded box.
+// Loading is async via the scene's ImageLoader cache (non-blocking, re-runs on decode).
 export class ImageSegmentNode extends Node {
     @SceneChangeDetection() x: number = 0;
     @SceneChangeDetection() y: number = 0;
@@ -19,12 +17,11 @@ export class ImageSegmentNode extends Node {
     @SceneChangeDetection() paddingRight: number = 0;
     @SceneChangeDetection() paddingBottom: number = 0;
     @SceneChangeDetection() paddingLeft: number = 0;
-    @SceneChangeDetection() borderRadius: number = 0;
+    @SceneChangeDetection() cornerRadius: number = 0;
     @SceneChangeDetection() opacity: number = 1;
 
     url: string = '';
     backgroundFill?: string;
-    border?: BorderOptions;
 
     // Tracks the loader this node has registered itself with via `loadImage`. When the node is
     // detached from the scene (Text rebuilds its richText children on every text-set), this is
@@ -50,9 +47,9 @@ export class ImageSegmentNode extends Node {
 
     override render(renderCtx: RenderContext): void {
         const { ctx } = renderCtx;
-        const { x, y, boxWidth, boxHeight, borderRadius, opacity } = this;
+        const { x, y, boxWidth, boxHeight, cornerRadius, opacity } = this;
 
-        if (boxWidth <= 0 || boxHeight <= 0 || !this.url) {
+        if (boxWidth <= 0 || boxHeight <= 0) {
             super.render(renderCtx);
             return;
         }
@@ -63,38 +60,44 @@ export class ImageSegmentNode extends Node {
         const previousAlpha = ctx.globalAlpha;
         ctx.globalAlpha = previousAlpha * opacity;
 
-        const hasBackground = !!this.backgroundFill;
-        const hasBorder =
-            (this.border?.enabled ?? true) && !!this.border?.stroke && (this.border?.strokeWidth ?? 0) > 0;
-
-        if (hasBackground || hasBorder) {
-            this.tracePath(ctx, x, y, boxWidth, boxHeight, borderRadius);
-            if (hasBackground) {
-                ctx.fillStyle = this.backgroundFill!;
-                ctx.fill();
-            }
-            if (hasBorder) {
-                ctx.strokeStyle = this.border!.stroke!;
-                ctx.lineWidth = this.border!.strokeWidth!;
-                ctx.stroke();
-            }
+        if (this.backgroundFill) {
+            this.tracePath(ctx, x, y, boxWidth, boxHeight, cornerRadius);
+            ctx.fillStyle = this.backgroundFill;
+            ctx.fill();
         }
 
-        const loader = this.imageLoader;
-        if (loader !== this.registeredLoader) {
-            this.registeredLoader?.unregisterNode(this);
-            this.registeredLoader = loader;
-        }
-        const image = loader?.loadImage(this.url, this, {
-            width: this.imageWidth,
-            height: this.imageHeight,
-        });
-        if (image) {
-            const imgX = x + this.paddingLeft;
-            const imgY = y + this.paddingTop;
-            // 4-arg drawImage scales the entire image to the destination box. The size hint passed
-            // to the loader ensures SVGs have concrete intrinsic dimensions, so 4-arg is reliable.
-            ctx.drawImage(image, imgX, imgY, this.imageWidth, this.imageHeight);
+        if (this.url) {
+            const loader = this.imageLoader;
+            if (loader !== this.registeredLoader) {
+                this.registeredLoader?.unregisterNode(this);
+                this.registeredLoader = loader;
+            }
+            const image = loader?.loadImage(this.url, this, {
+                width: this.imageWidth,
+                height: this.imageHeight,
+            });
+            if (image) {
+                const imgX = x + this.paddingLeft;
+                const imgY = y + this.paddingTop;
+                // Clip to the rounded box so the image corners match the background; with no padding
+                // the image fills the box and rounds with it (a circle at a large radius).
+                const clipToCorners = cornerRadius > 0;
+                if (clipToCorners) {
+                    ctx.save();
+                    this.tracePath(ctx, x, y, boxWidth, boxHeight, cornerRadius);
+                    ctx.clip();
+                }
+                // 4-arg drawImage scales the image to the box; the loader size hint gives SVGs
+                // concrete intrinsic dimensions, so this is reliable.
+                ctx.drawImage(image, imgX, imgY, this.imageWidth, this.imageHeight);
+                if (clipToCorners) {
+                    ctx.restore();
+                }
+            }
+        } else {
+            Logger.warnOnce(
+                `Image segment has an empty url; rendering background only (${boxWidth}x${boxHeight} box).`
+            );
         }
 
         ctx.globalAlpha = previousAlpha;

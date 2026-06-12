@@ -304,7 +304,7 @@ describe('Caption', () => {
             await createStubbedChart({
                 title: {
                     text: [
-                        { type: 'image', url: LOGO, width: 40, height: 40, block: true, borderRadius: 8 },
+                        { type: 'image', url: LOGO, width: 40, height: 40, block: true, cornerRadius: 8 },
                         { text: 'Quarterly Report', fontWeight: 'bold' },
                         { text: '\nFY 2025' },
                     ],
@@ -328,7 +328,7 @@ describe('Caption', () => {
             await createStubbedChart({
                 title: {
                     text: [
-                        { type: 'image', url: LOGO, width: 40, height: 40, block: true, borderRadius: 8 },
+                        { type: 'image', url: LOGO, width: 40, height: 40, block: true, cornerRadius: 8 },
                         { text: 'Revenue ' },
                         { type: 'image', url: INLINE, width: 20, height: 20, verticalAlign: 'middle' },
                         { text: ' growth\nyear over year' },
