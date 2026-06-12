@@ -2,20 +2,28 @@
 #
 # CI orchestrator for browser benchmark comparison.
 #
-# Benchmarks the current (head) branch and a base branch, then compares results.
-# Both refs are built statically (nx build ag-charts-website) and served via the
-# zero-dep static server, so no Astro dev server is needed. Uses a git worktree
-# for the base branch build so the head working tree stays clean.
+# Benchmarks the current (head) branch and a base, then compares results.
+#
+# The base is either:
+#   - a git ref (e.g. origin/b13.2.0): built statically in a worktree, so the
+#     base ref's own example set runs against the base library; or
+#   - a published npm version (npm:<version>, e.g. npm:13.3.1): the head-built
+#     site is copied and its dev-served library bundles are replaced with the
+#     published UMD bundles, so the HEAD example set runs against the published
+#     library — no base build needed. Test cases using APIs the published
+#     version lacks rely on the examples' own version guards.
+#
 # browser-benchmark.ts always runs from the head working directory (single Playwright install).
 #
 # Usage:
-#   ./tools/benchmark/compare-browser-latest.sh [options] <base-ref>
+#   ./tools/benchmark/compare-browser-latest.sh [options] <base-ref|npm:version>
 #
 # Options:
 #   -j            Output JSON instead of table format
 #
 # Examples:
 #   ./tools/benchmark/compare-browser-latest.sh origin/b13.2.0
+#   ./tools/benchmark/compare-browser-latest.sh npm:13.3.1
 #   ./tools/benchmark/compare-browser-latest.sh -j origin/latest
 #   ./tools/benchmark/compare-browser-latest.sh origin/latest -- --examples data-selection-zoom-line-area --test-cases line
 
@@ -40,8 +48,14 @@ while getopts "j" opt; do
 done
 shift $((OPTIND - 1))
 
-base_ref=${1:?Usage: compare-browser-latest.sh [-j] <base-ref> [-- <browser-benchmark.ts args>]}
+base_ref=${1:?Usage: compare-browser-latest.sh [-j] <base-ref|npm:version> [-- <browser-benchmark.ts args>]}
 shift
+
+# npm:<version> selects published-library mode (head site + published bundles).
+published_version=""
+if [[ "$base_ref" == npm:* ]]; then
+    published_version="${base_ref#npm:}"
+fi
 
 # Anything after a `--` separator is forwarded verbatim to browser-benchmark.ts on both
 # the head and base runs (e.g. --examples data-selection-zoom-line-area --test-cases line).
@@ -72,6 +86,7 @@ BASE_PORT=4602
 HEAD_SERVER_PID=""
 BASE_SERVER_PID=""
 WORKTREE_CREATED=false
+BASE_SITE_DIR=""
 BUILD_TIMEOUT=1800  # 30 minutes
 
 # Reports directory
@@ -146,6 +161,10 @@ cleanup() {
     if [[ "$WORKTREE_CREATED" == "true" ]]; then
         log "Removing worktree at ${worktree_dir}..."
         git worktree remove --force "${worktree_dir}" 2>/dev/null || rm -rf "${worktree_dir}"
+    fi
+
+    if [[ -n "$BASE_SITE_DIR" ]]; then
+        rm -rf "$BASE_SITE_DIR"
     fi
 }
 trap cleanup EXIT INT TERM
@@ -289,9 +308,53 @@ log "Stopping head static server..."
 stop_static_server "$HEAD_SERVER_PID"
 HEAD_SERVER_PID=""
 
-# --- BASE BENCHMARKS (worktree) ---
+# --- BASE BENCHMARKS ---
 
 logStarBox "Phase 2: BASE benchmarks (${base_ref})"
+
+if [[ -n "$published_version" ]]; then
+    # Published-library mode: reuse the head-built site with the dev-served
+    # bundles replaced by the published UMD bundles. Pages bake absolute
+    # library URLs for HEAD_PORT, so the copy is served on the same port
+    # (the head server has already been stopped).
+    BASE_SITE_DIR="/tmp/ag-charts-base-site-$$"
+    log "Copying head site dist to ${BASE_SITE_DIR}..."
+    cp -cR "${root}/dist/packages/ag-charts-website" "$BASE_SITE_DIR" 2>/dev/null || \
+        cp -R "${root}/dist/packages/ag-charts-website" "$BASE_SITE_DIR" || {
+        soft_fail_or_exit "Failed to copy head site dist"
+    }
+
+    if [[ -n "$base_results" ]]; then
+        "${tools_dir}/swap-published-lib.sh" "$published_version" "$BASE_SITE_DIR" || {
+            soft_fail_or_exit "Failed to fetch published v${published_version} bundles"
+        }
+    fi
+
+    if [[ -n "$base_results" ]]; then
+        start_static_server "$BASE_SITE_DIR" base "$HEAD_PORT" || {
+            soft_fail_or_exit "Failed to start static server for base"
+        }
+    fi
+
+    if [[ -n "$base_results" ]]; then
+        BASE_SERVER_PID=$_STATIC_SERVER_PID
+        BASE_URL=$_STATIC_SERVER_URL
+
+        run_benchmarks "$BASE_URL" "$base_results" || {
+            if [[ "${AG_BENCHMARK_SOFT_FAIL:-}" != "true" ]]; then
+                logError "Base benchmarks failed"
+                exit 1
+            fi
+        }
+
+        log "Stopping base static server..."
+        stop_static_server "$BASE_SERVER_PID"
+        BASE_SERVER_PID=""
+    fi
+
+    rm -rf "$BASE_SITE_DIR"
+    BASE_SITE_DIR=""
+else
 
 log "Creating worktree at ${worktree_dir} for ${base_ref}..."
 git worktree add "${worktree_dir}" "${base_ref}" 2>&1 || {
@@ -376,6 +439,8 @@ if [[ -d "${worktree_dir}" ]]; then
     git worktree remove --force "${worktree_dir}" 2>/dev/null || rm -rf "${worktree_dir}"
     WORKTREE_CREATED=false
 fi
+
+fi # end of git-ref vs published-library base mode
 
 # --- COMPARE ---
 

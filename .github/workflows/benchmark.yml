@@ -20,7 +20,7 @@ on:
     workflow_dispatch:
         inputs:
             compare-base:
-                description: 'Branch name to compare against'
+                description: 'Base to compare against: a branch name, or npm:<version> for a published npm version'
                 type: string
                 default: b12.1.1
                 required: true
@@ -77,6 +77,7 @@ jobs:
             branch: ${{ steps.get-branch.outputs.branch }}
             base: ${{ steps.get-branch.outputs.base }}
             shards: ${{ steps.shards.outputs.shards }}
+            build-matrix: ${{ steps.build-matrix.outputs.build-matrix }}
             comment-id: ${{ steps.notify-start.outputs.result }}
         steps:
             - name: Notify start
@@ -105,14 +106,12 @@ jobs:
                     echo "branch=$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')" >> $GITHUB_OUTPUT
                     echo "base=$(gh pr view $PR_NO --repo $REPO --json baseRefName --jq '.baseRefName')" >> $GITHUB_OUTPUT
                   elif [[ "${{ github.event_name }}" == "schedule" ]] ; then
-                    # For scheduled runs, get the most recent release branch matching exact 'bX.Y.Z' format
-                    release=$(git ls-remote --heads origin | grep -E 'refs/heads/b[0-9]+\.[0-9]+\.[0-9]+$' | sort -t '/' -k 3 -V | tail -n 1 | sed 's/.*refs\/heads\///')
-                    # Special case: b13.0.x series uses b13.0.0 as base due to circular dependency issues in b13.0.1+
-                    if [[ "$release" =~ ^b13\.0\.[1-9] ]] ; then
-                      release="b13.0.0"
-                    fi
+                    # Scheduled runs compare against the most recently published npm
+                    # version: the head example set runs against the published UMD
+                    # bundles (no base-ref site build needed).
+                    published=$(npm view ag-charts-community version)
                     echo "branch=latest" >> $GITHUB_OUTPUT
-                    echo "base=$release" >> $GITHUB_OUTPUT
+                    echo "base=npm:${published}" >> $GITHUB_OUTPUT
                   else
                     # For manual workflow dispatch, use the current branch
                     echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
@@ -130,6 +129,22 @@ jobs:
               with:
                   ref: ${{ steps.get-branch.outputs.branch }}
 
+            # A published-npm base (npm:<version>) needs no base site build —
+            # the benchmark shards reuse the head site with the published UMD
+            # bundles swapped in. Pages bake absolute library URLs from
+            # PUBLIC_SITE_URL, so each role is built for the fixed port the
+            # shard jobs will serve it from.
+            - name: Compute build matrix
+              id: build-matrix
+              env:
+                  BASE_REF: ${{ steps.get-branch.outputs.base }}
+              run: |
+                  if [[ "${BASE_REF}" == npm:* ]] ; then
+                    echo 'build-matrix=[{"role":"head","port":4601}]' >> $GITHUB_OUTPUT
+                  else
+                    echo 'build-matrix=[{"role":"head","port":4601},{"role":"base","port":4602}]' >> $GITHUB_OUTPUT
+                  fi
+
             - name: Compute shard matrix
               id: shards
               run: |
@@ -143,14 +158,9 @@ jobs:
         needs: resolve
         strategy:
             matrix:
-                # Example pages bake absolute library-script URLs from PUBLIC_SITE_URL
-                # at build time, so each role is built for the fixed port the shard
-                # jobs will serve it from.
-                include:
-                    - role: head
-                      port: 4601
-                    - role: base
-                      port: 4602
+                # head only, or head + base, depending on the base mode —
+                # see "Compute build matrix" in the resolve job.
+                include: ${{ fromJSON(needs.resolve.outputs.build-matrix) }}
         env:
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
         steps:
@@ -238,11 +248,24 @@ jobs:
                   pattern: site-*
                   path: ${{ runner.temp }}/sites
 
+            # A published-npm base (npm:<version>) reuses the head site with the
+            # published UMD bundles swapped in. Its pages bake absolute library
+            # URLs for the head port, so it is served on 4601 (head and base run
+            # sequentially, never concurrently).
             - name: Unpack sites
+              env:
+                  BASE_REF: ${{ needs.resolve.outputs.base }}
               run: |
                   mkdir -p "${RUNNER_TEMP}/site-head" "${RUNNER_TEMP}/site-base"
                   tar -xzf "${RUNNER_TEMP}/sites/site-head/site-head.tar.gz" -C "${RUNNER_TEMP}/site-head"
-                  tar -xzf "${RUNNER_TEMP}/sites/site-base/site-base.tar.gz" -C "${RUNNER_TEMP}/site-base"
+                  if [[ "${BASE_REF}" == npm:* ]] ; then
+                    tar -xzf "${RUNNER_TEMP}/sites/site-head/site-head.tar.gz" -C "${RUNNER_TEMP}/site-base"
+                    ./tools/benchmark/swap-published-lib.sh "${BASE_REF#npm:}" "${RUNNER_TEMP}/site-base"
+                    echo "BASE_PORT=4601" >> $GITHUB_ENV
+                  else
+                    tar -xzf "${RUNNER_TEMP}/sites/site-base/site-base.tar.gz" -C "${RUNNER_TEMP}/site-base"
+                    echo "BASE_PORT=4602" >> $GITHUB_ENV
+                  fi
 
             # Head and base run sequentially on this same VM so the relative
             # comparison cancels out per-runner hardware differences.
@@ -265,7 +288,7 @@ jobs:
                     }
                   }
                   run_one head 4601
-                  run_one base 4602
+                  run_one base "${BASE_PORT}"
 
             - name: Upload shard results
               if: always()
