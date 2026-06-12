@@ -1166,6 +1166,41 @@ describe('WaterfallSeries', () => {
             expect(series.findNodeDatum('Total')).toBe(total);
         });
 
+        it('itemId distinguishes totals that share an axisLabel into separate bars', async () => {
+            const options: AgCartesianChartOptions = {
+                data: DATA,
+                series: [
+                    {
+                        type: 'waterfall',
+                        xKey: 'year',
+                        yKey: 'spending',
+                        totals: [
+                            { totalType: 'subtotal', index: 1, axisLabel: 'Total', itemId: 'first' },
+                            { totalType: 'total', index: 3, axisLabel: 'Total', itemId: 'second' },
+                        ],
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            const series = chart.series[0] as WaterfallSeries;
+            const nodeData = getNodeData(series) as ({ x: number } & ReturnType<typeof getNodeData>[number])[];
+
+            // Both totals share the axisLabel 'Total' but carry distinct itemIds, so they remain two
+            // separate bars rather than collapsing onto a single band.
+            const first = nodeData.find((n) => n.itemId === 'first')!;
+            const second = nodeData.find((n) => n.itemId === 'second')!;
+            expect(first).toBeDefined();
+            expect(second).toBeDefined();
+            expect(first).not.toBe(second);
+            expect(first.x).not.toBe(second.x);
+
+            // Each resolves back to its own node via the user-supplied itemId.
+            expect(series.findNodeDatum('first')).toBe(first);
+            expect(series.findNodeDatum('second')).toBe(second);
+        });
+
         it('issue 1: label formatter receives subtotal/total itemType distinctly', async () => {
             const seen: string[] = [];
             const label = { enabled: true, formatter: (p: any) => (seen.push(p.itemType), String(p.value)) };
