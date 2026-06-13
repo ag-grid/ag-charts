@@ -2,20 +2,30 @@
 #
 # CI orchestrator for browser benchmark comparison.
 #
-# Benchmarks the current (head) branch and a base branch, then compares results.
-# Uses a git worktree for the base branch build so the head working tree stays clean.
+# Benchmarks the current (head) branch and a base, then compares results.
+#
+# The base is either:
+#   - a git ref (e.g. origin/b13.2.0): built statically in a worktree, so the
+#     base ref's own example set runs against the base library; or
+#   - a published npm version (npm:<version>, e.g. npm:13.3.1): the head-built
+#     site is copied and its dev-served library bundles are replaced with the
+#     published UMD bundles, so the HEAD example set runs against the published
+#     library — no base build needed. Test cases using APIs the published
+#     version lacks rely on the examples' own version guards.
+#
 # browser-benchmark.ts always runs from the head working directory (single Playwright install).
 #
 # Usage:
-#   ./tools/benchmark/compare-browser-latest.sh [options] <base-ref>
+#   ./tools/benchmark/compare-browser-latest.sh [options] <base-ref|npm:version>
 #
 # Options:
 #   -j            Output JSON instead of table format
 #
 # Examples:
 #   ./tools/benchmark/compare-browser-latest.sh origin/b13.2.0
+#   ./tools/benchmark/compare-browser-latest.sh npm:13.3.1
 #   ./tools/benchmark/compare-browser-latest.sh -j origin/latest
-#   ./tools/benchmark/compare-browser-latest.sh origin/latest -- --examples data-selection-zoom --test-cases line
+#   ./tools/benchmark/compare-browser-latest.sh origin/latest -- --examples data-selection-zoom-line-area --test-cases line
 
 set -euo pipefail
 
@@ -38,11 +48,17 @@ while getopts "j" opt; do
 done
 shift $((OPTIND - 1))
 
-base_ref=${1:?Usage: compare-browser-latest.sh [-j] <base-ref> [-- <browser-benchmark.ts args>]}
+base_ref=${1:?Usage: compare-browser-latest.sh [-j] <base-ref|npm:version> [-- <browser-benchmark.ts args>]}
 shift
 
+# npm:<version> selects published-library mode (head site + published bundles).
+published_version=""
+if [[ "$base_ref" == npm:* ]]; then
+    published_version="${base_ref#npm:}"
+fi
+
 # Anything after a `--` separator is forwarded verbatim to browser-benchmark.ts on both
-# the head and base runs (e.g. --examples data-selection-zoom --test-cases line).
+# the head and base runs (e.g. --examples data-selection-zoom-line-area --test-cases line).
 benchmark_args=()
 if [[ $# -gt 0 ]]; then
     if [[ "$1" == "--" ]]; then
@@ -63,13 +79,14 @@ branch=$(git rev-parse --abbrev-ref HEAD)
 tools_dir="${root}/tools/benchmark"
 worktree_dir="/tmp/ag-charts-base-bench-$$"
 
-HEAD_PORT=4601  # preferred starting port; actual may differ
-BASE_PORT=4602  # preferred starting port; actual may differ
+# Example pages bake absolute library-script URLs from PUBLIC_SITE_URL at build
+# time, so each ref must be built for the exact origin it will be served from.
+HEAD_PORT=4601
+BASE_PORT=4602
 HEAD_SERVER_PID=""
-HEAD_ACTUAL_PORT=""
 BASE_SERVER_PID=""
-BASE_ACTUAL_PORT=""
 WORKTREE_CREATED=false
+BASE_SITE_DIR=""
 BUILD_TIMEOUT=1800  # 30 minutes
 
 # Reports directory
@@ -107,17 +124,15 @@ logError() {
     echo "[compare-browser] ERROR: $*" >&2
 }
 
-# --- Dev server helpers ---
+# --- Static server helpers ---
 
-stop_dev_server() {
+stop_static_server() {
     local pid=$1
-    local port=$2
 
     if [[ -n "$pid" ]]; then
         kill "$pid" 2>/dev/null || true
         wait "$pid" 2>/dev/null || true
     fi
-    pkill -f "astro dev --port=${port}" 2>/dev/null || true
 }
 
 # --- Soft-fail helper ---
@@ -140,12 +155,16 @@ soft_fail_or_exit() {
 
 cleanup() {
     log "Cleaning up..."
-    stop_dev_server "$HEAD_SERVER_PID" "${HEAD_ACTUAL_PORT:-$HEAD_PORT}"
-    stop_dev_server "$BASE_SERVER_PID" "${BASE_ACTUAL_PORT:-$BASE_PORT}"
+    stop_static_server "$HEAD_SERVER_PID"
+    stop_static_server "$BASE_SERVER_PID"
 
     if [[ "$WORKTREE_CREATED" == "true" ]]; then
         log "Removing worktree at ${worktree_dir}..."
         git worktree remove --force "${worktree_dir}" 2>/dev/null || rm -rf "${worktree_dir}"
+    fi
+
+    if [[ -n "$BASE_SITE_DIR" ]]; then
+        rm -rf "$BASE_SITE_DIR"
     fi
 }
 trap cleanup EXIT INT TERM
@@ -163,81 +182,48 @@ kill_port() {
     fi
 }
 
-# --- Port detection ---
+# --- Start static server ---
 
-# Find a free port starting from the given number.
-find_free_port() {
-    local start_port=$1
-    node -e "
-        const net = require('net');
-        let port = ${start_port};
-        (function tryPort() {
-            const srv = net.createServer();
-            srv.listen(port, '127.0.0.1', () => {
-                const p = srv.address().port;
-                srv.close(() => { console.log(p); process.exit(0); });
-            });
-            srv.on('error', () => { port++; tryPort(); });
-        })();
-    "
-}
-
-# --- Start dev server ---
-
-# Sets globals: _DEV_SERVER_PID, _DEV_SERVER_URL.
+# Sets globals: _STATIC_SERVER_PID, _STATIC_SERVER_URL.
 # Do NOT call via command substitution $(...) — the subshell would block
-# forever waiting for the background dev server.
-_DEV_SERVER_PID=""
-_DEV_SERVER_URL=""
-start_dev_server() {
-    local preferred_port=$1
-    local working_dir=$2
+# forever waiting for the background server.
+_STATIC_SERVER_PID=""
+_STATIC_SERVER_URL=""
+start_static_server() {
+    local dist_dir=$1
+    local label=$2
+    local port=$3
 
-    # Find an available port starting from the preferred one
-    local port
-    port=$(find_free_port "$preferred_port")
-    if [[ "$port" != "$preferred_port" ]]; then
-        log "Port $preferred_port in use, using $port instead"
-    fi
+    local server_log="${reports_dir}/static-server-${label}.log"
 
-    local server_log="${reports_dir}/dev-server-${port}.log"
+    kill_port "$port"
+    log "Starting static server for ${dist_dir} on port ${port}..."
+    node "${tools_dir}/serve-static.js" --dir "$dist_dir" --port "$port" > "$server_log" 2>&1 &
+    _STATIC_SERVER_PID=$!
 
-    log "Starting dev server on port $port from ${working_dir}..."
-    cd "$working_dir"
-    PUBLIC_SITE_URL="http://localhost:$port" PUBLIC_HTTPS_SERVER=false PORT="$port" \
-        npx nx dev ag-charts-website > "$server_log" 2>&1 &
-    _DEV_SERVER_PID=$!
-    cd "$root"
-
-    # Parse Astro's startup output for the actual URL (handles auto-increment edge case)
-    log "Waiting for dev server to start..."
+    # Wait for the parseable readiness line
     local actual_url=""
-    for i in $(seq 1 120); do
-        # Strip ANSI codes, look for "Local    http://..." line from Astro's output
-        actual_url=$(sed 's/\x1b\[[0-9;]*m//g' "$server_log" 2>/dev/null \
-            | grep -oE 'Local[[:space:]]+https?://[^[:space:]]+' \
-            | head -1 \
-            | awk '{print $NF}' || true)
+    for i in $(seq 1 30); do
+        actual_url=$(grep -oE '^SERVING http://[^ ]+' "$server_log" 2>/dev/null | head -1 | awk '{print $2}' || true)
         if [[ -n "$actual_url" ]]; then
             break
+        fi
+        if ! kill -0 "$_STATIC_SERVER_PID" 2>/dev/null; then
+            logError "Static server exited unexpectedly:"
+            cat "$server_log" >&2
+            return 1
         fi
         sleep 1
     done
 
     if [[ -z "$actual_url" ]]; then
-        actual_url="http://localhost:$port/charts"
-        log "Could not detect URL from server output, using default: $actual_url"
+        logError "Static server did not report readiness:"
+        cat "$server_log" >&2
+        return 1
     fi
 
-    _DEV_SERVER_URL="$actual_url"
-
-    # Verify the server is actually responding
-    log "Verifying server at ${_DEV_SERVER_URL}..."
-    local wait_url="${_DEV_SERVER_URL#https://}"
-    wait_url="${wait_url#http://}"
-    npx wait-on "http-get://${wait_url}" --timeout 60000
-
-    log "Dev server ready at $_DEV_SERVER_URL (PID $_DEV_SERVER_PID)"
+    _STATIC_SERVER_URL="$actual_url"
+    log "Static server ready at $_STATIC_SERVER_URL (PID $_STATIC_SERVER_PID)"
 }
 
 # --- Run browser benchmarks ---
@@ -279,22 +265,38 @@ Base: ${base_ref}"
 log "Ensuring Playwright Chromium is installed..."
 npx playwright install chromium 2>/dev/null || log "Playwright install skipped (may already be present)"
 
-# Kill any stale servers
-kill_port $HEAD_PORT
-kill_port $BASE_PORT
+# Prefer the benchmark-only build target (skips non-benchmark pages and
+# thumbnails); refs that predate it fall back to the full site build.
+website_build_target() {
+    if npx nx show project ag-charts-website 2>/dev/null | grep -q '"build:benchmarks"'; then
+        echo 'build:benchmarks'
+    else
+        echo 'build'
+    fi
+}
+
+# Use timeout for build steps (macOS may need coreutils gtimeout)
+TIMEOUT_CMD=()
+if command -v timeout &>/dev/null; then
+    TIMEOUT_CMD=(timeout "$BUILD_TIMEOUT")
+elif command -v gtimeout &>/dev/null; then
+    TIMEOUT_CMD=(gtimeout "$BUILD_TIMEOUT")
+fi
 
 # --- HEAD BENCHMARKS ---
 
 logStarBox "Phase 1: HEAD benchmarks (${branch})"
 
-# Ensure examples are generated (dev server needs them for gallery/homepage)
-log "Generating examples..."
-npx nx generate-examples ag-charts-website 2>&1 || log "generate-examples failed (non-fatal, dev server may still work for benchmarks)"
+log "Building ag-charts-website (timeout: ${BUILD_TIMEOUT}s)..."
+PUBLIC_SITE_URL="http://localhost:${HEAD_PORT}" PUBLIC_HTTPS_SERVER=false \
+    ${TIMEOUT_CMD[@]+"${TIMEOUT_CMD[@]}"} npx nx "$(website_build_target)" ag-charts-website 2>&1 || {
+    logError "Failed to build website for HEAD"
+    exit 1
+}
 
-start_dev_server $HEAD_PORT "$root"
-HEAD_SERVER_PID=$_DEV_SERVER_PID
-HEAD_URL=$_DEV_SERVER_URL
-HEAD_ACTUAL_PORT=$(echo "$HEAD_URL" | grep -oE ':[0-9]+' | tr -d ':')
+start_static_server "${root}/dist/packages/ag-charts-website" head "$HEAD_PORT"
+HEAD_SERVER_PID=$_STATIC_SERVER_PID
+HEAD_URL=$_STATIC_SERVER_URL
 run_benchmarks "$HEAD_URL" "$head_results" || {
     if [[ "${AG_BENCHMARK_SOFT_FAIL:-}" != "true" ]]; then
         logError "Head benchmarks failed"
@@ -302,13 +304,57 @@ run_benchmarks "$HEAD_URL" "$head_results" || {
     fi
 }
 
-log "Stopping head dev server..."
-stop_dev_server "$HEAD_SERVER_PID" "${HEAD_ACTUAL_PORT:-$HEAD_PORT}"
+log "Stopping head static server..."
+stop_static_server "$HEAD_SERVER_PID"
 HEAD_SERVER_PID=""
 
-# --- BASE BENCHMARKS (worktree) ---
+# --- BASE BENCHMARKS ---
 
 logStarBox "Phase 2: BASE benchmarks (${base_ref})"
+
+if [[ -n "$published_version" ]]; then
+    # Published-library mode: reuse the head-built site with the dev-served
+    # bundles replaced by the published UMD bundles. Pages bake absolute
+    # library URLs for HEAD_PORT, so the copy is served on the same port
+    # (the head server has already been stopped).
+    BASE_SITE_DIR="/tmp/ag-charts-base-site-$$"
+    log "Copying head site dist to ${BASE_SITE_DIR}..."
+    cp -cR "${root}/dist/packages/ag-charts-website" "$BASE_SITE_DIR" 2>/dev/null || \
+        cp -R "${root}/dist/packages/ag-charts-website" "$BASE_SITE_DIR" || {
+        soft_fail_or_exit "Failed to copy head site dist"
+    }
+
+    if [[ -n "$base_results" ]]; then
+        "${tools_dir}/swap-published-lib.sh" "$published_version" "$BASE_SITE_DIR" || {
+            soft_fail_or_exit "Failed to fetch published v${published_version} bundles"
+        }
+    fi
+
+    if [[ -n "$base_results" ]]; then
+        start_static_server "$BASE_SITE_DIR" base "$HEAD_PORT" || {
+            soft_fail_or_exit "Failed to start static server for base"
+        }
+    fi
+
+    if [[ -n "$base_results" ]]; then
+        BASE_SERVER_PID=$_STATIC_SERVER_PID
+        BASE_URL=$_STATIC_SERVER_URL
+
+        run_benchmarks "$BASE_URL" "$base_results" || {
+            if [[ "${AG_BENCHMARK_SOFT_FAIL:-}" != "true" ]]; then
+                logError "Base benchmarks failed"
+                exit 1
+            fi
+        }
+
+        log "Stopping base static server..."
+        stop_static_server "$BASE_SERVER_PID"
+        BASE_SERVER_PID=""
+    fi
+
+    rm -rf "$BASE_SITE_DIR"
+    BASE_SITE_DIR=""
+else
 
 log "Creating worktree at ${worktree_dir} for ${base_ref}..."
 git worktree add "${worktree_dir}" "${base_ref}" 2>&1 || {
@@ -320,14 +366,6 @@ if [[ -d "${worktree_dir}" ]]; then
 
     # Share Nx cache between host and worktree
     export NX_CACHE_DIRECTORY="${root}/.nx/cache"
-
-    # Use timeout for build steps (macOS may need coreutils gtimeout)
-    TIMEOUT_CMD=()
-    if command -v timeout &>/dev/null; then
-        TIMEOUT_CMD=(timeout "$BUILD_TIMEOUT")
-    elif command -v gtimeout &>/dev/null; then
-        TIMEOUT_CMD=(gtimeout "$BUILD_TIMEOUT")
-    fi
 
     # COW-clone node_modules from HEAD to avoid a full install.
     # On APFS (macOS) cp -cR is near-instant; falls back to rsync on other FS.
@@ -367,29 +405,32 @@ if [[ -d "${worktree_dir}" ]]; then
         # Build the website in the worktree
         log "Building ag-charts-website in worktree (timeout: ${BUILD_TIMEOUT}s)..."
         cd "${worktree_dir}"
-        ${TIMEOUT_CMD[@]+"${TIMEOUT_CMD[@]}"} npx nx build ag-charts-website 2>&1 || {
+        PUBLIC_SITE_URL="http://localhost:${BASE_PORT}" PUBLIC_HTTPS_SERVER=false \
+            ${TIMEOUT_CMD[@]+"${TIMEOUT_CMD[@]}"} npx nx "$(website_build_target)" ag-charts-website 2>&1 || {
             soft_fail_or_exit "Failed to build website in worktree"
         }
         cd "$root"
     fi
 
     if [[ -n "$base_results" ]]; then
-        kill_port $BASE_PORT
-        start_dev_server $BASE_PORT "${worktree_dir}"
-        BASE_SERVER_PID=$_DEV_SERVER_PID
-        BASE_URL=$_DEV_SERVER_URL
-        BASE_ACTUAL_PORT=$(echo "$BASE_URL" | grep -oE ':[0-9]+' | tr -d ':')
-
-        run_benchmarks "$BASE_URL" "$base_results" || {
-            if [[ "${AG_BENCHMARK_SOFT_FAIL:-}" != "true" ]]; then
-                logError "Base benchmarks failed"
-                exit 1
-            fi
+        start_static_server "${worktree_dir}/dist/packages/ag-charts-website" base "$BASE_PORT" || {
+            soft_fail_or_exit "Failed to start static server for base"
         }
+        if [[ -n "$base_results" ]]; then
+            BASE_SERVER_PID=$_STATIC_SERVER_PID
+            BASE_URL=$_STATIC_SERVER_URL
 
-        log "Stopping base dev server..."
-        stop_dev_server "$BASE_SERVER_PID" "${BASE_ACTUAL_PORT:-$BASE_PORT}"
-        BASE_SERVER_PID=""
+            run_benchmarks "$BASE_URL" "$base_results" || {
+                if [[ "${AG_BENCHMARK_SOFT_FAIL:-}" != "true" ]]; then
+                    logError "Base benchmarks failed"
+                    exit 1
+                fi
+            }
+
+            log "Stopping base static server..."
+            stop_static_server "$BASE_SERVER_PID"
+            BASE_SERVER_PID=""
+        fi
     fi
 
     # Clean up worktree early
@@ -398,6 +439,8 @@ if [[ -d "${worktree_dir}" ]]; then
     git worktree remove --force "${worktree_dir}" 2>/dev/null || rm -rf "${worktree_dir}"
     WORKTREE_CREATED=false
 fi
+
+fi # end of git-ref vs published-library base mode
 
 # --- COMPARE ---
 

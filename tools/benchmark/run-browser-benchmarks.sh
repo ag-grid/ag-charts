@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 #
-# CI wrapper for browser-based benchmarks.
+# Local-dev wrapper for browser-based benchmarks.
 # Starts the Astro dev server, waits for it, runs the Playwright benchmark script,
-# and cleans up the server on exit.
+# and cleans up the server on exit. CI uses serve-and-run.sh against a static
+# build instead.
 #
 # Usage:
 #   ./tools/benchmark/run-browser-benchmarks.sh [--port PORT] [-- extra args for browser-benchmark.ts]

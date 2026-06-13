@@ -66,6 +66,8 @@ while IFS= read -r f; do
     [ -n "$f" ] || continue
     ch_is_formattable "$f" || continue
     git cat-file -e ":$f" 2>/dev/null || continue
+    # Skip symlinks: their staged blob is the target path, not file content.
+    [ "$(git ls-files -s -- "$f" | awk '{print $1}')" = "120000" ] && continue
     cmp -s <(git show ":$f" 2>/dev/null) <(prettier_fmt "$f") || needs_fmt+=("$f")
 done < <(git diff --cached --name-only --diff-filter=ACMR 2>/dev/null)
 

@@ -1,8 +1,6 @@
 /**
- * Shared formatting utilities for benchmark comparison scripts.
- *
- * Used by both Jest-based (format-slack-message.js) and browser-based
- * (format-browser-slack-message.js) Slack formatters.
+ * Shared formatting utilities for the browser benchmark comparison and
+ * Slack-formatting scripts.
  */
 
 /**

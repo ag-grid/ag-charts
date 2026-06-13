@@ -1,4 +1,5 @@
 import type { GalleryData, GalleryExample } from '@ag-grid-types';
+import { getIsBenchmarkOnlyBuild } from '@utils/env';
 import { getContentRootFileUrl, getPublicFileUrl } from '@utils/pages';
 import { pathJoin } from '@utils/pathJoin';
 import { readFileSync } from 'fs';
@@ -92,6 +93,7 @@ export const getChartExampleTitle = ({
 };
 
 export const getGalleryExamples = ({ galleryData }: { galleryData: GalleryData }) => {
+    if (getIsBenchmarkOnlyBuild()) return [];
     const series = galleryData.series.flat();
 
     const allExamples = series.flatMap((s) => s.examples).filter((e) => e.hidden !== true);

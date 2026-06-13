@@ -1,23 +1,28 @@
 name: Benchmark
 
+# Browser-based benchmark comparison on GitHub-hosted runners.
+#
+# Job graph:
+#   resolve  — resolves head/base refs, computes the example shard matrix,
+#              creates the PR progress comment for /benchmarks runs.
+#   build    — builds the static website for head and base in parallel and
+#              uploads pruned site artifacts.
+#   benchmark — matrix of shards; each shard runs its example subset against
+#              BOTH the head and base site on the SAME runner VM, so the
+#              relative comparison stays valid despite heterogeneous shared
+#              runner hardware.
+#   report   — merges shard results, compares head vs base, posts the PR
+#              comment table and/or Slack notification.
+
 on:
     issue_comment:
         types: [created]
     workflow_dispatch:
         inputs:
             compare-base:
-                description: 'Branch name to compare against'
+                description: 'Base to compare against: a branch name, or npm:<version> for a published npm version'
                 type: string
                 default: b12.1.1
-                required: true
-            benchmark-type:
-                description: 'Which benchmarks to run'
-                type: choice
-                options:
-                    - all
-                    - vitest
-                    - browser
-                default: all
                 required: true
             notify:
                 description: 'Notify Slack channel'
@@ -26,13 +31,13 @@ on:
                 required: true
     schedule:
         - cron: '0 0 * * *' # Run daily at midnight UTC
-        # - cron: '0 1 * * *' # Run daily at 01:00 UTC - DISABLED: b11.3.1 benchmark execution
 
 env:
     NX_NO_CLOUD: true
     NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
     NX_BRANCH: ${{ github.ref }}
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+    AG_SHARD_COUNT: 5
 
 permissions:
     contents: read
@@ -40,7 +45,7 @@ permissions:
 jobs:
     # Check permissions for issue_comment events
     check-permissions:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         outputs:
             allowed: ${{ steps.check.outputs.allowed }}
         steps:
@@ -53,23 +58,28 @@ jobs:
               with:
                   command: '/benchmarks'
 
-    benchmark:
-        runs-on: macos-benchmark
-        timeout-minutes: 60 # Vitest ~25m + browser ~25m + setup ~5m; selective runs via benchmark-type input
+    resolve:
+        runs-on: ubuntu-24.04
+        timeout-minutes: 10
         permissions:
+            contents: read
             pull-requests: write
         needs: check-permissions
         # Only run if permissions check passed (success) or was skipped (for non-issue_comment events)
         if: |
             needs.check-permissions.result == 'success' && (
-                github.event_name == 'workflow_dispatch' || 
+                github.event_name == 'workflow_dispatch' ||
                 github.event_name == 'schedule' ||
                 (github.event_name == 'issue_comment' && needs.check-permissions.outputs.allowed == 'true')
             )
         env:
-            AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
             JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            AG_BENCHMARK_SOFT_FAIL: 'true'
+        outputs:
+            branch: ${{ steps.get-branch.outputs.branch }}
+            base: ${{ steps.get-branch.outputs.base }}
+            shards: ${{ steps.shards.outputs.shards }}
+            build-matrix: ${{ steps.build-matrix.outputs.build-matrix }}
+            comment-id: ${{ steps.notify-start.outputs.result }}
         steps:
             - name: Notify start
               id: notify-start
@@ -87,25 +97,22 @@ jobs:
                       })
                       return comment.id;
 
+            - name: Checkout
+              uses: actions/checkout@v4
+
             - id: 'get-branch'
               run: |
                   if [[ "${{ github.event_name }}" == "issue_comment" ]] ; then
                     # For PR comments, get the branch from the PR
                     echo "branch=$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')" >> $GITHUB_OUTPUT
                     echo "base=$(gh pr view $PR_NO --repo $REPO --json baseRefName --jq '.baseRefName')" >> $GITHUB_OUTPUT
-                  elif [[ "${{ github.event_name }}" == "schedule" && "${{ github.event.schedule }}" == "0 1 * * *" ]] ; then
-                    # For secondary scheduled runs, compare against b11.3.1
-                    echo "branch=latest" >> $GITHUB_OUTPUT
-                    echo "base=b11.3.1" >> $GITHUB_OUTPUT
                   elif [[ "${{ github.event_name }}" == "schedule" ]] ; then
-                    # For scheduled runs, get the most recent release branch matching exact 'bX.Y.Z' format
-                    release=$(git ls-remote --heads origin | grep -E 'refs/heads/b[0-9]+\.[0-9]+\.[0-9]+$' | sort -t '/' -k 3 -V | tail -n 1 | sed 's/.*refs\/heads\///')
-                    # Special case: b13.0.x series uses b13.0.0 as base due to circular dependency issues in b13.0.1+
-                    if [[ "$release" =~ ^b13\.0\.[1-9] ]] ; then
-                      release="b13.0.0"
-                    fi
+                    # Scheduled runs compare against the most recently published npm
+                    # version: the head example set runs against the published UMD
+                    # bundles (no base-ref site build needed).
+                    published=$(npm view ag-charts-community version)
                     echo "branch=latest" >> $GITHUB_OUTPUT
-                    echo "base=$release" >> $GITHUB_OUTPUT
+                    echo "base=npm:${published}" >> $GITHUB_OUTPUT
                   else
                     # For manual workflow dispatch, use the current branch
                     echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
@@ -116,134 +123,268 @@ jobs:
                   PR_NO: ${{ github.event.issue.number }}
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Checkout
+            # The head ref defines the example set; shards must match the pages
+            # the head site artifact contains.
+            - name: Checkout head ref
               uses: actions/checkout@v4
               with:
                   ref: ${{ steps.get-branch.outputs.branch }}
-                  fetch-depth: 0
 
-            - name: Fetch Refs
+            # A published-npm base (npm:<version>) needs no base site build —
+            # the benchmark shards reuse the head site with the published UMD
+            # bundles swapped in. Pages bake absolute library URLs from
+            # PUBLIC_SITE_URL, so each role is built for the fixed port the
+            # shard jobs will serve it from.
+            - name: Compute build matrix
+              id: build-matrix
+              env:
+                  BASE_REF: ${{ steps.get-branch.outputs.base }}
               run: |
-                  set -x
-
-                  if [[ "${{ steps.get-branch.outputs.base }}" =~ "^@" ]] ; then
-                    base=$(git rev-parse --abbrev-ref ${{ steps.get-branch.outputs.base }})
+                  if [[ "${BASE_REF}" == npm:* ]] ; then
+                    echo 'build-matrix=[{"role":"head","port":4601}]' >> $GITHUB_OUTPUT
                   else
-                    base=origin/${{ steps.get-branch.outputs.base }}
-                  fi
-                  git fetch --unshallow origin $base || echo "Not a shallow ref?"
-
-                  # Preemptively fail if merge-base is not found.
-                  mergeBase=$(git merge-base HEAD $base || echo "failed")
-
-                  if [[ ${mergeBase} == "failed" ]] ; then
-                    # Debugging
-                    git log -n 1 --decorate HEAD
-                    git log -n 20 --decorate $base
-
-                    # Allow for a few minutes for debugging
-                    sleep 600
+                    echo 'build-matrix=[{"role":"head","port":4601},{"role":"base","port":4602}]' >> $GITHUB_OUTPUT
                   fi
 
-            - name: Notify Progress
-              uses: actions/github-script@v7
-              continue-on-error: true
-              if: github.event_name == 'issue_comment'
+            - name: Compute shard matrix
+              id: shards
+              run: |
+                  shards=$(node ./tools/benchmark/benchmark-examples.js --shards "$AG_SHARD_COUNT")
+                  echo "shards=${shards}" >> $GITHUB_OUTPUT
+                  echo "Shard matrix: ${shards}"
+
+    build:
+        runs-on: ubuntu-24.04
+        timeout-minutes: 45
+        needs: resolve
+        strategy:
+            matrix:
+                # head only, or head + base, depending on the base mode —
+                # see "Compute build matrix" in the resolve job.
+                include: ${{ fromJSON(needs.resolve.outputs.build-matrix) }}
+        env:
+            AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
               with:
-                  script: |
-                      github.rest.issues.updateComment({
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        comment_id: ${{ steps.notify-start.outputs.result }},
-                        body: `⏱️ ${process.env.JOB_URL} (running setup...)`
-                      })
+                  ref: ${{ matrix.role == 'head' && needs.resolve.outputs.branch || needs.resolve.outputs.base }}
 
             - name: Setup
-              id: setup
               uses: ./.github/actions/setup-nx
               with:
-                  cache_mode: rw
-                  base_ref: ${{ steps.get-branch.outputs.base }}
+                  cache_mode: ${{ matrix.role == 'head' && 'rw' || 'ro' }}
+                  fetch_base: skip
+
+            - name: Build website
+              env:
+                  PUBLIC_SITE_URL: http://localhost:${{ matrix.port }}
+                  PUBLIC_HTTPS_SERVER: 'false'
+              # The benchmark-only build target skips all non-benchmark static
+              # paths and the thumbnail generation. Refs that predate it (older
+              # release-branch bases) fall back to the full site build.
+              run: |
+                  if yarn --silent nx show project ag-charts-website 2>/dev/null | grep -q '"build:benchmarks"'; then
+                    yarn nx build:benchmarks ag-charts-website
+                  else
+                    echo "build:benchmarks target not present on this ref; running full site build"
+                    yarn nx build ag-charts-website
+                  fi
+
+            # Keep only what the benchmark pages need: the example pages
+            # themselves, the dev-served library bundles, example-runner
+            # boilerplate, and hashed astro assets.
+            - name: Prune and package site
+              run: |
+                  cd dist/packages/ag-charts-website
+                  keep=()
+                  for d in vanilla/benchmarks dev example-runner _astro; do
+                    [[ -d "$d" ]] && keep+=("$d")
+                  done
+                  if [[ ! -d vanilla/benchmarks ]]; then
+                    echo "::error::vanilla/benchmarks missing from build output"
+                    exit 1
+                  fi
+                  tar -czf "${RUNNER_TEMP}/site-${{ matrix.role }}.tar.gz" "${keep[@]}"
+                  ls -lh "${RUNNER_TEMP}/site-${{ matrix.role }}.tar.gz"
+
+            - name: Upload site artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: site-${{ matrix.role }}
+                  path: ${{ runner.temp }}/site-${{ matrix.role }}.tar.gz
+                  retention-days: 3
+
+    benchmark:
+        runs-on: ubuntu-24.04
+        # Hosted runners are ~2x slower than the previous bare-metal runner;
+        # the slowest examples need generous headroom.
+        timeout-minutes: 45
+        needs: [resolve, build]
+        strategy:
+            fail-fast: false
+            matrix:
+                examples: ${{ fromJSON(needs.resolve.outputs.shards) }}
+        env:
+            AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
+            AG_BENCHMARK_SOFT_FAIL: 'true'
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ needs.resolve.outputs.branch }}
+
+            - name: Setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
                   fetch_base: skip
 
             - name: Install Playwright Chromium
               run: npx playwright install chromium
 
-            - name: Notify Progress
-              uses: actions/github-script@v7
-              continue-on-error: true
-              if: github.event_name == 'issue_comment'
+            - name: Download site artifacts
+              uses: actions/download-artifact@v4
               with:
-                  script: |
-                      github.rest.issues.updateComment({
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        comment_id: ${{ steps.notify-start.outputs.result }},
-                        body: `⏱️ ${process.env.JOB_URL} (running benchmarks...)`
-                      })
+                  pattern: site-*
+                  path: ${{ runner.temp }}/sites
 
-            - name: nx benchmark
-              id: benchmark-table
-              if: |
-                  github.event_name == 'issue_comment' &&
-                  (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
+            # A published-npm base (npm:<version>) reuses the head site with the
+            # published UMD bundles swapped in. Its pages bake absolute library
+            # URLs for the head port, so it is served on 4601 (head and base run
+            # sequentially, never concurrently).
+            - name: Unpack sites
+              env:
+                  BASE_REF: ${{ needs.resolve.outputs.base }}
               run: |
-                  ./tools/benchmark/compare-latest.sh origin/${{ steps.get-branch.outputs.base }}
+                  mkdir -p "${RUNNER_TEMP}/site-head" "${RUNNER_TEMP}/site-base"
+                  tar -xzf "${RUNNER_TEMP}/sites/site-head/site-head.tar.gz" -C "${RUNNER_TEMP}/site-head"
+                  if [[ "${BASE_REF}" == npm:* ]] ; then
+                    tar -xzf "${RUNNER_TEMP}/sites/site-head/site-head.tar.gz" -C "${RUNNER_TEMP}/site-base"
+                    ./tools/benchmark/swap-published-lib.sh "${BASE_REF#npm:}" "${RUNNER_TEMP}/site-base"
+                    echo "BASE_PORT=4601" >> $GITHUB_ENV
+                  else
+                    tar -xzf "${RUNNER_TEMP}/sites/site-base/site-base.tar.gz" -C "${RUNNER_TEMP}/site-base"
+                    echo "BASE_PORT=4602" >> $GITHUB_ENV
+                  fi
+
+            # Head and base run sequentially on this same VM so the relative
+            # comparison cancels out per-runner hardware differences.
+            - name: Run benchmarks (head then base)
+              run: |
+                  mkdir -p reports/browser-benchmarks/shards
+                  run_one() {
+                    local role=$1
+                    local port=$2
+                    ./tools/benchmark/serve-and-run.sh \
+                        --dist "${RUNNER_TEMP}/site-${role}" \
+                        --port "${port}" \
+                        --output "reports/browser-benchmarks/shards/${role}-${{ strategy.job-index }}.json" \
+                        -- --examples "${{ matrix.examples }}" --timeout 600000 || {
+                      if [[ "${AG_BENCHMARK_SOFT_FAIL}" == "true" ]]; then
+                        echo "::warning::${role} benchmarks had failures (soft-fail mode)"
+                      else
+                        return 1
+                      fi
+                    }
+                  }
+                  run_one head 4601
+                  run_one base "${BASE_PORT}"
+
+            - name: Upload shard results
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: bench-results-${{ strategy.job-index }}
+                  path: reports/browser-benchmarks/shards/*
+                  retention-days: 7
+
+    report:
+        runs-on: ubuntu-24.04
+        timeout-minutes: 15
+        needs: [resolve, benchmark]
+        if: ${{ !cancelled() && needs.resolve.result == 'success' }}
+        permissions:
+            contents: read
+            pull-requests: write
+        env:
+            AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
+            JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ needs.resolve.outputs.branch }}
+
+            - name: Setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
+                  fetch_base: skip
+
+            - name: Download shard results
+              uses: actions/download-artifact@v4
+              with:
+                  pattern: bench-results-*
+                  path: reports/browser-benchmarks/shards
+                  merge-multiple: true
+
+            # Soft-fail only covers failures within a shard; a wholly missing
+            # shard result would silently shrink the merged report, so the
+            # expected count is enforced here.
+            - name: Merge shard results
+              env:
+                  SHARDS: ${{ needs.resolve.outputs.shards }}
+              run: |
+                  shopt -s nullglob
+                  expected=$(echo "$SHARDS" | jq length)
+                  head_shards=(reports/browser-benchmarks/shards/head-*.json)
+                  base_shards=(reports/browser-benchmarks/shards/base-*.json)
+                  if [[ ${#head_shards[@]} -ne $expected || ${#base_shards[@]} -ne $expected ]]; then
+                    echo "::error::Missing shard results (expected ${expected}, head: ${#head_shards[@]}, base: ${#base_shards[@]})"
+                    exit 1
+                  fi
+                  node ./tools/benchmark/merge-browser-results.js --output reports/browser-benchmarks/head.json "${head_shards[@]}"
+                  node ./tools/benchmark/merge-browser-results.js --output reports/browser-benchmarks/base.json "${base_shards[@]}"
+
+            - name: Compare results
+              id: compare
+              run: |
+                  mkdir -p reports
+                  node ./tools/benchmark/compare-browser-results.js \
+                      --base reports/browser-benchmarks/base.json \
+                      --compare reports/browser-benchmarks/head.json \
+                      --base-label "${{ needs.resolve.outputs.base }}" \
+                      --compare-label "${{ needs.resolve.outputs.branch }}" \
+                      --format table \
+                      --report-only \
+                      > reports/browser-benchmark.log
+                  node ./tools/benchmark/compare-browser-results.js \
+                      --base reports/browser-benchmarks/base.json \
+                      --compare reports/browser-benchmarks/head.json \
+                      --base-label "${{ needs.resolve.outputs.base }}" \
+                      --compare-label "${{ needs.resolve.outputs.branch }}" \
+                      --format json \
+                      --report-only \
+                      > reports/browser-benchmark.json
+                  cat reports/browser-benchmark.log
                   echo "report<<EOF" >> $GITHUB_OUTPUT
-                  cat ./reports/benchmark.log >> $GITHUB_OUTPUT
+                  cat reports/browser-benchmark.log >> $GITHUB_OUTPUT
                   echo "EOF" >> $GITHUB_OUTPUT
-
-            - name: nx benchmark
-              id: benchmark-json
-              if: |
-                  github.event_name != 'issue_comment' &&
-                  (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped') &&
-                  (inputs.benchmark-type || 'all') != 'browser'
-              run: |
-                  ./tools/benchmark/compare-latest.sh -j origin/${{ steps.get-branch.outputs.base }}
-
-            - name: Browser Benchmark (table)
-              id: browser-benchmark-table
-              if: |
-                  github.event_name == 'issue_comment' &&
-                  (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
-              timeout-minutes: 25
-              run: |
-                  ./tools/benchmark/compare-browser-latest.sh origin/${{ steps.get-branch.outputs.base }}
-                  echo "report<<EOF" >> $GITHUB_OUTPUT
-                  cat ./reports/browser-benchmark.log >> $GITHUB_OUTPUT
-                  echo "EOF" >> $GITHUB_OUTPUT
-
-            - name: Browser Benchmark (json)
-              id: browser-benchmark-json
-              if: |
-                  github.event_name != 'issue_comment' &&
-                  (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped') &&
-                  (inputs.benchmark-type || 'all') != 'vitest'
-              timeout-minutes: 25
-              run: |
-                  ./tools/benchmark/compare-browser-latest.sh -j origin/${{ steps.get-branch.outputs.base }}
 
             - name: Notify Success
               uses: actions/github-script@v7
               continue-on-error: true
               if: success() && github.event_name == 'issue_comment'
               env:
-                  VITEST_CONTENT: ${{ steps.benchmark-table.outputs.report }}
-                  BROWSER_CONTENT: ${{ steps.browser-benchmark-table.outputs.report }}
+                  BROWSER_CONTENT: ${{ steps.compare.outputs.report }}
               with:
                   script: |
-                      let body = `✅ ${process.env.JOB_URL}\n\n`;
-                      if (process.env.BROWSER_CONTENT) {
-                        body += `**Browser Benchmarks**\n\`\`\`\n${process.env.BROWSER_CONTENT}\n\`\`\`\n\n`;
-                      }
-                      if (process.env.VITEST_CONTENT) {
-                        body += `<details><summary>Vitest Benchmarks</summary>\n\n\`\`\`\n${process.env.VITEST_CONTENT}\n\`\`\`\n</details>`;
-                      }
+                      const body = `✅ ${process.env.JOB_URL}\n\n**Browser Benchmarks**\n\`\`\`\n${process.env.BROWSER_CONTENT}\n\`\`\`\n`;
                       github.rest.issues.updateComment({
                         owner: context.repo.owner,
                         repo: context.repo.repo,
-                        comment_id: ${{ steps.notify-start.outputs.result }},
+                        comment_id: ${{ needs.resolve.outputs.comment-id }},
                         body,
                       })
 
@@ -257,24 +398,12 @@ jobs:
                       github.rest.issues.updateComment({
                         owner: context.repo.owner,
                         repo: context.repo.repo,
-                        comment_id: ${{ steps.notify-start.outputs.result }},
+                        comment_id: ${{ needs.resolve.outputs.comment-id }},
                         body,
                       })
 
-            - name: Slack Notification (Vitest)
-              if: success() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true)) && (inputs.benchmark-type || 'all') != 'browser'
-              continue-on-error: true
-              env:
-                  SLACK_CHANNEL: '#charts-performance'
-                  SLACK_ICON: 'https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png'
-                  SLACK_USERNAME: 'ag-charts CI'
-                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-              run: |
-                  node ./tools/benchmark/format-slack-message.js > ./reports/benchmark-slack.json
-                  curl -X POST -H 'Content-type: application/json' ${{ secrets.SLACK_WEBHOOK }} --data @./reports/benchmark-slack.json
-
             - name: Slack Notification (Browser)
-              if: success() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true)) && (inputs.benchmark-type || 'all') != 'vitest'
+              if: success() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true))
               continue-on-error: true
               env:
                   SLACK_CHANNEL: '#charts-performance'
@@ -282,12 +411,8 @@ jobs:
                   SLACK_USERNAME: 'ag-charts CI'
                   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
               run: |
-                  if [[ -f ./reports/browser-benchmark.json ]]; then
-                    node ./tools/benchmark/format-browser-slack-message.js > ./reports/browser-benchmark-slack.json
-                    curl -X POST -H 'Content-type: application/json' ${{ secrets.SLACK_WEBHOOK }} --data @./reports/browser-benchmark-slack.json
-                  else
-                    echo "No browser benchmark results to report"
-                  fi
+                  node ./tools/benchmark/format-browser-slack-message.js > ./reports/browser-benchmark-slack.json
+                  curl -X POST -H 'Content-type: application/json' ${{ secrets.SLACK_WEBHOOK }} --data @./reports/browser-benchmark-slack.json
 
             - name: Slack Notification (failure)
               if: failure() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true))
@@ -298,6 +423,7 @@ jobs:
                   SLACK_USERNAME: 'ag-charts CI'
                   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
               run: |
+                  mkdir -p reports
                   cat <<EOF > ./reports/benchmark-slack.json
                   {
                     "channel": "${SLACK_CHANNEL}",
@@ -322,6 +448,5 @@ jobs:
               with:
                   name: benchmark-results
                   path: |
-                      packages/ag-charts-website/src/content/docs/benchmarks/_examples/summary/*
                       reports/browser-benchmarks/*
                       reports/browser-benchmark.*

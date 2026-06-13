@@ -72,6 +72,63 @@ export function scroll(
     element.dispatchEvent(event);
 }
 
+function getSeriesAreaElement(container: HTMLElement): HTMLElement {
+    const el = container.querySelector<HTMLElement>('.ag-charts-series-area');
+    if (!el) throw new Error('series area not found');
+    return el;
+}
+
+function makeMouseEvent(type: string, x: number, y: number, rect: DOMRect, isUp: boolean): MouseEvent {
+    const ev = new MouseEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        button: 0,
+        buttons: isUp ? 0 : 1,
+        clientX: rect.left + x,
+        clientY: rect.top + y,
+        view: window,
+    });
+    Object.defineProperty(ev, 'offsetX', { value: x, writable: false });
+    Object.defineProperty(ev, 'offsetY', { value: y, writable: false });
+    Object.defineProperty(ev, 'pageX', { value: rect.left + x, writable: false });
+    Object.defineProperty(ev, 'pageY', { value: rect.top + y, writable: false });
+    return ev;
+}
+
+/**
+ * Simulates a drag-select gesture across the series area.
+ * All events dispatch on the series-area element. The widget MouseDragger's
+ * capture-phase listeners on window pick them up via DOM event capture even
+ * though the event target is the series-area — keeps `event.target` a real
+ * Node so downstream click/contains checks work.
+ */
+export function dragSelect(container: HTMLElement, x1: number, y1: number, x2: number, y2: number) {
+    const seriesArea = getSeriesAreaElement(container);
+    const rect = seriesArea.getBoundingClientRect();
+    seriesArea.dispatchEvent(makeMouseEvent('mousedown', x1, y1, rect, false));
+
+    const steps = 12;
+    for (let i = 1; i <= steps; i++) {
+        const t = i / steps;
+        const x = x1 + (x2 - x1) * t;
+        const y = y1 + (y2 - y1) * t;
+        seriesArea.dispatchEvent(makeMouseEvent('mousemove', x, y, rect, false));
+    }
+    seriesArea.dispatchEvent(makeMouseEvent('mouseup', x2, y2, rect, true));
+}
+
+/**
+ * Simulates a no-op mousedown+mouseup at the same point — the DragInterpreter
+ * recognises this as a click rather than a drag (movement is below the drag
+ * threshold) and the SelectionModule clears the selection on a bare click.
+ */
+export function clickAt(container: HTMLElement, x: number, y: number) {
+    const seriesArea = getSeriesAreaElement(container);
+    const rect = seriesArea.getBoundingClientRect();
+    seriesArea.dispatchEvent(makeMouseEvent('mousedown', x, y, rect, false));
+    seriesArea.dispatchEvent(makeMouseEvent('mouseup', x, y, rect, true));
+}
+
 /**
  * Dispatch a mousemove event for hover/highlight
  */

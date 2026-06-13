@@ -5,6 +5,7 @@ import {
     getGeneratedContentsFileList,
 } from '@components/example-generator';
 import { FRAMEWORKS } from '@constants';
+import { getIsBenchmarkOnlyBuild } from '@utils/env';
 import type { DocsPage } from '@utils/pages';
 
 import { getInternalFrameworkExamples, getPagesList } from './filesData';
@@ -45,6 +46,7 @@ export function getDocsPages(pages: DocsPage[]) {
 }
 
 export function getDocsFrameworkPages() {
+    if (getIsBenchmarkOnlyBuild()) return [];
     return FRAMEWORKS.map((framework) => {
         return {
             params: {

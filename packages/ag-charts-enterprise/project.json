@@ -73,32 +73,6 @@
         }
       ]
     },
-    "benchmark": {
-      "dependsOn": [
-        "build",
-        {
-          "projects": ["ag-charts-community-examples"],
-          "target": "build"
-        },
-        "ag-charts-website-benchmarks_enterprise-1M-line-series_main.ts:generate-example",
-        "ag-charts-website-benchmarks_axes-1M-time_main.ts:generate-example",
-        "ag-charts-website-benchmarks_axes-1M-unit-time_main.ts:generate-example",
-        "ag-charts-website-benchmarks_axes-1M-ordinal-time_main.ts:generate-example",
-        "ag-charts-website-benchmarks_axes-1M-number_main.ts:generate-example",
-        "ag-charts-website-benchmarks_high-perf-area_main.ts:generate-example",
-        "ag-charts-website-benchmarks_high-perf-area-stacked_main.ts:generate-example",
-        "ag-charts-website-benchmarks_high-perf-bar_main.ts:generate-example",
-        "ag-charts-website-benchmarks_high-perf-bar-stacked_main.ts:generate-example",
-        "ag-charts-website-benchmarks_high-perf-line_main.ts:generate-example",
-        "ag-charts-website-benchmarks_high-perf-ohlc_main.ts:generate-example",
-        "ag-charts-website-benchmarks_high-perf-range-area_main.ts:generate-example",
-        "ag-charts-website-benchmarks_high-perf-range-bar_main.ts:generate-example",
-        "ag-charts-website-benchmarks_high-freq-candlestick_main.ts:generate-example",
-        "ag-charts-website-benchmarks_high-freq-ohlc_main.ts:generate-example",
-        "ag-charts-website-benchmarks_high-freq-range-bar_main.ts:generate-example",
-        "ag-charts-website-benchmarks_high-freq-range-area_main.ts:generate-example"
-      ]
-    },
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
