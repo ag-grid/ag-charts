@@ -826,10 +826,7 @@ describe('MapMarkerSeries', () => {
         const markerSizes = async (markerOverrides: object): Promise<number[]> => {
             const options: AgChartOptions = {
                 ...SIMPLIFIED_EXAMPLE,
-                series: [
-                    { type: 'map-shape-background' },
-                    { type: 'map-marker', idKey: 'name', ...markerOverrides },
-                ],
+                series: [{ type: 'map-shape-background' }, { type: 'map-marker', idKey: 'name', ...markerOverrides }],
             };
             prepareEnterpriseTestOptions(options);
             chart = deproxy(AgCharts.create(options));
