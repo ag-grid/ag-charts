@@ -114,7 +114,7 @@ const themeParamsValidator = union(...themeParams);
 const colorRefDef = attachDescription(
     optionsDefs<AgColorRefMixOnto>({
         ref: themeParamsValidator,
-        mix: ratio,
+        mix: positiveNumber, // mix is silently clamped to 0-1 ratio to match Grid
         onto: themeParamsValidator,
     }),
     'a color ref'
