@@ -12,6 +12,7 @@ import {
     type AgPolarChartOptions,
     AgSelectionChangeEvent,
     AgSelectionItem,
+    AgSelectionItemIds,
 } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -47,6 +48,16 @@ function uiChangeEvent<D, C>(partial: { added: AgSelectionItem<D>[]; removed: Ag
         added,
         removed,
         source: 'user-interaction',
+        type: 'selectionChange',
+    });
+}
+
+function apiChangeEvent<D, C>(partial: { added: AgSelectionItem<D>[]; removed: AgSelectionItem<D>[] }) {
+    const { added, removed } = partial;
+    return withPreventDefault<AgSelectionChangeEvent<D, C>>({
+        added,
+        removed,
+        source: 'api-call',
         type: 'selectionChange',
     });
 }
@@ -706,6 +717,18 @@ describe('DataSelection', () => {
     function getChartSelectionArray() {
         expect(chart).toBeDefined();
         return Array.from(chart.getSelection());
+    }
+
+    async function setChartSelectionArray(items: Iterable<AgSelectionItemIds>) {
+        expect(chart).toBeDefined();
+        chart.setSelection(items);
+        await waitForChartStability(chart);
+    }
+
+    async function clearChartSelection() {
+        expect(chart).toBeDefined();
+        chart.clearSelection();
+        await waitForChartStability(chart);
     }
 
     function getChartZoomState() {
@@ -4615,6 +4638,97 @@ describe('DataSelection', () => {
                         await mouseUp(end);
                         await mouseMove(POINT_MISS);
                         expect(selectionChange.popEvents()).toEqual([uiChangeEvent<D, C>({ added, removed: [] })]);
+                    });
+                });
+            });
+        });
+    });
+
+    describe('setState', () => {
+        describe('treemap', () => {
+            type D = DiskDatum;
+            type C = unknown;
+            let selectionChange: SelectionChangeRecorder<D, C>;
+            let state: AgSelectionItemIds[] | undefined = undefined;
+
+            const { data, series, theme, legend, title } = createDiskUsageOptions('treemap');
+
+            const ITEMS: AgSelectionItem<D>[] = [
+                { seriesId: 'TreemapSeries-1', itemId: 13, datum: findName(data, 'movie.mp4') },
+                { seriesId: 'TreemapSeries-1', itemId: 15, datum: findName(data, 'mnt/') },
+                { seriesId: 'TreemapSeries-1', itemId: 22, datum: findName(data, 'vid2.mp4') },
+            ];
+            const UI_ADDED_EVENTS = [
+                uiChangeEvent<D, C>({ added: [ITEMS[0]], removed: [] }),
+                uiChangeEvent<D, C>({ added: [ITEMS[2]], removed: [] }),
+                uiChangeEvent<D, C>({ added: [ITEMS[1]], removed: [] }),
+            ];
+            const API_ADDED = apiChangeEvent<D, C>({ added: ITEMS, removed: [] });
+            const API_REMOVED = apiChangeEvent<D, C>({ added: [], removed: ITEMS });
+
+            describe('save/restore 3 points', () => {
+                beforeEach(async () => {
+                    selectionChange = createSelectionChangeRecorder();
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        theme,
+                        legend,
+                        title,
+                        selection: {
+                            enabled: true,
+                            clickMode: 'single',
+                        },
+                        listeners: { selectionChange },
+                    });
+
+                    await mouseClick({ canvasX: 160, canvasY: 258 }); // "movie.mp4"
+                    await mouseClick({ canvasX: 496, canvasY: 223 }, { ctrlKey }); // "vid2.mp4"
+                    await mouseClick({ canvasX: 605, canvasY: 96 }, { ctrlKey }); // "mnt/"
+                    await mouseMove({ canvasX: 20, canvasY: 20 }); // miss
+                });
+                test('screenshot', async () => {
+                    await compareExact('diskusage-treemap-highlighted-none-selected-movie-mnt-vid2');
+                });
+                test('getSelection', () => {
+                    expect(getChartSelectionArray()).toEqual(ITEMS);
+                });
+                test('selectionChange', () => {
+                    expect(selectionChange.popEvents()).toEqual(UI_ADDED_EVENTS);
+                });
+                describe('save and clear', () => {
+                    beforeEach(async () => {
+                        selectionChange.popEvents(); // pop event of initial selection.
+                        state = getChartSelectionArray();
+                        await clearChartSelection();
+                    });
+                    afterEach(() => {
+                        state = undefined;
+                    });
+                    test('screenshot', async () => {
+                        await compareExact('diskusage-treemap-highlighted-none-selected-none');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([API_REMOVED]);
+                    });
+                    describe('restore', () => {
+                        beforeEach(async () => {
+                            selectionChange.popEvents(); // pop event of clearSelection.
+                            expect(state).toBeDefined();
+                            await setChartSelectionArray(state!);
+                        });
+                        test('screenshot', async () => {
+                            await compareExact('diskusage-treemap-highlighted-none-selected-movie-mnt-vid2');
+                        });
+                        test('getSelection', () => {
+                            expect(getChartSelectionArray()).toEqual(ITEMS);
+                        });
+                        test('selectionChange', () => {
+                            expect(selectionChange.popEvents()).toEqual([API_ADDED]);
+                        });
                     });
                 });
             });
