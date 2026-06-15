@@ -63,5 +63,8 @@ export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
+// WARNING! This selectedKey is related to cross-filtering which is not an officially documented or supported
+// feature. It has nothing to do with the official data selection API in the options contract. Do not use, or use with
+// extreme caution.
 // @ts-expect-error undocumented option
 scatterSeriesOptionsDef.selectedKey = undocumented(string);

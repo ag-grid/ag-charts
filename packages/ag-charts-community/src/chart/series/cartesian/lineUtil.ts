@@ -55,7 +55,10 @@ export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSerie
     readonly yValue: NonNullable<CartesianSeriesNodeDatum['yValue']>;
     readonly point: NonNullable<CartesianSeriesNodeDatum['point']>;
     readonly labelText?: NormalisedTextOrSegments;
-    readonly selected: boolean | undefined;
+    // WARNING! This selected-state is related to cross-filtering which is not an officially documented or supported
+    // feature. It has nothing to do with the official data selection API in the options contract. Do not use, or use
+    // with extreme caution.
+    readonly crossFilterSelected: boolean | undefined;
     style?: AgSeriesMarkerStyle;
 }
 
@@ -81,7 +84,7 @@ export interface LineSeriesDatumContext extends CartesianMarkerLikeContext<LineN
     // Additional data arrays specific to line series
     readonly yRawValues: AgNumericValue[];
     readonly yCumulativeValues: AgNumericValue[];
-    readonly selectionValues: ArrayLike<any> | undefined;
+    readonly crossFilterSelectionValues: ArrayLike<any> | undefined;
 
     // Pre-computed values (computed once, reused for all datums)
     readonly size: number;
@@ -111,7 +114,7 @@ export interface LineNodeDatumScratch {
     yDatum: any;
     // Kept raw (possibly bigint) so yScale.convert() positions values beyond Number.MAX_VALUE proportionally.
     yCumulative: AgNumericValue;
-    selected: boolean | undefined;
+    crossFilterSelected: boolean | undefined;
     x: number;
     y: number;
 }

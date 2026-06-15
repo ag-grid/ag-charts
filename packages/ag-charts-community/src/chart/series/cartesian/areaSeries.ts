@@ -172,7 +172,7 @@ interface AreaSeriesCreateNodeDatumContext extends CartesianMarkerLikeContext<Ma
     // Additional data arrays specific to area series
     readonly yRawValues: AgNumericValue[];
     readonly yCumulativeValues: AgNumericValue[];
-    readonly selectedValues: boolean[] | undefined;
+    readonly crossFilterSelectedValues: boolean[] | undefined;
     readonly invalidData: boolean[] | undefined;
 
     // Aggregation
@@ -204,7 +204,7 @@ interface AreaNodeDatumScratch {
     xDatum: any;
     yDatum: any;
     yCumulative: AgNumericValue;
-    selected: boolean | undefined;
+    crossFilterSelected: boolean | undefined;
     x: number;
     y: number;
     validPoint: boolean;
@@ -998,7 +998,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             yCumulativeValues: stacked
                 ? dataModel.resolveColumnById(this, 'yValueCumulative', processedData, 'mixed-numeric')
                 : dataModel.resolveColumnById(this, 'yValueRaw', processedData, 'mixed-numeric'),
-            selectedValues:
+            crossFilterSelectedValues:
                 selectedKey == null
                     ? undefined
                     : dataModel.resolveColumnById(this, 'selectedRaw', processedData, 'boolean'),
@@ -1087,7 +1087,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         // Compute marker coordinates
         this.computeMarkerCoordinate(ctx, scratch);
 
-        scratch.selected = ctx.selectedValues?.[datumIndex];
+        scratch.crossFilterSelected = ctx.crossFilterSelectedValues?.[datumIndex];
 
         // Marker data (using ctx.nodes to match base interface)
         if (scratch.validPoint) {
@@ -1106,7 +1106,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                 existingNode.yValue = scratch.yDatum;
                 existingNode.xValue = scratch.xDatum;
                 existingNode.point = { x: scratch.x, y: scratch.y, size: ctx.markerSize };
-                existingNode.selected = scratch.selected;
+                existingNode.crossFilterSelected = scratch.crossFilterSelected;
             } else {
                 ctx.nodes.push({
                     series: this,
@@ -1122,7 +1122,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                     fill: ctx.markerFill,
                     stroke: ctx.markerStroke,
                     strokeWidth: ctx.markerStrokeWidth,
-                    selected: scratch.selected,
+                    crossFilterSelected: scratch.crossFilterSelected,
                 });
             }
             ctx.nodeIndex++;
@@ -1173,7 +1173,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             xDatum: undefined,
             yDatum: undefined,
             yCumulative: 0,
-            selected: undefined,
+            crossFilterSelected: undefined,
             x: 0,
             y: 0,
             validPoint: false,
@@ -1480,7 +1480,9 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         datumSelection.each((node, datum) => {
             const state = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
             const style = datum.style ?? contextNodeData.styles[state];
-            this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
+            this.applyMarkerStyle(style, node, datum.point, fillBBox, {
+                crossFilterSelected: datum.crossFilterSelected,
+            });
             const nextDrawingMode = constantDrawingMode ?? this.resolveMarkerDrawingModeForState(drawingMode, style);
             if (node.__drawingMode !== nextDrawingMode) {
                 node.drawingMode = nextDrawingMode;

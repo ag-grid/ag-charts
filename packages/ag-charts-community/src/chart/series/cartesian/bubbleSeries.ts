@@ -189,7 +189,10 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
     readonly count: number;
     readonly dilation: number;
     readonly area: number;
-    readonly selected: boolean | undefined;
+    // WARNING! This selected-state is related to cross-filtering which is not an officially documented or supported
+    // feature. It has nothing to do with the official data selection API in the options contract. Do not use, or use
+    // with extreme caution.
+    readonly crossFilterSelected: boolean | undefined;
     style?: AgSeriesMarkerStyle;
 }
 
@@ -225,7 +228,7 @@ interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<Bubble
     readonly yDataValues: any[];
     readonly sizeDataValues: number[] | undefined;
     readonly labelDataValues: any[] | undefined;
-    readonly selectedDataValues: boolean[] | undefined;
+    readonly crossFilterSelectedDataValues: boolean[] | undefined;
     readonly colorDataValues: number[] | undefined;
 
     // Additional scale (size is BubbleSeries-specific)
@@ -269,8 +272,8 @@ interface PreparedBubbleNodeDatumState {
     x: number;
     y: number;
 
-    // Selection state
-    selected: boolean | undefined;
+    // Cross-Filter (undocumented) Selection state
+    crossFilterSelected: boolean | undefined;
 
     // Label data
     nodeLabel: MeasuredLabel;
@@ -596,7 +599,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 sizeKey == null ? undefined : dataModel.resolveColumnById(this, `sizeValue`, processedData, 'number'),
             labelDataValues:
                 labelKey == null ? undefined : dataModel.resolveColumnById(this, `labelValue`, processedData, 'object'),
-            selectedDataValues:
+            crossFilterSelectedDataValues:
                 selectedKey == null
                     ? undefined
                     : dataModel.resolveColumnById(this, `selectedValue`, processedData, 'boolean'),
@@ -666,7 +669,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             colorValue: undefined,
             x: 0,
             y: 0,
-            selected: undefined,
+            crossFilterSelected: undefined,
             nodeLabel: { text: '', width: 0, height: 0 },
             markerSize: 0,
             count: 1,
@@ -807,7 +810,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         if (!Number.isFinite(x) || !Number.isFinite(y)) return undefined;
 
-        const selected = ctx.selectedDataValues?.[datumIndex];
+        const crossFilterSelected = ctx.crossFilterSelectedDataValues?.[datumIndex];
 
         // Compute label (skip expensive formatting if labels disabled)
         let nodeLabel: MeasuredLabel;
@@ -830,7 +833,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         scratch.colorValue = colorValue;
         scratch.x = x;
         scratch.y = y;
-        scratch.selected = selected;
+        scratch.crossFilterSelected = crossFilterSelected;
         scratch.nodeLabel = nodeLabel;
         scratch.markerSize = markerSize;
 
@@ -928,7 +931,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             count: 1,
             dilation: 1,
             area: 0,
-            selected: undefined,
+            crossFilterSelected: undefined,
         };
     }
 
@@ -952,7 +955,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         mutableNode.yValue = scratch.yDatum;
         mutableNode.sizeValue = scratch.sizeValue;
         mutableNode.colorValue = scratch.colorValue;
-        mutableNode.selected = scratch.selected;
+        mutableNode.crossFilterSelected = scratch.crossFilterSelected;
         mutableNode.count = scratch.count;
         mutableNode.dilation = scratch.dilation;
         mutableNode.area = scratch.area;
@@ -1143,7 +1146,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 style.fillOpacity = clamp(fillOpacity / dilation, (fillOpacity / 0.1) * opacityScale, 1);
             }
 
-            this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
+            this.applyMarkerStyle(style, node, datum.point, fillBBox, {
+                crossFilterSelected: datum.crossFilterSelected,
+            });
             const nextDrawingMode = constantDrawingMode ?? this.resolveMarkerDrawingModeForState(drawingMode, style);
             if (node.__drawingMode !== nextDrawingMode) {
                 node.drawingMode = nextDrawingMode;

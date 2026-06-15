@@ -71,6 +71,9 @@ export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
     errorBar: errorBarOptionsDefs,
 };
 
+// WARNING! This selectedKey is related to cross-filtering which is not an officially documented or supported
+// feature. It has nothing to do with the official data selection API in the options contract. Do not use, or use with
+// extreme caution.
 // @ts-expect-error undocumented option
 lineSeriesOptionsDef.selectedKey = undocumented(string);
 // @ts-expect-error undocumented option
