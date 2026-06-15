@@ -1462,7 +1462,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         isHighlight: boolean;
         drawingMode: AgDrawingMode;
     }) {
-        const { contextNodeData } = this;
+        const { contextNodeData, hideWithSize0 } = this;
         if (!contextNodeData) {
             return;
         }
@@ -1482,6 +1482,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             const style = datum.style ?? contextNodeData.styles[state];
             this.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 crossFilterSelected: datum.crossFilterSelected,
+                hideWithSize0,
             });
             const nextDrawingMode = constantDrawingMode ?? this.resolveMarkerDrawingModeForState(drawingMode, style);
             if (node.__drawingMode !== nextDrawingMode) {

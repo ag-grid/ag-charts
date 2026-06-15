@@ -864,7 +864,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         isHighlight: boolean;
         drawingMode: AgDrawingMode;
     }) {
-        const { contextNodeData } = this;
+        const { contextNodeData, hideWithSize0 } = this;
         if (!contextNodeData) {
             return;
         }
@@ -890,6 +890,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             thisSeries.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 applyPosition,
                 crossFilterSelected: datum.crossFilterSelected,
+                hideWithSize0,
             });
             const nextDrawingMode =
                 constantDrawingMode ?? thisSeries.resolveMarkerDrawingModeForState(drawingMode, style);

@@ -298,6 +298,7 @@ export {
     resetMarkerPositionFn,
     resetMarkerSelectionsDirect,
 } from './chart/series/cartesian/markerUtil';
+export type { MarkerDrawMode } from './chart/series/cartesian/markerUtil';
 export {
     buildResetPathFn,
     pathFadeInAnimation,

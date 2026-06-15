@@ -182,7 +182,7 @@ function markerEnabled(
     return step > minSpacing;
 }
 
-type CartesianMarkerDrawMode = {
+export type MarkerDrawMode = {
     needsNodeData: boolean;
     hideWithSize0: boolean;
 };
@@ -194,7 +194,7 @@ export function cartesianMarkerDrawMode(
     marker: { enabled: boolean },
     markerStyle: { enabled?: boolean } = marker,
     isMiniChart: boolean = false
-): CartesianMarkerDrawMode {
+): MarkerDrawMode {
     const markersEnabled =
         contextNodeData?.crossFiltering === true ||
         markerEnabled(processedData.input.count, axes[ChartAxisDirection.X]!.scale, marker, markerStyle);
