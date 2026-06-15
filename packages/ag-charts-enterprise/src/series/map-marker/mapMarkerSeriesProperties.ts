@@ -99,7 +99,7 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     shape: AgMarkerShape = 'circle';
 
     @Property
-    size: number = 6;
+    size!: number;
 
     @Property
     minSize: number | undefined;

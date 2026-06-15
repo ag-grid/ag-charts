@@ -30,6 +30,7 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
         ...MAP_THEME_DEFAULTS,
         series: {
             shape: 'circle',
+            size: 7,
             maxSize: 30,
             fill: applyMapPalette({
                 $applySwitch: [

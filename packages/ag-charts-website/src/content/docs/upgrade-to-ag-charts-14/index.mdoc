@@ -149,6 +149,7 @@ This release includes the following behaviour changes:
 
 ### Map Marker and Map Line Series
 
+- The default Map Marker `size` has changed from `6` to `7` to align with the other circle marker series (Bubble, Scatter, Line, Area). Charts relying on the default render markers slightly larger.
 - Map Marker gains `minSize` and Map Line gains `minStrokeWidth` as the explicit lower bound of the size scale when `sizeKey` is set. Each defaults to `size`/`strokeWidth` respectively. When `sizeKey` is absent, `size`/`strokeWidth` remain the fixed marker size and line width.
 - Setting both bounds explicitly with the lower bound greater than the upper bound now emits a warning and falls back to theme defaults.
 
