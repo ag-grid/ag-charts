@@ -315,8 +315,11 @@ export class Crosshair
         if (!options?.enabled) return;
 
         const { crosshairGroup, axisCtx } = this;
-        const { datum, series } = event.currentHighlight ?? {};
-        const hasCrosshair = datum && (series?.axes.x?.id === axisCtx.axisId || series?.axes.y?.id === axisCtx.axisId);
+        const { datum, datums, series } = event.currentHighlight ?? {};
+        // Bins (histogram) expose their rows on `datums`, with `datum` left undefined.
+        const hasCrosshair =
+            (datum != null || datums != null) &&
+            (series?.axes.x?.id === axisCtx.axisId || series?.axes.y?.id === axisCtx.axisId);
 
         this.activeHighlight = hasCrosshair ? event.currentHighlight : undefined;
         this.activeHighlightInViewport = event.highlightInViewport;

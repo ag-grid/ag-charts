@@ -79,10 +79,10 @@ The minimum supported version of TypeScript is now 5.8.
 
 ### Histogram Series
 
-All histogram callbacks (`tooltip.renderer`, `label.formatter`, `seriesNodeClick`, `seriesNodeDoubleClick`, and context menu callbacks) now receive a consistent set of params: `datum` is `TDatum[]` (the raw source rows in the bin), with `binIndex`, `aggregatedValue`, `frequency`, and `binRange` as top-level fields.
+All histogram callbacks (`tooltip.renderer`, `label.formatter`, `seriesNodeClick`, `seriesNodeDoubleClick`, and context menu callbacks) now receive a consistent set of params: `datums` is `TDatum[]` (the raw source rows in the bin), with `binIndex`, `aggregatedValue`, `frequency`, and `binRange` as top-level fields. `datum` is `undefined`, since a bin has no single source row.
 
-- In `tooltip.renderer`, `datum` is changed from `AgHistogramBinDatum` to `TDatum[]`.
-- In `seriesNodeClick`, `seriesNodeDoubleClick`, and context menu callbacks, `datum` is changed from extracted column values to the raw source objects.
+- In `tooltip.renderer`, the bin rows move from `datum` (which was `AgHistogramBinDatum`) to `datums`.
+- In `seriesNodeClick`, `seriesNodeDoubleClick`, and context menu callbacks, the bin rows are exposed as `datums` (the raw source objects), replacing the extracted column values previously on `datum`.
 - `xRange` is removed from `tooltip.renderer` params. Use `binRange` instead.
 - The bin-object `domain` field is removed from `tooltip.renderer` params.
 - `binIndex`, `aggregatedValue`, `frequency`, and `binRange` are added as top-level params to all histogram callbacks.
