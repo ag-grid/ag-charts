@@ -45,6 +45,10 @@ describe('cspRules', () => {
             expect(site['script-src']).toContain("'unsafe-inline'");
             expect(site['style-src']).toContain("'unsafe-inline'");
         });
+
+        it('connect-src allows data: so sized SVG/data-URI images can be fetched for resize injection', () => {
+            expect(getCspDirectives({ env: 'production', scope: 'site' })['connect-src']).toContain('data:');
+        });
     });
 
     describe('getScopedCspHtaccessBlock', () => {

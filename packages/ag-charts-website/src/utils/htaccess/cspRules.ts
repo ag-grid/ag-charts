@@ -124,6 +124,7 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
         // a decision (broaden vs allowlist) before flipping to enforce.
         'connect-src': [
             SELF,
+            'data:', // sized SVG/data-URI images are fetched for resize injection (see imageLoader.ts)
             AG_GRID_HOSTS,
             'https://plausible.io',
             'https://*.algolia.net', // Algolia DocSearch
