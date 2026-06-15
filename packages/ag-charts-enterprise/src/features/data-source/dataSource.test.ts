@@ -450,22 +450,29 @@ describe('DataSource', () => {
         ];
 
         let sources: Array<AgDataSourceRequestSource | undefined>;
+        let resolveFetch: (() => void) | undefined;
+
+        // Resolves the next time the dataSource callback runs. updateDelta/setState refetch on a
+        // trailing-edge throttle that fires after a fixed `delay` would have resolved, so the test
+        // settles on the actual callback invocation rather than a timer.
+        function nextFetch() {
+            return new Promise<void>((resolve) => {
+                resolveFetch = resolve;
+            });
+        }
 
         async function prepareWithSourceCapture() {
             sources = [];
+            const fetched = nextFetch();
             await prepareChart({
                 getData: ({ source }) => {
                     sources.push(source);
+                    resolveFetch?.();
+                    resolveFetch = undefined;
                     return delay(1).then(() => NUMERIC_DATA);
                 },
             });
-            await settle();
-        }
-
-        // Wait for any in-flight (throttled, trailing-edge) fetch to invoke the callback and resolve.
-        async function settle() {
-            await delay(10);
-            await waitForChartStability(chart);
+            await fetched;
             await waitForChartStability(chart);
         }
 
@@ -481,8 +488,10 @@ describe('DataSource', () => {
             await prepareWithSourceCapture();
             sources.length = 0;
 
+            const fetched = nextFetch();
             await chart.updateDelta({});
-            await settle();
+            await fetched;
+            await waitForChartStability(chart);
 
             expect(sources).toContain('chart-update');
             expect(sources).not.toContain('user-interaction');
@@ -492,8 +501,10 @@ describe('DataSource', () => {
             await prepareWithSourceCapture();
             sources.length = 0;
 
+            const fetched = nextFetch();
             await scrollAction(cx, cy, -1)(chart);
-            await settle();
+            await fetched;
+            await waitForChartStability(chart);
 
             expect(sources).toContain('user-interaction');
         });
@@ -503,16 +514,22 @@ describe('DataSource', () => {
 
             // Capture a zoomed state to restore later, then zoom to a different level so the
             // restore is a genuine change that re-triggers a fetch.
+            let fetched = nextFetch();
             await scrollAction(cx, cy, -1)(chart);
-            await settle();
+            await fetched;
+            await waitForChartStability(chart);
             const zoomedState = chart.getState();
 
+            fetched = nextFetch();
             await scrollAction(cx, cy, -1)(chart);
-            await settle();
+            await fetched;
+            await waitForChartStability(chart);
             sources.length = 0;
 
+            fetched = nextFetch();
             await chart.setState(zoomedState);
-            await settle();
+            await fetched;
+            await waitForChartStability(chart);
 
             expect(sources).toContain('state-change');
         });
