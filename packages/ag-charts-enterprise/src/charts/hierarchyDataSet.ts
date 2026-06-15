@@ -91,33 +91,20 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
         }
     }
 
-    /** Recursively indexes all items (root and nested) by ID, mapping each to the root ancestor's index. */
+    /** Recursively indexes all items (root and nested) by ID, mapping each to its DFS order. */
     public override getIdToIndexMap(): Map<string | number, number> {
         if (this.idToIndexCache === undefined) {
             this.idToIndexCache = new Map();
-            for (let i = 0; i < this.data.length; i++) {
-                this.indexItemRecursively(this.data[i], i);
+            const dfsOrdering = this.getDfsOrdering();
+            for (let datumIndex = 0; datumIndex < dfsOrdering.length; datumIndex++) {
+                const itemId: string | number = this.getIdValue(dfsOrdering[datumIndex]) ?? datumIndex;
+                this.idToIndexCache.set(itemId, datumIndex);
             }
             if (this.idToIndexCache.size === 0 && this.data.length > 0) {
                 Logger.warnOnce(`dataIdKey '${this.dataIdKey}' was not found on any data item.`);
             }
         }
         return this.idToIndexCache;
-    }
-
-    private indexItemRecursively(item: T, rootIndex: number): void {
-        const id = this.getIdValue(item);
-        if (id !== undefined) {
-            if (!this.idToIndexCache!.has(id)) {
-                this.idToIndexCache!.set(id, rootIndex);
-            }
-        }
-        const children = (item as any)?.[this.childrenKey];
-        if (Array.isArray(children)) {
-            for (const child of children) {
-                this.indexItemRecursively(child as T, rootIndex);
-            }
-        }
     }
 
     /** Handles updates for both root-level and nested items. */
