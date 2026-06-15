@@ -31,6 +31,8 @@ export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = Cont
     dataIdKey?: DatumKey<TDatum>;
     /** Datum from the chart or series data array. */
     datum: TDatum;
+    /** Every datum grouped into the bin for histogram series; `undefined` for all other series. */
+    datums?: TDatum[];
     /** Waterfall series only: the type of bar - `positive`, `negative`, `total` or `subtotal`. */
     itemType?: AgItemType;
     /** Waterfall series only: the computed cumulative value for `total` and `subtotal` bars. */
@@ -83,6 +85,8 @@ export interface AgActiveChangeEvent<TDatum, TContext> extends AgActiveState, Ag
     context?: TContext;
     /** Datum from the chart or series data array. */
     datum?: TDatum;
+    /** Every datum grouped into the bin for histogram series; `undefined` for all other series. */
+    datums?: TDatum[];
     /** The active item's type, for series that distinguish item types (e.g. waterfall, OHLC, candlestick, range area); `undefined` otherwise. */
     itemType?: AgItemType;
     /** Waterfall series only: the computed cumulative value for `total` and `subtotal` bars. */

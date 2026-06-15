@@ -902,6 +902,11 @@ describe('Chart', () => {
             expect(nodeClick).toHaveBeenCalledWith(expect.objectContaining({ type: 'seriesNodeClick' }));
             expect(seriesNodeClick).toHaveBeenCalledWith(expect.objectContaining({ type: 'seriesNodeClick' }));
 
+            // A 1:1 series exposes the single row as `datum` and leaves `datums` undefined.
+            const barClickEvent = nodeClick.mock.calls[0][0];
+            expect(barClickEvent.datum).toEqual({ xValue: 'category', yValue: 1 });
+            expect(barClickEvent.datums).toBeUndefined();
+
             await doubleClickAction(200, 200)(agChartInstance);
 
             expect(nodeDoubleClick).toHaveBeenCalledTimes(1);

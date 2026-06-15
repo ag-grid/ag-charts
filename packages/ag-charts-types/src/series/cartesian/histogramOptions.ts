@@ -19,8 +19,10 @@ import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, St
  * node click/double-click, context menu and `getItemId`).
  */
 export interface AgHistogramSeriesBinParams<TDatum = DatumDefault> {
-    /** The raw source rows grouped into the bin. */
-    readonly datum: TDatum[];
+    /** Always `undefined` for a bin, which aggregates many rows; use `datums` for the source rows. */
+    readonly datum: undefined;
+    /** Every source row grouped into the bin. */
+    readonly datums: TDatum[];
     /** Zero-based positional index of the bin within the series. Defined for every bin, including empty ones. */
     readonly binIndex: number;
     /** The bin's start and end bounds on the x-axis. `bigint` values for a bigint `xKey` column. */
@@ -33,7 +35,7 @@ export interface AgHistogramSeriesBinParams<TDatum = DatumDefault> {
 
 export interface AgHistogramSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgCartesianSeriesTooltipRendererParams<TDatum[], TContext>, 'xKey' | 'yKey' | 'datum'>,
+        Omit<AgCartesianSeriesTooltipRendererParams<TDatum, TContext>, 'xKey' | 'yKey' | 'datum'>,
         AgHistogramSeriesBinParams<TDatum>,
         FillOptions,
         StrokeOptions {
@@ -62,7 +64,7 @@ export interface AgHistogramSeriesThemeableOptions<TDatum = DatumDefault, TConte
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Configuration for the labels shown on bars. */
-    label?: AgChartLabelOptions<TDatum[], AgHistogramSeriesLabelFormatterParams<TDatum>, TContext>;
+    label?: AgChartLabelOptions<undefined, AgHistogramSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgHistogramSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
@@ -101,11 +103,13 @@ export interface AgHistogramSeriesOptionsNames {
 
 /** Node click/double-click event fired for a histogram bin. */
 export interface AgHistogramSeriesNodeClickEvent<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgNodeClickEvent<'seriesNodeClick', TDatum, TContext>, 'datum'>, AgHistogramSeriesBinParams<TDatum> {}
+    extends
+        Omit<AgNodeClickEvent<'seriesNodeClick', TDatum, TContext>, 'datum' | 'datums'>,
+        AgHistogramSeriesBinParams<TDatum> {}
 
 export interface AgHistogramSeriesNodeDoubleClickEvent<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgNodeClickEvent<'seriesNodeDoubleClick', TDatum, TContext>, 'datum'>,
+        Omit<AgNodeClickEvent<'seriesNodeDoubleClick', TDatum, TContext>, 'datum' | 'datums'>,
         AgHistogramSeriesBinParams<TDatum> {}
 
 export interface AgHistogramSeriesListeners<TDatum = DatumDefault, TContext = ContextDefault> {

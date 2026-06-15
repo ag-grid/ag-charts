@@ -163,8 +163,8 @@ export class ContextMenu extends AbstractModuleInstance {
 
                 // Histogram bins carry standardised bin metadata; binIndex is always set for histogram nodes.
                 if (this.pickedNode.binIndex !== undefined) {
-                    const { binIndex, binRange, aggregatedValue, frequency } = this.pickedNode;
-                    Object.assign(params, { binIndex, binRange, aggregatedValue, frequency });
+                    const { datums, binIndex, binRange, aggregatedValue, frequency } = this.pickedNode;
+                    Object.assign(params, { datums, binIndex, binRange, aggregatedValue, frequency });
                 }
                 return params;
             }

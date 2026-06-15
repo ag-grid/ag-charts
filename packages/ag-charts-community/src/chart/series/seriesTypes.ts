@@ -90,6 +90,7 @@ export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extend
     // Note: this is typically a MouseEvent, but it can be a TouchEvent or KeyboardEvent too.
     readonly event: Event;
     readonly datum: unknown;
+    readonly datums?: unknown[];
     readonly totalValue?: AgNumericValue;
     readonly seriesId: string;
     readonly itemId: string | number;
@@ -185,6 +186,7 @@ export interface SeriesNodeDatum {
     readonly itemId?: ItemId;
     readonly itemType?: ItemType;
     readonly datum: unknown;
+    readonly datums?: unknown[];
     /** Waterfall series only: the computed cumulative value for `total`/`subtotal` bars. */
     readonly totalValue?: AgNumericValue;
     readonly datumIndex: DatumIndex;

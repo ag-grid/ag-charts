@@ -160,7 +160,7 @@ export type INodeEventConstructor<
 > = new <T extends TEvent>(
     type: T,
     event: Event,
-    { datum }: TDatum,
+    nodeDatum: TDatum,
     series: TSeries,
     selectionState: PublicSelectionState | undefined
 ) => INodeEvent<T>;
@@ -173,6 +173,7 @@ export class SeriesNodeEvent<
     TEvent extends string = SeriesNodeEventTypes,
 > implements INodeEvent<TEvent> {
     readonly datum: unknown;
+    readonly datums?: unknown[];
     readonly totalValue?: AgNumericValue;
     readonly seriesId: string;
     readonly itemId: string | number;
@@ -188,6 +189,7 @@ export class SeriesNodeEvent<
         selectionState: PublicSelectionState | undefined
     ) {
         this.datum = nodeDatum.datum;
+        this.datums = nodeDatum.datums;
         this.totalValue = nodeDatum.totalValue;
         this.seriesId = series.id;
         this.dataIdKey = series.data?.dataIdKey;
