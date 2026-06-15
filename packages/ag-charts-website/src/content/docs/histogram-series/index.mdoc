@@ -170,6 +170,34 @@ Histogram callbacks - `tooltip.renderer`, `label.formatter`, `listeners.seriesNo
 }
 ```
 
+## Conditional Styling
+
+Use an `itemStyler` to style each bin from its bin data, or a `styler` to style the whole series from its highlight or selection state. See [Stylers](./stylers/) for the general pattern.
+
+{% chartExampleRunner title="Histogram Item Styler" name="histogram-item-styler" type="generated" /%}
+
+The `itemStyler` runs for every bin and receives the same [bin data](#bin-data-in-callbacks) as the other callbacks, along with the bin's resolved style and `highlightState`. Return the style properties to override.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'histogram',
+            xKey: 'age',
+            yKey: 'winnings',
+            itemStyler: ({ frequency, highlightState }) => {
+                if (highlightState === 'highlighted-item') {
+                    return { fill: 'orange' };
+                }
+                return { fillOpacity: frequency > 10 ? 1 : 0.4 };
+            },
+        },
+    ],
+}
+```
+
+In this configuration, bins with more than ten participants are shown at full opacity and sparser bins are faded. Hovering a bin highlights it.
+
 ## API Reference
 
 {% tabs %}

@@ -2,6 +2,7 @@ import {
     type OptionsDefs,
     arrayOf,
     boolean,
+    callbackDefs,
     callbackOf,
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
@@ -20,11 +21,24 @@ import {
     tooltipOptionsDefs,
     union,
 } from 'ag-charts-core';
-import type { AgHistogramSeriesOptions, AgHistogramSeriesThemeableOptions } from 'ag-charts-types';
+import type {
+    AgHistogramSeriesOptions,
+    AgHistogramSeriesStyle,
+    AgHistogramSeriesThemeableOptions,
+} from 'ag-charts-types';
+
+const histogramStyler = callbackDefs<AgHistogramSeriesStyle>({
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    cornerRadius: positiveNumber,
+});
 
 export const histogramSeriesThemeableOptionsDef: OptionsDefs<AgHistogramSeriesThemeableOptions> = {
     showInMiniChart: boolean,
     cornerRadius: positiveNumber,
+    styler: histogramStyler,
+    itemStyler: histogramStyler,
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,

@@ -2,11 +2,14 @@ import type { InternalAgColorType, NormalisedTextOrSegments, RequireOptional } f
 import { Property } from 'ag-charts-core';
 import type {
     AgHistogramSeriesGetItemIdParams,
+    AgHistogramSeriesItemStylerParams,
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
     AgHistogramSeriesStyle,
+    AgHistogramSeriesStylerParams,
     AgHistogramSeriesTooltipRendererParams,
     AgNumericValue,
+    Styler,
 } from 'ag-charts-types';
 
 import type { BBox } from '../../../scene/bbox';
@@ -81,6 +84,12 @@ export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHisto
 
     @Property
     cornerRadius: number = 0;
+
+    @Property
+    styler?: Styler<AgHistogramSeriesStylerParams<unknown, unknown>, AgHistogramSeriesStyle>;
+
+    @Property
+    itemStyler?: Styler<AgHistogramSeriesItemStylerParams<unknown>, AgHistogramSeriesStyle>;
 
     @Property
     areaPlot: boolean = false;
