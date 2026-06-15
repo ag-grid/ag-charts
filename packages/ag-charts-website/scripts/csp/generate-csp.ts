@@ -2,8 +2,8 @@
 /* eslint-disable no-console */
 import { writeFileSync } from 'fs';
 
-import type { CspEnv, CspMode } from '../../src/utils/htaccess/cspRules';
-import { getCspHeaderName, getCspHtaccessBlock, getCspValue } from '../../src/utils/htaccess/cspRules';
+import type { CspEnv, CspMode, CspScope } from '../../src/utils/htaccess/cspRules';
+import { getCspHeaderName, getCspValue, getScopedCspHtaccessBlock } from '../../src/utils/htaccess/cspRules';
 
 /**
  * Generate the AG Charts Content-Security-Policy for a given environment.
@@ -13,6 +13,7 @@ import { getCspHeaderName, getCspHtaccessBlock, getCspValue } from '../../src/ut
  *       [--env=staging|production|dev]
  *       [--mode=report-only|enforce]
  *       [--format=htaccess|header|value]
+ *       [--scope=site|examples]    (header/value formats only; htaccess emits both)
  *       [--out=<file>]
  *
  * The policy itself lives in src/utils/htaccess/cspRules.ts (single source of
@@ -24,6 +25,7 @@ type Format = 'htaccess' | 'header' | 'value';
 const ENVS: CspEnv[] = ['dev', 'staging', 'production'];
 const MODES: CspMode[] = ['report-only', 'enforce'];
 const FORMATS: Format[] = ['htaccess', 'header', 'value'];
+const SCOPES: CspScope[] = ['site', 'examples'];
 
 function assertOneOf<T extends string>(value: string | undefined, allowed: T[], flag: string): T {
     if (value === undefined || !allowed.includes(value as T)) {
@@ -32,10 +34,11 @@ function assertOneOf<T extends string>(value: string | undefined, allowed: T[], 
     return value as T;
 }
 
-function parseArgs(argv: string[]): { env: CspEnv; mode: CspMode; format: Format; out?: string } {
+function parseArgs(argv: string[]): { env: CspEnv; mode: CspMode; format: Format; scope: CspScope; out?: string } {
     let env: CspEnv = 'staging';
     let mode: CspMode = 'report-only';
     let format: Format = 'htaccess';
+    let scope: CspScope = 'site';
     let out: string | undefined;
 
     for (let i = 0, len = argv.length; i < len; ++i) {
@@ -48,6 +51,8 @@ function parseArgs(argv: string[]): { env: CspEnv; mode: CspMode; format: Format
             mode = assertOneOf(value, MODES, '--mode');
         } else if (key === '--format') {
             format = assertOneOf(value, FORMATS, '--format');
+        } else if (key === '--scope') {
+            scope = assertOneOf(value, SCOPES, '--scope');
         } else if (key === '--out') {
             out = value;
         } else {
@@ -55,22 +60,24 @@ function parseArgs(argv: string[]): { env: CspEnv; mode: CspMode; format: Format
         }
     }
 
-    return { env, mode, format, out };
+    return { env, mode, format, scope, out };
 }
 
-function render(format: Format, env: CspEnv, mode: CspMode): string {
+function render(format: Format, env: CspEnv, mode: CspMode, scope: CspScope): string {
     if (format === 'value') {
-        return getCspValue({ env });
+        return getCspValue({ env, scope });
     }
     if (format === 'header') {
-        return `${getCspHeaderName(mode)}: ${getCspValue({ env })}`;
+        return `${getCspHeaderName(mode)}: ${getCspValue({ env, scope })}`;
     }
-    return getCspHtaccessBlock({ env }, mode);
+    // The htaccess format emits the full path-scoped block (site policy plus the
+    // <If> override for example/archive paths) — what ships in the generated file.
+    return getScopedCspHtaccessBlock({ env }, mode);
 }
 
 function main(): void {
-    const { env, mode, format, out } = parseArgs(process.argv.slice(2));
-    const output = render(format, env, mode);
+    const { env, mode, format, scope, out } = parseArgs(process.argv.slice(2));
+    const output = render(format, env, mode, scope);
 
     if (out) {
         writeFileSync(out, `${output}\n`);
