@@ -540,6 +540,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             itemId,
             datumIndex: binIndex,
             datum,
+            datums: datum,
             binIndex,
             binRange,
             aggregatedValue,
@@ -588,6 +589,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         // Update properties
         mutableNode.datumIndex = binIndex;
         mutableNode.datum = datum;
+        mutableNode.datums = datum;
         mutableNode.binIndex = binIndex;
         mutableNode.aggregatedValue = aggregatedValue;
         mutableNode.cumulativeValue = Number(total);

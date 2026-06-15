@@ -347,10 +347,14 @@ describe('HistogramSeries', () => {
                 ])
             );
 
+            // datums mirrors the bin's source rows so global callbacks have a correctly-typed array.
+            expect(nodes[0].datums).toBe(nodes[0].datum);
+
             // TC1: an empty bin is still a positioned bin.
             expect(nodes[2].binIndex).toBe(2);
             expect(nodes[2].binRange).toEqual([20, 30]);
             expect(nodes[2].datum).toEqual([]);
+            expect(nodes[2].datums).toEqual([]);
             expect(nodes[2].frequency).toBe(0);
             expect(nodes[2].aggregatedValue).toBe(0);
         });
@@ -467,6 +471,8 @@ describe('HistogramSeries', () => {
                     { x: 8, y: 3, label: 'c' },
                 ])
             );
+            // datums exposes the same bin rows under a correctly-typed array; datum is unchanged.
+            expect(event.datums).toEqual(event.datum);
         });
 
         it('fires seriesNodeDoubleClick with the bin params', async () => {

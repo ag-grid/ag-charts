@@ -1,7 +1,7 @@
-import { afterEach, describe, expect, it, test } from 'vitest';
+import { afterEach, describe, expect, it, test, vi } from 'vitest';
 
 import type { AgChartOptions, AgContextMenuItem } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
+import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     clickAction,
     computeLegendBBox,
@@ -159,6 +159,65 @@ describe('Context Menu', () => {
             await waitForChartStability(chart);
 
             expect(highlightManager.getActiveHighlight()).toBeUndefined();
+        });
+    });
+
+    describe('series-node getItems datums (AG-17546)', () => {
+        const HISTOGRAM_OPTIONS: AgChartOptions = {
+            data: [{ x: 2 }, { x: 5 }, { x: 8 }, { x: 35 }],
+            series: [
+                {
+                    type: 'histogram',
+                    xKey: 'x',
+                    bins: [
+                        [0, 10],
+                        [10, 20],
+                        [20, 30],
+                        [30, 40],
+                    ],
+                },
+            ],
+            contextMenu: { enabled: true },
+        };
+
+        const nodeCanvasPoint = (datumIndex: number) => {
+            const series = deproxy(chart).series[0] as any;
+            const node = series.getNodeData()[datumIndex];
+            return _ModuleSupport.Transformable.toCanvasPoint(
+                series.contentGroup,
+                node.x + node.width / 2,
+                node.y + node.height / 2
+            );
+        };
+
+        it('passes the bin source rows to getItems as datums', async () => {
+            const getItems = vi.fn((_params: any) => []);
+            await prepareChart({ enabled: true, getItems }, HISTOGRAM_OPTIONS);
+
+            const { x, y } = nodeCanvasPoint(0);
+            await contextMenuAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            expect(getItems).toHaveBeenCalledTimes(1);
+            const params = getItems.mock.calls[0][0];
+            // datums exposes every row grouped into the bin; datum is unchanged (also the bin array).
+            expect(params.datums).toHaveLength(3);
+            expect(params.datums).toEqual(expect.arrayContaining([{ x: 2 }, { x: 5 }, { x: 8 }]));
+            expect(params.datum).toEqual(params.datums);
+        });
+
+        it('leaves datums undefined for a 1:1 series node', async () => {
+            const getItems = vi.fn((_params: any) => []);
+            await prepareChart({ enabled: true, getItems });
+
+            const { x, y } = nodeCanvasPoint(3);
+            await contextMenuAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            expect(getItems).toHaveBeenCalledTimes(1);
+            const params = getItems.mock.calls[0][0];
+            expect(params.datum).toEqual({ x: 3, y: 75 });
+            expect(params.datums).toBeUndefined();
         });
     });
 
