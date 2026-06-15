@@ -241,7 +241,7 @@ function createRadarOptions(): AgPolarChartOptions<RadarDatum, unknown> {
                 // without setting marker.enabled.
             },
         ],
-        legend: { enabled: false },
+        legend: { enabled: true },
     };
 }
 
@@ -4077,6 +4077,7 @@ describe('DataSelection', () => {
                     radarLineDatum(2, { areaValue: 8, axis: 'C', lineValue: 4 }),
                     radarLineDatum(5, { areaValue: 7, axis: 'F', lineValue: 3 }),
                     radarAreaDatum(0, { areaValue: 3, axis: 'A', lineValue: 5 }),
+                    radarAreaDatum(3, { areaValue: 5, axis: 'D', lineValue: 8 }),
                     radarAreaDatum(4, { areaValue: 4, axis: 'E', lineValue: 6 }),
                     radarAreaDatum(6, { areaValue: 2, axis: 'G', lineValue: 9 }),
                 ];
@@ -4152,6 +4153,32 @@ describe('DataSelection', () => {
                         });
                         test('selectionChange', () => {
                             expect(selectionChange.popEvents()).toEqual(SELECTIONCHANGE);
+                        });
+
+                        describe('hide radar area', () => {
+                            beforeEach(async () => {
+                                // Pop and ignore events from mouseup
+                                selectionChange.popEvents();
+
+                                const { version } = chart.getState();
+                                await chart.setState({
+                                    version,
+                                    legend: [
+                                        { seriesId: 'radarlineid', itemId: 'lineValue', visible: true },
+                                        { seriesId: 'radarareaid', itemId: 'areaValue', visible: false },
+                                    ],
+                                });
+                                await waitForChartStability(chart);
+                            });
+                            test('screenshot', async () => {
+                                await compareExact('drag-modifiers-radars-hidewithsize0-area-hidden');
+                            });
+                            test('getSelection', () => {
+                                expect(getChartSelectionArray()).toEqual(SELECTION);
+                            });
+                            test('selectionChange', () => {
+                                expect(selectionChange.popEvents()).toEqual([]);
+                            });
                         });
                     });
                 });

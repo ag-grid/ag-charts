@@ -1459,7 +1459,8 @@ export abstract class Series<
         const { shape, size = 0 } = style;
         const { applyPosition = true, crossFilterSelected = true, hideWithSize0 } = opts;
         const visible =
-            hideWithSize0 || (this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y));
+            this.visible &&
+            (hideWithSize0 || (this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y)));
 
         markerNode.setStyleProperties(style, fillBBox);
         markerNode.setVisibilityAndPosition(!!visible, shape!, size, applyPosition ? point : undefined);
