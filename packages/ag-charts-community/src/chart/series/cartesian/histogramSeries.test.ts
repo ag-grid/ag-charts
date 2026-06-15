@@ -244,7 +244,7 @@ describe('HistogramSeries', () => {
                     binRange: [0, 10],
                     aggregatedValue: 2,
                     frequency: 2,
-                    datum: [{ x: 1 }, { x: 5 }],
+                    datums: [{ x: 1 }, { x: 5 }],
                 })
             );
         });
@@ -336,10 +336,11 @@ describe('HistogramSeries', () => {
             ]);
             expect(nodes.map((n) => n.frequency)).toEqual([3, 0, 0, 1]);
 
-            // AC1: datum is the bin's full source rows, not extracted values; row order within a bin
-            // isn't guaranteed, so compare order-independently.
-            expect(nodes[0].datum).toHaveLength(3);
-            expect(nodes[0].datum).toEqual(
+            // AC1: datums is the bin's full source rows, not extracted values; row order within a bin
+            // isn't guaranteed, so compare order-independently. datum is undefined (a bin has no single row).
+            expect(nodes[0].datum).toBeUndefined();
+            expect(nodes[0].datums).toHaveLength(3);
+            expect(nodes[0].datums).toEqual(
                 expect.arrayContaining([
                     { x: 2, y: 1, label: 'a' },
                     { x: 5, y: 2, label: 'b' },
@@ -347,13 +348,10 @@ describe('HistogramSeries', () => {
                 ])
             );
 
-            // datums mirrors the bin's source rows so global callbacks have a correctly-typed array.
-            expect(nodes[0].datums).toBe(nodes[0].datum);
-
             // TC1: an empty bin is still a positioned bin.
             expect(nodes[2].binIndex).toBe(2);
             expect(nodes[2].binRange).toEqual([20, 30]);
-            expect(nodes[2].datum).toEqual([]);
+            expect(nodes[2].datum).toBeUndefined();
             expect(nodes[2].datums).toEqual([]);
             expect(nodes[2].frequency).toBe(0);
             expect(nodes[2].aggregatedValue).toBe(0);
@@ -463,16 +461,16 @@ describe('HistogramSeries', () => {
                 aggregatedValue: 3,
                 frequency: 3,
             });
-            expect(event.datum).toHaveLength(3);
-            expect(event.datum).toEqual(
+            // datums exposes every bin row; datum is undefined for a bin (no single row).
+            expect(event.datum).toBeUndefined();
+            expect(event.datums).toHaveLength(3);
+            expect(event.datums).toEqual(
                 expect.arrayContaining([
                     { x: 2, y: 1, label: 'a' },
                     { x: 5, y: 2, label: 'b' },
                     { x: 8, y: 3, label: 'c' },
                 ])
             );
-            // datums exposes the same bin rows under a correctly-typed array; datum is unchanged.
-            expect(event.datums).toEqual(event.datum);
         });
 
         it('fires seriesNodeDoubleClick with the bin params', async () => {
@@ -502,8 +500,9 @@ describe('HistogramSeries', () => {
             expect(renderer).toHaveBeenCalledTimes(1);
             const params = renderer.mock.calls[0][0];
             expect(params).toMatchObject({ binIndex: 0, binRange: [0, 10], aggregatedValue: 3, frequency: 3 });
-            expect(params.datum).toHaveLength(3);
-            expect(params.datum).toEqual(
+            expect(params.datum).toBeUndefined();
+            expect(params.datums).toHaveLength(3);
+            expect(params.datums).toEqual(
                 expect.arrayContaining([
                     { x: 2, y: 1, label: 'a' },
                     { x: 5, y: 2, label: 'b' },

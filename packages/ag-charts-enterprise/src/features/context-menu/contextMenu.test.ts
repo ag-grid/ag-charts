@@ -200,10 +200,10 @@ describe('Context Menu', () => {
 
             expect(getItems).toHaveBeenCalledTimes(1);
             const params = getItems.mock.calls[0][0];
-            // datums exposes every row grouped into the bin; datum is unchanged (also the bin array).
+            // datums exposes every row grouped into the bin; datum is undefined for a bin.
             expect(params.datums).toHaveLength(3);
             expect(params.datums).toEqual(expect.arrayContaining([{ x: 2 }, { x: 5 }, { x: 8 }]));
-            expect(params.datum).toEqual(params.datums);
+            expect(params.datum).toBeUndefined();
         });
 
         it('leaves datums undefined for a 1:1 series node', async () => {

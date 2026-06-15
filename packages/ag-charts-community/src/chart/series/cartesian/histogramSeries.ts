@@ -484,7 +484,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     /** The standardised bin metadata passed to every histogram callback. */
     private binParams(bin: CalculatedBin): AgHistogramSeriesBinParams<any> {
         const { datum, binIndex, domain: binRange, aggregatedValue, frequency } = bin;
-        return { datum, binIndex, binRange, aggregatedValue, frequency };
+        return { datum: undefined, datums: datum, binIndex, binRange, aggregatedValue, frequency };
     }
 
     /**
@@ -539,7 +539,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             series: this,
             itemId,
             datumIndex: binIndex,
-            datum,
+            datum: undefined,
             datums: datum,
             binIndex,
             binRange,
@@ -588,7 +588,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
         // Update properties
         mutableNode.datumIndex = binIndex;
-        mutableNode.datum = datum;
+        mutableNode.datum = undefined;
         mutableNode.datums = datum;
         mutableNode.binIndex = binIndex;
         mutableNode.aggregatedValue = aggregatedValue;
@@ -774,7 +774,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const { xKey, yKey, xName, yName } = this.properties;
         opts.labelSelection.each((text, datum) => {
             const params: AgHistogramSeriesLabelFormatterParams = {
-                datum: datum.datum as any[],
+                datum: undefined,
+                datums: datum.datums as any[],
                 binIndex: datum.binIndex,
                 binRange: datum.binRange,
                 aggregatedValue: datum.aggregatedValue,
