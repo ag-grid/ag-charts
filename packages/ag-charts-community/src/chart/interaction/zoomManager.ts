@@ -8,8 +8,11 @@ import {
     deepClone,
     defined,
     definedZoomState,
+    isDate,
     isFiniteNumber,
+    isNumericValue,
     isObject,
+    isString,
     isValidDate,
     objectsEqual,
     pickDirectionZoom,
@@ -26,14 +29,19 @@ import type {
     DynamicContext,
     MementoOriginator,
     OptionsDefs,
-    RequireOptional,
     Scale,
     ZoomMinMax,
     ZoomState,
 } from 'ag-charts-core';
-import type { AgZoomEvent, AgZoomEventSource, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
+import type { AgZoomEvent, AgZoomEventSource } from 'ag-charts-types';
 
-import type { ZoomChangeRequestEvent, ZoomChangeState, ZoomEventSourceDetail, ZoomMemento } from '../../core/eventsHub';
+import type {
+    ZoomChangeRequestEvent,
+    ZoomChangeState,
+    ZoomEventSourceDetail,
+    ZoomMemento,
+    ZoomMementoRange,
+} from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
@@ -152,6 +160,17 @@ function areEqualCoreZooms(p: CoreZoomStateSafeRetrieval, q: CoreZoomStateSafeRe
 
 export function userInteraction<D extends ZoomEventSourceDetail>(sourceDetail: D) {
     return { source: 'user-interaction' as const, sourceDetail };
+}
+
+function getGrouping(d: ZoomMementoRange['start' | 'end']) {
+    if (isNumericValue(d) || isString(d) || isDate(d)) {
+        return { value: d, groupPercentage: 0 };
+    }
+    return d ?? { value: undefined, groupPercentage: 0 };
+}
+
+function isGrouping(d: ZoomMementoRange['start' | 'end']) {
+    return isObject(d) && 'groupPercentage' in d;
 }
 
 /**
@@ -336,6 +355,8 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         // Migration from older versions can be implemented here.
 
         const zoom = definedZoomState(toZoomState(this.state));
+
+        // `rangeY` memento restoration is handled in `ZoomAutoScale.onLoadMemento()`
         if (memento?.rangeX) {
             zoom.x = this.rangeToRatioDirection(ChartAxisDirection.X, memento.rangeX) ?? { min: 0, max: 1 };
         } else if (memento?.ratioX) {
@@ -346,6 +367,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         } else {
             zoom.x = { min: 0, max: 1 };
         }
+
         const { navigatorModule, zoomModule } = this;
         this.ctx.eventsHub.emit('zoom:load-memento', { zoom, memento, navigatorModule, zoomModule });
 
@@ -692,10 +714,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
     private getMementoRanges() {
         const zoom = definedZoomState(toZoomState(this.state));
-        const memento: RequireOptional<ZoomMemento> & {
-            ratioX: Required<AgZoomRatio>;
-            ratioY: Required<AgZoomRatio>;
-        } = {
+        const memento = {
             rangeX: this.getRangeDirection(ChartAxisDirection.X, zoom.x),
             rangeY: this.getRangeDirection(ChartAxisDirection.Y, zoom.y),
             ratioX: { start: zoom.x.min, end: zoom.x.max },
@@ -879,15 +898,15 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         return changeAccepted;
     }
 
-    private getRange(axisId: AxisID, ratio: ZoomMinMax): AgZoomRange | undefined {
+    private getRange(axisId: AxisID, ratio: ZoomMinMax) {
         return this.getRangeAxis(this.findAxis(axisId), ratio);
     }
 
-    private getRangeDirection(direction: CartesianAxisDirection, ratio: ZoomMinMax): AgZoomRange | undefined {
+    private getRangeDirection(direction: CartesianAxisDirection, ratio: ZoomMinMax) {
         return this.getRangeAxis(this.getPrimaryAxis(direction), ratio);
     }
 
-    private getRangeAxis(axis: CartesianAxisLike | undefined, ratio: ZoomMinMax): AgZoomRange | undefined {
+    private getRangeAxis(axis: CartesianAxisLike | undefined, ratio: ZoomMinMax): ZoomMementoRange | undefined {
         if (!axis) return;
 
         const extents = this.getDomainPixelExtents(axis);
@@ -909,35 +928,48 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         return { start, end };
     }
 
-    public rangeToRatio(axisId: AxisID, range: AgZoomRange): ZoomMinMax | undefined {
-        return this.rangeToRatioAxis(this.findAxis(axisId), range);
-    }
-
-    public rangeToRatioDirection(direction: CartesianAxisDirection, range: AgZoomRange): ZoomMinMax | undefined {
+    public rangeToRatioDirection(direction: CartesianAxisDirection, range: ZoomMementoRange): ZoomMinMax | undefined {
         return this.rangeToRatioAxis(this.getPrimaryAxis(direction), range);
     }
 
-    private rangeToRatioAxis(axis: CartesianAxisLike | undefined, range: AgZoomRange): ZoomMinMax | undefined {
+    private rangeToRatioAxis(axis: CartesianAxisLike | undefined, range: ZoomMementoRange): ZoomMinMax | undefined {
         if (!axis) return;
 
         const extents = this.getDomainPixelExtents(axis);
         if (!extents) return;
 
         const [d0, d1] = extents;
-
         const { scale } = axis;
-
         const { start, end } = range;
 
+        const startGrouping = getGrouping(start);
+        const endGrouping = getGrouping(end);
+        const scaleWidth = scale.bandwidth === 0 ? (scale.step ?? 0) : (scale.bandwidth ?? 0);
+
         const [startAlignment = ScaleAlignment.Leading, endAlignment = ScaleAlignment.Trailing] = rangeAlignment(
-            start,
-            end
+            startGrouping.value,
+            endGrouping.value
         );
-        let r0 = start == null ? d0 : scale.convert(start, { alignment: startAlignment, alignmentExclusive: true });
-        let r1 =
-            end == null
-                ? d1
-                : scale.convert(end, { alignment: endAlignment, alignmentExclusive: true }) + (scale.bandwidth ?? 0);
+
+        let r0 = d0;
+        let r1 = d1;
+
+        if (startGrouping.value != null) {
+            if (isGrouping(start)) {
+                r0 = scale.convert(startGrouping.value) + scaleWidth * startGrouping.groupPercentage;
+            } else {
+                r0 = scale.convert(start, { alignment: startAlignment, alignmentExclusive: true });
+            }
+        }
+
+        if (endGrouping.value != null) {
+            if (isGrouping(end)) {
+                r1 = scale.convert(endGrouping.value) + scaleWidth * endGrouping.groupPercentage;
+            } else {
+                // Note we do not use `scaleWidth` here as adding the step is not valid in this case.
+                r1 = scale.convert(end, { alignment: endAlignment, alignmentExclusive: true }) + (scale.bandwidth ?? 0);
+            }
+        }
 
         if (!isFiniteNumber(r0) || !isFiniteNumber(r1)) return;
 

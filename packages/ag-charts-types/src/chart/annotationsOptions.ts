@@ -1,4 +1,8 @@
-import type { AgStateSerializableBigInt, AgStateSerializableDate } from '../api/stateTypes';
+import type {
+    AgStateSerializableBigInt,
+    AgStateSerializableGroupingValueType,
+    AgStateSerializableValueType,
+} from '../api/stateTypes';
 import type {
     FillOptions,
     LineDashOptions,
@@ -517,14 +521,7 @@ interface Extendable {
     extendEnd?: boolean;
 }
 
-export type ValueType = string | number | bigint | AgStateSerializableDate | AgStateSerializableBigInt;
-export type AgAnnotationValue = ValueType | AgGroupingValueType;
-export interface AgGroupingValueType {
-    /** The value at the annotation position. */
-    value: ValueType;
-    /** The percentage position within a grouped category. */
-    groupPercentage: number;
-}
+export type AgAnnotationValue = AgStateSerializableValueType | AgStateSerializableGroupingValueType;
 
 // ***********
 // * Toolbar *

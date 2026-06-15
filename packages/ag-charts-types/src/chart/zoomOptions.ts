@@ -11,24 +11,6 @@ export type AgZoomAxisDraggingMode = 'pan' | 'zoom';
 export type AgZoomScrollingMode = 'pan' | 'zoom';
 export type AgZoomOnDataChangeStrategy = 'reset' | 'preserveDomain' | 'preserveRatios';
 
-export interface AgZoomRange {
-    /** The start of the axis zoom range. */
-    start?: Date | string | number | bigint;
-    /** The end of the axis zoom range. */
-    end?: Date | string | number | bigint;
-}
-
-export interface AgZoomRatio {
-    /** The minimum value of the axis zoom ratio.
-     *  Default: `0`
-     */
-    start?: Ratio;
-    /** The maximum value of the axis zoom ratio.
-     *  Default: `1`
-     */
-    end?: Ratio;
-}
-
 export interface AgZoomButtons extends Toggleable {
     /** The buttons to show. */
     buttons?: AgZoomButton[];

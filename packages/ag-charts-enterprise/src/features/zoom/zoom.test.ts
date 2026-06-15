@@ -106,6 +106,21 @@ describe('Zoom', () => {
         },
     };
 
+    const CATEGORY_EXAMPLE_OPTIONS: AgChartOptions = {
+        data: [
+            { x: 'zero', y: 0 },
+            { x: 'one', y: 50 },
+            { x: 'two', y: 25 },
+            { x: 'three', y: 75 },
+            { x: 'four', y: 50 },
+            { x: 'five', y: 25 },
+            { x: 'six', y: 50 },
+            { x: 'seven', y: 75 },
+        ],
+        series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+        zoom: { enabled: true, axes: 'x' },
+    };
+
     let cx: number = 0;
     let cy: number = 0;
 
@@ -1379,6 +1394,22 @@ describe('Zoom', () => {
             await waitForChartStability(chart);
 
             expect(chart.getState().zoom?.ratioX).toBeDefined();
+        });
+    });
+
+    describe('category axes', () => {
+        it('should zoom on a category axis', async () => {
+            await prepareChart(
+                {},
+                {
+                    rangeX: {
+                        start: { value: 'three', groupPercentage: 0 },
+                        end: { value: 'five', groupPercentage: 0.6 },
+                    },
+                },
+                CATEGORY_EXAMPLE_OPTIONS
+            );
+            await compare();
         });
     });
 });
