@@ -76,7 +76,10 @@ type ConfigGenerator = ({
     indexHtml: string;
     isEnterprise: boolean;
     bindings: any;
-    typedBindings: { imports: { module: string[]; imports: string[] }[] };
+    typedBindings: {
+        imports: { module: string[]; imports: string[] }[];
+        declarations?: string[];
+    };
     otherScriptFiles: FileContents;
     styleFileNames: string[];
     transformEntryFile?: TransformEntryFile;
@@ -334,13 +337,27 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainFileName,
         };
     },
-    vue3: async ({ bindings, indexHtml, otherScriptFiles, isDev, transformEntryFile, suppressOptionsClone }) => {
+    vue3: async ({
+        bindings,
+        typedBindings,
+        indexHtml,
+        otherScriptFiles,
+        isDev,
+        transformEntryFile,
+        suppressOptionsClone,
+    }) => {
         const internalFramework: InternalFramework = 'vue3';
         const entryFileName = getEntryFileName(internalFramework);
         const mainFileName = getMainFileName(internalFramework);
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
-        let mainJs = await vanillaToVue3(deepCloneObject(bindings), [], suppressOptionsClone);
+        // Vue 3 examples are TypeScript, so preserve top-level type declarations from the
+        // typed bindings (the JS bindings strip them); the generic options type already
+        // percolates through `bindings.optionsTypeInfo`.
+        const vueBindings = deepCloneObject(bindings);
+        vueBindings.declarations = deepCloneObject(typedBindings.declarations ?? []);
+
+        let mainJs = await vanillaToVue3(vueBindings, [], suppressOptionsClone);
 
         if (transformEntryFile) {
             mainJs = transformEntryFile({ entryFile: mainJs });

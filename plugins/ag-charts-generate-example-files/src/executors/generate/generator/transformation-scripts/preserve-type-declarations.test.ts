@@ -2,6 +2,7 @@ import parser from './chart-vanilla-src-parser';
 import { vanillaToAngular } from './chart-vanilla-to-angular';
 import { vanillaToReactFunctionalTs } from './chart-vanilla-to-react-functional-ts';
 import { vanillaToTypescript } from './chart-vanilla-to-typescript';
+import { vanillaToVue3 } from './chart-vanilla-to-vue3';
 
 const HTML = `<div id="myChart"></div>`;
 
@@ -58,6 +59,16 @@ const chart = AgCharts.create(options);
         expect(output).not.toMatch(/import\s*{[^}]*\bMyDatumType\b[^}]*}\s*from\s*'ag-charts-community'/);
         // The type declaration is separated from the imports by a blank line.
         expect(output).toMatch(/from 'ag-charts-community';\n\ntype MyDatumType/);
+    });
+
+    test('vue3 output preserves the type declaration and the generic options type', async () => {
+        // Vue 3 is generated from the JS bindings, but the output is TypeScript, so the
+        // generator merges the typed declarations across (mirrored here).
+        const { bindings, typedBindings } = parse(TYPE_ALIAS_SRC);
+        bindings.declarations = typedBindings.declarations;
+        const output = await vanillaToVue3(bindings, [], false);
+        expect(output).toContain('type MyDatumType');
+        expect(output).toContain('ref<AgChartOptions<MyDatumType>>');
     });
 
     test('interface declarations are preserved the same way', () => {
