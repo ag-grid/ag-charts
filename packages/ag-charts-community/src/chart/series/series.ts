@@ -777,8 +777,7 @@ export abstract class Series<
             return defaultOpacity;
         }
 
-        const { opacity = defaultOpacity } = this.getHighlightStyle();
-        return opacity;
+        return this.getSelectionStyle()?.opacity ?? this.getHighlightStyle().opacity ?? defaultOpacity;
     }
 
     public getHighlightState(
