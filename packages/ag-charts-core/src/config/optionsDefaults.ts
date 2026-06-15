@@ -114,7 +114,7 @@ const themeParamsValidator = union(...themeParams);
 const colorRefDef = attachDescription(
     optionsDefs<AgColorRefMixOnto>({
         ref: themeParamsValidator,
-        mix: ratio,
+        mix: positiveNumber, // mix is silently clamped to 0-1 ratio to match Grid
         onto: themeParamsValidator,
     }),
     'a color ref'
@@ -329,6 +329,7 @@ const colorObject = typeUnion<Exclude<AgColorType, AgCssColorOrRef>>(colorObject
 // `themeOperator` validator is required by the preset modules which perform a validation of the overrides before
 // processing the private operators.
 export const colorUnion = or(color, optionsDefs(colorObject, 'a color object'), themeOperator, colorRef);
+export const simpleColorUnion = or(color, optionsDefs(colorObject, 'a color object'));
 
 export const fillOptionsDef: OptionsDefs<FillOptions> = {
     fill: colorUnion,

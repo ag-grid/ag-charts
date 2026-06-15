@@ -5,6 +5,7 @@ import {
     ModuleRegistry,
     type PlainObject,
     circularSliceArray,
+    clamp,
     isArray,
     isGradientFill,
     isImageFill,
@@ -104,13 +105,13 @@ function getPublicOperation(
 
         if ('mix' in value && typeof value.mix === 'number') {
             if (keys.length === 2 + privateOperation) {
-                return { operation: ColorOperation.Opacity, values: [{ $ref: value.ref }, value.mix] };
+                return { operation: ColorOperation.Opacity, values: [{ $ref: value.ref }, clamp(0, value.mix, 1)] };
             }
 
             if ('onto' in value && typeof value.onto === 'string' && keys.length === 3 + privateOperation) {
                 return {
                     operation: ColorOperation.Mix,
-                    values: [{ $ref: value.ref }, { $ref: value.onto }, 1 - value.mix],
+                    values: [{ $ref: value.ref }, { $ref: value.onto }, 1 - clamp(0, value.mix, 1)],
                 };
             }
         }
