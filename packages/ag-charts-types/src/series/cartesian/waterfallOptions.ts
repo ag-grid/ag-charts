@@ -5,6 +5,7 @@ import type {
     Renderer,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../chart/tooltipOptions';
@@ -24,6 +25,15 @@ interface AgWaterfallSeriesItemIdParams {
     itemId: string | number;
 }
 
+interface AgWaterfallSeriesTotalValueParams {
+    /**
+     * The computed cumulative ("running total") value for `total` and `subtotal` bars.
+     *
+     * `undefined` for `positive` and `negative` bars.
+     */
+    totalValue?: AgNumericValue;
+}
+
 export type AgWaterfallSeriesItemStylerParams<
     TDatum = DatumDefault,
     TContext = ContextDefault,
@@ -31,11 +41,13 @@ export type AgWaterfallSeriesItemStylerParams<
     ContextCallbackParams<TContext> &
     AgWaterfallSeriesOptionsKeys<TDatum> &
     AgWaterfallSeriesItemIdParams &
+    AgWaterfallSeriesTotalValueParams &
     Required<AgWaterfallSeriesStyle>;
 
 export type AgWaterfallSeriesLabelFormatterParams<TDatum = DatumDefault> = AgWaterfallSeriesOptionsKeys<TDatum> &
     AgWaterfallSeriesOptionsNames &
-    AgWaterfallSeriesItemIdParams & { itemType: AgWaterfallSeriesItemType };
+    AgWaterfallSeriesItemIdParams &
+    AgWaterfallSeriesTotalValueParams & { itemType: AgWaterfallSeriesItemType };
 
 export interface AgWaterfallSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each bar. */
@@ -46,7 +58,8 @@ export interface AgWaterfallSeriesTooltipRendererParams<TDatum = DatumDefault, T
     extends
         AgCartesianSeriesTooltipRendererParams<TDatum, TContext>,
         AgWaterfallSeriesStyle,
-        AgWaterfallSeriesItemIdParams {
+        AgWaterfallSeriesItemIdParams,
+        AgWaterfallSeriesTotalValueParams {
     /** The type of datum. This can be `positive`, `negative`, `total` or `subtotal`. */
     itemType: AgWaterfallSeriesItemType;
 }

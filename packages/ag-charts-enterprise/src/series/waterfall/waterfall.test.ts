@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
     type AgCartesianChartOptions,
@@ -169,6 +169,97 @@ describe('WaterfallSeries', () => {
 
         expect(typeof captured).toBe('bigint');
         expect(captured).toBe(BIG_VALUE);
+    });
+
+    describe('totalValue (AG-17564)', () => {
+        // Subtotal after B: cumulative 100 + 50 = 150. Total after D: cumulative 100 + 50 - 30 + 80 = 200.
+        const SUBTOTAL_VALUE = 150;
+        const TOTAL_VALUE = 200;
+        const totalValueOptions = (extra?: Partial<AgWaterfallSeriesOptions>): AgCartesianChartOptions => ({
+            data: [
+                { type: 'A', value: 100 },
+                { type: 'B', value: 50 },
+                { type: 'C', value: -30 },
+                { type: 'D', value: 80 },
+            ],
+            series: [
+                {
+                    type: 'waterfall',
+                    xKey: 'type',
+                    yKey: 'value',
+                    totals: [
+                        { totalType: 'subtotal', index: 1, axisLabel: 'Sub' },
+                        { totalType: 'total', index: 3, axisLabel: 'Total' },
+                    ],
+                    ...extra,
+                },
+            ],
+        });
+
+        const seriesOf = (c: any) => deproxy(c).series[0] as any;
+        const nodeOfType = (c: any, itemType: string) =>
+            seriesOf(c)
+                .getNodeData()
+                .find((n: any) => n.itemType === itemType);
+
+        it('passes totalValue to the label formatter for total/subtotal and undefined otherwise', async () => {
+            const captured: { itemType: string; totalValue: unknown }[] = [];
+            const formatter = (params: any) => {
+                captured.push({ itemType: params.itemType, totalValue: params.totalValue });
+                return String(params.value);
+            };
+            const label = { enabled: true, formatter };
+            const options = totalValueOptions({
+                item: { positive: { label }, negative: { label }, total: { label } },
+            });
+            prepareEnterpriseTestOptions(options as any);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            for (const entry of captured.filter((e) => e.itemType === 'positive' || e.itemType === 'negative')) {
+                expect(entry.totalValue).toBeUndefined();
+            }
+            expect(captured.find((e) => e.itemType === 'subtotal')?.totalValue).toBe(SUBTOTAL_VALUE);
+            expect(captured.find((e) => e.itemType === 'total')?.totalValue).toBe(TOTAL_VALUE);
+        });
+
+        it('passes totalValue to the tooltip renderer for total/subtotal and undefined otherwise', async () => {
+            const renderer = vi.fn((_params: any) => ({}));
+            const options = totalValueOptions({ tooltip: { renderer } });
+            prepareEnterpriseTestOptions(options as any);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = seriesOf(chart);
+            const captured = new Map<string, unknown>();
+            for (const node of series.getNodeData()) {
+                renderer.mockClear();
+                series.getTooltipContent(node.datumIndex);
+                captured.set(node.itemType, renderer.mock.calls[0][0].totalValue);
+            }
+
+            expect(captured.get('positive')).toBeUndefined();
+            expect(captured.get('negative')).toBeUndefined();
+            expect(captured.get('subtotal')).toBe(SUBTOTAL_VALUE);
+            expect(captured.get('total')).toBe(TOTAL_VALUE);
+        });
+
+        it('exposes totalValue on the seriesNodeClick event for total/subtotal and undefined otherwise', async () => {
+            const seriesNodeClick = vi.fn();
+            const options = totalValueOptions();
+            (options as AgChartOptions).listeners = { seriesNodeClick };
+            prepareEnterpriseTestOptions(options as any);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = seriesOf(chart);
+            series.fireNodeClickEvent(new Event('click'), nodeOfType(chart, 'subtotal'));
+            series.fireNodeClickEvent(new Event('click'), nodeOfType(chart, 'positive'));
+
+            expect(seriesNodeClick).toHaveBeenCalledTimes(2);
+            expect(seriesNodeClick.mock.calls[0][0].totalValue).toBe(SUBTOTAL_VALUE);
+            expect(seriesNodeClick.mock.calls[1][0].totalValue).toBeUndefined();
+        });
     });
 
     it(`should render a waterfall chart as expected`, async () => {

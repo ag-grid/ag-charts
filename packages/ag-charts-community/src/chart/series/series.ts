@@ -40,6 +40,7 @@ import type {
     AgColorType,
     AgDrawingMode,
     AgInitialStateLegendOptions,
+    AgNumericValue,
     AgSeriesMarkerStyle,
     AgSeriesTooltipRendererParams,
     AgSeriesVisibilityChange,
@@ -172,6 +173,7 @@ export class SeriesNodeEvent<
     TEvent extends string = SeriesNodeEventTypes,
 > implements INodeEvent<TEvent> {
     readonly datum: unknown;
+    readonly totalValue?: AgNumericValue;
     readonly seriesId: string;
     readonly itemId: string | number;
     readonly dataIdKey: string | undefined;
@@ -186,6 +188,7 @@ export class SeriesNodeEvent<
         selectionState: PublicSelectionState | undefined
     ) {
         this.datum = nodeDatum.datum;
+        this.totalValue = nodeDatum.totalValue;
         this.seriesId = series.id;
         this.dataIdKey = series.data?.dataIdKey;
         this.itemId = getItemId(nodeDatum, this.dataIdKey);

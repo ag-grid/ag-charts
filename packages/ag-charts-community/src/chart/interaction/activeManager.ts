@@ -71,7 +71,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         // External (API) dispatch:
         if (frozenChanged || !objectsEqual(oldItemState, newItemState)) {
             const { frozen, activeItem } = this.createMementoWithItem(newItemState);
-            const { datum, itemType } = nodeDatum ?? {};
+            const { datum, itemType, totalValue } = nodeDatum ?? {};
 
             this.ctx.fireEvent({
                 type: 'activeChange',
@@ -82,6 +82,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
                 // Series-specific metadata is only attached when present, so events for series that
                 // don't set it (most series) keep their original shape.
                 ...(itemType === undefined ? {} : { itemType }),
+                ...(totalValue === undefined ? {} : { totalValue }),
                 dataIdKey: nodeDatum?.series.data?.dataIdKey,
                 preventDefault: () => {
                     defaultPrevented = true;
