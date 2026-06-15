@@ -20,6 +20,13 @@ export class DataWindowProcessor implements UpdateProcessor {
     private zoomSource: AgZoomEventSource | undefined;
     private readonly lastAxisZooms = new Map<string, ZoomMinMax>();
     private lastWindow: AgDataSourceCallbackParams | undefined;
+    private errorRollback:
+        | {
+              window: AgDataSourceCallbackParams | undefined;
+              axisId: string | undefined;
+              axisZoom: ZoomMinMax | undefined;
+          }
+        | undefined;
 
     private readonly cleanup = new CleanupRegistry();
 
@@ -41,11 +48,24 @@ export class DataWindowProcessor implements UpdateProcessor {
     }
 
     private onDataLoad() {
+        this.errorRollback = undefined;
         this.ctx.animationManager.skip();
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.UPDATE_DATA });
     }
 
     private onDataError() {
+        const rollback = this.errorRollback;
+        if (rollback) {
+            this.lastWindow = rollback.window;
+            if (rollback.axisId != null) {
+                if (rollback.axisZoom) {
+                    this.lastAxisZooms.set(rollback.axisId, rollback.axisZoom);
+                } else {
+                    this.lastAxisZooms.delete(rollback.axisId);
+                }
+            }
+            this.errorRollback = undefined;
+        }
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
     }
 
@@ -72,6 +92,9 @@ export class DataWindowProcessor implements UpdateProcessor {
 
         const axis = this.chart.axes.find(({ direction }) => direction === ChartAxisDirection.X);
 
+        const priorWindow = this.lastWindow;
+        const priorAxisZoom = axis ? this.lastAxisZooms.get(axis.id) : undefined;
+
         let window: AgDataSourceCallbackParams | undefined;
         let shouldRefresh = true;
 
@@ -89,6 +112,10 @@ export class DataWindowProcessor implements UpdateProcessor {
         this.lastWindow = window;
 
         if (!shouldRefresh) return;
+
+        // Snapshot the gate state this request advances past, so a failed response can restore it
+        // and let an identical re-zoom re-issue the request (see onDataError).
+        this.errorRollback = { window: priorWindow, axisId: axis?.id, axisZoom: priorAxisZoom };
 
         this.ctx.dataService.load({ windowStart: window?.windowStart, windowEnd: window?.windowEnd, source });
     }

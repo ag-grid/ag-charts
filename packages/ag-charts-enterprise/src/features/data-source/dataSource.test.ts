@@ -10,6 +10,7 @@ import {
 import {
     clickAction,
     delay,
+    expectWarningsCalls,
     extractImageData,
     scrollAction,
     setupMockCanvas,
@@ -510,6 +511,71 @@ describe('DataSource', () => {
             await waitForChartStability(chart);
 
             expect(sources).toContain('state-change');
+        });
+    });
+
+    describe('invalid response recovery', () => {
+        it('retains the previous render on an invalid response and recovers on the next zoom', async () => {
+            const validData = [
+                { time: new Date('2024-01-01 00:00:00'), price: 0 },
+                { time: new Date('2024-01-02 00:00:00'), price: 50 },
+                { time: new Date('2024-01-03 00:00:00'), price: 25 },
+                { time: new Date('2024-01-04 00:00:00'), price: 75 },
+                { time: new Date('2024-01-05 00:00:00'), price: 50 },
+                { time: new Date('2024-01-06 00:00:00'), price: 25 },
+                { time: new Date('2024-01-07 00:00:00'), price: 50 },
+            ];
+
+            let callCount = 0;
+            let resolveInitial!: (data: typeof validData) => void;
+            const initialResponse = new Promise<typeof validData>((resolve) => {
+                resolveInitial = resolve;
+            });
+            await prepareChart({
+                getData: () => {
+                    callCount++;
+                    // First (initial) request: deferred valid data (so we can capture the blank
+                    // loading state first). Next request (the first zoom): invalid. Any later
+                    // request (the recovery zoom): valid again.
+                    if (callCount === 1) return initialResponse;
+                    const data = callCount === 2 ? (undefined as any) : validData;
+                    return delay(1).then(() => data);
+                },
+            });
+
+            // Anti-vacuous baseline: the canvas while the initial request is still pending.
+            const blank = extractImageData(ctx);
+
+            resolveInitial(validData);
+            await delay(1);
+            await waitForChartStability(chart);
+
+            const preError = extractImageData(ctx);
+            // The rendered data state must differ from the blank/loading canvas.
+            expect(preError.equals(blank)).toBe(false);
+
+            // A user zoom that triggers the invalid response.
+            await scrollAction(cx, cy, -1)(chart);
+            await delay(1);
+            await waitForChartStability(chart);
+
+            // The chart keeps its retained data rather than blanking out on the invalid response.
+            const postError = extractImageData(ctx);
+            expect(postError.equals(blank)).toBe(false);
+
+            const warnings = expectWarningsCalls();
+            warnings.toContainEqual([
+                'AG Charts - DataService - [dataSource.getData] returned an invalid value `undefined`; expecting an array, ignoring.',
+            ]);
+
+            // A subsequent user zoom recovers with a valid response and re-renders, proving the
+            // failed request did not wedge zoom/pan (the re-zoom re-issues the request).
+            await scrollAction(cx, cy, -1)(chart);
+            await delay(1);
+            await waitForChartStability(chart);
+
+            const recovered = extractImageData(ctx);
+            expect(recovered.equals(postError)).toBe(false);
         });
     });
 });

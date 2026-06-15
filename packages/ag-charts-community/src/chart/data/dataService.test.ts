@@ -1,7 +1,7 @@
 import type { MockInstance } from 'vitest';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { AgDocument, EventEmitter, getDocument } from 'ag-charts-core';
+import { AgDocument, EventEmitter, Logger, getDocument } from 'ag-charts-core';
 
 import { Mutex } from '../../util/mutex';
 import { AnimationManager } from '../interaction/animationManager';
@@ -132,6 +132,81 @@ describe('DataService', () => {
 
             expect(dataSourceCallback).not.toHaveBeenCalled();
             expect(eventEmitSpy).toHaveBeenCalledWith('data:load', { data: dataRestored });
+        });
+    });
+
+    describe('invalid getData response', () => {
+        let consoleWarnSpy: MockInstance;
+
+        const arrayWarning = (calls: unknown[][]) =>
+            calls.filter((args) => typeof args[0] === 'string' && args[0].includes('expecting an array'));
+        const requestFailedWarning = (calls: unknown[][]) =>
+            calls.filter((args) => typeof args[0] === 'string' && args[0].includes('request failed'));
+
+        beforeEach(() => {
+            Logger.reset();
+            consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            consoleWarnSpy.mockRestore();
+        });
+
+        it.each([
+            ['undefined', undefined],
+            ['null', null],
+            ['a plain object', { not: 'an array' }],
+        ])('should warn and emit `data:error` when the callback resolves to %s', async (_label, value) => {
+            const dataSourceCallback = vi.fn((_params) => Promise.resolve(value));
+            dataService.updateCallback(dataSourceCallback);
+            dataService.load(undefinedWindow);
+
+            await sleep();
+
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:error', null);
+            expect(eventEmitSpy).not.toHaveBeenCalledWith('data:load', expect.anything());
+            expect(arrayWarning(consoleWarnSpy.mock.calls)).toHaveLength(1);
+        });
+
+        it('should not wedge the initial load: a later valid response still emits `data:load`', async () => {
+            const dataSourceCallback = vi
+                .fn()
+                .mockResolvedValueOnce(undefined)
+                .mockResolvedValueOnce([{ datum: 'value' }]);
+            dataService.updateCallback(dataSourceCallback);
+
+            dataService.load(undefinedWindow);
+            await sleep();
+
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:error', null);
+            expect(eventEmitSpy).not.toHaveBeenCalledWith('data:load', expect.anything());
+
+            dataService.load(definedWindow);
+            await sleep();
+
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:load', { data: [{ datum: 'value' }] });
+        });
+
+        it('should warn once about the failure and NOT the array warning when the callback rejects', async () => {
+            const dataSourceCallback = vi.fn((_params) => Promise.reject(new Error('boom')));
+            dataService.updateCallback(dataSourceCallback);
+            dataService.load(undefinedWindow);
+
+            await sleep();
+
+            expect(requestFailedWarning(consoleWarnSpy.mock.calls)).toHaveLength(1);
+            expect(arrayWarning(consoleWarnSpy.mock.calls)).toHaveLength(0);
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:error', null);
+        });
+
+        it('should resolve `getData()` to undefined after an invalid response', async () => {
+            const dataSourceCallback = vi.fn((_params) => Promise.resolve(undefined));
+            dataService.updateCallback(dataSourceCallback);
+            dataService.load(undefinedWindow);
+
+            await sleep();
+
+            await expect(dataService.getData()).resolves.toBeUndefined();
         });
     });
 });

@@ -1,4 +1,4 @@
-import { ActionOnSet, ChartUpdateType, Debug, Logger, throttle } from 'ag-charts-core';
+import { ActionOnSet, ChartUpdateType, Debug, Logger, stringifyValue, throttle } from 'ag-charts-core';
 import type { AgDataSourceCallbackParams } from 'ag-charts-types';
 
 import type { EventsHub } from '../../core/eventsHub';
@@ -113,6 +113,7 @@ export class DataService<D extends object> {
 
         const { params, fetchRequest } = latestRequest;
         const data = await fetchRequest;
+        if (!Array.isArray(data)) return;
         return { params, data };
     }
 
@@ -155,10 +156,12 @@ export class DataService<D extends object> {
             this.debug(`DataService - requesting | ${id}`);
 
             let response;
+            let callbackThrew = false;
             try {
                 response = await this.dataSourceCallback(params);
                 this.debug(`DataService - response | ${performance.now() - start}ms | ${id}`);
             } catch (error: any) {
+                callbackThrew = true;
                 this.debug(`DataService - request failed | ${id}`);
                 Logger.warnOnce(`DataService - request failed | [${error}]`);
                 // Ignore errors in callback and keep chart alive
@@ -182,6 +185,11 @@ export class DataService<D extends object> {
             if (Array.isArray(response)) {
                 this.throttledDispatch(id, response);
             } else {
+                if (!callbackThrew) {
+                    Logger.warn(
+                        `DataService - [dataSource.getData] returned an invalid value \`${stringifyValue(response, 50)}\`; expecting an array, ignoring.`
+                    );
+                }
                 this.eventsHub.emit('data:error', null);
             }
 
