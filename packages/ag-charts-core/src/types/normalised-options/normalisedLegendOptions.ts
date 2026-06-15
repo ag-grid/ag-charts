@@ -19,7 +19,11 @@ import type { NormalisedPaddingOptions } from './normalisedCommonOptions';
 
 export type NormalisedBorderOptions = Normalised<BorderOptions, 'enabled' | 'stroke' | 'strokeWidth' | 'strokeOpacity'>;
 
-export type NormalisedLegendMarkerOptions = Normalised<AgChartLegendMarkerOptions, 'size' | 'padding'>;
+export type NormalisedLegendMarkerOptions = Normalised<
+    AgChartLegendMarkerOptions,
+    'size' | 'padding',
+    { padding: NormalisedPaddingOptions }
+>;
 
 export type NormalisedLegendLineOptions = Normalised<AgChartLegendLineOptions, 'length'>;
 

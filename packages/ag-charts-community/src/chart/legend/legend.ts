@@ -423,10 +423,8 @@ export class Legend {
 
         const { markerEnabled, isCustomMarker } = this.calcSymbolsEnabled(symbol, showSeriesStroke);
 
-        const spacing = itemMarker.padding;
-
         if (markerEnabled || anyLineEnabled) {
-            paddedSymbolWidth += spacing + markerWidth;
+            paddedSymbolWidth += itemMarker.padding.left + markerWidth;
         }
 
         const { marker, line } = markerLabel;
@@ -445,7 +443,7 @@ export class Legend {
         }
 
         markerLabel.length = markerWidth;
-        markerLabel.spacing = spacing;
+        markerLabel.spacing = itemMarker.padding.left;
         markerLabel.isCustomMarker = isCustomMarker;
 
         return paddedSymbolWidth;
