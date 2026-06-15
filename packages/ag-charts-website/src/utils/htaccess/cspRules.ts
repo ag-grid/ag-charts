@@ -113,8 +113,22 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
         ],
         // 'unsafe-inline' stays: the charts theming/legacy styles inject <style>
         // elements at runtime and static hosting rules out per-request nonces.
-        'style-src': [SELF, 'https://fonts.googleapis.com', 'https://cdn.jsdelivr.net', UNSAFE_INLINE],
-        'font-src': [SELF, 'https://fonts.gstatic.com', 'https://cdn.jsdelivr.net', 'data:'],
+        // cdnjs.cloudflare.com: the font-icons docs example loads the Font Awesome stylesheet
+        // (and its woff2 fonts) from there at runtime.
+        'style-src': [
+            SELF,
+            'https://fonts.googleapis.com',
+            'https://cdn.jsdelivr.net',
+            'https://cdnjs.cloudflare.com',
+            UNSAFE_INLINE,
+        ],
+        'font-src': [
+            SELF,
+            'https://fonts.gstatic.com',
+            'https://cdn.jsdelivr.net',
+            'https://cdnjs.cloudflare.com',
+            'data:',
+        ],
         // Relaxed to https:. Images/media are open-ended (blog/showcase images, chart
         // example assets) and a weak XSS vector — the strict script/connect/frame-src
         // below carry the protection.
