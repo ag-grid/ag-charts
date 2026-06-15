@@ -57,6 +57,25 @@ In this configuration:
     - For "February", it sets the range to February 2023, from February 1 to March 1.
     - For "All Data", it dynamically sets the range to include all available data from the start to the end date.
 
+## Function Value Context
+
+When `value` is a function, its params object includes the chart-level [`context`](./context/) option, letting the callback read caller-defined data without relying on closures.
+
+```js format="snippet"
+{
+    context: { defaultMonths: 6 },
+    ranges: {
+        enabled: true,
+        buttons: [
+            {
+                label: 'Default Range',
+                value: ({ end, context }) => [Number(end) - context.defaultMonths * MONTH, end],
+            },
+        ],
+    },
+}
+```
+
 ## API Reference
 
 {% tabs %}
