@@ -198,9 +198,13 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
                 internalRefreshTargets = this.ctx.chartService.series;
             }
         }
-        this.dispatchExternalSelectionChange('user-interaction', changes);
-        this.dispatchInternalSelectionChange(internalRefreshTargets, changes);
-        this.redraw(ChartUpdateType.FULL);
+        // AG-17445 Use `finally` to cleanup if the `selectionChange` user-callback throws an error
+        try {
+            this.dispatchExternalSelectionChange('user-interaction', changes);
+        } finally {
+            this.dispatchInternalSelectionChange(internalRefreshTargets, changes);
+            this.redraw(ChartUpdateType.FULL);
+        }
     }
 
     private onSeriesAreaDragStart(dragStartEvent: _Widget.DragWidgetEvent<'drag-start'>) {
@@ -320,9 +324,12 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         // External listener fires first so any rollback completes before we
         // refresh per-series bucket caches against the final bitset state.
-        this.dispatchExternalSelectionChange('user-interaction', changes);
-        this.dispatchInternalSelectionChange(changedSeries, changes);
-        this.endDrag();
+        try {
+            this.dispatchExternalSelectionChange('user-interaction', changes);
+        } finally {
+            this.dispatchInternalSelectionChange(changedSeries, changes);
+            this.endDrag();
+        }
     }
 
     private onKeyDown(widgetEvent: _ModuleSupport.KeyboardWidgetEvent<'keydown'>): void {
