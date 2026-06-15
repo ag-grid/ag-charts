@@ -4,6 +4,7 @@ import {
     type AgCartesianChartOptions,
     type AgChartOptions,
     AgCharts,
+    type AgDataSourceRequestSource,
     type AgNumberAxisOptions,
 } from 'ag-charts-community';
 import {
@@ -434,6 +435,86 @@ describe('DataSource', () => {
 
             expect(windowStart).toEqual(new Date('2024-01-22 00:00:00'));
             expect(windowEnd).toEqual(new Date('2024-02-12 00:00:00'));
+        });
+    });
+
+    describe('source parameter', () => {
+        const NUMERIC_DATA = [
+            { time: new Date('2024-01-01 00:00:00'), price: 0 },
+            { time: new Date('2024-01-02 00:00:00'), price: 50 },
+            { time: new Date('2024-01-03 00:00:00'), price: 25 },
+            { time: new Date('2024-01-04 00:00:00'), price: 75 },
+            { time: new Date('2024-01-05 00:00:00'), price: 50 },
+            { time: new Date('2024-01-06 00:00:00'), price: 25 },
+            { time: new Date('2024-01-07 00:00:00'), price: 50 },
+        ];
+
+        let sources: Array<AgDataSourceRequestSource | undefined>;
+
+        async function prepareWithSourceCapture() {
+            sources = [];
+            await prepareChart({
+                getData: ({ source }) => {
+                    sources.push(source);
+                    return delay(1).then(() => NUMERIC_DATA);
+                },
+            });
+            await settle();
+        }
+
+        // Wait for any in-flight (throttled, trailing-edge) fetch to invoke the callback and resolve.
+        async function settle() {
+            await delay(10);
+            await waitForChartStability(chart);
+            await waitForChartStability(chart);
+        }
+
+        it('reports a non-user source on the initial render', async () => {
+            await prepareWithSourceCapture();
+
+            expect(sources.length).toBeGreaterThan(0);
+            expect(sources).not.toContain('user-interaction');
+            expect(sources).toContain('chart-update');
+        });
+
+        it('reports a non-user source for a programmatic refresh', async () => {
+            await prepareWithSourceCapture();
+            sources.length = 0;
+
+            await chart.updateDelta({});
+            await settle();
+
+            expect(sources).toContain('chart-update');
+            expect(sources).not.toContain('user-interaction');
+        });
+
+        it('reports a user-interaction source for a zoom triggered by user input', async () => {
+            await prepareWithSourceCapture();
+            sources.length = 0;
+
+            await scrollAction(cx, cy, -1)(chart);
+            await settle();
+
+            expect(sources).toContain('user-interaction');
+        });
+
+        it('reports a state-change source for a programmatic setState', async () => {
+            await prepareWithSourceCapture();
+
+            // Capture a zoomed state to restore later, then zoom to a different level so the
+            // restore is a genuine change that re-triggers a fetch.
+            await scrollAction(cx, cy, -1)(chart);
+            await settle();
+            const zoomedState = chart.getState();
+
+            await scrollAction(cx, cy, -1)(chart);
+            await settle();
+            sources.length = 0;
+
+            await chart.setState(zoomedState);
+            await settle();
+
+            expect(sources).toContain('state-change');
         });
     });
 });

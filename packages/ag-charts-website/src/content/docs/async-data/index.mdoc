@@ -33,9 +33,18 @@ The `getData` callback receives an `AgDataSourceCallbackParams` object with:
 - `windowStart`: the start of the visible window.
 - `windowEnd`: the end of the visible window.
 - `context`: the chart context object, if one has been provided.
+- `source`: what triggered the request.
 
 `windowStart` and `windowEnd` reflect the current visible window and are `undefined` on the initial load if no axis
 bounds have been established.
+
+`source` distinguishes user-initiated fetches from programmatic ones, which is useful for avoiding re-fetch loops where
+a fetch triggers a chart update that triggers another fetch. It takes one of:
+
+- `'user-interaction'`: a zoom, pan or scroll.
+- `'chart-update'`: the initial render or a programmatic update such as `updateDelta({})`.
+- `'state-change'`: a `setState` call.
+- `'sync'`: a zoom synchronised from another chart.
 
 This pattern supports both progressive detail loading by returning finer data
 as the window narrows, as well as server-side paging where only the visible range is fetched from the server on each
