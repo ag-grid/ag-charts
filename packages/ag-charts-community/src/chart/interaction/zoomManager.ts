@@ -660,8 +660,10 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             yVisibleRange = nextZoom.y;
         }
 
-        const x = { min: xVisibleRange[0], max: xVisibleRange[1] };
-        const y = yVisibleRange ? { min: yVisibleRange[0], max: yVisibleRange[1] } : undefined;
+        const x = { min: clamp(0, xVisibleRange[0], 1), max: clamp(0, xVisibleRange[1], 1) };
+        const y = yVisibleRange
+            ? { min: clamp(0, yVisibleRange[0], 1), max: clamp(0, yVisibleRange[1], 1) }
+            : undefined;
         return definedZoomState({ x, y });
     }
 
