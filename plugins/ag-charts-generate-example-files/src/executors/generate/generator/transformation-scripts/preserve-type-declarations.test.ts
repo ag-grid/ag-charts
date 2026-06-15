@@ -105,15 +105,17 @@ const chart = AgCharts.create(options);
         bindings.declarations = typedBindings.declarations;
         for (const typedImport of typedBindings.imports) {
             if (!bindings.imports.some((i: { module: string }) => i.module === typedImport.module)) {
-                bindings.imports.push(typedImport);
+                // Mirror `mergeDroppedTypedImports`: a wholly-dropped module was type-only.
+                bindings.imports.push({ ...typedImport, isTypeOnly: true });
             }
         }
 
         const output = await vanillaToVue3(bindings, [], false);
 
         expect(output).toContain('type MyDatumType');
-        // The `Region` type-only import the JS bindings dropped is restored...
-        expect(output).toMatch(/import\s*{\s*Region\s*}\s*from\s*'\.\/data'/);
+        // The `Region` type-only import the JS bindings dropped is restored as `import type`, not a
+        // value import — `./data` may export `Region` as a type only, so a value import would break.
+        expect(output).toMatch(/import\s+type\s*{\s*Region\s*}\s*from\s*'\.\/data'/);
         // ...and `AgChartOptions` is sourced once (from ag-charts-types), not duplicated by the merge.
         expect(output.match(/^import .*\bAgChartOptions\b.* from/gm)).toHaveLength(1);
     });

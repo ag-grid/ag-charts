@@ -8,6 +8,11 @@ export interface BindingImport {
     module: string;
     namedImport: string;
     imports: string[];
+    // Set when the import must be emitted as `import type { ... }`. Parsed imports leave this
+    // undefined (their type-only-ness is not tracked); it is set explicitly when a type-only
+    // import dropped by sucrase is restored for a TypeScript-output framework (see
+    // `mergeDroppedTypedImports`).
+    isTypeOnly?: boolean;
 }
 
 // const moduleMapping = require("../../documentation/doc-pages/modules/modules.json");
@@ -622,7 +627,7 @@ export function addBindingImports(
     convertToPackage: boolean,
     ignoreTsImports: boolean
 ) {
-    const workingImports: Record<string, { namedImport: string; imports: string[] }> = {};
+    const workingImports: Record<string, { namedImport: string; imports: string[]; isTypeOnly: boolean }> = {};
     const namespacedImports = [];
 
     bindingImports.forEach((i: BindingImport) => {
@@ -631,7 +636,10 @@ export function addBindingImports(
             workingImports[path] = workingImports[path] || {
                 namedImport: undefined,
                 imports: [],
+                // `import type` only when every import contributing to this path is type-only.
+                isTypeOnly: true,
             };
+            workingImports[path].isTypeOnly &&= i.isTypeOnly === true;
             if (i.isNamespaced) {
                 if (i.imports.length > 0) {
                     namespacedImports.push(`import * as ${i.imports[0]} from ${path};`);
@@ -670,7 +678,8 @@ export function addBindingImports(
             const namedImport = v.namedImport ? v.namedImport : '';
             const importStr = unique.length > 0 ? `{ ${unique.join(', ')} }` : '';
             const joiningComma = namedImport && importStr ? ', ' : '';
-            imports.push(`import ${namedImport}${joiningComma}${importStr} from ${k};`);
+            const typeKeyword = v.isTypeOnly ? 'type ' : '';
+            imports.push(`import ${typeKeyword}${namedImport}${joiningComma}${importStr} from ${k};`);
         }
     });
     if (hasEnterpriseModules && convertToPackage) {

@@ -94,13 +94,18 @@ type ConfigGenerator = ({
  * an undeclared symbol. Only modules absent from the JS bindings are added — modules the JS
  * bindings already carry (e.g. `ag-charts-community`) are left untouched so we don't re-import
  * names the Vue 3 header already sources elsewhere (`AgChartOptions` from `ag-charts-types`).
+ *
+ * A module is wholly absent from the JS bindings precisely because sucrase stripped it as
+ * type-only, so the restored import is marked `isTypeOnly` and emitted as `import type { ... }`.
+ * Emitting it as a value import would ask the module for a runtime export that may not exist,
+ * breaking under `verbatimModuleSyntax`/`isolatedModules`.
  */
 function mergeDroppedTypedImports(target: any, typedBindings: any): void {
     const typedImports = typedBindings?.imports ?? [];
     for (const typedImport of typedImports) {
         const alreadyPresent = target.imports.some((i: any) => i.module === typedImport.module);
         if (!alreadyPresent) {
-            target.imports.push(deepCloneObject(typedImport));
+            target.imports.push({ ...deepCloneObject(typedImport), isTypeOnly: true });
         }
     }
 }
