@@ -6,9 +6,9 @@ import {
     pickDirectionZoom,
 } from 'ag-charts-core';
 import type { DynamicContext, ZoomMinMax } from 'ag-charts-core';
-import type { AgDataSourceCallbackParams } from 'ag-charts-types';
+import type { AgDataSourceCallbackParams, AgZoomEventSource } from 'ag-charts-types';
 
-import type { UpdateCompleteEvent } from '../../core/eventsHub';
+import type { UpdateCompleteEvent, ZoomChangeCompleteEvent } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
 import type { AxisLike, ChartLike, UpdateProcessor } from './processor';
 
@@ -17,6 +17,7 @@ const DEFAULT_ZOOM: ZoomMinMax = { min: 0, max: 1 };
 export class DataWindowProcessor implements UpdateProcessor {
     private dirtyZoom = false;
     private dirtyDataSource = false;
+    private zoomSource: AgZoomEventSource | undefined;
     private readonly lastAxisZooms = new Map<string, ZoomMinMax>();
     private lastWindow: AgDataSourceCallbackParams | undefined;
 
@@ -31,7 +32,7 @@ export class DataWindowProcessor implements UpdateProcessor {
             ctx.eventsHub.on('data:load', () => this.onDataLoad()),
             ctx.eventsHub.on('data:error', () => this.onDataError()),
             ctx.eventsHub.on('update:complete', (e) => this.onUpdateComplete(e)),
-            ctx.eventsHub.on('zoom:change-complete', () => this.onZoomChange())
+            ctx.eventsHub.on('zoom:change-complete', (e) => this.onZoomChange(e))
         );
     }
 
@@ -61,8 +62,9 @@ export class DataWindowProcessor implements UpdateProcessor {
         this.updateWindow(event);
     }
 
-    private onZoomChange() {
+    private onZoomChange(event: ZoomChangeCompleteEvent) {
         this.dirtyZoom = true;
+        this.zoomSource = event.source;
     }
 
     private updateWindow(event: UpdateCompleteEvent) {
@@ -79,13 +81,16 @@ export class DataWindowProcessor implements UpdateProcessor {
             shouldRefresh = this.shouldRefresh(event, axis, zoom, window);
         }
 
+        const source: AgZoomEventSource = this.dirtyZoom && this.zoomSource ? this.zoomSource : 'chart-update';
+
         this.dirtyZoom = false;
         this.dirtyDataSource = false;
+        this.zoomSource = undefined;
         this.lastWindow = window;
 
         if (!shouldRefresh) return;
 
-        this.ctx.dataService.load({ windowStart: window?.windowStart, windowEnd: window?.windowEnd });
+        this.ctx.dataService.load({ windowStart: window?.windowStart, windowEnd: window?.windowEnd, source });
     }
 
     private shouldRefresh(
