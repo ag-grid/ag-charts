@@ -1,5 +1,4 @@
-import { Property } from 'ag-charts-core';
-import type { AgColorType } from 'ag-charts-types';
+import { type NormalisedColorType, Property } from 'ag-charts-core';
 
 import { ColorScaleProperties } from '../../../scene/gradient/stops';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
@@ -47,7 +46,7 @@ export abstract class HierarchySeriesProperties<T extends object> extends Series
     colorName?: string;
 
     @Property
-    fills: AgColorType[] = Object.values(DEFAULT_FILLS);
+    fills: NormalisedColorType[] = Object.values(DEFAULT_FILLS);
 
     @Property
     strokes: string[] = Object.values(DEFAULT_STROKES);

@@ -1,3 +1,4 @@
+import type { NormalisedGradientColor } from 'ag-charts-core';
 import type {
     AgBarHighlightStyleOptions,
     AgColorRefMixOnto,
@@ -5,7 +6,6 @@ import type {
     AgColorScaleColorStop,
     AgColorType,
     AgCssColorOrRef,
-    AgGradientColor,
     AgGradientColorBounds,
     AgGradientColorStop,
     AgGradientColorStrict,
@@ -182,7 +182,7 @@ export const gradientStrict = optionsDefs<AgGradientColorStrict>(
     'a gradient object with colour stops'
 );
 
-export interface InternalAgGradientColor extends AgGradientColor {
+export interface InternalAgGradientColor extends NormalisedGradientColor {
     /** Format of the gradient */
     gradient?: AgGradientType;
     /** The domain of the colour gradient, defaults to item. */

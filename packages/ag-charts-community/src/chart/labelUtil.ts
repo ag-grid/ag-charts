@@ -3,6 +3,7 @@ import type {
     CallbackParam,
     DynamicContext,
     IsAny,
+    NormalisedColorType,
     NormalisedPaddingOptions,
     NormalisedTextOrSegments,
     Point,
@@ -78,7 +79,7 @@ export function getLabelStyles<TParams>(
 
         const styleParams: NormalisedCallbackParams<
             AgChartLabelStylerParams<unknown, unknown>,
-            { color?: CssColor; fontSize: number; padding?: NormalisedPaddingOptions }
+            { color?: CssColor; fontSize: number; padding?: NormalisedPaddingOptions; fill?: NormalisedColorType }
         > = {
             border: label.border,
             color: label.color,

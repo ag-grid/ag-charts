@@ -65,14 +65,14 @@ export type AgGradientColorMode = 'continuous' | 'discrete';
 
 export interface AgGradientColorStop {
     /** Colour of this category. */
-    color?: CssColor;
+    color?: AgCssColorOrRef;
     /** Stop value of this category. Defaults the maximum value if unset. */
     stop?: Ratio;
 }
 
 export interface AgColorScaleColorStop {
     /** Colour at this position. */
-    color: CssColor;
+    color: AgCssColorOrRef;
     /** Position of this colour in the data domain. In continuous mode, the colour appears exactly at this value. In discrete mode, this is the first value of the next bin. */
     stop?: AgNumericValue;
     /** Display name for this bin, used in legend and tooltip labels. */
