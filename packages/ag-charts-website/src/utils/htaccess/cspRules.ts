@@ -18,8 +18,17 @@
 export type CspEnv = 'dev' | 'staging' | 'production';
 export type CspMode = 'report-only' | 'enforce';
 
+/**
+ * 'site' is the default policy for ordinary pages. 'examples' additionally
+ * allows 'unsafe-eval' and applies only to the example-runner documents — see
+ * EXAMPLES_PATH_CONDITION.
+ */
+export type CspScope = 'site' | 'examples';
+
 export interface CspOptions {
     env: CspEnv;
+    /** Which policy variant to build. Defaults to 'site'. */
+    scope?: CspScope;
     /** Override the trial-licence form origin. Defaults to the per-env value. */
     trialFormOrigin?: string;
 }
@@ -30,9 +39,24 @@ export type CspDirectives = Record<string, string[]>;
 const SELF = "'self'";
 const NONE = "'none'";
 const UNSAFE_INLINE = "'unsafe-inline'";
-// Required by the Angular example-runner (JIT compilation) and the charts
-// example/theme tooling. Removing it is tracked separately.
+// Permits WebAssembly compilation without permitting JS eval() — narrower than
+// 'unsafe-eval'. Needed on every page: docs snippets are highlighted in the
+// browser by Shiki, whose oniguruma engine instantiates a WASM module
+// (see CodeShiki.tsx). Browsers that predate this token fall back to requiring
+// 'unsafe-eval' for WASM.
+const WASM_UNSAFE_EVAL = "'wasm-unsafe-eval'";
+// Allowed only in the 'examples' scope: the example-runner documents load modules
+// with legacy SystemJS (fetches source over XHR and evals it) and the Angular
+// examples compile templates in the browser (JIT). The chart library itself does
+// not need it (see AG-11258), so ordinary pages no longer carry it.
 const UNSAFE_EVAL = "'unsafe-eval'";
+
+// Apache <If> expression matching the URL paths that get the 'examples' scope.
+// Charts serves example-runner documents at both /gallery/examples/<name>/... and
+// /<framework>/<page>/examples/<name>/..., and the whole site sits under /charts in
+// production, so '/examples/' is not a leading prefix — match the segment anywhere.
+// '/archive/' covers archived doc versions (which ship the same runner).
+export const EXAMPLES_PATH_CONDITION = '%{REQUEST_URI} =~ m#/(examples|archive)/#';
 
 // 'self' resolves to www.ag-grid.com on production (charts lives under /charts) and
 // charts-staging.ag-grid.com on staging, so cross-subdomain references to the
@@ -64,6 +88,7 @@ const DEV_CONNECT_SRC = ['https://localhost:4600', 'https://localhost:4601', 'ws
 
 export function getCspDirectives(options: CspOptions): CspDirectives {
     const { env } = options;
+    const scope = options.scope ?? 'site';
     const trialFormOrigin = options.trialFormOrigin ?? TRIAL_FORM_ORIGIN[env];
     const salesforceFormOrigin = SALESFORCE_FORM_ORIGIN[env];
 
@@ -84,10 +109,26 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             'https://cdn.cookielaw.org', // OneTrust cookie-consent SDK (GTM-injected, prod-only)
             'blob:', // ZoomInfo zi-tag.js bootstraps a blob: URL script
             UNSAFE_INLINE,
-            UNSAFE_EVAL,
+            WASM_UNSAFE_EVAL,
         ],
-        'style-src': [SELF, 'https://fonts.googleapis.com', 'https://cdn.jsdelivr.net', UNSAFE_INLINE],
-        'font-src': [SELF, 'https://fonts.gstatic.com', 'https://cdn.jsdelivr.net', 'data:'],
+        // 'unsafe-inline' stays: the charts theming/legacy styles inject <style>
+        // elements at runtime and static hosting rules out per-request nonces.
+        // cdnjs.cloudflare.com: the font-icons docs example loads the Font Awesome stylesheet
+        // (and its woff2 fonts) from there at runtime.
+        'style-src': [
+            SELF,
+            'https://fonts.googleapis.com',
+            'https://cdn.jsdelivr.net',
+            'https://cdnjs.cloudflare.com',
+            UNSAFE_INLINE,
+        ],
+        'font-src': [
+            SELF,
+            'https://fonts.gstatic.com',
+            'https://cdn.jsdelivr.net',
+            'https://cdnjs.cloudflare.com',
+            'data:',
+        ],
         // Relaxed to https:. Images/media are open-ended (blog/showcase images, chart
         // example assets) and a weak XSS vector — the strict script/connect/frame-src
         // below carry the protection.
@@ -97,6 +138,7 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
         // a decision (broaden vs allowlist) before flipping to enforce.
         'connect-src': [
             SELF,
+            'data:', // sized SVG/data-URI images are fetched for resize injection (see imageLoader.ts)
             AG_GRID_HOSTS,
             'https://plausible.io',
             'https://*.algolia.net', // Algolia DocSearch
@@ -132,6 +174,10 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
         ],
         'frame-ancestors': [SELF, AG_GRID_HOSTS], // allow *.ag-grid.com (e.g. blog) to embed examples
     };
+
+    if (scope === 'examples') {
+        directives['script-src'].push(UNSAFE_EVAL);
+    }
 
     if (env === 'dev') {
         directives['script-src'].push(...DEV_SCRIPT_SRC);
@@ -181,4 +227,28 @@ export function getCspHtaccessBlock(options: CspOptions, mode: CspMode): string 
     lines.push('Header always unset Content-Security-Policy-Report-Only');
     lines.push(getCspHtaccessLine(options, mode));
     return lines.join('\n');
+}
+
+/**
+ * Build the full `.htaccess` CSP block with the path-scoped policy split: the
+ * 'site' policy (no 'unsafe-eval') for ordinary pages, replaced by the
+ * 'examples' policy for the paths matched by EXAMPLES_PATH_CONDITION.
+ *
+ * A second CSP policy can only tighten (browsers enforce the intersection), so
+ * the relaxation must unset and re-set the header rather than add another one.
+ */
+export function getScopedCspHtaccessBlock(options: Omit<CspOptions, 'scope'>, mode: CspMode): string {
+    const headerName = getCspHeaderName(mode);
+    return [
+        getCspHtaccessBlock({ ...options, scope: 'site' }, mode),
+        '',
+        "# Example-runner documents and archived doc versions additionally need 'unsafe-eval'",
+        '# (SystemJS eval-loads modules; the Angular JIT compiler also compiles in the browser).',
+        '# <If> sections merge after all other configuration, so this unset+set replaces the',
+        '# header set above for matching requests.',
+        `<If "${EXAMPLES_PATH_CONDITION}">`,
+        `    Header always unset ${headerName}`,
+        `    ${getCspHtaccessLine({ ...options, scope: 'examples' }, mode)}`,
+        '</If>',
+    ].join('\n');
 }
