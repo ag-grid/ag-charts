@@ -1,5 +1,6 @@
 import type { Framework } from '@ag-grid-types';
-import CodeShiki, { type Language } from '@ag-website-shared/components/code/CodeShiki';
+import type { Language } from '@ag-website-shared/components/code/Code';
+import Code from '@ag-website-shared/components/code/Code';
 import { throwDevWarning } from '@ag-website-shared/utils/throwDevWarning';
 import * as snippetTransformer from '@components/snippet/snippetTransformer';
 
@@ -14,7 +15,6 @@ interface Props {
     framework: Framework;
     content: string;
     transform?: boolean;
-    shiki?: boolean;
     language?: Language;
     lineNumbers?: boolean;
     suppressFrameworkContext?: boolean;
@@ -39,7 +39,6 @@ export const Snippet = (props: Props) => {
         spaceBetweenProperties,
         inlineReactProperties,
         copyToClipboard,
-        shiki,
     } = props;
 
     if (!content) {
@@ -57,22 +56,11 @@ export const Snippet = (props: Props) => {
         : content;
 
     return (
-        <>
-            {shiki ? (
-                <CodeShiki
-                    code={snippet}
-                    language={language ? language : (languages[framework] as Language)}
-                    lineNumbers={lineNumbers}
-                    copyToClipboard={copyToClipboard}
-                />
-            ) : (
-                <Code
-                    code={snippet}
-                    language={language ? language : (languages[framework] as Language)}
-                    lineNumbers={lineNumbers}
-                    copyToClipboard={copyToClipboard}
-                />
-            )}
-        </>
+        <Code
+            code={snippet}
+            language={language ? language : (languages[framework] as Language)}
+            lineNumbers={lineNumbers}
+            copyToClipboard={copyToClipboard}
+        />
     );
 };
