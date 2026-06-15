@@ -243,7 +243,9 @@ export abstract class CartesianAxis<
             niceMode[0] === NiceMode.Off &&
             niceMode[1] === NiceMode.Off &&
             !label.enabled &&
+            !(this.primaryLabel?.enabled ?? false) &&
             this.options.tick.enabled === false &&
+            !(this.primaryTick?.enabled ?? false) &&
             this.options.gridLine.enabled === false
         ) {
             const { bbox, spacing } = this.measureAxisLayout(domain, [], [], scrollbar, scrollbarThickness);
@@ -868,7 +870,8 @@ export abstract class CartesianAxis<
     }
 
     protected updateLabels() {
-        if (!this.options.label.enabled) return;
+        const labelsEnabled = this.options.label.enabled || (this.primaryLabel?.enabled ?? false);
+        if (!labelsEnabled) return;
 
         // Apply label option values
         this.tickLabelGroupSelection.each((node, datum) => {

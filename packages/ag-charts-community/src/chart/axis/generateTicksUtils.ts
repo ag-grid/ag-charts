@@ -318,8 +318,12 @@ function axisTickFormatter<S extends Scale<D, number, TickInterval<S>>, D>(
         : null;
 
     return (isPrimary: boolean, tick: D, index: number) => {
-        const formatter = isPrimary ? primaryFormatter : defaultFormatter;
-        return formatter?.(tick, index) ?? String(tick);
+        if (isPrimary) {
+            return primaryFormatter?.(tick, index) ?? String(tick);
+        }
+        // A disabled base tier yields a null defaultFormatter; emit empty text so the base labels stay
+        // hidden while an enabled parent (primary) tier still renders.
+        return defaultFormatter == null ? '' : (defaultFormatter(tick, index) ?? String(tick));
     };
 }
 

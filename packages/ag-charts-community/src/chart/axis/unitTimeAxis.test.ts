@@ -15,7 +15,9 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     createChart,
+    deproxy,
     extractImageData,
+    prepareTestOptions,
     reverseAxes,
     setupMockCanvas,
     setupMockConsole,
@@ -614,6 +616,82 @@ describe('Time Axis Examples', () => {
         };
         chart = await createChart(options);
         await compare();
+    });
+
+    describe('label tier enabled flags', () => {
+        const PARENT_TIER_DATA = [
+            { date: new Date(2023, 10, 1), value: 2 },
+            { date: new Date(2023, 11, 1), value: 5 },
+            { date: new Date(2024, 0, 1), value: 3 },
+            { date: new Date(2024, 1, 1), value: 1 },
+            { date: new Date(2024, 2, 1), value: 2 },
+        ];
+
+        const labelTexts = (chartInstance: any, position: 'bottom' | 'left' = 'bottom'): string[] => {
+            const axis = deproxy(chartInstance).axes.find((a: any) => a.position === position) as any;
+            expect(axis).toBeDefined();
+            return Array.from(axis.tickLabelGroupSelection.nodes() as Iterable<any>)
+                .map((node) => node.text)
+                .filter((text): text is string => text != null && text !== '');
+        };
+
+        const monthAndYearOptions = (
+            labelEnabled: boolean,
+            axisType: 'time' | 'unit-time'
+        ): AgCartesianChartOptions => ({
+            data: PARENT_TIER_DATA,
+            series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
+            axes: {
+                x: {
+                    type: axisType,
+                    position: 'bottom',
+                    ...(axisType === 'unit-time' ? { unit: 'month' } : {}),
+                    label: { enabled: labelEnabled },
+                    parentLevel: { enabled: true, label: { enabled: true } },
+                } as any,
+                y: { type: 'number', position: 'left' },
+            },
+        });
+
+        it.each(['time', 'unit-time'] as const)(
+            'renders only the parent (year) tier when base labels are disabled on a %s axis',
+            async (axisType) => {
+                chart = await createChart(monthAndYearOptions(false, axisType));
+
+                const texts = labelTexts(chart);
+                expect(texts.length).toBeGreaterThan(0);
+                // Parent tier (year) is retained; no base tier (month) text leaks through.
+                expect(texts).toContain('2024');
+                expect(texts.some((t) => /Jan|Feb|Mar|Nov|Dec/.test(t))).toBe(false);
+            }
+        );
+
+        it('removes base-tier labels at runtime while the parent tier remains (TC2)', async () => {
+            chart = await createChart(monthAndYearOptions(true, 'unit-time'));
+
+            const before = labelTexts(chart);
+            expect(before.some((t) => /Jan|Feb|Mar|Nov|Dec/.test(t))).toBe(true);
+
+            await deproxy(chart).publicApi!.update(prepareTestOptions(monthAndYearOptions(false, 'unit-time')));
+            await waitForChartStability(chart);
+
+            const after = labelTexts(chart);
+            expect(after).toContain('2024');
+            expect(after.some((t) => /Jan|Feb|Mar|Nov|Dec/.test(t))).toBe(false);
+        });
+
+        it('hides all labels on a number axis when its labels are disabled (regression guard)', async () => {
+            chart = await createChart({
+                data: PARENT_TIER_DATA,
+                series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', label: { enabled: false } },
+                },
+            });
+
+            expect(labelTexts(chart, 'left')).toEqual([]);
+        });
     });
 
     describe('AG-14639', () => {
