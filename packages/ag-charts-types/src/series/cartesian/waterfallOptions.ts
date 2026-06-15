@@ -16,16 +16,13 @@ import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, St
 
 export type AgWaterfallSeriesItemType = 'positive' | 'negative' | 'total' | 'subtotal';
 
-interface AgWaterfallSeriesItemIdParams {
+interface AgWaterfallSeriesItemParams {
     /**
      * The stable identifier of the bar, matching the `itemId` on node events and `activeItem`. For `total` and
      * `subtotal` bars this is the `totals.itemId` if supplied, otherwise the `axisLabel`. For `positive` and
      * `negative` bars it is the `dataIdKey` value if set, otherwise the bar's positional index.
      */
     itemId: string | number;
-}
-
-interface AgWaterfallSeriesTotalValueParams {
     /**
      * The computed cumulative ("running total") value for `total` and `subtotal` bars.
      *
@@ -40,14 +37,12 @@ export type AgWaterfallSeriesItemStylerParams<
 > = DatumItemCallbackParams<AgWaterfallSeriesItemType, TDatum, HighlightState> &
     ContextCallbackParams<TContext> &
     AgWaterfallSeriesOptionsKeys<TDatum> &
-    AgWaterfallSeriesItemIdParams &
-    AgWaterfallSeriesTotalValueParams &
+    AgWaterfallSeriesItemParams &
     Required<AgWaterfallSeriesStyle>;
 
 export type AgWaterfallSeriesLabelFormatterParams<TDatum = DatumDefault> = AgWaterfallSeriesOptionsKeys<TDatum> &
     AgWaterfallSeriesOptionsNames &
-    AgWaterfallSeriesItemIdParams &
-    AgWaterfallSeriesTotalValueParams & { itemType: AgWaterfallSeriesItemType };
+    AgWaterfallSeriesItemParams & { itemType: AgWaterfallSeriesItemType };
 
 export interface AgWaterfallSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each bar. */
@@ -58,8 +53,7 @@ export interface AgWaterfallSeriesTooltipRendererParams<TDatum = DatumDefault, T
     extends
         AgCartesianSeriesTooltipRendererParams<TDatum, TContext>,
         AgWaterfallSeriesStyle,
-        AgWaterfallSeriesItemIdParams,
-        AgWaterfallSeriesTotalValueParams {
+        AgWaterfallSeriesItemParams {
     /** The type of datum. This can be `positive`, `negative`, `total` or `subtotal`. */
     itemType: AgWaterfallSeriesItemType;
 }
