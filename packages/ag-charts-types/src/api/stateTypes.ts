@@ -13,12 +13,7 @@ export interface AgStateSerializableBigInt {
 }
 
 export type AgStateValueType = string | number | bigint | Date;
-export type AgStateSerializableValueType =
-    | string
-    | number
-    | bigint
-    | AgStateSerializableDate
-    | AgStateSerializableBigInt;
+export type AgStateSerializableValueType = string | number | AgStateSerializableDate | AgStateSerializableBigInt;
 
 export interface AgStateGroupingValueType {
     /** The value to use for the position. */

@@ -488,7 +488,7 @@ export interface AgAnnotationPoint {
     /** The x-value of the point. */
     x: AgAnnotationValue;
     /** The y-value of the point. */
-    y: AgNumericValue | AgStateSerializableBigInt;
+    y: number | AgStateSerializableBigInt;
 }
 
 interface Writeable {
