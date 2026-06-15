@@ -1275,7 +1275,21 @@ describe('BubbleSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
               [
                 [
-                  "AG Charts - series[].minSize (30) cannot be greater than maxSize (5), reverting both to theme defaults.",
+                  "AG Charts - series[0].minSize (30) cannot be greater than maxSize (5), ignoring both.",
+                ],
+              ]
+            `);
+        });
+
+        it('rejects a sizeDomain that is not a 2-element array and falls back to the data domain', async () => {
+            await createBubble({ sizeDomain: [5] });
+            // The malformed sizeDomain is dropped, so the data-derived domain [0, 200] and theme
+            // defaults [7, 30] apply: s=0 -> 7, s=50 -> 12.75, s=200 -> 30 (no NaN).
+            expect(nodeSizes(chart)).toEqual([7, 12.75, 30]);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`series[0].sizeDomain\` cannot be set to \`[5]\`; expecting a number or bigint array and an array of exactly 2 items, ignoring.",
                 ],
               ]
             `);

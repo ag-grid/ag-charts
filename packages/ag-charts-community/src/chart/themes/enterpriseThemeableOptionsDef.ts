@@ -1,6 +1,7 @@
 import {
     type OptionsDefs,
     and,
+    arrayLength,
     arrayOf,
     autoSizedLabelOptionsDefs,
     barHighlightOptionsDef,
@@ -326,7 +327,7 @@ export const mapLineSeriesThemeableOptionsDef: OptionsDefs<AgMapLineSeriesThemea
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     }),
-    sizeDomain: arrayOf(positiveNumericValue),
+    sizeDomain: and(arrayOf(positiveNumericValue), arrayLength(2, 2)),
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
@@ -344,7 +345,7 @@ export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesTh
     colorScale: colorScaleOptionsDef,
     minSize: positiveNumber,
     maxSize: positiveNumber,
-    sizeDomain: arrayOf(positiveNumericValue),
+    sizeDomain: and(arrayOf(positiveNumericValue), arrayLength(2, 2)),
     label: {
         placement: union('top', 'bottom', 'left', 'right'),
         ...seriesLabelOptionsDefs,

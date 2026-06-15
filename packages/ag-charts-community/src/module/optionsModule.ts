@@ -682,8 +682,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private processSeriesOptions(options: T) {
         const displayNullData = (options as any).displayNullData;
 
-        const processedSeries = (options.series as SeriesOptionsTypes[])?.map((series) => {
-            this.validateSizeBounds(series);
+        const processedSeries = (options.series as SeriesOptionsTypes[])?.map((series, index) => {
+            this.validateSizeBounds(series, index);
 
             const seriesDef = ModuleRegistry.getSeriesModule(series.type);
             const visibleDefined = Boolean(seriesDef?.options?.visible);
@@ -704,7 +704,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     // When the user explicitly sets both size bounds inverted (min > max), warn and drop both so theme
     // defaults re-apply. A single bound is resolved at render time (min is authoritative) and is not checked here.
-    private validateSizeBounds(series: SeriesOptionsTypes) {
+    private validateSizeBounds(series: SeriesOptionsTypes, index: number) {
         const keys = SIZE_BOUND_KEYS[series.type];
         if (keys == null) return;
 
@@ -714,7 +714,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const maxValue = seriesOptions[maxKey];
         if (isNumericValue(minValue) && isNumericValue(maxValue) && minValue > maxValue) {
             Logger.warnOnce(
-                `series[].${minKey} (${minValue}) cannot be greater than ${maxKey} (${maxValue}), reverting both to theme defaults.`
+                `series[${index}].${minKey} (${minValue}) cannot be greater than ${maxKey} (${maxValue}), ignoring both.`
             );
             delete seriesOptions[minKey];
             delete seriesOptions[maxKey];
