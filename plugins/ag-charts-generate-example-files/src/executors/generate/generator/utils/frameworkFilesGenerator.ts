@@ -87,6 +87,24 @@ type ConfigGenerator = ({
     suppressOptionsClone?: boolean;
 }) => Promise<FrameworkFiles>;
 
+/**
+ * Append to `target.imports` any import whose module the JS bindings dropped entirely.
+ * Sucrase removes type-only imports (e.g. `import type { Foo } from './data'`) when producing
+ * the JS bindings, so a preserved top-level declaration that references such a type would emit
+ * an undeclared symbol. Only modules absent from the JS bindings are added — modules the JS
+ * bindings already carry (e.g. `ag-charts-community`) are left untouched so we don't re-import
+ * names the Vue 3 header already sources elsewhere (`AgChartOptions` from `ag-charts-types`).
+ */
+function mergeDroppedTypedImports(target: any, typedBindings: any): void {
+    const typedImports = typedBindings?.imports ?? [];
+    for (const typedImport of typedImports) {
+        const alreadyPresent = target.imports.some((i: any) => i.module === typedImport.module);
+        if (!alreadyPresent) {
+            target.imports.push(deepCloneObject(typedImport));
+        }
+    }
+}
+
 // noinspection TypeScriptValidateTypes
 export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator> = {
     vanilla: async ({
@@ -356,6 +374,11 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         // percolates through `bindings.optionsTypeInfo`.
         const vueBindings = deepCloneObject(bindings);
         vueBindings.declarations = deepCloneObject(typedBindings.declarations ?? []);
+        // A preserved declaration may reference a type that only the TS source imports
+        // (sucrase drops type-only imports when producing the JS bindings), so merge the
+        // imports the JS bindings lost back in — otherwise the emitted declaration would
+        // reference an undeclared symbol.
+        mergeDroppedTypedImports(vueBindings, typedBindings);
 
         let mainJs = await vanillaToVue3(vueBindings, [], suppressOptionsClone);
 
