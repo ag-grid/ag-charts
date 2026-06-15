@@ -1,4 +1,4 @@
-import CodeShiki from '@ag-website-shared/components/code/CodeShiki';
+import Code from '@ag-website-shared/components/code/Code';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { useState } from 'react';
 
@@ -54,7 +54,7 @@ export const CodeExample = ({ code, language = 'ts', fileName = 'main.tsx' }: Pr
 
             {/* Code content */}
             <div className={styles.codeContent}>
-                <CodeShiki code={code} language={language} lineNumbers={true} />
+                <Code code={code} language={language} lineNumbers={true} />
             </div>
         </div>
     );

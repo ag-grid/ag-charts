@@ -1,4 +1,4 @@
-import CodeShiki from '@ag-website-shared/components/code/CodeShiki';
+import Code from '@ag-website-shared/components/code/Code';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import styles from '@ag-website-shared/components/reference-documentation/ApiReference.module.scss';
 import { navigate, scrollIntoViewById, useLocation } from '@ag-website-shared/utils/navigation';
@@ -334,7 +334,7 @@ export function TypeCodeBlock({ apiNode, member }: { apiNode: NodeTypes | NodeTy
         return null;
     }
 
-    return <CodeShiki code={codeSample} />;
+    return <Code code={codeSample} />;
 }
 
 function getCollapsibleType(
