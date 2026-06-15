@@ -1,6 +1,7 @@
 import type { Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, vi } from 'vitest';
 
+import { textOrSegments } from '../config/chartDefaults';
 import { reset as resetLogger } from '../logging/logger';
 import { RegistryMode, reset as resetRegistry, setRegistryMode } from '../modules/moduleRegistry';
 import {
@@ -256,29 +257,65 @@ describe('Validation utils', () => {
     });
 
     describe('Callback Validators', () => {
-        test('callbackOf emits a single warning for invalid array returns', () => {
-            const formatterValidator = callbackOf(
-                arrayOfDefs<{ text: string }>(
-                    {
-                        text: required(string),
-                    },
-                    'text segment'
-                ),
-                'text segments'
+        const warnings = () => (console.warn as Mock).mock.calls.map((call) => String(call[0]));
+        const wrapFormatter = (
+            validator: Validator,
+            returnValue: unknown,
+            path = 'formatter',
+            description?: string
+        ) => {
+            const { cleared } = callbackOf(validator, description)(() => returnValue, {
+                options: {},
+                path,
+            }) as ValidatorResult;
+            return (cleared as (...args: any[]) => any)();
+        };
+
+        test('emits a targeted warning per invalid array element/property', () => {
+            const validator = arrayOfDefs<{ text: string }>({ text: required(string) }, 'text segment');
+            wrapFormatter(validator, [{ text: 'ok' }, { text: 123 }, 42], 'formatter', 'text segments');
+
+            const msgs = warnings();
+            expect(msgs).toHaveLength(2);
+            expect(msgs[0]).toContain('invalid property `[1].text`');
+            expect(msgs[0]).toContain('expecting a string');
+            expect(msgs[1]).toContain('invalid value `42`');
+            expect(msgs[1]).toContain('expecting text segments');
+        });
+
+        test('reports the offending sub-property for an invalid segment value', () => {
+            const result = wrapFormatter(
+                textOrSegments,
+                [{ type: 'image', url: 'https://example.com/de.png', width: 20, height: 13, verticalAlign: 't0p' }],
+                'axes[0].label.formatter'
             );
-            const formatter = (value: any) => value;
-            const context = { options: {}, path: 'formatter' };
-            const validatorResult = formatterValidator(formatter, context) as ValidatorResult;
-            const wrappedFormatter = validatorResult.cleared as (...args: any[]) => any;
 
-            wrappedFormatter([
-                { text: 'ok' },
-                { text: 123 }, // invalid
-                42, // invalid
+            const msgs = warnings();
+            expect(msgs).toHaveLength(1);
+            expect(msgs[0]).toContain('invalid property `[0].verticalAlign`');
+            expect(msgs[0]).toContain('"t0p"');
+            expect(msgs[0]).toContain("expecting a keyword such as 'baseline', 'top', 'middle' or 'bottom'");
+            // The bad property is dropped; the rest of the segment is preserved so the label still renders.
+            expect(result).toEqual([{ type: 'image', url: 'https://example.com/de.png', width: 20, height: 13 }]);
+        });
+
+        test('warns only about the invalid property and keeps valid sibling segments', () => {
+            const result = wrapFormatter(
+                textOrSegments,
+                [
+                    { type: 'text', text: 'Germany' },
+                    { type: 'image', url: 'https://example.com/de.png', width: 20, height: 13, verticalAlign: 'nope' },
+                ],
+                'axes[0].label.formatter'
+            );
+
+            const msgs = warnings();
+            expect(msgs).toHaveLength(1);
+            expect(msgs[0]).toContain('invalid property `[1].verticalAlign`');
+            expect(result).toEqual([
+                { type: 'text', text: 'Germany' },
+                { type: 'image', url: 'https://example.com/de.png', width: 20, height: 13 },
             ]);
-
-            expect(console.warn).toHaveBeenCalledTimes(1);
-            expect((console.warn as Mock).mock.calls[0][0]).toContain('returned an invalid value');
         });
     });
 
