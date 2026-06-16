@@ -9,7 +9,7 @@ import { isArray, isDate, isNumber } from '../types/typeGuards';
 
 // CSS generic family keywords — must remain unquoted; quoting changes their
 // meaning from keyword to literal family-name lookup.
-const CSS_GENERIC_FAMILIES = new Set([
+export const CSS_GENERIC_FAMILIES = new Set([
     'serif',
     'sans-serif',
     'monospace',

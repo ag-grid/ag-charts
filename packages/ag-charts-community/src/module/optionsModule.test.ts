@@ -3246,4 +3246,39 @@ describe('ChartOptions', () => {
             expect((processed.series![0] as any).allowNullKeys).toBeUndefined();
         });
     });
+
+    describe('font extraction', () => {
+        function extractFonts(userOptions: AgChartOptions) {
+            const chartOptions = new ChartOptions(userOptions, {} as AgChartOptions, {}, {}, {});
+            return { fonts: chartOptions.fonts, googleFonts: chartOptions.googleFonts };
+        }
+
+        it('collects weight-specific shorthands for concrete families and excludes generics', () => {
+            const { fonts } = extractFonts({
+                data: [{ x: 'a', y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                title: {
+                    text: [{ text: '★', fontFamily: 'Font Awesome 6 Free', fontWeight: 900 }],
+                },
+                subtitle: { text: 'S', fontFamily: 'CustomFont, sans-serif' },
+            } as AgChartOptions);
+
+            // Weight is part of the spec so a family that ships a separate file per weight
+            // (e.g. FontAwesome solid vs regular) loads the file the options actually reference.
+            expect(fonts).toContain('900 16px "Font Awesome 6 Free"');
+            expect(fonts).toContain('16px CustomFont');
+            expect([...fonts].some((spec) => spec.includes('sans-serif'))).toBe(false);
+        });
+
+        it('routes google fonts to the googleFonts CDN set', () => {
+            const { googleFonts } = extractFonts({
+                data: [{ x: 'a', y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                loadGoogleFonts: true,
+                title: { text: 'T', fontFamily: { googleFont: 'Pacifico' } },
+            } as AgChartOptions);
+
+            expect(googleFonts).toContain('Pacifico');
+        });
+    });
 });

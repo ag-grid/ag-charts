@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { type DynamicContext, EventEmitter } from 'ag-charts-core';
 
@@ -6,6 +6,20 @@ import type { EventsHubMap } from '../../core/eventsHub';
 import type { DOMManager } from '../../dom/domManager';
 import type { ChartRegistry } from '../../module/moduleContext';
 import { FontManager } from './fontManager';
+
+// `getDocument('fonts')` (used by waitForFonts) reads the global document's FontFaceSet, so
+// override it per-test to exercise the path without relying on the jsdom font stub.
+const realFontsDescriptor = Object.getOwnPropertyDescriptor(document, 'fonts');
+function setDocumentFonts(fonts: unknown) {
+    Object.defineProperty(document, 'fonts', { value: fonts, configurable: true });
+}
+afterEach(() => {
+    if (realFontsDescriptor) {
+        Object.defineProperty(document, 'fonts', realFontsDescriptor);
+    } else {
+        delete (document as any).fonts;
+    }
+});
 
 // Capture the ResizeObserver callback so we can simulate a font load
 let resizeObserverCallback: ResizeObserverCallback | undefined;
@@ -69,6 +83,67 @@ describe('FontManager', () => {
             [{ contentBoxSize: [{ inlineSize: 0 }] }] as unknown as ResizeObserverEntry[],
             {} as ResizeObserver
         );
+
+        expect(handler).not.toHaveBeenCalled();
+    });
+
+    function createFontManager() {
+        const eventsHub = new EventEmitter<EventsHubMap>();
+        const fontManager = new FontManager({
+            domManager: createMockDomManager(),
+            eventsHub,
+        } as unknown as DynamicContext<ChartRegistry>);
+        const handler = vi.fn();
+        eventsHub.on('font:load', handler);
+        return { fontManager, handler };
+    }
+
+    it('waitForFonts loads the exact weight-specific shorthand and emits font:load once it settles', async () => {
+        const { fontManager, handler } = createFontManager();
+        const fontSet = { check: vi.fn().mockReturnValue(false), load: vi.fn().mockResolvedValue([]) };
+        setDocumentFonts(fontSet);
+
+        fontManager.waitForFonts(new Set(['900 16px "Font Awesome 6 Free"']));
+
+        expect(fontSet.load).toHaveBeenCalledWith('900 16px "Font Awesome 6 Free"');
+        await vi.waitFor(() => expect(handler).toHaveBeenCalledTimes(1));
+    });
+
+    it('waitForFonts skips already-available fonts and does not re-render', async () => {
+        const { fontManager, handler } = createFontManager();
+        const fontSet = { check: vi.fn().mockReturnValue(true), load: vi.fn() };
+        setDocumentFonts(fontSet);
+
+        fontManager.waitForFonts(new Set(['16px Arial']));
+
+        expect(fontSet.load).not.toHaveBeenCalled();
+        await Promise.resolve();
+        expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('waitForFonts is a no-op without a document FontFaceSet (SSR)', async () => {
+        const { fontManager, handler } = createFontManager();
+        setDocumentFonts(undefined);
+
+        expect(() => fontManager.waitForFonts(new Set(['16px Roboto']))).not.toThrow();
+        await Promise.resolve();
+        expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('waitForFonts does not emit after the chart is destroyed', async () => {
+        const { fontManager, handler } = createFontManager();
+        let resolveLoad: () => void = () => {};
+        const loadPromise = new Promise<void>((resolve) => {
+            resolveLoad = resolve;
+        });
+        const fontSet = { check: vi.fn().mockReturnValue(false), load: vi.fn().mockReturnValue(loadPromise) };
+        setDocumentFonts(fontSet);
+
+        fontManager.waitForFonts(new Set(['16px Roboto']));
+        fontManager.destroy();
+        resolveLoad();
+        await loadPromise;
+        await Promise.resolve();
 
         expect(handler).not.toHaveBeenCalled();
     });
