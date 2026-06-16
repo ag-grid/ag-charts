@@ -469,7 +469,8 @@ export class Ranges extends AbstractModuleInstance {
         }
 
         if (typeof value === 'function') {
-            return { fn: (params) => value(params), valid: true };
+            const context = this.ctx.chartState.getValue('options', 'context');
+            return { fn: (params) => value({ ...params, context }), valid: true };
         }
 
         if (isTimeInterval(value) || isTimeIntervalUnit(value)) {

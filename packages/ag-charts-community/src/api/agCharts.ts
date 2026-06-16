@@ -263,6 +263,7 @@ class AgChartsInternal {
         }
 
         chart.ctx.fontManager.updateFonts(chartOptions.googleFonts);
+        chart.ctx.fontManager.waitForFonts(chartOptions.fonts);
 
         if (data != null) {
             chart.ctx.dataService.restoreData(data);

@@ -145,6 +145,8 @@ When `dataIdKey` is set:
 - **Update** operations match by ID and replace the existing datum with the new object.
 - **Add** operations work the same as without `dataIdKey`.
 
+`dataIdKey` also determines the `itemId` exposed in many node events and states. See [Item Identifiers](./events/#item-identifiers) for more details.
+
 {% chartExampleRunner title="ID-Based Transaction" name="id-based-transaction" type="generated" /%}
 
 - **Add 3 Items**: Appends 3 new items to the dataset.

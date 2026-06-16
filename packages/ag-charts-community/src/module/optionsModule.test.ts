@@ -3246,4 +3246,56 @@ describe('ChartOptions', () => {
             expect((processed.series![0] as any).allowNullKeys).toBeUndefined();
         });
     });
+
+    describe('font extraction', () => {
+        function extractFonts(userOptions: AgChartOptions) {
+            const chartOptions = new ChartOptions(userOptions, {} as AgChartOptions, {}, {}, {});
+            return {
+                fonts: chartOptions.fonts ?? new Set<string>(),
+                googleFonts: chartOptions.googleFonts ?? new Set<string>(),
+            };
+        }
+
+        it('collects weight-specific shorthands for concrete families and excludes generics', () => {
+            const { fonts } = extractFonts({
+                data: [{ x: 'a', y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                title: {
+                    text: [{ text: '★', fontFamily: 'Font Awesome 6 Free', fontWeight: 900 }],
+                },
+                subtitle: { text: 'S', fontFamily: 'CustomFont, sans-serif' },
+            } as AgChartOptions);
+
+            // Weight is part of the spec so a family that ships a separate file per weight
+            // (e.g. FontAwesome solid vs regular) loads the file the options actually reference.
+            expect(fonts).toContain('900 16px "Font Awesome 6 Free"');
+            expect(fonts).toContain('16px CustomFont');
+            expect([...fonts].some((spec) => spec.includes('sans-serif'))).toBe(false);
+        });
+
+        it('routes google fonts to the googleFonts CDN set', () => {
+            const { googleFonts } = extractFonts({
+                data: [{ x: 'a', y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                loadGoogleFonts: true,
+                title: { text: 'T', fontFamily: { googleFont: 'Pacifico' } },
+            } as AgChartOptions);
+
+            expect(googleFonts).toContain('Pacifico');
+        });
+
+        it('carries the referenced-font set through a fast-path delta update', () => {
+            const baseOptions: AgChartOptions = {
+                data: [{ x: 'a', y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                title: { text: [{ text: '★', fontFamily: 'Font Awesome 6 Free', fontWeight: 900 }] },
+            } as AgChartOptions;
+            const base = new ChartOptions(baseOptions, {} as AgChartOptions, {}, {}, {});
+
+            // A width-only delta takes the fast path, which never re-extracts fonts.
+            const updated = new ChartOptions(base, {} as AgChartOptions, {}, {}, {}, { width: 400 });
+
+            expect(updated.fonts).toContain('900 16px "Font Awesome 6 Free"');
+        });
+    });
 });

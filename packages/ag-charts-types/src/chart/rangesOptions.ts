@@ -8,9 +8,9 @@ import type {
 import type { AgTimeInterval, AgTimeIntervalUnit } from './axisOptions';
 import type { ToolbarButton } from './buttonOptions';
 import type { AgZoomEventSource } from './eventOptions';
-import type { CssColor, PixelSize } from './types';
+import type { ContextDefault, CssColor, PixelSize } from './types';
 
-export interface AgRangesOptions extends Toggleable, AgRangesStyles {
+export interface AgRangesOptions<TContext = ContextDefault> extends Toggleable, AgRangesStyles {
     /**
      * Whether out of range buttons should be enabled.
      *
@@ -38,7 +38,7 @@ export interface AgRangesOptions extends Toggleable, AgRangesStyles {
     button?: AgRangesButtonStyles;
     dropdown?: AgRangesDropdown;
     /** The buttons to display. */
-    buttons?: AgRangesButton[];
+    buttons?: AgRangesButton<TContext>[];
 }
 
 export interface AgRangesStyles extends FillCssOptions, FontOptions, Omit<StrokeOptions, 'strokeOpacity'> {
@@ -71,17 +71,17 @@ export type AgRangesDropdownVisible = 'auto' | 'always' | 'never';
 
 export type AgRangesPosition = 'top-left' | 'top' | 'top-right' | 'bottom-left' | 'bottom' | 'bottom-right';
 
-export interface AgRangesButton extends Omit<ToolbarButton, 'iconPosition'> {
+export interface AgRangesButton<TContext = ContextDefault> extends Omit<ToolbarButton, 'iconPosition'> {
     /** Set to force this button to be enabled or disabled. */
     enabled?: boolean;
     /** Timestamp range on which to focus the chart, as either a single start time, a pair of times or a function that returns a pair of times. */
-    value: AgRangesButtonValue;
+    value: AgRangesButtonValue<TContext>;
 }
 
-export type AgRangesButtonValue =
+export type AgRangesButtonValue<TContext = ContextDefault> =
     | number
     | AgRangesButtonValuePair
-    | AgRangesButtonValueFunction
+    | AgRangesButtonValueFunction<TContext>
     | AgTimeInterval
     | AgTimeIntervalUnit
     | undefined;
@@ -89,7 +89,7 @@ export type AgRangesButtonValue =
 export type AgRangesButtonValuePair = [Date | number, Date | number];
 export type AgRangesButtonValueSource = AgZoomEventSource;
 
-export interface AgRangesButtonValueFunctionParams {
+export interface AgRangesButtonValueFunctionParams<TContext = ContextDefault> {
     /** The start of the full data domain. */
     start: Date | number;
     /** The end of the full data domain. */
@@ -100,8 +100,10 @@ export interface AgRangesButtonValueFunctionParams {
     windowEnd: Date | number;
     /** What triggered the function call, such as a button press or an out-of-range check. */
     source: AgRangesButtonValueSource;
+    /** The `context` value supplied in the chart options. */
+    context?: TContext;
 }
 
-export type AgRangesButtonValueFunction = (
-    params: AgRangesButtonValueFunctionParams
+export type AgRangesButtonValueFunction<TContext = ContextDefault> = (
+    params: AgRangesButtonValueFunctionParams<TContext>
 ) => [Date | number | undefined, Date | number | undefined];

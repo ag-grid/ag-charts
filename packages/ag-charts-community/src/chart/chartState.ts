@@ -2,6 +2,7 @@ import type {
     NormalisedChartCaptionOptions,
     NormalisedGradientLegendOptions,
     NormalisedLegendOptions,
+    NormalisedPaddingOptions,
     NormalisedSelectionOptions,
     NormalisedZoomOptions,
     ZoomState,
@@ -12,14 +13,12 @@ import type {
     AgAnnotationsOptions,
     AgChartBackground,
     AgChartOptions,
-    AgChartPaddingOptions,
     AgChartSyncOptions,
     AgDataSourceCallbackParams,
     AgDataSourceOptions,
     AgFlashOnUpdateOptions,
     AgInitialFocus,
     AgNavigatorMiniChartOptions,
-    AgNavigatorMiniChartPadding,
     AgNavigatorOptions,
     AgRangesButton,
     AgRangesDropdown,
@@ -77,7 +76,7 @@ export type NormalisedAnnotationsOptions = AgAnnotationsOptions & {
 };
 
 export type NormalisedNavigatorMiniChartOptions = Omit<AgNavigatorMiniChartOptions, 'padding'> & {
-    padding: Required<AgNavigatorMiniChartPadding>;
+    padding: NormalisedPaddingOptions;
 };
 
 export type NormalisedNavigatorOptions = Omit<AgNavigatorOptions, 'miniChart'> & {
@@ -165,7 +164,7 @@ export type ResolvedChartOptions = Omit<
     keyboard: { enabled: boolean; initialFocus: AgInitialFocus; tabIndex?: number };
     legend: NormalisedLegendOptions;
     navigator?: NormalisedNavigatorOptions;
-    padding: Required<AgChartPaddingOptions>;
+    padding: NormalisedPaddingOptions;
     ranges?: NormalisedRangesOptions;
     scrollbar?: NormalisedScrollbarOptions;
     selection: NormalisedSelectionOptions | undefined;

@@ -137,10 +137,7 @@ export const NAVIGATOR_THEME: WithThemeParams<AgNavigatorOptions> = {
             fontWeight: { $ref: 'fontWeight' },
             spacing: 5,
         },
-        padding: {
-            top: 0,
-            bottom: 0,
-        },
+        padding: { $applyPadding: 0 },
         series: {
             $apply: [
                 miniChartSeriesTheme(

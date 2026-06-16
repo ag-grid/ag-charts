@@ -1,10 +1,12 @@
 import {
+    CSS_GENERIC_FAMILIES,
     ChartAxisDirection,
     type ChartModuleDefinition,
     type CloneOptions,
     Color,
     Debug,
     type DeepPartial,
+    type FontOptions,
     Logger,
     ModuleRegistry,
     ModuleType,
@@ -35,6 +37,7 @@ import {
     setDocument,
     setWindow,
     shallowClone,
+    toFontString,
     unique,
     validate,
 } from 'ag-charts-core';
@@ -68,6 +71,47 @@ import {
     setStructuralCacheEntry,
 } from './optionsStructuralCache';
 import type { SeriesGrouping } from './seriesGrouping';
+
+interface FontAccumulator {
+    /** Google font families to load from the CDN (gated by `loadGoogleFonts`). */
+    googleFonts: Set<string>;
+    /**
+     * FontFaceSet shorthands (e.g. `900 16px "Font Awesome 6 Free"`) for every concrete font
+     * referenced in options, to wait on before re-rendering. Weight/style are part of the key
+     * because a single family (e.g. FontAwesome) ships each weight as a separate font file.
+     */
+    fonts: Set<string>;
+}
+
+function newFontAccumulator(): FontAccumulator {
+    return { googleFonts: new Set(), fonts: new Set() };
+}
+
+/**
+ * Collect FontFaceSet shorthands for each concrete family in a node's `fontFamily`, carrying the
+ * node's weight/style so weight-specific font files are loaded. CSS generic keywords
+ * (`sans-serif`, etc.) are never web fonts, so there is nothing to wait for.
+ */
+function addReferencedFonts(
+    fonts: Set<string>,
+    node: { fontFamily?: unknown; fontWeight?: unknown; fontStyle?: unknown }
+) {
+    const { fontFamily, fontWeight, fontStyle } = node;
+    if (typeof fontFamily !== 'string') return;
+    for (const part of fontFamily.split(',')) {
+        const family = part.trim().replace(/(^['"])|(['"]$)/g, '');
+        if (family !== '' && !CSS_GENERIC_FAMILIES.has(family.toLowerCase())) {
+            fonts.add(
+                toFontString({
+                    fontSize: 16,
+                    fontFamily: family,
+                    fontWeight: fontWeight as FontOptions['fontWeight'],
+                    fontStyle: fontStyle as FontOptions['fontStyle'],
+                })
+            );
+        }
+    }
+}
 
 export interface ChartSpecialOverrides {
     document: Document;
@@ -157,6 +201,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     themeParameters: AgChartThemeParams = {};
     annotationThemes: any;
     googleFonts?: Set<string>;
+    fonts?: Set<string>;
     fastDelta?: DeepPartial<T>;
     chartDef?: ChartModuleDefinition<any>;
     optionsProcessingTime?: number;
@@ -226,7 +271,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             deltaOptions?.data !== undefined &&
             deltaOptions?.data?.length !== currentUserOptions.userOptions.data?.length;
 
-        let activeTheme, processedOptions, fastDelta, themeParameters, annotationThemes, googleFonts, optionsGraph;
+        let activeTheme,
+            processedOptions,
+            fastDelta,
+            themeParameters,
+            annotationThemes,
+            googleFonts,
+            fonts,
+            optionsGraph;
         if (
             !stripSymbols &&
             !refreshCSSVariables &&
@@ -239,9 +291,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             ({ activeTheme, processedOptions, fastDelta } = this.fastSetup(deltaOptions, baseChartOptions));
             themeParameters = baseChartOptions.themeParameters;
             annotationThemes = baseChartOptions.annotationThemes;
+            // The fast path doesn't re-extract fonts, so carry them forward to keep waiting for them.
+            fonts = baseChartOptions.fonts;
         } else {
             ChartOptions.perfDebug(`ChartOptions.slowSetup()`);
-            ({ activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts, optionsGraph } =
+            ({ activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts, fonts, optionsGraph } =
                 this.slowSetup(processedOverrides, deltaOptions, stripSymbols));
         }
 
@@ -251,6 +305,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.themeParameters = themeParameters;
         this.annotationThemes = annotationThemes;
         this.googleFonts = googleFonts;
+        this.fonts = fonts;
         this.optionsGraph = optionsGraph;
 
         // Capture options processing time for debug stats
@@ -402,8 +457,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // TODO: Chicken-or-egg, ideally should pass themeParameters in here, but this processing needs to happen
         // first. Practically, it likely doesn't matter. Either way, this should be moved to a "plugin" on the
         // graph.
-        let googleFonts = this.processFonts(activeTheme.params);
-        googleFonts = this.processFonts(options, googleFonts);
+        let fontAccumulator = this.processFonts(activeTheme.params);
+        fontAccumulator = this.processFonts(options, fontAccumulator);
+        const { googleFonts } = fontAccumulator;
 
         // Process series options _before_ passing to the OptionsGraph. This ensures the series themes are applied in
         // the correct order to the re-ordered series.
@@ -443,6 +499,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             googleFonts.clear();
         }
 
+        const { fonts } = fontAccumulator;
+
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
         if (cacheKey !== undefined) {
@@ -455,12 +513,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 processedOptions: rest,
                 themeParameters,
                 googleFonts: googleFonts.size > 0 ? new Set(googleFonts) : undefined,
+                fonts: fonts.size > 0 ? new Set(fonts) : undefined,
                 annotationThemes,
                 chartDef: this.chartDef,
             });
         }
 
-        return { activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts, optionsGraph };
+        return { activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts, fonts, optionsGraph };
     }
 
     private computeStructuralCacheKeyForSlowSetup(
@@ -512,6 +571,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             themeParameters: cached.themeParameters,
             annotationThemes: cached.annotationThemes,
             googleFonts: cached.googleFonts ? new Set(cached.googleFonts) : undefined,
+            fonts: cached.fonts ? new Set(cached.fonts) : undefined,
             optionsGraph,
         };
     }
@@ -1344,36 +1404,38 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
-    private static processFontOptions(this: void, node: any, _?: any, __?: any, googleFonts: Set<string> = new Set()) {
+    private static processFontOptions(this: void, node: any, acc: FontAccumulator = newFontAccumulator()) {
         if (typeof node === 'object' && 'fontFamily' in node) {
+            const { fontWeight, fontStyle } = node;
             if (Array.isArray(node.fontFamily)) {
                 const fontFamily = [];
                 for (const font of node.fontFamily) {
                     if (typeof font === 'object' && 'googleFont' in font) {
                         fontFamily.push(font.googleFont);
-                        googleFonts?.add(font.googleFont);
+                        acc.googleFonts.add(font.googleFont);
+                        addReferencedFonts(acc.fonts, { fontFamily: font.googleFont, fontWeight, fontStyle });
                     } else {
                         fontFamily.push(font);
+                        addReferencedFonts(acc.fonts, { fontFamily: font, fontWeight, fontStyle });
                     }
                 }
                 node.fontFamily = fontFamily.join(', ');
             } else if (typeof node.fontFamily === 'object' && 'googleFont' in node.fontFamily) {
                 node.fontFamily = node.fontFamily.googleFont;
-                googleFonts?.add(node.fontFamily);
+                acc.googleFonts.add(node.fontFamily);
+                addReferencedFonts(acc.fonts, { fontFamily: node.fontFamily, fontWeight, fontStyle });
+            } else if (typeof node.fontFamily === 'string') {
+                addReferencedFonts(acc.fonts, { fontFamily: node.fontFamily, fontWeight, fontStyle });
             }
         }
-        return googleFonts;
+        return acc;
     }
 
-    private processFonts(options: object, googleFonts: Set<string> = new Set()) {
-        return jsonWalk<any, any, Set<string>>(
-            options,
-            ChartOptions.processFontOptions,
-            new Set(['data', 'theme']),
-            undefined,
-            undefined,
-            googleFonts
-        );
+    private processFonts(options: object, acc: FontAccumulator = newFontAccumulator()) {
+        // `jsonWalk` threads its accumulator via a different parameter slot than this visitor
+        // expects, so close over `acc` directly to collect fonts from every nested node.
+        jsonWalk(options, (node) => ChartOptions.processFontOptions(node, acc), new Set(['data', 'theme']));
+        return acc;
     }
 
     private static removeDisabledOptionJson(this: void, optionsNode: any) {

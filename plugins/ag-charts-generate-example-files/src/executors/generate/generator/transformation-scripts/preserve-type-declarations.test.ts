@@ -2,6 +2,7 @@ import parser from './chart-vanilla-src-parser';
 import { vanillaToAngular } from './chart-vanilla-to-angular';
 import { vanillaToReactFunctionalTs } from './chart-vanilla-to-react-functional-ts';
 import { vanillaToTypescript } from './chart-vanilla-to-typescript';
+import { vanillaToVue3 } from './chart-vanilla-to-vue3';
 
 const HTML = `<div id="myChart"></div>`;
 
@@ -60,6 +61,16 @@ const chart = AgCharts.create(options);
         expect(output).toMatch(/from 'ag-charts-community';\n\ntype MyDatumType/);
     });
 
+    test('vue3 output preserves the type declaration and the generic options type', async () => {
+        // Vue 3 is generated from the JS bindings, but the output is TypeScript, so the
+        // generator merges the typed declarations across (mirrored here).
+        const { bindings, typedBindings } = parse(TYPE_ALIAS_SRC);
+        bindings.declarations = typedBindings.declarations;
+        const output = await vanillaToVue3(bindings, [], false);
+        expect(output).toContain('type MyDatumType');
+        expect(output).toContain('ref<AgChartOptions<MyDatumType>>');
+    });
+
     test('interface declarations are preserved the same way', () => {
         const interfaceSrc = TYPE_ALIAS_SRC.replace(
             'type MyDatumType = { quarter: string; value: number };',
@@ -69,5 +80,43 @@ const chart = AgCharts.create(options);
         expect(typedBindings.declarations.join('\n')).toContain('interface MyDatumType');
         expect(typedBindings.declaredTypeNames).toContain('MyDatumType');
         expect(vanillaToTypescript(typedBindings)).toContain('interface MyDatumType');
+    });
+
+    test('vue3 restores a type-only import that a preserved declaration references', async () => {
+        // A declaration can reference a type that only the TS source imports — sucrase drops
+        // type-only imports from the JS bindings, so the generator (frameworkFilesGenerator.vue3,
+        // via `mergeDroppedTypedImports`) re-adds any module the JS bindings lost entirely.
+        // Mirrored here: append typed-import modules absent from the JS bindings.
+        const src = `
+import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import type { Region } from './data';
+
+type MyDatumType = { country: string; region: Region };
+
+const options: AgChartOptions<MyDatumType> = {
+    container: document.getElementById('myChart'),
+    data: [],
+    series: [{ type: 'bar', xKey: 'country', yKey: 'country' }],
+};
+
+const chart = AgCharts.create(options);
+`;
+        const { bindings, typedBindings } = parse(src);
+        bindings.declarations = typedBindings.declarations;
+        for (const typedImport of typedBindings.imports) {
+            if (!bindings.imports.some((i: { module: string }) => i.module === typedImport.module)) {
+                // Mirror `mergeDroppedTypedImports`: a wholly-dropped module was type-only.
+                bindings.imports.push({ ...typedImport, isTypeOnly: true });
+            }
+        }
+
+        const output = await vanillaToVue3(bindings, [], false);
+
+        expect(output).toContain('type MyDatumType');
+        // The `Region` type-only import the JS bindings dropped is restored as `import type`, not a
+        // value import — `./data` may export `Region` as a type only, so a value import would break.
+        expect(output).toMatch(/import\s+type\s*{\s*Region\s*}\s*from\s*'\.\/data'/);
+        // ...and `AgChartOptions` is sourced once (from ag-charts-types), not duplicated by the merge.
+        expect(output.match(/^import .*\bAgChartOptions\b.* from/gm)).toHaveLength(1);
     });
 });
