@@ -17,6 +17,7 @@ import agSourcemapCors from '../../external/ag-website-shared/plugins/agSourcema
 import { SITEMAP_CACHE_DIR } from '../../external/ag-website-shared/src/constants';
 import agAutoRedirect from './plugins/agAutoRedirect';
 import agCssAsString from './plugins/agCssAsString';
+import agDevCsp from './plugins/agDevCsp';
 import agHotModuleReload from './plugins/agHotModuleReload';
 import agHtaccessGen from './plugins/agHtaccessGen';
 import agRedirectsChecker from './plugins/agRedirectsChecker';
@@ -82,6 +83,7 @@ const plugins = [
     agCssAsString(),
     agHotModuleReload(),
     agAutoRedirect(['/javascript', '/react', '/vue', '/angular', '/gallery']),
+    agDevCsp(),
 ];
 if (NODE_ENV !== 'test') {
     plugins.push(mkcert()); // mkcert is not necessary for tests
@@ -136,15 +138,8 @@ export default defineConfig({
             },
             allowedHosts: [new URL(PUBLIC_SITE_URL).hostname],
             headers: {
-                'Content-Security-Policy': [
-                    "default-src 'self'",
-                    "script-src 'self' https://*.ag-grid.com https://localhost:4600 https://localhost:4601 https://www.googletagmanager.com https://cdn.jsdelivr.net 'unsafe-inline' 'unsafe-eval'",
-                    "style-src 'self' https://fonts.googleapis.com 'unsafe-inline'",
-                    "font-src 'self' https://fonts.gstatic.com data:",
-                    "img-src 'self' data: blob: https:",
-                    "connect-src 'self' https:",
-                    "worker-src 'self' blob:",
-                ].join('; '),
+                // Content-Security-Policy is served per request by agDevCsp so
+                // example paths can get a different policy from ordinary pages.
                 'X-Content-Type-Options': 'nosniff',
             },
         },

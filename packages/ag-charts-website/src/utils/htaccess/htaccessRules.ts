@@ -3,10 +3,17 @@ import type { AstroUserConfig } from 'astro';
 import { SITE_BASE_URL } from '../../constants';
 import { urlWithBaseUrl } from '../urlWithBaseUrl';
 import type { CspEnv } from './cspRules';
-import { getCspHtaccessBlock } from './cspRules';
+import { getCspHtaccessBlock, getScopedCspHtaccessBlock } from './cspRules';
 import { SITE_301_REDIRECTS, type SimpleRedirectRule } from './redirects';
 
 export type HtaccessEnv = Extract<CspEnv, 'staging' | 'production'>;
+
+// Rollout state for removing 'unsafe-eval' from the production main-site CSP.
+// While 'report-only', production keeps enforcing the previous policy (which
+// allows 'unsafe-eval' everywhere) and reports violations of the tightened
+// path-scoped split. Flip to 'enforce' once the report-only window is clean.
+// Staging always enforces the split.
+export const PRODUCTION_CSP_PHASE: 'report-only' | 'enforce' = 'report-only';
 
 export function getHtaccessContent(options: { env: HtaccessEnv }) {
     const { env } = options;
@@ -16,18 +23,30 @@ ErrorDocument 404 ${urlWithBaseUrl('/404.html')}
 # add MIME types for serving example files
 AddType text/javascript mjs ts jsx
 
-# Content-Security-Policy — enforced (the report-only validation window is complete).
-# Charts is served from /charts on www.ag-grid.com and inherits the grid root CSP, so
-# this block overrides it for charts pages (see getCspHtaccessBlock). In enforce mode
-# the block unsets BOTH inherited headers (the grid root policy and the legacy wildcard)
-# and sets this enforced policy. The trial-form origin is env-split, so the policy is
-# generated per environment.
-${getCspHtaccessBlock({ env }, 'enforce')}
+# Content-Security-Policy — path-scoped. Charts is served from /charts on www.ag-grid.com
+# and inherits the grid root CSP, so this block overrides it for charts pages (see
+# getCspHtaccessBlock). Ordinary pages get the tightened policy (no 'unsafe-eval'); the
+# <If> override re-allows it for example-runner documents. The trial-form origin is
+# env-split, so the policy is generated per environment.
+${getCspContent(env)}
 
 ${getRedirectRules()}
 
 Options -Indexes
 `;
+}
+
+function getCspContent(env: HtaccessEnv): string {
+    // Staging enforces the split immediately. Production keeps enforcing the previous
+    // policy (which allows 'unsafe-eval' on every page) and reports the tightened split
+    // via Report-Only until the validation window is clean. The Report-Only <If> override
+    // matters: without it, every example-runner page would report eval violations.
+    if (env === 'staging' || PRODUCTION_CSP_PHASE === 'enforce') {
+        return getScopedCspHtaccessBlock({ env }, 'enforce');
+    }
+    return `${getCspHtaccessBlock({ env, scope: 'examples' }, 'enforce')}
+
+${getScopedCspHtaccessBlock({ env }, 'report-only')}`;
 }
 
 export function getRedirectRules() {
