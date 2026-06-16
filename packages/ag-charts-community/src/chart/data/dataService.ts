@@ -191,7 +191,7 @@ export class DataService<D extends object> {
                 this.throttledDispatch(id, response, requestId);
             } else {
                 if (!callbackThrew) {
-                    Logger.warn(
+                    Logger.warnOnce(
                         `DataService - [dataSource.getData] returned an invalid value \`${stringifyValue(response, 50)}\`; expecting an array, ignoring.`
                     );
                 }

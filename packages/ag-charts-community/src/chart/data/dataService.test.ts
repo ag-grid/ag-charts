@@ -168,6 +168,19 @@ describe('DataService', () => {
             expect(arrayWarning(consoleWarnSpy.mock.calls)).toHaveLength(1);
         });
 
+        it('should warn only once across repeated invalid responses', async () => {
+            const dataSourceCallback = vi.fn((_params) => Promise.resolve(undefined));
+            dataService.updateCallback(dataSourceCallback);
+
+            dataService.load(undefinedWindow);
+            await sleep();
+            dataService.load(definedWindow);
+            await sleep();
+
+            expect(dataSourceCallback).toHaveBeenCalledTimes(2);
+            expect(arrayWarning(consoleWarnSpy.mock.calls)).toHaveLength(1);
+        });
+
         it('should not wedge the initial load: a later valid response still emits `data:load`', async () => {
             const dataSourceCallback = vi
                 .fn()
