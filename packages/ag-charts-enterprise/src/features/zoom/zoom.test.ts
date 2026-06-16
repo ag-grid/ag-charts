@@ -324,8 +324,8 @@ describe('Zoom', () => {
             };
             await prepareChart({ scrollingStep: 0.5 }, undefined, largeXBarOptions);
 
-            // Scroll fully in until the bars reach their minimum width; setupMockConsole() fails the
-            // test on the "invalid ratio" warning that this previously emitted at the zoom limit.
+            // Scroll fully in until the bars reach their minimum width. The assertion is implicit:
+            // setupMockConsole() fails the test on any "invalid ratio" warning at the zoom limit.
             for (let i = 0; i < 12; i++) {
                 await scrollAction(cx, cy, -1)(chart);
             }
