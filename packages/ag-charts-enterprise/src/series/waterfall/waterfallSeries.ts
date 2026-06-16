@@ -566,7 +566,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             datum,
             datumIndex,
             cumulativeValue: Number(cumulativeValue ?? 0),
-            totalValue: this.getTotalValue(seriesItemType, cumulativeValue),
+            totalValue: this.getTotalValue(seriesItemType, value),
             xValue: xDatum,
             yValue: value,
             yKey,
@@ -621,7 +621,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         mutableNode.datum = datum;
         mutableNode.datumIndex = datumIndex;
         mutableNode.cumulativeValue = Number(cumulativeValue ?? 0);
-        mutableNode.totalValue = this.getTotalValue(seriesItemType, cumulativeValue);
+        mutableNode.totalValue = this.getTotalValue(seriesItemType, value);
         mutableNode.xValue = xDatum;
         mutableNode.yValue = value;
         mutableNode.x = rectX;
@@ -792,10 +792,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
     private getTotalValue(
         itemType: AgWaterfallSeriesItemType,
-        cumulativeValue: AgNumericValue | undefined
+        value: AgNumericValue | undefined
     ): AgNumericValue | undefined {
-        if (cumulativeValue == null) return undefined;
-        return this.isTotal(itemType) || this.isSubtotal(itemType) ? cumulativeValue : undefined;
+        if (value == null) return undefined;
+        return this.isTotal(itemType) || this.isSubtotal(itemType) ? value : undefined;
     }
 
     protected override nodeFactory() {
