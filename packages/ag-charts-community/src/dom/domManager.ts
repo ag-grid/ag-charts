@@ -573,7 +573,10 @@ export class DOMManager extends BaseManager {
         for (const [key, value] of entries(variables)) {
             let formattedValue = `${value}`;
 
-            if (key.endsWith('Size') || key.endsWith('Radius') || key.endsWith('Width') || numericKeys?.includes(key)) {
+            if (
+                !Number.isNaN(Number(value)) &&
+                (key.endsWith('Size') || key.endsWith('Radius') || key.endsWith('Width') || numericKeys?.includes(key))
+            ) {
                 formattedValue = `${value}px`;
             } else if (key.endsWith('Border') && typeof value === 'boolean') {
                 this.element.style.setProperty(
