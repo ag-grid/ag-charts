@@ -38,6 +38,10 @@ export type CspDirectives = Record<string, string[]>;
 
 const SELF = "'self'";
 const NONE = "'none'";
+// In script-src, 'unsafe-inline' is now scope-specific: the 'site' policy
+// authorises its few known inline scripts by SHA-256 hash instead (see
+// SITE_SCRIPT_HASHES), while 'examples' still carries it. In style-src it stays
+// everywhere (charts theming/legacy styles inject <style> at runtime).
 const UNSAFE_INLINE = "'unsafe-inline'";
 // Permits WebAssembly compilation without permitting JS eval() — narrower than
 // 'unsafe-eval'. Needed on every page: docs snippets are highlighted in the
@@ -50,6 +54,18 @@ const WASM_UNSAFE_EVAL = "'wasm-unsafe-eval'";
 // examples compile templates in the browser (JIT). The chart library itself does
 // not need it (see AG-11258), so ordinary pages no longer carry it.
 const UNSAFE_EVAL = "'unsafe-eval'";
+
+// SHA-256 hashes authorising the main-page inline <script>s in the 'site' scope
+// instead of 'unsafe-inline' (sources in src/utils/csp/inlineScripts.ts; a unit
+// test recomputes these from the source strings to catch drift). Added ONLY to
+// the 'site' scope: per CSP2+, the presence of a hash makes the browser ignore
+// 'unsafe-inline', so the 'examples' scope — which still relies on it — must NOT
+// carry them. Dev keeps 'unsafe-inline' (Vite/Astro inject their own inline scripts).
+// The homepage gallery script is externalised (not hashed) — it embeds build-hashed
+// CSS-module class names, which would make a static hash unstable.
+const DARK_MODE_SCRIPT_HASH = "'sha256-aDcVxFyA5yzYtH4VKuxvqdspCcTB4W0DrKJtGLTKl9A='";
+const PLAUSIBLE_SCRIPT_HASH = "'sha256-yyPoC+PtF+Rve9JwzJ4PTIiap268jewQfmi4/JViA6I='";
+const SITE_SCRIPT_HASHES = [DARK_MODE_SCRIPT_HASH, PLAUSIBLE_SCRIPT_HASH];
 
 // Apache <If> expression matching the URL paths that get the 'examples' scope.
 // Charts serves example-runner documents at both /gallery/examples/<name>/... and
@@ -108,8 +124,8 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             'https://www.youtube.com', // YouTube iframe JS API (loads into the page)
             'https://cdn.cookielaw.org', // OneTrust cookie-consent SDK (GTM-injected, prod-only)
             'blob:', // ZoomInfo zi-tag.js bootstraps a blob: URL script
-            UNSAFE_INLINE,
             WASM_UNSAFE_EVAL,
+            // 'unsafe-inline' (examples/dev) or SHA-256 hashes (site) added per scope below.
         ],
         // 'unsafe-inline' stays: the charts theming/legacy styles inject <style>
         // elements at runtime and static hosting rules out per-request nonces.
@@ -179,8 +195,17 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
         'frame-ancestors': [SELF, AG_GRID_HOSTS], // allow *.ag-grid.com (e.g. blog) to embed examples
     };
 
+    // script-src inline handling, by scope (and environment for 'site').
     if (scope === 'examples') {
-        directives['script-src'].push(UNSAFE_EVAL);
+        directives['script-src'].push(UNSAFE_EVAL, UNSAFE_INLINE);
+    } else if (env === 'dev') {
+        // Dev server (Vite/Astro) injects its own inline scripts for HMR/hydration
+        // that the static build does not; keep 'unsafe-inline' locally rather than
+        // block them. The hash-based site policy is validated on staging/production.
+        directives['script-src'].push(UNSAFE_INLINE);
+    } else {
+        // 'site' on staging/production: authorise the known inline scripts by hash.
+        directives['script-src'].push(...SITE_SCRIPT_HASHES);
     }
 
     if (env === 'dev') {
