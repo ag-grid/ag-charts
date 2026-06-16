@@ -29,15 +29,18 @@
     --ag-charts-chrome-text-color: #181d1f;
 
     --ag-charts-button-background-color: #fff;
+    --ag-charts-button-border-color: #dddddd;
     --ag-charts-button-border-width: 1px;
     --ag-charts-button-font-weight: normal;
     --ag-charts-button-text-color: inherit;
 
     --ag-charts-input-background-color: #fff;
+    --ag-charts-input-border-color: #dddddd;
     --ag-charts-input-border-width: 1px;
     --ag-charts-input-text-color: #181d1f;
 
     --ag-charts-menu-background-color: #fafafa;
+    --ag-charts-menu-border-color: #dddddd;
     --ag-charts-menu-border-width: 1px;
     --ag-charts-menu-text-color: #181d1f;
 
@@ -45,6 +48,7 @@
     --ag-charts-panel-text-color: #181d1f;
 
     --ag-charts-tooltip-background-color: #fafafa;
+    --ag-charts-tooltip-border-color: #dddddd;
     --ag-charts-tooltip-border-width: 1px;
     --ag-charts-tooltip-text-color: #181d1f;
     --ag-charts-tooltip-subtle-text-color: #8c8c8c;

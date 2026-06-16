@@ -13,7 +13,7 @@
 
 .ag-charts-context-menu__menu {
     background: var(--ag-charts-menu-background-color);
-    border-color: var(--ag-charts-border-color);
+    border-color: var(--ag-charts-menu-border-color);
     border-radius: var(--ag-charts-border-radius);
     border-style: solid;
     border-width: var(--ag-charts-menu-border-width);

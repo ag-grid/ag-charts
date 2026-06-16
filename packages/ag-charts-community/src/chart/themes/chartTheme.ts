@@ -153,6 +153,7 @@ export class ChartTheme {
             backgroundColor: DEFAULT_BACKGROUND_FILL,
             borderColor: { $foregroundOpacity: 0.15 },
             borderRadius: 4,
+            borderWidth: 1,
             chartBackgroundColor: { $ref: 'backgroundColor' },
             chartPadding: 20,
             focusShadow: '0 0 0 3px var(--ag-charts-accent-color)',
@@ -173,23 +174,35 @@ export class ChartTheme {
             chromeSubtleTextColor: { $mix: [{ $ref: 'chromeTextColor' }, { $ref: 'backgroundColor' }, 0.38] },
 
             buttonBackgroundColor: { $ref: 'backgroundColor' },
-            buttonBorder: true,
+            buttonBorder: {
+                color: { $ref: 'borderColor' },
+                width: { $ref: 'borderWidth' },
+            },
             buttonFontWeight: 400,
             buttonTextColor: { $ref: 'textColor' },
 
             inputBackgroundColor: { $ref: 'backgroundColor' },
-            inputBorder: true,
+            inputBorder: {
+                color: { $ref: 'borderColor' },
+                width: { $ref: 'borderWidth' },
+            },
             inputTextColor: { $ref: 'textColor' },
 
             menuBackgroundColor: { $ref: 'chromeBackgroundColor' },
-            menuBorder: true,
+            menuBorder: {
+                color: { $ref: 'borderColor' },
+                width: { $ref: 'borderWidth' },
+            },
             menuTextColor: { $ref: 'chromeTextColor' },
 
             panelBackgroundColor: { $ref: 'chromeBackgroundColor' },
             panelSubtleTextColor: { $ref: 'chromeSubtleTextColor' },
 
             tooltipBackgroundColor: { $ref: 'chromeBackgroundColor' },
-            tooltipBorder: true,
+            tooltipBorder: {
+                color: { $ref: 'borderColor' },
+                width: { $ref: 'borderWidth' },
+            },
             tooltipTextColor: { $ref: 'chromeTextColor' },
             tooltipSubtleTextColor: { $ref: 'chromeSubtleTextColor' },
 
