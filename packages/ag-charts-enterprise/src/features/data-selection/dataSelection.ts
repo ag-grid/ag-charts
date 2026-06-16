@@ -243,6 +243,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             bitfield.clear();
 
             for (const { datumIndex } of series.pickNodesInBBox(canvasBounds)) {
+                if (!series.isDatumSelectable(datumIndex)) continue;
                 bitfield.setBit(datumIndex);
                 this.service.totalCandidacyCount++;
             }

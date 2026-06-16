@@ -27,6 +27,7 @@ import {
     wrapText,
 } from 'ag-charts-core';
 
+import { HierarchyDataSet } from '../../charts/hierarchyDataSet';
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
@@ -128,6 +129,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         Group<TreemapNode>
     );
     private readonly highlightSelection = Selection.select<_ModuleSupport.Rect<TreemapNode>>(this.rectGroup, Rect);
+
+    protected override _data?: HierarchyDataSet<any>;
+    protected override _chartData?: HierarchyDataSet<any>;
+    override get data(): HierarchyDataSet<any> {
+        const result = super.data;
+        if (!(result instanceof HierarchyDataSet)) throw new Error('cannot convert dataset to HierarchyDataSet');
+        return result;
+    }
 
     private groupTitleHeight(node: TreemapNode, bbox: _ModuleSupport.BBox): number | undefined {
         const heightRatioThreshold = 3;
@@ -824,6 +833,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
     public override isSelectionEnabled(): boolean {
         return this.properties.tile.selection.enabled;
+    }
+
+    public override isDatumSelectable(datumIndex: _ModuleSupport.DatumIndex): boolean {
+        return this.data.isLeaf(datumIndex);
     }
 
     public getTileSelectionStyle(datumIndex?: _ModuleSupport.DatumIndex) {
