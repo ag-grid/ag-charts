@@ -11,3 +11,20 @@ export interface AgStateSerializableBigInt {
     /** The bigint value as a base-10 string, preserving full integer precision. */
     value: string;
 }
+
+export type AgStateValueType = string | number | bigint | Date;
+export type AgStateSerializableValueType = string | number | AgStateSerializableDate | AgStateSerializableBigInt;
+
+export interface AgStateGroupingValueType {
+    /** The value to use for the position. */
+    value: AgStateValueType;
+    /** The percentage position within a grouped category. */
+    groupPercentage: number;
+}
+
+export interface AgStateSerializableGroupingValueType {
+    /** The value to use for the position. */
+    value: AgStateSerializableValueType;
+    /** The percentage position within a grouped category. */
+    groupPercentage: number;
+}

@@ -15,7 +15,8 @@
                 "path": "./themes/"
             },
             {
-                "text": "Improved Data Types"
+                "text": "BigInt and ISO 8601 Support",
+                "path": "./data-configuration/#data-types"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-14"

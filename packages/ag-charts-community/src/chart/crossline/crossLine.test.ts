@@ -316,7 +316,7 @@ const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: st
         }),
         warningMessages: [
             'AG Charts - Option `axes.y.crossLines[0][type=line].value` is required and has not been provided; expecting a number or bigint, ignoring.',
-            'AG Charts - Unknown option `axes.y.crossLines[0][type=line].range`, ignoring.',
+            'AG Charts - Unknown option `axes.y.crossLines[0][type=line].range`; Did you mean `value`? Ignoring.',
         ],
     },
     INVALID_LINE_WITHOUT_TYPE_CROSSLINE: {
@@ -337,7 +337,7 @@ const INVALID_EXAMPLES: Record<string, CartesianTestCase & { warningMessages: st
         }),
         warningMessages: [
             'AG Charts - Option `axes.y.crossLines[0][type=range].range` is required and has not been provided; expecting a number or bigint array and an array of exactly 2 items, ignoring.',
-            'AG Charts - Unknown option `axes.y.crossLines[0][type=range].value`, ignoring.',
+            'AG Charts - Unknown option `axes.y.crossLines[0][type=range].value`; Did you mean `range`? Ignoring.',
         ],
     },
 };

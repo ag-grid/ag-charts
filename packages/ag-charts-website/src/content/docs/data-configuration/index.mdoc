@@ -103,6 +103,58 @@ However, to support scenarios where different data sources are needed, each indi
 When a series specifies its own `data` array, it overrides the root-level data option for that series only.
 Other series continue to use root-level data.
 
+## Data Types
+
+The following formats are accepted for each type of value.
+
+### Time
+
+Time values may be supplied as:
+
+- A JavaScript `Date` object.
+- A numeric Unix epoch, in milliseconds since 1 January 1970 (UTC).
+- A `bigint` Unix epoch, for values beyond the safe range of `number` (2⁵³ − 1).
+- An [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) date or date-time string.
+
+```js format="snippet"
+{
+    data: [
+        { time: new Date(2023, 0, 1), value: 50 }, // JavaScript Date
+        { time: 1672531200000, value: 65 }, // Unix epoch (milliseconds)
+        { time: '2023-02-01', value: 78 }, // ISO 8601 date
+        { time: '2023-02-01T14:30:00Z', value: 90 }, // ISO 8601 date-time
+    ],
+}
+```
+
+Time values are displayed on [Time Axes](./axes-types/#time).
+
+### Numbers
+
+Numeric values may be supplied as:
+
+- A `number`, for integers and decimals.
+- A `bigint`, for integers beyond the safe range of `number` (2⁵³ − 1).
+
+```js format="snippet"
+{
+    data: [
+        { id: 'a', count: 1500 }, // number
+        { id: 'b', count: 9007199254740993n }, // bigint
+    ],
+}
+```
+
+If a field mixes `number` and `bigint` values, AG Charts logs a warning and narrows the `bigint` values to `number`, which may lose precision beyond ±(2⁵³ − 1). Keep to one numeric type per field.
+
+Numeric values are displayed on [Number](./axes-types/#number) and [Log](./axes-types/#log) axes, and used by colour and size scales.
+
+### Categories
+
+Category values may be any type. Strings are used directly; other values are converted with `toString()`.
+
+Category values are displayed on [Category Axes](./axes-types/#category).
+
 ## Field Dot Notation
 
 By default, AG Charts supports dot notation for accessing nested properties in your data.

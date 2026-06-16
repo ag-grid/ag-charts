@@ -1,5 +1,4 @@
-import { type PointLabelDatum, isPointLabelDatum, placeLabels } from 'ag-charts-core';
-import type { AgChartPaddingOptions } from 'ag-charts-types';
+import { type NormalisedPaddingOptions, type PointLabelDatum, isPointLabelDatum, placeLabels } from 'ag-charts-core';
 
 import { BBox } from '../../scene/bbox';
 import type { ISeries, ISeriesProperties, SeriesNodeDatum } from '../series/seriesTypes';
@@ -9,7 +8,7 @@ export class SeriesLabelLayoutManager {
 
     updateLabels(
         placedLabelSeries: ISeries<SeriesNodeDatum, ISeriesProperties, unknown>[],
-        padding: Required<AgChartPaddingOptions>,
+        padding: NormalisedPaddingOptions,
         seriesRect = BBox.zero
     ) {
         const bounds = {

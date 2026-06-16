@@ -17,6 +17,7 @@ export const link: Schema = {
         const { framework } = config.variables;
         const children = node.transformChildren(config);
         const nodeAttributes = node.transformAttributes(config);
+        const hasCodeChild = node.children.some((child: { type: string }) => child.type === 'code');
 
         const href = urlWithPrefix({ url: nodeAttributes.href, framework });
 
@@ -24,6 +25,7 @@ export const link: Schema = {
             ...nodeAttributes,
             href,
             target: nodeAttributes.isExternal ? '_blank' : undefined,
+            ...(hasCodeChild ? { class: 'meta-link' } : undefined),
         };
 
         return new Markdoc.Tag('a', attributes, children);

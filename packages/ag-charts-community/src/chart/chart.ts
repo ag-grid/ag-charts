@@ -468,7 +468,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         // Publish processed options to chartState immediately so option-derived reads
         // (mode, padding, etc.) work for the rest of construction. `applyOptions` will
         // refresh this on each subsequent update.
-        ctx.chartState.setValue('options', options.processedOptions as ChartState['options']);
+        ctx.chartState.setValue('options', options.processedOptions as unknown as ChartState['options']);
 
         this.chartCaptions = new ChartCaptions(ctx);
         this.titleGroup.append(this.title.node);
@@ -1730,7 +1730,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         // Store options in chartState BEFORE creating modules, so modules can read
         // their initial options via chartState from construction.
-        this.ctx.chartState.setValue('options', newChartOptions.processedOptions as ChartState['options']);
+        this.ctx.chartState.setValue('options', newChartOptions.processedOptions as unknown as ChartState['options']);
 
         const modulesChanged = this.applyModules();
 

@@ -76,6 +76,7 @@ The minimum supported version of TypeScript is now 5.8.
 ### Waterfall Series
 
 - Callbacks now receive `datum: undefined` for total and subtotal bars. Use `params.itemType` to identify `'total'` and `'subtotal'` bars.
+- `label.formatter` now receives `itemType: 'subtotal'` for subtotal bars, which previously reported `'total'`.
 
 ### Histogram Series
 
@@ -89,17 +90,15 @@ All histogram callbacks (`tooltip.renderer`, `label.formatter`, `seriesNodeClick
 
 ### Numeric and Time-Axis Value Types
 
-Numeric value channels now accept `bigint`, for integers beyond `Number.MAX_SAFE_INTEGER`. Time axes also accept `bigint` epochs and ISO 8601 date strings. Two new types describe this: `AgNumericValue` (`number | bigint`) and `AgTimeValue` (`Date | number | bigint | string`).
+Numeric value channels now accept `bigint`, and time axes also accept `bigint` epochs and ISO 8601 date strings. Two new types describe this: `AgNumericValue` (`number | bigint`) and `AgTimeValue` (`Date | number | bigint | string`).
 
-Accepting these as input is backwards-compatible. Several output types — values the library passes back to your callbacks — have been widened from `number` to `AgNumericValue`:
+These output types have been widened from `number` to `AgNumericValue`:
 
 - The `value` passed to number and axis-tick formatters.
 - A continuous axis's `visibleDomain`.
 - The bin range and aggregated value passed to `histogram` tooltip and label callbacks.
 
-If a callback assigns one of these to a `number`-typed variable, or does number-only arithmetic on it, narrow it with `Number(value)`. Runtime values are unchanged: they remain `number` unless your data supplies `bigint` or ISO 8601 values.
-
-Data-space input options also accept `bigint`, so fixed bounds can match `bigint` data exactly:
+These input options now also accept `bigint`:
 
 - Continuous-axis `min`, `max`, `preferredMin`, `preferredMax` and `interval.step`.
 - Cross-line `value` and `range`.
@@ -114,7 +113,7 @@ Data-space input options also accept `bigint`, so fixed bounds can match `bigint
 
 ### Range Buttons
 
-- `AgRangesButtonValueFunction` now receives a single params object instead of positional arguments. Replace `(start, end, windowStart, windowEnd, source) => [...]` with `({ start, end, windowStart, windowEnd, source }) => [...]`.
+- AgRangesButtonValueFunction now receives all arguments within a single params object.
 
 {% /expandingSection %}
 
@@ -145,11 +144,14 @@ This release includes the following behaviour changes:
 ### Bubble Series
 
 - Out-of-domain values now clamp to `[minSize, maxSize]` instead of extrapolating beyond the bounds.
-- Setting both `minSize` and `maxSize` explicitly with `minSize > maxSize` now emits a warning and falls back to theme defaults. Use `sizeDomain: [max, min]` to reverse the size scale.
+
+### Size Scaling
+
+- Setting an explicit minimum larger than an explicit maximum now emits a warning and falls back to theme defaults on Bubble (`minSize`/`maxSize`), Map Marker (`minSize`/`maxSize`) and Map Line (`minStrokeWidth`/`maxStrokeWidth`). Use `sizeDomain: [max, min]` to reverse the size scale.
 
 ### Map Marker and Map Line Series
 
-- The default Map Marker `size` has changed from `6` to `7` to align with the other circle marker series (Bubble, Scatter, Line, Area). Charts relying on the default render markers slightly larger.
+- The default Map Marker `size` has changed from `6` to `7`.
 - Map Marker gains `minSize` and Map Line gains `minStrokeWidth` as the explicit lower bound of the size scale when `sizeKey` is set. Each defaults to `size`/`strokeWidth` respectively. When `sizeKey` is absent, `size`/`strokeWidth` remain the fixed marker size and line width.
 - Setting both bounds explicitly with the lower bound greater than the upper bound now emits a warning and falls back to theme defaults.
 
@@ -157,9 +159,17 @@ This release includes the following behaviour changes:
 
 - The default value of `scrollbar.enableSeriesAreaScrolling` has changed from `false` to `true`.
 
+### Selection
+
+- Generated selection `itemId` values (when `dataIdKey` is not set) have changed and are not stable across versions. Set `dataIdKey` if you depend on stable identifiers.
+
 ### Zoom
 
 - Setting `initialState.zoom.rangeX` or `initialState.zoom.rangeY` with string values now applies the zoom range correctly on category axes. Previously these values produced a console warning and were ignored.
+
+### Time Axis Labels
+
+- On time axes, an explicitly enabled parent label tier (`parentLevel.label`) now renders even when `label.enabled: false`.
 
 {% /expandingSection %}
 
