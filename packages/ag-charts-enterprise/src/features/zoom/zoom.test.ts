@@ -306,6 +306,31 @@ describe('Zoom', () => {
             await scrollAction(cx, cy, -1)(chart);
             await compare();
         });
+
+        it('should not warn when zooming a large-x-value bar chart fully in', async () => {
+            // x-values at/above Number.MAX_SAFE_INTEGER lose float64 precision (consecutive integers
+            // collapse to the same double), which at full zoom-in yields a fitted bar window with a
+            // ratio marginally above 1. The offsets are added at runtime so the source carries no
+            // precision-losing literal.
+            const base = Number.MAX_SAFE_INTEGER;
+            const revenues = [120, 150, 130, 170, 160];
+            const largeXBarOptions: AgChartOptions = {
+                data: revenues.map((revenue, i) => ({ x: base + i, revenue })),
+                series: [{ type: 'bar', xKey: 'x', yKey: 'revenue' }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+            await prepareChart({ scrollingStep: 0.5 }, undefined, largeXBarOptions);
+
+            // Scroll fully in until the bars reach their minimum width. The assertion is implicit:
+            // setupMockConsole() fails the test on any "invalid ratio" warning at the zoom limit.
+            for (let i = 0; i < 12; i++) {
+                await scrollAction(cx, cy, -1)(chart);
+            }
+            await waitForChartStability(chart);
+        });
     });
 
     describe('double click', () => {
