@@ -5,6 +5,7 @@ import path from 'path';
 import { ANGULAR_GENERATED_MAIN_FILE_NAME, SOURCE_ENTRY_FILE_NAME } from './constants';
 import { transformPlainEntryFile } from './transformPlainEntryFile';
 import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-parser';
+import { extractHeadLinks } from './transformation-scripts/extract-head-elements';
 import type { GeneratedContents, InternalFramework } from './types';
 import {
     getEntryFileName,
@@ -130,6 +131,11 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         }
     }
 
+    // Extract any `<link>` elements so they can be injected into the document `<head>` instead
+    // of the body, which would otherwise leak them into the generated framework components.
+    const { head: headHtml, body: indexHtmlBody } = extractHeadLinks(indexHtml);
+    indexHtml = indexHtmlBody;
+
     let skipContainerCheck = false;
     if (entryFile.includes('@ag-skip-container-check')) {
         entryFile = entryFile.replace(/^\s*\/\/ @ag-skip-container-check\s*\n*$/g, '');
@@ -238,6 +244,10 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         // The NPM package `serialize-javascript` can deal with trivial cases, but non-trivial cases
         // such as a callback that uses another function declared in the example are not handled well.
         files['_options.json'] = JSON.stringify(jsonOptions);
+    }
+
+    if (headHtml) {
+        files['head.html'] = headHtml;
     }
 
     const result: GeneratedContents = {
