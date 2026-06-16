@@ -43,7 +43,7 @@ This is fired when the visibility of a series or data item is toggled. This is u
 This event contains:
 
 - The `seriesId` of the series.
-- The `itemId` (see [Item Identifiers](#item-identifiers)), `legendItemName` or other identifiers of the changed item.
+- The [`itemId`](#item-identifiers), `legendItemName` or other identifiers of the changed item.
 - `visible` - the new visibility state of the series or item.
 
 {% chartExampleRunner title="Series Visibility Changed" name="series-visibility-change" type="generated" /%}
@@ -75,7 +75,7 @@ The event contains:
 - `activeItem` - the item that is now active, or `undefined` if no item is active.
 - The `activeItem` contains:
     - `type` - the type of the active item, either `'series-node'` or `'legend'`.
-    - `seriesId` and `itemId` identifying the active item. See [Item Identifiers](#item-identifiers).
+    - `seriesId` and [`itemId`](#item-identifiers) identifying the active item.
 - `datum` - the data from the chart data array for the active item.
 - `source` - the source of the event, either `'user-interaction'` or `'state-change'`.
 
@@ -161,7 +161,7 @@ These are fired on click or double-click of a legend item.
 These events contain:
 
 - The `seriesId` of the series associated with the legend item.
-- The `itemId`, usually the `yKey` value for cartesian series. See [Item Identifiers](#item-identifiers).
+- The [`itemId`](#item-identifiers), usually the `yKey` value for cartesian series.
 
 {% chartExampleRunner title="Legend Item Click Event" name="legend-item-click-event" type="generated" /%}
 
