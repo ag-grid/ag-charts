@@ -122,9 +122,10 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
             const dfsOrdering = this.getDfsOrdering().datumLookup;
             let dataIdKeyFoundCount = 0;
             for (let datumIndex = 0; datumIndex < dfsOrdering.length; datumIndex++) {
-                const itemId: string | number = this.getIdValue(dfsOrdering[datumIndex]) ?? datumIndex;
+                const idValue: string | number | undefined = this.getIdValue(dfsOrdering[datumIndex]);
+                const itemId: string | number = idValue ?? datumIndex;
                 this.idToIndexCache.set(itemId, datumIndex);
-                if (typeof itemId === 'string') {
+                if (idValue !== undefined) {
                     dataIdKeyFoundCount++;
                 }
             }
