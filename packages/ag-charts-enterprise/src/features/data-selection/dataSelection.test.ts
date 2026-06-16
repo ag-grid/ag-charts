@@ -1691,7 +1691,8 @@ describe('DataSelection', () => {
             });
         });
 
-        describe('treemap', () => {
+        // AG-17328 Group selection is currently unsupported, revisit this test once we start implementing it.
+        describe.skip('treemap - group selection enabled', () => {
             type D = DiskDatum;
             type C = unknown;
             let selectionChange: SelectionChangeRecorder<D, C>;
@@ -1826,6 +1827,135 @@ describe('DataSelection', () => {
                             test('selectionChange', async () => {
                                 await mouseClick(POINT_IMG1, { ctrlKey });
                                 await mouseMove(POINT_MISS);
+                                expect(selectionChange.popEvents()).toEqual([ADDED_IMG1]);
+                            });
+                        });
+                    });
+                });
+            });
+        });
+
+        describe('treemap - group selection disabled, highlight disabled', () => {
+            type D = DiskDatum;
+            type C = unknown;
+            let selectionChange: SelectionChangeRecorder<D, C>;
+
+            const { data, series, theme, legend, title } = createDiskUsageOptions('treemap');
+
+            const seriesId = 'TreemapSeries-1' as const;
+            const POINT_MOVIE: CanvasPoint = { canvasX: 160, canvasY: 258 };
+            const POINT_VID2: CanvasPoint = { canvasX: 496, canvasY: 223 };
+            const POINT_MNT: CanvasPoint = { canvasX: 605, canvasY: 96 };
+            const POINT_IMG1: CanvasPoint = { canvasX: 84, canvasY: 522 };
+            const DATUM_MOVIE: D = findName(data, 'movie.mp4');
+            const DATUM_VID2: D = findName(data, 'vid2.mp4');
+            const DATUM_IMG1: D = findName(data, 'img1.jpg');
+            const ITEM_MOVIE: AgSelectionItem<D> = { datum: DATUM_MOVIE, seriesId, itemId: 13 };
+            const ITEM_VID2: AgSelectionItem<D> = { datum: DATUM_VID2, seriesId, itemId: 22 };
+            const ITEM_IMG1: AgSelectionItem<D> = { datum: DATUM_IMG1, seriesId, itemId: 10 };
+            const ADDED_MOVIE = uiChangeEvent<D, C>({ added: [ITEM_MOVIE], removed: [] });
+            const ADDED_VID2 = uiChangeEvent<D, C>({ added: [ITEM_VID2], removed: [] });
+            const ADDED_IMG1 = uiChangeEvent<D, C>({ added: [ITEM_IMG1], removed: [] });
+            const REMOVED_MOVIE = uiChangeEvent<D, C>({ added: [], removed: [ITEM_MOVIE] });
+            const REMOVED_MNT_VID2 = uiChangeEvent<D, C>({ added: [], removed: [ITEM_VID2] });
+            const ADDED_IMG1_REMOVED_MOVIE_MNT_VID2 = uiChangeEvent<D, C>({
+                added: [ITEM_IMG1],
+                removed: [ITEM_MOVIE, ITEM_VID2],
+            });
+            describe('single', () => {
+                beforeEach(async () => {
+                    selectionChange = createSelectionChangeRecorder();
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        theme,
+                        legend,
+                        title,
+                        selection: {
+                            enabled: true,
+                            clickMode: 'single',
+                        },
+                        highlight: {
+                            enabled: false,
+                        },
+                        listeners: { selectionChange },
+                    });
+                });
+
+                describe('select 3 points', () => {
+                    beforeEach(async () => {
+                        await mouseClick(POINT_MOVIE);
+                        await mouseClick(POINT_VID2, { ctrlKey });
+                        await mouseClick(POINT_MNT, { ctrlKey });
+                    });
+                    describe('initial', () => {
+                        test('screenshot', async () => {
+                            await compareExact('diskusage-treemap-highlighted-none-selected-movie-mnt-vid2');
+                        });
+                        test('getSelection', () => {
+                            expect(getChartSelectionArray()).toEqual([ITEM_MOVIE, ITEM_VID2]);
+                        });
+                        test('selectionChange', () => {
+                            expect(selectionChange.popEvents()).toEqual([ADDED_MOVIE, ADDED_VID2]);
+                        });
+                    });
+                    describe('follow-up', () => {
+                        beforeEach(() => {
+                            selectionChange.popEvents(); // pop event of initial selection.
+                        });
+                        describe('click on selected node sets that node to the sole selection', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_MOVIE);
+                                await compareExact('diskusage-treemap-highlighted-none-selected-movie');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_MOVIE);
+                                expect(getChartSelectionArray()).toEqual([ITEM_MOVIE]);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_MOVIE);
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_MNT_VID2]);
+                            });
+                        });
+                        describe('ctrl-click on selected node removes that node only', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_MOVIE, { ctrlKey });
+                                await compareExact('diskusage-treemap-highlighted-none-selected-vid2');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_MOVIE, { ctrlKey });
+                                expect(getChartSelectionArray()).toEqual([ITEM_VID2]);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_MOVIE, { ctrlKey });
+                                expect(selectionChange.popEvents()).toEqual([REMOVED_MOVIE]);
+                            });
+                        });
+                        describe('click on unselected node sets that node to the sole selection', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_IMG1);
+                                await compareExact('diskusage-treemap-highlighted-none-selected-img1');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_IMG1);
+                                expect(getChartSelectionArray()).toEqual([ITEM_IMG1]);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_IMG1);
+                                expect(selectionChange.popEvents()).toEqual([ADDED_IMG1_REMOVED_MOVIE_MNT_VID2]);
+                            });
+                        });
+                        describe('ctrl-click on unselected node adds that node only', () => {
+                            test('screenshot', async () => {
+                                await mouseClick(POINT_IMG1, { ctrlKey });
+                                await compareExact('diskusage-treemap-highlighted-none-selected-img1-movie-vid2');
+                            });
+                            test('getSelection', async () => {
+                                await mouseClick(POINT_IMG1, { ctrlKey });
+                                expect(getChartSelectionArray()).toEqual([ITEM_IMG1, ITEM_MOVIE, ITEM_VID2]);
+                            });
+                            test('selectionChange', async () => {
+                                await mouseClick(POINT_IMG1, { ctrlKey });
                                 expect(selectionChange.popEvents()).toEqual([ADDED_IMG1]);
                             });
                         });
@@ -4646,7 +4776,8 @@ describe('DataSelection', () => {
     });
 
     describe('setState', () => {
-        describe('treemap', () => {
+        // AG-17328 Group selection is currently unsupported, revisit this test once we start implementing it.
+        describe.skip('treemap - group selection enabled', () => {
             type D = DiskDatum;
             type C = unknown;
             let selectionChange: SelectionChangeRecorder<D, C>;
@@ -4725,6 +4856,95 @@ describe('DataSelection', () => {
                         });
                         test('screenshot', async () => {
                             await compareExact('diskusage-treemap-highlighted-none-selected-movie-mnt-vid2');
+                        });
+                        test('getSelection', () => {
+                            expect(getChartSelectionArray()).toEqual(ITEMS);
+                        });
+                        test('selectionChange', () => {
+                            expect(selectionChange.popEvents()).toEqual([API_ADDED]);
+                        });
+                    });
+                });
+            });
+        });
+
+        describe('treemap - group selection disabled, highlight disabled', () => {
+            type D = DiskDatum;
+            type C = unknown;
+            let selectionChange: SelectionChangeRecorder<D, C>;
+            let state: AgSelectionItemIds[] | undefined = undefined;
+
+            const { data, series, theme, legend, title } = createDiskUsageOptions('treemap');
+
+            const ITEMS: AgSelectionItem<D>[] = [
+                { seriesId: 'TreemapSeries-1', itemId: 13, datum: findName(data, 'movie.mp4') },
+                { seriesId: 'TreemapSeries-1', itemId: 22, datum: findName(data, 'vid2.mp4') },
+            ];
+            const UI_ADDED_EVENTS = [
+                uiChangeEvent<D, C>({ added: [ITEMS[0]], removed: [] }),
+                uiChangeEvent<D, C>({ added: [ITEMS[1]], removed: [] }),
+            ];
+            const API_ADDED = apiChangeEvent<D, C>({ added: ITEMS, removed: [] });
+            const API_REMOVED = apiChangeEvent<D, C>({ added: [], removed: ITEMS });
+
+            describe('save/restore 3 points', () => {
+                beforeEach(async () => {
+                    selectionChange = createSelectionChangeRecorder();
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        theme,
+                        legend,
+                        title,
+                        selection: {
+                            enabled: true,
+                            clickMode: 'single',
+                        },
+                        highlight: {
+                            enabled: false,
+                        },
+                        listeners: { selectionChange },
+                    });
+
+                    await mouseClick({ canvasX: 160, canvasY: 258 }); // "movie.mp4"
+                    await mouseClick({ canvasX: 496, canvasY: 223 }, { ctrlKey }); // "vid2.mp4"
+                    await mouseClick({ canvasX: 605, canvasY: 96 }, { ctrlKey }); // "mnt/"
+                });
+                test('screenshot', async () => {
+                    await compareExact('diskusage-treemap-highlighted-none-selected-movie-vid2');
+                });
+                test('getSelection', () => {
+                    expect(getChartSelectionArray()).toEqual(ITEMS);
+                });
+                test('selectionChange', () => {
+                    expect(selectionChange.popEvents()).toEqual(UI_ADDED_EVENTS);
+                });
+                describe('save and clear', () => {
+                    beforeEach(async () => {
+                        selectionChange.popEvents(); // pop event of initial selection.
+                        state = getChartSelectionArray();
+                        await clearChartSelection();
+                    });
+                    afterEach(() => {
+                        state = undefined;
+                    });
+                    test('screenshot', async () => {
+                        await compareExact('diskusage-treemap-highlighted-none-selected-none');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual([]);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([API_REMOVED]);
+                    });
+                    describe('restore', () => {
+                        beforeEach(async () => {
+                            selectionChange.popEvents(); // pop event of clearSelection.
+                            expect(state).toBeDefined();
+                            await setChartSelectionArray(state!);
+                        });
+                        test('screenshot', async () => {
+                            await compareExact('diskusage-treemap-highlighted-none-selected-movie-vid2');
                         });
                         test('getSelection', () => {
                             expect(getChartSelectionArray()).toEqual(ITEMS);
