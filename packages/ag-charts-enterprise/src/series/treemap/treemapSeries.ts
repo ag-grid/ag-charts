@@ -836,6 +836,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     }
 
     public override isDatumSelectable(datumIndex: _ModuleSupport.DatumIndex): boolean {
+        // Use HierarchDataSet.isLeaf() instead of this.dfsFind() for O(1) lookups:
         return this.data.isLeaf(datumIndex);
     }
 
