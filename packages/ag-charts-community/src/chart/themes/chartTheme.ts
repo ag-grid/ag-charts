@@ -178,6 +178,7 @@ export class ChartTheme {
                 color: { $ref: 'borderColor' },
                 width: { $ref: 'borderWidth' },
             },
+            buttonBorderRadius: { $ref: 'borderRadius' },
             buttonFontWeight: 400,
             buttonTextColor: { $ref: 'textColor' },
 
@@ -186,6 +187,7 @@ export class ChartTheme {
                 color: { $ref: 'borderColor' },
                 width: { $ref: 'borderWidth' },
             },
+            inputBorderRadius: { $ref: 'borderRadius' },
             inputTextColor: { $ref: 'textColor' },
 
             menuBackgroundColor: { $ref: 'chromeBackgroundColor' },
@@ -193,6 +195,7 @@ export class ChartTheme {
                 color: { $ref: 'borderColor' },
                 width: { $ref: 'borderWidth' },
             },
+            menuBorderRadius: { $ref: 'borderRadius' },
             menuTextColor: { $ref: 'chromeTextColor' },
 
             panelBackgroundColor: { $ref: 'chromeBackgroundColor' },
@@ -203,6 +206,7 @@ export class ChartTheme {
                 color: { $ref: 'borderColor' },
                 width: { $ref: 'borderWidth' },
             },
+            tooltipBorderRadius: { $ref: 'borderRadius' },
             tooltipTextColor: { $ref: 'chromeTextColor' },
             tooltipSubtleTextColor: { $ref: 'chromeSubtleTextColor' },
 

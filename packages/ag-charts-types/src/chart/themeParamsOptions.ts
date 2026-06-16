@@ -47,6 +47,8 @@ export interface AgBaseChartThemeParams {
     buttonBackgroundColor?: AgCssColorOrRef;
     /** Border around standard action buttons. */
     buttonBorder?: boolean | AgBorderThemeParam;
+    /** Corner radius for buttons. */
+    buttonBorderRadius?: PixelSize;
     /** Font weight of standard action buttons. */
     buttonFontWeight?: FontWeight;
     /** Text colour of standard action buttons. */
@@ -70,6 +72,8 @@ export interface AgBaseChartThemeParams {
     inputBackgroundColor?: AgCssColorOrRef;
     /** Border around text inputs. */
     inputBorder?: boolean | AgBorderThemeParam;
+    /** Corner radius for inputs. */
+    inputBorderRadius?: PixelSize;
     /**
      * Colour of text within text inputs.
      *
@@ -80,6 +84,8 @@ export interface AgBaseChartThemeParams {
     menuBackgroundColor?: AgCssColorOrRef;
     /** Border around menus. */
     menuBorder?: boolean | AgBorderThemeParam;
+    /** Corner radius for menus. */
+    menuBorderRadius?: PixelSize;
     /** Text colour for menus. */
     menuTextColor?: AgCssColorOrRef;
     /** Background colour for panels and dialogs. */
@@ -104,6 +110,8 @@ export interface AgBaseChartThemeParams {
     tooltipBackgroundColor?: AgCssColorOrRef;
     /** Border around tooltips. */
     tooltipBorder?: boolean | AgBorderThemeParam;
+    /** Corner radius for tooltips. */
+    tooltipBorderRadius?: PixelSize;
     /** Text colour for tooltips. */
     tooltipTextColor?: AgCssColorOrRef;
     /** Colour of text that should stand out less in tooltips. */

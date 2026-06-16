@@ -199,15 +199,18 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
 
         buttonBackgroundColor: colorOrRef,
         buttonBorder: or(boolean, themeParamBorder),
+        buttonBorderRadius: number,
         buttonFontWeight: fontWeight,
         buttonTextColor: colorOrRef,
 
         inputBackgroundColor: colorOrRef,
         inputBorder: or(boolean, themeParamBorder),
+        inputBorderRadius: number,
         inputTextColor: colorOrRef,
 
         menuBackgroundColor: colorOrRef,
         menuBorder: or(boolean, themeParamBorder),
+        menuBorderRadius: number,
         menuTextColor: colorOrRef,
 
         panelBackgroundColor: colorOrRef,
@@ -215,6 +218,7 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
 
         tooltipBackgroundColor: colorOrRef,
         tooltipBorder: or(boolean, themeParamBorder),
+        tooltipBorderRadius: number,
         tooltipTextColor: colorOrRef,
         tooltipSubtleTextColor: colorOrRef,
 
