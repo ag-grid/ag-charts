@@ -424,7 +424,7 @@ export class Legend {
         const { markerEnabled, isCustomMarker } = this.calcSymbolsEnabled(symbol, showSeriesStroke);
 
         if (markerEnabled || anyLineEnabled) {
-            paddedSymbolWidth += itemMarker.padding.left + markerWidth;
+            paddedSymbolWidth += itemMarker.padding.right + markerWidth;
         }
 
         const { marker, line } = markerLabel;
@@ -443,7 +443,7 @@ export class Legend {
         }
 
         markerLabel.length = markerWidth;
-        markerLabel.spacing = itemMarker.padding.left;
+        markerLabel.spacing = itemMarker.padding.right;
         markerLabel.isCustomMarker = isCustomMarker;
 
         return paddedSymbolWidth;

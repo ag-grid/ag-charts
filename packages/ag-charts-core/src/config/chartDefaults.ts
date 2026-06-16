@@ -397,7 +397,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
             marker: {
                 size: positiveNumber,
                 shape: shapeValidator,
-                padding: positiveNumber,
+                padding: padding,
                 strokeWidth: positiveNumber,
             },
             line: {
