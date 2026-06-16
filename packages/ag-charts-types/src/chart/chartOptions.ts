@@ -295,7 +295,7 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
     /** Configuration for localisation. */
     locale?: AgLocaleOptions;
     /** Configuration for the ranges buttons. */
-    ranges?: AgRangesOptions;
+    ranges?: AgRangesOptions<TContext>;
     /** Keyboard navigation options. */
     keyboard?: AgKeyboardOptions;
     /** Touch input options. */
