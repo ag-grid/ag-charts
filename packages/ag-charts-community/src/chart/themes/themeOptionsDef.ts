@@ -23,6 +23,7 @@ import {
     numberFormatValidator,
     optionsDefs,
     or,
+    padding,
     positiveNumber,
     radialGaugeSeriesThemeableOptionsDef,
     radialGaugeTargetOptionsDef,
@@ -156,10 +157,7 @@ const navigatorOptionsDef: OptionsDefs<AgNavigatorThemeableOptions> = {
     maxHandle: navigatorHandleOptionsDef,
     miniChart: {
         enabled: boolean,
-        padding: {
-            top: positiveNumber,
-            bottom: positiveNumber,
-        },
+        padding: padding,
         label: {
             enabled: boolean,
             avoidCollisions: boolean,

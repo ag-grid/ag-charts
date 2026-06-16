@@ -7,6 +7,7 @@ import type {
     AgCandlestickSeriesThemeableOptions,
 } from '../series/cartesian/candlestickOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
+import type { Padding } from '../series/cartesian/commonOptions';
 import type { AgHeatmapSeriesOptions, AgHeatmapSeriesThemeableOptions } from '../series/cartesian/heatmapOptions';
 import type { AgHistogramSeriesOptions, AgHistogramSeriesThemeableOptions } from '../series/cartesian/histogramOptions';
 import type { AgLineSeriesOptions, AgLineSeriesThemeableOptions } from '../series/cartesian/lineOptions';
@@ -68,13 +69,6 @@ export interface AgNavigatorMiniChartLabelOptions<TContext = ContextDefault> {
     format?: string;
     /** Function used to render axis labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between intervals; for example, a tick step of `0.0005` would have `fractionDigits` set to `4`. */
     formatter?: RichFormatter<AgAxisLabelFormatterParams<TContext>>;
-}
-
-export interface AgNavigatorMiniChartPadding {
-    /** Padding between the top edge of the Navigator and the Mini Chart series. */
-    top?: number;
-    /** Padding between the bottom edge of the Navigator and the Mini Chart series. */
-    bottom?: number;
 }
 
 export type CommonIgnoredProperties =
@@ -260,7 +254,7 @@ export interface AgNavigatorMiniChartOptions<TDatum = DatumDefault, TContext = C
     /** Configuration for the Mini Chart's axis labels. */
     label?: AgNavigatorMiniChartLabelOptions<TContext>;
     /** Configuration for the padding inside the Mini Chart. */
-    padding?: AgNavigatorMiniChartPadding;
+    padding?: Padding;
 }
 
 export interface AgNavigatorMiniChartThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> {
@@ -271,7 +265,7 @@ export interface AgNavigatorMiniChartThemeableOptions<TDatum = DatumDefault, TCo
     /** Configuration for the Mini Chart's axis labels. */
     label?: AgNavigatorMiniChartLabelOptions<TContext>;
     /** Configuration for the padding inside the Mini Chart. */
-    padding?: AgNavigatorMiniChartPadding;
+    padding?: Padding;
 }
 
 export interface AgNavigatorMaskOptions {

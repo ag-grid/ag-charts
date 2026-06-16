@@ -32,17 +32,6 @@ import type {
 } from './types';
 import type { AgZoomOptions } from './zoomOptions';
 
-export interface AgChartPaddingOptions {
-    /** The number of pixels of padding at the top of the chart area. */
-    top?: PixelSize;
-    /** The number of pixels of padding at the right of the chart area. */
-    right?: PixelSize;
-    /** The number of pixels of padding at the bottom of the chart area. */
-    bottom?: PixelSize;
-    /** The number of pixels of padding at the left of the chart area. */
-    left?: PixelSize;
-}
-
 export interface AgSeriesAreaOptions {
     /** The border around the series area. */
     border?: BorderOptions;
@@ -261,7 +250,7 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
      */
     minWidth?: PixelSize;
     /** Configuration for the padding of the chart. */
-    padding?: AgChartPaddingOptions;
+    padding?: Padding;
     /** Configuration relating to the series area. */
     seriesArea?: AgSeriesAreaOptions;
     /** Configuration for the background shown behind the chart. */
