@@ -58,7 +58,12 @@ In this configuration:
 - `size` formats the `sizeKey` values as a decimal number with no fractional digits.
 - `label` formats the label values removing additional information when it is a series label, otherwise returns the value as-is for the tooltip. It does this based on the `source` value.
 
-The available properties are `x`, `y`, `angle`, `radius`, `size`, `color`, `label`, `secondaryLabel`, `calloutLabel`, and `sectorLabel`. These mirror the `_Key` properties
+The available properties are `x`, `y`, `angle`, `radius`, `size`, `color`, `label`, `secondaryLabel`, `calloutLabel`, and `sectorLabel`. These mirror the `_Key` properties.
+
+{% note %}
+Each key formats its corresponding `_Key` data, not the visual element.  
+For example, `label` formats `labelKey` values on series that use it. Series labels on Line and Bar come from `yKey`, and so use the `y` key, optionally combined with `source === 'series-label'`.
+{% /note %}
 
 ## Inheritance and Precedence
 

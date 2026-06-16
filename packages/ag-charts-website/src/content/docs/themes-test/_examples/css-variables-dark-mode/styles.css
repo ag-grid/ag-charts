@@ -1,0 +1,16 @@
+body {
+    --chart-bg: #ffffff;
+    --chart-fg: #333333;
+    --series-fill-1: #4f81bd;
+    --series-fill-2: #c0504d;
+    --series-fill-3: #9bbb59;
+}
+
+body.dark {
+    background: #1a1a2e;
+    --chart-bg: #1a1a2e;
+    --chart-fg: #eeeeee;
+    --series-fill-1: #5ba3f5;
+    --series-fill-2: #f5786a;
+    --series-fill-3: #6bcf7f;
+}

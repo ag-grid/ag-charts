@@ -39,9 +39,9 @@ const options: AgChartOptions = {
             yKey: 'amount',
             yName: 'Amount',
             totals: [
-                { totalType: 'subtotal', index: 4, axisLabel: 'Total Revenue' },
-                { totalType: 'subtotal', index: 9, axisLabel: 'Total Expenditure' },
-                { totalType: 'total', index: 9, axisLabel: 'Total Borrowing' },
+                { totalType: 'subtotal', index: 4, axisLabel: 'Total Revenue', itemId: 'total-revenue' },
+                { totalType: 'subtotal', index: 9, axisLabel: 'Total Expenditure', itemId: 'total-expenditure' },
+                { totalType: 'total', index: 9, axisLabel: 'Total Borrowing', itemId: 'total-borrowing' },
             ],
         },
     ],

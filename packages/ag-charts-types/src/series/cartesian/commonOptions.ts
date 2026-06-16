@@ -295,13 +295,13 @@ export interface ImageSegment {
     type: 'image';
     /** URL of the image. */
     url: string;
-    /** Box width in pixels. Required to keep layout stable before the image decodes. */
+    /** Box width in pixels. */
     width: PixelSize;
-    /** Box height in pixels. Required to keep layout stable before the image decodes. */
+    /** Box height in pixels. */
     height: PixelSize;
     /**
-     * Textual description of the image, used for the plain-text representation surfaced to
-     * accessibility tooling and consumers that flatten labels to strings (tooltips, exports).
+     * Textual description of the image, used for
+     * accessibility and consumers that flatten labels to strings (tooltips, exports).
      * Omitting `alt` causes an image-only label to read as empty.
      */
     alt?: string;

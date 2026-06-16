@@ -43,7 +43,7 @@ These values are automatically calculated based on the following criteria:
 
 Total and Subtotal values are added to the `totals` array within the `series` options object.
 
-```js format="snippet"
+```js format="snippet" printWidth=115
 {
     series: [
         {
@@ -51,9 +51,9 @@ Total and Subtotal values are added to the `totals` array within the `series` op
             xKey: 'financials',
             yKey: 'amount',
             totals: [
-                { totalType: 'subtotal', index: 4, axisLabel: 'Total Revenue' },
-                { totalType: 'subtotal', index: 9, axisLabel: 'Total Expenditure' },
-                { totalType: 'total', index: 9, axisLabel: 'Total Borrowing' },
+                { totalType: 'subtotal', index: 4, axisLabel: 'Total Revenue', itemId: 'total-revenue' },
+                { totalType: 'subtotal', index: 9, axisLabel: 'Total Expenditure', itemId: 'total-expenditure' },
+                { totalType: 'total', index: 9, axisLabel: 'Total Borrowing', itemId: 'total-borrowing' },
             ],
         },
     ],
@@ -64,7 +64,8 @@ In this configuration:
 
 - `totalType` specifies whether the value is a Total or Subtotal.
 - `index` determines the position in the data after which the Total or Subtotal will appear.
-- `axisLabel` is used to provide a unique label, used as a category on the [Category Axis](./axes-types/#category).
+- `axisLabel` is the label shown as a category on the [Category Axis](./axes-types/#category).
+- `itemId` is an optional unique [identifier](./events/#item-identifiers) for the total, surfaced in events and callbacks. Totals that share an `axisLabel` must each set a unique `itemId` to remain distinguishable.
 
 ## Customisation
 
