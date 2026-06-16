@@ -110,6 +110,19 @@ export default defineConfig({
     },
     vite: {
         plugins,
+        // The homepage FAQ (<LandingPageFAQ client:load>) transforms Markdoc on the
+        // client, which pulls markdoc.config → @astrojs/markdoc's shiki extension →
+        // @astrojs/markdown-remark into the browser bundle. That module reads
+        // `process.env.ASTRO_PERFORMANCE_BENCHMARK` at top level, so the browser throws
+        // "process is not defined" during hydration. Define it (the only stray process.*
+        // reference in that bundle) so dev doesn't crash. Production builds already strip
+        // process.env, so this is a dev-only workaround; the proper fix is to stop bundling
+        // Markdoc client-side (pre-render the FAQ answers server-side).
+        define: {
+            'process.env.ASTRO_PERFORMANCE_BENCHMARK': JSON.stringify(
+                process.env.ASTRO_PERFORMANCE_BENCHMARK ?? ''
+            ),
+        },
         optimizeDeps: {
             exclude: [
                 'ag-charts-angular',
