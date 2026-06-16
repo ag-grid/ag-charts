@@ -395,7 +395,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         // The first pass validation of the axes, before they have been processed. At this point the axis keys are still
         // the ones provided by the user and have not been remapped. Any axes without a `type` property are skipped.
-        this.validateAxesOptions(options);
+        const missingAxesModules = this.validateAxesOptions(options);
 
         this.removeDisabledOptions(options);
 
@@ -424,7 +424,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const processedOptions = mergeDefaults(processedOverrides, resolvedOptions);
 
         removeIncompatibleModuleOptions(this.chartDef.name, processedOptions);
-        processModuleOptions(this.chartDef.name, processedOptions, missingSeriesModules);
+        processModuleOptions(this.chartDef.name, processedOptions, missingSeriesModules.concat(missingAxesModules));
 
         // Second-pass validation runs after `removeDisabledOptions`, so disabled nodes have been
         // stripped to `{ enabled: false }`; skip their required-field/discriminant warnings.
@@ -600,8 +600,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return missingModules;
     }
 
-    private validateAxesOptions(options: T, unmappedAxisKeys?: Map<string, string>, params: ValidateParams = {}) {
-        if (!('axes' in options) || !options.axes) return;
+    private validateAxesOptions(
+        options: T,
+        unmappedAxisKeys?: Map<string, string>,
+        params: ValidateParams = {}
+    ): ModulePlaceholder[] {
+        const missingModules: ModulePlaceholder[] = [];
+        if (!('axes' in options) || !options.axes) return missingModules;
 
         const chartType = this.chartDef?.name;
         const validatedAxesOptions: PlainObject = {};
@@ -621,6 +626,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const axisDef = ModuleRegistry.getAxisModule(axisOptions.type);
 
             if (axisDef == null) {
+                const modulePlaceholder = ExpectedModules.get(axisOptions.type);
+                if (modulePlaceholder?.type === ModuleType.Axis) {
+                    missingModules.push(modulePlaceholder);
+                    continue;
+                }
+
                 const isEnterprise = ModuleRegistry.isEnterprise();
                 validAxesTypes ??= joinFormatted(
                     Array.from(ExpectedModules.values())
@@ -635,12 +646,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     stringFormat
                 );
 
-                const modulePlaceholder = ExpectedModules.get(axisOptions.type);
-                if (modulePlaceholder?.type !== ModuleType.Axis) {
-                    Logger.warn(
-                        `Unknown type \`${axisOptions.type}\` at \`${keyPath}.type\`; expecting one of ${validAxesTypes}, ignoring.`
-                    );
-                }
+                Logger.warn(
+                    `Unknown type \`${axisOptions.type}\` at \`${keyPath}.type\`; expecting one of ${validAxesTypes}, ignoring.`
+                );
                 continue;
             } else if (axisDef.chartType !== chartType) {
                 Logger.warn(
@@ -662,6 +670,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         options.axes = validatedAxesOptions;
+
+        return missingModules;
     }
 
     diffOptions(other?: ChartOptions): Partial<T> {

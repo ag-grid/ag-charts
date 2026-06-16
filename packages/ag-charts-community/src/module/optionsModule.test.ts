@@ -461,6 +461,20 @@ describe('ChartOptions', () => {
             expect(message).toContain("'number'");
             expect(message).toContain('ignoring.');
         });
+
+        it('warns when an enterprise axis type is not registered', () => {
+            prepareOptions({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'ordinal-time', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            });
+
+            const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            expect(messages.some((m) => m.includes('OrdinalTimeAxisModule'))).toBe(true);
+        });
     });
 
     describe('tooltip range warnings', () => {
