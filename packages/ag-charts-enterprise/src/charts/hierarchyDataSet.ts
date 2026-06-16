@@ -6,12 +6,28 @@ type DataChangeDescriptionListener = _ModuleSupport.DataChangeDescriptionListene
 
 const { DataSet } = _ModuleSupport;
 
+type DFSMemory<T> = {
+    groupLookup: number[];
+    datumLookup: T[];
+};
+
+function pushChildren<T>(stack: T[], node: T, childrenKey: string): void {
+    if (typeof node === 'object' && node != null) {
+        const lenientNode: { [K in string]?: unknown } = node;
+        const children: unknown = lenientNode[childrenKey];
+        if (children instanceof Array) {
+            // push to stack in reverse, so that the first child is visited first:
+            reversePush(stack, children);
+        }
+    }
+}
+
 /**
  * DataSet subclass that understands hierarchical/nested data (e.g. treemap with `childrenKey`).
  * Extends ID-based transaction logic to find, update, and remove items nested within children arrays.
  */
 export class HierarchyDataSet<T = unknown> extends DataSet<T> {
-    private dfsOrdering?: T[];
+    private dfsOrdering?: DFSMemory<T> | undefined;
 
     constructor(
         data: T[],
@@ -21,29 +37,37 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
         super(data, dataIdKey);
     }
 
-    private getDfsOrdering(): T[] {
+    private getDfsOrdering(): DFSMemory<T> {
         if (this.dfsOrdering !== undefined) return this.dfsOrdering;
+        this.dfsOrdering = { groupLookup: [], datumLookup: [] };
 
-        this.dfsOrdering = [];
-        // push to stack in reverse, so that the first child is visited first:
-        const stack = reversePush<any>([], this.data);
-        let node: (typeof stack)[number];
-        while ((node = stack.pop()) !== undefined) {
-            this.dfsOrdering.push(node);
-            const children = node[this.childrenKey];
-            if (children instanceof Array) {
-                reversePush(stack, children);
+        const stack: T[] = [];
+        for (let groupNumber = 0; groupNumber < this.data.length; groupNumber++) {
+            let node: T | undefined = this.data[groupNumber];
+            while (node !== undefined) {
+                this.dfsOrdering.datumLookup.push(node);
+                this.dfsOrdering.groupLookup.push(groupNumber);
+                pushChildren(stack, node, this.childrenKey);
+                node = stack.pop();
             }
         }
         return this.dfsOrdering;
     }
 
+    private getGroupNumber(id: string | number): number | undefined {
+        const idx = this.getIdToIndexMap().get(id);
+        if (idx !== undefined) {
+            return this.getDfsOrdering().groupLookup[idx];
+        }
+        return undefined;
+    }
+
     override size(): number {
-        return this.getDfsOrdering().length;
+        return this.getDfsOrdering().datumLookup.length;
     }
 
     override getDatumAt(datumIndex: number): T | undefined {
-        return this.getDfsOrdering()[datumIndex];
+        return this.getDfsOrdering().datumLookup[datumIndex];
     }
 
     /**
@@ -95,12 +119,16 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
     public override getIdToIndexMap(): Map<string | number, number> {
         if (this.idToIndexCache === undefined) {
             this.idToIndexCache = new Map();
-            const dfsOrdering = this.getDfsOrdering();
+            const dfsOrdering = this.getDfsOrdering().datumLookup;
+            let dataIdKeyFoundCount = 0;
             for (let datumIndex = 0; datumIndex < dfsOrdering.length; datumIndex++) {
                 const itemId: string | number = this.getIdValue(dfsOrdering[datumIndex]) ?? datumIndex;
                 this.idToIndexCache.set(itemId, datumIndex);
+                if (typeof itemId === 'string') {
+                    dataIdKeyFoundCount++;
+                }
             }
-            if (this.idToIndexCache.size === 0 && this.data.length > 0) {
+            if (this.dataIdKey !== undefined && dataIdKeyFoundCount === 0 && this.data.length > 0) {
                 Logger.warnOnce(`dataIdKey '${this.dataIdKey}' was not found on any data item.`);
             }
         }
@@ -112,10 +140,8 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
         toUpdate: Map<string | number, T>,
         state: TransactionCollectionState<T>
     ): void {
-        const idMap = this.getIdToIndexMap();
-
         for (const [id, newDatum] of toUpdate) {
-            const idx = idMap.get(id);
+            const idx: number | undefined = this.getGroupNumber(id);
             if (idx !== undefined && !state.removedOriginalIndices.has(idx)) {
                 const rootItem = this.data[idx];
                 const rootId = this.getIdValue(rootItem);
@@ -165,9 +191,8 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
 
         // Then try removing from original data (root-level or nested)
         if (idsToRemove.size > 0) {
-            const idMap = this.getIdToIndexMap();
             for (const id of idsToRemove) {
-                const idx = idMap.get(id);
+                const idx = this.getGroupNumber(id);
                 if (idx !== undefined) {
                     const rootItem = this.data[idx];
                     const rootId = this.getIdValue(rootItem);
