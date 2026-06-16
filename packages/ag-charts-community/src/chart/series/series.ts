@@ -445,6 +445,10 @@ export abstract class Series<
         return this.properties.highlight.enabled;
     }
 
+    public isSelectionEnabled(): boolean {
+        return this.properties.selection.enabled;
+    }
+
     setChartData(input: DataSet | undefined) {
         this._chartData = input;
         if (this.data === input) {
@@ -1410,7 +1414,7 @@ export abstract class Series<
             ? this.getHighlightStyle(isHighlight, datumIndex, highlightState)
             : undefined;
         const selectionStyle: AgSeriesMarkerStyle | undefined =
-            checkForHighlight && this.properties.selection.enabled
+            checkForHighlight && this.isSelectionEnabled()
                 ? this.getSelectionStyle(datumIndex, selectionState)
                 : undefined;
         let markerStyle = mergeMarkerStyles(
