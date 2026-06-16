@@ -27,7 +27,7 @@ function pushChildren<T>(stack: T[], node: T, childrenKey: string): void {
  * Extends ID-based transaction logic to find, update, and remove items nested within children arrays.
  */
 export class HierarchyDataSet<T = unknown> extends DataSet<T> {
-    private dfsOrdering?: DFSMemory<T> | undefined;
+    private dfsOrdering?: DFSMemory<T>;
 
     constructor(
         data: T[],
