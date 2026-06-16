@@ -1,4 +1,12 @@
-import type { ContextCallbackParams, Listener } from '../../chart/callbackOptions';
+import type {
+    ContextCallbackParams,
+    DatumCallbackParams,
+    HighlightState,
+    Listener,
+    SelectionState,
+    SeriesCallbackParams,
+    Styler,
+} from '../../chart/callbackOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgNodeClickEvent } from '../../chart/eventOptions';
@@ -59,8 +67,27 @@ export interface AgHistogramSeriesStyle extends FillOptions, StrokeOptions, Line
     cornerRadius?: PixelSize;
 }
 
+export interface AgHistogramSeriesItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
+    extends
+        Omit<DatumCallbackParams<TDatum, HighlightState>, 'datum'>,
+        ContextCallbackParams<TContext>,
+        AgHistogramSeriesOptionsKeys<TDatum>,
+        AgHistogramSeriesBinParams<TDatum>,
+        Required<AgHistogramSeriesStyle> {}
+
+export interface AgHistogramSeriesStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
+    extends
+        SeriesCallbackParams<HighlightState, SelectionState>,
+        ContextCallbackParams<TContext>,
+        AgHistogramSeriesOptionsKeys<TDatum>,
+        Required<AgHistogramSeriesStyle> {}
+
 export interface AgHistogramSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'selection'>, AgHistogramSeriesStyle {
+    /** A callback function for adjusting the styles of the whole series based on the highlight or selection state. */
+    styler?: Styler<AgHistogramSeriesStylerParams<TDatum, TContext>, AgHistogramSeriesStyle>;
+    /** A callback function for adjusting the styles of each bin individually, based on its range, frequency and aggregated value. */
+    itemStyler?: Styler<AgHistogramSeriesItemStylerParams<TDatum, TContext>, AgHistogramSeriesStyle>;
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Configuration for the labels shown on bars. */

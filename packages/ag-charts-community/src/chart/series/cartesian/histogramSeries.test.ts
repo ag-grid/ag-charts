@@ -534,6 +534,112 @@ describe('HistogramSeries', () => {
         });
     });
 
+    describe('stylers', () => {
+        // bin [20,30] is left empty so styler callbacks are exercised against an empty bin too.
+        const sourceData = [
+            { x: 2, y: 1 },
+            { x: 5, y: 2 },
+            { x: 8, y: 3 },
+            { x: 35, y: 4 },
+        ];
+        const bins: [number, number][] = [
+            [0, 10],
+            [10, 20],
+            [20, 30],
+            [30, 40],
+        ];
+
+        const createChart = (series: Partial<NonNullable<AgCartesianChartOptions['series']>[number]> = {}) => {
+            const options: AgCartesianChartOptions = {
+                data: sourceData,
+                series: [{ type: 'histogram', xKey: 'x', yKey: 'y', aggregation: 'sum', bins, ...(series as object) }],
+            };
+            prepareTestOptions(options as any);
+            return AgCharts.create(options);
+        };
+
+        const styleOf = (c: any) => nodeDataOf(c).map((n) => n.style);
+
+        it('passes the bin metadata to itemStyler and applies the returned style for every bin', async () => {
+            const params: any[] = [];
+            chart = createChart({
+                itemStyler: (p: any) => {
+                    params.push(p);
+                    return { fill: p.frequency > 0 ? 'red' : 'blue' };
+                },
+            });
+            await waitForChartStability(chart);
+
+            // itemStyler runs for every bin, including the empty one.
+            const firstBinParams = params.find((p) => p.binIndex === 0);
+            expect(firstBinParams).toMatchObject({
+                seriesId: expect.any(String),
+                xKey: 'x',
+                yKey: 'y',
+                datum: undefined,
+                binIndex: 0,
+                binRange: [0, 10],
+                frequency: 3,
+                aggregatedValue: 6,
+                highlightState: 'none',
+                fill: expect.anything(),
+                strokeWidth: expect.any(Number),
+            });
+            expect(firstBinParams.datums).toHaveLength(3);
+
+            const emptyBinParams = params.find((p) => p.binIndex === 2);
+            expect(emptyBinParams).toMatchObject({ frequency: 0, aggregatedValue: 0, datums: [] });
+
+            // Non-empty bins -> red, the empty bin -> blue.
+            expect(styleOf(chart).map((s) => s.fill)).toEqual(['red', 'blue', 'blue', 'red']);
+        });
+
+        it('applies the series styler to every bin', async () => {
+            const params: any[] = [];
+            chart = createChart({
+                styler: (p: any) => {
+                    params.push(p);
+                    return { fill: 'green', strokeWidth: 4 };
+                },
+            });
+            await waitForChartStability(chart);
+
+            expect(params[0]).toMatchObject({
+                seriesId: expect.any(String),
+                xKey: 'x',
+                yKey: 'y',
+                highlightState: 'none',
+                fill: expect.anything(),
+            });
+            const styles = styleOf(chart);
+            expect(styles.every((s) => s.fill === 'green')).toBe(true);
+            expect(styles.every((s) => s.strokeWidth === 4)).toBe(true);
+        });
+
+        it('lets itemStyler take precedence over the series styler', async () => {
+            chart = createChart({
+                styler: () => ({ fill: 'green' }),
+                itemStyler: (p: any) => (p.binIndex === 0 ? { fill: 'red' } : undefined),
+            });
+            await waitForChartStability(chart);
+
+            const fills = styleOf(chart).map((s) => s.fill);
+            expect(fills[0]).toBe('red');
+            expect(fills[1]).toBe('green');
+        });
+
+        it('renders itemStyler-driven styles to canvas as expected', async () => {
+            chart = createChart({
+                itemStyler: (p: any) => ({
+                    fill: p.binIndex % 2 === 0 ? '#3366cc' : '#dc3912',
+                    stroke: 'black',
+                    strokeWidth: 2,
+                }),
+            });
+            await compare();
+        });
+    });
+
     describe('Series Labels', () => {
         const examples = {
             HISTOGRAM_SERIES_LABELS: {
