@@ -3283,5 +3283,19 @@ describe('ChartOptions', () => {
 
             expect(googleFonts).toContain('Pacifico');
         });
+
+        it('carries the referenced-font set through a fast-path delta update', () => {
+            const baseOptions: AgChartOptions = {
+                data: [{ x: 'a', y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                title: { text: [{ text: '★', fontFamily: 'Font Awesome 6 Free', fontWeight: 900 }] },
+            } as AgChartOptions;
+            const base = new ChartOptions(baseOptions, {} as AgChartOptions, {}, {}, {});
+
+            // A width-only delta takes the fast path, which never re-extracts fonts.
+            const updated = new ChartOptions(base, {} as AgChartOptions, {}, {}, {}, { width: 400 });
+
+            expect(updated.fonts).toContain('900 16px "Font Awesome 6 Free"');
+        });
     });
 });

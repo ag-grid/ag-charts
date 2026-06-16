@@ -291,6 +291,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             ({ activeTheme, processedOptions, fastDelta } = this.fastSetup(deltaOptions, baseChartOptions));
             themeParameters = baseChartOptions.themeParameters;
             annotationThemes = baseChartOptions.annotationThemes;
+            // The fast path doesn't re-extract fonts, so carry them forward to keep waiting for them.
+            fonts = baseChartOptions.fonts;
         } else {
             ChartOptions.perfDebug(`ChartOptions.slowSetup()`);
             ({ activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts, fonts, optionsGraph } =
