@@ -4737,4 +4737,45 @@ describe('DataSelection', () => {
             });
         });
     });
+
+    describe('series styling', () => {
+        test('treemap tiles', async () => {
+            const { data, series, theme, legend, title } = createDiskUsageOptions('treemap');
+            chart = await createChartInstance({
+                data,
+                series: [
+                    {
+                        ...(series as any[])[0],
+                        type: 'treemap',
+                        tile: {
+                            selection: {
+                                selectedItem: {
+                                    stroke: 'black',
+                                    strokeWidth: 5,
+                                    opacity: 1,
+                                    fill: 'cyan',
+                                },
+                                unselectedItem: {
+                                    opacity: 0.3,
+                                    stroke: 'grey',
+                                    strokeWidth: 1,
+                                    fill: 'teal',
+                                },
+                            },
+                        },
+                    },
+                ],
+                theme,
+                legend,
+                title,
+                selection: {
+                    enabled: true,
+                    clickMode: 'single',
+                },
+            });
+            await mouseClick({ canvasX: 160, canvasY: 258 }); // "movie.mp4"
+            await mouseClick({ canvasX: 496, canvasY: 223 }, { ctrlKey }); // "vid2.mp4"
+            await compareExact('diskusage-treemap-styling');
+        });
+    });
 });
