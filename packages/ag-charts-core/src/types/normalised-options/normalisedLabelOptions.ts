@@ -1,7 +1,7 @@
-import type { NormalisedPaddingOptions } from 'ag-charts-core';
 import type { AgChartLabelStyleOptions, CssColor } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
+import type { NormalisedPaddingOptions } from './normalisedCommonOptions';
 
 export type NormalisedChartLabelStyleOptions = Normalised<
     AgChartLabelStyleOptions,
