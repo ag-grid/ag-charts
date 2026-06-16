@@ -1,12 +1,5 @@
-// Tests font-icon glyphs (FontAwesome) inline with text. Two things to know:
-//   1. FontAwesome 6 Free ships solid (weight 900) and regular (weight 400)
-//      as different files in the same family. Most icons (flag, arrows, star,
-//      chart-line) live only in solid, so segments must set fontWeight: 900.
-//   2. Canvas text rendering does not trigger font downloads. We inject the
-//      FontAwesome stylesheet at runtime (so the example works identically
-//      across frameworks) and create the chart once it has loaded. The chart
-//      detects the icon fonts referenced in its options, downloads them, and
-//      re-renders automatically once they are ready.
+// FontAwesome icons inline with text. Solid icons live in the weight-900 file, so their
+// segments set fontWeight: 900. The chart loads referenced fonts and re-renders once ready.
 import {
     AgChartOptions,
     AgCharts,
@@ -110,9 +103,7 @@ const options: AgChartOptions = {
     },
 };
 
-// Inject the FontAwesome stylesheet and create the chart once its `@font-face` rules are
-// registered. The font files themselves are not downloaded yet; the chart loads them and
-// re-renders automatically.
+// Create the chart once the FontAwesome stylesheet has loaded; the chart then fetches the fonts.
 const stylesheetReady = new Promise<void>((resolve) => {
     const link = document.createElement('link');
     link.rel = 'stylesheet';

@@ -3250,7 +3250,10 @@ describe('ChartOptions', () => {
     describe('font extraction', () => {
         function extractFonts(userOptions: AgChartOptions) {
             const chartOptions = new ChartOptions(userOptions, {} as AgChartOptions, {}, {}, {});
-            return { fonts: chartOptions.fonts, googleFonts: chartOptions.googleFonts };
+            return {
+                fonts: chartOptions.fonts ?? new Set<string>(),
+                googleFonts: chartOptions.googleFonts ?? new Set<string>(),
+            };
         }
 
         it('collects weight-specific shorthands for concrete families and excludes generics', () => {
