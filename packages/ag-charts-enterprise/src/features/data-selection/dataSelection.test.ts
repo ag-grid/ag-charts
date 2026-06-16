@@ -626,7 +626,8 @@ function createDiskUsageOptions(
                     series: {
                         group: {
                             label: { formatter },
-                            selection: { selectedItem: { strokeWidth } },
+                            // FIXME: AG-17328 group selection is descoped & unsupported
+                            // selection: { selectedItem: { strokeWidth } },
                         },
                         tile: {
                             label: { formatter },
