@@ -1,4 +1,6 @@
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
 import base from '../../eslint.config.mjs';
 
@@ -67,6 +69,29 @@ export default [
         rules: {
             '@typescript-eslint/no-unused-vars': 'off',
             'no-console': 'off',
+        },
+    },
+    // Standalone classic browser scripts served from public/. These are not
+    // part of any tsconfig project, so disable type-aware linting (which
+    // requires project membership) and lint them as plain JS with browser
+    // globals. `agCharts` is provided by a separately-loaded UMD bundle.
+    {
+        files: ['public/scripts/**/*.js'],
+        languageOptions: {
+            parserOptions: {
+                projectService: false,
+                project: false,
+                tsconfigRootDir: import.meta.dirname,
+            },
+            globals: {
+                ...globals.browser,
+                agCharts: 'readonly',
+            },
+        },
+        rules: {
+            ...tseslint.configs.disableTypeChecked.rules,
+            // Custom type-aware rule; not covered by disableTypeChecked.
+            'aglint/change-detection': 'off',
         },
     },
     // env.d.ts
