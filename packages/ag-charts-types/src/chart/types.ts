@@ -126,4 +126,9 @@ type DatumKeyPaths<T, Depth extends number> = [Depth] extends [never]
               : K;
       }[keyof T & string];
 
+// Accepts dot-notation paths for nested data. Use for option inputs (e.g. series `xKey`).
 export type DatumKey<TDatum> = TDatum extends object ? DatumKeyPaths<TDatum, 4> & string : string;
+
+// Top-level keys only. Use where a key is echoed back to the user and indexed against the datum
+// (event payloads, formatter and renderer params) — `datum[key]` must stay type-safe there.
+export type ResolvedDatumKey<TDatum> = TDatum extends object ? keyof TDatum & string : string;

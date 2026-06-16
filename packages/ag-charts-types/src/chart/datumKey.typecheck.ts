@@ -1,7 +1,7 @@
-import type { DatumKey } from './types';
+import type { DatumKey, ResolvedDatumKey } from './types';
 
-// Compile-time type assertions for `DatumKey`. This file has no runtime tests; it exists so that
-// `build:types` fails if `DatumKey`'s dot-notation behaviour regresses. Keep it compiled (do not
+// Compile-time type assertions for `DatumKey` / `ResolvedDatumKey`. This file has no runtime tests;
+// it exists so that `build:types` fails if their behaviour regresses. Keep it compiled (do not
 // rename to `*.test.ts` — that pattern is excluded from the build tsconfig). Datum shapes are
 // inlined rather than declared as interfaces to avoid the docs reference generator reading a
 // `name` off index-signature members.
@@ -32,4 +32,14 @@ export type _DatumKeyChecks = [
     // Untyped / non-object datums fall back to `string`.
     Expect<Equal<DatumKey<any>, string>>,
     Expect<Equal<DatumKey<number>, string>>,
+];
+
+// `ResolvedDatumKey` stays at top-level keys so `datum[key]` remains type-safe in read-back
+// positions, regardless of how deeply nested the datum is.
+export type _ResolvedDatumKeyChecks = [
+    Expect<Equal<ResolvedDatumKey<{ x: { date: string } }>, 'x'>>,
+    Expect<Equal<ResolvedDatumKey<{ a: { b: { c: string } }; label: string }>, 'a' | 'label'>>,
+    Expect<Equal<ResolvedDatumKey<Record<string, number>>, string>>,
+    Expect<Equal<ResolvedDatumKey<any>, string>>,
+    Expect<Equal<ResolvedDatumKey<number>, string>>,
 ];
