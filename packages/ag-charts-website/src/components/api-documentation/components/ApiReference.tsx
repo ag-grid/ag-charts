@@ -14,7 +14,15 @@ import { fetchInterfacesReference } from '@utils/client/fetchInterfacesReference
 import { useToggle } from '@utils/hooks/useToggle';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
-import { Children, isValidElement, type AllHTMLAttributes, type CSSProperties, createContext, useContext, useEffect } from 'react';
+import {
+    type AllHTMLAttributes,
+    type CSSProperties,
+    Children,
+    createContext,
+    isValidElement,
+    useContext,
+    useEffect,
+} from 'react';
 import Markdown from 'react-markdown';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 import remarkBreaks from 'remark-breaks';
