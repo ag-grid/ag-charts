@@ -128,48 +128,6 @@ The default aggregation method is `sum`. Use the `aggregation` option to change 
 }
 ```
 
-## Bin Identifiers
-
-Each bin has a stable identifier, surfaced as the `itemId` in node events and active state. By default this identifier is generated from the bin boundaries. Use `getItemId` to map a bin to an identifier from your own domain. The returned value must be unique across the bins in the series.
-
-```js format="snippet"
-{
-    series: [
-        {
-            type: 'histogram',
-            xKey: 'age',
-            getItemId: ({ binRange }) => `${binRange[0]}-${binRange[1]}yrs`,
-        },
-    ],
-}
-```
-
-## Bin Data in Callbacks
-
-Histogram callbacks - `tooltip.renderer`, `label.formatter`, `listeners.seriesNodeClick`, `listeners.seriesNodeDoubleClick`, and context menu items - all receive the same bin data:
-
-- `datums`: the array of source data rows grouped into the bin. (`datum` is `undefined`, since a bin has no single row.)
-- `binIndex`: the zero-based position of the bin in the series, defined for empty bins too.
-- `binRange`: the bin's `[start, end]` bounds on the x-axis.
-- `aggregatedValue`: the aggregated `yKey` value for the bin.
-- `frequency`: the number of source rows in the bin.
-
-```js format="snippet"
-{
-    series: [
-        {
-            type: 'histogram',
-            xKey: 'age',
-            listeners: {
-                seriesNodeClick: ({ binRange, frequency, datums }) => {
-                    console.log(`${frequency} people aged ${binRange[0]}-${binRange[1]}`, datums);
-                },
-            },
-        },
-    ],
-}
-```
-
 ## API Reference
 
 {% tabs %}
