@@ -262,7 +262,7 @@ test.describe('api-ref-page', () => {
         await toggle.click();
 
         await expect(toggle).toHaveText(/Hide child properties/);
-        await expect(page.locator('#reference-AgChartOptions-padding-top')).toBeVisible();
+        await expect(page.locator('#reference-AgChartOptions-padding-details')).toBeVisible();
     });
 
     test('property link icon updates the URL hash', async ({ page }) => {
