@@ -1,5 +1,3 @@
-import type { Padding } from 'ag-charts-types';
-
 import type { AgAreaSeriesOptions, AgAreaSeriesThemeableOptions } from '../series/cartesian/areaOptions';
 import type { AgBarSeriesOptions, AgBarSeriesThemeableOptions } from '../series/cartesian/barOptions';
 import type { AgBoxPlotSeriesOptions, AgBoxPlotSeriesThemeableOptions } from '../series/cartesian/boxPlotOptions';
@@ -9,6 +7,7 @@ import type {
     AgCandlestickSeriesThemeableOptions,
 } from '../series/cartesian/candlestickOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
+import type { Padding } from '../series/cartesian/commonOptions';
 import type { AgHeatmapSeriesOptions, AgHeatmapSeriesThemeableOptions } from '../series/cartesian/heatmapOptions';
 import type { AgHistogramSeriesOptions, AgHistogramSeriesThemeableOptions } from '../series/cartesian/histogramOptions';
 import type { AgLineSeriesOptions, AgLineSeriesThemeableOptions } from '../series/cartesian/lineOptions';
