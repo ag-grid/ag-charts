@@ -107,7 +107,7 @@ export class Pagination {
         this.nextButton.size = markerSize;
         this.previousButton.size = markerSize;
 
-        this.labelNode.x = markerSize / 2 + markerPadding.left;
+        this.labelNode.x = markerSize / 2 + markerPadding.right;
     }
 
     private updateButtonPositions(opts: NormalisedLegendPaginationOptions) {
