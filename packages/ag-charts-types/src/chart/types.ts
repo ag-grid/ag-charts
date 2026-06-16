@@ -107,4 +107,23 @@ export type DatumDefault = any;
 
 export type ContextDefault = unknown;
 
-export type DatumKey<TDatum> = TDatum extends object ? keyof TDatum & string : string;
+// Depth counter: index N yields N-1; index 0 yields `never`, terminating recursion.
+type DatumKeyDepth = [never, 0, 1, 2, 3];
+
+// A value is traversable only if it is a plain nested object. Arrays are excluded because runtime
+// dot-notation does not index into arrays; Date and functions are leaves, not paths to walk.
+type DatumKeyTraversable<T> = T extends ReadonlyArray<any> | Date | ((...args: any[]) => any)
+    ? false
+    : T extends object
+      ? true
+      : false;
+
+type DatumKeyPaths<T, Depth extends number> = [Depth] extends [never]
+    ? never
+    : {
+          [K in keyof T & string]: DatumKeyTraversable<NonNullable<T[K]>> extends true
+              ? K | `${K}.${DatumKeyPaths<NonNullable<T[K]>, DatumKeyDepth[Depth]>}`
+              : K;
+      }[keyof T & string];
+
+export type DatumKey<TDatum> = TDatum extends object ? DatumKeyPaths<TDatum, 4> & string : string;
