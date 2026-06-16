@@ -163,6 +163,27 @@ export function isRollingWindow(indexMap: IndexTransformationMap): boolean {
 
 export interface DataChangeDescriptionListener {
     onDataChange(changeDescription: DataChangeDescription): void;
+    /**
+     * Reconcile selections by datum identity rather than by replaying a `DataChangeDescription`.
+     *
+     * A `DataChangeDescription` is expressed in the root-level index space of the transacted
+     * array. For datasets whose selection bitsets are indexed in a different space (e.g. the
+     * DFS-expanded space of a hierarchy), replaying it against the bitset is incorrect and can
+     * overrun the buffer. Such datasets call this instead, supplying their own old→new index
+     * remap so survivors keep their selection and removed items drop out.
+     */
+    onDataReindex?(remap: SelectionReindex): void;
+}
+
+/**
+ * Maps a selection bitset's pre-change indices to its post-change indices for one dataset.
+ * `getNewIndex` returns the new index for a previously-selected index, or `undefined` if the
+ * datum no longer exists. `newLength` is the size the reconciled bitset must have.
+ */
+export interface SelectionReindex {
+    oldLength: number;
+    newLength: number;
+    getNewIndex(oldIndex: number): number | undefined;
 }
 
 /**

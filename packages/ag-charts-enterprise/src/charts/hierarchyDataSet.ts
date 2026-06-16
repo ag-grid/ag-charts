@@ -3,6 +3,7 @@ import { Logger, reversePush } from 'ag-charts-core';
 
 type TransactionCollectionState<T> = _ModuleSupport.TransactionCollectionState<T>;
 type DataChangeDescriptionListener = _ModuleSupport.DataChangeDescriptionListener;
+type SelectionReindex = _ModuleSupport.SelectionReindex;
 
 const { DataSet } = _ModuleSupport;
 
@@ -77,14 +78,52 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
      * which would otherwise duplicate the item at root level.
      */
     override commitPendingTransactions(changeDescriptionListener: DataChangeDescriptionListener | undefined): boolean {
-        const result = super.commitPendingTransactions(changeDescriptionListener);
-        if (result && this.dataIdKey) {
+        // The base change description is expressed in root-level index space, but selection
+        // bitsets are sized to the DFS-expanded `size()`. Replaying it against them overruns the
+        // buffer, so suppress the base replay and reconcile by datum id below instead.
+        // Snapshot the id array: the base commit mutates the warm `idArrayCache` in place.
+        const hasTransactions = this.hasPendingTransactions();
+        const oldIdArray = hasTransactions ? this.getIdArray()?.slice() : undefined;
+        const oldLength = hasTransactions ? this.size() : 0;
+
+        if (!super.commitPendingTransactions(undefined)) return false;
+
+        if (this.dataIdKey) {
             this.removeNestedDuplicatesFromRoot();
-            // Invalidate after structural changes — splice may shift root indices.
-            this.idToIndexCache = undefined;
-            this.idArrayCache = undefined;
         }
-        return result;
+        // DFS ordering and the id caches derive from `this.data`, which the commit (and nested-dup
+        // removal) just mutated. Invalidate so the new ordering is rebuilt on next access.
+        this.dfsOrdering = undefined;
+        this.idToIndexCache = undefined;
+        this.idArrayCache = undefined;
+
+        this.reconcileSelectionsById(changeDescriptionListener, oldIdArray, oldLength);
+
+        return true;
+    }
+
+    private reconcileSelectionsById(
+        listener: DataChangeDescriptionListener | undefined,
+        oldIdArray: Array<string | number | undefined> | undefined,
+        oldLength: number
+    ): void {
+        if (listener?.onDataReindex === undefined) return;
+
+        const newLength = this.size();
+        // Without a `dataIdKey` there is no stable identity to carry selections across the change,
+        // so drop them (re-selecting would be guesswork) rather than leaving a wrong-sized bitset.
+        const newIdToIndex = oldIdArray === undefined ? undefined : this.getIdToIndexMap();
+
+        const remap: SelectionReindex = {
+            oldLength,
+            newLength,
+            getNewIndex(oldIndex: number): number | undefined {
+                const id = oldIdArray?.[oldIndex];
+                if (id == null || newIdToIndex === undefined) return undefined;
+                return newIdToIndex.get(id);
+            },
+        };
+        listener.onDataReindex(remap);
     }
 
     private removeNestedDuplicatesFromRoot(): void {

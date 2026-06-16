@@ -2,6 +2,7 @@ import type { _ModuleSupport } from 'ag-charts-community';
 
 type IDataSetSelection = _ModuleSupport.IDataSetSelection;
 type DataChangeDescription = _ModuleSupport.DataChangeDescription;
+type SelectionReindex = _ModuleSupport.SelectionReindex;
 
 /**
  * Per-series selection state backed by a `Uint8Array` indexed by datum index.
@@ -111,6 +112,28 @@ export class DataSetSelection implements IDataSetSelection {
     applyDataChange(desc: DataChangeDescription): void {
         this.selection = desc.applyToTypedArray(this.selection);
         this.count = this.countRange(0, this.selection.length);
+    }
+
+    /**
+     * Rebuild the bitset at `remap.newLength`, carrying each selected index to its new position
+     * and dropping indices whose datum no longer exists. Used when the change cannot be replayed
+     * as a `DataChangeDescription` because the bitset is indexed in a different space (e.g. a
+     * hierarchy's DFS order).
+     */
+    reindex(remap: SelectionReindex): void {
+        const next = new Uint8Array(remap.newLength);
+        let count = 0;
+        const limit = Math.min(this.selection.length, remap.oldLength);
+        for (let oldIndex = 0; oldIndex < limit; oldIndex++) {
+            if (this.selection[oldIndex] === 0) continue;
+            const newIndex = remap.getNewIndex(oldIndex);
+            if (newIndex !== undefined && newIndex < remap.newLength) {
+                next[newIndex] = 1;
+                count++;
+            }
+        }
+        this.selection = next;
+        this.count = count;
     }
 
     // --- Query ---
