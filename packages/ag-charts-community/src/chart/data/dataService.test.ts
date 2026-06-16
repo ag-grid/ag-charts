@@ -53,7 +53,7 @@ describe('DataService', () => {
 
         expect(dataSourceCallback).toHaveBeenCalledTimes(1);
         expect(dataSourceCallback).toHaveBeenCalledWith(undefinedWindow);
-        expect(eventEmitSpy).toHaveBeenCalledWith('data:load', { data });
+        expect(eventEmitSpy).toHaveBeenCalledWith('data:load', expect.objectContaining({ data }));
     });
 
     it('should emit `data:load` and callback with a defined window', async () => {
@@ -66,7 +66,7 @@ describe('DataService', () => {
 
         expect(dataSourceCallback).toHaveBeenCalledTimes(1);
         expect(dataSourceCallback).toHaveBeenCalledWith(definedWindow);
-        expect(eventEmitSpy).toHaveBeenCalledWith('data:load', { data });
+        expect(eventEmitSpy).toHaveBeenCalledWith('data:load', expect.objectContaining({ data }));
     });
 
     describe('pending data', () => {
@@ -85,7 +85,7 @@ describe('DataService', () => {
             await sleep();
 
             expect(dataSourceCallback).not.toHaveBeenCalled();
-            expect(eventEmitSpy).toHaveBeenCalledWith('data:load', { data: dataRestored });
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:load', expect.objectContaining({ data: dataRestored }));
         });
 
         it('should emit `data:load` with restored data and NOT callback with a defined window', async () => {
@@ -99,7 +99,7 @@ describe('DataService', () => {
             await sleep();
 
             expect(dataSourceCallback).not.toHaveBeenCalled();
-            expect(eventEmitSpy).toHaveBeenCalledWith('data:load', { data: dataRestored });
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:load', expect.objectContaining({ data: dataRestored }));
         });
 
         it('should emit `data:load` with callback data if pending window does not match requested window', async () => {
@@ -117,7 +117,7 @@ describe('DataService', () => {
                 windowStart: new Date('2025-04-01'),
                 windowEnd: definedWindow.windowEnd,
             });
-            expect(eventEmitSpy).toHaveBeenCalledWith('data:load', { data: dataCallback });
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:load', expect.objectContaining({ data: dataCallback }));
         });
 
         it('should emit `data:load` with restored data and NOT callback if pending window is undefined and requested window is defined', async () => {
@@ -131,7 +131,7 @@ describe('DataService', () => {
             await sleep();
 
             expect(dataSourceCallback).not.toHaveBeenCalled();
-            expect(eventEmitSpy).toHaveBeenCalledWith('data:load', { data: dataRestored });
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:load', expect.objectContaining({ data: dataRestored }));
         });
     });
 
@@ -163,7 +163,7 @@ describe('DataService', () => {
 
             await sleep();
 
-            expect(eventEmitSpy).toHaveBeenCalledWith('data:error', null);
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:error', expect.objectContaining({}));
             expect(eventEmitSpy).not.toHaveBeenCalledWith('data:load', expect.anything());
             expect(arrayWarning(consoleWarnSpy.mock.calls)).toHaveLength(1);
         });
@@ -178,13 +178,16 @@ describe('DataService', () => {
             dataService.load(undefinedWindow);
             await sleep();
 
-            expect(eventEmitSpy).toHaveBeenCalledWith('data:error', null);
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:error', expect.objectContaining({}));
             expect(eventEmitSpy).not.toHaveBeenCalledWith('data:load', expect.anything());
 
             dataService.load(definedWindow);
             await sleep();
 
-            expect(eventEmitSpy).toHaveBeenCalledWith('data:load', { data: [{ datum: 'value' }] });
+            expect(eventEmitSpy).toHaveBeenCalledWith(
+                'data:load',
+                expect.objectContaining({ data: [{ datum: 'value' }] })
+            );
         });
 
         it('should warn once about the failure and NOT the array warning when the callback rejects', async () => {
@@ -196,7 +199,7 @@ describe('DataService', () => {
 
             expect(requestFailedWarning(consoleWarnSpy.mock.calls)).toHaveLength(1);
             expect(arrayWarning(consoleWarnSpy.mock.calls)).toHaveLength(0);
-            expect(eventEmitSpy).toHaveBeenCalledWith('data:error', null);
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:error', expect.objectContaining({}));
         });
 
         it('should resolve `getData()` to undefined after an invalid response', async () => {
@@ -208,5 +211,26 @@ describe('DataService', () => {
 
             await expect(dataService.getData()).resolves.toBeUndefined();
         });
+
+        it('should echo the requestId on `data:error` so a stale error can be correlated', async () => {
+            const dataSourceCallback = vi.fn((_params) => Promise.resolve(undefined));
+            dataService.updateCallback(dataSourceCallback);
+            dataService.load(undefinedWindow, 42);
+
+            await sleep();
+
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:error', { requestId: 42 });
+        });
+    });
+
+    it('should echo the requestId on `data:load`', async () => {
+        const data = [{ datum: 'value' }];
+        const dataSourceCallback = vi.fn((_params) => Promise.resolve(data));
+        dataService.updateCallback(dataSourceCallback);
+        dataService.load(definedWindow, 7);
+
+        await sleep();
+
+        expect(eventEmitSpy).toHaveBeenCalledWith('data:load', { data, requestId: 7 });
     });
 });

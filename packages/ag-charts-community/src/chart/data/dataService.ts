@@ -66,7 +66,7 @@ export class DataService<D extends object> {
         this.dataSourceCallback = undefined;
     }
 
-    public load(params: AgDataSourceCallbackParams) {
+    public load(params: AgDataSourceCallbackParams, requestId?: number) {
         const { pendingData } = this;
 
         if (
@@ -79,7 +79,7 @@ export class DataService<D extends object> {
 
             this.isLoadingInitialData = false;
 
-            this.dispatch(id, pendingData.data as D[]);
+            this.dispatch(id, pendingData.data as D[], requestId);
             return;
         }
 
@@ -88,7 +88,7 @@ export class DataService<D extends object> {
         // Update to show the loading spinner.
         this.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
 
-        this.throttledFetch(params);
+        this.throttledFetch(params, requestId);
     }
 
     public isLazy() {
@@ -123,25 +123,30 @@ export class DataService<D extends object> {
 
     private createThrottledFetch(requestThrottle: number) {
         return throttle(
-            (params: AgDataSourceCallbackParams) => this.fetch(params).catch((e) => Logger.error('callback failed', e)),
+            (params: AgDataSourceCallbackParams, requestId?: number) =>
+                this.fetch(params, requestId).catch((e) => Logger.error('callback failed', e)),
             requestThrottle,
             { leading: false, trailing: true }
         );
     }
 
     private createThrottledDispatch(dispatchThrottle: number) {
-        return throttle((id: number, data: D[]) => this.dispatch(id, data), dispatchThrottle, {
-            leading: true,
-            trailing: true,
-        });
+        return throttle(
+            (id: number, data: D[], requestId?: number) => this.dispatch(id, data, requestId),
+            dispatchThrottle,
+            {
+                leading: true,
+                trailing: true,
+            }
+        );
     }
 
-    private dispatch(id: number, data: D[]) {
+    private dispatch(id: number, data: D[], requestId?: number) {
         this.debug(`DataService - dispatching 'data-load' | ${id}`);
-        this.eventsHub.emit('data:load', { data });
+        this.eventsHub.emit('data:load', { data, requestId });
     }
 
-    private async fetch(params: AgDataSourceCallbackParams) {
+    private async fetch(params: AgDataSourceCallbackParams, requestId?: number) {
         if ('context' in this.caller) {
             params.context = this.caller.context;
         }
@@ -183,14 +188,14 @@ export class DataService<D extends object> {
 
             // Dispatch response if no failure.
             if (Array.isArray(response)) {
-                this.throttledDispatch(id, response);
+                this.throttledDispatch(id, response, requestId);
             } else {
                 if (!callbackThrew) {
                     Logger.warn(
                         `DataService - [dataSource.getData] returned an invalid value \`${stringifyValue(response, 50)}\`; expecting an array, ignoring.`
                     );
                 }
-                this.eventsHub.emit('data:error', null);
+                this.eventsHub.emit('data:error', { requestId });
             }
 
             return response;
