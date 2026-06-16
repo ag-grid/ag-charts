@@ -71,3 +71,5 @@ function toggleDarkMode() {
     document.body.classList.toggle('dark', dark);
     document.getElementById('status')!.textContent = `Mode: ${dark ? 'Dark' : 'Light'} — no chart.update() called`;
 }
+
+(window as any).toggleDarkMode = toggleDarkMode;
