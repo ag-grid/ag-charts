@@ -400,7 +400,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const { sizeKey, marker } = properties;
         if (sizeKey == null) return marker.size;
         const sizeValues = this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!, 'number');
-        return sizeScale.convertClamped(sizeValues[index]);
+        const sizeValue = sizeValues[index];
+        return sizeValue == null ? this.getSizeRange()[0] : sizeScale.convertClamped(sizeValue);
     }
 
     override xCoordinateRange(xValue: any, pixelSize: number, index: number): [number, number] {
