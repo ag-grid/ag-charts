@@ -5,6 +5,7 @@ import type {
     Renderer,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../chart/tooltipOptions';
@@ -15,9 +16,15 @@ import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, St
 
 export type AgWaterfallSeriesItemType = 'positive' | 'negative' | 'total' | 'subtotal';
 
-interface AgWaterfallSeriesItemIdParams {
+interface AgWaterfallSeriesItemParams {
     /** The unique identifier of the item. */
     itemId: string | number;
+    /**
+     * The computed cumulative ("running total") value for `total` and `subtotal` bars.
+     *
+     * `undefined` for `positive` and `negative` bars.
+     */
+    totalValue?: AgNumericValue;
 }
 
 export type AgWaterfallSeriesItemStylerParams<
@@ -26,12 +33,12 @@ export type AgWaterfallSeriesItemStylerParams<
 > = DatumItemCallbackParams<AgWaterfallSeriesItemType, TDatum, HighlightState> &
     ContextCallbackParams<TContext> &
     AgWaterfallSeriesOptionsKeys<TDatum> &
-    AgWaterfallSeriesItemIdParams &
+    AgWaterfallSeriesItemParams &
     Required<AgWaterfallSeriesStyle>;
 
 export type AgWaterfallSeriesLabelFormatterParams<TDatum = DatumDefault> = AgWaterfallSeriesOptionsKeys<TDatum> &
     AgWaterfallSeriesOptionsNames &
-    AgWaterfallSeriesItemIdParams & { itemType: AgWaterfallSeriesItemType };
+    AgWaterfallSeriesItemParams & { itemType: AgWaterfallSeriesItemType };
 
 export interface AgWaterfallSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each bar. */
@@ -42,7 +49,7 @@ export interface AgWaterfallSeriesTooltipRendererParams<TDatum = DatumDefault, T
     extends
         AgCartesianSeriesTooltipRendererParams<TDatum, TContext>,
         AgWaterfallSeriesStyle,
-        AgWaterfallSeriesItemIdParams {
+        AgWaterfallSeriesItemParams {
     /** The type of datum. This can be `positive`, `negative`, `total` or `subtotal`. */
     itemType: AgWaterfallSeriesItemType;
 }

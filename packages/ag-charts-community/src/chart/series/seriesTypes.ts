@@ -7,7 +7,7 @@ import type {
     PointLabelDatum,
     SizedPoint,
 } from 'ag-charts-core';
-import type { AgActiveItemState, SelectionState as PublicSelectionState } from 'ag-charts-types';
+import type { AgActiveItemState, AgNumericValue, SelectionState as PublicSelectionState } from 'ag-charts-types';
 
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
@@ -91,6 +91,7 @@ export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extend
     readonly event: Event;
     readonly datum: unknown;
     readonly datums?: unknown[];
+    readonly totalValue?: AgNumericValue;
     readonly seriesId: string;
     readonly itemId: string | number;
     readonly dataIdKey: string | undefined;
@@ -186,6 +187,8 @@ export interface SeriesNodeDatum {
     readonly itemType?: ItemType;
     readonly datum: unknown;
     readonly datums?: unknown[];
+    /** Waterfall series only: the computed cumulative value for `total`/`subtotal` bars. */
+    readonly totalValue?: AgNumericValue;
     readonly datumIndex: DatumIndex;
     readonly point?: Readonly<Point> & SizedPoint;
     readonly missing?: boolean;

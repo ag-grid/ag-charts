@@ -2,6 +2,7 @@ import type { AgActiveState } from '../api/activeState';
 import type { AgStateGroupingValueType, AgStateValueType } from '../api/stateTypes';
 import type { AgAnnotation } from './annotationsOptions';
 import type { AgItemType, Listener, SelectionState } from './callbackOptions';
+import type { AgNumericValue } from './dataValues';
 import type { ContextDefault, DatumDefault, DatumKey, Ratio } from './types';
 import type { AgAutoScaledAxes } from './zoomOptions';
 
@@ -35,6 +36,8 @@ export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = Cont
     datums?: TDatum[];
     /** Waterfall series only: the type of bar - `positive`, `negative`, `total` or `subtotal`. */
     itemType?: AgItemType;
+    /** Waterfall series only: the computed cumulative value for `total` and `subtotal` bars. */
+    totalValue?: AgNumericValue;
     /** The current selection state of this datum. Set to `undefined` if the selection module is not enabled. */
     selectionState?: SelectionState;
     /** xKey as specified on series options */
@@ -87,6 +90,8 @@ export interface AgActiveChangeEvent<TDatum, TContext> extends AgActiveState, Ag
     datums?: TDatum[];
     /** The active item's type, for series that distinguish item types (e.g. waterfall, OHLC, candlestick, range area); `undefined` otherwise. */
     itemType?: AgItemType;
+    /** Waterfall series only: the computed cumulative value for `total` and `subtotal` bars. */
+    totalValue?: AgNumericValue;
     /** The data ID key, if set on chart options. When present, `activeItem.itemId` is a stable identifier. */
     dataIdKey?: DatumKey<TDatum>;
 }
