@@ -1,13 +1,5 @@
-// Tests font-icon glyphs (FontAwesome) inline with text. Two things to know:
-//   1. FontAwesome 6 Free ships solid (weight 900) and regular (weight 400)
-//      as different files in the same family. Most icons (flag, arrows, star,
-//      chart-line) live only in solid, so segments must set fontWeight: 900.
-//   2. Canvas text rendering does not trigger font downloads — only DOM usage
-//      does. We inject the FontAwesome stylesheet at runtime (so the example
-//      works identically across frameworks) and then force the woff2 fetch
-//      via document.fonts.load() before creating the chart. The existing
-//      `loadGoogleFonts` mechanism in AG Charts only covers Google Fonts;
-//      arbitrary CSS-loaded fonts have no built-in preload gate today.
+// FontAwesome icons inline with text. Solid icons live in the weight-900 file, so their
+// segments set fontWeight: 900. The chart loads referenced fonts and re-renders once ready.
 import {
     AgChartOptions,
     AgCharts,
@@ -111,17 +103,15 @@ const options: AgChartOptions = {
     },
 };
 
-const fontAwesomeReady = (() => {
+// Create the chart once the FontAwesome stylesheet has loaded; the chart then fetches the fonts.
+const stylesheetReady = new Promise<void>((resolve) => {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css';
     link.crossOrigin = 'anonymous';
     link.referrerPolicy = 'no-referrer';
+    link.onload = () => resolve();
     document.head.appendChild(link);
-    return Promise.all([
-        document.fonts.load(`${SOLID_WEIGHT} 16px "${ICON_FAMILY_SOLID}"`),
-        document.fonts.load(`400 16px "${ICON_FAMILY_SOLID}"`),
-    ]);
-})();
+});
 
-fontAwesomeReady.then(() => AgCharts.create(options));
+stylesheetReady.then(() => AgCharts.create(options));

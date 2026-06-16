@@ -1,7 +1,5 @@
-// Tests emoji rendered through native canvas fillText across captions, axis
-// labels, and series labels. The larger flag glyph on the axis uses
-// `verticalAlign: 'middle'` so it centres against the country-code text
-// instead of sharing its text baseline.
+// Emoji render through native canvas with no API changes. The larger axis flag uses
+// verticalAlign: 'middle' to centre against the country-code text.
 import {
     AgChartOptions,
     AgCharts,
