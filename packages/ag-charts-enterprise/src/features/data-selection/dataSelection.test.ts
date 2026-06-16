@@ -4738,7 +4738,11 @@ describe('DataSelection', () => {
     });
 
     describe('applyTransaction', () => {
-        async function applyTransaction(transaction: { add?: DiskDatum[]; remove?: DiskDatum[]; update?: DiskDatum[] }) {
+        async function applyTransaction(transaction: {
+            add?: DiskDatum[];
+            remove?: DiskDatum[];
+            update?: DiskDatum[];
+        }) {
             expect(chart).toBeDefined();
             await (chart as unknown as { applyTransaction(t: typeof transaction): Promise<void> }).applyTransaction(
                 transaction

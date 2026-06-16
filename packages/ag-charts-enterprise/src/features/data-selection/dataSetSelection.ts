@@ -127,7 +127,7 @@ export class DataSetSelection implements IDataSetSelection {
         for (let oldIndex = 0; oldIndex < limit; oldIndex++) {
             if (this.selection[oldIndex] === 0) continue;
             const newIndex = remap.getNewIndex(oldIndex);
-            if (newIndex !== undefined && newIndex < remap.newLength) {
+            if (newIndex !== undefined && newIndex >= 0 && newIndex < remap.newLength && next[newIndex] === 0) {
                 next[newIndex] = 1;
                 count++;
             }
