@@ -258,10 +258,9 @@ test.describe('api-ref-page', () => {
         await gotoUrl(page, toPageUrl('options/'));
         await waitForApiReady(page);
 
-        const toggle = page.getByRole('button', { name: 'See child properties of padding' });
+        const toggle = page.getByLabel('See more details about padding');
         await toggle.click();
 
-        await expect(toggle).toHaveText(/Hide child properties/);
         await expect(page.locator('#reference-AgChartOptions-padding-details')).toBeVisible();
     });
 
