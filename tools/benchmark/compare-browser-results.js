@@ -35,6 +35,12 @@ const argv = yargs(hideBin(process.argv))
         default: 'compare',
         describe: 'Display name for the compare version',
     })
+    .option('base-version', {
+        type: 'string',
+        describe:
+            'Semantic version of the base library (e.g. 13.3.1). Used to exclude examples whose ' +
+            'minVersion is newer than the base. Falls back to the version recorded in the base report.',
+    })
     .option('format', {
         type: 'string',
         choices: ['table', 'json'],
@@ -114,6 +120,55 @@ function coefficientOfVariation(values) {
 // changes within the noise floor should not be treated as real regressions.
 const NOISY_CV_THRESHOLD = 0.1;
 
+// --- Version gating ---
+
+/** Parse a semver string into release parts plus a prerelease flag; null when unparseable. */
+function parseSemver(version) {
+    if (typeof version !== 'string') return null;
+    const match = /^v?(\d+)\.(\d+)\.(\d+)(?:-(.+))?$/.exec(version.trim());
+    if (!match) return null;
+    return { major: Number(match[1]), minor: Number(match[2]), patch: Number(match[3]), prerelease: match[4] ?? null };
+}
+
+/** Compare release parts only (prerelease ignored): negative if a < b. */
+function compareRelease(a, b) {
+    return a.major - b.major || a.minor - b.minor || a.patch - b.patch;
+}
+
+/**
+ * Whether an example gated at `minVersion` should be excluded against `baseVersion`.
+ *
+ * Fails open: an unparseable base version, or a prerelease/dev build (assumed to be a
+ * `latest`-equivalent reference that already carries the feature), is never excluded —
+ * only a released base strictly older than minVersion is.
+ */
+function baseBelowMinVersion(baseVersion, minVersion) {
+    const min = parseSemver(minVersion);
+    if (!min) return false;
+    const base = parseSemver(baseVersion);
+    if (!base || base.prerelease) return false;
+    return compareRelease(base, min) < 0;
+}
+
+/** First library version recorded across a report's successful examples; null if none. */
+function reportVersion(report) {
+    for (const example of Object.values(report?.examples || {})) {
+        const version = example?.data?.version;
+        if (typeof version === 'string' && version) return version;
+    }
+    return null;
+}
+
+/** Map of exampleName -> declared minVersion, gathered from example metadata. */
+function collectMinVersions(report) {
+    const minVersions = new Map();
+    for (const [exampleName, example] of Object.entries(report?.examples || {})) {
+        const minVersion = example?.data?.metadata?.minVersion;
+        if (typeof minVersion === 'string' && minVersion) minVersions.set(exampleName, minVersion);
+    }
+    return minVersions;
+}
+
 // --- Extract results from report ---
 
 function extractResults(report) {
@@ -157,12 +212,26 @@ const compare = extractResults(compareReport);
 const baseKeys = new Set(base.results.keys());
 const compareKeys = new Set(compare.results.keys());
 
+// Effective base version: explicit flag wins, else the version recorded in the report
+// (the published library version in npm-base mode, or the ref's version in git-base mode).
+const baseVersion = argv['base-version'] || reportVersion(baseReport);
+
+// minVersion is declared on the head examples; only keys present in both reports are
+// gated, so the compare report is always authoritative.
+const minVersions = collectMinVersions(compareReport);
+
 // Matched results
 const matched = [];
+const skippedBelowMinVersion = [];
 for (const key of baseKeys) {
     if (compareKeys.has(key)) {
         const b = base.results.get(key);
         const c = compare.results.get(key);
+        const minVersion = minVersions.get(b.exampleName);
+        if (minVersion && baseBelowMinVersion(baseVersion, minVersion)) {
+            skippedBelowMinVersion.push({ test: b.displayName, minVersion, baseVersion: baseVersion ?? null });
+            continue;
+        }
         // Median is robust to outlier iterations (GC pauses, CI noise spikes);
         // it falls back to the average when raw timings are unavailable.
         const pctTimeChange =
@@ -270,6 +339,12 @@ if (argv.format === 'table') {
         console.log(`\nErrors (${errors.length}):`);
         errors.forEach((err) => console.log(`  ! ${err}`));
     }
+    if (skippedBelowMinVersion.length > 0) {
+        console.log(`\nSkipped — base below min version (${skippedBelowMinVersion.length}):`);
+        skippedBelowMinVersion.forEach((s) =>
+            console.log(`  ⤬ ${s.test} (needs ≥ ${s.minVersion}, base is ${s.baseVersion ?? 'unknown'})`)
+        );
+    }
 
     // Summary line
     const improvements = rankedByTime.filter((r) => r.pctTimeChange !== null && r.pctTimeChange < 0).length;
@@ -285,6 +360,7 @@ if (argv.format === 'table') {
                 added,
                 removed,
                 errors,
+                skippedBelowMinVersion,
             },
             null,
             2

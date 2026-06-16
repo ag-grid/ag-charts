@@ -471,11 +471,19 @@ fi
 base_label="${base_ref#origin/}"
 compare_label="${branch}"
 
+# In published mode the base version is the npm version we swapped in; in git-ref mode
+# leave it unset so compare-browser-results.js derives it from the base report.
+base_version_args=()
+if [[ -n "$published_version" ]]; then
+    base_version_args=(--base-version "$published_version")
+fi
+
 node "${tools_dir}/compare-browser-results.js" \
     --base "$base_results" \
     --compare "$head_results" \
     --base-label "$base_label" \
     --compare-label "$compare_label" \
+    "${base_version_args[@]}" \
     --format "$format" \
     --report-only \
     > "$output"

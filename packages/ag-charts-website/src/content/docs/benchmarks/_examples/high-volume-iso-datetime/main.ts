@@ -102,6 +102,9 @@ function getBenchmarkConfig(): BenchmarkConfig {
             axisType: 'time',
             dataType: 'iso-8601-string',
             version: VERSION,
+            // ISO-8601 time-axis strings are a new feature; an older published base renders no
+            // valid data points, so the compare step skips this example when below minVersion.
+            minVersion: '14.0.0',
         },
     };
 }
