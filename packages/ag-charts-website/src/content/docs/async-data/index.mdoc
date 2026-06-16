@@ -45,9 +45,6 @@ This pattern supports both progressive detail loading by returning finer data
 as the window narrows, as well as server-side paging where only the visible range is fetched from the server on each
 zoom or scroll.
 
-`getData` must resolve to an array. A non-array resolution is ignored with a console warning, and the chart keeps its
-previous data and zoom state so a later valid response recovers normal rendering.
-
 The returned data must include the first and last data points so the chart can establish the axis domain, unless the
 axis has explicit `min` and `max` values.
 
