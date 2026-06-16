@@ -1464,3 +1464,34 @@ describe('BubbleSeries bigint size domain (AG-16608)', () => {
         await expectPixelIdenticalAcrossUpdate(ctx, createChart, buildOptions([0, 100]), buildOptions([0n, 100n]));
     });
 });
+
+describe('BubbleSeries undefined size value emits no warning on visible-range computation (AG-17575)', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    it('skips undefined sizes gracefully when sizing a datum for the visible range', async () => {
+        const validCount = 10;
+        const options: AgCartesianChartOptions = {
+            data: [
+                ...Array.from({ length: validCount }, (_, i) => ({ x: i, y: i, s: 1 + (i % 5) })),
+                ...Array.from({ length: 10 }, (_, i) => ({ x: validCount + i, y: i })),
+            ],
+            series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's' }],
+            legend: { enabled: false },
+        };
+        prepareTestOptions(options);
+        const chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        const series = deproxy(chart).series[0] as unknown as {
+            xCoordinateRange(xValue: number, pixelSize: number, index: number): [number, number];
+        };
+        // The visible-range scan sizes each datum via xCoordinateRange; the missing-size rows
+        // start at validCount.
+        series.xCoordinateRange(validCount, 0, validCount);
+
+        expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+
+        chart.destroy();
+    });
+});
