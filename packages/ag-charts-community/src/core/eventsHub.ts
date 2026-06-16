@@ -19,11 +19,11 @@ import type {
     AgContextMenuItemShowOn,
     AgNumericValue,
     AgScrollbarPlacement,
+    AgStateGroupingValueType,
+    AgStateValueType,
     AgTimeInterval,
     AgTimeIntervalUnit,
     AgZoomEventSource,
-    AgZoomRange,
-    AgZoomRatio,
 } from 'ag-charts-types';
 
 import { DataSet } from '../chart/data/dataSet';
@@ -290,12 +290,22 @@ export interface SeriesKeyNavPanXEvent {
 }
 
 export type ZoomMemento = {
-    rangeX?: AgZoomRange;
-    rangeY?: AgZoomRange;
-    ratioX?: AgZoomRatio;
-    ratioY?: AgZoomRatio;
+    rangeX?: ZoomMementoRange;
+    rangeY?: ZoomMementoRange;
+    ratioX?: ZoomMementoRatio;
+    ratioY?: ZoomMementoRatio;
     autoScaledAxes?: AgAutoScaledAxes;
 };
+
+export interface ZoomMementoRange {
+    start?: AgStateValueType | AgStateGroupingValueType;
+    end?: AgStateValueType | AgStateGroupingValueType;
+}
+
+export interface ZoomMementoRatio {
+    start?: number;
+    end?: number;
+}
 
 export interface ZoomSaveMementoEvent {
     // Note: `memento` is intentionally mutable. At the time of writing, only one feature (autoScaling) writes to the

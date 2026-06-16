@@ -1,4 +1,5 @@
 import type { AgActiveState } from '../api/activeState';
+import type { AgStateGroupingValueType, AgStateValueType } from '../api/stateTypes';
 import type { AgAnnotation } from './annotationsOptions';
 import type { AgItemType, Listener, SelectionState } from './callbackOptions';
 import type { ContextDefault, DatumDefault, DatumKey, Ratio } from './types';
@@ -143,8 +144,8 @@ export interface AgZoomEvent<TContext = ContextDefault> {
 }
 
 export interface AgZoomEventRange {
-    start?: Date | string | number | bigint;
-    end?: Date | string | number | bigint;
+    start?: AgStateValueType | AgStateGroupingValueType;
+    end?: AgStateValueType | AgStateGroupingValueType;
 }
 
 export interface AgZoomEventRatio {
