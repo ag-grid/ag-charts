@@ -14,7 +14,15 @@ import { fetchInterfacesReference } from '@utils/client/fetchInterfacesReference
 import { useToggle } from '@utils/hooks/useToggle';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
-import { type AllHTMLAttributes, type CSSProperties, createContext, useContext, useEffect } from 'react';
+import {
+    type AllHTMLAttributes,
+    type CSSProperties,
+    Children,
+    createContext,
+    isValidElement,
+    useContext,
+    useEffect,
+} from 'react';
 import Markdown from 'react-markdown';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 import remarkBreaks from 'remark-breaks';
@@ -278,7 +286,22 @@ function ApiReferenceRow({
             </div>
             <div className={styles.rightColumn}>
                 <div role="presentation" className={styles.description}>
-                    <Markdown remarkPlugins={[remarkBreaks]} urlTransform={(url: string) => urlWithBaseUrl(url)}>
+                    <Markdown
+                        remarkPlugins={[remarkBreaks]}
+                        urlTransform={(url: string) => urlWithBaseUrl(url)}
+                        components={{
+                            a({ children, href, ...props }) {
+                                const hasCode = Children.toArray(children).some(
+                                    (child) => isValidElement(child) && child.type === 'code'
+                                );
+                                return (
+                                    <a href={href} className={hasCode ? 'meta-link' : undefined} {...props}>
+                                        {children}
+                                    </a>
+                                );
+                            },
+                        }}
+                    >
                         {parseJsDocs(member.docs)}
                     </Markdown>
                     {hasChildProps && (
