@@ -11,9 +11,13 @@
  *  - `scripts/csp/generate-csp.ts` to emit the policy for hand-placing / inspection.
  *  - `htaccessRules.ts` to emit the CSP block into the generated `.htaccess`.
  *
- * Keep this module dependency-free so it can be imported by a standalone `tsx`
- * script without pulling in the Astro/Vite build graph.
+ * Keep this module free of Astro/Vite imports so it can be imported by a standalone
+ * `tsx` script without pulling in the build graph (Node built-ins and plain-string
+ * constants are fine — it is only ever imported build-side, never client-side).
  */
+import { createHash } from 'node:crypto';
+
+import { DARK_MODE_INIT_SCRIPT, PLAUSIBLE_INIT_SCRIPT } from '../csp/inlineScripts';
 
 export type CspEnv = 'dev' | 'staging' | 'production';
 export type CspMode = 'report-only' | 'enforce';
@@ -56,16 +60,21 @@ const WASM_UNSAFE_EVAL = "'wasm-unsafe-eval'";
 const UNSAFE_EVAL = "'unsafe-eval'";
 
 // SHA-256 hashes authorising the main-page inline <script>s in the 'site' scope
-// instead of 'unsafe-inline' (sources in src/utils/csp/inlineScripts.ts; a unit
-// test recomputes these from the source strings to catch drift). Added ONLY to
-// the 'site' scope: per CSP2+, the presence of a hash makes the browser ignore
+// instead of 'unsafe-inline'. Derived from the SAME constants the pages render
+// (src/utils/csp/inlineScripts.ts) so the policy can never drift from what is
+// served — edit the script and the hash follows automatically. Added ONLY to the
+// 'site' scope: per CSP2+, the presence of a hash makes the browser ignore
 // 'unsafe-inline', so the 'examples' scope — which still relies on it — must NOT
 // carry them. Dev keeps 'unsafe-inline' (Vite/Astro inject their own inline scripts).
 // The homepage gallery script is externalised (not hashed) — it embeds build-hashed
 // CSS-module class names, which would make a static hash unstable.
-const DARK_MODE_SCRIPT_HASH = "'sha256-aDcVxFyA5yzYtH4VKuxvqdspCcTB4W0DrKJtGLTKl9A='";
-const PLAUSIBLE_SCRIPT_HASH = "'sha256-yyPoC+PtF+Rve9JwzJ4PTIiap268jewQfmi4/JViA6I='";
-const SITE_SCRIPT_HASHES = [DARK_MODE_SCRIPT_HASH, PLAUSIBLE_SCRIPT_HASH];
+//
+// NB: this hashes the source string; the browser hashes the rendered bytes. They
+// match as long as Astro emits the inline script verbatim (verified in dev; the
+// production report-only window is the backstop before enforcing).
+const hashInlineScript = (source: string): string =>
+    `'sha256-${createHash('sha256').update(source, 'utf8').digest('base64')}'`;
+const SITE_SCRIPT_HASHES = [hashInlineScript(DARK_MODE_INIT_SCRIPT), hashInlineScript(PLAUSIBLE_INIT_SCRIPT)];
 
 // Apache <If> expression matching the URL paths that get the 'examples' scope.
 // Charts serves example-runner documents at both /gallery/examples/<name>/... and
