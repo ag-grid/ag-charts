@@ -62,6 +62,13 @@ describe('withTemporaryDomain', () => {
         withTemporaryDomain(scale, narrowedDomain, () => {});
 
         expect(scale.convert(lo)).toBeLessThan(scale.convert(hi));
-        expect(scale.convert(lo + 1n)).not.toBe(scale.convert(lo + 2n));
+
+        // Adjacent bigints ending ...995/996/997: above 2^53 these narrow onto a single float64 value, so a
+        // restore that dropped the exact endpoints collapses them onto one pixel (David's reported symptom).
+        const p5 = scale.convert(lo + 5n);
+        const p6 = scale.convert(lo + 6n);
+        const p7 = scale.convert(lo + 7n);
+        expect(p5).toBeLessThan(p6);
+        expect(p6).toBeLessThan(p7);
     });
 });
