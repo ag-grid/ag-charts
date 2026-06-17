@@ -8,6 +8,7 @@ const { SelectionState } = _ModuleSupport;
 
 type ChartRegistry = _ModuleSupport.ChartRegistry;
 type DataChangeDescription = _ModuleSupport.DataChangeDescription;
+type SelectionReindex = _ModuleSupport.SelectionReindex;
 type DataSet<T = unknown> = _ModuleSupport.DataSet<T>;
 type IDataSelectionService = _ModuleSupport.IDataSelectionService;
 type SelectionStateEnum = _ModuleSupport.SelectionState;
@@ -153,6 +154,21 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
                 sel.applyDataChange(changeDescription);
             }
         }
+    }
+
+    onDataReindex(remap: SelectionReindex): void {
+        this.candidacy.clear();
+        this.totalCandidacyCount = 0;
+        if (this.selections.size === 0) return;
+
+        let total = 0;
+        for (const sel of this.selections.values()) {
+            if (sel.getLength() === remap.oldLength) {
+                sel.reindex(remap);
+            }
+            total += sel.getSelectedCount();
+        }
+        this.totalSelectedCount = total;
     }
 
     getDataSetSelection(series: SeriesLike): DataSetSelection | undefined {

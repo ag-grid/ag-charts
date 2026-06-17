@@ -4998,4 +4998,78 @@ describe('DataSelection', () => {
             await compareExact('diskusage-treemap-styling');
         });
     });
+
+    describe('applyTransaction', () => {
+        async function applyTransaction(transaction: {
+            add?: DiskDatum[];
+            remove?: DiskDatum[];
+            update?: DiskDatum[];
+        }) {
+            expect(chart).toBeDefined();
+            await (chart as unknown as { applyTransaction(t: typeof transaction): Promise<void> }).applyTransaction(
+                transaction
+            );
+            await waitForChartStability(chart);
+        }
+
+        function selectedItemIds(): Array<string | number> {
+            return getChartSelectionArray().map((item) => item.itemId);
+        }
+
+        describe.each(['treemap', 'sunburst'] as const)('%s', (type) => {
+            const seriesId = type === 'treemap' ? 'TreemapSeries-1' : 'SunburstSeries-1';
+
+            async function createSelectableChart() {
+                const { data, series, theme, legend, title } = createDiskUsageOptions(type);
+                chart = await createChartInstance({
+                    data,
+                    dataIdKey: 'name',
+                    series,
+                    theme,
+                    legend,
+                    title,
+                    selection: { enabled: true, clickMode: 'multiple' },
+                });
+            }
+
+            it('preserves an active selection across an add transaction without error', async () => {
+                await createSelectableChart();
+                await setChartSelectionArray([
+                    { seriesId, itemId: 'movie.mp4' },
+                    { seriesId, itemId: 'vid2.mp4' },
+                ]);
+                expect(selectedItemIds()).toEqual(['movie.mp4', 'vid2.mp4']);
+
+                await applyTransaction({ add: [{ name: 'extra.mp4', inode: 200099, size: 5 }] });
+
+                expect(selectedItemIds()).toEqual(['movie.mp4', 'vid2.mp4']);
+            });
+
+            it('drops a removed tile from the selection without error', async () => {
+                await createSelectableChart();
+                await setChartSelectionArray([
+                    { seriesId, itemId: 'movie.mp4' },
+                    { seriesId, itemId: 'vid2.mp4' },
+                ]);
+                expect(selectedItemIds()).toEqual(['movie.mp4', 'vid2.mp4']);
+
+                await applyTransaction({ remove: [{ name: 'movie.mp4' } as DiskDatum] });
+
+                expect(selectedItemIds()).toEqual(['vid2.mp4']);
+            });
+
+            it('applies a transaction without error after the selection is cleared', async () => {
+                await createSelectableChart();
+                await setChartSelectionArray([{ seriesId, itemId: 'movie.mp4' }]);
+                expect(selectedItemIds()).toEqual(['movie.mp4']);
+
+                await clearChartSelection();
+                expect(selectedItemIds()).toEqual([]);
+
+                await applyTransaction({ add: [{ name: 'extra.mp4', inode: 200099, size: 5 }] });
+
+                expect(selectedItemIds()).toEqual([]);
+            });
+        });
+    });
 });

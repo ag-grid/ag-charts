@@ -155,7 +155,7 @@ export type {
 } from './chart/data/dataModel';
 export { DataSet, type TransactionCollectionState } from './chart/data/dataSet';
 export { deepCloneDataSet, replaceDataSet } from './chart/data/dataSetUtil';
-export type { DataChangeDescriptionListener } from './chart/data/dataChangeDescription';
+export type { DataChangeDescriptionListener, SelectionReindex } from './chart/data/dataChangeDescription';
 export {
     accumulativeValueProperty,
     animationValidation,
