@@ -29,15 +29,21 @@
     --ag-charts-chrome-text-color: #181d1f;
 
     --ag-charts-button-background-color: #fff;
+    --ag-charts-button-border-color: #dddddd;
+    --ag-charts-button-border-radius: 4px;
     --ag-charts-button-border-width: 1px;
     --ag-charts-button-font-weight: normal;
     --ag-charts-button-text-color: inherit;
 
     --ag-charts-input-background-color: #fff;
+    --ag-charts-input-border-color: #dddddd;
+    --ag-charts-input-border-radius: 4px;
     --ag-charts-input-border-width: 1px;
     --ag-charts-input-text-color: #181d1f;
 
     --ag-charts-menu-background-color: #fafafa;
+    --ag-charts-menu-border-color: #dddddd;
+    --ag-charts-menu-border-radius: 4px;
     --ag-charts-menu-border-width: 1px;
     --ag-charts-menu-text-color: #181d1f;
 
@@ -45,6 +51,8 @@
     --ag-charts-panel-text-color: #181d1f;
 
     --ag-charts-tooltip-background-color: #fafafa;
+    --ag-charts-tooltip-border-color: #dddddd;
+    --ag-charts-tooltip-border-radius: 4px;
     --ag-charts-tooltip-border-width: 1px;
     --ag-charts-tooltip-text-color: #181d1f;
     --ag-charts-tooltip-subtle-text-color: #8c8c8c;
@@ -60,8 +68,6 @@
     --ag-charts-icon-size: 16px;
 
     /* Inputs */
-    --ag-charts-input-border-radius: var(--ag-charts-border-radius);
-
     --ag-charts-input-focus-border-color: var(--ag-charts-accent-color);
     --ag-charts-input-focus-text-color: var(--ag-charts-accent-color);
 
@@ -84,8 +90,6 @@
     );
 
     /* Buttons */
-    --ag-charts-button-border-radius: var(--ag-charts-border-radius);
-
     --ag-charts-button-focus-background-color: color-mix(
         in srgb,
         var(--ag-charts-button-background-color),
@@ -113,12 +117,6 @@
         var(--ag-charts-foreground-color) 35%
     );
     --ag-charts-checkbox-checked-background-color: var(--ag-charts-accent-color);
-
-    /* Tooltips */
-    --ag-charts-tooltip-border-radius: var(--ag-charts-border-radius);
-
-    /* Menu */
-    --ag-charts-menu-border-radius: var(--ag-charts-border-radius);
 
     /******************************************************************************************************************
      * Derived Theme Variables.

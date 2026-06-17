@@ -14,13 +14,16 @@ import {
     mergeDefaults,
     number,
     object,
+    optionsDefs,
     or,
+    positiveNumber,
     simpleColorUnion,
     string,
     union,
     validate,
 } from 'ag-charts-core';
 import type {
+    AgBorderThemeParam,
     AgChartTheme,
     AgChartThemeName,
     AgChartThemeOverrides,
@@ -159,6 +162,11 @@ function reduceThemeOptions(options: AgChartTheme): AgChartTheme {
     };
 }
 
+const themeParamBorder = optionsDefs<AgBorderThemeParam>({
+    color: colorOrRef,
+    width: positiveNumber,
+});
+
 export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
     baseTheme: or(string, object),
     overrides: themeOverridesOptionsWithOperatorsDef,
@@ -168,6 +176,7 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         backgroundColor: colorOrRef,
         borderColor: colorOrRef,
         borderRadius: number,
+        borderWidth: number,
         chartBackgroundColor: colorOrRef,
         chartPadding: number,
         focusShadow: string,
@@ -189,23 +198,27 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         chromeTextColor: colorOrRef,
 
         buttonBackgroundColor: colorOrRef,
-        buttonBorder: boolean,
+        buttonBorder: or(boolean, themeParamBorder),
+        buttonBorderRadius: number,
         buttonFontWeight: fontWeight,
         buttonTextColor: colorOrRef,
 
         inputBackgroundColor: colorOrRef,
-        inputBorder: boolean,
+        inputBorder: or(boolean, themeParamBorder),
+        inputBorderRadius: number,
         inputTextColor: colorOrRef,
 
         menuBackgroundColor: colorOrRef,
-        menuBorder: boolean,
+        menuBorder: or(boolean, themeParamBorder),
+        menuBorderRadius: number,
         menuTextColor: colorOrRef,
 
         panelBackgroundColor: colorOrRef,
         panelSubtleTextColor: colorOrRef,
 
         tooltipBackgroundColor: colorOrRef,
-        tooltipBorder: boolean,
+        tooltipBorder: or(boolean, themeParamBorder),
+        tooltipBorderRadius: number,
         tooltipTextColor: colorOrRef,
         tooltipSubtleTextColor: colorOrRef,
 
