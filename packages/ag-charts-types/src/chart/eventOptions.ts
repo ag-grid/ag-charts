@@ -3,7 +3,7 @@ import type { AgStateGroupingValueType, AgStateValueType } from '../api/stateTyp
 import type { AgAnnotation } from './annotationsOptions';
 import type { AgItemType, Listener, SelectionState } from './callbackOptions';
 import type { AgNumericValue } from './dataValues';
-import type { ContextDefault, DatumDefault, DatumKey, Ratio } from './types';
+import type { ContextDefault, DatumDefault, Ratio, ResolvedDatumKey } from './types';
 import type { AgAutoScaledAxes } from './zoomOptions';
 
 interface AgChartEvent<T extends string, TContext = ContextDefault> {
@@ -29,7 +29,7 @@ export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = Cont
     /** The unique identifier of the picked datum. */
     itemId: string | number;
     /** The data ID key, if set on chart options. When present, `itemId` is a stable identifier. */
-    dataIdKey?: DatumKey<TDatum>;
+    dataIdKey?: ResolvedDatumKey<TDatum>;
     /** Datum from the chart or series data array. */
     datum: TDatum;
     /** Every datum grouped into the bin for histogram series; `undefined` for all other series. */
@@ -41,23 +41,23 @@ export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = Cont
     /** The current selection state of this datum. Set to `undefined` if the selection module is not enabled. */
     selectionState?: SelectionState;
     /** xKey as specified on series options */
-    xKey?: DatumKey<TDatum>;
+    xKey?: ResolvedDatumKey<TDatum>;
     /** yKey as specified on series options */
-    yKey?: DatumKey<TDatum>;
+    yKey?: ResolvedDatumKey<TDatum>;
     /** sizeKey as specified on series options */
-    sizeKey?: DatumKey<TDatum>;
+    sizeKey?: ResolvedDatumKey<TDatum>;
     /** labelKey as specified on series options */
-    labelKey?: DatumKey<TDatum>;
+    labelKey?: ResolvedDatumKey<TDatum>;
     /** colorKey as specified on series options */
-    colorKey?: DatumKey<TDatum>;
+    colorKey?: ResolvedDatumKey<TDatum>;
     /** angleKey as specified on series options */
-    angleKey?: DatumKey<TDatum>;
+    angleKey?: ResolvedDatumKey<TDatum>;
     /** calloutLabelKey as specified on series options */
-    calloutLabelKey?: DatumKey<TDatum>;
+    calloutLabelKey?: ResolvedDatumKey<TDatum>;
     /** sectorLabelKey as specified on series options */
-    sectorLabelKey?: DatumKey<TDatum>;
+    sectorLabelKey?: ResolvedDatumKey<TDatum>;
     /** radiusKey as specified on series options */
-    radiusKey?: DatumKey<TDatum>;
+    radiusKey?: ResolvedDatumKey<TDatum>;
 }
 
 export interface AgSeriesVisibilityChange<TContext = ContextDefault> {
@@ -93,7 +93,7 @@ export interface AgActiveChangeEvent<TDatum, TContext> extends AgActiveState, Ag
     /** Waterfall series only: the computed cumulative value for `total` and `subtotal` bars. */
     totalValue?: AgNumericValue;
     /** The data ID key, if set on chart options. When present, `activeItem.itemId` is a stable identifier. */
-    dataIdKey?: DatumKey<TDatum>;
+    dataIdKey?: ResolvedDatumKey<TDatum>;
 }
 
 export interface AgSelectionItemIds {
