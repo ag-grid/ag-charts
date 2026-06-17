@@ -61,13 +61,7 @@ runs:
           shell: bash
           run: |
               if [ -z "${NX_PARALLEL}" ]; then
-                # Get CPU count in a cross-platform way
-                if command -v nproc >/dev/null 2>&1; then
-                  CPUS=$(nproc)
-                else
-                  # macOS fallback
-                  CPUS=$(sysctl -n hw.logicalcpu)
-                fi
+                CPUS=$(nproc)
                 echo "NX_PARALLEL=${CPUS}" >> $GITHUB_ENV
                 echo "Setting NX_PARALLEL to ${CPUS}"
               else
@@ -196,12 +190,6 @@ runs:
           if: inputs.cache_mode == 'rw' && inputs.nx_restore != 'false'
           with:
               branch_type: ${{ steps.nx_config.outputs.type }}
-
-        - name: MacOS Setup
-          if: inputs.os == 'macos'
-          shell: bash
-          run: |
-              brew install fontconfig libpng jpeg giflib librsvg
 
         - name: yarn install
           if: inputs.yarn_postinstall == 'true'
