@@ -168,6 +168,18 @@ describe('DataService', () => {
             expect(arrayWarning(consoleWarnSpy.mock.calls)).toHaveLength(1);
         });
 
+        it('should retain previous data (emit `data:error`, not `data:load`) and NOT warn on an empty array', async () => {
+            const dataSourceCallback = vi.fn((_params) => Promise.resolve([]));
+            dataService.updateCallback(dataSourceCallback);
+            dataService.load(undefinedWindow);
+
+            await sleep();
+
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:error', expect.objectContaining({}));
+            expect(eventEmitSpy).not.toHaveBeenCalledWith('data:load', expect.anything());
+            expect(arrayWarning(consoleWarnSpy.mock.calls)).toHaveLength(0);
+        });
+
         it('should warn only once across repeated invalid responses', async () => {
             const dataSourceCallback = vi.fn((_params) => Promise.resolve(undefined));
             dataService.updateCallback(dataSourceCallback);

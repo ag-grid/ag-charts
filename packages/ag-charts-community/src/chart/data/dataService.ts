@@ -186,11 +186,14 @@ export class DataService<D extends object> {
                 this.isLoadingData = false;
             }
 
-            // Dispatch response if no failure.
-            if (Array.isArray(response)) {
+            // A response with no rows must not replace the current data: route both empty and
+            // non-array responses through `data:error` so the previous data-set is retained and the
+            // chart stays recoverable, rather than blanking to the no-data overlay. Only a genuinely
+            // wrong type warrants a warning — an empty array is well-formed, just empty.
+            if (Array.isArray(response) && response.length > 0) {
                 this.throttledDispatch(id, response, requestId);
             } else {
-                if (!callbackThrew) {
+                if (!callbackThrew && !Array.isArray(response)) {
                     Logger.warnOnce(
                         `DataService - [dataSource.getData] returned an invalid value \`${stringifyValue(response, 50)}\`; expecting an array, ignoring.`
                     );
