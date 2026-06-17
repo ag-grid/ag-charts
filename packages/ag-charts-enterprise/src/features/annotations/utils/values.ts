@@ -50,16 +50,13 @@ export function invertCoords(coords: Point, context: AnnotationContext) {
     return { x, y };
 }
 
-export function invert(
-    n: number,
-    context: Pick<AnnotationAxisContext, 'scale' | 'continuous' | 'scaleInvert' | 'scaleInvertNearest'>
-) {
+export function invert(n: number, context: Pick<AnnotationAxisContext, 'scale' | 'continuous' | 'scaleInvert'>) {
     const { scale } = context;
     if (context.continuous && scale.step == null) {
         return context.scaleInvert(n);
     }
 
-    const value = context.scaleInvertNearest(n);
+    const value = context.scaleInvert(n);
     const width = scale.bandwidth === 0 ? scale.step : (scale.bandwidth ?? 0);
     const bandStart = scale.convert(value);
     const bandEnd = bandStart + width;

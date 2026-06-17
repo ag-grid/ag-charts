@@ -927,6 +927,13 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             end = axis.scale.invert(0, true);
         }
 
+        if (typeof start === 'string') {
+            start = { value: start, groupPercentage: 0 };
+        }
+        if (typeof end === 'string') {
+            end = { value: end, groupPercentage: 1 };
+        }
+
         return { start, end };
     }
 
