@@ -13,7 +13,6 @@
 //   BASE_SHA           base ref to diff against (PR base, or origin/latest for dispatch)
 //   HEAD_SHA           head ref (defaults to HEAD)
 //   REPORT_PATH        where to write the Markdown report (default ./l10n-review.md)
-
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 
