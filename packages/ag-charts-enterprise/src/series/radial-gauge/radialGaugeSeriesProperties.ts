@@ -255,10 +255,10 @@ class RadialGaugeScaleLabelProperties extends SeriesLabelProperties {}
 
 class RadialGaugeScaleProperties extends BaseProperties {
     @Property
-    min: number = 0;
+    min: AgNumericValue = 0;
 
     @Property
-    max: number = 1;
+    max: AgNumericValue = 1;
 
     @Property
     fills = new PropertiesArray<_ModuleSupport.StopProperties>(_ModuleSupport.StopProperties);

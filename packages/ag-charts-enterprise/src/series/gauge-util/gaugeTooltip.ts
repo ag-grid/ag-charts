@@ -7,7 +7,7 @@ interface GaugeSeriesLike {
     properties: {
         value: AgNumericValue;
         label: { text?: string };
-        scale: { min: number; max: number };
+        scale: { min: AgNumericValue; max: AgNumericValue };
         targets: { text?: string; value?: AgNumericValue }[];
     };
     ctx: { localeManager: _ModuleSupport.LocaleManager };
