@@ -6,7 +6,7 @@ const GOOGLE_FONT_FAMILIES = ['Pacifico', 'DM Serif Text', 'Orbitron'];
 test.describe('fonts', () => {
     setupIntrinsicAssertions(test);
 
-    const testUrls = toExamplePageUrls('fonts', 'google-fonts');
+    const testUrls = toExamplePageUrls('text', 'google-fonts');
 
     for (const { framework, url } of testUrls) {
         test.describe(`for ${framework}`, () => {

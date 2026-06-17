@@ -343,13 +343,13 @@
                         },
                         {
                             "type": "item",
-                            "title": "Fonts",
-                            "path": "fonts"
+                            "title": "Layout",
+                            "path": "layout"
                         },
                         {
                             "type": "item",
-                            "title": "Layout",
-                            "path": "layout"
+                            "title": "Overlays",
+                            "path": "overlays"
                         },
                         {
                             "type": "item",
@@ -358,8 +358,8 @@
                         },
                         {
                             "type": "item",
-                            "title": "Overlays",
-                            "path": "overlays"
+                            "title": "Text",
+                            "path": "text"
                         },
                         {
                             "type": "item",
