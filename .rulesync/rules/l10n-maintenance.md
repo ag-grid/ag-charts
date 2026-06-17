@@ -38,6 +38,11 @@ have drifted. Propagate the change to every locale:
 - Then run `yarn nx test ag-charts-locale`. The `translations` suite enforces this contract:
   identical key sets, allowed formatters only, and matching `${variables}` against `en-US`.
 
+On a PR touching these files, the **L10n Translation Review** workflow
+(`.github/workflows/l10n-translation-review.yml`) posts an advisory comment with an LLM semantic
+review of the changed translations. It is advisory only and never fails the build — the test suite
+above is the enforced gate.
+
 ## Canonical translation instruction
 
 The `l10n-translate` skill applies the following system prompt (where *context* is the explanatory
