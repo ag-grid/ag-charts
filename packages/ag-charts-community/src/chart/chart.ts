@@ -1323,7 +1323,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     private parentResize(size: { width: number; height: number; pixelRatio: number } | undefined) {
-        if (size == null || (this.width != null && this.height != null)) return;
+        if (this.destroyed || size == null || (this.width != null && this.height != null)) return;
 
         let { width, height } = size;
         const { pixelRatio } = size;
