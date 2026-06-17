@@ -260,6 +260,32 @@ describe('WaterfallSeries', () => {
             expect(seriesNodeClick.mock.calls[0][0].totalValue).toBe(SUBTOTAL_VALUE);
             expect(seriesNodeClick.mock.calls[1][0].totalValue).toBeUndefined();
         });
+
+        it('computes each subtotal totalValue relative to the previous subtotal, not the absolute total', async () => {
+            // Two subtotals: 1st after A,B (segment 150, absolute 150 — coincide); 2nd after C,D
+            // (absolute cumulative 200, segment since the 1st subtotal 50). totalValue must be the
+            // segment the bar represents (50), matching the rendered value, not the absolute total (200).
+            const options = totalValueOptions({
+                totals: [
+                    { totalType: 'subtotal', index: 1, axisLabel: 'Sub 1' },
+                    { totalType: 'subtotal', index: 3, axisLabel: 'Sub 2' },
+                ],
+            });
+            prepareEnterpriseTestOptions(options as any);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const subtotals = seriesOf(chart)
+                .getNodeData()
+                .filter((n: any) => n.itemType === 'subtotal');
+
+            expect(subtotals).toHaveLength(2);
+            expect(subtotals[0].totalValue).toBe(150);
+            expect(subtotals[0].totalValue).toBe(subtotals[0].yValue);
+            expect(subtotals[1].totalValue).toBe(50);
+            expect(subtotals[1].totalValue).toBe(subtotals[1].yValue);
+            expect(subtotals[1].totalValue).not.toBe(200);
+        });
     });
 
     it(`should render a waterfall chart as expected`, async () => {
