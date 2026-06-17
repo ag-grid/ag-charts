@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { type Mock, afterEach, describe, expect, it } from 'vitest';
 
 import {
     type AgCartesianChartOptions,
@@ -515,12 +515,15 @@ describe('DataSource', () => {
     });
 
     describe('invalid response recovery', () => {
-        // An empty array carries no rows, so it must be retained-not-rendered just like a non-array
-        // response — otherwise it would blank the chart to the no-data overlay. The empty case is
-        // well-formed though, so (unlike `undefined`) it must NOT raise the invalid-value warning.
+        // A response that carries no renderable rows must be retained-not-rendered just like a
+        // non-array response — otherwise it would blank the chart to the no-data overlay. An empty
+        // array is well-formed (just empty) so it must NOT raise the invalid-value warning; the
+        // wrong-typed responses (non-array, primitives, all-null fields) do warn.
         it.each([
             ['a non-array response', undefined as any, true],
             ['an empty array', [], false],
+            ['an array of primitives (wrong shape)', [1, 2, 3], true],
+            ['an array of all-null-value objects (null fields)', [{ time: null, price: null }], true],
         ])(
             'retains the previous render on %s and recovers on the next zoom',
             async (_label, invalidResponse, expectArrayWarning) => {
@@ -571,14 +574,15 @@ describe('DataSource', () => {
                 const postError = extractImageData(ctx);
                 expect(postError.equals(blank)).toBe(false);
 
-                const warningMessage =
-                    'AG Charts - DataService - [dataSource.getData] returned an invalid value `undefined`; expecting an array, ignoring.';
-                const warnings = expectWarningsCalls();
-                if (expectArrayWarning) {
-                    warnings.toContainEqual([warningMessage]);
-                } else {
-                    warnings.not.toContainEqual([warningMessage]);
-                }
+                const warnCalls = (console.warn as Mock).mock.calls;
+                const invalidValueWarnings = warnCalls.filter(
+                    ([message]) =>
+                        typeof message === 'string' &&
+                        message.includes('[dataSource.getData] returned an invalid value')
+                );
+                expect(invalidValueWarnings).toHaveLength(expectArrayWarning ? 1 : 0);
+                // Drain the remaining warnings so setupMockConsole's afterEach does not fail.
+                expectWarningsCalls();
 
                 // A subsequent user zoom recovers with a valid response and re-renders, proving the
                 // failed request did not wedge zoom/pan (the re-zoom re-issues the request).

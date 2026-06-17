@@ -156,6 +156,8 @@ describe('DataService', () => {
             ['undefined', undefined],
             ['null', null],
             ['a plain object', { not: 'an array' }],
+            ['an array of primitives (wrong shape)', [1, 2, 3]],
+            ['an array of all-null-value objects (null field values)', [{ x: null, y: null }]],
         ])('should warn and emit `data:error` when the callback resolves to %s', async (_label, value) => {
             const dataSourceCallback = vi.fn((_params) => Promise.resolve(value));
             dataService.updateCallback(dataSourceCallback);
@@ -166,6 +168,18 @@ describe('DataService', () => {
             expect(eventEmitSpy).toHaveBeenCalledWith('data:error', expect.objectContaining({}));
             expect(eventEmitSpy).not.toHaveBeenCalledWith('data:load', expect.anything());
             expect(arrayWarning(consoleWarnSpy.mock.calls)).toHaveLength(1);
+        });
+
+        it('should still emit `data:load` for an array of objects that carry values (custom keys not validated here)', async () => {
+            const data = [{ foo: 1 }, { bar: 2 }];
+            const dataSourceCallback = vi.fn((_params) => Promise.resolve(data));
+            dataService.updateCallback(dataSourceCallback);
+            dataService.load(undefinedWindow);
+
+            await sleep();
+
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:load', expect.objectContaining({ data }));
+            expect(arrayWarning(consoleWarnSpy.mock.calls)).toHaveLength(0);
         });
 
         it('should retain previous data (emit `data:error`, not `data:load`) and NOT warn on an empty array', async () => {

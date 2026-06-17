@@ -1,10 +1,22 @@
-import { ActionOnSet, ChartUpdateType, Debug, Logger, stringifyValue, throttle } from 'ag-charts-core';
+import { ActionOnSet, ChartUpdateType, Debug, Logger, isObject, stringifyValue, throttle } from 'ag-charts-core';
 import type { AgDataSourceCallbackParams } from 'ag-charts-types';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { AnimationManager } from '../interaction/animationManager';
 
 type DataSourceCallback = (params: AgDataSourceCallbackParams<unknown>) => Promise<unknown>;
+
+function isRenderableDatum(datum: unknown): boolean {
+    return isObject(datum) && Object.values(datum).some((value) => value != null);
+}
+
+// Renderable means a non-empty array of objects each carrying at least one non-null field.
+// Primitives, null elements, and all-null rows yield no value for any series key, so dispatching
+// them would replace the valid data-set with one the chart cannot render. Custom keys are not
+// validated here — that needs series knowledge the DataService does not have.
+function hasRenderableRows(response: unknown): response is object[] {
+    return Array.isArray(response) && response.length > 0 && response.every(isRenderableDatum);
+}
 
 export interface DataServiceRestoredData {
     params: AgDataSourceCallbackParams;
@@ -113,7 +125,7 @@ export class DataService<D extends object> {
 
         const { params, fetchRequest } = latestRequest;
         const data = await fetchRequest;
-        if (!Array.isArray(data)) return;
+        if (!hasRenderableRows(data)) return;
         return { params, data };
     }
 
@@ -186,14 +198,15 @@ export class DataService<D extends object> {
                 this.isLoadingData = false;
             }
 
-            // A response with no rows must not replace the current data: route both empty and
-            // non-array responses through `data:error` so the previous data-set is retained and the
-            // chart stays recoverable, rather than blanking to the no-data overlay. Only a genuinely
-            // wrong type warrants a warning — an empty array is well-formed, just empty.
-            if (Array.isArray(response) && response.length > 0) {
-                this.throttledDispatch(id, response, requestId);
+            // A response that carries no renderable rows must not replace the current data: route it
+            // through `data:error` so the previous data-set is retained and the chart stays
+            // recoverable, rather than blanking to the no-data overlay. An empty array is well-formed
+            // (just empty) so it is retained silently; a wrong-typed response warrants a warning.
+            if (hasRenderableRows(response)) {
+                this.throttledDispatch(id, response as D[], requestId);
             } else {
-                if (!callbackThrew && !Array.isArray(response)) {
+                const isEmptyArray = Array.isArray(response) && response.length === 0;
+                if (!callbackThrew && !isEmptyArray) {
                     Logger.warnOnce(
                         `DataService - [dataSource.getData] returned an invalid value \`${stringifyValue(response, 50)}\`; expecting an array, ignoring.`
                     );
