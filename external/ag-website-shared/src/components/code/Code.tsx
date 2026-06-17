@@ -6,7 +6,8 @@ import { getSingletonHighlighter } from 'shiki';
 import styles from './Code.module.scss';
 import codeStyles from './CodeHighlight.module.scss';
 import { extractDecorations } from './keepMarkup';
-import agDocsTheme from './theme.json';
+
+// import agDocsTheme from './theme.json';
 
 const LANGS = [
     'javascript',
@@ -46,7 +47,8 @@ export type Language = keyof typeof LanguageMap;
 // Initialise once at module load — promise is shared across all component instances.
 const highlighterPromise = getSingletonHighlighter({
     langs: [...LANGS],
-    themes: [agDocsTheme as Parameters<typeof getSingletonHighlighter>[0]['themes'][number]],
+    themes: ['github-light-default', 'github-dark-default'],
+    // themes: [agDocsTheme as Parameters<typeof getSingletonHighlighter>[0]['themes'][number]],
 });
 
 // In-memory cache keyed by `keepMarkup:lang:code` to avoid redundant re-highlighting.
@@ -65,7 +67,8 @@ function highlight(code: string, language: Language, keepMarkup: boolean): Promi
     return highlighterPromise.then((hl) => {
         const html = hl.codeToHtml(cleanCode, {
             lang: LanguageMap[language],
-            theme: 'ag-docs',
+            themes: { light: 'github-light-default', dark: 'github-dark-default' },
+            // theme: 'ag-docs',
             decorations,
         });
         cache.set(key, html);

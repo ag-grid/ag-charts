@@ -6,6 +6,14 @@
     :global(.line) {
         -webkit-font-smoothing: subpixel-antialiased;
     }
+
+    #{$selector-darkmode} & {
+        background-color: var(--shiki-dark-bg) !important;
+
+        span {
+            color: var(--shiki-dark) !important;
+        }
+    }
 }
 
 // Bash/shell: suppress Shiki token colours so all text renders as plain foreground
