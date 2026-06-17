@@ -44,6 +44,12 @@ outputs:
 runs:
     using: 'composite'
     steps:
+        - name: Free disk space
+          if: runner.os == 'Linux'
+          shell: bash
+          run: |
+              sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache /usr/local/share/boost "$AGENT_TOOLSDIRECTORY"
+
         - name: Dump GitHub context
           env:
               GITHUB_CONTEXT: ${{ toJson(github) }}
