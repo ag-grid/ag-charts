@@ -87,4 +87,39 @@ describe('Chart on a detached container with async data and a series-type switch
         const { container, attach } = setupMeasurableContainer();
         expect(await runScenario(container, attach, 'late')).toEqual([400, 250]);
     });
+
+    // A series-type switch replaces the chart instance via destroy({ keepTransferableResources }):
+    // the old chart is flagged destroyed and hands its scene to the replacement synchronously,
+    // but its teardown (which unsubscribes its dom:resize listener) is queued asynchronously. A
+    // container measurement arriving in that window must not be applied by the dead chart to the
+    // now-shared scene — otherwise it parks a pending size the live chart then treats as a no-op,
+    // leaving the chart unrendered until the next interaction (jsdom cannot model the real-browser
+    // timing of the full race, so this asserts the invariant directly).
+    it('does not resize the shared scene from a dom:resize delivered after the chart is destroyed', async () => {
+        const { container, attach } = setupMeasurableContainer();
+        attach();
+
+        proxy = AgCharts.create({
+            container,
+            animation: { enabled: false },
+            series: [{ type: 'radar-area', angleKey: 'country', radiusKey: 'gold' }],
+            data: DATA,
+        });
+        await proxy.waitForUpdate();
+
+        const chart = deproxy(proxy) as any;
+        // This test destroys the underlying chart directly (as the type-switch path does), so take
+        // it out of the proxy-managed afterEach teardown to avoid a double-destroy.
+        proxy = undefined as any;
+        const { scene } = chart.ctx;
+        const sizeBeforeDestroy = [scene.width, scene.height];
+
+        chart.destroy({ keepTransferableResources: true });
+
+        // Mirror the SizeMonitor: record a new container size, then notify via dom:resize.
+        chart.ctx.domManager.containerSize = { width: 999, height: 777, pixelRatio: 1 };
+        chart.ctx.eventsHub.emit('dom:resize', null);
+
+        expect([scene.width, scene.height]).toEqual(sizeBeforeDestroy);
+    });
 });
