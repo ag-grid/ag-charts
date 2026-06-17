@@ -151,7 +151,7 @@
             },
             {
                 "text": "Multi Style Labels",
-                "path": "./fonts/#label-formatters-with-multi-style-text"
+                "path": "./text/#label-formatters-with-multi-style-text"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-12-3"
@@ -217,7 +217,7 @@
             },
             {
                 "text": "Multi Style Text Elements",
-                "path": "./fonts/#multi-style-text-elements"
+                "path": "./text/#multi-style-text-elements"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-12-1"
@@ -290,7 +290,7 @@
             },
             {
                 "text": "Support for Google Fonts",
-                "path": "./fonts"
+                "path": "./text"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-11-3"
