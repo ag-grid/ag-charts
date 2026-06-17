@@ -39,6 +39,10 @@ export function stripOutExampleGeneratorCode(files: FileContents) {
     if (files['index.html']) {
         files['index.html'] = files['index.html']?.replace(e2eStyleRegex, '').trim();
     }
+
+    // `head.html` is a synthetic fragment injected into the document `<head>`, not a project
+    // file — the rendered host page already includes its contents, so exports must not carry it.
+    delete files['head.html'];
 }
 
 /**

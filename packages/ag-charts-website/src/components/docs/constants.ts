@@ -10,4 +10,5 @@ export const LICENSE_INSTALL_REDIRECT_PAGE = 'license-install';
 export const FILES_TO_HIDE: Record<string, InternalFramework[] | boolean> = {
     'index.html': ['reactFunctional', 'reactFunctionalTs', 'vue3', 'angular'],
     'ag-example-styles.css': true,
+    'head.html': true,
 };

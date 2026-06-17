@@ -103,15 +103,4 @@ const options: AgChartOptions = {
     },
 };
 
-// Create the chart once the FontAwesome stylesheet has loaded; the chart then fetches the fonts.
-const stylesheetReady = new Promise<void>((resolve) => {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css';
-    link.crossOrigin = 'anonymous';
-    link.referrerPolicy = 'no-referrer';
-    link.onload = () => resolve();
-    document.head.appendChild(link);
-});
-
-stylesheetReady.then(() => AgCharts.create(options));
+AgCharts.create(options);
