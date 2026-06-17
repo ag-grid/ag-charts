@@ -46,6 +46,8 @@ export class RadiusNumberAxis extends RadiusAxis<
 
     protected prepareGridPathTickData(data: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[] {
         const { scale } = this;
+        // An empty domain (e.g. all series hidden) has no top tick to exclude; toNumber(undefined) would warn.
+        if (scale.domain.length === 0) return data;
         // Narrow to Number so the comparator never mixes a bigint tick with a number tick (mixed subtraction throws).
         const domainTop = toNumber(scale.domain[1]);
         return data

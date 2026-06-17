@@ -884,4 +884,22 @@ describe('RadarLineSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
+
+    describe('all series hidden', () => {
+        it('should not warn when every series is toggled off', async () => {
+            const options: AgChartOptions = {
+                ...EXAMPLE_OPTIONS,
+                series: (EXAMPLE_OPTIONS.series as AgRadarLineSeriesOptions[]).map((series) => ({
+                    ...series,
+                    visible: false,
+                })),
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+    });
 });
