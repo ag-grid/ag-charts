@@ -25,13 +25,13 @@
 
         /* TODO: move these out once toolbar.css is cleaned up */
         .ag-charts-toolbar__button--first {
-            border-end-start-radius: var(--ag-charts-border-radius);
-            border-start-start-radius: var(--ag-charts-border-radius);
+            border-end-start-radius: var(--ag-charts-button-border-radius);
+            border-start-start-radius: var(--ag-charts-button-border-radius);
         }
 
         .ag-charts-toolbar__button--last {
-            border-end-end-radius: var(--ag-charts-border-radius);
-            border-start-end-radius: var(--ag-charts-border-radius);
+            border-end-end-radius: var(--ag-charts-button-border-radius);
+            border-start-end-radius: var(--ag-charts-button-border-radius);
         }
 
         .ag-charts-toolbar__label {

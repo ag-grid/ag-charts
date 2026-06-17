@@ -1,7 +1,7 @@
 .ag-charts-toolbar {
     --toolbar-size: 34px;
 
-    --toolbar-border-radius: var(--ag-charts-border-radius);
+    --toolbar-border-radius: var(--ag-charts-button-border-radius);
 
     --toolbar-button-background-color: var(--ag-charts-chrome-background-color);
     --toolbar-button-border-color: var(--ag-charts-button-border-color);
@@ -134,14 +134,14 @@
     }
 
     .ag-charts-toolbar__button--first {
-        border-start-start-radius: var(--ag-charts-border-radius);
-        border-start-end-radius: var(--ag-charts-border-radius);
+        border-start-start-radius: var(--ag-charts-button-border-radius);
+        border-start-end-radius: var(--ag-charts-button-border-radius);
         margin: 0;
     }
 
     .ag-charts-toolbar__button--last {
-        border-end-start-radius: var(--ag-charts-border-radius);
-        border-end-end-radius: var(--ag-charts-border-radius);
+        border-end-start-radius: var(--ag-charts-button-border-radius);
+        border-end-end-radius: var(--ag-charts-button-border-radius);
     }
 }
 
@@ -208,8 +208,8 @@
     border-color: var(--ag-charts-border-color);
     border-style: solid;
     border-width: var(--ag-charts-border-width);
-    border-end-start-radius: var(--ag-charts-border-radius);
-    border-start-start-radius: var(--ag-charts-border-radius);
+    border-end-start-radius: var(--ag-charts-button-border-radius);
+    border-start-start-radius: var(--ag-charts-button-border-radius);
     border-inline-end-width: 0;
     cursor: grab;
     display: flex;
