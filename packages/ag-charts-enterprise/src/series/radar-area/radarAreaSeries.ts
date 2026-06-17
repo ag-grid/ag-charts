@@ -153,11 +153,13 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
 
     protected override makeStylerParams(
         highlightStateEnum: _ModuleSupport.HighlightState | undefined,
-        selectionStateEnum: _ModuleSupport.SelectionState | undefined
+        selectionStateEnum: _ModuleSupport.SelectionState | undefined,
+        candidateStateEnum: _ModuleSupport.SelectionState | undefined
     ): AgRadarAreaSeriesStylerParams {
         const { properties } = this;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
         const selectionState = toSelectionString(selectionStateEnum);
+        const candidateState = toSelectionString(candidateStateEnum);
 
         type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> };
         type ParamsRules = CallbackParamRules<AgRadarAreaSeriesStylerParams & MarkerRules>;
@@ -175,6 +177,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
             },
             highlightState,
             selectionState,
+            candidateState,
             fill: properties.fill,
             fillOpacity: properties.fillOpacity,
             lineDash: properties.lineDash,
@@ -195,7 +198,8 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
             this.properties;
         const { size, shape, fill: markerFill = 'transparent', fillOpacity: markerFillOpacity } = marker;
         const selectionState: _ModuleSupport.SelectionState | undefined = this.getDataSelectionState(undefined);
-        const stylerResult = this.getStylerResult({}, highlightState, selectionState);
+        const candidateState: _ModuleSupport.SelectionState | undefined = this.getDataCandidacyState(undefined);
+        const stylerResult = this.getStylerResult({}, highlightState, selectionState, candidateState);
         stylerResult.marker ??= {};
 
         return {

@@ -114,7 +114,8 @@ export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
         options: FormatOptions,
         style: AgErrorBarThemeableOptions,
         highlightState: HighlightState,
-        selectionState: SelectionState | undefined
+        selectionState: SelectionState | undefined,
+        candidateState: SelectionState | undefined
     ) {
         const { datum } = this;
         if (datum == null || options.itemStyler == null) return;
@@ -132,6 +133,7 @@ export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
             yUpperKey,
             highlightState,
             selectionState,
+            candidateState,
         } satisfies ErrorBarItemStylerParamsRules;
     }
 
@@ -140,11 +142,12 @@ export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
         options: FormatOptions,
         caller: Caller,
         highlightState: HighlightState,
-        selectionState: SelectionState | undefined
+        selectionState: SelectionState | undefined,
+        candidateState: SelectionState | undefined
     ) {
         let { cap: capsStyle, ...whiskerStyle } = style;
 
-        const params = this.getItemStylerParams(options, style, highlightState, selectionState);
+        const params = this.getItemStylerParams(options, style, highlightState, selectionState, candidateState);
         if (params != null && options.itemStyler != null) {
             type F = NonNullable<typeof options.itemStyler>;
             type I = Parameters<F>[0];
@@ -172,7 +175,8 @@ export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
         formatters: FormatOptions,
         caller: Caller,
         highlightState: HighlightState,
-        selectionState: SelectionState | undefined
+        selectionState: SelectionState | undefined,
+        candidateState: SelectionState | undefined
     ) {
         if (this.datum === undefined) {
             return;
@@ -183,7 +187,8 @@ export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
             formatters,
             caller,
             highlightState,
-            selectionState
+            selectionState,
+            candidateState
         );
         const { xBar, yBar, capDefaults } = this.datum;
 

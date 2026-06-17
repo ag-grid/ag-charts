@@ -895,17 +895,19 @@ export abstract class RadarSeries<
 
     protected abstract makeStylerParams(
         highlightStateEnum: _ModuleSupport.HighlightState | undefined,
-        selectionStateEnum: _ModuleSupport.SelectionState | undefined
+        selectionStateEnum: _ModuleSupport.SelectionState | undefined,
+        candidateStateEnum: _ModuleSupport.SelectionState | undefined
     ): CallbackParam<NonNullable<TOpts['styler']>>;
 
     protected getStylerResult(
         stylerResult: StylerResult<TStyle>,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        selectionState: _ModuleSupport.SelectionState | undefined
+        selectionState: _ModuleSupport.SelectionState | undefined,
+        candidateState: _ModuleSupport.SelectionState | undefined
     ): StylerResult<TStyle> {
         const { styler } = this.properties;
         if (styler) {
-            const stylerParams = this.makeStylerParams(highlightState, selectionState);
+            const stylerParams = this.makeStylerParams(highlightState, selectionState, candidateState);
             const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
             const resolved = this.ctx.optionsGraphService.resolvePartial(
                 ['series', `${this.declarationOrder}`],

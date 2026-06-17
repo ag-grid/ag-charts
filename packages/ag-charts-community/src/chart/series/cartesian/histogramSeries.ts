@@ -728,6 +728,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             ...this.resolvedStyle(this.properties.getStyle()),
             highlightState: toHighlightString(highlightState ?? HighlightState.None),
             selectionState: this.getSelectionStateString(undefined),
+            candidateState: this.getCandidateStateString(undefined),
         } satisfies CallbackParamRules<AgHistogramSeriesStylerParams<unknown, unknown>>;
     }
 
@@ -747,6 +748,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             ...this.binParams(bin),
             highlightState: this.getHighlightStateString(activeHighlight, isHighlight, bin.binIndex),
             selectionState: this.getSelectionStateString(bin.binIndex),
+            candidateState: this.getCandidateStateString(bin.binIndex),
             ...this.resolvedStyle(style),
         } satisfies CallbackParamRules<AgHistogramSeriesItemStylerParams<unknown, unknown>>;
     }

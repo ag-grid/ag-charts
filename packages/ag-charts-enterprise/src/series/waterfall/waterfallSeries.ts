@@ -900,6 +900,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
         const selectionStateString = this.getSelectionStateString(datumIndex);
+        const candidateStateString = this.getCandidateStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
@@ -912,6 +913,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             yKey,
             highlightState: highlightStateString,
             selectionState: selectionStateString,
+            candidateState: candidateStateString,
             ...style,
             fill,
         } satisfies CallbackParamRules<AgWaterfallSeriesItemStylerParams>;

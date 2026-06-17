@@ -1249,7 +1249,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
     makeStylerParams(
         highlightStateEnum: HighlightState | undefined,
-        selectionStateEnum: SelectionState | undefined
+        selectionStateEnum: SelectionState | undefined,
+        candidateStateEnum: SelectionState | undefined
     ): AgBubbleSeriesStylerParams<unknown, unknown> | AgScatterSeriesStylerParams<unknown, unknown> {
         const {
             id: seriesId,
@@ -1273,12 +1274,14 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const { size: minSize, maxSize } = marker;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
         const selectionState = toSelectionString(selectionStateEnum);
+        const candidateState = toSelectionString(candidateStateEnum);
 
         if (this.type === 'bubble') {
             type ResultRules = CallbackParamRules<AgBubbleSeriesStylerParams<unknown, unknown>>;
             return {
                 highlightState,
                 selectionState,
+                candidateState,
                 minSize,
                 maxSize,
                 shape,
@@ -1301,6 +1304,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             return {
                 highlightState,
                 selectionState,
+                candidateState,
                 size: minSize,
                 shape,
                 fill,
@@ -1615,7 +1619,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         let stylerResult: AgBubbleSeriesStylerResult | AgScatterSeriesStylerResult = {};
         if (properties.styler) {
             const selectionState: SelectionState | undefined = this.getDataSelectionState(undefined);
-            const stylerParams = this.makeStylerParams(highlightState, selectionState);
+            const candidateState: SelectionState | undefined = this.getDataCandidacyState(undefined);
+            const stylerParams = this.makeStylerParams(highlightState, selectionState, candidateState);
             const cbResult = this.cachedCallWithContext(properties.styler, stylerParams) ?? {};
             const resolved = this.ctx.optionsGraphService.resolvePartial(
                 ['series', `${this.declarationOrder}`],

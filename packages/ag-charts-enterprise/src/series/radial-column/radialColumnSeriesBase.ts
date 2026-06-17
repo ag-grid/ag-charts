@@ -332,7 +332,7 @@ export abstract class RadialColumnSeriesBase<
 
         const nodeData: RadialColumnNodeDatum[] = [];
         const styles = getItemStyles((nodeDatum: RadialColumnNodeDatum | undefined, isHighlight, highlightState) =>
-            getItemStyle(this, nodeDatum, isHighlight, highlightState, undefined)
+            getItemStyle(this, nodeDatum, isHighlight, highlightState, undefined, undefined)
         );
         const context = {
             itemId: radiusKey,
@@ -483,17 +483,32 @@ export abstract class RadialColumnSeriesBase<
                 const { midPoint } = nodeDatum;
 
                 const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);
+                const candidateState = this.getDataCandidacyState(nodeDatum.datumIndex);
                 if (hasItemStylers) {
                     const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
 
                     if (styleCache == null) {
-                        nodeDatum.style = getItemStyle(this, nodeDatum, isHighlight, highlightState, selectionState);
+                        nodeDatum.style = getItemStyle(
+                            this,
+                            nodeDatum,
+                            isHighlight,
+                            highlightState,
+                            selectionState,
+                            candidateState
+                        );
                     } else {
-                        const stateKey = `${highlightState}:${selectionState ?? '-'}`;
+                        const stateKey = `${highlightState}:${selectionState ?? '-'}:${candidateState ?? '-'}`;
                         let cached = styleCache.get(stateKey);
                         if (cached === undefined) {
                             // Concrete nodeDatum required: getStyle treats `undefined` as "ignore styler".
-                            cached = getItemStyle(this, nodeDatum, isHighlight, highlightState, selectionState);
+                            cached = getItemStyle(
+                                this,
+                                nodeDatum,
+                                isHighlight,
+                                highlightState,
+                                selectionState,
+                                candidateState
+                            );
                             styleCache.set(stateKey, cached);
                         }
                         nodeDatum.style = cached;
@@ -595,7 +610,7 @@ export abstract class RadialColumnSeriesBase<
         // eslint-disable-next-line sonarjs/different-types-comparison
         if (angleValue === undefined && !this.properties.allowNullKeys) return;
 
-        const format = getItemStyle(this, nodeDatum, false, undefined, undefined);
+        const format = getItemStyle(this, nodeDatum, false, undefined, undefined, undefined);
         return this.formatTooltipWithContext(
             tooltip,
             {
@@ -637,6 +652,7 @@ export abstract class RadialColumnSeriesBase<
             this,
             false,
             _ModuleSupport.HighlightState.None,
+            undefined,
             undefined
         );
 

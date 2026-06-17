@@ -901,6 +901,15 @@ export abstract class Series<
         return toSelectionString(selectionState);
     }
 
+    public getCandidateStateString(
+        datumIndex: DatumIndex | undefined,
+        candidateState?: SelectionState
+    ): PublicSelectionState | undefined {
+        candidateState ??= this.getDataCandidacyState(datumIndex);
+        if (candidateState === undefined) return undefined;
+        return toSelectionString(candidateState);
+    }
+
     protected onChangeHighlight(event: HighlightChangeEvent) {
         const previousHighlightedDatum = event.previousHighlight;
         const currentHighlightedDatum = event.currentHighlight;
