@@ -9,6 +9,8 @@
  */
 
 export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
+    ariaAnnounceSelectedItem: 'محدد',
+    ariaAnnounceUnselectedItem: 'غير محدد',
     ariaAnnounceChart: 'مخطط، ${seriesCount}[number] سلسلة',
     ariaAnnounceFlowProportionLink: 'رابط ${index} من ${count}، من ${from} إلى ${to}، ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'العقدة ${index} من ${count}, ${description}',

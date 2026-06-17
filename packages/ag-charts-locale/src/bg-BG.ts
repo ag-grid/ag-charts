@@ -9,6 +9,8 @@
  */
 
 export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
+    ariaAnnounceSelectedItem: 'избрано',
+    ariaAnnounceUnselectedItem: 'неизбрано',
     ariaAnnounceChart: 'диаграма, ${seriesCount}[number] серии',
     ariaAnnounceFlowProportionLink: 'връзка ${index} от ${count}, от ${from} до ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'възел ${index} от ${count}, ${description}',

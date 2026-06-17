@@ -9,6 +9,8 @@
  */
 
 export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
+    ariaAnnounceSelectedItem: 'valittu',
+    ariaAnnounceUnselectedItem: 'ei valittu',
     ariaAnnounceChart: 'kaavio, ${seriesCount}[number] sarjaa',
     ariaAnnounceFlowProportionLink: 'linkki ${index} / ${count}, lähtien ${from} päättyen ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'solmu ${index} ${count} näkyvissä, ${description}',

@@ -8,6 +8,7 @@ mcp.json
 # Plugin-delivered skills — allowlist local-only skills
 /skills/*
 !/skills/technology-stack/
+!/skills/l10n-translate/
 
 # Plugin-delivered agents — all agents live in plugins
 /subagents/*.md
@@ -25,6 +26,7 @@ mcp.json
 !/rules/defaults.md
 !/rules/dom-performance.md
 !/rules/entry-point-hygiene.md
+!/rules/l10n-maintenance.md
 !/rules/module-support.md
 !/rules/numeric-values.md
 !/rules/series.md

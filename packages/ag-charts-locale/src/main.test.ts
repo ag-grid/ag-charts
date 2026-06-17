@@ -8,8 +8,7 @@ const formatters = ['number', 'percent', 'date', 'time', 'datetime', 'percent0to
 const formatterRegExp = /\[([^\]]*)\]/g;
 const variableRegExp = /(\$\{\w+\})/g;
 
-// Ignored since the translations are currently a moving target.
-describe.skip('translations', () => {
+describe('translations', () => {
     describe.each(Object.keys(locales))('%s', (locale) => {
         const translations = (locales as any)[locale] as Record<string, string>;
 

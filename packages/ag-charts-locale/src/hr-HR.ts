@@ -9,6 +9,8 @@
  */
 
 export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
+    ariaAnnounceSelectedItem: 'odabrano',
+    ariaAnnounceUnselectedItem: 'nije odabrano',
     ariaAnnounceChart: 'grafikon, ${seriesCount}[number] serija',
     ariaAnnounceFlowProportionLink: 'veza ${index} od ${count}, od ${from} do ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'čvor ${index} od ${count}, ${description}',

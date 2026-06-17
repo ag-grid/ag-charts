@@ -9,6 +9,8 @@
  */
 
 export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
+    ariaAnnounceSelectedItem: 'منتخب',
+    ariaAnnounceUnselectedItem: 'غیر منتخب',
     ariaAnnounceChart: 'چارٹ، ${seriesCount}[number] سیریز',
     ariaAnnounceFlowProportionLink: 'لنک ${index} کا ${count} میں سے، ${from} سے ${to} تک، ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'نوڈ ${index} کا ${count}، ${description}',
