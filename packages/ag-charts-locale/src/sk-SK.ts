@@ -9,6 +9,8 @@
  */
 
 export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
+    ariaAnnounceSelectedItem: 'vybraté',
+    ariaAnnounceUnselectedItem: 'nevybraté',
     ariaAnnounceChart: 'graf, ${seriesCount}[number] sérií',
     ariaAnnounceFlowProportionLink: 'odkaz ${index} z ${count}, od ${from} do ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'uzol ${index} z ${count}, ${description}',

@@ -9,6 +9,8 @@
  */
 
 export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
+    ariaAnnounceSelectedItem: 'đã chọn',
+    ariaAnnounceUnselectedItem: 'chưa chọn',
     ariaAnnounceChart: 'biểu đồ, ${seriesCount}[number] chuỗi',
     ariaAnnounceFlowProportionLink: 'liên kết ${index} của ${count}, từ ${from} đến ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'nút ${index} của ${count}, ${description}',

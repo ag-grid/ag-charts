@@ -9,6 +9,8 @@
  */
 
 export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
+    ariaAnnounceSelectedItem: 'kijelölve',
+    ariaAnnounceUnselectedItem: 'nincs kijelölve',
     ariaAnnounceChart: 'diagram, ${seriesCount}[number] sorozat',
     ariaAnnounceFlowProportionLink:
         'hivatkozás ${index} a(z) ${count} közül, ${from}-tól ${to}-ig, ${sizeName} ${size}',

@@ -9,6 +9,8 @@
  */
 
 export const AG_CHARTS_LOCALE_PT_PT: Record<string, string> = {
+    ariaAnnounceSelectedItem: 'selecionado',
+    ariaAnnounceUnselectedItem: 'não selecionado',
     ariaAnnounceChart: 'gráfico, ${seriesCount}[number] séries',
     ariaAnnounceFlowProportionLink: 'link ${index} de ${count}, de ${from} para ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'nó ${index} de ${count}, ${description}',

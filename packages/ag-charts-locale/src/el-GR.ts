@@ -9,6 +9,8 @@
  */
 
 export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
+    ariaAnnounceSelectedItem: 'επιλεγμένο',
+    ariaAnnounceUnselectedItem: 'μη επιλεγμένο',
     ariaAnnounceChart: 'διάγραμμα, ${seriesCount}[number] σειρές',
     ariaAnnounceFlowProportionLink: 'σύνδεσμος ${index} από ${count}, από ${from} προς ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'κόμβος ${index} από ${count}, ${description}',
