@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
+import { _ModuleSupport } from 'ag-charts-community';
 import { expectWarningMessages, setupMockConsole } from 'ag-charts-community-test';
 
 import { HierarchyDataSet } from './hierarchyDataSet';
@@ -36,6 +37,35 @@ function createTestData(): TreeItem[] {
             children: [{ id: 'ops-hr', name: 'HR', value: 8 }],
         },
     ];
+}
+
+/**
+ * Stand-in for a per-series selection bitset. Mirrors `DataSetSelection.applyDataChange` — it
+ * feeds the change description through `applyToTypedArray`, which is exactly where the original
+ * hierarchy `RangeError` was thrown — without coupling these tests to the data-selection module.
+ */
+class BitsetSelection {
+    selection: Uint8Array;
+
+    constructor(length: number) {
+        this.selection = new Uint8Array(length);
+    }
+
+    select(index: number): void {
+        this.selection[index] = 1;
+    }
+
+    onDataChange(changeDescription: _ModuleSupport.DataChangeDescription): void {
+        this.selection = changeDescription.applyToTypedArray(this.selection);
+    }
+
+    selectedIndices(): number[] {
+        const indices: number[] = [];
+        for (let i = 0; i < this.selection.length; i++) {
+            if (this.selection[i] === 1) indices.push(i);
+        }
+        return indices;
+    }
 }
 
 describe('HierarchyDataSet', () => {
@@ -327,6 +357,100 @@ describe('HierarchyDataSet', () => {
 
             // Without dataIdKey, deduplication doesn't apply
             expect(ds.data.length).toBe(4);
+        });
+    });
+
+    // DFS order of createTestData(): eng(0), eng-fe(1), eng-be(2), eng-infra(3),
+    // sales(4), sales-na(5), sales-eu(6), ops(7), ops-hr(8) → size() === 9
+    describe('data-selection across transactions', () => {
+        test('should not throw and should preserve selection when appending a root node', () => {
+            const data = createTestData();
+            const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children');
+
+            const sel = new BitsetSelection(ds.size());
+            sel.select(1); // eng-fe
+            sel.select(8); // ops-hr
+            expect(sel.selection.length).toBe(9);
+
+            // The original RangeError repro: append a new root node with selection enabled.
+            ds.addTransaction({ add: [{ id: 'marketing', name: 'Marketing', children: [] }] });
+            expect(() => ds.commitPendingTransactions(sel)).not.toThrow();
+
+            // DFS grew to 10; survivors keep their indices, the new node defaults to unselected.
+            expect(sel.selection.length).toBe(10);
+            expect(sel.selectedIndices()).toEqual([1, 8]);
+        });
+
+        test('should drop the removed node and shift survivors when removing a nested leaf', () => {
+            const data = createTestData();
+            const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children');
+
+            const sel = new BitsetSelection(ds.size());
+            sel.select(1); // eng-fe (removed)
+            sel.select(2); // eng-be
+            sel.select(8); // ops-hr
+
+            ds.addTransaction({ remove: [{ id: 'eng-fe' } as TreeItem] });
+            ds.commitPendingTransactions(sel);
+
+            // New DFS: eng(0), eng-be(1), eng-infra(2), sales(3), sales-na(4),
+            // sales-eu(5), ops(6), ops-hr(7). eng-fe drops; eng-be 2→1, ops-hr 8→7.
+            expect(sel.selection.length).toBe(8);
+            expect(sel.selectedIndices()).toEqual([1, 7]);
+        });
+
+        test('should preserve selection when updating a nested node in-place by id', () => {
+            const data = createTestData();
+            const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children');
+
+            const sel = new BitsetSelection(ds.size());
+            sel.select(1); // eng-fe
+
+            ds.addTransaction({ update: [{ id: 'eng-fe', name: 'Frontend', value: 50 }] });
+            ds.commitPendingTransactions(sel);
+
+            // Same id, same position → selection stays put.
+            expect(ds.data[0].children![0].value).toBe(50);
+            expect(sel.selectedIndices()).toEqual([1]);
+        });
+
+        test('should shift later survivors when inserting a nested leaf mid-tree', () => {
+            const data = createTestData();
+            const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children');
+
+            const sel = new BitsetSelection(ds.size());
+            sel.select(2); // eng-be
+            sel.select(8); // ops-hr
+
+            // User adds a child under eng and applies the matching transaction (dedup keeps it nested).
+            const engNew = { id: 'eng-new', name: 'New Team', value: 1 };
+            data[0].children!.push(engNew);
+            ds.addTransaction({ add: [engNew] });
+            ds.commitPendingTransactions(sel);
+
+            // New DFS inserts eng-new at index 4: eng(0), eng-fe(1), eng-be(2), eng-infra(3),
+            // eng-new(4), sales(5), … ops-hr(9). eng-be stays at 2; ops-hr 8→9.
+            expect(sel.selection.length).toBe(10);
+            expect(sel.selectedIndices()).toEqual([2, 9]);
+        });
+
+        test('should drop a whole subtree contiguously when removing a root group', () => {
+            const data = createTestData();
+            const ds = new HierarchyDataSet<TreeItem>(data, 'id', 'children');
+
+            const sel = new BitsetSelection(ds.size());
+            sel.select(2); // eng-be (survives)
+            sel.select(4); // sales (removed)
+            sel.select(6); // sales-eu (removed with parent)
+            sel.select(8); // ops-hr (survives)
+
+            ds.addTransaction({ remove: [{ id: 'sales' } as TreeItem] });
+            ds.commitPendingTransactions(sel);
+
+            // New DFS: eng(0), eng-fe(1), eng-be(2), eng-infra(3), ops(4), ops-hr(5).
+            // sales/sales-na/sales-eu drop; eng-be stays at 2, ops-hr 8→5.
+            expect(sel.selection.length).toBe(6);
+            expect(sel.selectedIndices()).toEqual([2, 5]);
         });
     });
 });

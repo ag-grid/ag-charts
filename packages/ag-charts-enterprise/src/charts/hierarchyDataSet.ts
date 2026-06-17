@@ -3,6 +3,7 @@ import { Logger, reversePush } from 'ag-charts-core';
 
 type TransactionCollectionState<T> = _ModuleSupport.TransactionCollectionState<T>;
 type DataChangeDescriptionListener = _ModuleSupport.DataChangeDescriptionListener;
+type DataChangeDescription = _ModuleSupport.DataChangeDescription;
 
 const { DataSet } = _ModuleSupport;
 
@@ -81,20 +82,128 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
     }
 
     /**
-     * After the base commit, remove any root-level items whose IDs already exist
-     * nested in the tree. This handles the case where the user manually adds an item
-     * to a parent's children array and also calls applyTransaction({ add: [item] }),
-     * which would otherwise duplicate the item at root level.
+     * Commits the transaction, then bridges the result to the selection listener in the DFS
+     * index space it expects.
+     *
+     * The base change description is built in root (`this.data`) space, but selection bitsets are
+     * sized to the DFS-expanded `size()`. Replaying the root-space description against a bitset
+     * overruns it (the documented `RangeError`). So we suppress the base's listener call, let the
+     * base mutate `this.data` correctly, then rebuild a DFS-space description by diffing the DFS
+     * ordering before and after the commit and hand that to the listener instead.
+     *
+     * Also removes any root-level items whose IDs already exist nested in the tree — the case
+     * where the user manually adds an item to a parent's children array and also calls
+     * `applyTransaction({ add: [item] })`, which would otherwise duplicate it at root level.
      */
     override commitPendingTransactions(changeDescriptionListener: DataChangeDescriptionListener | undefined): boolean {
-        const result = super.commitPendingTransactions(changeDescriptionListener);
-        if (result && this.dataIdKey) {
+        // Snapshot the DFS ordering before the commit mutates the tree; the bitset is indexed in it.
+        const oldDfsDatums = changeDescriptionListener ? [...this.getDfsOrdering().datumLookup] : undefined;
+
+        const committed = super.commitPendingTransactions(undefined);
+        if (!committed) return false;
+
+        if (this.dataIdKey) {
             this.removeNestedDuplicatesFromRoot();
-            // Invalidate after structural changes — splice may shift root indices.
-            this.idToIndexCache = undefined;
-            this.idArrayCache = undefined;
         }
-        return result;
+
+        // The tree changed; rebuild DFS ordering and id caches on next access.
+        this.dfsOrdering = undefined;
+        this.idToIndexCache = undefined;
+        this.idArrayCache = undefined;
+
+        if (oldDfsDatums !== undefined) {
+            changeDescriptionListener!.onDataChange(this.buildDfsChangeDescription(oldDfsDatums));
+        }
+        return true;
+    }
+
+    /**
+     * Builds a change description in DFS index space by matching each pre-commit DFS datum to its
+     * post-commit DFS position by identity (id, or object reference when no `dataIdKey`). Survivors
+     * keep their selection at the new position; removed nodes drop out; new nodes default to 0.
+     */
+    private buildDfsChangeDescription(oldDfsDatums: T[]): DataChangeDescription {
+        const finalLength = this.size();
+        const newById = this.dataIdKey == null ? undefined : this.getIdToIndexMap();
+        const newByRef = this.buildDfsRefIndex();
+
+        const removedIndices = new Set<number>();
+        const survivorNewIndices: number[] = [];
+        for (let oldIndex = 0; oldIndex < oldDfsDatums.length; oldIndex++) {
+            const datum = oldDfsDatums[oldIndex];
+            const id = this.getIdValue(datum);
+            const newIndex = id == null ? newByRef.get(datum) : newById?.get(id);
+            if (newIndex === undefined) {
+                removedIndices.add(oldIndex);
+            } else {
+                survivorNewIndices.push(newIndex);
+            }
+        }
+
+        // applyToTypedArray's block copy assumes survivors keep their relative order. Duplicate
+        // dataIdKey values (warned about elsewhere) can break that; if so, drop selections rather
+        // than risk an out-of-bounds copy.
+        for (let k = 1; k < survivorNewIndices.length; k++) {
+            if (survivorNewIndices[k] <= survivorNewIndices[k - 1]) {
+                survivorNewIndices.length = 0;
+                removedIndices.clear();
+                for (let i = 0; i < oldDfsDatums.length; i++) removedIndices.add(i);
+                break;
+            }
+        }
+
+        const indexMap = this.buildDfsIndexMap(oldDfsDatums.length, finalLength, removedIndices, survivorNewIndices);
+        return this.createChangeDescription(indexMap, { prependValues: [], appendValues: [], insertionValues: [] });
+    }
+
+    /** Maps each DFS datum (by object reference) to its DFS index. */
+    private buildDfsRefIndex(): Map<T, number> {
+        const lookup = this.getDfsOrdering().datumLookup;
+        const map = new Map<T, number>();
+        for (let i = 0; i < lookup.length; i++) {
+            if (!map.has(lookup[i])) map.set(lookup[i], i);
+        }
+        return map;
+    }
+
+    /**
+     * Expresses the old→new DFS transformation as prepend/mid-insert/append splice operations plus
+     * removed source indices — the shape `DataChangeDescription.applyToTypedArray` consumes.
+     */
+    private buildDfsIndexMap(
+        originalLength: number,
+        finalLength: number,
+        removedIndices: Set<number>,
+        survivorNewIndices: number[]
+    ) {
+        const hasSurvivors = survivorNewIndices.length > 0;
+        const totalPrependCount = hasSurvivors ? survivorNewIndices[0] : 0;
+        const lastSurvivor = survivorNewIndices.at(-1) ?? -1;
+        const totalAppendCount = hasSurvivors ? finalLength - 1 - lastSurvivor : finalLength;
+
+        const spliceOps: Array<{ index: number; deleteCount: number; insertCount: number }> = [];
+        if (totalPrependCount > 0) {
+            spliceOps.push({ index: 0, deleteCount: 0, insertCount: totalPrependCount });
+        }
+        for (let k = 0; k + 1 < survivorNewIndices.length; k++) {
+            const gap = survivorNewIndices[k + 1] - survivorNewIndices[k] - 1;
+            if (gap > 0) {
+                spliceOps.push({ index: survivorNewIndices[k] + 1, deleteCount: 0, insertCount: gap });
+            }
+        }
+        if (totalAppendCount > 0) {
+            spliceOps.push({ index: finalLength - totalAppendCount, deleteCount: 0, insertCount: totalAppendCount });
+        }
+
+        return {
+            originalLength,
+            finalLength,
+            spliceOps,
+            removedIndices,
+            updatedIndices: new Set<number>(),
+            totalPrependCount,
+            totalAppendCount,
+        };
     }
 
     private removeNestedDuplicatesFromRoot(): void {
