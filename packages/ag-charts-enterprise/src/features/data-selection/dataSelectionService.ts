@@ -160,7 +160,7 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
     }
 
     getDataSelectionState(series: SeriesLike, datumIndex: number | undefined): SelectionStateEnum | undefined {
-        if (!series.properties.selection.enabled || this.ctx === undefined) return undefined;
+        if (!series.isSelectionEnabled() || this.ctx === undefined) return undefined;
 
         const options = this.ctx.chartState.getValue('options');
         if (!options?.selection?.enabled) return undefined;

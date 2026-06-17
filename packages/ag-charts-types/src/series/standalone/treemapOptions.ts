@@ -66,8 +66,6 @@ export interface AgTreemapSeriesGroupOptions<TDatum, TContext = ContextDefault>
     cornerRadius?: PixelSize;
     /** Highlight overrides for groups. */
     highlight?: AgTreemapSeriesGroupHighlightOptions;
-    /** Selection overrides for groups. */
-    selection?: AgSelectionOptions<AgSelectionStyleOptions, AgSelectionStyleOptions>;
 }
 
 export interface AgTreemapSeriesTileStyle extends FillOptions, StrokeOptions {}
@@ -143,7 +141,7 @@ export interface AgTreemapSeriesTileOptions<TDatum, TContext = ContextDefault>
 
 export interface AgTreemapSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
     AgBaseSeriesThemeableOptions<TDatum, TContext>,
-    'highlight' | 'showInLegend'
+    'highlight' | 'selection' | 'showInLegend'
 > {
     /** The colours to cycle through for the fills of the groups and tiles. */
     fills?: AgColorType[];
