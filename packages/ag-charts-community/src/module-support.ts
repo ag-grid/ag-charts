@@ -53,7 +53,7 @@ export {
     annotationTextStylesDef,
 } from './chart/themes/annotationOptionsDef';
 export type { IDataSelectionService } from './chart/data/dataSelectionServiceTypes';
-export type { DataChangeDescription } from './chart/data/dataChangeDescription';
+export { DataChangeDescription } from './chart/data/dataChangeDescription';
 export type { IDataSetSelection } from './chart/data/dataSetSelectionTypes';
 export {
     commonAxisThemeTemplate,

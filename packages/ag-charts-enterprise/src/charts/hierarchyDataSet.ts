@@ -153,7 +153,8 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
         }
 
         const indexMap = this.buildDfsIndexMap(oldDfsDatums.length, finalLength, removedIndices, survivorNewIndices);
-        return this.createChangeDescription(indexMap, { prependValues: [], appendValues: [], insertionValues: [] });
+        const insertions = { prependValues: [], appendValues: [], insertionValues: [] };
+        return new _ModuleSupport.DataChangeDescription(indexMap, insertions);
     }
 
     /** Maps each DFS datum (by object reference) to its DFS index. */

@@ -449,18 +449,6 @@ export class DataSet<T = unknown> {
         return this.data;
     }
 
-    /**
-     * Wraps a pre-built index map in a {@link DataChangeDescription}. Provided for subclasses that
-     * derive index maps in a coordinate space other than the default array order; the supplied
-     * value lists are used verbatim.
-     */
-    protected createChangeDescription(
-        indexMap: IndexTransformationMap,
-        insertions: { prependValues: unknown[]; appendValues: unknown[]; insertionValues: unknown[] }
-    ): DataChangeDescription {
-        return new DataChangeDescription(indexMap, insertions);
-    }
-
     /** Builds a DataChangeDescription from pending transactions. */
     getChangeDescription(): DataChangeDescription | undefined {
         if (!this.hasPendingTransactions()) {
