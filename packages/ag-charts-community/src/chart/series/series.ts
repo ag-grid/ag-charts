@@ -80,7 +80,7 @@ import type { TooltipContent, TooltipStructuredContent } from '../tooltip/toolti
 import { getItemId } from './pickManager';
 import { mergeMarkerStyles, mergeMarkerStylesPair } from './seriesMarker';
 import type { SeriesMarker } from './seriesMarker';
-import { isUnselected, toHighlightString, toSelectionString } from './seriesProperties';
+import { isRelevantSelectionState, isUnselected, toHighlightString, toSelectionString } from './seriesProperties';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesTooltip } from './seriesTooltip';
 import {
@@ -842,6 +842,10 @@ export abstract class Series<
         return this.ctx.dataSelectionService?.getDataSelectionState(this, datumIndex);
     }
 
+    public getDataCandidacyState(datumIndex: DatumIndex | undefined): SelectionState | undefined {
+        return this.ctx.dataSelectionService?.getDataCandidateState(this, datumIndex);
+    }
+
     /**
      * Per-series aggregation-aware bucket lookup. Optional — populated
      * lazily for aggregating series only. Owns both the per-bucket SELECTED
@@ -966,7 +970,16 @@ export abstract class Series<
         return this.properties.highlight.getStyle(highlightState);
     }
 
-    public getSelectionStyle(datumIndex?: DatumIndex, selectionState?: SelectionState) {
+    public getSelectionStyle(
+        datumIndex?: DatumIndex,
+        selectionState?: SelectionState,
+        candidateState?: SelectionState
+    ) {
+        candidateState ??= this.getDataCandidacyState(datumIndex);
+        if (isRelevantSelectionState(candidateState)) {
+            return this.properties.selection.getStyle(candidateState);
+        }
+
         selectionState ??= this.getDataSelectionState(datumIndex);
         if (selectionState === undefined) return undefined;
         return this.properties.selection.getStyle(selectionState);
@@ -1408,9 +1421,15 @@ export abstract class Series<
         } = opts ?? {};
         const selectionState: SelectionState | undefined =
             opts?.selectionState ?? this.getDataSelectionState(datumIndex);
+        const candidateState: SelectionState | undefined = this.getDataCandidacyState(datumIndex);
 
-        if (hideWithSize0 && isUnselected(selectionState)) {
-            return { size: 0 } satisfies AgSeriesMarkerStyle;
+        if (hideWithSize0) {
+            if (isRelevantSelectionState(candidateState) && isUnselected(candidateState)) {
+                return { size: 0 } satisfies AgSeriesMarkerStyle;
+            }
+            if (isUnselected(selectionState)) {
+                return { size: 0 } satisfies AgSeriesMarkerStyle;
+            }
         }
 
         // Lazy resolvePath — only the resolveStyler/itemStyler branches consume it.
@@ -1434,7 +1453,7 @@ export abstract class Series<
             : undefined;
         const selectionStyle: AgSeriesMarkerStyle | undefined =
             checkForHighlight && this.isSelectionEnabled()
-                ? this.getSelectionStyle(datumIndex, selectionState)
+                ? this.getSelectionStyle(datumIndex, selectionState, candidateState)
                 : undefined;
         let markerStyle = mergeMarkerStyles(
             selectionStyle,
@@ -1454,6 +1473,7 @@ export abstract class Series<
                       )
                     : toHighlightString(highlightState);
             const selectionStateString = selectionState === undefined ? undefined : toSelectionString(selectionState);
+            const candidateStateString = candidateState === undefined ? undefined : toSelectionString(candidateState);
             const fill = this.filterItemStylerFillParams(markerStyle.fill);
 
             const style = this.cachedCallWithContext(itemStyler, {
@@ -1463,6 +1483,7 @@ export abstract class Series<
                 ...params,
                 highlightState: highlightStateString,
                 selectionState: selectionStateString,
+                candidateState: candidateStateString,
                 datum,
             });
             const resolved = this.ctx.optionsGraphService.resolvePartial(getResolvePath(), style);

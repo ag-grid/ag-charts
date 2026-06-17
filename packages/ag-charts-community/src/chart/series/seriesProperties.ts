@@ -139,6 +139,14 @@ export function isUnselected(state: SelectionState | undefined): boolean {
     return false;
 }
 
+// A "relevant" selection state is one that affects the styling.
+export function isRelevantSelectionState(
+    state: SelectionState | undefined
+): state is Exclude<SelectionState, SelectionState.None> {
+    const isIrrelevant: boolean = state === undefined || state === SelectionState.None;
+    return !isIrrelevant;
+}
+
 type HighlightOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
 type SelectionOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
 
