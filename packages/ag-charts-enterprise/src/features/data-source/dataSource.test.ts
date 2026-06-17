@@ -512,4 +512,52 @@ describe('DataSource', () => {
             expect(sources).toContain('state-change');
         });
     });
+
+    describe('navigator mini-chart', () => {
+        it('should use separate data for mini-chart', async () => {
+            const response = delay(1).then(() => [
+                { time: new Date('2024-01-01 00:00:00'), price: 0 },
+                { time: new Date('2024-01-02 00:00:00'), price: 50 },
+                { time: new Date('2024-01-03 00:00:00'), price: 25 },
+                { time: new Date('2024-01-04 00:00:00'), price: 75 },
+                { time: new Date('2024-01-05 00:00:00'), price: 50 },
+                { time: new Date('2024-01-06 00:00:00'), price: 25 },
+                { time: new Date('2024-01-07 00:00:00'), price: 50 },
+            ]);
+            await prepareChart(
+                {
+                    getData: async ({ source }) => {
+                        await delay(1);
+                        if (source === 'mini-chart') {
+                            return [
+                                { time: new Date('2024-01-01 00:00:00'), price: 0 },
+                                { time: new Date('2024-01-04 00:00:00'), price: 75 },
+                                { time: new Date('2024-01-07 00:00:00'), price: 50 },
+                            ];
+                        } else {
+                            return [
+                                { time: new Date('2024-01-01 00:00:00'), price: 0 },
+                                { time: new Date('2024-01-02 00:00:00'), price: 50 },
+                                { time: new Date('2024-01-03 00:00:00'), price: 25 },
+                                { time: new Date('2024-01-04 00:00:00'), price: 75 },
+                                { time: new Date('2024-01-05 00:00:00'), price: 50 },
+                                { time: new Date('2024-01-06 00:00:00'), price: 25 },
+                                { time: new Date('2024-01-07 00:00:00'), price: 50 },
+                            ];
+                        }
+                    },
+                },
+                {
+                    ...TIME_OPTIONS,
+                    navigator: {
+                        miniChart: {
+                            enabled: true,
+                        },
+                    },
+                }
+            );
+            await response;
+            await compare();
+        });
+    });
 });

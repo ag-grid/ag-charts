@@ -1,5 +1,5 @@
 import { ActionOnSet, ChartUpdateType, Debug, Logger, throttle } from 'ag-charts-core';
-import type { AgDataSourceCallbackParams } from 'ag-charts-types';
+import type { AgDataSourceCallbackParams, AgDataSourceRequestSource } from 'ag-charts-types';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { AnimationManager } from '../interaction/animationManager';
@@ -42,6 +42,12 @@ export class DataService<D extends object> {
 
     private throttledFetch = this.createThrottledFetch(this.requestThrottle);
     private throttledDispatch = this.createThrottledDispatch(this.dispatchThrottle);
+
+    private _secondaryLoaders: {
+        source: AgDataSourceRequestSource;
+        triggers: AgDataSourceRequestSource[];
+        callback: (data: unknown[]) => void;
+    }[] = [];
 
     constructor(
         private readonly eventsHub: EventsHub,
@@ -89,6 +95,17 @@ export class DataService<D extends object> {
         this.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
 
         this.throttledFetch(params);
+    }
+
+    public registerSecondaryLoader(
+        source: AgDataSourceRequestSource,
+        triggers: AgDataSourceRequestSource[],
+        callback: (data: unknown[]) => void
+    ) {
+        this._secondaryLoaders.push({ source, triggers, callback });
+        return () => {
+            this._secondaryLoaders = this._secondaryLoaders.filter((secondary) => secondary.callback !== callback);
+        };
     }
 
     public isLazy() {
@@ -144,25 +161,16 @@ export class DataService<D extends object> {
         if ('context' in this.caller) {
             params.context = this.caller.context;
         }
+
         const fetchRequest = Promise.resolve().then(async () => {
             if (!this.dataSourceCallback) {
                 throw new Error('DataService - [dataSource.getData] callback not initialised');
             }
 
-            const start = performance.now();
-
             const id = this.requestCounter++;
             this.debug(`DataService - requesting | ${id}`);
 
-            let response;
-            try {
-                response = await this.dataSourceCallback(params);
-                this.debug(`DataService - response | ${performance.now() - start}ms | ${id}`);
-            } catch (error: any) {
-                this.debug(`DataService - request failed | ${id}`);
-                Logger.warnOnce(`DataService - request failed | [${error}]`);
-                // Ignore errors in callback and keep chart alive
-            }
+            const response = await this.performFetch(params, id);
 
             this.isLoadingInitialData = false;
 
@@ -188,9 +196,40 @@ export class DataService<D extends object> {
             return response;
         });
 
+        const secondaryFetchRequests = [];
+        if (params.source != null && this.dataSourceCallback) {
+            for (const secondary of this._secondaryLoaders) {
+                if (!secondary.triggers.includes(params.source)) continue;
+                secondaryFetchRequests.push(
+                    this.performFetch({ ...params, source: secondary.source }, secondary.source).then((response) => {
+                        if (Array.isArray(response)) {
+                            secondary.callback(response);
+                        }
+                    })
+                );
+            }
+        }
+
         this.latestRequest = { params, fetchRequest };
         this.freshRequests.push(fetchRequest);
 
-        await fetchRequest;
+        await Promise.all([fetchRequest, ...secondaryFetchRequests]);
+    }
+
+    private async performFetch(params: AgDataSourceCallbackParams, id: string | number) {
+        if (!this.dataSourceCallback) return;
+
+        let response;
+        try {
+            const start = performance.now();
+            response = await this.dataSourceCallback(params);
+            this.debug(`DataService - response | ${performance.now() - start}ms | ${id}`);
+        } catch (error: any) {
+            this.debug(`DataService - request failed | ${id}`);
+            Logger.warnOnce(`DataService - request failed | [${error}]`);
+            // Ignore errors in callback and keep chart alive
+        }
+
+        return response;
     }
 }

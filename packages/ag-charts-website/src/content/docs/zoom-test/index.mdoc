@@ -83,6 +83,18 @@ What to test:
 {% chartExampleRunner title="async-loading" name="async-loading" type="generated" /%}
 {% /if %}
 
+### Async Mini Chart
+
+What to test:
+
+- Mini chart loads data
+- Mini chart data does not change on user interaction (zoom / pan)
+- Main series data does continue to update on zoom
+
+{% if isFramework("javascript") %}
+{% chartExampleRunner title="async-mini-chart" name="async-mini-chart" type="generated" /%}
+{% /if %}
+
 ## E2E Tested
 
 ### e2e-zoom-axis-overlap
