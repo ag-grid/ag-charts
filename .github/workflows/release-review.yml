@@ -114,8 +114,9 @@ jobs:
               uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/release-review
               with:
                   review_type: docs
-                  previous_branch: ${{ inputs.previous_branch }}
-                  current_branch: ${{ inputs.current_branch }}
+                  # inputs.* only exist on workflow_dispatch; on push they auto-resolve in the action.
+                  previous_branch: ${{ github.event_name == 'workflow_dispatch' && inputs.previous_branch || '' }}
+                  current_branch: ${{ github.event_name == 'workflow_dispatch' && inputs.current_branch || '' }}
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   slack_bot_oauth_token: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
 
@@ -158,7 +159,8 @@ jobs:
               uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/release-review
               with:
                   review_type: options
-                  previous_branch: ${{ inputs.previous_branch }}
-                  current_branch: ${{ inputs.current_branch }}
+                  # inputs.* only exist on workflow_dispatch; on push they auto-resolve in the action.
+                  previous_branch: ${{ github.event_name == 'workflow_dispatch' && inputs.previous_branch || '' }}
+                  current_branch: ${{ github.event_name == 'workflow_dispatch' && inputs.current_branch || '' }}
                   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
                   slack_bot_oauth_token: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
