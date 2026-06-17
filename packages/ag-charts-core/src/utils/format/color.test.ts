@@ -238,6 +238,100 @@ describe('Color', () => {
         }).toThrow();
     });
 
+    test('fromHSLString', () => {
+        // comma-separated
+        {
+            const color = Color.fromHSLString('hsl(210, 100%, 50%)');
+            expect(color.toHexString()).toBe('#007fff');
+            expect(color.a).toBe(1);
+        }
+        // space-separated
+        {
+            const color = Color.fromHSLString('hsl(210 100% 50%)');
+            expect(color.toHexString()).toBe('#007fff');
+        }
+        // hsla with comma alpha
+        {
+            const color = Color.fromHSLString('hsla(210, 100%, 50%, 0.4)');
+            expect(color.toHexString()).toBe('#007fff66');
+            expect(color.a).toBe(0.4);
+        }
+        // `/ alpha` form, numeric alpha
+        {
+            const color = Color.fromHSLString('hsl(210 100% 50% / 0.4)');
+            expect(color.a).toBe(0.4);
+        }
+        // `/ alpha` form, percentage alpha
+        {
+            const color = Color.fromHSLString('hsl(210 100% 50% / 40%)');
+            expect(color.a).toBe(0.4);
+        }
+        // hue with `deg` suffix
+        {
+            const color = Color.fromHSLString('hsl(210deg, 100%, 50%)');
+            expect(color.toHexString()).toBe('#007fff');
+        }
+        // hue in turn / rad / grad
+        {
+            expect(Color.fromHSLString('hsl(0.5turn, 100%, 50%)').toHexString()).toBe('#00ffff');
+            expect(Color.fromHSLString('hsl(200grad, 100%, 50%)').toHexString()).toBe('#00ffff');
+            expect(Color.fromHSLString(`hsl(${Math.PI}rad, 100%, 50%)`).toHexString()).toBe('#00ffff');
+        }
+        // achromatic (s = 0) is a shade of grey regardless of hue
+        {
+            const color = Color.fromHSLString('hsl(123, 0%, 50%)');
+            expect(color.toHexString()).toBe('#808080');
+        }
+        // out-of-range saturation / lightness are clamped to [0, 1]
+        {
+            expect(Color.fromHSLString('hsl(120, 150%, 50%)').toHexString()).toBe('#00ff00');
+            expect(Color.fromHSLString('hsl(120, 100%, 150%)').toHexString()).toBe('#ffffff');
+        }
+        // bare-number saturation / lightness share the percentage range
+        {
+            expect(Color.fromHSLString('hsl(120, 100, 50)').toHexString()).toBe('#00ff00');
+        }
+
+        expect(() => Color.fromHSLString('hsl()')).toThrow();
+        expect(() => Color.fromHSLString('hsl(210, 100%)')).toThrow();
+        expect(() => Color.fromHSLString('hsl(blah, 100%, 50%)')).toThrow();
+    });
+
+    test('fromString routes hsl/hsla', () => {
+        {
+            const color = Color.fromString('hsl(120, 100%, 50%)');
+            expect(color.toHexString()).toBe('#00ff00');
+        }
+        {
+            const color = Color.fromString('hsla(0, 100%, 50%, 0.5)');
+            expect(color.toHexString()).toBe('#ff000080');
+        }
+    });
+
+    test('hsl renders identically to equivalent rgb/hex', () => {
+        const pairs: Array<[string, string]> = [
+            ['hsl(0, 100%, 50%)', '#ff0000'],
+            ['hsl(120, 100%, 50%)', '#00ff00'],
+            ['hsl(240, 100%, 50%)', '#0000ff'],
+            ['hsl(210, 100%, 50%)', '#007fff'],
+            ['hsl(0, 0%, 0%)', '#000000'],
+            ['hsl(0, 0%, 100%)', '#ffffff'],
+        ];
+        for (const [hsl, equivalent] of pairs) {
+            expect(Color.fromString(hsl).toHexString()).toBe(Color.fromString(equivalent).toHexString());
+        }
+    });
+
+    test('validColorString accepts hsl/hsla', () => {
+        expect(Color.validColorString('hsl(210, 100%, 50%)')).toBe(true);
+        expect(Color.validColorString('hsl(210 100% 50%)')).toBe(true);
+        expect(Color.validColorString('hsla(210, 100%, 50%, 0.4)')).toBe(true);
+        expect(Color.validColorString('hsl(210 100% 50% / 0.4)')).toBe(true);
+        expect(Color.validColorString('hsl()')).toBe(false);
+        expect(Color.validColorString('hsl(210, 100%)')).toBe(false);
+        expect(Color.validColorString('hsl(blah, 100%, 50%)')).toBe(false);
+    });
+
     test('toHexString', () => {
         {
             const color = new Color(0, 1, 1);

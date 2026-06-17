@@ -61,11 +61,17 @@ export class Color implements IColor {
      * - #rrggbb
      * - rgb(r, g, b)
      * - rgba(r, g, b, a)
+     * - hsl(h, s%, l%)
+     * - hsla(h, s%, l%, a)
      * - CSS color name such as 'white', 'orange', 'cyan', etc.
      */
     static validColorString(str: string): boolean {
         if (str.includes('#')) {
             return !!Color.parseHex(str);
+        }
+
+        if (str.includes('hsl')) {
+            return !!Color.stringToHsla(str);
         }
 
         if (str.includes('rgb')) {
@@ -81,6 +87,8 @@ export class Color implements IColor {
      * - #rrggbb
      * - rgb(r, g, b)
      * - rgba(r, g, b, a)
+     * - hsl(h, s%, l%)
+     * - hsla(h, s%, l%, a)
      * - CSS color name such as 'white', 'orange', 'cyan', etc.
      * @param str
      */
@@ -95,6 +103,11 @@ export class Color implements IColor {
         const hex = Color.nameToHex.get(str.toLowerCase());
         if (hex) {
             return Color.fromHexString(hex);
+        }
+
+        // hsl(a) notation
+        if (str.includes('hsl')) {
+            return Color.fromHSLString(str);
         }
 
         // rgb(a) notation
@@ -201,6 +214,91 @@ export class Color implements IColor {
         }
 
         throw new Error(`Malformed rgb/rgba color string: '${str}'`);
+    }
+
+    private static parseHueDegrees(part: string): number | undefined {
+        const value = Number.parseFloat(part);
+        if (!Number.isFinite(value)) {
+            return;
+        }
+
+        if (part.includes('turn')) {
+            return value * 360;
+        }
+        if (part.includes('grad')) {
+            return value * 0.9;
+        }
+        if (part.includes('rad')) {
+            return (value * 180) / Math.PI;
+        }
+        // bare number or `deg` suffix — already in degrees
+        return value;
+    }
+
+    // Saturation and lightness: a bare number shares the same range as the
+    // percentage form (`50` ≡ `50%`), so both divide by 100 — clamped to [0, 1].
+    private static parsePercentage(part: string): number | undefined {
+        const value = Number.parseFloat(part);
+        if (!Number.isFinite(value)) {
+            return;
+        }
+        return clamp(0, value / 100, 1);
+    }
+
+    // Alpha: a bare number is already in [0, 1]; a percentage divides by 100.
+    private static parseAlpha(part: string): number | undefined {
+        const value = Number.parseFloat(part);
+        if (!Number.isFinite(value)) {
+            return;
+        }
+        return clamp(0, part.includes('%') ? value / 100 : value, 1);
+    }
+
+    private static stringToHsla(str: string): number[] | undefined {
+        const po = str.indexOf('(');
+        const pc = str.indexOf(')');
+
+        if (po === -1 || pc === -1 || pc < po) return;
+
+        const contents = str.substring(po + 1, pc);
+
+        // The `/ alpha` form separates the alpha component with a slash; otherwise
+        // components are split on whitespace and/or commas, covering both the
+        // comma-separated and space-separated syntaxes.
+        const slash = contents.indexOf('/');
+        const head = slash === -1 ? contents : contents.substring(0, slash);
+        const parts = head.trim().split(/[\s,]+/);
+        if (slash !== -1) {
+            parts.push(contents.substring(slash + 1).trim());
+        }
+
+        if (parts.length < 3 || parts.length > 4) return;
+
+        const h = Color.parseHueDegrees(parts[0]);
+        const s = Color.parsePercentage(parts[1]);
+        const l = Color.parsePercentage(parts[2]);
+        if (h === undefined || s === undefined || l === undefined) return;
+
+        const hsla = [h, s, l];
+
+        if (parts.length === 4) {
+            const a = Color.parseAlpha(parts[3]);
+            if (a === undefined) return;
+            hsla.push(a);
+        }
+
+        return hsla;
+    }
+
+    static fromHSLString(str: string): Color {
+        const hsla = Color.stringToHsla(str);
+
+        if (hsla) {
+            const [h, s, l, a] = hsla;
+            return Color.fromHSL(h, s, l, a ?? 1);
+        }
+
+        throw new Error(`Malformed hsl/hsla color string: '${str}'`);
     }
 
     static fromArray(arr: [number, number, number] | [number, number, number, number]): Color {
