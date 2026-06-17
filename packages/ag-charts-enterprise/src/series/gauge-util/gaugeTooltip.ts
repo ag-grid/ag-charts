@@ -1,13 +1,14 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { AgNumericValue } from 'ag-charts-types';
 
-type GauageTooltipInfo = { value: number | undefined; text: string | undefined; fallbackLabel: string };
+type GauageTooltipInfo = { value: AgNumericValue | undefined; text: string | undefined; fallbackLabel: string };
 
 interface GaugeSeriesLike {
     properties: {
-        value: number;
+        value: AgNumericValue;
         label: { text?: string };
         scale: { min: number; max: number };
-        targets: { text?: string; value?: number }[];
+        targets: { text?: string; value?: AgNumericValue }[];
     };
     ctx: { localeManager: _ModuleSupport.LocaleManager };
 }

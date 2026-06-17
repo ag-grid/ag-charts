@@ -375,7 +375,7 @@ class RadialGaugeSecondaryLabelProperties extends AutoSizedSecondaryLabel<AgRadi
 
 export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeOptions> {
     @Property
-    value!: number;
+    value!: AgNumericValue;
 
     @Property
     startAngle: number = 0;

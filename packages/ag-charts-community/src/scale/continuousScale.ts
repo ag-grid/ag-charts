@@ -217,6 +217,14 @@ export abstract class ContinuousScale<D extends number | bigint | Date, I = numb
         return unpackDomainMinMax(this.domain);
     }
 
+    override snapshotDomain(): D[] {
+        const snapshot = this._domain.slice();
+        // d0Big/d1Big are only set when the domain was supplied as bigint, so D admits bigint here.
+        if (this.d0Big != null) snapshot[0] = this.d0Big as D;
+        if (this.d1Big != null) snapshot[1] = this.d1Big as D;
+        return snapshot;
+    }
+
     // Returns the exact (possibly bigint) endpoint stored at the given index, preferring the retained
     // bigint over its Number-narrowed copy.
     private exactEndpoint(index: 0 | 1): D {

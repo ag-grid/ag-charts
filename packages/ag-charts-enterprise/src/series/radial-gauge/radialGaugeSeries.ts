@@ -280,7 +280,7 @@ export class RadialGaugeSeries
         this.animationState.transition('updateData');
     }
 
-    private formatLabel(value: number) {
+    private formatLabel(value: AgNumericValue) {
         const { min, max } = this.properties.scale;
         return formatLabel(value, { min, max });
     }

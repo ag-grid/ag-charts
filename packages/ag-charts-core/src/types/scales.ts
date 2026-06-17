@@ -72,6 +72,12 @@ export interface Scale<D, R, I = number> {
     readonly domainMin: D | undefined;
     /** Domain maximum, preserving the domain value type (so a bigint domain flows through as bigint). */
     readonly domainMax: D | undefined;
+    /**
+     * Capture the domain for an exact round-trip restore via {@link restoreDomain}. A continuous scale
+     * preserves its exact bigint endpoints here; the narrowed `domain` getter would discard them.
+     */
+    snapshotDomain(): D[];
+    restoreDomain(snapshot: D[]): void;
     normalizeDomains(...domains: DomainWithMetadata<D>[]): NormalizedDomain<D>;
     toDomain(value: number): D | undefined;
     convert(value: D, options?: { clamp?: boolean; alignment?: ScaleAlignment; alignmentExclusive?: boolean }): R;

@@ -247,7 +247,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         this.animationState.transition('updateData');
     }
 
-    public formatLabel(value: number) {
+    public formatLabel(value: AgNumericValue) {
         return formatLabel(value, this.properties.scale);
     }
 

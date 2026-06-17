@@ -335,7 +335,7 @@ export class LinearGaugeLabelProperties extends AutoSizedLabel<unknown> {
 
 export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeOptions> {
     @Property
-    value: number = 0;
+    value: AgNumericValue = 0;
 
     @Property
     readonly segmentation = new GaugeSegmentationProperties();

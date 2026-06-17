@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
+import { LinearScale } from '../../scale/linearScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { estimateScaleTickCount } from './generateTicks';
+import { withTemporaryDomain } from './generateTicksUtils';
 
 // AG-17065: for large ordinal-time domains with deep zoom, the binary search in
 // buildTickData needs to cover the full tick count range. If minTickCount is too
@@ -39,5 +41,24 @@ describe('estimateScaleTickCount', () => {
 
         const binarySearchRange = result.tickCount - result.minTickCount;
         expect(binarySearchRange).toBeGreaterThanOrEqual(result.tickCount * 0.9);
+    });
+});
+
+// AG-16608: a zoomed update runs tick generation through withTemporaryDomain. If the restore narrowed
+// the domain, the scale lost its exact bigint endpoints and adjacent high-magnitude bigints collapsed
+// onto one pixel. The restore must reinstate the exact endpoints.
+describe('withTemporaryDomain', () => {
+    it('restores exact bigint domain endpoints after temporarily narrowing for tick generation', () => {
+        const lo = 9_007_199_254_740_990n;
+        const hi = 9_007_199_254_741_000n;
+
+        const scale = new LinearScale();
+        scale.domain = [lo, hi];
+        scale.range = [0, 1000];
+
+        withTemporaryDomain(scale, [Number(lo), Number(hi)], () => {});
+
+        expect(scale.convert(lo)).toBeLessThan(scale.convert(hi));
+        expect(scale.convert(lo + 1n)).not.toBe(scale.convert(lo + 2n));
     });
 });

@@ -834,6 +834,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const yValue = phantom ? prepared.yFilterValue! : (prepared.yFilterValue ?? prepared.yRawValue);
         // Metadata only (tooltips/error-bars); geometry below uses the exact bigint, so narrowing here is fine.
         const cumulativeValue = phantom ? prepared.yFilterValue! : (prepared.yFilterValue ?? Number(params.yEnd));
+        // Full-precision plotted value for display surfaces (crosshair); cross-filtered values are already narrowed.
+        const cumulativeValueExact = phantom ? prepared.yFilterValue! : (prepared.yFilterValue ?? params.yEnd);
         const nodeLabelText = phantom ? undefined : prepared.labelText;
 
         // Non-filtered: params.yEnd stays in domain space (possibly bigint) for a full-precision convert().
@@ -882,6 +884,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         mutableNode.datum = prepared.datum;
         mutableNode.datumIndex = params.datumIndex;
         mutableNode.cumulativeValue = cumulativeValue;
+        mutableNode.cumulativeValueExact = cumulativeValueExact;
         mutableNode.xValue = prepared.xValue;
         mutableNode.yValue = yValue;
         mutableNode.x = barRectX;
