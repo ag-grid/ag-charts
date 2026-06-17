@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import type { AgNumericValue } from 'ag-charts-types';
+
 import { LinearScale } from '../../scale/linearScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { estimateScaleTickCount } from './generateTicks';
@@ -56,7 +58,8 @@ describe('withTemporaryDomain', () => {
         scale.domain = [lo, hi];
         scale.range = [0, 1000];
 
-        withTemporaryDomain(scale, [Number(lo), Number(hi)], () => {});
+        const narrowedDomain: AgNumericValue[] = [Number(lo), Number(hi)];
+        withTemporaryDomain(scale, narrowedDomain, () => {});
 
         expect(scale.convert(lo)).toBeLessThan(scale.convert(hi));
         expect(scale.convert(lo + 1n)).not.toBe(scale.convert(lo + 2n));
