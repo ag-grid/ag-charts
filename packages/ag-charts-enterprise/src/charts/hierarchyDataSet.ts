@@ -62,6 +62,16 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
         return undefined;
     }
 
+    public isLeaf(datumIndex: number): boolean {
+        const node: T | undefined = this.getDatumAt(datumIndex);
+        if (node && typeof node === 'object') {
+            const lenientNode: { [K in string]?: { length?: unknown } } = node;
+            const children = lenientNode[this.childrenKey];
+            return children === undefined || children.length === 0;
+        }
+        return false;
+    }
+
     override size(): number {
         return this.getDfsOrdering().datumLookup.length;
     }

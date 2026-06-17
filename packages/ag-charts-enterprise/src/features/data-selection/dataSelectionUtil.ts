@@ -79,7 +79,7 @@ export function rollbackChanges(changes: SelectionChangesWithItems, service: Ser
 
 export function toggleSelection(changes: Changes, series: Series, srv: Service, datumIndex: number): void {
     const data = series.data;
-    if (!data) return;
+    if (!data || !series.isDatumSelectable(datumIndex)) return;
 
     const selections = srv.enableSelection(series.id, data);
     const wasSelected = selections.isSelected(datumIndex);
@@ -95,7 +95,7 @@ export function toggleSelection(changes: Changes, series: Series, srv: Service, 
 
 export function setSelected(changes: Changes, series: Series, srv: Service, datumIndex: number): void {
     const data = series.data;
-    if (!data) return;
+    if (!data || !series.isDatumSelectable(datumIndex)) return;
 
     const selections = srv.enableSelection(series.id, data);
     const wasSelected = selections.isSelected(datumIndex);

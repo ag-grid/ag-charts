@@ -452,6 +452,11 @@ export abstract class Series<
         return this.properties.selection.enabled;
     }
 
+    public isDatumSelectable(_datumIndex: DatumIndex): boolean {
+        // Override point for subclasses
+        return true;
+    }
+
     setChartData(input: DataSet | undefined) {
         this._chartData = input;
         if (this.data === input) {
