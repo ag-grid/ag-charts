@@ -267,14 +267,18 @@ test.describe('api-ref-page', () => {
         await expect(crossLines).not.toContainText('[{');
     });
 
-    test('child properties toggle reveals nested rows for padding', async ({ page }) => {
+    // `padding` is the `PixelSize | PaddingOptions` union: the primitive `PixelSize` stays in the
+    // signature text, and the `PaddingOptions` interface variant expands into its own property rows.
+    test('expands the padding union into its interface variant properties', async ({ page }) => {
         await gotoUrl(page, toPageUrl('options/'));
         await waitForApiReady(page);
 
-        const toggle = page.getByLabel('See more details about padding');
-        await toggle.click();
+        await page.getByRole('button', { name: 'See available types of padding', exact: true }).click();
+        const details = page.locator('#reference-AgChartOptions-padding-details');
+        await expect(details).toBeVisible();
 
-        await expect(page.locator('#reference-AgChartOptions-padding-details')).toBeVisible();
+        await details.getByRole('button', { name: 'See child properties of PaddingOptions', exact: true }).click();
+        await expect(page.locator('#reference-AgChartOptions-padding-PaddingOptions-top')).toBeVisible();
     });
 
     test('property link icon updates the URL hash', async ({ page }) => {

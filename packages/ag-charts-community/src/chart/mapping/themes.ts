@@ -172,7 +172,7 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
     overrides: themeOverridesOptionsWithOperatorsDef,
     params: {
         accentColor: colorOrRef,
-        axisColor: colorOrRef,
+        axisLineColor: colorOrRef,
         backgroundColor: colorOrRef,
         borderColor: colorOrRef,
         borderRadius: number,
@@ -188,7 +188,7 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         popupShadow: string,
         subtleTextColor: colorOrRef,
         textColor: colorOrRef,
-        separationLinesColor: colorOrRef,
+        groupedCategoryLineColor: colorOrRef,
 
         chromeBackgroundColor: colorOrRef,
         chromeFontFamily: fontFamilyFull,

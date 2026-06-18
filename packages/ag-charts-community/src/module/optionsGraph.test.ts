@@ -161,7 +161,7 @@ describe('OptionsGraph', () => {
                             text: 'Number Axis',
                         },
                         line: {
-                            stroke: { $ref: 'axisColor' },
+                            stroke: { $ref: 'axisLineColor' },
                         },
                     },
                     category: {
@@ -169,7 +169,7 @@ describe('OptionsGraph', () => {
                             text: 'Category Axis',
                         },
                         line: {
-                            stroke: { $ref: 'axisColor' },
+                            stroke: { $ref: 'axisLineColor' },
                         },
                     },
                 },
@@ -182,7 +182,7 @@ describe('OptionsGraph', () => {
         const params = {
             backgroundColor: 'white',
             foregroundColor: 'black',
-            axisColor: 'grey',
+            axisLineColor: 'grey',
         };
 
         const palette = {

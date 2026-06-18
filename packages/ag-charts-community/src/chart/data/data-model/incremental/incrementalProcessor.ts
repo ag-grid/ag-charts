@@ -1,4 +1,4 @@
-import { first, invalidateEpochColumn } from 'ag-charts-core';
+import { first, getEpochColumn, invalidateEpochColumn } from 'ag-charts-core';
 
 import {
     DataChangeDescription,
@@ -674,26 +674,34 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         extractValue: (cached: InsertionCacheValue | undefined, destIndex: number) => T,
         onRemove?: (removedValues: T[]) => void
     ): void {
-        // The array mutates in place, so any parse-once epoch column derived from it is now stale.
-        invalidateEpochColumn(target);
-        changeDesc.applyToArray(
-            target,
-            (destIndex) => {
-                const cached = insertionCache?.get(destIndex);
-                return extractValue(cached, destIndex);
-            },
-            onRemove
-        );
+        // The array mutates in place, so any epoch column derived from it may go stale. A materialised
+        // epoch column (ISO strings parsed to epoch ms) is always stale after a write. A string-free
+        // column is cached as its own identity and only goes stale if this delta writes a string into
+        // it — `ensureEpochColumn`'s lazy parse never re-runs on an identity hit, so an unparsed string
+        // would otherwise survive. Tracking strings in the delta keeps the common all-numeric/Date
+        // streaming case scan-free while staying correct when the value kind changes.
+        const epochColumn = getEpochColumn(target);
+        const identityEpochColumn = epochColumn !== undefined && epochColumn === target;
+        let deltaWroteString = false;
+        const writeValue = (cached: InsertionCacheValue | undefined, destIndex: number): T => {
+            const value = extractValue(cached, destIndex);
+            if (identityEpochColumn && typeof value === 'string') {
+                deltaWroteString = true;
+            }
+            return value;
+        };
 
-        const updatedIndices = changeDesc.getUpdatedIndices();
-        if (updatedIndices.length === 0) return;
+        changeDesc.applyToArray(target, (destIndex) => writeValue(insertionCache?.get(destIndex), destIndex), onRemove);
 
-        for (const destIndex of updatedIndices) {
+        for (const destIndex of changeDesc.getUpdatedIndices()) {
             if (destIndex < 0 || destIndex >= target.length) {
                 continue;
             }
-            const cached = insertionCache?.get(destIndex);
-            target[destIndex] = extractValue(cached, destIndex);
+            target[destIndex] = writeValue(insertionCache?.get(destIndex), destIndex);
+        }
+
+        if (epochColumn !== undefined && (!identityEpochColumn || deltaWroteString)) {
+            invalidateEpochColumn(target);
         }
     }
 

@@ -7,6 +7,7 @@ import { SIMPLE_COLUMN_CHART_EXAMPLE, SIMPLE_PIE_CHART_EXAMPLE } from '../test/e
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
+    prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -52,20 +53,24 @@ describe('SeriesArea', () => {
 
     describe('cartesian', () => {
         it('should render as expected', async () => {
-            chart = AgCharts.create({
+            const options = {
                 ...SIMPLE_COLUMN_CHART_EXAMPLE,
                 ...SERIES_AREA_OPTIONS,
-            });
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
             await compare({ ...IMAGE_SNAPSHOT_DEFAULTS, customDiffConfig: { threshold: 0.75 } });
         });
     });
 
     describe('polar', () => {
         it('should render as expected', async () => {
-            chart = AgCharts.create({
+            const options = {
                 ...SIMPLE_PIE_CHART_EXAMPLE,
                 ...SERIES_AREA_OPTIONS,
-            });
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
             await compare();
         });
     });

@@ -77,6 +77,35 @@ const options: AgCartesianChartOptions = {
                     },
                 },
             },
+            tooltip: {
+                renderer: (params) => {
+                    // Total and subtotal bars are synthetic and expose no user datum; their
+                    // cumulative value is supplied via `totalValue` and the axis label via `itemId`.
+                    if (params.itemType === 'total' || params.itemType === 'subtotal') {
+                        const total = Number(params.totalValue ?? 0);
+                        return {
+                            heading: String(params.itemId),
+                            data: [
+                                {
+                                    label: 'Amount',
+                                    value: `${total < 0 ? '-' : ''}£${Math.abs(total)} billion`,
+                                },
+                            ],
+                        };
+                    }
+
+                    const value = params.datum.amount;
+                    return {
+                        heading: params.datum.financials,
+                        data: [
+                            {
+                                label: 'Amount',
+                                value: `${value < 0 ? '-' : ''}£${Math.abs(value)} billion`,
+                            },
+                        ],
+                    };
+                },
+            },
         },
     ],
     axes: {

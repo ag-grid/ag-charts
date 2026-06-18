@@ -270,7 +270,8 @@ export function Font<T extends Constructor>(Parent: T) {
         fontSize: number = FONT_SIZE.SMALL;
 
         @Property
-        fontFamily: string = 'Verdana, sans-serif';
+        fontFamily: string =
+            '"IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
 
         @Property
         color?: string;

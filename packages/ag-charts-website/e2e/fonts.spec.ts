@@ -10,7 +10,11 @@ test.describe('fonts', () => {
 
     for (const { framework, url } of testUrls) {
         test.describe(`for ${framework}`, () => {
-            test('google fonts', async ({ page }) => {
+            // Skipped: consistently flaky in CI. The example renders fonts via `loadGoogleFonts: true`,
+            // so the page waits on the live Google Fonts CDN; when the CDN is slow/unreachable from the
+            // runners the `networkidle` wait never settles and the test times out. Re-enable once the
+            // example no longer depends on a live external CDN at test time.
+            test.skip('google fonts', async ({ page }) => {
                 // Pre-warm the browser's font cache before navigating to the example.
                 // This ensures fonts are already loaded when the chart renders, eliminating
                 // the race between font download and initial chart render.

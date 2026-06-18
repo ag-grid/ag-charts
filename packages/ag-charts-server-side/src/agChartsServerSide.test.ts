@@ -14,6 +14,20 @@ const IMAGE_SNAPSHOT_OPTIONS = {
     failureThresholdType: 'percent' as const,
 };
 
+function prepareRenderOptions<T extends AgRenderOptions | AgFinancialChartRenderOptions>(options: T) {
+    if (typeof options.options.theme === 'object' && options.options.theme.params) {
+        options.options.theme.params.fontFamily = 'Verdana, sans-serif';
+    }
+
+    options.options.theme ??= {
+        params: {
+            fontFamily: 'Verdana, sans-serif',
+        },
+    };
+
+    return options;
+}
+
 describe('AgChartsServerSide', () => {
     setupMockConsole();
 
@@ -44,6 +58,7 @@ describe('AgChartsServerSide', () => {
                 height: 300,
                 format: 'png',
             };
+            prepareRenderOptions(renderOptions);
 
             const buffer = await AgChartsServerSide.render(renderOptions);
 
@@ -70,6 +85,7 @@ describe('AgChartsServerSide', () => {
                 width: 400,
                 height: 300,
             };
+            prepareRenderOptions(renderOptions);
 
             const buffer = await AgChartsServerSide.render(renderOptions);
 
@@ -90,6 +106,7 @@ describe('AgChartsServerSide', () => {
                 format: 'jpeg',
                 quality: 80,
             };
+            prepareRenderOptions(renderOptions);
 
             const buffer = await AgChartsServerSide.render(renderOptions);
 
@@ -103,7 +120,7 @@ describe('AgChartsServerSide', () => {
         });
 
         it('should respect pixelRatio 1x', async () => {
-            const buffer = await AgChartsServerSide.render({
+            const renderOptions: AgRenderOptions = {
                 options: {
                     data: [
                         { x: 1, y: 10 },
@@ -114,24 +131,29 @@ describe('AgChartsServerSide', () => {
                 width: 200,
                 height: 150,
                 pixelRatio: 1,
-            });
+            };
+            prepareRenderOptions(renderOptions);
+
+            const buffer = await AgChartsServerSide.render(renderOptions);
 
             expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
         });
 
         it('should respect pixelRatio 2x', async () => {
-            const buffer = await AgChartsServerSide.render({
-                options: {
-                    data: [
-                        { x: 1, y: 10 },
-                        { x: 2, y: 20 },
-                    ],
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                },
-                width: 200,
-                height: 150,
-                pixelRatio: 2,
-            });
+            const buffer = await AgChartsServerSide.render(
+                prepareRenderOptions({
+                    options: {
+                        data: [
+                            { x: 1, y: 10 },
+                            { x: 2, y: 20 },
+                        ],
+                        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    },
+                    width: 200,
+                    height: 150,
+                    pixelRatio: 2,
+                })
+            );
 
             expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
         });
@@ -145,6 +167,7 @@ describe('AgChartsServerSide', () => {
                 width: 0,
                 height: 300,
             };
+            prepareRenderOptions(renderOptions);
 
             await expect(AgChartsServerSide.render(renderOptions)).rejects.toThrow('Invalid dimensions');
         });
@@ -158,6 +181,7 @@ describe('AgChartsServerSide', () => {
                 width: -100,
                 height: 300,
             };
+            prepareRenderOptions(renderOptions);
 
             await expect(AgChartsServerSide.render(renderOptions)).rejects.toThrow('Invalid dimensions');
         });
@@ -172,6 +196,7 @@ describe('AgChartsServerSide', () => {
                 height: 300,
                 pixelRatio: 0,
             };
+            prepareRenderOptions(renderOptions);
 
             await expect(AgChartsServerSide.render(renderOptions)).rejects.toThrow('Invalid pixelRatio');
         });
@@ -186,6 +211,7 @@ describe('AgChartsServerSide', () => {
                 height: 300,
                 pixelRatio: -1,
             };
+            prepareRenderOptions(renderOptions);
 
             await expect(AgChartsServerSide.render(renderOptions)).rejects.toThrow('Invalid pixelRatio');
         });
@@ -241,14 +267,16 @@ describe('AgChartsServerSide', () => {
             ];
 
             const promises = renderConfigs.map((config) =>
-                AgChartsServerSide.render({
-                    options: {
-                        data: config.data,
-                        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                    },
-                    width: config.width,
-                    height: config.height,
-                })
+                AgChartsServerSide.render(
+                    prepareRenderOptions({
+                        options: {
+                            data: config.data,
+                            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                        },
+                        width: config.width,
+                        height: config.height,
+                    })
+                )
             );
 
             const buffers = await Promise.all(promises);
@@ -264,73 +292,81 @@ describe('AgChartsServerSide', () => {
 
     describe('visual regression', () => {
         it('should render line chart correctly', async () => {
-            const buffer = await AgChartsServerSide.render({
-                options: {
-                    data: [
-                        { x: 1, y: 10 },
-                        { x: 2, y: 25 },
-                        { x: 3, y: 15 },
-                        { x: 4, y: 30 },
-                        { x: 5, y: 20 },
-                    ],
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                },
-                width: 400,
-                height: 300,
-            });
+            const buffer = await AgChartsServerSide.render(
+                prepareRenderOptions({
+                    options: {
+                        data: [
+                            { x: 1, y: 10 },
+                            { x: 2, y: 25 },
+                            { x: 3, y: 15 },
+                            { x: 4, y: 30 },
+                            { x: 5, y: 20 },
+                        ],
+                        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    },
+                    width: 400,
+                    height: 300,
+                })
+            );
 
             expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
         });
 
         it('should render bar chart correctly', async () => {
-            const buffer = await AgChartsServerSide.render({
-                options: {
-                    data: [
-                        { category: 'A', value: 30 },
-                        { category: 'B', value: 45 },
-                        { category: 'C', value: 25 },
-                        { category: 'D', value: 60 },
-                    ],
-                    series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
-                },
-                width: 400,
-                height: 300,
-            });
+            const buffer = await AgChartsServerSide.render(
+                prepareRenderOptions({
+                    options: {
+                        data: [
+                            { category: 'A', value: 30 },
+                            { category: 'B', value: 45 },
+                            { category: 'C', value: 25 },
+                            { category: 'D', value: 60 },
+                        ],
+                        series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                    },
+                    width: 400,
+                    height: 300,
+                })
+            );
 
             expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
         });
 
         it('should render pie chart correctly', async () => {
-            const buffer = await AgChartsServerSide.render({
-                options: {
-                    data: [
-                        { label: 'A', value: 30 },
-                        { label: 'B', value: 45 },
-                        { label: 'C', value: 25 },
-                    ],
-                    series: [{ type: 'pie', angleKey: 'value', legendItemKey: 'label' }],
-                },
-                width: 400,
-                height: 300,
-            });
+            const buffer = await AgChartsServerSide.render(
+                prepareRenderOptions({
+                    options: {
+                        data: [
+                            { label: 'A', value: 30 },
+                            { label: 'B', value: 45 },
+                            { label: 'C', value: 25 },
+                        ],
+                        series: [{ type: 'pie', angleKey: 'value', legendItemKey: 'label' }],
+                    },
+                    width: 400,
+                    height: 300,
+                })
+            );
 
             expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
         });
 
         it('should render area chart correctly', async () => {
-            const buffer = await AgChartsServerSide.render({
-                options: {
-                    data: [
-                        { x: 1, y: 10 },
-                        { x: 2, y: 25 },
-                        { x: 3, y: 15 },
-                        { x: 4, y: 30 },
-                    ],
-                    series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
-                },
-                width: 400,
-                height: 300,
-            });
+            const buffer = await AgChartsServerSide.render(
+                prepareRenderOptions({
+                    options: {
+                        data: [
+                            { x: 1, y: 10 },
+                            { x: 2, y: 25 },
+                            { x: 3, y: 15 },
+                            { x: 4, y: 30 },
+                        ],
+                        series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
+                    },
+                    width: 400,
+                    height: 300,
+                })
+            );
 
             expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
         });
@@ -374,35 +410,39 @@ describe('AgChartsServerSide enterprise licensing', () => {
     });
 
     it('should render watermark when enterprise registered without license', async () => {
-        const buffer = await AgChartsServerSide.render({
-            options: {
-                data: [
-                    { x: 1, y: 10 },
-                    { x: 2, y: 20 },
-                    { x: 3, y: 15 },
-                ],
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            },
-            width: 400,
-            height: 300,
-        });
+        const buffer = await AgChartsServerSide.render(
+            prepareRenderOptions({
+                options: {
+                    data: [
+                        { x: 1, y: 10 },
+                        { x: 2, y: 20 },
+                        { x: 3, y: 15 },
+                    ],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                },
+                width: 400,
+                height: 300,
+            })
+        );
 
         expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
     });
 
     it('should render watermark on bar chart when unlicensed', async () => {
-        const buffer = await AgChartsServerSide.render({
-            options: {
-                data: [
-                    { category: 'A', value: 30 },
-                    { category: 'B', value: 45 },
-                    { category: 'C', value: 25 },
-                ],
-                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
-            },
-            width: 400,
-            height: 300,
-        });
+        const buffer = await AgChartsServerSide.render(
+            prepareRenderOptions({
+                options: {
+                    data: [
+                        { category: 'A', value: 30 },
+                        { category: 'B', value: 45 },
+                        { category: 'C', value: 25 },
+                    ],
+                    series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                },
+                width: 400,
+                height: 300,
+            })
+        );
 
         expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
     });
@@ -421,6 +461,7 @@ describe('AgChartsServerSide enterprise licensing', () => {
             width: 600,
             height: 400,
         };
+        prepareRenderOptions(renderOptions);
 
         const buffer = await AgChartsServerSide.renderFinancialChart(renderOptions);
 
@@ -441,6 +482,7 @@ describe('AgChartsServerSide enterprise licensing', () => {
             width: 400,
             height: 400,
         };
+        prepareRenderOptions(renderOptions);
 
         const buffer = await AgChartsServerSide.renderGauge(renderOptions);
 
@@ -459,6 +501,7 @@ describe('AgChartsServerSide enterprise licensing', () => {
             width: 400,
             height: 100,
         };
+        prepareRenderOptions(renderOptions);
 
         const buffer = await AgChartsServerSide.renderGauge(renderOptions);
 
@@ -466,67 +509,73 @@ describe('AgChartsServerSide enterprise licensing', () => {
     });
 
     it('should render waterfall chart', async () => {
-        const buffer = await AgChartsServerSide.render({
-            options: {
-                data: [
-                    { category: 'Start', value: 100 },
-                    { category: 'Add', value: 50 },
-                    { category: 'Subtract', value: -30 },
-                    { category: 'End', value: 120 },
-                ],
-                series: [{ type: 'waterfall', xKey: 'category', yKey: 'value' }],
-            },
-            width: 400,
-            height: 300,
-        });
+        const buffer = await AgChartsServerSide.render(
+            prepareRenderOptions({
+                options: {
+                    data: [
+                        { category: 'Start', value: 100 },
+                        { category: 'Add', value: 50 },
+                        { category: 'Subtract', value: -30 },
+                        { category: 'End', value: 120 },
+                    ],
+                    series: [{ type: 'waterfall', xKey: 'category', yKey: 'value' }],
+                },
+                width: 400,
+                height: 300,
+            })
+        );
 
         expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
     });
 
     it('should render heatmap chart', async () => {
-        const buffer = await AgChartsServerSide.render({
-            options: {
-                data: [
-                    { x: 'A', y: '1', value: 10 },
-                    { x: 'A', y: '2', value: 20 },
-                    { x: 'B', y: '1', value: 30 },
-                    { x: 'B', y: '2', value: 40 },
-                ],
-                series: [
-                    {
-                        type: 'heatmap',
-                        xKey: 'x',
-                        yKey: 'y',
-                        colorKey: 'value',
-                        colorScale: { fills: [{ color: '#c7e9c0' }, { color: '#00441b' }] },
-                    },
-                ],
-            },
-            width: 400,
-            height: 300,
-        });
+        const buffer = await AgChartsServerSide.render(
+            prepareRenderOptions({
+                options: {
+                    data: [
+                        { x: 'A', y: '1', value: 10 },
+                        { x: 'A', y: '2', value: 20 },
+                        { x: 'B', y: '1', value: 30 },
+                        { x: 'B', y: '2', value: 40 },
+                    ],
+                    series: [
+                        {
+                            type: 'heatmap',
+                            xKey: 'x',
+                            yKey: 'y',
+                            colorKey: 'value',
+                            colorScale: { fills: [{ color: '#c7e9c0' }, { color: '#00441b' }] },
+                        },
+                    ],
+                },
+                width: 400,
+                height: 300,
+            })
+        );
 
         expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
     });
 
     it('should render watermark on financial chart when unlicensed', async () => {
-        const buffer = await AgChartsServerSide.renderFinancialChart({
-            options: {
-                data: [
-                    { date: new Date('2024-01-02'), open: 150, high: 155, low: 148, close: 153, volume: 1000 },
-                    { date: new Date('2024-01-03'), open: 153, high: 158, low: 151, close: 157, volume: 1200 },
-                    { date: new Date('2024-01-04'), open: 157, high: 160, low: 154, close: 155, volume: 900 },
-                ],
-            },
-            width: 600,
-            height: 400,
-        });
+        const buffer = await AgChartsServerSide.renderFinancialChart(
+            prepareRenderOptions({
+                options: {
+                    data: [
+                        { date: new Date('2024-01-02'), open: 150, high: 155, low: 148, close: 153, volume: 1000 },
+                        { date: new Date('2024-01-03'), open: 153, high: 158, low: 151, close: 157, volume: 1200 },
+                        { date: new Date('2024-01-04'), open: 157, high: 160, low: 154, close: 155, volume: 900 },
+                    ],
+                },
+                width: 600,
+                height: 400,
+            })
+        );
 
         expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
     });
 
     it('should render watermark on gauge chart when unlicensed', async () => {
-        const buffer = await AgChartsServerSide.renderGauge({
+        const options: AgGaugeRenderOptions = {
             options: {
                 type: 'radial-gauge',
                 value: 50,
@@ -538,7 +587,10 @@ describe('AgChartsServerSide enterprise licensing', () => {
             },
             width: 400,
             height: 400,
-        });
+        };
+        prepareRenderOptions(options);
+
+        const buffer = await AgChartsServerSide.renderGauge(options);
 
         expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
     });
@@ -571,35 +623,39 @@ describe('AgChartsServerSide community-only watermark', () => {
     });
 
     it('should render watermark on line chart without enterprise', async () => {
-        const buffer = await AgChartsServerSide.render({
-            options: {
-                data: [
-                    { x: 1, y: 10 },
-                    { x: 2, y: 20 },
-                    { x: 3, y: 15 },
-                ],
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            },
-            width: 400,
-            height: 300,
-        });
+        const buffer = await AgChartsServerSide.render(
+            prepareRenderOptions({
+                options: {
+                    data: [
+                        { x: 1, y: 10 },
+                        { x: 2, y: 20 },
+                        { x: 3, y: 15 },
+                    ],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                },
+                width: 400,
+                height: 300,
+            })
+        );
 
         expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
     });
 
     it('should render watermark on bar chart without enterprise', async () => {
-        const buffer = await AgChartsServerSide.render({
-            options: {
-                data: [
-                    { category: 'A', value: 30 },
-                    { category: 'B', value: 45 },
-                    { category: 'C', value: 25 },
-                ],
-                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
-            },
-            width: 400,
-            height: 300,
-        });
+        const buffer = await AgChartsServerSide.render(
+            prepareRenderOptions({
+                options: {
+                    data: [
+                        { category: 'A', value: 30 },
+                        { category: 'B', value: 45 },
+                        { category: 'C', value: 25 },
+                    ],
+                    series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                },
+                width: 400,
+                height: 300,
+            })
+        );
 
         expect(buffer).toMatchImageSnapshot(IMAGE_SNAPSHOT_OPTIONS);
     });

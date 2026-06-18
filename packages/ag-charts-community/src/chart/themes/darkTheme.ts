@@ -81,7 +81,7 @@ export class DarkTheme extends ChartTheme {
     override getThemeParameters(): Required<WithThemeParams<AgChartAllThemeParams>> {
         return {
             ...super.getThemeParameters(),
-            axisColor: { $foregroundBackgroundMix: 0.737 },
+            axisLineColor: { $foregroundBackgroundMix: 0.737 },
             backgroundColor: DEFAULT_DARK_BACKGROUND_FILL,
             borderColor: { $foregroundBackgroundMix: 0.216 },
             chromeBackgroundColor: { $foregroundBackgroundMix: 0.07 },
@@ -90,7 +90,7 @@ export class DarkTheme extends ChartTheme {
             gridLineColor: { $foregroundBackgroundMix: 0.257 },
             popupShadow: '0 0 16px rgba(0, 0, 0, 0.33)',
             subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'chartBackgroundColor' }, 0.57] },
-            separationLinesColor: { $foregroundBackgroundMix: 0.44 },
+            groupedCategoryLineColor: { $foregroundBackgroundMix: 0.44 },
 
             crosshairLabelBackgroundColor: { $foregroundBackgroundMix: 0.65 },
         };
