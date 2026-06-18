@@ -1572,8 +1572,9 @@ export abstract class Series<
             if (datumSelection.isGarbage(node)) return;
             const highlightState = self.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
             const selectionState = self.getDataSelectionState(datum.datumIndex);
+            const candidateState = self.getDataCandidacyState(datum.datumIndex);
             const extra = keyExtra === undefined ? '' : `:${keyExtra(datum)}`;
-            const stateKey = `${highlightState}:${selectionState ?? '-'}${extra}`;
+            const stateKey = `${highlightState}:${selectionState ?? '-'}:${candidateState ?? '-'}${extra}`;
             let cached = cache?.get(stateKey);
             if (cached === undefined) {
                 cached = compute(seriesArg, ctx, highlightState, selectionState, datum);

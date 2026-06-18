@@ -35,13 +35,6 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
     /** Per-series candidacy state. Keyed by `seriesId`. */
     private readonly candidacy = new Map<string, Bitfield>();
 
-    /**
-     * Ids of series that contain at least one candidate during the active drag.
-     * Maintained by the drag handler so the series-level candidate lookup stays
-     * O(1) rather than scanning a series' candidacy bitfield per datum.
-     */
-    readonly candidateSeriesIds = new Set<string>();
-
     constructor(private readonly ctx?: DynamicContext<ChartRegistry>) {
         super();
         this.cleanup.register(
@@ -74,7 +67,6 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
 
     clearCandidacy() {
         this.candidacy.clear();
-        this.candidateSeriesIds.clear();
         this.totalCandidacyCount = 0;
     }
 
@@ -116,7 +108,6 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
      */
     transferDataSet<T>(newDataSet: DataSet<T>, oldDataSet: DataSet<T>): void {
         this.candidacy.clear();
-        this.candidateSeriesIds.clear();
         if (this.selections.size === 0) return;
 
         const oldIds = oldDataSet.getIdArray();
@@ -166,7 +157,6 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
 
     onDataChange(changeDescription: DataChangeDescription): void {
         this.candidacy.clear();
-        this.candidateSeriesIds.clear();
         if (this.selections.size > 0) {
             for (const sel of this.selections.values()) {
                 sel.applyDataChange(changeDescription);
@@ -217,10 +207,6 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
                 return SelectionState.OtherItem;
             }
         }
-        // Series-level query: only a participating series that contains no
-        // candidates is a pending "unselected series". A series that does
-        // contain candidates has no whole-series change pending — its items
-        // carry the per-item preview instead.
-        return this.candidateSeriesIds.has(series.id) ? SelectionState.None : SelectionState.OtherSeries;
+        return SelectionState.OtherSeries;
     }
 }

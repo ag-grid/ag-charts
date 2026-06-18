@@ -213,7 +213,6 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         if (!enabled || !enableDrag || this.hasUnknownModifier(dragStartEvent)) return;
 
         this.dragStartEvent = dragStartEvent;
-        this.service.candidateSeriesIds.clear();
         this.dragRect.x = dragStartEvent.currentX;
         this.dragRect.y = dragStartEvent.currentY;
         this.dragRect.width = 0;
@@ -243,19 +242,10 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             const bitfield = this.service.enableCandidacy(series.id, data);
             bitfield.clear();
 
-            let seriesCandidacyCount = 0;
             for (const { datumIndex } of series.pickNodesInBBox(canvasBounds)) {
                 if (!series.isDatumSelectable(datumIndex)) continue;
                 bitfield.setBit(datumIndex);
-                seriesCandidacyCount++;
-            }
-            this.service.totalCandidacyCount += seriesCandidacyCount;
-            // Mutate the membership set only on a transition; Set.add/delete of an
-            // unchanged entry is a no-op, so this avoids churn across drag-move ticks.
-            if (seriesCandidacyCount > 0) {
-                this.service.candidateSeriesIds.add(series.id);
-            } else {
-                this.service.candidateSeriesIds.delete(series.id);
+                this.service.totalCandidacyCount++;
             }
         }
 
@@ -274,7 +264,6 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const { dragStartEvent, service } = this;
 
         service.totalCandidacyCount = 0;
-        service.candidateSeriesIds.clear();
         if (!enabled || !enableDrag || !dragStartEvent) {
             this.dragRect.visible = false;
             return;
