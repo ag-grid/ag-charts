@@ -337,7 +337,8 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
                     niceDomain.length > 0 &&
                     tickParams.interval == null &&
                     (UnitTimeScale.is(scale) ||
-                        (generatePrimaryTicks && (TimeScale.is(scale) || OrdinalTimeScale.is(scale))))
+                        OrdinalTimeScale.is(scale) ||
+                        (generatePrimaryTicks && TimeScale.is(scale)))
                 ) {
                     const dates = niceDomain as (Date | number)[];
                     const start = Math.min(dates[0].valueOf(), dates.at(-1)!.valueOf());
@@ -361,6 +362,26 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
                     intervalMilliseconds(minTimeInterval) >= intervalMilliseconds(timeInterval)
                 ) {
                     timeInterval = minTimeInterval;
+                }
+
+                if (OrdinalTimeScale.is(scale) && !generatePrimaryTicks && timeInterval != null) {
+                    const dayMs = intervalMilliseconds('day');
+                    const weekMs = 7 * dayMs;
+                    // Boundary-aligned interval ticks only help intraday data viewed at a day-level tick
+                    // interval (day up to a few days): there a day label must land on the first bar of its
+                    // day rather than a mid-day bar. Outside that window keep the legacy evenly-spaced
+                    // default ticks:
+                    //  - sub-day intervals (zoomed in) preserve the finer-grained time-of-day labels;
+                    //  - week-and-coarser intervals (zoomed out) keep even spacing, where a few hours'
+                    //    misalignment of a weekly/monthly label is invisible anyway;
+                    //  - daily-and-coarser data has ~one datum per label, so alignment is moot.
+                    const intervalMs = intervalMilliseconds(timeInterval);
+                    const dataIsIntraday =
+                        minimumTimeGranularity != null && intervalMilliseconds(minimumTimeGranularity) < dayMs;
+                    const intervalIsDayLevel = intervalMs >= dayMs && intervalMs < weekMs;
+                    if (!(dataIsIntraday && intervalIsDayLevel)) {
+                        timeInterval = undefined;
+                    }
                 }
 
                 const intervalTicks = timeInterval

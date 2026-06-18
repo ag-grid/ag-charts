@@ -764,6 +764,75 @@ describe('Ordinal Time Axis Examples', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     });
 
+    it('aligns base-tier labels to parent-level boundaries without parentLevel enabled', async () => {
+        // Continuous hourly data across ~2 weeks, so genuine midnight datums exist.
+        const data = Array.from({ length: 14 * 24 }, (_, i) => ({
+            date: new Date(2025, 8, 2, i),
+            value: 100 + Math.sin(i / 12) * 10,
+        }));
+
+        chart = await createEnterpriseChart<AgCartesianChartOptions>({
+            data,
+            series: [{ type: 'line', xKey: 'date', yKey: 'value', marker: { enabled: false } }],
+            axes: {
+                y: { type: 'number', position: 'left' },
+                x: { type: 'ordinal-time', position: 'bottom' },
+            },
+        });
+
+        const axis = (chart.axes as _ModuleSupport.ChartAxis[]).find((a) => a.type === 'ordinal-time')!;
+        const labelledTicks = (axis as any).tickLayout.ticks.filter((t: any) => t.tickLabel);
+
+        expect(labelledTicks.length).toBeGreaterThan(0);
+        for (const { tick } of labelledTicks) {
+            const date = tick as Date;
+            expect([date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds()]).toEqual([
+                0, 0, 0, 0,
+            ]);
+        }
+    });
+
+    it('aligns labels to the first datum at/after each day boundary (gapped market-hours data)', async () => {
+        // Weekday market hours only (09:00-16:00), so most days have no midnight datum.
+        const data: { date: Date; value: number }[] = [];
+        const start = new Date(2025, 0, 6); // Monday
+        for (let day = 0; day < 14; day++) {
+            const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + day);
+            if (d.getDay() === 0 || d.getDay() === 6) continue;
+            for (let h = 9; h <= 16; h++) {
+                data.push({ date: new Date(d.getFullYear(), d.getMonth(), d.getDate(), h), value: 100 + h });
+            }
+        }
+
+        chart = await createEnterpriseChart<AgCartesianChartOptions>({
+            data,
+            series: [{ type: 'line', xKey: 'date', yKey: 'value', marker: { enabled: false } }],
+            axes: {
+                y: { type: 'number', position: 'left' },
+                x: { type: 'ordinal-time', position: 'bottom' },
+            },
+        });
+
+        const axis = (chart.axes as _ModuleSupport.ChartAxis[]).find((a) => a.type === 'ordinal-time')!;
+        const sortedTimes = data.map((d) => d.date.getTime()).sort((a, b) => a - b);
+        const labelledTicks = (axis as any).tickLayout.ticks.filter((t: any) => t.tickLabel);
+
+        expect(labelledTicks.length).toBeGreaterThan(1);
+        for (const { tick } of labelledTicks) {
+            const current = tick as Date;
+            const index = sortedTimes.indexOf(current.getTime());
+            expect(index).toBeGreaterThanOrEqual(0);
+            if (index > 0) {
+                const previous = new Date(sortedTimes[index - 1]);
+                const sameDay =
+                    previous.getFullYear() === current.getFullYear() &&
+                    previous.getMonth() === current.getMonth() &&
+                    previous.getDate() === current.getDate();
+                expect(sameDay).toBe(false);
+            }
+        }
+    });
+
     // AG-17065: deeply zoomed large ordinal-time dataset must not hang in tick generation.
     // Jest's default timeout catches a regression — the fix ensures the overlap loop exits
     // in O(log n) iterations instead of ~1000 linear iterations.
