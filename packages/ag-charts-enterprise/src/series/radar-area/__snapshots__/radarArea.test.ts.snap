@@ -5,6 +5,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 1`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -36,6 +37,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 1`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -67,6 +69,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 1`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -103,6 +106,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 2`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -134,6 +138,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 2`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-series",
@@ -165,6 +170,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 2`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-item",
@@ -196,6 +202,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 2`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
@@ -227,6 +234,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 2`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -258,6 +266,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 2`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
@@ -289,6 +298,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 2`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
@@ -320,6 +330,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 2`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -351,6 +362,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 2`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
@@ -382,6 +394,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 2`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
@@ -420,6 +433,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 4`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -451,6 +465,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 4`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-series",
@@ -482,6 +497,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 4`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-item",
@@ -513,6 +529,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 4`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
@@ -551,6 +568,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -582,6 +600,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -613,6 +632,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -644,6 +664,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
@@ -675,6 +696,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
@@ -706,6 +728,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -737,6 +760,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-series",
@@ -768,6 +792,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-item",
@@ -799,6 +824,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
@@ -837,6 +863,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 8`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -868,6 +895,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 8`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
@@ -899,6 +927,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 8`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -930,6 +959,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 8`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-series",
@@ -966,6 +996,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 9`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -997,6 +1028,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 9`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
@@ -1028,6 +1060,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 9`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1059,6 +1092,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 9`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-series",
@@ -1090,6 +1124,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 9`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1121,6 +1156,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > sequenced > 1 9`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
@@ -1157,6 +1193,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > legendItem[0]
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1188,6 +1225,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > legendItem[0]
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1219,6 +1257,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > legendItem[0]
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1250,6 +1289,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > legendItem[0]
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1281,6 +1321,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > legendItem[0]
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-series",
@@ -1312,6 +1353,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > legendItem[0]
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1343,6 +1385,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > legendItem[0]
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
@@ -1374,6 +1417,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > legendItem[0]
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1405,6 +1449,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > legendItem[0]
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
@@ -1441,6 +1486,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > legendItem[1]
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1472,6 +1518,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > legendItem[1]
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1503,6 +1550,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > legendItem[1]
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1534,6 +1582,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > legendItem[1]
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1565,6 +1614,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > legendItem[1]
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
@@ -1596,6 +1646,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > legendItem[1]
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1627,6 +1678,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > legendItem[1]
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-series",
@@ -1658,6 +1710,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > legendItem[1]
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1689,6 +1742,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > legendItem[1]
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
@@ -1725,6 +1779,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > miss 1`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1756,6 +1811,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > miss 1`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1787,6 +1843,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > miss 1`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1823,6 +1880,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1854,6 +1912,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1885,6 +1944,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1916,6 +1976,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -1947,6 +2008,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-series",
@@ -1978,6 +2040,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-item",
@@ -2009,6 +2072,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
@@ -2040,6 +2104,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -2071,6 +2136,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
@@ -2102,6 +2168,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
@@ -2133,6 +2200,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -2164,6 +2232,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
@@ -2195,6 +2264,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
@@ -2231,6 +2301,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -2262,6 +2333,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -2293,6 +2365,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -2324,6 +2397,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -2355,6 +2429,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-series",
@@ -2386,6 +2461,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-item",
@@ -2417,6 +2493,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
@@ -2448,6 +2525,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -2479,6 +2557,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
@@ -2510,6 +2589,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
@@ -2541,6 +2621,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -2572,6 +2653,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
@@ -2603,6 +2685,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
@@ -2639,6 +2722,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[1].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -2670,6 +2754,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[1].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -2701,6 +2786,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[1].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -2732,6 +2818,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[1].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -2763,6 +2850,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[1].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
@@ -2794,6 +2882,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[1].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#f3622d",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
@@ -2825,6 +2914,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[1].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -2856,6 +2946,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[1].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-series",
@@ -2887,6 +2978,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[1].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-item",
@@ -2918,6 +3010,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[1].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#fba71b",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
@@ -2949,6 +3042,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[1].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
@@ -2980,6 +3074,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[1].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "unhighlighted-series",
@@ -3011,6 +3106,7 @@ exports[`RadarAreaSeries > AG-15782 styler > highlights > single > series[1].dat
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "highlighted-item",
@@ -3047,6 +3143,7 @@ exports[`RadarAreaSeries > AG-15782 styler > init > callbacks > params 1`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "context": {
         "name": "healer - magic powers",
       },
@@ -3084,6 +3181,7 @@ exports[`RadarAreaSeries > AG-15782 styler > init > callbacks > params 1`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "context": {
         "name": "tank - heavy armor",
       },
@@ -3118,6 +3216,7 @@ exports[`RadarAreaSeries > AG-15782 styler > init > callbacks > params 1`] = `
   [
     {
       "angleKey": "trait",
+      "candidateState": undefined,
       "fill": "#57b757",
       "fillOpacity": 0.8,
       "highlightState": "none",
