@@ -3162,6 +3162,30 @@ describe('DataModel', () => {
             expect(epochs.at(-1)).toBe(Date.parse('2024-01-15T12:00:00Z'));
         });
 
+        it('reparses a string-free time key column when an incremental insert introduces an ISO string', () => {
+            // A string-free numeric-epoch column is seeded as its own epoch identity at extraction. An
+            // incremental insert that writes an ISO string into it must drop that identity, otherwise
+            // ensureEpochColumn's lazy parse never re-runs on the identity hit and the raw string leaks
+            // into the continuous key domain.
+            const model = timeKeyModel();
+            const initialData: Array<{ x: number | string; y: number }> = [
+                { x: Date.parse('2024-01-15T09:00:00Z'), y: 1 },
+                { x: Date.parse('2024-01-15T10:00:00Z'), y: 2 },
+            ];
+            const dataSet = new DataSet(initialData);
+            const sources = basicDataSet(initialData).set(ISO_SCOPE, dataSet);
+
+            const processed = model.processData(sources)!;
+            const keys = processed.keys[0].get(ISO_SCOPE)!;
+            expect(getEpochColumn(keys)).toBe(keys);
+
+            dataSet.addTransaction({ append: [{ x: '2024-01-15T12:00:00Z', y: 3 }] });
+            const reprocessed = model.reprocessData(processed, undefined, undefined);
+
+            const epochs = reprocessed.domain.keys[0].map((d: unknown) => (d instanceof Date ? d.getTime() : d));
+            expect(epochs.at(-1)).toBe(Date.parse('2024-01-15T12:00:00Z'));
+        });
+
         it('keeps ISO-shaped strings as labels in a category-axis domain (AG-16654 guard)', () => {
             const model = new DataModel<any, any, false>({
                 props: [scoped(keyProperty('x')), scoped(valueProperty('y', 'number'))],
