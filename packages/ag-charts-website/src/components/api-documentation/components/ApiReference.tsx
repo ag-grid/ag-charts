@@ -31,9 +31,13 @@ import {
     buildTypeArgumentsFromGenericsMap,
     cleanupName,
     formatTypeToCode,
+    formatUnionSignature,
     getMemberType,
     getReferencedTypeName,
+    isArrayNode,
     isInterfaceHidden,
+    isUnionTypeAlias,
+    mergeGenericsMaps,
     normalizeType,
     parseJsDocs,
     processMembers,
@@ -49,11 +53,15 @@ interface UnionVariant {
     anchorSegment: string;
     node: InterfaceNode;
     typeArguments?: string[];
+    discriminator?: { key: string; value: string };
 }
 interface UnionTypesDetails {
     kind: 'unionTypes';
     variants: UnionVariant[];
     genericsMap?: Record<string, TypeNode>;
+    // Type signature shown for mixed unions, preserving the members the variant rows omit. Undefined
+    // for pure interface-only unions (see formatUnionSignature).
+    signature?: string;
 }
 type MemberAdditionalDetails = NodeTypes | NodeTypes[] | UnionTypesDetails | undefined;
 
@@ -174,6 +182,8 @@ function UnionVariantNode({
     const config = useContext(ApiReferenceConfigContext);
     const location = useLocation();
     const docs = parseJsDocs(variant.node.docs);
+    const { discriminator } = variant;
+    const displayName = discriminator ? `[${discriminator.key}='${discriminator.value}']` : variant.anchorSegment;
 
     useEffect(() => {
         const hash = location?.hash.substring(1);
@@ -198,9 +208,10 @@ function UnionVariantNode({
             >
                 <div className={styles.leftColumn}>
                     <PropertyTitle
-                        name={variant.anchorSegment}
+                        name={displayName}
                         anchorId={anchorId}
                         prefixPath={prefixPath}
+                        nameSeparator={discriminator ? '' : undefined}
                         hasChildProps
                         childPropsOnClick={toggleExpanded}
                     />
@@ -362,12 +373,14 @@ function ApiReferenceRow({
 }: ApiReferenceRowOptions) {
     const config = useContext(ApiReferenceConfigContext);
     const selection = useContext(SelectionContext);
+    const [isSignatureExpanded, toggleSignature] = useToggle();
     const memberName = cleanupName(member.name);
     const memberType = normalizeType(member.type);
     const additionalDetails = useMemberAdditionalDetails(member);
     const collapsibleType = getCollapsibleType(additionalDetails, nestedPath);
     const hasChildProps = collapsibleType === 'childrenProperties';
     const isUnionTypes = collapsibleType === 'unionTypes';
+    const signature = isUnionTypesDetails(additionalDetails) ? additionalDetails.signature : undefined;
 
     return (
         <div
@@ -398,6 +411,9 @@ function ApiReferenceRow({
                     collapsibleType={collapsibleType}
                     isExpanded={isExpanded}
                     onCollapseClick={onDetailsToggle}
+                    hasSignature={Boolean(signature)}
+                    isSignatureExpanded={isSignatureExpanded}
+                    onSignatureToggle={toggleSignature}
                 />
             </div>
             <div className={styles.rightColumn}>
@@ -452,6 +468,12 @@ function ApiReferenceRow({
             {collapsibleType === 'code' && isExpanded && (
                 <div id={getDetailsId(anchorId)} className={classnames(styles.expandedContent)}>
                     <TypeCodeBlock apiNode={additionalDetails as NodeTypes | NodeTypes[]} member={member} />
+                </div>
+            )}
+
+            {signature && isSignatureExpanded && (
+                <div className={styles.expandedContent}>
+                    <Code code={signature} />
                 </div>
             )}
 
@@ -543,7 +565,12 @@ function useMemberAdditionalDetails(member: MemberNode): MemberAdditionalDetails
     if (aliasedUnion) {
         const variants = collectUnionVariants(aliasedUnion.unionType.type, reference, aliasedUnion.genericsMap);
         if (variants.length) {
-            return { kind: 'unionTypes', variants, genericsMap: aliasedUnion.genericsMap };
+            return {
+                kind: 'unionTypes',
+                variants,
+                genericsMap: aliasedUnion.genericsMap,
+                signature: reference ? formatUnionSignature(aliasedUnion.unionType, memberType, reference) : undefined,
+            };
         }
     }
 
@@ -555,7 +582,11 @@ function useMemberAdditionalDetails(member: MemberNode): MemberAdditionalDetails
     if (typeof member.type === 'object' && member.type.kind === 'union') {
         const variants = collectUnionVariants(member.type.type, reference);
         if (variants.length) {
-            return { kind: 'unionTypes', variants };
+            return {
+                kind: 'unionTypes',
+                variants,
+                signature: reference ? formatUnionSignature(member.type, undefined, reference) : undefined,
+            };
         }
     }
 }
@@ -565,31 +596,39 @@ function collectUnionVariants(
     reference: ReferenceMap | undefined,
     genericsMap?: Record<string, TypeNode>
 ): UnionVariant[] {
-    return unionTypes
-        .map((unionType) => {
-            const typeName = getReferencedTypeName(unionType);
-            const node = typeName ? reference?.get(typeName) : undefined;
-            return toUnionVariant(node, genericsMap);
-        })
-        .filter((variant): variant is UnionVariant => variant != null);
+    return unionTypes.flatMap((unionType) => {
+        // Unwrap array members (e.g. `ContentSegment[]`) to their element type.
+        const elementType = isArrayNode(unionType) ? unionType.type : unionType;
+        const typeName = getReferencedTypeName(elementType);
+        const node = typeName ? reference?.get(typeName) : undefined;
+        // A member that is itself a named union alias (e.g.
+        // `ContentSegment = TextSegment | ImageSegment`) expands into its own variants.
+        if (isUnionTypeAlias(node)) {
+            return collectUnionVariants(node.type.type, reference, mergeGenericsMaps(node.genericsMap, genericsMap));
+        }
+        const variant = toUnionVariant(node, genericsMap);
+        return variant ? [variant] : [];
+    });
 }
 
 function toUnionVariant(node: NodeTypes | undefined, genericsMap?: Record<string, TypeNode>): UnionVariant | null {
     if (node?.kind !== 'interface' || isInterfaceHidden(node.name)) {
         return null;
     }
+    const discriminator = getVariantDiscriminator(node);
     return {
-        anchorSegment: getVariantDiscriminator(node) ?? cleanupName(node.name),
+        anchorSegment: discriminator?.value ?? cleanupName(node.name),
         node,
         typeArguments: buildTypeArgumentsFromGenericsMap(node, genericsMap),
+        discriminator,
     };
 }
 
 // A discriminated union variant carries a string-literal `type` member; its value is the navigation
 // path segment (matching getNavigationDataFromPath), so deep-links into the variant resolve.
-function getVariantDiscriminator(node: InterfaceNode): string | undefined {
+function getVariantDiscriminator(node: InterfaceNode): { key: string; value: string } | undefined {
     const typeMember = node.members.find((member) => member.name === 'type');
-    return typeof typeMember?.type === 'string' ? cleanupName(typeMember.type) : undefined;
+    return typeof typeMember?.type === 'string' ? { key: 'type', value: cleanupName(typeMember.type) } : undefined;
 }
 
 function hasMembersNode(node?: MemberAdditionalDetails): node is InterfaceNode | TypeLiteralNode {

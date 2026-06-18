@@ -68,7 +68,7 @@ const hiddenInterfaces = new Set([
 const isTypeNodeObject = (type: TypeNode): type is Exclude<TypeNode, string> => typeof type === 'object';
 const isTypeReferenceNode = (type: TypeNode): type is TypeReferenceNode =>
     isTypeNodeObject(type) && type.kind === 'typeRef';
-const isArrayNode = (type: TypeNode): type is ArrayNode => isTypeNodeObject(type) && type.kind === 'array';
+export const isArrayNode = (type: TypeNode): type is ArrayNode => isTypeNodeObject(type) && type.kind === 'array';
 const isFunctionNode = (type: TypeNode): type is FunctionNode => isTypeNodeObject(type) && type.kind === 'function';
 const isIndexAccessNode = (type: TypeNode): type is IndexAccessNode =>
     isTypeNodeObject(type) && type.kind === 'indexAccess';
@@ -633,7 +633,7 @@ function isInterfaceLikeNode(
     return Boolean(interfaceRef?.kind === 'interface' || (interfaceRef?.kind === 'typeLiteral' && interfaceRef.name));
 }
 
-function isUnionTypeAlias(
+export function isUnionTypeAlias(
     interfaceRef?: NodeTypes
 ): interfaceRef is TypeAliasNode & { type: MultiTypeNode & { kind: 'union' } } {
     return Boolean(interfaceRef?.kind === 'typeAlias' && isUnionNode(interfaceRef.type));
@@ -648,6 +648,62 @@ export function getReferencedTypeName(type?: TypeNode): string | undefined {
         return type.type;
     }
     return undefined;
+}
+
+/** A union member is "lost" when it is not rendered as an interface variant row (see `toUnionVariant`). */
+function isVariantInterface(member: TypeNode, reference: ApiReferenceType): boolean {
+    const name = getReferencedTypeName(isArrayNode(member) ? member.type : member);
+    const node = name ? reference.get(name) : undefined;
+    return node?.kind === 'interface' && !isInterfaceHidden(name!);
+}
+
+/** Names of a type's referenced members (unwrapping arrays), excluding hidden and unknown types. */
+function referencedMemberNames(type: TypeNode, reference: ApiReferenceType): string[] {
+    const members = isUnionNode(type) ? type.type : [type];
+    return members
+        .map((member) => getReferencedTypeName(isArrayNode(member) ? member.type : member))
+        .filter((name): name is string => Boolean(name) && reference.has(name!) && !isInterfaceHidden(name!));
+}
+
+/**
+ * Builds the type-signature code for a *mixed* union — one with members that are not rendered as
+ * interface variant rows (primitives, hidden aliases like `CssColor`, or nested type aliases). It
+ * preserves what the variant rows omit. Returns `undefined` for pure interface-only unions, whose
+ * members are already fully represented by the rows.
+ *
+ * Referenced type *aliases* are spelled out (`type TextValue = string | number | Date;`) so nothing
+ * is lost, but interfaces are left as bare names: they render once as variant rows and must not be
+ * inlined here.
+ */
+export function formatUnionSignature(
+    unionType: MultiTypeNode & { kind: 'union' },
+    aliasName: string | undefined,
+    reference: ApiReferenceType
+): string | undefined {
+    if (unionType.type.every((member) => isVariantInterface(member, reference))) {
+        return undefined;
+    }
+
+    const signature = addNewLineOnPipe(normalizeType(unionType));
+    const lines = [aliasName ? `type ${aliasName} =\n    ${signature};` : signature];
+
+    const seen = new Set<string>(aliasName ? [aliasName] : []);
+    const queue = referencedMemberNames(unionType, reference);
+    while (queue.length) {
+        const name = queue.shift()!;
+        if (seen.has(name)) {
+            continue;
+        }
+        seen.add(name);
+        const node = reference.get(name);
+        if (node?.kind !== 'typeAlias') {
+            continue;
+        }
+        lines.push(`type ${name} = ${normalizeType(node.type)};`);
+        queue.push(...referencedMemberNames(node.type, reference));
+    }
+
+    return lines.join('\n\n');
 }
 
 /**
@@ -680,7 +736,7 @@ export function resolveAliasedUnion(
     return undefined;
 }
 
-function mergeGenericsMaps(
+export function mergeGenericsMaps(
     base?: Record<string, TypeNode>,
     overrides?: Record<string, TypeNode>
 ): Record<string, TypeNode> | undefined {
