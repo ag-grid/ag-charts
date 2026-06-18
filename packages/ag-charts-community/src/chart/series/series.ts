@@ -80,7 +80,7 @@ import type { TooltipContent, TooltipStructuredContent } from '../tooltip/toolti
 import { getItemId } from './pickManager';
 import { mergeMarkerStyles, mergeMarkerStylesPair } from './seriesMarker';
 import type { SeriesMarker } from './seriesMarker';
-import { isRelevantSelectionState, isUnselected, toHighlightString, toSelectionString } from './seriesProperties';
+import { isUnselected, stagedSelectionState, toHighlightString, toSelectionString } from './seriesProperties';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesTooltip } from './seriesTooltip';
 import {
@@ -985,13 +985,10 @@ export abstract class Series<
         candidateState?: SelectionState
     ) {
         candidateState ??= this.getDataCandidacyState(datumIndex);
-        if (isRelevantSelectionState(candidateState)) {
-            return this.properties.selection.getStyle(candidateState);
-        }
-
         selectionState ??= this.getDataSelectionState(datumIndex);
-        if (selectionState === undefined) return undefined;
-        return this.properties.selection.getStyle(selectionState);
+        const staged = stagedSelectionState(selectionState, candidateState);
+        if (staged === undefined) return undefined;
+        return this.properties.selection.getStyle(staged);
     }
 
     protected resolveMarkerDrawingModeForState(drawingMode: AgDrawingMode, style?: AgSeriesMarkerStyle): AgDrawingMode {
@@ -1432,13 +1429,8 @@ export abstract class Series<
             opts?.selectionState ?? this.getDataSelectionState(datumIndex);
         const candidateState: SelectionState | undefined = this.getDataCandidacyState(datumIndex);
 
-        if (hideWithSize0) {
-            if (isRelevantSelectionState(candidateState) && isUnselected(candidateState)) {
-                return { size: 0 } satisfies AgSeriesMarkerStyle;
-            }
-            if (isUnselected(selectionState)) {
-                return { size: 0 } satisfies AgSeriesMarkerStyle;
-            }
+        if (hideWithSize0 && isUnselected(stagedSelectionState(selectionState, candidateState))) {
+            return { size: 0 } satisfies AgSeriesMarkerStyle;
         }
 
         // Lazy resolvePath — only the resolveStyler/itemStyler branches consume it.

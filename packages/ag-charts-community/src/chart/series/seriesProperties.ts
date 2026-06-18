@@ -147,6 +147,20 @@ export function isRelevantSelectionState(
     return !isIrrelevant;
 }
 
+// The state that should be styled mid-drag: the in-progress candidacy layers on
+// top of the committed selection, so a selected verdict from either source wins.
+// An out-of-rect committed selection is therefore not demoted by the candidate's
+// "unselected" verdict — the replace/clear only takes effect on commit.
+export function stagedSelectionState(
+    selectionState: SelectionState | undefined,
+    candidateState: SelectionState | undefined
+): SelectionState | undefined {
+    if (selectionState === SelectionState.Item || candidateState === SelectionState.Item) {
+        return SelectionState.Item;
+    }
+    return isRelevantSelectionState(candidateState) ? candidateState : selectionState;
+}
+
 type HighlightOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
 type SelectionOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
 
