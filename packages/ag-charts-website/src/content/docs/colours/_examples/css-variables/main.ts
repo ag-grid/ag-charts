@@ -11,17 +11,17 @@ import {
 ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule, LegendModule]);
 
 const dawn = {
-    '--chart-bg': '#fffdf7',
-    '--chart-fg': '#3a2e2e',
-    '--series-online': '#e07a5f',
-    '--series-retail': '#3d405b',
+    '--demo-bg': '#fffdf7',
+    '--demo-fg': '#3a2e2e',
+    '--demo-online': '#e07a5f',
+    '--demo-retail': '#3d405b',
 };
 
 const dusk = {
-    '--chart-bg': '#161b22',
-    '--chart-fg': '#e6edf3',
-    '--series-online': '#58a6ff',
-    '--series-retail': '#ff7b72',
+    '--demo-bg': '#161b22',
+    '--demo-fg': '#e6edf3',
+    '--demo-online': '#58a6ff',
+    '--demo-retail': '#ff7b72',
 };
 
 function applyPalette(palette: Record<string, string>) {
@@ -30,14 +30,12 @@ function applyPalette(palette: Record<string, string>) {
     }
 }
 
-applyPalette(dawn);
-
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     theme: {
         params: {
-            backgroundColor: 'var(--chart-bg)',
-            foregroundColor: 'var(--chart-fg)',
+            backgroundColor: 'var(--demo-bg)',
+            foregroundColor: 'var(--demo-fg)',
         },
     },
     title: {
@@ -52,8 +50,8 @@ const options: AgCartesianChartOptions = {
         { month: 'Jun', online: 190, retail: 150 },
     ],
     series: [
-        { type: 'bar', xKey: 'month', yKey: 'online', yName: 'Online', fill: 'var(--series-online)' },
-        { type: 'bar', xKey: 'month', yKey: 'retail', yName: 'Retail', fill: 'var(--series-retail)' },
+        { type: 'bar', xKey: 'month', yKey: 'online', yName: 'Online', fill: 'var(--demo-online)' },
+        { type: 'bar', xKey: 'month', yKey: 'retail', yName: 'Retail', fill: 'var(--demo-retail)' },
     ],
     axes: {
         x: { type: 'category', position: 'bottom' },

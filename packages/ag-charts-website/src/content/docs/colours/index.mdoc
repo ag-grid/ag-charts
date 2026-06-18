@@ -28,13 +28,13 @@ Use a CSS custom property such as `var(--brand-primary)` anywhere a colour is ac
 {
     theme: {
         params: {
-            backgroundColor: 'var(--chart-bg)',
-            foregroundColor: 'var(--chart-fg)',
+            backgroundColor: 'var(--demo-bg)',
+            foregroundColor: 'var(--demo-fg)',
         },
     },
     series: [
-        { type: 'bar', xKey: 'month', yKey: 'online', fill: 'var(--series-online)' },
-        { type: 'bar', xKey: 'month', yKey: 'retail', fill: 'var(--series-retail)' },
+        { type: 'bar', xKey: 'month', yKey: 'online', fill: 'var(--demo-online)' },
+        { type: 'bar', xKey: 'month', yKey: 'retail', fill: 'var(--demo-retail)' },
     ],
 }
 ```
