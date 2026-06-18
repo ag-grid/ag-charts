@@ -135,6 +135,12 @@ Three approaches add imagery to any label that accepts text segments — axis la
 
 {% chartExampleRunner title="Inline Images" name="inline-images" type="generated" /%}
 
+Provide any image URL through the `url` property:
+
+```js
+const url = 'https://example.com/flag.png';
+```
+
 ```js format="snippet"
 {
     axes: {
@@ -144,7 +150,7 @@ Three approaches add imagery to any label that accepts text segments — axis la
                 formatter: ({ value }) => [
                     {
                         type: 'image',
-                        url: '${baseWWWUrl}/example-assets/flags/' + `${value}.png`,
+                        url,
                         width: 20,
                         height: 15,
                         verticalAlign: 'middle',
