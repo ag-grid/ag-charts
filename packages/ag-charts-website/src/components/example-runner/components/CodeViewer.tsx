@@ -1,7 +1,7 @@
 import type { InternalFramework } from '@ag-grid-types';
 import Code from '@ag-website-shared/components/code/Code';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
-import { CONSOLE_LOG_REGEX, DARK_MODE_REGEX } from '@ag-website-shared/utils/extraCodeSnippets';
+import { CONSOLE_LOG_REGEX, DARK_MODE_REGEX, E2E_THEME_REGEX } from '@ag-website-shared/utils/extraCodeSnippets';
 import type { ExampleType, FileContents } from '@components/example-generator/types';
 import { doOnEnter } from '@utils/doOnEnter';
 import classnames from 'classnames';
@@ -30,7 +30,12 @@ export function stripOutExampleGeneratorCode(files: FileContents) {
     const mainFiles = ['main.js', 'main.ts', 'index.tsx', 'index.jsx', 'app.component.ts'];
     mainFiles.forEach((mainFile) => {
         if (files[mainFile]) {
-            files[mainFile] = files[mainFile].replace(DARK_MODE_REGEX, '').replace(CONSOLE_LOG_REGEX, '').trim() + '\n';
+            files[mainFile] =
+                files[mainFile]
+                    .replace(DARK_MODE_REGEX, '')
+                    .replace(CONSOLE_LOG_REGEX, '')
+                    .replace(E2E_THEME_REGEX, '')
+                    .trim() + '\n';
         }
     });
 
