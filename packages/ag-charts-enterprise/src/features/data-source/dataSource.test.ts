@@ -515,18 +515,19 @@ describe('DataSource', () => {
     });
 
     describe('invalid response recovery', () => {
-        // A response that carries no renderable rows must be retained-not-rendered just like a
-        // non-array response — otherwise it would blank the chart to the no-data overlay. An empty
-        // array is well-formed (just empty) so it must NOT raise the invalid-value warning; the
-        // wrong-typed responses (non-array, primitives, all-null fields) do warn.
+        // A response that renders no data must be retained-not-rendered just like a non-array
+        // response — otherwise it would blank the chart to the no-data overlay. Only a non-array is a
+        // developer error that warrants a warning; every array (empty, primitives, all-null rows, or
+        // rows whose keys do not match the series) is structurally valid and is retained silently when
+        // it renders nothing.
         it.each([
             ['a non-array response', undefined as any, true],
             ['an empty array', [], false],
-            ['an array of primitives (wrong shape)', [1, 2, 3], true],
-            ['an array of all-null-value objects (null fields)', [{ time: null, price: null }], true],
-            // Renderable-shaped objects whose keys do not match the series (`time`/`price`): these pass
-            // the DataService renderability gate (non-null fields) so they do NOT warn, but render
-            // nothing post-process. The chart must retain the previous data and stay re-requestable.
+            ['an array of primitives (wrong shape)', [1, 2, 3], false],
+            ['an array of all-null-value objects (null fields)', [{ time: null, price: null }], false],
+            // Renderable-shaped objects whose keys do not match the series (`time`/`price`) are
+            // dispatched but render nothing post-process; the chart must retain the previous data and
+            // stay re-requestable.
             [
                 'an array of renderable objects with wrong keys',
                 [
@@ -583,8 +584,8 @@ describe('DataSource', () => {
 
                 // The chart keeps its retained data rather than blanking out on the invalid response.
                 // The blank/loading comparison only proves the axes/navigator still draw; the series
-                // retaining renderable data is the load-bearing check (wrong-keyed rows pass the
-                // DataService gate but render nothing, so only this catches their post-process blanking).
+                // retaining renderable data is the load-bearing check (wrong-keyed rows are a valid
+                // array but render nothing, so only this catches their post-process blanking).
                 const postError = extractImageData(ctx);
                 expect(postError.equals(blank)).toBe(false);
                 expect(chart.chart.series.every((series: { hasData: boolean }) => series.hasData)).toBe(true);

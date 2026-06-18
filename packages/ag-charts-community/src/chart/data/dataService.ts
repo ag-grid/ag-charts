@@ -1,4 +1,4 @@
-import { ActionOnSet, ChartUpdateType, Debug, Logger, isObject, stringifyValue, throttle } from 'ag-charts-core';
+import { ActionOnSet, ChartUpdateType, Debug, Logger, stringifyValue, throttle } from 'ag-charts-core';
 import type { AgDataSourceCallbackParams, AgDataSourceRequestSource } from 'ag-charts-types';
 
 import type { EventsHub } from '../../core/eventsHub';
@@ -6,16 +6,8 @@ import type { AnimationManager } from '../interaction/animationManager';
 
 type DataSourceCallback = (params: AgDataSourceCallbackParams<unknown>) => Promise<unknown>;
 
-function isRenderableDatum(datum: unknown): boolean {
-    return isObject(datum) && Object.values(datum).some((value) => value != null);
-}
-
-// Renderable means a non-empty array of objects each carrying at least one non-null field.
-// Primitives, null elements, and all-null rows yield no value for any series key, so dispatching
-// them would replace the valid data-set with one the chart cannot render. Custom keys are not
-// validated here — that needs series knowledge the DataService does not have.
-function hasRenderableRows(response: unknown): response is object[] {
-    return Array.isArray(response) && response.length > 0 && response.every(isRenderableDatum);
+function isNonEmptyArray(response: unknown): response is unknown[] {
+    return Array.isArray(response) && response.length > 0;
 }
 
 export interface DataServiceRestoredData {
@@ -49,6 +41,7 @@ export class DataService<D extends object> {
     private requestCounter = 0;
 
     private pendingData: DataServiceRestoredData | undefined = undefined;
+    private lastDispatchedData: DataServiceRestoredData | undefined = undefined;
 
     private readonly debug = Debug.create(true, 'data-model', 'data-source');
 
@@ -140,10 +133,11 @@ export class DataService<D extends object> {
         const { latestRequest } = this;
         if (!latestRequest) return;
 
-        const { params, fetchRequest } = latestRequest;
-        const data = await fetchRequest;
-        if (!hasRenderableRows(data)) return;
-        return { params, data };
+        // Let the in-flight request settle, then return the last data-set actually dispatched to the
+        // chart. After an invalid/empty response the chart retains this data-set, so a clone or image
+        // export must restore the same data rather than the discarded response.
+        await latestRequest.fetchRequest;
+        return this.lastDispatchedData;
     }
 
     public restoreData(data: DataServiceRestoredData) {
@@ -204,15 +198,16 @@ export class DataService<D extends object> {
                 this.isLoadingData = false;
             }
 
-            // A response that carries no renderable rows must not replace the current data: route it
-            // through `data:error` so the previous data-set is retained and the chart stays
-            // recoverable, rather than blanking to the no-data overlay. An empty array is well-formed
-            // (just empty) so it is retained silently; a wrong-typed response warrants a warning.
-            if (hasRenderableRows(response)) {
+            // Only a non-empty array replaces the current data; anything else routes through
+            // `data:error` to retain the previous data-set. A non-array is a developer error and
+            // warrants a warning; an empty array is well-formed so it is retained silently. Non-empty
+            // arrays whose rows do not render against the series keys are caught by the post-render
+            // retain in the chart.
+            if (isNonEmptyArray(response)) {
+                this.lastDispatchedData = { params, data: response };
                 this.throttledDispatch(id, response as D[], requestId);
             } else {
-                const isEmptyArray = Array.isArray(response) && response.length === 0;
-                if (!threw && !isEmptyArray) {
+                if (!threw && !Array.isArray(response)) {
                     Logger.warnOnce(
                         `DataService - [dataSource.getData] returned an invalid value \`${stringifyValue(response, 50)}\`; expecting an array, ignoring.`
                     );
@@ -230,7 +225,9 @@ export class DataService<D extends object> {
                 secondaryFetchRequests.push(
                     this.performFetch({ ...params, source: secondary.source }, secondary.source).then(
                         ({ response }) => {
-                            if (Array.isArray(response)) {
+                            // Skip non-array and empty responses so the mini-chart retains its last
+                            // valid display instead of blanking on an invalid lazy response.
+                            if (isNonEmptyArray(response)) {
                                 secondary.callback(response);
                             }
                         }

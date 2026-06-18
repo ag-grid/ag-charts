@@ -300,9 +300,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     public data: DataSet = DataSet.empty();
 
-    // A lazy load passes the DataService renderability gate (non-null rows) but can still fail to
-    // render against the series keys (wrong-shaped rows). The DataService is series-agnostic and
-    // cannot detect that; only a post-process check on `series.hasData` can. Each load snapshots the
+    // A dispatched lazy load is a non-empty array, but its rows can still fail to render against the
+    // series keys (wrong-shaped or all-null rows). The DataService is series-agnostic and cannot
+    // detect that; only a post-process check on `series.hasData` can. Each load snapshots the
     // outgoing data-set so the next `update:complete` can restore it if the load rendered nothing,
     // keeping the chart non-blank and re-requestable on an identical re-zoom.
     private pendingDataRetain: { snapshot: DataSet; requestId: number | undefined } | undefined = undefined;

@@ -156,8 +156,6 @@ describe('DataService', () => {
             ['undefined', undefined],
             ['null', null],
             ['a plain object', { not: 'an array' }],
-            ['an array of primitives (wrong shape)', [1, 2, 3]],
-            ['an array of all-null-value objects (null field values)', [{ x: null, y: null }]],
         ])('should warn and emit `data:error` when the callback resolves to %s', async (_label, value) => {
             const dataSourceCallback = vi.fn((_params) => Promise.resolve(value));
             dataService.updateCallback(dataSourceCallback);
@@ -170,17 +168,26 @@ describe('DataService', () => {
             expect(arrayWarning(consoleWarnSpy.mock.calls)).toHaveLength(1);
         });
 
-        it('should still emit `data:load` for an array of objects that carry values (custom keys not validated here)', async () => {
-            const data = [{ foo: 1 }, { bar: 2 }];
-            const dataSourceCallback = vi.fn((_params) => Promise.resolve(data));
-            dataService.updateCallback(dataSourceCallback);
-            dataService.load(undefinedWindow);
+        // A non-empty array is structurally valid at the series-agnostic DataService boundary, so it is
+        // dispatched without a warning even when its rows cannot render against the series keys; that
+        // case is detected and retained later by the chart's post-render check.
+        it.each([
+            ['objects with custom keys', [{ foo: 1 }, { bar: 2 }]],
+            ['primitives', [1, 2, 3]],
+            ['objects with only null field values', [{ x: null, y: null }]],
+        ])(
+            'should emit `data:load` without warning when the callback resolves to an array of %s',
+            async (_label, data) => {
+                const dataSourceCallback = vi.fn((_params) => Promise.resolve(data));
+                dataService.updateCallback(dataSourceCallback);
+                dataService.load(undefinedWindow);
 
-            await sleep();
+                await sleep();
 
-            expect(eventEmitSpy).toHaveBeenCalledWith('data:load', expect.objectContaining({ data }));
-            expect(arrayWarning(consoleWarnSpy.mock.calls)).toHaveLength(0);
-        });
+                expect(eventEmitSpy).toHaveBeenCalledWith('data:load', expect.objectContaining({ data }));
+                expect(arrayWarning(consoleWarnSpy.mock.calls)).toHaveLength(0);
+            }
+        );
 
         it('should retain previous data (emit `data:error`, not `data:load`) and NOT warn on an empty array', async () => {
             const dataSourceCallback = vi.fn((_params) => Promise.resolve([]));
@@ -241,7 +248,7 @@ describe('DataService', () => {
             expect(eventEmitSpy).toHaveBeenCalledWith('data:error', expect.objectContaining({}));
         });
 
-        it('should resolve `getData()` to undefined after an invalid response', async () => {
+        it('should resolve `getData()` to undefined when no valid response has been dispatched', async () => {
             const dataSourceCallback = vi.fn((_params) => Promise.resolve(undefined));
             dataService.updateCallback(dataSourceCallback);
             dataService.load(undefinedWindow);
@@ -249,6 +256,19 @@ describe('DataService', () => {
             await sleep();
 
             await expect(dataService.getData()).resolves.toBeUndefined();
+        });
+
+        it('should resolve `getData()` to the last valid data after a later invalid response', async () => {
+            const validData = [{ datum: 'value' }];
+            const dataSourceCallback = vi.fn().mockResolvedValueOnce(validData).mockResolvedValueOnce(undefined);
+            dataService.updateCallback(dataSourceCallback);
+
+            dataService.load(undefinedWindow);
+            await sleep();
+            dataService.load(definedWindow);
+            await sleep();
+
+            await expect(dataService.getData()).resolves.toEqual(expect.objectContaining({ data: validData }));
         });
 
         it('should echo the requestId on `data:error` so a stale error can be correlated', async () => {
@@ -259,6 +279,44 @@ describe('DataService', () => {
             await sleep();
 
             expect(eventEmitSpy).toHaveBeenCalledWith('data:error', { requestId: 42 });
+        });
+    });
+
+    describe('secondary loader (navigator mini-chart) response validation', () => {
+        it.each([
+            ['a non-array response', undefined],
+            ['an empty array', []],
+        ])(
+            'should not forward %s to the secondary loader so the mini-chart retains its last valid display',
+            async (_label, miniChartResponse) => {
+                const secondaryCallback = vi.fn();
+                const dataSourceCallback = vi.fn(({ source }) =>
+                    Promise.resolve(source === 'mini-chart' ? miniChartResponse : [{ datum: 'value' }])
+                );
+                dataService.updateCallback(dataSourceCallback);
+                dataService.registerSecondaryLoader('mini-chart', ['chart-update'], secondaryCallback);
+                dataService.load({ ...undefinedWindow, source: 'chart-update' });
+
+                await sleep();
+
+                expect(dataSourceCallback).toHaveBeenCalledWith(expect.objectContaining({ source: 'mini-chart' }));
+                expect(secondaryCallback).not.toHaveBeenCalled();
+            }
+        );
+
+        it('should forward a valid non-empty array to the secondary loader', async () => {
+            const miniChartData = [{ datum: 'mini' }];
+            const secondaryCallback = vi.fn();
+            const dataSourceCallback = vi.fn(({ source }) =>
+                Promise.resolve(source === 'mini-chart' ? miniChartData : [{ datum: 'value' }])
+            );
+            dataService.updateCallback(dataSourceCallback);
+            dataService.registerSecondaryLoader('mini-chart', ['chart-update'], secondaryCallback);
+            dataService.load({ ...undefinedWindow, source: 'chart-update' });
+
+            await sleep();
+
+            expect(secondaryCallback).toHaveBeenCalledWith(miniChartData);
         });
     });
 
