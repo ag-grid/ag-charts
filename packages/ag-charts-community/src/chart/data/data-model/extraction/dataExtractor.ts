@@ -124,6 +124,15 @@ function updateColumnTypeTracker(
     value: unknown,
     datumIndex: number
 ): ColumnValueType | undefined {
+    // Hot-loop fast path: for the primitive types whose `typeof` maps 1:1 to a column type
+    // (number/bigint/boolean), a value of the column's already-settled type cannot change it or
+    // introduce a string — skip the full classify and merge. `string` (→ string|date via isISO8601)
+    // and `object` (→ date|number|object) are not 1:1, so they fall through to the slow path.
+    const settled = tracker.type;
+    if ((settled === 'number' || settled === 'bigint' || settled === 'boolean') && typeof value === settled) {
+        return settled;
+    }
+
     const observed = valueColumnType(value);
     if (observed == null) return undefined;
 
