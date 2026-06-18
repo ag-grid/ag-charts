@@ -15,7 +15,7 @@ const { treemapSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
     ...treemapSeriesThemeableOptionsDef,
-    ...without(commonSeriesOptionsDefs, ['highlightStyle', 'highlight', 'showInLegend']),
+    ...without(commonSeriesOptionsDefs, ['highlightStyle', 'highlight', 'selection', 'showInLegend']),
     type: required(constant('treemap')),
     labelKey: string,
     secondaryLabelKey: string,
