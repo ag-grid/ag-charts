@@ -1389,21 +1389,20 @@ describe('Zoom', () => {
 
             const state = chart.getState();
 
-            // Both axes carry bigint domains, so every serialised endpoint must be the encoded bigint shape
-            // rather than a JSON number that has silently lost precision above 2^53.
-            for (const endpoint of [
-                state.zoom?.rangeX?.start,
-                state.zoom?.rangeX?.end,
-                state.zoom?.rangeY?.start,
-                state.zoom?.rangeY?.end,
-            ]) {
-                expect(endpoint).toEqual({ __type: 'bigint', value: expect.stringMatching(/^-?\d+$/) });
-            }
-
-            // The boundary endpoint (zoom to the data edge) must reconstruct to the exact domain endpoint,
-            // proving the re-snap preserves precision and not just the bigint type.
+            // rangeX is the full data range, so both endpoints sit on the exact domain min/max and must
+            // reconstruct to the precise bigints (full precision above 2^53), not JSON numbers.
             const rangeXStart = state.zoom?.rangeX?.start as { __type: 'bigint'; value: string };
+            const rangeXEnd = state.zoom?.rangeX?.end as { __type: 'bigint'; value: string };
+            expect(rangeXStart).toEqual({ __type: 'bigint', value: expect.stringMatching(/^-?\d+$/) });
+            expect(rangeXEnd).toEqual({ __type: 'bigint', value: expect.stringMatching(/^-?\d+$/) });
             expect(BigInt(rangeXStart.value)).toBe(BIG);
+            expect(BigInt(rangeXEnd.value)).toBe(BIG * 4n);
+
+            // rangeY is a sub-range zoom (ratio 0.2–0.6), so both endpoints are interior positions.
+            // invert() cannot recover the exact bigint there, so the state keeps the honest narrowed
+            // number rather than fabricating a bigint that would imply precision the value no longer has.
+            expect(typeof state.zoom?.rangeY?.start).toBe('number');
+            expect(typeof state.zoom?.rangeY?.end).toBe('number');
         });
 
         // The same zoom range endpoints supplied as `number` and as `bigint` must produce the

@@ -928,11 +928,11 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         }
 
         // invert() interpolates over Number-narrowed domain endpoints, so a bigint domain comes back as a
-        // number that has lost precision above 2^53. Re-snap to bigint so getState() serialises the exact
-        // value the scale still retains.
+        // number that has lost precision above 2^53. Re-snap to the exact bigint the scale still retains, but
+        // only at a domain boundary where exact recovery is possible.
         if (ContinuousScale.is(axis.scale)) {
-            start = snapToBigIntDomain(axis.scale, start);
-            end = snapToBigIntDomain(axis.scale, end);
+            start = snapToBigIntDomain(axis.scale, start, 'min');
+            end = snapToBigIntDomain(axis.scale, end, 'max');
         }
 
         if (typeof start === 'string') {
@@ -1025,18 +1025,32 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     }
 }
 
-// Recovers the bigint a zoom endpoint had before invert() narrowed it to a number. A boundary endpoint
-// equal to the exact domain min/max is returned at full precision; an interior position is rounded to the
-// nearest integer, which keeps the bigint type the state contract requires at the best precision the
-// narrowed interpolation can offer.
-function snapToBigIntDomain(scale: ContinuousScale<number | bigint | Date>, value: unknown): unknown {
+// Recovers the exact bigint a zoom endpoint had before invert() narrowed it to a number. invert() only
+// retains full precision at the domain boundaries, so a value is snapped to a bigint only when it equals
+// the exact min/max the scale still holds. An interior position can no longer be recovered exactly, so it
+// is left as the narrowed number rather than fabricating a bigint that would imply false precision.
+//
+// `prefer` disambiguates the degenerate case where the bigint domain is narrow enough that domainMin and
+// domainMax collapse to the same Number above 2^53: a `min`-role endpoint resolves to domainMin and a
+// `max`-role endpoint to domainMax, so the max endpoint is never silently returned as the min bigint.
+function snapToBigIntDomain(
+    scale: ContinuousScale<number | bigint | Date>,
+    value: unknown,
+    prefer: 'min' | 'max'
+): unknown {
     if (typeof value !== 'number' || !isFiniteNumber(value)) return value;
 
     const { domainMin, domainMax } = scale;
-    if (typeof domainMin !== 'bigint' && typeof domainMax !== 'bigint') return value;
+    const minIsBig = typeof domainMin === 'bigint';
+    const maxIsBig = typeof domainMax === 'bigint';
+    if (!minIsBig && !maxIsBig) return value;
 
-    if (typeof domainMin === 'bigint' && Number(domainMin) === value) return domainMin;
-    if (typeof domainMax === 'bigint' && Number(domainMax) === value) return domainMax;
+    const matchesMin = minIsBig && Number(domainMin) === value;
+    const matchesMax = maxIsBig && Number(domainMax) === value;
 
-    return BigInt(Math.round(value));
+    if (matchesMin && matchesMax) return prefer === 'min' ? domainMin : domainMax;
+    if (matchesMin) return domainMin;
+    if (matchesMax) return domainMax;
+
+    return value;
 }
