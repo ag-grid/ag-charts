@@ -10,6 +10,16 @@ import {
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
+// Sector strokes default to chartBackgroundColor ('white' in light-mode).
+// We want selected sectors to use the theme/palette stroke on the background color.
+const NIGHTINGALE_SELECTION_THEME: typeof SERIES_SELECTION_THEME = {
+    ...SERIES_SELECTION_THEME,
+    selectedItem: {
+        ...SERIES_SELECTION_THEME.selectedItem,
+        stroke: { $palette: 'stroke' },
+    },
+};
+
 export const NIGHTINGALE_SERIES_THEME: ExtensibleTheme<'nightingale'> = {
     series: {
         fill: {
@@ -34,7 +44,7 @@ export const NIGHTINGALE_SERIES_THEME: ExtensibleTheme<'nightingale'> = {
             color: { $ref: 'textColor' },
         },
         highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: false },
-        selection: SERIES_SELECTION_THEME,
+        selection: NIGHTINGALE_SELECTION_THEME,
     },
     axes: {
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: {
