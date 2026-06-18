@@ -359,6 +359,18 @@ function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props 
                     ))}
                 </div>
             )}
+            {isUnionTypesDetails(interfaceRef) && isExpanded && (
+                <div className={styles.childPropsList}>
+                    {interfaceRef.variants.map((variant) => (
+                        <UnionVariantNode
+                            key={variant.anchorSegment}
+                            variant={variant}
+                            anchorId={`${anchorId}-${variant.anchorSegment}`}
+                            prefixPath={prefixPath.concat(cleanupName(member.name))}
+                        />
+                    ))}
+                </div>
+            )}
         </>
     );
 }
@@ -474,21 +486,6 @@ function ApiReferenceRow({
             {signature && isSignatureExpanded && (
                 <div className={styles.expandedContent}>
                     <Code code={signature} />
-                </div>
-            )}
-
-            {isUnionTypes && isExpanded && isUnionTypesDetails(additionalDetails) && (
-                <div id={getDetailsId(anchorId)} className={styles.expandedContent}>
-                    <div className={styles.childPropsList}>
-                        {additionalDetails.variants.map((variant) => (
-                            <UnionVariantNode
-                                key={variant.anchorSegment}
-                                variant={variant}
-                                anchorId={`${anchorId}-${variant.anchorSegment}`}
-                                prefixPath={(prefixPath ?? []).concat(memberName)}
-                            />
-                        ))}
-                    </div>
                 </div>
             )}
         </div>
