@@ -6,6 +6,7 @@ import {
     isNumberObject,
     iterate,
     seedEpochColumnIdentity,
+    seedNumericColumnIdentity,
     timeValueToNumber,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
@@ -581,6 +582,11 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             // when extendDomainFromEpochColumn parses them below).
             if (!typeTracker.sawString) {
                 seedEpochColumnIdentity(column);
+            }
+            // A pure (non-bigint) numeric column is its own narrowed representation: seed the
+            // bigint-narrowing caches so the aggregation path skips its per-call bigint scan.
+            if (typeTracker.type === 'number') {
+                seedNumericColumnIdentity(column);
             }
             maxDataLength = Math.max(maxDataLength, column.length);
         }
