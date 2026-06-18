@@ -1,4 +1,3 @@
-import { listeners } from 'process';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
