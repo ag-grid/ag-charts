@@ -2,20 +2,13 @@ import {
     AgCartesianChartOptions,
     AgCharts,
     CategoryAxisModule,
-    ChartToolbarModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
     ZoomModule,
 } from 'ag-charts-enterprise';
 
-ModuleRegistry.registerModules([
-    LineSeriesModule,
-    CategoryAxisModule,
-    NumberAxisModule,
-    ZoomModule,
-    ChartToolbarModule,
-]);
+ModuleRegistry.registerModules([LineSeriesModule, CategoryAxisModule, NumberAxisModule, ZoomModule]);
 
 let width = 2;
 let radius = 8;
