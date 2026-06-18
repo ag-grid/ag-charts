@@ -924,7 +924,7 @@ describe('DataSelection', () => {
         type C = unknown;
         let selectionChange: SelectionChangeRecorder<D, C>;
         const NITROGEN_ITEM = { datum: { gas: 'nitrogen', percent: 78 }, itemId: 0, seriesId: 'PieSeries-1' };
-        const NITROGEN_EVENT = uiChangeEvent<D,C>({added: [NITROGEN_ITEM], removed:[]})
+        const NITROGEN_EVENT = uiChangeEvent<D, C>({ added: [NITROGEN_ITEM], removed: [] });
 
         beforeEach(async () => {
             selectionChange = createSelectionChangeRecorder();
