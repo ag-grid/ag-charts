@@ -4,6 +4,7 @@ import {
     AgBubbleSeriesOptions,
     type AgCartesianChartOptions,
     type AgChartInstance,
+    type AgChartLabelStylerParams,
     type AgChartOptions,
     AgCharts,
     type AgErrorBarItemStylerParams,
@@ -2994,6 +2995,145 @@ describe('DataSelection', () => {
                         await mouseMove(POINT_C, { metaKey });
                         await mouseUp(POINT_C, { metaKey });
                         expect(selectionChange.popEvents()).toEqual([ADDED_a0]);
+                    });
+                });
+            });
+
+            describe('with label.itemStyler (highlight disabled)', () => {
+                // Reuses the 'without module clash' multi-series line setup (data + series),
+                // but every line series carries a label.itemStyler and highlight is disabled
+                // (highlight is flaky in tests and not what we're exercising). The styler maps
+                // the two states to independent, simultaneously-visible label properties so a
+                // single snapshot encodes both: candidateState -> box background fill,
+                // selectionState -> text colour/weight. Reddish hues are avoided because red
+                // marks pixel diffs on snapshot failure. s3id (selection disabled) gets both
+                // states undefined and so renders with default label styling.
+                const POINT_A = { canvasX: 262.5, canvasY: 440 };
+                const POINT_B = { canvasX: 582.5, canvasY: 21 };
+                const POINT_C = { canvasX: 41.5, canvasY: 142 };
+
+                const candidacyFill = {
+                    'selected-item': 'lightgreen',
+                    'unselected-item': 'khaki',
+                    'unselected-series': 'lightblue',
+                    none: undefined,
+                } as const;
+                const selectionText = {
+                    'selected-item': { color: 'darkgreen', fontWeight: 'bold', fontSize: 15 },
+                    'unselected-item': { color: 'dimgray' },
+                    'unselected-series': { color: 'navy' },
+                    none: {},
+                } as const;
+                const labelItemStyler = (params: AgChartLabelStylerParams<AccountingDatum, unknown>) => {
+                    return {
+                        fill: params.candidateState ? candidacyFill[params.candidateState] : undefined,
+                        ...(params.selectionState ? selectionText[params.selectionState] : {}),
+                    };
+                };
+
+                beforeEach(async () => {
+                    const { data = [], series = [] } = createLineAccountingOptions();
+                    chart = await createChartInstance({
+                        data,
+                        series,
+                        theme: {
+                            overrides: {
+                                line: {
+                                    series: {
+                                        label: {
+                                            enabled: true,
+                                            formatter: (params) => `${params.yKey.at(0)}${params.datum.year.at(3)}`,
+                                            itemStyler: labelItemStyler,
+                                        },
+                                        selection: {
+                                            selectedItem: { strokeWidth: 5 },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                        highlight: { enabled: false },
+                        selection: {
+                            containment: 'any',
+                            enabled: true,
+                            enableDrag: true,
+                            enableClick: false,
+                        },
+                        axes: {
+                            x: { crosshair: { enabled: false }, gridLine: { enabled: false } },
+                            y: { crosshair: { enabled: false }, gridLine: { enabled: false } },
+                        },
+                        navigator: { enabled: false },
+                        scrollbar: { enabled: false },
+                        zoom: { enabled: false },
+                    });
+                });
+
+                // Drag candidacy is computed identically regardless of modifier (the modifier
+                // only changes what is committed on mouse-up), so the in-progress and first-
+                // commit snapshots are shared across no-/ctrl-/meta-modifier; only the second
+                // commit differs (replace vs add). ctrl and meta are fully identical.
+                describe('no-modifier two drags', () => {
+                    test('screenshot', async () => {
+                        await mouseDown(POINT_A);
+                        await mouseMove(POINT_B);
+                        await compareExact('drag-modifiers-line-labelstyler-candidacy-a1a2l1l2n1n2');
+                        await mouseUp(POINT_B);
+                        await compareExact('drag-modifiers-line-labelstyler-selected-a1a2l1l2n1n2');
+
+                        await mouseDown(POINT_B);
+                        await mouseMove(POINT_C);
+                        await compareExact('drag-modifiers-line-labelstyler-selected-a1a2l1l2n1n2-candidacy-a0a1a2n1');
+                        await mouseUp(POINT_C);
+                        await compareExact('drag-modifiers-line-labelstyler-selected-a0a1a2n1');
+                    });
+                });
+                describe('alt-modifier two drags', () => {
+                    test('screenshot', async () => {
+                        // alt is an "unknown" modifier: the selection drag is skipped entirely
+                        // (no candidacy, no rect, no commit), so every phase renders the base
+                        // chart with default labels.
+                        await mouseDown(POINT_A, { altKey });
+                        await mouseMove(POINT_B, { altKey });
+                        await compareExact('drag-modifiers-line-labelstyler-none');
+                        await mouseUp(POINT_B, { altKey });
+                        await compareExact('drag-modifiers-line-labelstyler-none');
+
+                        await mouseDown(POINT_B, { altKey });
+                        await mouseMove(POINT_C, { altKey });
+                        await compareExact('drag-modifiers-line-labelstyler-none');
+                        await mouseUp(POINT_C, { altKey });
+                        await compareExact('drag-modifiers-line-labelstyler-none');
+                    });
+                });
+                describe('ctrl-modifier two drags', () => {
+                    test('screenshot', async () => {
+                        await mouseDown(POINT_A, { ctrlKey });
+                        await mouseMove(POINT_B, { ctrlKey });
+                        await compareExact('drag-modifiers-line-labelstyler-candidacy-a1a2l1l2n1n2');
+                        await mouseUp(POINT_B, { ctrlKey });
+                        await compareExact('drag-modifiers-line-labelstyler-selected-a1a2l1l2n1n2');
+
+                        await mouseDown(POINT_B, { ctrlKey });
+                        await mouseMove(POINT_C, { ctrlKey });
+                        await compareExact('drag-modifiers-line-labelstyler-selected-a1a2l1l2n1n2-candidacy-a0a1a2n1');
+                        await mouseUp(POINT_C, { ctrlKey });
+                        await compareExact('drag-modifiers-line-labelstyler-selected-a0a1a2l1l2n1n2');
+                    });
+                });
+                describe('meta-modifier two drags', () => {
+                    test('screenshot', async () => {
+                        await mouseDown(POINT_A, { metaKey });
+                        await mouseMove(POINT_B, { metaKey });
+                        await compareExact('drag-modifiers-line-labelstyler-candidacy-a1a2l1l2n1n2');
+                        await mouseUp(POINT_B, { metaKey });
+                        await compareExact('drag-modifiers-line-labelstyler-selected-a1a2l1l2n1n2');
+
+                        await mouseDown(POINT_B, { metaKey });
+                        await mouseMove(POINT_C, { metaKey });
+                        await compareExact('drag-modifiers-line-labelstyler-selected-a1a2l1l2n1n2-candidacy-a0a1a2n1');
+                        await mouseUp(POINT_C, { metaKey });
+                        await compareExact('drag-modifiers-line-labelstyler-selected-a0a1a2l1l2n1n2');
                     });
                 });
             });
