@@ -1,16 +1,29 @@
 import { defineConfig, devices } from '@playwright/test';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// require('dotenv').config();
+function loadEnvFile(filePath: string): Record<string, string> {
+    try {
+        return Object.fromEntries(
+            readFileSync(filePath, 'utf-8')
+                .split('\n')
+                .filter((l) => l && !l.startsWith('#') && l.includes('='))
+                .map((l) => l.split('=', 2) as [string, string])
+        );
+    } catch {
+        return {};
+    }
+}
+
+const localE2eEnv = loadEnvFile(join(__dirname, '.env.test:e2e'));
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
     testDir: './e2e',
+    /* Exclude staging-only tests from regular CI runs — run via post-deploy-verification.yml instead */
+    testIgnore: ['**/page-verification.spec.ts'],
     /* Run tests in files in parallel */
     fullyParallel: true,
     /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -123,10 +136,8 @@ export default defineConfig({
             ? undefined
             : {
                   env: {
+                      ...localE2eEnv,
                       PUBLIC_SITE_URL: 'http://localhost:4601',
-
-                      FAIL_ON_UNMATCHED_GLOBS: 'false',
-                      PUBLIC_HTTPS_SERVER: 'false',
                   },
                   command: 'npx astro dev --port=4601 --host',
                   url: 'http://localhost:4601/',
