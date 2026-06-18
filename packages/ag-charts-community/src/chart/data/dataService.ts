@@ -228,11 +228,13 @@ export class DataService<D extends object> {
             for (const secondary of this._secondaryLoaders) {
                 if (!secondary.triggers.includes(params.source)) continue;
                 secondaryFetchRequests.push(
-                    this.performFetch({ ...params, source: secondary.source }, secondary.source).then(({ response }) => {
-                        if (Array.isArray(response)) {
-                            secondary.callback(response);
+                    this.performFetch({ ...params, source: secondary.source }, secondary.source).then(
+                        ({ response }) => {
+                            if (Array.isArray(response)) {
+                                secondary.callback(response);
+                            }
                         }
-                    })
+                    )
                 );
             }
         }

@@ -115,6 +115,7 @@ export interface EventsHubMap {
     'context-menu:complete': ContextMenuEvent;
     'data:load': { data: unknown[]; requestId?: number };
     'data:error': { requestId?: number } | null;
+    'data:render-verdict': { requestId?: number; rendered: boolean };
     'data:update': DataSet | undefined;
     'data:source-change': null;
     'datamodel:diff': DataModelDiffEvent;

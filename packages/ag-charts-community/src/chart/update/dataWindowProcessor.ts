@@ -39,8 +39,9 @@ export class DataWindowProcessor implements UpdateProcessor {
     ) {
         this.cleanup.register(
             ctx.eventsHub.on('data:source-change', () => this.onDataSourceChange()),
-            ctx.eventsHub.on('data:load', (e) => this.onDataLoad(e)),
+            ctx.eventsHub.on('data:load', () => this.onDataLoad()),
             ctx.eventsHub.on('data:error', (e) => this.onDataError(e)),
+            ctx.eventsHub.on('data:render-verdict', (e) => this.onRenderVerdict(e)),
             ctx.eventsHub.on('update:complete', (e) => this.onUpdateComplete(e)),
             ctx.eventsHub.on('zoom:change-complete', (e) => this.onZoomChange(e))
         );
@@ -50,19 +51,34 @@ export class DataWindowProcessor implements UpdateProcessor {
         this.cleanup.flush();
     }
 
-    private onDataLoad({ requestId }: { requestId?: number }) {
-        // A successful load commits the gate state this request advanced to, so its rollback is no
-        // longer needed; drop every snapshot up to and including it (older ones can never apply).
-        this.discardRollbacksUpTo(requestId);
+    private onDataLoad() {
+        // A renderable-shaped load can still fail to render against the series keys; its gate-state
+        // rollback must survive until the chart confirms the render via `data:render-verdict`, so we
+        // do not discard it here. Until then an identical re-zoom stays short-circuited (correct: the
+        // load committed unless and until the verdict overturns it).
         this.ctx.animationManager.skip();
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.UPDATE_DATA });
     }
 
     private onDataError(event: { requestId?: number } | null) {
-        const requestId = event?.requestId;
+        this.applyRollback(event?.requestId);
+        this.discardRollbacksUpTo(event?.requestId);
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
+    }
+
+    private onRenderVerdict({ requestId, rendered }: { requestId?: number; rendered: boolean }) {
+        // A load that rendered nothing is retained-not-committed by the chart; restore the gate state
+        // it advanced past so an identical re-zoom re-issues the request, mirroring the error path.
+        if (!rendered) {
+            this.applyRollback(requestId);
+        }
+        this.discardRollbacksUpTo(requestId);
+    }
+
+    private applyRollback(requestId: number | undefined) {
         const rollback = requestId == null ? undefined : this.errorRollbacks.get(requestId);
 
-        // Only the latest outstanding request may roll back the live gates: a stale error (an older
+        // Only the latest outstanding request may roll back the live gates: a stale rollback (an older
         // overlapping request that resolved late) must not clobber a newer request's advance.
         if (rollback && requestId === this.latestRequestId) {
             this.lastWindow = rollback.window;
@@ -74,8 +90,6 @@ export class DataWindowProcessor implements UpdateProcessor {
                 }
             }
         }
-        this.discardRollbacksUpTo(requestId);
-        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
     }
 
     private discardRollbacksUpTo(requestId: number | undefined) {

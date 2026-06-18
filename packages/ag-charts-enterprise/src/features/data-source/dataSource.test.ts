@@ -524,6 +524,17 @@ describe('DataSource', () => {
             ['an empty array', [], false],
             ['an array of primitives (wrong shape)', [1, 2, 3], true],
             ['an array of all-null-value objects (null fields)', [{ time: null, price: null }], true],
+            // Renderable-shaped objects whose keys do not match the series (`time`/`price`): these pass
+            // the DataService renderability gate (non-null fields) so they do NOT warn, but render
+            // nothing post-process. The chart must retain the previous data and stay re-requestable.
+            [
+                'an array of renderable objects with wrong keys',
+                [
+                    { x: 1, y: 2, label: 'Point A' },
+                    { x: 2, y: 4, label: 'Point B' },
+                ],
+                false,
+            ],
         ])(
             'retains the previous render on %s and recovers on the next zoom',
             async (_label, invalidResponse, expectArrayWarning) => {
@@ -571,8 +582,12 @@ describe('DataSource', () => {
                 await waitForChartStability(chart);
 
                 // The chart keeps its retained data rather than blanking out on the invalid response.
+                // The blank/loading comparison only proves the axes/navigator still draw; the series
+                // retaining renderable data is the load-bearing check (wrong-keyed rows pass the
+                // DataService gate but render nothing, so only this catches their post-process blanking).
                 const postError = extractImageData(ctx);
                 expect(postError.equals(blank)).toBe(false);
+                expect(chart.chart.series.every((series: { hasData: boolean }) => series.hasData)).toBe(true);
 
                 const warnCalls = (console.warn as Mock).mock.calls;
                 const invalidValueWarnings = warnCalls.filter(
