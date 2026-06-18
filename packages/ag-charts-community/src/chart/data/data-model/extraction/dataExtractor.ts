@@ -5,6 +5,8 @@ import {
     isISO8601,
     isNumberObject,
     iterate,
+    seedEpochColumnIdentity,
+    seedNumericColumnIdentity,
     timeValueToNumber,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
@@ -93,6 +95,9 @@ interface ColumnTypeTracker {
     mixedAtIndex: number | undefined;
     /** Row index where a date column was first observed to mix with a non-date, non-numeric value. */
     mixedDateAtIndex: number | undefined;
+    /** Whether any column value was a string. A string-free column needs no epoch-ms parse, so its
+     *  epoch cache can be seeded as identity to spare downstream consumers a redundant string scan. */
+    sawString: boolean;
 }
 
 function valueColumnType(value: unknown): ColumnValueType | undefined {
@@ -119,8 +124,23 @@ function updateColumnTypeTracker(
     value: unknown,
     datumIndex: number
 ): ColumnValueType | undefined {
+    // Hot-loop fast path: for the primitive types whose `typeof` maps 1:1 to a column type
+    // (number/bigint/boolean), a value of the column's already-settled type cannot change it or
+    // introduce a string — skip the full classify and merge. `string` (→ string|date via isISO8601)
+    // and `object` (→ date|number|object) are not 1:1, so they fall through to the slow path.
+    const settled = tracker.type;
+    if ((settled === 'number' || settled === 'bigint' || settled === 'boolean') && typeof value === settled) {
+        return settled;
+    }
+
     const observed = valueColumnType(value);
     if (observed == null) return undefined;
+
+    // A string is tagged 'string' (non-ISO) or 'date' (ISO); Date objects are also 'date', so only the
+    // date case needs a typeof to disambiguate. Gating on `observed` keeps the numeric path scan-free.
+    if (observed === 'string' || (observed === 'date' && typeof value === 'string')) {
+        tracker.sawString = true;
+    }
 
     if (tracker.type == null || tracker.type === observed) {
         tracker.type = observed;
@@ -344,6 +364,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                 type: undefined,
                 mixedAtIndex: undefined,
                 mixedDateAtIndex: undefined,
+                sawString: false,
             };
             const tzTracker: TimezoneTracker = { explicit: undefined, implicit: undefined };
 
@@ -416,6 +437,13 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             keySortOrders.set(keyDefIndex, trackerToSortOrderEntry(tracker));
             this.warnMixedTimezoneColumn(keyDef.property, typeTracker.type, tzTracker, keyDef.timeDomain === true);
             keyHasIsoStrings.push(typeTracker.type === 'date' && sawIsoStrings(tzTracker));
+            // A string-free key column needs no epoch-ms parse: seed each scope's array as its own
+            // identity so downstream consumers skip the redundant string scan (see extractValues).
+            if (!typeTracker.sawString) {
+                for (const keys of keyDefKeys.values()) {
+                    seedEpochColumnIdentity(keys);
+                }
+            }
         }
         return {
             invalidData,
@@ -503,6 +531,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                 type: undefined,
                 mixedAtIndex: undefined,
                 mixedDateAtIndex: undefined,
+                sawString: false,
             };
             const tzTracker: TimezoneTracker = { explicit: undefined, implicit: undefined };
             for (let datumIndex = 0; datumIndex < columnSource.length; datumIndex++) {
@@ -557,6 +586,17 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             // Leave unobserved columns undefined rather than guessing 'number', so type assertions don't false-positive.
             columnValueType.push(typeTracker.type);
             columnHasIsoStrings.push(typeTracker.type === 'date' && sawIsoStrings(tzTracker));
+            // A string-free column is its own epoch representation: seed the cache so the domain and
+            // aggregation paths skip the per-call string scan (ISO-string columns are seeded lazily
+            // when extendDomainFromEpochColumn parses them below).
+            if (!typeTracker.sawString) {
+                seedEpochColumnIdentity(column);
+            }
+            // A pure (non-bigint) numeric column is its own narrowed representation: seed the
+            // bigint-narrowing caches so the aggregation path skips its per-call bigint scan.
+            if (typeTracker.type === 'number') {
+                seedNumericColumnIdentity(column);
+            }
             maxDataLength = Math.max(maxDataLength, column.length);
         }
 
