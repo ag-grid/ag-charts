@@ -1,3 +1,4 @@
+import { listeners } from 'process';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
@@ -457,6 +458,42 @@ function createPieDonutOptions(): AgPolarChartOptions<RingDatum, unknown> {
     };
 }
 
+type AirGasesDatum = { gas: string; percent: number };
+function createAirGasesOptions(): AgPolarChartOptions<AirGasesDatum, unknown> {
+    return {
+        data: [
+            { gas: 'nitrogen', percent: 78 },
+            { gas: 'oxygen', percent: 21 },
+            { gas: 'other', percent: 1 },
+        ],
+        series: [
+            {
+                type: 'pie',
+                angleKey: 'percent',
+                sectorLabelKey: 'gas',
+            },
+        ],
+        theme: {
+            overrides: {
+                pie: {
+                    series: {
+                        sectorLabel: { enabled: true },
+                        selection: {
+                            selectedItem: { fill: 'skyblue', stroke: 'black' },
+                            unselectedItem: {
+                                fill: 'grey',
+                                fillOpacity: 0.2,
+                                stroke: 'green',
+                                strokeWidth: 3,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    };
+}
+
 type BioDatum = { height: number; weight: number; age: number };
 function createBubbleBioStatOptions(): { data: BioDatum[]; series: [AgBubbleSeriesOptions<BioDatum>] } {
     return {
@@ -880,6 +917,55 @@ describe('DataSelection', () => {
 
             chart.clearSelection();
             expect([...chart.getSelection()]).toHaveLength(0);
+        });
+    });
+
+    describe('AG-17577 pie series selection are not shown in legend', () => {
+        type D = AirGasesDatum;
+        type C = unknown;
+        let selectionChange: SelectionChangeRecorder<D, C>;
+        const NITROGEN_ITEM = { datum: { gas: 'nitrogen', percent: 78 }, itemId: 0, seriesId: 'PieSeries-1' };
+        const NITROGEN_EVENT = uiChangeEvent<D,C>({added: [NITROGEN_ITEM], removed:[]})
+
+        beforeEach(async () => {
+            selectionChange = createSelectionChangeRecorder();
+            chart = await createChartInstance({
+                ...createAirGasesOptions(),
+                selection: {
+                    enabled: true,
+                    enableClick: true,
+                    enableClickAwayToClear: true,
+                    enableDrag: false,
+                    clickMode: 'single',
+                },
+                listeners: { selectionChange },
+                highlight: { enabled: false },
+            });
+        });
+        describe('initial', () => {
+            test('screenshot', async () => {
+                await compareExact('ag-17577-pie-series-selection-are-not-shown-in-legend-initial');
+            });
+            test('getSelection', () => {
+                expect(getChartSelectionArray()).toEqual([]);
+            });
+            test('selectionChange', () => {
+                expect(selectionChange.popEvents()).toEqual([]);
+            });
+        });
+        describe('click nitrogen', () => {
+            beforeEach(async () => {
+                await mouseClick({ canvasX: 477, canvasY: 380 });
+            });
+            test('screenshot', async () => {
+                await compareExact('ag-17577-pie-series-selection-are-not-shown-in-legend-clicked-nitrogen');
+            });
+            test('getSelection', async () => {
+                expect(getChartSelectionArray()).toEqual([NITROGEN_ITEM]);
+            });
+            test('selectionChange', async () => {
+                expect(selectionChange.popEvents()).toEqual([NITROGEN_EVENT]);
+            });
         });
     });
 
