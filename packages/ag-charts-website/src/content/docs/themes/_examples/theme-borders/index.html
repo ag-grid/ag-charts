@@ -1,0 +1,21 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <div class="gap-right">
+            <label for="color-select">color:</label>
+            <select id="color-select" onchange="changeColor(event)">
+                <option value="accentColor">{ ref: 'accentColor' }</option>
+                <option value="#d1495b">#d1495b</option>
+                <option value="#21b372">#21b372</option>
+            </select>
+        </div>
+        <div class="gap-right">
+            <label for="width-range">width: <span id="width-value">2</span></label>
+            <input id="width-range" type="range" min="0" max="8" step="1" value="2" oninput="changeWidth(event)" />
+        </div>
+        <div>
+            <label for="radius-range">radius: <span id="radius-value">8</span></label>
+            <input id="radius-range" type="range" min="0" max="20" step="1" value="8" oninput="changeRadius(event)" />
+        </div>
+    </div>
+</div>
+<div id="myChart"></div>

@@ -338,6 +338,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Colours",
+                            "path": "colours"
+                        },
+                        {
+                            "type": "item",
                             "title": "Fills & Borders",
                             "path": "fills-borders"
                         },

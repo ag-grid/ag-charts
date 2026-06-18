@@ -8,11 +8,12 @@
                 "path": "./async-data/"
             },
             {
-                "text": "Image in Label"
+                "text": "Inline Images",
+                "path": "./text/#images"
             },
             {
-                "text": "Improved Colour Options",
-                "path": "./themes/"
+                "text": "CSS Variables, Colour Mixing & HSL",
+                "path": "./colours/"
             },
             {
                 "text": "BigInt and ISO 8601 Support",
