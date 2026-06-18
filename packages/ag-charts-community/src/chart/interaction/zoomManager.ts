@@ -927,6 +927,14 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             end = axis.scale.invert(0, true);
         }
 
+        // invert() interpolates over Number-narrowed domain endpoints, so a bigint domain comes back as a
+        // number that has lost precision above 2^53. Re-snap to bigint so getState() serialises the exact
+        // value the scale still retains.
+        if (ContinuousScale.is(axis.scale)) {
+            start = snapToBigIntDomain(axis.scale, start);
+            end = snapToBigIntDomain(axis.scale, end);
+        }
+
         if (typeof start === 'string') {
             start = { value: start, groupPercentage: 0 };
         }
@@ -1015,4 +1023,20 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         if (result.length < 1) return false;
         return result.every((r) => r == null || typeof r === 'number' || isValidDate(r));
     }
+}
+
+// Recovers the bigint a zoom endpoint had before invert() narrowed it to a number. A boundary endpoint
+// equal to the exact domain min/max is returned at full precision; an interior position is rounded to the
+// nearest integer, which keeps the bigint type the state contract requires at the best precision the
+// narrowed interpolation can offer.
+function snapToBigIntDomain(scale: ContinuousScale<number | bigint | Date>, value: unknown): unknown {
+    if (typeof value !== 'number' || !isFiniteNumber(value)) return value;
+
+    const { domainMin, domainMax } = scale;
+    if (typeof domainMin !== 'bigint' && typeof domainMax !== 'bigint') return value;
+
+    if (typeof domainMin === 'bigint' && Number(domainMin) === value) return domainMin;
+    if (typeof domainMax === 'bigint' && Number(domainMax) === value) return domainMax;
+
+    return BigInt(Math.round(value));
 }

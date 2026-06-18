@@ -1367,6 +1367,45 @@ describe('Zoom', () => {
             expect(chart.getState().zoom?.rangeY).toEqual(saved.zoom?.rangeY);
         });
 
+        it('should serialise a bigint zoom range as { __type: "bigint", value }', async () => {
+            const BIGINT_X_OPTIONS: AgChartOptions = {
+                ...BIGINT_EXAMPLE_OPTIONS,
+                data: [
+                    { x: BIG, y: BIG },
+                    { x: BIG * 2n, y: BIG * 3n },
+                    { x: BIG * 3n, y: BIG * 2n },
+                    { x: BIG * 4n, y: BIG * 4n },
+                ],
+                // nice: false keeps the domain endpoints exactly on the data, so the boundary endpoint
+                // re-snaps to the exact bigint rather than a niced round number.
+                axes: {
+                    x: { type: 'number', position: 'bottom', nice: false },
+                    y: { type: 'number', position: 'left', nice: false },
+                },
+            };
+
+            await prepareChart(undefined, { ratioY: { start: 0.2, end: 0.6 } }, BIGINT_X_OPTIONS, false);
+            await waitForChartStability(chart);
+
+            const state = chart.getState();
+
+            // Both axes carry bigint domains, so every serialised endpoint must be the encoded bigint shape
+            // rather than a JSON number that has silently lost precision above 2^53.
+            for (const endpoint of [
+                state.zoom?.rangeX?.start,
+                state.zoom?.rangeX?.end,
+                state.zoom?.rangeY?.start,
+                state.zoom?.rangeY?.end,
+            ]) {
+                expect(endpoint).toEqual({ __type: 'bigint', value: expect.stringMatching(/^-?\d+$/) });
+            }
+
+            // The boundary endpoint (zoom to the data edge) must reconstruct to the exact domain endpoint,
+            // proving the re-snap preserves precision and not just the bigint type.
+            const rangeXStart = state.zoom?.rangeX?.start as { __type: 'bigint'; value: string };
+            expect(BigInt(rangeXStart.value)).toBe(BIG);
+        });
+
         // The same zoom range endpoints supplied as `number` and as `bigint` must produce the
         // same zoom state.
         it('should produce the same zoom for bigint and number rangeX endpoints', async () => {
