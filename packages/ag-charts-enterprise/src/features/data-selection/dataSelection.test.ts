@@ -959,10 +959,10 @@ describe('DataSelection', () => {
             test('screenshot', async () => {
                 await compareExact('ag-17577-pie-series-selection-are-not-shown-in-legend-clicked-nitrogen');
             });
-            test('getSelection', async () => {
+            test('getSelection', () => {
                 expect(getChartSelectionArray()).toEqual([NITROGEN_ITEM]);
             });
-            test('selectionChange', async () => {
+            test('selectionChange', () => {
                 expect(selectionChange.popEvents()).toEqual([NITROGEN_EVENT]);
             });
         });
