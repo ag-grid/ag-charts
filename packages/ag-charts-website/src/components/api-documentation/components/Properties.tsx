@@ -13,10 +13,11 @@ interface PropertyTitleOptions {
     prefixPath?: string[];
     required?: boolean;
     hasChildProps?: boolean;
+    isExpandable?: boolean;
     childPropsOnClick?: () => void;
 }
 
-export type CollapsibleType = 'childrenProperties' | 'code' | 'none';
+export type CollapsibleType = 'childrenProperties' | 'code' | 'unionTypes' | 'none';
 
 export function PropertyTitle({
     name,
@@ -24,22 +25,24 @@ export function PropertyTitle({
     prefixPath,
     required,
     hasChildProps,
+    isExpandable,
     childPropsOnClick,
 }: PropertyTitleOptions) {
     const scrollToAnchor = useScrollToAnchor();
 
-    const propName = hasChildProps ? (
-        <span className={styles.propNameExpander} onClick={childPropsOnClick}>
-            <Icon svgClasses={styles.propNameChevron} name="chevronRight" />
-            <PropertyNamePrefix prefixPath={prefixPath} />
-            <PropertyName>{name}</PropertyName>
-        </span>
-    ) : (
-        <span>
-            <PropertyNamePrefix prefixPath={prefixPath} />
-            <PropertyName>{name}</PropertyName>
-        </span>
-    );
+    const propName =
+        hasChildProps || isExpandable ? (
+            <span className={styles.propNameExpander} onClick={childPropsOnClick}>
+                <Icon svgClasses={styles.propNameChevron} name="chevronRight" />
+                <PropertyNamePrefix prefixPath={prefixPath} />
+                <PropertyName>{name}</PropertyName>
+            </span>
+        ) : (
+            <span>
+                <PropertyNamePrefix prefixPath={prefixPath} />
+                <PropertyName>{name}</PropertyName>
+            </span>
+        );
 
     return (
         <div className={classnames(styles.name, 'side-menu-exclude')}>
@@ -120,6 +123,7 @@ export function PropertyType({
     onCollapseClick?: () => void;
 }) {
     const isCollapsibleCode = collapsibleType === 'code';
+    const isExpandable = isCollapsibleCode || collapsibleType === 'unionTypes';
 
     return (
         <div className={styles.metaItem}>
@@ -145,7 +149,7 @@ export function PropertyType({
                     <span
                         onClick={onCollapseClick}
                         className={classnames(styles.metaValue, {
-                            [styles.isExpandable]: isCollapsibleCode,
+                            [styles.isExpandable]: isExpandable,
                         })}
                     >
                         {type}

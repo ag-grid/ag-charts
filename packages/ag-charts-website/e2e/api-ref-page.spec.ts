@@ -87,20 +87,33 @@ test.describe('api-ref-page', () => {
         ]);
     });
 
-    // Series colour options type as the `AgCssColorOrRef` union; the reference renderer throws on the
-    // union unless every member is a named interface. setupIntrinsicAssertions fails on the resulting
-    // console error, and the visible `fill` row proves the section rendered through the union.
-    test('renders the bar series options page through the colour-ref union', async ({ page }) => {
+    // `fill` is the `AgColorType` union of named interfaces. setupIntrinsicAssertions fails on any
+    // pageerror, guarding the variant recursion through NodeFactory.
+    test('expands the fill union into discrete variant types and their properties', async ({ page }) => {
         await gotoUrl(page, toPageUrl('options/series/bar/#reference-AgBarSeriesOptions-fill'));
         await expect(getNavigationProperty(page, /^fill/)).toBeVisible();
 
-        // Expanding the `fill` code block is the only path that renders TypeCodeBlock -> CodeShiki.
-        // `fill` types as the `AgColorType` union, so its members resolve to a `string[]` code sample;
-        // this guards the regression where CodeShiki dropped its array handling and threw
-        // "code.trimEnd is not a function" on expansion. setupIntrinsicAssertions fails the test on the
-        // resulting pageerror, and the rendered `<pre>` proves the union block highlighted successfully.
-        await page.getByRole('button', { name: 'See more details about fill', exact: true }).click();
-        await expect(page.locator('#reference-AgBarSeriesOptions-fill-details pre').first()).toBeVisible();
+        // TC1: the "See available types" action expands the union member list.
+        await page.getByRole('button', { name: 'See available types of fill', exact: true }).click();
+
+        // TC2: discrete variant rows render under the property, styled like child properties.
+        const details = page.locator('#reference-AgBarSeriesOptions-fill-details');
+        await expect(details).toBeVisible();
+        const gradientVariant = page.locator('#reference-AgBarSeriesOptions-fill-gradient');
+        await expect(gradientVariant).toBeVisible();
+
+        // TC3: a variant expands into its own properties as standard rows, not a code block.
+        await details.getByRole('button', { name: 'See child properties of gradient', exact: true }).click();
+        await expect(page.locator('#reference-AgBarSeriesOptions-fill-gradient-rotation')).toBeVisible();
+        await expect(details.locator('pre')).toHaveCount(0);
+    });
+
+    test('deep links into a fill union variant property and auto-expands the chain', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/series/bar/#reference-AgBarSeriesOptions-fill-gradient-rotation'));
+
+        // Landing on the deep hash expands fill -> gradient and scrolls to the variant sub-property.
+        const rotation = page.locator('#reference-AgBarSeriesOptions-fill-gradient-rotation');
+        await expect(rotation).toBeVisible();
     });
 
     // The themes API page roots its search index at AgChartTheme, whose tree is far larger than the
