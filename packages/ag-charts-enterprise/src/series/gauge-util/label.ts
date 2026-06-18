@@ -38,7 +38,9 @@ export function formatLabel(value: AgNumericValue | undefined, scale: { min: AgN
 export function getLabelText(seriesId: string, ctx: Ctx, datum: GaugeLabelDatum, valueOverride?: AgNumericValue) {
     if (datum.text != null) return datum.text;
 
-    const value = valueOverride ?? datum.value;
+    // A bigint can't be precisely tweened, so the animation count-up override is Number-narrowed. Keep the
+    // raw bigint for the formatter so callbacks preserve the value type; Number values still use the tween.
+    const value = typeof datum.value === 'bigint' ? datum.value : (valueOverride ?? datum.value);
     let labelFormat: NormalisedTextOrSegments | undefined;
     if (datum?.formatter != null) {
         labelFormat = formatWithContext(ctx, datum.formatter, { seriesId, datum: undefined, value });

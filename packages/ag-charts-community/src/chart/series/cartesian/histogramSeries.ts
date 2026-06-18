@@ -549,6 +549,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             aggregatedValue,
             // cumulativeValue is the plotted bar height (crosshair geometry); narrow to Number like other series.
             cumulativeValue: Number(total),
+            cumulativeValueExact: total,
             frequency,
             yKey,
             xKey,
@@ -596,6 +597,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         mutableNode.binIndex = binIndex;
         mutableNode.aggregatedValue = aggregatedValue;
         mutableNode.cumulativeValue = Number(total);
+        mutableNode.cumulativeValueExact = total;
         mutableNode.frequency = frequency;
         mutableNode.binRange = binRange;
         mutableNode.x = x;

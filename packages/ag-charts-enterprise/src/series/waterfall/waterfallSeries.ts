@@ -566,6 +566,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             datum,
             datumIndex,
             cumulativeValue: Number(cumulativeValue ?? 0),
+            cumulativeValueExact: cumulativeValue ?? 0,
             totalValue: this.getTotalValue(seriesItemType, value),
             xValue: xDatum,
             yValue: value,
@@ -621,6 +622,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         mutableNode.datum = datum;
         mutableNode.datumIndex = datumIndex;
         mutableNode.cumulativeValue = Number(cumulativeValue ?? 0);
+        mutableNode.cumulativeValueExact = cumulativeValue ?? 0;
         mutableNode.totalValue = this.getTotalValue(seriesItemType, value);
         mutableNode.xValue = xDatum;
         mutableNode.yValue = value;

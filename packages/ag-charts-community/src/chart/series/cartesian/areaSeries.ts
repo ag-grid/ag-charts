@@ -1103,6 +1103,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                 existingNode.midPoint = { x: scratch.x, y: scratch.y };
                 // Metadata only (tooltips/error-bars); position already used the exact bigint, so narrowing here is fine.
                 existingNode.cumulativeValue = Number(scratch.yCumulative);
+                existingNode.cumulativeValueExact = scratch.yCumulative;
                 existingNode.yValue = scratch.yDatum;
                 existingNode.xValue = scratch.xDatum;
                 existingNode.point = { x: scratch.x, y: scratch.y, size: ctx.markerSize };
@@ -1114,6 +1115,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                     datumIndex,
                     midPoint: { x: scratch.x, y: scratch.y },
                     cumulativeValue: Number(scratch.yCumulative),
+                    cumulativeValueExact: scratch.yCumulative,
                     yValue: scratch.yDatum,
                     xValue: scratch.xDatum,
                     yKey: ctx.yKey,

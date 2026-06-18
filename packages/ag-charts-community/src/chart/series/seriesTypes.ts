@@ -190,6 +190,12 @@ export interface SeriesNodeDatum {
     readonly datums?: unknown[];
     /** Waterfall series only: the computed cumulative value for `total`/`subtotal` bars. */
     readonly totalValue?: AgNumericValue;
+    /**
+     * Full-precision counterpart of {@link ErrorBoundSeriesNodeDatum.cumulativeValue}, which narrows to
+     * Number for geometry/arithmetic. Display surfaces (e.g. the crosshair label) read this so a bigint
+     * value keeps full precision rather than the float64-rounded `cumulativeValue`.
+     */
+    readonly cumulativeValueExact?: AgNumericValue;
     readonly datumIndex: DatumIndex;
     readonly point?: Readonly<Point> & SizedPoint;
     readonly missing?: boolean;

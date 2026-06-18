@@ -547,6 +547,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                 (existingNode as any).midPoint = { x: scratch.x, y: scratch.y };
                 // Metadata only; position already used the exact bigint, so narrowing here is fine.
                 (existingNode as any).cumulativeValue = Number(scratch.yCumulative);
+                (existingNode as any).cumulativeValueExact = scratch.yCumulative;
                 (existingNode as any).yValue = scratch.yDatum;
                 (existingNode as any).xValue = scratch.xDatum;
                 (existingNode as any).labelText = labelText;
@@ -561,6 +562,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                     point: { x: scratch.x, y: scratch.y, size: ctx.size },
                     midPoint: { x: scratch.x, y: scratch.y },
                     cumulativeValue: Number(scratch.yCumulative),
+                    cumulativeValueExact: scratch.yCumulative,
                     yValue: scratch.yDatum,
                     xValue: scratch.xDatum,
                     capDefaults: ctx.capDefaults,

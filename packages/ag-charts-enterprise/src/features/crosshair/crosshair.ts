@@ -406,7 +406,7 @@ export class Crosshair
         activeHighlight: Exclude<_ModuleSupport.HighlightChangeEvent['currentHighlight'], undefined>
     ): { [key: string]: { position: number; value: any } } {
         const { axisCtx } = this;
-        const { series, xKey = '', aggregatedValue, cumulativeValue, midPoint } = activeHighlight;
+        const { series, xKey = '', aggregatedValue, cumulativeValue, cumulativeValueExact, midPoint } = activeHighlight;
         const datum = readDatum(activeHighlight);
         const seriesKeyProperties = series.getKeyProperties(axisCtx.direction);
 
@@ -416,9 +416,11 @@ export class Crosshair
         const isYKey = seriesKeyProperties.includes('yKey') && matchingAxisId;
         const isXKey = seriesKeyProperties.includes('xKey') && matchingAxisId;
 
-        // Histogram exposes a raw, area-independent `aggregatedValue` for callbacks rather than the
-        // plotted height, so prefer `cumulativeValue` (the drawn value) when present.
-        const datumValue = cumulativeValue ?? aggregatedValue;
+        // `cumulativeValueExact` keeps full precision for a bigint plotted value (the narrowed
+        // `cumulativeValue` would float64-round it). Histogram exposes a raw, area-independent
+        // `aggregatedValue` for callbacks rather than the plotted height, so prefer the plotted value
+        // (`cumulativeValueExact`/`cumulativeValue`) when present.
+        const datumValue = cumulativeValueExact ?? cumulativeValue ?? aggregatedValue;
         if (isYKey && datumValue !== undefined) {
             const position = axisCtx.scale.convert(datumValue) + halfBandwidth;
             const isInRange = this.isInRange(position);
