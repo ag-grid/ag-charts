@@ -898,6 +898,7 @@ export abstract class OhlcSeriesBase<
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
         const selectionStateString = this.getSelectionStateString(datumIndex);
+        const candidateStateString = this.getCandidateStateString(datumIndex);
 
         const params: CallbackParamRules<AgOhlcSeriesItemStylerParams> = {
             seriesId,
@@ -910,6 +911,7 @@ export abstract class OhlcSeriesBase<
             lowKey,
             highlightState: highlightStateString,
             selectionState: selectionStateString,
+            candidateState: candidateStateString,
             ...style,
         };
 

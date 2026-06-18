@@ -1537,13 +1537,15 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
 
     makeStylerParams(
         highlightStateEnum: HighlightState | undefined,
-        selectionStateEnum: SelectionState | undefined
+        selectionStateEnum: SelectionState | undefined,
+        candidateStateEnum: SelectionState | undefined
     ): AgAreaSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
         const { marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth, xKey, yKey } =
             this.properties;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
         const selectionState = toSelectionString(selectionStateEnum);
+        const candidateState = toSelectionString(candidateStateEnum);
 
         type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> };
         type ResultRules = CallbackParamRules<AgAreaSeriesStylerParams<unknown, unknown> & MarkerRules>;
@@ -1561,6 +1563,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             },
             highlightState,
             selectionState,
+            candidateState,
             fill,
             fillOpacity,
             lineDash,
@@ -1837,7 +1840,8 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         let stylerResult: AgAreaSeriesStylerResult & { marker?: { enabled?: boolean } } = {};
         if (styler) {
             const selectionState: SelectionState | undefined = this.getDataSelectionState(undefined);
-            const stylerParams = this.makeStylerParams(highlightState, selectionState);
+            const candidateState: SelectionState | undefined = this.getDataCandidacyState(undefined);
+            const stylerParams = this.makeStylerParams(highlightState, selectionState, candidateState);
             const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
             const resolved = this.ctx.optionsGraphService.resolvePartial(
                 ['series', `${this.declarationOrder}`],

@@ -57,15 +57,18 @@ interface RadialSectorSeries<D extends BaseNodeDatum> {
     ): HighlightStateString;
     getSelectionStyle(
         datumIndex?: number,
-        selectionState?: _ModuleSupport.SelectionState
+        selectionState?: _ModuleSupport.SelectionState,
+        candidateState?: _ModuleSupport.SelectionState
     ): AgRadialSeriesStyle | undefined;
     getSelectionStateString(datumIndex: number | undefined): SelectionStateString | undefined;
+    getCandidateStateString(datumIndex: number | undefined): SelectionStateString | undefined;
 }
 
 export function makeStylerParams(
     series: RadialSectorSeries<BaseNodeDatum>,
     highlightStateEnum: _ModuleSupport.HighlightState | undefined,
-    selectionStateEnum: _ModuleSupport.SelectionState | undefined
+    selectionStateEnum: _ModuleSupport.SelectionState | undefined,
+    candidateStateEnum: _ModuleSupport.SelectionState | undefined
 ): AgRadialSeriesStylerParams<unknown, unknown> {
     const { id: seriesId } = series;
     const {
@@ -83,6 +86,7 @@ export function makeStylerParams(
     } = series.properties;
     const highlightState = toHighlightString(highlightStateEnum ?? _ModuleSupport.HighlightState.None);
     const selectionState = toSelectionString(selectionStateEnum);
+    const candidateState = toSelectionString(candidateStateEnum);
 
     type T = ReturnType<typeof makeStylerParams>;
     type Rules = CallbackParamRules<T>;
@@ -93,6 +97,7 @@ export function makeStylerParams(
         fillOpacity,
         highlightState,
         selectionState,
+        candidateState,
         lineDash,
         lineDashOffset,
         radiusKey,
@@ -108,12 +113,13 @@ export function getStyle(
     series: RadialSectorSeries<BaseNodeDatum>,
     ignoreStylerCallback: boolean,
     highlightState: _ModuleSupport.HighlightState | undefined,
-    selectionState: _ModuleSupport.SelectionState | undefined
+    selectionState: _ModuleSupport.SelectionState | undefined,
+    candidateState: _ModuleSupport.SelectionState | undefined
 ): RadialSeriesStyleResult {
     const { styler } = series.properties;
     let stylerResult: AgRadialSeriesStyle = {};
     if (!ignoreStylerCallback && styler) {
-        const stylerParams = makeStylerParams(series, highlightState, selectionState);
+        const stylerParams = makeStylerParams(series, highlightState, selectionState, candidateState);
         stylerResult =
             series.ctx.optionsGraphService.resolvePartial(
                 ['series', `${series.declarationOrder}`],
@@ -147,6 +153,7 @@ export function makeItemStylerParams<D extends BaseNodeDatum, S extends RadialSe
     const activeHighlight = series.ctx.highlightManager?.getActiveHighlight();
     const highlightStateString = series.getHighlightStateString(activeHighlight, isHighlight, nodeDatum.datumIndex);
     const selectionStateString = series.getSelectionStateString(nodeDatum.datumIndex);
+    const candidateStateString = series.getCandidateStateString(nodeDatum.datumIndex);
     const fill = series.filterItemStylerFillParams(style.fill) ?? style.fill;
 
     type ItemStylerParamRules = CallbackParamRules<AgRadialSeriesItemStylerParams<unknown, never>>;
@@ -155,6 +162,7 @@ export function makeItemStylerParams<D extends BaseNodeDatum, S extends RadialSe
         datum: nodeDatum.datum,
         highlightState: highlightStateString,
         selectionState: selectionStateString,
+        candidateState: candidateStateString,
         angleKey,
         radiusKey,
         ...style,
@@ -167,18 +175,19 @@ export function getItemStyle<D extends BaseNodeDatum, S extends RadialSectorSeri
     nodeDatum: D | undefined,
     isHighlight: boolean,
     highlightState: _ModuleSupport.HighlightState | undefined,
-    selectionState: _ModuleSupport.SelectionState | undefined
+    selectionState: _ModuleSupport.SelectionState | undefined,
+    candidateState: _ModuleSupport.SelectionState | undefined
 ): RadialSeriesStyleResult {
     const { properties } = series;
     const { itemStyler } = properties;
 
     const highlightStyle = series.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
     // Pre-resolved selectionState is forwarded by the no-itemStyler cache path.
-    const selectionStyle = series.getSelectionStyle(nodeDatum?.datumIndex, selectionState);
+    const selectionStyle = series.getSelectionStyle(nodeDatum?.datumIndex, selectionState, candidateState);
     const baseStyle = mergeDefaults(
         selectionStyle,
         highlightStyle,
-        getStyle(series, nodeDatum === undefined, highlightState, selectionState)
+        getStyle(series, nodeDatum === undefined, highlightState, selectionState, candidateState)
     );
     let style = baseStyle;
 

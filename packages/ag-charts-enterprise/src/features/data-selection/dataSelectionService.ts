@@ -49,6 +49,15 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
         );
     }
 
+    private isSeriesSelectionEnabled(series: SeriesLike): boolean {
+        if (!series.isSelectionEnabled() || this.ctx === undefined) return false;
+
+        const options = this.ctx.chartState.getValue('options');
+        if (!options?.selection?.enabled) return false;
+
+        return true;
+    }
+
     clearSelection(): void {
         for (const [_, selection] of this.selections) {
             selection.clear();
@@ -160,12 +169,9 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
     }
 
     getDataSelectionState(series: SeriesLike, datumIndex: number | undefined): SelectionStateEnum | undefined {
-        if (!series.isSelectionEnabled() || this.ctx === undefined) return undefined;
+        if (!this.isSeriesSelectionEnabled(series)) return undefined;
 
-        const options = this.ctx.chartState.getValue('options');
-        if (!options?.selection?.enabled) return undefined;
-
-        if (this.totalSelectedCount === 0 && this.totalCandidacyCount === 0) {
+        if (this.totalSelectedCount === 0) {
             return SelectionState.None;
         }
 
@@ -175,15 +181,27 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
         // be the bucket's representative index. Fall back to the per-datum
         // bitset when no aggregation level applies.
         const selectionBuffer = this.getDataSetSelection(series);
-        const candidacyField = this.candidacy.get(series.id);
         if (typeof datumIndex === 'number') {
-            if (candidacyField?.getBit(datumIndex) === 1) {
-                return SelectionState.Item;
-            }
-
             const aggregated = series.ensureBucketLookupFeature()?.isBucketSelected(datumIndex);
             const isItem = aggregated ?? selectionBuffer?.isSelected(datumIndex) ?? false;
             if (isItem) {
+                return SelectionState.Item;
+            } else {
+                return SelectionState.OtherItem;
+            }
+        }
+        return SelectionState.OtherSeries;
+    }
+
+    getDataCandidateState(series: SeriesLike, datumIndex: number | undefined): SelectionStateEnum | undefined {
+        if (!this.isSeriesSelectionEnabled(series)) return undefined;
+
+        if (this.totalCandidacyCount === 0) {
+            return SelectionState.None;
+        }
+        const candidacyField = this.candidacy.get(series.id);
+        if (typeof datumIndex === 'number') {
+            if (candidacyField?.getBit(datumIndex) === 1) {
                 return SelectionState.Item;
             } else {
                 return SelectionState.OtherItem;

@@ -948,12 +948,14 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
 
     makeStylerParams(
         highlightStateEnum: HighlightState | undefined,
-        selectionStateEnum: SelectionState | undefined
+        selectionStateEnum: SelectionState | undefined,
+        candidateStateEnum: SelectionState | undefined
     ): AgLineSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
         const { marker, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth, xKey, yKey } = this.properties;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
         const selectionState = toSelectionString(selectionStateEnum);
+        const candidateState = toSelectionString(candidateStateEnum);
 
         type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> };
         type ResultRules = CallbackParamRules<AgLineSeriesStylerParams<unknown, unknown> & MarkerRules>;
@@ -971,6 +973,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             },
             highlightState,
             selectionState,
+            candidateState,
             lineDash,
             lineDashOffset,
             seriesId,
@@ -1289,7 +1292,8 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         let stylerResult: AgLineSeriesStylerResult = {};
         if (styler) {
             const selectionState: SelectionState | undefined = this.getDataSelectionState(undefined);
-            const stylerParams = this.makeStylerParams(highlightState, selectionState);
+            const candidateState: SelectionState | undefined = this.getDataCandidacyState(undefined);
+            const stylerParams = this.makeStylerParams(highlightState, selectionState, candidateState);
             const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
             const resolved = this.ctx.optionsGraphService.resolvePartial(
                 ['series', `${this.declarationOrder}`],

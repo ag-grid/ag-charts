@@ -991,7 +991,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     private getStyle(
         ignoreStylerCallback: boolean,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        selectionState: _ModuleSupport.SelectionState | undefined
+        selectionState: _ModuleSupport.SelectionState | undefined,
+        candidateState: _ModuleSupport.SelectionState | undefined
     ): Required<AgRangeBarSeriesStyle> & { opacity: number } {
         const {
             cornerRadius,
@@ -1006,7 +1007,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         } = this.properties;
         let stylerResult: AgRangeBarSeriesStyle = {};
         if (!ignoreStylerCallback && styler) {
-            const stylerParams = this.makeStylerParams(highlightState, selectionState);
+            const stylerParams = this.makeStylerParams(highlightState, selectionState, candidateState);
             stylerResult =
                 this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
@@ -1029,7 +1030,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
     private makeStylerParams(
         highlightStateEnum: _ModuleSupport.HighlightState | undefined,
-        selectionStateEnum: _ModuleSupport.SelectionState | undefined
+        selectionStateEnum: _ModuleSupport.SelectionState | undefined,
+        candidateStateEnum: _ModuleSupport.SelectionState | undefined
     ): AgRangeBarSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
         const {
@@ -1047,6 +1049,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         } = this.properties;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
         const selectionState = toSelectionString(selectionStateEnum);
+        const candidateState = toSelectionString(candidateStateEnum);
 
         return {
             cornerRadius,
@@ -1054,6 +1057,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             fillOpacity,
             highlightState,
             selectionState,
+            candidateState,
             lineDash,
             lineDashOffset,
             seriesId,
@@ -1083,17 +1087,18 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         datumIndex: number | undefined,
         isHighlight: boolean,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        selectionState: _ModuleSupport.SelectionState | undefined
+        selectionState: _ModuleSupport.SelectionState | undefined,
+        candidateState: _ModuleSupport.SelectionState | undefined
     ): Required<AgRangeBarSeriesStyle> {
         const { properties, dataModel, processedData } = this;
         const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        const selectionStyle = this.getSelectionStyle(datumIndex);
+        const selectionStyle = this.getSelectionStyle(datumIndex, selectionState, candidateState);
         let style = mergeDefaults(
             selectionStyle,
             highlightStyle,
-            this.getStyle(datumIndex === undefined, highlightState, selectionState)
+            this.getStyle(datumIndex === undefined, highlightState, selectionState, candidateState)
         );
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
@@ -1122,6 +1127,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
         const selectionStateString = this.getSelectionStateString(datumIndex);
+        const candidateStateString = this.getCandidateStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
@@ -1132,6 +1138,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yLowKey,
             highlightState: highlightStateString,
             selectionState: selectionStateString,
+            candidateState: candidateStateString,
             ...style,
             fill,
         } satisfies CallbackParamRules<AgRangeBarSeriesItemStylerParams>;
@@ -1146,7 +1153,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             if (!opts.datumSelection.isGarbage(node)) {
                 const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
                 const selectionState = this.getDataSelectionState(datum.datumIndex);
-                datum.style = this.getItemStyle(datum.datumIndex, opts.isHighlight, highlightState, selectionState);
+                const candidateState = this.getDataCandidacyState(datum.datumIndex);
+                datum.style = this.getItemStyle(
+                    datum.datumIndex,
+                    opts.isHighlight,
+                    highlightState,
+                    selectionState,
+                    candidateState
+                );
             }
         });
     }
@@ -1246,7 +1260,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const allowNullKeys = this.properties.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
-        const format = this.getItemStyle(datumIndex, false, undefined, undefined);
+        const format = this.getItemStyle(datumIndex, false, undefined, undefined, undefined);
         const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;
         return this.formatTooltipWithContext(
             tooltip,
@@ -1285,6 +1299,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.getStyle(
             false,
             HighlightState.None,
+            undefined,
             undefined
         );
         return {

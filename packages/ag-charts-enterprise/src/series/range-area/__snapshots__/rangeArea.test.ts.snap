@@ -4,6 +4,7 @@ exports[`RangeAreaSeries > AG-15782 styler > init > callbacks > params 1`] = `
 [
   [
     {
+      "candidateState": undefined,
       "context": {
         "name": "gain context",
       },
@@ -65,6 +66,7 @@ exports[`RangeAreaSeries > AG-15782 styler > init > callbacks > params 1`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "context": {
         "name": "loss context",
       },

@@ -854,6 +854,7 @@ export class SankeySeries extends FlowProportionSeries<
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
         const selectionState = this.getSelectionStateString(datumIndex);
+        const candidateState = this.getCandidateStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
@@ -864,6 +865,7 @@ export class SankeySeries extends FlowProportionSeries<
             sizeKey,
             highlightState,
             selectionState,
+            candidateState,
             ...style,
             size,
             label,
