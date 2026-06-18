@@ -1,7 +1,8 @@
+import astroPackageJson from 'astro/package.json';
 import { createHash } from 'node:crypto';
 
 import { DARK_MODE_INIT_SCRIPT, PLAUSIBLE_INIT_SCRIPT } from '../csp/inlineScripts';
-import { getCspDirectives, getScopedCspHtaccessBlock } from './cspRules';
+import { ASTRO_HYDRATION_HASHES_VERIFIED_FOR, getCspDirectives, getScopedCspHtaccessBlock } from './cspRules';
 
 const sha256Source = (source: string) => `'sha256-${createHash('sha256').update(source, 'utf8').digest('base64')}'`;
 const hasHash = (sources: string[]) => sources.some((s) => s.startsWith("'sha256-"));
@@ -55,6 +56,25 @@ describe('cspRules', () => {
             expect(scriptSrc).toContain(sha256Source(PLAUSIBLE_INIT_SCRIPT));
         });
 
+        it('site scope authorises the (non-externalisable) Astro hydration scripts by hash', () => {
+            // Astro's framework-injected hydration scripts cannot be externalised, so
+            // they are pinned by hash (ASTRO_HYDRATION_SCRIPT_HASHES). Regenerate when
+            // bumping Astro — see cspRules.ts.
+            const scriptSrc = getCspDirectives({ env: 'production', scope: 'site' })['script-src'];
+            expect(scriptSrc).toContain("'sha256-BrDhGE1lwa85arfXcrBxSo+n37uVSX5CAROXnIM6Q+g='"); // <astro-island> runtime
+            expect(scriptSrc).toContain("'sha256-QzWFZi+FLIx23tnm9SBU4aEgx4x8DsuASP07mfqol/c='"); // client:load
+            expect(scriptSrc).toContain("'sha256-BF0290pkb3jxQsE7z00xR8Imp8X34FLC88L0lkMnrGw='"); // client:idle
+        });
+
+        it('site scope authorises the GTM-injected ZoomInfo bootstrap by hash', () => {
+            // Authored in the shared GTM container (not this repo); hash captured from
+            // the browser CSP violation. Site only — examples keeps unsafe-inline.
+            const site = getCspDirectives({ env: 'production', scope: 'site' })['script-src'];
+            expect(site).toContain("'sha256-41l+jvtOjBgKy9345IStB4j1gGPGFMVXADMHn1Acs6E='");
+            const examples = getCspDirectives({ env: 'production', scope: 'examples' })['script-src'];
+            expect(examples).not.toContain("'sha256-41l+jvtOjBgKy9345IStB4j1gGPGFMVXADMHn1Acs6E='");
+        });
+
         it('examples keeps unsafe-inline with no hashes; dev site keeps unsafe-inline (Phase B)', () => {
             const examples = getCspDirectives({ env: 'production', scope: 'examples' })['script-src'];
             expect(examples).toContain("'unsafe-inline'");
@@ -77,6 +97,19 @@ describe('cspRules', () => {
             const site = getCspDirectives({ env: 'production', scope: 'site' });
             expect(site['style-src']).toContain('https://cdnjs.cloudflare.com');
             expect(site['font-src']).toContain('https://cdnjs.cloudflare.com');
+        });
+
+        it('Astro hydration-script hashes are still verified for the installed Astro version', () => {
+            // The 'site' policy pins Astro's framework-injected hydration-runtime
+            // script hashes (ASTRO_HYDRATION_SCRIPT_HASHES). Astro emits and minifies
+            // these, so an upgrade can change them — leaving the pinned hashes stale
+            // and (since staging enforces this scope) blocking hydration across the site.
+            //
+            // This test fails when Astro is upgraded so the staleness is caught here
+            // rather than on staging. To fix it, regenerate the hashes and bump the
+            // version — see the "HOW TO REGENERATE AFTER AN ASTRO UPGRADE" steps above
+            // ASTRO_HYDRATION_SCRIPT_HASHES in cspRules.ts.
+            expect(astroPackageJson.version).toBe(ASTRO_HYDRATION_HASHES_VERIFIED_FOR);
         });
     });
 

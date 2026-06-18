@@ -74,7 +74,58 @@ const UNSAFE_EVAL = "'unsafe-eval'";
 // production report-only window is the backstop before enforcing).
 const hashInlineScript = (source: string): string =>
     `'sha256-${createHash('sha256').update(source, 'utf8').digest('base64')}'`;
-const SITE_SCRIPT_HASHES = [hashInlineScript(DARK_MODE_INIT_SCRIPT), hashInlineScript(PLAUSIBLE_INIT_SCRIPT)];
+
+// Astro injects a small, fixed set of inline hydration-runtime scripts that we
+// cannot externalise — they are emitted (and minified) by the framework, not
+// authored here. Every OTHER site inline script is externalised to a 'self' bundle
+// (the GTM bootstrap; the homepage gallery; FrameworkRedirectPage), so these are the
+// only inline scripts the 'site' scope authorises by hash.
+//
+// Because the rendered bytes are Astro's build-time output, there is no source
+// string to derive these from — they are pinned, and they change when Astro's
+// hydration runtime changes, i.e. on an Astro upgrade. ASTRO_HYDRATION_HASHES_VERIFIED_FOR
+// records the Astro version they were captured against; cspRules.test.ts fails when
+// the installed version no longer matches, so an upgrade cannot silently leave the
+// policy stale (which would block hydration site-wide — staging enforces this scope).
+//
+// === HOW TO REGENERATE AFTER AN ASTRO UPGRADE ===
+//   1. yarn nx build ag-charts-website
+//   2. yarn nx run ag-charts-website:preview:csp          (serves the build with the enforced policy)
+//   3. Open https://localhost:4601/ plus a page using each client: directive
+//      (load/idle/only/visible) and read the browser console: every blocked inline
+//      script logs the missing 'sha256-...' value in its CSP violation. (Equivalently,
+//      hash the inline <script> contents in dist and diff against the list below.)
+//   4. Replace the hashes below with the new values, and bump
+//      ASTRO_HYDRATION_HASHES_VERIFIED_FOR to the new Astro version.
+export const ASTRO_HYDRATION_HASHES_VERIFIED_FOR = '6.1.9';
+const ASTRO_HYDRATION_SCRIPT_HASHES = [
+    "'sha256-QzWFZi+FLIx23tnm9SBU4aEgx4x8DsuASP07mfqol/c='", // client:load bootstrap
+    "'sha256-eIXWvAmxkr251LJZkjniEK5LcPF3NkapbJepohwYRIc='", // client:only bootstrap
+    "'sha256-Q2BPg90ZMplYY+FSdApNErhpWafg2hcRRbndmvxuL/Q='", // client:visible bootstrap
+    "'sha256-BF0290pkb3jxQsE7z00xR8Imp8X34FLC88L0lkMnrGw='", // client:idle bootstrap
+    "'sha256-BrDhGE1lwa85arfXcrBxSo+n37uVSX5CAROXnIM6Q+g='", // <astro-island> hydration runtime
+];
+
+// SHA-256 of the inline ZoomInfo (WebSights) bootstrap that the shared Google Tag
+// Manager container injects as a Custom HTML tag once the visitor accepts functional
+// cookie consent. Unlike the scripts above, this one is authored in GTM, not this
+// repo — so the value is taken from the browser's CSP violation report, NOT by
+// hashing the GTM source (GTM normalises the injected bytes, so the source does not
+// reproduce this digest).
+//
+// FRAGILE — this pins ZoomInfo's exact bytes. If the ZoomInfo tag in GTM is edited,
+// or ZoomInfo regenerates its loader snippet, the hash stops matching and ZoomInfo
+// silently fails to load for consenting users. The GTM tag carries a note pointing
+// back here; if it changes, replace this with the new console-reported hash (here and
+// in the ag-grid / ag-studio CSPs — the GTM container is shared). AG-17134.
+const GTM_ZOOMINFO_HASH = "'sha256-41l+jvtOjBgKy9345IStB4j1gGPGFMVXADMHn1Acs6E='";
+
+const SITE_SCRIPT_HASHES = [
+    hashInlineScript(DARK_MODE_INIT_SCRIPT),
+    hashInlineScript(PLAUSIBLE_INIT_SCRIPT),
+    ...ASTRO_HYDRATION_SCRIPT_HASHES,
+    GTM_ZOOMINFO_HASH,
+];
 
 // Apache <If> expression matching the URL paths that get the 'examples' scope.
 // Charts serves example-runner documents at both /gallery/examples/<name>/... and
@@ -82,6 +133,12 @@ const SITE_SCRIPT_HASHES = [hashInlineScript(DARK_MODE_INIT_SCRIPT), hashInlineS
 // production, so '/examples/' is not a leading prefix — match the segment anywhere.
 // '/archive/' covers archived doc versions (which ship the same runner).
 export const EXAMPLES_PATH_CONDITION = '%{REQUEST_URI} =~ m#/(examples|archive)/#';
+
+// JS equivalent of EXAMPLES_PATH_CONDITION above, for the dev-server (agDevCsp) and
+// preview-server (preview-csp) middleware that scope the served CSP by URL path.
+// No leading anchor: the site is served under the /charts base, so '/examples/' is
+// not a leading prefix. Keep in sync with EXAMPLES_PATH_CONDITION.
+export const EXAMPLES_PATH_REGEXP = /\/(examples|archive)\//;
 
 // 'self' resolves to www.ag-grid.com on production (charts lives under /charts) and
 // charts-staging.ag-grid.com on staging, so cross-subdomain references to the

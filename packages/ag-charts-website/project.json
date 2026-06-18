@@ -79,6 +79,17 @@
         "production": {}
       }
     },
+    "preview:csp": {
+      "dependsOn": [
+        {
+          "target": "build"
+        }
+      ],
+      "command": "tsx scripts/csp/preview-csp.ts --port=${PORT}",
+      "options": {
+        "cwd": "packages/ag-charts-website"
+      }
+    },
     "lint:eslint": {},
     "lint:spell": {
       "command": "npx cspell --no-progress --show-context --config ../../cspell.json \"src/**/*.{mdoc,astro}\" \"src/content/**/*.json\"",
