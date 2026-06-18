@@ -52,24 +52,30 @@ async function main() {
     const url = `${argv['base-url']}/vanilla/benchmarks/examples/${argv.example}?benchmark=true${testCasesQuery}`;
 
     const browser = await chromium.launch();
-    const context = await browser.newContext({ viewport: { width: 800, height: 600 }, deviceScaleFactor: 2 });
-    const page = await context.newPage();
-    const cdp = await context.newCDPSession(page);
-    await cdp.send('Profiler.enable');
-    await cdp.send('Profiler.setSamplingInterval', { interval: argv['sampling-interval-us'] });
-    await cdp.send('Profiler.start');
+    let profile;
+    let benchmarkError;
+    let results;
+    try {
+        const context = await browser.newContext({ viewport: { width: 800, height: 600 }, deviceScaleFactor: 2 });
+        const page = await context.newPage();
+        const cdp = await context.newCDPSession(page);
+        await cdp.send('Profiler.enable');
+        await cdp.send('Profiler.setSamplingInterval', { interval: argv['sampling-interval-us'] });
+        await cdp.send('Profiler.start');
 
-    console.log(`Navigating to ${url}`);
-    await page.goto(url, { waitUntil: 'load', timeout: 60_000 });
-    await page.waitForFunction(() => (window as any).__benchmarkComplete === true, undefined, {
-        timeout: argv.timeout,
-        polling: 1_000,
-    });
+        console.log(`Navigating to ${url}`);
+        await page.goto(url, { waitUntil: 'load', timeout: 60_000 });
+        await page.waitForFunction(() => (window as any).__benchmarkComplete === true, undefined, {
+            timeout: argv.timeout,
+            polling: 1_000,
+        });
 
-    const { profile } = await cdp.send('Profiler.stop');
-    const benchmarkError = await page.evaluate(() => (window as any).__benchmarkError);
-    const results = await page.evaluate(() => (window as any).__benchmarkResults);
-    await browser.close();
+        ({ profile } = await cdp.send('Profiler.stop'));
+        benchmarkError = await page.evaluate(() => (window as any).__benchmarkError);
+        results = await page.evaluate(() => (window as any).__benchmarkResults);
+    } finally {
+        await browser.close();
+    }
 
     if (benchmarkError) {
         console.error(`Benchmark reported an error: ${benchmarkError}`);
