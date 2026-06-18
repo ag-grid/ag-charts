@@ -79,7 +79,7 @@ type ChartOperation =
     | { $isSeriesType: Leaf<string> };
 
 type ColorOperation =
-    | { $foregroundBackgroundMix: Leaf<number> } // Ratio of background (0 to 1)
+    | { $foregroundBackgroundMix: Leaf<number> } // Ratio of foreground (0 to 1)
     | { $foregroundOpacity: Leaf<number> } // Opacity (0 to 1)
     | { $interpolate: [AnyLeaf, Leaf<number>] } // Array of colours | Length of interpolated array
     | { $isGradient: AnyLeaf } // Target vertex

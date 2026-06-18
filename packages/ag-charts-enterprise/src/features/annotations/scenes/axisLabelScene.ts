@@ -24,7 +24,8 @@ export class AxisLabelScene extends _ModuleSupport.Group {
 
         const { label } = this;
         label.fontSize = 12;
-        label.fontFamily = 'Verdana, sans-serif';
+        label.fontFamily =
+            '"IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
         label.fill = 'black';
         label.textBaseline = 'middle';
         label.textAlign = 'center';

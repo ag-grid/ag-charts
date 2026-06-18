@@ -69,7 +69,7 @@ export const themeOperator = (value: unknown) => {
 // Validator for public theme operators.
 const themeParams = [
     'accentColor',
-    'axisColor',
+    'axisLineColor',
     'backgroundColor',
     'borderColor',
     'borderRadius',
@@ -108,7 +108,7 @@ const themeParams = [
     'tooltipSubtleTextColor',
     'crosshairLabelBackgroundColor',
     'crosshairLabelTextColor',
-    'separationLinesColor',
+    'groupedCategoryLineColor',
 ];
 const themeParamsValidator = union(...themeParams);
 const colorRefDef = attachDescription(

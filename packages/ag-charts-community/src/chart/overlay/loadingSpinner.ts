@@ -14,7 +14,7 @@ export function getLoadingSpinner(agDocument: AgDocument, text: string, defaultD
         flexDirection: 'column',
         height: '100%',
         boxSizing: 'border-box',
-        font: '13px Verdana, sans-serif', // FONT_SIZE.MEDIUM
+        font: '13px "IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif', // FONT_SIZE.MEDIUM
         userSelect: 'none',
         animation: `ag-charts-loading ${duration}ms linear 50ms both`,
     });

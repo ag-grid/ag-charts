@@ -88,13 +88,13 @@ export const commonAxisThemeTemplate = {
     line: {
         enabled: true,
         width: 1,
-        stroke: { $ref: 'axisColor' },
+        stroke: { $ref: 'axisLineColor' },
     },
     tick: {
         enabled: false,
         size: 6,
         width: 1,
-        stroke: { $ref: 'axisColor' },
+        stroke: { $ref: 'axisLineColor' },
     },
     gridLine: {
         enabled: true,

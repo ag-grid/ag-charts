@@ -65,7 +65,7 @@ import type { ChartType } from '../chartType';
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
-const DEFAULT_BACKGROUND_FILL = 'white';
+const DEFAULT_BACKGROUND_FILL = '#ffffff';
 
 type OverridesKey = keyof AgThemeOverrides;
 
@@ -149,25 +149,26 @@ export class ChartTheme {
     public static getDefaultPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
         return {
             accentColor: '#2196f3',
-            axisColor: { $foregroundBackgroundMix: 0.325 },
+            axisLineColor: { $ref: 'borderColor' },
             backgroundColor: DEFAULT_BACKGROUND_FILL,
-            borderColor: { $foregroundOpacity: 0.15 },
+            borderColor: { $foregroundBackgroundMix: 0.15 },
             borderRadius: 4,
             borderWidth: 1,
             chartBackgroundColor: { $ref: 'backgroundColor' },
             chartPadding: 20,
-            focusShadow: '0 0 0 3px var(--ag-charts-accent-color)',
+            focusShadow: '0 0 0 3px color-mix(in srgb, var(--ag-charts-accent-color) 50%, transparent)',
             foregroundColor: '#181d1f',
-            fontFamily: 'Verdana, sans-serif',
+            fontFamily:
+                '"IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif',
             fontSize: BASE_FONT_SIZE,
             fontWeight: 400,
-            gridLineColor: { $foregroundBackgroundMix: 0.1 },
+            gridLineColor: { $mix: [{ $ref: 'axisLineColor' }, { $ref: 'backgroundColor' }, 0.35] },
             popupShadow: '0 0 16px rgba(0, 0, 0, 0.15)',
             subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'chartBackgroundColor' }, 0.38] },
             textColor: { $ref: 'foregroundColor' },
 
             chromeBackgroundColor: { $foregroundBackgroundMix: 0.02 },
-            chromeFontFamily: { $ref: 'fontFamily' } as any,
+            chromeFontFamily: { $ref: 'fontFamily' },
             chromeFontSize: { $ref: 'fontSize' },
             chromeFontWeight: { $ref: 'fontWeight' },
             chromeTextColor: { $ref: 'foregroundColor' },
@@ -213,8 +214,7 @@ export class ChartTheme {
             crosshairLabelBackgroundColor: { $ref: 'foregroundColor' },
             crosshairLabelTextColor: { $ref: 'chartBackgroundColor' },
 
-            // TODO: Move this to `getPrivateParameters()`
-            separationLinesColor: { $foregroundBackgroundMix: 0.17 },
+            groupedCategoryLineColor: { $foregroundBackgroundMix: 0.17 },
         };
     }
 
