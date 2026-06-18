@@ -138,7 +138,7 @@ Three approaches add imagery to any label that accepts text segments — axis la
 Provide any image URL through the `url` property:
 
 ```js
-const url = 'https://example.com/flag.png';
+const flagsUrl = '${baseWWWUrl}/example-assets/flags/';
 ```
 
 ```js format="snippet"
@@ -150,7 +150,7 @@ const url = 'https://example.com/flag.png';
                 formatter: ({ value }) => [
                     {
                         type: 'image',
-                        url,
+                        url: flagsUrl + `${value}.png`,
                         width: 20,
                         height: 15,
                         verticalAlign: 'middle',

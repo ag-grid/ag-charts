@@ -17,6 +17,8 @@ import { TData, getData } from './data';
 
 ModuleRegistry.registerModules([AnimationModule, BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
 
+const flagsUrl = '${baseWWWUrl}/example-assets/flags/';
+
 const arrowUp =
     'data:image/svg+xml;utf8,' +
     encodeURIComponent(
@@ -35,7 +37,7 @@ const options: AgChartOptions = {
             { text: 'Top Markets ' },
             {
                 type: 'image',
-                url: '${baseWWWUrl}/example-assets/flags/us.png',
+                url: flagsUrl + 'us.png',
                 width: 24,
                 height: 18,
                 verticalAlign: 'middle',
@@ -79,7 +81,7 @@ const options: AgChartOptions = {
                 formatter: ({ value }) => [
                     {
                         type: 'image',
-                        url: '${baseWWWUrl}/example-assets/flags/' + `${value}.png`,
+                        url: flagsUrl + `${value}.png`,
                         width: 20,
                         height: 15,
                         verticalAlign: 'middle',
