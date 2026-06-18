@@ -126,6 +126,41 @@ describe('CategoryScale', () => {
         expect(scale.bandwidth).toBe(97);
     });
 
+    describe('invertGrouping', () => {
+        const newScale = () => {
+            const scale = new CategoryScale();
+            scale.domain = ['A', 'B', 'C', 'D', 'E'];
+            scale.range = [0, 500];
+            return scale;
+        };
+
+        test('returns the fractional position within a band', () => {
+            const scale = newScale();
+
+            expect(scale.invertGrouping(0)).toEqual({ value: 'A', groupPercentage: 0 });
+            expect(scale.invertGrouping(50)).toEqual({ value: 'A', groupPercentage: 0.5 });
+            expect(scale.invertGrouping(25)).toEqual({ value: 'A', groupPercentage: 0.25 });
+            expect(scale.invertGrouping(75)).toEqual({ value: 'A', groupPercentage: 0.75 });
+            expect(scale.invertGrouping(120)).toEqual({ value: 'B', groupPercentage: 0.2 });
+        });
+
+        test('round-trips against the forward convert path', () => {
+            const scale = newScale();
+            const width = scale.bandwidth;
+
+            for (const position of [0, 25, 75, 120, 230]) {
+                const grouping = scale.invertGrouping(position)!;
+                expect(grouping).toBeDefined();
+                const forward = scale.convert(grouping.value) + width * grouping.groupPercentage;
+                expect(forward).toBeCloseTo(position);
+            }
+        });
+
+        test('returns undefined for an empty domain', () => {
+            expect(new CategoryScale().invertGrouping(50)).toBeUndefined();
+        });
+    });
+
     describe('normalizeDomains', () => {
         test('de-duplicates categories', () => {
             expect(new CategoryScale().normalizeDomains({ domain: ['A', 'A'] })).toEqual({

@@ -43,6 +43,7 @@ import type {
     ZoomMementoRange,
 } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
+import { CategoryScale } from '../../scale/categoryScale';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { BBox } from '../../scene/bbox';
@@ -915,26 +916,23 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         if (!extents) return;
 
         const [d0, d1] = extents;
+        const { scale } = axis;
 
-        let start;
-        let end;
-
+        let startPos;
+        let endPos;
         if (d0 <= d1) {
-            start = axis.scale.invert(0, true); // 0 is the start of the visible axis
-            end = axis.scale.invert(d0 + (d1 - d0) * ratio.max, true);
+            startPos = 0; // 0 is the start of the visible axis
+            endPos = d0 + (d1 - d0) * ratio.max;
         } else {
-            start = axis.scale.invert(d0 - (d0 - d1) * ratio.min, true);
-            end = axis.scale.invert(0, true);
+            startPos = d0 - (d0 - d1) * ratio.min;
+            endPos = 0;
         }
 
-        if (typeof start === 'string') {
-            start = { value: start, groupPercentage: 0 };
-        }
-        if (typeof end === 'string') {
-            end = { value: end, groupPercentage: 1 };
+        if (CategoryScale.is(scale)) {
+            return { start: scale.invertGrouping(startPos), end: scale.invertGrouping(endPos) };
         }
 
-        return { start, end };
+        return { start: scale.invert(startPos, true), end: scale.invert(endPos, true) };
     }
 
     public rangeToRatioDirection(direction: CartesianAxisDirection, range: ZoomMementoRange): ZoomMinMax | undefined {

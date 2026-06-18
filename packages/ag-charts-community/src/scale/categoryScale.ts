@@ -77,6 +77,22 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
         return matches ? this.domain[index] : undefined;
     }
 
+    /**
+     * Maps a pixel position to its band value and the fractional position within that band.
+     * The width must match the forward path in `ZoomManager.rangeToRatioAxis` for an exact
+     * round-trip. The fraction is unclamped: positions outside the band fall beyond `[0, 1]`.
+     */
+    invertGrouping(position: number): { value: D; groupPercentage: number } | undefined {
+        const value = this.invert(position, true);
+        if (value == null) return undefined;
+
+        const width = this.bandwidth === 0 ? this.step : this.bandwidth;
+        const bandStart = this.convert(value);
+        const groupPercentage = width === 0 ? 0 : (position - bandStart) / width;
+
+        return { value, groupPercentage };
+    }
+
     override ticks(
         params: ScaleTickParams<I>,
         domain: D[] = this.domain,

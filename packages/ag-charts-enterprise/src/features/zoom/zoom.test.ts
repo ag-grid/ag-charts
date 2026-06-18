@@ -1436,5 +1436,22 @@ describe('Zoom', () => {
             );
             await compare();
         });
+
+        it('should report a sub-category groupPercentage when zoomed mid-band', async () => {
+            await prepareChart({}, { ratioX: { start: 0.2, end: 0.7 } }, CATEGORY_EXAMPLE_OPTIONS, false);
+            await waitForChartStability(chart);
+
+            const { rangeX } = chart.getState().zoom ?? {};
+            const start = rangeX?.start as { value: string; groupPercentage: number } | undefined;
+            const end = rangeX?.end as { value: string; groupPercentage: number } | undefined;
+
+            expect(start).toBeDefined();
+            expect(end).toBeDefined();
+            // Boundaries fall inside a band, so the reported groupPercentage is a real fraction.
+            expect(start!.groupPercentage).toBeGreaterThan(0);
+            expect(start!.groupPercentage).toBeLessThan(1);
+            expect(end!.groupPercentage).toBeGreaterThan(0);
+            expect(end!.groupPercentage).toBeLessThan(1);
+        });
     });
 });
