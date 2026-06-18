@@ -1333,9 +1333,15 @@ describe('AG-15850 activeChange', () => {
     let mockActiveChange: ReturnType<typeof newFreezableMock<D, C, M>>;
     let version: string | undefined = undefined;
 
-    // datums (histogram-only) is omitted like itemType: both are attached to the event only when present.
+    // datums (histogram-only) and totalValue (waterfall-only) are omitted like itemType: each is
+    // attached to the event only when present.
     type ExpectedAgActiveChangeEventProperties = RequireOptional<
-        DeepReadonly<Omit<AgActiveChangeEvent<unknown, unknown>, 'preventDefault' | 'context' | 'itemType' | 'datums'>>
+        DeepReadonly<
+            Omit<
+                AgActiveChangeEvent<unknown, unknown>,
+                'preventDefault' | 'context' | 'itemType' | 'datums' | 'totalValue'
+            >
+        >
     >;
     function expectAgActiveChangeEvent(props: ExpectedAgActiveChangeEventProperties) {
         const { activeItem, dataIdKey, datum, frozen, source, type, ..._rest } = props;

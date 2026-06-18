@@ -9,6 +9,8 @@
  */
 
 export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
+    ariaAnnounceSelectedItem: '選択済み',
+    ariaAnnounceUnselectedItem: '未選択',
     ariaAnnounceChart: 'チャート, ${seriesCount}[number]シリーズ',
     ariaAnnounceFlowProportionLink: 'リンク ${index} / ${count}、${from} から ${to} へ、${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'ノード ${index} / ${count}、${description}',

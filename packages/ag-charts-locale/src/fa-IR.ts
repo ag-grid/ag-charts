@@ -9,6 +9,8 @@
  */
 
 export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
+    ariaAnnounceSelectedItem: 'انتخاب‌شده',
+    ariaAnnounceUnselectedItem: 'انتخاب‌نشده',
     ariaAnnounceChart: 'چارت، ${seriesCount}[number] مجموعه',
     ariaAnnounceFlowProportionLink: 'لینک ${index} از ${count}، از ${from} به ${to}، ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'گره ${index} از ${count}، ${description}',

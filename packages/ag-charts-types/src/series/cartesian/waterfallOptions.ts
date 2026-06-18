@@ -5,6 +5,7 @@ import type {
     Renderer,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../chart/tooltipOptions';
@@ -15,13 +16,15 @@ import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, St
 
 export type AgWaterfallSeriesItemType = 'positive' | 'negative' | 'total' | 'subtotal';
 
-interface AgWaterfallSeriesItemIdParams {
-    /**
-     * The stable identifier of the bar, matching the `itemId` on node events and `activeItem`. For `total` and
-     * `subtotal` bars this is the `totals.itemId` if supplied, otherwise the `axisLabel`. For `positive` and
-     * `negative` bars it is the `dataIdKey` value if set, otherwise the bar's positional index.
-     */
+interface AgWaterfallSeriesItemParams {
+    /** The unique identifier of the item. */
     itemId: string | number;
+    /**
+     * The computed cumulative ("running total") value for `total` and `subtotal` bars.
+     *
+     * `undefined` for `positive` and `negative` bars.
+     */
+    totalValue?: AgNumericValue;
 }
 
 export type AgWaterfallSeriesItemStylerParams<
@@ -30,12 +33,12 @@ export type AgWaterfallSeriesItemStylerParams<
 > = DatumItemCallbackParams<AgWaterfallSeriesItemType, TDatum, HighlightState> &
     ContextCallbackParams<TContext> &
     AgWaterfallSeriesOptionsKeys<TDatum> &
-    AgWaterfallSeriesItemIdParams &
+    AgWaterfallSeriesItemParams &
     Required<AgWaterfallSeriesStyle>;
 
 export type AgWaterfallSeriesLabelFormatterParams<TDatum = DatumDefault> = AgWaterfallSeriesOptionsKeys<TDatum> &
     AgWaterfallSeriesOptionsNames &
-    AgWaterfallSeriesItemIdParams & { itemType: AgWaterfallSeriesItemType };
+    AgWaterfallSeriesItemParams & { itemType: AgWaterfallSeriesItemType };
 
 export interface AgWaterfallSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each bar. */
@@ -46,7 +49,7 @@ export interface AgWaterfallSeriesTooltipRendererParams<TDatum = DatumDefault, T
     extends
         AgCartesianSeriesTooltipRendererParams<TDatum, TContext>,
         AgWaterfallSeriesStyle,
-        AgWaterfallSeriesItemIdParams {
+        AgWaterfallSeriesItemParams {
     /** The type of datum. This can be `positive`, `negative`, `total` or `subtotal`. */
     itemType: AgWaterfallSeriesItemType;
 }
@@ -141,9 +144,7 @@ export interface WaterfallSeriesTotalMeta {
     /** The label to display at the axis position where the total value is positioned. */
     axisLabel: string;
     /**
-     * A stable identifier for this total bar, surfaced as `itemId` in node events, `activeItem` and the
-     * item callbacks. Synthetic total/subtotal bars have no entry in the data array, so this is the only
-     * way to give them a user-controlled identifier; when omitted, `itemId` falls back to the bar's `axisLabel`.
+     * A unique identifier for the `itemId` of this bar in events and callbacks. When omitted, `itemId` falls back to the bar's `axisLabel`.
      */
     itemId?: string;
 }

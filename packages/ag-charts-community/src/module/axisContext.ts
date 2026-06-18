@@ -65,7 +65,6 @@ export interface AxisContext {
     seriesKeyProperties(): Set<string>;
     seriesIds(): string[];
     scaleInvert(position: number): any;
-    scaleInvertNearest(position: number): any;
     formatScaleValue<FormatParams extends object = never>(
         value: unknown,
         source: 'annotation-label' | 'crosshair',

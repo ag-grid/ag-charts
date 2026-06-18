@@ -43,7 +43,7 @@ This is fired when the visibility of a series or data item is toggled. This is u
 This event contains:
 
 - The `seriesId` of the series.
-- The `itemId`, `legendItemName` or other identifiers of the changed item.
+- The [`itemId`](#item-identifiers), `legendItemName` or other identifiers of the changed item.
 - `visible` - the new visibility state of the series or item.
 
 {% chartExampleRunner title="Series Visibility Changed" name="series-visibility-change" type="generated" /%}
@@ -75,7 +75,7 @@ The event contains:
 - `activeItem` - the item that is now active, or `undefined` if no item is active.
 - The `activeItem` contains:
     - `type` - the type of the active item, either `'series-node'` or `'legend'`.
-    - `seriesId` and `itemId` identifying the active item.
+    - `seriesId` and [`itemId`](#item-identifiers) identifying the active item.
 - `datum` - the data from the chart data array for the active item.
 - `source` - the source of the event, either `'user-interaction'` or `'state-change'`.
 
@@ -161,7 +161,7 @@ These are fired on click or double-click of a legend item.
 These events contain:
 
 - The `seriesId` of the series associated with the legend item.
-- The `itemId`, usually the `yKey` value for cartesian series.
+- The [`itemId`](#item-identifiers), usually the `yKey` value for cartesian series.
 
 {% chartExampleRunner title="Legend Item Click Event" name="legend-item-click-event" type="generated" /%}
 
@@ -199,6 +199,17 @@ In this example:
 - `'exact'` (default) will trigger the event if the user clicks exactly on a node.
 - `'nearest'` will trigger the event for whichever node is nearest to the click.
 - Given a number it will trigger the event when the click is made within that many pixels of a node.
+
+## Item Identifiers
+
+Many events expose an `itemId` to identify the item within its series. How it is derived depends on the item type:
+
+- **Series nodes** use a node identifier.
+    - Automatically generated from the data, and may change when the data updates.
+    - Set `dataIdKey` to use a `datum` field as a stable identifier across data updates (see [Identifying Items by Key](./transactions/#identifying-items-by-key)).
+    - Series whose nodes don't map directly to a datum - such as [Histogram](./histogram-series/) bins and [Sankey](./sankey-series/) or [Chord](./chord-series/) nodes - expose a `getItemId` callback instead.
+    - [Waterfall](./waterfall-series/) `total` and `subtotal` bars use their `totals.itemId` if set, otherwise their `totals.axisLabel`.
+- **Legend items** use the legend item's identifier. Typically the `yKey` value for most series, or the legend item's position for series with one legend item per datum, such as `pie` and `donut`.
 
 ## API Reference
 

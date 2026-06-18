@@ -43,8 +43,6 @@ export class MiniChart extends AbstractModuleInstance {
         new Group({ name: 'Axes-Crosslines-Label', zIndex: ZIndexMap.SERIES_LABEL })
     );
 
-    public data: any = [];
-
     private _destroyed: boolean = false;
 
     private miniChartAnimationPhase: 'initial' | 'ready' = 'initial';
@@ -88,10 +86,32 @@ export class MiniChart extends AbstractModuleInstance {
     })
     series: _ModuleSupport.UnknownSeries[] = [];
 
+    private _unregisterLoader?: () => void;
+
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
-        this.cleanup.register(this.ctx.eventsHub.on('data:update', (data) => this.updateData(data)));
+        this.cleanup.register(
+            this.ctx.chartState.observe((get) => {
+                const enabled = get('options', 'navigator.miniChart.enabled');
+                if (enabled) {
+                    this._unregisterLoader?.();
+                    this._unregisterLoader = this.ctx.dataService.registerSecondaryLoader(
+                        'mini-chart',
+                        ['chart-update', 'data-update', 'range-check', 'state-change', 'sync'],
+                        (data) => {
+                            const dataSet = _ModuleSupport.DataSet.wrap(data);
+                            for (const series of this.series) {
+                                series.setChartData(dataSet);
+                            }
+                        }
+                    );
+                } else {
+                    this._unregisterLoader?.();
+                }
+            }),
+            () => this._unregisterLoader?.()
+        );
     }
 
     override destroy() {
@@ -112,6 +132,12 @@ export class MiniChart extends AbstractModuleInstance {
         this.destroySeries(seriesToDestroy);
 
         for (const series of newValue) {
+            if (this.ctx.dataService.isLazy()) {
+                series.disconnectData();
+            } else {
+                series.reconnectData();
+            }
+
             if (oldValue?.includes(series)) continue;
 
             series.attachSeries(this.seriesRoot, this.seriesRoot, undefined);
@@ -197,18 +223,31 @@ export class MiniChart extends AbstractModuleInstance {
         }
     }
 
-    async processData(dataController: _ModuleSupport.DataController) {
+    async processData(mainDataController: _ModuleSupport.DataController) {
         if (this.series.some((s) => s.canHaveAxes)) {
             this.assignAxesToSeries();
             this.assignSeriesToAxes();
         }
 
-        await Promise.all(
-            this.series.map(async (s) => {
-                s.resetDatumCallbackCache();
-                return s.processData(dataController);
-            })
-        );
+        const dataController = this.ctx.dataService.isLazy()
+            ? new _ModuleSupport.DataController(
+                  this.ctx.chartState.getValue('options', 'mode'),
+                  this.ctx.chartState.getValue('options', 'suppressFieldDotNotation'),
+                  this.ctx.eventsHub
+              )
+            : mainDataController;
+
+        const promises: Promise<void>[] = [];
+        for (const series of this.series) {
+            series.resetDatumCallbackCache();
+            promises.push(series.processData(dataController) ?? Promise.resolve());
+        }
+
+        if (this.ctx.dataService.isLazy()) {
+            dataController.execute(undefined, undefined);
+        }
+
+        await Promise.all(promises);
 
         for (const axis of this.axes) {
             axis.processData();
@@ -243,25 +282,22 @@ export class MiniChart extends AbstractModuleInstance {
     }
 
     async layout(width: number, height: number) {
-        const { top: paddingTop, bottom: paddingBottom } = this.ctx.chartState.getValue(
-            'options',
-            'navigator.miniChart.padding'
-        );
+        const padding = this.ctx.chartState.getValue('options', 'navigator.miniChart.padding');
         const animated = this.seriesRect != null;
-        const seriesRect = new BBox(0, 0, width, height - (paddingTop + paddingBottom));
+        const seriesRect = new BBox(0, 0, width, height - (padding.top + padding.bottom));
 
         const resized = this.seriesRect?.width !== width || this.seriesRect?.height !== height;
 
         this.seriesRect = seriesRect;
-        this.seriesRoot.translationY = paddingTop;
-        this.seriesRoot.setClipRectCanvasSpace(new BBox(0, -paddingTop, width, height));
+        this.seriesRoot.translationY = padding.top;
+        this.seriesRoot.setClipRectCanvasSpace(new BBox(0, -padding.top, width, height));
 
         for (const axis of this.axes) {
             const { position = 'left' } = axis;
             switch (position) {
                 case 'top':
                 case 'bottom':
-                    axis.range = [0, seriesRect.width];
+                    axis.range = [padding.left, seriesRect.width - padding.right];
                     axis.gridLength = seriesRect.height;
                     break;
                 case 'right':

@@ -9,6 +9,8 @@
  */
 
 export const AG_CHARTS_LOCALE_ZH_CN: Record<string, string> = {
+    ariaAnnounceSelectedItem: '已选择',
+    ariaAnnounceUnselectedItem: '未选择',
     ariaAnnounceChart: '图表，共有${seriesCount}[number]个系列',
     ariaAnnounceFlowProportionLink: '链接 ${index} 总共 ${count}，从 ${from} 到 ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: '节点 ${index} 之 ${count}, ${description}',

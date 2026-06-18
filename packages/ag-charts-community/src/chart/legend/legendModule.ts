@@ -52,7 +52,7 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
             marker: {
                 size: positiveNumber,
                 shape: shapeValidator,
-                padding: positiveNumber,
+                padding: padding,
                 strokeWidth: positiveNumber,
             },
             line: {
@@ -77,7 +77,7 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
             marker: {
                 size: positiveNumber,
                 shape: shapeValidator,
-                padding: positiveNumber,
+                padding: padding,
             },
             activeStyle: {
                 ...fillOptionsDef,
@@ -146,7 +146,7 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
         toggleSeries: true,
         item: {
             padding: { $applyPadding: { top: 4, right: 8, bottom: 4, left: 8 } },
-            marker: { size: 15, padding: 8 },
+            marker: { size: 15, padding: { $applyPadding: 8 } },
             line: { length: 25 },
             showSeriesStroke: true,
             label: {
@@ -158,7 +158,7 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
         },
         reverseOrder: false,
         pagination: {
-            marker: { shape: 'triangle', size: 12, padding: 8 },
+            marker: { shape: 'triangle', size: 12, padding: { $applyPadding: 8 } },
             activeStyle: { fill: { $ref: 'foregroundColor' }, strokeWidth: 1, strokeOpacity: 1 },
             inactiveStyle: { fill: { $ref: 'subtleTextColor' }, strokeWidth: 1, strokeOpacity: 1 },
             highlightStyle: { fill: { $ref: 'foregroundColor' }, strokeWidth: 1, strokeOpacity: 1 },

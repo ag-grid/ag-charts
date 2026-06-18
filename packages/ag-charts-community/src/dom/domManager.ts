@@ -7,12 +7,13 @@ import {
     entries,
     isDirectionRtl,
     isDocumentFragment,
+    isObject,
     kebabCase,
     setAttribute,
     stopPageScrolling,
     strictObjectKeys,
 } from 'ag-charts-core';
-import type { AgChartThemeParams } from 'ag-charts-types';
+import type { AgChartAllThemeParams } from 'ag-charts-types';
 
 import type { EventsHub } from '../core/eventsHub';
 import { BBox } from '../scene/bbox';
@@ -535,8 +536,21 @@ export class DOMManager extends BaseManager {
         this.element.classList.add(themeClassName);
     }
 
-    setThemeParameters(params: AgChartThemeParams) {
-        this.setCSSVariables('--ag-charts', undefined, undefined, params as any);
+    setThemeParameters(params: AgChartAllThemeParams) {
+        const variables: Record<string, string | number> = {};
+
+        // Flatten theme params into a single object ready for the css variables
+        for (const [key, value] of entries(params as Record<string, any>)) {
+            if (!isObject(value)) {
+                variables[key] = value;
+                continue;
+            }
+            for (const [subKey, subValue] of entries(value as Record<string, any>)) {
+                variables[`${key}${subKey[0].toUpperCase()}${subKey.slice(1)}`] = subValue;
+            }
+        }
+
+        this.setCSSVariables('--ag-charts', undefined, undefined, variables);
     }
 
     setModuleCSSVariables(
@@ -557,18 +571,36 @@ export class DOMManager extends BaseManager {
         numericKeys?: string[]
     ) {
         for (const [key, value] of entries(variables)) {
-            let formattedKey = key;
             let formattedValue = `${value}`;
-            if (key.endsWith('Size') || key.endsWith('Radius') || numericKeys?.includes(key)) {
+
+            if (
+                !Number.isNaN(Number(value)) &&
+                (key.endsWith('Size') || key.endsWith('Radius') || key.endsWith('Width') || numericKeys?.includes(key))
+            ) {
                 formattedValue = `${value}px`;
             } else if (key.endsWith('Border') && typeof value === 'boolean') {
-                formattedKey = `${key}Width`;
-                formattedValue = value ? 'var(--ag-charts-border-width)' : '0';
+                this.element.style.setProperty(
+                    this.formatCSSVariableKey(prefix, component, `${key}Color`, modifier),
+                    value ? 'var(--ag-charts-border-color)' : 'none'
+                );
+                this.element.style.setProperty(
+                    this.formatCSSVariableKey(prefix, component, `${key}Width`, modifier),
+                    value ? 'var(--ag-charts-border-width)' : '0'
+                );
+                continue;
             }
 
-            formattedKey = `${prefix}${component ? '__' : ''}${component ?? ''}-${kebabCase(formattedKey)}${modifier ? '--' : ''}${modifier ?? ''}`;
-            this.element.style.setProperty(formattedKey, formattedValue);
+            this.element.style.setProperty(this.formatCSSVariableKey(prefix, component, key, modifier), formattedValue);
         }
+    }
+
+    private formatCSSVariableKey(
+        prefix: string,
+        component: string | undefined,
+        key: string,
+        modifier: string | undefined
+    ) {
+        return `${prefix}${component ? '__' : ''}${component ?? ''}-${kebabCase(key)}${modifier ? '--' : ''}${modifier ?? ''}`;
     }
 
     updateCanvasLabel(ariaLabel: string) {

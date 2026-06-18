@@ -7,7 +7,7 @@ import type {
     PointLabelDatum,
     SizedPoint,
 } from 'ag-charts-core';
-import type { AgActiveItemState, SelectionState as PublicSelectionState } from 'ag-charts-types';
+import type { AgActiveItemState, AgNumericValue, SelectionState as PublicSelectionState } from 'ag-charts-types';
 
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
@@ -91,6 +91,7 @@ export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extend
     readonly event: Event;
     readonly datum: unknown;
     readonly datums?: unknown[];
+    readonly totalValue?: AgNumericValue;
     readonly seriesId: string;
     readonly itemId: string | number;
     readonly dataIdKey: string | undefined;
@@ -103,7 +104,6 @@ export interface ISeriesProperties {
     xKey?: string;
     yKey?: string;
     context?: unknown;
-    selection: { enabled: boolean };
     tooltip: { enabled?: boolean };
 }
 
@@ -128,6 +128,8 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     getCategoryValue(datumIndex: number): any;
     datumIndexForCategoryValue(categoryValue: any): DatumIndex | undefined;
     isHighlightEnabled(): boolean;
+    isSelectionEnabled(): boolean;
+    isDatumSelectable(datumIndex: DatumIndex): boolean;
     getDataSelectionState(datumIndex: DatumIndex | undefined): SelectionState | undefined;
     getSelectionStateString(
         datumIndex: DatumIndex | undefined,
@@ -186,6 +188,14 @@ export interface SeriesNodeDatum {
     readonly itemType?: ItemType;
     readonly datum: unknown;
     readonly datums?: unknown[];
+    /** Waterfall series only: the computed cumulative value for `total`/`subtotal` bars. */
+    readonly totalValue?: AgNumericValue;
+    /**
+     * Full-precision counterpart of {@link ErrorBoundSeriesNodeDatum.cumulativeValue}, which narrows to
+     * Number for geometry/arithmetic. Display surfaces (e.g. the crosshair label) read this so a bigint
+     * value keeps full precision rather than the float64-rounded `cumulativeValue`.
+     */
+    readonly cumulativeValueExact?: AgNumericValue;
     readonly datumIndex: DatumIndex;
     readonly point?: Readonly<Point> & SizedPoint;
     readonly missing?: boolean;

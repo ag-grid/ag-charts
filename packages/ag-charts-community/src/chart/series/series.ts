@@ -40,6 +40,7 @@ import type {
     AgColorType,
     AgDrawingMode,
     AgInitialStateLegendOptions,
+    AgNumericValue,
     AgSeriesMarkerStyle,
     AgSeriesTooltipRendererParams,
     AgSeriesVisibilityChange,
@@ -173,6 +174,7 @@ export class SeriesNodeEvent<
 > implements INodeEvent<TEvent> {
     readonly datum: unknown;
     readonly datums?: unknown[];
+    readonly totalValue?: AgNumericValue;
     readonly seriesId: string;
     readonly itemId: string | number;
     readonly dataIdKey: string | undefined;
@@ -188,6 +190,7 @@ export class SeriesNodeEvent<
     ) {
         this.datum = nodeDatum.datum;
         this.datums = nodeDatum.datums;
+        this.totalValue = nodeDatum.totalValue;
         this.seriesId = series.id;
         this.dataIdKey = series.data?.dataIdKey;
         this.itemId = getItemId(nodeDatum, this.dataIdKey);
@@ -395,6 +398,7 @@ export abstract class Series<
 
     protected _data?: DataSet<any>;
     protected _chartData?: DataSet<any>;
+    private _dataConnected = true;
 
     private readonly datumCallbackCache = new Map<any, any>();
 
@@ -443,6 +447,15 @@ export abstract class Series<
 
     public isHighlightEnabled(): boolean {
         return this.properties.highlight.enabled;
+    }
+
+    public isSelectionEnabled(): boolean {
+        return this.properties.selection.enabled;
+    }
+
+    public isDatumSelectable(_datumIndex: DatumIndex): boolean {
+        // Override point for subclasses
+        return true;
     }
 
     setChartData(input: DataSet | undefined) {
@@ -504,7 +517,9 @@ export abstract class Series<
         this.highlightLabelGroup.pointerEvents = PointerEvents.None;
 
         this.cleanup.register(
-            this.ctx.eventsHub.on('data:update', (data) => this.setChartData(data)),
+            this.ctx.eventsHub.on('data:update', (data) => {
+                if (this._dataConnected) this.setChartData(data);
+            }),
             this.ctx.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event)),
             this.events.on('data-selection-change', () => {
                 this.hasChangesOnSelection = true;
@@ -551,6 +566,14 @@ export abstract class Series<
 
     renderToOffscreenCanvas() {
         return false;
+    }
+
+    disconnectData() {
+        this._dataConnected = false;
+    }
+
+    reconnectData() {
+        this._dataConnected = true;
     }
 
     protected hasHighlightOpacity() {
@@ -1410,7 +1433,7 @@ export abstract class Series<
             ? this.getHighlightStyle(isHighlight, datumIndex, highlightState)
             : undefined;
         const selectionStyle: AgSeriesMarkerStyle | undefined =
-            checkForHighlight && this.properties.selection.enabled
+            checkForHighlight && this.isSelectionEnabled()
                 ? this.getSelectionStyle(datumIndex, selectionState)
                 : undefined;
         let markerStyle = mergeMarkerStyles(

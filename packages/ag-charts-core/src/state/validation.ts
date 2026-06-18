@@ -37,6 +37,7 @@ const similarOptionsMap = [
     ['src', 'url'],
     ['width', 'thickness'],
     ['show', 'visible', 'enabled'],
+    ['value', 'range'],
 ].reduce((map, words) => {
     for (const word of words) {
         map.set(word.toLowerCase(), new Set(words.filter((w) => w !== word)));

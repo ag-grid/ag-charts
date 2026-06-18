@@ -2969,4 +2969,31 @@ describe('BarSeries', () => {
             expectWarningsCalls().toEqual([]);
         });
     });
+
+    // AG-16608: the crosshair label reads `cumulativeValueExact` to keep full bigint precision; the
+    // narrowed `cumulativeValue` is float64-rounded and used only for geometry/error-bar maths.
+    describe('bigint cumulativeValueExact', () => {
+        it('should retain the exact bigint plotted value alongside the narrowed cumulativeValue', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'A', y: BIG },
+                    { x: 'B', y: BIG + 2n },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0] as any;
+            const nodeData = series.contextNodeData?.nodeData;
+
+            expect(nodeData).toHaveLength(2);
+            expect(nodeData[0].cumulativeValueExact).toBe(BIG);
+            // Geometry value narrows to float64, losing the final digit.
+            expect(nodeData[0].cumulativeValue).toBe(Number(BIG));
+            expect(BigInt(nodeData[0].cumulativeValue)).not.toBe(BIG);
+        });
+    });
 });

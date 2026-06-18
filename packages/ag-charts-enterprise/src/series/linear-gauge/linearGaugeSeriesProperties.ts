@@ -245,10 +245,10 @@ class LinearGaugeScaleLabelProperties extends SeriesLabelProperties {
 
 class LinearGaugeScaleProperties extends BaseProperties {
     @Property
-    min: number = 0;
+    min: AgNumericValue = 0;
 
     @Property
-    max: number = 1;
+    max: AgNumericValue = 1;
 
     @Property
     fills = new PropertiesArray<_ModuleSupport.StopProperties>(_ModuleSupport.StopProperties);
@@ -335,7 +335,7 @@ export class LinearGaugeLabelProperties extends AutoSizedLabel<unknown> {
 
 export class LinearGaugeSeriesProperties extends SeriesProperties<AgLinearGaugeOptions> {
     @Property
-    value: number = 0;
+    value: AgNumericValue = 0;
 
     @Property
     readonly segmentation = new GaugeSegmentationProperties();

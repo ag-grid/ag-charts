@@ -9,6 +9,8 @@
  */
 
 export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
+    ariaAnnounceSelectedItem: 'seçili',
+    ariaAnnounceUnselectedItem: 'seçili değil',
     ariaAnnounceChart: 'grafik, ${seriesCount}[number] seri',
     ariaAnnounceFlowProportionLink: 'bağlantı ${index} / ${count}, ${from} - ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'düğüm ${index} / ${count}, ${description}',

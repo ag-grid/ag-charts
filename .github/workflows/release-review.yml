@@ -1,0 +1,166 @@
+name: Release Review
+
+# ============================================================================
+# Release-readiness reviews, run headlessly by Claude Code:
+#
+#   docs-review     — /ag-product:release-docs-review  (per-page docs review,
+#                     workflow-driven; compares the release branch against the
+#                     previous release line)
+#   options-review  — /ag-eng:release-options-review   (TypeScript public-API
+#                     compatibility + a cross-check that every significant
+#                     breaking change is captured in the committed release notes)
+#
+# Triggers:
+#   - workflow_dispatch (manual, against latest or any ref) — pick docs/options/both
+#   - push to a release branch `bX.Y.Z`, ONLY on branch creation
+#     (`github.event.created`). The branch filter keeps unrelated branch pushes
+#     out of this workflow entirely; the `created` guard ensures the review runs
+#     once when the release branch is cut, not on every subsequent commit to it.
+#
+# Each job uploads the full report as an artifact and posts a concise summary +
+# the full report (as a file) to #charts_teamcity_status.
+#
+# The heavy lifting (plugin load, branch resolution, claude-code-action,
+# artifact + Slack) lives in the shared `release-review` composite action under
+# ag-dev-prompts, consumed via the @ag-grid/dev-prompts npm package (same
+# canary-channel pattern as jira-agent-pipeline.yml / pr-review.yml). This
+# workflow is the thin per-repo stub: triggers, gating, and the consumer-local
+# bootstrap (token mint → setup-nx → install).
+#
+# Operator pre-requisites (all already present for the JIRA agent pipeline):
+#   Repository secrets:   ANTHROPIC_API_KEY, SLACK_BOT_OAUTH_TOKEN,
+#                         JIRA_AGENT_APP_PRIVATE_KEY
+#   Repository variables: JIRA_AGENT_APP_ID
+# ============================================================================
+
+on:
+    workflow_dispatch:
+        inputs:
+            review:
+                description: 'Which review(s) to run'
+                type: choice
+                required: true
+                default: both
+                options:
+                    - both
+                    - docs
+                    - options
+            previous_branch:
+                description: 'Previous release ref (e.g. origin/b13.1.0). Auto-resolved when blank.'
+                type: string
+                required: false
+                default: ''
+            current_branch:
+                description: 'Current ref under review (e.g. origin/b14.0.0). Defaults to the checked-out ref.'
+                type: string
+                required: false
+                default: ''
+    push:
+        branches:
+            # Same release-branch glob as ci.yml. Combined with the
+            # `github.event.created` job guard this fires once per release cut.
+            - 'b[0-9][0-9]?.[0-9][0-9]?.[0-9][0-9]?'
+
+permissions:
+    contents: read
+    packages: read
+
+concurrency:
+    # One review run per ref; don't cancel an in-flight release review.
+    group: release-review-${{ github.ref }}
+    cancel-in-progress: false
+
+env:
+    DEV_PROMPTS_CHANNEL: canary
+
+jobs:
+    docs-review:
+        name: Documentation review
+        if: >-
+            (github.event_name == 'push' && github.event.created) ||
+            (github.event_name == 'workflow_dispatch' && (inputs.review == 'docs' || inputs.review == 'both'))
+        runs-on: ubuntu-latest
+        timeout-minutes: 120
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  # Full history so release-branch diffs resolve.
+                  fetch-depth: 0
+
+            - name: Mint ag-dev-prompts read token
+              id: prompts-token
+              uses: actions/create-github-app-token@v1
+              with:
+                  app-id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  owner: ag-grid
+                  repositories: ag-dev-prompts
+
+            - name: Setup Nx (renders .claude/settings.json)
+              uses: ./.github/actions/setup-nx
+              env:
+                  GITHUB_TOKEN: ${{ steps.prompts-token.outputs.token }}
+              with:
+                  cache_mode: ro
+                  fetch_base: skip
+
+            - name: Install @ag-grid/dev-prompts
+              uses: ./external/ag-shared/github/actions/install-ag-dev-prompts
+              with:
+                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
+                  github-token: ${{ steps.prompts-token.outputs.token }}
+
+            - name: Run documentation review
+              uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/release-review
+              with:
+                  review_type: docs
+                  # inputs.* only exist on workflow_dispatch; on push they auto-resolve in the action.
+                  previous_branch: ${{ github.event_name == 'workflow_dispatch' && inputs.previous_branch || '' }}
+                  current_branch: ${{ github.event_name == 'workflow_dispatch' && inputs.current_branch || '' }}
+                  anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+                  slack_bot_oauth_token: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
+
+    options-review:
+        name: Options (API) review
+        if: >-
+            (github.event_name == 'push' && github.event.created) ||
+            (github.event_name == 'workflow_dispatch' && (inputs.review == 'options' || inputs.review == 'both'))
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Mint ag-dev-prompts read token
+              id: prompts-token
+              uses: actions/create-github-app-token@v1
+              with:
+                  app-id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  owner: ag-grid
+                  repositories: ag-dev-prompts
+
+            - name: Setup Nx (renders .claude/settings.json)
+              uses: ./.github/actions/setup-nx
+              env:
+                  GITHUB_TOKEN: ${{ steps.prompts-token.outputs.token }}
+              with:
+                  cache_mode: ro
+                  fetch_base: skip
+
+            - name: Install @ag-grid/dev-prompts
+              uses: ./external/ag-shared/github/actions/install-ag-dev-prompts
+              with:
+                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
+                  github-token: ${{ steps.prompts-token.outputs.token }}
+
+            - name: Run options review
+              uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/release-review
+              with:
+                  review_type: options
+                  # inputs.* only exist on workflow_dispatch; on push they auto-resolve in the action.
+                  previous_branch: ${{ github.event_name == 'workflow_dispatch' && inputs.previous_branch || '' }}
+                  current_branch: ${{ github.event_name == 'workflow_dispatch' && inputs.current_branch || '' }}
+                  anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+                  slack_bot_oauth_token: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}

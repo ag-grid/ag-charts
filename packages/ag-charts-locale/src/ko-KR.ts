@@ -9,6 +9,8 @@
  */
 
 export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
+    ariaAnnounceSelectedItem: '선택됨',
+    ariaAnnounceUnselectedItem: '선택 안 됨',
     ariaAnnounceChart: '차트, ${seriesCount}[number] 시리즈',
     ariaAnnounceFlowProportionLink: '링크 ${index} / ${count}, ${from}에서 ${to}로, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: '노드 ${index} / ${count}, ${description}',

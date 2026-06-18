@@ -1167,7 +1167,6 @@ export abstract class Axis<
                 }, new Set<string>()),
             seriesIds: () => this.boundSeries.map((series) => series.id),
             scaleInvert: (val) => scale.invert(val, true),
-            scaleInvertNearest: (val) => scale.invert(val, true),
             formatScaleValue: (value, source, label) => {
                 const { allowNull } = this;
                 return this.formatDatum(

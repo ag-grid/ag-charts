@@ -37,6 +37,7 @@ const {
     added = [],
     removed = [],
     errors = [],
+    skippedBelowMinVersion = [],
 } = JSON.parse(fs.readFileSync(argv.input, 'utf8'));
 
 // --- Build Slack message ---
@@ -84,6 +85,7 @@ const notes = [];
 if (added.length > 0) notes.push(`${added.length} added`);
 if (removed.length > 0) notes.push(`${removed.length} removed`);
 if (errors.length > 0) notes.push(`${errors.length} errors`);
+if (skippedBelowMinVersion.length > 0) notes.push(`${skippedBelowMinVersion.length} skipped (base below min version)`);
 if (notes.length > 0) {
     blocks.push({ type: 'divider' });
     blocks.push({

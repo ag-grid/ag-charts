@@ -16,6 +16,7 @@ import {
     type NormalisedTextOrSegments,
     type Point,
     StateMachine,
+    createBigIntTicks,
     isBetweenAngles,
     isNumberEqual,
     mergeDefaults,
@@ -115,7 +116,7 @@ interface RadialGaugeNeedleDatum {
 
 interface RadialGaugeTickDatum {
     index: number;
-    value: number;
+    value: AgNumericValue;
     text: NormalisedTextOrSegments;
 }
 
@@ -280,7 +281,7 @@ export class RadialGaugeSeries
         this.animationState.transition('updateData');
     }
 
-    private formatLabel(value: number) {
+    private formatLabel(value: AgNumericValue) {
         const { min, max } = this.properties.scale;
         return formatLabel(value, { min, max });
     }
@@ -341,13 +342,20 @@ export class RadialGaugeSeries
         const tickCount = Math.max(minTickCount, Math.min(maxTickCount, preferredTickCount));
         const ticks =
             interval.values ??
-            scale.ticks({
-                nice: [false, false],
-                interval: interval.step,
-                minTickCount,
-                maxTickCount,
-                tickCount,
-            })?.ticks ??
+            // LinearAngleScale.ticks narrows to Number for its angular nice-stepping; for a bigint scale
+            // domain generate full-precision bigint ticks directly so scale-label callbacks receive bigint.
+            (typeof min === 'bigint' && typeof max === 'bigint' && interval.step == null
+                ? createBigIntTicks(min, max, tickCount)
+                : scale.ticks(
+                      {
+                          nice: [false, false],
+                          interval: interval.step,
+                          minTickCount,
+                          maxTickCount,
+                          tickCount,
+                      },
+                      [min, max]
+                  )?.ticks) ??
             [];
         const tickFormatter = tickFormat(ticks, typeof label.format === 'string' ? label.format : undefined);
 
@@ -360,7 +368,7 @@ export class RadialGaugeSeries
                     type: 'number',
                     value,
                     index,
-                    domain: scale.domain,
+                    domain: [min, max],
                     boundSeries: undefined!,
                 });
             }
@@ -1325,7 +1333,7 @@ export class RadialGaugeSeries
         }
     }
 
-    private animateLabelText(params: { from?: number; phase?: _ModuleSupport.AnimationPhase } = {}) {
+    private animateLabelText(params: { from?: AgNumericValue; phase?: _ModuleSupport.AnimationPhase } = {}) {
         const { animationManager } = this.ctx;
 
         let labelFrom: AgNumericValue | undefined;

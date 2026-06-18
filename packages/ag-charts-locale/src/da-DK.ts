@@ -9,6 +9,8 @@
  */
 
 export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
+    ariaAnnounceSelectedItem: 'valgt',
+    ariaAnnounceUnselectedItem: 'ikke valgt',
     ariaAnnounceChart: 'diagram, ${seriesCount}[number] serier',
     ariaAnnounceFlowProportionLink: 'link ${index} af ${count}, fra ${from} til ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'node ${index} af ${count}, ${description}',

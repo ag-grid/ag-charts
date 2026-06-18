@@ -107,7 +107,6 @@ export interface AnnotationAxisContext extends Pick<
     | 'position'
     | 'scale'
     | 'scaleInvert'
-    | 'scaleInvertNearest'
     | 'formatScaleValue'
     | 'attachLabel'
     | 'inRange'

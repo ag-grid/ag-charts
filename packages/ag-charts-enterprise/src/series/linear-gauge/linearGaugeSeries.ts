@@ -247,7 +247,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         this.animationState.transition('updateData');
     }
 
-    public formatLabel(value: number) {
+    public formatLabel(value: AgNumericValue) {
         return formatLabel(value, this.properties.scale);
     }
 
@@ -439,13 +439,16 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const measurer = cachedTextMeasurer(label);
         const ticks =
             scaleProps.interval.values ??
-            scale.ticks({
-                nice: [false, false],
-                interval: scaleProps.interval.step,
-                minTickCount: 0,
-                maxTickCount: 6,
-                tickCount: 5,
-            })?.ticks ??
+            scale.ticks(
+                {
+                    nice: [false, false],
+                    interval: scaleProps.interval.step,
+                    minTickCount: 0,
+                    maxTickCount: 6,
+                    tickCount: 5,
+                },
+                [scaleProps.min, scaleProps.max]
+            )?.ticks ??
             [];
         const linesOrTicks =
             lines ?? ticks?.map((tick) => getLabelText(this.id, this.ctx, this.labelDatum(label, tick)) ?? '');
@@ -461,16 +464,16 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     private tickFormatter(
-        domain: number[],
-        ticks: number[]
-    ): (value: number, index: number) => NormalisedTextOrSegments {
+        domain: AgNumericValue[],
+        ticks: AgNumericValue[]
+    ): (value: AgNumericValue, index: number) => NormalisedTextOrSegments {
         const { format, formatter } = this.properties.scale.label;
-        let tickFormatter: ((value: number) => NormalisedTextOrSegments) | undefined;
+        let tickFormatter: ((value: AgNumericValue) => NormalisedTextOrSegments) | undefined;
         if (format != null) {
             tickFormatter = tickFormat(ticks, typeof format === 'string' ? format : undefined);
         }
 
-        return (value: number, index: number): NormalisedTextOrSegments => {
+        return (value: AgNumericValue, index: number): NormalisedTextOrSegments => {
             let r: NormalisedTextOrSegments | undefined = undefined;
             if (formatter) {
                 r ??= formatWithContext(this.ctx, formatter, {
@@ -562,8 +565,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             label: scaleLabel,
             parallel: horizontal,
             interval: scaleProps.interval,
-            tickFormatter: (domain: number[], ticks: number[]) => this.tickFormatter(domain, ticks),
-            domain: scale.domain,
+            tickFormatter: (domain: AgNumericValue[], ticks: AgNumericValue[]) => this.tickFormatter(domain, ticks),
+            domain: [scaleProps.min, scaleProps.max],
             range: this.range,
             reverse: false,
             primaryTickCount: undefined,

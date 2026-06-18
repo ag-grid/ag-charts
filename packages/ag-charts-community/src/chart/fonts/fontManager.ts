@@ -1,9 +1,10 @@
-import { type DynamicContext, cachedTextMeasurer, getResizeObserver } from 'ag-charts-core';
+import { type DynamicContext, cachedTextMeasurer, getDocument, getResizeObserver } from 'ag-charts-core';
 
 import type { ChartRegistry } from '../../module/moduleContext';
 
 export class FontManager {
     private observers: Array<ResizeObserver> = [];
+    private destroyed = false;
 
     constructor(private readonly ctx: DynamicContext<ChartRegistry>) {}
 
@@ -15,7 +16,38 @@ export class FontManager {
         }
     }
 
+    // Canvas text never triggers a font download, so externally-referenced fonts (icon fonts,
+    // user `@font-face`) may be unavailable when the chart first measures and draws. Force their
+    // load via the FontFaceSet API and re-render once they settle; `check()` skips already-loaded
+    // fonts. Each spec is a weight/style shorthand (e.g. `900 16px "Font Awesome 6 Free"`) so
+    // families that ship a file per weight load the one the options reference.
+    public waitForFonts(fontSpecs?: Set<string>) {
+        if (!fontSpecs || fontSpecs.size === 0) return;
+
+        const fontSet = getDocument('fonts');
+        if (fontSet == null) return;
+
+        const pending: Array<Promise<unknown>> = [];
+        for (const spec of fontSpecs) {
+            try {
+                if (!fontSet.check(spec)) {
+                    pending.push(fontSet.load(spec));
+                }
+            } catch {
+                // `check()` throws on an invalid font shorthand; skip that spec.
+            }
+        }
+        if (pending.length === 0) return;
+
+        void Promise.allSettled(pending).then(() => {
+            if (this.destroyed) return;
+            cachedTextMeasurer.clear();
+            this.ctx.eventsHub.emit('font:load', null);
+        });
+    }
+
     public destroy() {
+        this.destroyed = true;
         for (const observer of this.observers) {
             observer.disconnect();
         }

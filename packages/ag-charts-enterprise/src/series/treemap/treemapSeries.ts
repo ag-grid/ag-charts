@@ -27,6 +27,7 @@ import {
     wrapText,
 } from 'ag-charts-core';
 
+import { HierarchyDataSet } from '../../charts/hierarchyDataSet';
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
@@ -128,6 +129,16 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         Group<TreemapNode>
     );
     private readonly highlightSelection = Selection.select<_ModuleSupport.Rect<TreemapNode>>(this.rectGroup, Rect);
+
+    protected override _data?: HierarchyDataSet<any>;
+    protected override _chartData?: HierarchyDataSet<any>;
+    override get data(): HierarchyDataSet<any> | undefined {
+        const result = super.data;
+        if (!(result instanceof HierarchyDataSet)) {
+            return undefined;
+        }
+        return result;
+    }
 
     private groupTitleHeight(node: TreemapNode, bbox: _ModuleSupport.BBox): number | undefined {
         const heightRatioThreshold = 3;
@@ -822,6 +833,15 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         }
     }
 
+    public override isSelectionEnabled(): boolean {
+        return this.properties.tile.selection.enabled;
+    }
+
+    public override isDatumSelectable(datumIndex: _ModuleSupport.DatumIndex): boolean {
+        // Use HierarchDataSet.isLeaf() instead of this.dfsFind() for O(1) lookups:
+        return this.data?.isLeaf(datumIndex) === true;
+    }
+
     public getTileSelectionStyle(datumIndex?: _ModuleSupport.DatumIndex) {
         const selectionState = this.getDataSelectionState(datumIndex);
         if (selectionState === undefined) return undefined;
@@ -1013,7 +1033,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
     protected override hasItemStylers(): boolean {
         return (
-            this.properties.selection.enabled ||
+            this.isSelectionEnabled() ||
             this.properties.itemStyler != null ||
             this.properties.tile.label.itemStyler != null ||
             this.properties.group.label.itemStyler != null

@@ -61,9 +61,10 @@ function getPropertyBindings(bindings: any, id: string, property: any) {
     const propertyAttributes = [];
     const propertyNames = [];
 
+    const optionsType = bindings.optionsTypeInfo?.typeStr ?? 'AgChartOptions';
     propertyNames.push(property.name);
     propertyVars.push(
-        `const ${property.name} = ref${property.name === 'options' ? '<AgChartOptions>' : ''}(${property.value});`
+        `const ${property.name} = ref${property.name === 'options' ? `<${optionsType}>` : ''}(${property.value});`
     );
     if (bindings.usesChartApi) {
         propertyNames.push('agCharts');
@@ -147,7 +148,7 @@ export async function vanillaToVue3(
 
         mainFile = `
             ${imports.join('\n')}
-
+${bindings.declarations.length > 0 ? '\n' + bindings.declarations.join('\n') + '\n' : ''}
             ${globalMethods.join('\n\n')}
 
             const ChartExample = defineComponent({
@@ -183,7 +184,7 @@ export async function vanillaToVue3(
 
         mainFile = `
             ${imports.join('\n')}
-
+${bindings.declarations.length > 0 ? '\n' + bindings.declarations.join('\n') + '\n' : ''}
             ${globalMethods.join('\n\n')}
         `;
 

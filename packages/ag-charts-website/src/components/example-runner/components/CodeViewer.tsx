@@ -1,5 +1,5 @@
 import type { InternalFramework } from '@ag-grid-types';
-import CodeShiki from '@ag-website-shared/components/code/CodeShiki';
+import Code from '@ag-website-shared/components/code/Code';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { CONSOLE_LOG_REGEX, DARK_MODE_REGEX } from '@ag-website-shared/utils/extraCodeSnippets';
 import type { ExampleType, FileContents } from '@components/example-generator/types';
@@ -39,6 +39,10 @@ export function stripOutExampleGeneratorCode(files: FileContents) {
     if (files['index.html']) {
         files['index.html'] = files['index.html']?.replace(e2eStyleRegex, '').trim();
     }
+
+    // `head.html` is a synthetic fragment injected into the document `<head>`, not a project
+    // file — the rendered host page already includes its contents, so exports must not carry it.
+    delete files['head.html'];
 }
 
 /**
@@ -155,5 +159,5 @@ const FileView = ({ path, code }) => {
     const parts = path.split('.');
     const extension = parts[parts.length - 1];
 
-    return <CodeShiki code={code} language={ExtensionMap[extension] ?? extension} lineNumbers={true} />;
+    return <Code code={code} language={ExtensionMap[extension] ?? extension} lineNumbers={true} />;
 };

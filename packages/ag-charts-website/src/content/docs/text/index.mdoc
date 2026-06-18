@@ -1,5 +1,5 @@
 ---
-title: 'Fonts'
+title: 'Text'
 ---
 
 Font options include font family, size, weight, and style.
@@ -141,7 +141,7 @@ Emoji render through native canvas, no API changes required.
 
 {% chartExampleRunner title="Inline Emoji" name="inline-emoji" type="generated" /%}
 
-Font icons (e.g. FontAwesome) load via a CSS `<link>` in the example's `index.html` and apply per-segment through `fontFamily` and `fontWeight`. Because canvas text rendering does not trigger font downloads, the example also awaits `document.fonts.load(...)` before creating the chart.
+Font icons (e.g. FontAwesome) load via a CSS `<link>` and apply per-segment through `fontFamily` and `fontWeight`. Canvas text rendering does not trigger font downloads, so the chart detects the fonts referenced in its options, downloads them, and re-renders automatically once they are ready.
 
 {% chartExampleRunner title="Inline Font Icons" name="inline-font-icons" type="generated" /%}
 

@@ -81,6 +81,9 @@ function getBenchmarkConfig(): BenchmarkConfig {
             axisType: 'number',
             dataType: 'bigint',
             version: VERSION,
+            // bigint values are a new feature; an older published base renders no valid data
+            // points, so the compare step skips this example when the base is below minVersion.
+            minVersion: '14.0.0',
         },
     };
 }

@@ -674,7 +674,6 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
             highlightedItem: hierarchyHighlightStyleOptionsDef,
             unhighlightedItem: hierarchyHighlightStyleOptionsDef,
         },
-        selection: selectionOptionsDef(hierarchySelectionStyleOptionsDef),
         label: {
             ...seriesLabelOptionsDefs,
             spacing: positiveNumber,
@@ -715,7 +714,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         ...strokeOptionsDef,
     },
     tooltip: tooltipOptionsDefs,
-    ...without(commonSeriesThemeableOptionsDefs, ['highlight', 'showInLegend']),
+    ...without(commonSeriesThemeableOptionsDefs, ['highlight', 'selection', 'showInLegend']),
 };
 
 const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<any>> = {

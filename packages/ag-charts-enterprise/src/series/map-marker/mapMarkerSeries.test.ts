@@ -726,8 +726,8 @@ describe('MapMarkerSeries', () => {
         });
 
         it('defaults minSize to size when not set (AC10)', async () => {
-            // size defaults to 6, maxSize theme default 30.
-            expect(await sizeRange({})).toEqual([6, 30]);
+            // size defaults to 7, maxSize theme default 30.
+            expect(await sizeRange({})).toEqual([7, 30]);
             expect(await sizeRange({ size: 12 })).toEqual([12, 30]);
         });
 
@@ -738,7 +738,7 @@ describe('MapMarkerSeries', () => {
 
         it('warns and reverts to theme defaults when both bounds are inverted', async () => {
             const range = await sizeRange({ minSize: 30, maxSize: 5 });
-            expect(range).toEqual([6, 30]);
+            expect(range).toEqual([7, 30]);
             expectWarningsCalls().toMatchInlineSnapshot(`
               [
                 [
@@ -856,6 +856,27 @@ describe('MapMarkerSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
+    describe('default marker size', () => {
+        const markerSizes = async (markerOverrides: object): Promise<number[]> => {
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                series: [{ type: 'map-shape-background' }, { type: 'map-marker', idKey: 'name', ...markerOverrides }],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            return chart.series[1].contextNodeData?.nodeData.map((d: any) => d.point.size);
+        };
+
+        it('renders markers at the default size of 7 when no size is specified (AC1)', async () => {
+            expect([...new Set(await markerSizes({}))]).toEqual([7]);
+        });
+
+        it('renders markers at an explicit size, overriding the default (AC3)', async () => {
+            expect([...new Set(await markerSizes({ size: 12 }))]).toEqual([12]);
+        });
+    });
+
     describe('bigint size domain (AG-16608)', () => {
         it('renders a bigint sizeDomain identically to numbers', async () => {
             const buildOptions = (sizeDomain: [number, number] | [bigint, bigint]): AgChartOptions => ({

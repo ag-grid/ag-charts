@@ -1,4 +1,4 @@
-import type { DynamicContext } from 'ag-charts-core';
+import type { CallbackParamRules, DynamicContext } from 'ag-charts-core';
 import {
     ChartAxisDirection,
     type DomainWithMetadata,
@@ -22,9 +22,11 @@ import {
 } from 'ag-charts-core';
 import type {
     AgHistogramSeriesBinParams,
+    AgHistogramSeriesItemStylerParams,
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
     AgHistogramSeriesStyle,
+    AgHistogramSeriesStylerParams,
     AgNumericValue,
     SelectionState as PublicSelectionState,
 } from 'ag-charts-types';
@@ -69,7 +71,8 @@ import {
     type SeriesNodeStyleContext,
 } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import type { HighlightState, SeriesNodeEventTypes } from '../seriesTypes';
+import { toHighlightString } from '../seriesProperties';
+import { HighlightState, type SeriesNodeEventTypes } from '../seriesTypes';
 import { getItemStyles } from '../util';
 import {
     collapsedStartingBarPosition,
@@ -546,6 +549,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             aggregatedValue,
             // cumulativeValue is the plotted bar height (crosshair geometry); narrow to Number like other series.
             cumulativeValue: Number(total),
+            cumulativeValueExact: total,
             frequency,
             yKey,
             xKey,
@@ -593,6 +597,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         mutableNode.binIndex = binIndex;
         mutableNode.aggregatedValue = aggregatedValue;
         mutableNode.cumulativeValue = Number(total);
+        mutableNode.cumulativeValueExact = total;
         mutableNode.frequency = frequency;
         mutableNode.binRange = binRange;
         mutableNode.x = x;
@@ -696,15 +701,108 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         );
     }
 
+    // The theme resolves fill/stroke before any styler runs, so the style fields exposed to styler
+    // callbacks are always present even though they are statically optional on the properties.
+    private resolvedStyle(style: RequireOptional<AgHistogramSeriesStyle>): Required<AgHistogramSeriesStyle> {
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } = style;
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            cornerRadius,
+        } as Required<AgHistogramSeriesStyle>;
+    }
+
+    private makeStylerParams(
+        highlightState: HighlightState | undefined
+    ): AgHistogramSeriesStylerParams<unknown, unknown> {
+        const { id: seriesId } = this;
+        const { xKey, yKey } = this.properties;
+
+        return {
+            seriesId,
+            xKey,
+            yKey,
+            ...this.resolvedStyle(this.properties.getStyle()),
+            highlightState: toHighlightString(highlightState ?? HighlightState.None),
+            selectionState: this.getSelectionStateString(undefined),
+        } satisfies CallbackParamRules<AgHistogramSeriesStylerParams<unknown, unknown>>;
+    }
+
+    private makeItemStylerParams(
+        bin: CalculatedBin,
+        isHighlight: boolean,
+        style: RequireOptional<AgHistogramSeriesStyle>
+    ): AgHistogramSeriesItemStylerParams<unknown, unknown> {
+        const { id: seriesId } = this;
+        const { xKey, yKey } = this.properties;
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+
+        return {
+            seriesId,
+            xKey,
+            yKey,
+            ...this.binParams(bin),
+            highlightState: this.getHighlightStateString(activeHighlight, isHighlight, bin.binIndex),
+            selectionState: this.getSelectionStateString(bin.binIndex),
+            ...this.resolvedStyle(style),
+        } satisfies CallbackParamRules<AgHistogramSeriesItemStylerParams<unknown, unknown>>;
+    }
+
+    private getStyle(
+        ignoreStylerCallback: boolean,
+        isHighlight: boolean,
+        datumIndex: number | undefined,
+        highlightState: HighlightState | undefined
+    ): RequireOptional<AgHistogramSeriesStyle> {
+        const { properties } = this;
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
+
+        let base: RequireOptional<AgHistogramSeriesStyle> = properties.getStyle();
+        const { styler } = properties;
+        if (!ignoreStylerCallback && styler != null) {
+            const stylerResult =
+                this.ctx.optionsGraphService.resolvePartial(
+                    ['series', `${this.declarationOrder}`],
+                    this.cachedCallWithContext(styler, this.makeStylerParams(highlightState)) ?? {},
+                    { pick: false }
+                ) ?? {};
+            base = mergeDefaults(stylerResult, base);
+        }
+
+        return mergeDefaults(highlightStyle, base);
+    }
+
     private getItemStyle(
         datumIndex: number | undefined,
         isHighlight: boolean,
         highlightState?: HighlightState
     ): RequireOptional<AgHistogramSeriesStyle> {
-        const { properties } = this;
+        let style = this.getStyle(datumIndex === undefined, isHighlight, datumIndex, highlightState);
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        return mergeDefaults(highlightStyle, properties.getStyle());
+        const { itemStyler } = this.properties;
+        if (itemStyler != null && datumIndex != null) {
+            const bin = this.calculatedBins[datumIndex];
+            if (bin != null) {
+                const overrides = this.cachedDatumCallback(
+                    createDatumId(...bin.domain, isHighlight ? 'highlight' : 'node'),
+                    () =>
+                        this.ctx.optionsGraphService.resolvePartial(
+                            ['series', `${this.declarationOrder}`],
+                            this.callWithContext(itemStyler, this.makeItemStylerParams(bin, isHighlight, style))
+                        )
+                );
+                if (overrides) {
+                    style = mergeDefaults(overrides, style);
+                }
+            }
+        }
+
+        return style;
     }
 
     protected override updateDatumStyles(opts: {
@@ -985,6 +1083,11 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.selection.enabled || this.properties.label.itemStyler != null;
+        return (
+            this.properties.styler != null ||
+            this.properties.itemStyler != null ||
+            this.properties.label.itemStyler != null ||
+            this.properties.selection.enabled
+        );
     }
 }

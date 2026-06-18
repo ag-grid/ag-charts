@@ -10,6 +10,7 @@ export interface StructuralCacheEntry {
     processedOptions: unknown;
     themeParameters: AgChartThemeParams;
     googleFonts: Set<string> | undefined;
+    fonts: Set<string> | undefined;
     annotationThemes: any;
     chartDef: ChartModuleDefinition<any>;
 }

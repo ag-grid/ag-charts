@@ -288,12 +288,12 @@ export function withTemporaryDomain<S extends Scale<D, number, TickInterval<S>>,
     temporaryDomain: D[],
     callback: () => void
 ): void {
-    const originalDomain = scale.domain;
+    const originalDomain = scale.snapshotDomain();
     try {
         scale.domain = temporaryDomain;
         callback();
     } finally {
-        scale.domain = originalDomain;
+        scale.restoreDomain(originalDomain);
     }
 }
 

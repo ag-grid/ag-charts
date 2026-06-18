@@ -13,6 +13,7 @@ import {
     spyOnAnimationManager,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -309,6 +310,33 @@ describe('LinearGaugeSeries', () => {
                 segmentation: { enabled: true, interval: { values: [5_000_000_000_000_000n] } },
             });
             expect(valuesCaption).toContain(BIG_VALUE.toLocaleString());
+        });
+
+        it('should pass full-precision bigint tick values to the scale label formatter', async () => {
+            const seenValues: AgNumericValue[] = [];
+            const options: AgLinearGaugeOptions = {
+                type: 'linear-gauge',
+                value: BIG_VALUE,
+                scale: {
+                    min: 9_007_199_254_740_000n,
+                    max: 9_007_199_254_741_000n,
+                    label: {
+                        formatter: ({ value }) => {
+                            seenValues.push(value);
+                            return `${value}`;
+                        },
+                    },
+                },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.createGauge(options));
+            await waitForChartStability(chart);
+
+            expect(seenValues.length).toBeGreaterThan(0);
+            expect(seenValues.every((value) => typeof value === 'bigint')).toBe(true);
+            expect(
+                seenValues.some((value) => typeof value === 'bigint' && value > BigInt(Number.MAX_SAFE_INTEGER))
+            ).toBe(true);
         });
     });
 });

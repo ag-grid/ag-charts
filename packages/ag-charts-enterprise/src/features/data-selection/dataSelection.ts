@@ -172,8 +172,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         if (type !== 'click') return;
 
         const modifierPressed = hasAddToSelectionModifier(event);
-        const clickMiss =
-            clickedNode === undefined || !(clickedNode.series.properties.selection.enabled satisfies boolean);
+        const clickMiss = clickedNode === undefined || (!clickedNode.series.isSelectionEnabled() satisfies boolean);
 
         if (clickMiss && (modifierPressed || !enableClickAwayToClear)) {
             // Ctrl+Click only toggles selection; it shouldn't clear the selection.
@@ -244,6 +243,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             bitfield.clear();
 
             for (const { datumIndex } of series.pickNodesInBBox(canvasBounds)) {
+                if (!series.isDatumSelectable(datumIndex)) continue;
                 bitfield.setBit(datumIndex);
                 this.service.totalCandidacyCount++;
             }
@@ -397,7 +397,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
     private *iterateSelectableSeries(): Generator<Series> {
         for (const series of this.ctx.chartService.series) {
-            if (series.properties.selection.enabled) {
+            if (series.isSelectionEnabled()) {
                 yield series;
             }
         }

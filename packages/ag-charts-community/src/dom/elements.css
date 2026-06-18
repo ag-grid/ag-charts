@@ -22,7 +22,7 @@
 /* Button */
 .ag-charts-button {
     background: var(--ag-charts-button-background-color);
-    border-color: var(--ag-charts-border-color);
+    border-color: var(--ag-charts-button-border-color);
     border-radius: var(--ag-charts-button-border-radius);
     border-style: solid;
     border-width: var(--ag-charts-button-border-width);
@@ -45,7 +45,7 @@
     --checkbox-transition-duration: 0.1s;
     appearance: none;
     background: var(--ag-charts-checkbox-background-color);
-    border-radius: calc(var(--ag-charts-border-radius) * 9);
+    border-radius: calc(var(--ag-charts-input-border-radius) * 9);
     cursor: pointer;
     height: 18px;
     margin: 0;
@@ -57,7 +57,7 @@
 .ag-charts-checkbox::before {
     display: block;
     background: var(--ag-charts-input-background-color);
-    border-radius: calc(var(--ag-charts-border-radius) * 7);
+    border-radius: calc(var(--ag-charts-input-border-radius) * 7);
     content: ' ';
     height: 14px;
     margin: 2px;
@@ -78,7 +78,7 @@
 /* Select */
 .ag-charts-select {
     background: var(--ag-charts-input-background-color);
-    border-color: var(--ag-charts-border-color);
+    border-color: var(--ag-charts-input-border-color);
     border-radius: var(--ag-charts-input-border-radius);
     border-style: solid;
     border-width: var(--ag-charts-input-border-width);
@@ -91,7 +91,7 @@
     --textarea-line-height: 1.38;
 
     background: var(--ag-charts-input-background-color);
-    border-color: var(--ag-charts-border-color);
+    border-color: var(--ag-charts-input-border-color);
     border-radius: var(--ag-charts-input-border-radius);
     border-style: solid;
     border-width: var(--ag-charts-input-border-width);

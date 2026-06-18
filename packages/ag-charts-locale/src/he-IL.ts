@@ -9,6 +9,8 @@
  */
 
 export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
+    ariaAnnounceSelectedItem: 'נבחר',
+    ariaAnnounceUnselectedItem: 'לא נבחר',
     ariaAnnounceChart: 'תרשים, ${seriesCount}[number] סדרות',
     ariaAnnounceFlowProportionLink: 'קישור ${index} מתוך ${count}, מ-${from} ל-${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'צומת ${index} מתוך ${count}, ${description}',

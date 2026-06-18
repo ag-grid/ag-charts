@@ -1,7 +1,7 @@
 import type { TextValue } from '../series/cartesian/commonOptions';
 import type { AgTimeIntervalUnit } from './axisOptions';
 import type { AgNumericValue } from './dataValues';
-import type { ContextDefault, DatumDefault, DatumKey } from './types';
+import type { ContextDefault, DatumDefault, ResolvedDatumKey } from './types';
 
 export type FormatterPropertyType =
     | 'x'
@@ -34,7 +34,7 @@ export interface SeriesFormatterParams<TContext, TDatum, Value> {
     datum: TDatum | undefined;
     legendItemName: string | undefined;
     seriesId: string | undefined;
-    key: DatumKey<TDatum> | undefined;
+    key: ResolvedDatumKey<TDatum> | undefined;
     source: SeriesFormatterSource;
     property: FormatterPropertyType;
     context?: TContext;
@@ -61,7 +61,7 @@ interface BaseFormatterParams<TDatum, TContext, Value> {
     /** The ID of the series that the value belongs to, if available. */
     seriesId: string | undefined;
     /** The key of the property associated with the datum, if available. */
-    key: DatumKey<TDatum> | undefined;
+    key: ResolvedDatumKey<TDatum> | undefined;
     /** The source of the formatter, indicating the element where it is being used. */
     source: AnyFormatterSource;
     /** The property being formatted, such as 'x', 'y', 'angle', etc. */

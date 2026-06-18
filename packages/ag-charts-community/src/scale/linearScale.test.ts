@@ -382,6 +382,28 @@ describe('LinearScale', () => {
                 previous = position;
             }
         });
+
+        // AG-16608: tick generation narrows the domain via withTemporaryDomain; the snapshot/restore pair
+        // must reinstate the exact bigint endpoints so a zoomed convert() keeps adjacent bigints distinct.
+        test('preserves exact bigint endpoints across a snapshotDomain/restoreDomain round-trip', () => {
+            const lo = 9_007_199_254_740_990n; // straddles Number.MAX_SAFE_INTEGER (2^53 - 1)
+            const hi = 9_007_199_254_741_000n;
+
+            const scale = new LinearScale();
+            scale.domain = [lo, hi];
+            scale.range = [0, 1000];
+
+            const snapshot = scale.snapshotDomain();
+            scale.domain = [Number(lo), Number(hi)]; // mimic the narrowed domain used during tick generation
+            scale.restoreDomain(snapshot);
+
+            let previous = -Infinity;
+            for (let v = lo; v <= hi; v++) {
+                const position = scale.convert(v);
+                expect(position).toBeGreaterThan(previous);
+                previous = position;
+            }
+        });
     });
 
     describe('convertClamped', () => {
