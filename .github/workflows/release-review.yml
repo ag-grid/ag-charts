@@ -107,8 +107,10 @@ jobs:
             - name: Install @ag-grid/dev-prompts
               uses: ./external/ag-shared/github/actions/install-ag-dev-prompts
               with:
+                  # Default github.token carries packages:read (workflow permissions
+                  # block); the repo-scoped app token does not. Matches jira-agent-
+                  # pipeline.yml / pr-review.yml.
                   channel: ${{ env.DEV_PROMPTS_CHANNEL }}
-                  github-token: ${{ steps.prompts-token.outputs.token }}
 
             - name: Run documentation review
               uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/release-review
@@ -152,8 +154,10 @@ jobs:
             - name: Install @ag-grid/dev-prompts
               uses: ./external/ag-shared/github/actions/install-ag-dev-prompts
               with:
+                  # Default github.token carries packages:read (workflow permissions
+                  # block); the repo-scoped app token does not. Matches jira-agent-
+                  # pipeline.yml / pr-review.yml.
                   channel: ${{ env.DEV_PROMPTS_CHANNEL }}
-                  github-token: ${{ steps.prompts-token.outputs.token }}
 
             - name: Run options review
               uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/release-review
