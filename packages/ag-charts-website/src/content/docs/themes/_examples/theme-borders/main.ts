@@ -16,6 +16,13 @@ let color = 'accentColor';
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
+    theme: {
+        params: {
+            accentColor: '#2f6df0',
+            buttonBorder: { width, color: color === 'accentColor' ? { ref: 'accentColor' } : color },
+            buttonBorderRadius: radius,
+        },
+    },
     title: {
         text: 'Adjust the border on the zoom buttons',
     },
@@ -39,8 +46,8 @@ const options: AgCartesianChartOptions = {
 };
 
 const chart = AgCharts.create(options);
-updateBorder();
 
+/** inScope */
 function updateBorder() {
     options.theme = {
         params: {

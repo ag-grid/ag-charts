@@ -16,6 +16,15 @@ let mix = 0.35;
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
+    theme: {
+        params: {
+            accentColor: '#2f6df0',
+            backgroundColor: '#ffffff',
+            foregroundColor: '#1b2a4a',
+            // Only the text colour is derived from the controls below.
+            textColor: { ref, mix } as any,
+        },
+    },
     title: {
         text: 'Quarterly Revenue',
     },
@@ -38,8 +47,8 @@ const options: AgCartesianChartOptions = {
 };
 
 const chart = AgCharts.create(options);
-updateTextColor();
 
+/** inScope */
 function updateTextColor() {
     const textColor = onto === 'none' ? { ref, mix } : { ref, mix, onto };
     options.theme = {

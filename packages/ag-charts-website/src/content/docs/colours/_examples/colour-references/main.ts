@@ -16,6 +16,14 @@ let mix = 0.85;
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
+    theme: {
+        params: {
+            accentColor,
+            backgroundColor,
+            // Text and axes are derived from the accent and background colours.
+            foregroundColor: { ref: 'accentColor', mix, onto: 'backgroundColor' },
+        },
+    },
     title: {
         text: 'Monthly Revenue',
     },
@@ -44,14 +52,13 @@ const options: AgCartesianChartOptions = {
 };
 
 const chart = AgCharts.create(options);
-updateTheme();
 
+/** inScope */
 function updateTheme() {
     options.theme = {
         params: {
             accentColor,
             backgroundColor,
-            // Text and axes are derived from the accent and background colours.
             foregroundColor: { ref: 'accentColor', mix, onto: 'backgroundColor' },
         },
     };
