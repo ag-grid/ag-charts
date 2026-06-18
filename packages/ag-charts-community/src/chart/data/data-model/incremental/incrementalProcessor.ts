@@ -1,4 +1,4 @@
-import { first, invalidateEpochColumn } from 'ag-charts-core';
+import { first, getEpochColumn, invalidateEpochColumn } from 'ag-charts-core';
 
 import {
     DataChangeDescription,
@@ -674,8 +674,14 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         extractValue: (cached: InsertionCacheValue | undefined, destIndex: number) => T,
         onRemove?: (removedValues: T[]) => void
     ): void {
-        // The array mutates in place, so any parse-once epoch column derived from it is now stale.
-        invalidateEpochColumn(target);
+        // The array mutates in place, but only a materialised epoch column (ISO strings parsed to
+        // epoch ms) goes stale. A string-free column caches as its own identity, and a column's
+        // value type is fixed at extraction, so that identity result stays valid across the
+        // mutation; invalidating it would force an O(n) rescan of the whole column on next access.
+        const epochColumn = getEpochColumn(target);
+        if (epochColumn !== undefined && epochColumn !== target) {
+            invalidateEpochColumn(target);
+        }
         changeDesc.applyToArray(
             target,
             (destIndex) => {
