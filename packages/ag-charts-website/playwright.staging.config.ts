@@ -26,7 +26,10 @@ export default defineConfig({
     reporter: [
         ['html', { open: process.env.CI ? 'never' : 'on-failure' }],
         ['line'],
-        ['playwright-ctrf-json-reporter', { outputDir: '../../reports', outputFile: 'ag-charts-page-verification.json' }],
+        [
+            'playwright-ctrf-json-reporter',
+            { outputDir: '../../reports', outputFile: 'ag-charts-page-verification.json' },
+        ],
     ],
     use: {
         ignoreHTTPSErrors: true,
