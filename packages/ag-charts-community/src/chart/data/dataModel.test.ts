@@ -131,7 +131,9 @@ describe('DataModel', () => {
                     const result = dataModel.processData(data)!;
 
                     expect(getEpochColumn(result.columns[0])).toEqual(isoDates.map((d) => Date.parse(d)));
-                    expect(getEpochColumn(result.columns[1])).toBeUndefined();
+                    // The string-free numeric column is its own epoch representation: extraction seeds it
+                    // as identity so downstream consumers skip the redundant string scan.
+                    expect(getEpochColumn(result.columns[1])).toBe(result.columns[1]);
                 });
             });
 
