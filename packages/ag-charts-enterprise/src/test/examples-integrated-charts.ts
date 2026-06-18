@@ -6,6 +6,9 @@ const BASE_THEME: AgChartTheme = {
             baseTheme: {
                 baseTheme: 'ag-default',
             },
+            params: {
+                fontFamily: 'Verdana, sans-serif',
+            },
             overrides: {
                 common: {
                     axes: {
