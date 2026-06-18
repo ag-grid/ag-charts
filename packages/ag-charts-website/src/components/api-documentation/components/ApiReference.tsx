@@ -391,12 +391,10 @@ function useMemberAdditionalDetails(member: MemberNode): NodeTypes | NodeTypes[]
 
     const resolvedDetails = resolve(memberType);
 
-    // An axis-specific cross-line alias resolves to an interface with no own members whose
-    // heritage is a union type alias; expand it to its variants so the union renders.
-    const aliasedUnion = resolveAliasedUnion(
-        resolvedDetails && !Array.isArray(resolvedDetails) ? resolvedDetails : undefined,
-        reference
-    );
+    // Only expand the cross-line indirection (an empty interface extending a union alias); a direct
+    // union alias renders correctly on its own via formatUnionTypeAlias.
+    const aliasedUnion = isInterfaceNode(resolvedDetails) ? resolveAliasedUnion(resolvedDetails, reference) : undefined;
+
     if (aliasedUnion) {
         const unionTypes = aliasedUnion.unionType.type
             .flatMap((unionType) => {

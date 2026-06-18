@@ -67,6 +67,8 @@ const mapMarkerTopology = getMapMarkerTopology();
 const validHighlightStates = [
     'highlighted-item',
     'unhighlighted-item',
+    'highlighted-branch',
+    'unhighlighted-branch',
     'highlighted-series',
     'unhighlighted-series',
     'none',

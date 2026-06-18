@@ -20,6 +20,7 @@ import {
 import { type TransformEntryFile, frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
 import { getConsoleLogSnippet } from './utils/getConsoleLogSnippet';
 import { getDarkModeSnippet } from './utils/getDarkModeSnippet';
+import { getE2ETestThemeSnippet } from './utils/getE2ETestThemeSnippet';
 import { getExampleConfig } from './utils/getExampleConfig';
 import { getHtmlFiles } from './utils/getHtmlFiles';
 import { getOtherScriptFiles } from './utils/getOtherScriptFiles';
@@ -152,6 +153,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         // Add website dark mode handling code to doc examples - this code is later striped out from the code viewer / plunker
         if (!ignoreDarkMode) {
             transformedEntryFile = transformedEntryFile + '\n' + getDarkModeSnippet({ chartAPI });
+            transformedEntryFile = transformedEntryFile + '\n' + getE2ETestThemeSnippet({ chartAPI });
         }
 
         if (hasExampleConsoleLog) {

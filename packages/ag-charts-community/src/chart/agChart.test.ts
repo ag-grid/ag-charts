@@ -433,7 +433,7 @@ describe('AgChart', () => {
         expect(leftAxis?.options.title?.text).toBe('Hello');
 
         expect(leftAxis?.options.gridLine.style).toEqual([
-            { fillOpacity: 1, stroke: '#e8e8e9', strokeWidth: 1, lineDash: [] },
+            { fillOpacity: 1, stroke: '#e8e9e9', strokeWidth: 1, lineDash: [] },
         ]);
         await chartProxy.update({
             data: revenueProfitData,

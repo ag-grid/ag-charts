@@ -89,7 +89,7 @@ const neonTheme: AgChartTheme = {
         accentColor: '#ff00dd',
         fontFamily: [{ googleFont: 'IBM Plex Mono' }, 'monospace'],
         fontSize: 12,
-        axisColor: '#00ff1e',
+        axisLineColor: '#00ff1e',
         gridLineColor: '#00ff1e',
         tooltipBackgroundColor: '#00ff1e',
         tooltipTextColor: '#000000',

@@ -99,12 +99,7 @@ export class MiniChart extends AbstractModuleInstance {
                     this._unregisterLoader = this.ctx.dataService.registerSecondaryLoader(
                         'mini-chart',
                         ['chart-update', 'data-update', 'range-check', 'state-change', 'sync'],
-                        (data) => {
-                            const dataSet = _ModuleSupport.DataSet.wrap(data);
-                            for (const series of this.series) {
-                                series.setChartData(dataSet);
-                            }
-                        }
+                        (data) => this.updateData(data)
                     );
                 } else {
                     this._unregisterLoader?.();
@@ -208,9 +203,10 @@ export class MiniChart extends AbstractModuleInstance {
         }
     }
 
-    updateData(data: any) {
-        for (const s of this.series) {
-            s.setChartData(data);
+    updateData(data: unknown[]) {
+        const dataSet = _ModuleSupport.DataSet.wrap(data);
+        for (const series of this.series) {
+            series.setChartData(dataSet);
         }
         if (this.miniChartAnimationPhase === 'initial') {
             this.ctx.animationManager.onBatchStop(() => {

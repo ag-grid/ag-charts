@@ -15,7 +15,17 @@
 
 .label {
     color: #464646;
-    font-family: Verdana, sans-serif;
+    font-family:
+        'IBM Plex Sans',
+        -apple-system,
+        'system-ui',
+        'Segoe UI',
+        Roboto,
+        Oxygen-Sans,
+        Ubuntu,
+        Cantarell,
+        'Helvetica Neue',
+        sans-serif;
     font-size: 17px;
     font-weight: 400;
 }

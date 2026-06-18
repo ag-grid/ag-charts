@@ -120,7 +120,7 @@ export interface AgBaseChartThemeParams {
 
 export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /** Default colour for axis lines and ticks. */
-    axisColor?: AgCssColorOrRef;
+    axisLineColor?: AgCssColorOrRef;
     /** Background colour of the chart. */
     chartBackgroundColor?: AgCssColorOrRef;
     /** The outer chart padding. */
@@ -178,7 +178,7 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /** Default colour for grid lines. */
     gridLineColor?: AgCssColorOrRef;
     /** Default colour for grouped-category separation lines. */
-    separationLinesColor?: AgCssColorOrRef;
+    groupedCategoryLineColor?: AgCssColorOrRef;
 }
 
 export interface AgChartPrivateThemeParams {

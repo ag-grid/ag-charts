@@ -573,7 +573,7 @@ describe('ChartTheme', () => {
             const axisY = chart.axes.y as any;
             expect(axisY.type).toBe('number');
             expect(axisY.position).toBe('left');
-            expect(axisY.options.line.stroke).toBe('#b4b6b6');
+            expect(axisY.options.line.stroke).toBe('#dcdddd');
             expect(axisY.options?.label?.fontSize).toBe(12);
 
             const axisX = chart.axes.x as any;
@@ -623,7 +623,7 @@ describe('ChartTheme', () => {
             const axisY = chart.axes.y as any;
             expect(axisY.type).toBe('number');
             expect(axisY.position).toBe('left');
-            expect(axisY.options.line.stroke).toBe('#b4b6b6');
+            expect(axisY.options.line.stroke).toBe('#dcdddd');
             expect(axisY.options?.label?.fontSize).toBe(12);
 
             const axisX = chart.axes.x as any;
@@ -775,7 +775,9 @@ describe('ChartTheme', () => {
             expect(axisX.options.line.width).toBe(5);
             expect(axisX.options?.label?.fontSize).toBe(18);
             expect(axisX.options?.label?.fontStyle).toBe(undefined);
-            expect(axisX.options?.label?.fontFamily).toBe('Verdana, sans-serif');
+            expect(axisX.options?.label?.fontFamily).toBe(
+                '"IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif'
+            );
 
             expect(axisX.options?.label?.fontWeight).toBe('bold');
             expect(axisX.options?.label?.rotation).toBe(45);

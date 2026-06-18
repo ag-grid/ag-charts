@@ -111,6 +111,16 @@ export function prepareFinancialTestOptions(options: AgFinancialChartOptions, co
     options.height = CANVAS_HEIGHT;
     options.container = container;
 
+    if (typeof options.theme === 'object' && options.theme.params) {
+        options.theme.params.fontFamily = 'Verdana, sans-serif';
+    }
+
+    options.theme ??= {
+        params: {
+            fontFamily: 'Verdana, sans-serif',
+        },
+    };
+
     return options;
 }
 
@@ -132,19 +142,29 @@ export function prepareTestOptions<T extends AgChartOptions<any, any> | AgGaugeO
             strokes: ['#aa4520', '#b07513', '#3d803d', '#2d768d', '#2e3e8d', '#6c2e8c', '#8c2d46', '#5f5f5f'],
         },
         params: {
-            axisColor: '#c3c3c3',
+            axisLineColor: '#c3c3c3',
+            backgroundColor: 'white',
             borderColor: '#dddddd',
+            focusShadow: '0 0 0 3px var(--ag-charts-accent-color)',
             foregroundColor: '#464646',
+            fontFamily: 'Verdana, sans-serif',
             gridLineColor: '#e0eaf2',
             popupShadow: '0 2px 8px 0 color-mix(in srgb, black 8%, transparent)',
-            textColor: '#464646',
             subtleTextColor: '#8c8c8c',
+            textColor: '#464646',
+
             chromeBackgroundColor: '#fafafa',
+
             buttonTextColor: '#464646',
+
             inputTextColor: '#464646',
+
             menuBackgroundColor: '#fafafa',
+
             panelBackgroundColor: '#fafafa',
+
             tooltipBackgroundColor: '#fafafa',
+
             crosshairLabelBackgroundColor: '#464646',
             crosshairLabelTextColor: 'white',
         },

@@ -174,49 +174,37 @@ export class DataService<D extends object> {
             params.context = this.caller.context;
         }
 
-        const fetchRequest = Promise.resolve().then(async () => {
-            if (!this.dataSourceCallback) {
-                throw new Error('DataService - [dataSource.getData] callback not initialised');
-            }
-
-            const id = this.requestCounter++;
-            this.debug(`DataService - requesting | ${id}`);
-
-            const { response, threw } = await this.performFetch(params, id);
-
-            this.isLoadingInitialData = false;
-
-            const requestIndex = this.freshRequests.indexOf(fetchRequest);
-            if (requestIndex === -1 || (this.dispatchOnlyLatest && requestIndex !== this.freshRequests.length - 1)) {
-                this.debug(`DataService - discarding stale request | ${id}`);
-                return response;
-            }
-
-            this.freshRequests = this.freshRequests.slice(requestIndex + 1);
-
-            if (this.freshRequests.length === 0) {
-                this.isLoadingData = false;
-            }
-
-            // Only a non-empty array replaces the current data; anything else routes through
-            // `data:error` to retain the previous data-set. A non-array is a developer error and
-            // warrants a warning; an empty array is well-formed so it is retained silently. Non-empty
-            // arrays whose rows do not render against the series keys are caught by the post-render
-            // retain in the chart.
-            if (isNonEmptyArray(response)) {
-                this.lastDispatchedData = { params, data: response };
-                this.throttledDispatch(id, response as D[], requestId);
-            } else {
-                if (!threw && !Array.isArray(response)) {
-                    Logger.warnOnce(
-                        `DataService - [dataSource.getData] returned an invalid value \`${stringifyValue(response, 50)}\`; expecting an array, ignoring.`
-                    );
+        const fetchRequest = Promise.resolve().then(
+            async (): Promise<{ id: number; response: unknown; threw: boolean }> => {
+                if (!this.dataSourceCallback) {
+                    throw new Error('DataService - [dataSource.getData] callback not initialised');
                 }
-                this.eventsHub.emit('data:error', { requestId });
-            }
 
-            return response;
-        });
+                const id = this.requestCounter++;
+                this.debug(`DataService - requesting | ${id}`);
+
+                const { response, threw } = await this.performFetch(params, id);
+
+                this.isLoadingInitialData = false;
+
+                const requestIndex = this.freshRequests.indexOf(fetchRequest);
+                if (
+                    requestIndex === -1 ||
+                    (this.dispatchOnlyLatest && requestIndex !== this.freshRequests.length - 1)
+                ) {
+                    this.debug(`DataService - discarding stale request | ${id}`);
+                    return { id, response, threw };
+                }
+
+                this.freshRequests = this.freshRequests.slice(requestIndex + 1);
+
+                if (this.freshRequests.length === 0) {
+                    this.isLoadingData = false;
+                }
+
+                return { id, response, threw };
+            }
+        );
 
         const secondaryFetchRequests = [];
         if (params.source != null && this.dataSourceCallback) {
@@ -239,7 +227,26 @@ export class DataService<D extends object> {
         this.latestRequest = { params, fetchRequest };
         this.freshRequests.push(fetchRequest);
 
-        await Promise.all([fetchRequest, ...secondaryFetchRequests]);
+        // Ensure secondary requests have finished before dispatching the update.
+        await Promise.all(secondaryFetchRequests);
+
+        const { id, response, threw } = await fetchRequest;
+
+        // Only a non-empty array replaces the current data; anything else routes through `data:error`
+        // to retain the previous data-set. A non-array is a developer error and warrants a warning; an
+        // empty array is well-formed so it is retained silently. Non-empty arrays whose rows do not
+        // render against the series keys are caught by the post-render retain in the chart.
+        if (isNonEmptyArray(response)) {
+            this.lastDispatchedData = { params, data: response };
+            this.throttledDispatch(id, response as D[], requestId);
+        } else {
+            if (!threw && !Array.isArray(response)) {
+                Logger.warnOnce(
+                    `DataService - [dataSource.getData] returned an invalid value \`${stringifyValue(response, 50)}\`; expecting an array, ignoring.`
+                );
+            }
+            this.eventsHub.emit('data:error', { requestId });
+        }
     }
 
     private async performFetch(params: AgDataSourceCallbackParams, id: string | number) {

@@ -49,9 +49,11 @@ type PyramidNodeLabelDatum = Readonly<Point> & {
     readonly visible: boolean;
 };
 
+type PyramidStageValue = string | number | { toString(): string };
+
 interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
-    readonly xValue: string;
+    readonly xValue: PyramidStageValue;
     readonly yValue: AgNumericValue;
     readonly top: number;
     readonly right: number;
@@ -210,7 +212,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         const horizontal = direction === 'horizontal';
 
-        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData, 'string');
+        const xValues = dataModel.resolveColumnById<PyramidStageValue>(this, `xValue`, processedData, 'object');
         const yValues = dataModel.resolveColumnById(this, `yValue`, processedData, 'mixed-numeric');
 
         const xDomain = dataModel.getDomain(this, 'xValue', 'value', processedData).domain;
@@ -684,7 +686,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         if (!dataModel || !processedData) return;
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
-        const xValue = dataModel.resolveColumnById(this, 'xValue', processedData, 'string')[datumIndex];
+        const xValue = dataModel.resolveColumnById<PyramidStageValue>(this, 'xValue', processedData, 'object')[
+            datumIndex
+        ];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData, 'mixed-numeric')[datumIndex];
 
         const allowNullKeys = this.properties.allowNullKeys ?? false;
@@ -772,7 +776,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         }
 
         const { showInLegend } = this.properties;
-        const stageValues = dataModel.resolveColumnById(this, `xValue`, processedData, 'string');
+        const stageValues = dataModel.resolveColumnById<PyramidStageValue>(this, `xValue`, processedData, 'object');
 
         return (processedData.dataSources.get(this.id)?.data ?? [])
             .map((datum, datumIndex): _ModuleSupport.CategoryLegendDatum | undefined => {
