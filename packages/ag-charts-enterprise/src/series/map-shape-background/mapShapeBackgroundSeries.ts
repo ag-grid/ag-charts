@@ -1,5 +1,9 @@
-import { type AgMapShapeBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
-import type { DynamicContext, FeatureCollection } from 'ag-charts-core';
+import {
+    type AgMapShapeBackgroundOptions,
+    type AgMapShapeBackgroundThemeableOptions,
+    _ModuleSupport,
+} from 'ag-charts-community';
+import type { DynamicContext, FeatureCollection, FillStrokeMorph, Normalised } from 'ag-charts-core';
 import { Logger } from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
@@ -14,6 +18,8 @@ import {
 } from './mapShapeBackgroundSeriesProperties';
 
 const { createDatumId, Selection, Group, PointerEvents } = _ModuleSupport;
+
+type NormalisedMapShapeBackgroundStyle = Normalised<AgMapShapeBackgroundThemeableOptions, never, FillStrokeMorph>;
 
 interface MapShapeBackgroundNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<MapShapeBackgroundNodeDatum> {}
 
@@ -196,7 +202,8 @@ export class MapShapeBackgroundSeries
             }
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
-            geoGeometry.setProperties(datum.style);
+            // Colour refs are resolved during theme-merge, so the style is concrete by render.
+            geoGeometry.setProperties(datum.style as NormalisedMapShapeBackgroundStyle);
         });
     }
 

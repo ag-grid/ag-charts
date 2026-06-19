@@ -1,12 +1,16 @@
-import type { DynamicContext, NormalisedTextOrSegments } from 'ag-charts-core';
+import type {
+    DynamicContext,
+    NormalisedColorType,
+    NormalisedDonutSeriesStyle,
+    NormalisedPieSeriesStyle,
+    NormalisedTextOrSegments,
+} from 'ag-charts-core';
 import {
-    type CallbackParamRules,
     ChartAxisDirection,
     ChartUpdateType,
     DebugMetrics,
     type Has,
     type InternalAgColorType,
-    type InternalAgGradientColor,
     Logger,
     type Point,
     PolarZIndexMap,
@@ -32,12 +36,11 @@ import type {
     AgDonutSeriesItemStylerParams,
     AgDonutSeriesLabelFormatterParams,
     AgDonutSeriesOptions,
-    AgDonutSeriesStyle,
     AgDrawingMode,
     AgNumericValue,
     AgPieSeriesItemStylerParams,
     AgPieSeriesLabelFormatterParams,
-    AgPieSeriesStyle,
+    NormalisedCallbackParams,
     SelectionState,
 } from 'ag-charts-types';
 
@@ -169,7 +172,7 @@ enum DonutNodeTag {
 
 interface PieDonutSeriesLabelFormatterParams
     extends AgDonutSeriesLabelFormatterParams, AgPieSeriesLabelFormatterParams {}
-interface PieDonutSeriesStyle extends AgDonutSeriesStyle, AgPieSeriesStyle {}
+interface PieDonutSeriesStyle extends NormalisedDonutSeriesStyle, NormalisedPieSeriesStyle {}
 
 export class DonutSeries extends PolarSeries<
     PieDonutNodeDatum,
@@ -758,7 +761,7 @@ export class DonutSeries extends PolarSeries<
                         ['series', `${this.declarationOrder}`],
                         this.callWithContext(itemStyler, params),
                         { proxyPaths: { fill: ['fills', `${datumIndex}`], stroke: ['strokes', `${datumIndex}`] } }
-                    );
+                    ) as NormalisedDonutSeriesStyle;
                 }
             );
         }
@@ -780,7 +783,7 @@ export class DonutSeries extends PolarSeries<
         datum: unknown,
         datumIndex: number,
         isHighlight: boolean,
-        style: Required<AgPieSeriesStyle>
+        style: Required<NormalisedPieSeriesStyle>
     ) {
         const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
 
@@ -803,8 +806,9 @@ export class DonutSeries extends PolarSeries<
             selectionState: this.getSelectionStateString(datumIndex),
             candidateState: this.getCandidateStateString(datumIndex),
             seriesId: this.id,
-        } satisfies CallbackParamRules<
-            AgDonutSeriesItemStylerParams<unknown, unknown> | AgPieSeriesItemStylerParams<unknown, unknown>
+        } satisfies NormalisedCallbackParams<
+            AgDonutSeriesItemStylerParams<unknown, unknown> | AgPieSeriesItemStylerParams<unknown, unknown>,
+            { fill?: NormalisedColorType; stroke?: NormalisedColorType }
         >;
     }
 
@@ -1770,7 +1774,7 @@ export class DonutSeries extends PolarSeries<
         let { fill } = sectorFormat;
         const { stroke } = sectorFormat;
         if (isGradientFill(fill)) {
-            fill = { ...fill, gradient: 'linear', rotation: 0, reverse: false } as InternalAgGradientColor;
+            fill = { ...fill, gradient: 'linear', rotation: 0, reverse: false };
         }
 
         return {

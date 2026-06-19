@@ -18,7 +18,9 @@ import {
     DebugMetrics,
     type DomainWithMetadata,
     type DynamicContext,
+    type FillStrokeMorph,
     type Mutable,
+    type Normalised,
     type NormalisedTextOrSegments,
     type Point,
     type RequireOptional,
@@ -81,6 +83,8 @@ interface RangeBarNodeLabelDatum extends Readonly<Point> {
 }
 
 type RangeBarItemId = `${string}-${string}`;
+
+type NormalisedRangeBarSeriesStyle = Normalised<AgRangeBarSeriesStyle, never, FillStrokeMorph>;
 
 /**
  * Shared context for creating/updating RangeBarNodeDatum instances.
@@ -175,7 +179,7 @@ interface RangeBarNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum
     // Required for types
     readonly clipBBox?: _ModuleSupport.BBox;
     readonly opacity?: number;
-    style?: Required<AgRangeBarSeriesStyle>;
+    style?: Required<NormalisedRangeBarSeriesStyle>;
 }
 
 type RangeBarAnimationData = _ModuleSupport.AbstractBarSeriesAnimationData<RangeBarSeriesTypes>;
@@ -206,7 +210,7 @@ interface RangeBarSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeries
     RangeBarNodeLabelDatum
 > {
     itemId: RangeBarItemId;
-    styles: _ModuleSupport.SeriesNodeStyleContext<AgRangeBarSeriesStyle>;
+    styles: _ModuleSupport.SeriesNodeStyleContext<NormalisedRangeBarSeriesStyle>;
 }
 
 /**
@@ -993,7 +997,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         highlightState: _ModuleSupport.HighlightState | undefined,
         selectionState: _ModuleSupport.SelectionState | undefined,
         candidateState: _ModuleSupport.SelectionState | undefined
-    ): Required<AgRangeBarSeriesStyle> & { opacity: number } {
+    ): Required<NormalisedRangeBarSeriesStyle> & { opacity: number } {
         const {
             cornerRadius,
             fill,
@@ -1005,15 +1009,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             strokeWidth,
             styler,
         } = this.properties;
-        let stylerResult: AgRangeBarSeriesStyle = {};
+        let stylerResult: NormalisedRangeBarSeriesStyle = {};
         if (!ignoreStylerCallback && styler) {
             const stylerParams = this.makeStylerParams(highlightState, selectionState, candidateState);
-            stylerResult =
-                this.ctx.optionsGraphService.resolvePartial(
-                    ['series', `${this.declarationOrder}`],
-                    this.cachedCallWithContext(styler, stylerParams) ?? {},
-                    { pick: false }
-                ) ?? {};
+            stylerResult = (this.ctx.optionsGraphService.resolvePartial(
+                ['series', `${this.declarationOrder}`],
+                this.cachedCallWithContext(styler, stylerParams) ?? {},
+                { pick: false }
+            ) ?? {}) as NormalisedRangeBarSeriesStyle;
         }
         return {
             cornerRadius: stylerResult.cornerRadius ?? cornerRadius,
@@ -1089,7 +1092,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         highlightState: _ModuleSupport.HighlightState | undefined,
         selectionState: _ModuleSupport.SelectionState | undefined,
         candidateState: _ModuleSupport.SelectionState | undefined
-    ): Required<AgRangeBarSeriesStyle> {
+    ): Required<NormalisedRangeBarSeriesStyle> {
         const { properties, dataModel, processedData } = this;
         const { itemStyler } = properties;
 
@@ -1119,7 +1122,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         return style;
     }
 
-    private makeItemStylerParams(datumIndex: number, isHighlight: boolean, style: Required<AgRangeBarSeriesStyle>) {
+    private makeItemStylerParams(
+        datumIndex: number,
+        isHighlight: boolean,
+        style: Required<NormalisedRangeBarSeriesStyle>
+    ) {
         const { id: seriesId, properties, processedData } = this;
         const { xKey, yHighKey, yLowKey } = properties;
 

@@ -10,14 +10,14 @@ import type {
     WithThemeParams,
 } from 'ag-charts-types';
 
+import type {
+    RequiredInternalAgGradientColor,
+    RequiredInternalAgImageFill,
+    RequiredInternalAgPatternColor,
+} from '../types/normalised-options/normalisedCommonOptions';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../types/themeConstants';
 import { mapValues } from '../utils/data/object';
 import { Color } from '../utils/format/color';
-import {
-    type RequiredInternalAgGradientColor,
-    type RequiredInternalAgImageFill,
-    type RequiredInternalAgPatternColor,
-} from './optionsDefaults';
 
 type CartesianAxis = Exclude<AgCartesianChartOptions['axes'], undefined>[0];
 

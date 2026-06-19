@@ -1,5 +1,5 @@
-import { type AgMapLineBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
-import type { DynamicContext, FeatureCollection } from 'ag-charts-core';
+import { type AgMapLineBackgroundOptions, type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import type { DynamicContext, FeatureCollection, FillStrokeMorph, Normalised } from 'ag-charts-core';
 import { Logger } from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
@@ -14,6 +14,8 @@ import {
 } from './mapLineBackgroundSeriesProperties';
 
 const { createDatumId, Group, Selection, PointerEvents } = _ModuleSupport;
+
+type NormalisedMapLineSeriesStyle = Normalised<AgMapLineSeriesStyle, never, FillStrokeMorph>;
 
 interface MapLineNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<MapLineBackgroundNodeDatum> {}
 
@@ -199,7 +201,8 @@ export class MapLineBackgroundSeries
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
 
-            geoGeometry.setProperties(datum.style);
+            // Colour refs are resolved during theme-merge; the resolved style holds concrete colours by render.
+            geoGeometry.setProperties(datum.style as NormalisedMapLineSeriesStyle);
         });
     }
 

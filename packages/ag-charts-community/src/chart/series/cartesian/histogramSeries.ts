@@ -1,4 +1,4 @@
-import type { CallbackParamRules, DynamicContext } from 'ag-charts-core';
+import type { CallbackParamRules, DynamicContext, NormalisedHistogramSeriesStyle } from 'ag-charts-core';
 import {
     ChartAxisDirection,
     type DomainWithMetadata,
@@ -25,7 +25,6 @@ import type {
     AgHistogramSeriesItemStylerParams,
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
-    AgHistogramSeriesStyle,
     AgHistogramSeriesStylerParams,
     AgNumericValue,
     SelectionState as PublicSelectionState,
@@ -122,7 +121,7 @@ interface CalculatedBin {
 }
 
 interface HistogramSeriesNodeDataContext extends CartesianSeriesNodeDataContext<HistogramNodeDatum> {
-    styles: SeriesNodeStyleContext<AgHistogramSeriesStyle>;
+    styles: SeriesNodeStyleContext<NormalisedHistogramSeriesStyle>;
 }
 
 /**
@@ -703,7 +702,9 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
     // The theme resolves fill/stroke before any styler runs, so the style fields exposed to styler
     // callbacks are always present even though they are statically optional on the properties.
-    private resolvedStyle(style: RequireOptional<AgHistogramSeriesStyle>): Required<AgHistogramSeriesStyle> {
+    private resolvedStyle(
+        style: RequireOptional<NormalisedHistogramSeriesStyle>
+    ): Required<NormalisedHistogramSeriesStyle> {
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } = style;
         return {
             fill,
@@ -714,7 +715,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             lineDash,
             lineDashOffset,
             cornerRadius,
-        } as Required<AgHistogramSeriesStyle>;
+        } as Required<NormalisedHistogramSeriesStyle>;
     }
 
     private makeStylerParams(
@@ -737,7 +738,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     private makeItemStylerParams(
         bin: CalculatedBin,
         isHighlight: boolean,
-        style: RequireOptional<AgHistogramSeriesStyle>
+        style: RequireOptional<NormalisedHistogramSeriesStyle>
     ): AgHistogramSeriesItemStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
         const { xKey, yKey } = this.properties;
@@ -760,19 +761,18 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         isHighlight: boolean,
         datumIndex: number | undefined,
         highlightState: HighlightState | undefined
-    ): RequireOptional<AgHistogramSeriesStyle> {
+    ): RequireOptional<NormalisedHistogramSeriesStyle> {
         const { properties } = this;
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
 
-        let base: RequireOptional<AgHistogramSeriesStyle> = properties.getStyle();
+        let base: RequireOptional<NormalisedHistogramSeriesStyle> = properties.getStyle();
         const { styler } = properties;
         if (!ignoreStylerCallback && styler != null) {
-            const stylerResult =
-                this.ctx.optionsGraphService.resolvePartial(
-                    ['series', `${this.declarationOrder}`],
-                    this.cachedCallWithContext(styler, this.makeStylerParams(highlightState)) ?? {},
-                    { pick: false }
-                ) ?? {};
+            const stylerResult = (this.ctx.optionsGraphService.resolvePartial(
+                ['series', `${this.declarationOrder}`],
+                this.cachedCallWithContext(styler, this.makeStylerParams(highlightState)) ?? {},
+                { pick: false }
+            ) ?? {}) as RequireOptional<NormalisedHistogramSeriesStyle>;
             base = mergeDefaults(stylerResult, base);
         }
 
@@ -783,7 +783,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         datumIndex: number | undefined,
         isHighlight: boolean,
         highlightState?: HighlightState
-    ): RequireOptional<AgHistogramSeriesStyle> {
+    ): RequireOptional<NormalisedHistogramSeriesStyle> {
         let style = this.getStyle(datumIndex === undefined, isHighlight, datumIndex, highlightState);
 
         const { itemStyler } = this.properties;
@@ -799,7 +799,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                         )
                 );
                 if (overrides) {
-                    style = mergeDefaults(overrides, style);
+                    style = mergeDefaults(overrides as RequireOptional<NormalisedHistogramSeriesStyle>, style);
                 }
             }
         }

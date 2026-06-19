@@ -1,5 +1,5 @@
-import { type FillOptions, _ModuleSupport } from 'ag-charts-community';
-import { type Point, type Size, spanRange } from 'ag-charts-core';
+import { _ModuleSupport } from 'ag-charts-community';
+import { type NormalisedFillOptions, type Point, type Size, spanRange } from 'ag-charts-core';
 
 function getYValueAtX({ span }: _ModuleSupport.LinePathSpan, x: number): number {
     switch (span.type) {
@@ -117,7 +117,7 @@ export function calculateIntersectionSegments(
     seriesRect: _ModuleSupport.BBox,
     chartSize: Size,
     startsInverted: boolean,
-    style: FillOptions = {}
+    style: NormalisedFillOptions = {}
 ) {
     const horizontalMargin = Math.max(seriesRect.x, chartSize.width - (seriesRect.x + seriesRect.width));
     const verticalMargin = Math.max(seriesRect.y, chartSize.height - (seriesRect.y + seriesRect.height));

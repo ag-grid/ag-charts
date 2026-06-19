@@ -1,4 +1,9 @@
-import type { InternalAgColorType, NormalisedTextOrSegments, RequireOptional } from 'ag-charts-core';
+import type {
+    InternalAgColorType,
+    NormalisedHistogramSeriesStyle,
+    NormalisedTextOrSegments,
+    RequireOptional,
+} from 'ag-charts-core';
 import { Property } from 'ag-charts-core';
 import type {
     AgHistogramSeriesGetItemIdParams,
@@ -45,7 +50,7 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     // Required for types
     readonly crisp: boolean;
     readonly opacity?: number;
-    style?: RequireOptional<AgHistogramSeriesStyle>;
+    style?: RequireOptional<NormalisedHistogramSeriesStyle>;
 }
 
 export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHistogramSeriesOptions> {
@@ -115,7 +120,7 @@ export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHisto
     @Property
     readonly tooltip = makeSeriesTooltip<AgHistogramSeriesTooltipRendererParams>();
 
-    getStyle(): RequireOptional<AgHistogramSeriesStyle> & { opacity: number } {
+    getStyle(): RequireOptional<NormalisedHistogramSeriesStyle> & { opacity: number } {
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } = this;
         return {
             fill,

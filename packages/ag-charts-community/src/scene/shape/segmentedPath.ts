@@ -1,5 +1,10 @@
-import { SceneRefChangeDetection, getPath2D } from 'ag-charts-core';
-import type { FillOptions, LineDashOptions, StrokeOptions } from 'ag-charts-types';
+import {
+    type NormalisedFillOptions,
+    type NormalisedStrokeOptions,
+    SceneRefChangeDetection,
+    getPath2D,
+} from 'ag-charts-core';
+import type { LineDashOptions } from 'ag-charts-types';
 
 import { Path } from './path';
 
@@ -10,7 +15,7 @@ export interface ClipRect {
     y1: number;
 }
 
-export interface Segment extends StrokeOptions, FillOptions, LineDashOptions {
+export interface Segment extends NormalisedStrokeOptions, NormalisedFillOptions, LineDashOptions {
     clipRect: ClipRect;
 }
 

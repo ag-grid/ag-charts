@@ -130,7 +130,8 @@ export function getStyle(
 
     return {
         cornerRadius: stylerResult.cornerRadius ?? series.properties.cornerRadius,
-        fill: stylerResult.fill ?? series.properties.fill,
+        // resolvePartial has resolved any colour refs in the styler result; properties.fill is already resolved.
+        fill: (stylerResult.fill ?? series.properties.fill) as InternalAgColorType,
         fillOpacity: stylerResult.fillOpacity ?? series.properties.fillOpacity,
         lineDash: stylerResult.lineDash ?? series.properties.lineDash,
         lineDashOffset: stylerResult.lineDashOffset ?? series.properties.lineDashOffset,

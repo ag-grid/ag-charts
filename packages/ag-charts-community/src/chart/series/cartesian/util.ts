@@ -2,6 +2,8 @@ import {
     CARTESIAN_AXIS_TYPE,
     CARTESIAN_POSITION,
     ChartAxisDirection,
+    type NormalisedSeriesSegmentation,
+    type NormalisedSeriesShapeSegmentOptions,
     type Size,
     isArray,
     isDate,
@@ -11,13 +13,7 @@ import {
     isObject,
     isString,
 } from 'ag-charts-core';
-import type {
-    AgCartesianSeriesOptions,
-    AgSeriesSegmentation,
-    AgSeriesShapeSegmentOptions,
-    DatumDefault,
-    SeriesPredictAxis,
-} from 'ag-charts-types';
+import type { AgCartesianSeriesOptions, DatumDefault, SeriesPredictAxis } from 'ag-charts-types';
 
 import { BBox } from '../../../scene/bbox';
 import type { ChartAxis } from '../../chartAxis';
@@ -27,7 +23,7 @@ function isAxisReversed(axis: ChartAxis) {
 }
 
 export function calculateSegments(
-    segmentation: AgSeriesSegmentation,
+    segmentation: NormalisedSeriesSegmentation,
     xAxis: ChartAxis,
     yAxis: ChartAxis,
     seriesRect: BBox,
@@ -66,8 +62,8 @@ export function calculateSegments(
         return isXDirection ? seriesRect.width + horizontalMargin : seriesRect.height + verticalMargin;
     };
 
-    const getSegments = (segments: AgSeriesShapeSegmentOptions[]) => {
-        const result: AgSeriesShapeSegmentOptions[] = [];
+    const getSegments = (segments: NormalisedSeriesShapeSegmentOptions[]) => {
+        const result: NormalisedSeriesShapeSegmentOptions[] = [];
 
         let previousDefinedStopIndex = -1;
         for (let i = 0; i < segments.length; i++) {

@@ -1,4 +1,12 @@
-import type { Callback, CallbackParam, DynamicContext, IsAny, NormalisedTextOrSegments, Point } from 'ag-charts-core';
+import type {
+    Callback,
+    CallbackParam,
+    DynamicContext,
+    IsAny,
+    NormalisedColorType,
+    NormalisedTextOrSegments,
+    Point,
+} from 'ag-charts-core';
 import { type NormalisedChartLabelStyleOptions, mergeDefaults } from 'ag-charts-core';
 import type {
     AgChartLabelStylerParams,
@@ -73,7 +81,7 @@ export function getLabelStyles<TParams>(
 
         const styleParams: NormalisedCallbackParams<
             AgChartLabelStylerParams<unknown, unknown>,
-            { color?: CssColor; fontSize: number }
+            { color?: CssColor; fontSize: number; fill?: NormalisedColorType }
         > = {
             border: label.border,
             color: label.color,
@@ -94,12 +102,11 @@ export function getLabelStyles<TParams>(
             selectionState: series.getSelectionStateString(nodeDatum?.datumIndex),
             candidateState: series.getCandidateStateString(nodeDatum?.datumIndex),
         };
-        const stylerResult =
-            series.ctx.optionsGraphService.resolvePartial(
-                labelPath,
-                series.cachedCallWithContext(label.itemStyler, { ...params, ...styleParams }),
-                { pick: false }
-            ) ?? {};
+        const stylerResult = (series.ctx.optionsGraphService.resolvePartial(
+            labelPath,
+            series.cachedCallWithContext(label.itemStyler, { ...params, ...styleParams }),
+            { pick: false }
+        ) ?? {}) as NormalisedChartLabelStyleOptions;
 
         return mergeDefaults(stylerResult, styleParams);
     }

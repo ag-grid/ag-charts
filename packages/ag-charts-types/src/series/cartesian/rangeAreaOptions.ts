@@ -8,8 +8,9 @@ import type {
 } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgCssColorOrRef } from '../../chart/themeParamsOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
 import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
 import type {
@@ -127,8 +128,8 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TConte
     extends FillOptions, AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /** Configuration for the markers used in the series.  */
     marker?: AgRangeAreaMarker<TDatum, TContext>;
-    /** The colour for the stroke. */
-    stroke?: CssColor;
+    /** The colour for the stroke. A colour string, or a theme-colour reference object. */
+    stroke?: AgCssColorOrRef;
     /** The width of the stroke in pixels. */
     strokeWidth?: PixelSize;
     /** The opacity of the stroke colour. */

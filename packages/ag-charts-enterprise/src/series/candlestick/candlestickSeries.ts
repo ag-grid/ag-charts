@@ -1,9 +1,24 @@
 import { type AgCandlestickSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type InternalAgGradientColor, isGradientFill, isImageFill, isPatternFill } from 'ag-charts-core';
+import {
+    type FillStrokeMorph,
+    type InternalAgGradientColor,
+    type Normalised,
+    isGradientFill,
+    isImageFill,
+    isPatternFill,
+} from 'ag-charts-core';
+import type { CssColor } from 'ag-charts-types';
 
 import { type OhlcNodeDatum, OhlcSeriesBase, type OhlcSeriesBaseTypes } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
+
+/** Post-resolution style: colour refs are resolved to concrete colours before reaching the scene node. */
+type NormalisedCandlestickStyle = Normalised<
+    NonNullable<OhlcNodeDatum['style']>,
+    never,
+    FillStrokeMorph & { wick: Normalised<NonNullable<OhlcNodeDatum['style']>['wick'], never, { stroke?: CssColor }> }
+>;
 
 /**
  * Consolidated type interface for CandlestickSeries.
@@ -59,7 +74,8 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
             const { centerX, width, y, height, yOpen, yClose, crisp } = datum;
             const baseStyle = datum.isRising ? up : down;
             const highlightState = series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            const style = datum.style ?? contextNodeData.styles[datum.itemType][highlightState];
+            const style = (datum.style ??
+                contextNodeData.styles[datum.itemType][highlightState]) as NormalisedCandlestickStyle;
 
             node.setStaticProperties(centerX, width, y, height, yOpen, yClose, crisp);
 

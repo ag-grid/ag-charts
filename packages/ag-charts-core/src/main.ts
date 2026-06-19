@@ -1,10 +1,15 @@
 // Types
 export * from './types/global';
 export * from './types/normalised-options/normalise';
+export * from './types/normalised-options/normalisedAreaSeries';
 export * from './types/normalised-options/normalisedAxisOptions';
+export * from './types/normalised-options/normalisedCartesianSeries';
 export * from './types/normalised-options/normalisedCommonOptions';
 export * from './types/normalised-options/normalisedChartCaptionOptions';
+export * from './types/normalised-options/normalisedDonutSeries';
 export * from './types/normalised-options/normalisedGradientLegendOptions';
+export * from './types/normalised-options/normalisedPieSeries';
+export * from './types/normalised-options/normalisedSeriesMarkerOptions';
 export * from './types/normalised-options/normalisedLabelOptions';
 export * from './types/normalised-options/normalisedLegendOptions';
 export * from './types/normalised-options/normalisedSelectionOptions';

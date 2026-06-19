@@ -1,4 +1,11 @@
-import type { CallbackParamRules, DomainWithMetadata, DynamicContext, RequireOptional } from 'ag-charts-core';
+import type {
+    CallbackParamRules,
+    DomainWithMetadata,
+    DynamicContext,
+    NormalisedLineSeriesStylerResult,
+    NormalisedSeriesMarkerStyle,
+    RequireOptional,
+} from 'ag-charts-core';
 import {
     AGGREGATION_INDEX_Y_MAX,
     ChartAxisDirection,
@@ -15,8 +22,6 @@ import {
     type AgLineSeriesMarkerItemStylerParams,
     type AgLineSeriesOptions,
     type AgLineSeriesStylerParams,
-    type AgLineSeriesStylerResult,
-    type AgSeriesMarkerStyle,
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
@@ -133,7 +138,12 @@ interface LineStylerPassCtx extends LineNoStylerPassCtx {
     yKey: string;
 }
 
-type LineNoStylerCompute = MarkerStyleCompute<LineSeries, LineNoStylerPassCtx, LineNodeDatum, AgSeriesMarkerStyle>;
+type LineNoStylerCompute = MarkerStyleCompute<
+    LineSeries,
+    LineNoStylerPassCtx,
+    LineNodeDatum,
+    NormalisedSeriesMarkerStyle
+>;
 type LineStylerCompute = MarkerStyleCompute<
     LineSeries,
     LineStylerPassCtx,
@@ -829,7 +839,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
 
         if (itemStyler == null) {
             // No itemStyler: style is a pure function of (highlightState, selectionState).
-            this.runMarkerStylePass<LineNoStylerPassCtx, LineNodeDatum, AgSeriesMarkerStyle, LineSeries>(
+            this.runMarkerStylePass<LineNoStylerPassCtx, LineNodeDatum, NormalisedSeriesMarkerStyle, LineSeries>(
                 datumSelection,
                 isHighlight,
                 { marker, hideWithSize0, isHighlight },
@@ -957,7 +967,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         const selectionState = toSelectionString(selectionStateEnum);
         const candidateState = toSelectionString(candidateStateEnum);
 
-        type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> };
+        type MarkerRules = { marker: RequireOptional<NormalisedSeriesMarkerStyle> };
         type ResultRules = CallbackParamRules<AgLineSeriesStylerParams<unknown, unknown> & MarkerRules>;
         return {
             marker: {
@@ -989,7 +999,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         dataModel: NonNullable<typeof this.dataModel>,
         processedData: NonNullable<typeof this.processedData>,
         datumIndex: number,
-        style: Required<AgSeriesMarkerStyle>
+        style: Required<NormalisedSeriesMarkerStyle>
     ): AgLineSeriesMarkerItemStylerParams<unknown, unknown> {
         const { xKey, yKey } = this.properties;
 
@@ -1037,7 +1047,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             params,
             { isHighlight: false },
             stylerStyle.marker
-        ) as RequireOptional<AgSeriesMarkerStyle>;
+        ) as RequireOptional<NormalisedSeriesMarkerStyle>;
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -1088,7 +1098,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                 strokeWidth: marker.strokeWidth,
                 lineDash: marker.lineDash,
                 lineDashOffset: marker.lineDashOffset,
-            } satisfies RequireOptional<AgSeriesMarkerStyle>
+            } satisfies RequireOptional<NormalisedSeriesMarkerStyle>
         );
 
         return {
@@ -1286,20 +1296,21 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
 
     public getStyle(
         highlightState: HighlightState | undefined
-    ): Required<AgLineSeriesStylerResult> & { marker: Required<AgSeriesMarkerStyle> } {
+    ): Required<NormalisedLineSeriesStylerResult> & { marker: Required<NormalisedSeriesMarkerStyle> } {
         const { styler, marker, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = this.properties;
         const { size, shape, fill = 'transparent', fillOpacity } = marker;
-        let stylerResult: AgLineSeriesStylerResult = {};
+        let stylerResult: NormalisedLineSeriesStylerResult = {};
         if (styler) {
             const selectionState: SelectionState | undefined = this.getDataSelectionState(undefined);
             const candidateState: SelectionState | undefined = this.getDataCandidacyState(undefined);
             const stylerParams = this.makeStylerParams(highlightState, selectionState, candidateState);
             const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
+            // resolvePartial has already resolved any colour refs returned by the styler.
             const resolved = this.ctx.optionsGraphService.resolvePartial(
                 ['series', `${this.declarationOrder}`],
                 cbResult,
                 { pick: false }
-            );
+            ) as NormalisedLineSeriesStylerResult | undefined;
             stylerResult = resolved ?? {};
         }
         stylerResult.marker ??= {};
@@ -1319,8 +1330,8 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                 stroke: stylerResult.marker.stroke ?? marker.stroke ?? stroke,
                 strokeOpacity: stylerResult.marker.strokeOpacity ?? marker.strokeOpacity ?? strokeOpacity,
                 strokeWidth: stylerResult.marker.strokeWidth ?? marker.strokeWidth ?? strokeWidth,
-            } satisfies RequireOptional<AgSeriesMarkerStyle>,
-        } satisfies RequireOptional<AgLineSeriesStylerResult>;
+            } satisfies RequireOptional<NormalisedSeriesMarkerStyle>,
+        } satisfies RequireOptional<NormalisedLineSeriesStylerResult>;
     }
 
     public getFormattedMarkerStyle(datum: LineNodeDatum) {

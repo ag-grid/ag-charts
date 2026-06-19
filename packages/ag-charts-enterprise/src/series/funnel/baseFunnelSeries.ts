@@ -7,6 +7,8 @@ import {
 import type {
     DomainWithMetadata,
     DynamicContext,
+    FillStrokeMorph,
+    Normalised,
     NormalisedTextOrSegments,
     Point,
     RequireOptional,
@@ -47,6 +49,8 @@ export type Bounds = {
     width: number;
     height: number;
 };
+
+type NormalisedFunnelSeriesStyle = Normalised<AgFunnelSeriesStyle, never, FillStrokeMorph>;
 
 export type FunnelNodeLabelDatum = Readonly<Point> & {
     datumIndex: number;
@@ -506,8 +510,11 @@ export abstract class BaseFunnelSeries<
         const fillBBox = this.getShapeFillBBox();
 
         opts.connectorSelection.each((connector, datum) => {
+            // Colour refs are resolved during theme-merge, so the style is already normalised by render.
             const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
-                this.connectorStyle(datum.datumIndex);
+                this.connectorStyle(datum.datumIndex) as RequireOptional<NormalisedFunnelSeriesStyle> & {
+                    opacity: number;
+                };
 
             connector.setProperties(resetConnectorSelectionsFn(connector, datum));
 
@@ -644,8 +651,9 @@ export abstract class BaseFunnelSeries<
     }
 
     private legendItemSymbol(datumIndex: number): _ModuleSupport.LegendSymbolOptions {
+        // Colour refs are resolved during theme-merge, so the style is already normalised by render.
         const { strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset, fill, stroke } =
-            this.properties.getStyle(datumIndex);
+            this.properties.getStyle(datumIndex) as Required<NormalisedFunnelSeriesStyle> & { opacity: number };
 
         return {
             marker: {

@@ -1,5 +1,5 @@
-import type { FontOptions } from 'ag-charts-core';
-import type { LineDashOptions, StrokeOptions } from 'ag-charts-types';
+import type { FontOptions, NormalisedStrokeOptions } from 'ag-charts-core';
+import type { LineDashOptions } from 'ag-charts-types';
 
 export function setSvgFontAttributes(element: SVGElement, options: FontOptions) {
     const { fontStyle, fontWeight, fontSize, fontFamily } = options;
@@ -9,7 +9,7 @@ export function setSvgFontAttributes(element: SVGElement, options: FontOptions) 
     if (fontFamily) element.setAttribute('font-family', fontFamily);
 }
 
-export function setSvgStrokeAttributes(element: SVGElement, options: StrokeOptions) {
+export function setSvgStrokeAttributes(element: SVGElement, options: NormalisedStrokeOptions) {
     const { stroke, strokeWidth, strokeOpacity } = options;
     if (stroke) element.setAttribute('stroke', stroke);
     if (strokeWidth != null) element.setAttribute('stroke-width', String(strokeWidth));

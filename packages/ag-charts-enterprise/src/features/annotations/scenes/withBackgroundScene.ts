@@ -1,5 +1,5 @@
 import type { _ModuleSupport } from 'ag-charts-community';
-import { type Bounds4, type Point, Vec4 } from 'ag-charts-core';
+import { type Bounds4, type NormalisedFillOptions, type Point, Vec4 } from 'ag-charts-core';
 import type { FillOptions } from 'ag-charts-types';
 
 import type { AnnotationContext } from '../annotationTypes';
@@ -37,7 +37,8 @@ export class WithBackgroundScene {
         background.path.closePath();
         background.checkPathDirty();
 
-        const backgroundStyles = this.getBackgroundStyles?.(datum) ?? datum.background;
+        // Colour refs are resolved during theme-merge, so the fill is a concrete colour by render time.
+        const backgroundStyles = (this.getBackgroundStyles?.(datum) ?? datum.background) as NormalisedFillOptions;
         background.fill = backgroundStyles.fill;
         background.fillOpacity = backgroundStyles.fillOpacity ?? 1;
     }

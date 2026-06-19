@@ -11,6 +11,8 @@ import {
 import {
     type ChartAnimationPhase,
     type DynamicContext,
+    type FillStrokeMorph,
+    type Normalised,
     type NormalisedTextOrSegments,
     type Point,
     StateMachine,
@@ -24,7 +26,7 @@ import {
     toRadians,
     toTextString,
 } from 'ag-charts-core';
-import type { AgNumericValue } from 'ag-charts-types';
+import type { AgLinearGaugeSeriesStyle, AgNumericValue } from 'ag-charts-types';
 
 import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
@@ -66,6 +68,8 @@ const {
 } = _ModuleSupport;
 
 type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum;
+
+type NormalisedLinearGaugeSeriesStyle = Normalised<AgLinearGaugeSeriesStyle, never, FillStrokeMorph>;
 
 interface TargetLabel {
     enabled: boolean;
@@ -898,7 +902,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
 
-            rect.setStyleProperties(datum.style, fillBBox);
+            // Colour refs are resolved during theme-merge, so the style is already normalised by render.
+            rect.setStyleProperties(datum.style as NormalisedLinearGaugeSeriesStyle, fillBBox);
             rect.topLeftCornerRadius = topLeftCornerRadius;
             rect.topRightCornerRadius = topRightCornerRadius;
             rect.bottomRightCornerRadius = bottomRightCornerRadius;
@@ -963,7 +968,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
 
-            rect.setStyleProperties(datum.style, fillBBox);
+            // Colour refs are resolved during theme-merge, so the style is already normalised by render.
+            rect.setStyleProperties(datum.style as NormalisedLinearGaugeSeriesStyle, fillBBox);
 
             rect.setProperties(resetLinearGaugeSeriesResetRectFunction(rect, datum));
             rect.topLeftCornerRadius = topLeftCornerRadius;

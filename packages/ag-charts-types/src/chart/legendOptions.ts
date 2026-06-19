@@ -5,7 +5,6 @@ import type { AgCssColorOrRef } from './themeParamsOptions';
 import type {
     AgMarkerShape,
     ContextDefault,
-    CssColor,
     FontFamilyFull,
     FontSize,
     FontStyle,
@@ -256,7 +255,7 @@ export interface AgPaginationMarkerStyle {
     /** Opacity of the pagination buttons. */
     fillOpacity?: Opacity;
     /** The colour to use for the button strokes. */
-    stroke?: CssColor;
+    stroke?: AgCssColorOrRef;
     /** The width in pixels of the button strokes. */
     strokeWidth?: PixelSize;
     /** Opacity of the button strokes. */

@@ -17,6 +17,7 @@ import {
     isTimeIntervalUnit,
     isValidDate,
 } from 'ag-charts-core';
+import type { CssColor } from 'ag-charts-types';
 
 const { userInteraction, LayoutElement, Toolbar } = _ModuleSupport;
 
@@ -344,7 +345,8 @@ export class Ranges extends AbstractModuleInstance {
         return {
             fill: this.getComponentFill(stateStyles.fill, stateStyles.fillOpacity),
             fillOpacity: stateStyles.fillOpacity,
-            stroke: stateStyles.stroke,
+            // Colour refs are resolved during theme-merge, so this is a concrete CSS colour by render.
+            stroke: stateStyles.stroke as CssColor,
             textColor: stateStyles.textColor,
         };
     }

@@ -1,6 +1,6 @@
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { PickNodeDatumResult, RequireOptional } from 'ag-charts-core';
+import type { Normalised, PickNodeDatumResult, RequireOptional } from 'ag-charts-core';
 import {
     type NearestResult,
     mergeDefaults,
@@ -12,6 +12,7 @@ import type {
     AgBarSeriesItemStylerParams,
     AgLineSeriesMarkerItemStylerParams,
     AgScatterSeriesItemStylerParams,
+    CssColor,
     HighlightState,
     SelectionState,
 } from 'ag-charts-types';
@@ -21,6 +22,17 @@ const { BBox } = _ModuleSupport;
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum &
     _ModuleSupport.ErrorBoundSeriesNodeDatum & { yKey: string };
 export type ErrorBarStylingOptions = Omit<AgErrorBarThemeableOptions, 'cap'>;
+// Resolved render-time shape: refs are resolved to concrete colours during theme-merge before reaching scene nodes.
+type NormalisedErrorBarStylingOptions = Normalised<ErrorBarStylingOptions, never, { stroke?: CssColor }>;
+type NormalisedErrorBarCapStyle = Normalised<
+    NonNullable<AgErrorBarThemeableOptions['cap']>,
+    never,
+    { stroke?: CssColor }
+>;
+type NormalisedErrorBarStyles = {
+    whiskerStyle: NormalisedErrorBarStylingOptions;
+    capsStyle: NormalisedErrorBarCapStyle | undefined;
+};
 
 type ErrorBarKey = 'xLowerKey' | 'xUpperKey' | 'yLowerKey' | 'yUpperKey';
 type IgnoredSeriesKey = 'context' | 'size' | 'shape' | 'fill' | 'fillOpacity' | 'labelKey' | 'colorKey';
@@ -144,7 +156,7 @@ export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
         highlightState: HighlightState,
         selectionState: SelectionState | undefined,
         candidateState: SelectionState | undefined
-    ) {
+    ): NormalisedErrorBarStyles {
         let { cap: capsStyle, ...whiskerStyle } = style;
 
         const params = this.getItemStylerParams(options, style, highlightState, selectionState, candidateState);
@@ -157,10 +169,11 @@ export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
             capsStyle = mergeDefaults(result?.cap, result, capsStyle);
         }
 
-        return { whiskerStyle, capsStyle };
+        // Colour refs are resolved at runtime before render, so the styles are concrete here.
+        return { whiskerStyle, capsStyle } as NormalisedErrorBarStyles;
     }
 
-    private applyStyling(target: _ModuleSupport.Path, source?: ErrorBarStylingOptions) {
+    private applyStyling(target: _ModuleSupport.Path, source?: NormalisedErrorBarStylingOptions) {
         // Style can be any object, including user data (e.g. formatter
         // result). So filter out anything that isn't styling options:
         partialAssign(

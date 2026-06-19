@@ -1,11 +1,11 @@
 import type {
-    AgColorType,
     AgConeFunnelSeriesLabelFormatterParams,
     AgConeFunnelSeriesOptions,
     AgConeFunnelSeriesStyle,
     AgConeFunnelSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { InternalAgColorType } from 'ag-charts-core';
 import { Property } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from '../funnel/baseFunnelSeriesProperties';
@@ -35,7 +35,7 @@ export class ConeFunnelProperties
     valueKey!: string;
 
     @Property
-    fills: AgColorType[] = [];
+    fills: InternalAgColorType[] = [];
 
     @Property
     fillOpacity: number = 1;

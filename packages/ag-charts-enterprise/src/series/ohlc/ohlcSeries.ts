@@ -1,8 +1,12 @@
 import { type AgOhlcSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { FillStrokeMorph, Normalised } from 'ag-charts-core';
 
 import { OhlcNode } from './ohlcNode';
 import { type OhlcNodeDatum, OhlcSeriesBase, type OhlcSeriesBaseTypes } from './ohlcSeriesBase';
 import { OhlcSeriesProperties } from './ohlcSeriesProperties';
+
+/** Post-resolution style: colour refs are resolved to concrete colours before reaching the scene node. */
+type NormalisedOhlcStyle = Normalised<NonNullable<OhlcNodeDatum['style']>, never, FillStrokeMorph>;
 
 /**
  * Consolidated type interface for OhlcSeries.
@@ -58,11 +62,10 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
 
             node.setStaticProperties(centerX, width, y, height, yOpen, yClose, crisp);
 
-            const style =
-                datum.style ??
+            const style = (datum.style ??
                 contextNodeData.styles[datum.itemType][
                     series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
-                ];
+                ]) as NormalisedOhlcStyle;
 
             node.setStyleProperties(style);
 

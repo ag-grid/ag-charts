@@ -4,6 +4,8 @@ import {
     ChartAxisDirection,
     ChartUpdateType,
     type DynamicContext,
+    type FillStrokeMorph,
+    type Normalised,
     UNIT_MAX,
     UNIT_MIN,
     ZIndexMap,
@@ -11,6 +13,7 @@ import {
     definedZoomState,
     isNumberEqual,
 } from 'ag-charts-core';
+import type { AgScrollbarThumbStyle, AgScrollbarTrackStyle } from 'ag-charts-types';
 
 import { ZoomScrollPanner } from '../zoom-interaction/zoomScrollPanner';
 import { ScrollbarDOMProxy } from './scrollbarDOMProxy';
@@ -18,6 +21,13 @@ import { ScrollbarDOMProxy } from './scrollbarDOMProxy';
 const { BBox, Group, Rect, LayoutElement, InteractionState } = _ModuleSupport;
 
 type ScrollbarOrientation = 'horizontal' | 'vertical';
+
+type NormalisedScrollbarTrackStyle = Normalised<AgScrollbarTrackStyle, never, FillStrokeMorph>;
+type NormalisedScrollbarThumbStyle = Normalised<
+    AgScrollbarThumbStyle,
+    never,
+    FillStrokeMorph & { hoverStyle?: FillStrokeMorph }
+>;
 
 interface ScrollbarOrientationState {
     orientation: ScrollbarOrientation;
@@ -241,18 +251,22 @@ export class Scrollbar extends AbstractModuleInstance {
     }
 
     private updateStyles({ track, thumb, properties, hovered }: ScrollbarOrientationState) {
-        track.setStyleProperties(properties.track);
+        // Colour refs are resolved during theme-merge before reaching the scene, so fill/stroke are concrete here.
+        const trackStyle = properties.track as NormalisedScrollbarTrackStyle;
+        const thumbStyle = properties.thumb as NormalisedScrollbarThumbStyle;
+
+        track.setStyleProperties(trackStyle);
         track.cornerRadius = properties.track.cornerRadius;
         track.opacity = properties.track.opacity;
 
-        thumb.setStyleProperties(properties.thumb);
+        thumb.setStyleProperties(thumbStyle);
         thumb.cornerRadius = properties.thumb.cornerRadius;
         thumb.opacity = properties.thumb.opacity;
 
-        const hoverStyle = properties.thumb.hoverStyle;
+        const hoverStyle = thumbStyle.hoverStyle;
 
-        thumb.fill = hovered ? (hoverStyle?.fill ?? properties.thumb.fill) : properties.thumb.fill;
-        thumb.stroke = hovered ? (hoverStyle?.stroke ?? properties.thumb.stroke) : properties.thumb.stroke;
+        thumb.fill = hovered ? (hoverStyle?.fill ?? thumbStyle.fill) : thumbStyle.fill;
+        thumb.stroke = hovered ? (hoverStyle?.stroke ?? thumbStyle.stroke) : thumbStyle.stroke;
     }
 
     private updateTrack(state: ScrollbarOrientationState, bounds: _ModuleSupport.BBox) {

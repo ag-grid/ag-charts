@@ -3,6 +3,8 @@ import type {
     ChartAnimationPhase,
     DomainWithMetadata,
     DynamicContext,
+    NormalisedColorType,
+    NormalisedSeriesMarkerStyle,
     NormalisedTextOrSegments,
     PlacedLabel,
     PointLabelDatum,
@@ -15,7 +17,6 @@ import {
     CleanupRegistry,
     type DistantObject,
     EventEmitter,
-    type InternalAgColorType,
     LRUCache,
     Logger,
     type Point,
@@ -37,11 +38,9 @@ import {
 import type {
     AgActiveItemState,
     AgChartLabelFormatterParams,
-    AgColorType,
     AgDrawingMode,
     AgInitialStateLegendOptions,
     AgNumericValue,
-    AgSeriesMarkerStyle,
     AgSeriesTooltipRendererParams,
     AgSeriesVisibilityChange,
     FormatterParams,
@@ -991,12 +990,15 @@ export abstract class Series<
         return this.properties.selection.getStyle(staged);
     }
 
-    protected resolveMarkerDrawingModeForState(drawingMode: AgDrawingMode, style?: AgSeriesMarkerStyle): AgDrawingMode {
+    protected resolveMarkerDrawingModeForState(
+        drawingMode: AgDrawingMode,
+        style?: NormalisedSeriesMarkerStyle
+    ): AgDrawingMode {
         return resolveMarkerDrawingMode(drawingMode, style);
     }
 
     protected abstract hasItemStylers(): boolean;
-    public filterItemStylerFillParams(fill: AgColorType | undefined): InternalAgColorType | undefined {
+    public filterItemStylerFillParams(fill: NormalisedColorType | undefined): NormalisedColorType | undefined {
         if (isGradientFill(fill)) {
             return without(fill, ['bounds', 'colorSpace', 'gradient', 'reverse']);
         } else if (isPatternFill(fill)) {
@@ -1413,8 +1415,10 @@ export abstract class Series<
             resolveStyler?: boolean;
             hideWithSize0?: boolean;
         },
-        defaultOverrideStyle: AgSeriesMarkerStyle & { size: number } = { size: point?.size ?? marker.size ?? 0 },
-        inheritedStyle?: AgSeriesMarkerStyle
+        defaultOverrideStyle: NormalisedSeriesMarkerStyle & { size: number } = {
+            size: point?.size ?? marker.size ?? 0,
+        },
+        inheritedStyle?: NormalisedSeriesMarkerStyle
     ) {
         const { itemStyler } = marker;
         const {
@@ -1430,7 +1434,7 @@ export abstract class Series<
         const candidateState: SelectionState | undefined = this.getDataCandidacyState(datumIndex);
 
         if (hideWithSize0 && isUnselected(stagedSelectionState(selectionState, candidateState))) {
-            return { size: 0 } satisfies AgSeriesMarkerStyle;
+            return { size: 0 } satisfies NormalisedSeriesMarkerStyle;
         }
 
         // Lazy resolvePath — only the resolveStyler/itemStyler branches consume it.
@@ -1449,10 +1453,10 @@ export abstract class Series<
             }
         }
 
-        const highlightStyle: AgSeriesMarkerStyle | undefined = checkForHighlight
+        const highlightStyle: NormalisedSeriesMarkerStyle | undefined = checkForHighlight
             ? this.getHighlightStyle(isHighlight, datumIndex, highlightState)
             : undefined;
-        const selectionStyle: AgSeriesMarkerStyle | undefined =
+        const selectionStyle: NormalisedSeriesMarkerStyle | undefined =
             checkForHighlight && this.isSelectionEnabled()
                 ? this.getSelectionStyle(datumIndex, selectionState, candidateState)
                 : undefined;
@@ -1487,7 +1491,10 @@ export abstract class Series<
                 candidateState: candidateStateString,
                 datum,
             });
-            const resolved = this.ctx.optionsGraphService.resolvePartial(getResolvePath(), style);
+            const resolved = this.ctx.optionsGraphService.resolvePartial(
+                getResolvePath(),
+                style
+            ) as NormalisedSeriesMarkerStyle;
 
             markerStyle = mergeMarkerStylesPair(resolved, markerStyle);
         }
@@ -1496,7 +1503,7 @@ export abstract class Series<
     }
 
     protected applyMarkerStyle(
-        style: AgSeriesMarkerStyle,
+        style: NormalisedSeriesMarkerStyle,
         markerNode: Marker,
         point: { x: number; y: number; size?: number; focusSize?: number } | undefined,
         fillBBox: ShapeFillBBox | undefined,

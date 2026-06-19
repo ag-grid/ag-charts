@@ -1,11 +1,12 @@
 import type { AgColorType } from '../series/cartesian/commonOptions';
-import type { CssColor, Opacity, PixelSize } from './types';
+import type { AgCssColorOrRef } from './themeParamsOptions';
+import type { Opacity, PixelSize } from './types';
 
 export interface AgBandHighlightOptions {
     /** Whether to show the band highlight. */
     enabled?: boolean;
-    /** The colour of the stroke for the lines. */
-    stroke?: CssColor;
+    /** The colour of the stroke for the lines. A colour string, or a theme-colour reference object. */
+    stroke?: AgCssColorOrRef;
     /** The width in pixels of the stroke for the lines. */
     strokeWidth?: PixelSize;
     /** The opacity of the stroke for the lines. */

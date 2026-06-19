@@ -5,7 +5,7 @@ import {
     type AgSeriesMarkerStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { CallbackParamRules, DynamicContext, RequireOptional } from 'ag-charts-core';
+import type { CallbackParamRules, DynamicContext, NormalisedColorType, RequireOptional } from 'ag-charts-core';
 import { ChartAxisDirection } from 'ag-charts-core';
 
 import { type RadarPathPoint, RadarSeries, type ResolvedRadarStyle } from '../radar/radarSeries';
@@ -122,7 +122,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
 
             areaNode.setStyleProperties(
                 {
-                    fill: stylerStyle.fill,
+                    fill: stylerStyle.fill as NormalisedColorType, // colour refs resolved at runtime
                     stroke: undefined,
                     fillOpacity: stylerStyle.fillOpacity,
                     lineDash: stylerStyle.lineDash,

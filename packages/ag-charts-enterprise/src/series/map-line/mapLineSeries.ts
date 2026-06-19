@@ -4,7 +4,9 @@ import type {
     DynamicContext,
     Feature,
     FeatureCollection,
+    FillStrokeMorph,
     Geometry,
+    Normalised,
     PlacedLabel,
 } from 'ag-charts-core';
 import {
@@ -61,6 +63,8 @@ interface LineDataValues {
     readonly sizeValue: number | undefined;
     readonly labelValue: string | undefined;
 }
+
+type NormalisedMapLineSeriesStyle = Normalised<AgMapLineSeriesStyle, never, FillStrokeMorph>;
 
 export class MapLineSeries
     extends TopologySeries<
@@ -486,7 +490,7 @@ export class MapLineSeries
     protected getItemStyle(
         { datumIndex = 0, datum, colorValue, sizeValue }: Partial<MapLineNodeDatum>,
         isHighlight: boolean
-    ): Required<AgMapLineSeriesStyle> {
+    ): Required<NormalisedMapLineSeriesStyle> {
         const { properties, colorScale, sizeScale } = this;
         const { colorKey, colorScale: colorScaleProps, itemStyler } = properties;
         const { missingDataFill } = colorScaleProps;
@@ -503,7 +507,12 @@ export class MapLineSeries
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
-        const style = mergeDefaults(selectionStyle, highlightStyle, baseStyle);
+        // Colour refs in `baseStyle` are resolved before this point, so the merged style is concrete.
+        const style = mergeDefaults(
+            selectionStyle,
+            highlightStyle,
+            baseStyle
+        ) as Required<NormalisedMapLineSeriesStyle>;
 
         if (sizeValue != null) {
             style.strokeWidth = sizeScale.convertClamped(sizeValue);
@@ -524,7 +533,7 @@ export class MapLineSeries
         datum: unknown,
         datumIndex: number,
         isHighlight: boolean,
-        style: Required<AgMapLineSeriesStyle>
+        style: Required<NormalisedMapLineSeriesStyle>
     ) {
         const { id: seriesId } = this;
         const { sizeKey, idKey, labelKey, colorKey } = this.properties;
@@ -579,7 +588,8 @@ export class MapLineSeries
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
 
-            geoGeometry.setProperties(style);
+            // Colour refs are resolved during theme-merge, so the style is concrete by render.
+            geoGeometry.setProperties(style as NormalisedMapLineSeriesStyle);
             geoGeometry.drawingMode = drawingMode;
         });
     }

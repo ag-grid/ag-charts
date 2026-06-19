@@ -23,6 +23,9 @@ import {
     type DeepRequired,
     type DomainWithMetadata,
     type DynamicContext,
+    type Normalised,
+    type NormalisedColorType,
+    type NormalisedSeriesMarkerStyle,
     type Point,
     type RequireOptional,
     extent,
@@ -31,7 +34,7 @@ import {
     mergeDefaults,
     toNumber,
 } from 'ag-charts-core';
-import type { AgNumericValue } from 'ag-charts-types';
+import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import {
     type RangeAreaSeriesDataAggregationFilter,
@@ -104,8 +107,25 @@ type ResolvedStyleMixin = {
         high?: ResolvedLineStyleMixin;
     };
 };
-type PartialStylerResult = AgRangeAreaSeriesStyle & { opacity?: number };
-type StylerResult = DeepRequired<PartialStylerResult, 'fill'> & { topLevel: Required<AgRangeAreaSeriesLineStyle> };
+/** Range-area line style after theme-merge: colour refs are resolved before reaching this point. */
+type NormalisedRangeAreaSeriesLineStyle = Normalised<
+    AgRangeAreaSeriesLineStyle,
+    never,
+    { stroke?: CssColor; marker?: NormalisedSeriesMarkerStyle }
+>;
+/** Range-area style after theme-merge: fill (and nested item styles) are resolved colours. */
+type NormalisedRangeAreaSeriesStyle = Normalised<
+    AgRangeAreaSeriesStyle,
+    never,
+    {
+        fill?: NormalisedColorType;
+        item?: { low?: NormalisedRangeAreaSeriesLineStyle; high?: NormalisedRangeAreaSeriesLineStyle };
+    }
+>;
+type PartialStylerResult = NormalisedRangeAreaSeriesStyle & { opacity?: number };
+type StylerResult = DeepRequired<PartialStylerResult, 'fill'> & {
+    topLevel: Required<NormalisedRangeAreaSeriesLineStyle>;
+};
 type StylerMarkerOptionsResult = DeepRequired<ResolvedStyleMixin>;
 
 /**
@@ -1174,7 +1194,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 contextNodeData.styles[itemType][
                     this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                 ];
-            this.applyMarkerStyle(style, node, datum.point, fillBBox, { hideWithSize0 });
+            // Style colours are resolved at runtime before reaching the scene node.
+            this.applyMarkerStyle(style as NormalisedSeriesMarkerStyle, node, datum.point, fillBBox, { hideWithSize0 });
             node.drawingMode = drawingMode;
         });
 
@@ -1248,15 +1269,15 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
         const selectionState: _ModuleSupport.SelectionState | undefined = this.getDataSelectionState(undefined);
         const candidateState: _ModuleSupport.SelectionState | undefined = this.getDataCandidacyState(undefined);
-        let stylerResult: AgRangeAreaSeriesStyle & ResolvedStyleMixin = {};
+        let stylerResult: NormalisedRangeAreaSeriesStyle & ResolvedStyleMixin = {};
         if (styler) {
             const stylerParams = this.makeStylerParams(highlightState, selectionState, candidateState);
             stylerResult =
-                this.ctx.optionsGraphService.resolvePartial(
+                (this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
                     this.cachedCallWithContext(styler, stylerParams) ?? {},
                     { pick: false }
-                ) ?? {};
+                ) as NormalisedRangeAreaSeriesStyle & ResolvedStyleMixin) ?? {};
         }
 
         const markerOpts: StylerMarkerOptionsResult = {
