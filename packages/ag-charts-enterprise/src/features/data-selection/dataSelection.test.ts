@@ -3196,7 +3196,7 @@ describe('DataSelection', () => {
 
                         await mouseDown(POINT_B, { ctrlKey });
                         await mouseMove(POINT_C, { ctrlKey });
-                        await compareExact('drag-modifiers-line-labelstyler-selected-a1a2l1l2n1n2-candidacy-a0a1a2n1');
+                        await compareExact('drag-modifiers-line-labelstyler-selected-a1a2l1l2n1n2-candidacy-union-a0a1a2n1');
                         await mouseUp(POINT_C, { ctrlKey });
                         await compareExact('drag-modifiers-line-labelstyler-selected-a0a1a2l1l2n1n2');
                     });
@@ -3211,7 +3211,7 @@ describe('DataSelection', () => {
 
                         await mouseDown(POINT_B, { metaKey });
                         await mouseMove(POINT_C, { metaKey });
-                        await compareExact('drag-modifiers-line-labelstyler-selected-a1a2l1l2n1n2-candidacy-a0a1a2n1');
+                        await compareExact('drag-modifiers-line-labelstyler-selected-a1a2l1l2n1n2-candidacy-union-a0a1a2n1');
                         await mouseUp(POINT_C, { metaKey });
                         await compareExact('drag-modifiers-line-labelstyler-selected-a0a1a2l1l2n1n2');
                     });
