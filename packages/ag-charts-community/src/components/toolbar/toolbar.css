@@ -105,7 +105,9 @@
         margin-inline-end: 0;
     }
 
-    .ag-charts-toolbar__button:hover,
+    /* :hover is deliberately excluded here: on a border-box button, growing its own
+       inline-end border shrinks the content box and shifts the centred icon. The
+       hover divider is drawn on the next button's inline-start border (rule below). */
     .ag-charts-toolbar__button--active,
     .ag-charts-toolbar__button--active:hover {
         border-inline-end-width: var(--toolbar-button-border-width);
