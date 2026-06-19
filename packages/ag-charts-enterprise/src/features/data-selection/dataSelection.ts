@@ -1,4 +1,4 @@
-import type { AgSelectionChangeEventSource, AgSelectionItem, _Widget } from 'ag-charts-community';
+import type { AgChartOptions, AgSelectionChangeEventSource, AgSelectionItem, _Widget } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
@@ -34,8 +34,13 @@ import { IntervalSet } from './intervalSet';
 
 type Series = NonNullable<NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>['series']>;
 type IDataSelectionService = _ModuleSupport.IDataSelectionService;
+type SeriesType = NonNullable<AgChartOptions['series']>[number]['type'];
 
-const UNSUPPORTED_CARTESIANS = ['histogram', 'waterfall', 'funnel', 'cone-funnel'];
+function initSet(types: SeriesType[]): Set<unknown> {
+    return new Set(types);
+}
+const UNSUPPORTED_SERIES = initSet(['histogram', 'waterfall', 'funnel', 'cone-funnel', 'nightingale']);
+const UNSUPPORTED_DRAGGING = initSet(['radial-column']);
 
 function upcastDataSelectionService(service: IDataSelectionService | undefined): DataSelectionService {
     if (service && service instanceof DataSelectionService) return service;
@@ -53,11 +58,13 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
     private supportsSelection(): boolean {
         const type0 = this.ctx.chartService.series.at(0)?.type;
-        return !(type0 && UNSUPPORTED_CARTESIANS.includes(type0));
+        return !UNSUPPORTED_SERIES.has(type0);
     }
 
     private supportsSelectionDrag(): boolean {
-        return this.supportsSelection() && this.ctx.chartService.getChartType() !== 'topology';
+        if (!this.supportsSelection() || this.ctx.chartService.getChartType() === 'topology') return false;
+        const type0 = this.ctx.chartService.series.at(0)?.type;
+        return !UNSUPPORTED_DRAGGING.has(type0);
     }
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
