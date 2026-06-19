@@ -1,7 +1,14 @@
-import type { AgChartOptions, AgSelectionChangeEventSource, AgSelectionItem, _Widget } from 'ag-charts-community';
+import type {
+    AgChartOptions,
+    AgSelectionChangeEventSource,
+    AgSelectionItem,
+    AgTreemapSeriesGroupOptions,
+    _Widget,
+} from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    type AreMutuallyExclusive,
     ChartUpdateType,
     type DynamicContext,
     Logger,
@@ -56,6 +63,10 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         return this.ctx.chartState.getValue('options', 'selection')!;
     }
 
+    private enabled(): boolean {
+        return this.service.isEnabled();
+    }
+
     private supportsSelection(): boolean {
         const type0 = this.ctx.chartService.series.at(0)?.type;
         return !UNSUPPORTED_SERIES.has(type0);
@@ -83,6 +94,24 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         ctx.chartService.selectionRoot.appendChild(this.dragRect);
         this.cleanup.register(
             () => this.dragRect.remove(),
+            ctx.chartState.observe((get) => {
+                // AG-17570 The `chart.selection.enabled` option is not definitive, series can all enable the selection
+                // module through options like `series[].selection.enabled`, `series[].tile.selection.enabled` or
+                // `series[].group.selection.enabled`.
+                type EnabledMixin = { enabled?: boolean };
+                type SeriesOptionsMixins =
+                    | { type: string; selection?: EnabledMixin; tile?: never; group?: never } // most series-types
+                    | { type: 'treemap'; selection?: never; tile?: { selection?: EnabledMixin } }; // special-case
+                // static-assertion that option `series[type="treemap"].group.selection` does not exist.
+                // if this option gets added then the moduleEnabled condition would be incomplete.
+                true satisfies AreMutuallyExclusive<keyof AgTreemapSeriesGroupOptions<unknown, unknown>, 'selection'>;
+
+                const selection: EnabledMixin = get('options', 'selection') ?? {};
+                const series: SeriesOptionsMixins[] = get('options', 'series') ?? [];
+                this.service.setEnabled(
+                    !!(selection.enabled || series.some((s) => s.selection?.enabled || s.tile?.selection?.enabled))
+                );
+            }),
             ctx.eventsHub.on('series-area:click', (ev) => this.onSeriesAreaClick(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-start', (ev) => this.onSeriesAreaDragStart(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-move', (ev) => this.onSeriesAreaDragMove(ev)),
@@ -93,8 +122,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     getSelection(): Iterable<AgSelectionItem<unknown>> {
-        const { enabled } = this.opts;
-        if (!enabled || !this.supportsSelection()) return [];
+        if (!this.enabled() || !this.supportsSelection()) return [];
 
         return function* getSelectionIterator(this: DataSelection) {
             for (const it of this.service.iterateDataSetSelections()) {
@@ -111,8 +139,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     setSelection(items: unknown): void {
-        const { enabled } = this.opts;
-        if (!enabled || !this.supportsSelection()) return;
+        if (!this.enabled() || !this.supportsSelection()) return;
 
         const { chartService } = this.ctx;
 
@@ -157,8 +184,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     clearSelection(): void {
-        const { enabled } = this.opts;
-        if (!enabled || !this.supportsSelection()) return;
+        if (!this.enabled() || !this.supportsSelection()) return;
 
         const { chartService } = this.ctx;
 
@@ -173,8 +199,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     private onSeriesAreaClick(event: _ModuleSupport.SeriesAreaClickEvent): void {
         if (!this.supportsSelection()) return;
 
-        const { enabled, enableClick, enableClickAwayToClear, clickMode } = this.opts;
-        if (!enabled || !enableClick) return;
+        const { enableClick, enableClickAwayToClear, clickMode } = this.opts;
+        if (!this.enabled() || !enableClick) return;
 
         const { type, clickedNode } = event;
         if (type !== 'click') return;
@@ -217,8 +243,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     private onSeriesAreaDragStart(dragStartEvent: _Widget.DragWidgetEvent<'drag-start'>) {
         if (!this.supportsSelectionDrag()) return;
 
-        const { enabled, enableDrag } = this.opts;
-        if (!enabled || !enableDrag || this.hasUnknownModifier(dragStartEvent)) return;
+        const { enableDrag } = this.opts;
+        if (!this.enabled() || !enableDrag || this.hasUnknownModifier(dragStartEvent)) return;
 
         this.dragStartEvent = dragStartEvent;
         this.dragRect.x = dragStartEvent.currentX;
@@ -232,10 +258,10 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     private onSeriesAreaDragMove(dragMoveEvent: _Widget.DragWidgetEvent<'drag-move'>) {
         if (!this.supportsSelectionDrag()) return;
 
-        const { enabled, enableDrag } = this.opts;
+        const { enableDrag } = this.opts;
         const { dragStartEvent } = this;
 
-        if (!enabled || !enableDrag || !dragStartEvent) {
+        if (!this.enabled() || !enableDrag || !dragStartEvent) {
             this.dragRect.visible = false;
             return;
         }
@@ -270,12 +296,12 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     private onSeriesAreaDragEnd(dragEndEvent: _Widget.DragWidgetEvent<'drag-end'>) {
         if (!this.supportsSelectionDrag()) return;
 
-        const { enabled, enableDrag } = this.opts;
+        const { enableDrag } = this.opts;
         const { dragStartEvent, service } = this;
 
         service.totalCandidacyCount = 0;
         service.candidacyUnion = hasAddToSelectionModifier(dragEndEvent);
-        if (!enabled || !enableDrag || !dragStartEvent) {
+        if (!this.enabled() || !enableDrag || !dragStartEvent) {
             this.dragRect.visible = false;
             return;
         }
@@ -357,7 +383,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private onKeyDown(widgetEvent: _ModuleSupport.KeyboardWidgetEvent<'keydown'>): void {
-        if (!this.opts.enabled) return;
+        if (!this.enabled()) return;
         this.refreshCandidacyUnion(widgetEvent);
 
         const { code } = widgetEvent.sourceEvent;
@@ -367,7 +393,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private onKeyUp(widgetEvent: _ModuleSupport.KeyboardWidgetEvent<'keyup'>): void {
-        if (!this.opts.enabled) return;
+        if (!this.enabled()) return;
         this.refreshCandidacyUnion(widgetEvent);
     }
 

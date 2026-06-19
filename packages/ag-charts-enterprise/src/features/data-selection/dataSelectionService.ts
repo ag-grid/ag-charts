@@ -26,6 +26,8 @@ function getOrInsert<T>(map: Map<string, T>, key: string, data: DataSet, inserte
 }
 
 export class DataSelectionService extends AbstractModuleInstance implements IDataSelectionService {
+    private moduleEnabled = false;
+
     public totalSelectedCount = 0;
     public totalCandidacyCount = 0;
     // The API states that the candidateState property must be undefined when no drag motion is in progress. This is
@@ -49,13 +51,7 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
             () => this.clearSelection(),
             () => this.clearCandidacy(),
             ctx?.eventsHub.on('data:load', () => this.recountTotalSelections()),
-            ctx?.eventsHub.on('data:update', () => this.recountTotalSelections()),
-            ctx?.chartState.observe((get) => {
-                const opts = get('options', 'selection');
-                if (opts?.enabled === false) {
-                    this.clearCandidacy();
-                }
-            })
+            ctx?.eventsHub.on('data:update', () => this.recountTotalSelections())
         );
     }
 
@@ -68,12 +64,18 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
     }
 
     private isSeriesSelectionEnabled(series: SeriesLike): boolean {
-        if (!series.isSelectionEnabled() || this.ctx === undefined) return false;
+        return this.isEnabled() && this.ctx !== undefined && series.isSelectionEnabled();
+    }
 
-        const options = this.ctx.chartState.getValue('options');
-        if (!options?.selection?.enabled) return false;
+    isEnabled(): boolean {
+        return this.moduleEnabled;
+    }
 
-        return true;
+    setEnabled(newEnabled: boolean): void {
+        this.moduleEnabled = newEnabled;
+        if (!newEnabled) {
+            this.clearCandidacy();
+        }
     }
 
     clearSelection(): void {
