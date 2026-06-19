@@ -58,6 +58,8 @@ const options: AgChartOptions = {
             yName: 'Revenue',
             label: {
                 enabled: true,
+                fill: { ref: 'backgroundColor' } as any,
+                color: { ref: 'foregroundColor' },
                 formatter: ({ datum }) => {
                     const d = datum as TData;
                     return [

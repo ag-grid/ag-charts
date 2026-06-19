@@ -7,7 +7,7 @@ AG Charts accepts standard CSS colour strings, CSS variables, and theme paramete
 
 ## Colour Formats
 
-Any colour string accepted by CSS can be used wherever a colour is set — series fills, strokes, text colours, and theme parameters.
+Any colour string accepted by CSS can be used wherever a colour is set, including series fills, strokes, text colours, and theme parameters.
 
 {% chartExampleRunner title="Colour Formats" name="colour-formats" type="generated" /%}
 
@@ -20,7 +20,7 @@ Any colour string accepted by CSS can be used wherever a colour is set — serie
 
 ## CSS Variables
 
-Use a CSS custom property such as `var(--brand-primary)` anywhere a colour is accepted.
+CSS variables can be used anywhere a colour is accepted. These are referenced as `var(--brand-primary)`.
 
 {% chartExampleRunner title="CSS Variables" name="css-variables" type="generated" /%}
 
@@ -39,8 +39,10 @@ Use a CSS custom property such as `var(--brand-primary)` anywhere a colour is ac
 }
 ```
 
-- **Toggle palette** changes the variables only; the series, background, axes and text all follow.
-- The chart re-renders automatically when a variable changes — no `chart.update()` needed.
+In the above example:
+
+- Click the button to change the CSS variables only and the series, background, axes and text all update.
+- The chart re-renders automatically whenever a variable changes. There is no need to call `chart.update()`.
 
 {% note %}
 The `--ag-charts-*` namespace is reserved for internal use.
@@ -48,7 +50,7 @@ The `--ag-charts-*` namespace is reserved for internal use.
 
 ## Theme Parameter References
 
-A colour can reference a [theme parameter](./themes/#parameters) instead of a literal value, keeping related colours in sync. A reference can be used anywhere a colour is accepted — including a series `fill` — but can only point _to_ a theme parameter.
+A colour can reference a [theme parameter](./themes/#parameters) instead of a literal value, keeping related colours in sync.
 
 {% chartExampleRunner title="Theme Parameter References" name="colour-references" type="generated" /%}
 
@@ -59,7 +61,7 @@ A colour can reference a [theme parameter](./themes/#parameters) instead of a li
             accentColor: '#2f6df0',
             backgroundColor: '#ffffff',
             foregroundColor: { ref: 'accentColor', mix: 0.85, onto: 'backgroundColor' },
-            axisColor: { ref: 'accentColor', mix: 0.5 },
+            axisLineColor: { ref: 'accentColor', mix: 0.5 },
         },
     },
     series: [{ type: 'bar', xKey: 'month', yKey: 'revenue', fill: { ref: 'accentColor' } }],
@@ -68,12 +70,18 @@ A colour can reference a [theme parameter](./themes/#parameters) instead of a li
 
 The reference forms are:
 
-- `{ ref: 'accentColor' }` — resolve to another theme parameter.
-- `{ ref: 'accentColor', mix: 0.5 }` — mix the referenced parameter towards transparency.
-- `{ ref: 'accentColor', mix: 0.85, onto: 'backgroundColor' }` — blend one parameter onto another.
+- `{ ref: 'accentColor' }` - resolve to another theme parameter.
+- `{ ref: 'accentColor', mix: 0.5 }` - the referenced parameter at `mix` opacity (`0` fully transparent, `1` fully opaque).
+- `{ ref: 'accentColor', mix: 0.85, onto: 'backgroundColor' }` - blend one parameter onto another.
+
+{% note %}
+
+A reference can be used anywhere a colour is accepted, but can only point to a theme parameter.
+
+{% /note %}
 
 See [Themes](./themes/#colour-references) for more details.
 
 ## Gradient, Pattern & Image Fills
 
-`fill` properties also accept gradient, pattern, and image fills — on series, markers, [legend](./legend/) backgrounds, and label boxes. See [Series Fills](./fills/) for the full reference. A `stroke` accepts a colour string only.
+Most `fill` properties also accept gradient, pattern, and image fills. See [Series Fills](./fills/) for the full reference.

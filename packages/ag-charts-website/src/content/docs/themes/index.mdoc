@@ -110,7 +110,7 @@ Any colour parameter can reference another instead of a fixed value, keeping rel
 
 {% chartExampleRunner title="Colour References" name="theme-colour-references" type="generated" /%}
 
-The chart `textColor` is derived from the controls. With `onto` set to `none`, `mix` fades the referenced colour towards transparency.
+The chart `textColor` is derived from the controls. With no `onto`, `mix` fades the referenced colour towards transparency.
 
 ```js format="snippet"
 const myTheme = {
@@ -130,9 +130,9 @@ const myTheme = {
 
 Border parameters use a consistent `{ width, color }` shape across every element.
 
-{% chartExampleRunner title="Borders" name="theme-borders" type="generated" /%}
+<!-- {% chartExampleRunner title="Borders" name="theme-borders" type="generated" /%}
 
-The controls style `buttonBorder`, shown on the zoom buttons.
+The controls style `buttonBorder`, shown on the zoom buttons. -->
 
 ```js format="snippet"
 const myTheme = {
