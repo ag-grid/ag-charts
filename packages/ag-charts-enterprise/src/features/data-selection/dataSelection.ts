@@ -35,7 +35,8 @@ import { IntervalSet } from './intervalSet';
 type Series = NonNullable<NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>['series']>;
 type IDataSelectionService = _ModuleSupport.IDataSelectionService;
 
-const UNSUPPORTED_CARTESIANS = ['histogram', 'waterfall', 'funnel', 'cone-funnel'];
+const UNSUPPORTED_SERIES: unknown[] = ['histogram', 'waterfall', 'funnel', 'cone-funnel', 'nightingale'];
+const UNSUPPORTED_DRAGGING: unknown[] = ['radial-column'];
 
 function upcastDataSelectionService(service: IDataSelectionService | undefined): DataSelectionService {
     if (service && service instanceof DataSelectionService) return service;
@@ -53,11 +54,14 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
     private supportsSelection(): boolean {
         const type0 = this.ctx.chartService.series.at(0)?.type;
-        return !(type0 && UNSUPPORTED_CARTESIANS.includes(type0));
+        return !UNSUPPORTED_SERIES.includes(type0);
     }
 
     private supportsSelectionDrag(): boolean {
-        return this.supportsSelection() && this.ctx.chartService.getChartType() !== 'topology';
+        if (!this.supportsSelection() || this.ctx.chartService.getChartType() === 'topology') return false;
+
+        const type0 = this.ctx.chartService.series.at(0)?.type;
+        return !UNSUPPORTED_DRAGGING.includes(type0);
     }
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
