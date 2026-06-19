@@ -345,6 +345,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private onKeyDown(widgetEvent: _ModuleSupport.KeyboardWidgetEvent<'keydown'>): void {
+        if (!this.opts.enabled) return;
+
         const { key, code } = widgetEvent.sourceEvent;
         if (key === 'Meta' || key === 'Control') {
             this.service.candidacyUnion++;
@@ -356,6 +358,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private onKeyUp(widgetEvent: _ModuleSupport.KeyboardWidgetEvent<'keyup'>): void {
+        if (!this.opts.enabled) return;
+
         // The drag-move / drag-end events include the state of all modifiers in the events, therefore those event
         // handlers always refresh the candidacyUnion count. However, the user can also press/release the modifier keys
         // without moving the mouse; which would mean that any itemStyler callbacks that read candidateState would be
