@@ -242,6 +242,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const canvasBounds = toCanvasBBox(this.ctx.chartService.seriesRoot, dragStartEvent, dragMoveEvent);
 
         this.service.totalCandidacyCount = 0;
+        this.service.candidacyInProgress ||= canvasBounds.width > 0 || canvasBounds.height > 0;
         for (const series of this.iterateSelectableSeries()) {
             const data = series.data;
             if (!data) continue;
@@ -349,7 +350,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.service.clearCandidacy();
         this.dragStartEvent = undefined;
         this.dragRect.visible = false;
-        this.redraw(ChartUpdateType.PERFORM_LAYOUT);
+        this.redraw(ChartUpdateType.FULL);
     }
 
     private redraw(type: ChartUpdateType): void {

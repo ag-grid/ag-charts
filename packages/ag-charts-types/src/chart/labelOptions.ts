@@ -17,7 +17,7 @@ export interface AgChartLabelStylerParams<TDatum, TContext>
     highlightState?: HighlightState | HierarchyHighlightState;
     /** The specific selection state of the element. Undefined if the selection module is disabled. */
     selectionState?: SelectionState;
-    /** The specific candidate state of the element. Undefined if the selection module is disabled. */
+    /** The specific candidate state of the element. Undefined if the selection module is disabled or if no drag motion is in progress. */
     candidateState?: SelectionState;
 }
 

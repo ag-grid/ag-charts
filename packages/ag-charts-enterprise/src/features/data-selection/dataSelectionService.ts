@@ -28,6 +28,7 @@ function getOrInsert<T>(map: Map<string, T>, key: string, data: DataSet, inserte
 export class DataSelectionService extends AbstractModuleInstance implements IDataSelectionService {
     public totalSelectedCount = 0;
     public totalCandidacyCount = 0;
+    public candidacyInProgress = false;
 
     /** Per-series selection state. Keyed by `seriesId`. */
     selections = new Map<string, DataSetSelection>();
@@ -78,6 +79,7 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
     clearCandidacy() {
         this.candidacy.clear();
         this.totalCandidacyCount = 0;
+        this.candidacyInProgress = false;
     }
 
     /** Lazy-create a per-series selection backed by a Uint8Array of `data.length`. */
@@ -207,7 +209,7 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
     }
 
     getDataCandidateState(series: SeriesLike, datumIndex: number | undefined): SelectionStateEnum | undefined {
-        if (!this.isSeriesSelectionEnabled(series)) return undefined;
+        if (!this.candidacyInProgress || !this.isSeriesSelectionEnabled(series)) return undefined;
 
         if (this.totalCandidacyCount === 0) {
             return SelectionState.None;

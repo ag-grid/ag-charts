@@ -108,6 +108,21 @@ In this example:
 - `unselectedItem` sets the unselected datums to a grey fill.
 - For dynamic per-datum styling, use the series [item styler](./stylers/), which includes a `selectionState` property in the parameters.
 
+### Candidacy
+
+The `candidateState` property can be used to customise the styling when a drag motion is in progress.
+
+{% chartExampleRunner title="Candidate Styling" name="candidate-styling" type="generated" /%}
+
+In this example:
+
+- When no dragging is in progress:
+    - Selected bars are rendered in `'skyblue'` colour.
+    - Unselected bars are dimmed.
+- When dragging is in progress:
+    - Bars that are will be added to the selection are rendered in `'green'` colour.
+    - Bars that are will be removed from the selection are rendered in `'red'` colour.
+
 ## Selection API
 
 {% chartExampleRunner title="Selection API" name="selection-api" type="generated" /%}
