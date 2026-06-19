@@ -1,0 +1,79 @@
+---
+title: 'Colours'
+description: 'Every colour value form accepted by $framework Charts in one place: CSS colour strings, CSS variables, and theme parameter references, plus gradient, pattern and image fills.'
+---
+
+AG Charts accepts standard CSS colour strings, CSS variables, and theme parameter references anywhere a colour is set. Richer gradient, pattern and image fills are available on `fill` properties.
+
+## Colour Formats
+
+Any colour string accepted by CSS can be used wherever a colour is set — series fills, strokes, text colours, and theme parameters.
+
+{% chartExampleRunner title="Colour Formats" name="colour-formats" type="generated" /%}
+
+| Format       | Example                                                                                                 |
+| ------------ | ------------------------------------------------------------------------------------------------------- |
+| Hex          | `'#4878d0'`, `'#48d'`, `'#4878d0cc'` (with alpha)                                                       |
+| rgb / rgba   | `'rgb(72, 120, 208)'`, `'rgba(72, 120, 208, 0.8)'`                                                      |
+| hsl / hsla   | `'hsl(145, 63%, 42%)'`, `'hsl(145 63% 42% / 0.8)'`                                                      |
+| Named colour | `'mediumpurple'` (any [CSS named colour](https://developer.mozilla.org/en-US/docs/Web/CSS/named-color)) |
+
+## CSS Variables
+
+Use a CSS custom property such as `var(--brand-primary)` anywhere a colour is accepted.
+
+{% chartExampleRunner title="CSS Variables" name="css-variables" type="generated" /%}
+
+```js format="snippet"
+{
+    theme: {
+        params: {
+            backgroundColor: 'var(--demo-bg)',
+            foregroundColor: 'var(--demo-fg)',
+        },
+    },
+    series: [
+        { type: 'bar', xKey: 'month', yKey: 'online', fill: 'var(--demo-online)' },
+        { type: 'bar', xKey: 'month', yKey: 'retail', fill: 'var(--demo-retail)' },
+    ],
+}
+```
+
+- **Toggle palette** changes the variables only; the series, background, axes and text all follow.
+- The chart re-renders automatically when a variable changes — no `chart.update()` needed.
+
+{% note %}
+The `--ag-charts-*` namespace is reserved for internal use.
+{% /note %}
+
+## Theme Parameter References
+
+A colour can reference a [theme parameter](./themes/#parameters) instead of a literal value, keeping related colours in sync. A reference can be used anywhere a colour is accepted — including a series `fill` — but can only point _to_ a theme parameter.
+
+{% chartExampleRunner title="Theme Parameter References" name="colour-references" type="generated" /%}
+
+```js format="snippet"
+{
+    theme: {
+        params: {
+            accentColor: '#2f6df0',
+            backgroundColor: '#ffffff',
+            foregroundColor: { ref: 'accentColor', mix: 0.85, onto: 'backgroundColor' },
+            axisColor: { ref: 'accentColor', mix: 0.5 },
+        },
+    },
+    series: [{ type: 'bar', xKey: 'month', yKey: 'revenue', fill: { ref: 'accentColor' } }],
+}
+```
+
+The reference forms are:
+
+- `{ ref: 'accentColor' }` — resolve to another theme parameter.
+- `{ ref: 'accentColor', mix: 0.5 }` — mix the referenced parameter towards transparency.
+- `{ ref: 'accentColor', mix: 0.85, onto: 'backgroundColor' }` — blend one parameter onto another.
+
+See [Themes](./themes/#colour-references) for more details.
+
+## Gradient, Pattern & Image Fills
+
+`fill` properties also accept gradient, pattern, and image fills — on series, markers, [legend](./legend/) backgrounds, and label boxes. See [Series Fills](./fills/) for the full reference. A `stroke` accepts a colour string only.
