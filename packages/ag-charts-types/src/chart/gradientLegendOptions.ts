@@ -12,9 +12,9 @@ export interface AgGradientLegendLabelOptions<TContext = ContextDefault> {
     fontWeight?: FontWeight;
     /** The font size in pixels to use for the labels. */
     fontSize?: FontSize;
-    /** The font family to use for the labels. */
+    /** The font family to use for the labels. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
-    /** The colour to use for the labels. */
+    /** The colour to use for the labels. A colour string, or a theme-colour reference object. */
     color?: AgCssColorOrRef;
     /** Minimum gap in pixels between the axis labels before being removed to avoid collisions. */
     minSpacing?: PixelSize;
@@ -36,7 +36,7 @@ export interface AgGradientLegendScaleOptions<TContext = ContextDefault> {
 export interface AgGradientLegendOptions<TContext = ContextDefault> extends FillOptions {
     /** Whether to show the gradient legend. By default, the chart displays a gradient legend for series using a `colorKey`. */
     enabled?: boolean;
-    /** Position of the gradient legend.
+    /** Position of the gradient legend. A placement keyword, or an object for fine-grained positioning.
      *
      * Default: `'bottom'`
      */
@@ -57,7 +57,7 @@ export interface AgGradientLegendOptions<TContext = ContextDefault> extends Fill
     border?: BorderOptions;
     /** The corner radius of the legend. */
     cornerRadius?: PixelSize;
-    /** The padding between the border and legend items. */
+    /** The padding between the border and legend items. A number applies uniform padding; an object sets each side. */
     padding?: Padding;
 }
 

@@ -125,7 +125,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = DatumDefault, TContext =
     sectorLabel?: AgDonutSeriesSectorLabelOptions<TDatum, AgDonutSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the callout lines used with the labels for the sectors. */
     calloutLine?: AgDonutSeriesCalloutOptions<TDatum, TContext>;
-    /** The colours to cycle through for the fills of the sectors. */
+    /** The colours to cycle through for the fills of the sectors. An array of colour strings, or fill objects for gradients, patterns, or images. */
     fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the sectors. */
     strokes?: CssColor[];

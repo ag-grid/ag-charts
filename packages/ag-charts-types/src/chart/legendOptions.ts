@@ -92,7 +92,7 @@ export interface AgChartLegendLabelFormatterParams<TContext = ContextDefault> {
 export interface AgChartLegendLabelOptions<TContext = ContextDefault> {
     /** If the label text exceeds the specified number of characters, it will be truncated and an ellipsis will be appended to indicate this. */
     maxLength?: number;
-    /** The colour of the text. */
+    /** The colour of the text. A colour string, or a theme-colour reference object. */
     color?: AgCssColorOrRef;
     /** The font style to use for the legend. */
     fontStyle?: FontStyle;
@@ -100,7 +100,7 @@ export interface AgChartLegendLabelOptions<TContext = ContextDefault> {
     fontWeight?: FontWeight;
     /** The font size in pixels to use for the legend. */
     fontSize?: FontSize;
-    /** The font family to use for the legend. */
+    /** The font family to use for the legend. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
     /** Function used to render legend labels. Where `id` is a series ID, `itemId` is component ID within a series, such as a field name or an item index. */
     formatter?: Formatter<AgChartLegendLabelFormatterParams<TContext>>;
@@ -149,7 +149,7 @@ export interface AgChartLegendItemOptions<TContext = ContextDefault> {
     tooltip?: AgChartLegendItemTooltipOptions<TContext>;
     /** Used to constrain the width of legend items. */
     maxWidth?: PixelSize;
-    /** The spacing in pixels to use between legend items. */
+    /** The spacing in pixels to use between legend items. A number applies uniform padding; an object sets each side. */
     padding?: Padding;
     /** Set to `false` to hide the legend line line representing the stroke styling of line and area series.
      *  If enabled, legend marker will be hidden if series markers are disabled. */
@@ -191,7 +191,7 @@ export interface AgChartLegendListeners<TContext = ContextDefault> {
 export interface AgChartLegendOptions<TContext = ContextDefault> extends FillOptions {
     /** Whether to show the legend. By default, the chart displays a legend when there is more than one series present. */
     enabled?: boolean;
-    /** Where the legend should be positioned in relation to the chart.
+    /** Where the legend should be positioned in relation to the chart. A placement keyword, or an object for fine-grained positioning.
      *
      * Default: `'bottom'`
      */
@@ -206,7 +206,7 @@ export interface AgChartLegendOptions<TContext = ContextDefault> extends FillOpt
     border?: BorderOptions;
     /** The corner radius of the legend. */
     cornerRadius?: PixelSize;
-    /** The padding between the border and legend items. */
+    /** The padding between the border and legend items. A number applies uniform padding; an object sets each side. */
     padding?: Padding;
     /** The spacing in pixels to use outside the legend.
      *
@@ -246,12 +246,12 @@ export interface AgPaginationMarkerOptions {
     size?: PixelSize;
     /** If set, overrides the marker shape for the pagination buttons. If not set, the pagination buttons will default to the `'triangle'` marker shape. */
     shape?: AgMarkerShape;
-    /** The inner padding in pixels between a pagination button and the pagination label. */
+    /** The inner padding in pixels between a pagination button and the pagination label. A number applies uniform padding; an object sets each side. */
     padding?: Padding;
 }
 
 export interface AgPaginationMarkerStyle {
-    /** The fill colour to use for the pagination button markers. */
+    /** The fill colour to use for the pagination button markers. A colour string, or an object for a gradient, pattern, or image fill. */
     fill?: AgColorType;
     /** Opacity of the pagination buttons. */
     fillOpacity?: Opacity;
@@ -264,7 +264,7 @@ export interface AgPaginationMarkerStyle {
 }
 
 export interface AgPaginationLabelOptions {
-    /** The colour of the text. */
+    /** The colour of the text. A colour string, or a theme-colour reference object. */
     color?: AgCssColorOrRef;
     /** The font style to use for the pagination label. */
     fontStyle?: FontStyle;
@@ -272,7 +272,7 @@ export interface AgPaginationLabelOptions {
     fontWeight?: FontWeight;
     /** The font size in pixels to use for the pagination label. */
     fontSize?: FontSize;
-    /** The font family to use for the pagination label. */
+    /** The font family to use for the pagination label. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
 }
 

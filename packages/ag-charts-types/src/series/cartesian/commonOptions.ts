@@ -45,7 +45,7 @@ export interface AxisOptions<TDatum> {
  * Represents options for filling shapes in a chart.
  */
 export interface FillOptions {
-    /** The colour for filling shapes. */
+    /** The colour for filling shapes. A colour string, or an object for a gradient, pattern, or image fill. */
     fill?: AgColorType;
     /** The opacity of the fill colour. */
     fillOpacity?: Opacity;
@@ -198,7 +198,7 @@ export interface LabelBoxOptions extends FillOptions {
     border?: BorderOptions;
     /** Apply rounded corners to the label box. */
     cornerRadius?: PixelSize;
-    /** Distance between the label text and the border. */
+    /** Distance between the label text and the border. A number applies uniform padding; an object sets each side. */
     padding?: Padding;
 }
 
@@ -230,7 +230,7 @@ export interface FontOptions {
  * Represents styling options for text elements in a chart.
  */
 export interface TextOptions extends FontOptions {
-    /** The colour for text elements. */
+    /** The colour for text elements. A colour string, or a theme-colour reference object. */
     color?: AgCssColorOrRef;
 }
 
@@ -328,7 +328,7 @@ export interface ImageSegment {
      * Default: `'hide'`
      */
     overflowStrategy?: 'keep' | 'hide';
-    /** Padding around the image inside its reserved box. */
+    /** Padding around the image inside its reserved box. A number applies uniform padding; an object sets each side. */
     padding?: Padding;
     /** Rounds the corners of the image and the background decoration. */
     cornerRadius?: PixelSize;

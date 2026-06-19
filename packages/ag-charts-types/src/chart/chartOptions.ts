@@ -39,7 +39,7 @@ export interface AgSeriesAreaOptions {
     clip?: boolean;
     /** The corner radius of the series area. */
     cornerRadius?: number;
-    /** Configuration for the padding inside the series area. */
+    /** Configuration for the padding inside the series area. A number applies uniform padding; an object sets each side. */
     padding?: Padding;
 }
 
@@ -55,7 +55,7 @@ export interface AgChartOverlayOptions<TContext = ContextDefault> {
      * Default: `true`
      */
     enabled?: boolean;
-    /** Text to render in the overlay. */
+    /** Text to render in the overlay. Plain text, or an array of segments for rich content. */
     text?: TextOrSegments;
     /** A function for generating HTML element or string for overlay content. */
     renderer?: Renderer<AgChartOverlayRendererParams<TContext>, HTMLElement>;
@@ -103,7 +103,7 @@ export interface AgCaptionTooltipOptions<TContext = ContextDefault> {
 export interface AgChartCaptionOptions<TContext = ContextDefault> {
     /** Whether the text should be shown. */
     enabled?: boolean;
-    /** The text to display. */
+    /** The text to display. Plain text, or an array of segments for rich content. */
     text?: TextOrSegments;
     /** Horizontal position of the text. */
     textAlign?: TextAlign;
@@ -113,9 +113,9 @@ export interface AgChartCaptionOptions<TContext = ContextDefault> {
     fontWeight?: FontWeight;
     /** The font size in pixels to use for the text. */
     fontSize?: FontSize;
-    /** The font family to use for the text. */
+    /** The font family to use for the text. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
-    /** The colour to use for the text. */
+    /** The colour to use for the text. A colour string, or a theme-colour reference object. */
     color?: AgCssColorOrRef;
     /** Spacing added to help position the text. */
     spacing?: PixelSize;
@@ -249,7 +249,7 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
      * Default: `300`
      */
     minWidth?: PixelSize;
-    /** Configuration for the padding of the chart. */
+    /** Configuration for the padding of the chart. A number applies uniform padding; an object sets each side. */
     padding?: Padding;
     /** Configuration relating to the series area. */
     seriesArea?: AgSeriesAreaOptions;

@@ -50,9 +50,9 @@ export interface AgInitialStateZoomOptions {
 }
 
 export interface AgInitialStateZoomRange {
-    /** The start value of the zoom range. */
+    /** The start value of the zoom range. A number, or a serialised value object. */
     start?: AgStateSerializableDate | AgStateSerializableBigInt | AgStateSerializableGroupingValueType | number;
-    /** The end value of the zoom range. */
+    /** The end value of the zoom range. A number, or a serialised value object. */
     end?: AgStateSerializableDate | AgStateSerializableBigInt | AgStateSerializableGroupingValueType | number;
 }
 

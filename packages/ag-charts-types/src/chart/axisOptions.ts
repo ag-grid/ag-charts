@@ -46,9 +46,9 @@ export interface AgAxisCaptionOptions {
     fontWeight?: FontWeight;
     /** The font size in pixels to use for the title. */
     fontSize?: FontSize;
-    /** The font family to use for the title. */
+    /** The font family to use for the title. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
-    /** The colour to use for the title. */
+    /** The colour to use for the title. A colour string, or a theme-colour reference object. */
     color?: AgCssColorOrRef;
     /** Spacing between the axis labels and the axis title. */
     spacing?: PixelSize;
@@ -114,7 +114,7 @@ export interface AgContinuousAxisOptions<
      * __Note:__ This does not override the `min` or `max` options.
      */
     nice?: boolean;
-    /** Configuration for the axis ticks interval. */
+    /** Configuration for the axis ticks interval. A unit keyword (or number), or an object describing the interval. */
     interval?: AgAxisContinuousIntervalOptions<TInterval>;
 }
 
@@ -170,11 +170,11 @@ export interface AgBaseAxisLabelStyleOptions extends LabelBoxOptions {
     fontWeight?: FontWeight;
     /** The font size in pixels to use for the labels. */
     fontSize?: FontSize;
-    /** The font family to use for the labels */
+    /** The font family to use for the labels. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
     /** Spacing in pixels between the axis label and the tick. */
     spacing?: PixelSize;
-    /** The colour to use for the labels */
+    /** The colour to use for the labels. A colour string, or a theme-colour reference object. */
     color?: AgCssColorOrRef;
 }
 
@@ -196,7 +196,7 @@ export interface AgAxisLabelFormatterParams<TContext = ContextDefault> {
 export interface AgAxisLabelStylerParams<TContext = ContextDefault> extends AgBaseAxisLabelStyleOptions {
     /** The label value that would be used, before applying formating. */
     readonly value: any;
-    /** The label value that would be used, after applying formating. */
+    /** The label value that would be used, after applying formatting. Plain text, or an array of segments for rich content. */
     readonly formattedValue?: TextOrSegments;
     /** Context for this callback. */
     readonly context?: TContext;
@@ -236,7 +236,7 @@ export interface AgTimeAxisFormattableLabelUnitFormat {
 export type AgTimeAxisFormattableLabelFormat = string | AgTimeAxisFormattableLabelUnitFormat;
 
 export interface AgTimeAxisFormattableLabelOptions<TContext = ContextDefault> extends AgBaseAxisLabelOptions<TContext> {
-    /** Format string used when rendering labels. */
+    /** Format string used when rendering labels. A format string, or an object specifying a format per time unit. */
     format?: AgTimeAxisFormattableLabelFormat;
 }
 

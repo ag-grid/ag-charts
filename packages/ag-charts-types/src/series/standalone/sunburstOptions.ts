@@ -62,7 +62,7 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContex
     sectorSpacing?: PixelSize;
     /** Minimum distance between text and the edges of the sectors. */
     padding?: PixelSize;
-    /** The colours to cycle through for the fills of the sectors. */
+    /** The colours to cycle through for the fills of the sectors. An array of colour strings, or fill objects for gradients, patterns, or images. */
     fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the sectors. */
     strokes?: CssColor[];

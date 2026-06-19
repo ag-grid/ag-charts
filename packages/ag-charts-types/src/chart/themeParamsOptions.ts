@@ -19,6 +19,7 @@ export interface AgColorRefMixOnto {
 export type AgCssColorOrRef = CssColor | AgColorRef | AgColorRefMixOnto;
 
 export interface AgBorderThemeParam {
+    /** Colour of the border. A colour string, or a theme-colour reference object. */
     color?: AgCssColorOrRef;
     width?: PixelSize;
 }
@@ -29,110 +30,110 @@ export interface AgBorderThemeParam {
 export interface AgBaseChartThemeParams {
     /**
      * The 'brand colour' for the chart, used wherever a non-neutral colour is required. Selections, focus outlines and
-     * checkboxes use the accent colour by default.
+     * checkboxes use the accent colour by default. A colour string, or a theme-colour reference object.
      */
     accentColor?: AgCssColorOrRef;
     /**
      * Background colour of the chart. Most text, borders and backgrounds are defined as a blend between the background
-     * and foreground colors.
+     * and foreground colours. A colour string, or a theme-colour reference object.
      */
     backgroundColor?: AgCssColorOrRef;
-    /** Default colour for borders. */
+    /** Default colour for borders. A colour string, or a theme-colour reference object. */
     borderColor?: AgCssColorOrRef;
     /** Default width for borders. */
     borderWidth?: PixelSize;
     /** Default corner radius for many UI elements such as menus and dialogs.  */
     borderRadius?: PixelSize;
-    /** Background colour of standard action buttons. */
+    /** Background colour of standard action buttons. A colour string, or a theme-colour reference object. */
     buttonBackgroundColor?: AgCssColorOrRef;
-    /** Border around standard action buttons. */
+    /** Border around standard action buttons. `true` for the default border, `false` to disable, or an object to customise it. */
     buttonBorder?: boolean | AgBorderThemeParam;
     /** Corner radius for buttons. */
     buttonBorderRadius?: PixelSize;
     /** Font weight of standard action buttons. */
     buttonFontWeight?: FontWeight;
-    /** Text colour of standard action buttons. */
+    /** Text colour of standard action buttons. A colour string, or a theme-colour reference object. */
     buttonTextColor?: AgCssColorOrRef;
     /** Shadow around UI controls that have focus e.g. text inputs and buttons. The value must a valid CSS box-shadow. */
     focusShadow?: CssShadow;
     /**
      * Default colour for neutral UI elements. Most text, borders and backgrounds are defined as a blend between the
-     * background and foreground colors.
+     * background and foreground colours. A colour string, or a theme-colour reference object.
      */
     foregroundColor?: AgCssColorOrRef;
-    /** Font family used for all text. */
+    /** Font family used for all text. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
     /** Default font size used for all text. Titles and some other text are scaled to this font size. */
     fontSize?: FontSize;
     /**
-     * Background colour for text inputs.
+     * Background colour for text inputs. A colour string, or a theme-colour reference object.
      *
      * Default: `backgroundColor`
      */
     inputBackgroundColor?: AgCssColorOrRef;
-    /** Border around text inputs. */
+    /** Border around text inputs. `true` for the default border, `false` to disable, or an object to customise it. */
     inputBorder?: boolean | AgBorderThemeParam;
     /** Corner radius for inputs. */
     inputBorderRadius?: PixelSize;
     /**
-     * Colour of text within text inputs.
+     * Colour of text within text inputs. A colour string, or a theme-colour reference object.
      *
      * Default: `textColor`
      */
     inputTextColor?: AgCssColorOrRef;
-    /** Background colour for menus, e.g. right-click context menus. */
+    /** Background colour for menus, e.g. right-click context menus. A colour string, or a theme-colour reference object. */
     menuBackgroundColor?: AgCssColorOrRef;
-    /** Border around menus. */
+    /** Border around menus. `true` for the default border, `false` to disable, or an object to customise it. */
     menuBorder?: boolean | AgBorderThemeParam;
     /** Corner radius for menus. */
     menuBorderRadius?: PixelSize;
-    /** Text colour for menus. */
+    /** Text colour for menus. A colour string, or a theme-colour reference object. */
     menuTextColor?: AgCssColorOrRef;
-    /** Background colour for panels and dialogs. */
+    /** Background colour for panels and dialogs. A colour string, or a theme-colour reference object. */
     panelBackgroundColor?: AgCssColorOrRef;
-    /** Colour of text that should stand out less in panels and dialogs. */
+    /** Colour of text that should stand out less in panels and dialogs. A colour string, or a theme-colour reference object. */
     panelSubtleTextColor?: AgCssColorOrRef;
     /** Default shadow for elements that float above the chart and are intended to appear separated from it, e.g. dialogs and menus. */
     popupShadow?: CssShadow;
     /**
-     * Colour of text that should stand out less than the default.
+     * Colour of text that should stand out less than the default. A colour string, or a theme-colour reference object.
      *
      * Default: `foregroundColor + backgroundColor`
      */
     subtleTextColor?: AgCssColorOrRef;
     /**
-     * Default colour for all text.
+     * Default colour for all text. A colour string, or a theme-colour reference object.
      *
      * Default: `foregroundColor`
      */
     textColor?: AgCssColorOrRef;
-    /** Background colour for tooltips. */
+    /** Background colour for tooltips. A colour string, or a theme-colour reference object. */
     tooltipBackgroundColor?: AgCssColorOrRef;
-    /** Border around tooltips. */
+    /** Border around tooltips. `true` for the default border, `false` to disable, or an object to customise it. */
     tooltipBorder?: boolean | AgBorderThemeParam;
     /** Corner radius for tooltips. */
     tooltipBorderRadius?: PixelSize;
-    /** Text colour for tooltips. */
+    /** Text colour for tooltips. A colour string, or a theme-colour reference object. */
     tooltipTextColor?: AgCssColorOrRef;
-    /** Colour of text that should stand out less in tooltips. */
+    /** Colour of text that should stand out less in tooltips. A colour string, or a theme-colour reference object. */
     tooltipSubtleTextColor?: AgCssColorOrRef;
 }
 
 export interface AgChartThemeParams extends AgBaseChartThemeParams {
-    /** Default colour for axis lines and ticks. */
+    /** Default colour for axis lines and ticks. A colour string, or a theme-colour reference object. */
     axisLineColor?: AgCssColorOrRef;
-    /** Background colour of the chart. */
+    /** Background colour of the chart. A colour string, or a theme-colour reference object. */
     chartBackgroundColor?: AgCssColorOrRef;
     /** The outer chart padding. */
     chartPadding?: PixelSize;
     /**
-     * Background colour of tooltips, menus, dialogs, toolbars and buttons.
+     * Background colour of tooltips, menus, dialogs, toolbars and buttons. A colour string, or a theme-colour reference object.
      *
      * Default: `foregroundColor + backgroundColor`
      */
     chromeBackgroundColor?: AgCssColorOrRef;
     /**
-     * Font family used for text in tooltips, menus, dialogs, toolbars, buttons and text inputs.
+     * Font family used for text in tooltips, menus, dialogs, toolbars, buttons and text inputs. A single family name, or an array of names used as fallbacks.
      *
      * Default: `fontFamily`
      */
@@ -150,34 +151,34 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     chromeFontWeight?: FontWeight;
     /**
-     * Default colour for text in tooltips, menus, dialogs, toolbars, buttons and text inputs.
+     * Default colour for text in tooltips, menus, dialogs, toolbars, buttons and text inputs. A colour string, or a theme-colour reference object.
      *
      * Default: `textColor`
      */
     chromeTextColor?: AgCssColorOrRef;
     /**
-     * Colour of text that should stand out less than the default in tooltips, menus, dialogs, toolbars and buttons.
+     * Colour of text that should stand out less than the default in tooltips, menus, dialogs, toolbars and buttons. A colour string, or a theme-colour reference object.
      *
      * Default: `subtleTextColor`
      */
     chromeSubtleTextColor?: AgCssColorOrRef;
     /**
-     * Background colour of crosshair labels.
+     * Background colour of crosshair labels. A colour string, or a theme-colour reference object.
      *
      * Default: `foregroundColor`
      */
     crosshairLabelBackgroundColor?: AgCssColorOrRef;
     /**
-     * Colour for text in crosshair labels.
+     * Colour for text in crosshair labels. A colour string, or a theme-colour reference object.
      *
      * Default: `backgroundColor`
      */
     crosshairLabelTextColor?: AgCssColorOrRef;
     /** Default font weight used for all text. */
     fontWeight?: FontWeight;
-    /** Default colour for grid lines. */
+    /** Default colour for grid lines. A colour string, or a theme-colour reference object. */
     gridLineColor?: AgCssColorOrRef;
-    /** Default colour for grouped-category separation lines. */
+    /** Default colour for grouped-category separation lines. A colour string, or a theme-colour reference object. */
     groupedCategoryLineColor?: AgCssColorOrRef;
 }
 

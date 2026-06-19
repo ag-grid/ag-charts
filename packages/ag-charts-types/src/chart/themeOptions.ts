@@ -66,7 +66,7 @@ export type AgChartThemeName =
     | 'ag-financial-dark';
 
 export interface AgPaletteColors {
-    /** The fill colour for the palette. */
+    /** The fill colour for the palette. A colour string, or a gradient object. */
     fill?: AgColorTypeStrict;
     /** The stroke colour for the palette. */
     stroke?: CssColor;
@@ -76,7 +76,7 @@ export interface AgPaletteColors {
  * Palette used by the chart instance.
  */
 export interface AgChartThemePalette {
-    /** The array of fills to be used. */
+    /** The array of fills to be used. An array of colour strings, or fill objects for gradients, patterns, or images. */
     fills?: AgColorType[];
     /** The array of strokes to be used. */
     strokes?: CssColor[];

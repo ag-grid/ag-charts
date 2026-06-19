@@ -56,7 +56,7 @@ export interface AgCrossLineThemeOptions<
 export interface AgBaseCrossLineLabelOptions extends Omit<AgChartLabelStyleOptions, 'fontFamily'> {
     /** The text to show in the label. */
     text?: string;
-    /** The font family to use for the label. */
+    /** The font family to use for the label. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
 }
 
