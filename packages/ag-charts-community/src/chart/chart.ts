@@ -1059,6 +1059,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 await this.checkFirstAutoSize();
                 if (this.checkUpdateShortcut(ChartUpdateType.PERFORM_LAYOUT)) break;
 
+                ctx.domManager.setThemeParameters(this.chartOptions.themeParameters);
                 ctx.chartState.flushChanges('legendData');
                 await this.processLayout();
                 this.updateSplits('⌖');
@@ -1181,7 +1182,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         const { enabled, tabIndex } = this.ctx.chartState.getValue('options', 'keyboard');
         this.ctx.domManager.setTabGuardIndex(enabled ? (tabIndex ?? 0) : -1);
-        this.ctx.domManager.setThemeParameters(this.chartOptions.themeParameters);
     }
 
     private updateAriaLabels() {
@@ -1747,6 +1747,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             : newChartOptions.diffOptions(this.chartOptions);
         if (deltaOptions == null || Object.keys(deltaOptions).length === 0) {
             debug('Chart.applyOptions() - no delta, forcing re-layout', deltaOptions);
+            // Theme params resolve into `themeParameters`, not `processedOptions`, so a
+            // params-only change diffs empty here; adopt the resolved options regardless.
+            this.chartOptions = newChartOptions;
             this.update(minimumUpdateType, { apiUpdate: true, newAnimationBatch: true });
             return;
         }
