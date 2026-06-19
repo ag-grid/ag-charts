@@ -4,10 +4,19 @@ import {
     type AgBoxPlotSeriesOptions,
     type AgBoxPlotSeriesStyle,
     type AgBoxPlotSeriesStylerParams,
+    type AgBoxPlotWhiskerOptions,
     type SelectionState,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { CallbackParamRules, DeepRequired, DynamicContext, Mutable, RequireOptional } from 'ag-charts-core';
+import type {
+    CallbackParamRules,
+    DeepRequired,
+    DynamicContext,
+    FillStrokeMorph,
+    Mutable,
+    Normalised,
+    RequireOptional,
+} from 'ag-charts-core';
 import { ChartAxisDirection, deepClone, isNumericValue, mergeDefaults, toNumber } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
@@ -36,8 +45,25 @@ const {
     upsertNodeDatum,
 } = _ModuleSupport;
 
+/** Whisker style after theme-merge: colour refs are resolved before reaching this point. */
+type NormalisedBoxPlotWhiskerOptions = Normalised<AgBoxPlotWhiskerOptions, never, FillStrokeMorph>;
+
+/** Box plot style after theme-merge: fill/stroke (and nested whisker stroke) are resolved colours. */
+type NormalisedBoxPlotSeriesStyle = Normalised<
+    AgBoxPlotSeriesStyle,
+    never,
+    FillStrokeMorph & { whisker?: NormalisedBoxPlotWhiskerOptions }
+>;
+
+/** Highlight style after theme-merge, retaining the additional `opacity` field. */
+type NormalisedBoxPlotHighlightStyleOptions = Normalised<
+    AgBoxPlotHighlightStyleOptions,
+    never,
+    FillStrokeMorph & { whisker?: NormalisedBoxPlotWhiskerOptions }
+>;
+
 interface BoxPlotSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<BoxPlotNodeDatum> {
-    styles: _ModuleSupport.SeriesNodeStyleContext<AgBoxPlotSeriesStyle>;
+    styles: _ModuleSupport.SeriesNodeStyleContext<NormalisedBoxPlotSeriesStyle>;
 }
 
 /**
@@ -391,7 +417,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             visible: this.visible,
             // Set by assembleResult()
             groupScale: undefined,
-            styles: undefined as unknown as _ModuleSupport.SeriesNodeStyleContext<AgBoxPlotSeriesStyle>,
+            styles: undefined as unknown as _ModuleSupport.SeriesNodeStyleContext<NormalisedBoxPlotSeriesStyle>,
             segments: undefined,
         };
     }
@@ -759,7 +785,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         highlightState: _ModuleSupport.HighlightState | undefined,
         selectionState: _ModuleSupport.SelectionState | undefined,
         candidateState: _ModuleSupport.SelectionState | undefined
-    ): Required<AgBoxPlotSeriesStyle> & { opacity: number } {
+    ): Required<NormalisedBoxPlotSeriesStyle> & { opacity: number } {
         const {
             cap,
             cornerRadius,
@@ -773,15 +799,16 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             styler,
             whisker,
         } = this.properties;
-        let stylerResult: AgBoxPlotSeriesStyle = {};
+        let stylerResult: NormalisedBoxPlotSeriesStyle = {};
         if (!ignoreStylerCallback && styler) {
             const stylerParams = this.makeStylerParams(highlightState, selectionState, candidateState);
             stylerResult =
-                this.ctx.optionsGraphService.resolvePartial(
+                // resolvePartial resolves colour refs, so the result is a normalised style.
+                (this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
                     this.cachedCallWithContext(styler, stylerParams) ?? {},
                     { pick: false }
-                ) ?? {};
+                ) as NormalisedBoxPlotSeriesStyle) ?? {};
         }
         return {
             cornerRadius: stylerResult.cornerRadius ?? cornerRadius,
@@ -810,7 +837,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         highlightState: _ModuleSupport.HighlightState | undefined,
         selectionState: _ModuleSupport.SelectionState | undefined,
         candidateState: _ModuleSupport.SelectionState | undefined
-    ): Required<AgBoxPlotSeriesStyle> {
+    ): Required<NormalisedBoxPlotSeriesStyle> {
         const { properties } = this;
         const { itemStyler } = properties;
 
@@ -852,7 +879,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         return style;
     }
 
-    private makeItemStylerParams(datumIndex: number, isHighlight: boolean, style: Required<AgBoxPlotSeriesStyle>) {
+    private makeItemStylerParams(
+        datumIndex: number,
+        isHighlight: boolean,
+        style: Required<NormalisedBoxPlotSeriesStyle>
+    ) {
         const { id: seriesId } = this;
         const { xKey, minKey, q1Key, medianKey, q3Key, maxKey } = this.properties;
 
@@ -892,7 +923,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
 
         if (itemStyler == null) {
             // No itemStyler: style is a pure function of (highlightState, selectionState).
-            const styleByState = new Map<string, Required<AgBoxPlotSeriesStyle>>();
+            const styleByState = new Map<string, Required<NormalisedBoxPlotSeriesStyle>>();
             const thisSeries = this;
 
             datumSelection.each(function updateDatumSelectionStyles(_, nodeDatum) {
@@ -955,10 +986,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const wickStrokeAlignment = properties.whisker.strokeWidth ?? properties.strokeWidth;
 
         datumSelection.each((boxPlotNode, nodeDatum) => {
+            // Colour refs are resolved at theme-merge, so the style is normalised by render.
             const style = (nodeDatum.style ??
                 contextNodeData.styles[
                     this.getHighlightState(highlightedDatum, isHighlight, nodeDatum.datumIndex)
-                ]) as DeepRequired<AgBoxPlotHighlightStyleOptions>;
+                ]) as DeepRequired<NormalisedBoxPlotHighlightStyleOptions>;
             boxPlotNode.setFillProperties(style.fill, fillBBox);
 
             const nodeOpacity = style.opacity ?? 1;

@@ -2,7 +2,9 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     type CallbackParamRules,
     type DynamicContext,
+    type FillStrokeMorph,
     Logger,
+    type Normalised,
     type RequireOptional,
     angleBetween,
     cachedTextMeasurer,
@@ -32,6 +34,8 @@ import { ChordLink, bezierControlPoints } from './chordLink';
 import { ChordSeriesProperties } from './chordSeriesProperties';
 
 const { SeriesNodePickMode, createDatumId, Sector, getShapeStyle, getLabelStyles, BBox } = _ModuleSupport;
+
+type NormalisedChordSeriesNodeStyle = Normalised<AgChordSeriesNodeStyle, never, FillStrokeMorph>;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum<ChordNodeDatum, ChordLinkDatum> {
     centerX: number;
@@ -454,7 +458,7 @@ export class ChordSeries extends FlowProportionSeries<
     private makeItemStylerParams(
         { datum, datumIndex, size = 0, label }: Partial<ChordNodeDatum>,
         isHighlight: boolean,
-        style: Required<AgChordSeriesNodeStyle>
+        style: Required<NormalisedChordSeriesNodeStyle>
     ) {
         const { id: seriesId } = this;
         const { fromKey, toKey, sizeKey } = this.properties;

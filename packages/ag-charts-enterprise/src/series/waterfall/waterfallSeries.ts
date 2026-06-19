@@ -12,7 +12,10 @@ import {
     ChartAxisDirection,
     type DomainWithMetadata,
     type DynamicContext,
+    type FillStrokeMorph,
     type Mutable,
+    type Normalised,
+    type NormalisedColorType,
     type NormalisedTextOrSegments,
     type Point,
     type RequireOptional,
@@ -28,6 +31,9 @@ import type { AgNumericValue, SelectionState } from 'ag-charts-types';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
+
+/** Post-theme/styler-resolution waterfall style: colour refs are already resolved to concrete colours. */
+type NormalisedWaterfallSeriesStyle = Normalised<AgWaterfallSeriesStyle, never, FillStrokeMorph>;
 
 const {
     adjustLabelPlacement,
@@ -903,7 +909,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
         const selectionStateString = this.getSelectionStateString(datumIndex);
         const candidateStateString = this.getCandidateStateString(datumIndex);
-        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+        // `style` is the resolved item style; its `fill` no longer carries unresolved colour refs.
+        const fill = this.filterItemStylerFillParams(style.fill as NormalisedColorType) ?? style.fill;
 
         return {
             seriesId,
@@ -984,7 +991,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 contextNodeData.styles[datum.itemType][
                     this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                 ];
-            rect.setStyleProperties(style, fillBBox);
+            // `style` is fully resolved by render time; narrow it to the shape-compatible normalised style.
+            rect.setStyleProperties(style as Required<NormalisedWaterfallSeriesStyle>, fillBBox);
 
             rect.cornerRadius = style.cornerRadius ?? 0;
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;

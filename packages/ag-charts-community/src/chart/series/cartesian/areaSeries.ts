@@ -1412,7 +1412,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             datum.datumIndex,
             stylerStyle.marker
         );
-        datum.style = series.getMarkerStyle(
+        datum.style = series.getMarkerStyle<NormalisedAreaSeriesMarkerItemStylerParams<unknown, unknown>>(
             ctx.marker,
             datum,
             params,
@@ -1890,7 +1890,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             stylerStyle.marker
         );
 
-        return this.getMarkerStyle(
+        return this.getMarkerStyle<NormalisedAreaSeriesMarkerItemStylerParams<unknown, unknown>>(
             this.properties.marker,
             datum,
             params,

@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { Vec2 } from 'ag-charts-core';
-import type { StrokeOptions } from 'ag-charts-types';
+import type { CssColor, StrokeOptions } from 'ag-charts-types';
 
 export abstract class CapScene extends _ModuleSupport.Group {
     abstract type: string;
@@ -30,7 +30,8 @@ export class ArrowCapScene extends CapScene {
         const leftEnd = Vec2.rotate(Vec2.from(0, armLength), angle + offsetAngle, origin);
         const rightEnd = Vec2.rotate(Vec2.from(armLength, 0), angle - offsetAngle, origin);
 
-        path.setProperties(rest);
+        // Stroke refs are resolved before reaching the scene node.
+        path.setProperties(rest as StrokeOptions & { stroke?: CssColor });
         path.fillOpacity = 0;
 
         path.path.clear();

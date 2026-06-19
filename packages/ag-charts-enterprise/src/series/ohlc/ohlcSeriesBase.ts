@@ -18,14 +18,17 @@ import {
     ChartAxisDirection,
     DebugMetrics,
     type DynamicContext,
+    type FillStrokeMorph,
     Logger,
     type Mutable,
+    type Normalised,
+    type NormalisedColorType,
     type Point,
     type Scale,
     mergeDefaults,
     toNumber,
 } from 'ag-charts-core';
-import type { AgNumericValue } from 'ag-charts-types';
+import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import {
     type OhlcSeriesDataAggregationFilter,
@@ -61,6 +64,9 @@ const {
 
 interface OhlcCandleStickSeriesStyle extends AgCandlestickSeriesItemOptions, AgOhlcSeriesItemOptions {}
 
+/** Post-resolution style: colour refs are resolved to concrete colours before reaching the scene node. */
+type NormalisedOhlcCandleStickSeriesStyle = Normalised<OhlcCandleStickSeriesStyle, never, FillStrokeMorph>;
+
 export interface OhlcNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
     readonly itemId?: never;
     readonly itemType: AgOhlcSeriesItemType;
@@ -82,7 +88,7 @@ export interface OhlcNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDa
 
     readonly crisp: boolean;
 
-    style?: Required<OhlcCandleStickSeriesStyle>;
+    style?: Required<NormalisedOhlcCandleStickSeriesStyle>;
 }
 
 class OhlcSeriesNodeEvent<
@@ -179,7 +185,7 @@ interface OhlcSeriesNodeDatumContext {
 }
 
 interface OhlcSeriesBaseNodeDataContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<OhlcNodeDatum> {
-    styles: Record<'up' | 'down', _ModuleSupport.SeriesNodeStyleContext<OhlcCandleStickSeriesStyle>>;
+    styles: Record<'up' | 'down', _ModuleSupport.SeriesNodeStyleContext<NormalisedOhlcCandleStickSeriesStyle>>;
 }
 
 /**
@@ -858,7 +864,12 @@ export abstract class OhlcSeriesBase<
             this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const selectionStyle: (FillOptions & StrokeOptions & LineDashOptions & { opacity?: number }) | undefined =
             this.getSelectionStyle(datumIndex);
-        const baseStyle = mergeDefaults(selectionStyle, highlightStyle, properties.getStyle(itemType));
+        // Colour refs are resolved during theme-merge before reaching getStyle().
+        const baseStyle = mergeDefaults(
+            selectionStyle,
+            highlightStyle,
+            properties.getStyle(itemType)
+        ) as Required<NormalisedOhlcCandleStickSeriesStyle> & { opacity: number };
 
         let style = baseStyle;
 
@@ -887,9 +898,7 @@ export abstract class OhlcSeriesBase<
         itemType: 'up' | 'down',
         datumIndex: number,
         isHighlight: boolean,
-        style:
-            | (Required<AgOhlcSeriesItemOptions> & { opacity: number })
-            | (Required<AgCandlestickSeriesItemOptions> & { opacity: number })
+        style: Required<NormalisedOhlcCandleStickSeriesStyle> & { opacity: number }
     ) {
         const { id: seriesId, properties, processedData } = this;
         const { xKey, openKey, closeKey, highKey, lowKey } = properties;
@@ -960,10 +969,11 @@ export abstract class OhlcSeriesBase<
 
         const format = this.getItemStyle(datumIndex, false);
 
+        // Colour refs on item.fill/stroke are resolved to concrete colours before this point.
         const marker = {
-            fill: item.fill ?? item.stroke,
+            fill: (item.fill ?? item.stroke) as NormalisedColorType,
             fillOpacity: item.fillOpacity ?? item.strokeOpacity ?? 1,
-            stroke: item.stroke,
+            stroke: item.stroke as CssColor,
             strokeWidth: item.strokeWidth ?? 1,
             strokeOpacity: item.strokeOpacity ?? 1,
             lineDash: item.lineDash ?? [0],

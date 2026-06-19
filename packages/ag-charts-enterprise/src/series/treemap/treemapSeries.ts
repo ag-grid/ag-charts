@@ -401,7 +401,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         const { id: seriesId } = this;
         const { colorKey, childrenKey, sizeKey, labelKey, secondaryLabelKey } = this.properties;
 
-        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+        // `style` is the resolved item style; its `fill` no longer carries unresolved colour refs.
+        const fill = this.filterItemStylerFillParams(style.fill as InternalAgColorType) ?? style.fill;
 
         return {
             seriesId,
@@ -984,7 +985,6 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             false
         );
 
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- widen AgColor to InternalAgColorType so downstream gradient props are typeable
         const color = format.fill as InternalAgColorType;
 
         const markerStyle = {

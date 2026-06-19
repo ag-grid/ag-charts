@@ -1,4 +1,4 @@
-import type { DynamicContext } from 'ag-charts-core';
+import type { DynamicContext, NormalisedSeriesMarkerStyle } from 'ag-charts-core';
 import {
     type CallbackParamRules,
     ChartAxisDirection,
@@ -35,7 +35,6 @@ import {
     type AgScatterSeriesItemStylerParams,
     type AgScatterSeriesStylerParams,
     type AgScatterSeriesStylerResult,
-    type AgSeriesMarkerStyle,
     type FillOptions,
     type FormatterPropertyType,
     type LineDashOptions,
@@ -139,13 +138,13 @@ type BubbleNoStylerCompute = MarkerStyleCompute<
     BubbleSeries,
     BubbleNoStylerPassCtx,
     BubbleScatterNodeDatum,
-    AgSeriesMarkerStyle
+    NormalisedSeriesMarkerStyle
 >;
 type BubbleNoStylerApply = MarkerStyleApply<
     BubbleSeries,
     BubbleNoStylerPassCtx,
     BubbleScatterNodeDatum,
-    AgSeriesMarkerStyle
+    NormalisedSeriesMarkerStyle
 >;
 type BubbleStylerCompute = MarkerStyleCompute<
     BubbleSeries,
@@ -193,14 +192,14 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
     // feature. It has nothing to do with the official data selection API in the options contract. Do not use, or use
     // with extreme caution.
     readonly crossFilterSelected: boolean | undefined;
-    style?: AgSeriesMarkerStyle;
+    style?: NormalisedSeriesMarkerStyle;
 }
 
 interface BubbleSeriesNodeDataContext extends CartesianSeriesNodeDataContext<
     BubbleScatterNodeDatum,
     BubbleScatterNodeDatum
 > {
-    styles: SeriesNodeStyleContext<AgSeriesMarkerStyle>;
+    styles: SeriesNodeStyleContext<NormalisedSeriesMarkerStyle>;
 }
 
 /**
@@ -1075,7 +1074,12 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         if (marker.itemStyler == null && !colorScaleValid) {
             // No itemStyler / colour-scale: only datum.point.size varies per datum, so cache a
             // per-state template and splice the size in at apply time.
-            this.runMarkerStylePass<BubbleNoStylerPassCtx, BubbleScatterNodeDatum, AgSeriesMarkerStyle, BubbleSeries>(
+            this.runMarkerStylePass<
+                BubbleNoStylerPassCtx,
+                BubbleScatterNodeDatum,
+                NormalisedSeriesMarkerStyle,
+                BubbleSeries
+            >(
                 datumSelection,
                 isHighlight,
                 { marker, params, isHighlight },
@@ -1516,7 +1520,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         );
     }
 
-    private legendItemSymbol(styleOverride?: Partial<AgSeriesMarkerStyle>): LegendSymbolOptions {
+    private legendItemSymbol(styleOverride?: Partial<NormalisedSeriesMarkerStyle>): LegendSymbolOptions {
         const style = this.getStyle(undefined);
         const marker = this.getMarkerStyle<AgBubbleSeriesOptionsKeys>(
             this.properties.marker,
@@ -1527,7 +1531,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 checkForHighlight: false,
                 resolveMarkerSubPath: [],
             },
-            style satisfies RequireOptional<AgSeriesMarkerStyle>
+            style satisfies RequireOptional<NormalisedSeriesMarkerStyle>
         );
         return {
             marker: styleOverride ? { ...marker, ...styleOverride } : marker,
@@ -1612,7 +1616,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         return new Marker<BubbleScatterNodeDatum>();
     }
 
-    public getStyle(highlightState: HighlightState | undefined): Required<AgSeriesMarkerStyle> & { maxSize: number } {
+    public getStyle(
+        highlightState: HighlightState | undefined
+    ): Required<NormalisedSeriesMarkerStyle> & { maxSize: number } {
         const { properties } = this;
         const { marker } = properties;
 
@@ -1632,6 +1638,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         const floorOverride = this.getSizeFloorOverride(stylerResult);
 
+        // resolvePartial has already resolved any colour refs in stylerResult, and the marker
+        // properties hold resolved colours, so the merged style is a NormalisedSeriesMarkerStyle.
         return {
             fill: stylerResult.fill ?? properties.fill!,
             fillOpacity: stylerResult.fillOpacity ?? properties.fillOpacity,
@@ -1643,7 +1651,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             stroke: stylerResult.stroke ?? properties.stroke!,
             strokeOpacity: stylerResult.strokeOpacity ?? properties.strokeOpacity,
             strokeWidth: stylerResult.strokeWidth ?? properties.strokeWidth,
-        };
+        } as Required<NormalisedSeriesMarkerStyle> & { maxSize: number };
     }
 
     // Bubble and scatter share the `marker.size` backing field but expose it under different styler keys:

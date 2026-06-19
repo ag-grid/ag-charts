@@ -1,4 +1,5 @@
 import type { AgAnnotationHandleStyles, _ModuleSupport } from 'ag-charts-community';
+import type { FillStrokeMorph, Normalised } from 'ag-charts-core';
 import { type Bounds4, type BoxBounds, type Point, Vec2, Vec4, entries } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
@@ -9,6 +10,8 @@ import { DivariantHandle } from './handle';
 import { LinearScene } from './linearScene';
 
 export type StartEndHandle = 'start' | 'end';
+
+type NormalisedAnnotationHandleStyles = Normalised<AgAnnotationHandleStyles, never, FillStrokeMorph>;
 
 export abstract class StartEndScene<Datum extends StartEndProperties> extends LinearScene<Datum> {
     override activeHandle?: StartEndHandle;
@@ -112,12 +115,13 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
     }
 
     protected updateHandles(datum: Datum, coords: Bounds4, bbox?: _ModuleSupport.BBox) {
+        // Colour refs in the handle styles are resolved at runtime before reaching the scene node.
         this.start.update({
-            ...this.getHandleStyles(datum, 'start'),
+            ...(this.getHandleStyles(datum, 'start') as NormalisedAnnotationHandleStyles),
             ...this.getHandleCoords(datum, coords, 'start'),
         });
         this.end.update({
-            ...this.getHandleStyles(datum, 'end'),
+            ...(this.getHandleStyles(datum, 'end') as NormalisedAnnotationHandleStyles),
             ...this.getHandleCoords(datum, coords, 'end', bbox),
         });
 

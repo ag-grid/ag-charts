@@ -10,6 +10,9 @@ import {
     type ChartAnimationPhase,
     type DomainWithMetadata,
     type DynamicContext,
+    type FillStrokeMorph,
+    type Normalised,
+    type NormalisedColorType,
     type NormalisedTextOrSegments,
     type Point,
     StateMachine,
@@ -51,6 +54,8 @@ type PyramidNodeLabelDatum = Readonly<Point> & {
 
 type PyramidStageValue = string | number | { toString(): string };
 
+type NormalisedPyramidSeriesStyle = Normalised<AgPyramidSeriesStyle, never, FillStrokeMorph>;
+
 interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
     readonly xValue: PyramidStageValue;
@@ -60,7 +65,7 @@ interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Read
     readonly bottom: number;
     readonly left: number;
     readonly label: PyramidNodeLabelDatum | undefined;
-    style: AgPyramidSeriesStyle;
+    style: NormalisedPyramidSeriesStyle;
 }
 
 interface PyramidNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
@@ -509,14 +514,14 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     protected getItemStyle(
         { datumIndex, datum }: Partial<PyramidNodeDatum>,
         isHighlight: boolean
-    ): Required<AgPyramidSeriesStyle> {
+    ): Required<NormalisedPyramidSeriesStyle> {
         const { properties } = this;
         const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
         const baseStyle = mergeDefaults(selectionStyle, highlightStyle, properties.getStyle(datumIndex));
-        let style = baseStyle;
+        let style = baseStyle as Required<NormalisedPyramidSeriesStyle>; // refs resolved at runtime
 
         if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
@@ -539,7 +544,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         datum: unknown,
         datumIndex: number,
         isHighlight: boolean,
-        style: Required<AgPyramidSeriesStyle>
+        style: Required<NormalisedPyramidSeriesStyle>
     ) {
         const { id: seriesId, properties } = this;
         const { stageKey, valueKey } = properties;
@@ -749,7 +754,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     private legendItemSymbol(datumIndex: number) {
         const { fills, strokes, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.properties;
-        const fill = fills[datumIndex] ?? 'black';
+        const fill = (fills[datumIndex] ?? 'black') as NormalisedColorType; // refs resolved at runtime
         const stroke = strokes[datumIndex] ?? 'black';
         return {
             marker: {

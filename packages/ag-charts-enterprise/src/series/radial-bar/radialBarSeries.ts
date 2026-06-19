@@ -9,6 +9,8 @@ import {
     ChartAxisDirection,
     type DomainWithMetadata,
     type DynamicContext,
+    type FillStrokeMorph,
+    type Normalised,
     type NormalisedTextOrSegments,
     type Point,
     angleBetween,
@@ -18,7 +20,7 @@ import {
     minValue,
     zeroLike,
 } from 'ag-charts-core';
-import type { AgNumericValue } from 'ag-charts-types';
+import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import { readDatum } from '../../utils/datum';
@@ -49,6 +51,8 @@ const {
     updateLabelNode,
     getItemStyles,
 } = _ModuleSupport;
+
+type NormalisedRadialSeriesStyle = Normalised<AgRadialSeriesStyle, never, FillStrokeMorph>;
 
 class RadialBarSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -484,7 +488,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 const fillParams: _ModuleSupport.GradientParams | undefined =
                     isGradientFill(fill) && fill.bounds !== 'item' ? { centerX: 0, centerY: 0 } : undefined;
 
-                node.setStyleProperties(style, fillBBox, fillParams);
+                node.setStyleProperties(style as NormalisedRadialSeriesStyle, fillBBox, fillParams);
 
                 node.lineJoin = 'round';
                 node.inset = node.stroke == null ? 0 : node.strokeWidth / 2;
@@ -644,7 +648,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const markerStyle = {
             fill: fill ?? 'rgba(0, 0, 0, 0)',
-            stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+            stroke: (stroke ?? 'rgba(0, 0, 0, 0)') as CssColor, // resolved at runtime
             fillOpacity,
             strokeOpacity,
             strokeWidth,

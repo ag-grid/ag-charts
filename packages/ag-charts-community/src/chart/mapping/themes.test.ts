@@ -1,7 +1,6 @@
 import type { Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import type { InternalAgColorType } from 'ag-charts-core';
 import type {
     AgBarSeriesOptions,
     AgChartInstance,
@@ -9,6 +8,8 @@ import type {
     AgChartTheme,
     AgChartThemeName,
     AgChartThemePalette,
+    AgColorType,
+    AgCssColorOrRef,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
@@ -39,7 +40,7 @@ describe('themes.ts', () => {
         const getActualPalette = (chart: AgChartInstance) => {
             let result = undefined;
             for (const series of deproxy(chart).chartOptions.processedOptions.series ?? []) {
-                result ??= { fills: [] as InternalAgColorType[], strokes: [] as string[] };
+                result ??= { fills: [] as AgColorType[], strokes: [] as AgCssColorOrRef[] };
 
                 expect(series.type).toEqual('bar');
                 const barseries = series as AgBarSeriesOptions;

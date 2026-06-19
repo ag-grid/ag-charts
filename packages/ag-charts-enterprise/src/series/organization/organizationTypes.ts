@@ -1,6 +1,10 @@
-import type { DeepRequired, Normalised, NormalisedPaddingOptions, NormalisedTextOrSegments } from 'ag-charts-core';
 import type {
-    AgColorType,
+    Normalised,
+    NormalisedColorType,
+    NormalisedPaddingOptions,
+    NormalisedTextOrSegments,
+} from 'ag-charts-core';
+import type {
     AgOrganizationSeriesExpanderStyle,
     AgOrganizationSeriesExpanderTextStyle,
     AgOrganizationSeriesNodeStyle,
@@ -99,12 +103,12 @@ export type NormalisedOrganizationNodeStyle = Normalised<
     | 'lineDashOffset'
     | 'maxHeight'
     | 'maxWidth'
-    | 'stroke'
     | 'strokeOpacity'
     | 'strokeWidth'
     | 'width',
     {
-        fill: DeepRequired<AgColorType>;
+        fill: NormalisedColorType;
+        stroke: CssColor;
         expander: NormalisedOrganizationSeriesExpanderStyle;
         image: NormalisedOrganizationSeriesOptionsNodeImage;
         labels: NormalisedOrganizationNodeTextStyle[];

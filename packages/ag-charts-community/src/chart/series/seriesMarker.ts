@@ -12,7 +12,7 @@ import {
     TRIPLE_EQ,
     objectsEqual,
 } from 'ag-charts-core';
-import type { AgMarkerShape, AgSeriesMarkerStyle, AgSeriesMarkerStylerParams, Styler } from 'ag-charts-types';
+import type { AgMarkerShape, AgSeriesMarkerStyle, Styler } from 'ag-charts-types';
 
 export class SeriesMarker<TParams = never> extends ChangeDetectableProperties {
     @Property

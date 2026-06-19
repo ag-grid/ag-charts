@@ -17,7 +17,6 @@ import {
     CleanupRegistry,
     type DistantObject,
     EventEmitter,
-    type InternalAgColorType,
     LRUCache,
     Logger,
     type Point,

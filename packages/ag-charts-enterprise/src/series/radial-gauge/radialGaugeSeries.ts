@@ -10,6 +10,7 @@ import {
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
+import type { FillStrokeMorph, Normalised } from 'ag-charts-core';
 import {
     type ChartAnimationPhase,
     type DynamicContext,
@@ -26,7 +27,7 @@ import {
     toPlainText,
     toRadians,
 } from 'ag-charts-core';
-import type { AgNumericValue } from 'ag-charts-types';
+import type { AgNumericValue, AgRadialGaugeSeriesStyle } from 'ag-charts-types';
 
 import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';
 import { formatWithContext } from '../../utils/formatter';
@@ -71,6 +72,8 @@ const {
 } = _ModuleSupport;
 
 type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum;
+
+type NormalisedRadialGaugeSeriesStyle = Normalised<AgRadialGaugeSeriesStyle, never, FillStrokeMorph>;
 
 interface TargetLabel {
     enabled: boolean;
@@ -901,7 +904,7 @@ export class RadialGaugeSeries
                 ? _ModuleSupport.PointerEvents.All
                 : _ModuleSupport.PointerEvents.None;
 
-            sector.setStyleProperties(datum.style, fillBBox);
+            sector.setStyleProperties(datum.style as NormalisedRadialGaugeSeriesStyle, fillBBox);
 
             sector.startOuterCornerRadius = startCornerRadius;
             sector.startInnerCornerRadius = startCornerRadius;
@@ -959,7 +962,7 @@ export class RadialGaugeSeries
             sector.innerRadius = innerRadius;
             sector.outerRadius = outerRadius;
 
-            sector.setStyleProperties(datum.style, fillBBox);
+            sector.setStyleProperties(datum.style as NormalisedRadialGaugeSeriesStyle, fillBBox);
 
             sector.startOuterCornerRadius = startCornerRadius;
             sector.startInnerCornerRadius = startCornerRadius;
@@ -1052,7 +1055,7 @@ export class RadialGaugeSeries
         targetSelection.each((target, datum) => {
             const { centerX, centerY, angle, radius, shape, size, rotation } = datum;
 
-            target.setStyleProperties(datum.style);
+            target.setStyleProperties(datum.style as NormalisedRadialGaugeSeriesStyle);
 
             target.size = size;
             target.shape = shape === 'line' ? lineMarker : shape;

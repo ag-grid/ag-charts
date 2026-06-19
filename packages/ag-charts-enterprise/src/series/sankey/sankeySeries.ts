@@ -9,6 +9,7 @@ import {
     type CallbackParamRules,
     type DynamicContext,
     Logger,
+    type NormalisedColorType,
     type RequireOptional,
     TextMeasurer,
     cachedTextMeasurer,
@@ -855,7 +856,8 @@ export class SankeySeries extends FlowProportionSeries<
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
         const selectionState = this.getSelectionStateString(datumIndex);
         const candidateState = this.getCandidateStateString(datumIndex);
-        const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
+        // `style` is the resolved node style; its `fill` no longer carries unresolved colour refs.
+        const fill = this.filterItemStylerFillParams(style.fill as NormalisedColorType) ?? style.fill;
 
         return {
             seriesId,

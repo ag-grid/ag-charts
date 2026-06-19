@@ -1,8 +1,8 @@
-import type { NormalisedSeriesMarkerStyle } from 'ag-charts-core';
 import type { AgAreaSeriesMarkerItemStylerParams, AgAreaSeriesStylerResult } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
 import type { FillStrokeMorph, NormalisedColorType } from './normalisedCommonOptions';
+import type { NormalisedSeriesMarkerStyle } from './normalisedSeriesMarkerOptions';
 
 export type NormalisedAreaSeriesMarkerItemStylerParams<TDatum, TContext> = Normalised<
     AgAreaSeriesMarkerItemStylerParams<TDatum, TContext>,

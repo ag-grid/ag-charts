@@ -8,8 +8,9 @@ import type {
 import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgCssColorOrRef } from '../../chart/themeParamsOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../chart/tooltipOptions';
-import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize, Ratio } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
@@ -165,8 +166,8 @@ export interface AgWaterfallSeriesItemOptions<TDatum, TContext = ContextDefault>
 export interface AgWaterfallSeriesLineOptions {
     /** Whether the connector lines should be shown. */
     enabled?: boolean;
-    /** The colour to use for the connector lines. */
-    stroke?: CssColor;
+    /** The colour to use for the connector lines. A colour string, or a theme-colour reference object. */
+    stroke?: AgCssColorOrRef;
     /** The width in pixels of the connector lines. */
     strokeWidth?: PixelSize;
     /** Opacity of the line stroke. */

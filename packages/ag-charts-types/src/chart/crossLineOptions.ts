@@ -1,11 +1,12 @@
 import type { AgChartLabelStyleOptions } from './labelOptions';
+import type { AgCssColorOrRef } from './themeParamsOptions';
 import type { AxisValue, CssColor, FontFamilyFull, Opacity, PixelSize } from './types';
 
 export interface AgCommonCrossLineOptions<LabelType = AgBaseCrossLineLabelOptions> {
     /** Whether to show the Cross Line. */
     enabled?: boolean;
-    /** The colour of the stroke for the lines. */
-    stroke?: CssColor;
+    /** The colour of the stroke for the lines. A colour string, or a theme-colour reference object. */
+    stroke?: AgCssColorOrRef;
     /** The width in pixels of the stroke for the lines. */
     strokeWidth?: PixelSize;
     /** The opacity of the stroke for the lines. */

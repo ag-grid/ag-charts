@@ -5,15 +5,11 @@ import type {
     AgColorScaleColorStop,
     AgColorType,
     AgCssColorOrRef,
-    AgGradientColorBounds,
     AgGradientColorStop,
     AgGradientColorStrict,
-    AgGradientType,
     AgHighlightStyleOptions,
-    AgImageFill,
     AgLineHighlightStyleOptions,
     AgNumericValue,
-    AgPatternColor,
     AgSelectionContainment,
     AgSelectionStyleOptions,
     AgSeriesLineSegmentOptions,
@@ -56,7 +52,11 @@ import {
     undocumented,
     union,
 } from '../state/validation';
-import type { NormalisedGradientColor } from '../types/normalised-options/normalisedCommonOptions';
+import type {
+    InternalAgGradientColor,
+    InternalAgImageFill,
+    InternalAgPatternColor,
+} from '../types/normalised-options/normalisedCommonOptions';
 import { isObject } from '../utils/types/typeGuards';
 
 // Validator for internal theme operators.
@@ -181,41 +181,6 @@ export const gradientStrict = optionsDefs<AgGradientColorStrict>(
     gradientStrictDefs,
     'a gradient object with colour stops'
 );
-
-export interface InternalAgGradientColor extends NormalisedGradientColor {
-    /** Format of the gradient */
-    gradient?: AgGradientType;
-    /** The domain of the colour gradient, defaults to item. */
-    bounds?: AgGradientColorBounds;
-    /** Reverse the order of colour stops. */
-    reverse?: boolean;
-    /** Colour space to use when interpolating colours in the gradient. */
-    colorSpace?: ColorSpace;
-}
-
-export type ColorSpace = 'rgb' | 'oklch';
-
-export interface InternalAgPatternColor extends AgPatternColor {
-    /** Padding for the shape in the pattern unit. */
-    padding?: number;
-}
-export interface InternalAgImageFill extends AgImageFill {}
-
-export type RequiredInternalAgImageFill = Required<Omit<InternalAgImageFill, 'url' | 'width' | 'height'>> &
-    Pick<Partial<InternalAgImageFill>, 'url'> &
-    Pick<InternalAgImageFill, 'width' | 'height'>;
-
-export type RequiredInternalAgPatternColor = Required<Omit<InternalAgPatternColor, 'path'>> &
-    Pick<InternalAgPatternColor, 'path'>;
-
-export type RequiredInternalAgGradientColor = Required<InternalAgGradientColor>;
-
-export type InternalAgColorType = CssColor | InternalAgGradientColor | InternalAgPatternColor | InternalAgImageFill;
-export type RequiredInternalAgColorType =
-    | CssColor
-    | RequiredInternalAgGradientColor
-    | RequiredInternalAgPatternColor
-    | (RequiredInternalAgImageFill & Pick<InternalAgImageFill, 'url'>);
 
 export const strokeOptionsDef: OptionsDefs<StrokeOptions> = {
     stroke: colorOrRef,

@@ -4,8 +4,10 @@ import type {
     DynamicContext,
     Feature,
     FeatureCollection,
+    FillStrokeMorph,
     Geometry,
     ITextMeasurer,
+    Normalised,
     NormalisedTextOrSegments,
     Point,
     Position,
@@ -72,6 +74,8 @@ interface ShapeDataValues {
     readonly colorValue: number | undefined;
     readonly labelValue: string | undefined;
 }
+
+type NormalisedMapShapeSeriesStyle = Normalised<AgMapShapeSeriesStyle, never, FillStrokeMorph>;
 
 const fixedScale = _ModuleSupport.MercatorScale.fixedScale();
 
@@ -556,12 +560,13 @@ export class MapShapeSeries
     protected getItemStyle(
         { datumIndex, datum, colorValue }: Partial<MapShapeNodeDatum>,
         isHighlight: boolean
-    ): Required<AgMapShapeSeriesStyle> {
+    ): Required<NormalisedMapShapeSeriesStyle> {
         const { properties, colorScale } = this;
         const { colorKey, colorScale: colorScaleProps, itemStyler } = properties;
         const { missingDataFill } = colorScaleProps;
 
-        const baseStyle = properties.getStyle();
+        // Colour refs are resolved during theme-merge before getStyle() returns.
+        const baseStyle = properties.getStyle() as Required<NormalisedMapShapeSeriesStyle> & { opacity: number };
 
         if (colorValue != null) {
             const fillOverride = this.isColorScaleValid()
@@ -602,7 +607,7 @@ export class MapShapeSeries
         datum: unknown,
         datumIndex: number,
         isHighlight: boolean,
-        style: Required<AgMapShapeSeriesStyle>
+        style: Required<NormalisedMapShapeSeriesStyle>
     ) {
         const { id: seriesId } = this;
         const { idKey, labelKey, colorKey } = this.properties;
@@ -659,7 +664,8 @@ export class MapShapeSeries
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
 
-            geoGeometry.setStyleProperties(nodeDatum.style, fillBBox);
+            // Style is resolved by getItemStyle; colour refs are gone by render.
+            geoGeometry.setStyleProperties(nodeDatum.style as NormalisedMapShapeSeriesStyle, fillBBox);
 
             geoGeometry.drawingMode = drawingMode;
 

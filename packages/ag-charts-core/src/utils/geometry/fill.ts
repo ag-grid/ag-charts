@@ -1,6 +1,9 @@
 import type { AgImageFill, AgPatternColor } from 'ag-charts-types';
 
-import type { InternalAgColorType, InternalAgGradientColor } from '../../config/optionsDefaults';
+import type {
+    InternalAgColorType,
+    InternalAgGradientColor,
+} from '../../types/normalised-options/normalisedCommonOptions';
 import { isArray, isObject } from '../types/typeGuards';
 
 export function isGradientFill(fill: any): fill is InternalAgGradientColor {

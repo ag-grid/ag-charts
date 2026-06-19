@@ -3,6 +3,7 @@ import type {
     DomainWithMetadata,
     DynamicContext,
     Mutable,
+    NormalisedBarSeriesStyle,
     NormalisedTextOrSegments,
     Point,
     RequireOptional,
@@ -30,7 +31,6 @@ import type {
     AgBarSeriesItemStylerParams,
     AgBarSeriesLabelFormatterParams,
     AgBarSeriesOptions,
-    AgBarSeriesStyle,
     AgBarSeriesStylerParams,
     AgErrorBoundSeriesTooltipRendererParams,
     AgNumericValue,
@@ -218,12 +218,12 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly clipBBox: BBox | undefined;
     readonly crisp: boolean;
     readonly label?: BarNodeLabelDatum;
-    style?: Required<AgBarSeriesStyle>;
+    style?: Required<NormalisedBarSeriesStyle>;
 }
 
 interface BarSeriesNodeDataContext extends AbstractBarSeriesNodeDataContext<BarNodeDatum> {
     phantomNodeData: BarNodeDatum[];
-    styles: SeriesNodeStyleContext<AgBarSeriesStyle>;
+    styles: SeriesNodeStyleContext<NormalisedBarSeriesStyle>;
     segments?: Segment[];
 }
 
@@ -1403,7 +1403,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         datumIndex: number,
         xValue: string,
         isHighlight: boolean,
-        style: Required<AgBarSeriesStyle>
+        style: Required<NormalisedBarSeriesStyle>
     ): AgBarSeriesItemStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
         const { xKey, yKey, stackGroup } = this.properties;
@@ -1439,7 +1439,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         highlightState: HighlightState | undefined,
         selectionState: SelectionState | undefined,
         candidateState: SelectionState | undefined
-    ): Required<AgBarSeriesStyle> & { opacity: number } {
+    ): Required<NormalisedBarSeriesStyle> & { opacity: number } {
         const {
             cornerRadius,
             fill,
@@ -1451,15 +1451,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             strokeWidth,
             styler,
         } = this.properties;
-        let stylerResult: AgBarSeriesStyle = {};
+        let stylerResult: NormalisedBarSeriesStyle = {};
         if (!ignoreStylerCallback && styler) {
             const stylerParams = this.makeStylerParams(highlightState, selectionState, candidateState);
-            stylerResult =
-                this.ctx.optionsGraphService.resolvePartial(
-                    ['series', `${this.declarationOrder}`],
-                    this.cachedCallWithContext(styler, stylerParams) ?? {},
-                    { pick: false }
-                ) ?? {};
+            stylerResult = (this.ctx.optionsGraphService.resolvePartial(
+                ['series', `${this.declarationOrder}`],
+                this.cachedCallWithContext(styler, stylerParams) ?? {},
+                { pick: false }
+            ) ?? {}) as NormalisedBarSeriesStyle;
         }
         return {
             cornerRadius: stylerResult.cornerRadius ?? cornerRadius,
@@ -1480,7 +1479,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         highlightState: HighlightState | undefined,
         selectionState: SelectionState | undefined,
         candidateState: SelectionState | undefined
-    ): Required<AgBarSeriesStyle> {
+    ): Required<NormalisedBarSeriesStyle> {
         const { properties, dataModel, processedData } = this;
         const { itemStyler, simpleItemStyler } = properties;
 
@@ -1496,7 +1495,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 selectionStyle,
                 highlightStyle,
                 this.getStyle(false, highlightState, selectionState, candidateState)
-            ) as Required<AgBarSeriesStyle>;
+            ) as Required<NormalisedBarSeriesStyle>;
         }
 
         let style = mergeDefaults(

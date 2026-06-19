@@ -33,7 +33,7 @@ export type NormalisedLegendLabelOptions = Normalised<
 export type NormalisedPaginationMarkerStyle = Normalised<
     AgPaginationMarkerStyle,
     'fill' | 'strokeWidth' | 'strokeOpacity',
-    { fill: string }
+    { fill: string; stroke?: CssColor }
 >;
 
 export type NormalisedPaginationMarkerOptions = Normalised<

@@ -5,9 +5,11 @@ import {
     type DynamicContext,
     type Feature,
     type FeatureCollection,
+    type FillStrokeMorph,
     type Geometry,
     type ITextMeasurer,
     Logger,
+    type Normalised,
     type PlacedLabel,
     type Point,
     type SizedPoint,
@@ -57,6 +59,8 @@ const {
     Marker,
     getLabelStyles,
 } = _ModuleSupport;
+
+type NormalisedMapMarkerSeriesStyle = Normalised<AgMapMarkerSeriesStyle, never, FillStrokeMorph>;
 
 interface MapMarkerNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
     MapMarkerNodeDatum,
@@ -786,7 +790,7 @@ export class MapMarkerSeries
     protected getMarkerItemStyle(
         { datumIndex, datum, colorValue, sizeValue }: Partial<MapMarkerNodeDatum>,
         isHighlight: boolean
-    ): Required<AgMapMarkerSeriesStyle> {
+    ): Required<NormalisedMapMarkerSeriesStyle> {
         const { properties, colorScale, sizeScale } = this;
         const { colorKey, colorScale: colorScaleProps, itemStyler } = properties;
         const { missingDataFill } = colorScaleProps;
@@ -825,14 +829,15 @@ export class MapMarkerSeries
                 style = mergeDefaults(overrides, baseStyle);
             }
         }
-        return style;
+        // fill/stroke refs are resolved during theme-merge before reaching here.
+        return style as Required<NormalisedMapMarkerSeriesStyle>;
     }
 
     private makeItemStylerParams(
         datum: unknown,
         datumIndex: number,
         isHighlight: boolean,
-        style: Required<AgMapMarkerSeriesStyle>
+        style: Required<NormalisedMapMarkerSeriesStyle>
     ) {
         const { id: seriesId } = this;
         const { sizeKey, idKey, labelKey, colorKey, latitudeKey, longitudeKey } = this.properties;

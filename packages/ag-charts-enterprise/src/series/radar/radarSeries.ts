@@ -5,6 +5,7 @@ import {
     type AgRadarSeriesStyle,
     type AgSeriesMarkerStyle,
     type ContextDefault,
+    type CssColor,
     type DatumDefault,
     type SelectionState,
     _ModuleSupport,
@@ -14,6 +15,7 @@ import {
     ChartAxisDirection,
     type DomainWithMetadata,
     type DynamicContext,
+    type NormalisedSeriesMarkerStyle,
     type Point,
     type RequireOptional,
     extent,
@@ -60,7 +62,7 @@ export interface RadarPathPoint {
 }
 
 interface RadarSeriesNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<RadarNodeDatum> {
-    styles: _ModuleSupport.SeriesNodeStyleContext<AgSeriesMarkerStyle>;
+    styles: _ModuleSupport.SeriesNodeStyleContext<NormalisedSeriesMarkerStyle>;
 }
 
 /** Per-pass context for the radar marker-style passes (shared by no-itemStyler and itemStyler paths). */
@@ -89,7 +91,10 @@ type RadarStylerApply = _ModuleSupport.MarkerStyleApply<
     ResolvedRadarStyle<any>
 >;
 
-type StylerResult<TStyle extends AgRadarSeriesStyle> = TStyle & { marker?: { enabled?: boolean } };
+type StylerResult<TStyle extends AgRadarSeriesStyle> = Omit<TStyle, 'stroke' | 'marker'> & {
+    stroke?: CssColor;
+    marker?: NormalisedSeriesMarkerStyle & { enabled?: boolean };
+};
 
 type BaseRadarSeries = RadarSeries<
     AgRadarSeriesStyle,
@@ -101,9 +106,9 @@ type BaseRadarSeries = RadarSeries<
 >;
 
 export type ResolvedRadarStyle<TStyle extends AgRadarSeriesStyle> = {
-    [K in keyof TStyle]-?: Exclude<TStyle[K], undefined>;
+    [K in keyof TStyle]-?: K extends 'stroke' ? CssColor : Exclude<TStyle[K], undefined>;
 } & {
-    marker: Required<AgSeriesMarkerStyle> & { enabled: boolean };
+    marker: Required<NormalisedSeriesMarkerStyle> & { enabled: boolean };
 };
 
 class RadarSeriesNodeEvent<
@@ -520,8 +525,9 @@ export abstract class RadarSeries<
         drawingMode = this.getDrawingMode(isHighlight, drawingMode);
 
         selection.each((node, datum) => {
+            // datum.style is populated from resolved (ref-free) marker styles by the style passes.
             const style =
-                datum.style ??
+                (datum.style as NormalisedSeriesMarkerStyle | undefined) ??
                 contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
             this.applyMarkerStyle(style, node, datum.point, fillBBox, { hideWithSize0 });
 

@@ -11,7 +11,6 @@ import {
     DebugMetrics,
     type Has,
     type InternalAgColorType,
-    type InternalAgGradientColor,
     Logger,
     type Point,
     PolarZIndexMap,
@@ -1775,7 +1774,7 @@ export class DonutSeries extends PolarSeries<
         let { fill } = sectorFormat;
         const { stroke } = sectorFormat;
         if (isGradientFill(fill)) {
-            fill = { ...fill, gradient: 'linear', rotation: 0, reverse: false } as InternalAgGradientColor;
+            fill = { ...fill, gradient: 'linear', rotation: 0, reverse: false };
         }
 
         return {

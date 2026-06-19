@@ -1,4 +1,10 @@
-import type { InterpolationProperties, NormalisedTextOrSegments, Point, Span } from 'ag-charts-core';
+import type {
+    InterpolationProperties,
+    NormalisedSeriesMarkerStyle,
+    NormalisedTextOrSegments,
+    Point,
+    Span,
+} from 'ag-charts-core';
 import {
     SpanJoin,
     areScalingEqual,
@@ -8,7 +14,7 @@ import {
     spanRange,
     stepPoints,
 } from 'ag-charts-core';
-import type { AgNumericValue, AgSeriesMarkerStyle } from 'ag-charts-types';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { type FromToFns, NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Path } from '../../../scene/shape/path';
@@ -59,13 +65,13 @@ export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSerie
     // feature. It has nothing to do with the official data selection API in the options contract. Do not use, or use
     // with extreme caution.
     readonly crossFilterSelected: boolean | undefined;
-    style?: AgSeriesMarkerStyle;
+    style?: NormalisedSeriesMarkerStyle;
 }
 
 export interface LineSeriesNodeDataContext extends CartesianSeriesNodeDataContext<LineNodeDatum> {
     strokeData: LineStrokePathDatum;
     crossFiltering: boolean;
-    styles: SeriesNodeStyleContext<AgSeriesMarkerStyle>;
+    styles: SeriesNodeStyleContext<NormalisedSeriesMarkerStyle>;
     segments?: Segment[];
 }
 

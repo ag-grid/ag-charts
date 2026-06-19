@@ -15,9 +15,11 @@ import {
     ChartAxisDirection,
     type DomainWithMetadata,
     type DynamicContext,
+    type FillStrokeMorph,
     type InternalAgColorType,
     Logger,
     type Mutable,
+    type Normalised,
     type NormalisedTextOrSegments,
     type Point,
     type SizedPoint,
@@ -52,13 +54,15 @@ const {
     upsertNodeDatum,
 } = _ModuleSupport;
 
+type NormalisedHeatmapSeriesStyle = Normalised<AgHeatmapSeriesStyle, never, FillStrokeMorph>;
+
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly point: Readonly<SizedPoint>;
     midPoint: Readonly<Point>;
     readonly width: number;
     readonly height: number;
     readonly colorValue: any;
-    style: AgHeatmapSeriesStyle;
+    style: NormalisedHeatmapSeriesStyle;
 }
 
 interface HeatmapLabelDatum extends Point {
@@ -75,11 +79,11 @@ interface HeatmapLabelDatum extends Point {
     color: string | undefined;
     textAlign: TextAlign;
     textBaseline: VerticalAlign;
-    style: AgHeatmapSeriesStyle;
+    style: NormalisedHeatmapSeriesStyle;
 }
 
-type ItemStyle = Pick<AgHeatmapSeriesStyle, 'fill'> &
-    Required<Omit<AgHeatmapSeriesStyle, 'fill'>> & { opacity: number };
+type ItemStyle = Pick<NormalisedHeatmapSeriesStyle, 'fill'> &
+    Required<Omit<NormalisedHeatmapSeriesStyle, 'fill'>> & { opacity: number };
 
 /** Context object caching expensive lookups for createNodeData(). */
 interface HeatmapSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<HeatmapNodeDatum> {
@@ -622,7 +626,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         { datumIndex, datum, colorValue }: Partial<HeatmapNodeDatum>,
         isHighlight: boolean,
         highlightState?: _ModuleSupport.HighlightState
-    ) {
+    ): NormalisedHeatmapSeriesStyle {
         const { properties } = this;
         const { itemStyler, stroke, strokeWidth, strokeOpacity, colorKey } = properties;
         const { missingDataFill } = properties.colorScale;
@@ -637,6 +641,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         } else {
             fill = 'transparent';
         }
+        // Colour refs are resolved during theme-merge before reaching scene nodes.
         const style = mergeDefaults(selectionStyle, highlightStyle, {
             fill,
             fillOpacity: 1,
@@ -644,7 +649,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             strokeWidth,
             strokeOpacity,
             opacity: 1,
-        });
+        }) as Required<NormalisedHeatmapSeriesStyle>;
 
         let overrides;
         if (itemStyler != null && datumIndex != null) {
@@ -661,7 +666,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         datum: unknown,
         datumIndex: number,
         isHighlight: boolean,
-        style: Required<AgHeatmapSeriesStyle>
+        style: Required<NormalisedHeatmapSeriesStyle>
     ) {
         const { id: seriesId, properties } = this;
         const { xKey, yKey, colorKey } = properties;

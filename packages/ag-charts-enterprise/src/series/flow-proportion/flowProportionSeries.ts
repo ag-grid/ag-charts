@@ -11,7 +11,9 @@ import type {
     ChartAxisDirection,
     DistantObject,
     DomainWithMetadata,
+    FillStrokeMorph,
     InternalAgColorType,
+    Normalised,
     Point,
 } from 'ag-charts-core';
 
@@ -47,6 +49,9 @@ const {
 type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
     Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'>;
 
+// Fill/stroke colour refs are resolved to concrete colours before reaching scene nodes and legend markers.
+type NormalisedNodeStyle = Normalised<NodeStyle, never, FillStrokeMorph>;
+
 export interface FlowProportionLinkDatum<
     TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
@@ -58,7 +63,7 @@ export interface FlowProportionLinkDatum<
     fromNode: TNodeDatum;
     toNode: TNodeDatum;
     size: number;
-    style: NodeStyle;
+    style: NormalisedNodeStyle;
 }
 
 export interface FlowProportionNodeDatum<
@@ -74,7 +79,7 @@ export interface FlowProportionNodeDatum<
     id: string;
     size: number;
     label: string | undefined;
-    style: NodeStyle;
+    style: NormalisedNodeStyle;
 }
 
 export interface FlowProportionSeriesContext<
@@ -362,14 +367,14 @@ export abstract class FlowProportionSeries<
         nodeDatum: Partial<TNodeDatum>,
         fromNodeDatumIndex: FlowNodeDatumIndex,
         isHighlight: boolean
-    ): Required<NodeStyle>;
+    ): Required<NormalisedNodeStyle>;
 
     protected abstract getLinkStyle(
         datum: TLinkDatum['datum'],
         datumIndex: FlowLinkDatumIndex,
         fromNodeDatumIndex: FlowNodeDatumIndex,
         isHighlight: boolean
-    ): Required<NodeStyle>;
+    ): Required<NormalisedNodeStyle>;
 
     protected getNodeGraph(
         createNode: (node: FlowProportionNodeDatum<TNodeDatum, TLinkDatum>) => TNodeDatum,
@@ -815,7 +820,7 @@ export abstract class FlowProportionSeries<
         const datum = this.readUserDatum(datumIndex);
         const size = seriesDatum.size;
 
-        let format: Required<NodeStyle>;
+        let format: Required<NormalisedNodeStyle>;
         if (seriesDatum.type === FlowProportionDatumType.Link) {
             format = this.getLinkStyle(datum, seriesDatum.datumIndex, nodeIndex, false);
         } else {

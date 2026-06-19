@@ -17,6 +17,7 @@ import {
     createId,
     toPlainText,
 } from 'ag-charts-core';
+import type { CssColor } from 'ag-charts-types';
 
 import { readDatum } from '../../utils/datum';
 import { CrosshairLabel } from './crosshairLabel';
@@ -242,7 +243,8 @@ export class Crosshair
         const isVertical = this.isVertical();
 
         lineGroupSelection.each((line) => {
-            line.stroke = stroke;
+            // Colour refs are resolved during theme-merge, so this is a concrete CSS colour by render.
+            line.stroke = stroke as CssColor;
             line.strokeWidth = strokeWidth;
             line.strokeOpacity = strokeOpacity;
             line.lineDash = lineDash;

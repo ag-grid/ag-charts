@@ -9,6 +9,7 @@ import {
     type AgOrganizationSeriesNodeStyle,
     type AgOrganizationSeriesNodeTextStyle,
     type AgOrganizationSeriesNodeTextStylerParams,
+    type CssColor,
     type PaddingOptions,
     type RichFormatter,
     type Styler,
@@ -20,6 +21,8 @@ import {
     ChartAxisDirection,
     type DeepRequired,
     type DynamicContext,
+    type Normalised,
+    type NormalisedColorType,
     type NormalisedTextOrSegments,
     type Point,
     Vertex,
@@ -910,8 +913,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return style;
     }
 
-    private getNodeDefaultStyle(): DeepRequired<
-        Omit<AgOrganizationSeriesNodeStyle, 'padding'> & { padding: PaddingOptions }
+    private getNodeDefaultStyle(): Normalised<
+        DeepRequired<Omit<AgOrganizationSeriesNodeStyle, 'padding'> & { padding: PaddingOptions }>,
+        never,
+        { fill: NormalisedColorType; stroke: CssColor }
     > {
         const {
             cornerRadius,

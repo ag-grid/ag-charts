@@ -42,7 +42,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
-import type { NormalisedColorType } from './normalisedCommonOptions';
+import type { NormalisedBorderOptions, NormalisedColorType } from './normalisedCommonOptions';
 
 // --- Label normalised shapes ---
 //
@@ -75,7 +75,12 @@ type AxisLabelRequiredKeys =
  * the user-facing types where it's actually defined (per invariant I2 — only the
  * formattable subtypes carry it).
  */
-type AxisMorphs = { color?: CssColor; fill?: NormalisedColorType; fontFamily: string };
+type AxisMorphs = {
+    color?: CssColor;
+    fill?: NormalisedColorType;
+    border: NormalisedBorderOptions;
+    fontFamily: string;
+};
 
 export type NormalisedBaseAxisLabelOptions<TContext = ContextDefault> = Normalised<
     AgBaseAxisLabelOptions<TContext>,

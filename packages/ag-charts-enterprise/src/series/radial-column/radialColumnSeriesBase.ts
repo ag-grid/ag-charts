@@ -9,6 +9,8 @@ import {
     ChartAxisDirection,
     type DomainWithMetadata,
     type DynamicContext,
+    type FillStrokeMorph,
+    type Normalised,
     type NormalisedTextOrSegments,
     type Point,
     isDefined,
@@ -18,7 +20,7 @@ import {
     normalizeAngle360,
     zeroLike,
 } from 'ag-charts-core';
-import type { AgNumericValue } from 'ag-charts-types';
+import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
 import { type RadialSeriesStyleResult, getItemStyle, getStyle } from '../util/radialUtil';
@@ -45,6 +47,8 @@ const {
     updateLabelNode,
     getItemStyles,
 } = _ModuleSupport;
+
+type NormalisedRadialSeriesStyle = Normalised<AgRadialSeriesStyle, never, FillStrokeMorph>;
 
 class RadialColumnSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -529,7 +533,7 @@ export abstract class RadialColumnSeriesBase<
 
                 this.updateItemPath(node, nodeDatum, isHighlight);
 
-                node.setStyleProperties(style, fillBBox, fillParams);
+                node.setStyleProperties(style as NormalisedRadialSeriesStyle, fillBBox, fillParams);
 
                 node.cornerRadius = style.cornerRadius ?? 0;
                 node.lineJoin = 'round';
@@ -664,7 +668,7 @@ export abstract class RadialColumnSeriesBase<
 
         const markerStyle = {
             fill: fill ?? 'rgba(0, 0, 0, 0)',
-            stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+            stroke: (stroke as CssColor) ?? 'rgba(0, 0, 0, 0)', // resolved at runtime
             fillOpacity,
             strokeOpacity,
             strokeWidth,

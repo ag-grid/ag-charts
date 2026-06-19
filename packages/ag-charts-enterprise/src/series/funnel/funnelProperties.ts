@@ -1,5 +1,4 @@
 import type {
-    AgColorType,
     AgFunnelSeriesItemStylerParams,
     AgFunnelSeriesLabelFormatterParams,
     AgFunnelSeriesOptions,
@@ -72,7 +71,7 @@ export class FunnelProperties
     valueKey!: string;
 
     @Property
-    fills: AgColorType[] = [];
+    fills: InternalAgColorType[] = [];
 
     @Property
     fillOpacity: number = 1;

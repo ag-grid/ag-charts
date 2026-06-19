@@ -1,5 +1,6 @@
 import type { AgAxisBoundSeries, AgTimeIntervalUnit } from './axisOptions';
 import type { Formatter, Renderer } from './callbackOptions';
+import type { AgCssColorOrRef } from './themeParamsOptions';
 import type { ContextDefault, CssColor, Opacity, PixelSize } from './types';
 
 export interface AgCrosshairOptions<LabelType = AgCrosshairLabel<string, ContextDefault>> {
@@ -7,8 +8,8 @@ export interface AgCrosshairOptions<LabelType = AgCrosshairLabel<string, Context
     enabled?: boolean;
     /** When true, the crosshair snaps to the highlighted data point. By default this property is true. */
     snap?: boolean;
-    /** The colour of the stroke for the lines. */
-    stroke?: CssColor;
+    /** The colour of the stroke for the lines. A colour string, or a theme-colour reference object. */
+    stroke?: AgCssColorOrRef;
     /** The width in pixels of the stroke for the lines. */
     strokeWidth?: PixelSize;
     /** The opacity of the stroke for the lines. */

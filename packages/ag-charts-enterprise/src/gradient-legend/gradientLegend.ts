@@ -8,6 +8,7 @@ import {
     createId,
     expandLegendPosition,
 } from 'ag-charts-core';
+import type { CssColor } from 'ag-charts-types';
 
 import { AxisTicks } from './axisTicks';
 
@@ -331,7 +332,9 @@ export class GradientLegend extends AbstractModuleInstance {
 
     private getContainerStyles() {
         const opts = this.opts;
-        const { enabled: borderEnabled, stroke, strokeOpacity, strokeWidth } = opts.border;
+        const { enabled: borderEnabled, strokeOpacity, strokeWidth } = opts.border;
+        // Colour refs are resolved during theme-merge, so the value is a concrete colour by render.
+        const stroke = opts.border.stroke as CssColor | undefined;
         const cornerRadius = opts.cornerRadius;
         const fill = opts.fill as string | undefined;
         const fillOpacity = opts.fillOpacity;
