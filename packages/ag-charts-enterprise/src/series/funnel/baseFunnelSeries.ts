@@ -551,7 +551,7 @@ export abstract class BaseFunnelSeries<
             textNode.visible = datum.visible || isHighlight;
             textNode.fillOpacity = highlightStyle.opacity ?? 1;
             textNode.opacity = highlightStyle.opacity ?? 1;
-            updateLabelNode(this, textNode, params, this.properties.label, datum, isHighlight, activeHighlight);
+            updateLabelNode(this, textNode, params, this.properties.label, datum, { isHighlight, activeHighlight });
         });
     }
 

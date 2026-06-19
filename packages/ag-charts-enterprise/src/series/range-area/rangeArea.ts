@@ -1213,7 +1213,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const { isHighlight = false, labelSelection } = opts;
         labelSelection.each((textNode, datum) => {
             textNode.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
-            updateLabelNode(this, textNode, params, this.properties.label, datum, isHighlight, activeHighlight);
+            updateLabelNode(this, textNode, params, this.properties.label, datum, { isHighlight, activeHighlight });
         });
     }
 
