@@ -172,6 +172,9 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
                 sel.applyDataChange(changeDescription);
             }
         }
+        // The `data:update` event fires before transactions are committed, so its recount
+        // sees stale per-series counts. Recount again here, once the commit has applied.
+        this.recountTotalSelections();
     }
 
     getDataSetSelection(series: SeriesLike): DataSetSelection | undefined {
