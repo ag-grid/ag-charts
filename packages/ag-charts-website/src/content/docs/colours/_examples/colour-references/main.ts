@@ -22,6 +22,7 @@ const options: AgCartesianChartOptions = {
             backgroundColor,
             // Text and axes are derived from the accent and background colours.
             foregroundColor: { ref: 'accentColor', mix, onto: 'backgroundColor' },
+            axisLineColor: { ref: 'accentColor', mix: 0.5 },
         },
     },
     title: {
@@ -60,6 +61,7 @@ function updateTheme() {
             accentColor,
             backgroundColor,
             foregroundColor: { ref: 'accentColor', mix, onto: 'backgroundColor' },
+            axisLineColor: { ref: 'accentColor', mix: 0.5 },
         },
     };
     chart.update(options);
