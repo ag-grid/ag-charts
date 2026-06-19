@@ -219,6 +219,15 @@ jobs:
                     yarn nx build ag-charts-website
                   fi
 
+            # Like-for-like vs a published base: serve head from its own locally-packed UMD,
+            # so head and the published base are each a packed-tarball bundle through the same
+            # pipeline. Without this, a locally-built head bundle vs a release-packed published
+            # bundle differ by a build-asymmetry offset that inflates head's apparent cost.
+            # git-ref bases are built from source here too, so no swap is needed for them.
+            - name: Pack local head bundles (npm-base parity)
+              if: matrix.role == 'head' && startsWith(needs.resolve.outputs.base, 'npm:')
+              run: ./tools/benchmark/swap-local-lib.sh dist/packages/ag-charts-website
+
             # Keep only what the benchmark pages need: the example pages
             # themselves, the dev-served library bundles, example-runner
             # boilerplate, and hashed astro assets.
