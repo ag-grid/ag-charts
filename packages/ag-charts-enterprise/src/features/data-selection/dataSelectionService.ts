@@ -28,6 +28,10 @@ function getOrInsert<T>(map: Map<string, T>, key: string, data: DataSet, inserte
 export class DataSelectionService extends AbstractModuleInstance implements IDataSelectionService {
     public totalSelectedCount = 0;
     public totalCandidacyCount = 0;
+    // The API states that the candidateState property must be undefined when no drag motion is in progress. This is
+    // required to distinguish between these cases:
+    // 1.  No drag motion is in progress.
+    // 2.  A drag motion is in progress, but the candidacy list is empty.
     public candidacyInProgress = false;
 
     /** Per-series selection state. Keyed by `seriesId`. */
