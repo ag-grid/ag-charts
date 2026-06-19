@@ -87,20 +87,32 @@ test.describe('api-ref-page', () => {
         ]);
     });
 
-    // Series colour options type as the `AgCssColorOrRef` union; the reference renderer throws on the
-    // union unless every member is a named interface. setupIntrinsicAssertions fails on the resulting
-    // console error, and the visible `fill` row proves the section rendered through the union.
-    test('renders the bar series options page through the colour-ref union', async ({ page }) => {
+    // `fill` is the `AgColorType` union of named interfaces. setupIntrinsicAssertions fails on any
+    // pageerror, guarding the variant recursion through NodeFactory.
+    test('expands the fill union into discrete variant types and their properties', async ({ page }) => {
         await gotoUrl(page, toPageUrl('options/series/bar/#reference-AgBarSeriesOptions-fill'));
         await expect(getNavigationProperty(page, /^fill/)).toBeVisible();
 
-        // Expanding the `fill` code block is the only path that renders TypeCodeBlock -> CodeShiki.
-        // `fill` types as the `AgColorType` union, so its members resolve to a `string[]` code sample;
-        // this guards the regression where CodeShiki dropped its array handling and threw
-        // "code.trimEnd is not a function" on expansion. setupIntrinsicAssertions fails the test on the
-        // resulting pageerror, and the rendered `<pre>` proves the union block highlighted successfully.
-        await page.getByRole('button', { name: 'See more details about fill', exact: true }).click();
-        await expect(page.locator('#reference-AgBarSeriesOptions-fill-details pre').first()).toBeVisible();
+        // TC1: the "See available types" action expands the union into discrete variant rows.
+        await page.getByRole('button', { name: 'See available types of fill', exact: true }).click();
+
+        // TC2: each named interface member of the union renders as its own variant row.
+        const gradientVariant = page.locator('#reference-AgBarSeriesOptions-fill-gradient');
+        await expect(gradientVariant).toBeVisible();
+
+        // TC3: a variant expands into its own properties as standard rows. The signature code block
+        // (`-details`) belongs to the separate "See more details" affordance and stays absent here.
+        await page.getByRole('button', { name: 'See child properties of gradient', exact: true }).click();
+        await expect(page.locator('#reference-AgBarSeriesOptions-fill-gradient-rotation')).toBeVisible();
+        await expect(page.locator('#reference-AgBarSeriesOptions-fill-details')).toHaveCount(0);
+    });
+
+    test('deep links into a fill union variant property and auto-expands the chain', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/series/bar/#reference-AgBarSeriesOptions-fill-gradient-rotation'));
+
+        // Landing on the deep hash expands fill -> gradient and scrolls to the variant sub-property.
+        const rotation = page.locator('#reference-AgBarSeriesOptions-fill-gradient-rotation');
+        await expect(rotation).toBeVisible();
     });
 
     // The themes API page roots its search index at AgChartTheme, whose tree is far larger than the
@@ -254,14 +266,41 @@ test.describe('api-ref-page', () => {
         await expect(crossLines).not.toContainText('[{');
     });
 
-    test('child properties toggle reveals nested rows for padding', async ({ page }) => {
+    // `padding` is the `PixelSize | PaddingOptions` union: the primitive `PixelSize` stays in the
+    // signature text, and the `PaddingOptions` interface variant expands into its own property rows.
+    test('expands the padding union into its interface variant properties', async ({ page }) => {
         await gotoUrl(page, toPageUrl('options/'));
         await waitForApiReady(page);
 
-        const toggle = page.getByLabel('See more details about padding');
-        await toggle.click();
+        await page.getByRole('button', { name: 'See available types of padding', exact: true }).click();
+        const paddingOptions = page.locator('#reference-AgChartOptions-padding-PaddingOptions');
+        await expect(paddingOptions).toBeVisible();
 
-        await expect(page.locator('#reference-AgChartOptions-padding-details')).toBeVisible();
+        await page.getByRole('button', { name: 'See child properties of PaddingOptions', exact: true }).click();
+        await expect(page.locator('#reference-AgChartOptions-padding-PaddingOptions-top')).toBeVisible();
+    });
+
+    // A mixed union keeps its non-interface members (here the primitive `PixelSize`) in a signature
+    // code block reached through "See more details", distinct from the "See available types" variant
+    // rows. This guards the regression where expanding the union dropped the primitive members.
+    test('preserves the primitive members of a mixed union in its signature block', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/'));
+        await waitForApiReady(page);
+
+        await page.getByRole('button', { name: 'See more details about padding', exact: true }).click();
+        const details = page.locator('#reference-AgChartOptions-padding-details');
+        await expect(details).toBeVisible();
+        await expect(details.locator('pre')).not.toHaveCount(0);
+    });
+
+    // The nav's primitive-union entry deep-links to the signature block via the `-details` hash; the
+    // reference panel resolves that hash by auto-expanding the signature rather than the variant list.
+    test('deep links to a union signature block via the details hash', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/series/bar/#reference-AgBarSeriesOptions-fill-details'));
+
+        const details = page.locator('#reference-AgBarSeriesOptions-fill-details');
+        await expect(details).toBeVisible();
+        await expect(details.locator('pre')).not.toHaveCount(0);
     });
 
     test('property link icon updates the URL hash', async ({ page }) => {

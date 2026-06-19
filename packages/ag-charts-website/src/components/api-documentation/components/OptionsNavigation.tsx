@@ -33,6 +33,7 @@ import {
     cleanupName,
     extractSearchData,
     getAliasedUnionVariants,
+    getDetailsId,
     getMemberType,
     getNavigationDataFromPath,
     isInterfaceHidden,
@@ -183,14 +184,15 @@ function NavProperty({
     const isInterfaceArray = config.specialTypes?.[memberType] === 'InterfaceArray';
     const isInterfaceRecord = config.specialTypes?.[memberType] === 'InterfaceRecord';
     const hasNestedPages = config.specialTypes?.[memberType] === 'NestedPage';
-    // An axis-specific cross-line alias resolves to an empty interface whose heritage is a union
-    // type alias; expand it into its discriminated variants rather than its (empty) members.
+    // Expand union members into their discriminated interface variants: both a direct union alias
+    // (e.g. `text: TextOrSegments`) and the cross-line shape (an empty interface whose heritage is a
+    // union alias). Special-type members navigate to their own pages, so they are excluded.
     const unionVariants =
-        isInterface && !isInterfaceArray && !isInterfaceRecord
+        !isInterfaceArray && !isInterfaceRecord && !hasNestedPages
             ? getAliasedUnionVariants(interfaceRef, reference)
             : undefined;
     const isTypedUnion = Boolean(unionVariants);
-    const expandable = isInterface || isInterfaceArray || isInterfaceRecord;
+    const expandable = isInterface || isInterfaceArray || isInterfaceRecord || isTypedUnion;
     const isObjectArray =
         !isInterfaceArray &&
         !isInterfaceRecord &&
@@ -201,6 +203,10 @@ function NavProperty({
     // A discriminated-union array renders like `series`: a plain array of `{ type=... }` branches,
     // not an array wrapping a single object literal (`[{ }]`).
     const isUnionArray = isTypedUnion && isObjectArray;
+    // A union whose interface variants arrive through an array member (e.g. `text: TextOrSegments`,
+    // where the segments are `ContentSegment[]`) renders as `[{ ... }]`.
+    const isObjectArrayBrackets =
+        (isObjectArray === true && !isUnionArray) || (isTypedUnion && unionVariants?.isArray === true);
 
     const navData = getNavigationDataFromPath(path, config.specialTypes);
 
@@ -297,7 +303,7 @@ function NavProperty({
                         <OpeningBrackets
                             isOpen={isExpanded}
                             isArray={isInterfaceArray || isUnionArray}
-                            isObjectArray={isObjectArray && !isUnionArray}
+                            isObjectArray={isObjectArrayBrackets}
                             onClick={toggleExpanded}
                         />
                     )}
@@ -306,6 +312,15 @@ function NavProperty({
             {expandable && isExpanded && (
                 <>
                     <NavGroup depth={depth + 1}>
+                        {isTypedUnion && unionVariants?.primitive && (
+                            <NavUnionPrimitive
+                                depth={depth + 1}
+                                name={cleanupName(member.name)}
+                                typeName={normalizeType(member.type)}
+                                navData={{ ...navData, hash: getDetailsId(navData.hash) }}
+                                onClick={onClick}
+                            />
+                        )}
                         {isInterface && !isTypedUnion
                             ? processMembers(interfaceRef, config, typeArguments)
                                   .filter((childMember) => !skip?.includes(childMember.name))
@@ -338,7 +353,7 @@ function NavProperty({
                     <ClosingBrackets
                         depth={depth}
                         isArray={isInterfaceArray || isUnionArray}
-                        isObjectArray={isObjectArray && !isUnionArray}
+                        isObjectArray={isObjectArrayBrackets}
                     />
                 </>
             )}
@@ -446,6 +461,36 @@ function NavTypedUnionProperty({
                 </>
             )}
         </>
+    );
+}
+
+function NavUnionPrimitive({
+    depth = 0,
+    name,
+    typeName,
+    navData,
+    onClick,
+}: {
+    depth?: number;
+    name: string;
+    typeName: string;
+    navData: NavigationData;
+    onClick?: (navData: NavigationData) => void;
+}) {
+    const selection = useContext(SelectionContext);
+    const isSelected =
+        selection?.selection.pageInterface === navData.pageInterface && selection?.selection.hash === navData.hash;
+
+    return (
+        <div className={classnames(styles.navItem, isSelected && 'highlight')}>
+            <span className={classnames(styles.propertyName, depth > 1 && styles.propertyWhisker)}>
+                <span onClick={() => onClick?.(navData)}>
+                    {name}
+                    <span className={styles.punctuation}>: </span>
+                    <span className={styles.primitiveType}>{typeName}</span>
+                </span>
+            </span>
+        </div>
     );
 }
 

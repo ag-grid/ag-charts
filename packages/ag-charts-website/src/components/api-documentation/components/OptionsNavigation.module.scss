@@ -179,7 +179,8 @@ pre.navContainer {
 
     .unionDiscriminator,
     .recordAlias,
-    .unionPipe {
+    .unionPipe,
+    .primitiveType {
         color: var(--color-fg-code);
     }
 }

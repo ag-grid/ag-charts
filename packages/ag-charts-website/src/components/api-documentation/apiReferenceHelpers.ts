@@ -68,7 +68,7 @@ const hiddenInterfaces = new Set([
 const isTypeNodeObject = (type: TypeNode): type is Exclude<TypeNode, string> => typeof type === 'object';
 const isTypeReferenceNode = (type: TypeNode): type is TypeReferenceNode =>
     isTypeNodeObject(type) && type.kind === 'typeRef';
-const isArrayNode = (type: TypeNode): type is ArrayNode => isTypeNodeObject(type) && type.kind === 'array';
+export const isArrayNode = (type: TypeNode): type is ArrayNode => isTypeNodeObject(type) && type.kind === 'array';
 const isFunctionNode = (type: TypeNode): type is FunctionNode => isTypeNodeObject(type) && type.kind === 'function';
 const isIndexAccessNode = (type: TypeNode): type is IndexAccessNode =>
     isTypeNodeObject(type) && type.kind === 'indexAccess';
@@ -83,6 +83,11 @@ export const INDEXED_SEARCH_FIELD = 'searchable';
 
 export function cleanupName(name: string) {
     return name.replaceAll("'", '');
+}
+
+/** Anchor id of a row's collapsible detail block (type-code or union signature). */
+export function getDetailsId(id: string) {
+    return `${id}-details`;
 }
 
 export function isInterfaceHidden(name: string) {
@@ -633,7 +638,7 @@ function isInterfaceLikeNode(
     return Boolean(interfaceRef?.kind === 'interface' || (interfaceRef?.kind === 'typeLiteral' && interfaceRef.name));
 }
 
-function isUnionTypeAlias(
+export function isUnionTypeAlias(
     interfaceRef?: NodeTypes
 ): interfaceRef is TypeAliasNode & { type: MultiTypeNode & { kind: 'union' } } {
     return Boolean(interfaceRef?.kind === 'typeAlias' && isUnionNode(interfaceRef.type));
@@ -648,6 +653,62 @@ export function getReferencedTypeName(type?: TypeNode): string | undefined {
         return type.type;
     }
     return undefined;
+}
+
+/** A union member is "lost" when it is not rendered as an interface variant row (see `toUnionVariant`). */
+function isVariantInterface(member: TypeNode, reference: ApiReferenceType): boolean {
+    const name = getReferencedTypeName(isArrayNode(member) ? member.type : member);
+    const node = name ? reference.get(name) : undefined;
+    return node?.kind === 'interface' && !isInterfaceHidden(name!);
+}
+
+/** Names of a type's referenced members (unwrapping arrays), excluding hidden and unknown types. */
+function referencedMemberNames(type: TypeNode, reference: ApiReferenceType): string[] {
+    const members = isUnionNode(type) ? type.type : [type];
+    return members
+        .map((member) => getReferencedTypeName(isArrayNode(member) ? member.type : member))
+        .filter((name): name is string => Boolean(name) && reference.has(name!) && !isInterfaceHidden(name!));
+}
+
+/**
+ * Builds the type-signature code for a *mixed* union — one with members that are not rendered as
+ * interface variant rows (primitives, hidden aliases like `CssColor`, or nested type aliases). It
+ * preserves what the variant rows omit. Returns `undefined` for pure interface-only unions, whose
+ * members are already fully represented by the rows.
+ *
+ * Referenced type *aliases* are spelled out (`type TextValue = string | number | Date;`) so nothing
+ * is lost, but interfaces are left as bare names: they render once as variant rows and must not be
+ * inlined here.
+ */
+export function formatUnionSignature(
+    unionType: MultiTypeNode & { kind: 'union' },
+    aliasName: string | undefined,
+    reference: ApiReferenceType
+): string | undefined {
+    if (unionType.type.every((member) => isVariantInterface(member, reference))) {
+        return undefined;
+    }
+
+    const signature = addNewLineOnPipe(normalizeType(unionType));
+    const lines = [aliasName ? `type ${aliasName} =\n    ${signature};` : signature];
+
+    const seen = new Set<string>(aliasName ? [aliasName] : []);
+    const queue = referencedMemberNames(unionType, reference);
+    while (queue.length) {
+        const name = queue.shift()!;
+        if (seen.has(name)) {
+            continue;
+        }
+        seen.add(name);
+        const node = reference.get(name);
+        if (node?.kind !== 'typeAlias') {
+            continue;
+        }
+        lines.push(`type ${name} = ${normalizeType(node.type)};`);
+        queue.push(...referencedMemberNames(node.type, reference));
+    }
+
+    return lines.join('\n\n');
 }
 
 /**
@@ -680,7 +741,7 @@ export function resolveAliasedUnion(
     return undefined;
 }
 
-function mergeGenericsMaps(
+export function mergeGenericsMaps(
     base?: Record<string, TypeNode>,
     overrides?: Record<string, TypeNode>
 ): Record<string, TypeNode> | undefined {
@@ -695,31 +756,84 @@ function mergeGenericsMaps(
  * `type` its interface name. Returns the alias' `genericsMap` so callers can resolve generic
  * members (e.g. the per-axis `label`) when rendering each variant. Mirrors the shape produced for
  * direct union aliases so both can feed the same typed-union navigation rendering.
+ *
+ * For a mixed union, `primitive` carries the non-interface members joined with ` | ` (the part the
+ * variant rows omit, mirroring the right-hand signature from {@link formatUnionSignature}); it is
+ * `undefined` when every member is an interface variant.
  */
 export function getAliasedUnionVariants(
     interfaceRef?: NodeTypes,
     reference?: ApiReferenceType
-): { variants: NavigationPath[]; genericsMap?: Record<string, TypeNode> } | undefined {
+):
+    | { variants: NavigationPath[]; genericsMap?: Record<string, TypeNode>; primitive?: string; isArray?: boolean }
+    | undefined {
+    if (!reference) {
+        return undefined;
+    }
     const aliasedUnion = resolveAliasedUnion(interfaceRef, reference);
     if (!aliasedUnion) {
         return undefined;
     }
 
-    const variants = aliasedUnion.unionType.type
-        .map((subType) => {
-            const subtypeName = getReferencedTypeName(subType);
-            const subtypeRef = subtypeName ? reference?.get(subtypeName) : undefined;
-            if (subtypeRef?.kind === 'interface') {
-                const typeMember = subtypeRef.members.find((member) => member.name === 'type');
-                if (typeof typeMember?.type === 'string') {
-                    return { name: cleanupName(typeMember.type), type: subtypeName! };
-                }
-            }
-            return undefined;
-        })
-        .filter((variant): variant is NavigationPath => variant != null);
+    const variants = collectAliasedVariants(aliasedUnion.unionType.type, reference);
+    if (!variants.length) {
+        return undefined;
+    }
 
-    return variants.length ? { variants, genericsMap: aliasedUnion.genericsMap } : undefined;
+    const variantMembers = aliasedUnion.unionType.type.filter((member) => memberYieldsVariants(member, reference));
+    // The variants come from an array member (e.g. `ContentSegment[]`), so the nav renders the
+    // union member as an array of branches (`[{ ... }]`) rather than a single branch (`{ ... }`).
+    const isArray = variantMembers.length > 0 && variantMembers.every((member) => isArrayNode(member));
+
+    const primitiveMembers = aliasedUnion.unionType.type.filter((member) => !memberYieldsVariants(member, reference));
+    const primitive = primitiveMembers.length
+        ? primitiveMembers.map((member) => normalizeType(member)).join(' | ')
+        : undefined;
+
+    return { variants, genericsMap: aliasedUnion.genericsMap, primitive, isArray };
+}
+
+/**
+ * Recursively resolves the discriminated interface variants of a union into `{ name, type }`
+ * navigation entries, unwrapping array members and expanding nested union aliases (e.g.
+ * `ContentSegment[]` → `ContentSegment` → `TextSegment | ImageSegment`). Mirrors the right-hand
+ * side's `collectUnionVariants` so both surfaces show the same variant rows.
+ */
+function collectAliasedVariants(unionTypes: TypeNode[], reference: ApiReferenceType): NavigationPath[] {
+    return unionTypes.flatMap((subType) => {
+        const elementType = isArrayNode(subType) ? subType.type : subType;
+        const subtypeName = getReferencedTypeName(elementType);
+        const node = subtypeName ? reference.get(subtypeName) : undefined;
+        if (isUnionTypeAlias(node)) {
+            return collectAliasedVariants(node.type.type, reference);
+        }
+        if (node?.kind === 'interface' && !isInterfaceHidden(subtypeName!)) {
+            const typeMember = node.members.find((member) => member.name === 'type');
+            if (typeof typeMember?.type === 'string') {
+                return [{ name: cleanupName(typeMember.type), type: subtypeName! }];
+            }
+        }
+        return [];
+    });
+}
+
+/**
+ * Whether a union member contributes a discriminated interface variant (after array-unwrap and
+ * union-alias expansion). Members that do not are the union's "primitive" part — see
+ * {@link getAliasedUnionVariants}.
+ */
+function memberYieldsVariants(member: TypeNode, reference: ApiReferenceType): boolean {
+    const elementType = isArrayNode(member) ? member.type : member;
+    const name = getReferencedTypeName(elementType);
+    const node = name ? reference.get(name) : undefined;
+    if (isUnionTypeAlias(node)) {
+        return node.type.type.some((nested) => memberYieldsVariants(nested, reference));
+    }
+    return Boolean(
+        node?.kind === 'interface' &&
+        !isInterfaceHidden(name!) &&
+        node.members.some((typeMember) => typeMember.name === 'type' && typeof typeMember.type === 'string')
+    );
 }
 
 /** Builds positional type arguments for an interface from a generics map keyed by type-param name. */

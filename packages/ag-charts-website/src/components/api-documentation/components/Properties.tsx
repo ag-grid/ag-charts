@@ -11,35 +11,40 @@ interface PropertyTitleOptions {
     name: string;
     anchorId: string;
     prefixPath?: string[];
+    nameSeparator?: string;
     required?: boolean;
     hasChildProps?: boolean;
+    isExpandable?: boolean;
     childPropsOnClick?: () => void;
 }
 
-export type CollapsibleType = 'childrenProperties' | 'code' | 'none';
+export type CollapsibleType = 'childrenProperties' | 'code' | 'unionTypes' | 'none';
 
 export function PropertyTitle({
     name,
     anchorId,
     prefixPath,
+    nameSeparator,
     required,
     hasChildProps,
+    isExpandable,
     childPropsOnClick,
 }: PropertyTitleOptions) {
     const scrollToAnchor = useScrollToAnchor();
 
-    const propName = hasChildProps ? (
-        <span className={styles.propNameExpander} onClick={childPropsOnClick}>
-            <Icon svgClasses={styles.propNameChevron} name="chevronRight" />
-            <PropertyNamePrefix prefixPath={prefixPath} />
-            <PropertyName>{name}</PropertyName>
-        </span>
-    ) : (
-        <span>
-            <PropertyNamePrefix prefixPath={prefixPath} />
-            <PropertyName>{name}</PropertyName>
-        </span>
-    );
+    const propName =
+        hasChildProps || isExpandable ? (
+            <span className={styles.propNameExpander} onClick={childPropsOnClick}>
+                <Icon svgClasses={styles.propNameChevron} name="chevronRight" />
+                <PropertyNamePrefix prefixPath={prefixPath} separator={nameSeparator} />
+                <PropertyName>{name}</PropertyName>
+            </span>
+        ) : (
+            <span>
+                <PropertyNamePrefix prefixPath={prefixPath} separator={nameSeparator} />
+                <PropertyName>{name}</PropertyName>
+            </span>
+        );
 
     return (
         <div className={classnames(styles.name, 'side-menu-exclude')}>
@@ -60,16 +65,23 @@ export function PropertyTitle({
 export function PropertyNamePrefix({
     as: Component = PropertyName,
     prefixPath,
+    separator = '.',
 }: {
     as?: string | FunctionComponent<AllHTMLAttributes<Element>>;
     prefixPath?: string[];
+    separator?: string;
 }) {
-    const parentPrefix = prefixPath?.join('.');
+    // Discriminator segments (`[type='x']`) attach to the preceding property without a dot and keep
+    // their quotes, so a nested path reads `subtitle.text[type='text'].lineHeight`.
+    const parentPrefix = prefixPath?.reduce((acc, segment) => {
+        if (segment.startsWith('[')) {
+            return `${acc}${segment}`;
+        }
+        return acc ? `${acc}.${cleanupName(segment)}` : cleanupName(segment);
+    }, '');
     return (
         <>
-            {parentPrefix && (
-                <Component className={styles.parentProperties}>{`${cleanupName(parentPrefix)}.`}</Component>
-            )}
+            {parentPrefix && <Component className={styles.parentProperties}>{`${parentPrefix}${separator}`}</Component>}
         </>
     );
 }
@@ -78,17 +90,11 @@ function CodeCollapsibleButton({
     name,
     isExpanded,
     onClick,
-    collapsibleType,
 }: {
     name: string;
     isExpanded?: boolean;
     onClick?: () => void;
-    collapsibleType?: CollapsibleType;
 }) {
-    if (collapsibleType !== 'code') {
-        return null;
-    }
-
     return (
         <button
             className={classnames(styles.seeMore, 'button-style-none', {
@@ -110,6 +116,9 @@ export function PropertyType({
     collapsibleType,
     isExpanded,
     onCollapseClick,
+    hasSignature,
+    isSignatureExpanded,
+    onSignatureToggle,
 }: {
     type: string;
     name?: string;
@@ -118,19 +127,24 @@ export function PropertyType({
     collapsibleType?: CollapsibleType;
     isExpanded?: boolean;
     onCollapseClick?: () => void;
+    hasSignature?: boolean;
+    isSignatureExpanded?: boolean;
+    onSignatureToggle?: () => void;
 }) {
     const isCollapsibleCode = collapsibleType === 'code';
+    const isExpandable = isCollapsibleCode || collapsibleType === 'unionTypes';
+    // The square chevron toggles the inline code block — the type alias' own definition for a `code`
+    // member, or the union signature for a mixed-union member. Union variant rows have their own
+    // ("See available types") affordance.
+    const showCodeButton = isCollapsibleCode || Boolean(hasSignature);
+    const codeButtonExpanded = isCollapsibleCode ? isExpanded : isSignatureExpanded;
+    const codeButtonOnClick = isCollapsibleCode ? onCollapseClick : onSignatureToggle;
 
     return (
         <div className={styles.metaItem}>
             <div className={styles.metaRow}>
-                {name && (
-                    <CodeCollapsibleButton
-                        name={name}
-                        isExpanded={isExpanded}
-                        onClick={onCollapseClick}
-                        collapsibleType={collapsibleType}
-                    />
+                {name && showCodeButton && (
+                    <CodeCollapsibleButton name={name} isExpanded={codeButtonExpanded} onClick={codeButtonOnClick} />
                 )}
                 {typeUrl && isCollapsibleCode ? (
                     <a
@@ -145,7 +159,7 @@ export function PropertyType({
                     <span
                         onClick={onCollapseClick}
                         className={classnames(styles.metaValue, {
-                            [styles.isExpandable]: isCollapsibleCode,
+                            [styles.isExpandable]: isExpandable,
                         })}
                     >
                         {type}

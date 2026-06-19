@@ -6,7 +6,6 @@ import type {
     InterfaceNode,
     MemberNode,
     NodeTypes,
-    TypeAliasNode,
     TypeLiteralNode,
     TypeNode,
 } from '@generate-code-reference-plugin/doc-interfaces/types';
@@ -29,11 +28,17 @@ import remarkBreaks from 'remark-breaks';
 
 import {
     type SpecialTypesMap,
+    buildTypeArgumentsFromGenericsMap,
     cleanupName,
     formatTypeToCode,
+    formatUnionSignature,
+    getDetailsId,
     getMemberType,
     getReferencedTypeName,
+    isArrayNode,
     isInterfaceHidden,
+    isUnionTypeAlias,
+    mergeGenericsMaps,
     normalizeType,
     parseJsDocs,
     processMembers,
@@ -45,6 +50,21 @@ import { type CollapsibleType, PropertyTitle, PropertyType } from './Properties'
 export const ApiReferenceContext = createContext<Map<string, NodeTypes> | undefined>(undefined);
 export const ApiReferenceConfigContext = createContext<ApiReferenceConfig>({});
 type ReferenceMap = Map<string, NodeTypes>;
+interface UnionVariant {
+    anchorSegment: string;
+    node: InterfaceNode;
+    typeArguments?: string[];
+    discriminator?: { key: string; value: string };
+}
+interface UnionTypesDetails {
+    kind: 'unionTypes';
+    variants: UnionVariant[];
+    genericsMap?: Record<string, TypeNode>;
+    // Type signature shown for mixed unions, preserving the members the variant rows omit. Undefined
+    // for pure interface-only unions (see formatUnionSignature).
+    signature?: string;
+}
+type MemberAdditionalDetails = NodeTypes | NodeTypes[] | UnionTypesDetails | undefined;
 
 // NOTE: Not on the layout level, as that is generated at build time, and queryClient needs to be
 // loaded on the client side
@@ -83,6 +103,8 @@ interface ApiReferenceRowOptions {
     typeArguments?: string[];
     genericsMap?: Record<string, TypeNode>;
     onDetailsToggle?: () => void;
+    isSignatureExpanded?: boolean;
+    onSignatureToggle?: () => void;
 }
 
 export function ApiReferenceWithContext({
@@ -132,6 +154,110 @@ export function ChildPropertiesButton({
             <Icon svgClasses={styles.childChevron} name="chevronRight" />
             <span>{isExpanded ? 'Hide' : 'See'} child properties</span>
         </button>
+    );
+}
+
+function UnionTypesButton({ name, isExpanded, onClick }: { name: string; isExpanded?: boolean; onClick?: () => void }) {
+    return (
+        <button
+            className={classnames(styles.unionTypesButton, 'button-as-link', {
+                [styles.isExpanded]: isExpanded,
+            })}
+            onClick={onClick}
+            aria-label={`See available types of ${name}`}
+        >
+            <Icon svgClasses={styles.childChevron} name="chevronRight" />
+            <span>{isExpanded ? 'Hide' : 'See'} available types</span>
+        </button>
+    );
+}
+
+function UnionVariantNode({
+    variant,
+    anchorId,
+    prefixPath,
+}: {
+    variant: UnionVariant;
+    anchorId: string;
+    prefixPath: string[];
+}) {
+    const [isExpanded, toggleExpanded, setExpanded] = useToggle();
+    const config = useContext(ApiReferenceConfigContext);
+    const location = useLocation();
+    const docs = parseJsDocs(variant.node.docs);
+    const { discriminator } = variant;
+    const displayName = discriminator ? `[${discriminator.key}='${discriminator.value}']` : variant.anchorSegment;
+
+    useEffect(() => {
+        const hash = location?.hash.substring(1);
+        if (hash === anchorId) {
+            scrollToAndHighlightById(anchorId);
+        } else if (hash?.startsWith(`${anchorId}-`)) {
+            setExpanded(true);
+        }
+    }, [location?.hash, anchorId, setExpanded]);
+
+    return (
+        <>
+            <div
+                id={anchorId}
+                className={classnames(
+                    'property-row',
+                    styles.propertyRow,
+                    styles.isChildProp,
+                    isExpanded && styles.expandedChildProps
+                )}
+                style={{ '--nested-path-depth': prefixPath.length } as CSSProperties}
+            >
+                <div className={styles.leftColumn}>
+                    <PropertyTitle
+                        name={displayName}
+                        anchorId={anchorId}
+                        prefixPath={prefixPath}
+                        nameSeparator={discriminator ? '' : undefined}
+                        hasChildProps
+                        childPropsOnClick={toggleExpanded}
+                    />
+                    <PropertyType
+                        name={variant.anchorSegment}
+                        type={variant.node.name}
+                        collapsibleType="childrenProperties"
+                        isExpanded={isExpanded}
+                        onCollapseClick={toggleExpanded}
+                    />
+                </div>
+                <div className={styles.rightColumn}>
+                    <div role="presentation" className={styles.description}>
+                        {docs && (
+                            <Markdown
+                                remarkPlugins={[remarkBreaks]}
+                                urlTransform={(url: string) => urlWithBaseUrl(url)}
+                            >
+                                {docs}
+                            </Markdown>
+                        )}
+                        <ChildPropertiesButton
+                            name={variant.anchorSegment}
+                            isExpanded={isExpanded}
+                            onClick={toggleExpanded}
+                        />
+                    </div>
+                </div>
+            </div>
+            {isExpanded && (
+                <div className={styles.childPropsList}>
+                    {processMembers(variant.node, config, variant.typeArguments).map((childMember) => (
+                        <NodeFactory
+                            key={childMember.name}
+                            member={childMember}
+                            anchorId={`${anchorId}-${cleanupName(childMember.name)}`}
+                            prefixPath={prefixPath.concat(displayName)}
+                            genericsMap={variant.node.genericsMap}
+                        />
+                    ))}
+                </div>
+            )}
+        </>
     );
 }
 
@@ -189,12 +315,14 @@ export function ApiReference({
 
 function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props }: ApiReferenceRowOptions) {
     const [isExpanded, toggleExpanded, setExpanded] = useToggle();
+    const [isSignatureExpanded, toggleSignature, setSignatureExpanded] = useToggle();
     const interfaceRef = useMemberAdditionalDetails(member);
     const config = useContext(ApiReferenceConfigContext);
     const location = useLocation();
 
     const hasMembers = hasMembersNode(interfaceRef);
     const hasNestedPages = config.specialTypes?.[getMemberType(member)] === 'NestedPage';
+    const canExpand = hasMembers || isUnionTypesDetails(interfaceRef);
 
     const typeArguments = hasMembers ? buildTypeArguments(member, genericsMap) : undefined;
 
@@ -202,10 +330,14 @@ function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props 
         const hash = location?.hash.substring(1);
         if (hash === anchorId) {
             scrollToAndHighlightById(anchorId);
-        } else if (hasMembers && hash?.startsWith(`${anchorId}-`)) {
+        } else if (hash === getDetailsId(anchorId)) {
+            // The nav's primitive-union link targets the signature code block, not the variant list.
+            scrollToAndHighlightById(anchorId);
+            setSignatureExpanded(true);
+        } else if (canExpand && hash?.startsWith(`${anchorId}-`)) {
             setExpanded(true);
         }
-    }, [location?.hash, anchorId, hasMembers, setExpanded]);
+    }, [location?.hash, anchorId, canExpand, setExpanded, setSignatureExpanded]);
 
     return (
         <>
@@ -216,6 +348,8 @@ function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props 
                 prefixPath={prefixPath}
                 isExpanded={isExpanded}
                 onDetailsToggle={toggleExpanded}
+                isSignatureExpanded={isSignatureExpanded}
+                onSignatureToggle={toggleSignature}
             />
             {hasMembers && isExpanded && (
                 <div className={styles.childPropsList}>
@@ -235,6 +369,18 @@ function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props 
                     ))}
                 </div>
             )}
+            {isUnionTypesDetails(interfaceRef) && isExpanded && (
+                <div className={styles.childPropsList}>
+                    {interfaceRef.variants.map((variant) => (
+                        <UnionVariantNode
+                            key={variant.anchorSegment}
+                            variant={variant}
+                            anchorId={`${anchorId}-${variant.anchorSegment}`}
+                            prefixPath={prefixPath.concat(cleanupName(member.name))}
+                        />
+                    ))}
+                </div>
+            )}
         </>
     );
 }
@@ -246,6 +392,8 @@ function ApiReferenceRow({
     isExpanded,
     nestedPath,
     onDetailsToggle,
+    isSignatureExpanded,
+    onSignatureToggle,
 }: ApiReferenceRowOptions) {
     const config = useContext(ApiReferenceConfigContext);
     const selection = useContext(SelectionContext);
@@ -254,6 +402,8 @@ function ApiReferenceRow({
     const additionalDetails = useMemberAdditionalDetails(member);
     const collapsibleType = getCollapsibleType(additionalDetails, nestedPath);
     const hasChildProps = collapsibleType === 'childrenProperties';
+    const isUnionTypes = collapsibleType === 'unionTypes';
+    const signature = isUnionTypesDetails(additionalDetails) ? additionalDetails.signature : undefined;
 
     return (
         <div
@@ -262,7 +412,8 @@ function ApiReferenceRow({
                 'property-row',
                 styles.propertyRow,
                 prefixPath && prefixPath.length > 0 && styles.isChildProp,
-                isExpanded && hasChildProps && styles.expandedChildProps
+                isExpanded && hasChildProps && styles.expandedChildProps,
+                isExpanded && isUnionTypes && styles.expandedUnionTypes
             )}
             style={{ '--nested-path-depth': prefixPath?.length ?? 0 } as CSSProperties}
         >
@@ -273,6 +424,7 @@ function ApiReferenceRow({
                     prefixPath={prefixPath}
                     required={!config.hideRequired && !member.optional}
                     hasChildProps={hasChildProps}
+                    isExpandable={isUnionTypes}
                     childPropsOnClick={onDetailsToggle}
                 />
                 <PropertyType
@@ -282,6 +434,9 @@ function ApiReferenceRow({
                     collapsibleType={collapsibleType}
                     isExpanded={isExpanded}
                     onCollapseClick={onDetailsToggle}
+                    hasSignature={Boolean(signature)}
+                    isSignatureExpanded={isSignatureExpanded}
+                    onSignatureToggle={onSignatureToggle}
                 />
             </div>
             <div className={styles.rightColumn}>
@@ -306,6 +461,9 @@ function ApiReferenceRow({
                     </Markdown>
                     {hasChildProps && (
                         <ChildPropertiesButton name={memberName} isExpanded={isExpanded} onClick={onDetailsToggle} />
+                    )}
+                    {isUnionTypes && (
+                        <UnionTypesButton name={memberName} isExpanded={isExpanded} onClick={onDetailsToggle} />
                     )}
                 </div>
                 {nestedPath && (
@@ -332,7 +490,13 @@ function ApiReferenceRow({
 
             {collapsibleType === 'code' && isExpanded && (
                 <div id={getDetailsId(anchorId)} className={classnames(styles.expandedContent)}>
-                    <TypeCodeBlock apiNode={additionalDetails!} member={member} />
+                    <TypeCodeBlock apiNode={additionalDetails as NodeTypes | NodeTypes[]} member={member} />
+                </div>
+            )}
+
+            {signature && isSignatureExpanded && (
+                <div id={getDetailsId(anchorId)} className={styles.expandedContent}>
+                    <Code code={signature} />
                 </div>
             )}
         </div>
@@ -360,82 +524,127 @@ export function TypeCodeBlock({ apiNode, member }: { apiNode: NodeTypes | NodeTy
     return <Code code={codeSample} />;
 }
 
-function getCollapsibleType(
-    additionalDetails?: NodeTypes | (NodeTypes | undefined)[],
-    nestedPath?: string
-): CollapsibleType {
-    const hasMembers = hasMembersNode(additionalDetails);
-    let collapsibleType: CollapsibleType = 'none';
-    if (hasMembers) {
-        collapsibleType = 'childrenProperties';
-    } else if (Boolean(additionalDetails) && !nestedPath) {
-        collapsibleType = 'code';
+function getCollapsibleType(additionalDetails: MemberAdditionalDetails, nestedPath?: string): CollapsibleType {
+    if (hasMembersNode(additionalDetails)) {
+        return 'childrenProperties';
     }
-    return collapsibleType;
+    // A nested-page member keeps its "See property details" link and is never hijacked into inline content.
+    if (nestedPath) {
+        return 'none';
+    }
+    if (isUnionTypesDetails(additionalDetails)) {
+        return 'unionTypes';
+    }
+    if (additionalDetails) {
+        return 'code';
+    }
+    return 'none';
 }
 
-function getDetailsId(id: string) {
-    return `${id}-details`;
-}
-
-function useMemberAdditionalDetails(member: MemberNode): NodeTypes | NodeTypes[] | undefined {
+function useMemberAdditionalDetails(member: MemberNode): MemberAdditionalDetails {
     const reference = useContext(ApiReferenceContext);
+    const config = useContext(ApiReferenceConfigContext);
     const memberType = getMemberType(member);
 
     if (memberType === 'function') {
         return member;
     }
 
-    const resolve = (resolveType: string): NodeTypes | NodeTypes[] | undefined =>
-        resolveReferenceType(reference, resolveType);
+    const resolvedDetails = resolveReferenceType(reference, memberType);
 
-    const resolvedDetails = resolve(memberType);
+    // Members registered as special types navigate to their own pages (series, axes, mini-chart
+    // series, annotations); they must keep that behaviour rather than expand inline as unions.
+    const specialType = config.specialTypes?.[memberType];
+    if (specialType === 'InterfaceArray' || specialType === 'InterfaceRecord' || specialType === 'NestedPage') {
+        return resolvedDetails;
+    }
 
-    // Only expand the cross-line indirection (an empty interface extending a union alias); a direct
-    // union alias renders correctly on its own via formatUnionTypeAlias.
-    const aliasedUnion = isInterfaceNode(resolvedDetails) ? resolveAliasedUnion(resolvedDetails, reference) : undefined;
-
+    // Union of named interfaces: a direct union alias (`fill`), an empty interface whose heritage is
+    // a union alias (axis-specific cross-lines), or a union mixing primitives with named interfaces
+    // (`format`). Expand into the named interface variants; primitive members are dropped from the list.
+    const aliasedUnion = resolveAliasedUnion(
+        resolvedDetails && !Array.isArray(resolvedDetails) ? resolvedDetails : undefined,
+        reference
+    );
     if (aliasedUnion) {
-        const unionTypes = aliasedUnion.unionType.type
-            .flatMap((unionType) => {
-                const typeName = getReferencedTypeName(unionType);
-                return typeName ? resolve(typeName) : undefined;
-            })
-            .filter(
-                (apiNode): apiNode is NodeTypes =>
-                    typeof apiNode === 'object' &&
-                    (apiNode.kind === 'typeAlias' || apiNode.kind === 'interface') &&
-                    !isInterfaceHidden(apiNode.name)
-            );
-        if (unionTypes.length) {
-            return unionTypes;
+        const variants = collectUnionVariants(aliasedUnion.unionType.type, reference, aliasedUnion.genericsMap);
+        if (variants.length) {
+            return {
+                kind: 'unionTypes',
+                variants,
+                genericsMap: aliasedUnion.genericsMap,
+                signature: reference ? formatUnionSignature(aliasedUnion.unionType, memberType, reference) : undefined,
+            };
         }
     }
 
     if (resolvedDetails) {
         return resolvedDetails;
     }
+
+    // Inline union (not declared through a named alias): same treatment as the aliased union above.
     if (typeof member.type === 'object' && member.type.kind === 'union') {
-        const unionTypes = member.type.type
-            .flatMap((unionType) => typeof unionType === 'string' && resolve(unionType))
-            .filter(
-                (apiNode): apiNode is TypeAliasNode =>
-                    typeof apiNode === 'object' &&
-                    (apiNode.kind === 'typeAlias' || apiNode.kind === 'interface') &&
-                    !isInterfaceHidden(apiNode.name)
-            );
-        if (unionTypes.length) {
-            return unionTypes;
+        const variants = collectUnionVariants(member.type.type, reference);
+        if (variants.length) {
+            return {
+                kind: 'unionTypes',
+                variants,
+                signature: reference ? formatUnionSignature(member.type, undefined, reference) : undefined,
+            };
         }
     }
 }
 
-function hasMembersNode(node?: NodeTypes | (NodeTypes | undefined)[]): node is InterfaceNode | TypeLiteralNode {
+function collectUnionVariants(
+    unionTypes: TypeNode[],
+    reference: ReferenceMap | undefined,
+    genericsMap?: Record<string, TypeNode>
+): UnionVariant[] {
+    return unionTypes.flatMap((unionType) => {
+        // Unwrap array members (e.g. `ContentSegment[]`) to their element type.
+        const elementType = isArrayNode(unionType) ? unionType.type : unionType;
+        const typeName = getReferencedTypeName(elementType);
+        const node = typeName ? reference?.get(typeName) : undefined;
+        // A member that is itself a named union alias (e.g.
+        // `ContentSegment = TextSegment | ImageSegment`) expands into its own variants.
+        if (isUnionTypeAlias(node)) {
+            return collectUnionVariants(node.type.type, reference, mergeGenericsMaps(node.genericsMap, genericsMap));
+        }
+        const variant = toUnionVariant(node, genericsMap);
+        return variant ? [variant] : [];
+    });
+}
+
+function toUnionVariant(node: NodeTypes | undefined, genericsMap?: Record<string, TypeNode>): UnionVariant | null {
+    if (node?.kind !== 'interface' || isInterfaceHidden(node.name)) {
+        return null;
+    }
+    const discriminator = getVariantDiscriminator(node);
+    return {
+        anchorSegment: discriminator?.value ?? cleanupName(node.name),
+        node,
+        typeArguments: buildTypeArgumentsFromGenericsMap(node, genericsMap),
+        discriminator,
+    };
+}
+
+// A discriminated union variant carries a string-literal `type` member; its value is the navigation
+// path segment (matching getNavigationDataFromPath), so deep-links into the variant resolve.
+function getVariantDiscriminator(node: InterfaceNode): { key: string; value: string } | undefined {
+    const typeMember = node.members.find((member) => member.name === 'type');
+    return typeof typeMember?.type === 'string' ? { key: 'type', value: cleanupName(typeMember.type) } : undefined;
+}
+
+function hasMembersNode(node?: MemberAdditionalDetails): node is InterfaceNode | TypeLiteralNode {
     return Boolean(node && !Array.isArray(node) && 'members' in node);
 }
 
-function isInterfaceNode(node?: NodeTypes | (NodeTypes | undefined)[]): node is InterfaceNode {
-    return Boolean(node && !Array.isArray(node) && node.kind === 'interface');
+function isUnionTypesDetails(node?: MemberAdditionalDetails): node is UnionTypesDetails {
+    return Boolean(node && !Array.isArray(node) && 'kind' in node && node.kind === 'unionTypes');
+}
+
+function isInterfaceNode(node?: MemberAdditionalDetails): node is InterfaceNode {
+    return Boolean(node && !Array.isArray(node) && 'kind' in node && node.kind === 'interface');
 }
 
 function buildTypeArguments(member: MemberNode, genericsMap?: Record<string, TypeNode>) {
