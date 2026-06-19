@@ -31,6 +31,12 @@ on:
                 required: true
     schedule:
         - cron: '0 0 * * *' # Run daily at midnight UTC
+    push:
+        branches:
+            # Release-branch glob (matches release-review.yml / ci.yml). Combined
+            # with the `github.event.created` guard on `resolve`, this benchmarks
+            # the new release line exactly once when the branch is cut.
+            - 'b[0-9][0-9]?.[0-9][0-9]?.[0-9][0-9]?'
 
 env:
     NX_NO_CLOUD: true
@@ -70,6 +76,7 @@ jobs:
             needs.check-permissions.result == 'success' && (
                 github.event_name == 'workflow_dispatch' ||
                 github.event_name == 'schedule' ||
+                (github.event_name == 'push' && github.event.created) ||
                 (github.event_name == 'issue_comment' && needs.check-permissions.outputs.allowed == 'true')
             )
         env:
@@ -123,6 +130,16 @@ jobs:
                     echo "branch=latest" >> $GITHUB_OUTPUT
                     echo "base=npm:${published}" >> $GITHUB_OUTPUT
                     echo "base-label=npm:${published}" >> $GITHUB_OUTPUT
+                  elif [[ "${{ github.event_name }}" == "push" ]] ; then
+                    # A release branch was just cut: benchmark the new release line
+                    # (this branch) against the previous release — i.e. whatever is
+                    # currently published as the `latest` npm version. As with the
+                    # scheduled run, the npm base swaps published UMD bundles into the
+                    # head site, so no base-ref site build is needed.
+                    published=$(npm view ag-charts-community version)
+                    echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+                    echo "base=npm:${published}" >> $GITHUB_OUTPUT
+                    echo "base-label=npm:${published} (prev release)" >> $GITHUB_OUTPUT
                   else
                     # For manual workflow dispatch, use the current branch
                     echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
@@ -413,26 +430,45 @@ jobs:
                         body,
                       })
 
+            # Slack notifications post via chat.postMessage with the CI bot token
+            # (SLACK_BOT_OAUTH_TOKEN — same token the release-review workflow uses).
+            # Channel is the only per-case variable: release-cut pushes report to
+            # the release-status channel, everything else to the performance channel.
             - name: Slack Notification (Browser)
-              if: success() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true))
+              if: >-
+                  success() && (
+                    github.event_name == 'schedule' ||
+                    (github.event_name == 'push' && github.event.created) ||
+                    (github.event_name == 'workflow_dispatch' && inputs.notify == true)
+                  )
               continue-on-error: true
               env:
-                  SLACK_CHANNEL: '#charts-performance'
+                  SLACK_CHANNEL: ${{ github.event_name == 'push' && '#charts_teamcity_status' || '#charts-performance' }}
                   SLACK_ICON: 'https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png'
                   SLACK_USERNAME: 'ag-charts CI'
-                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+                  SLACK_BOT_OAUTH_TOKEN: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
               run: |
                   node ./tools/benchmark/format-browser-slack-message.js > ./reports/browser-benchmark-slack.json
-                  curl -X POST -H 'Content-type: application/json' ${{ secrets.SLACK_WEBHOOK }} --data @./reports/browser-benchmark-slack.json
+                  response=$(curl -sS -X POST https://slack.com/api/chat.postMessage \
+                      -H "Authorization: Bearer ${SLACK_BOT_OAUTH_TOKEN}" \
+                      -H 'Content-type: application/json; charset=utf-8' \
+                      --data @./reports/browser-benchmark-slack.json)
+                  echo "$response"
+                  echo "$response" | grep -q '"ok":true' || { echo "::warning::Slack post failed"; exit 1; }
 
             - name: Slack Notification (failure)
-              if: failure() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true))
+              if: >-
+                  failure() && (
+                    github.event_name == 'schedule' ||
+                    (github.event_name == 'push' && github.event.created) ||
+                    (github.event_name == 'workflow_dispatch' && inputs.notify == true)
+                  )
               continue-on-error: true
               env:
-                  SLACK_CHANNEL: '#charts-performance'
+                  SLACK_CHANNEL: ${{ github.event_name == 'push' && '#charts_teamcity_status' || '#charts-performance' }}
                   SLACK_ICON: 'https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png'
                   SLACK_USERNAME: 'ag-charts CI'
-                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+                  SLACK_BOT_OAUTH_TOKEN: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
               run: |
                   mkdir -p reports
                   cat <<EOF > ./reports/benchmark-slack.json
@@ -451,7 +487,12 @@ jobs:
                     ]
                   }
                   EOF
-                  curl -X POST -H 'Content-type: application/json' ${{ secrets.SLACK_WEBHOOK }} --data @./reports/benchmark-slack.json
+                  response=$(curl -sS -X POST https://slack.com/api/chat.postMessage \
+                      -H "Authorization: Bearer ${SLACK_BOT_OAUTH_TOKEN}" \
+                      -H 'Content-type: application/json; charset=utf-8' \
+                      --data @./reports/benchmark-slack.json)
+                  echo "$response"
+                  echo "$response" | grep -q '"ok":true' || { echo "::warning::Slack post failed"; exit 1; }
 
             - name: Persist benchmark results
               if: always()
