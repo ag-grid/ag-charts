@@ -515,7 +515,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         this.labelSelection.update(this.nodeData).each((node, datum) => {
             const isHighlight = false;
-            updateLabelNode(this, node, properties, properties.label, datum.label, isHighlight, activeHighlight);
+            updateLabelNode(this, node, properties, properties.label, datum.label, { isHighlight, activeHighlight });
             node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
         });
 
@@ -523,7 +523,10 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             .update(highlightData, undefined, (datum) => this.getDatumId(datum))
             .each((node, datum) => {
                 const isHighlight = true;
-                updateLabelNode(this, node, properties, properties.label, datum.label, isHighlight, activeHighlight);
+                updateLabelNode(this, node, properties, properties.label, datum.label, {
+                    isHighlight,
+                    activeHighlight,
+                });
                 node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
             });
     }

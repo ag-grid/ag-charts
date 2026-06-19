@@ -1035,7 +1035,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             textNode.visible = true;
             textNode.fillOpacity = styleOpacity;
             const label = this.getItemConfig(datum.itemType).label;
-            updateLabelNode(this, textNode, params, label, datum.label, isHighlight, activeHighlight);
+            const propertyItemId = datum.itemType === 'subtotal' ? 'total' : datum.itemType;
+            const labelPath = ['series', `${this.declarationOrder}`, 'item', propertyItemId, 'label'];
+            updateLabelNode(this, textNode, params, label, datum.label, { isHighlight, activeHighlight }, labelPath);
         });
     }
 

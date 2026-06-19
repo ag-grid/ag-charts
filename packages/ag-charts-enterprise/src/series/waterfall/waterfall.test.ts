@@ -288,6 +288,39 @@ describe('WaterfallSeries', () => {
         });
     });
 
+    it('applies a per-item label itemStyler without crashing (AG-17598)', async () => {
+        const positiveStyler = vi.fn(() => ({ color: 'red' }));
+        const negativeStyler = vi.fn(() => ({ color: 'blue' }));
+        const totalStyler = vi.fn(() => ({ color: 'green' }));
+        const options: AgCartesianChartOptions = {
+            data: [
+                { type: 'A', value: 100 },
+                { type: 'B', value: -30 },
+                { type: 'C', value: 80 },
+            ],
+            series: [
+                {
+                    type: 'waterfall',
+                    xKey: 'type',
+                    yKey: 'value',
+                    totals: [{ totalType: 'total', index: 2, axisLabel: 'Total' }],
+                    item: {
+                        positive: { label: { enabled: true, itemStyler: positiveStyler } },
+                        negative: { label: { enabled: true, itemStyler: negativeStyler } },
+                        total: { label: { enabled: true, itemStyler: totalStyler } },
+                    },
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        expect(positiveStyler).toHaveBeenCalled();
+        expect(negativeStyler).toHaveBeenCalled();
+        expect(totalStyler).toHaveBeenCalled();
+    });
+
     it(`should render a waterfall chart as expected`, async () => {
         const options: AgChartOptions = { ...WATERFALL_COLUMN_OPTIONS };
         prepareEnterpriseTestOptions(options as any);

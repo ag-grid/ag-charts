@@ -540,13 +540,13 @@ export abstract class RadarSeries<
         this.labelSelection.update(this.nodeData).each((node, datum) => {
             const isHighlight = false;
             node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
-            updateLabelNode(this, node, properties, properties.label, datum.label, isHighlight, activeHighlight);
+            updateLabelNode(this, node, properties, properties.label, datum.label, { isHighlight, activeHighlight });
         });
 
         this.highlightLabelSelection.update(highlightData).each((node, datum) => {
             const isHighlight = true;
             node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
-            updateLabelNode(this, node, properties, properties.label, datum.label, isHighlight, activeHighlight);
+            updateLabelNode(this, node, properties, properties.label, datum.label, { isHighlight, activeHighlight });
         });
     }
 

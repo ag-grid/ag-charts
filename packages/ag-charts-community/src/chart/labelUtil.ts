@@ -114,8 +114,8 @@ export function updateLabelNode<TParams, D extends LabelDatum>(
     params: IsAny<D> extends false ? TParams : never,
     label: IsAny<D> extends false ? Label<TParams, unknown> : never,
     labelDatum: D | undefined,
-    isHighlight: boolean,
-    activeHighlight: HighlightNodeDatum | undefined
+    highlight: { isHighlight: boolean; activeHighlight: HighlightNodeDatum | undefined },
+    labelPath?: string[]
 ): void;
 
 export function updateLabelNode<TParams>(
@@ -124,11 +124,12 @@ export function updateLabelNode<TParams>(
     params: TParams,
     label: Label<TParams, unknown>,
     labelDatum: LabelDatum | undefined,
-    isHighlight: boolean,
-    activeHighlight: HighlightNodeDatum | undefined
+    highlight: { isHighlight: boolean; activeHighlight: HighlightNodeDatum | undefined },
+    labelPath?: string[]
 ) {
+    const { isHighlight, activeHighlight } = highlight;
     if (series.visible && label.enabled && labelDatum) {
-        const style = getLabelStyles(series, textNode.datum, params, label, isHighlight, activeHighlight);
+        const style = getLabelStyles(series, textNode.datum, params, label, isHighlight, activeHighlight, labelPath);
         textNode.visible = true;
         textNode.x = labelDatum.x;
         textNode.y = labelDatum.y;

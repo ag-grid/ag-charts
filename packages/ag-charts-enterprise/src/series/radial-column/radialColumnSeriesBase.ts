@@ -545,14 +545,20 @@ export abstract class RadialColumnSeriesBase<
         const highlightData = highlightDatum ? [highlightDatum] : [];
 
         this.labelSelection.update(this.nodeData).each((node, datum) => {
-            updateLabelNode(this, node, this.properties, this.properties.label, datum.label, false, activeHighlight);
+            updateLabelNode(this, node, this.properties, this.properties.label, datum.label, {
+                isHighlight: false,
+                activeHighlight,
+            });
             node.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
         });
 
         this.highlightLabelSelection
             .update(highlightData, undefined, (datum) => this.getDatumId(datum))
             .each((node, datum) => {
-                updateLabelNode(this, node, this.properties, this.properties.label, datum.label, true, activeHighlight);
+                updateLabelNode(this, node, this.properties, this.properties.label, datum.label, {
+                    isHighlight: true,
+                    activeHighlight,
+                });
                 node.fillOpacity = this.getHighlightStyle(true, datum.datumIndex).opacity ?? 1;
             });
     }
