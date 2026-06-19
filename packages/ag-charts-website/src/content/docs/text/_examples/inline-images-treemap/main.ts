@@ -11,6 +11,8 @@ import { TData, getData } from './data';
 
 ModuleRegistry.registerModules([AnimationModule, LegendModule, TreemapSeriesModule]);
 
+const brandIconsUrl = '${baseWWWUrl}/example-assets/brand-icons/';
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -32,7 +34,7 @@ const options: AgChartOptions = {
                         return [
                             {
                                 type: 'image',
-                                url: '${baseWWWUrl}/example-assets/brand-icons/' + `${d.slug}.svg`,
+                                url: brandIconsUrl + `${d.slug}.svg`,
                                 width: 36,
                                 height: 36,
                                 block: true,

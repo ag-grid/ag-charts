@@ -1,5 +1,7 @@
-// FontAwesome icons inline with text. Solid icons live in the weight-900 file, so their
-// segments set fontWeight: 900. The chart loads referenced fonts and re-renders once ready.
+// Emoji and FontAwesome icons inline with text. The axis labels use number emoji, which render through
+// native canvas with no API changes. The title uses FontAwesome glyphs, applied per segment via
+// fontFamily/fontWeight. Solid FontAwesome icons live in the weight-900 file, so their segments
+// set fontWeight: 900. The chart loads any referenced fonts and re-renders once they are ready.
 import {
     AgChartOptions,
     AgCharts,
@@ -15,28 +17,36 @@ import { TData, getData } from './data';
 
 ModuleRegistry.registerModules([AnimationModule, BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
 
+const data = getData();
+// Keycap number emoji (U+0031..U+0035 + U+FE0F + U+20E3) rank each country by position.
+const rankEmoji = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣'];
+const rankByCountry = new Map(data.map((d, i) => [d.country, rankEmoji[i]]));
+
 const ICON_FAMILY_SOLID = 'Font Awesome 6 Free';
 const SOLID_WEIGHT = 900;
 
-const ICON_STAR = '';
-const ICON_CHART_LINE = '';
-const ICON_FLAG = '';
-const ICON_ARROW_UP = '';
-const ICON_ARROW_DOWN = '';
+const ICON_CHART_LINE = ''; // fa-chart-line
+const ICON_STAR = ''; // fa-star
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: [
-            { text: 'Top Markets ' },
             {
-                text: ICON_STAR,
+                text: `${ICON_CHART_LINE} `,
+                fontFamily: ICON_FAMILY_SOLID,
+                fontWeight: SOLID_WEIGHT,
+                color: '#1f77b4',
+                verticalAlign: 'middle',
+            },
+            { text: 'Top Markets 2025', fontWeight: 'bold' },
+            {
+                text: ` ${ICON_STAR}`,
                 fontFamily: ICON_FAMILY_SOLID,
                 fontWeight: SOLID_WEIGHT,
                 color: '#f1c40f',
                 verticalAlign: 'middle',
             },
-            { text: ' 2025', fontWeight: 'bold' },
         ],
         fontSize: 22,
     },
@@ -52,31 +62,16 @@ const options: AgChartOptions = {
             { text: 'Quarterly revenue by country' },
         ],
     },
-    data: getData(),
+    data,
     series: [
         {
             type: 'bar',
             xKey: 'country',
             yKey: 'revenue',
             yName: 'Revenue',
-            tooltip: {
-                renderer: (p) => ({ heading: p.datum[p.xKey] }),
-            },
             label: {
                 enabled: true,
-                formatter: ({ datum }) => {
-                    const d = datum as TData;
-                    return [
-                        { text: `${d.revenue}M `, fontWeight: 'bold' },
-                        {
-                            text: d.delta >= 0 ? ICON_ARROW_UP : ICON_ARROW_DOWN,
-                            fontFamily: ICON_FAMILY_SOLID,
-                            fontWeight: SOLID_WEIGHT,
-                            color: d.delta >= 0 ? '#22c55e' : '#d62728',
-                            verticalAlign: 'middle',
-                        },
-                    ];
-                },
+                formatter: ({ datum }) => `${(datum as TData).revenue}M`,
             },
         },
     ],
@@ -86,13 +81,11 @@ const options: AgChartOptions = {
             label: {
                 formatter: ({ value }) => [
                     {
-                        text: `${ICON_FLAG} `,
-                        fontFamily: ICON_FAMILY_SOLID,
-                        fontWeight: SOLID_WEIGHT,
-                        color: '#888',
+                        text: `${rankByCountry.get(String(value)) ?? ''} `,
+                        fontSize: 18,
                         verticalAlign: 'middle',
                     },
-                    { text: String(value), fontWeight: 'bold' },
+                    { text: String(value), fontWeight: 'bold', verticalAlign: 'middle' },
                 ],
             },
         },
