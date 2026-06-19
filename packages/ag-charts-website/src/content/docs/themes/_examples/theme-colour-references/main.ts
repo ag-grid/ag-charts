@@ -22,7 +22,7 @@ const options: AgCartesianChartOptions = {
             backgroundColor: '#ffffff',
             foregroundColor: '#1b2a4a',
             // Only the text colour is derived from the controls below.
-            textColor: { ref: colorRef, mix } as any,
+            textColor: { ref: colorRef, mix },
         },
     },
     title: {
@@ -57,7 +57,7 @@ function updateTextColor() {
             backgroundColor: '#ffffff',
             foregroundColor: '#1b2a4a',
             // Only the text colour is derived from the controls below.
-            textColor: textColor as any,
+            textColor,
         },
     };
     chart.update(options);
