@@ -93,19 +93,18 @@ test.describe('api-ref-page', () => {
         await gotoUrl(page, toPageUrl('options/series/bar/#reference-AgBarSeriesOptions-fill'));
         await expect(getNavigationProperty(page, /^fill/)).toBeVisible();
 
-        // TC1: the "See available types" action expands the union member list.
+        // TC1: the "See available types" action expands the union into discrete variant rows.
         await page.getByRole('button', { name: 'See available types of fill', exact: true }).click();
 
-        // TC2: discrete variant rows render under the property, styled like child properties.
-        const details = page.locator('#reference-AgBarSeriesOptions-fill-details');
-        await expect(details).toBeVisible();
+        // TC2: each named interface member of the union renders as its own variant row.
         const gradientVariant = page.locator('#reference-AgBarSeriesOptions-fill-gradient');
         await expect(gradientVariant).toBeVisible();
 
-        // TC3: a variant expands into its own properties as standard rows, not a code block.
-        await details.getByRole('button', { name: 'See child properties of gradient', exact: true }).click();
+        // TC3: a variant expands into its own properties as standard rows. The signature code block
+        // (`-details`) belongs to the separate "See more details" affordance and stays absent here.
+        await page.getByRole('button', { name: 'See child properties of gradient', exact: true }).click();
         await expect(page.locator('#reference-AgBarSeriesOptions-fill-gradient-rotation')).toBeVisible();
-        await expect(details.locator('pre')).toHaveCount(0);
+        await expect(page.locator('#reference-AgBarSeriesOptions-fill-details')).toHaveCount(0);
     });
 
     test('deep links into a fill union variant property and auto-expands the chain', async ({ page }) => {
@@ -274,11 +273,34 @@ test.describe('api-ref-page', () => {
         await waitForApiReady(page);
 
         await page.getByRole('button', { name: 'See available types of padding', exact: true }).click();
+        const paddingOptions = page.locator('#reference-AgChartOptions-padding-PaddingOptions');
+        await expect(paddingOptions).toBeVisible();
+
+        await page.getByRole('button', { name: 'See child properties of PaddingOptions', exact: true }).click();
+        await expect(page.locator('#reference-AgChartOptions-padding-PaddingOptions-top')).toBeVisible();
+    });
+
+    // A mixed union keeps its non-interface members (here the primitive `PixelSize`) in a signature
+    // code block reached through "See more details", distinct from the "See available types" variant
+    // rows. This guards the regression where expanding the union dropped the primitive members.
+    test('preserves the primitive members of a mixed union in its signature block', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/'));
+        await waitForApiReady(page);
+
+        await page.getByRole('button', { name: 'See more details about padding', exact: true }).click();
         const details = page.locator('#reference-AgChartOptions-padding-details');
         await expect(details).toBeVisible();
+        await expect(details.locator('pre')).not.toHaveCount(0);
+    });
 
-        await details.getByRole('button', { name: 'See child properties of PaddingOptions', exact: true }).click();
-        await expect(page.locator('#reference-AgChartOptions-padding-PaddingOptions-top')).toBeVisible();
+    // The nav's primitive-union entry deep-links to the signature block via the `-details` hash; the
+    // reference panel resolves that hash by auto-expanding the signature rather than the variant list.
+    test('deep links to a union signature block via the details hash', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/series/bar/#reference-AgBarSeriesOptions-fill-details'));
+
+        const details = page.locator('#reference-AgBarSeriesOptions-fill-details');
+        await expect(details).toBeVisible();
+        await expect(details.locator('pre')).not.toHaveCount(0);
     });
 
     test('property link icon updates the URL hash', async ({ page }) => {
