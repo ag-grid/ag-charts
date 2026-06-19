@@ -120,14 +120,14 @@ In this example:
     - Selected bars are rendered in `'skyblue'` colour.
     - Unselected bars are dimmed.
 - When dragging is in progress:
-    - Bars that are will be added to the selection are rendered in `'green'` colour.
-    - Bars that are will be removed from the selection are rendered in `'red'` colour.
+    - Bars that will be added to the selection are rendered in `'green'` colour.
+    - Bars that will be removed from the selection are rendered in `'red'` colour.
 
-The `candidateState` property can be:   
+The `candidateState` property includes:
 - `undefined` - no drag selection is in progress.
 - `'selected-item'` - the datum will become selected after the drag completes.
-- `unselected-item'` - the datum will become unselected after the drag completes.
-- `none` - there will be nothing selected after the drag completes.
+- `'unselected-item'` - the datum will become unselected after the drag completes.
+- `'none'` - there will be nothing selected after the drag completes.
 
 Once the drag completes, the `candidateState` becomes the new `selectionState`. If the user cancels the drag, the `candidateState` is cleared and the `selectionState` remains unchanged.
 
