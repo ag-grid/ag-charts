@@ -20,6 +20,16 @@ export class DataWindowProcessor implements UpdateProcessor {
     private zoomSource: AgZoomEventSource | undefined;
     private readonly lastAxisZooms = new Map<string, ZoomMinMax>();
     private lastWindow: AgDataSourceCallbackParams | undefined;
+    private requestCounter = 0;
+    private latestRequestId: number | undefined;
+    private readonly errorRollbacks = new Map<
+        number,
+        {
+            window: AgDataSourceCallbackParams | undefined;
+            axisId: string | undefined;
+            axisZoom: ZoomMinMax | undefined;
+        }
+    >();
 
     private readonly cleanup = new CleanupRegistry();
 
@@ -30,7 +40,8 @@ export class DataWindowProcessor implements UpdateProcessor {
         this.cleanup.register(
             ctx.eventsHub.on('data:source-change', () => this.onDataSourceChange()),
             ctx.eventsHub.on('data:load', () => this.onDataLoad()),
-            ctx.eventsHub.on('data:error', () => this.onDataError()),
+            ctx.eventsHub.on('data:error', (e) => this.onDataError(e)),
+            ctx.eventsHub.on('data:render-verdict', (e) => this.onRenderVerdict(e)),
             ctx.eventsHub.on('update:complete', (e) => this.onUpdateComplete(e)),
             ctx.eventsHub.on('zoom:change-complete', (e) => this.onZoomChange(e))
         );
@@ -41,12 +52,53 @@ export class DataWindowProcessor implements UpdateProcessor {
     }
 
     private onDataLoad() {
+        // A renderable-shaped load can still fail to render against the series keys; its gate-state
+        // rollback must survive until the chart confirms the render via `data:render-verdict`, so we
+        // do not discard it here. Until then an identical re-zoom stays short-circuited (correct: the
+        // load committed unless and until the verdict overturns it).
         this.ctx.animationManager.skip();
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.UPDATE_DATA });
     }
 
-    private onDataError() {
+    private onDataError(event: { requestId?: number } | null) {
+        this.applyRollback(event?.requestId);
+        this.discardRollbacksUpTo(event?.requestId);
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
+    }
+
+    private onRenderVerdict({ requestId, rendered }: { requestId?: number; rendered: boolean }) {
+        // A load that rendered nothing is retained-not-committed by the chart; restore the gate state
+        // it advanced past so an identical re-zoom re-issues the request, mirroring the error path.
+        if (!rendered) {
+            this.applyRollback(requestId);
+        }
+        this.discardRollbacksUpTo(requestId);
+    }
+
+    private applyRollback(requestId: number | undefined) {
+        const rollback = requestId == null ? undefined : this.errorRollbacks.get(requestId);
+
+        // Only the latest outstanding request may roll back the live gates: a stale rollback (an older
+        // overlapping request that resolved late) must not clobber a newer request's advance.
+        if (rollback && requestId === this.latestRequestId) {
+            this.lastWindow = rollback.window;
+            if (rollback.axisId != null) {
+                if (rollback.axisZoom) {
+                    this.lastAxisZooms.set(rollback.axisId, rollback.axisZoom);
+                } else {
+                    this.lastAxisZooms.delete(rollback.axisId);
+                }
+            }
+        }
+    }
+
+    private discardRollbacksUpTo(requestId: number | undefined) {
+        if (requestId == null) return;
+        for (const id of this.errorRollbacks.keys()) {
+            if (id <= requestId) {
+                this.errorRollbacks.delete(id);
+            }
+        }
     }
 
     private onDataSourceChange() {
@@ -72,6 +124,9 @@ export class DataWindowProcessor implements UpdateProcessor {
 
         const axis = this.chart.axes.find(({ direction }) => direction === ChartAxisDirection.X);
 
+        const priorWindow = this.lastWindow;
+        const priorAxisZoom = axis ? this.lastAxisZooms.get(axis.id) : undefined;
+
         let window: AgDataSourceCallbackParams | undefined;
         let shouldRefresh = true;
 
@@ -90,7 +145,18 @@ export class DataWindowProcessor implements UpdateProcessor {
 
         if (!shouldRefresh) return;
 
-        this.ctx.dataService.load({ windowStart: window?.windowStart, windowEnd: window?.windowEnd, source });
+        // Snapshot the gate state this request advances past, keyed by a per-request id, so a failed
+        // response can restore it and let an identical re-zoom re-issue the request (see onDataError).
+        // Keying by id keeps overlapping requests (dispatchOnlyLatest=false) from corrupting each
+        // other's rollback.
+        const requestId = this.requestCounter++;
+        this.latestRequestId = requestId;
+        this.errorRollbacks.set(requestId, { window: priorWindow, axisId: axis?.id, axisZoom: priorAxisZoom });
+
+        this.ctx.dataService.load(
+            { windowStart: window?.windowStart, windowEnd: window?.windowEnd, source },
+            requestId
+        );
     }
 
     private shouldRefresh(

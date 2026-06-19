@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { type Mock, afterEach, describe, expect, it } from 'vitest';
 
 import {
     type AgCartesianChartOptions,
@@ -10,6 +10,7 @@ import {
 import {
     clickAction,
     delay,
+    expectWarningsCalls,
     extractImageData,
     scrollAction,
     setupMockCanvas,
@@ -510,6 +511,174 @@ describe('DataSource', () => {
             await waitForChartStability(chart);
 
             expect(sources).toContain('state-change');
+        });
+    });
+
+    describe('invalid response recovery', () => {
+        // A response that renders no data must be retained-not-rendered just like a non-array
+        // response — otherwise it would blank the chart to the no-data overlay. Only a non-array is a
+        // developer error that warrants a warning; every array (empty, primitives, all-null rows, or
+        // rows whose keys do not match the series) is structurally valid and is retained silently when
+        // it renders nothing.
+        it.each([
+            ['a non-array response', undefined as any, true],
+            ['an empty array', [], false],
+            ['an array of primitives (wrong shape)', [1, 2, 3], false],
+            ['an array of all-null-value objects (null fields)', [{ time: null, price: null }], false],
+            // Renderable-shaped objects whose keys do not match the series (`time`/`price`) are
+            // dispatched but render nothing post-process; the chart must retain the previous data and
+            // stay re-requestable.
+            [
+                'an array of renderable objects with wrong keys',
+                [
+                    { x: 1, y: 2, label: 'Point A' },
+                    { x: 2, y: 4, label: 'Point B' },
+                ],
+                false,
+            ],
+        ])(
+            'retains the previous render on %s and recovers on the next zoom',
+            async (_label, invalidResponse, expectArrayWarning) => {
+                const validData = [
+                    { time: new Date('2024-01-01 00:00:00'), price: 0 },
+                    { time: new Date('2024-01-02 00:00:00'), price: 50 },
+                    { time: new Date('2024-01-03 00:00:00'), price: 25 },
+                    { time: new Date('2024-01-04 00:00:00'), price: 75 },
+                    { time: new Date('2024-01-05 00:00:00'), price: 50 },
+                    { time: new Date('2024-01-06 00:00:00'), price: 25 },
+                    { time: new Date('2024-01-07 00:00:00'), price: 50 },
+                ];
+
+                let callCount = 0;
+                let resolveInitial!: (data: typeof validData) => void;
+                const initialResponse = new Promise<typeof validData>((resolve) => {
+                    resolveInitial = resolve;
+                });
+                await prepareChart({
+                    getData: () => {
+                        callCount++;
+                        // First (initial) request: deferred valid data (so we can capture the blank
+                        // loading state first). Next request (the first zoom): invalid. Any later
+                        // request (the recovery zoom): valid again.
+                        if (callCount === 1) return initialResponse;
+                        const data = callCount === 2 ? invalidResponse : validData;
+                        return delay(1).then(() => data);
+                    },
+                });
+
+                // Anti-vacuous baseline: the canvas while the initial request is still pending.
+                const blank = extractImageData(ctx);
+
+                resolveInitial(validData);
+                await delay(1);
+                await waitForChartStability(chart);
+
+                const preError = extractImageData(ctx);
+                // The rendered data state must differ from the blank/loading canvas.
+                expect(preError.equals(blank)).toBe(false);
+
+                // A user zoom that triggers the invalid response.
+                await scrollAction(cx, cy, -1)(chart);
+                await delay(1);
+                await waitForChartStability(chart);
+
+                // The chart keeps its retained data rather than blanking out on the invalid response.
+                // The blank/loading comparison only proves the axes/navigator still draw; the series
+                // retaining renderable data is the load-bearing check (wrong-keyed rows are a valid
+                // array but render nothing, so only this catches their post-process blanking).
+                const postError = extractImageData(ctx);
+                expect(postError.equals(blank)).toBe(false);
+                expect(chart.chart.series.every((series: { hasData: boolean }) => series.hasData)).toBe(true);
+
+                const warnCalls = (console.warn as Mock).mock.calls;
+                const invalidValueWarnings = warnCalls.filter(
+                    ([message]) =>
+                        typeof message === 'string' &&
+                        message.includes('[dataSource.getData] returned an invalid value')
+                );
+                expect(invalidValueWarnings).toHaveLength(expectArrayWarning ? 1 : 0);
+                // Drain the remaining warnings so setupMockConsole's afterEach does not fail.
+                expectWarningsCalls();
+
+                // A subsequent user zoom recovers with a valid response and re-renders, proving the
+                // failed request did not wedge zoom/pan (the re-zoom re-issues the request).
+                await scrollAction(cx, cy, -1)(chart);
+                await delay(1);
+                await waitForChartStability(chart);
+
+                const recovered = extractImageData(ctx);
+                expect(recovered.equals(postError)).toBe(false);
+            }
+        );
+    });
+
+    describe('financial chart zoom preservation', () => {
+        // A response that collapses the domain to a single band (zero span) must not corrupt the zoom.
+        it('retains data and zoom when an unrenderable response collapses the domain', async () => {
+            const validData = Array.from({ length: 40 }, (_, i) => ({
+                date: new Date(2024, 0, 1 + i),
+                open: 100 + i,
+                high: 105 + i,
+                low: 95 + i,
+                close: 102 + i,
+                volume: 1000 + i * 10,
+            }));
+            // The valid `date` keeps `hasData` non-trivial; the OHLC values are all non-finite.
+            const malformed = [
+                { date: 'not-a-date', open: 'abc', high: null, low: undefined, close: 103, volume: 1500000 },
+                {
+                    date: new Date(2024, 0, 3),
+                    open: Number.NaN,
+                    high: Number.POSITIVE_INFINITY,
+                    low: Number.NEGATIVE_INFINITY,
+                    close: 106,
+                    volume: 1800000,
+                },
+                { wrongKey: 'value' },
+                {},
+            ];
+
+            let scenario: 'valid' | 'malformed' = 'valid';
+            const finOptions: any = {
+                width: 800,
+                height: 600,
+                toolbar: false,
+                statusBar: false,
+                dataSource: {
+                    requestThrottle: 0,
+                    updateThrottle: 0,
+                    updateDuringInteraction: true,
+                    getData: () => delay(1).then(() => (scenario === 'malformed' ? malformed : validData)),
+                },
+            };
+            prepareEnterpriseTestOptions(finOptions);
+            cx = finOptions.width / 2;
+            cy = finOptions.height / 2;
+            chart = AgCharts.createFinancialChart(finOptions);
+            await waitForChartStability(chart);
+            await clickAction(cx, cy)(chart);
+            await delay(1);
+            await waitForChartStability(chart);
+
+            await scrollAction(cx, cy, -1)(chart);
+            await delay(1);
+            await waitForChartStability(chart);
+            const zoomBefore = chart.getState().zoom!.ratioX!;
+            expect(zoomBefore.start).toBeGreaterThan(0); // anti-vacuous: baseline is zoomed in
+
+            scenario = 'malformed';
+            await scrollAction(cx, cy, -1)(chart);
+            await delay(1);
+            await waitForChartStability(chart);
+
+            const zoomAfter = chart.getState().zoom!.ratioX!;
+            expect(Number.isFinite(zoomAfter.start)).toBe(true);
+            expect(Number.isFinite(zoomAfter.end)).toBe(true);
+            expect(zoomAfter.start).toBeGreaterThanOrEqual(zoomBefore.start);
+            // Retained, not committed: the previous render survives.
+            expect(chart.chart.series.every((series: { hasData: boolean }) => series.hasData)).toBe(true);
+
+            expectWarningsCalls(); // drain value-validation warnings
         });
     });
 

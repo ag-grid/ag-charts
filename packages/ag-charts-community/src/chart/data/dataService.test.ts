@@ -1,7 +1,7 @@
 import type { MockInstance } from 'vitest';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { AgDocument, EventEmitter, getDocument } from 'ag-charts-core';
+import { AgDocument, EventEmitter, Logger, getDocument } from 'ag-charts-core';
 
 import { Mutex } from '../../util/mutex';
 import { AnimationManager } from '../interaction/animationManager';
@@ -53,7 +53,7 @@ describe('DataService', () => {
 
         expect(dataSourceCallback).toHaveBeenCalledTimes(1);
         expect(dataSourceCallback).toHaveBeenCalledWith(undefinedWindow);
-        expect(eventEmitSpy).toHaveBeenCalledWith('data:load', { data });
+        expect(eventEmitSpy).toHaveBeenCalledWith('data:load', expect.objectContaining({ data }));
     });
 
     it('should emit `data:load` and callback with a defined window', async () => {
@@ -66,7 +66,7 @@ describe('DataService', () => {
 
         expect(dataSourceCallback).toHaveBeenCalledTimes(1);
         expect(dataSourceCallback).toHaveBeenCalledWith(definedWindow);
-        expect(eventEmitSpy).toHaveBeenCalledWith('data:load', { data });
+        expect(eventEmitSpy).toHaveBeenCalledWith('data:load', expect.objectContaining({ data }));
     });
 
     describe('pending data', () => {
@@ -85,7 +85,7 @@ describe('DataService', () => {
             await sleep();
 
             expect(dataSourceCallback).not.toHaveBeenCalled();
-            expect(eventEmitSpy).toHaveBeenCalledWith('data:load', { data: dataRestored });
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:load', expect.objectContaining({ data: dataRestored }));
         });
 
         it('should emit `data:load` with restored data and NOT callback with a defined window', async () => {
@@ -99,7 +99,7 @@ describe('DataService', () => {
             await sleep();
 
             expect(dataSourceCallback).not.toHaveBeenCalled();
-            expect(eventEmitSpy).toHaveBeenCalledWith('data:load', { data: dataRestored });
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:load', expect.objectContaining({ data: dataRestored }));
         });
 
         it('should emit `data:load` with callback data if pending window does not match requested window', async () => {
@@ -117,7 +117,7 @@ describe('DataService', () => {
                 windowStart: new Date('2025-04-01'),
                 windowEnd: definedWindow.windowEnd,
             });
-            expect(eventEmitSpy).toHaveBeenCalledWith('data:load', { data: dataCallback });
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:load', expect.objectContaining({ data: dataCallback }));
         });
 
         it('should emit `data:load` with restored data and NOT callback if pending window is undefined and requested window is defined', async () => {
@@ -131,7 +131,203 @@ describe('DataService', () => {
             await sleep();
 
             expect(dataSourceCallback).not.toHaveBeenCalled();
-            expect(eventEmitSpy).toHaveBeenCalledWith('data:load', { data: dataRestored });
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:load', expect.objectContaining({ data: dataRestored }));
         });
+    });
+
+    describe('invalid getData response', () => {
+        let consoleWarnSpy: MockInstance;
+
+        const arrayWarning = (calls: unknown[][]) =>
+            calls.filter((args) => typeof args[0] === 'string' && args[0].includes('expecting an array'));
+        const requestFailedWarning = (calls: unknown[][]) =>
+            calls.filter((args) => typeof args[0] === 'string' && args[0].includes('request failed'));
+
+        beforeEach(() => {
+            Logger.reset();
+            consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            consoleWarnSpy.mockRestore();
+        });
+
+        it.each([
+            ['undefined', undefined],
+            ['null', null],
+            ['a plain object', { not: 'an array' }],
+        ])('should warn and emit `data:error` when the callback resolves to %s', async (_label, value) => {
+            const dataSourceCallback = vi.fn((_params) => Promise.resolve(value));
+            dataService.updateCallback(dataSourceCallback);
+            dataService.load(undefinedWindow);
+
+            await sleep();
+
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:error', expect.objectContaining({}));
+            expect(eventEmitSpy).not.toHaveBeenCalledWith('data:load', expect.anything());
+            expect(arrayWarning(consoleWarnSpy.mock.calls)).toHaveLength(1);
+        });
+
+        // A non-empty array is structurally valid at the series-agnostic DataService boundary, so it is
+        // dispatched without a warning even when its rows cannot render against the series keys; that
+        // case is detected and retained later by the chart's post-render check.
+        it.each([
+            ['objects with custom keys', [{ foo: 1 }, { bar: 2 }]],
+            ['primitives', [1, 2, 3]],
+            ['objects with only null field values', [{ x: null, y: null }]],
+        ])(
+            'should emit `data:load` without warning when the callback resolves to an array of %s',
+            async (_label, data) => {
+                const dataSourceCallback = vi.fn((_params) => Promise.resolve(data));
+                dataService.updateCallback(dataSourceCallback);
+                dataService.load(undefinedWindow);
+
+                await sleep();
+
+                expect(eventEmitSpy).toHaveBeenCalledWith('data:load', expect.objectContaining({ data }));
+                expect(arrayWarning(consoleWarnSpy.mock.calls)).toHaveLength(0);
+            }
+        );
+
+        it('should retain previous data (emit `data:error`, not `data:load`) and NOT warn on an empty array', async () => {
+            const dataSourceCallback = vi.fn((_params) => Promise.resolve([]));
+            dataService.updateCallback(dataSourceCallback);
+            dataService.load(undefinedWindow);
+
+            await sleep();
+
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:error', expect.objectContaining({}));
+            expect(eventEmitSpy).not.toHaveBeenCalledWith('data:load', expect.anything());
+            expect(arrayWarning(consoleWarnSpy.mock.calls)).toHaveLength(0);
+        });
+
+        it('should warn only once across repeated invalid responses', async () => {
+            const dataSourceCallback = vi.fn((_params) => Promise.resolve(undefined));
+            dataService.updateCallback(dataSourceCallback);
+
+            dataService.load(undefinedWindow);
+            await sleep();
+            dataService.load(definedWindow);
+            await sleep();
+
+            expect(dataSourceCallback).toHaveBeenCalledTimes(2);
+            expect(arrayWarning(consoleWarnSpy.mock.calls)).toHaveLength(1);
+        });
+
+        it('should not wedge the initial load: a later valid response still emits `data:load`', async () => {
+            const dataSourceCallback = vi
+                .fn()
+                .mockResolvedValueOnce(undefined)
+                .mockResolvedValueOnce([{ datum: 'value' }]);
+            dataService.updateCallback(dataSourceCallback);
+
+            dataService.load(undefinedWindow);
+            await sleep();
+
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:error', expect.objectContaining({}));
+            expect(eventEmitSpy).not.toHaveBeenCalledWith('data:load', expect.anything());
+
+            dataService.load(definedWindow);
+            await sleep();
+
+            expect(eventEmitSpy).toHaveBeenCalledWith(
+                'data:load',
+                expect.objectContaining({ data: [{ datum: 'value' }] })
+            );
+        });
+
+        it('should warn once about the failure and NOT the array warning when the callback rejects', async () => {
+            const dataSourceCallback = vi.fn((_params) => Promise.reject(new Error('boom')));
+            dataService.updateCallback(dataSourceCallback);
+            dataService.load(undefinedWindow);
+
+            await sleep();
+
+            expect(requestFailedWarning(consoleWarnSpy.mock.calls)).toHaveLength(1);
+            expect(arrayWarning(consoleWarnSpy.mock.calls)).toHaveLength(0);
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:error', expect.objectContaining({}));
+        });
+
+        it('should resolve `getData()` to undefined when no valid response has been dispatched', async () => {
+            const dataSourceCallback = vi.fn((_params) => Promise.resolve(undefined));
+            dataService.updateCallback(dataSourceCallback);
+            dataService.load(undefinedWindow);
+
+            await sleep();
+
+            await expect(dataService.getData()).resolves.toBeUndefined();
+        });
+
+        it('should resolve `getData()` to the last valid data after a later invalid response', async () => {
+            const validData = [{ datum: 'value' }];
+            const dataSourceCallback = vi.fn().mockResolvedValueOnce(validData).mockResolvedValueOnce(undefined);
+            dataService.updateCallback(dataSourceCallback);
+
+            dataService.load(undefinedWindow);
+            await sleep();
+            dataService.load(definedWindow);
+            await sleep();
+
+            await expect(dataService.getData()).resolves.toEqual(expect.objectContaining({ data: validData }));
+        });
+
+        it('should echo the requestId on `data:error` so a stale error can be correlated', async () => {
+            const dataSourceCallback = vi.fn((_params) => Promise.resolve(undefined));
+            dataService.updateCallback(dataSourceCallback);
+            dataService.load(undefinedWindow, 42);
+
+            await sleep();
+
+            expect(eventEmitSpy).toHaveBeenCalledWith('data:error', { requestId: 42 });
+        });
+    });
+
+    describe('secondary loader (navigator mini-chart) response validation', () => {
+        it.each([
+            ['a non-array response', undefined],
+            ['an empty array', []],
+        ])(
+            'should not forward %s to the secondary loader so the mini-chart retains its last valid display',
+            async (_label, miniChartResponse) => {
+                const secondaryCallback = vi.fn();
+                const dataSourceCallback = vi.fn(({ source }) =>
+                    Promise.resolve(source === 'mini-chart' ? miniChartResponse : [{ datum: 'value' }])
+                );
+                dataService.updateCallback(dataSourceCallback);
+                dataService.registerSecondaryLoader('mini-chart', ['chart-update'], secondaryCallback);
+                dataService.load({ ...undefinedWindow, source: 'chart-update' });
+
+                await sleep();
+
+                expect(dataSourceCallback).toHaveBeenCalledWith(expect.objectContaining({ source: 'mini-chart' }));
+                expect(secondaryCallback).not.toHaveBeenCalled();
+            }
+        );
+
+        it('should forward a valid non-empty array to the secondary loader', async () => {
+            const miniChartData = [{ datum: 'mini' }];
+            const secondaryCallback = vi.fn();
+            const dataSourceCallback = vi.fn(({ source }) =>
+                Promise.resolve(source === 'mini-chart' ? miniChartData : [{ datum: 'value' }])
+            );
+            dataService.updateCallback(dataSourceCallback);
+            dataService.registerSecondaryLoader('mini-chart', ['chart-update'], secondaryCallback);
+            dataService.load({ ...undefinedWindow, source: 'chart-update' });
+
+            await sleep();
+
+            expect(secondaryCallback).toHaveBeenCalledWith(miniChartData);
+        });
+    });
+
+    it('should echo the requestId on `data:load`', async () => {
+        const data = [{ datum: 'value' }];
+        const dataSourceCallback = vi.fn((_params) => Promise.resolve(data));
+        dataService.updateCallback(dataSourceCallback);
+        dataService.load(definedWindow, 7);
+
+        await sleep();
+
+        expect(eventEmitSpy).toHaveBeenCalledWith('data:load', { data, requestId: 7 });
     });
 });

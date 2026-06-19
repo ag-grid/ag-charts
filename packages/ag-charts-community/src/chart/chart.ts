@@ -300,6 +300,13 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     public data: DataSet = DataSet.empty();
 
+    // A dispatched lazy load is a non-empty array, but its rows can still fail to render against the
+    // series keys (wrong-shaped or all-null rows). The DataService is series-agnostic and cannot
+    // detect that; only a post-process check on `series.hasData` can. Each load snapshots the
+    // outgoing data-set so the next `update:complete` can restore it if the load rendered nothing,
+    // keeping the chart non-blank and re-requestable on an identical re-zoom.
+    private pendingDataRetain: { snapshot: DataSet; requestId: number | undefined } | undefined = undefined;
+
     public loading: boolean | undefined = undefined;
 
     @ActionOnSet<Chart>({
@@ -420,6 +427,24 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     protected createDataSet(data: unknown[]): DataSet {
         const dataIdKey: string | undefined = this.ctx.chartState.getValue('options', 'dataIdKey');
         return replaceDataSet(this.ctx.dataSelectionService, this.data, data, dataIdKey);
+    }
+
+    private resolveDataRetain() {
+        const retain = this.pendingDataRetain;
+        if (retain == null) return;
+        this.pendingDataRetain = undefined;
+
+        const rendered = this.series.some((series) => series.hasData);
+        this.ctx.eventsHub.emit('data:render-verdict', { requestId: retain.requestId, rendered });
+        if (rendered) return;
+
+        // The load replaced the data-set but rendered nothing against the series keys; restore the
+        // prior renderable data-set so the chart stays non-blank, and re-run the data path to redraw.
+        this.data = retain.snapshot;
+        this.ctx.eventsHub.emit('chart:request-update', {
+            type: ChartUpdateType.UPDATE_DATA,
+            opts: { forceNodeDataRefresh: true },
+        });
     }
 
     constructor(options: ChartOptions, resources?: TransferableResources) {
@@ -561,8 +586,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             ctx.eventsHub.on('layout:complete', (e) => this.chartCaptions.positionAbsoluteCaptions(e)),
 
             ctx.eventsHub.on('data:load', (event) => {
+                this.pendingDataRetain = { snapshot: this.data, requestId: event.requestId };
                 this.data = this.createDataSet(event.data);
             }),
+
+            ctx.eventsHub.on('update:complete', () => this.resolveDataRetain()),
 
             this.title.registerInteraction(moduleContext, 'beforebegin'),
             this.subtitle.registerInteraction(moduleContext, 'beforebegin'),

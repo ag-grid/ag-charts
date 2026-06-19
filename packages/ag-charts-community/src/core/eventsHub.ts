@@ -113,8 +113,9 @@ export interface EventsHubMap {
     'chart:request-update': UpdateRequestEvent;
     'context-menu:setup': ContextMenuEvent;
     'context-menu:complete': ContextMenuEvent;
-    'data:load': { data: unknown[] };
-    'data:error': null;
+    'data:load': { data: unknown[]; requestId?: number };
+    'data:error': { requestId?: number } | null;
+    'data:render-verdict': { requestId?: number; rendered: boolean };
     'data:update': DataSet | undefined;
     'data:source-change': null;
     'datamodel:diff': DataModelDiffEvent;

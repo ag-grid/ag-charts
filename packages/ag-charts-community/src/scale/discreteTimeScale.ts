@@ -22,7 +22,8 @@ export function checkUniformityBySampling(
     endIdx: number = bands.length - 1
 ): UniformityCheck {
     const n = endIdx - startIdx + 1;
-    if (n < 2) return { isUniform: false };
+    // `n` is NaN for a collapsed single-band domain, which `n < 2` alone would let through.
+    if (!Number.isFinite(n) || n < 2) return { isUniform: false };
     if (startIdx < 0 || endIdx >= bands.length) return { isUniform: false };
 
     // Sample SAMPLE_POINTS points evenly spaced within the range
