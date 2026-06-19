@@ -3,6 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     BaseProperties,
     ChartAxisDirection,
+    type NormalisedPaddingOptions,
     Property,
     type Scale,
     clamp,
@@ -29,7 +30,7 @@ export class PolarCrossLineLabel extends LabelStyle implements AgBaseCrossLineLa
     enabled?: boolean;
 
     @Property
-    override padding: number = 5;
+    override padding: NormalisedPaddingOptions = { top: 5, right: 5, bottom: 5, left: 5 };
 
     @Property
     text?: string;
@@ -317,8 +318,8 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
             const midX = ((axisInnerRadius + axisOuterRadius) / 2) * Math.cos(angle);
             const midY = ((axisInnerRadius + axisOuterRadius) / 2) * Math.sin(angle);
 
-            labelX = midX + label.padding * Math.cos(angle + Math.PI / 2);
-            labelY = midY + label.padding * Math.sin(angle + Math.PI / 2);
+            labelX = midX + label.padding.left * Math.cos(angle + Math.PI / 2);
+            labelY = midY + label.padding.top * Math.sin(angle + Math.PI / 2);
             textBaseline = isRightSide ? 'top' : 'bottom';
             rotation = isRightSide ? angle : angle - Math.PI;
         } else {
@@ -332,9 +333,9 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
 
             let distance: number;
             if (this.shape === 'circle' || ticks.length < 3) {
-                distance = axisOuterRadius - label.padding;
+                distance = axisOuterRadius - label.padding.top;
             } else {
-                distance = axisOuterRadius * Math.cos(Math.PI / ticks.length) - label.padding;
+                distance = axisOuterRadius * Math.cos(Math.PI / ticks.length) - label.padding.top;
             }
 
             labelX = distance * Math.cos(angle);
@@ -481,11 +482,11 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
         let distance: number;
         const angles = this.gridAngles ?? [];
         if (type === 'line') {
-            distance = innerRadius + label.padding;
+            distance = innerRadius + label.padding.bottom;
         } else if (shape === 'circle' || angles.length < 3) {
-            distance = innerRadius - label.padding;
+            distance = innerRadius - label.padding.bottom;
         } else {
-            distance = innerRadius * Math.cos(Math.PI / angles.length) - label.padding;
+            distance = innerRadius * Math.cos(Math.PI / angles.length) - label.padding.bottom;
         }
 
         const labelX = distance * Math.cos(angle);

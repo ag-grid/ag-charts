@@ -62,7 +62,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 fill: undefined, // Override default fill
                 stroke: undefined, // Override default stroke
                 strokeWidth: 1,
-                padding: 4,
+                padding: { $applyPadding: 4 },
                 gap: 2,
                 textAlign: 'left',
                 highlight: {
@@ -103,7 +103,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 fill: undefined, // Override default fill
                 stroke: undefined, // Override default stroke
                 strokeWidth: { $isUserOption: ['../strokes/0', 2, { $isUserOption: ['./stroke', 2, 0] }] },
-                padding: 3,
+                padding: { $applyPadding: 3 },
                 gap: 1,
                 highlight: {
                     enabled: { $circular: { $path: '/highlight/enabled' } },

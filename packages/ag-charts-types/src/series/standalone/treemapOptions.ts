@@ -20,7 +20,7 @@ import type {
     TextAlign,
     VerticalAlign,
 } from '../../chart/types';
-import type { AgColorScale, AgColorType, FillOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type { AgColorScale, AgColorType, FillOptions, Padding, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export type AgTreemapHighlightState = HierarchyHighlightState;
@@ -53,7 +53,7 @@ export interface AgTreemapSeriesGroupLayout<TDatum, TContext = ContextDefault> {
     /** Horizontal position of the label. */
     textAlign?: TextAlign;
     /** The distance between the edges of the outer-most title to the edges of the group. */
-    padding?: PixelSize;
+    padding?: Padding;
     /** Gap between adjacent groups. */
     gap?: PixelSize;
     /** Whether the group can be highlighted. */
@@ -84,7 +84,7 @@ export interface AgTreemapSeriesTileLayout<TDatum, TContext = ContextDefault> {
     /** Vertical position of the label. */
     verticalAlign?: VerticalAlign;
     /** Distance between the tile edges and the text. */
-    padding?: PixelSize;
+    padding?: Padding;
     /** Gap between adjacent tile. */
     gap?: PixelSize;
 }

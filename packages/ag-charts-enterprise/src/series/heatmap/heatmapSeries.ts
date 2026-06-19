@@ -18,6 +18,7 @@ import {
     type InternalAgColorType,
     Logger,
     type Mutable,
+    type NormalisedPaddingOptions,
     type NormalisedTextOrSegments,
     type Point,
     type SizedPoint,
@@ -100,7 +101,7 @@ interface HeatmapSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNo
     readonly colorName: string | undefined;
     readonly colorValues: number[] | undefined;
     readonly colorDomain: number[];
-    readonly itemPadding: number;
+    readonly itemPadding: NormalisedPaddingOptions;
 
     // Label support
     readonly labels: HeatmapLabelDatum[];
@@ -398,8 +399,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             yOffset: (yScale.bandwidth ?? 0) / 2,
             width,
             height,
-            textAlignFactor: (width - 2 * itemPadding) * textAlignFactors[textAlign],
-            verticalAlignFactor: (height - 2 * itemPadding) * verticalAlignFactors[verticalAlign],
+            textAlignFactor: (width - itemPadding.left - itemPadding.right) * textAlignFactors[textAlign],
+            verticalAlignFactor: (height - itemPadding.top - itemPadding.bottom) * verticalAlignFactors[verticalAlign],
 
             // Heatmap-specific data
             yValues,
@@ -575,9 +576,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { text, fontSize, lineHeight, height: labelHeight } = labels.label;
         const { fontStyle, fontFamily, fontWeight, color } = this.properties.label;
         const { textAlign, verticalAlign } = this.properties;
-        const lx = nodeDatum.point.x + textAlignFactor * (width - 2 * itemPadding);
+        const lx = nodeDatum.point.x + textAlignFactor * (width - itemPadding.left - itemPadding.right);
         const ly =
-            nodeDatum.point.y + verticalAlignFactor * (height - 2 * itemPadding) - (labels.height - labelHeight) * 0.5;
+            nodeDatum.point.y +
+            verticalAlignFactor * (height - itemPadding.top - itemPadding.bottom) -
+            (labels.height - labelHeight) * 0.5;
 
         return {
             series: this,

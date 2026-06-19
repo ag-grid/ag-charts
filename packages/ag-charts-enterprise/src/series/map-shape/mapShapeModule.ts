@@ -55,7 +55,7 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
             strokeWidth: 1,
             lineDash: [0],
             lineDashOffset: 0,
-            padding: 2,
+            padding: { $applyPadding: 2 },
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 enabled: true,

@@ -244,7 +244,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const { width, height } = chart.seriesRect!;
         const {
             sectorSpacing = 0,
-            padding = 0,
+            padding = { top: 0, right: 0, bottom: 0, left: 0 },
             cornerRadius,
             childrenKey,
             colorKey,
@@ -424,7 +424,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 case LabelPlacement.Parallel: {
                     const opticalCentering = 0.58; // Between 0 and 1 - there's no maths behind this, just what visually looks good
                     const idealRadius = outerRadius - (radiusScale - labelHeight) * opticalCentering;
-                    const maximumRadius = Math.sqrt((outerRadius - padding) ** 2 - (labelWidth / 2) ** 2);
+                    const maximumRadius = Math.sqrt(
+                        (outerRadius - Math.max(padding.left + padding.right, padding.top + padding.bottom)) ** 2 -
+                            (labelWidth / 2) ** 2
+                    );
                     labelRadius = Math.min(idealRadius, maximumRadius);
                     break;
                 }

@@ -161,8 +161,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         if (node.parent == null) {
             return { top: 0, right: 0, bottom: 0, left: 0 };
         } else if (node.children.length === 0) {
-            const { padding } = this.properties.tile;
-            return { top: padding, right: padding, bottom: padding, left: padding };
+            return this.properties.tile.padding;
         }
 
         const {
@@ -173,10 +172,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         const titleHeight = fontHeight == null ? 0 : fontHeight + spacing;
 
         return {
-            top: padding + titleHeight,
-            right: padding,
-            bottom: padding,
-            left: padding,
+            top: padding.top + titleHeight,
+            right: padding.right,
+            bottom: padding.bottom,
+            left: padding.left,
         };
     }
 
@@ -563,14 +562,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 const { textAlign, verticalAlign, padding } = tile;
 
                 const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
-                const labelX = bbox.x + padding + (bbox.width - 2 * padding) * textAlignFactor;
+                const labelX = bbox.x + padding.left + (bbox.width - padding.left - padding.right) * textAlignFactor;
 
                 const verticalAlignFactor = verticalAlignFactors[verticalAlign] ?? 0.5;
                 const labelYStart =
                     bbox.y +
-                    padding +
+                    padding.top +
                     labelHeight * 0.5 +
-                    (bbox.height - 2 * padding - labelHeight) * verticalAlignFactor;
+                    (bbox.height - padding.top - padding.bottom - labelHeight) * verticalAlignFactor;
 
                 if (label != null) {
                     const {
@@ -622,9 +621,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 const groupTitleHeight = this.groupTitleHeight(node, bbox);
                 if (groupTitleHeight == null) return;
 
-                const innerWidth = bbox.width - 2 * padding;
+                const innerWidth = bbox.width - padding.left - padding.right;
                 const text = wrapText(labelValue, {
-                    maxWidth: bbox.width - 2 * padding,
+                    maxWidth: bbox.width - innerWidth,
                     font: group.label,
                     textWrap: 'never',
                 });
@@ -647,8 +646,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                     color,
                     textAlign,
                     verticalAlign: 'middle',
-                    x: bbox.x + padding + innerWidth * textAlignFactor,
-                    y: bbox.y + padding + groupTitleHeight * 0.5,
+                    x: bbox.x + padding.left + innerWidth * textAlignFactor,
+                    y: bbox.y + padding.top + groupTitleHeight * 0.5,
                 };
             }
         });

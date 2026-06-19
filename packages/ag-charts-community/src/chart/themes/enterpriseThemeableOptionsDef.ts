@@ -23,6 +23,7 @@ import {
     multiSeriesHighlightOptionsDef,
     numberFormatValidator,
     overflowStrategy,
+    padding,
     positiveNumber,
     positiveNumberNonZero,
     positiveNumericValue,
@@ -358,7 +359,7 @@ export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesTh
 
 export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThemeableOptions> = {
     colorScale: colorScaleOptionsDef,
-    padding: positiveNumber,
+    padding: padding,
     itemStyler: callbackDefs<AgMapShapeSeriesStyle>({
         ...fillOptionsDef,
         ...strokeOptionsDef,
@@ -665,7 +666,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
     }),
     group: {
         gap: positiveNumber,
-        padding: positiveNumber,
+        padding: padding,
         cornerRadius: positiveNumber,
         textAlign: union('left', 'center', 'right'),
         interactive: boolean,
@@ -683,7 +684,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
     },
     tile: {
         gap: positiveNumber,
-        padding: positiveNumber,
+        padding: padding,
         cornerRadius: positiveNumber,
         textAlign: union('left', 'center', 'right'),
         verticalAlign: union('top', 'middle', 'bottom'),

@@ -1,4 +1,12 @@
-import type { Callback, CallbackParam, DynamicContext, IsAny, NormalisedTextOrSegments, Point } from 'ag-charts-core';
+import type {
+    Callback,
+    CallbackParam,
+    DynamicContext,
+    IsAny,
+    NormalisedPaddingOptions,
+    NormalisedTextOrSegments,
+    Point,
+} from 'ag-charts-core';
 import { type NormalisedChartLabelStyleOptions, mergeDefaults } from 'ag-charts-core';
 import type {
     AgChartLabelStylerParams,
@@ -73,7 +81,7 @@ export function getLabelStyles<TParams>(
 
         const styleParams: NormalisedCallbackParams<
             AgChartLabelStylerParams<unknown, unknown>,
-            { color?: CssColor; fontSize: number }
+            { color?: CssColor; fontSize: number; padding?: NormalisedPaddingOptions }
         > = {
             border: label.border,
             color: label.color,
