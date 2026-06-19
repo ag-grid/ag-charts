@@ -21,6 +21,8 @@ Font families can accept the following value types:
 
 ### Google Fonts
 
+{% chartExampleRunner title="Google Fonts" name="google-fonts" type="generated" /%}
+
 To prevent potential licensing and privacy implications, the chart will not load Google fonts unless requested to.
 
 If you want to use Google fonts, you should either:
@@ -29,8 +31,6 @@ If you want to use Google fonts, you should either:
 - Load the font yourself using a `@font-face` rule in your application's CSS.
 
 If the font has not been loaded through either of the above methods, the theme will fall back to the most appropriate font available on the system.
-
-{% chartExampleRunner title="Google Fonts" name="google-fonts" type="generated" /%}
 
 In the above example:
 
@@ -107,39 +107,38 @@ In the above example:
 
 ### Aligning Segments Vertically
 
-Segments share a baseline by default, so a larger glyph — a flag emoji, an icon — can ride high above the line. Set `verticalAlign: 'middle'` to centre it instead.
+Segments share a baseline by default. Set `verticalAlign: 'middle'` to centre it instead.
+
+{% chartExampleRunner title="Aligning Segments Vertically" name="text-vertical-align" type="generated" /%}
 
 ```js format="snippet"
 {
-    axes: {
-        x: {
-            type: 'category',
-            label: {
-                formatter: ({ value }) => [
-                    { text: '🇺🇸 ', fontSize: 18, verticalAlign: 'middle' },
-                    { text: String(value), fontWeight: 'bold' },
-                ],
-            },
-        },
+    title: {
+        text: [
+            { text: '🚀 ', fontSize: 36, verticalAlign: 'baseline' },
+            { text: 'Quarterly ', fontSize: 16, verticalAlign: 'baseline' },
+            { text: 'Spending ', fontSize: 28, verticalAlign: 'baseline' },
+            { text: 'Growth', fontSize: 20, verticalAlign: 'baseline' },
+        ],
     },
 }
 ```
 
-`verticalAlign` applies per segment, so a single line can mix baseline-aligned text with centred emoji or icon glyphs.
+In this example:
 
-## Images
+- Use the buttons to align every segment in the title, moving the large and small text together.
+- `'baseline'` and `'bottom'` differ where text has descenders (such as the `p`, `y`, and `g` in the title): baseline aligns the text baselines, while bottom aligns the lowest pixel of each segment.
+- `verticalAlign` applies per segment, so a single line can also mix baseline-aligned text with centred emoji or icon glyphs.
 
-Three approaches add imagery to any label that accepts text segments — axis labels, series labels, captions, and navigator labels: inline images, emoji, and font icons.
+## Displaying Images and Text
 
-### Inline Images
+Text Segments support adding inline images using multiple approaches.
+
+### Inline Image Segments
 
 {% chartExampleRunner title="Inline Images" name="inline-images" type="generated" /%}
 
 Provide any image URL through the `url` property:
-
-```js
-const flagsUrl = '${baseWWWUrl}/example-assets/flags/';
-```
 
 ```js format="snippet"
 {
@@ -165,25 +164,92 @@ const flagsUrl = '${baseWWWUrl}/example-assets/flags/';
 
 An image segment uses `type: 'image'` and supports:
 
-- `width` and `height` — required, so layout space is reserved before the image finishes loading.
-- `verticalAlign` — alignment against the line. Inline images default to `'baseline'`; block images (`block: true`) default to `'middle'`.
-- `padding`, `cornerRadius`, `backgroundFill` — decoration around the image. `backgroundFill` also shows as a placeholder while the image loads or if it fails.
-- `overflowStrategy` — drop priority when a label overflows its box. `'hide'` images are dropped before text is truncated; `'keep'` images take priority, dropping trailing text first and only dropping the image if it cannot fit on its own.
-- `block: true` — starts a block row anchored to the left of the label, with following segments wrapping into a column to its right. Block rows begin at the start of the label or after a `\n`, and stack vertically.
+- `width` and `height` - these are required.
+- `verticalAlign` - [vertical alignment against the text](#aligning-segments-vertically).
+- `cornerRadius`, `padding` - for styling the image box.
+- `backgroundFill` - also shows as a placeholder while the image loads or if it fails.
+- `overflowStrategy`- drop priority for label collision avoidance.
+    - `'hide'` - images are dropped before text is truncated.
+    - `'keep'` images take priority, dropping trailing text first and only dropping the image if it cannot fit on its own.
+
+### Block Image Segments
+
+Set `block: true` on an image that begins a row, and the text segments that follow wrap into a column to its right instead of continuing on the same line.
 
 {% chartExampleRunner title="Block-leading Image" name="inline-images-treemap" type="generated" /%}
 
-### Emoji
+```js format="snippet"
+{
+    type: 'image',
+    url: brandIconsUrl + `${datum.slug}.svg`,
+    width: 36,
+    height: 36,
+    block: true,
+    padding: 6,
+    backgroundFill: 'rgba(0, 0, 0, 0.35)',
+    cornerRadius: 8,
+}
+```
 
-Emoji render through native canvas, no API changes required.
+In this example:
 
-{% chartExampleRunner title="Inline Emoji" name="inline-emoji" type="generated" /%}
+- The block image segment anchors to the left of its row, with the following text wrapping into a column to its right. The column can span multiple lines.
+- Defaults `verticalAlign` to `'middle'`, centring the image against the text column beside it.
+- Is dropped when its row has no space for it, leaving the text to use the full width. This is controlled by the `overflowStrategy` option.
 
-### Font Icons
+### Emojis and Font Icons
 
-Font icons (e.g. FontAwesome) apply per segment through `fontFamily` and `fontWeight`, loaded via a CSS `<link>`. The chart downloads any referenced fonts and re-renders once they are ready.
+Emojis and font icons render through native canvas, with no API changes required. Both can be mixed freely with text within a single element.
 
-{% chartExampleRunner title="Inline Font Icons" name="inline-font-icons" type="generated" /%}
+{% chartExampleRunner title="Inline Emoji and Font Icons" name="inline-emoji-icons" type="generated" /%}
+
+In this example:
+
+- The axis labels use number emojis within the `text` property of a `TextSegment` object.
+- The title uses a [FontAwesome](https://fontawesome.com/) glyph to add a chart icon and a star.
+    - Font icons set the icon font with `fontFamily` and `fontWeight` on the segment and use the icon's glyph as the `text`.
+    - They are loaded via CSS, with the chart downloading any referenced fonts and re-rendering once they are ready.
+
+```js format="snippet"
+{
+    axes: {
+        x: {
+            type: 'category',
+            label: {
+                formatter: ({ value }) => [
+                    { text: '1️⃣ ', fontSize: 18, verticalAlign: 'middle' },
+                    { text: String(value), fontWeight: 'bold', verticalAlign: 'middle' },
+                ],
+            },
+        },
+    },
+}
+```
+
+```js format="snippet"
+{
+    title: {
+        text: [
+            {
+                text: `${ICON_CHART_LINE} `,
+                fontFamily: ICON_FAMILY_SOLID,
+                fontWeight: SOLID_WEIGHT,
+                color: '#1f77b4',
+                verticalAlign: 'middle',
+            },
+            { text: 'Top Markets 2025', fontWeight: 'bold' },
+            {
+                text: ` ${ICON_STAR}`,
+                fontFamily: ICON_FAMILY_SOLID,
+                fontWeight: SOLID_WEIGHT,
+                color: '#f1c40f',
+                verticalAlign: 'middle',
+            },
+        ],
+        fontSize: 22,
+    },
+}
+```
 
 ## API Reference
 
