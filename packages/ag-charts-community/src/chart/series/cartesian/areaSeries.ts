@@ -1,8 +1,11 @@
 import type {
-    CallbackParamRules,
     DomainWithMetadata,
     DynamicContext,
     InternalAgColorType,
+    NormalisedAreaSeriesMarkerItemStylerParams,
+    NormalisedAreaSeriesStylerResult,
+    NormalisedColorType,
+    NormalisedSeriesMarkerStyle,
     Point,
     RequireOptional,
 } from 'ag-charts-core';
@@ -22,14 +25,12 @@ import {
 } from 'ag-charts-core';
 import {
     type AgAreaSeriesLabelFormatterParams,
-    type AgAreaSeriesMarkerItemStylerParams,
     type AgAreaSeriesOptions,
     type AgAreaSeriesStylerParams,
-    type AgAreaSeriesStylerResult,
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgNumericValue,
-    type AgSeriesMarkerStyle,
+    type NormalisedCallbackParams,
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
@@ -135,7 +136,7 @@ type AreaNoStylerCompute = MarkerStyleCompute<
     AreaSeries,
     AreaNoStylerPassCtx,
     MarkerSelectionDatum,
-    AgSeriesMarkerStyle
+    NormalisedSeriesMarkerStyle
 >;
 type AreaStylerCompute = MarkerStyleCompute<
     AreaSeries,
@@ -1432,7 +1433,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
 
         if (itemStyler == null) {
             // No itemStyler: style is a pure function of (highlightState, selectionState).
-            this.runMarkerStylePass<AreaNoStylerPassCtx, MarkerSelectionDatum, AgSeriesMarkerStyle, AreaSeries>(
+            this.runMarkerStylePass<AreaNoStylerPassCtx, MarkerSelectionDatum, NormalisedSeriesMarkerStyle, AreaSeries>(
                 datumSelection,
                 isHighlight,
                 { marker, hideWithSize0, isHighlight },
@@ -1547,8 +1548,11 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const selectionState = toSelectionString(selectionStateEnum);
         const candidateState = toSelectionString(candidateStateEnum);
 
-        type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> };
-        type ResultRules = CallbackParamRules<AgAreaSeriesStylerParams<unknown, unknown> & MarkerRules>;
+        type MarkerRules = { marker: RequireOptional<NormalisedSeriesMarkerStyle> };
+        type ResultRules = NormalisedCallbackParams<
+            AgAreaSeriesStylerParams<unknown, unknown> & MarkerRules,
+            { fill?: NormalisedColorType }
+        >;
         return {
             marker: {
                 fill: marker.fill,
@@ -1581,8 +1585,8 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         dataModel: NonNullable<typeof this.dataModel>,
         processedData: NonNullable<typeof this.processedData>,
         datumIndex: number,
-        style: Required<AgSeriesMarkerStyle>
-    ): AgAreaSeriesMarkerItemStylerParams<unknown, unknown> {
+        style: Required<NormalisedSeriesMarkerStyle>
+    ): NormalisedAreaSeriesMarkerItemStylerParams<unknown, unknown> {
         const { xKey, yKey } = this.properties;
 
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
@@ -1597,7 +1601,10 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             yValue,
             ...style,
             fill,
-        } satisfies CallbackParamRules<AgAreaSeriesMarkerItemStylerParams<unknown, unknown>>;
+        } satisfies NormalisedCallbackParams<
+            NormalisedAreaSeriesMarkerItemStylerParams<unknown, unknown>,
+            { fill: NormalisedColorType }
+        >;
     }
 
     private makeLabelFormatterParams(): AgAreaSeriesLabelFormatterParams {
@@ -1624,13 +1631,13 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const stylerStyle = this.getStyle(undefined);
         const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
 
-        const format = this.getMarkerStyle<AgAreaSeriesMarkerItemStylerParams<unknown, unknown>>(
+        const format = this.getMarkerStyle<NormalisedAreaSeriesMarkerItemStylerParams<unknown, unknown>>(
             this.properties.marker,
             { datumIndex, datum },
             params,
             { isHighlight: false },
             stylerStyle.marker
-        ) as RequireOptional<AgSeriesMarkerStyle>;
+        ) as RequireOptional<NormalisedSeriesMarkerStyle>;
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -1831,13 +1838,13 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         return new Marker<MarkerSelectionDatum>();
     }
 
-    public getStyle(
-        highlightState: HighlightState | undefined
-    ): Required<AgAreaSeriesStylerResult> & { marker: Required<AgSeriesMarkerStyle> & { enabled: boolean } } {
+    public getStyle(highlightState: HighlightState | undefined): Required<NormalisedAreaSeriesStylerResult> & {
+        marker: Required<NormalisedSeriesMarkerStyle> & { enabled: boolean };
+    } {
         const { styler, marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } =
             this.properties;
         const { size, shape, fill: markerFill = 'transparent', fillOpacity: markerFillOpacity } = marker;
-        let stylerResult: AgAreaSeriesStylerResult & { marker?: { enabled?: boolean } } = {};
+        let stylerResult: NormalisedAreaSeriesStylerResult & { marker?: { enabled?: boolean } } = {};
         if (styler) {
             const selectionState: SelectionState | undefined = this.getDataSelectionState(undefined);
             const candidateState: SelectionState | undefined = this.getDataCandidacyState(undefined);
@@ -1847,7 +1854,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                 ['series', `${this.declarationOrder}`],
                 cbResult,
                 { pick: false }
-            );
+            ) as NormalisedAreaSeriesStylerResult;
             stylerResult = resolved ?? {};
         }
         stylerResult.marker ??= {};
@@ -1870,8 +1877,8 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                 stroke: stylerResult.marker.stroke ?? marker.stroke ?? stroke,
                 strokeOpacity: stylerResult.marker.strokeOpacity ?? marker.strokeOpacity ?? strokeOpacity,
                 strokeWidth: stylerResult.marker.strokeWidth ?? marker.strokeWidth ?? strokeWidth,
-            } satisfies RequireOptional<AgSeriesMarkerStyle> & { enabled: boolean },
-        } satisfies RequireOptional<AgAreaSeriesStylerResult> & { marker: { enabled: boolean } };
+            } satisfies RequireOptional<NormalisedSeriesMarkerStyle> & { enabled: boolean },
+        } satisfies RequireOptional<NormalisedAreaSeriesStylerResult> & { marker: { enabled: boolean } };
     }
 
     public getFormattedMarkerStyle(datum: MarkerSelectionDatum) {

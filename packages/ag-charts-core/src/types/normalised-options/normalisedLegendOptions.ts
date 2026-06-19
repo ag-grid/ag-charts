@@ -8,16 +8,13 @@ import type {
     AgPaginationLabelOptions,
     AgPaginationMarkerOptions,
     AgPaginationMarkerStyle,
-    BorderOptions,
     CssColor,
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
-import type { NormalisedPaddingOptions } from './normalisedCommonOptions';
+import type { NormalisedBorderOptions, NormalisedColorType, NormalisedPaddingOptions } from './normalisedCommonOptions';
 
 // --- Leaf normalised types ---
-
-export type NormalisedBorderOptions = Normalised<BorderOptions, 'enabled' | 'stroke' | 'strokeWidth' | 'strokeOpacity'>;
 
 export type NormalisedLegendMarkerOptions = Normalised<
     AgChartLegendMarkerOptions,
@@ -96,6 +93,7 @@ export type NormalisedLegendOptions = Normalised<
     | 'fillOpacity',
     {
         border: NormalisedBorderOptions;
+        fill: NormalisedColorType;
         item: NormalisedLegendItemOptions;
         pagination: NormalisedLegendPaginationOptions;
     }

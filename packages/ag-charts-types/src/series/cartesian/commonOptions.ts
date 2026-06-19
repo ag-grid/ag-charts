@@ -1,5 +1,5 @@
 import type { AgNumericValue } from '../../chart/dataValues';
-import type { AgCssColorOrRef } from '../../chart/themeParamsOptions';
+import type { AgColorRef, AgColorRefMixOnto, AgCssColorOrRef } from '../../chart/themeParamsOptions';
 import type {
     CssColor,
     DatumKey,
@@ -58,21 +58,21 @@ export interface FillCssOptions {
     fillOpacity?: Opacity;
 }
 
-export type AgColorType = CssColor | AgGradientColor | AgPatternColor | AgImageFill;
+export type AgColorType = CssColor | AgColorRef | AgColorRefMixOnto | AgGradientColor | AgPatternColor | AgImageFill;
 export type AgColorTypeStrict = CssColor | AgGradientColorStrict;
 
 export type AgGradientColorMode = 'continuous' | 'discrete';
 
 export interface AgGradientColorStop {
     /** Colour of this category. */
-    color?: CssColor;
+    color?: AgCssColorOrRef;
     /** Stop value of this category. Defaults the maximum value if unset. */
     stop?: Ratio;
 }
 
 export interface AgColorScaleColorStop {
     /** Colour at this position. */
-    color: CssColor;
+    color: AgCssColorOrRef;
     /** Position of this colour in the data domain. In continuous mode, the colour appears exactly at this value. In discrete mode, this is the first value of the next bin. */
     stop?: AgNumericValue;
     /** Display name for this bin, used in legend and tooltip labels. */
@@ -183,7 +183,7 @@ export type AgPatternName =
  */
 export interface StrokeOptions {
     /** The colour for the stroke. */
-    stroke?: CssColor;
+    stroke?: AgCssColorOrRef;
     /** The width of the stroke in pixels. */
     strokeWidth?: PixelSize;
     /** The opacity of the stroke colour. */

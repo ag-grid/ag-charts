@@ -2,6 +2,9 @@ import type {
     AreExact,
     ColorSpace,
     InternalAgColorType,
+    NormalisedColorType,
+    NormalisedGradientColorStop,
+    NormalisedSeriesSegmentation,
     RequiredInternalAgGradientColor,
     RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
@@ -9,14 +12,12 @@ import type {
 import { BaseProperties, PropertiesArray, Property, mergeDefaults } from 'ag-charts-core';
 import type {
     AgColorRepeat,
-    AgColorType,
     AgGradientColorBounds,
     AgGradientColorStop,
     AgGradientType,
     AgImageFillFit,
     AgPatternName,
     AgSelectionContainment,
-    AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
     CssColor,
     InteractionRange,
@@ -78,7 +79,7 @@ export function getSelectionStyleOptionKeys(selectionState: SelectionState): Sel
 }
 
 type StyleMixins = {
-    fill: AgColorType;
+    fill: NormalisedColorType;
     fillOpacity: number;
     stroke: string;
     strokeWidth: number;
@@ -250,7 +251,7 @@ export class SegmentOptions extends BaseProperties implements AgSeriesShapeSegme
     lineDashOffset: number = 0;
 }
 
-export class Segmentation implements AgSeriesSegmentation {
+export class Segmentation implements NormalisedSeriesSegmentation {
     @Property
     enabled?: boolean;
 
@@ -269,7 +270,7 @@ export class FillGradientDefaults
     type: 'gradient' = 'gradient' as const;
 
     @Property
-    colorStops: AgGradientColorStop[] = [];
+    colorStops: NormalisedGradientColorStop[] = [];
 
     @Property
     bounds: AgGradientColorBounds = 'item';

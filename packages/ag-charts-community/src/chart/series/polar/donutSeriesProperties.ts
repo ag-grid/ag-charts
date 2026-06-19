@@ -1,4 +1,4 @@
-import type { InternalAgColorType } from 'ag-charts-core';
+import type { InternalAgColorType, NormalisedDonutSeriesTooltipRendererParams } from 'ag-charts-core';
 import { BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
 import type {
     AgDonutCalloutLineItemStylerParams,
@@ -7,7 +7,6 @@ import type {
     AgDonutSeriesLabelFormatterParams,
     AgDonutSeriesOptions,
     AgDonutSeriesStyle,
-    AgDonutSeriesTooltipRendererParams,
     Styler,
 } from 'ag-charts-types';
 
@@ -195,5 +194,5 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
     readonly calloutLine = new DonutSeriesCalloutLine();
 
     @Property
-    readonly tooltip = makeSeriesTooltip<AgDonutSeriesTooltipRendererParams<any>>();
+    readonly tooltip = makeSeriesTooltip<NormalisedDonutSeriesTooltipRendererParams<any>>();
 }

@@ -1,4 +1,9 @@
-import type { InternalAgColorType, RequireOptional } from 'ag-charts-core';
+import type {
+    InternalAgColorType,
+    NormalisedSeriesMarkerStyle,
+    NormalisedSeriesMarkerStylerParams,
+    RequireOptional,
+} from 'ag-charts-core';
 import {
     ChangeDetectableProperties,
     Property,
@@ -52,11 +57,11 @@ export class SeriesMarker<TParams = never> extends ChangeDetectableProperties {
     @Property
     @SceneObjectChangeDetection({ equals: TRIPLE_EQ })
     itemStyler?: Styler<
-        AgSeriesMarkerStylerParams<unknown, unknown> & RequireOptional<Omit<TParams, 'context'>>,
+        NormalisedSeriesMarkerStylerParams<unknown, unknown> & RequireOptional<Omit<TParams, 'context'>>,
         AgSeriesMarkerStyle
     >;
 
-    private _cachedStyle?: AgSeriesMarkerStyle;
+    private _cachedStyle?: NormalisedSeriesMarkerStyle;
 
     override onChangeDetection(property: string): void {
         // Invalidate the snapshot on any decorated property change.
@@ -64,7 +69,7 @@ export class SeriesMarker<TParams = never> extends ChangeDetectableProperties {
         super.onChangeDetection(property);
     }
 
-    getStyle(): AgSeriesMarkerStyle {
+    getStyle(): NormalisedSeriesMarkerStyle {
         // Returning the shared snapshot is safe: callers spread / read but never mutate it.
         if (this._cachedStyle !== undefined) {
             return this._cachedStyle;
@@ -80,7 +85,7 @@ export class SeriesMarker<TParams = never> extends ChangeDetectableProperties {
             strokeOpacity,
             lineDash,
             lineDashOffset,
-        } satisfies RequireOptional<AgSeriesMarkerStyle>;
+        } satisfies RequireOptional<NormalisedSeriesMarkerStyle>;
         this._cachedStyle = style;
         return style;
     }
@@ -91,15 +96,15 @@ export class SeriesMarker<TParams = never> extends ChangeDetectableProperties {
 }
 
 /** Highlight/selection styles carry an extra `opacity` field via HighlightOptions's StyleMixins. */
-export type MergeMarkerStyleSource = AgSeriesMarkerStyle & { opacity?: number };
-type MergeMarkerStyleResult = AgSeriesMarkerStyle & { size: number; opacity?: number };
+export type MergeMarkerStyleSource = NormalisedSeriesMarkerStyle & { opacity?: number };
+type MergeMarkerStyleResult = NormalisedSeriesMarkerStyle & { size: number; opacity?: number };
 
 /** Specialised mergeDefaults: left-most non-undefined wins, no recursion (no source holds plain objects). */
 export function mergeMarkerStyles(
     selectionStyle: MergeMarkerStyleSource | undefined,
     highlightStyle: MergeMarkerStyleSource | undefined,
-    defaultOverride: AgSeriesMarkerStyle & { size: number },
-    markerStyle: AgSeriesMarkerStyle,
+    defaultOverride: NormalisedSeriesMarkerStyle & { size: number },
+    markerStyle: NormalisedSeriesMarkerStyle,
     inheritedStyle: MergeMarkerStyleSource | undefined
 ): MergeMarkerStyleResult {
     return {

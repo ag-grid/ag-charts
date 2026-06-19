@@ -1,4 +1,4 @@
-import type { BoxBounds, InternalAgColorType, Point } from 'ag-charts-core';
+import type { BoxBounds, NormalisedColorType, Point } from 'ag-charts-core';
 import { boxContains, isBetweenAngles, toRadians } from 'ag-charts-core';
 import type { AgSelectionContainment } from 'ag-charts-types';
 
@@ -19,7 +19,7 @@ type AnimatableSectorDatum = {
     startAngle: number;
     endAngle: number;
     sectorFormat: {
-        fill?: InternalAgColorType;
+        fill?: NormalisedColorType;
         stroke?: string;
     };
 };

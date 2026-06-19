@@ -5,7 +5,6 @@ import type {
     AgColorScaleColorStop,
     AgColorType,
     AgCssColorOrRef,
-    AgGradientColor,
     AgGradientColorBounds,
     AgGradientColorStop,
     AgGradientColorStrict,
@@ -57,6 +56,7 @@ import {
     undocumented,
     union,
 } from '../state/validation';
+import type { NormalisedGradientColor } from '../types/normalised-options/normalisedCommonOptions';
 import { isObject } from '../utils/types/typeGuards';
 
 // Validator for internal theme operators.
@@ -182,7 +182,7 @@ export const gradientStrict = optionsDefs<AgGradientColorStrict>(
     'a gradient object with colour stops'
 );
 
-export interface InternalAgGradientColor extends AgGradientColor {
+export interface InternalAgGradientColor extends NormalisedGradientColor {
     /** Format of the gradient */
     gradient?: AgGradientType;
     /** The domain of the colour gradient, defaults to item. */

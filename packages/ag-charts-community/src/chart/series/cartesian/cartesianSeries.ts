@@ -1,4 +1,4 @@
-import type { ChartAnimationPhase, Scaling } from 'ag-charts-core';
+import type { ChartAnimationPhase, NormalisedSeriesSegmentation, Scaling } from 'ag-charts-core';
 import {
     ChartAxisDirection,
     Debug,
@@ -17,7 +17,7 @@ import {
     maxValue,
     minValue,
 } from 'ag-charts-core';
-import type { AgDrawingMode, AgNumericValue, AgSeriesSegmentation, SelectionState } from 'ag-charts-types';
+import type { AgDrawingMode, AgNumericValue, SelectionState } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { AnimationValue } from '../../../motion/animation';
@@ -160,7 +160,7 @@ export abstract class CartesianSeriesProperties<T extends object>
     pickOutsideVisibleMinorAxis = false;
 
     @Property
-    segmentation: AgSeriesSegmentation = new Segmentation();
+    segmentation: NormalisedSeriesSegmentation = new Segmentation();
 }
 
 export const RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD = 100;
