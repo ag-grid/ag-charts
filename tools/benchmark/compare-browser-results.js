@@ -17,13 +17,27 @@ const { formatPercentageChange } = require('./format-utils');
 const argv = yargs(hideBin(process.argv))
     .option('base', {
         type: 'string',
+        array: true,
         demandOption: true,
-        describe: 'Path to the base (baseline) browser benchmark JSON report',
+        describe:
+            'Path(s) to base (baseline) browser benchmark JSON report(s). Pass multiple to ' +
+            'aggregate independent runs (median across runs; cross-run variance flags noisy results).',
     })
     .option('compare', {
         type: 'string',
+        array: true,
         demandOption: true,
-        describe: 'Path to the compare (head) browser benchmark JSON report',
+        describe: 'Path(s) to compare (head) browser benchmark JSON report(s). Multiple = independent runs.',
+    })
+    .option('min-pct', {
+        type: 'number',
+        default: 10,
+        describe: 'Minimum % regression to flag as notable.',
+    })
+    .option('min-abs-ms', {
+        type: 'number',
+        default: 2,
+        describe: 'Minimum absolute ms regression to flag as notable (guards micro-timing quantisation).',
     })
     .option('base-label', {
         type: 'string',
@@ -169,9 +183,10 @@ function collectMinVersions(report) {
     return minVersions;
 }
 
-// --- Extract results from report ---
+// --- Extract results from report(s) ---
 
-function extractResults(report) {
+/** Per-run extraction: one report -> Map(key -> single-run metrics). */
+function extractRun(report) {
     const results = new Map();
     const errors = [];
 
@@ -187,11 +202,9 @@ function extractResults(report) {
                 exampleName,
                 testCase: result.testCase,
                 params: result.params || {},
-                averageTime: result.averageTime,
                 medianTime: median(result.timings) ?? result.averageTime,
-                cv: coefficientOfVariation(result.timings),
+                intraRunCv: coefficientOfVariation(result.timings),
                 minTime: result.minTime,
-                maxTime: result.maxTime,
                 sampleCount: result.sampleCount,
                 displayName: displayName(exampleName, result),
             });
@@ -201,24 +214,66 @@ function extractResults(report) {
     return { results, errors };
 }
 
+/**
+ * Aggregate N independent runs into one metrics map per key.
+ *
+ * The representative time is the median of each run's median, which is robust to a single
+ * slow run. Cross-run CV (variance of the per-run medians) captures run-to-run noise that
+ * intra-run sample CV cannot — separate page loads drift even when a single session is stable.
+ */
+function extractResults(reports) {
+    const perRun = reports.map(extractRun);
+    const errors = perRun.flatMap((r) => r.errors);
+
+    const keys = new Set();
+    for (const { results } of perRun) for (const k of results.keys()) keys.add(k);
+
+    const merged = new Map();
+    for (const key of keys) {
+        const runs = perRun.map(({ results }) => results.get(key)).filter(Boolean);
+        if (runs.length === 0) continue;
+        const runMedians = runs.map((r) => r.medianTime);
+        const intraRunCvMax = Math.max(0, ...runs.map((r) => r.intraRunCv ?? 0));
+        const crossRunCv = coefficientOfVariation(runMedians); // null for a single run
+        const first = runs[0];
+        // Noise measure: with multiple runs the median already absorbs intra-run sample jitter
+        // (structurally high for micro-benchmarks), so run-to-run (cross-run) CV is what matters.
+        // Fall back to intra-run CV only for single-run inputs.
+        merged.set(key, {
+            exampleName: first.exampleName,
+            displayName: first.displayName,
+            medianTime: median(runMedians),
+            minTime: Math.min(...runs.map((r) => r.minTime ?? Infinity)),
+            sampleCount: first.sampleCount,
+            runCount: runs.length,
+            crossRunCv,
+            cv: crossRunCv ?? intraRunCvMax,
+        });
+    }
+
+    return { results: merged, errors };
+}
+
 // --- Compare ---
 
-const baseReport = loadReport(argv.base);
-const compareReport = loadReport(argv.compare);
+const baseReports = argv.base.map(loadReport);
+const compareReports = argv.compare.map(loadReport);
 
-const base = extractResults(baseReport);
-const compare = extractResults(compareReport);
+const base = extractResults(baseReports);
+const compare = extractResults(compareReports);
+
+const runCount = Math.min(baseReports.length, compareReports.length);
 
 const baseKeys = new Set(base.results.keys());
 const compareKeys = new Set(compare.results.keys());
 
 // Effective base version: explicit flag wins, else the version recorded in the report
 // (the published library version in npm-base mode, or the ref's version in git-base mode).
-const baseVersion = argv['base-version'] || reportVersion(baseReport);
+const baseVersion = argv['base-version'] || reportVersion(baseReports[0]);
 
 // minVersion is declared on the head examples; only keys present in both reports are
 // gated, so the compare report is always authoritative.
-const minVersions = collectMinVersions(compareReport);
+const minVersions = collectMinVersions(compareReports[0]);
 
 // Matched results
 const matched = [];
@@ -237,12 +292,17 @@ for (const key of baseKeys) {
         const pctTimeChange =
             b.medianTime === 0 ? null : Math.round(((c.medianTime - b.medianTime) / b.medianTime) * 1000) / 10;
         const noisy = (b.cv ?? 0) > NOISY_CV_THRESHOLD || (c.cv ?? 0) > NOISY_CV_THRESHOLD;
+        // Run-to-run noise band: the worse side's cross-run CV, as a percentage. A change must
+        // clear NOISE_BAND_FACTOR x this to be signal rather than measurement drift.
+        const crossRunCvPct = Math.max(b.crossRunCv ?? 0, c.crossRunCv ?? 0) * 100;
 
         matched.push({
             test: b.displayName,
             pctTimeChange,
             absDeltaMs: c.medianTime - b.medianTime,
             noisy,
+            crossRunCvPct: crossRunCvPct || null,
+            runCount: Math.min(b.runCount ?? 1, c.runCount ?? 1),
             beforeMs: timeFormat(b.medianTime),
             afterMs: timeFormat(c.medianTime),
             beforeMinMs: timeFormat(b.minTime),
@@ -281,9 +341,23 @@ for (const err of compare.errors) {
 // Rank by time change
 const rankedByTime = matched.toSorted((a, b) => (a.pctTimeChange ?? -Infinity) - (b.pctTimeChange ?? -Infinity));
 
-// Notable regressions: >10% AND >=2ms absolute — relative deltas on
-// micro-timings reflect timer quantisation rather than real regressions.
-const notable = rankedByTime.filter((r) => r.pctTimeChange !== null && r.pctTimeChange > 10 && r.absDeltaMs >= 2);
+// Notable regressions must clear every noise filter:
+//  - relative floor (default >10%): a meaningful proportional slowdown;
+//  - absolute floor (default >=2ms): guards against timer quantisation on micro-timings;
+//  - not noisy: intra- or cross-run CV within the acceptable band;
+//  - above the run-to-run noise band: when multiple runs were aggregated, the change must
+//    exceed NOISE_BAND_FACTOR x the measured cross-run CV, so drift never reads as a regression.
+const MIN_PCT = argv['min-pct'];
+const MIN_ABS_MS = argv['min-abs-ms'];
+const NOISE_BAND_FACTOR = 2;
+function isNotableRegression(r) {
+    if (r.pctTimeChange === null || r.pctTimeChange <= MIN_PCT) return false;
+    if (r.absDeltaMs < MIN_ABS_MS) return false;
+    if (r.noisy) return false;
+    if (r.crossRunCvPct != null && r.pctTimeChange <= NOISE_BAND_FACTOR * r.crossRunCvPct) return false;
+    return true;
+}
+const notable = rankedByTime.filter(isNotableRegression);
 
 // --- Output ---
 
@@ -292,12 +366,15 @@ const compareLabel = argv['compare-label'];
 
 if (argv.format === 'table') {
     console.log(`Comparing ${baseLabel} (baseline) vs. ${compareLabel}`);
+    if (runCount > 1) {
+        console.log(`Aggregated across ${runCount} runs per side (median of run medians; cross-run CV gates noise).`);
+    }
 
     if (notable.length > 0) {
         if (!argv['report-only']) {
             process.exitCode = 1;
         }
-        console.log('\nNotable Regressions (>10%)');
+        console.log(`\nNotable Regressions (>${MIN_PCT}%, >=${MIN_ABS_MS}ms, denoised)`);
         console.table(
             notable.map((r) => ({
                 test: r.test,
@@ -356,6 +433,9 @@ if (argv.format === 'table') {
             {
                 base: baseLabel,
                 compare: compareLabel,
+                runCount,
+                thresholds: { minPct: MIN_PCT, minAbsMs: MIN_ABS_MS, noiseBandFactor: NOISE_BAND_FACTOR },
+                notable: notable.map((r) => r.test),
                 rankedByTime,
                 added,
                 removed,

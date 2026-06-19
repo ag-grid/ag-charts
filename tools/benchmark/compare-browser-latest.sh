@@ -15,15 +15,23 @@
 #
 # browser-benchmark.ts always runs from the head working directory (single Playwright install).
 #
+# For npm:<version> bases, head is served from its own locally-packed UMD (swap-local-lib.sh)
+# so head and base are each a packed-tarball bundle through the same pipeline — like-for-like.
+# Without this, a locally-built head bundle vs a release-packed published bundle differ by a
+# build-asymmetry offset that inflates head's apparent cost.
+#
 # Usage:
 #   ./tools/benchmark/compare-browser-latest.sh [options] <base-ref|npm:version>
 #
 # Options:
 #   -j            Output JSON instead of table format
+#   -n <N>        Run the benchmark N times per side and aggregate (median of run medians;
+#                 cross-run variance gates noise). Default 1. Use >=3 to see past the noise floor.
 #
 # Examples:
 #   ./tools/benchmark/compare-browser-latest.sh origin/b13.2.0
 #   ./tools/benchmark/compare-browser-latest.sh npm:13.3.1
+#   ./tools/benchmark/compare-browser-latest.sh -n 3 npm:13.3.1
 #   ./tools/benchmark/compare-browser-latest.sh -j origin/latest
 #   ./tools/benchmark/compare-browser-latest.sh origin/latest -- --examples data-selection-zoom-line-area --test-cases line
 
@@ -34,11 +42,15 @@ export NX_DAEMON=false
 # --- Argument parsing ---
 
 format=table
+runs=1
 
-while getopts "j" opt; do
+while getopts "jn:" opt; do
     case $opt in
         j)
             format=json
+            ;;
+        n)
+            runs=$OPTARG
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
@@ -47,6 +59,11 @@ while getopts "j" opt; do
     esac
 done
 shift $((OPTIND - 1))
+
+if ! [[ "$runs" =~ ^[1-9][0-9]*$ ]]; then
+    echo "Invalid -n (runs) value: '$runs' — must be a positive integer" >&2
+    exit 1
+fi
 
 base_ref=${1:?Usage: compare-browser-latest.sh [-j] <base-ref|npm:version> [-- <browser-benchmark.ts args>]}
 shift
@@ -253,6 +270,33 @@ run_benchmarks() {
     log "Results written to ${output}"
 }
 
+# Run the benchmark `runs` times against one served site, writing <prefix>-run-<i>.json.
+# Produced paths are returned in the global RUN_FILES array (bash 3.2 has no namerefs,
+# so the caller copies RUN_FILES into its own array after each call).
+RUN_FILES=()
+run_benchmarks_n() {
+    local base_url=$1
+    local prefix=$2
+
+    RUN_FILES=()
+    local i out
+    for ((i = 1; i <= runs; i++)); do
+        out="${prefix}-run-${i}.json"
+        if (( runs > 1 )); then
+            log "Run ${i}/${runs}..."
+        fi
+        run_benchmarks "$base_url" "$out" || {
+            if [[ "${AG_BENCHMARK_SOFT_FAIL:-}" != "true" ]]; then
+                return 1
+            fi
+        }
+        [[ -f "$out" ]] && RUN_FILES+=("$out")
+    done
+}
+
+head_run_files=()
+base_run_files=()
+
 # ===========================
 # Main
 # ===========================
@@ -294,15 +338,29 @@ PUBLIC_SITE_URL="http://localhost:${HEAD_PORT}" PUBLIC_HTTPS_SERVER=false \
     exit 1
 }
 
+# npm-base mode: serve head from its own locally-packed UMD so head and the published
+# base are each a packed-tarball bundle (like-for-like). git-ref bases are built from
+# source by the same local pipeline, so no swap is needed — they are already like-for-like.
+if [[ -n "$published_version" ]]; then
+    log "Packing local head bundles for like-for-like comparison..."
+    "${tools_dir}/swap-local-lib.sh" "${root}/dist/packages/ag-charts-website" || {
+        logError "Failed to pack local head bundles"
+        exit 1
+    }
+fi
+
 start_static_server "${root}/dist/packages/ag-charts-website" head "$HEAD_PORT"
 HEAD_SERVER_PID=$_STATIC_SERVER_PID
 HEAD_URL=$_STATIC_SERVER_URL
-run_benchmarks "$HEAD_URL" "$head_results" || {
+run_benchmarks_n "$HEAD_URL" "${reports_dir}/head" || {
     if [[ "${AG_BENCHMARK_SOFT_FAIL:-}" != "true" ]]; then
         logError "Head benchmarks failed"
         exit 1
     fi
 }
+head_run_files=("${RUN_FILES[@]+"${RUN_FILES[@]}"}")
+# Keep head.json (= first run) for consumers that read the single-run path.
+[[ ${#head_run_files[@]} -gt 0 ]] && cp "${head_run_files[0]}" "$head_results"
 
 log "Stopping head static server..."
 stop_static_server "$HEAD_SERVER_PID"
@@ -340,12 +398,14 @@ if [[ -n "$published_version" ]]; then
         BASE_SERVER_PID=$_STATIC_SERVER_PID
         BASE_URL=$_STATIC_SERVER_URL
 
-        run_benchmarks "$BASE_URL" "$base_results" || {
+        run_benchmarks_n "$BASE_URL" "${reports_dir}/base" || {
             if [[ "${AG_BENCHMARK_SOFT_FAIL:-}" != "true" ]]; then
                 logError "Base benchmarks failed"
                 exit 1
             fi
         }
+        base_run_files=("${RUN_FILES[@]+"${RUN_FILES[@]}"}")
+        [[ ${#base_run_files[@]} -gt 0 ]] && cp "${base_run_files[0]}" "$base_results"
 
         log "Stopping base static server..."
         stop_static_server "$BASE_SERVER_PID"
@@ -420,12 +480,14 @@ if [[ -d "${worktree_dir}" ]]; then
             BASE_SERVER_PID=$_STATIC_SERVER_PID
             BASE_URL=$_STATIC_SERVER_URL
 
-            run_benchmarks "$BASE_URL" "$base_results" || {
+            run_benchmarks_n "$BASE_URL" "${reports_dir}/base" || {
                 if [[ "${AG_BENCHMARK_SOFT_FAIL:-}" != "true" ]]; then
                     logError "Base benchmarks failed"
                     exit 1
                 fi
             }
+            base_run_files=("${RUN_FILES[@]+"${RUN_FILES[@]}"}")
+            [[ ${#base_run_files[@]} -gt 0 ]] && cp "${base_run_files[0]}" "$base_results"
 
             log "Stopping base static server..."
             stop_static_server "$BASE_SERVER_PID"
@@ -478,12 +540,21 @@ if [[ -n "$published_version" ]]; then
     base_version_args=(--base-version "$published_version")
 fi
 
+# Pass every per-run file so the reporter aggregates across runs. Fall back to the
+# single-run paths when run files are unavailable (e.g. soft-fail partial results).
+base_file_args=()
+for f in "${base_run_files[@]+"${base_run_files[@]}"}"; do base_file_args+=(--base "$f"); done
+[[ ${#base_file_args[@]} -eq 0 ]] && base_file_args=(--base "$base_results")
+compare_file_args=()
+for f in "${head_run_files[@]+"${head_run_files[@]}"}"; do compare_file_args+=(--compare "$f"); done
+[[ ${#compare_file_args[@]} -eq 0 ]] && compare_file_args=(--compare "$head_results")
+
 node "${tools_dir}/compare-browser-results.js" \
-    --base "$base_results" \
-    --compare "$head_results" \
+    "${base_file_args[@]}" \
+    "${compare_file_args[@]}" \
     --base-label "$base_label" \
     --compare-label "$compare_label" \
-    "${base_version_args[@]}" \
+    "${base_version_args[@]+"${base_version_args[@]}"}" \
     --format "$format" \
     --report-only \
     > "$output"
