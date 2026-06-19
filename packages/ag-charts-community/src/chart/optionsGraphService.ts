@@ -1,4 +1,4 @@
-import type { PlainObject } from 'ag-charts-core';
+import type { PlainObject, Resolved } from 'ag-charts-core';
 
 import type { OptionsGraphAccessor, OptionsGraphAccessorResolvePartialOptions } from '../module/optionsGraph';
 
@@ -18,7 +18,7 @@ export class OptionsGraphService {
         partialOptions?: T,
         resolveOptions?: OptionsGraphAccessorResolvePartialOptions,
         cssVariables?: Record<string, string>
-    ): Partial<T> | undefined {
+    ): Resolved<Partial<T>> | undefined {
         return this.resolvePartialCallback?.(path, partialOptions, resolveOptions, cssVariables);
     }
 }

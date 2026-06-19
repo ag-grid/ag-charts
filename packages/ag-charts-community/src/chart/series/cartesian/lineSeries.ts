@@ -1310,7 +1310,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                 ['series', `${this.declarationOrder}`],
                 cbResult,
                 { pick: false }
-            ) as NormalisedLineSeriesStylerResult | undefined;
+            );
             stylerResult = resolved ?? {};
         }
         stylerResult.marker ??= {};

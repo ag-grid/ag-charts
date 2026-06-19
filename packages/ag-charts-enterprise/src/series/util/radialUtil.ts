@@ -8,7 +8,14 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { Callback, CallbackParam, CallbackParamRules, DynamicContext, InternalAgColorType } from 'ag-charts-core';
+import type {
+    Callback,
+    CallbackParam,
+    CallbackParamRules,
+    DynamicContext,
+    InternalAgColorType,
+    Resolved,
+} from 'ag-charts-core';
 import { mergeDefaults } from 'ag-charts-core';
 
 const { createDatumId, toHighlightString, toSelectionString } = _ModuleSupport;
@@ -117,7 +124,7 @@ export function getStyle(
     candidateState: _ModuleSupport.SelectionState | undefined
 ): RadialSeriesStyleResult {
     const { styler } = series.properties;
-    let stylerResult: AgRadialSeriesStyle = {};
+    let stylerResult: Resolved<Partial<AgRadialSeriesStyle>> = {};
     if (!ignoreStylerCallback && styler) {
         const stylerParams = makeStylerParams(series, highlightState, selectionState, candidateState);
         stylerResult =
@@ -130,8 +137,7 @@ export function getStyle(
 
     return {
         cornerRadius: stylerResult.cornerRadius ?? series.properties.cornerRadius,
-        // resolvePartial has resolved any colour refs in the styler result; properties.fill is already resolved.
-        fill: (stylerResult.fill ?? series.properties.fill) as InternalAgColorType,
+        fill: stylerResult.fill ?? series.properties.fill,
         fillOpacity: stylerResult.fillOpacity ?? series.properties.fillOpacity,
         lineDash: stylerResult.lineDash ?? series.properties.lineDash,
         lineDashOffset: stylerResult.lineDashOffset ?? series.properties.lineDashOffset,
