@@ -668,7 +668,7 @@ export abstract class RadialColumnSeriesBase<
 
         const markerStyle = {
             fill: fill ?? 'rgba(0, 0, 0, 0)',
-            stroke: (stroke as CssColor) ?? 'rgba(0, 0, 0, 0)', // resolved at runtime
+            stroke: (stroke ?? 'rgba(0, 0, 0, 0)') as CssColor, // resolved at runtime
             fillOpacity,
             strokeOpacity,
             strokeWidth,

@@ -21,8 +21,8 @@ export type NormalisedLineSeriesStylerResult = Normalised<
     { stroke?: CssColor; marker?: NormalisedSeriesMarkerStyle }
 >;
 
-export type NormalisedSeriesSegmentation<SegmentOptions = NormalisedSeriesShapeSegmentOptions> = Normalised<
-    AgSeriesSegmentation<SegmentOptions>,
+export type NormalisedSeriesSegmentation = Normalised<
+    AgSeriesSegmentation,
     never,
     { segments: NormalisedSeriesShapeSegmentOptions[] }
 >;

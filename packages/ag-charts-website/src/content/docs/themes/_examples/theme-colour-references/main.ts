@@ -1,6 +1,7 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
+    AgThemeColorParam,
     BarSeriesModule,
     CategoryAxisModule,
     LegendModule,
@@ -10,8 +11,8 @@ import {
 
 ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule, LegendModule]);
 
-let colorRef = 'accentColor';
-let onto = 'none';
+let colorRef: AgThemeColorParam = 'accentColor';
+let onto: AgThemeColorParam | 'none' = 'none';
 let mix = 0.35;
 
 const options: AgCartesianChartOptions = {
@@ -57,19 +58,19 @@ function updateTextColor() {
             backgroundColor: '#ffffff',
             foregroundColor: '#1b2a4a',
             // Only the text colour is derived from the controls below.
-            textColor: textColor as any,
+            textColor,
         },
     };
     chart.update(options);
 }
 
 function changeRef(event: Event) {
-    colorRef = (event.target as HTMLSelectElement).value;
+    colorRef = (event.target as HTMLSelectElement).value as AgThemeColorParam;
     updateTextColor();
 }
 
 function changeOnto(event: Event) {
-    onto = (event.target as HTMLSelectElement).value;
+    onto = (event.target as HTMLSelectElement).value as AgThemeColorParam | 'none';
     updateTextColor();
 }
 
