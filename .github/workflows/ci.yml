@@ -803,6 +803,7 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
+            statuses: write
         needs:
             [
                 detect-changes,
@@ -944,6 +945,27 @@ jobs:
                   echo "$SSH_PRIVATE_KEY" > $SSH_KEY_LOCATION
                   chmod 400 $SSH_KEY_LOCATION
                   ./tools/staging/createAndDeployDocsToTCGH.sh
+
+            - name: Publish staging deploy status check
+              # Surface the staging deploy as a distinct commit status so it's visible
+              # from the commits view (hover over the status icon) without expanding the
+              # CI report job. Only posted on `latest`, where the deploy is attempted.
+              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest'
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  case "${{ steps.deploy_to_staging.outcome }}" in
+                    success) state="success"; description="Deployed to staging" ;;
+                    failure) state="failure"; description="Staging deploy failed" ;;
+                    *)       state="error";   description="Not deployed to staging (CI did not pass)" ;;
+                  esac
+                  gh api --method POST \
+                    -H "Accept: application/vnd.github+json" \
+                    "/repos/${{ github.repository }}/statuses/${{ github.sha }}" \
+                    -f state="${state}" \
+                    -f context="Deploy to Staging" \
+                    -f description="${description}" \
+                    -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
             - name: Tag Latest Successful Commit
               if: success() && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
