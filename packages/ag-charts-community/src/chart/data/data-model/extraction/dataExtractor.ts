@@ -119,17 +119,18 @@ function valueColumnType(value: unknown): ColumnValueType | undefined {
     }
 }
 
+// Only number/bigint/boolean map 1:1 from typeof to column type; string and object are ambiguous and must reclassify.
+function settledPrimitiveUnchanged(settled: ColumnValueType | undefined, value: unknown): boolean {
+    return (settled === 'number' || settled === 'bigint' || settled === 'boolean') && typeof value === settled;
+}
+
 function updateColumnTypeTracker(
     tracker: ColumnTypeTracker,
     value: unknown,
     datumIndex: number
 ): ColumnValueType | undefined {
-    // Hot-loop fast path: for the primitive types whose `typeof` maps 1:1 to a column type
-    // (number/bigint/boolean), a value of the column's already-settled type cannot change it or
-    // introduce a string — skip the full classify and merge. `string` (→ string|date via isISO8601)
-    // and `object` (→ date|number|object) are not 1:1, so they fall through to the slow path.
     const settled = tracker.type;
-    if ((settled === 'number' || settled === 'bigint' || settled === 'boolean') && typeof value === settled) {
+    if (settledPrimitiveUnchanged(settled, value)) {
         return settled;
     }
 
@@ -401,7 +402,10 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                         keys.push(result.value);
                         // Track ordering/uniqueness for valid keys
                         updateKeyTracker(tracker, result.value);
-                        if (updateColumnTypeTracker(typeTracker, result.value, datumIndex) === 'date') {
+                        if (
+                            !settledPrimitiveUnchanged(typeTracker.type, result.value) &&
+                            updateColumnTypeTracker(typeTracker, result.value, datumIndex) === 'date'
+                        ) {
                             updateTimezoneTracker(tzTracker, result.value, datumIndex);
                         }
                         continue;
@@ -552,7 +556,10 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
                     this.markScopeDatumInvalid(def.scopes, columnSource, datumIndex, invalidData, invalidDataCount);
                 } else if (result.missing) {
                     this.markScopeDatumMissing(def.scopes, columnSource, datumIndex, missingData);
-                } else if (updateColumnTypeTracker(typeTracker, result.value, datumIndex) === 'date') {
+                } else if (
+                    !settledPrimitiveUnchanged(typeTracker.type, result.value) &&
+                    updateColumnTypeTracker(typeTracker, result.value, datumIndex) === 'date'
+                ) {
                     updateTimezoneTracker(tzTracker, result.value, datumIndex);
                 }
 
