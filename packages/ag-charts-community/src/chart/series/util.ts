@@ -158,12 +158,13 @@ export function getItemStyles<TNodeDatum, TStyle>(
         nodeDatum: TNodeDatum | undefined,
         isHighlight: boolean,
         highlightState: HighlightState | undefined,
-        selectionState: SelectionState | undefined
+        selectionState: SelectionState | undefined,
+        candidateState: SelectionState | undefined
     ) => TStyle
 ) {
     const result = {} as Record<HighlightState, TStyle>;
     for (const state of highlightStates) {
-        result[state] = getItemStyle(undefined, false, state, undefined);
+        result[state] = getItemStyle(undefined, false, state, undefined, undefined);
     }
     return result;
 }

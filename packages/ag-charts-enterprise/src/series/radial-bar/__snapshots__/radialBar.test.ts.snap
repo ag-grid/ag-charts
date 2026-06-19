@@ -5,6 +5,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > sequenced > 1 1`] = `
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -25,6 +26,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > sequenced > 1 1`] = `
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -50,6 +52,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > sequenced > 1 2`] = `
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -70,6 +73,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > sequenced > 1 2`] = `
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -90,6 +94,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > sequenced > 1 2`] = `
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -117,6 +122,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > sequenced > 1 4`] = `
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -137,6 +143,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > sequenced > 1 4`] = `
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -157,6 +164,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > sequenced > 1 4`] = `
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -177,6 +185,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > sequenced > 1 4`] = `
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -204,6 +213,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -224,6 +234,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -244,6 +255,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -264,6 +276,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -284,6 +297,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -311,6 +325,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > sequenced > 1 8`] = `
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -331,6 +346,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > sequenced > 1 8`] = `
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -356,6 +372,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > sequenced > 1 9`] = `
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -376,6 +393,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > sequenced > 1 9`] = `
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -401,6 +419,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > legendItem[0]
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -421,6 +440,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > legendItem[0]
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -441,6 +461,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > legendItem[0]
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -461,6 +482,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > legendItem[0]
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -486,6 +508,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > legendItem[1]
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -506,6 +529,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > legendItem[1]
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -526,6 +550,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > legendItem[1]
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -546,6 +571,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > legendItem[1]
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -571,6 +597,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > miss 1`] = `
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -591,6 +618,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > miss 1`] = `
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -616,6 +644,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -636,6 +665,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -656,6 +686,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -676,6 +707,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -696,6 +728,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -721,6 +754,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -741,6 +775,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -761,6 +796,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -781,6 +817,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -801,6 +838,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > series[0].dat
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -826,6 +864,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > series[1].dat
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -846,6 +885,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > series[1].dat
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -866,6 +906,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > series[1].dat
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -886,6 +927,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > series[1].dat
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -906,6 +948,7 @@ exports[`RadialBarSeries > AG-15782 styler > highlights > single > series[1].dat
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -931,6 +974,7 @@ exports[`RadialBarSeries > AG-15782 styler > init > callbacks > params 1`] = `
   [
     {
       "angleKey": "sw",
+      "candidateState": undefined,
       "context": {
         "name": "software context 1",
       },
@@ -954,6 +998,7 @@ exports[`RadialBarSeries > AG-15782 styler > init > callbacks > params 1`] = `
   [
     {
       "angleKey": "hw",
+      "candidateState": undefined,
       "context": {
         "name": "hardware context 2",
       },

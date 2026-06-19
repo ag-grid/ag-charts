@@ -4,6 +4,7 @@ import type {
     HierarchyHighlightState,
     HighlightState,
     RichFormatter,
+    SelectionState,
     Styler,
 } from './callbackOptions';
 import type { ContextDefault, FontSize, OverflowStrategy, PixelSize, TextWrap } from './types';
@@ -14,6 +15,10 @@ export interface AgChartLabelStylerParams<TDatum, TContext>
     extends AgChartCallbackParams<TDatum, TContext>, AgChartLabelStyleOptions {
     /** The specific highlight state of the element. */
     highlightState?: HighlightState | HierarchyHighlightState;
+    /** The specific selection state of the element. Undefined if the selection module is disabled. */
+    selectionState?: SelectionState;
+    /** The specific candidate state of the element. Undefined if the selection module is disabled. */
+    candidateState?: SelectionState;
 }
 
 /**

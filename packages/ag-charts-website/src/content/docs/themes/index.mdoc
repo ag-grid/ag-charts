@@ -53,7 +53,7 @@ A custom theme is an object with the following optional properties:
 
 See the [Themes API page](/themes-api/) for the complete options structure.
 
-### Palette
+## Palette
 
 A palette is the array of colours used for the data, for example the bars in a bar series chart.
 
@@ -70,7 +70,7 @@ const myTheme = {
 };
 ```
 
-### Parameters
+## Parameters
 
 The `params` object is used to set styles across the whole chart in one place.
 
@@ -104,7 +104,53 @@ In the above example:
 - All text elements are set to the same font family.
 - All text, except the titles and footer, are set to the same font size.
 
-### Overrides
+### Colour References
+
+Any colour parameter can reference another instead of a fixed value, keeping related colours in sync. See [Colours](./colours/) for all accepted colour value forms.
+
+{% chartExampleRunner title="Colour References" name="theme-colour-references" type="generated" /%}
+
+The chart `textColor` is derived from the controls. With `onto` set to `none`, `mix` fades the referenced colour towards transparency.
+
+```js format="snippet"
+const myTheme = {
+    params: {
+        accentColor: '#0d7680',
+        subtleTextColor: { ref: 'textColor', mix: 0.6 },
+        tooltipBackgroundColor: { ref: 'accentColor', mix: 0.1, onto: 'backgroundColor' },
+    },
+};
+```
+
+- `{ ref: 'accentColor' }` - use another parameter's value.
+- `{ ref: 'accentColor', mix: 0.5 }` - that colour at `50%` opacity.
+- `{ ref: 'accentColor', mix: 0.1, onto: 'backgroundColor' }` - blend `ref` onto `onto`, weighted by `mix`.
+
+### Borders
+
+Border parameters use a consistent `{ width, color }` shape across every element.
+
+{% chartExampleRunner title="Borders" name="theme-borders" type="generated" /%}
+
+The controls style `buttonBorder`, shown on the zoom buttons.
+
+```js format="snippet"
+const myTheme = {
+    params: {
+        borderColor: '#cccccc',
+        borderWidth: 1,
+        borderRadius: 4,
+        buttonBorder: { width: 2, color: { ref: 'accentColor' } },
+        buttonBorderRadius: 8,
+    },
+};
+```
+
+- `borderColor`, `borderWidth`, `borderRadius` - global defaults for bordered elements (buttons, inputs, menus, tooltips).
+- `<element>Border` - `boolean` to toggle, or `{ width, color }` to override. `color` accepts a [colour reference](#colour-references).
+- `<element>BorderRadius` - corner radius, inheriting from `borderRadius`.
+
+## Overrides
 
 The `overrides` object is similar in its structure to the chart's options and is used as follows:
 
@@ -146,7 +192,7 @@ In the above example:
 - The font size of the title is increased.
 - The `bar` series has specific label and stroke options set.
 
-### Advanced Custom Theme
+## Advanced Custom Theme
 
 {% chartExampleRunner title="Advanced Themes" name="advanced-theme" type="generated" /%}
 

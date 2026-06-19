@@ -8,6 +8,7 @@ exports[`DonutSeries > AG-11672 calloutLine.itemStyler > calls 1`] = `
       "angleName": "size",
       "calloutLabelKey": "name",
       "calloutLabelName": "name",
+      "candidateState": undefined,
       "datum": {
         "name": "Paris",
         "size": 1,
@@ -28,6 +29,7 @@ exports[`DonutSeries > AG-11672 calloutLine.itemStyler > calls 1`] = `
       "angleName": "size",
       "calloutLabelKey": "name",
       "calloutLabelName": "name",
+      "candidateState": undefined,
       "datum": {
         "name": "Rome",
         "size": 1,
@@ -48,6 +50,7 @@ exports[`DonutSeries > AG-11672 calloutLine.itemStyler > calls 1`] = `
       "angleName": "size",
       "calloutLabelKey": "name",
       "calloutLabelName": "name",
+      "candidateState": undefined,
       "datum": {
         "name": "San Francisco",
         "size": 1,
@@ -68,6 +71,7 @@ exports[`DonutSeries > AG-11672 calloutLine.itemStyler > calls 1`] = `
       "angleName": "size",
       "calloutLabelKey": "name",
       "calloutLabelName": "name",
+      "candidateState": undefined,
       "datum": {
         "name": "Tokyo",
         "size": 1,
@@ -88,6 +92,7 @@ exports[`DonutSeries > AG-11672 calloutLine.itemStyler > calls 1`] = `
       "angleName": "size",
       "calloutLabelKey": "name",
       "calloutLabelName": "name",
+      "candidateState": undefined,
       "datum": {
         "name": "Zurich",
         "size": 1,
@@ -108,6 +113,7 @@ exports[`DonutSeries > AG-11672 calloutLine.itemStyler > calls 1`] = `
       "angleName": "size",
       "calloutLabelKey": "name",
       "calloutLabelName": "name",
+      "candidateState": undefined,
       "datum": {
         "name": "New York",
         "size": 1,
@@ -128,6 +134,7 @@ exports[`DonutSeries > AG-11672 calloutLine.itemStyler > calls 1`] = `
       "angleName": "size",
       "calloutLabelKey": "name",
       "calloutLabelName": "name",
+      "candidateState": undefined,
       "datum": {
         "name": "Madrid",
         "size": 1,
@@ -148,6 +155,7 @@ exports[`DonutSeries > AG-11672 calloutLine.itemStyler > calls 1`] = `
       "angleName": "size",
       "calloutLabelKey": "name",
       "calloutLabelName": "name",
+      "candidateState": undefined,
       "datum": {
         "name": "London",
         "size": 1,
@@ -168,6 +176,7 @@ exports[`DonutSeries > AG-11672 calloutLine.itemStyler > calls 1`] = `
       "angleName": "size",
       "calloutLabelKey": "name",
       "calloutLabelName": "name",
+      "candidateState": undefined,
       "datum": {
         "name": "Brussels",
         "size": 1,
@@ -188,6 +197,7 @@ exports[`DonutSeries > AG-11672 calloutLine.itemStyler > calls 1`] = `
       "angleName": "size",
       "calloutLabelKey": "name",
       "calloutLabelName": "name",
+      "candidateState": undefined,
       "datum": {
         "name": "Berlin",
         "size": 1,
@@ -208,6 +218,7 @@ exports[`DonutSeries > AG-11672 calloutLine.itemStyler > calls 1`] = `
       "angleName": "size",
       "calloutLabelKey": "name",
       "calloutLabelName": "name",
+      "candidateState": undefined,
       "datum": {
         "name": "Barcelona",
         "size": 1,
@@ -228,6 +239,7 @@ exports[`DonutSeries > AG-11672 calloutLine.itemStyler > calls 1`] = `
       "angleName": "size",
       "calloutLabelKey": "name",
       "calloutLabelName": "name",
+      "candidateState": undefined,
       "datum": {
         "name": "Amsterdam",
         "size": 1,
@@ -248,6 +260,7 @@ exports[`DonutSeries > AG-11672 calloutLine.itemStyler > calls 1`] = `
       "angleName": "size",
       "calloutLabelKey": "name",
       "calloutLabelName": "name",
+      "candidateState": undefined,
       "datum": {
         "name": "Abu Dhabi",
         "size": 1,
@@ -268,6 +281,7 @@ exports[`DonutSeries > AG-11672 calloutLine.itemStyler > calls 1`] = `
       "angleName": "size",
       "calloutLabelKey": "name",
       "calloutLabelName": "name",
+      "candidateState": undefined,
       "datum": {
         "name": "Cairo",
         "size": 1,
@@ -288,6 +302,7 @@ exports[`DonutSeries > AG-11672 calloutLine.itemStyler > calls 1`] = `
       "angleName": "size",
       "calloutLabelKey": "name",
       "calloutLabelName": "name",
+      "candidateState": undefined,
       "datum": {
         "name": "Dublin",
         "size": 1,
@@ -308,6 +323,7 @@ exports[`DonutSeries > AG-11672 calloutLine.itemStyler > calls 1`] = `
       "angleName": "size",
       "calloutLabelKey": "name",
       "calloutLabelName": "name",
+      "candidateState": undefined,
       "datum": {
         "name": "Hanoi",
         "size": 1,
@@ -328,6 +344,7 @@ exports[`DonutSeries > AG-11672 calloutLine.itemStyler > calls 1`] = `
       "angleName": "size",
       "calloutLabelKey": "name",
       "calloutLabelName": "name",
+      "candidateState": undefined,
       "datum": {
         "name": "Kyiv",
         "size": 1,
@@ -355,6 +372,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
       "datum": {
@@ -372,6 +390,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
       "itemId": 12,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -383,6 +402,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
       "datum": {
@@ -400,6 +420,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
       "itemId": 13,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -411,6 +432,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
       "datum": {
@@ -428,6 +450,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
       "itemId": 14,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -439,6 +462,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
       "datum": {
@@ -456,6 +480,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
       "itemId": 15,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -467,6 +492,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
       "datum": {
@@ -484,6 +510,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
       "itemId": 16,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -495,6 +522,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
       "datum": {
@@ -512,6 +540,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
       "itemId": 11,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -523,6 +552,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
       "datum": {
@@ -540,6 +570,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
       "itemId": 10,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -551,6 +582,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
       "datum": {
@@ -568,6 +600,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
       "itemId": 9,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -579,6 +612,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
       "datum": {
@@ -596,6 +630,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
       "itemId": 4,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -607,6 +642,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
       "datum": {
@@ -624,6 +660,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
       "itemId": 3,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -635,6 +672,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
       "datum": {
@@ -652,6 +690,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
       "itemId": 2,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -663,6 +702,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
       "datum": {
@@ -680,6 +720,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
       "itemId": 1,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -691,6 +732,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
       "datum": {
@@ -708,6 +750,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
       "itemId": 0,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -719,6 +762,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
       "datum": {
@@ -736,6 +780,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
       "itemId": 5,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -747,6 +792,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
       "datum": {
@@ -764,6 +810,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
       "itemId": 6,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -775,6 +822,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
       "datum": {
@@ -792,6 +840,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
       "itemId": 7,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -803,6 +852,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
       "datum": {
@@ -820,6 +870,7 @@ exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
       "itemId": 8,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -836,6 +887,7 @@ exports[`DonutSeries > AG-16492 sectorLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "white",
       "cornerRadius": 4,
       "datum": {
@@ -853,6 +905,7 @@ exports[`DonutSeries > AG-16492 sectorLabel.itemStyler > calls 1`] = `
       "itemId": 0,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -864,6 +917,7 @@ exports[`DonutSeries > AG-16492 sectorLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "white",
       "cornerRadius": 4,
       "datum": {
@@ -881,6 +935,7 @@ exports[`DonutSeries > AG-16492 sectorLabel.itemStyler > calls 1`] = `
       "itemId": 1,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -892,6 +947,7 @@ exports[`DonutSeries > AG-16492 sectorLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "white",
       "cornerRadius": 4,
       "datum": {
@@ -909,6 +965,7 @@ exports[`DonutSeries > AG-16492 sectorLabel.itemStyler > calls 1`] = `
       "itemId": 2,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -920,6 +977,7 @@ exports[`DonutSeries > AG-16492 sectorLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "white",
       "cornerRadius": 4,
       "datum": {
@@ -937,6 +995,7 @@ exports[`DonutSeries > AG-16492 sectorLabel.itemStyler > calls 1`] = `
       "itemId": 3,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
@@ -948,6 +1007,7 @@ exports[`DonutSeries > AG-16492 sectorLabel.itemStyler > calls 1`] = `
         "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "candidateState": undefined,
       "color": "white",
       "cornerRadius": 4,
       "datum": {
@@ -965,6 +1025,7 @@ exports[`DonutSeries > AG-16492 sectorLabel.itemStyler > calls 1`] = `
       "itemId": 4,
       "itemType": undefined,
       "padding": 8,
+      "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],

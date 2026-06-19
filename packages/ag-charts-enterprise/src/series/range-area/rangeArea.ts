@@ -1247,9 +1247,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const { fill, fillOpacity, item, styler } = this.properties;
 
         const selectionState: _ModuleSupport.SelectionState | undefined = this.getDataSelectionState(undefined);
+        const candidateState: _ModuleSupport.SelectionState | undefined = this.getDataCandidacyState(undefined);
         let stylerResult: AgRangeAreaSeriesStyle & ResolvedStyleMixin = {};
         if (styler) {
-            const stylerParams = this.makeStylerParams(highlightState, selectionState);
+            const stylerParams = this.makeStylerParams(highlightState, selectionState, candidateState);
             stylerResult =
                 this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
@@ -1307,15 +1308,17 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     private makeStylerParams(
         highlightStateEnum: _ModuleSupport.HighlightState | undefined,
-        selectionStateEnum: _ModuleSupport.SelectionState | undefined
+        selectionStateEnum: _ModuleSupport.SelectionState | undefined,
+        candidateStateEnum: _ModuleSupport.SelectionState | undefined
     ): AgRangeAreaSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
         const { fill, fillOpacity, item, xKey, yHighKey, yLowKey } = this.properties;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
         const selectionState = toSelectionString(selectionStateEnum);
+        const candidateState = toSelectionString(candidateStateEnum);
 
         type T = AgRangeAreaSeriesStylerParams<unknown, unknown>;
-        type OptionalKey = 'selectionState';
+        type OptionalKey = 'selectionState' | 'candidateState';
         type ParamsRules = DeepRequired<Omit<T, OptionalKey>, 'fill'> & Pick<RequireOptional<T>, OptionalKey>;
         type ResultRules = CallbackParamRules<ParamsRules>;
 
@@ -1349,6 +1352,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             fillOpacity,
             highlightState,
             selectionState,
+            candidateState,
             seriesId,
             xKey,
             yLowKey,

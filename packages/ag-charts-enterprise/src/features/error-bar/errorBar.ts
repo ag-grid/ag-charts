@@ -305,8 +305,16 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
 
         const highlightState = this.cartesianSeries.getHighlightStateString(active, isHighlight, datum.datumIndex);
         const selectionState = this.cartesianSeries.getSelectionStateString(datum.datumIndex);
+        const candidateState = this.cartesianSeries.getCandidateStateString(datum.datumIndex);
         node.datum = datum;
-        node.update(this.getDefaultStyle(), this.properties, this.cartesianSeries, highlightState, selectionState);
+        node.update(
+            this.getDefaultStyle(),
+            this.properties,
+            this.cartesianSeries,
+            highlightState,
+            selectionState,
+            candidateState
+        );
         node.updateBBoxes();
     }
 
@@ -413,6 +421,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         for (let i = 0; i < nodeData.length; i++) {
             if (highlightChange === nodeData[i]) {
                 const dataSelectionState = this.cartesianSeries.getSelectionStateString(nodeData[i].datumIndex);
+                const dataCandidateState = this.cartesianSeries.getCandidateStateString(nodeData[i].datumIndex);
                 this.sceneSelection
                     .at(i)
                     ?.update(
@@ -420,7 +429,8 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
                         this.properties,
                         this.cartesianSeries,
                         highlighted ? 'highlighted-item' : 'unhighlighted-item',
-                        dataSelectionState
+                        dataSelectionState,
+                        dataCandidateState
                     );
                 break;
             }

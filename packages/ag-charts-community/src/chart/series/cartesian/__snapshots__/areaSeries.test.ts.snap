@@ -4,6 +4,7 @@ exports[`AreaSeries > AG-11673 styler > init > callbacks > params 1`] = `
 [
   [
     {
+      "candidateState": undefined,
       "context": {
         "name": "sales context",
       },
@@ -38,6 +39,7 @@ exports[`AreaSeries > AG-11673 styler > init > callbacks > params 1`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "context": {
         "name": "expenses context",
       },

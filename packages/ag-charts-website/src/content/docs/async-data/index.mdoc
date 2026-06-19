@@ -41,6 +41,24 @@ bounds have been established.
 `source` distinguishes user-initiated fetches from programmatic ones, which is useful for avoiding re-fetch loops where
 a fetch triggers a chart update that triggers another fetch.
 
+When the [Navigator](./navigator/) mini chart is enabled, it issues its own `getData` call with `source: 'mini-chart'`
+to load a full-range overview, independent of the main chart's windowed fetches. Return coarse, full-range data for
+this source and detailed windowed data otherwise:
+
+```js format="snippet"
+{
+    dataSource: {
+        getData: ({ windowStart, windowEnd, source }) => {
+            return source === 'mini-chart' ? FakeServer.get({}) : FakeServer.get({ windowStart, windowEnd });
+        },
+    },
+    navigator: {
+        enabled: true,
+        miniChart: {},
+    },
+}
+```
+
 This pattern supports both progressive detail loading by returning finer data
 as the window narrows, as well as server-side paging where only the visible range is fetched from the server on each
 zoom or scroll.

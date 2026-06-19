@@ -4,6 +4,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 1`] = `
 [
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -46,6 +47,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 1`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -93,6 +95,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 2`] = `
 [
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -135,6 +138,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 2`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -177,6 +181,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 2`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -219,6 +224,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 2`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -261,6 +267,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 2`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -310,6 +317,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 4`] = `
 [
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -352,6 +360,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 4`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -394,6 +403,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 4`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -436,6 +446,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 4`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -478,6 +489,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 4`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -527,6 +539,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
 [
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -569,6 +582,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -611,6 +625,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -653,6 +668,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -695,6 +711,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -737,6 +754,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 6`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -786,6 +804,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 8`] = `
 [
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -828,6 +847,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 8`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -870,6 +890,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 8`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -912,6 +933,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 8`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -954,6 +976,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 8`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -996,6 +1019,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 8`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1043,6 +1067,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 9`] = `
 [
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1085,6 +1110,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 9`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1127,6 +1153,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 9`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1169,6 +1196,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 9`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1211,6 +1239,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 9`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1253,6 +1282,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > sequenced > 1 9`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1300,6 +1330,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > legendItem[0] 1
 [
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1342,6 +1373,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > legendItem[0] 1
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1384,6 +1416,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > legendItem[0] 1
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1426,6 +1459,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > legendItem[0] 1
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1468,6 +1502,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > legendItem[0] 1
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1510,6 +1545,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > legendItem[0] 1
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1557,6 +1593,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > legendItem[1] 1
 [
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1599,6 +1636,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > legendItem[1] 1
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1641,6 +1679,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > legendItem[1] 1
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1683,6 +1722,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > legendItem[1] 1
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1725,6 +1765,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > legendItem[1] 1
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1767,6 +1808,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > legendItem[1] 1
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1814,6 +1856,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > miss 1`] = `
 [
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1856,6 +1899,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > miss 1`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1903,6 +1947,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[0].datum
 [
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1945,6 +1990,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[0].datum
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -1987,6 +2033,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[0].datum
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -2029,6 +2076,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[0].datum
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -2071,6 +2119,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[0].datum
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -2113,6 +2162,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[0].datum
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -2155,6 +2205,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[0].datum
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -2202,6 +2253,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[0].datum
 [
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -2244,6 +2296,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[0].datum
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -2286,6 +2339,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[0].datum
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -2328,6 +2382,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[0].datum
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -2370,6 +2425,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[0].datum
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -2412,6 +2468,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[0].datum
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -2454,6 +2511,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[0].datum
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -2501,6 +2559,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[1].datum
 [
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -2543,6 +2602,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[1].datum
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -2585,6 +2645,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[1].datum
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -2627,6 +2688,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[1].datum
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -2669,6 +2731,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[1].datum
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -2711,6 +2774,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[1].datum
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -2753,6 +2817,7 @@ exports[`BoxPlotSeries > AG-15782 styler > highlights > single > series[1].datum
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -2800,6 +2865,7 @@ exports[`BoxPlotSeries > AG-15782 styler > init > callbacks > params 1`] = `
 [
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },
@@ -2845,6 +2911,7 @@ exports[`BoxPlotSeries > AG-15782 styler > init > callbacks > params 1`] = `
   ],
   [
     {
+      "candidateState": undefined,
       "cap": {
         "lengthRatio": 0.5,
       },

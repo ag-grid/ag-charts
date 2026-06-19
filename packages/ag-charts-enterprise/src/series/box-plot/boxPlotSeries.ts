@@ -487,6 +487,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.getStyle(
             false,
             HighlightState.None,
+            undefined,
             undefined
         );
 
@@ -570,7 +571,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const allowNullKeys = this.properties.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
-        const format = this.getItemStyle(datumIndex, false, undefined, undefined);
+        const format = this.getItemStyle(datumIndex, false, undefined, undefined, undefined);
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [
             {
@@ -667,7 +668,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
 
     private makeStylerParams(
         highlightStateEnum: _ModuleSupport.HighlightState | undefined,
-        selectionStateEnum: _ModuleSupport.SelectionState | undefined
+        selectionStateEnum: _ModuleSupport.SelectionState | undefined,
+        candidateStateEnum: _ModuleSupport.SelectionState | undefined
     ): AgBoxPlotSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
         const {
@@ -703,6 +705,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         } = this.properties;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
         const selectionState = toSelectionString(selectionStateEnum);
+        const candidateState = toSelectionString(candidateStateEnum);
 
         // Do not allow any of the returned properties to be `undefined`.
         // Exceptions:
@@ -710,9 +713,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         // -   `yName` key has no `yKey` fallback like `xName`.
         type T = ReturnType<BoxPlotSeries['makeStylerParams']>;
         type Rules = CallbackParamRules<
-            DeepRequired<Omit<T, 'yName' | 'selectionState'>, 'fill'> &
+            DeepRequired<Omit<T, 'yName' | 'selectionState' | 'candidateState'>, 'fill'> &
                 Pick<T, 'yName'> &
-                Pick<RequireOptional<T>, 'selectionState'>
+                Pick<RequireOptional<T>, 'selectionState' | 'candidateState'>
         >;
         return {
             cap: { lengthRatio },
@@ -721,6 +724,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             fillOpacity,
             highlightState,
             selectionState,
+            candidateState,
             lineDash,
             lineDashOffset,
             maxKey,
@@ -753,7 +757,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
     private getStyle(
         ignoreStylerCallback: boolean,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        selectionState: _ModuleSupport.SelectionState | undefined
+        selectionState: _ModuleSupport.SelectionState | undefined,
+        candidateState: _ModuleSupport.SelectionState | undefined
     ): Required<AgBoxPlotSeriesStyle> & { opacity: number } {
         const {
             cap,
@@ -770,7 +775,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         } = this.properties;
         let stylerResult: AgBoxPlotSeriesStyle = {};
         if (!ignoreStylerCallback && styler) {
-            const stylerParams = this.makeStylerParams(highlightState, selectionState);
+            const stylerParams = this.makeStylerParams(highlightState, selectionState, candidateState);
             stylerResult =
                 this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
@@ -803,17 +808,18 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         datumIndex: number | undefined,
         isHighlight: boolean,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        selectionState: _ModuleSupport.SelectionState | undefined
+        selectionState: _ModuleSupport.SelectionState | undefined,
+        candidateState: _ModuleSupport.SelectionState | undefined
     ): Required<AgBoxPlotSeriesStyle> {
         const { properties } = this;
         const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        const selectionStyle = this.getSelectionStyle(datumIndex);
+        const selectionStyle = this.getSelectionStyle(datumIndex, selectionState, candidateState);
         let style = mergeDefaults(
             selectionStyle,
             highlightStyle,
-            this.getStyle(datumIndex === undefined, highlightState, selectionState)
+            this.getStyle(datumIndex === undefined, highlightState, selectionState, candidateState)
         );
 
         if (itemStyler != null && datumIndex != null) {
@@ -854,6 +860,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
         const selectionStateString = this.getSelectionStateString(datumIndex);
+        const candidateStateString = this.getCandidateStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
@@ -867,6 +874,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             maxKey,
             highlightState: highlightStateString,
             selectionState: selectionStateString,
+            candidateState: candidateStateString,
             ...style,
             fill,
         } satisfies CallbackParamRules<AgBoxPlotSeriesItemStylerParams>;
@@ -894,11 +902,18 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
                     nodeDatum.datumIndex
                 );
                 const selectionState = thisSeries.getDataSelectionState(nodeDatum.datumIndex);
-                const stateKey = `${highlightState}:${selectionState ?? '-'}`;
+                const candidateState = thisSeries.getDataCandidacyState(nodeDatum.datumIndex);
+                const stateKey = `${highlightState}:${selectionState ?? '-'}:${candidateState ?? '-'}`;
                 let style = styleByState.get(stateKey);
                 if (style === undefined) {
                     // Concrete datumIndex required: getStyle treats `undefined` as "ignore styler".
-                    style = thisSeries.getItemStyle(nodeDatum.datumIndex, isHighlight, highlightState, selectionState);
+                    style = thisSeries.getItemStyle(
+                        nodeDatum.datumIndex,
+                        isHighlight,
+                        highlightState,
+                        selectionState,
+                        candidateState
+                    );
                     styleByState.set(stateKey, style);
                 }
                 nodeDatum.style = style;
@@ -909,7 +924,14 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         datumSelection.each((_, nodeDatum) => {
             const highlightState = this.getHighlightState(highlightedDatum, isHighlight, nodeDatum.datumIndex);
             const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);
-            nodeDatum.style = this.getItemStyle(nodeDatum.datumIndex, isHighlight, highlightState, selectionState);
+            const candidateState = this.getDataCandidacyState(nodeDatum.datumIndex);
+            nodeDatum.style = this.getItemStyle(
+                nodeDatum.datumIndex,
+                isHighlight,
+                highlightState,
+                selectionState,
+                candidateState
+            );
         });
     }
 
@@ -928,7 +950,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         const fillBBox = this.getShapeFillBBox();
-        const strokeAlignment = this.getStyle(false, HighlightState.None, undefined).strokeWidth / 2;
+        const strokeAlignment = this.getStyle(false, HighlightState.None, undefined, undefined).strokeWidth / 2;
 
         const wickStrokeAlignment = properties.whisker.strokeWidth ?? properties.strokeWidth;
 

@@ -414,6 +414,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             secondaryLabelKey,
             highlightState,
             selectionState: this.getSelectionStateString(nodeDatum.datumIndex),
+            candidateState: this.getCandidateStateString(nodeDatum.datumIndex),
             ...style,
             fill,
         } satisfies CallbackParamRules<AgTreemapSeriesItemStylerParams<unknown, unknown>>;

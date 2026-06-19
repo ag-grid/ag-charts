@@ -77,6 +77,7 @@ jobs:
         outputs:
             branch: ${{ steps.get-branch.outputs.branch }}
             base: ${{ steps.get-branch.outputs.base }}
+            base-label: ${{ steps.get-branch.outputs.base-label }}
             shards: ${{ steps.shards.outputs.shards }}
             build-matrix: ${{ steps.build-matrix.outputs.build-matrix }}
             comment-id: ${{ steps.notify-start.outputs.result }}
@@ -103,9 +104,17 @@ jobs:
             - id: 'get-branch'
               run: |
                   if [[ "${{ github.event_name }}" == "issue_comment" ]] ; then
-                    # For PR comments, get the branch from the PR
-                    echo "branch=$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')" >> $GITHUB_OUTPUT
-                    echo "base=$(gh pr view $PR_NO --repo $REPO --json baseRefName --jq '.baseRefName')" >> $GITHUB_OUTPUT
+                    # For PR comments, benchmark the PR head against the branch's
+                    # MERGE-BASE (the commit it forked from), not the live base-branch
+                    # tip. Comparing against the tip charges the PR for optimisations
+                    # merged into the base after the fork point, manufacturing
+                    # regressions; the merge-base isolates the PR's own diff.
+                    head_ref=$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')
+                    base_ref=$(gh pr view $PR_NO --repo $REPO --json baseRefName --jq '.baseRefName')
+                    merge_base=$(gh api "repos/$REPO/compare/$base_ref...$head_ref" --jq '.merge_base_commit.sha')
+                    echo "branch=${head_ref}" >> $GITHUB_OUTPUT
+                    echo "base=${merge_base}" >> $GITHUB_OUTPUT
+                    echo "base-label=merge-base ${merge_base:0:10} (${base_ref})" >> $GITHUB_OUTPUT
                   elif [[ "${{ github.event_name }}" == "schedule" ]] ; then
                     # Scheduled runs compare against the most recently published npm
                     # version: the head example set runs against the published UMD
@@ -113,10 +122,12 @@ jobs:
                     published=$(npm view ag-charts-community version)
                     echo "branch=latest" >> $GITHUB_OUTPUT
                     echo "base=npm:${published}" >> $GITHUB_OUTPUT
+                    echo "base-label=npm:${published}" >> $GITHUB_OUTPUT
                   else
                     # For manual workflow dispatch, use the current branch
                     echo "branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
                     echo "base=${{ inputs.compare-base }}" >> $GITHUB_OUTPUT
+                    echo "base-label=${{ inputs.compare-base }}" >> $GITHUB_OUTPUT
                   fi
               env:
                   REPO: ${{ github.repository }}
@@ -354,7 +365,7 @@ jobs:
                   node ./tools/benchmark/compare-browser-results.js \
                       --base reports/browser-benchmarks/base.json \
                       --compare reports/browser-benchmarks/head.json \
-                      --base-label "${{ needs.resolve.outputs.base }}" \
+                      --base-label "${{ needs.resolve.outputs.base-label }}" \
                       --compare-label "${{ needs.resolve.outputs.branch }}" \
                       --format table \
                       --report-only \
@@ -362,7 +373,7 @@ jobs:
                   node ./tools/benchmark/compare-browser-results.js \
                       --base reports/browser-benchmarks/base.json \
                       --compare reports/browser-benchmarks/head.json \
-                      --base-label "${{ needs.resolve.outputs.base }}" \
+                      --base-label "${{ needs.resolve.outputs.base-label }}" \
                       --compare-label "${{ needs.resolve.outputs.branch }}" \
                       --format json \
                       --report-only \

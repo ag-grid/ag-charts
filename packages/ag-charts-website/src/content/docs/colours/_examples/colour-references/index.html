@@ -1,0 +1,26 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <div class="gap-right">
+            <label for="accent-select">accentColor:</label>
+            <select id="accent-select" onchange="changeAccent(event)">
+                <option value="#2f6df0">Blue</option>
+                <option value="#d1495b">Red</option>
+                <option value="#21b372">Green</option>
+                <option value="#8a4fff">Purple</option>
+            </select>
+        </div>
+        <div class="gap-right">
+            <label for="bg-select">backgroundColor:</label>
+            <select id="bg-select" onchange="changeBackground(event)">
+                <option value="#ffffff">White</option>
+                <option value="#10131a">Midnight</option>
+                <option value="#fff1e5">Paper</option>
+            </select>
+        </div>
+        <div>
+            <label for="mix-range">mix: <span id="mix-value">0.85</span></label>
+            <input id="mix-range" type="range" min="0" max="1" step="0.05" value="0.85" oninput="changeMix(event)" />
+        </div>
+    </div>
+</div>
+<div id="myChart"></div>

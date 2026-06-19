@@ -9,4 +9,5 @@ export interface IDataSelectionService extends DataChangeDescriptionListener {
     transferDataSet<T>(newDataSet: DataSet<T>, oldDataSet: DataSet<T>): void;
     getDataSetSelection(series: SeriesLike): IDataSetSelection | undefined;
     getDataSelectionState(series: SeriesLike, datumIndex: number | undefined): SelectionState | undefined;
+    getDataCandidateState(series: SeriesLike, datumIndex: number | undefined): SelectionState | undefined;
 }

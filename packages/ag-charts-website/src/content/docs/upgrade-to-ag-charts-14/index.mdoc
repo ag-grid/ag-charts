@@ -164,6 +164,10 @@ This release includes the following behaviour changes:
 
 - Generated selection `itemId` values (when `dataIdKey` is not set) have changed and are not stable across versions. Set `dataIdKey` if you depend on stable identifiers.
 
+### Sunburst and Treemap Series
+
+- The default `itemId` on Sunburst and Treemap series has changed from a string to a number. Update any code that compares or stores the `itemId` as a string.
+
 ### Zoom
 
 - Setting `initialState.zoom.rangeX` or `initialState.zoom.rangeY` with string values now applies the zoom range correctly on category axes. Previously these values produced a console warning and were ignored.
