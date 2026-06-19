@@ -57,6 +57,9 @@ interface EventMap {
 
 class AnnotationOptionsButtonProperties extends ToolbarButtonProperties {
     @Property
+    type: 'button' | 'switch' = 'button';
+
+    @Property
     value!: AnnotationOptions;
 
     @Property
@@ -73,6 +76,7 @@ class AnnotationOptionsButtonProperties extends ToolbarButtonProperties {
 }
 
 interface AnnotationOptionsButtonOptions extends _ModuleSupport.ToolbarButtonOptions {
+    type: 'button' | 'switch';
     value: AnnotationOptions;
     color?: string;
     strokeWidth?: number;
@@ -465,7 +469,7 @@ export class AnnotationOptionsToolbar extends BaseProperties {
 
         for (const [index, button] of this.visibleButtons.entries()) {
             if (!button) continue;
-            if (button.value === AnnotationOptions.Lock) {
+            if (button.type === 'switch') {
                 this.toolbar.toggleSwitchCheckedByIndex(index, locked);
                 this.updateButtonByIndex(index, locked ? button.checkedOverrides.toJson() : button.toJson());
             } else {
@@ -504,6 +508,11 @@ export class AnnotationOptionsToolbar extends BaseProperties {
     private updateButtonByIndex(index: number, change: Partial<AnnotationOptionsButtonOptions>) {
         const button = this.visibleButtons.at(index);
         if (!button) return;
-        this.toolbar.updateButtonByIndex(index, { ...button.toJson(), ...change, value: change.value ?? button.value });
+        this.toolbar.updateButtonByIndex(index, {
+            ...button.toJson(),
+            ...change,
+            type: change.type ?? button.type,
+            value: change.value ?? button.value,
+        });
     }
 }

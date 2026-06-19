@@ -562,19 +562,27 @@ export type AgAnnotationsToolbarButtonValue =
 // * Options Toolbar *
 // *******************/
 
-type AgAnnotationToolbarButton = AgAnnotationOptionsToolbarButton | AgAnnotationOptionsToolbarSwitch;
+export type AgAnnotationOptionsToolbarItem = AgAnnotationOptionsToolbarButton | AgAnnotationOptionsToolbarSwitch;
 
 export interface AgAnnotationOptionsToolbar extends Toggleable {
     /** The buttons to show in the options toolbar. */
-    buttons?: AgAnnotationToolbarButton[];
+    buttons?: AgAnnotationOptionsToolbarItem[];
 }
 
 export interface AgAnnotationOptionsToolbarButton extends ToolbarButton {
+    /**
+     * The type of toolbar item.
+     *
+     * Default: `'button'`
+     */
+    type?: 'button';
     /** The action to perform when the button is clicked. */
     value: AgAnnotationOptionsToolbarButtonValue;
 }
 
 export interface AgAnnotationOptionsToolbarSwitch extends ToolbarSwitch {
+    /** The type of toolbar item. */
+    type: 'switch';
     /** The action to perform when the switch is toggled. */
     value: AgAnnotationOptionsToolbarSwitchValue;
 }

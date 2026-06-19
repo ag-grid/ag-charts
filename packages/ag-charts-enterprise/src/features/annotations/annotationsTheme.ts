@@ -148,6 +148,7 @@ const optionsToolbar: WithThemeParams<AgAnnotationOptionsToolbar> = {
                 value: 'settings',
             },
             {
+                type: 'switch',
                 icon: 'unlocked',
                 tooltip: 'toolbarAnnotationsLock',
                 ariaLabel: 'toolbarAnnotationsLock',
