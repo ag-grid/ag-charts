@@ -253,6 +253,7 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
             or(
                 optionsDefs<AgAnnotationOptionsToolbarButton>({
                     ...toolbarButtonOptionsDefs,
+                    type: union('button'),
                     value: required(
                         union(
                             'line-stroke-width',
@@ -268,6 +269,7 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
                 }),
                 optionsDefs<AgAnnotationOptionsToolbarSwitch>({
                     ...toolbarButtonOptionsDefs,
+                    type: required(union('switch')),
                     value: required(union('lock')),
                     checkedOverrides: toolbarButtonOptionsDefs,
                 })
