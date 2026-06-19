@@ -58,7 +58,7 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
         }
         this.totalSelectedCount = sum;
     }
-  
+
     private isSeriesSelectionEnabled(series: SeriesLike): boolean {
         if (!series.isSelectionEnabled() || this.ctx === undefined) return false;
 
