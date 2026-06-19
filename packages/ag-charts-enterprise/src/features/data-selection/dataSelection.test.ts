@@ -4578,7 +4578,8 @@ describe('DataSelection', () => {
                         expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
-                describe('mousedown and mousemove', () => {
+                // AG-17528 Selection dragging on radars is disabled for this release:
+                describe.skip('mousedown and mousemove', () => {
                     beforeEach(async () => {
                         await mouseDown(DRAG_FROM);
                         await mouseMove(DRAG_TO);

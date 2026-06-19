@@ -39,8 +39,8 @@ type SeriesType = NonNullable<AgChartOptions['series']>[number]['type'];
 function initSet(types: SeriesType[]): Set<unknown> {
     return new Set(types);
 }
-const UNSUPPORTED_SERIES = initSet(['histogram', 'waterfall', 'funnel', 'cone-funnel', 'nightingale']);
-const UNSUPPORTED_DRAGGING = initSet(['radial-column']);
+const UNSUPPORTED_SERIES = initSet(['histogram', 'waterfall', 'funnel', 'cone-funnel']);
+const UNSUPPORTED_DRAGGING = initSet(['radial-column', 'nightingale', 'radar-line', 'radar-area']);
 
 function upcastDataSelectionService(service: IDataSelectionService | undefined): DataSelectionService {
     if (service && service instanceof DataSelectionService) return service;
