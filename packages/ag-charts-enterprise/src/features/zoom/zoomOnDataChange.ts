@@ -136,14 +136,22 @@ export class ZoomOnDataChange {
         if (!ctx?.continuous || ctx.scale.domain.length === 0) return;
 
         const [min, max]: [unknown, unknown] = ctx.scale.getDomainMinMax();
+        let domainMinMax: DomainMinMax | undefined;
         if (isNumericValue(min) && isNumericValue(max)) {
             // The interpolation below is ratio maths in Number space; sub-ULP bigint precision is not needed.
-            return { domainMin: toNumber(min), domainMax: toNumber(max) };
+            domainMinMax = { domainMin: toNumber(min), domainMax: toNumber(max) };
         } else if (min instanceof Date && max instanceof Date) {
-            return { domainMin: min.getTime(), domainMax: max.getTime() };
+            domainMinMax = { domainMin: min.getTime(), domainMax: max.getTime() };
         } else {
             Logger.error(`Unexpected range types: start (${typeof min}), end (${typeof max})`);
+            return;
         }
+
+        // A zero-span (collapsed) domain would make the ratio interpolation divide by zero → NaN zoom.
+        const span = domainMinMax.domainMax - domainMinMax.domainMin;
+        if (!Number.isFinite(span) || span === 0) return;
+
+        return domainMinMax;
     }
 
     private popDesiredChanges(): ZoomChangeState | undefined {

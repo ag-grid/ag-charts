@@ -612,6 +612,76 @@ describe('DataSource', () => {
         );
     });
 
+    describe('financial chart zoom preservation', () => {
+        // A response that collapses the domain to a single band (zero span) must not corrupt the zoom.
+        it('retains data and zoom when an unrenderable response collapses the domain', async () => {
+            const validData = Array.from({ length: 40 }, (_, i) => ({
+                date: new Date(2024, 0, 1 + i),
+                open: 100 + i,
+                high: 105 + i,
+                low: 95 + i,
+                close: 102 + i,
+                volume: 1000 + i * 10,
+            }));
+            // The valid `date` keeps `hasData` non-trivial; the OHLC values are all non-finite.
+            const malformed = [
+                { date: 'not-a-date', open: 'abc', high: null, low: undefined, close: 103, volume: 1500000 },
+                {
+                    date: new Date(2024, 0, 3),
+                    open: Number.NaN,
+                    high: Number.POSITIVE_INFINITY,
+                    low: Number.NEGATIVE_INFINITY,
+                    close: 106,
+                    volume: 1800000,
+                },
+                { wrongKey: 'value' },
+                {},
+            ];
+
+            let scenario: 'valid' | 'malformed' = 'valid';
+            const finOptions: any = {
+                width: 800,
+                height: 600,
+                toolbar: false,
+                statusBar: false,
+                dataSource: {
+                    requestThrottle: 0,
+                    updateThrottle: 0,
+                    updateDuringInteraction: true,
+                    getData: () => delay(1).then(() => (scenario === 'malformed' ? malformed : validData)),
+                },
+            };
+            prepareEnterpriseTestOptions(finOptions);
+            cx = finOptions.width / 2;
+            cy = finOptions.height / 2;
+            chart = AgCharts.createFinancialChart(finOptions);
+            await waitForChartStability(chart);
+            await clickAction(cx, cy)(chart);
+            await delay(1);
+            await waitForChartStability(chart);
+
+            await scrollAction(cx, cy, -1)(chart);
+            await delay(1);
+            await waitForChartStability(chart);
+            const zoomBefore = chart.getState().zoom!.ratioX!;
+            expect(zoomBefore.start).toBeGreaterThan(0); // anti-vacuous: baseline is zoomed in
+
+            scenario = 'malformed';
+            await scrollAction(cx, cy, -1)(chart);
+            await delay(1);
+            await waitForChartStability(chart);
+
+            const zoomAfter = chart.getState().zoom!.ratioX!;
+            expect(Number.isFinite(zoomAfter.start)).toBe(true);
+            expect(Number.isFinite(zoomAfter.end)).toBe(true);
+            expect(zoomAfter.start).toBeGreaterThanOrEqual(zoomBefore.start);
+            // Retained, not committed: the previous render survives.
+            expect(chart.chart.series.every((series: { hasData: boolean }) => series.hasData)).toBe(true);
+
+            expectWarningsCalls(); // drain value-validation warnings
+        });
+    });
+
     describe('navigator mini-chart', () => {
         it('should use separate data for mini-chart', async () => {
             const response = delay(1).then(() => [
