@@ -196,7 +196,11 @@
     "generate-test-files": {
       "executor": "nx:run-commands",
       "dependsOn": ["^generate-test-files"],
-      "inputs": ["{projectRoot}/e2e/**", "!{projectRoot}/e2e/generated/**"],
+      "inputs": [
+        "{projectRoot}/e2e/**",
+        "!{projectRoot}/e2e/generated/**",
+        "{projectRoot}/src/content/**/_examples/*/main.ts"
+      ],
       "outputs": ["{projectRoot}/e2e/generated/**"],
       "cache": true,
       "options": {
