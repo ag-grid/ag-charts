@@ -28,6 +28,15 @@ function getOrInsert<T>(map: Map<string, T>, key: string, data: DataSet, inserte
 export class DataSelectionService extends AbstractModuleInstance implements IDataSelectionService {
     public totalSelectedCount = 0;
     public totalCandidacyCount = 0;
+    // The API states that the candidateState property must be undefined when no drag motion is in progress. This is
+    // required to distinguish between these cases:
+    // 1.  No drag motion is in progress.
+    // 2.  A drag motion is in progress, but the candidacy list is empty.
+    public candidacyInProgress = false;
+    // The Control/Cmd keys can be used to add everything in candidacy to the existing selections rather than setting
+    // the selection (i.e. the union of candidate + selection). Multiple keys can toggle the union behaviour, so we
+    // use a number to track how many of those keys are pressed.
+    public candidacyUnion = 0;
 
     /** Per-series selection state. Keyed by `seriesId`. */
     selections = new Map<string, DataSetSelection>();
@@ -78,6 +87,7 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
     clearCandidacy() {
         this.candidacy.clear();
         this.totalCandidacyCount = 0;
+        this.candidacyInProgress = false;
     }
 
     /** Lazy-create a per-series selection backed by a Uint8Array of `data.length`. */
@@ -207,7 +217,14 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
     }
 
     getDataCandidateState(series: SeriesLike, datumIndex: number | undefined): SelectionStateEnum | undefined {
-        if (!this.isSeriesSelectionEnabled(series)) return undefined;
+        if (!this.candidacyInProgress || !this.isSeriesSelectionEnabled(series)) return undefined;
+
+        if (this.candidacyUnion > 0) {
+            const selectedState = this.getDataSelectionState(series, datumIndex);
+            if (selectedState === SelectionState.Item) {
+                return SelectionState.Item;
+            }
+        }
 
         if (this.totalCandidacyCount === 0) {
             return SelectionState.None;

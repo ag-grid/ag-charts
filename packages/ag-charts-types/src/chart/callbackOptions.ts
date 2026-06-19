@@ -45,7 +45,7 @@ export interface DatumCallbackParams<TDatum, THighlightState extends string = Hi
     highlightState?: THighlightState;
     /** The specific selection state of the element. Undefined if the selection module is disabled. */
     selectionState?: SelectionState;
-    /** The specific candidate state of the element. Undefined if the selection module is disabled. */
+    /** The specific candidate state of the element. Undefined if the selection module is disabled or if no drag motion is in progress. */
     candidateState?: SelectionState;
 }
 
@@ -57,9 +57,9 @@ export interface SeriesCallbackParams<
     seriesId: string;
     /** The specific highlight state of the element. */
     highlightState?: THighlightState;
-    /** The specific selection state of the element. */
+    /** The specific selection state of the element. Undefined if the selection module is disabled. */
     selectionState?: TSelectionState;
-    /** The specific candidate state of the element. */
+    /** The specific candidate state of the element. Undefined if the selection module is disabled or if no drag motion is in progress. */
     candidateState?: SelectionState;
 }
 

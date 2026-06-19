@@ -48,6 +48,10 @@ export function hasAddToSelectionModifier(event: { sourceEvent: { ctrlKey: boole
     return event.sourceEvent.ctrlKey || event.sourceEvent.metaKey;
 }
 
+export function countAddToSelectionModifier(event: { sourceEvent: { ctrlKey: boolean; metaKey: boolean } }): number {
+    return Number(event.sourceEvent.ctrlKey) + Number(event.sourceEvent.metaKey);
+}
+
 export function rollbackChanges(changes: SelectionChangesWithItems, service: Service): void {
     type K = Series['id'];
     type V = { dataSet: DataSet; selection: DataSetSelection };
