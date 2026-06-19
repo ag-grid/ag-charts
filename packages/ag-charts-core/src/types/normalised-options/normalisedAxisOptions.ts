@@ -396,7 +396,10 @@ export type NormalisedSparklineCrosshairLabelOptions<TContext = ContextDefault> 
     'enabled' | 'xOffset' | 'yOffset'
 >;
 
-type CrosshairLabelMorph<TFormat, TContext> = { label: NormalisedCrosshairLabelOptions<TFormat, TContext> };
+type CrosshairLabelMorph<TFormat, TContext> = {
+    label: NormalisedCrosshairLabelOptions<TFormat, TContext>;
+    stroke?: CssColor;
+};
 
 export type NormalisedCrosshairOptions<TFormat = string, TContext = ContextDefault> = Normalised<
     AgCrosshairOptions<NormalisedCrosshairLabelOptions<TFormat, TContext>>,
@@ -406,7 +409,8 @@ export type NormalisedCrosshairOptions<TFormat = string, TContext = ContextDefau
 
 export type NormalisedBandHighlightOptions = Normalised<
     AgBandHighlightOptions,
-    'enabled' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset' | 'fill' | 'fillOpacity'
+    'enabled' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset' | 'fill' | 'fillOpacity',
+    { stroke?: CssColor; fill?: NormalisedColorType }
 >;
 
 // --- Cross-lines normalised shapes ---

@@ -3,12 +3,10 @@ import {
     AbstractModuleInstance,
     ChartAxisDirection,
     ChartUpdateType,
-    type InternalAgColorType,
     type NormalisedBandHighlightOptions,
     ZIndexMap,
     createId,
 } from 'ag-charts-core';
-import type { CssColor } from 'ag-charts-types';
 
 const {
     Range,
@@ -161,18 +159,12 @@ export class BandHighlight extends AbstractModuleInstance {
 
         const { stroke, strokeWidth, strokeOpacity, lineDash, fill, fillOpacity, lineDashOffset } = options;
 
-        // Colour refs are resolved during theme-merge, so stroke/fill are concrete by render.
-        node.stroke = stroke as CssColor;
+        node.stroke = stroke;
         node.strokeWidth = strokeWidth;
         node.strokeOpacity = strokeOpacity;
         node.lineDash = lineDash;
         node.lineDashOffset = lineDashOffset;
-        node.fill = getShapeFill(
-            fill as InternalAgColorType,
-            this.fillGradientDefaults,
-            this.fillPatternDefaults,
-            this.fillImageDefaults
-        );
+        node.fill = getShapeFill(fill, this.fillGradientDefaults, this.fillPatternDefaults, this.fillImageDefaults);
         node.fillOpacity = fillOpacity;
         node.startLine = true;
         node.endLine = true;

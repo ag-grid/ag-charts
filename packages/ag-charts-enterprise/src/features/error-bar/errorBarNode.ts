@@ -24,6 +24,15 @@ export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum &
 export type ErrorBarStylingOptions = Omit<AgErrorBarThemeableOptions, 'cap'>;
 // Resolved render-time shape: refs are resolved to concrete colours during theme-merge before reaching scene nodes.
 type NormalisedErrorBarStylingOptions = Normalised<ErrorBarStylingOptions, never, { stroke?: CssColor }>;
+type NormalisedErrorBarCapStyle = Normalised<
+    NonNullable<AgErrorBarThemeableOptions['cap']>,
+    never,
+    { stroke?: CssColor }
+>;
+type NormalisedErrorBarStyles = {
+    whiskerStyle: NormalisedErrorBarStylingOptions;
+    capsStyle: NormalisedErrorBarCapStyle | undefined;
+};
 
 type ErrorBarKey = 'xLowerKey' | 'xUpperKey' | 'yLowerKey' | 'yUpperKey';
 type IgnoredSeriesKey = 'context' | 'size' | 'shape' | 'fill' | 'fillOpacity' | 'labelKey' | 'colorKey';
@@ -147,7 +156,7 @@ export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
         highlightState: HighlightState,
         selectionState: SelectionState | undefined,
         candidateState: SelectionState | undefined
-    ) {
+    ): NormalisedErrorBarStyles {
         let { cap: capsStyle, ...whiskerStyle } = style;
 
         const params = this.getItemStylerParams(options, style, highlightState, selectionState, candidateState);
@@ -160,7 +169,8 @@ export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
             capsStyle = mergeDefaults(result?.cap, result, capsStyle);
         }
 
-        return { whiskerStyle, capsStyle };
+        // Colour refs are resolved at runtime before render, so the styles are concrete here.
+        return { whiskerStyle, capsStyle } as NormalisedErrorBarStyles;
     }
 
     private applyStyling(target: _ModuleSupport.Path, source?: NormalisedErrorBarStylingOptions) {
@@ -196,8 +206,7 @@ export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
         const { xBar, yBar, capDefaults } = this.datum;
 
         const whisker = this.whiskerPath;
-        // Refs resolved at runtime before render.
-        this.applyStyling(whisker, whiskerStyle as NormalisedErrorBarStylingOptions);
+        this.applyStyling(whisker, whiskerStyle);
         whisker.path.clear(true);
         if (yBar !== undefined) {
             whisker.path.moveTo(yBar.lowerPoint.x, yBar.lowerPoint.y);
@@ -214,8 +223,7 @@ export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
         this.capLength = this.calculateCapLength(capsStyle ?? {}, capDefaults);
         const capOffset = this.capLength / 2;
         const caps = this.capsPath;
-        // Refs resolved at runtime before render.
-        this.applyStyling(caps, capsStyle as NormalisedErrorBarStylingOptions);
+        this.applyStyling(caps, capsStyle);
         caps.path.clear(true);
         if (yBar !== undefined) {
             caps.path.moveTo(yBar.lowerPoint.x - capOffset, yBar.lowerPoint.y);
