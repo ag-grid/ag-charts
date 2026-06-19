@@ -155,6 +155,75 @@ function createLineAccountingOptions(): AgCartesianChartOptions<AccountingDatum,
     };
 }
 
+// A copy of createLineAccountingOptions adapted for data-transaction tests: a
+// chart-level `dataIdKey` with stable string ids on each datum, shared data only
+// (per-series `data` is incompatible with transactions), and one non-selectable
+// series (s3id) alongside two selectable ones. String ids are deliberate — a
+// numeric `itemId` is interpreted as an array index by DataSet.getIndexFromItemId,
+// bypassing the dataIdKey lookup this fixture exists to exercise.
+type AccountingDatumWithId = {
+    id: string;
+    year: string;
+    assets: number;
+    liabilities: number;
+    cash: number;
+};
+function createLineAccountingOptionsWithIds(): AgCartesianChartOptions<AccountingDatumWithId, unknown> {
+    const data: AccountingDatumWithId[] = [
+        { id: 'r2018', year: '2018', assets: 100, liabilities: -70, cash: 30 },
+        { id: 'r2019', year: '2019', assets: 120, liabilities: -80, cash: 40 },
+        { id: 'r2020', year: '2020', assets: 150, liabilities: -90, cash: 60 },
+        { id: 'r2021', year: '2021', assets: 170, liabilities: -110, cash: 30 },
+        { id: 'r2022', year: '2022', assets: 190, liabilities: -120, cash: 50 },
+        { id: 'r2023', year: '2023', assets: 200, liabilities: -130, cash: 90 },
+    ];
+    return {
+        dataIdKey: 'id',
+        data,
+        series: [
+            {
+                id: 's1id',
+                type: 'line',
+                xKey: 'year',
+                yKey: 'assets',
+            },
+            {
+                id: 's2id',
+                type: 'line',
+                xKey: 'year',
+                yKey: 'liabilities',
+            },
+            {
+                id: 's3id',
+                type: 'line',
+                xKey: 'year',
+                yKey: 'cash',
+                selection: { enabled: false },
+            },
+        ],
+        theme: {
+            overrides: {
+                line: {
+                    series: {
+                        label: {
+                            enabled: true,
+                            formatter: (params) => {
+                                return `${params.yKey.at(0)}${params.datum.year.at(3)}`;
+                            },
+                        },
+                        selection: {
+                            // Make selected items in the image snapshots more obvious by increasing strokeWidth
+                            selectedItem: {
+                                strokeWidth: 5,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    };
+}
+
 // A dense dataset (>1000 points) where the marker spacing falls below 1px, so
 // `markerEnabled()` is false and — with `selection.enabled` — `hideWithSize0`
 // becomes true: the line/area path is drawn but every unselected marker is sized 0.
@@ -5178,6 +5247,101 @@ describe('DataSelection', () => {
                             expect(selectionChange.popEvents()).toEqual([API_ADDED]);
                         });
                     });
+                });
+            });
+        });
+    });
+
+    describe('datum removal', () => {
+        // Removing every selected datum must reset the selection count to 0. If it
+        // stays stale (the bug), unselected datums keep rendering with the dimmed
+        // "other item" styling instead of returning to normal — caught by the
+        // "removal all" screenshots below, which would otherwise be identical.
+        describe('line', () => {
+            type D = AccountingDatumWithId;
+            type C = unknown;
+            let selectionChange: SelectionChangeRecorder<D, C>;
+
+            const baseOptions = createLineAccountingOptionsWithIds();
+            const allData = baseOptions.data!;
+
+            // dataIdKey is 'id', so each `itemId` is the datum's string id.
+            // s1id (assets) selects r2022 & r2023; s2id (liabilities) selects r2021 & r2023.
+            // r2023 is selected by both series, r2022 by s1id only, r2021 by s2id only.
+            const SELECTION: AgSelectionItem<D>[] = [
+                { seriesId: 's1id', itemId: 'r2022', datum: allData[4] },
+                { seriesId: 's1id', itemId: 'r2023', datum: allData[5] },
+                { seriesId: 's2id', itemId: 'r2021', datum: allData[3] },
+                { seriesId: 's2id', itemId: 'r2023', datum: allData[5] },
+            ];
+            const SELECTION_IDS: AgSelectionItemIds[] = SELECTION.map(({ seriesId, itemId }) => ({ seriesId, itemId }));
+            const API_ADDED = apiChangeEvent<D, C>({ added: SELECTION, removed: [] });
+
+            // Remove every selected year. The remaining years (r2018, r2019, r2020)
+            // are unselected, so the selection becomes empty.
+            const REMOVED_IDS = ['r2021', 'r2022', 'r2023'];
+            const remainingData = allData.filter((d) => !REMOVED_IDS.includes(d.id));
+
+            beforeEach(async () => {
+                selectionChange = createSelectionChangeRecorder<D, C>();
+                chart = await createChartInstance({
+                    ...baseOptions,
+                    selection: { enabled: true },
+                    listeners: { selectionChange },
+                });
+                await setChartSelectionArray(SELECTION_IDS);
+            });
+
+            describe('initial', () => {
+                test('screenshot', async () => {
+                    await compareExact('line-datum-removal-initial');
+                });
+                test('getSelection', () => {
+                    expect(getChartSelectionArray()).toEqual(SELECTION);
+                });
+                test('selectionChange', () => {
+                    expect(selectionChange.popEvents()).toEqual([API_ADDED]);
+                });
+            });
+
+            describe('removal all - update', () => {
+                beforeEach(async () => {
+                    selectionChange.popEvents(); // discard the initial setSelection event
+                    await chart.update(
+                        prepareEnterpriseTestOptions({
+                            ...baseOptions,
+                            data: remainingData,
+                            selection: { enabled: true },
+                            listeners: { selectionChange },
+                        })
+                    );
+                    await waitForChartStability(chart);
+                });
+                test('screenshot', async () => {
+                    await compareExact('line-datum-removal-empty');
+                });
+                test('getSelection', () => {
+                    expect(getChartSelectionArray()).toEqual([]);
+                });
+                test('selectionChange', () => {
+                    expect(selectionChange.popEvents()).toEqual([]);
+                });
+            });
+
+            describe('removal all - applyTransaction', () => {
+                beforeEach(async () => {
+                    selectionChange.popEvents(); // discard the initial setSelection event
+                    await chart.applyTransaction({ remove: REMOVED_IDS.map((id) => ({ id })) });
+                    await waitForChartStability(chart);
+                });
+                test('screenshot', async () => {
+                    await compareExact('line-datum-removal-empty');
+                });
+                test('getSelection', () => {
+                    expect(getChartSelectionArray()).toEqual([]);
+                });
+                test('selectionChange', () => {
+                    expect(selectionChange.popEvents()).toEqual([]);
                 });
             });
         });
