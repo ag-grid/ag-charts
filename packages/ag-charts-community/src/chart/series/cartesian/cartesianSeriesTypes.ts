@@ -1,5 +1,4 @@
-import type { ChartAxisDirection, Scale, Scaling } from 'ag-charts-core';
-import type { AgSeriesSegmentation } from 'ag-charts-types';
+import type { ChartAxisDirection, NormalisedSeriesSegmentation, Scale, Scaling } from 'ag-charts-core';
 
 import type { BBox } from '../../../scene/bbox';
 import type { Node, NodeWithOpacity } from '../../../scene/node';
@@ -125,7 +124,7 @@ export interface CartesianSeriesPropertiesBase<T extends object> extends SeriesP
     yKeyAxis: string;
     legendItemName?: string;
     pickOutsideVisibleMinorAxis: boolean;
-    segmentation: AgSeriesSegmentation;
+    segmentation: NormalisedSeriesSegmentation;
 }
 
 // ============================================================================

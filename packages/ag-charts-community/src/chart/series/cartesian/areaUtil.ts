@@ -1,6 +1,11 @@
-import type { InternalAgColorType, NormalisedTextOrSegments, Point, SizedPoint } from 'ag-charts-core';
+import type {
+    InternalAgColorType,
+    NormalisedSeriesMarkerStyle,
+    NormalisedTextOrSegments,
+    Point,
+    SizedPoint,
+} from 'ag-charts-core';
 import { SpanJoin, isScaleValid, spanRange } from 'ag-charts-core';
-import type { AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Path } from '../../../scene/shape/path';
@@ -40,7 +45,7 @@ export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
     // feature. It has nothing to do with the official data selection API in the options contract. Do not use, or use
     // with extreme caution.
     readonly crossFilterSelected: boolean | undefined;
-    style?: AgSeriesMarkerStyle;
+    style?: NormalisedSeriesMarkerStyle;
 }
 
 export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
@@ -56,7 +61,7 @@ export interface AreaSeriesNodeDataContext extends CartesianSeriesNodeDataContex
     strokeData: AreaStrokePathDatum;
     stackVisible: boolean;
     crossFiltering: boolean;
-    styles: SeriesNodeStyleContext<AgSeriesMarkerStyle>;
+    styles: SeriesNodeStyleContext<NormalisedSeriesMarkerStyle>;
     segments?: Segment[];
 }
 

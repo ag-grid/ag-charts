@@ -1,6 +1,6 @@
-import type { Point, Scale, SizedPoint } from 'ag-charts-core';
+import type { NormalisedSeriesMarkerStyle, Point, Scale, SizedPoint } from 'ag-charts-core';
 import { ChartAxisDirection, clamp, findRangeExtent, inverseEaseOut } from 'ag-charts-core';
-import type { AgDrawingMode, AgMarkerShape, AgSeriesMarkerStyle } from 'ag-charts-types';
+import type { AgDrawingMode, AgMarkerShape } from 'ag-charts-types';
 
 import { QUICK_TRANSITION } from '../../../motion/animation';
 import type { ExtraOpts, NodeUpdateState } from '../../../motion/fromToMotion';
@@ -208,7 +208,7 @@ export function cartesianMarkerDrawMode(
 }
 
 type SeriesStyler<TStylerParams, TStylerResult> = (params: TStylerParams) => TStylerResult;
-type DefaultOverrideStyle = AgSeriesMarkerStyle & { size: number };
+type DefaultOverrideStyle = NormalisedSeriesMarkerStyle & { size: number };
 
 interface MarkerSeriesStylerProps<TStylerParams, TStylerResult> {
     properties: {
@@ -220,8 +220,8 @@ interface MarkerSeriesStylerProps<TStylerParams, TStylerResult> {
         params?: TParams,
         opts?: { highlightState?: HighlightState },
         defaultOverrideStyle?: DefaultOverrideStyle,
-        inheritedStyle?: AgSeriesMarkerStyle
-    ): AgSeriesMarkerStyle & { size: number };
+        inheritedStyle?: NormalisedSeriesMarkerStyle
+    ): NormalisedSeriesMarkerStyle & { size: number };
 }
 
 type LineProperties = {
@@ -234,7 +234,7 @@ export function getMarkerStyles<TStylerParams, TStylerResult, TItemStylerParams>
     series: MarkerSeriesStylerProps<TStylerParams, TStylerResult>,
     line: LineProperties,
     marker: SeriesMarker<TItemStylerParams>,
-    inheritedStyle?: AgSeriesMarkerStyle
+    inheritedStyle?: NormalisedSeriesMarkerStyle
 ) {
     inheritedStyle ??= {
         stroke: line.stroke,
@@ -254,6 +254,6 @@ export function getMarkerStyles<TStylerParams, TStylerResult, TItemStylerParams>
             );
             return styles;
         },
-        {} as Record<HighlightState, AgSeriesMarkerStyle>
+        {} as Record<HighlightState, NormalisedSeriesMarkerStyle>
     );
 }

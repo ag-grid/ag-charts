@@ -1,5 +1,6 @@
 import {
     type InternalAgColorType,
+    type NormalisedColorType,
     type RequiredInternalAgColorType,
     type RequiredInternalAgGradientColor,
     type RequiredInternalAgImageFill,
@@ -109,19 +110,19 @@ export function getShapeFill(
     return fill;
 }
 
-export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
+export function getShapeStyle<T extends { fill?: NormalisedColorType }>(
     style: T,
     defaultGradient: RequiredInternalAgGradientColor,
     defaultPattern: RequiredInternalAgPatternColor,
     defaultImage: RequiredInternalAgImageFill
 ): T;
-export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
+export function getShapeStyle<T extends { fill?: NormalisedColorType }>(
     style: T | undefined,
     defaultGradient: RequiredInternalAgGradientColor,
     defaultPattern: RequiredInternalAgPatternColor,
     defaultImage: RequiredInternalAgImageFill
 ): T | undefined;
-export function getShapeStyle<T extends { fill?: InternalAgColorType }>(
+export function getShapeStyle<T extends { fill?: NormalisedColorType }>(
     style: T | undefined,
     defaultGradient: RequiredInternalAgGradientColor,
     defaultPattern: RequiredInternalAgPatternColor,

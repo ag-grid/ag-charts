@@ -42,7 +42,7 @@ const options: AgCartesianChartOptions = {
             yKey: 'revenue',
             yName: 'Revenue',
             // A reference resolves on a series fill as well as on theme parameters.
-            fill: { ref: 'accentColor' } as any,
+            fill: { ref: 'accentColor' },
         },
     ],
     axes: {

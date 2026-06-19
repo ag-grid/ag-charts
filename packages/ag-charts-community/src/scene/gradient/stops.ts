@@ -2,16 +2,16 @@ import {
     BaseProperties,
     type ColorScaleMode,
     type GradientColorStop,
+    type NormalisedGradientColorStop,
     PropertiesArray,
     Property,
     discreteColorStops,
     resolveStopPositions,
 } from 'ag-charts-core';
-import type { AgGradientColorStop } from 'ag-charts-types';
 
 import { ColorScale } from '../../scale/colorScale';
 
-export class StopProperties extends BaseProperties implements AgGradientColorStop {
+export class StopProperties extends BaseProperties implements NormalisedGradientColorStop {
     @Property
     stop?: number;
 
@@ -50,12 +50,14 @@ function getDefaultColorStops(defaultColorStops: string[], fillMode: ColorScaleM
 }
 
 export function getColorStops(
-    baseFills: Array<AgGradientColorStop | string>,
+    baseFills: Array<NormalisedGradientColorStop | string>,
     defaultColorStops: string[],
     domain: number[],
     fillMode: ColorScaleMode = 'continuous'
 ): GradientColorStop[] {
-    const fills = baseFills.map<AgGradientColorStop>((fill) => (typeof fill === 'string' ? { color: fill } : fill));
+    const fills = baseFills.map<NormalisedGradientColorStop>((fill) =>
+        typeof fill === 'string' ? { color: fill } : fill
+    );
     if (fills.length === 0) {
         return getDefaultColorStops(defaultColorStops, fillMode);
     }
