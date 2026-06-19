@@ -8,8 +8,8 @@
                 "path": "./async-data/"
             },
             {
-                "text": "Inline Images",
-                "path": "./text/#images"
+                "text": "Displaying Images in Text Elements",
+                "path": "./text/#displaying-images-and-text"
             },
             {
                 "text": "CSS Variables, Colour Mixing & HSL",
