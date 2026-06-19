@@ -40,6 +40,8 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
         this.cleanup.register(
             () => this.clearSelection(),
             () => this.clearCandidacy(),
+            ctx?.eventsHub.on('data:load', () => this.recountTotalSelections()),
+            ctx?.eventsHub.on('data:update', () => this.recountTotalSelections()),
             ctx?.chartState.observe((get) => {
                 const opts = get('options', 'selection');
                 if (opts?.enabled === false) {
@@ -47,6 +49,14 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
                 }
             })
         );
+    }
+
+    private recountTotalSelections() {
+        let sum = 0;
+        for (const [_seriesId, selection] of this.selections) {
+            sum += selection.getSelectedCount();
+        }
+        this.totalSelectedCount = sum;
     }
 
     private isSeriesSelectionEnabled(series: SeriesLike): boolean {
