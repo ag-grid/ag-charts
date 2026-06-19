@@ -119,13 +119,14 @@ jobs:
                     echo "changed=false" >> $GITHUB_OUTPUT
                   fi
 
-            # - name: Notify Slack
-            #   if: always() && steps.prev_run.outputs.changed == 'true'
-            #   uses: ./external/ag-shared/github/actions/slack-integration
-            #   with:
-            #       AG_LIBRARY: charts
-            #       SLACK_BOT_OAUTH_TOKEN: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
-            #       SLACK_CHANNEL: '#charts_teamcity_status'
-            #       CURRENT_COMMIT_SHA: ${{ github.sha }}
-            #       PREV_COMMIT_SHA: ${{ steps.prev_run.outputs.sha }}
-            #       IS_SUCCESS: ${{ steps.run_tests.outcome == 'success' }}
+            - name: Notify Slack
+              if: always() && steps.run_tests.outcome == 'failure'
+              uses: ./external/ag-shared/github/actions/slack-integration
+              with:
+                  AG_LIBRARY: charts
+                  SLACK_BOT_OAUTH_TOKEN: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
+                  SLACK_CHANNEL: '#charts_teamcity_status'
+                  CTRF_REPORT_FILE: reports/ag-charts-page-verification.json
+                  CURRENT_COMMIT_SHA: ${{ github.sha }}
+                  PREV_COMMIT_SHA: ${{ steps.prev_run.outputs.sha }}
+                  IS_SUCCESS: ${{ steps.run_tests.outcome == 'success' }}
