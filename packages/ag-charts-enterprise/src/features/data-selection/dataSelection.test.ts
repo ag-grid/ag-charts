@@ -201,6 +201,17 @@ function createLineAccountingOptionsWithIds(): AgCartesianChartOptions<Accountin
                 selection: { enabled: false },
             },
         ],
+        axes: {
+            // Disable the axes features that we are not testing:
+            x: {
+                crosshair: { enabled: false },
+                gridLine: { enabled: false },
+            },
+            y: {
+                crosshair: { enabled: false },
+                gridLine: { enabled: false },
+            },
+        },
         theme: {
             overrides: {
                 line: {
