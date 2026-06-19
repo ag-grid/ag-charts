@@ -82,6 +82,7 @@ export interface Scale<D, R, I = number> {
     toDomain(value: number): D | undefined;
     convert(value: D, options?: { clamp?: boolean; alignment?: ScaleAlignment; alignmentExclusive?: boolean }): R;
     invert(value: R, exact?: boolean): D | undefined;
+    invertWithPercentage(value: R): { value: D; groupPercentage: number } | D | undefined;
     ticks(ticks: ScaleTickParams<I>, domain?: D[], visibleRange?: [number, number]): ScaleTickResult<D> | undefined;
     niceDomain(ticks: ScaleTickParams<I>, domain?: D[]): D[];
     readonly bandwidth: number | undefined;

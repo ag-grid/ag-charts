@@ -112,7 +112,7 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         return unpackDomainMinMax(this.domain);
     }
 
-    protected invertNearestIndex(position: number) {
+    protected invertNearestIndex(position: number, alignment: 'center' | 'left' = 'center') {
         this.refresh();
 
         const bandCount = this.getBandCountForUpdate();
@@ -127,12 +127,12 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         while (low <= high) {
             const mid = Math.trunc((high + low) / 2);
             const p = this.ordinalRange(mid);
-            const distance = Math.abs(p - position);
+            const distance = p - position;
 
             if (distance === 0) return mid;
 
-            if (distance < closestDistance) {
-                closestDistance = distance;
+            if ((alignment === 'center' || distance < 0) && Math.abs(distance) < closestDistance) {
+                closestDistance = Math.abs(distance);
                 closestIndex = mid;
             }
 

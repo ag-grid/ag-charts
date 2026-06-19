@@ -77,6 +77,20 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
         return matches ? this.domain[index] : undefined;
     }
 
+    override invertWithPercentage(position: number): { value: D; groupPercentage: number } | undefined {
+        this.refresh();
+
+        const index = this.invertNearestIndex(position, 'left');
+        const value = this.domain[index];
+        if (value == null) return undefined;
+
+        const width = this.bandwidth === 0 ? this.step : this.bandwidth;
+        const bandStart = this.convert(value);
+        const groupPercentage = width === 0 ? 0 : (position - bandStart) / width;
+
+        return { value, groupPercentage };
+    }
+
     override ticks(
         params: ScaleTickParams<I>,
         domain: D[] = this.domain,
