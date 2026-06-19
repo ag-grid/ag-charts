@@ -347,7 +347,10 @@ export function getTypes(node: ts.Node) {
     return typesToInclude;
 }
 
-const CHART_API_EXPRESSIONS = [/AgCharts\.(?!create|createFinancialChart|createGauge)/, /chart\.(?!update)/];
+// `chart.update(...)` is handled via declarative state binding in the framework variants, so it is
+// excluded here. The `\b` ensures only `chart.update` itself is excluded — `chart.updateDelta(...)`
+// and other instance methods are still detected as chart-API usage and wired to a component ref.
+const CHART_API_EXPRESSIONS = [/AgCharts\.(?!create|createFinancialChart|createGauge)/, /chart\.(?!update\b)/];
 export function usesChartApi(node: ts.Node) {
     if (ts.isCallExpression(node)) {
         const nodeText = node.getText();
