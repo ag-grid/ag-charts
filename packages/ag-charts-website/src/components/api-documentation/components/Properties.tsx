@@ -71,12 +71,17 @@ export function PropertyNamePrefix({
     prefixPath?: string[];
     separator?: string;
 }) {
-    const parentPrefix = prefixPath?.join('.');
+    // Discriminator segments (`[type='x']`) attach to the preceding property without a dot and keep
+    // their quotes, so a nested path reads `subtitle.text[type='text'].lineHeight`.
+    const parentPrefix = prefixPath?.reduce((acc, segment) => {
+        if (segment.startsWith('[')) {
+            return `${acc}${segment}`;
+        }
+        return acc ? `${acc}.${cleanupName(segment)}` : cleanupName(segment);
+    }, '');
     return (
         <>
-            {parentPrefix && (
-                <Component className={styles.parentProperties}>{`${cleanupName(parentPrefix)}${separator}`}</Component>
-            )}
+            {parentPrefix && <Component className={styles.parentProperties}>{`${parentPrefix}${separator}`}</Component>}
         </>
     );
 }

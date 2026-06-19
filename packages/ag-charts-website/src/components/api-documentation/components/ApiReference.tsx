@@ -32,6 +32,7 @@ import {
     cleanupName,
     formatTypeToCode,
     formatUnionSignature,
+    getDetailsId,
     getMemberType,
     getReferencedTypeName,
     isArrayNode,
@@ -102,6 +103,8 @@ interface ApiReferenceRowOptions {
     typeArguments?: string[];
     genericsMap?: Record<string, TypeNode>;
     onDetailsToggle?: () => void;
+    isSignatureExpanded?: boolean;
+    onSignatureToggle?: () => void;
 }
 
 export function ApiReferenceWithContext({
@@ -248,7 +251,7 @@ function UnionVariantNode({
                             key={childMember.name}
                             member={childMember}
                             anchorId={`${anchorId}-${cleanupName(childMember.name)}`}
-                            prefixPath={prefixPath.concat(variant.anchorSegment)}
+                            prefixPath={prefixPath.concat(displayName)}
                             genericsMap={variant.node.genericsMap}
                         />
                     ))}
@@ -312,6 +315,7 @@ export function ApiReference({
 
 function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props }: ApiReferenceRowOptions) {
     const [isExpanded, toggleExpanded, setExpanded] = useToggle();
+    const [isSignatureExpanded, toggleSignature, setSignatureExpanded] = useToggle();
     const interfaceRef = useMemberAdditionalDetails(member);
     const config = useContext(ApiReferenceConfigContext);
     const location = useLocation();
@@ -326,10 +330,14 @@ function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props 
         const hash = location?.hash.substring(1);
         if (hash === anchorId) {
             scrollToAndHighlightById(anchorId);
+        } else if (hash === getDetailsId(anchorId)) {
+            // The nav's primitive-union link targets the signature code block, not the variant list.
+            scrollToAndHighlightById(anchorId);
+            setSignatureExpanded(true);
         } else if (canExpand && hash?.startsWith(`${anchorId}-`)) {
             setExpanded(true);
         }
-    }, [location?.hash, anchorId, canExpand, setExpanded]);
+    }, [location?.hash, anchorId, canExpand, setExpanded, setSignatureExpanded]);
 
     return (
         <>
@@ -340,6 +348,8 @@ function NodeFactory({ member, anchorId, genericsMap, prefixPath = [], ...props 
                 prefixPath={prefixPath}
                 isExpanded={isExpanded}
                 onDetailsToggle={toggleExpanded}
+                isSignatureExpanded={isSignatureExpanded}
+                onSignatureToggle={toggleSignature}
             />
             {hasMembers && isExpanded && (
                 <div className={styles.childPropsList}>
@@ -382,10 +392,11 @@ function ApiReferenceRow({
     isExpanded,
     nestedPath,
     onDetailsToggle,
+    isSignatureExpanded,
+    onSignatureToggle,
 }: ApiReferenceRowOptions) {
     const config = useContext(ApiReferenceConfigContext);
     const selection = useContext(SelectionContext);
-    const [isSignatureExpanded, toggleSignature] = useToggle();
     const memberName = cleanupName(member.name);
     const memberType = normalizeType(member.type);
     const additionalDetails = useMemberAdditionalDetails(member);
@@ -425,7 +436,7 @@ function ApiReferenceRow({
                     onCollapseClick={onDetailsToggle}
                     hasSignature={Boolean(signature)}
                     isSignatureExpanded={isSignatureExpanded}
-                    onSignatureToggle={toggleSignature}
+                    onSignatureToggle={onSignatureToggle}
                 />
             </div>
             <div className={styles.rightColumn}>
@@ -484,7 +495,7 @@ function ApiReferenceRow({
             )}
 
             {signature && isSignatureExpanded && (
-                <div className={styles.expandedContent}>
+                <div id={getDetailsId(anchorId)} className={styles.expandedContent}>
                     <Code code={signature} />
                 </div>
             )}
@@ -528,10 +539,6 @@ function getCollapsibleType(additionalDetails: MemberAdditionalDetails, nestedPa
         return 'code';
     }
     return 'none';
-}
-
-function getDetailsId(id: string) {
-    return `${id}-details`;
 }
 
 function useMemberAdditionalDetails(member: MemberNode): MemberAdditionalDetails {

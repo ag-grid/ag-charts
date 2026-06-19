@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { extractSearchData, formatUnionSignature } from './apiReferenceHelpers';
+import { extractSearchData, formatUnionSignature, getAliasedUnionVariants } from './apiReferenceHelpers';
 
 // Regression for the themes-api page failing to load with "RangeError: Maximum call stack size
 // exceeded". The crash was not infinite recursion — `extractSearchData` builds a finite but very
@@ -77,6 +77,64 @@ describe('formatUnionSignature', () => {
     it('returns undefined for a pure interface-only union', () => {
         const node = reference.get('PureUnion');
         expect(formatUnionSignature(node.type, 'PureUnion', reference as any)).toBeUndefined();
+    });
+});
+
+describe('getAliasedUnionVariants', () => {
+    const union = (...types: any[]) => ({ kind: 'union' as const, type: types });
+    const alias = (name: string, type: any) => ({ kind: 'typeAlias' as const, name, type });
+    const variant = (name: string, typeValue: string) => ({
+        kind: 'interface' as const,
+        name,
+        members: [{ kind: 'member', name: 'type', type: `'${typeValue}'`, optional: false }],
+    });
+
+    const reference = new Map<string, any>(
+        Object.entries({
+            MixedUnion: alias('MixedUnion', union('string', 'number', 'LineVariant', 'RangeVariant')),
+            PureUnion: alias('PureUnion', union('LineVariant', 'RangeVariant')),
+            LineVariant: variant('LineVariant', 'line'),
+            RangeVariant: variant('RangeVariant', 'range'),
+            // Mirrors `title.text`: TextOrSegments = TextValue | ContentSegment[], where the variants
+            // are nested inside an array of a union alias of interfaces.
+            TextOrSegments: alias('TextOrSegments', union('TextValue', { kind: 'array', type: 'ContentSegment' })),
+            TextValue: alias('TextValue', union('string', 'number', 'Date')),
+            ContentSegment: alias('ContentSegment', union('TextSegment', 'ImageSegment')),
+            TextSegment: variant('TextSegment', 'text'),
+            ImageSegment: variant('ImageSegment', 'image'),
+        })
+    );
+
+    it('returns interface variants and the joined non-interface members for a mixed union', () => {
+        const result = getAliasedUnionVariants(reference.get('MixedUnion'), reference as any)!;
+
+        expect(result.variants).toEqual([
+            { name: 'line', type: 'LineVariant' },
+            { name: 'range', type: 'RangeVariant' },
+        ]);
+        expect(result.primitive).toBe('string | number');
+        // Variants are direct interfaces, not array members.
+        expect(result.isArray).toBe(false);
+    });
+
+    it('expands array and nested-union-alias members into their discriminated variants', () => {
+        const result = getAliasedUnionVariants(reference.get('TextOrSegments'), reference as any)!;
+
+        expect(result.variants).toEqual([
+            { name: 'text', type: 'TextSegment' },
+            { name: 'image', type: 'ImageSegment' },
+        ]);
+        // ContentSegment[] yields variants, so only the genuinely non-interface member is primitive.
+        expect(result.primitive).toBe('TextValue');
+        // The variants arrive through an array member, so the nav renders array brackets.
+        expect(result.isArray).toBe(true);
+    });
+
+    it('leaves primitive undefined for a pure interface-only union', () => {
+        const result = getAliasedUnionVariants(reference.get('PureUnion'), reference as any)!;
+
+        expect(result.variants).toHaveLength(2);
+        expect(result.primitive).toBeUndefined();
     });
 });
 
