@@ -243,6 +243,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         this.service.totalCandidacyCount = 0;
         this.service.candidacyInProgress ||= canvasBounds.width > 0 || canvasBounds.height > 0;
+        this.service.candidacyUnion = hasAddToSelectionModifier(dragMoveEvent);
         for (const series of this.iterateSelectableSeries()) {
             const data = series.data;
             if (!data) continue;
