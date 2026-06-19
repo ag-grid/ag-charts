@@ -154,6 +154,41 @@ describe('CategoryScale', () => {
             expect(new CategoryScale().normalizeDomains({ domain }).domain).toBe(domain);
         });
     });
+
+    describe('invertWithPercentage', () => {
+        const newScale = () => {
+            const scale = new CategoryScale();
+            scale.domain = ['A', 'B', 'C', 'D', 'E'];
+            scale.range = [0, 500];
+            return scale;
+        };
+
+        test('returns the fractional position within a band', () => {
+            const scale = newScale();
+
+            expect(scale.invertWithPercentage(0)).toEqual({ value: 'A', groupPercentage: 0 });
+            expect(scale.invertWithPercentage(50)).toEqual({ value: 'A', groupPercentage: 0.5 });
+            expect(scale.invertWithPercentage(25)).toEqual({ value: 'A', groupPercentage: 0.25 });
+            expect(scale.invertWithPercentage(75)).toEqual({ value: 'A', groupPercentage: 0.75 });
+            expect(scale.invertWithPercentage(120)).toEqual({ value: 'B', groupPercentage: 0.2 });
+        });
+
+        test('round-trips against the forward convert path', () => {
+            const scale = newScale();
+            const width = scale.bandwidth;
+
+            for (const position of [0, 25, 75, 120, 230]) {
+                const grouping = scale.invertWithPercentage(position)!;
+                expect(grouping).toBeDefined();
+                const forward = scale.convert(grouping.value) + width * grouping.groupPercentage;
+                expect(forward).toBeCloseTo(position);
+            }
+        });
+
+        test('returns undefined for an empty domain', () => {
+            expect(new CategoryScale().invertWithPercentage(50)).toBeUndefined();
+        });
+    });
 });
 
 describe('GroupedCategoryScale', () => {

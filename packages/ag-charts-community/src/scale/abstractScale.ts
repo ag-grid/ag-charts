@@ -16,6 +16,9 @@ export abstract class AbstractScale<D, R, I = number> implements Scale<D, R, I> 
     abstract toDomain(value: number): D | undefined;
     abstract convert(value: D, options: { clamp?: boolean; alignment?: ScaleAlignment }): R;
     abstract invert(value: R, nearest?: boolean): D | undefined;
+    invertWithPercentage(value: R): { value: D; groupPercentage: number } | D | undefined {
+        return this.invert(value, true);
+    }
     abstract getDomainMinMax(): [D, D] | [undefined, undefined];
     snapshotDomain(): D[] {
         return this.domain;
