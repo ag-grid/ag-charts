@@ -21,6 +21,7 @@ import { DataSelectionService } from './dataSelectionService';
 import {
     type SelectionChanges,
     clearAllSelections,
+    countAddToSelectionModifier,
     hasAddToSelectionModifier,
     isAgSelectionItem,
     isUnknownIterable,
@@ -87,7 +88,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             ctx.widgets.seriesDragInterpreter?.events.on('drag-start', (ev) => this.onSeriesAreaDragStart(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-move', (ev) => this.onSeriesAreaDragMove(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-end', (ev) => this.onSeriesAreaDragEnd(ev)),
-            ctx.widgets.seriesWidget.addListener('keydown', (ev) => this.onKeyDown(ev))
+            ctx.widgets.seriesWidget.addListener('keydown', (ev) => this.onKeyDown(ev)),
+            ctx.widgets.seriesWidget.addListener('keyup', (ev) => this.onKeyUp(ev))
         );
     }
 
@@ -243,7 +245,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         this.service.totalCandidacyCount = 0;
         this.service.candidacyInProgress ||= canvasBounds.width > 0 || canvasBounds.height > 0;
-        this.service.candidacyUnion = hasAddToSelectionModifier(dragMoveEvent);
+        this.service.candidacyUnion = countAddToSelectionModifier(dragMoveEvent);
         for (const series of this.iterateSelectableSeries()) {
             const data = series.data;
             if (!data) continue;
@@ -273,6 +275,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const { dragStartEvent, service } = this;
 
         service.totalCandidacyCount = 0;
+        service.candidacyUnion = countAddToSelectionModifier(dragEndEvent);
         if (!enabled || !enableDrag || !dragStartEvent) {
             this.dragRect.visible = false;
             return;
@@ -342,8 +345,25 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private onKeyDown(widgetEvent: _ModuleSupport.KeyboardWidgetEvent<'keydown'>): void {
-        if (widgetEvent.sourceEvent.code === 'Escape') {
+        const { key, code } = widgetEvent.sourceEvent;
+        if (key === 'Meta' || key === 'Control') {
+            this.service.candidacyUnion++;
+            this.redraw(ChartUpdateType.FULL);
+        }
+        if (code === 'Escape') {
             this.endDrag();
+        }
+    }
+
+    private onKeyUp(widgetEvent: _ModuleSupport.KeyboardWidgetEvent<'keyup'>): void {
+        // The drag-move / drag-end events include the state of all modifiers in the events, therefore those event
+        // handlers always refresh the candidacyUnion count. However, the user can also press/release the modifier keys
+        // without moving the mouse; which would mean that any itemStyler callbacks that read candidateState would be
+        // updated.
+        const { key } = widgetEvent.sourceEvent;
+        if (key === 'Meta' || key === 'Control') {
+            this.service.candidacyUnion--;
+            this.redraw(ChartUpdateType.FULL);
         }
     }
 
