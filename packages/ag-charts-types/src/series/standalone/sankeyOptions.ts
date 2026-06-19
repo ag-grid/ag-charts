@@ -61,7 +61,7 @@ export interface AgSankeySeriesThemeableOptions<TDatum = DatumDefault, TContext 
 > {
     /** Options for the label for each node. */
     label?: AgSankeySeriesLabelOptions<TDatum, TContext>;
-    /** The colours to cycle through for the fills of the nodes and links. */
+    /** The colours to cycle through for the fills of the nodes and links. An array of colour strings, or fill objects for gradients, patterns, or images. */
     fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the nodes and links. */
     strokes?: CssColor[];

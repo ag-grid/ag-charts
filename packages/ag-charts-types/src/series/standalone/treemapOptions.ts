@@ -143,7 +143,7 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = DatumDefault, TContext
     AgBaseSeriesThemeableOptions<TDatum, TContext>,
     'highlight' | 'selection' | 'showInLegend'
 > {
-    /** The colours to cycle through for the fills of the groups and tiles. */
+    /** The colours to cycle through for the fills of the groups and tiles. An array of colour strings, or fill objects for gradients, patterns, or images. */
     fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the groups and tiles. */
     strokes?: CssColor[];

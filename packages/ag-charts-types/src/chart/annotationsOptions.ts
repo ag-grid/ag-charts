@@ -487,7 +487,7 @@ interface AnnotationLinePoints {
 export interface AgAnnotationPoint {
     /** The x-value of the point. */
     x: AgAnnotationValue;
-    /** The y-value of the point. */
+    /** The y-value of the point. A number, or a serialised value object. */
     y: number | AgStateSerializableBigInt;
 }
 

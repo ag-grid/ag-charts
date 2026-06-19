@@ -78,11 +78,13 @@ export interface AgOrganizationSeriesOptionsExpander<
 
 export interface AgOrganizationSeriesExpanderStyle extends Toggleable, FillOptions, LineDashOptions, StrokeOptions {
     cornerRadius?: PixelSize;
+    /** Padding around the expander content. A number applies uniform padding; an object sets each side. */
     padding?: Padding;
     text?: AgOrganizationSeriesExpanderTextStyle;
 }
 
 export interface AgOrganizationSeriesExpanderTextStyle extends FontOptions {
+    /** The colour to use for the expander text. A colour string, or a theme-colour reference object. */
     color?: AgCssColorOrRef;
     textAlign?: TextAlign;
 }
@@ -130,6 +132,7 @@ export interface AgOrganizationSeriesNodeStyle extends FillOptions, LineDashOpti
      * graphs.
      */
     maxWidth?: PixelSize;
+    /** Padding around the node content. A number applies uniform padding; an object sets each side. */
     padding?: Padding;
     width?: PixelSize;
 }
@@ -190,6 +193,7 @@ export interface AgOrganizationSeriesOptionsNodeLabel<
 }
 
 export interface AgOrganizationSeriesNodeTextStyle extends FontOptions, FillCssOptions, StrokeOptions, Toggleable {
+    /** The colour to use for the node text. A colour string, or a theme-colour reference object. */
     color?: AgCssColorOrRef;
     overflowStrategy?: OverflowStrategy;
     spacing?: number;
@@ -197,7 +201,7 @@ export interface AgOrganizationSeriesNodeTextStyle extends FontOptions, FillCssO
     wrapping?: TextWrap;
     /** Corner radius of the backing box. Has no effect unless `fill` or `stroke` is set. */
     cornerRadius?: PixelSize;
-    /** Padding between the text and the backing box edge. Has no effect unless `fill` or `stroke` is set. */
+    /** Padding between the text and the backing box edge. Has no effect unless `fill` or `stroke` is set. A number applies uniform padding; an object sets each side. */
     padding?: Padding;
 }
 

@@ -53,7 +53,7 @@ export interface AgConeFunnelSeriesThemeableOptions<TDatum = DatumDefault, TCont
     extends
         Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInMiniChart' | 'showInLegend' | 'selection'>,
         LineDashOptions {
-    /** The colours to cycle through for the fills of the drop-offs. */
+    /** The colours to cycle through for the fills of the drop-offs. An array of colour strings, or fill objects for gradients, patterns, or images. */
     fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the drop-offs. */
     strokes?: CssColor[];

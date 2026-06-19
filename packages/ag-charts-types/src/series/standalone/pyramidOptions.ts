@@ -45,7 +45,7 @@ export interface AgPyramidSeriesTooltipRendererParams<TDatum = DatumDefault, TCo
 
 export interface AgPyramidSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'selection'>, LineDashOptions {
-    /** The colours to cycle through for the fills of the stages. */
+    /** The colours to cycle through for the fills of the stages. An array of colour strings, or fill objects for gradients, patterns, or images. */
     fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the stages. */
     strokes?: CssColor[];

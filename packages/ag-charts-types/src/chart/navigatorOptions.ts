@@ -57,11 +57,11 @@ export interface AgNavigatorMiniChartLabelOptions<TContext = ContextDefault> {
     fontWeight?: FontWeight;
     /** The font size in pixels to use for the labels. */
     fontSize?: FontSize;
-    /** The font family to use for the labels. */
+    /** The font family to use for the labels. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
     /** Spacing in pixels between the axis labels and the Mini Chart. */
     spacing?: PixelSize;
-    /** The colour to use for the labels. */
+    /** The colour to use for the labels. A colour string, or a theme-colour reference object. */
     color?: AgCssColorOrRef;
     /** Avoid axis label collision by automatically reducing the number of labels displayed. If set to `false`, axis labels may collide. */
     avoidCollisions?: boolean;
@@ -253,7 +253,7 @@ export interface AgNavigatorMiniChartOptions<TDatum = DatumDefault, TContext = C
     series?: AgMiniChartSeriesOptions<TDatum, TContext>[];
     /** Configuration for the Mini Chart's axis labels. */
     label?: AgNavigatorMiniChartLabelOptions<TContext>;
-    /** Configuration for the padding inside the Mini Chart. */
+    /** Configuration for the padding inside the Mini Chart. A number applies uniform padding; an object sets each side. */
     padding?: Padding;
 }
 
@@ -264,7 +264,7 @@ export interface AgNavigatorMiniChartThemeableOptions<TDatum = DatumDefault, TCo
     series?: AgMiniChartSeriesThemeableOptions<TDatum, TContext>;
     /** Configuration for the Mini Chart's axis labels. */
     label?: AgNavigatorMiniChartLabelOptions<TContext>;
-    /** Configuration for the padding inside the Mini Chart. */
+    /** Configuration for the padding inside the Mini Chart. A number applies uniform padding; an object sets each side. */
     padding?: Padding;
 }
 

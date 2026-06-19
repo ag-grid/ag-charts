@@ -308,7 +308,7 @@ export interface AgUnitTimeAxisOptions<TContext = ContextDefault>
     crossLines?: AgCartesianCrossLineOptions<AgTimeValue>[];
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel<TContext>;
-    /** The size of each band. */
+    /** The size of each band. A unit keyword (or number), or an object describing the interval. */
     unit?: AgTimeInterval | AgTimeIntervalUnit;
     /** Configuration for the axis ticks interval. */
     interval?: AgAxisDiscreteTimeIntervalOptions;

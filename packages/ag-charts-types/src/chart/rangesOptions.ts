@@ -43,6 +43,7 @@ export interface AgRangesOptions<TContext = ContextDefault> extends Toggleable, 
 
 export interface AgRangesStyles extends FillCssOptions, FontOptions, Omit<StrokeOptions, 'strokeOpacity'> {
     cornerRadius?: PixelSize;
+    /** The padding inside the range buttons. A number applies uniform padding; an object sets each side. */
     padding?: Padding;
     textColor?: CssColor;
     active?: AgRangesStateStyles;

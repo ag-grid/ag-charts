@@ -53,7 +53,7 @@ export interface AgGaugeScaleLabel<TContext> {
     fontFamily?: FontFamily;
     /** Spacing in pixels between the scale label and the tick. */
     spacing?: PixelSize;
-    /** The colour to use for the labels */
+    /** The colour to use for the labels. A colour string, or a theme-colour reference object. */
     color?: AgCssColorOrRef;
     /** The rotation of the scale labels in degrees. */
     rotation?: Degree;

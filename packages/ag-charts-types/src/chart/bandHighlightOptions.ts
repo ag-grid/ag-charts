@@ -14,7 +14,7 @@ export interface AgBandHighlightOptions {
     lineDash?: PixelSize[];
     /** The initial offset of the dashed line in pixels. */
     lineDashOffset?: PixelSize;
-    /** The colour to use for the fill of the band. */
+    /** The colour to use for the fill of the band. A colour string, or an object for a gradient, pattern, or image fill. */
     fill?: AgColorType;
     /** The opacity of the fill for the band. */
     fillOpacity?: Opacity;

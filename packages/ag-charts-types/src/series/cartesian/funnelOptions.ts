@@ -45,7 +45,7 @@ export interface AgFunnelSeriesThemeableOptions<TDatum = DatumDefault, TContext 
     extends
         Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend' | 'showInMiniChart' | 'selection'>,
         LineDashOptions {
-    /** The colours to cycle through for the fills of the bars. */
+    /** The colours to cycle through for the fills of the bars. An array of colour strings, or fill objects for gradients, patterns, or images. */
     fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the bars. */
     strokes?: CssColor[];
