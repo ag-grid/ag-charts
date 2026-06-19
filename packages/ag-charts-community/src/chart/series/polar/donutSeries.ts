@@ -517,7 +517,7 @@ export class DonutSeries extends PolarSeries<
             const legendItemValue = legendItemValues?.[datumIndex];
 
             const nodeLabels = this.getLabels(datumIndex, datum, midAngle, span, processedDataValues);
-            const sectorFormat = this.getItemStyle({ datum, datumIndex }, false);
+            const sectorFormat = this.getItemStyle({ datum, datumIndex }, false, false);
 
             const node = {
                 series: this,
@@ -717,13 +717,14 @@ export class DonutSeries extends PolarSeries<
     private getItemStyle(
         { datum, datumIndex }: Pick<PieDonutNodeDatum, 'datum' | 'datumIndex'>,
         isHighlight: boolean,
+        withSelection: boolean,
         highlightState?: HighlightState,
         legendItemValues?: string[]
     ) {
         const { fills, strokes, itemStyler } = this.properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState, legendItemValues);
-        const selectionStyle = this.getSelectionStyle(datumIndex);
+        const selectionStyle = withSelection ? this.getSelectionStyle(datumIndex) : undefined;
         const defaultStyle = { fill: fills[datumIndex], stroke: strokes[datumIndex] };
 
         const {
@@ -800,6 +801,7 @@ export class DonutSeries extends PolarSeries<
                 datumIndex
             ),
             selectionState: this.getSelectionStateString(datumIndex),
+            candidateState: this.getCandidateStateString(datumIndex),
             seriesId: this.id,
         } satisfies CallbackParamRules<
             AgDonutSeriesItemStylerParams<unknown, unknown> | AgPieSeriesItemStylerParams<unknown, unknown>
@@ -818,6 +820,7 @@ export class DonutSeries extends PolarSeries<
                 nodeDatum.datumIndex
             );
             const selectionState = this.getSelectionStateString(nodeDatum.datumIndex);
+            const candidateState = this.getCandidateStateString(nodeDatum.datumIndex);
             const params: RequireOptional<Omit<AgDonutCalloutLineItemStylerParams<unknown, unknown>, 'context'>> = {
                 angleKey: properties.angleKey,
                 angleName: properties.angleName ?? properties.angleKey,
@@ -826,6 +829,7 @@ export class DonutSeries extends PolarSeries<
                 datum: nodeDatum.datum,
                 highlightState,
                 selectionState,
+                candidateState,
                 legendItemKey: properties.legendItemKey,
                 radiusKey: properties.radiusKey,
                 radiusName: properties.radiusName ?? properties.radiusKey,
@@ -1083,7 +1087,7 @@ export class DonutSeries extends PolarSeries<
             isDatumHighlighted: boolean,
             mode: AgDrawingMode
         ) => {
-            const format = this.getItemStyle(datum, isDatumHighlighted, undefined, legendItemValues);
+            const format = this.getItemStyle(datum, isDatumHighlighted, true, undefined, legendItemValues);
 
             datum.sectorFormat.fill = format.fill;
             datum.sectorFormat.stroke = format.stroke;
@@ -1753,14 +1757,14 @@ export class DonutSeries extends PolarSeries<
                 angleName,
                 radiusKey,
                 radiusName,
-                ...this.getItemStyle({ datum, datumIndex }, false),
+                ...this.getItemStyle({ datum, datumIndex }, false, false),
             }
         );
     }
 
     private legendItemSymbol(datumIndex: number): LegendSymbolOptions {
         const datum = this.processedData?.dataSources.get(this.id)?.data?.[datumIndex];
-        const sectorFormat = this.getItemStyle({ datum, datumIndex }, false);
+        const sectorFormat = this.getItemStyle({ datum, datumIndex }, false, false);
         const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
 
         let { fill } = sectorFormat;

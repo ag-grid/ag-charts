@@ -3,6 +3,12 @@ import { gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrls,
 
 const GOOGLE_FONT_FAMILIES = ['Pacifico', 'DM Serif Text', 'Orbitron'];
 
+// Recorded Google Fonts CDN responses, replayed so the test never depends on the live
+// CDN being reachable (which made the `networkidle` wait hang and time out in CI).
+// Re-record with `UPDATE_FONT_HAR=1` if the example's fonts change.
+const FONT_HAR = 'e2e/fixtures/google-fonts.har.zip';
+const FONT_CDN = /fonts\.(googleapis|gstatic)\.com/;
+
 test.describe('fonts', () => {
     setupIntrinsicAssertions(test);
 
@@ -11,22 +17,17 @@ test.describe('fonts', () => {
     for (const { framework, url } of testUrls) {
         test.describe(`for ${framework}`, () => {
             test('google fonts', async ({ page }) => {
-                // Pre-warm the browser's font cache before navigating to the example.
-                // This ensures fonts are already loaded when the chart renders, eliminating
-                // the race between font download and initial chart render.
-                const fontParams = GOOGLE_FONT_FAMILIES.map(
-                    (f) => `family=${encodeURIComponent(f)}:wght@100;200;300;400;500;600;700;800;900`
-                ).join('&');
-                const fontUrl = `https://fonts.googleapis.com/css2?${fontParams}&display=swap`;
-                await page.goto('about:blank');
-                await page.addStyleTag({ url: fontUrl });
-                await page.evaluate(
-                    (families) => Promise.all(families.map((f) => document.fonts.load(`16px "${f}"`))),
-                    GOOGLE_FONT_FAMILIES
-                );
+                await page.routeFromHAR(FONT_HAR, { url: FONT_CDN, update: !!process.env.UPDATE_FONT_HAR });
 
                 await gotoExample(page, url);
                 await waitForAllChartUpdates(page);
+
+                // Ensure the Google Fonts have settled before the snapshot, so canvas text is
+                // measured and drawn with the intended families rather than a fallback.
+                await page.evaluate(
+                    (families) => Promise.all(families.map((f) => document.fonts.load(`16px "${f}"`))).then(() => {}),
+                    GOOGLE_FONT_FAMILIES
+                );
 
                 const { canvas } = await locateCanvas(page);
                 await expect(canvas).toHaveScreenshot('google-fonts.png');

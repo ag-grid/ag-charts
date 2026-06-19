@@ -7,6 +7,7 @@ import * as examples from './test/examples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
+    prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -39,6 +40,7 @@ describe('Scene', () => {
                 ...examples.STACKED_BAR_CHART_EXAMPLE,
                 legend: { position: 'bottom' },
             };
+            prepareTestOptions(options);
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
@@ -68,6 +70,7 @@ describe('Scene', () => {
                     },
                 },
             };
+            prepareTestOptions(options);
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 

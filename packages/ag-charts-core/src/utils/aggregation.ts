@@ -99,6 +99,25 @@ export function narrowBigIntColumnRelative(values: any[]): any[] {
     return converted;
 }
 
+/**
+ * Register a column known to hold no bigint as its own narrowed representation, so a later
+ * {@link narrowBigIntColumn} or {@link narrowBigIntColumnRelative} returns on the cache hit instead
+ * of repeating the O(n) bigint scan. Extraction's type-tracking pass already knows when a column is
+ * pure (non-bigint) numeric, whose absolute and relative narrowings are both the column itself.
+ * Mirrors the epoch-column identity seeding in {@link seedEpochColumnIdentity}.
+ *
+ * The offset-narrowing cache is intentionally not seeded: it subtracts a caller-supplied offset, so
+ * its result is not the identity even for a bigint-free column.
+ */
+export function seedNumericColumnIdentity(values: unknown[]): void {
+    if (!numericColumnCache.has(values)) {
+        numericColumnCache.set(values, values);
+    }
+    if (!relativeNumericColumnCache.has(values)) {
+        relativeNumericColumnCache.set(values, values);
+    }
+}
+
 const offsetNumericColumnCache = new WeakMap<readonly unknown[], { offset: bigint; result: any[] }>();
 
 /**

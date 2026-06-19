@@ -5,6 +5,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > sequenced > 1 1`] =
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -25,6 +26,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > sequenced > 1 1`] =
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -62,6 +64,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > sequenced > 1 8`] =
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -82,6 +85,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > sequenced > 1 8`] =
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -107,6 +111,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > sequenced > 1 9`] =
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -127,6 +132,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > sequenced > 1 9`] =
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -152,6 +158,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > single > legendItem
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -172,6 +179,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > single > legendItem
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -192,6 +200,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > single > legendItem
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -212,6 +221,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > single > legendItem
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -237,6 +247,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > single > legendItem
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -257,6 +268,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > single > legendItem
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -277,6 +289,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > single > legendItem
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -297,6 +310,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > single > legendItem
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -322,6 +336,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > single > miss 1`] =
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -342,6 +357,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > single > miss 1`] =
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -367,6 +383,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > single > series[0].
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -387,6 +404,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > single > series[0].
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -412,6 +430,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > single > series[0].
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -432,6 +451,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > single > series[0].
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -457,6 +477,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > single > series[1].
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
@@ -477,6 +498,7 @@ exports[`RadialColumnSeries > AG-15782 styler > highlights > single > series[1].
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
@@ -502,6 +524,7 @@ exports[`RadialColumnSeries > AG-15782 styler > init > callbacks > params 1`] = 
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "context": {
         "name": "software context 1",
       },
@@ -525,6 +548,7 @@ exports[`RadialColumnSeries > AG-15782 styler > init > callbacks > params 1`] = 
   [
     {
       "angleKey": "quarter",
+      "candidateState": undefined,
       "context": {
         "name": "hardware context 2",
       },

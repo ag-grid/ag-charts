@@ -6,6 +6,7 @@ import type {
     HighlightState,
     NormalisedCallbackParams,
     PixelSize,
+    SelectionState,
 } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../core/eventsHub';
@@ -28,6 +29,8 @@ interface SeriesLike {
         isHighlight?: boolean,
         datumIndex?: DatumIndex
     ): HighlightState;
+    getSelectionStateString(datumIndex: DatumIndex | undefined): SelectionState | undefined;
+    getCandidateStateString(datumIndex: DatumIndex | undefined): SelectionState | undefined;
 }
 
 type Bounds = {
@@ -88,6 +91,8 @@ export function getLabelStyles<TParams>(
             seriesId: series.id,
             padding: label.padding,
             highlightState,
+            selectionState: series.getSelectionStateString(nodeDatum?.datumIndex),
+            candidateState: series.getCandidateStateString(nodeDatum?.datumIndex),
         };
         const stylerResult =
             series.ctx.optionsGraphService.resolvePartial(

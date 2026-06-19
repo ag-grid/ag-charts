@@ -80,7 +80,7 @@ import type { TooltipContent, TooltipStructuredContent } from '../tooltip/toolti
 import { getItemId } from './pickManager';
 import { mergeMarkerStyles, mergeMarkerStylesPair } from './seriesMarker';
 import type { SeriesMarker } from './seriesMarker';
-import { isUnselected, toHighlightString, toSelectionString } from './seriesProperties';
+import { isUnselected, stagedSelectionState, toHighlightString, toSelectionString } from './seriesProperties';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesTooltip } from './seriesTooltip';
 import {
@@ -842,6 +842,10 @@ export abstract class Series<
         return this.ctx.dataSelectionService?.getDataSelectionState(this, datumIndex);
     }
 
+    public getDataCandidacyState(datumIndex: DatumIndex | undefined): SelectionState | undefined {
+        return this.ctx.dataSelectionService?.getDataCandidateState(this, datumIndex);
+    }
+
     /**
      * Per-series aggregation-aware bucket lookup. Optional — populated
      * lazily for aggregating series only. Owns both the per-bucket SELECTED
@@ -895,6 +899,15 @@ export abstract class Series<
         selectionState ??= this.getDataSelectionState(datumIndex);
         if (selectionState === undefined) return undefined;
         return toSelectionString(selectionState);
+    }
+
+    public getCandidateStateString(
+        datumIndex: DatumIndex | undefined,
+        candidateState?: SelectionState
+    ): PublicSelectionState | undefined {
+        candidateState ??= this.getDataCandidacyState(datumIndex);
+        if (candidateState === undefined) return undefined;
+        return toSelectionString(candidateState);
     }
 
     protected onChangeHighlight(event: HighlightChangeEvent) {
@@ -966,10 +979,16 @@ export abstract class Series<
         return this.properties.highlight.getStyle(highlightState);
     }
 
-    public getSelectionStyle(datumIndex?: DatumIndex, selectionState?: SelectionState) {
+    public getSelectionStyle(
+        datumIndex?: DatumIndex,
+        selectionState?: SelectionState,
+        candidateState?: SelectionState
+    ) {
+        candidateState ??= this.getDataCandidacyState(datumIndex);
         selectionState ??= this.getDataSelectionState(datumIndex);
-        if (selectionState === undefined) return undefined;
-        return this.properties.selection.getStyle(selectionState);
+        const staged = stagedSelectionState(selectionState, candidateState);
+        if (staged === undefined) return undefined;
+        return this.properties.selection.getStyle(staged);
     }
 
     protected resolveMarkerDrawingModeForState(drawingMode: AgDrawingMode, style?: AgSeriesMarkerStyle): AgDrawingMode {
@@ -1408,8 +1427,9 @@ export abstract class Series<
         } = opts ?? {};
         const selectionState: SelectionState | undefined =
             opts?.selectionState ?? this.getDataSelectionState(datumIndex);
+        const candidateState: SelectionState | undefined = this.getDataCandidacyState(datumIndex);
 
-        if (hideWithSize0 && isUnselected(selectionState)) {
+        if (hideWithSize0 && isUnselected(stagedSelectionState(selectionState, candidateState))) {
             return { size: 0 } satisfies AgSeriesMarkerStyle;
         }
 
@@ -1434,7 +1454,7 @@ export abstract class Series<
             : undefined;
         const selectionStyle: AgSeriesMarkerStyle | undefined =
             checkForHighlight && this.isSelectionEnabled()
-                ? this.getSelectionStyle(datumIndex, selectionState)
+                ? this.getSelectionStyle(datumIndex, selectionState, candidateState)
                 : undefined;
         let markerStyle = mergeMarkerStyles(
             selectionStyle,
@@ -1454,6 +1474,7 @@ export abstract class Series<
                       )
                     : toHighlightString(highlightState);
             const selectionStateString = selectionState === undefined ? undefined : toSelectionString(selectionState);
+            const candidateStateString = candidateState === undefined ? undefined : toSelectionString(candidateState);
             const fill = this.filterItemStylerFillParams(markerStyle.fill);
 
             const style = this.cachedCallWithContext(itemStyler, {
@@ -1463,6 +1484,7 @@ export abstract class Series<
                 ...params,
                 highlightState: highlightStateString,
                 selectionState: selectionStateString,
+                candidateState: candidateStateString,
                 datum,
             });
             const resolved = this.ctx.optionsGraphService.resolvePartial(getResolvePath(), style);
@@ -1542,8 +1564,9 @@ export abstract class Series<
             if (datumSelection.isGarbage(node)) return;
             const highlightState = self.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
             const selectionState = self.getDataSelectionState(datum.datumIndex);
+            const candidateState = self.getDataCandidacyState(datum.datumIndex);
             const extra = keyExtra === undefined ? '' : `:${keyExtra(datum)}`;
-            const stateKey = `${highlightState}:${selectionState ?? '-'}${extra}`;
+            const stateKey = `${highlightState}:${selectionState ?? '-'}:${candidateState ?? '-'}${extra}`;
             let cached = cache?.get(stateKey);
             if (cached === undefined) {
                 cached = compute(seriesArg, ctx, highlightState, selectionState, datum);

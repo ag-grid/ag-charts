@@ -28,6 +28,18 @@ export function ensureEpochColumn(values: unknown[]): unknown[] {
     return converted;
 }
 
+/**
+ * Register a string-free column as its own epoch representation. Extraction's type-tracking pass
+ * already knows whether a column holds any string, so seeding the cache here lets a later
+ * {@link ensureEpochColumn} return on the cache hit instead of repeating the O(n) string scan.
+ * No-op when an epoch column is already cached (e.g. a parsed ISO column must not be overwritten).
+ */
+export function seedEpochColumnIdentity(values: unknown[]): void {
+    if (!epochColumnCache.has(values)) {
+        epochColumnCache.set(values, values);
+    }
+}
+
 /** Cached epoch column for `values`, or `undefined` when none has been materialised. */
 export function getEpochColumn(values: unknown[]): unknown[] | undefined {
     return epochColumnCache.get(values);

@@ -228,6 +228,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             secondaryLabelKey,
             highlightState,
             selectionState: this.getSelectionStateString(nodeDatum.datumIndex),
+            candidateState: this.getCandidateStateString(nodeDatum.datumIndex),
             ...style,
             fill,
         } satisfies CallbackParamRules<AgSunburstSeriesItemStylerParams<unknown, unknown>>;

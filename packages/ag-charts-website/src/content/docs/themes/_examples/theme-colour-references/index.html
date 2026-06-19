@@ -1,0 +1,26 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <div class="gap-right">
+            <label for="ref-select">ref:</label>
+            <select id="ref-select" onchange="changeRef(event)">
+                <option value="accentColor">accentColor</option>
+                <option value="foregroundColor">foregroundColor</option>
+                <option value="backgroundColor">backgroundColor</option>
+            </select>
+        </div>
+        <div class="gap-right">
+            <label for="onto-select">onto:</label>
+            <select id="onto-select" onchange="changeOnto(event)">
+                <option value="none">none</option>
+                <option value="backgroundColor">backgroundColor</option>
+                <option value="foregroundColor">foregroundColor</option>
+                <option value="accentColor">accentColor</option>
+            </select>
+        </div>
+        <div>
+            <label for="mix-range">mix: <span id="mix-value">0.35</span></label>
+            <input id="mix-range" type="range" min="0" max="1" step="0.05" value="0.35" oninput="changeMix(event)" />
+        </div>
+    </div>
+</div>
+<div id="myChart"></div>

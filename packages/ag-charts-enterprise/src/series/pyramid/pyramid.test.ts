@@ -649,6 +649,27 @@ describe('PyramidSeries', () => {
         });
     });
 
+    describe('numeric category data', () => {
+        it('should resolve numeric stage data without a data-type warning', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { group: 1, value: 7910 },
+                    { group: 2, value: 8170 },
+                    { group: 3, value: 7260 },
+                    { group: 4, value: 4460 },
+                ],
+                series: [{ type: 'pyramid', stageKey: 'group', valueKey: 'value' }],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+            await compare();
+        });
+    });
+
     describe('bigint values (AG-16608)', () => {
         it('renders a pyramid series with out-of-safe-range bigint values', async () => {
             expect(

@@ -14,7 +14,9 @@
     --ag-charts-focus-color: #e4f2fe;
     --ag-charts-focus-shadow: 0 0 0 3px #2196f3;
     --ag-charts-foreground-color: #181d1f;
-    --ag-charts-font-family: Verdana, sans-serif;
+    --ag-charts-font-family:
+        'IBM Plex Sans', -apple-system, 'system-ui', 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell,
+        'Helvetica Neue', sans-serif;
     --ag-charts-font-size: 12px;
     --ag-charts-font-weight: 400;
     --ag-charts-popup-shadow: 0 0 16px rgba(0, 0, 0, 0.15);
@@ -22,7 +24,9 @@
     --ag-charts-text-color: #181d1f;
 
     --ag-charts-chrome-background-color: #fafafa;
-    --ag-charts-chrome-font-family: Verdana, sans-serif;
+    --ag-charts-chrome-font-family:
+        'IBM Plex Sans', -apple-system, 'system-ui', 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell,
+        'Helvetica Neue', sans-serif;
     --ag-charts-chrome-font-size: 12px;
     --ag-charts-chrome-font-weight: 400;
     --ag-charts-chrome-subtle-text-color: #8c8c8c;

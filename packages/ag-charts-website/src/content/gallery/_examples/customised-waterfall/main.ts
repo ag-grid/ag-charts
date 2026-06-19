@@ -80,6 +80,41 @@ const options: AgChartOptions<ReturnType<typeof getData>[0]> = {
                     },
                 },
             },
+            tooltip: {
+                renderer: ({ datum, yKey, itemType, totalValue, itemId }) => {
+                    // Total and subtotal bars are synthetic and expose no user datum; their
+                    // cumulative running total is supplied separately via `totalValue`.
+                    if (itemType === 'total' || itemType === 'subtotal') {
+                        const total = Number(totalValue ?? 0);
+                        return {
+                            heading: String(itemId),
+                            data: [
+                                {
+                                    label: 'Net Change',
+                                    value: `${total > 0 ? '+' : ''}${total.toFixed(2)}%`,
+                                },
+                            ],
+                        };
+                    }
+
+                    const change = (datum[yKey] as number) ?? 0;
+                    return {
+                        data: [
+                            {
+                                label: 'Daily Change',
+                                value: `${change > 0 ? '+' : ''}${change.toFixed(2)}%`,
+                            },
+                            {
+                                label: 'Close Price',
+                                value: `£${datum.closePrice.toLocaleString('en-GB', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                })}`,
+                            },
+                        ],
+                    };
+                },
+            },
         },
     ],
     axes: {

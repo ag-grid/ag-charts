@@ -37,7 +37,27 @@ The `getData` callback receives an `AgDataSourceCallbackParams` object with:
 - `source`: what triggered the request, such as `'mini-chart'`, `'user-interaction'` or `'chart-update'`.
 - `context`: the [chart context object](./context/), if one has been provided.
 
-{% note %}
+When the [Navigator](./navigator/) mini chart is enabled, it issues its own `getData` call with `source: 'mini-chart'`
+to load a full-range overview, independent of the main chart's windowed fetches. Return coarse, full-range data for
+this source and detailed windowed data otherwise:
+
+```js format="snippet"
+{
+    dataSource: {
+        getData: ({ windowStart, windowEnd, source }) => {
+            return source === 'mini-chart' ? FakeServer.get({}) : FakeServer.get({ windowStart, windowEnd });
+        },
+    },
+    navigator: {
+        enabled: true,
+        miniChart: {},
+    },
+}
+```
+
+This pattern supports both progressive detail loading by returning finer data
+as the window narrows, as well as server-side paging where only the visible range is fetched from the server on each
+zoom or scroll.
 
 The returned data must include the first and last data points so the chart can establish the axis domain, unless the
 axis has explicit `min` and `max` values.

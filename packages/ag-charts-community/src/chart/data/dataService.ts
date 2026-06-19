@@ -162,7 +162,7 @@ export class DataService<D extends object> {
             params.context = this.caller.context;
         }
 
-        const fetchRequest = Promise.resolve().then(async () => {
+        const fetchRequest = Promise.resolve().then(async (): Promise<{ id: number; response: unknown }> => {
             if (!this.dataSourceCallback) {
                 throw new Error('DataService - [dataSource.getData] callback not initialised');
             }
@@ -177,7 +177,7 @@ export class DataService<D extends object> {
             const requestIndex = this.freshRequests.indexOf(fetchRequest);
             if (requestIndex === -1 || (this.dispatchOnlyLatest && requestIndex !== this.freshRequests.length - 1)) {
                 this.debug(`DataService - discarding stale request | ${id}`);
-                return response;
+                return { id, response };
             }
 
             this.freshRequests = this.freshRequests.slice(requestIndex + 1);
@@ -186,14 +186,7 @@ export class DataService<D extends object> {
                 this.isLoadingData = false;
             }
 
-            // Dispatch response if no failure.
-            if (Array.isArray(response)) {
-                this.throttledDispatch(id, response);
-            } else {
-                this.eventsHub.emit('data:error', null);
-            }
-
-            return response;
+            return { id, response };
         });
 
         const secondaryFetchRequests = [];
@@ -213,7 +206,17 @@ export class DataService<D extends object> {
         this.latestRequest = { params, fetchRequest };
         this.freshRequests.push(fetchRequest);
 
-        await Promise.all([fetchRequest, ...secondaryFetchRequests]);
+        // Ensure secondary requests have finished before dispatching the update.
+        await Promise.all(secondaryFetchRequests);
+
+        const { id, response } = await fetchRequest;
+
+        // Dispatch response if no failure.
+        if (Array.isArray(response)) {
+            this.throttledDispatch(id, response);
+        } else {
+            this.eventsHub.emit('data:error', null);
+        }
     }
 
     private async performFetch(params: AgDataSourceCallbackParams, id: string | number) {
