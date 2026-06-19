@@ -31,17 +31,25 @@ ModuleRegistry.registerModules([
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     dataSource: {
-        getData: ({ windowStart, windowEnd }) => {
+        getData: ({ windowStart, windowEnd, source }) => {
             // Request the data from the server, this is an asynchronous call which may take up to 2500ms. In your
             // application, replace this with a call to your server api.
-            return FakeServer.get({ windowStart, windowEnd });
+            // The navigator mini chart requests a coarse, full-range overview; the main chart requests the visible
+            // window, and the server returns higher-resolution data as the window narrows.
+            return source === 'mini-chart' ? FakeServer.get({}) : FakeServer.get({ windowStart, windowEnd });
         },
     },
     navigator: {
         enabled: true,
+        miniChart: {},
     },
     zoom: {
         enabled: true,
+    },
+    initialState: {
+        zoom: {
+            ratioX: { start: 0.7, end: 1 },
+        },
     },
     series: [
         {
@@ -77,4 +85,8 @@ const options: AgCartesianChartOptions = {
     },
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+function reload() {
+    chart.updateDelta({});
+}

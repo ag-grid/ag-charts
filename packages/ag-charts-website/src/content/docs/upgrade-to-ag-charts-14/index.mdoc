@@ -47,17 +47,15 @@ The full list of breaking changes across all features for version {% migrationVe
 
 This release includes the following breaking changes:
 
-{% if isFramework("angular") %}
-
 ### Compatibility
 
-The minimum supported version of Angular is now Angular 20.
+{% if isFramework("angular") %}
+
+- The minimum supported version of Angular is now Angular 20.
 
 {% /if %}
 
-### TypeScript
-
-The minimum supported version of TypeScript is now 5.8.
+- The minimum supported version of TypeScript is now 5.8.
 
 ### Module Registration
 
@@ -71,38 +69,25 @@ The minimum supported version of TypeScript is now 5.8.
 
 - `size` is removed from `AgBubbleSeriesOptions`. Use `minSize` instead.
 - `domain` is removed from `AgBubbleSeriesOptions`. Use `sizeDomain` instead.
-- `size` is renamed to `minSize` on `AgBubbleSeriesStylerParams` and `AgBubbleSeriesStylerResult`. The item styler is unchanged: it still receives and returns `size` (the resolved per-marker size).
+- `size` is renamed to `minSize` on `AgBubbleSeriesStylerParams` and `AgBubbleSeriesStylerResult`.
 
 ### Waterfall Series
 
 - Callbacks now receive `datum: undefined` for total and subtotal bars. Use `params.itemType` to identify `'total'` and `'subtotal'` bars.
-- `label.formatter` now receives `itemType: 'subtotal'` for subtotal bars, which previously reported `'total'`.
+- `label.formatter` for subtotal bars now receives `itemType: 'subtotal'` instead of `'total'`.
 
 ### Histogram Series
 
-All histogram callbacks (`tooltip.renderer`, `label.formatter`, `seriesNodeClick`, `seriesNodeDoubleClick`, and context menu callbacks) are affected:
-
-- `datum` is now `undefined`, since a bin has no single source row. The bin source rows are exposed as `datums: TDatum[]`.
-- In `tooltip.renderer`, `xRange` and `domain` are no longer provided. Use `binRange` and `datums` instead.
+- `datum` is now `undefined` for all callbacks on the histogram series. The bin source rows are exposed as `datums: TDatum[]`.
+- `xRange` and `domain` are removed from `tooltip.renderer` params. Use `binRange` and `datums` instead.
 
 ### Numeric and Time-Axis Value Types
 
-Numeric value channels now accept `bigint`, and time axes also accept `bigint` epochs and ISO 8601 date strings. Two new types describe this: `AgNumericValue` (`number | bigint`) and `AgTimeValue` (`Date | number | bigint | string`).
-
-These output types have been widened from `number` to `AgNumericValue`:
-
-- The `value` passed to number and axis-tick formatters.
-- A continuous axis's `visibleDomain`.
-- The bin range and aggregated value passed to `histogram` tooltip and label callbacks.
-
-These input options now also accept `bigint`:
-
-- Continuous-axis `min`, `max`, `preferredMin`, `preferredMax` and `interval.step`.
-- Cross-line `value` and `range`.
-- Colour-scale `domain` and fill `stop` values.
-- Bubble series and map-marker/map-line `sizeDomain`.
-- Annotation `y` coordinates and channel heights.
-- The `start` and `end` of an initial zoom range.
+- Several numeric output types are widened from number to the new `AgNumericValue (number | bigint)` alias; time axes use the companion `AgTimeValue (Date | number | bigint | string)`.
+    - the value in a number formatter
+      ▎ - visibleDomain in an axis label.formatter
+      ▎ - binRange and aggregatedValue in histogram tooltip/label callbacks
+- Initial zoom state (zoom.rangeX/Y.start/end) now also accepts a serialised-bigint form for full-precision restore.
 
 ### Theme Params
 
@@ -110,7 +95,7 @@ These input options now also accept `bigint`:
 
 ### Range Buttons
 
-- AgRangesButtonValueFunction now receives all arguments within a single params object.
+- `AgRangesButtonValueFunction` now receives all arguments within a single params object.
 
 ### Padding
 
@@ -134,39 +119,22 @@ This release includes the following behaviour changes:
 
 ### Theme Defaults
 
-- The default `fontFamily` has changed to the IBM Plex Sans stack (`"IBM Plex Sans", -apple-system, "system-ui", ...`) to align with AG Grid v14. Charts that relied on the previous system font may render with a different typeface.
+- The default `fontFamily` has changed to the IBM Plex Sans stack (`"IBM Plex Sans", -apple-system, "system-ui", ...`).
 - The default `focusShadow` has changed to a 50% opacity accent colour.
-
-### Tooltips
-
 - The default `tooltip.position.offset` has increased from `8` to `12` for `anchorTo: 'pointer'` and `anchorTo: 'node'`.
 - The default `tooltip.position.placement` has changed from `'top'` to `['top', 'bottom', 'left', 'right']` for `anchorTo: 'pointer'` and `anchorTo: 'node'`.
+- The default Map Marker `size` has changed from `6` to `7`.
+- The default value of `scrollbar.enableSeriesAreaScrolling` has changed from `false` to `true`.
 
 ### Bubble Series
 
 - Out-of-domain values now clamp to `[minSize, maxSize]` instead of extrapolating beyond the bounds.
+- Setting an explicit minimum larger than an explicit maximum now emits a warning and falls back to theme defaults. Use `sizeDomain: [max, min]` to reverse the size scale.
 
-### Size Scaling
+### `itemId`
 
-- Setting an explicit minimum larger than an explicit maximum now emits a warning and falls back to theme defaults on Bubble (`minSize`/`maxSize`), Map Marker (`minSize`/`maxSize`) and Map Line (`minStrokeWidth`/`maxStrokeWidth`). Use `sizeDomain: [max, min]` to reverse the size scale.
-
-### Map Marker and Map Line Series
-
-- The default Map Marker `size` has changed from `6` to `7`.
-- Map Marker gains `minSize` and Map Line gains `minStrokeWidth` as the explicit lower bound of the size scale when `sizeKey` is set. Each defaults to `size`/`strokeWidth` respectively. When `sizeKey` is absent, `size`/`strokeWidth` remain the fixed marker size and line width.
-- Setting both bounds explicitly with the lower bound greater than the upper bound now emits a warning and falls back to theme defaults.
-
-### Scrollbar
-
-- The default value of `scrollbar.enableSeriesAreaScrolling` has changed from `false` to `true`.
-
-### Selection
-
-- Generated selection `itemId` values (when `dataIdKey` is not set) have changed and are not stable across versions. Set `dataIdKey` if you depend on stable identifiers.
-
-### Zoom
-
-- Setting `initialState.zoom.rangeX` or `initialState.zoom.rangeY` with string values now applies the zoom range correctly on category axes. Previously these values produced a console warning and were ignored.
+- The generated `itemId` on Sunburst and Treemap series has changed from a string to a number.
+- Generated selection `itemId` values are not guaranteed to be stable across versions. Set `dataIdKey` if you depend on stable identifiers.
 
 ### Time Axis Labels
 
