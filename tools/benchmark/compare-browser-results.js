@@ -236,6 +236,9 @@ function extractResults(reports) {
         const intraRunCvMax = Math.max(0, ...runs.map((r) => r.intraRunCv ?? 0));
         const crossRunCv = coefficientOfVariation(runMedians); // null for a single run
         const first = runs[0];
+        // Noise measure: with multiple runs the median already absorbs intra-run sample jitter
+        // (structurally high for micro-benchmarks), so run-to-run (cross-run) CV is what matters.
+        // Fall back to intra-run CV only for single-run inputs.
         merged.set(key, {
             exampleName: first.exampleName,
             displayName: first.displayName,
@@ -244,7 +247,7 @@ function extractResults(reports) {
             sampleCount: first.sampleCount,
             runCount: runs.length,
             crossRunCv,
-            cv: Math.max(intraRunCvMax, crossRunCv ?? 0),
+            cv: crossRunCv ?? intraRunCvMax,
         });
     }
 
