@@ -67,7 +67,7 @@ export function setupIntrinsicAssertions(
         beforeEach: (fn: ({ page }: { page: Page }, testInfo: { titlePath?: string[] }) => Promise<void>) => void;
         afterEach: (fn: () => void) => void;
     },
-    opts: { viewportSize?: { width: number; height: number } } = {}
+    opts: { viewportSize?: { width: number; height: number }; ignoreConsolePatterns?: string[] } = {}
 ) {
     let consoleWarnOrErrors: string[] = [];
     const config = { ignore404s: false, ignoreConsoleWarnings: false };
@@ -85,7 +85,7 @@ export function setupIntrinsicAssertions(
     testFn.beforeEach(async ({ page }, testInfo) => {
         consoleWarnOrErrors = [];
         // Check if this is a 404 test by examining the test title
-        config.ignore404s = titlePathIncludes(testInfo, 'should 404 on');
+        config.ignore404s = titlePathIncludes(testInfo, 'should 404 on') || titlePathIncludes(testInfo, '[ignore404s]');
         // Check if console warnings should be ignored for this test
         config.ignoreConsoleWarnings = titlePathIncludes(testInfo, '[ignoreConsoleWarnings]');
 
@@ -111,6 +111,12 @@ export function setupIntrinsicAssertions(
 
             // Ignore Firefox Quirks Mode warning.
             if (msg.text().includes('This page is in Quirks Mode')) return;
+
+            // Caller-supplied patterns to ignore (e.g. staging-specific noise not relevant to other specs).
+            if (opts.ignoreConsolePatterns?.some((p) => msg.text().includes(p))) return;
+
+            // WebGL GPU driver performance messages are browser/OS noise unrelated to the application.
+            if (msg.text().includes('GL Driver Message')) return;
 
             // Ignore 404s when expected
             const notFoundMatcher = /the server responded with a status of 404/;
