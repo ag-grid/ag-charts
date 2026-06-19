@@ -1420,6 +1420,38 @@ describe('Zoom', () => {
 
             expect(chart.getState().zoom?.ratioX).toBeDefined();
         });
+
+        it('should serialize bigint zoom state', async () => {
+            await prepareChart(
+                undefined,
+                { rangeX: { start: { __type: 'bigint', value: '9007199254740994' } } },
+                {
+                    data: [
+                        { x: 9007199254740990n, y: 1 },
+                        { x: 9007199254740992n, y: 2 },
+                        { x: 9007199254740994n, y: 3 },
+                        { x: 9007199254740996n, y: 4 },
+                        { x: 9007199254740998n, y: 3 },
+                    ],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: { type: 'number', position: 'bottom' },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    zoom: { enabled: true, axes: 'x' },
+                },
+                false
+            );
+            await waitForChartStability(chart);
+
+            const state = chart.getState().zoom;
+            expect(state).toMatchObject({
+                rangeX: {
+                    start: { __type: 'bigint', value: '9007199254740994' },
+                    end: { __type: 'bigint', value: '9007199254740998' },
+                },
+            });
+        });
     });
 
     describe('category axes', () => {

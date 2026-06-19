@@ -2,6 +2,7 @@ import type { ScaleTickParams } from 'ag-charts-core';
 import {
     createBigIntTicks,
     createTicks,
+    isBigInt,
     isDenseInterval,
     niceBigIntDomain,
     niceTicksDomain,
@@ -31,7 +32,11 @@ export class LinearScale extends ContinuousScale<AgNumericValue> {
         super([0, 1], [0, 1]);
     }
 
-    toDomain(d: number): number {
+    toDomain(d: number): AgNumericValue {
+        if (isBigInt(this.domainMin) && isBigInt(this.domainMax) && (isBigInt(d) || Number.isInteger(d))) {
+            return BigInt(d);
+        }
+
         return d;
     }
 
