@@ -920,6 +920,29 @@ describe('OptionsGraph', () => {
                     axes: expect.any(Object),
                 });
             });
+
+            it('should merge a partial user option over a partial theme-override per side', () => {
+                const themeConfig = {
+                    line: {
+                        padding: {
+                            $applyPadding: { top: 4, right: 8, bottom: 4, left: 8 },
+                        },
+                    },
+                };
+                const userOptions = prepareOptions({ padding: { left: 20 } });
+                // Override supplied via the `common` namespace while the default comes from the
+                // series-type (`line`) namespace, exercising the common-namespace fallback in
+                // dangerouslyGetThemeOverride alongside the per-side merge.
+                const overrides = { common: { padding: { right: 15, bottom: 15 } } };
+                const options = new OptionsGraph(themeConfig, userOptions, undefined, {}, {}, overrides).resolve();
+                // Per-side precedence user > override > default: left from user, right/bottom from
+                // override, top falls through to the default. A partial user object must not discard
+                // the override- or default-supplied sides.
+                expect(options).toStrictEqual({
+                    padding: { top: 4, right: 15, bottom: 15, left: 20 },
+                    axes: expect.any(Object),
+                });
+            });
         });
 
         describe('$applySwitch', () => {
