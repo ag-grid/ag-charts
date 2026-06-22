@@ -29,7 +29,7 @@ interface ButtonListener {
     onClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget): void;
     onDoubleClick(event: Event, datum: CategoryLegendDatum): void;
     onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel): void;
-    onLeave(): void;
+    onLeave(event?: FocusEvent | MouseEvent): void;
     onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel): void;
 }
 
@@ -114,7 +114,7 @@ export class LegendDOMProxy {
             button.addListener('mouseenter', (ev) => itemListener.onHover(ev.sourceEvent, markerLabel));
             button.addListener('mouseleave', () => itemListener.onLeave());
             button.addListener('contextmenu', (ev) => itemListener.onContextClick(ev, markerLabel));
-            button.addListener('blur', () => itemListener.onLeave());
+            button.addListener('blur', (ev) => itemListener.onLeave(ev.sourceEvent));
             button.addListener('focus', (ev) =>
                 this.shouldApplyHoverOnFocus(button)
                     ? itemListener.onHover(ev.sourceEvent, markerLabel)

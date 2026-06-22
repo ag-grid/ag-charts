@@ -1093,25 +1093,26 @@ export class Legend {
             this.ctx.tooltipManager.removeTooltip(this.id, undefined, true);
         }
 
-        this.updateHighlight(datum?.enabled, datum, series);
+        this.updateHighlight(datum?.enabled, datum, series, undefined, event instanceof FocusEvent);
         this.ctx.eventsHub.emit('legend:item-hover', null);
     }
 
-    onLeave() {
+    onLeave(event?: FocusEvent | MouseEvent) {
         if (this.checkInteractionState()) return;
         this.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
-        this.clearHighlight();
+        this.clearHighlight(event instanceof FocusEvent);
     }
 
-    private clearHighlight(): void {
-        this.updateHighlight(undefined, undefined, undefined);
+    private clearHighlight(fromKeyboardFocus = false): void {
+        this.updateHighlight(undefined, undefined, undefined, undefined, fromKeyboardFocus);
     }
 
     private updateHighlight(
         enabled: boolean | undefined,
         legendDatum: CategoryLegendDatum | undefined,
         series: SeriesType | undefined,
-        event?: ActiveLoadMementoEvent
+        event?: ActiveLoadMementoEvent,
+        fromKeyboardFocus = false
     ): void {
         if (this.checkInteractionState()) return;
         type InternalUpdateOpts = {
@@ -1140,11 +1141,17 @@ export class Legend {
             if (this.ctx.interactionManager.isState(InteractionState.Default) || event?.initialState) {
                 updateManagers(opts);
             } else if (this.ctx.interactionManager.isState(InteractionState.Animation)) {
-                // Updating the highlight can interrupt animations, so defer both setting and
-                // clearing highlights until the current animation batch completes.
-                this.ctx.animationManager.onBatchStop(() => {
+                // A keyboard focus change is a deliberate navigation that must take effect immediately,
+                // interrupting any in-progress animation. Pointer hover, by contrast, defers both setting
+                // and clearing highlights until the current animation batch completes so that a passing
+                // hover does not interrupt a show/hide animation.
+                if (fromKeyboardFocus) {
                     updateManagers(opts);
-                });
+                } else {
+                    this.ctx.animationManager.onBatchStop(() => {
+                        updateManagers(opts);
+                    });
+                }
             } else if (opts === undefined) {
                 updateManagers(opts);
             }
