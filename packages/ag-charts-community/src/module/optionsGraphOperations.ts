@@ -948,30 +948,40 @@ function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     return RESOLVED_TO_BRANCH;
 }
 
+// Expand a padding value to a per-side object: a number applies to every side, an object passes through, and
+// anything else is treated as "not supplied".
+function expandPaddingValue(value: unknown) {
+    if (typeof value === 'number') {
+        return { top: value, right: value, bottom: value, left: value };
+    }
+    return typeof value === 'object' ? value : undefined;
+}
+
 function applyPaddingOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [defaultValueVertex] = values;
 
     const pathArray = graph.getPathArray(vertex);
     const userOption = graph.dangerouslyGetUserOption(pathArray);
 
+    // Resolve any theme-override padding for this path, mirroring how the user option is read. Resolving through the
+    // graph is not viable here: a nested override (e.g. `{ left: 15, right: 15 }`) builds child vertices rather than a
+    // value on this vertex, and resolving the vertex would re-enter this operation. Read the raw override instead.
+    const overrideOption = graph.dangerouslyGetThemeOverride(pathArray);
+
     const defaultValue = graph.resolveVertexValue(vertex, defaultValueVertex);
-    const expandedDefaultValue =
-        typeof defaultValue === 'number'
-            ? { top: defaultValue, right: defaultValue, bottom: defaultValue, left: defaultValue }
-            : defaultValue;
+    const expandedDefaultValue = expandPaddingValue(defaultValue);
 
     if (typeof expandedDefaultValue !== 'object') return;
 
-    if (typeof userOption !== 'number' && typeof userOption !== 'object') {
+    const expandedOverrideOption = expandPaddingValue(overrideOption);
+    const expandedUserOption = expandPaddingValue(userOption);
+
+    // Precedence (per side): user option > theme override > theme default, matching EDGE_PRIORITY.
+    if (expandedOverrideOption == null && expandedUserOption == null) {
         return expandedDefaultValue;
     }
 
-    const expandedUserOption =
-        typeof userOption === 'number'
-            ? { top: userOption, right: userOption, bottom: userOption, left: userOption }
-            : userOption;
-
-    graph.graftObject(vertex, { ...expandedDefaultValue, ...expandedUserOption });
+    graph.graftObject(vertex, { ...expandedDefaultValue, ...expandedOverrideOption, ...expandedUserOption });
 
     return RESOLVED_TO_BRANCH;
 }
