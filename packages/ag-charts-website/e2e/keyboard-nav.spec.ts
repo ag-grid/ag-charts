@@ -318,6 +318,19 @@ test.describe('keyboard-nav', () => {
         await page.keyboard.press('ArrowRight');
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`linear-gauge-target2-highlight.png`);
 
+        // CRT-1124: ArrowUp directly from a non-first target must return to the main bar
+        // (previously got stuck because the carried target index had no valid landing in
+        // the single-node main section).
+        await page.keyboard.press('ArrowUp');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`linear-gauge-bar-highlight.png`);
+
+        await page.keyboard.press('ArrowDown');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`linear-gauge-target0-highlight.png`);
+
+        await page.keyboard.press('ArrowRight');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`linear-gauge-target2-highlight.png`);
+
         await page.keyboard.press('ArrowLeft');
         await page.keyboard.press('ArrowLeft');
         await page.keyboard.press('ArrowLeft'); // should have no effect
