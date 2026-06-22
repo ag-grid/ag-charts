@@ -166,7 +166,7 @@ export class DOMManager extends BaseManager {
     private attachIntersectionObserver?: IntersectionObserver;
     private readonly sizeMonitor: SizeMonitor;
     private readonly cursorState = new StateTracker('default');
-    private _lastCursor: string | undefined = undefined;
+    private _lastCursor: string = 'default';
     private _lastCenterSize: { visibility: string; width: string; height: string } | undefined = undefined;
 
     private readonly deferredProxies = new Map<string, DOMElementProxy>();
@@ -201,6 +201,7 @@ export class DOMManager extends BaseManager {
         this.sizeMonitor = new SizeMonitor(agDocument, mode);
 
         this.element = this.initDOM();
+        this.element.style.cursor = 'default';
         this.elementProxy = new DOMElementProxy(this.element, { deferredMode: this.deferredMode });
         this.rootElements = this.initRootElements();
 
