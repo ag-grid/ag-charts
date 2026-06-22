@@ -93,7 +93,7 @@ export class ChartCaption implements CaptionLike {
 
     /**
      * Apply the current options subtree to the scene node. Called from
-     * `ChartCaptions.positionCaption` before each layout so visible/text/font
+     * `ChartCaptions.positionCaptions` before each layout so visible/text/font
      * properties land before render.
      */
     applyToNode() {

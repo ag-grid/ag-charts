@@ -23,6 +23,12 @@ export class ChartCaptions {
         const { title, subtitle, footnote } = this;
         const maxHeight = layoutBox.height / 10; // Limit to 10% of layout initial height
 
+        // Sync `node.visible` for every caption each layout so a disabled caption's long-lived
+        // node is hidden — the enabled-only positioning below never runs for disabled captions.
+        for (const caption of [title, subtitle, footnote]) {
+            caption.applyToNode();
+        }
+
         if (title.enabled) {
             this.positionCaption('top', title, layoutBox, maxHeight);
             this.shrinkLayoutByCaption('top', title, layoutBox);
@@ -65,7 +71,6 @@ export class ChartCaptions {
     }
 
     private positionCaption(vAlign: 'top' | 'bottom', caption: ChartCaption, layoutBox: BBox, maxHeight: number) {
-        caption.applyToNode();
         const opts = caption.opts;
         const font = captionFont(opts);
         const text = opts.text;
