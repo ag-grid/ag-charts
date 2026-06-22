@@ -179,6 +179,9 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
     private resolveFresh = false;
 
+    // The primary series type, used to resolve series-namespaced theme overrides and defaults.
+    private readonly seriesType: string;
+
     constructor(
         private readonly config: PlainObject = {},
         private readonly userOptions: PlainObject = {},
@@ -203,6 +206,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
         // Extract the primary series type, bypassing the graph so we have it ready immediately.
         const seriesType = userOptions.series?.[0]?.type ?? 'line';
+        this.seriesType = seriesType;
 
         // Build the initial user options, defaults, common and series overrides graphs on the root.
         debug('build user');
@@ -527,6 +531,36 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         }
 
         return getPathSafe(this.userOptions, path);
+    }
+
+    /**
+     * Get the value from the theme overrides at the given path, mirroring {@link dangerouslyGetUserOption} but reading
+     * from `this.overrides`. Resolves the same namespaces the constructor unwraps onto the graph: a series-type key
+     * (e.g. `overrides.line`) takes priority over `overrides.common`, which takes priority over a directly-namespaced
+     * override. Dangerous in the same sense — it does not resolve through the graph, so operations can read their own
+     * override value without triggering an infinite resolution loop.
+     */
+    dangerouslyGetThemeOverride(path: Array<string>) {
+        if (this.overrides == null) return undefined;
+
+        if (path[0] === 'axes' && path.length > 1) {
+            const axisType = this.getResolvedPath(['axes', path[1], 'type']) as string;
+            return (
+                getPathSafe(this.overrides, [this.seriesType, 'axes', axisType, ...path.slice(2)]) ??
+                getPathSafe(this.overrides, ['common', 'axes', axisType, ...path.slice(2)])
+            );
+        }
+
+        if (path[0] === 'series' && path.length > 1) {
+            const seriesType = this.getResolvedPath(['series', path[1], 'type']) as string;
+            return getPathSafe(this.overrides, [seriesType, 'series', ...path.slice(2)]);
+        }
+
+        return (
+            getPathSafe(this.overrides, [this.seriesType, ...path]) ??
+            getPathSafe(this.overrides, ['common', ...path]) ??
+            getPathSafe(this.overrides, path)
+        );
     }
 
     hasThemeOverride(path: Array<string>) {
@@ -1100,15 +1134,22 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
         let edgePriority = this.edgePriority;
 
-        // If this path leaf matches the expected "transform user" operation, change the edge priority to resolve only
-        // the default operation.
+        // If this path leaf matches the expected "transform user" operation, change the edge priority to resolve
+        // through that operation so it can transform the user option and theme override into the final value.
         if (pathLeaf in OptionsGraph.TRANSFORM_USER_KEY_OPERATION_PAIRS) {
             const expectedOperation = OptionsGraph.TRANSFORM_USER_KEY_OPERATION_PAIRS[pathLeaf];
-            const operation =
-                getOperation(this.findNeighbourValue(vertex, OVERRIDES_EDGE)) ??
-                getOperation(this.findNeighbourValue(vertex, DEFAULTS_EDGE));
-            if (operation?.operation.valueOf() === expectedOperation) {
+            const overrideIsOperation =
+                getOperation(this.findNeighbourValue(vertex, OVERRIDES_EDGE))?.operation.valueOf() ===
+                expectedOperation;
+            const defaultIsOperation =
+                getOperation(this.findNeighbourValue(vertex, DEFAULTS_EDGE))?.operation.valueOf() === expectedOperation;
+            if (overrideIsOperation) {
+                // The override supplies its own operation template; resolve it (falling back to the default operation).
                 edgePriority = [OVERRIDES_EDGE, DEFAULTS_EDGE];
+            } else if (defaultIsOperation) {
+                // Only the default supplies the operation. Resolve through it alone so the operation merges any plain
+                // override and user value, rather than letting a plain override short-circuit and skip the transform.
+                edgePriority = [DEFAULTS_EDGE];
             }
         }
 
