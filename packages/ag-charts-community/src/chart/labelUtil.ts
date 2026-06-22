@@ -102,11 +102,12 @@ export function getLabelStyles<TParams>(
             selectionState: series.getSelectionStateString(nodeDatum?.datumIndex),
             candidateState: series.getCandidateStateString(nodeDatum?.datumIndex),
         };
-        const stylerResult = (series.ctx.optionsGraphService.resolvePartial(
-            labelPath,
-            series.cachedCallWithContext(label.itemStyler, { ...params, ...styleParams }),
-            { pick: false }
-        ) ?? {}) as NormalisedChartLabelStyleOptions;
+        const stylerResult =
+            series.ctx.optionsGraphService.resolvePartial(
+                labelPath,
+                series.cachedCallWithContext(label.itemStyler, { ...params, ...styleParams }),
+                { pick: false }
+            ) ?? {};
 
         return mergeDefaults(stylerResult, styleParams);
     }

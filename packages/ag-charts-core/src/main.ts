@@ -14,6 +14,7 @@ export * from './types/normalised-options/normalisedLabelOptions';
 export * from './types/normalised-options/normalisedLegendOptions';
 export * from './types/normalised-options/normalisedSelectionOptions';
 export * from './types/normalised-options/normalisedZoomOptions';
+export * from './types/normalised-options/resolved';
 export * from './modules/moduleDefinition';
 export * from './types/scene';
 export * from './types/scales';

@@ -803,12 +803,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         if (!ignoreStylerCallback && styler) {
             const stylerParams = this.makeStylerParams(highlightState, selectionState, candidateState);
             stylerResult =
-                // resolvePartial resolves colour refs, so the result is a normalised style.
-                (this.ctx.optionsGraphService.resolvePartial(
+                this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
                     this.cachedCallWithContext(styler, stylerParams) ?? {},
                     { pick: false }
-                ) as NormalisedBoxPlotSeriesStyle) ?? {};
+                ) ?? {};
         }
         return {
             cornerRadius: stylerResult.cornerRadius ?? cornerRadius,

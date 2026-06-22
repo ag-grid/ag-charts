@@ -4,6 +4,7 @@ import {
     Logger,
     ModuleRegistry,
     type PlainObject,
+    type Resolved,
     type Vertex,
     isObject,
     isObjectLike,
@@ -49,7 +50,7 @@ export interface OptionsGraphAccessor {
         partialOptions?: T,
         resolveOptions?: OptionsGraphAccessorResolvePartialOptions,
         csssVariables?: Record<string, string>
-    ): Partial<T> | undefined;
+    ): Resolved<Partial<T>> | undefined;
     clearSafe(): void;
 }
 
@@ -378,7 +379,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             proxyPaths?: Record<string, Array<string>>;
         },
         cssVariables?: Record<string, string>
-    ): Partial<T> | undefined {
+    ): Resolved<Partial<T>> | undefined {
         if (!partialOptions) return;
 
         // If the graph has been cleared, do not attempt to resolve. This will occur when no `styler` options are provided.
@@ -393,7 +394,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             console.groupCollapsed(`OptionsGraph.resolvePartial() - ${path.join('.')} [${partialKeys}]`);
         }
 
-        if (partialKeys.length === 0) return {};
+        if (partialKeys.length === 0) return {} as Resolved<Partial<T>>;
 
         if (cssVariables) {
             this.cssVariables = { ...this.cssVariables, ...cssVariables };
@@ -483,7 +484,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             console.groupEnd();
         }
 
-        return partial;
+        return partial as Resolved<Partial<T>>;
     }
 
     findVertexAtPath(path: Array<string>) {

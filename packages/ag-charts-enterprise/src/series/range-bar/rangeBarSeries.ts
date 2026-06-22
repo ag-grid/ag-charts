@@ -1012,11 +1012,12 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         let stylerResult: NormalisedRangeBarSeriesStyle = {};
         if (!ignoreStylerCallback && styler) {
             const stylerParams = this.makeStylerParams(highlightState, selectionState, candidateState);
-            stylerResult = (this.ctx.optionsGraphService.resolvePartial(
-                ['series', `${this.declarationOrder}`],
-                this.cachedCallWithContext(styler, stylerParams) ?? {},
-                { pick: false }
-            ) ?? {}) as NormalisedRangeBarSeriesStyle;
+            stylerResult =
+                this.ctx.optionsGraphService.resolvePartial(
+                    ['series', `${this.declarationOrder}`],
+                    this.cachedCallWithContext(styler, stylerParams) ?? {},
+                    { pick: false }
+                ) ?? {};
         }
         return {
             cornerRadius: stylerResult.cornerRadius ?? cornerRadius,
