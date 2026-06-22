@@ -835,8 +835,9 @@ describe('Annotations', () => {
         });
     });
 
-    // A band/ordinal x-axis (bandwidth > 1px) is required: the plain-arrow step must stay at 1px
-    // regardless of bandwidth. On a number axis bandwidth is 0, which would not distinguish the cases.
+    // A band/ordinal x-axis (bandwidth > 1px) is required: without snapping the plain-arrow step
+    // must stay at 1px regardless of bandwidth. On a number axis bandwidth is 0, which would not
+    // distinguish the cases.
     describe('keyboard arrow key move step', () => {
         // Four categories in 800px gives a bandwidth well above 1px.
         const BAND_AXIS_OPTIONS: AgCartesianChartOptions = {
@@ -938,6 +939,83 @@ describe('Annotations', () => {
             const pxAfter = toPx(valueAfter, xScale);
 
             expect(Math.abs(pxAfter - pxBefore)).toBeCloseTo(10, 5);
+        });
+
+        // With snapping enabled (the financial preset default) a band axis locks annotations to
+        // band centres, so a sub-band move re-snaps to the same centre and appears to do nothing.
+        // A plain arrow must advance exactly one band; Ctrl/Shift advances ten.
+        describe('with snapping enabled', () => {
+            const CATEGORIES = Array.from({ length: 20 }, (_, i) => String.fromCharCode(65 + i));
+            const START_INDEX = 5;
+
+            const SNAP_AXIS_OPTIONS: AgCartesianChartOptions = {
+                data: CATEGORIES.map((category, i) => ({ category, value: 50 + (i % 5) * 10 })),
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                annotations: {
+                    enabled: true,
+                    toolbar: { enabled: false },
+                    // @ts-expect-error snap is an undocumented option
+                    snap: true,
+                },
+                width: 800,
+                height: 400,
+            };
+
+            async function prepareSnappedChart() {
+                await prepareChart(
+                    {
+                        annotations: [
+                            {
+                                type: 'vertical-line',
+                                value: { value: CATEGORIES[START_INDEX], groupPercentage: 0 },
+                            },
+                        ],
+                    },
+                    SNAP_AXIS_OPTIONS
+                );
+            }
+
+            function snappedCategoryIndex(annotationsModule: any): number {
+                return CATEGORIES.indexOf(annotationsModule.annotationData.at(0).value.value);
+            }
+
+            it('plain ArrowRight advances a snapped annotation by exactly one band', async () => {
+                await prepareSnappedChart();
+
+                const annotationsModule = getAnnotationsModule();
+                annotationsModule.state.stateMachines[2].active = 0;
+                expect(snappedCategoryIndex(annotationsModule)).toBe(START_INDEX);
+
+                annotationsModule.onKeyDown({
+                    type: 'keydown' as const,
+                    sourceEvent: new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight' }),
+                });
+
+                expect(snappedCategoryIndex(annotationsModule)).toBe(START_INDEX + 1);
+            });
+
+            it('Shift+ArrowRight advances a snapped annotation by ten bands', async () => {
+                await prepareSnappedChart();
+
+                const annotationsModule = getAnnotationsModule();
+                annotationsModule.state.stateMachines[2].active = 0;
+                expect(snappedCategoryIndex(annotationsModule)).toBe(START_INDEX);
+
+                annotationsModule.onKeyDown({
+                    type: 'keydown' as const,
+                    sourceEvent: new KeyboardEvent('keydown', {
+                        key: 'ArrowRight',
+                        code: 'ArrowRight',
+                        shiftKey: true,
+                    }),
+                });
+
+                expect(snappedCategoryIndex(annotationsModule)).toBe(START_INDEX + 10);
+            });
         });
     });
 });

@@ -23,6 +23,7 @@ import { AxesButtons } from './annotationAxesButtons';
 import { AnnotationDefaults } from './annotationDefaults';
 import { AnnotationOptionsToolbar } from './annotationOptionsToolbar';
 import type {
+    AnnotationAxisContext,
     AnnotationContext,
     AnnotationOptionsColorPickerType,
     DataPoint,
@@ -1128,8 +1129,8 @@ export class Annotations extends AbstractModuleInstance {
 
         const translation = { x: 0, y: 0 };
 
-        const xStep = ctrlShift ? 10 : 1;
-        const yStep = ctrlShift ? 10 : 1;
+        const xStep = this.keyboardMoveStep(context.xAxis, ctrlShift);
+        const yStep = this.keyboardMoveStep(context.yAxis, ctrlShift);
         switch (sourceEvent.key) {
             case 'ArrowDown':
                 translation.y = yStep;
@@ -1174,6 +1175,21 @@ export class Annotations extends AbstractModuleInstance {
                 this.recordActionAfterNextUpdate('Paste annotation');
                 return;
         }
+    }
+
+    private keyboardMoveStep(axis: AnnotationAxisContext, fast: boolean): number {
+        const multiplier = fast ? 10 : 1;
+        const { scale, snapToGroup } = axis;
+        const bandwidth = scale.bandwidth ?? 0;
+
+        // A snapping band axis locks annotations to band centres, so a sub-band move re-snaps to
+        // the same centre and appears to do nothing. Step by the band-to-band distance instead so
+        // a plain arrow crosses exactly one band; the step falls back to bandwidth when undefined.
+        if (snapToGroup && bandwidth > 0) {
+            return multiplier * (scale.step ?? bandwidth);
+        }
+
+        return multiplier;
     }
 
     private onKeyUp(event: _Widget.KeyboardWidgetEvent<'keyup'>) {
