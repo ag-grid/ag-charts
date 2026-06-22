@@ -14,6 +14,7 @@ import {
     ZoomModule,
 } from 'ag-charts-enterprise';
 
+import { Database } from './data';
 import { FakeServer } from './fakeServer';
 
 ModuleRegistry.registerModules([
@@ -87,6 +88,9 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
+// Refresh the underlying server data, then call updateDelta({}) to re-trigger getData for the
+// current window. The chart shows its loading overlay while the new data is fetched.
 function reload() {
+    Database.refresh();
     chart.updateDelta({});
 }
