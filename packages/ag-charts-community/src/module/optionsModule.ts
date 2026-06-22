@@ -169,6 +169,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         assign: new Set(['data', 'context', 'theme']),
     };
     public static readonly JSON_DIFF_OPTS = new Set<any>(['data', 'localeText']);
+    // Sentinel marking a key removed by a full `update()` so it is dropped on merge (replace semantics).
+    private static readonly REMOVED = Symbol('UNSET');
 
     private static readonly perfDebug = Debug.create(true, 'perf');
 
@@ -190,6 +192,18 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
         ChartOptions.perfDebug(`ChartOptions.isFastPathDelta() - fast path possible.`);
         return true;
+    }
+
+    private static containsRemovalSentinel(node: unknown): boolean {
+        // `jsonDiff` only places the removal sentinel directly on a key, so a shallow scan that
+        // recurses into nested objects (skipping the opaque `data` payload) suffices.
+        if (!isObject(node) || isArray(node)) return false;
+        for (const key of Object.keys(node)) {
+            const value = (node as Record<string, unknown>)[key];
+            if (isSymbol(value)) return true;
+            if (key !== 'data' && ChartOptions.containsRemovalSentinel(value)) return true;
+        }
+        return false;
     }
 
     activeTheme: ChartTheme;
@@ -241,12 +255,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 this.userDeltaKeys = new Set(Object.keys(deltaOptions));
             }
 
-            // No diff case - null means diff was a no-op.
-            deltaOptions ??= jsonDiff(
-                baseChartOptions.userOptions as T,
-                newUserOptions,
-                ChartOptions.JSON_DIFF_OPTS
-            ) as DeepPartial<T>;
+            // A null `deltaOptions` means this is a full `update()` rather than `updateDelta()`. Per
+            // its contract, `update()` replaces the options, so diff against the previous options
+            // marking omitted subtrees for removal; `updateDelta()` keeps its merge semantics.
+            if (deltaOptions == null) {
+                deltaOptions = jsonDiff(
+                    baseChartOptions.userOptions as T,
+                    newUserOptions,
+                    ChartOptions.JSON_DIFF_OPTS,
+                    ChartOptions.REMOVED
+                ) as DeepPartial<T>;
+                // Only strip symbols (and so take the slow path) when the diff actually removed a
+                // subtree; a fast-path-only change (e.g. width/data) must stay on the fast path.
+                stripSymbols ||= ChartOptions.containsRemovalSentinel(deltaOptions);
+            }
 
             this.userOptions = deepClone(merge(deltaOptions, baseChartOptions.userOptions), {
                 ...ChartOptions.OPTIONS_CLONE_OPTS_SLOW,

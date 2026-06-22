@@ -370,4 +370,55 @@ describe('AgChartV2', () => {
             await waitForChartStability(chart);
         });
     });
+
+    describe('CRT-1143 update() replace semantics', () => {
+        const withSubtitle = (): AgChartOptions => ({
+            title: { text: 'Title' },
+            subtitle: { text: 'Subtitle' },
+            data: [
+                { x: 'a', y: 1 },
+                { x: 'b', y: 2 },
+            ],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+        });
+
+        const withoutSubtitle = (): AgChartOptions => ({
+            title: { text: 'Title' },
+            data: [
+                { x: 'a', y: 1 },
+                { x: 'b', y: 2 },
+            ],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+        });
+
+        it('should drop a subtitle omitted from a full update()', async () => {
+            const initial = withSubtitle();
+            prepareTestOptions(initial, container);
+            chart = AgCharts.create(initial);
+            await waitForChartStability(chart);
+            expect(chart.getOptions().subtitle).toEqual({ text: 'Subtitle' });
+
+            const updated = withoutSubtitle();
+            prepareTestOptions(updated, container);
+            await chart.update(updated);
+            await waitForChartStability(chart);
+
+            // update() replaces options, so the omitted subtitle must be gone.
+            expect(chart.getOptions().subtitle).toBeUndefined();
+        });
+
+        it('should retain a subtitle omitted from a partial updateDelta()', async () => {
+            const initial = withSubtitle();
+            prepareTestOptions(initial, container);
+            chart = AgCharts.create(initial);
+            await waitForChartStability(chart);
+
+            // updateDelta() merges, so omitting the subtitle leaves it in place.
+            await chart.updateDelta({ title: { text: 'Changed' } });
+            await waitForChartStability(chart);
+
+            expect(chart.getOptions().subtitle).toEqual({ text: 'Subtitle' });
+            expect(chart.getOptions().title).toEqual({ text: 'Changed' });
+        });
+    });
 });

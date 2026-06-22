@@ -134,6 +134,60 @@ describe('json module', () => {
                 expect(diff).toEqual(null);
             });
         });
+
+        describe('with a removal sentinel', () => {
+            const REMOVED = Symbol('REMOVED');
+
+            it('should mark a top-level key omitted from target as removed', () => {
+                const source = { title: { text: 'A' }, subtitle: { text: 'B' } };
+                const target = { title: { text: 'A' } };
+
+                const diff = jsonDiff<typeof source | typeof target>(source, target, undefined, REMOVED);
+                expect(diff).toStrictEqual({ subtitle: REMOVED });
+            });
+
+            it('should mark a nested key omitted from target as removed', () => {
+                const source = { title: { text: 'A', color: 'red' } };
+                const target = { title: { text: 'A' } };
+
+                const diff = jsonDiff(source, target, undefined, REMOVED);
+                expect(diff).toStrictEqual({ title: { color: REMOVED } });
+            });
+
+            it('should not mark removals when no sentinel is supplied', () => {
+                const source = { title: { text: 'A' }, subtitle: { text: 'B' } };
+                const target = { title: { text: 'A' } };
+
+                const diff = jsonDiff<typeof source | typeof target>(source, target);
+                expect(diff).toStrictEqual({ subtitle: undefined });
+            });
+
+            it('should return null when source and target are identical', () => {
+                const source = { title: { text: 'A' } };
+                const target = { title: { text: 'A' } };
+
+                const diff = jsonDiff(source, target, undefined, REMOVED);
+                expect(diff).toBeNull();
+            });
+
+            it('should not flag a key present in both but undefined in source', () => {
+                const source = { title: undefined };
+                const target = {};
+
+                const diff = jsonDiff<typeof source | typeof target>(source, target, undefined, REMOVED);
+                expect(diff).toBeNull();
+            });
+
+            it('should not emit a sentinel for a same-shape value change (fast-path safety)', () => {
+                // The sparkline fast path replaces same-shape `context`/`data` on every update; a
+                // value-only change must never produce a removal sentinel that forces the slow path.
+                const source = { context: { row: 0, cellData: 0.1 } };
+                const target = { context: { row: 1, cellData: 0.42 } };
+
+                const diff = jsonDiff(source, target, undefined, REMOVED);
+                expect(diff).toStrictEqual({ context: { row: 1, cellData: 0.42 } });
+            });
+        });
     });
 
     describe('#mergeDefaults', () => {
