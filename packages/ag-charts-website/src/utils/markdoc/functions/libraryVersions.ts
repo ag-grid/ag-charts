@@ -36,3 +36,11 @@ export const codespaceUrl: ConfigFunction = {
         return `https://codespaces.new/ag-grid/ag-charts?devcontainer_path=.devcontainer/ssr-example/devcontainer.json&ref=b${major}.${minor}.${patchNum}`;
     },
 };
+
+export const chartsDownloadUrl: ConfigFunction = {
+    transform(parameters) {
+        const packageName = parameters[0];
+        const { major, minor, patchNum } = parseVersion(agChartsVersion);
+        return `https://github.com/ag-grid/ag-charts/releases/download/r${major}.${minor}.${patchNum}/${packageName}.tgz`;
+    },
+};
