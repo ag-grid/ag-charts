@@ -624,10 +624,10 @@ describe('WaterfallSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
+                animate(1200, ratio);
                 await chart.updateDelta({
                     data: options.data!.map((d: any) => ({ ...d, spending: d.spending * 2 })),
                 });
-                animate(1200, ratio);
                 await waitForChartStability(chart);
                 await compare();
             });

@@ -198,6 +198,7 @@ describe('CandlestickSeries', () => {
                 const chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
+                animate(1200, ratio);
                 await chart.updateDelta({
                     data: options.data!.map((d: any) => ({
                         ...d,
@@ -207,7 +208,6 @@ describe('CandlestickSeries', () => {
                         high: d.high * 2,
                     })),
                 });
-                animate(1200, ratio);
                 await waitForChartStability(chart);
 
                 await compareSnapshot(chart);
