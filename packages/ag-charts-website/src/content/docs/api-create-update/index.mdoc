@@ -91,7 +91,7 @@ Although rendering may be complete, browsers may not repaint until Javascript ex
 `Promise`s do not take animations into account, they resolve after the first rendering in an animation sequence.
 {% /note %}
 
-This example demonstrates how these APIs be used to create to continuously update a chart, with each update only being
+This example demonstrates how these APIs can be used to continuously update a chart, with each update only being
 applied once the previous update has been rendered.
 
 {% chartExampleRunner title="Wait for Options Update" name="wait-for-update" type="generated" /%}
@@ -103,7 +103,7 @@ applied once the previous update has been rendered.
 {% if isFramework("javascript") %}
 Charts can be destroyed by using the `AgChartInstance.destroy()` method.
 
-{% apiReference id="_AgChartInstance" include=["destroy"] hideHeader=true hideRequired=true /%}
+{% apiReference id="_AgChartInstanceInterface" include=["destroy"] hideHeader=true hideRequired=true /%}
 {% /if %}
 
 {% if isNotJavascriptFramework() %}
