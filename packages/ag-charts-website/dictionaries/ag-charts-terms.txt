@@ -51,6 +51,7 @@ markdoc
 Plunkr
 
 # External tools
+Bryntum
 formatjs
 SonarQube
 
