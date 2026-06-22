@@ -60,6 +60,7 @@ const {
     BandScale,
     processedDataIsAnimatable,
     getItemStylesPerItemId,
+    motion,
 } = _ModuleSupport;
 
 interface OhlcCandleStickSeriesStyle extends AgCandlestickSeriesItemOptions, AgOhlcSeriesItemOptions {}
@@ -820,6 +821,29 @@ export abstract class OhlcSeriesBase<
     ) {
         // Use direct reset to bypass resetMotion callback overhead
         resetOhlcSelectionsDirect([data.datumSelection]);
+    }
+
+    protected override animateWaitingUpdateReady({
+        datumSelection,
+    }: _ModuleSupport.CartesianAnimationData<
+        OhlcNodeDatum,
+        TTypes['node'],
+        OhlcNodeDatum,
+        OhlcSeriesBaseNodeDataContext
+    >) {
+        // OHLC/candlestick nodes are not Scalable and have no per-element from/to machinery, so a
+        // data change fades the whole selection in (opacity 0->1) to give a visible transition.
+        const selection = datumSelection as _ModuleSupport.Selection<OhlcNodeDatum, OhlcBaseNode<OhlcNodeDatum>>;
+        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+        motion.staticFromToMotion(
+            this.id,
+            'datums',
+            this.ctx.animationManager,
+            [selection],
+            { opacity: 0 },
+            { opacity: 1 },
+            { phase: 'update' }
+        );
     }
 
     protected override updateDatumSelection(opts: {
