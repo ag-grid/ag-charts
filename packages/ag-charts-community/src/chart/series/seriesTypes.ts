@@ -127,6 +127,7 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     getDatumAriaText?(seriesDatum: TDatum, description: string): string | undefined;
     getCategoryValue(datumIndex: number): any;
     datumIndexForCategoryValue(categoryValue: any): DatumIndex | undefined;
+    focusDatumIndexForCategoryValue(categoryValue: any): DatumIndex | undefined;
     isHighlightEnabled(): boolean;
     isSelectionEnabled(): boolean;
     isDatumSelectable(datumIndex: DatumIndex): boolean;

@@ -256,4 +256,15 @@ export abstract class DataModelSeries<
             if (objectsEqual(categoryValue, xValue)) return datumIndex;
         }
     }
+
+    public override focusDatumIndexForCategoryValue(categoryValue: any): number | undefined {
+        const dataIndex = this.datumIndexForCategoryValue(categoryValue);
+        const nodeData = this.getNodeData();
+        if (dataIndex === undefined || nodeData === undefined) return;
+        for (let i = 0; i < nodeData.length; i += 1) {
+            if (nodeData[i].datumIndex === dataIndex && this.isDatumEnabled(nodeData, i)) {
+                return i;
+            }
+        }
+    }
 }

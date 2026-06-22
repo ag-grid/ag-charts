@@ -1669,6 +1669,12 @@ export abstract class Series<
 
     abstract datumIndexForCategoryValue(categoryValue: any): DatumIndex | undefined;
 
+    // Index into the focusable nodeData for a category value. Defaults to the data index, which
+    // matches series with one nodeData entry per x-position; series with denser nodeData override.
+    focusDatumIndexForCategoryValue(categoryValue: any): DatumIndex | undefined {
+        return this.datumIndexForCategoryValue(categoryValue);
+    }
+
     // @todo(AG-13777) - Remove this function (see CartesianSeries.ts)
     minTimeInterval(): number | undefined {
         return;

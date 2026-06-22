@@ -908,9 +908,28 @@ export class SeriesAreaManager extends BaseManager {
         const oldDatumIndex = focus.datumIndex - datumIndexDelta;
         const oldOtherIndex = focus.seriesIndex - otherIndexDelta;
 
+        const previousSeries = focus.series;
+        const previousDatum = focus.datum;
+
         // Update focused series:
         focus.seriesIndex = clamp(0, focus.seriesIndex, visibleSeries.length - 1);
         focus.series = visibleSeries[focus.seriesIndex];
+
+        // Moving between series preserves the x-position rather than the raw node index, since
+        // series can have differing node densities (e.g. range-area has two nodes per x-position).
+        if (
+            otherIndexDelta !== 0 &&
+            focus.series !== previousSeries &&
+            previousSeries != null &&
+            previousDatum != null
+        ) {
+            const categoryValue = previousSeries.getCategoryValue(previousDatum.datumIndex);
+            const remapped =
+                categoryValue == null ? undefined : focus.series.focusDatumIndexForCategoryValue(categoryValue);
+            if (remapped != null) {
+                focus.datumIndex = remapped;
+            }
+        }
 
         // Update focused datum:
         const datumIndex = this.focus.datumIndex;
