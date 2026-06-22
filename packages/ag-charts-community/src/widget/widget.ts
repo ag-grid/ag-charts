@@ -108,7 +108,7 @@ export abstract class Widget<
     remove(): void {
         this.elem.remove();
         this.elemContainer?.remove();
-        this.parent?.removeChild(this);
+        this.parent?.removeChildWidget(this);
     }
 
     setHidden(hidden: boolean): void {
@@ -222,7 +222,7 @@ export abstract class Widget<
         this.onChildAdded(child);
     }
 
-    removeChild(child: TChildWidget) {
+    removeChildWidget(child: TChildWidget) {
         const i = this.children.indexOf(child);
         this.children.splice(i, 1);
         this.removeChildFromDOM(child);
