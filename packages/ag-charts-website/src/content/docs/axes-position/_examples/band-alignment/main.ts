@@ -5,13 +5,14 @@ import {
     AgCharts,
     BarSeriesModule,
     CategoryAxisModule,
+    LegendModule,
     ModuleRegistry,
     NumberAxisModule,
 } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule, LegendModule]);
 
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
