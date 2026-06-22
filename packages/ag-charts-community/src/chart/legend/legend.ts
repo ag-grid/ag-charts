@@ -101,6 +101,10 @@ export class Legend {
 
     private readonly truncatedItems: Set<string | number> = new Set();
 
+    /** Incremented on every highlight update so a deferred (animation-batch) update can detect
+     * that a later update has superseded it and skip itself. */
+    private highlightUpdateToken = 0;
+
     private _data: CategoryLegendDatum[] = [];
     set data(value: CategoryLegendDatum[]) {
         if (objectsEqual(value, this._data)) return;
@@ -1138,6 +1142,9 @@ export class Legend {
         };
 
         const highlightNodeDatum = (opts: InternalUpdateOpts | undefined): void => {
+            // Any update supersedes earlier ones; a deferred update queued for batch-stop must
+            // not run if a later update (immediate or deferred) has since taken its place.
+            const token = ++this.highlightUpdateToken;
             if (this.ctx.interactionManager.isState(InteractionState.Default) || event?.initialState) {
                 updateManagers(opts);
             } else if (this.ctx.interactionManager.isState(InteractionState.Animation)) {
@@ -1149,7 +1156,9 @@ export class Legend {
                     updateManagers(opts);
                 } else {
                     this.ctx.animationManager.onBatchStop(() => {
-                        updateManagers(opts);
+                        if (token === this.highlightUpdateToken) {
+                            updateManagers(opts);
+                        }
                     });
                 }
             } else if (opts === undefined) {
