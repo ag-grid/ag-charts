@@ -25,6 +25,7 @@ import {
     doubleClickAction,
     doubleTapAction,
     extractImageData,
+    getLegendModule,
     getTooltipElement,
     hoverAction,
     isTooltipVisible,
@@ -850,6 +851,87 @@ describe('Legend', () => {
             });
             chart = deproxy(AgCharts.create(options));
             await compare(chart);
+        });
+    });
+
+    describe('CRT-1130', () => {
+        const animate = spyOnAnimationManager();
+
+        test('keyboard legend focus change interrupts in-progress highlight animation', async () => {
+            const options: AgChartOptions = prepareTestOptions({
+                data: [
+                    { year: '2016', gold: 26, silver: 18, bronze: 26 },
+                    { year: '2020', gold: 38, silver: 32, bronze: 19 },
+                    { year: '2024', gold: 40, silver: 27, bronze: 24 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'year', yKey: 'gold' },
+                    { type: 'bar', xKey: 'year', yKey: 'silver' },
+                    { type: 'bar', xKey: 'year', yKey: 'bronze' },
+                ],
+            });
+
+            animate(1200, 1);
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            const legend = getLegendModule(chart);
+            const items = legend.itemSelection.nodes();
+
+            // Simulate mid-animation state (spyOnAnimationManager completes animations
+            // instantly via forceTimeJump, so we push Animation state directly to test
+            // the legend's highlight interruption behaviour).
+            chart.ctx.interactionManager.pushState(InteractionState.Animation);
+
+            // Keyboard navigation: blur the current item then focus a different one.
+            legend.onLeave(true);
+            legend.onHover(new FocusEvent('focus'), items[1], true);
+
+            // Focus applies the new highlight immediately, before the animation completes.
+            expect(chart.ctx.highlightManager.getActiveHighlight()?.series.id).toBe(items[1].datum?.id);
+
+            chart.ctx.interactionManager.popState(InteractionState.Animation);
+            await waitForChartStability(chart);
+
+            // And the deferred clear from the blur does not clobber it once the batch stops.
+            expect(chart.ctx.highlightManager.getActiveHighlight()?.series.id).toBe(items[1].datum?.id);
+        });
+
+        test('keyboard focus is not clobbered by a deferred pointer-hover update on batch stop', async () => {
+            const options: AgChartOptions = prepareTestOptions({
+                data: [
+                    { year: '2016', gold: 26, silver: 18, bronze: 26 },
+                    { year: '2020', gold: 38, silver: 32, bronze: 19 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'year', yKey: 'gold' },
+                    { type: 'bar', xKey: 'year', yKey: 'silver' },
+                    { type: 'bar', xKey: 'year', yKey: 'bronze' },
+                ],
+            });
+
+            animate(1200, 1);
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            const legend = getLegendModule(chart);
+            const items = legend.itemSelection.nodes();
+
+            chart.ctx.interactionManager.pushState(InteractionState.Animation);
+
+            // Pointer hover queues a deferred highlight update for batch stop.
+            legend.onHover(new MouseEvent('mouseenter'), items[0]);
+            // Keyboard focus then applies a different highlight immediately, superseding the queued update.
+            legend.onLeave(true);
+            legend.onHover(new FocusEvent('focus'), items[1], true);
+
+            expect(chart.ctx.highlightManager.getActiveHighlight()?.series.id).toBe(items[1].datum?.id);
+
+            chart.ctx.interactionManager.popState(InteractionState.Animation);
+            await waitForChartStability(chart);
+
+            // The superseded pointer-hover update must not run on batch stop and overwrite the focus.
+            expect(chart.ctx.highlightManager.getActiveHighlight()?.series.id).toBe(items[1].datum?.id);
         });
     });
 
