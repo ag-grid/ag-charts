@@ -18,6 +18,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from './test/utils';
+import type { AgChartProxy } from './test/utils';
 
 describe('Caption', () => {
     setupMockConsole();
@@ -263,6 +264,41 @@ describe('Caption', () => {
                 expect(proxyBBox.y + proxyBBox.height).toBeLessThanOrEqual(chart.height!);
             }
         });
+    });
+
+    // Caption scene nodes are long-lived and reused across updates, so disabling a caption must
+    // actively reset `node.visible`; the enabled-only positioning path is skipped when disabled.
+    describe('CRT-1148 disabling a caption hides its node', () => {
+        const baseOptions = {
+            data: [
+                { x: 'A', y: 3 },
+                { x: 'B', y: 5 },
+            ],
+            series: [{ type: 'bar' as const, xKey: 'x', yKey: 'y' }],
+            legend: { enabled: false },
+        };
+
+        test.each(['title', 'subtitle', 'footnote'] as const)(
+            'disabling %s hides the node, re-enabling shows it again',
+            async (key) => {
+                const proxy = AgCharts.create(
+                    prepareTestOptions({ ...baseOptions, [key]: { text: 'Caption', enabled: true } })
+                ) as AgChartProxy;
+                const chartInstance = deproxy(proxy);
+                await waitForChartStability(chartInstance);
+                expect(chartInstance[key].node.visible).toBe(true);
+
+                await proxy.update(prepareTestOptions({ ...baseOptions, [key]: { text: 'Caption', enabled: false } }));
+                await waitForChartStability(chartInstance);
+                expect(chartInstance[key].node.visible).toBe(false);
+
+                await proxy.update(prepareTestOptions({ ...baseOptions, [key]: { text: 'Caption', enabled: true } }));
+                await waitForChartStability(chartInstance);
+                expect(chartInstance[key].node.visible).toBe(true);
+
+                proxy.destroy();
+            }
+        );
     });
 
     describe('image segments', () => {
