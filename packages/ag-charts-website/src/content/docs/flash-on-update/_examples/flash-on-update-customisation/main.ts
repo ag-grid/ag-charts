@@ -108,12 +108,15 @@ function toggleUpdates() {
 
 function setColor(value: string) {
     options.flashOnUpdate!.fill = value;
+    chart.update(options);
 }
 
 function setFlashDuration(value: string) {
     options.flashOnUpdate!.flashDuration = Number(value);
+    chart.update(options);
 }
 
 function setFadeDuration(value: string) {
     options.flashOnUpdate!.fadeOutDuration = Number(value);
+    chart.update(options);
 }
