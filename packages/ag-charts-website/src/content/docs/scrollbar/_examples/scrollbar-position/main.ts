@@ -2,6 +2,7 @@ import {
     AgCartesianChartOptions,
     AgCharts,
     AreaSeriesModule,
+    LegendModule,
     ModuleRegistry,
     NumberAxisModule,
     OrdinalTimeAxisModule,
@@ -17,6 +18,7 @@ ModuleRegistry.registerModules([
     OrdinalTimeAxisModule,
     ScrollbarModule,
     ZoomModule,
+    LegendModule,
 ]);
 
 const options: AgCartesianChartOptions = {
@@ -64,9 +66,6 @@ const options: AgCartesianChartOptions = {
             ratioX: { start: 0.1, end: 0.5 },
             ratioY: { start: 0.2, end: 0.75 },
         },
-    },
-    legend: {
-        enabled: false,
     },
 };
 
