@@ -50,6 +50,10 @@ describe('cspRules', () => {
             expect(getCspDirectives({ env: 'production', scope: 'site' })['connect-src']).toContain('data:');
         });
 
+        it('frame-src allows data: so Firefox does not block the chart PNG export download', () => {
+            expect(getCspDirectives({ env: 'production', scope: 'site' })['frame-src']).toContain('data:');
+        });
+
         it('style-src and font-src allow cdnjs for the font-icons docs example', () => {
             const site = getCspDirectives({ env: 'production', scope: 'site' });
             expect(site['style-src']).toContain('https://cdnjs.cloudflare.com');
