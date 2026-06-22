@@ -883,18 +883,17 @@ describe('Legend', () => {
             // the legend's highlight interruption behaviour).
             chart.ctx.interactionManager.pushState(InteractionState.Animation);
 
-            // Keyboard navigation: blur the current item then focus a different one. The focus must
-            // interrupt the animation and apply the new highlight immediately, rather than deferring it.
+            // Keyboard navigation: blur the current item then focus a different one.
             legend.onLeave(new FocusEvent('blur'));
             legend.onHover(new FocusEvent('focus'), items[1]);
 
-            // The highlight reflects the newly-focused item immediately, before the animation completes.
+            // Focus applies the new highlight immediately, before the animation completes.
             expect(chart.ctx.highlightManager.getActiveHighlight()?.series.id).toBe(items[1].datum?.id);
 
             chart.ctx.interactionManager.popState(InteractionState.Animation);
             await waitForChartStability(chart);
 
-            // And it is not clobbered by a deferred clear once the animation batch stops.
+            // And the deferred clear from the blur does not clobber it once the batch stops.
             expect(chart.ctx.highlightManager.getActiveHighlight()?.series.id).toBe(items[1].datum?.id);
         });
     });
