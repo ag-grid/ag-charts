@@ -157,6 +157,10 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
         ],
         'frame-src': [
             SELF,
+            // Chart PNG export clicks an <a download href="data:image/png;…">. Firefox routes that
+            // data: load through frame-src and blocks the download (Moz bug 1194734); Chromium honours
+            // the download attribute and never checks frame-src. img-src/media-src already allow data:.
+            'data:',
             'https://www.googletagmanager.com',
             'https://www.youtube.com',
             'https://www.google.com', // reCAPTCHA challenge iframe
