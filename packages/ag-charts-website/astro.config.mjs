@@ -3,6 +3,9 @@ import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig } from 'astro/config';
 import dotenvExpand from 'dotenv-expand';
+import { rm } from 'node:fs/promises';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import * as sass from 'sass';
 import { loadEnv } from 'vite';
 import mkcert from 'vite-plugin-mkcert';
@@ -164,17 +167,28 @@ export default defineConfig({
     integrations: [
         react(),
         markdoc(),
-        sitemap(getSitemapConfig()),
+        // Archive builds are fully noindex — omit sitemap generation and remove the /sitemap page.
+        ...(!PUBLIC_BASE_URL?.includes('archive')
+            ? [
+                  sitemap(getSitemapConfig()),
+                  agSitemapFilterNoindex({ enabled: PRODUCTION_SITE_URLS.includes(PUBLIC_SITE_URL) }),
+                  agSitemapLastmod(),
+                  agCacheSitemap({ cacheFolder: SITEMAP_CACHE_DIR }),
+              ]
+            : [
+                  {
+                      name: 'ag-archive-cleanup',
+                      hooks: {
+                          'astro:build:done': async ({ dir }) => {
+                              await rm(join(fileURLToPath(dir), 'sitemap'), { recursive: true, force: true });
+                          },
+                      },
+                  },
+              ]),
         agHtaccessGen({ htaccessEnv: HTACCESS }),
         agLinkChecker({ include: CHECK_LINKS === 'true', prefix: PUBLIC_BASE_URL }),
         agRedirectsChecker({
             skip: CHECK_REDIRECTS !== 'true',
-        }),
-
-        agSitemapFilterNoindex({ enabled: PRODUCTION_SITE_URLS.includes(PUBLIC_SITE_URL) }),
-        agSitemapLastmod(),
-        agCacheSitemap({
-            cacheFolder: SITEMAP_CACHE_DIR,
         }),
         agMkcertPreview({ enabled: httpsEnabled }),
     ],
