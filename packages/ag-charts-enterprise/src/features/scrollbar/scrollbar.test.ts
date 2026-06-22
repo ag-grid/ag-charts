@@ -185,6 +185,12 @@ const SCROLLBAR_SCENARIOS: ScrollbarScenario[] = [
         vertical: { yAxes: ['left'], scrollbarPosition: 'right' },
     },
     {
+        id: 'same-side-single-axis',
+        label: 'same side with single axis',
+        horizontal: { xAxes: ['bottom'], scrollbarPosition: 'bottom' },
+        vertical: { yAxes: ['left'], scrollbarPosition: 'left' },
+    },
+    {
         id: 'same-side-secondary-same-side',
         label: 'same side with secondary axis on same side',
         horizontal: { xAxes: ['bottom', 'bottom'], scrollbarPosition: 'bottom' },
@@ -322,6 +328,61 @@ describe('Scrollbar Placement with Multiple Axes', () => {
             }
         });
     }
+});
+
+// A scrollbar-only chart must count as having viewport support, otherwise chart.update()
+// resets the zoom to full extent and auto-hides the scrollbar (span === 1).
+describe('Scrollbar preserves zoom across chart.update', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let proxy: ReturnType<typeof AgCharts.create> | undefined;
+    afterEach(() => {
+        proxy?.destroy();
+        proxy = undefined;
+    });
+
+    function createOptions(verticalPosition: 'left' | 'right'): AgCartesianChartOptions {
+        return prepareEnterpriseTestOptions({
+            width: 400,
+            height: 300,
+            data: DATA,
+            series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: false } }],
+            axes: { x: { type: 'number' }, y: { type: 'number' } },
+            scrollbar: { enabled: true, vertical: { position: verticalPosition } },
+            initialState: { zoom: { ratioY: { start: 0.2, end: 0.75 } } },
+        });
+    }
+
+    function getZoomY() {
+        return (deproxy(proxy!) as any).ctx.chartState.getValue('zoom')?.y;
+    }
+
+    function getVerticalLayoutRect() {
+        return (deproxy(proxy!) as any).modulesManager.getModule('scrollbar').state.vertical.layoutRect;
+    }
+
+    it('keeps the vertical scrollbar when switching position from right to left', async () => {
+        proxy = AgCharts.create(createOptions('right'));
+        await waitForChartStability(proxy);
+        expect(getZoomY()).toEqual({ min: 0.2, max: 0.75 });
+        expect(getVerticalLayoutRect()).toBeDefined();
+
+        await proxy.update(createOptions('left'));
+        await waitForChartStability(proxy);
+        expect(getZoomY()).toEqual({ min: 0.2, max: 0.75 });
+        expect(getVerticalLayoutRect()).toBeDefined();
+    });
+
+    it('keeps the zoom on an unrelated update', async () => {
+        proxy = AgCharts.create(createOptions('right'));
+        await waitForChartStability(proxy);
+
+        await proxy.update({ ...createOptions('right'), title: { text: 'changed' } });
+        await waitForChartStability(proxy);
+        expect(getZoomY()).toEqual({ min: 0.2, max: 0.75 });
+        expect(getVerticalLayoutRect()).toBeDefined();
+    });
 });
 
 const BAR_DATA = [
