@@ -930,7 +930,10 @@ describe('OptionsGraph', () => {
                     },
                 };
                 const userOptions = prepareOptions({ padding: { left: 20 } });
-                const overrides = { line: { padding: { right: 15, bottom: 15 } } };
+                // Override supplied via the `common` namespace while the default comes from the
+                // series-type (`line`) namespace, exercising the common-namespace fallback in
+                // dangerouslyGetThemeOverride alongside the per-side merge.
+                const overrides = { common: { padding: { right: 15, bottom: 15 } } };
                 const options = new OptionsGraph(themeConfig, userOptions, undefined, {}, {}, overrides).resolve();
                 // Per-side precedence user > override > default: left from user, right/bottom from
                 // override, top falls through to the default. A partial user object must not discard
