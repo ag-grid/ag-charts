@@ -884,8 +884,8 @@ describe('Legend', () => {
             chart.ctx.interactionManager.pushState(InteractionState.Animation);
 
             // Keyboard navigation: blur the current item then focus a different one.
-            legend.onLeave(new FocusEvent('blur'));
-            legend.onHover(new FocusEvent('focus'), items[1]);
+            legend.onLeave(true);
+            legend.onHover(new FocusEvent('focus'), items[1], true);
 
             // Focus applies the new highlight immediately, before the animation completes.
             expect(chart.ctx.highlightManager.getActiveHighlight()?.series.id).toBe(items[1].datum?.id);
@@ -922,8 +922,8 @@ describe('Legend', () => {
             // Pointer hover queues a deferred highlight update for batch stop.
             legend.onHover(new MouseEvent('mouseenter'), items[0]);
             // Keyboard focus then applies a different highlight immediately, superseding the queued update.
-            legend.onLeave(new FocusEvent('blur'));
-            legend.onHover(new FocusEvent('focus'), items[1]);
+            legend.onLeave(true);
+            legend.onHover(new FocusEvent('focus'), items[1], true);
 
             expect(chart.ctx.highlightManager.getActiveHighlight()?.series.id).toBe(items[1].datum?.id);
 
