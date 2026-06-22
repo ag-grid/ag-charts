@@ -1128,8 +1128,8 @@ export class Annotations extends AbstractModuleInstance {
 
         const translation = { x: 0, y: 0 };
 
-        const xStep = Math.max(context?.xAxis.scale.bandwidth ?? 0, ctrlShift ? 10 : 1);
-        const yStep = Math.max(context?.yAxis.scale.bandwidth ?? 0, ctrlShift ? 10 : 1);
+        const xStep = ctrlShift ? 10 : 1;
+        const yStep = ctrlShift ? 10 : 1;
         switch (sourceEvent.key) {
             case 'ArrowDown':
                 translation.y = yStep;
