@@ -228,7 +228,7 @@ export class SeriesAreaManager extends BaseManager {
         this.swapChain.addListener('focus', () => this.onFocus());
         if (chart.ctx.domManager.mode === 'normal') {
             this.focusIndicator = new FocusIndicator(this.swapChain);
-            this.focusIndicator.overrideFocusVisible(
+            this.focusIndicator.setDesiredFocusVisible(
                 chart.ctx.chartState.getValue('options', 'mode') === 'integrated' ? false : undefined // AG-13197
             );
         }
@@ -520,13 +520,13 @@ export class SeriesAreaManager extends BaseManager {
 
     private onWheel(_event: WheelWidgetEvent): void {
         if (!this.isState(InteractionState.Hoverable)) return;
-        this.focusIndicator?.overrideFocusVisible(false);
+        this.focusIndicator?.setDesiredFocusVisible(false);
         this.setHoverDevice('pointer');
     }
 
     private onDragMove(event: DragWidgetEvent<'drag-move'>, current: Widget): void {
         if (!this.isState(InteractionState.Hoverable)) return;
-        this.focusIndicator?.overrideFocusVisible(false);
+        this.focusIndicator?.setDesiredFocusVisible(false);
         this.onHoverLikeEvent(event, current);
     }
 
@@ -604,7 +604,7 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        this.focusIndicator?.overrideFocusVisible(false);
+        this.focusIndicator?.setDesiredFocusVisible(false);
 
         this.onHoverLikeEvent(event, current);
 
@@ -694,7 +694,7 @@ export class SeriesAreaManager extends BaseManager {
 
         const action = mapKeyboardEventToAction(widgetEvent.sourceEvent);
         if (action?.activatesFocusIndicator === false) {
-            this.focusIndicator?.overrideFocusVisible(this.getHoverDevice() === 'keyboard');
+            this.focusIndicator?.setDesiredFocusVisible(this.getHoverDevice() === 'keyboard');
         }
 
         switch (action?.name) {
@@ -741,7 +741,7 @@ export class SeriesAreaManager extends BaseManager {
     private onNav(event: KeyboardWidgetEvent<'keydown'>): boolean {
         if (!this.isState(InteractionState.Focusable)) return false;
         this.setHoverDevice('keyboard');
-        this.focusIndicator?.overrideFocusVisible(true);
+        this.focusIndicator?.setDesiredFocusVisible(true);
         event.sourceEvent.preventDefault();
         return true;
     }

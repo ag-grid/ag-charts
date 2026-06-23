@@ -3,6 +3,7 @@ import { createElement, createSvgElement, setElementBBox } from 'ag-charts-core'
 import { BBox } from '../scene/bbox';
 import { Path } from '../scene/shape/path';
 import { Transformable } from '../scene/transformable';
+import type { FocusOptionsExperimental } from './focusOptions';
 import type { FocusSwapChain } from './focusSwapChain';
 
 export class FocusIndicator {
@@ -67,7 +68,6 @@ export class FocusIndicator {
         if (newParent === this.element.parentElement) return;
         this.element.remove();
         newParent.appendChild(this.element);
-        this.overrideFocusVisible(this.focusVisible);
     }
 
     private show(child: Element) {
@@ -75,49 +75,49 @@ export class FocusIndicator {
         this.element.append(child);
     }
 
-    // Use with caution! The focus must be visible when using the keyboard.
+    // The desired `:focus-visible` state, which the browser applies via `focus({ focusVisible })`.
+    // `undefined` means "waiting for the first focus-frame": defer to the browser's own decision.
     private focusVisible?: boolean;
-    // Cached `:focus-visible` CSS state. getComputedStyle() is very expensive. So this should only be check for the
-    // :focus-visible pseudo-class when we receive a 'focus' .
-    private focusVisibleStyle: boolean = false;
     private hasFocus: boolean = false;
 
-    public focus(opts: { preventScroll?: boolean; focusVisible?: boolean }) {
+    public focus(opts: FocusOptionsExperimental) {
+        if (this.hasFocus) return;
         this.focusVisible = opts.focusVisible;
-        if (!this.hasFocus) {
-            if (opts.focusVisible !== undefined) {
-                // Override is set, so we don't need to read `:focus-visible`, skip onFocus() handling:
-                this.hasFocus = true;
-            }
-            this.swapChain.focus(opts);
+        if (opts.focusVisible !== undefined) {
+            // Visibility is explicit, so onFocus() doesn't need to read the browser's `:focus-visible`.
+            this.hasFocus = true;
+        }
+        this.swapChain.focus(opts);
+    }
+
+    setDesiredFocusVisible(focusVisible: boolean | undefined) {
+        this.focusVisible = focusVisible;
+        if (this.hasFocus && focusVisible !== undefined) {
+            // Re-focus the already-focused announcer to update `:focus-visible` without re-announcing.
+            this.swapChain.focus({ focusVisible });
         }
     }
 
-    overrideFocusVisible(focusVisible: boolean | undefined) {
-        this.focusVisible = focusVisible;
-        const opacity = { true: '1', false: '0', undefined: '' } as const;
-        const parent = this.element.parentElement;
-        parent?.style.setProperty('opacity', opacity[`${focusVisible}`]);
-    }
-
     public isFocusVisible(): boolean {
-        return this.focusVisible ?? this.focusVisibleStyle;
+        return this.focusVisible ?? false;
     }
 
     public onFocus(): boolean {
-        if (this.hasFocus) return this.isFocusVisible();
-        this.overrideFocusVisible(undefined);
-        const parent = this.element.parentElement;
-        const elWin = this.element.ownerDocument.defaultView!;
-        // !!!SLOW!!! Only call this when you receive a 'focus' event.
-        this.focusVisibleStyle = parent != null && elWin.getComputedStyle(parent).opacity === '1';
+        if (this.hasFocus) return this.focusVisible ?? false;
         this.hasFocus = true;
-        return this.focusVisibleStyle;
+        if (this.focusVisible === undefined) {
+            const parent = this.element.parentElement;
+            const elWin = this.element.ownerDocument.defaultView!;
+            // !!!SLOW!!! Read the browser's `:focus-visible` decision once, on the first focus-frame.
+            this.focusVisible = parent != null && elWin.getComputedStyle(parent).opacity === '1';
+        }
+        // Re-assert the visibility so subsequent announcer swaps keep the indicator stable.
+        this.swapChain.focus({ focusVisible: this.focusVisible });
+        return this.focusVisible;
     }
 
     public onBlur(): void {
-        this.overrideFocusVisible(undefined);
-        this.focusVisibleStyle = false;
+        this.focusVisible = undefined;
         this.hasFocus = false;
     }
 }

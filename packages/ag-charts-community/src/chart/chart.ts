@@ -636,7 +636,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     overrideFocusVisible(visible: boolean | undefined): void {
-        this.seriesAreaManager.focusIndicator?.overrideFocusVisible(visible);
+        this.seriesAreaManager.focusIndicator?.setDesiredFocusVisible(visible);
     }
 
     // Use a wrapper to comply with the @typescript-eslint/unbound-method rule.

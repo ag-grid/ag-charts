@@ -8,6 +8,8 @@ import {
     setElementStyle,
 } from 'ag-charts-core';
 
+import type { FocusOptionsExperimental } from './focusOptions';
+
 type SwapChainEventMap = { focus: FocusEvent; blur: FocusEvent; swap: HTMLElement };
 
 /**
@@ -19,7 +21,7 @@ export class FocusSwapChain {
     private inactiveAnnouncer: HTMLElement & { tabIndex: 0 | -1 };
     private activeAnnouncer: HTMLElement & { tabIndex: 0 | -1 };
 
-    private focusOptions?: FocusOptions;
+    private focusOptions?: FocusOptionsExperimental;
     private hasFocus = false;
     private skipDispatch = false;
 
@@ -76,16 +78,17 @@ export class FocusSwapChain {
         }
     }
 
-    focus(opts?: FocusOptions) {
+    focus(opts?: FocusOptionsExperimental) {
+        // Persist the options so that announcer swaps re-focus with the same `focusVisible` state.
         this.focusOptions = opts;
         this.activeAnnouncer.focus(opts);
-        this.focusOptions = undefined;
     }
 
     update(newLabel: string) {
         this.skipDispatch = true;
         this.swap(newLabel);
         if (this.hasFocus) {
+            // Re-focus to re-announce, forwarding the persisted `focusVisible` so the indicator is stable.
             this.activeAnnouncer.focus(this.focusOptions);
         }
         this.skipDispatch = false;
@@ -101,7 +104,10 @@ export class FocusSwapChain {
 
     private dispatch<T extends keyof SwapChainEventMap>(type: T, param: SwapChainEventMap[T]) {
         if (type === 'focus') this.hasFocus = true;
-        else if (type === 'blur') this.hasFocus = false;
+        else if (type === 'blur') {
+            this.hasFocus = false;
+            this.focusOptions = undefined;
+        }
         for (const fn of this.listeners[type]) {
             fn(param);
         }
