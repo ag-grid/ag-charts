@@ -2,6 +2,7 @@
 import type { FAQSection, LandingPageContent } from '../types';
 import { LandingPageSection } from '../LandingPageSection';
 import { LandingPageFAQ } from '../LandingPageFAQ';
+import { renderFAQAnswers } from '../renderFAQAnswers';
 
 interface Props {
     section: FAQSection;
@@ -10,10 +11,9 @@ interface Props {
 
 const { section, pageContent } = Astro.props;
 
-// Transform items to the format expected by LandingPageFAQ
-const faqData = section.items;
+const faqData = renderFAQAnswers(section.items, pageContent.framework || 'react');
 ---
 
 <LandingPageSection id="faq" tag={section.tag} heading={section.heading} subHeading={section.subHeading}>
-    <LandingPageFAQ client:load FAQData={faqData} framework={pageContent.framework || 'react'} />
+    <LandingPageFAQ client:load FAQData={faqData} />
 </LandingPageSection>

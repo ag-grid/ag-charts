@@ -9,6 +9,7 @@ import { urlWithPrefix } from '@utils/urlWithPrefix';
 import { AutomatedIntegratedChartsWithPackages } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWithPackages';
 import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
 import { LandingPageFAQ } from '@ag-website-shared/components/landing-pages/LandingPageFAQ';
+import { renderFAQAnswers } from '@ag-website-shared/components/landing-pages/renderFAQAnswers';
 import { LandingPageFWSelector } from '@ag-website-shared/components/landing-pages/LandingPageFWSelector';
 import ImageCarousel from '../components/homepage/components/hero/ImageCarousel';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
@@ -22,6 +23,7 @@ const { blogPrefix } = whatsNewData['charts'];
 
 // All Gallery Examples
 const { data: FAQData } = (await getEntry('faqs', 'homepage')) as CollectionEntry<'faqs'>;
+const renderedFAQData = renderFAQAnswers(FAQData, 'react');
 const { data: versionsData } = (await getEntry('versions', 'ag-charts-versions')) as CollectionEntry<'versions'>;
 
 const frameworksData = [
@@ -231,7 +233,7 @@ const mapExampleHeights = 360;
             heading="FAQs"
             subHeading="Answers to common questions about AG Charts, and JavaScript Charting in general."
         >
-            <LandingPageFAQ client:load FAQData={FAQData} framework={'react'} />
+            <LandingPageFAQ client:load FAQData={renderedFAQData} />
         </LandingPageSection>
     </div>
 </Layout>
