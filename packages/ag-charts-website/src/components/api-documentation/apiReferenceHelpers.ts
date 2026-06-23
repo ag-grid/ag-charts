@@ -184,7 +184,8 @@ export function formatTypeToCode(
     member: MemberNode,
     reference: ApiReferenceType,
     seen: Set<string>,
-    nodeName?: string
+    nodeName?: string,
+    expandReferences = true
 ): string {
     if (apiNode.kind === 'interface' || apiNode.kind === 'typeAlias') {
         seen.add(apiNode.name);
@@ -195,7 +196,7 @@ export function formatTypeToCode(
     }
 
     if (apiNode.kind === 'typeAlias') {
-        return formatTypeAliasCode(apiNode, member, reference, seen, nodeName);
+        return formatTypeAliasCode(apiNode, member, reference, seen, nodeName, expandReferences);
     }
 
     if (apiNode.kind === 'member') {
@@ -449,14 +450,15 @@ function formatTypeAliasCode(
     member: MemberNode,
     reference: ApiReferenceType,
     seen: Set<string>,
-    nodeName?: string
+    nodeName?: string,
+    expandReferences = true
 ) {
     if (isFunctionNode(apiNode.type)) {
         return formatFunctionCode(nodeName ?? apiNode.name, apiNode.type, member, reference);
     }
 
     if (isUnionNode(apiNode.type)) {
-        return formatUnionTypeAlias(apiNode, apiNode.type, member, reference, seen);
+        return formatUnionTypeAlias(apiNode, apiNode.type, member, reference, seen, expandReferences);
     }
 
     return `type ${apiNode.name} = ${normalizeType(apiNode.type)};`;
@@ -467,7 +469,8 @@ function formatUnionTypeAlias(
     unionType: MultiTypeNode & { kind: 'union' },
     member: MemberNode,
     reference: ApiReferenceType,
-    seen: Set<string>
+    seen: Set<string>,
+    expandReferences = true
 ) {
     let nodeType = normalizeType({
         kind: 'union',
@@ -478,6 +481,13 @@ function formatUnionTypeAlias(
     nodeType = '\n    ' + addNewLineOnPipe(nodeType);
 
     const result = [`type ${apiNode.name} = ${nodeType};`];
+
+    // Special-type code blocks (series, axes, annotations) show the alias only; each variant has
+    // its own navigable page, so inlining the sub-interfaces here is redundant noise.
+    if (!expandReferences) {
+        return result[0];
+    }
+
     const additionalTypes = new Set(unionType.type.map((type) => normalizeType(type)));
 
     for (const type of additionalTypes) {

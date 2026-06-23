@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { extractSearchData, formatUnionSignature, getAliasedUnionVariants } from './apiReferenceHelpers';
+import {
+    extractSearchData,
+    formatTypeToCode,
+    formatUnionSignature,
+    getAliasedUnionVariants,
+} from './apiReferenceHelpers';
 
 // Regression for the themes-api page failing to load with "RangeError: Maximum call stack size
 // exceeded". The crash was not infinite recursion — `extractSearchData` builds a finite but very
@@ -77,6 +82,58 @@ describe('formatUnionSignature', () => {
     it('returns undefined for a pure interface-only union', () => {
         const node = reference.get('PureUnion');
         expect(formatUnionSignature(node.type, 'PureUnion', reference as any)).toBeUndefined();
+    });
+});
+
+describe('formatTypeToCode', () => {
+    const union = (...types: any[]) => ({ kind: 'union' as const, type: types });
+    const alias = (name: string, type: any) => ({ kind: 'typeAlias' as const, name, type });
+    const iface = (name: string, memberName: string) => ({
+        kind: 'interface' as const,
+        name,
+        members: [{ kind: 'member', name: memberName, type: 'string', optional: false }],
+    });
+
+    // Mirrors `AgChartSeriesOptions = AgAreaSeriesOptions | AgBarSeriesOptions`, where each variant is
+    // an interface with its own navigable page.
+    const reference = new Map<string, any>(
+        Object.entries({
+            AgChartSeriesOptions: alias('AgChartSeriesOptions', union('AgAreaSeriesOptions', 'AgBarSeriesOptions')),
+            AgAreaSeriesOptions: iface('AgAreaSeriesOptions', 'fillOpacity'),
+            AgBarSeriesOptions: iface('AgBarSeriesOptions', 'cornerRadius'),
+        })
+    );
+    const member = { kind: 'member', name: 'series', type: 'AgChartSeriesOptions', optional: false } as any;
+
+    it('renders only the union alias when references are not expanded', () => {
+        const code = formatTypeToCode(
+            reference.get('AgChartSeriesOptions'),
+            member,
+            reference as any,
+            new Set(),
+            'series',
+            false
+        );
+
+        expect(code).toContain('type AgChartSeriesOptions =');
+        expect(code).toContain('AgAreaSeriesOptions');
+        expect(code).toContain('AgBarSeriesOptions');
+        expect(code).not.toContain('interface AgAreaSeriesOptions');
+        expect(code).not.toContain('interface AgBarSeriesOptions');
+    });
+
+    it('inlines the variant interfaces by default', () => {
+        const code = formatTypeToCode(
+            reference.get('AgChartSeriesOptions'),
+            member,
+            reference as any,
+            new Set(),
+            'series'
+        );
+
+        expect(code).toContain('type AgChartSeriesOptions =');
+        expect(code).toContain('interface AgAreaSeriesOptions');
+        expect(code).toContain('interface AgBarSeriesOptions');
     });
 });
 

@@ -93,8 +93,8 @@ test.describe('api-ref-page', () => {
         await gotoUrl(page, toPageUrl('options/series/bar/#reference-AgBarSeriesOptions-fill'));
         await expect(getNavigationProperty(page, /^fill/)).toBeVisible();
 
-        // TC1: the "See available types" action expands the union into discrete variant rows.
-        await page.getByRole('button', { name: 'See available types of fill', exact: true }).click();
+        // TC1: the "See available interfaces" action expands the union into discrete variant rows.
+        await page.getByRole('button', { name: 'See available interfaces of fill', exact: true }).click();
 
         // TC2: each named interface member of the union renders as its own variant row.
         const gradientVariant = page.locator('#reference-AgBarSeriesOptions-fill-gradient');
@@ -272,7 +272,7 @@ test.describe('api-ref-page', () => {
         await gotoUrl(page, toPageUrl('options/'));
         await waitForApiReady(page);
 
-        await page.getByRole('button', { name: 'See available types of padding', exact: true }).click();
+        await page.getByRole('button', { name: 'See available interfaces of padding', exact: true }).click();
         const paddingOptions = page.locator('#reference-AgChartOptions-padding-PaddingOptions');
         await expect(paddingOptions).toBeVisible();
 
@@ -281,7 +281,7 @@ test.describe('api-ref-page', () => {
     });
 
     // A mixed union keeps its non-interface members (here the primitive `PixelSize`) in a signature
-    // code block reached through "See more details", distinct from the "See available types" variant
+    // code block reached through "See more details", distinct from the "See available interfaces" variant
     // rows. This guards the regression where expanding the union dropped the primitive members.
     test('preserves the primitive members of a mixed union in its signature block', async ({ page }) => {
         await gotoUrl(page, toPageUrl('options/'));
@@ -291,6 +291,20 @@ test.describe('api-ref-page', () => {
         const details = page.locator('#reference-AgChartOptions-padding-details');
         await expect(details).toBeVisible();
         await expect(details.locator('pre')).not.toHaveCount(0);
+    });
+
+    // `theme` has its own dedicated page (themes-api), so it renders as a plain, non-expandable row:
+    // no "See available interfaces" action and no expander chevron on its name.
+    test('renders theme as a plain non-expandable row', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/'));
+        await waitForApiReady(page);
+
+        const themeRow = page.locator('#reference-AgChartOptions-theme');
+        await expect(themeRow).toBeVisible();
+        await expect(page.getByRole('button', { name: 'See available interfaces of theme', exact: true })).toHaveCount(
+            0
+        );
+        await expect(themeRow.locator('[class*="propNameExpander"]')).toHaveCount(0);
     });
 
     // The nav's primitive-union entry deep-links to the signature block via the `-details` hash; the
