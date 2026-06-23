@@ -63,7 +63,6 @@ const hiddenInterfaces = new Set([
     'DurationMs',
     'AgTimeInterval',
     'DatumKey',
-    'AgThemeColorParam',
 ]);
 
 const isTypeNodeObject = (type: TypeNode): type is Exclude<TypeNode, string> => typeof type === 'object';
