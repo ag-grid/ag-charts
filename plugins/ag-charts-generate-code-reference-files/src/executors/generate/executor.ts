@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 import { inputGlob, writeJSONFile } from 'ag-shared/plugin-utils';
-import { readFileSync } from 'fs';
 import * as ts from 'typescript';
 
 import { patchDocInterfaces } from '../../doc-interfaces/patch-doc-interfaces';
@@ -29,7 +28,7 @@ export default async function (options: ExecutorOptions) {
 }
 
 async function generateFile(options: ExecutorOptions) {
-    const inputFiles = readInputFiles(options.inputs);
+    const inputFiles = options.inputs.flatMap(inputGlob);
     const typeMapper = new TypeMapper(inputFiles);
 
     switch (options.mode) {
@@ -44,8 +43,4 @@ async function generateFile(options: ExecutorOptions) {
         default:
             throw new Error(`Unsupported mode "${options.mode}"`);
     }
-}
-
-function readInputFiles(inputs: string[]): string[] {
-    return inputs.flatMap(inputGlob).map((filePath: string) => readFileSync(filePath, 'utf8'));
 }

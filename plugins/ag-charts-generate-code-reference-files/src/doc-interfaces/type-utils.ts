@@ -6,7 +6,7 @@ const tsPrinter = ts.createPrinter({
     omitTrailingSemicolon: true,
 });
 
-export function formatNode<T extends ts.Node>(node: T | undefined): any {
+export function formatNode<T extends ts.Node>(node: T | undefined, checker?: ts.TypeChecker): any {
     if (node == null) {
         throw Error('Node is undefined or null');
     }
@@ -14,21 +14,21 @@ export function formatNode<T extends ts.Node>(node: T | undefined): any {
     if (ts.isUnionTypeNode(node)) {
         return {
             kind: 'union',
-            type: node.types.map(formatNode),
+            type: node.types.map((n) => formatNode(n)),
         };
     }
 
     if (ts.isIntersectionTypeNode(node)) {
         return {
             kind: 'intersection',
-            type: node.types.map(formatNode),
+            type: node.types.map((n) => formatNode(n)),
         };
     }
 
     if (ts.isTupleTypeNode(node)) {
         return {
             kind: 'tuple',
-            type: node.elements.map(formatNode),
+            type: node.elements.map((n) => formatNode(n)),
         };
     }
 
@@ -44,8 +44,8 @@ export function formatNode<T extends ts.Node>(node: T | undefined): any {
     if (ts.isFunctionTypeNode(node) || ts.isMethodSignature(node)) {
         return {
             kind: 'function',
-            params: node.parameters?.map(formatNode),
-            typeParams: node.typeParameters?.map(formatNode),
+            params: node.parameters?.map((n) => formatNode(n)),
+            typeParams: node.typeParameters?.map((n) => formatNode(n)),
             returnType: formatNode(node.type),
         };
     }
@@ -68,8 +68,8 @@ export function formatNode<T extends ts.Node>(node: T | undefined): any {
         return {
             kind: 'typeAlias',
             name: printNode(node.name),
-            type: formatNode(node.type),
-            typeParams: node.typeParameters?.map(formatNode),
+            type: expandComputedType(node, checker) ?? formatNode(node.type),
+            typeParams: node.typeParameters?.map((n) => formatNode(n)),
             docs: getJsDoc(node),
         };
     }
@@ -99,7 +99,7 @@ export function formatNode<T extends ts.Node>(node: T | undefined): any {
                 type: formatNode(n),
                 optional: Boolean(n.questionToken),
             })),
-            typeParams: node.typeParameters?.map(formatNode),
+            typeParams: node.typeParameters?.map((n) => formatNode(n)),
             docs: getJsDoc(node),
         };
     }
@@ -135,7 +135,7 @@ export function formatNode<T extends ts.Node>(node: T | undefined): any {
             ? {
                   kind: 'typeRef',
                   type: nodeType,
-                  typeArguments: node.typeArguments.map(formatNode),
+                  typeArguments: node.typeArguments.map((n) => formatNode(n)),
               }
             : nodeType;
     }
@@ -178,6 +178,51 @@ export function formatNode<T extends ts.Node>(node: T | undefined): any {
             // return { _unknown: ts.SyntaxKind[node.kind], _output: printNode(node) };
             throw Error(`Unknown node kind "${ts.SyntaxKind[node.kind]}"\n${printNode(node)}`);
     }
+}
+
+// Mapped/conditional/indexed aliases can't be resolved syntactically. When one reduces to a
+// literal union (e.g. `ColorKeys<Required<AgChartThemeParams>>` → `'accentColor' | ...`), use the
+// checker to emit those concrete values; otherwise return undefined to fall back to raw text.
+function expandComputedType(node: ts.TypeAliasDeclaration, checker?: ts.TypeChecker): any {
+    if (!checker || !isComputedTypeNode(node.type, checker)) {
+        return undefined;
+    }
+
+    const symbol = checker.getSymbolAtLocation(node.name);
+    const aliasType = symbol && checker.getDeclaredTypeOfSymbol(symbol);
+    if (!aliasType) {
+        return undefined;
+    }
+
+    const constituents = aliasType.isUnion() ? aliasType.types : [aliasType];
+    if (!constituents.every((type) => type.isStringLiteral() || type.isNumberLiteral())) {
+        return undefined;
+    }
+
+    const literals = constituents.map((type) =>
+        type.isStringLiteral() ? `'${type.value}'` : String((type as ts.NumberLiteralType).value)
+    );
+    return aliasType.isUnion() ? { kind: 'union', type: literals } : literals[0];
+}
+
+function isComputedTypeNode(typeNode: ts.TypeNode, checker: ts.TypeChecker): boolean {
+    if (ts.isMappedTypeNode(typeNode) || ts.isConditionalTypeNode(typeNode) || ts.isIndexedAccessTypeNode(typeNode)) {
+        return true;
+    }
+    // A reference to an alias that is itself computed (e.g. `ColorKeys<...>`).
+    if (ts.isTypeReferenceNode(typeNode)) {
+        const symbol = checker.getSymbolAtLocation(typeNode.typeName);
+        return Boolean(
+            symbol?.declarations?.some(
+                (decl) =>
+                    ts.isTypeAliasDeclaration(decl) &&
+                    (ts.isMappedTypeNode(decl.type) ||
+                        ts.isConditionalTypeNode(decl.type) ||
+                        ts.isIndexedAccessTypeNode(decl.type))
+            )
+        );
+    }
+    return false;
 }
 
 export function getJsDoc(node: ts.Node & { jsDoc?: { getFullText(): string }[] }) {
@@ -230,7 +275,7 @@ function extractInterfaceHeritage(node: ts.InterfaceDeclaration) {
                 ? {
                       kind: 'typeRef',
                       type: formatNode(expression),
-                      typeArguments: typeArguments.map(formatNode),
+                      typeArguments: typeArguments.map((n) => formatNode(n)),
                   }
                 : formatNode(expression)
         )
