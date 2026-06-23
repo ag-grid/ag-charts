@@ -145,6 +145,9 @@
 
     &.expandedUnionTypes > .expandedContent {
         margin-left: $spacing-size-6;
+        // Account for the left margin so the code block stays within the row's bounds.
+        flex-basis: calc(100% - #{$spacing-size-6});
+        min-width: calc(100% - #{$spacing-size-6});
     }
 
     &.expandedChildProps::after,
@@ -179,7 +182,11 @@
         margin-top: $spacing-size-3;
         width: 100%;
 
-        .expandedChildProps & {
+        // When the row stacks, the right column drops onto its own line beneath the side-line that
+        // marks the expansion. Indent it past the line so the description and toggle button clear it,
+        // matching the type meta above. Both expanded variants draw the line, so both need the indent.
+        .expandedChildProps &,
+        .expandedUnionTypes & {
             padding-left: $spacing-size-6;
         }
     }
@@ -287,6 +294,10 @@
     }
 }
 
+.metaValue.isClickable {
+    cursor: pointer;
+}
+
 .defaultValue {
     font-size: var(--text-fs-sm);
     padding: 2px 8px;
@@ -340,6 +351,7 @@ a.metaValue {
 
 .childButton {
     font-weight: var(--text-semibold);
+    cursor: pointer;
 
     svg {
         transition: transform 0.33s ease-in-out;
@@ -362,6 +374,7 @@ a.metaValue {
 
 .unionTypesButton {
     font-weight: var(--text-semibold);
+    cursor: pointer;
 
     svg {
         transition: transform 0.33s ease-in-out;
@@ -378,6 +391,7 @@ a.metaValue {
 
 button.seeMore {
     color: var(--color-link);
+    cursor: pointer;
     justify-content: center;
     align-items: center;
     display: flex;

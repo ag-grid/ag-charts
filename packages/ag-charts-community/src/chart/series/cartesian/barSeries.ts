@@ -1454,11 +1454,12 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         let stylerResult: NormalisedBarSeriesStyle = {};
         if (!ignoreStylerCallback && styler) {
             const stylerParams = this.makeStylerParams(highlightState, selectionState, candidateState);
-            stylerResult = (this.ctx.optionsGraphService.resolvePartial(
-                ['series', `${this.declarationOrder}`],
-                this.cachedCallWithContext(styler, stylerParams) ?? {},
-                { pick: false }
-            ) ?? {}) as NormalisedBarSeriesStyle;
+            stylerResult =
+                this.ctx.optionsGraphService.resolvePartial(
+                    ['series', `${this.declarationOrder}`],
+                    this.cachedCallWithContext(styler, stylerParams) ?? {},
+                    { pick: false }
+                ) ?? {};
         }
         return {
             cornerRadius: stylerResult.cornerRadius ?? cornerRadius,

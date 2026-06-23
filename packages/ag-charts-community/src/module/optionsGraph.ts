@@ -4,6 +4,7 @@ import {
     Logger,
     ModuleRegistry,
     type PlainObject,
+    type Resolved,
     type Vertex,
     isObject,
     isObjectLike,
@@ -49,7 +50,7 @@ export interface OptionsGraphAccessor {
         partialOptions?: T,
         resolveOptions?: OptionsGraphAccessorResolvePartialOptions,
         csssVariables?: Record<string, string>
-    ): Partial<T> | undefined;
+    ): Resolved<Partial<T>> | undefined;
     clearSafe(): void;
 }
 
@@ -97,6 +98,12 @@ export function createOptionsGraph(
     });
 }
 
+// Opaque user pass-through payloads: stored shallow in the options graph and skipped by the
+// removal-sentinel scan in `optionsModule`. Never descended into, so user-supplied cycles in these
+// values (e.g. `context` set to a grid component or a self-referential object) cannot drive an
+// options walk into a stack overflow.
+export const SHALLOW_OPTION_KEYS = new Set<string>(['context', 'data', 'topology']);
+
 /**
  * The OptionsGraph combines the theme config, params, palette, overrides and user options into a graph which can then
  * be resolved down into an object.
@@ -106,9 +113,6 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     private static readonly EDGE_PRIORITY = [USER_OPTIONS_EDGE, OVERRIDES_EDGE, DEFAULTS_EDGE];
 
     private static readonly GRAFT_EDGE = DEFAULTS_EDGE;
-
-    // These keys must be stored as shallow objects in the graph and not manipulated.
-    private static readonly SHALLOW_KEYS = new Set(['context', 'data', 'topology']);
 
     // These keys must be excluded when building the graph, they are instead resolved separately since they are objects
     // that must be applied to arrays.
@@ -178,6 +182,9 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
     private resolveFresh = false;
 
+    // The primary series type, used to resolve series-namespaced theme overrides and defaults.
+    private readonly seriesType: string;
+
     constructor(
         private readonly config: PlainObject = {},
         private readonly userOptions: PlainObject = {},
@@ -202,6 +209,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
         // Extract the primary series type, bypassing the graph so we have it ready immediately.
         const seriesType = userOptions.series?.[0]?.type ?? 'line';
+        this.seriesType = seriesType;
 
         // Build the initial user options, defaults, common and series overrides graphs on the root.
         debug('build user');
@@ -378,7 +386,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             proxyPaths?: Record<string, Array<string>>;
         },
         cssVariables?: Record<string, string>
-    ): Partial<T> | undefined {
+    ): Resolved<Partial<T>> | undefined {
         if (!partialOptions) return;
 
         // If the graph has been cleared, do not attempt to resolve. This will occur when no `styler` options are provided.
@@ -393,7 +401,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             console.groupCollapsed(`OptionsGraph.resolvePartial() - ${path.join('.')} [${partialKeys}]`);
         }
 
-        if (partialKeys.length === 0) return {};
+        if (partialKeys.length === 0) return {} as Resolved<Partial<T>>;
 
         if (cssVariables) {
             this.cssVariables = { ...this.cssVariables, ...cssVariables };
@@ -483,7 +491,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             console.groupEnd();
         }
 
-        return partial;
+        return partial as Resolved<Partial<T>>;
     }
 
     findVertexAtPath(path: Array<string>) {
@@ -526,6 +534,36 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         }
 
         return getPathSafe(this.userOptions, path);
+    }
+
+    /**
+     * Get the value from the theme overrides at the given path, mirroring {@link dangerouslyGetUserOption} but reading
+     * from `this.overrides`. Resolves the same namespaces the constructor unwraps onto the graph: a series-type key
+     * (e.g. `overrides.line`) takes priority over `overrides.common`, which takes priority over a directly-namespaced
+     * override. Dangerous in the same sense — it does not resolve through the graph, so operations can read their own
+     * override value without triggering an infinite resolution loop.
+     */
+    dangerouslyGetThemeOverride(path: Array<string>) {
+        if (this.overrides == null) return undefined;
+
+        if (path[0] === 'axes' && path.length > 1) {
+            const axisType = this.getResolvedPath(['axes', path[1], 'type']) as string;
+            return (
+                getPathSafe(this.overrides, [this.seriesType, 'axes', axisType, ...path.slice(2)]) ??
+                getPathSafe(this.overrides, ['common', 'axes', axisType, ...path.slice(2)])
+            );
+        }
+
+        if (path[0] === 'series' && path.length > 1) {
+            const seriesType = this.getResolvedPath(['series', path[1], 'type']) as string;
+            return getPathSafe(this.overrides, [seriesType, 'series', ...path.slice(2)]);
+        }
+
+        return (
+            getPathSafe(this.overrides, [this.seriesType, ...path]) ??
+            getPathSafe(this.overrides, ['common', ...path]) ??
+            getPathSafe(this.overrides, path)
+        );
     }
 
     hasThemeOverride(path: Array<string>) {
@@ -763,7 +801,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         edgeValue: string,
         object: PlainObject,
         pathArrayVertex?: Vertex<unknown>,
-        shallowPaths: Set<string> = OptionsGraph.SHALLOW_KEYS,
+        shallowPaths: Set<string> = SHALLOW_OPTION_KEYS,
         ignorePaths?: Set<string>
     ) {
         const keys = Object.keys(object);
@@ -1099,15 +1137,22 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
         let edgePriority = this.edgePriority;
 
-        // If this path leaf matches the expected "transform user" operation, change the edge priority to resolve only
-        // the default operation.
+        // If this path leaf matches the expected "transform user" operation, change the edge priority to resolve
+        // through that operation so it can transform the user option and theme override into the final value.
         if (pathLeaf in OptionsGraph.TRANSFORM_USER_KEY_OPERATION_PAIRS) {
             const expectedOperation = OptionsGraph.TRANSFORM_USER_KEY_OPERATION_PAIRS[pathLeaf];
-            const operation =
-                getOperation(this.findNeighbourValue(vertex, OVERRIDES_EDGE)) ??
-                getOperation(this.findNeighbourValue(vertex, DEFAULTS_EDGE));
-            if (operation?.operation.valueOf() === expectedOperation) {
+            const overrideIsOperation =
+                getOperation(this.findNeighbourValue(vertex, OVERRIDES_EDGE))?.operation.valueOf() ===
+                expectedOperation;
+            const defaultIsOperation =
+                getOperation(this.findNeighbourValue(vertex, DEFAULTS_EDGE))?.operation.valueOf() === expectedOperation;
+            if (overrideIsOperation) {
+                // The override supplies its own operation template; resolve it (falling back to the default operation).
                 edgePriority = [OVERRIDES_EDGE, DEFAULTS_EDGE];
+            } else if (defaultIsOperation) {
+                // Only the default supplies the operation. Resolve through it alone so the operation merges any plain
+                // override and user value, rather than letting a plain override short-circuit and skip the transform.
+                edgePriority = [DEFAULTS_EDGE];
             }
         }
 

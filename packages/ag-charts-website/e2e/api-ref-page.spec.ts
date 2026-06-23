@@ -93,8 +93,8 @@ test.describe('api-ref-page', () => {
         await gotoUrl(page, toPageUrl('options/series/bar/#reference-AgBarSeriesOptions-fill'));
         await expect(getNavigationProperty(page, /^fill/)).toBeVisible();
 
-        // TC1: the "See available types" action expands the union into discrete variant rows.
-        await page.getByRole('button', { name: 'See available types of fill', exact: true }).click();
+        // TC1: the "See available interfaces" action expands the union into discrete variant rows.
+        await page.getByRole('button', { name: 'See available interfaces of fill', exact: true }).click();
 
         // TC2: each named interface member of the union renders as its own variant row.
         const gradientVariant = page.locator('#reference-AgBarSeriesOptions-fill-gradient');
@@ -272,7 +272,7 @@ test.describe('api-ref-page', () => {
         await gotoUrl(page, toPageUrl('options/'));
         await waitForApiReady(page);
 
-        await page.getByRole('button', { name: 'See available types of padding', exact: true }).click();
+        await page.getByRole('button', { name: 'See available interfaces of padding', exact: true }).click();
         const paddingOptions = page.locator('#reference-AgChartOptions-padding-PaddingOptions');
         await expect(paddingOptions).toBeVisible();
 
@@ -281,7 +281,7 @@ test.describe('api-ref-page', () => {
     });
 
     // A mixed union keeps its non-interface members (here the primitive `PixelSize`) in a signature
-    // code block reached through "See more details", distinct from the "See available types" variant
+    // code block reached through "See more details", distinct from the "See available interfaces" variant
     // rows. This guards the regression where expanding the union dropped the primitive members.
     test('preserves the primitive members of a mixed union in its signature block', async ({ page }) => {
         await gotoUrl(page, toPageUrl('options/'));
@@ -291,6 +291,78 @@ test.describe('api-ref-page', () => {
         const details = page.locator('#reference-AgChartOptions-padding-details');
         await expect(details).toBeVisible();
         await expect(details.locator('pre')).not.toHaveCount(0);
+    });
+
+    // `theme` has its own dedicated page (themes-api), so it renders as a plain, non-expandable row:
+    // no "See available interfaces" action and no expander chevron on its name.
+    test('renders theme as a plain non-expandable row', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/'));
+        await waitForApiReady(page);
+
+        const themeRow = page.locator('#reference-AgChartOptions-theme');
+        await expect(themeRow).toBeVisible();
+        await expect(page.getByRole('button', { name: 'See available interfaces of theme', exact: true })).toHaveCount(
+            0
+        );
+        await expect(themeRow.locator('[class*="propNameExpander"]')).toHaveCount(0);
+    });
+
+    // A special type (`series` -> AgChartSeriesOptions) has its own navigable per-type pages, so its
+    // "See more details" code block lists the union alias only: the variant `Ag…SeriesOptions` names
+    // appear, but their interface bodies are not inlined (which would be redundant noise here).
+    test('special-type code block lists the union alias without inlining sub-interfaces', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/'));
+        await waitForApiReady(page);
+
+        await page.getByRole('button', { name: 'See more details about series', exact: true }).click();
+
+        const details = page.locator('#reference-AgChartOptions-series-details pre');
+        await expect(details).toContainText('type AgChartSeriesOptions =');
+        await expect(details).toContainText('AgBarSeriesOptions');
+        await expect(details).not.toContainText('interface AgBarSeriesOptions');
+    });
+
+    // The type text toggles the inline code block, but only for members that have one. A `code` member
+    // (`series`) is clickable and toggles its details; a plain primitive (`width`) has no code block,
+    // so its type text is inert and keeps the default cursor.
+    test('type text toggles the code block only for members that have one', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/'));
+        await waitForApiReady(page);
+
+        const seriesType = page.locator('#reference-AgChartOptions-series [class*="metaValue"]').first();
+        await expect(seriesType).toHaveClass(/isClickable/);
+
+        const details = page.locator('#reference-AgChartOptions-series-details');
+        await expect(details).toHaveCount(0);
+        await seriesType.click();
+        await expect(details).toBeVisible();
+        await seriesType.click();
+        await expect(details).toHaveCount(0);
+
+        const widthType = page.locator('#reference-AgChartOptions-width [class*="metaValue"]').first();
+        await expect(widthType).not.toHaveClass(/isClickable/);
+    });
+
+    // Below the table breakpoint the row stacks and the right column drops onto its own line beneath
+    // the vertical side-line that marks an expanded union (drawn at left: 8px). The right column must
+    // be indented past that line so its description and toggle button don't collide with it.
+    test('indents the stacked right column clear of the expansion side-line', async ({ page }) => {
+        await page.setViewportSize({ width: 900, height: 900 });
+        await gotoUrl(page, toPageUrl('options/'));
+        await waitForApiReady(page);
+
+        await page.getByRole('button', { name: 'See available interfaces of padding', exact: true }).click();
+
+        const row = page.locator('#reference-AgChartOptions-padding');
+        await expect(row).toHaveCSS('display', 'block');
+
+        const offsets = await row.locator('[class*="rightColumn"]').evaluate((rightColumn) => {
+            const propertyRow = rightColumn.closest('.property-row')!;
+            const style = getComputedStyle(rightColumn);
+            const contentLeft = rightColumn.getBoundingClientRect().left + parseFloat(style.paddingLeft);
+            return { contentLeft, rowLeft: propertyRow.getBoundingClientRect().left };
+        });
+        expect(offsets.contentLeft - offsets.rowLeft).toBeGreaterThanOrEqual(16);
     });
 
     // The nav's primitive-union entry deep-links to the signature block via the `-details` hash; the

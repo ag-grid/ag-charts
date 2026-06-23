@@ -100,7 +100,7 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
         return this.path.closedPath && this.path.isPointInPath(x, y);
     }
 
-    distanceSquared(x: number, y: number): number {
+    override distanceSquared(x: number, y: number): number {
         return this.distanceSquaredTransformedPoint(x, y);
     }
 

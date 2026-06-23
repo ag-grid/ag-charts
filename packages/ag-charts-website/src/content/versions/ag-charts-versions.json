@@ -20,6 +20,7 @@
                 "path": "./data-configuration/#data-types"
             }
         ],
+        "landingPageHighlight": "Async data loading for paginated APIs, CSS variables support, and more...",
         "notesPath": "./upgrade-to-ag-charts-14"
     },
     {

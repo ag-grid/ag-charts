@@ -21,6 +21,7 @@ import {
     isValidElement,
     useContext,
     useEffect,
+    useMemo,
 } from 'react';
 import Markdown from 'react-markdown';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
@@ -85,6 +86,7 @@ export interface ApiReferenceConfig {
     hideRequired?: boolean;
     specialTypes?: SpecialTypesMap;
     keepExpanded?: string[];
+    noExpand?: string[];
 }
 
 interface ApiReferenceOptions {
@@ -113,11 +115,14 @@ export function ApiReferenceWithContext({
     exclude,
     hideHeader,
     hideRequired,
+    noExpand,
     ...props
 }: ApiReferenceOptions & ApiReferenceConfig) {
     return (
         <QueryClientProvider client={queryClient}>
-            <ApiReferenceConfigContext.Provider value={{ prioritise, include, exclude, hideHeader, hideRequired }}>
+            <ApiReferenceConfigContext.Provider
+                value={{ prioritise, include, exclude, hideHeader, hideRequired, noExpand }}
+            >
                 <ApiReferenceWithReferenceContext {...props} />
             </ApiReferenceConfigContext.Provider>
         </QueryClientProvider>
@@ -164,10 +169,10 @@ function UnionTypesButton({ name, isExpanded, onClick }: { name: string; isExpan
                 [styles.isExpanded]: isExpanded,
             })}
             onClick={onClick}
-            aria-label={`See available types of ${name}`}
+            aria-label={`See available interfaces of ${name}`}
         >
             <Icon svgClasses={styles.childChevron} name="chevronRight" />
-            <span>{isExpanded ? 'Hide' : 'See'} available types</span>
+            <span>{isExpanded ? 'Hide' : 'See'} available interfaces</span>
         </button>
     );
 }
@@ -273,6 +278,13 @@ export function ApiReference({
     const interfaceRef = reference?.get(id);
     const location = useLocation();
 
+    // include / exclude / prioritise scope the top-level interface only; nested interfaces
+    // and union variants must render their full member set.
+    const nestedConfig = useMemo(
+        () => ({ ...config, include: undefined, exclude: undefined, prioritise: undefined }),
+        [config]
+    );
+
     useEffect(() => {
         const hash = location?.hash.substring(1);
         if (typeof anchorId === 'string' && hash === anchorId) {
@@ -300,14 +312,16 @@ export function ApiReference({
                 ))}
 
             <div className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
-                {processMembers(interfaceRef, config).map((member) => (
-                    <NodeFactory
-                        key={member.name}
-                        member={member}
-                        anchorId={`reference-${id}-${member.name}`}
-                        genericsMap={interfaceRef.genericsMap}
-                    />
-                ))}
+                <ApiReferenceConfigContext.Provider value={nestedConfig}>
+                    {processMembers(interfaceRef, config).map((member) => (
+                        <NodeFactory
+                            key={member.name}
+                            member={member}
+                            anchorId={`reference-${id}-${member.name}`}
+                            genericsMap={interfaceRef.genericsMap}
+                        />
+                    ))}
+                </ApiReferenceConfigContext.Provider>
             </div>
         </div>
     );
@@ -404,6 +418,7 @@ function ApiReferenceRow({
     const hasChildProps = collapsibleType === 'childrenProperties';
     const isUnionTypes = collapsibleType === 'unionTypes';
     const signature = isUnionTypesDetails(additionalDetails) ? additionalDetails.signature : undefined;
+    const isSpecialType = Boolean(config.specialTypes?.[getMemberType(member)]);
 
     return (
         <div
@@ -490,7 +505,11 @@ function ApiReferenceRow({
 
             {collapsibleType === 'code' && isExpanded && (
                 <div id={getDetailsId(anchorId)} className={classnames(styles.expandedContent)}>
-                    <TypeCodeBlock apiNode={additionalDetails as NodeTypes | NodeTypes[]} member={member} />
+                    <TypeCodeBlock
+                        apiNode={additionalDetails as NodeTypes | NodeTypes[]}
+                        member={member}
+                        expandReferences={!isSpecialType}
+                    />
                 </div>
             )}
 
@@ -503,7 +522,15 @@ function ApiReferenceRow({
     );
 }
 
-export function TypeCodeBlock({ apiNode, member }: { apiNode: NodeTypes | NodeTypes[]; member: MemberNode }) {
+export function TypeCodeBlock({
+    apiNode,
+    member,
+    expandReferences = true,
+}: {
+    apiNode: NodeTypes | NodeTypes[];
+    member: MemberNode;
+    expandReferences?: boolean;
+}) {
     const reference = useContext(ApiReferenceContext);
 
     if (!reference) {
@@ -512,8 +539,10 @@ export function TypeCodeBlock({ apiNode, member }: { apiNode: NodeTypes | NodeTy
 
     const seen = new Set<string>();
     const codeSample = Array.isArray(apiNode)
-        ? apiNode.map((arrayApiNode) => formatTypeToCode(arrayApiNode, member, reference, seen, member.name))
-        : formatTypeToCode(apiNode, member, reference, seen, member.name);
+        ? apiNode.map((arrayApiNode) =>
+              formatTypeToCode(arrayApiNode, member, reference, seen, member.name, expandReferences)
+          )
+        : formatTypeToCode(apiNode, member, reference, seen, member.name, expandReferences);
 
     if (!codeSample?.length) {
         // eslint-disable-next-line no-console
@@ -545,6 +574,11 @@ function useMemberAdditionalDetails(member: MemberNode): MemberAdditionalDetails
     const reference = useContext(ApiReferenceContext);
     const config = useContext(ApiReferenceConfigContext);
     const memberType = getMemberType(member);
+
+    // A member with its own dedicated page (e.g. `theme`) renders as a plain, non-expandable row.
+    if (config.noExpand?.includes(cleanupName(member.name))) {
+        return undefined;
+    }
 
     if (memberType === 'function') {
         return member;

@@ -475,6 +475,52 @@ describe('ChartTheme', () => {
         });
     });
 
+    describe('legend padding overrides (CRT-1145, CRT-1146)', () => {
+        const baseOptions = (legend: AgCartesianChartOptions['legend']): AgCartesianChartOptions => ({
+            data,
+            series: [
+                { type: 'bar', xKey: 'label', yKey: 'v1' },
+                { type: 'bar', xKey: 'label', yKey: 'v2' },
+            ],
+            legend,
+        });
+
+        const resolvedLegend = async (options: AgCartesianChartOptions) => {
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            return (chart as any).ctx.chartState.getValue('options', 'legend');
+        };
+
+        // Padding supplied via theme.overrides must resolve identically to the same padding supplied as direct chart
+        // options — previously the $applyPadding operation ignored theme overrides, dropping default sides / failing to
+        // expand a number, which broke legend layout.
+        test('CRT-1145: legend.item.padding partial-side override matches direct options', async () => {
+            const padding = { left: 15, right: 15 };
+
+            const direct = await resolvedLegend(baseOptions({ item: { padding } }));
+            chart.destroy();
+            const override = await resolvedLegend({
+                ...baseOptions({}),
+                theme: { overrides: { common: { legend: { item: { padding } } } } },
+            });
+
+            expect(override.item.padding).toEqual(direct.item.padding);
+            expect(override.item.padding).toEqual({ top: 4, right: 15, bottom: 4, left: 15 });
+        });
+
+        test('CRT-1146: legend.item.marker.padding number override matches direct options', async () => {
+            const direct = await resolvedLegend(baseOptions({ position: 'top', item: { marker: { padding: 8 } } }));
+            chart.destroy();
+            const override = await resolvedLegend({
+                ...baseOptions({}),
+                theme: { overrides: { common: { legend: { position: 'top', item: { marker: { padding: 8 } } } } } },
+            });
+
+            expect(override.item.marker.padding).toEqual(direct.item.marker.padding);
+            expect(override.item.marker.padding).toEqual({ top: 8, right: 8, bottom: 8, left: 8 });
+        });
+    });
+
     describe('Position specific axis styling', () => {
         const theme: AgChartTheme = {
             baseTheme: 'ag-default',

@@ -15,6 +15,7 @@ import {
     MIN_UNHIGHLIGHT_DELAY,
     type MockBoxPlotStyler,
     NEG_BIG,
+    deproxy,
     expectPixelIdenticalAcrossMagnitude,
     expectWarningsCalls,
     extractImageData,
@@ -1171,6 +1172,75 @@ describe('BoxPlotSeries', () => {
                     axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
                 })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
+
+    // CRT-1144: In a box-plot + scatter combo, hiding the box-plot via the legend must remove its
+    // shapes. The scatter keeps the y-domain populated, so a hidden box-plot's stale nodes would
+    // otherwise re-project through a changed scale and render as stretched boxes.
+    describe('hide on legend toggle (CRT-1144)', () => {
+        const animate = spyOnAnimationManager();
+
+        const comboOptions = (): AgChartOptions => ({
+            data: [
+                { role: 'A', salary: 5.3, min: 3.07, q1: 4.78, median: 5.3, q3: 6.3, max: 7.27 },
+                { role: 'B', salary: 6.13, min: 4.87, q1: 5.8, median: 6.13, q3: 6.66, max: 7.09 },
+                { role: 'C', salary: 4.64, min: 4.4, q1: 4.41, median: 4.64, q3: 4.96, max: 5.2 },
+            ],
+            series: [
+                {
+                    type: 'box-plot',
+                    xKey: 'role',
+                    minKey: 'min',
+                    q1Key: 'q1',
+                    medianKey: 'median',
+                    q3Key: 'q3',
+                    maxKey: 'max',
+                },
+                {
+                    type: 'scatter',
+                    xKey: 'role',
+                    yKey: 'salary',
+                },
+            ],
+        });
+
+        it('removes box-plot shapes when the box-plot series is hidden', async () => {
+            animate(1200, 1);
+
+            const options = comboOptions();
+            prepareEnterpriseTestOptions(options as any);
+
+            const chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Hide the box-plot series (simulates a legend click), then settle the hide animation.
+            animate(1200, 1);
+            (options.series![0] as any).visible = false;
+            await chart.update(options);
+
+            await compareSnapshot(chart);
+        });
+
+        it('clears box-plot nodeData when the box-plot series is hidden', async () => {
+            animate(1200, 1);
+
+            const options = comboOptions();
+            prepareEnterpriseTestOptions(options as any);
+
+            const chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            animate(1200, 1);
+            (options.series![0] as any).visible = false;
+            await chart.update(options);
+            await waitForChartStability(chart);
+
+            const boxPlotSeries = deproxy(chart).series[0] as any;
+            expect(boxPlotSeries.visible).toBe(false);
+            expect(boxPlotSeries.contextNodeData?.nodeData ?? []).toHaveLength(0);
+
+            chart.destroy();
         });
     });
 

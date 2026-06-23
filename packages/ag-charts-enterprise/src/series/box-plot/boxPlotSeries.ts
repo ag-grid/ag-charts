@@ -245,7 +245,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const { dataModel, processedData, contextNodeData } = this;
         if (!dataModel || !processedData) return undefined;
 
-        const canIncrementallyUpdate = contextNodeData?.nodeData != null && processedData.changeDescription != null;
+        // Never reuse the previous node array while hidden — pair with the populateNodeData() guard
+        // below so a hidden box-plot resolves to empty node data (CRT-1144).
+        const canIncrementallyUpdate =
+            this.visible && contextNodeData?.nodeData != null && processedData.changeDescription != null;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
@@ -426,6 +429,13 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
      * Populate node data by iterating over raw data.
      */
     protected override populateNodeData(ctx: BoxPlotSeriesNodeDatumContext): void {
+        // A hidden box-plot must leave no shapes behind. Box-plot belongs to the bar grouping, so the
+        // base createNodeData() still calls populateNodeData() while hidden (the ungrouped early-return
+        // does not apply). Unlike bar it has no datum hide animation (no animationResetFns), so any nodes
+        // produced here would re-project the stale box geometry through the current y-scale and render
+        // stretched (CRT-1144). Produce no nodes when hidden so the series renders nothing.
+        if (!this.visible) return;
+
         // Scratch objects for reuse across iterations
         const scaledValuesScratch: ScaledBoxPlotValues = {
             xValue: 0,
@@ -803,12 +813,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         if (!ignoreStylerCallback && styler) {
             const stylerParams = this.makeStylerParams(highlightState, selectionState, candidateState);
             stylerResult =
-                // resolvePartial resolves colour refs, so the result is a normalised style.
-                (this.ctx.optionsGraphService.resolvePartial(
+                this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
                     this.cachedCallWithContext(styler, stylerParams) ?? {},
                     { pick: false }
-                ) as NormalisedBoxPlotSeriesStyle) ?? {};
+                ) ?? {};
         }
         return {
             cornerRadius: stylerResult.cornerRadius ?? cornerRadius,

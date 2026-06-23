@@ -28,8 +28,8 @@ type CategoryLegendDatumReader = { getItemLabel(datum: CategoryLegendDatum): Nor
 interface ButtonListener {
     onClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget): void;
     onDoubleClick(event: Event, datum: CategoryLegendDatum): void;
-    onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel): void;
-    onLeave(): void;
+    onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel, fromKeyboardFocus?: boolean): void;
+    onLeave(fromKeyboardFocus?: boolean): void;
     onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel): void;
 }
 
@@ -114,10 +114,13 @@ export class LegendDOMProxy {
             button.addListener('mouseenter', (ev) => itemListener.onHover(ev.sourceEvent, markerLabel));
             button.addListener('mouseleave', () => itemListener.onLeave());
             button.addListener('contextmenu', (ev) => itemListener.onContextClick(ev, markerLabel));
-            button.addListener('blur', () => itemListener.onLeave());
+            // Keyboard focus/blur must take effect immediately, interrupting any in-progress animation,
+            // so they pass fromKeyboardFocus=true. A focus that is not keyboard-driven (no :focus-visible)
+            // is treated as a leave and keeps the default deferred behaviour.
+            button.addListener('blur', () => itemListener.onLeave(true));
             button.addListener('focus', (ev) =>
                 this.shouldApplyHoverOnFocus(button)
-                    ? itemListener.onHover(ev.sourceEvent, markerLabel)
+                    ? itemListener.onHover(ev.sourceEvent, markerLabel, true)
                     : itemListener.onLeave()
             );
             // Enable touch long-tap context menus:

@@ -1854,7 +1854,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                 ['series', `${this.declarationOrder}`],
                 cbResult,
                 { pick: false }
-            ) as NormalisedAreaSeriesStylerResult;
+            );
             stylerResult = resolved ?? {};
         }
         stylerResult.marker ??= {};

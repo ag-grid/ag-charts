@@ -50,7 +50,8 @@ to load a full-range overview, independent of the main chart's windowed fetches.
 ### Triggering a Reload
 
 Calling `updateDelta({})` with an empty object triggers `getData` to be called again, which is useful for refreshing
-data on demand.
+data on demand. The **Reload Data** button in the example above does exactly this; the loading overlay is shown while
+the request is in progress, and the chart updates with the freshly fetched data once it resolves.
 
 ```js
 chart.updateDelta({});

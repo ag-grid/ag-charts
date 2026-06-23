@@ -101,6 +101,10 @@ export class Legend {
 
     private readonly truncatedItems: Set<string | number> = new Set();
 
+    /** Incremented on every highlight update so a deferred (animation-batch) update can detect
+     * that a later update has superseded it and skip itself. */
+    private highlightUpdateToken = 0;
+
     private _data: CategoryLegendDatum[] = [];
     set data(value: CategoryLegendDatum[]) {
         if (objectsEqual(value, this._data)) return;
@@ -1076,7 +1080,7 @@ export class Legend {
         return [{ type: 'structured', title: this.getItemLabel(datum) }];
     }
 
-    onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel) {
+    onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel, fromKeyboardFocus = false) {
         if (this.checkInteractionState()) return;
         if (!this.opts.enabled) throw new Error('AG Charts - onHover handler called on disabled legend');
 
@@ -1093,25 +1097,26 @@ export class Legend {
             this.ctx.tooltipManager.removeTooltip(this.id, undefined, true);
         }
 
-        this.updateHighlight(datum?.enabled, datum, series);
+        this.updateHighlight(datum?.enabled, datum, series, undefined, fromKeyboardFocus);
         this.ctx.eventsHub.emit('legend:item-hover', null);
     }
 
-    onLeave() {
+    onLeave(fromKeyboardFocus = false) {
         if (this.checkInteractionState()) return;
         this.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
-        this.clearHighlight();
+        this.clearHighlight(fromKeyboardFocus);
     }
 
-    private clearHighlight(): void {
-        this.updateHighlight(undefined, undefined, undefined);
+    private clearHighlight(fromKeyboardFocus = false): void {
+        this.updateHighlight(undefined, undefined, undefined, undefined, fromKeyboardFocus);
     }
 
     private updateHighlight(
         enabled: boolean | undefined,
         legendDatum: CategoryLegendDatum | undefined,
         series: SeriesType | undefined,
-        event?: ActiveLoadMementoEvent
+        event?: ActiveLoadMementoEvent,
+        fromKeyboardFocus = false
     ): void {
         if (this.checkInteractionState()) return;
         type InternalUpdateOpts = {
@@ -1137,14 +1142,25 @@ export class Legend {
         };
 
         const highlightNodeDatum = (opts: InternalUpdateOpts | undefined): void => {
+            // Any update supersedes earlier ones; a deferred update queued for batch-stop must
+            // not run if a later update (immediate or deferred) has since taken its place.
+            const token = ++this.highlightUpdateToken;
             if (this.ctx.interactionManager.isState(InteractionState.Default) || event?.initialState) {
                 updateManagers(opts);
             } else if (this.ctx.interactionManager.isState(InteractionState.Animation)) {
-                // Updating the highlight can interrupt animations, so defer both setting and
-                // clearing highlights until the current animation batch completes.
-                this.ctx.animationManager.onBatchStop(() => {
+                // A keyboard focus change is a deliberate navigation that must take effect immediately,
+                // interrupting any in-progress animation. Pointer hover, by contrast, defers both setting
+                // and clearing highlights until the current animation batch completes so that a passing
+                // hover does not interrupt a show/hide animation.
+                if (fromKeyboardFocus) {
                     updateManagers(opts);
-                });
+                } else {
+                    this.ctx.animationManager.onBatchStop(() => {
+                        if (token === this.highlightUpdateToken) {
+                            updateManagers(opts);
+                        }
+                    });
+                }
             } else if (opts === undefined) {
                 updateManagers(opts);
             }

@@ -192,7 +192,8 @@ function NavProperty({
             ? getAliasedUnionVariants(interfaceRef, reference)
             : undefined;
     const isTypedUnion = Boolean(unionVariants);
-    const expandable = isInterface || isInterfaceArray || isInterfaceRecord || isTypedUnion;
+    const noExpand = config.noExpand?.includes(cleanupName(member.name));
+    const expandable = !noExpand && (isInterface || isInterfaceArray || isInterfaceRecord || isTypedUnion);
     const isObjectArray =
         !isInterfaceArray &&
         !isInterfaceRecord &&

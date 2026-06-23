@@ -1491,10 +1491,7 @@ export abstract class Series<
                 candidateState: candidateStateString,
                 datum,
             });
-            const resolved = this.ctx.optionsGraphService.resolvePartial(
-                getResolvePath(),
-                style
-            ) as NormalisedSeriesMarkerStyle;
+            const resolved = this.ctx.optionsGraphService.resolvePartial(getResolvePath(), style);
 
             markerStyle = mergeMarkerStylesPair(resolved, markerStyle);
         }

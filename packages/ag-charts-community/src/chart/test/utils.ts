@@ -888,6 +888,16 @@ export function computeLegendBBox(chart: Chart): BBox {
     return new BBox(x, y, width, height);
 }
 
+export interface LegendTestInternals {
+    itemSelection: { nodes(): { datum?: { id: string; itemId?: string | number } }[] };
+    onHover(event: FocusEvent | MouseEvent, node: unknown, fromKeyboardFocus?: boolean): void;
+    onLeave(fromKeyboardFocus?: boolean): void;
+}
+
+export function getLegendModule(chart: Chart): LegendTestInternals {
+    return chart.modulesManager.getModule('legend') as LegendTestInternals;
+}
+
 export function getCursor(chart: Chart | AgChartProxy): string {
     const ctx = deproxy(chart).getModuleContext();
     return ctx.domManager.getCursor();

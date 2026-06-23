@@ -34,7 +34,7 @@ import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
 import { getGaugeTooltipInfo } from '../gauge-util/gaugeTooltip';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
-import { lineMarker } from '../gauge-util/lineMarker';
+import { LineMarker, lineMarker } from '../gauge-util/lineMarker';
 import { findGaugeNodeDatum, pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
 import { RadialGaugeNeedle } from './radialGaugeNeedle';
 import {
@@ -68,7 +68,6 @@ const {
     Transformable,
     TransformableText,
     Text,
-    Marker,
 } = _ModuleSupport;
 
 type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum;
@@ -273,7 +272,7 @@ export class RadialGaugeSeries
     }
 
     private markerFactory(): _ModuleSupport.Marker<RadialGaugeTargetDatum> {
-        const marker = new Marker<RadialGaugeTargetDatum>();
+        const marker = new LineMarker<RadialGaugeTargetDatum>();
         marker.size = 1;
         return marker;
     }

@@ -761,7 +761,7 @@ export class DonutSeries extends PolarSeries<
                         ['series', `${this.declarationOrder}`],
                         this.callWithContext(itemStyler, params),
                         { proxyPaths: { fill: ['fills', `${datumIndex}`], stroke: ['strokes', `${datumIndex}`] } }
-                    ) as NormalisedDonutSeriesStyle;
+                    );
                 }
             );
         }

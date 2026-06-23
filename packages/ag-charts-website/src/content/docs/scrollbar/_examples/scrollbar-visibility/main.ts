@@ -3,6 +3,7 @@ import {
     AgCharts,
     AgScrollbarVisibility,
     BarSeriesModule,
+    LegendModule,
     ModuleRegistry,
     NumberAxisModule,
     OrdinalTimeAxisModule,
@@ -11,7 +12,13 @@ import {
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([BarSeriesModule, NumberAxisModule, OrdinalTimeAxisModule, ScrollbarModule]);
+ModuleRegistry.registerModules([
+    BarSeriesModule,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    ScrollbarModule,
+    LegendModule,
+]);
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),

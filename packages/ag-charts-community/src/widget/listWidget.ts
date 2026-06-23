@@ -6,6 +6,15 @@ import { type BeforeWidget, Widget } from './widget';
 
 type TChildWidget = SwitchWidget;
 
+function removeFromDOM(child: Widget) {
+    const elem = child.getElement();
+    if (elem.parentElement) {
+        elem.parentElement.remove();
+    } else {
+        elem.remove();
+    }
+}
+
 export class ListWidget extends RovingTabContainerWidget<TChildWidget> {
     constructor() {
         super('both', 'list');
@@ -13,8 +22,8 @@ export class ListWidget extends RovingTabContainerWidget<TChildWidget> {
     }
 
     protected override destructor(): void {
-        for (const c of this.children) {
-            c.getElement().parentElement!.remove();
+        for (const child of this.children) {
+            removeFromDOM(child);
         }
     }
 
@@ -28,7 +37,7 @@ export class ListWidget extends RovingTabContainerWidget<TChildWidget> {
     }
 
     protected override removeChildFromDOM(child: TChildWidget) {
-        child.getElement().parentElement!.remove();
+        removeFromDOM(child);
         this.setHidden(this.children.length === 0);
     }
 

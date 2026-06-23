@@ -60,7 +60,7 @@ export class Line<D = unknown> extends Shape<D> implements DistantObject {
         return false;
     }
 
-    distanceSquared(px: number, py: number): number {
+    override distanceSquared(px: number, py: number): number {
         const { x1, y1, x2, y2 } = this;
         return lineDistanceSquared(px, py, x1, y1, x2, y2, Infinity);
     }

@@ -16,14 +16,17 @@ export type CloneOptions = { shallow?: StringSet; assign?: StringSet; seen?: unk
  * @param source starting point for diff
  * @param target target for diff vs. source
  * @param shallow object keys to only shallow compare during diff
+ * @param removed when supplied, keys present in `source` but absent in `target` are emitted with this
+ *  sentinel value to express a removal, rather than being dropped from the diff. This enables replace
+ *  semantics when the diff is subsequently merged onto `source`.
  * @returns `null` if no differences, or an object with the subset of properties that have changed.
  */
-export function jsonDiff<T>(source: T, target: T, shallow?: Set<keyof T>): Partial<T> | null {
+export function jsonDiff<T>(source: T, target: T, shallow?: Set<keyof T>, removed?: symbol): Partial<T> | null {
     if (isArray(target)) {
         if (
             !isArray(source) ||
             source.length !== target.length ||
-            target.some((v, i) => jsonDiff(source[i], v, shallow) != null)
+            target.some((v, i) => jsonDiff(source[i], v, shallow, removed) != null)
         ) {
             return target;
         }
@@ -40,10 +43,13 @@ export function jsonDiff<T>(source: T, target: T, shallow?: Set<keyof T>): Parti
             // Cheap-and-easy equality check.
             if (source[key] === target[key]) {
                 continue;
+            } else if (removed !== undefined && !(key in target) && source[key] !== undefined) {
+                // Key was present in source but is omitted from target - express an explicit removal.
+                result[key] = removed as T[keyof T];
             } else if (shallow?.has(key)) {
                 result[key] = target[key];
             } else if (typeof source[key] === typeof target[key]) {
-                const diff = jsonDiff(source[key], target[key], shallow);
+                const diff = jsonDiff(source[key], target[key], shallow, removed);
                 if (diff !== null) {
                     result[key] = diff as T[keyof T];
                 }

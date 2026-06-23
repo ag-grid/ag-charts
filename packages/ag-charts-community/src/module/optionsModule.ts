@@ -62,7 +62,12 @@ import {
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
-import { type OptionsGraphAccessor, createOptionsGraph, createOptionsGraphMemoised } from './optionsGraph';
+import {
+    type OptionsGraphAccessor,
+    SHALLOW_OPTION_KEYS,
+    createOptionsGraph,
+    createOptionsGraphMemoised,
+} from './optionsGraph';
 import {
     type StructuralCacheEntry,
     VOLATILE_KEYS,
@@ -169,6 +174,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         assign: new Set(['data', 'context', 'theme']),
     };
     public static readonly JSON_DIFF_OPTS = new Set<any>(['data', 'localeText']);
+    // Sentinel marking a key removed by a full `update()` so it is dropped on merge (replace semantics).
+    private static readonly REMOVED = Symbol('UNSET');
 
     private static readonly perfDebug = Debug.create(true, 'perf');
 
@@ -190,6 +197,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
         ChartOptions.perfDebug(`ChartOptions.isFastPathDelta() - fast path possible.`);
         return true;
+    }
+
+    private static containsRemovalSentinel(node: unknown): boolean {
+        // The removal sentinel is only ever written as a direct value on a plain-object node. Skip the
+        // opaque pass-through payloads by name (`SHALLOW_OPTION_KEYS`) and never descend into non-plain
+        // objects (e.g. a DOM `container`): both can hold user-supplied cycles, and neither can contain
+        // a sentinel - so declining to recurse cannot miss one, it only avoids the stack overflow.
+        if (!isPlainObject(node)) return false;
+        for (const key of Object.keys(node)) {
+            const value = (node as Record<string, unknown>)[key];
+            if (isSymbol(value)) return true;
+            if (!SHALLOW_OPTION_KEYS.has(key) && ChartOptions.containsRemovalSentinel(value)) return true;
+        }
+        return false;
     }
 
     activeTheme: ChartTheme;
@@ -241,12 +262,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 this.userDeltaKeys = new Set(Object.keys(deltaOptions));
             }
 
-            // No diff case - null means diff was a no-op.
-            deltaOptions ??= jsonDiff(
-                baseChartOptions.userOptions as T,
-                newUserOptions,
-                ChartOptions.JSON_DIFF_OPTS
-            ) as DeepPartial<T>;
+            // A null `deltaOptions` means this is a full `update()` rather than `updateDelta()`. Per
+            // its contract, `update()` replaces the options, so diff against the previous options
+            // marking omitted subtrees for removal; `updateDelta()` keeps its merge semantics.
+            if (deltaOptions == null) {
+                deltaOptions = jsonDiff(
+                    baseChartOptions.userOptions as T,
+                    newUserOptions,
+                    ChartOptions.JSON_DIFF_OPTS,
+                    ChartOptions.REMOVED
+                ) as DeepPartial<T>;
+                // Only strip symbols (and so take the slow path) when the diff actually removed a
+                // subtree; a fast-path-only change (e.g. width/data) must stay on the fast path.
+                stripSymbols ||= ChartOptions.containsRemovalSentinel(deltaOptions);
+            }
 
             this.userOptions = deepClone(merge(deltaOptions, baseChartOptions.userOptions), {
                 ...ChartOptions.OPTIONS_CLONE_OPTS_SLOW,

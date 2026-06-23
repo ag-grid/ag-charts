@@ -34,9 +34,8 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
     // 2.  A drag motion is in progress, but the candidacy list is empty.
     public candidacyInProgress = false;
     // The Control/Cmd keys can be used to add everything in candidacy to the existing selections rather than setting
-    // the selection (i.e. the union of candidate + selection). Multiple keys can toggle the union behaviour, so we
-    // use a number to track how many of those keys are pressed.
-    public candidacyUnion = 0;
+    // the selection (i.e. the union of candidate + selection).
+    public candidacyUnion = false;
 
     /** Per-series selection state. Keyed by `seriesId`. */
     selections = new Map<string, DataSetSelection>();
@@ -219,7 +218,7 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
     getDataCandidateState(series: SeriesLike, datumIndex: number | undefined): SelectionStateEnum | undefined {
         if (!this.candidacyInProgress || !this.isSeriesSelectionEnabled(series)) return undefined;
 
-        if (this.candidacyUnion > 0) {
+        if (this.candidacyUnion) {
             const selectedState = this.getDataSelectionState(series, datumIndex);
             if (selectedState === SelectionState.Item) {
                 return SelectionState.Item;

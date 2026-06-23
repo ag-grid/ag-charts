@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgLinearGaugeLabelPlacement, AgLinearGaugeOptions } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
+import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -241,6 +241,237 @@ describe('LinearGaugeSeries', () => {
             await waitForChartStability(chart);
             await hoverAction(750, 320)(chart);
             expect(0).toBe(0); // do nothing (just check MockConsole warn/error output).
+        });
+    });
+
+    describe('CRT-1126 line target hover region', () => {
+        it('should highlight the line when hovered but not in empty space away from it', async () => {
+            const options: AgLinearGaugeOptions = {
+                type: 'linear-gauge',
+                direction: 'horizontal',
+                value: 55,
+                scale: { min: 0, max: 100 },
+                targets: [{ value: 90, shape: 'line' }],
+                tooltip: { enabled: true },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.createGauge(options));
+            await waitForChartStability(chart);
+
+            const series = chart.series[0];
+            const lineNode = [...series.targetSelection.nodes()][0];
+            const lineBBox = _ModuleSupport.Transformable.toCanvas(lineNode);
+            const lineCx = lineBBox.x + lineBBox.width / 2;
+            const lineCy = lineBBox.y + lineBBox.height / 2;
+            // The line's local origin maps to this canvas point: empty space above the bar, far
+            // enough from the line that it must not register as hovered.
+            const emptyX = lineCx - lineNode.translationX + 4;
+            const emptyY = lineCy - lineNode.translationY + 4;
+
+            const { highlightManager } = chart.ctx;
+
+            await hoverAction(emptyX, emptyY)(chart);
+            await waitForChartStability(chart);
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+
+            await hoverAction(lineCx, lineCy)(chart);
+            await waitForChartStability(chart);
+            expect(highlightManager.getActiveHighlight()).toBeDefined();
+        });
+    });
+
+    describe('keyboard navigation (CRT-1124)', () => {
+        // Options that reproduce the bug: a segmented bar (so nodeData.length > 1 in contextNodeData)
+        // combined with enough targets that a Right→Right sequence lands on target index 2 before Up.
+        // Layer 0 (datumUnion) is always a SINGLE focusable node regardless of segmentation;
+        // layer 1 (targetSelection) has one node per target.
+        const SEGMENTED_WITH_TARGETS: AgLinearGaugeOptions = {
+            type: 'linear-gauge',
+            value: 60,
+            scale: { min: 0, max: 100 },
+            segmentation: { enabled: true, interval: { count: 5 } },
+            targets: [
+                { value: 20, text: 'Low' },
+                { value: 50, text: 'Mid' },
+                { value: 80, text: 'High' },
+            ],
+        };
+
+        async function setupKeyNavChart(opts: AgLinearGaugeOptions) {
+            const options: AgLinearGaugeOptions = { ...opts };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.createGauge(options));
+            await waitForChartStability(chart);
+            return chart;
+        }
+
+        // Dispatches a keydown event on the .ag-charts-series-area DOM element, which is the
+        // element the seriesAreaManager's seriesWidget listens on.
+        function pressArrowOnSeriesArea(key: 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight') {
+            const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
+            if (!seriesArea) throw new Error('series-area element not found');
+            seriesArea.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true }));
+        }
+
+        // Read the internal focus state written back by updatePickedFocus after each successful pick.
+        function getFocusState(c: any) {
+            return c.seriesAreaManager.focus as {
+                seriesIndex: number;
+                datumIndex: number;
+                datum: unknown;
+            };
+        }
+
+        // AC1: repro case — segmented bar + 3 targets.
+        // ArrowDown enters the targets layer; ArrowRight×2 moves to target index 2.
+        // ArrowUp MUST return focus to layer 0 (the bar) — not get stuck.
+        describe('AC1 – ArrowUp from non-first target returns to bar (regression)', () => {
+            it('direct pickFocus: ArrowUp with datumIndex=2 in layer 1 resolves to layer 0 at datumIndex 0', async () => {
+                const c = await setupKeyNavChart(SEGMENTED_WITH_TARGETS);
+                const series = c.series[0];
+
+                // Simulate the exact inputs onArrow produces after Down→Right→Right→Up:
+                // focus.seriesIndex was incremented to 1 then back to 0, focus.datumIndex is 2.
+                const pick = series.pickFocus({
+                    datumIndex: 2,
+                    datumIndexDelta: 0,
+                    otherIndex: 0, // post-increment: Up moved seriesIndex from 1 → 0
+                    otherIndexDelta: -1, // Up
+                });
+
+                expect(pick).toBeDefined();
+                expect(pick!.otherIndex).toBe(0); // returned to layer 0
+                expect(pick!.datumIndex).toBe(0); // reset to 0 on layer change
+            });
+
+            it('full pipeline: focus does not get stuck after Down→Right→Right→Up', async () => {
+                const c = await setupKeyNavChart(SEGMENTED_WITH_TARGETS);
+
+                // ArrowDown: layer 0 → layer 1, target index 0.
+                pressArrowOnSeriesArea('ArrowDown');
+                await waitForChartStability(c);
+
+                // ArrowRight×2: target index 0 → 1 → 2.
+                pressArrowOnSeriesArea('ArrowRight');
+                await waitForChartStability(c);
+                pressArrowOnSeriesArea('ArrowRight');
+                await waitForChartStability(c);
+
+                // Verify we are on target index 2 before the Up.
+                expect(getFocusState(c).seriesIndex).toBe(1);
+                expect(getFocusState(c).datumIndex).toBe(2);
+
+                // ArrowUp: should return to layer 0 (bar).
+                pressArrowOnSeriesArea('ArrowUp');
+                await waitForChartStability(c);
+
+                expect(getFocusState(c).seriesIndex).toBe(0); // back on layer 0
+                expect(getFocusState(c).datumIndex).toBe(0); // reset to 0 on layer change
+
+                // Arrows must remain responsive: one more ArrowDown must move into targets again.
+                pressArrowOnSeriesArea('ArrowDown');
+                await waitForChartStability(c);
+
+                expect(getFocusState(c).seriesIndex).toBe(1);
+                expect(getFocusState(c).datumIndex).toBe(0);
+            });
+        });
+
+        // AC2a: first-item path — Down then immediately Up.  Must not regress.
+        describe('AC2 – no regression of first-item and single-layer paths', () => {
+            it('Down then immediately Up still returns to layer 0', async () => {
+                const c = await setupKeyNavChart(SEGMENTED_WITH_TARGETS);
+
+                pressArrowOnSeriesArea('ArrowDown');
+                await waitForChartStability(c);
+                expect(getFocusState(c).seriesIndex).toBe(1);
+
+                pressArrowOnSeriesArea('ArrowUp');
+                await waitForChartStability(c);
+                expect(getFocusState(c).seriesIndex).toBe(0);
+                expect(getFocusState(c).datumIndex).toBe(0);
+            });
+
+            it('ArrowDown while on a non-first target is a no-op (stays on that target, does not jump to target 0)', async () => {
+                const c = await setupKeyNavChart(SEGMENTED_WITH_TARGETS);
+
+                // Move into the targets layer and along to target index 2.
+                pressArrowOnSeriesArea('ArrowDown');
+                await waitForChartStability(c);
+                pressArrowOnSeriesArea('ArrowRight');
+                await waitForChartStability(c);
+                pressArrowOnSeriesArea('ArrowRight');
+                await waitForChartStability(c);
+                expect(getFocusState(c).datumIndex).toBe(2);
+
+                // ArrowDown at the bottom layer clamps back to the same layer — it must NOT
+                // reset the target index to 0 (the layer did not actually change).
+                pressArrowOnSeriesArea('ArrowDown');
+                await waitForChartStability(c);
+                expect(getFocusState(c).seriesIndex).toBe(1);
+                expect(getFocusState(c).datumIndex).toBe(2);
+            });
+
+            it('direct pickFocus: ArrowUp with datumIndex=0 in layer 1 also resolves to layer 0', async () => {
+                const c = await setupKeyNavChart(SEGMENTED_WITH_TARGETS);
+                const series = c.series[0];
+
+                const pick = series.pickFocus({
+                    datumIndex: 0,
+                    datumIndexDelta: 0,
+                    otherIndex: 0,
+                    otherIndexDelta: -1, // Up from layer 1
+                });
+
+                expect(pick).toBeDefined();
+                expect(pick!.otherIndex).toBe(0);
+                expect(pick!.datumIndex).toBe(0);
+            });
+
+            it('single-layer gauge (no targets): ArrowDown and ArrowUp stay on layer 0 without getting stuck', async () => {
+                const noTargets: AgLinearGaugeOptions = {
+                    type: 'linear-gauge',
+                    value: 60,
+                    scale: { min: 0, max: 100 },
+                    segmentation: { enabled: true, interval: { count: 5 } },
+                };
+                const c = await setupKeyNavChart(noTargets);
+
+                // ArrowDown: no second layer — must not throw or get stuck.
+                pressArrowOnSeriesArea('ArrowDown');
+                await waitForChartStability(c);
+
+                const after = getFocusState(c);
+                expect(after.seriesIndex).toBe(0); // clamped: only one layer
+                expect(after.datum).toBeDefined(); // a valid datum was found
+
+                // A second ArrowDown must also not throw or get stuck.
+                pressArrowOnSeriesArea('ArrowDown');
+                await waitForChartStability(c);
+                expect(getFocusState(c).datum).toBeDefined();
+            });
+
+            it('direct pickFocus: single-layer, ArrowDown returns a defined pick on layer 0', async () => {
+                const noTargets: AgLinearGaugeOptions = {
+                    type: 'linear-gauge',
+                    value: 60,
+                    scale: { min: 0, max: 100 },
+                    segmentation: { enabled: true, interval: { count: 5 } },
+                };
+                const c = await setupKeyNavChart(noTargets);
+                const series = c.series[0];
+
+                const pick = series.pickFocus({
+                    datumIndex: 0,
+                    datumIndexDelta: 0,
+                    otherIndex: 1, // would go to layer 1, but only layer 0 exists → clamped
+                    otherIndexDelta: 1, // Down
+                });
+
+                // With only layer 0 available, clamp ensures we stay on layer 0.
+                expect(pick).toBeDefined();
+                expect(pick!.otherIndex).toBe(0);
+            });
         });
     });
 

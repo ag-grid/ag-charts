@@ -366,6 +366,10 @@ export abstract class Node<TDatum = unknown> {
         return false;
     }
 
+    distanceSquared(_x: number, _y: number): number {
+        return Infinity;
+    }
+
     pickNode(x: number, y: number): Node | undefined {
         if (!this.visible || this.pointerEvents === PointerEvents.None) {
             return;

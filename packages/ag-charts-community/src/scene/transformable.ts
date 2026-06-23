@@ -124,6 +124,11 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
             return super.pickNodes(x, y, into);
         }
 
+        override distanceSquared(x: number, y: number): number {
+            ({ x, y } = this.fromParentPoint(x, y));
+            return super.distanceSquared(x, y);
+        }
+
         override render(renderCtx: RenderContext): void {
             this.computeTransformMatrix();
 

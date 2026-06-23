@@ -59,6 +59,11 @@ export class Scrollbar extends AbstractModuleInstance {
         return this.ctx.chartState.getValue('options', 'scrollbar')!;
     }
 
+    // Chart.hasViewportSupport() reads this to preserve zoom state across updates.
+    public get enabled(): boolean {
+        return this.opts.enabled;
+    }
+
     public constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
