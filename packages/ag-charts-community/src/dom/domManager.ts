@@ -1072,7 +1072,8 @@ export class DOMManager extends BaseManager {
             styleElement.textContent = `@property ${property} { syntax: '<color>'; inherits: true; initial-value: transparent; }`;
             this.element.prepend(styleElement);
 
-            const sensorElement = createElement('div', { transition: `${property} 1ms` });
+            const sensorElement = createElement('div');
+            sensorElement.style.setProperty('transition', `${property} 1ms`, 'important');
             this.rootElements['style-sensors'].element.appendChild(sensorElement);
 
             const handleTransitionEnd = () => {
@@ -1119,7 +1120,7 @@ export class DOMManager extends BaseManager {
             // and sensor into a single element.
             const styleElement = createElement('div');
             styleElement.style.color = key;
-            styleElement.style.transition = 'color 1ms !important';
+            styleElement.style.setProperty('transition', 'color 1ms', 'important');
             styleElement.dataset.variableName = property;
 
             shadowRoot.prepend(styleElement);
