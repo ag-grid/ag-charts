@@ -182,7 +182,11 @@
         margin-top: $spacing-size-3;
         width: 100%;
 
-        .expandedChildProps & {
+        // When the row stacks, the right column drops onto its own line beneath the side-line that
+        // marks the expansion. Indent it past the line so the description and toggle button clear it,
+        // matching the type meta above. Both expanded variants draw the line, so both need the indent.
+        .expandedChildProps &,
+        .expandedUnionTypes & {
             padding-left: $spacing-size-6;
         }
     }
