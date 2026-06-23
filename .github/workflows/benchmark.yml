@@ -376,10 +376,13 @@ jobs:
                   merge-multiple: true
 
             # Merge each run's shards into one head/base report per run, then hand every run to
-            # the comparison so it can median across runs and gate on cross-run CV. Soft-fail only
-            # covers failures within a shard; a wholly missing shard would silently shrink a run, so
-            # per-run shard counts are enforced. A flaky run is tolerated as long as >=2 survive
-            # (two runs are the minimum for a cross-run variance estimate).
+            # the comparison so it can median across runs and gate on cross-run CV. Two integrity
+            # checks keep a degraded run out of the gate: a wholly missing shard would silently
+            # shrink a run, so per-run shard counts are enforced; and AG_BENCHMARK_SOFT_FAIL lets a
+            # shard finish with errored/timed-out examples (the report is written before the runner
+            # exits non-zero), so each shard's failure counts are inspected too. A flaky run is
+            # tolerated as long as >=2 clean runs survive (the minimum for a cross-run variance
+            # estimate).
             - name: Merge shard results
               env:
                   SHARDS: ${{ needs.resolve.outputs.shards }}
@@ -392,6 +395,14 @@ jobs:
                     base_shards=(reports/browser-benchmarks/shards/base-*.r${run}.json)
                     if [[ ${#head_shards[@]} -ne $expected || ${#base_shards[@]} -ne $expected ]]; then
                       echo "::warning::Run ${run} incomplete (expected ${expected}, head: ${#head_shards[@]}, base: ${#base_shards[@]}); skipping"
+                      continue
+                    fi
+                    failed=0
+                    for f in "${head_shards[@]}" "${base_shards[@]}"; do
+                      failed=$((failed + $(jq '(.summary.error // 0) + (.summary.timeout // 0)' "$f")))
+                    done
+                    if [[ $failed -ne 0 ]]; then
+                      echo "::warning::Run ${run} has ${failed} failed/timed-out example(s) across its shards; skipping"
                       continue
                     fi
                     node ./tools/benchmark/merge-browser-results.js --output "reports/browser-benchmarks/head.r${run}.json" "${head_shards[@]}"
