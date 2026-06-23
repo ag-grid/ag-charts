@@ -33,6 +33,9 @@ const reports = inputPaths.map((p) => JSON.parse(fs.readFileSync(p, 'utf8')));
 const merged = {
     timestamp: reports[0].timestamp,
     environment: reports[0].environment,
+    // Each shard ran on a different VM; keep every shard's host identity so cross-shard
+    // hardware heterogeneity is visible (a major source of variance independent of steal).
+    shardEnvironments: reports.map((r) => r.environment).filter(Boolean),
     summary: { total: 0, success: 0, error: 0, timeout: 0, totalDurationMs: 0 },
     examples: {},
 };
