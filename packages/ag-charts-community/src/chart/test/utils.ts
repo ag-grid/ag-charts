@@ -179,12 +179,17 @@ export function prepareTestOptions<T extends AgChartOptions<any, any> | AgGaugeO
     }
 
     if (typeof options?.theme === 'object') {
-        // Only override palette and params if not provided, and use default params when in dark mode.
+        // Override palette and params only if not provided. In dark mode let the dark theme supply
+        // colours, but still pin fontFamily to the bundled test font — the default font stack is
+        // unregistered and resolves to different system fonts per platform, breaking snapshots.
         baseTestTheme = {
             ...options.theme,
             baseTheme: options.theme.baseTheme ?? baseTestTheme.baseTheme,
             palette: options.theme.palette ?? baseTestTheme.palette,
-            params: baseThemeString === 'ag-default-dark' ? undefined : (options.theme.params ?? baseTestTheme.params),
+            params:
+                baseThemeString === 'ag-default-dark'
+                    ? { fontFamily: baseTestTheme.params!.fontFamily }
+                    : (options.theme.params ?? baseTestTheme.params),
         };
     } else if (typeof options?.theme === 'string') {
         // Override colours.
