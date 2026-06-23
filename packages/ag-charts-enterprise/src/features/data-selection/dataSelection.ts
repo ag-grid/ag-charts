@@ -21,7 +21,6 @@ import { DataSelectionService } from './dataSelectionService';
 import {
     type SelectionChanges,
     clearAllSelections,
-    countAddToSelectionModifier,
     hasAddToSelectionModifier,
     isAgSelectionItem,
     isUnknownIterable,
@@ -245,7 +244,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         this.service.totalCandidacyCount = 0;
         this.service.candidacyInProgress ||= canvasBounds.width > 0 || canvasBounds.height > 0;
-        this.service.candidacyUnion = countAddToSelectionModifier(dragMoveEvent);
+        this.service.candidacyUnion = hasAddToSelectionModifier(dragMoveEvent);
         for (const series of this.iterateSelectableSeries()) {
             const data = series.data;
             if (!data) continue;
@@ -275,7 +274,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const { dragStartEvent, service } = this;
 
         service.totalCandidacyCount = 0;
-        service.candidacyUnion = countAddToSelectionModifier(dragEndEvent);
+        service.candidacyUnion = hasAddToSelectionModifier(dragMoveEvent);
         if (!enabled || !enableDrag || !dragStartEvent) {
             this.dragRect.visible = false;
             return;
@@ -350,7 +349,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         // without moving the mouse; which would mean that any itemStyler callbacks that read candidateState would need
         // to invoked again.
         const oldCandidacyUnion = this.service.candidacyUnion;
-        const newCandidacyUnion = countAddToSelectionModifier(widgetEvent);
+        const newCandidacyUnion = hasAddToSelectionModifier(widgetEvent);
         if (oldCandidacyUnion !== newCandidacyUnion) {
             this.service.candidacyUnion = newCandidacyUnion;
             this.redraw(ChartUpdateType.FULL);
