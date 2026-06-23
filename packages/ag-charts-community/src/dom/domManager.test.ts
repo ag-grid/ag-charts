@@ -69,6 +69,40 @@ describe('DOMManager', () => {
         });
     });
 
+    // These assertions guard the CSSOM declaration: the watcher transition must carry an
+    // `!important` priority so it survives users globally disabling transitions. jsdom does not
+    // run transitions or emit `transitionend`, so the runtime refresh path is covered by browser e2e.
+    describe('updateCSSVariableWatchers() — CSS change detection', () => {
+        it('sets an important transition on the sensor element (normal DOM)', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, 'css-watch-normal', doc, container);
+
+            dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+
+            const sensor = dm.getParent('style-sensors').firstElementChild as HTMLElement | null;
+            expect(sensor).not.toBeNull();
+            expect(sensor!.style.getPropertyValue('transition')).toBe('--my-color 1ms');
+            expect(sensor!.style.getPropertyPriority('transition')).toBe('important');
+        });
+
+        it('sets an important transition on the combined style element (shadow DOM)', () => {
+            const component = doc.createElement('div');
+            const container = doc.createElement('div');
+            doc.body.append(component);
+            const shadow = component.attachShadow({ mode: 'open' });
+            shadow.appendChild(container);
+            const dm = new DOMManager(eventsHub, 'css-watch-shadow', doc, container);
+
+            dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+
+            const styleEl = shadow.querySelector<HTMLElement>('[data-variable-name="--my-color"]');
+            expect(styleEl).not.toBeNull();
+            expect(styleEl!.style.getPropertyValue('transition')).toBe('color 1ms');
+            expect(styleEl!.style.getPropertyPriority('transition')).toBe('important');
+        });
+    });
+
     describe('when connecting after initialisation', () => {
         beforeEach(() => vi.useFakeTimers());
         afterEach(() => vi.useRealTimers());
