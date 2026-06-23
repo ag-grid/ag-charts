@@ -145,6 +145,9 @@
 
     &.expandedUnionTypes > .expandedContent {
         margin-left: $spacing-size-6;
+        // Account for the left margin so the code block stays within the row's bounds.
+        flex-basis: calc(100% - #{$spacing-size-6});
+        min-width: calc(100% - #{$spacing-size-6});
     }
 
     &.expandedChildProps::after,
