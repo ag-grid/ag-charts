@@ -62,7 +62,12 @@ import {
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
-import { type OptionsGraphAccessor, createOptionsGraph, createOptionsGraphMemoised } from './optionsGraph';
+import {
+    type OptionsGraphAccessor,
+    SHALLOW_OPTION_KEYS,
+    createOptionsGraph,
+    createOptionsGraphMemoised,
+} from './optionsGraph';
 import {
     type StructuralCacheEntry,
     VOLATILE_KEYS,
@@ -195,13 +200,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private static containsRemovalSentinel(node: unknown): boolean {
-        // `jsonDiff` only places the removal sentinel directly on a key, so a shallow scan that
-        // recurses into nested objects (skipping the opaque `data` payload) suffices.
-        if (!isObject(node) || isArray(node)) return false;
+        // The removal sentinel is only ever written as a direct value on a plain-object node. Skip the
+        // opaque pass-through payloads by name (`SHALLOW_OPTION_KEYS`) and never descend into non-plain
+        // objects (e.g. a DOM `container`): both can hold user-supplied cycles, and neither can contain
+        // a sentinel - so declining to recurse cannot miss one, it only avoids the stack overflow.
+        if (!isPlainObject(node)) return false;
         for (const key of Object.keys(node)) {
             const value = (node as Record<string, unknown>)[key];
             if (isSymbol(value)) return true;
-            if (key !== 'data' && ChartOptions.containsRemovalSentinel(value)) return true;
+            if (!SHALLOW_OPTION_KEYS.has(key) && ChartOptions.containsRemovalSentinel(value)) return true;
         }
         return false;
     }

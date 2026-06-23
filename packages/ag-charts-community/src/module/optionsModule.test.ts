@@ -508,6 +508,70 @@ describe('ChartOptions', () => {
         });
     });
 
+    describe('circular opaque payloads (CRT-1143 regression)', () => {
+        // AG Grid's cross-filter integration passes `context: this` - a component instance whose object
+        // graph contains back-references; a `context` can equally be a plain object that references
+        // itself. A full `update()` diffs the options and walks the diff, which must skip these opaque
+        // pass-throughs by name rather than by type, or it follows the cycle into a stack overflow.
+        class CrossFilterContext {
+            readonly self = this;
+            readonly gui: { owner: CrossFilterContext };
+            constructor() {
+                this.gui = { owner: this };
+            }
+        }
+
+        const lineOptions = (): AgChartOptions => ({
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+        });
+
+        it('survives a full update() when the context payload reference changes', () => {
+            const base = new ChartOptions(
+                { ...lineOptions(), context: new CrossFilterContext() } as AgChartOptions,
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+
+            const nextContext = new CrossFilterContext();
+            let updated!: ChartOptions;
+            expect(() => {
+                updated = new ChartOptions(
+                    base,
+                    { ...lineOptions(), context: nextContext } as AgChartOptions,
+                    {},
+                    {},
+                    {}
+                );
+            }).not.toThrow();
+            expect(updated.processedOptions.context).toBe(nextContext);
+        });
+
+        it('survives a full update() when a circular context is newly introduced', () => {
+            const base = new ChartOptions(lineOptions(), {} as AgChartOptions, {}, {}, {});
+
+            const context = new CrossFilterContext();
+            let updated!: ChartOptions;
+            expect(() => {
+                updated = new ChartOptions(base, { ...lineOptions(), context } as AgChartOptions, {}, {}, {});
+            }).not.toThrow();
+            expect(updated.processedOptions.context).toBe(context);
+        });
+
+        it('survives a full update() when context is a self-referential plain object', () => {
+            const base = new ChartOptions(lineOptions(), {} as AgChartOptions, {}, {}, {});
+
+            const context: Record<string, unknown> = {};
+            context.context = context;
+            let updated!: ChartOptions;
+            expect(() => {
+                updated = new ChartOptions(base, { ...lineOptions(), context } as AgChartOptions, {}, {}, {});
+            }).not.toThrow();
+            expect(updated.processedOptions.context).toBe(context);
+        });
+    });
+
     describe('#processSeriesOptions', () => {
         test('Simple series options processing works as expected', () => {
             const { series: options } = prepareOptions({ series: seriesOptions });

@@ -98,6 +98,12 @@ export function createOptionsGraph(
     });
 }
 
+// Opaque user pass-through payloads: stored shallow in the options graph and skipped by the
+// removal-sentinel scan in `optionsModule`. Never descended into, so user-supplied cycles in these
+// values (e.g. `context` set to a grid component or a self-referential object) cannot drive an
+// options walk into a stack overflow.
+export const SHALLOW_OPTION_KEYS = new Set<string>(['context', 'data', 'topology']);
+
 /**
  * The OptionsGraph combines the theme config, params, palette, overrides and user options into a graph which can then
  * be resolved down into an object.
@@ -107,9 +113,6 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     private static readonly EDGE_PRIORITY = [USER_OPTIONS_EDGE, OVERRIDES_EDGE, DEFAULTS_EDGE];
 
     private static readonly GRAFT_EDGE = DEFAULTS_EDGE;
-
-    // These keys must be stored as shallow objects in the graph and not manipulated.
-    private static readonly SHALLOW_KEYS = new Set(['context', 'data', 'topology']);
 
     // These keys must be excluded when building the graph, they are instead resolved separately since they are objects
     // that must be applied to arrays.
@@ -798,7 +801,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         edgeValue: string,
         object: PlainObject,
         pathArrayVertex?: Vertex<unknown>,
-        shallowPaths: Set<string> = OptionsGraph.SHALLOW_KEYS,
+        shallowPaths: Set<string> = SHALLOW_OPTION_KEYS,
         ignorePaths?: Set<string>
     ) {
         const keys = Object.keys(object);
