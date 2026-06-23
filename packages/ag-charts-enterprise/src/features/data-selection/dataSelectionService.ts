@@ -218,7 +218,7 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
     getDataCandidateState(series: SeriesLike, datumIndex: number | undefined): SelectionStateEnum | undefined {
         if (!this.candidacyInProgress || !this.isSeriesSelectionEnabled(series)) return undefined;
 
-        if (this.candidacyUnion > 0) {
+        if (this.candidacyUnion) {
             const selectedState = this.getDataSelectionState(series, datumIndex);
             if (selectedState === SelectionState.Item) {
                 return SelectionState.Item;

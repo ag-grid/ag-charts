@@ -274,7 +274,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const { dragStartEvent, service } = this;
 
         service.totalCandidacyCount = 0;
-        service.candidacyUnion = hasAddToSelectionModifier(dragMoveEvent);
+        service.candidacyUnion = hasAddToSelectionModifier(dragEndEvent);
         if (!enabled || !enableDrag || !dragStartEvent) {
             this.dragRect.visible = false;
             return;
