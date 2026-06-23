@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgLinearGaugeLabelPlacement, AgLinearGaugeOptions } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
+import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -241,6 +241,42 @@ describe('LinearGaugeSeries', () => {
             await waitForChartStability(chart);
             await hoverAction(750, 320)(chart);
             expect(0).toBe(0); // do nothing (just check MockConsole warn/error output).
+        });
+    });
+
+    describe('CRT-1126 line target hover region', () => {
+        it('should highlight the line when hovered but not in empty space away from it', async () => {
+            const options: AgLinearGaugeOptions = {
+                type: 'linear-gauge',
+                direction: 'horizontal',
+                value: 55,
+                scale: { min: 0, max: 100 },
+                targets: [{ value: 90, shape: 'line' }],
+                tooltip: { enabled: true },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.createGauge(options));
+            await waitForChartStability(chart);
+
+            const series = chart.series[0];
+            const lineNode = [...series.targetSelection.nodes()][0];
+            const lineBBox = _ModuleSupport.Transformable.toCanvas(lineNode);
+            const lineCx = lineBBox.x + lineBBox.width / 2;
+            const lineCy = lineBBox.y + lineBBox.height / 2;
+            // The line's local origin maps to this canvas point: empty space above the bar, far
+            // enough from the line that it must not register as hovered.
+            const emptyX = lineCx - lineNode.translationX + 4;
+            const emptyY = lineCy - lineNode.translationY + 4;
+
+            const { highlightManager } = chart.ctx;
+
+            await hoverAction(emptyX, emptyY)(chart);
+            await waitForChartStability(chart);
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+
+            await hoverAction(lineCx, lineCy)(chart);
+            await waitForChartStability(chart);
+            expect(highlightManager.getActiveHighlight()).toBeDefined();
         });
     });
 
