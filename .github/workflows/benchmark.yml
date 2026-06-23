@@ -44,6 +44,10 @@ env:
     NX_BRANCH: ${{ github.ref }}
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
     AG_SHARD_COUNT: 5
+    # Repeat each side N times per shard. The report job aggregates the runs and gates on
+    # cross-run CV — a single run per side cannot separate a real change from shared-runner CPU
+    # drift (~half the suite has a >10% run-to-run noise floor on hosted VMs).
+    AG_BENCHMARK_RUNS: 3
 
 permissions:
     contents: read
@@ -254,9 +258,9 @@ jobs:
 
     benchmark:
         runs-on: ubuntu-24.04
-        # Hosted runners are ~2x slower than the previous bare-metal runner;
-        # the slowest examples need generous headroom.
-        timeout-minutes: 45
+        # Hosted runners are ~2x slower than the previous bare-metal runner and we now run each
+        # side AG_BENCHMARK_RUNS times, so the slowest shards need generous headroom.
+        timeout-minutes: 90
         needs: [resolve, build]
         strategy:
             fail-fast: false
@@ -305,28 +309,33 @@ jobs:
                     echo "BASE_PORT=4602" >> $GITHUB_ENV
                   fi
 
-            # Head and base run sequentially on this same VM so the relative
-            # comparison cancels out per-runner hardware differences.
-            - name: Run benchmarks (head then base)
+            # Head and base run sequentially on this same VM so the relative comparison cancels
+            # per-runner hardware differences. We interleave head/base across AG_BENCHMARK_RUNS
+            # passes (head,base,head,base,…) so each pair is adjacent in time, and the report job
+            # gates on the cross-run variance of the per-run medians.
+            - name: Run benchmarks (interleaved head/base, repeated)
               run: |
                   mkdir -p reports/browser-benchmarks/shards
                   run_one() {
                     local role=$1
                     local port=$2
+                    local run=$3
                     ./tools/benchmark/serve-and-run.sh \
                         --dist "${RUNNER_TEMP}/site-${role}" \
                         --port "${port}" \
-                        --output "reports/browser-benchmarks/shards/${role}-${{ strategy.job-index }}.json" \
+                        --output "reports/browser-benchmarks/shards/${role}-${{ strategy.job-index }}.r${run}.json" \
                         -- --examples "${{ matrix.examples }}" --timeout 600000 || {
                       if [[ "${AG_BENCHMARK_SOFT_FAIL}" == "true" ]]; then
-                        echo "::warning::${role} benchmarks had failures (soft-fail mode)"
+                        echo "::warning::${role} run ${run} benchmarks had failures (soft-fail mode)"
                       else
                         return 1
                       fi
                     }
                   }
-                  run_one head 4601
-                  run_one base "${BASE_PORT}"
+                  for run in $(seq 1 "${AG_BENCHMARK_RUNS}"); do
+                    run_one head 4601 "${run}"
+                    run_one base "${BASE_PORT}" "${run}"
+                  done
 
             - name: Upload shard results
               if: always()
@@ -366,44 +375,51 @@ jobs:
                   path: reports/browser-benchmarks/shards
                   merge-multiple: true
 
-            # Soft-fail only covers failures within a shard; a wholly missing
-            # shard result would silently shrink the merged report, so the
-            # expected count is enforced here.
+            # Merge each run's shards into one head/base report per run, then hand every run to
+            # the comparison so it can median across runs and gate on cross-run CV. Soft-fail only
+            # covers failures within a shard; a wholly missing shard would silently shrink a run, so
+            # per-run shard counts are enforced. A flaky run is tolerated as long as >=2 survive
+            # (two runs are the minimum for a cross-run variance estimate).
             - name: Merge shard results
               env:
                   SHARDS: ${{ needs.resolve.outputs.shards }}
               run: |
                   shopt -s nullglob
                   expected=$(echo "$SHARDS" | jq length)
-                  head_shards=(reports/browser-benchmarks/shards/head-*.json)
-                  base_shards=(reports/browser-benchmarks/shards/base-*.json)
-                  if [[ ${#head_shards[@]} -ne $expected || ${#base_shards[@]} -ne $expected ]]; then
-                    echo "::error::Missing shard results (expected ${expected}, head: ${#head_shards[@]}, base: ${#base_shards[@]})"
+                  good_runs=0
+                  for run in $(seq 1 "${AG_BENCHMARK_RUNS}"); do
+                    head_shards=(reports/browser-benchmarks/shards/head-*.r${run}.json)
+                    base_shards=(reports/browser-benchmarks/shards/base-*.r${run}.json)
+                    if [[ ${#head_shards[@]} -ne $expected || ${#base_shards[@]} -ne $expected ]]; then
+                      echo "::warning::Run ${run} incomplete (expected ${expected}, head: ${#head_shards[@]}, base: ${#base_shards[@]}); skipping"
+                      continue
+                    fi
+                    node ./tools/benchmark/merge-browser-results.js --output "reports/browser-benchmarks/head.r${run}.json" "${head_shards[@]}"
+                    node ./tools/benchmark/merge-browser-results.js --output "reports/browser-benchmarks/base.r${run}.json" "${base_shards[@]}"
+                    good_runs=$((good_runs + 1))
+                  done
+                  if [[ $good_runs -lt 2 ]]; then
+                    echo "::error::Need >=2 complete runs for cross-run gating, got ${good_runs}"
                     exit 1
                   fi
-                  node ./tools/benchmark/merge-browser-results.js --output reports/browser-benchmarks/head.json "${head_shards[@]}"
-                  node ./tools/benchmark/merge-browser-results.js --output reports/browser-benchmarks/base.json "${base_shards[@]}"
+                  echo "Merged ${good_runs} complete run(s)."
 
             - name: Compare results
               id: compare
               run: |
                   mkdir -p reports
-                  node ./tools/benchmark/compare-browser-results.js \
-                      --base reports/browser-benchmarks/base.json \
-                      --compare reports/browser-benchmarks/head.json \
-                      --base-label "${{ needs.resolve.outputs.base-label }}" \
-                      --compare-label "${{ needs.resolve.outputs.branch }}" \
-                      --format table \
-                      --report-only \
-                      > reports/browser-benchmark.log
-                  node ./tools/benchmark/compare-browser-results.js \
-                      --base reports/browser-benchmarks/base.json \
-                      --compare reports/browser-benchmarks/head.json \
-                      --base-label "${{ needs.resolve.outputs.base-label }}" \
-                      --compare-label "${{ needs.resolve.outputs.branch }}" \
-                      --format json \
-                      --report-only \
-                      > reports/browser-benchmark.json
+                  base_args=() compare_args=()
+                  for f in reports/browser-benchmarks/base.r*.json; do base_args+=(--base "$f"); done
+                  for f in reports/browser-benchmarks/head.r*.json; do compare_args+=(--compare "$f"); done
+                  compare() {
+                    node ./tools/benchmark/compare-browser-results.js \
+                        "${base_args[@]}" "${compare_args[@]}" \
+                        --base-label "${{ needs.resolve.outputs.base-label }}" \
+                        --compare-label "${{ needs.resolve.outputs.branch }}" \
+                        --report-only --format "$1"
+                  }
+                  compare table > reports/browser-benchmark.log
+                  compare json > reports/browser-benchmark.json
                   cat reports/browser-benchmark.log
                   echo "report<<EOF" >> $GITHUB_OUTPUT
                   cat reports/browser-benchmark.log >> $GITHUB_OUTPUT

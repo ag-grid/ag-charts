@@ -17,6 +17,7 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
 import { discoverExamples } from './benchmark-examples';
+import { type Contention, type HostInfo, diffContention, readCpuSample, readHostInfo } from './contention';
 
 const WORKSPACE_ROOT = path.resolve(__dirname, '../..');
 
@@ -25,6 +26,8 @@ interface BenchmarkExampleResult {
     data?: Record<string, unknown>;
     error?: string;
     durationMs: number;
+    /** Whole-VM CPU contention sampled across this example's window; null on non-Linux hosts. */
+    contention?: Contention | null;
 }
 
 interface BenchmarkReport {
@@ -33,6 +36,8 @@ interface BenchmarkReport {
         viewport: { width: number; height: number };
         devicePixelRatio: number;
         browser: string;
+        /** Runner hardware identity; null on non-Linux hosts. */
+        host?: HostInfo | null;
     };
     summary: {
         total: number;
@@ -133,6 +138,7 @@ async function main() {
             viewport: { width: vpWidth, height: vpHeight },
             devicePixelRatio: argv.dpr,
             browser: 'chromium',
+            host: readHostInfo(),
         },
         summary: { total: exampleNames.length, success: 0, error: 0, timeout: 0, totalDurationMs: 0 },
         examples: {},
@@ -151,7 +157,9 @@ async function main() {
         page.on('pageerror', (err) => pageErrors.push(String(err)));
 
         const exampleStart = Date.now();
+        const cpuBefore = readCpuSample();
         let result: BenchmarkExampleResult;
+        let contention: Contention | null = null;
 
         try {
             const response = await page.goto(url, { waitUntil: 'load', timeout: 30_000 });
@@ -164,6 +172,9 @@ async function main() {
                 timeout: argv.timeout,
                 polling: 1_000,
             });
+
+            // Close the contention window once the measured work is done.
+            contention = diffContention(cpuBefore, readCpuSample(), Date.now() - exampleStart);
 
             // Extract results
             const benchmarkError = await page.evaluate(() => (window as any).__benchmarkError);
@@ -182,6 +193,7 @@ async function main() {
                 };
             }
         } catch (error: unknown) {
+            contention ??= diffContention(cpuBefore, readCpuSample(), Date.now() - exampleStart);
             const isTimeout =
                 error instanceof Error && (error.message.includes('Timeout') || error.name === 'TimeoutError');
             result = {
@@ -190,6 +202,8 @@ async function main() {
                 durationMs: Date.now() - exampleStart,
             };
         }
+
+        result.contention = contention;
 
         if (pageErrors.length > 0) {
             result.error = [result.error, ...pageErrors.map((e) => `[page error] ${e}`)].filter(Boolean).join('\n');
