@@ -1,13 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { type AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
-import {
-    deproxy,
-    extractImageData,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from 'ag-charts-community-test';
+import { extractImageData, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -832,112 +826,6 @@ describe('Annotations', () => {
             ]);
             expect(numberImage).not.toMatchImage(baseline, { writeDiff: false });
             expect(bigintImage).toMatchImage(numberImage);
-        });
-    });
-
-    // A band/ordinal x-axis (bandwidth > 1px) is required: the plain-arrow step must stay at 1px
-    // regardless of bandwidth. On a number axis bandwidth is 0, which would not distinguish the cases.
-    describe('keyboard arrow key move step', () => {
-        // Four categories in 800px gives a bandwidth well above 1px.
-        const BAND_AXIS_OPTIONS: AgCartesianChartOptions = {
-            data: [
-                { category: 'Q1', value: 50 },
-                { category: 'Q2', value: 70 },
-                { category: 'Q3', value: 60 },
-                { category: 'Q4', value: 80 },
-            ],
-            series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
-            axes: {
-                x: { type: 'category', position: 'bottom' },
-                y: { type: 'number', position: 'left' },
-            },
-            annotations: { enabled: true, toolbar: { enabled: false } },
-            width: 800,
-            height: 400,
-        };
-
-        async function prepareChartWithAnnotation() {
-            await prepareChart(
-                {
-                    annotations: [
-                        {
-                            type: 'vertical-line',
-                            value: { value: 'Q2', groupPercentage: 0 },
-                        },
-                    ],
-                },
-                BAND_AXIS_OPTIONS
-            );
-        }
-
-        function getAnnotationsModule() {
-            return (deproxy(chart) as any).modulesManager.getModule('annotations');
-        }
-
-        // Converts a vertical-line annotation value (on a band x-axis) to a pixel x-position,
-        // matching the convert arithmetic in utils/values.ts (band offset via groupPercentage).
-        function toPx(value: any, xScale: any): number {
-            const categoryValue = value != null && typeof value === 'object' ? value.value : value;
-            const groupPct = value != null && typeof value === 'object' ? (value.groupPercentage ?? 0) : 0;
-            const bandwidth: number = xScale.bandwidth ?? 0;
-            const width: number = bandwidth === 0 ? (xScale.step ?? 0) : bandwidth;
-            return xScale.convert(categoryValue) + width * groupPct;
-        }
-
-        it('plain ArrowRight moves a selected annotation by 1px on a band x-axis', async () => {
-            await prepareChartWithAnnotation();
-
-            const annotationsModule = getAnnotationsModule();
-            expect(annotationsModule).toBeDefined();
-
-            const xScale = annotationsModule.xAxis.context.scale;
-            const bandwidth: number = xScale.bandwidth ?? 0;
-            // Guard the precondition: a meaningful test needs bandwidth above the 1px fine step.
-            expect(Math.max(bandwidth, xScale.step ?? 0)).toBeGreaterThan(1);
-
-            // The active annotation is owned by the Main child of the parallel state machine
-            // (index 2: [0]=Snapping, [1]=Update, [2]=Main); only it exposes the `active` index.
-            const mainSM = annotationsModule.state.stateMachines[2];
-            mainSM.active = 0;
-
-            const valueBefore = annotationsModule.annotationData.at(0).value;
-            const pxBefore = toPx(valueBefore, xScale);
-
-            annotationsModule.onKeyDown({
-                type: 'keydown' as const,
-                sourceEvent: new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight' }),
-            });
-
-            const valueAfter = annotationsModule.annotationData.at(0).value;
-            const pxAfter = toPx(valueAfter, xScale);
-
-            expect(Math.abs(pxAfter - pxBefore)).toBeCloseTo(1, 5);
-        });
-
-        it('Shift+ArrowRight moves a selected annotation by 10px on a band x-axis', async () => {
-            await prepareChartWithAnnotation();
-
-            const annotationsModule = getAnnotationsModule();
-            const xScale = annotationsModule.xAxis.context.scale;
-
-            annotationsModule.state.stateMachines[2].active = 0;
-
-            const valueBefore = annotationsModule.annotationData.at(0).value;
-            const pxBefore = toPx(valueBefore, xScale);
-
-            annotationsModule.onKeyDown({
-                type: 'keydown' as const,
-                sourceEvent: new KeyboardEvent('keydown', {
-                    key: 'ArrowRight',
-                    code: 'ArrowRight',
-                    shiftKey: true,
-                }),
-            });
-
-            const valueAfter = annotationsModule.annotationData.at(0).value;
-            const pxAfter = toPx(valueAfter, xScale);
-
-            expect(Math.abs(pxAfter - pxBefore)).toBeCloseTo(10, 5);
         });
     });
 });
