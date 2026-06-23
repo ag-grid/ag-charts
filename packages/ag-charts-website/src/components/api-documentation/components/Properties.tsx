@@ -135,11 +135,14 @@ export function PropertyType({
     const isExpandable = isCollapsibleCode || collapsibleType === 'unionTypes';
     // The square chevron toggles the inline code block — the type alias' own definition for a `code`
     // member, or the union signature for a mixed-union member. Union variant rows have their own
-    // ("See available types") affordance.
+    // ("See available interfaces") affordance.
     const showCodeButton = isCollapsibleCode || Boolean(hasSignature);
     const codeButtonExpanded = isCollapsibleCode ? isExpanded : isSignatureExpanded;
     const codeButtonOnClick = isCollapsibleCode ? onCollapseClick : onSignatureToggle;
 
+    // The type text only toggles the inline code block — a `code` member's definition or a
+    // mixed-union signature. Child-property rows, union variant lists and plain `none` rows have no
+    // code block, so they are not clickable and keep the default cursor.
     return (
         <div className={styles.metaItem}>
             <div className={styles.metaRow}>
@@ -157,9 +160,10 @@ export function PropertyType({
                     </a>
                 ) : (
                     <span
-                        onClick={onCollapseClick}
+                        onClick={showCodeButton ? codeButtonOnClick : undefined}
                         className={classnames(styles.metaValue, {
                             [styles.isExpandable]: isExpandable,
+                            [styles.isClickable]: showCodeButton,
                         })}
                     >
                         {type}

@@ -145,6 +145,9 @@
 
     &.expandedUnionTypes > .expandedContent {
         margin-left: $spacing-size-6;
+        // Account for the left margin so the code block stays within the row's bounds.
+        flex-basis: calc(100% - #{$spacing-size-6});
+        min-width: calc(100% - #{$spacing-size-6});
     }
 
     &.expandedChildProps::after,
@@ -287,6 +290,10 @@
     }
 }
 
+.metaValue.isClickable {
+    cursor: pointer;
+}
+
 .defaultValue {
     font-size: var(--text-fs-sm);
     padding: 2px 8px;
@@ -340,6 +347,7 @@ a.metaValue {
 
 .childButton {
     font-weight: var(--text-semibold);
+    cursor: pointer;
 
     svg {
         transition: transform 0.33s ease-in-out;
@@ -362,6 +370,7 @@ a.metaValue {
 
 .unionTypesButton {
     font-weight: var(--text-semibold);
+    cursor: pointer;
 
     svg {
         transition: transform 0.33s ease-in-out;
@@ -378,6 +387,7 @@ a.metaValue {
 
 button.seeMore {
     color: var(--color-link);
+    cursor: pointer;
     justify-content: center;
     align-items: center;
     display: flex;

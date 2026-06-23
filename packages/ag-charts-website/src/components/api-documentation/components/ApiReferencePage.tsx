@@ -29,6 +29,7 @@ interface ApiReferencePageOptions {
     basePath: string;
     specialTypes?: SpecialTypesMap;
     keepExpanded?: string[];
+    noExpand?: string[];
 }
 
 export function ApiReferencePage(props: ApiReferencePageOptions) {
@@ -47,6 +48,7 @@ function ApiReferencePageInner({
     basePath,
     specialTypes,
     keepExpanded,
+    noExpand,
 }: ApiReferencePageOptions) {
     const { data: reference } = useQuery(['resolved-interfaces'], fetchInterfacesReference, queryOptions);
     const location = useLocation();
@@ -80,7 +82,7 @@ function ApiReferencePageInner({
 
     return (
         <ApiReferenceContext.Provider value={reference}>
-            <ApiReferenceConfigContext.Provider value={{ hideHeader: true, specialTypes, keepExpanded }}>
+            <ApiReferenceConfigContext.Provider value={{ hideHeader: true, specialTypes, keepExpanded, noExpand }}>
                 <SelectionContext.Provider value={{ selection, setSelection, rootInterface, basePath }}>
                     <div className={classNames(styles.container, 'layout-grid')}>
                         <div className={styles.objectViewOuter}>
