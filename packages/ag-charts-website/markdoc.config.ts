@@ -25,6 +25,7 @@ import { videoSection } from '@ag-website-shared/markdoc/tags/videoSection';
 import { warning } from '@ag-website-shared/markdoc/tags/warning';
 import { component, defineMarkdocConfig } from '@astrojs/markdoc/config';
 import {
+    chartsDownloadUrl,
     chartsVersion,
     chartsVersionPatch,
     codespaceUrl,
@@ -52,6 +53,7 @@ export default defineMarkdocConfig({
         chartsVersion,
         chartsVersionPatch,
         codespaceUrl,
+        chartsDownloadUrl,
     },
     tags: {
         kbd,
