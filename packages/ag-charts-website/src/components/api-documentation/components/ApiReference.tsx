@@ -21,6 +21,7 @@ import {
     isValidElement,
     useContext,
     useEffect,
+    useMemo,
 } from 'react';
 import Markdown from 'react-markdown';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
@@ -277,6 +278,13 @@ export function ApiReference({
     const interfaceRef = reference?.get(id);
     const location = useLocation();
 
+    // include / exclude / prioritise scope the top-level interface only; nested interfaces
+    // and union variants must render their full member set.
+    const nestedConfig = useMemo(
+        () => ({ ...config, include: undefined, exclude: undefined, prioritise: undefined }),
+        [config]
+    );
+
     useEffect(() => {
         const hash = location?.hash.substring(1);
         if (typeof anchorId === 'string' && hash === anchorId) {
@@ -304,14 +312,16 @@ export function ApiReference({
                 ))}
 
             <div className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
-                {processMembers(interfaceRef, config).map((member) => (
-                    <NodeFactory
-                        key={member.name}
-                        member={member}
-                        anchorId={`reference-${id}-${member.name}`}
-                        genericsMap={interfaceRef.genericsMap}
-                    />
-                ))}
+                <ApiReferenceConfigContext.Provider value={nestedConfig}>
+                    {processMembers(interfaceRef, config).map((member) => (
+                        <NodeFactory
+                            key={member.name}
+                            member={member}
+                            anchorId={`reference-${id}-${member.name}`}
+                            genericsMap={interfaceRef.genericsMap}
+                        />
+                    ))}
+                </ApiReferenceConfigContext.Provider>
             </div>
         </div>
     );
