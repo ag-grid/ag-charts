@@ -1119,7 +1119,7 @@ export class DOMManager extends BaseManager {
             // and sensor into a single element.
             const styleElement = createElement('div');
             styleElement.style.color = key;
-            styleElement.style.transition = 'color 1ms';
+            styleElement.style.transition = 'color 1ms !important';
             styleElement.dataset.variableName = property;
 
             shadowRoot.prepend(styleElement);
