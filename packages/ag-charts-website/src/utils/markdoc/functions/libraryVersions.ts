@@ -41,6 +41,6 @@ export const chartsDownloadUrl: ConfigFunction = {
     transform(parameters) {
         const packageName = parameters[0];
         const { major, minor, patchNum } = parseVersion(agChartsVersion);
-        return `https://github.com/ag-grid/ag-charts/releases/download/r${major}.${minor}.${patchNum}/${packageName}.tgz`;
+        return `https://github.com/ag-grid/ag-charts/releases/download/release-${major}.${minor}.${patchNum}/${packageName}.tgz`;
     },
 };
