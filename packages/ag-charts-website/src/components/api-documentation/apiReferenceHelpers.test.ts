@@ -7,6 +7,9 @@ import {
     getAliasedUnionVariants,
 } from './apiReferenceHelpers';
 
+const union = (...types: any[]) => ({ kind: 'union' as const, type: types });
+const alias = (name: string, type: any) => ({ kind: 'typeAlias' as const, name, type });
+
 // Regression for the themes-api page failing to load with "RangeError: Maximum call stack size
 // exceeded". The crash was not infinite recursion — `extractSearchData` builds a finite but very
 // large index (the AgChartTheme tree reaches ~150k entries), and the previous implementation
@@ -35,8 +38,6 @@ function makeLargeReference(breadth: number) {
 }
 
 describe('formatUnionSignature', () => {
-    const union = (...types: any[]) => ({ kind: 'union' as const, type: types });
-    const alias = (name: string, type: any) => ({ kind: 'typeAlias' as const, name, type });
     const iface = (name: string) => ({ kind: 'interface' as const, name, members: [] });
 
     // Mirrors `TextOrSegments = TextValue | ContentSegment[]` where ContentSegment is a nested union
@@ -86,8 +87,6 @@ describe('formatUnionSignature', () => {
 });
 
 describe('formatTypeToCode', () => {
-    const union = (...types: any[]) => ({ kind: 'union' as const, type: types });
-    const alias = (name: string, type: any) => ({ kind: 'typeAlias' as const, name, type });
     const iface = (name: string, memberName: string) => ({
         kind: 'interface' as const,
         name,
@@ -138,8 +137,6 @@ describe('formatTypeToCode', () => {
 });
 
 describe('getAliasedUnionVariants', () => {
-    const union = (...types: any[]) => ({ kind: 'union' as const, type: types });
-    const alias = (name: string, type: any) => ({ kind: 'typeAlias' as const, name, type });
     const variant = (name: string, typeValue: string) => ({
         kind: 'interface' as const,
         name,
