@@ -52,7 +52,7 @@ class InternalMarker<D = any> extends Path<D> {
     }
 
     override isPointInPath(x: number, y: number): boolean {
-        return this.distanceSquared(x, y) <= 0;
+        return this.distanceSquaredLocal(x, y) <= 0;
     }
 
     // Exact hit-test against the shared origin-centred path; for subclasses (e.g. AnnotationShape)
@@ -70,6 +70,13 @@ class InternalMarker<D = any> extends Path<D> {
     }
 
     override distanceSquared(x: number, y: number): number {
+        return this.distanceSquaredLocal(x, y);
+    }
+
+    // Local-space hit-test, shared by both pick entry points so neither transforms twice: the
+    // public distanceSquared() is transform-wrapped by the MatrixTransform mixin, while
+    // isPointInPath() is reached via pickNode() which has already inverse-transformed the point.
+    protected distanceSquaredLocal(x: number, y: number): number {
         const anchor = Marker.anchor(this.shape);
         const dx = x - this.x + (anchor.x - 0.5) * this.size;
         const dy = y - this.y + (anchor.y - 0.5) * this.size;

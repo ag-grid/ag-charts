@@ -32,7 +32,7 @@ import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
 import { getGaugeTooltipInfo } from '../gauge-util/gaugeTooltip';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
-import { lineMarker } from '../gauge-util/lineMarker';
+import { LineMarker, lineMarker } from '../gauge-util/lineMarker';
 import { findGaugeNodeDatum, pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
 import {
     type LinearGaugeLabelDatum,
@@ -61,7 +61,6 @@ const {
     Rect,
     Text,
     TransformableText,
-    Marker,
     LinearScale,
     generateTicks,
     NiceMode,
@@ -242,7 +241,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     private markerFactory(): _ModuleSupport.Marker<LinearGaugeTargetDatum> {
-        return new Marker<LinearGaugeTargetDatum>();
+        return new LineMarker<LinearGaugeTargetDatum>();
     }
 
     override processData() {
