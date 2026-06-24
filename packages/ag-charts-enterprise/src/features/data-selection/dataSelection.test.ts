@@ -5493,15 +5493,17 @@ describe('DataSelection', () => {
                 });
             });
             describe('updateDelta - disable', () => {
-                function deltaOptionsWith(series1Opts: { selection: { enabled: boolean } }): AgCartesianChartOptions<D,C> {
-                    return { series: [
-                        { id: 's1id', type: 'line' as const, xKey: 'year', yKey: 'assets' },
-                        { id: 's2id', type: 'line' as const, xKey: 'year', yKey: 'liabilities', ...series1Opts },
-                        { id: 's3id', type: 'line' as const, xKey: 'year', yKey: 'cash' },
-                    ]};
+                function deltaOptionsWith(s2opts: { selection: { enabled: boolean } }): AgCartesianChartOptions<D, C> {
+                    return {
+                        series: [
+                            { id: 's1id', type: 'line' as const, xKey: 'year', yKey: 'assets' },
+                            { id: 's2id', type: 'line' as const, xKey: 'year', yKey: 'liabilities', ...s2opts },
+                            { id: 's3id', type: 'line' as const, xKey: 'year', yKey: 'cash' },
+                        ],
+                    };
                 }
                 beforeEach(async () => {
-                    chart.updateDelta( deltaOptionsWith({ selection: { enabled: false } }));
+                    chart.updateDelta(deltaOptionsWith({ selection: { enabled: false } }));
                     await waitForChartStability(chart);
                 });
                 test('getSelection', () => {
@@ -5512,7 +5514,7 @@ describe('DataSelection', () => {
                 });
                 describe('updateDelta - enable', () => {
                     beforeEach(async () => {
-                        chart.updateDelta( deltaOptionsWith({ selection: { enabled: true } }));
+                        chart.updateDelta(deltaOptionsWith({ selection: { enabled: true } }));
                         await waitForChartStability(chart);
                     });
                     test('getSelection', () => {
