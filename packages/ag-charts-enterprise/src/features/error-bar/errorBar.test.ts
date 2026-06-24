@@ -28,7 +28,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { createEnterpriseChart } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 const SERIES_CANADA = {
     data: [
@@ -902,7 +902,7 @@ describe('ErrorBars', () => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { errorBar, ...seriesWithoutErrorBar } = SERIES_BOYLESLAW;
         const proxy = AgCharts.getInstance(document.body)!;
-        await proxy.update({ series: [seriesWithoutErrorBar] });
+        await proxy.update(prepareEnterpriseTestOptions({ series: [seriesWithoutErrorBar] }));
         await waitForChartStability(chart);
         await compare();
     });
@@ -919,12 +919,14 @@ describe('ErrorBars', () => {
 
         // Hide first series via update — second series (with error bars) should remain
         const proxy = AgCharts.getInstance(document.body)!;
-        await proxy.update({
-            series: [
-                { ...SERIES_CANADA, type: 'line', visible: false },
-                { ...SERIES_AUSTRALIA, type: 'line' },
-            ],
-        });
+        await proxy.update(
+            prepareEnterpriseTestOptions({
+                series: [
+                    { ...SERIES_CANADA, type: 'line', visible: false },
+                    { ...SERIES_AUSTRALIA, type: 'line' },
+                ],
+            })
+        );
         await waitForChartStability(chart);
         await compare();
     });
