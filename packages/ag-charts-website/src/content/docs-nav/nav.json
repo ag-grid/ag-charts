@@ -85,6 +85,16 @@
             ]
         },
         {
+            "title": "AI Features",
+            "children": [
+                {
+                    "type": "item",
+                    "title": "Skills",
+                    "path": "skills"
+                }
+            ]
+        },
+        {
             "title": "Core features",
             "children": [
                 {
