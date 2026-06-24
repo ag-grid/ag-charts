@@ -5418,7 +5418,6 @@ describe('DataSelection', () => {
 
             const SELECTION: AgSelectionItem<D> = { datum: data[1], seriesId: 's2id', itemId: 'r2019' };
             const ADDED_EVENT = apiChangeEvent<D, C>({ added: [SELECTION], removed: [] });
-            const REMOVED_EVENT = apiChangeEvent<D, C>({ added: [], removed: [SELECTION] });
 
             beforeEach(async () => {
                 selectionChange = createSelectionChangeRecorder<D, C>();
@@ -5475,8 +5474,7 @@ describe('DataSelection', () => {
                     expect(getChartSelectionArray()).toEqual([]);
                 });
                 test('selectionChange', () => {
-                    // TODO: this event (and the added counter-part further down) are never broadcast... should they be??
-                    expect(selectionChange.popEvents()).toEqual([REMOVED_EVENT]);
+                    expect(selectionChange.popEvents()).toEqual([]);
                 });
                 describe('update - enable', () => {
                     beforeEach(async () => {
@@ -5488,7 +5486,7 @@ describe('DataSelection', () => {
                         expect(getChartSelectionArray()).toEqual([SELECTION]);
                     });
                     test('selectionChange', () => {
-                        expect(selectionChange.popEvents()).toEqual([ADDED_EVENT]);
+                        expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
             });
@@ -5503,6 +5501,7 @@ describe('DataSelection', () => {
                     };
                 }
                 beforeEach(async () => {
+                    selectionChange.popEvents(); // pop & ignore initial event.
                     chart.updateDelta(deltaOptionsWith({ selection: { enabled: false } }));
                     await waitForChartStability(chart);
                 });
@@ -5510,7 +5509,7 @@ describe('DataSelection', () => {
                     expect(getChartSelectionArray()).toEqual([]);
                 });
                 test('selectionChange', () => {
-                    expect(selectionChange.popEvents()).toEqual([REMOVED_EVENT]);
+                    expect(selectionChange.popEvents()).toEqual([]);
                 });
                 describe('updateDelta - enable', () => {
                     beforeEach(async () => {
@@ -5521,7 +5520,7 @@ describe('DataSelection', () => {
                         expect(getChartSelectionArray()).toEqual([SELECTION]);
                     });
                     test('selectionChange', () => {
-                        expect(selectionChange.popEvents()).toEqual([ADDED_EVENT]);
+                        expect(selectionChange.popEvents()).toEqual([]);
                     });
                 });
             });
