@@ -14,8 +14,13 @@ const getDocsExamplePaths = () => {
     return [urlWithBaseUrl('/*/*/examples/')];
 };
 
-const getTestPages = () => {
-    return [urlWithBaseUrl('/*/*-test/'), urlWithBaseUrl('/gallery-test'), urlWithBaseUrl('/*/benchmarks/')];
+const getInternalPages = () => {
+    return [
+        urlWithBaseUrl('/*/*-test/'),
+        urlWithBaseUrl('/*/*-e2e/'),
+        urlWithBaseUrl('/gallery-test'),
+        urlWithBaseUrl('/*/benchmarks/'),
+    ];
 };
 
 const getHiddenPages = async () => {
@@ -42,7 +47,7 @@ const getIgnoredPages = () => {
 
 export async function getSitemapIgnorePaths() {
     const asyncPages = (await Promise.all([getHiddenPages(), getDebugPageUrls()])).flat();
-    const paths = [getDocsExamplePaths(), getTestPages(), getIgnoredPages(), asyncPages];
+    const paths = [getDocsExamplePaths(), getInternalPages(), getIgnoredPages(), asyncPages];
 
     return paths.flat();
 }
