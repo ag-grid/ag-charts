@@ -2,24 +2,112 @@
 version: v1.25.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
+    SNYK-JS-PATHTOREGEXP-15789765:
+        - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > router@2.2.0 > path-to-regexp@8.2.0':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T14:02:24.542Z
+    SNYK-JS-PATHTOREGEXP-15789763:
+        - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > router@2.2.0 > path-to-regexp@8.2.0':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:49:46.871Z
+    SNYK-JS-HONO-16438966:
+        - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > hono@4.11.7':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:49:24.401Z
+    SNYK-JS-EXPRESSRATELIMIT-15440710:
+        - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > express-rate-limit@8.2.1':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:48:02.584Z
+    SNYK-JS-ANGULARCORE-17353317:
+        - '@angular/core@20.3.24':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:45:46.436Z
+    SNYK-JS-ANGULARCOMPILER-17356585:
+        - '@angular/compiler@20.3.24':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:45:36.153Z
+    SNYK-JS-ANGULARCOMMON-17356486:
+        - '@angular/common@20.3.24':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:45:30.432Z
+    SNYK-JS-WS-17344547:
+        - karma@6.4.4 > socket.io@4.8.3 > socket.io-adapter@2.5.2 > ws@8.11.0:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:44:58.745Z
+        - karma@6.4.4 > socket.io@4.8.3 > engine.io@6.6.7 > ws@8.18.3:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:44:58.744Z
+        - '@angular-devkit/build-angular@20.3.27 > webpack-dev-server@5.2.2 > ws@8.18.2':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:44:58.742Z
+    SNYK-JS-VITE-17353904:
+        - '@angular-devkit/build-angular@20.3.27 > @angular/build@20.3.27 > vite@7.3.2':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:44:44.135Z
+    SNYK-JS-UNDICI-17372758:
+        - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:44:02.697Z
+    SNYK-JS-TMP-17315641:
+        - karma@6.4.4 > tmp@0.2.1:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:43:11.633Z
+    SNYK-JS-HONO-17356430:
+        - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > hono@4.11.7':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:42:53.704Z
+    SNYK-JS-HONO-17356405:
+        - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > hono@4.11.7':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:42:44.371Z
+    SNYK-JS-ANGULARCOMMON-17356555:
+        - '@angular/common@20.3.24':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:42:34.355Z
+    SNYK-JS-UNDICI-17372658:
+        - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:42:12.290Z
     SNYK-JS-ISAACSBRACEEXPANSION-15208653:
         - '@angular/cli@20.3.27 > pacote@21.0.4 > sigstore@4.1.1 > @sigstore/tuf@4.0.2 > tuf-js@4.1.0 > @tufjs/models@4.1.0 > minimatch@10.1.1 > @isaacs/brace-expansion@5.0.0':
               reason: >-
                   Downstream dependency of angular - not included in final production build
               expires: 2026-09-06T00:00:00.000Z
               created: 2026-06-10T15:17:19.597Z
-    SNYK-JS-ANGULARCORE-15610287:
-        - '@angular/core@18.2.14':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-05-01T11:17:24.624Z
-    SNYK-JS-ANGULARCOMPILER-15610286:
-        - '@angular/compiler@18.2.14':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-05-01T11:16:04.896Z
     SNYK-JS-FOLLOWREDIRECTS-16032162:
         - '@angular-devkit/build-angular@20.3.27 > http-proxy-middleware@3.0.5 > http-proxy@1.18.1 > follow-redirects@1.15.4':
               reason: >-
@@ -37,17 +125,6 @@ ignore:
                   Used in build & dev - not included in final production build
               expires: 2026-09-06T00:00:00.000Z
               created: 2026-05-28T00:00:00.000Z
-    SNYK-JS-SERIALIZEJAVASCRIPT-15809196:
-        - '@angular-devkit/build-angular@18.2.21 > webpack@5.94.0 > terser-webpack-plugin@5.3.10 > serialize-javascript@6.0.1':
-              reason: >-
-                  Downstream dependency of angular - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-31T14:19:50.455Z
-        - '@angular-devkit/build-angular@18.2.21 > copy-webpack-plugin@12.0.2 > serialize-javascript@6.0.2':
-              reason: >-
-                  Downstream dependency of angular - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-31T14:19:50.447Z
     SNYK-JS-NODEFORGE-15789773:
         - '@angular-devkit/build-angular@20.3.27 > webpack-dev-server@5.2.2 > selfsigned@2.4.1 > node-forge@1.3.1':
               reason: >-
@@ -67,61 +144,41 @@ ignore:
               expires: 2026-09-06T00:00:00.000Z
               created: 2026-03-27T16:19:25.988Z
     SNYK-JS-PICOMATCH-15765511:
-        - ng-packagr@18.2.1 > chokidar@3.5.3 > readdirp@3.6.0 > picomatch@2.3.1:
+        - '@angular-devkit/build-angular@20.3.27 > webpack-dev-server@5.2.2 > chokidar@3.6.0 > readdirp@3.6.0 > picomatch@2.3.1':
               reason: >-
                   Used in build & dev - not included in final production build
               expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-27T16:19:14.119Z
+              created: 2026-06-24T14:04:14.429Z
+        - '@angular-devkit/build-angular@20.3.27 > webpack-dev-server@5.2.2 > chokidar@3.6.0 > anymatch@3.1.3 > picomatch@2.3.1':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T14:04:14.427Z
+        - '@angular-devkit/build-angular@20.3.27 > fast-glob@3.3.3 > micromatch@4.0.8 > picomatch@2.3.1':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T14:04:14.425Z
+        - '@angular-devkit/build-angular@20.3.27 > @angular/build@20.3.27 > vite@7.3.2 > tinyglobby@0.2.15 > picomatch@4.0.3':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T14:04:14.422Z
+        - '@angular-devkit/build-angular@20.3.27 > @angular/build@20.3.27 > vite@7.3.2 > picomatch@4.0.3':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T14:04:14.420Z
+        - '@angular-devkit/build-angular@20.3.27 > @angular/build@20.3.27 > tinyglobby@0.2.14 > picomatch@4.0.2':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T14:04:14.411Z
         - 'ng-packagr@20.3.2 > @rollup/plugin-json@6.1.0 > @rollup/pluginutils@5.1.0 > picomatch@2.3.1':
               reason: >-
                   Used in build & dev - not included in final production build
               expires: 2026-09-06T00:00:00.000Z
               created: 2026-03-27T16:19:14.110Z
-        - ng-packagr@18.2.1 > chokidar@3.5.3 > anymatch@3.1.3 > picomatch@2.3.1:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-27T16:19:14.098Z
-        - ng-packagr@18.2.1 > fast-glob@3.3.2 > micromatch@4.0.8 > picomatch@2.3.1:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-27T16:19:14.093Z
-        - '@angular/cli@18.2.21 > @angular-devkit/architect@0.1802.21 > @angular-devkit/core@18.2.21 > picomatch@4.0.2':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-27T16:19:14.087Z
-        - '@angular-devkit/build-angular@18.2.21 > @angular/build@18.2.21 > sass@1.77.6 > chokidar@3.5.3 > readdirp@3.6.0 > picomatch@2.3.1':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-27T16:19:14.084Z
-        - '@angular-devkit/build-angular@18.2.21 > @angular/build@18.2.21 > sass@1.77.6 > chokidar@3.5.3 > anymatch@3.1.3 > picomatch@2.3.1':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-27T16:19:14.080Z
-        - '@angular-devkit/build-angular@18.2.21 > @angular/build@18.2.21 > fast-glob@3.3.2 > micromatch@4.0.8 > picomatch@2.3.1':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-27T16:19:14.069Z
-        - '@angular-devkit/build-angular@18.2.21 > @angular-devkit/architect@0.1802.21 > @angular-devkit/core@18.2.21 > picomatch@4.0.2':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-27T16:19:14.064Z
-        - '@angular-devkit/build-angular@18.2.21 > @angular/build@18.2.21 > picomatch@4.0.2':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-27T16:19:14.060Z
-        - '@angular-devkit/build-angular@18.2.21 > picomatch@4.0.2':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-27T16:19:14.058Z
         - karma@6.4.4 > chokidar@3.5.3 > anymatch@3.1.3 > picomatch@2.3.1:
               reason: >-
                   Used in build & dev - not included in final production build
@@ -133,26 +190,6 @@ ignore:
               expires: 2026-09-06T00:00:00.000Z
               created: 2026-05-28T00:00:00.000Z
     SNYK-JS-BRACEEXPANSION-15789759:
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/run-script@8.1.0 > node-gyp@10.2.0 > make-fetch-happen@13.0.1 > cacache@18.0.3 > glob@10.3.14 > minimatch@9.0.3 > brace-expansion@2.0.2':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-27T16:17:29.802Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/run-script@8.1.0 > node-gyp@10.2.0 > glob@10.4.5 > minimatch@9.0.4 > brace-expansion@2.0.2':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-27T16:17:29.798Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/package-json@5.2.1 > glob@10.3.14 > minimatch@9.0.3 > brace-expansion@2.0.2':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-27T16:17:29.797Z
-        - ng-packagr@18.2.1 > cacache@18.0.3 > glob@10.3.14 > minimatch@9.0.3 > brace-expansion@2.0.2:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-27T16:17:29.796Z
         - karma-coverage@2.2.1 > minimatch@3.1.2 > brace-expansion@2.0.2:
               reason: >-
                   Used in build & dev - not included in final production build
@@ -187,109 +224,23 @@ ignore:
                   Used in build & dev - not included in final production build
               expires: 2026-09-06T00:00:00.000Z
               created: 2026-05-28T00:00:00.000Z
-    SNYK-JS-TAR-15456201:
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/run-script@8.1.0 > node-gyp@10.2.0 > tar@6.2.1':
-              reason: >-
-                  Downstream dependency of angular - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-16T10:22:58.725Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/run-script@8.1.0 > node-gyp@10.2.0 > make-fetch-happen@13.0.1 > cacache@18.0.3 > tar@6.2.0':
-              reason: >-
-                  Downstream dependency of angular - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-16T10:22:58.723Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > tar@6.2.0':
-              reason: >-
-                  Downstream dependency of angular - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-16T10:22:58.721Z
-        - ng-packagr@18.2.1 > cacache@18.0.3 > tar@6.2.0:
-              reason: >-
-                  Downstream dependency of angular - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-16T10:22:55.517Z
-    SNYK-JS-TAR-15416075:
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/run-script@8.1.0 > node-gyp@10.2.0 > tar@6.2.1':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-05T14:42:52.961Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/run-script@8.1.0 > node-gyp@10.2.0 > make-fetch-happen@13.0.1 > cacache@18.0.3 > tar@6.2.0':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-05T14:42:52.959Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > tar@6.2.0':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-05T14:42:52.952Z
-        - ng-packagr@18.2.1 > cacache@18.0.3 > tar@6.2.0:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-05T14:42:47.923Z
     SNYK-JS-IMMUTABLE-15423650:
         - '@angular-devkit/build-angular@20.3.27 > @angular/build@20.3.27 > sass@1.90.0 > immutable@5.0.3':
               reason: >-
                   Used in build & dev - not included in final production build
               expires: 2026-09-06T00:00:00.000Z
               created: 2026-03-05T14:42:22.822Z
-        - ng-packagr@18.2.1 > sass@1.80.4 > immutable@4.3.4:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-05T14:42:19.164Z
-    SNYK-JS-TAR-15307072:
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/run-script@8.1.0 > node-gyp@10.2.0 > tar@6.2.1':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:42:42.004Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/run-script@8.1.0 > node-gyp@10.2.0 > make-fetch-happen@13.0.1 > cacache@18.0.3 > tar@6.2.0':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:42:42.003Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > tar@6.2.0':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:42:42.001Z
-        - ng-packagr@18.2.1 > cacache@18.0.3 > tar@6.2.0:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:42:41.999Z
-    SNYK-JS-SERIALIZEJAVASCRIPT-570062:
-        - '@angular-devkit/build-angular@18.2.21 > webpack@5.94.0 > terser-webpack-plugin@5.3.10 > serialize-javascript@6.0.1':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:42:05.452Z
-        - '@angular-devkit/build-angular@18.2.21 > copy-webpack-plugin@12.0.2 > serialize-javascript@6.0.2':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:42:05.449Z
-    SNYK-JS-ANGULARCORE-15353393:
-        - '@angular/core@18.2.14':
-              reason: >-
-                  Downstream dependency of angular - the user would be responsible for XSS in the i18n pipeline
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:41:18.104Z
-    SNYK-JS-ROLLUP-15340920:
-        - '@angular-devkit/build-angular@18.2.21 > @angular/build@18.2.21 > vite@5.4.21 > rollup@4.42.0':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:34:11.565Z
-        - '@angular-devkit/build-angular@18.2.21 > @angular/build@18.2.21 > rollup@4.22.4':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:34:11.562Z
     SNYK-JS-QS-15268416:
+        - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > body-parser@2.2.2 > qs@6.14.1':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T14:07:05.329Z
+        - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T14:07:05.322Z
         - '@angular-devkit/build-angular@20.3.27 > webpack-dev-server@5.2.2 > express@4.21.2 > body-parser@1.20.3 > qs@6.13.0':
               reason: >-
                   Used in build & dev - not included in final production build
@@ -311,31 +262,6 @@ ignore:
                   Used in build & dev - not included in final production build
               expires: 2026-09-06T00:00:00.000Z
               created: 2026-03-02T17:28:38.757Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/run-script@8.1.0 > node-gyp@10.2.0 > glob@10.4.5 > minimatch@9.0.4':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:28:38.753Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > npm-packlist@8.0.2 > ignore-walk@6.0.5 > minimatch@9.0.4':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:28:38.747Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/run-script@8.1.0 > node-gyp@10.2.0 > make-fetch-happen@13.0.1 > cacache@18.0.3 > glob@10.3.14 > minimatch@9.0.3':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:28:38.741Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/package-json@5.2.1 > glob@10.3.14 > minimatch@9.0.3':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:28:38.738Z
-        - ng-packagr@18.2.1 > cacache@18.0.3 > glob@10.3.14 > minimatch@9.0.3:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:28:38.735Z
     SNYK-JS-MINIMATCH-15353389:
         - karma-coverage@2.2.1 > minimatch@3.1.2:
               reason: >-
@@ -347,31 +273,6 @@ ignore:
                   Used in build & dev - not included in final production build
               expires: 2026-09-06T00:00:00.000Z
               created: 2026-03-02T17:25:17.543Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/run-script@8.1.0 > node-gyp@10.2.0 > glob@10.4.5 > minimatch@9.0.4':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:25:17.537Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > npm-packlist@8.0.2 > ignore-walk@6.0.5 > minimatch@9.0.4':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:25:17.532Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/run-script@8.1.0 > node-gyp@10.2.0 > make-fetch-happen@13.0.1 > cacache@18.0.3 > glob@10.3.14 > minimatch@9.0.3':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:25:17.528Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/package-json@5.2.1 > glob@10.3.14 > minimatch@9.0.3':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:25:17.523Z
-        - ng-packagr@18.2.1 > cacache@18.0.3 > glob@10.3.14 > minimatch@9.0.3:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:25:17.521Z
         - karma@6.4.4 > minimatch@3.1.2:
               reason: >-
                   Used in build & dev - not included in final production build
@@ -393,31 +294,6 @@ ignore:
                   Used in build & dev - not included in final production build
               expires: 2026-09-06T00:00:00.000Z
               created: 2026-03-02T16:55:11.330Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/run-script@8.1.0 > node-gyp@10.2.0 > glob@10.4.5 > minimatch@9.0.4':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T16:55:11.326Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > npm-packlist@8.0.2 > ignore-walk@6.0.5 > minimatch@9.0.4':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T16:55:11.319Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/run-script@8.1.0 > node-gyp@10.2.0 > make-fetch-happen@13.0.1 > cacache@18.0.3 > glob@10.3.14 > minimatch@9.0.3':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T16:55:11.312Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/package-json@5.2.1 > glob@10.3.14 > minimatch@9.0.3':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T16:55:11.308Z
-        - ng-packagr@18.2.1 > cacache@18.0.3 > glob@10.3.14 > minimatch@9.0.3:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T16:55:11.305Z
         - karma@6.4.4 > minimatch@3.1.2:
               reason: >-
                   Used in build & dev - not included in final production build
@@ -429,16 +305,21 @@ ignore:
               expires: 2026-09-06T00:00:00.000Z
               created: 2026-05-28T00:00:00.000Z
     SNYK-JS-AJV-15274295:
-        - '@angular-devkit/build-angular@18.2.21 > webpack@5.94.0 > schema-utils@3.3.0 > ajv@6.12.6':
+        - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > ajv@8.17.1':
               reason: >-
                   Used in build & dev - not included in final production build
               expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T16:45:16.850Z
-        - '@angular-devkit/build-angular@18.2.21 > babel-loader@9.1.3 > schema-utils@4.2.0 > ajv-formats@2.1.1 > ajv@8.12.0':
+              created: 2026-06-24T14:09:01.662Z
+        - '@angular-devkit/build-angular@20.3.27 > copy-webpack-plugin@14.0.0 > schema-utils@4.3.3 > ajv-formats@2.1.1 > ajv@8.12.0':
               reason: >-
                   Used in build & dev - not included in final production build
               expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T16:45:16.849Z
+              created: 2026-06-24T14:08:49.865Z
+        - '@angular-devkit/build-angular@20.3.27 > mini-css-extract-plugin@2.9.4 > schema-utils@4.2.0 > ajv@8.12.0':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T14:08:49.859Z
         - '@angular/cli@20.3.27 > @angular-devkit/architect@0.2003.27 > @angular-devkit/core@20.3.27 > ajv-formats@3.0.1 > ajv@8.12.0':
               reason: >-
                   Used in build & dev - not included in final production build
@@ -454,44 +335,11 @@ ignore:
                   Used in build & dev - not included in final production build
               expires: 2026-09-06T00:00:00.000Z
               created: 2026-03-02T16:45:16.843Z
-        - '@angular-devkit/build-angular@18.2.21 > babel-loader@9.1.3 > schema-utils@4.2.0 > ajv@8.12.0':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T16:45:16.841Z
-        - '@angular/cli@18.2.21 > @angular-devkit/architect@0.1802.21 > @angular-devkit/core@18.2.21 > ajv@8.17.1':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T16:45:16.839Z
-        - '@angular-devkit/build-angular@18.2.21 > @angular-devkit/architect@0.1802.21 > @angular-devkit/core@18.2.21 > ajv@8.17.1':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T16:45:16.837Z
         - 'ng-packagr@20.3.2 > ajv@8.17.1':
               reason: >-
                   Used in build & dev - not included in final production build
               expires: 2026-09-06T00:00:00.000Z
               created: 2026-03-02T16:45:16.834Z
-    SNYK-JS-SCHEMATICSANGULAR-15357313:
-        - '@angular/cli@18.2.21 > @schematics/angular@18.2.21':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T16:43:30.915Z
-    SNYK-JS-ANGULARDEVKITBUILDANGULAR-15357315:
-        - '@angular-devkit/build-angular@18.2.21':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T16:43:22.447Z
-    SNYK-JS-ANGULARBUILD-15357312:
-        - '@angular-devkit/build-angular@18.2.21 > @angular/build@18.2.21':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T16:36:05.263Z
     SNYK-JS-WS-7266574:
         - karma@6.4.4 > socket.io@4.8.3 > socket.io-adapter@2.5.2 > ws@8.11.0:
               reason: >-
@@ -515,17 +363,7 @@ ignore:
                   Only used for dev server watching
               expires: 2026-09-06T00:00:00.000Z
               created: 2025-07-15T11:28:00.000Z
-        - 'ng-packagr@18.2.1 > chokidar@3.5.3 > braces@3.0.2':
-              reason: >-
-                  Only used for dev server watching
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2025-12-02T10:53:00.000Z
         - '@angular-devkit/build-angular@20.3.27 > webpack-dev-server@5.2.2 > chokidar@3.6.0 > braces@3.0.2':
-              reason: >-
-                  Only used for dev server watching
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2025-12-02T10:53:00.000Z
-        - '@angular-devkit/build-angular@18.2.21 > @angular/build@18.2.21 > sass@1.77.6 > chokidar@3.5.3 > braces@3.0.2':
               reason: >-
                   Only used for dev server watching
               expires: 2026-09-06T00:00:00.000Z
@@ -540,23 +378,6 @@ ignore:
                   Used in build & dev - not included in final production build
               expires: 2026-09-06T00:00:00.000Z
               created: 2026-05-28T00:00:00.000Z
-    SNYK-JS-GLOB-14040952:
-        - 'ng-packagr@18.2.1 > cacache@18.0.3 > glob@10.3.14':
-              reason: Glob is only used for development and we control what files are passed in
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2025-12-02T10:53:00.000Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/package-json@5.2.1 > glob@10.3.14':
-              reason: Glob is only used for development and we control what files are passed in
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2025-12-02T10:53:00.000Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/run-script@8.1.0 > node-gyp@10.2.0 > make-fetch-happen@13.0.1 > cacache@18.0.3 > glob@10.3.14':
-              reason: Glob is only used for development and we control what files are passed in
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2025-12-02T10:53:00.000Z
-        - '@angular/cli@18.2.21 > pacote@18.0.6 > @npmcli/run-script@8.1.0 > node-gyp@10.2.0 > glob@10.4.5':
-              reason: Glob is only used for development and we control what files are passed in
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2025-12-02T10:53:00.000Z
     SNYK-JS-NODEFORGE-14114940:
         - '@angular-devkit/build-angular@20.3.27 > webpack-dev-server@5.2.2 > selfsigned@2.4.1 > node-forge@1.3.1':
               reason: Only used for dev server
@@ -567,17 +388,12 @@ ignore:
               reason: Only used for dev server
               expires: 2026-09-06T00:00:00.000Z
               created: 2025-12-02T10:53:00.000Z
-    SNYK-JS-ANGULARCOMMON-14135651:
-        - '@angular/common@18.2.14':
-              reason: Only used for build and testing
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2025-12-01T09:55:00.007Z
-    SNYK-JS-ANGULARCOMPILER-14157154:
-        - '@angular/compiler@18.2.14':
-              reason: Only used for building files we control
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2025-12-03T12:11:00.007Z
     SNYK-JS-QS-14724253:
+        - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T14:04:51.281Z
         - '@angular-devkit/build-angular@20.3.27 > webpack-dev-server@5.2.2 > express@4.21.2 > body-parser@1.20.3 > qs@6.13.0':
               reason: >-
                   qs is only used during development so an attack would only affect
@@ -595,26 +411,12 @@ ignore:
                   Used in build & dev - not included in final production build
               expires: 2026-09-06T00:00:00.000Z
               created: 2026-05-28T00:00:00.000Z
-    SNYK-JS-ANGULARCOMPILER-14908872:
-        - '@angular/compiler@18.2.14':
-              reason: >-
-                  @angular/compiler is only used during development so an attack would only affect
-                  developer machines
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2025-01-12T10:10:00.000Z
-    SNYK-JS-ANGULARCORE-14908871:
-        - '@angular/core@18.2.14':
-              reason: >-
-                  @angular/core is not used for SVG elements
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2025-01-12T10:10:00.000Z
-    SNYK-JS-BABELPLUGINTRANSFORMMODULESSYSTEMJS-16624576:
-        - '@angular-devkit/build-angular@18.2.21 > @babel/preset-env@7.26.9 > @babel/plugin-transform-modules-systemjs@7.28.5':
+    SNYK-JS-FASTURI-16642394:
+        - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > ajv@8.17.1 > fast-uri@3.0.3':
               reason: >-
                   Used in build & dev - not included in final production build
               expires: 2026-09-06T00:00:00.000Z
-              created: 2026-05-28T00:00:00.000Z
-    SNYK-JS-FASTURI-16642394:
+              created: 2026-06-24T13:48:30.012Z
         - 'ng-packagr@20.3.2 > ajv@8.17.1 > fast-uri@3.0.3':
               reason: >-
                   Used in build & dev - not included in final production build
@@ -631,6 +433,11 @@ ignore:
               expires: 2026-09-06T00:00:00.000Z
               created: 2026-05-28T00:00:00.000Z
     SNYK-JS-FASTURI-16642399:
+        - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > ajv@8.17.1 > fast-uri@3.0.3':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:48:53.067Z
         - 'ng-packagr@20.3.2 > ajv@8.17.1 > fast-uri@3.0.3':
               reason: >-
                   Used in build & dev - not included in final production build
@@ -659,11 +466,6 @@ ignore:
               expires: 2026-09-06T00:00:00.000Z
               created: 2026-05-28T00:00:00.000Z
     SNYK-JS-TMP-16881240:
-        - '@angular/cli@18.2.21 > @inquirer/prompts@5.3.8 > @inquirer/editor@2.2.0 > external-editor@3.1.0 > tmp@0.0.33':
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-05-28T00:00:00.000Z
         - karma@6.4.4 > tmp@0.2.1:
               reason: >-
                   Used in build & dev - not included in final production build

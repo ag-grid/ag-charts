@@ -2,6 +2,12 @@
 version: v1.25.1
 
 ignore:
+    SNYK-JS-TMP-17315641:
+        - '@nx/devkit@18.3.4 > tmp@0.2.1':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:43:11.602Z
     SNYK-JS-BRACEEXPANSION-15789759:
         - '@nx/devkit@18.3.4 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2':
               reason: >-
