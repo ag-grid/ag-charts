@@ -59,3 +59,19 @@ What to test:
 - Click outside the sectors to clear selection.
 
 {% chartExampleRunner title="Pie Selection" name="pie-selection" type="generated" /%}
+
+## Org Chart
+
+What to test:
+
+- Clicks:
+    - With `clickModifier`: clear old selection and set selection to clicked series-node.
+    - With Control or Command modifier: adds/remove the clicked series-node to the
+      current selection.
+- Drags:
+    - All containment modes.
+    - With/without modifiers (like with clicks).
+- Expand/Collapse:
+    - Preserves selections.
+
+{% chartExampleRunner title="Org Selection" name="org-selection" type="generated"/%}

@@ -1,0 +1,11 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <label for="selectionChangeDropdown">Containment</label>
+        <select id="selectionChangeDropdown" onchange="onSelectionContainmentChange(event.target.value)">
+            <option value="any">any</option>
+            <option value="all">all</option>
+        </select>
+        <button onclick="onGetSelectionClicked()">Get Selection</button>
+    </div>
+</div>
+<div id="myChart"></div>
