@@ -2,6 +2,195 @@
 version: v1.25.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
+    SNYK-JS-WS-17344547:
+        - jsdom@22.1.0 > ws@8.15.0:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:44:58.733Z
+        - '@modelcontextprotocol/server-puppeteer@2025.5.12 > puppeteer@23.11.1 > puppeteer-core@23.11.1 > ws@8.18.2':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:44:58.730Z
+        - '@kazuph/mcp-fetch@1.6.2 > jsdom@24.1.3 > ws@8.18.2':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:44:58.705Z
+    SNYK-JS-VITE-17353904:
+        - vite@5.4.19:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:44:44.131Z
+        - vitest@2.1.9 > vite-node@2.1.9 > vite@6.3.5:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:44:44.112Z
+        - vitest@2.1.9 > vite@6.3.5:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:44:44.109Z
+    SNYK-JS-UNDICI-17372758:
+        - '@lavamoat/allow-scripts@5.0.2 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:44:02.694Z
+        - rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.18.2:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:44:02.673Z
+    SNYK-JS-UNDICI-17372754:
+        - rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.18.2:
+              reason: >-
+                  MCP/dev tooling - not a directly exposed production dependency
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:43:42.680Z
+    SNYK-JS-UNDICI-17372697:
+        - rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.18.2:
+              reason: >-
+                  MCP/dev tooling - not a directly exposed production dependency
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:43:34.848Z
+    SNYK-JS-TMP-17315641:
+        - patch-package@8.0.1 > tmp@0.2.5:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:43:11.631Z
+        - '@nx/workspace@20.3.1 > nx@20.3.1 > tmp@0.2.1':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:43:11.629Z
+        - '@nx/workspace@20.3.1 > @nx/devkit@20.3.1 > tmp@0.2.1':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:43:11.627Z
+        - '@nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1 > tmp@0.2.1':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:43:11.626Z
+        - '@nx/js@20.3.1 > @nx/workspace@20.3.1 > @nx/devkit@20.3.1 > tmp@0.2.1':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:43:11.623Z
+        - '@nx/js@20.3.1 > @nx/devkit@20.3.1 > tmp@0.2.1':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:43:11.618Z
+        - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1 > tmp@0.2.1':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:43:11.615Z
+        - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/workspace@20.3.1 > @nx/devkit@20.3.1 > tmp@0.2.1':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:43:11.612Z
+        - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/devkit@20.3.1 > tmp@0.2.1':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:43:11.609Z
+        - '@nx/esbuild@20.3.1 > @nx/devkit@20.3.1 > tmp@0.2.1':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:43:11.606Z
+        - nx@20.3.1 > tmp@0.2.1:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:43:11.604Z
+        - '@nx/devkit@20.3.1 > tmp@0.2.1':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:43:11.560Z
+    SNYK-JS-HONO-17356430:
+        - rulesync@7.0.0 > fastmcp@3.31.0 > hono@4.11.9:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:42:53.701Z
+        - rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0 > hono@4.11.7:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:42:53.698Z
+        - '@upstash/context7-mcp@1.0.14 > @modelcontextprotocol/sdk@1.26.0 > hono@4.11.7':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:42:53.696Z
+        - '@modelcontextprotocol/server-sequential-thinking@2025.12.18 > @modelcontextprotocol/sdk@1.26.0 > hono@4.11.7':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:42:53.693Z
+        - '@modelcontextprotocol/server-puppeteer@2025.5.12 > @modelcontextprotocol/sdk@1.26.0 > hono@4.11.7':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:42:53.689Z
+        - '@kazuph/mcp-fetch@1.6.2 > @modelcontextprotocol/sdk@1.26.0 > hono@4.11.7':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:42:53.660Z
+    SNYK-JS-HONO-17356405:
+        - rulesync@7.0.0 > fastmcp@3.31.0 > hono@4.11.9:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:42:44.368Z
+        - rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0 > hono@4.11.7:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:42:44.364Z
+        - '@upstash/context7-mcp@1.0.14 > @modelcontextprotocol/sdk@1.26.0 > hono@4.11.7':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:42:44.362Z
+        - '@modelcontextprotocol/server-sequential-thinking@2025.12.18 > @modelcontextprotocol/sdk@1.26.0 > hono@4.11.7':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:42:44.360Z
+        - '@modelcontextprotocol/server-puppeteer@2025.5.12 > @modelcontextprotocol/sdk@1.26.0 > hono@4.11.7':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:42:44.357Z
+        - '@kazuph/mcp-fetch@1.6.2 > @modelcontextprotocol/sdk@1.26.0 > hono@4.11.7':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:42:44.335Z
+    SNYK-JS-UNDICI-17372658:
+        - '@lavamoat/allow-scripts@5.0.2 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:42:12.287Z
+        - rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.18.2:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:42:12.278Z
     SNYK-JS-AXIOS-17172681:
         - nx@20.3.1 > axios@1.7.9:
               reason: >-
