@@ -2,6 +2,49 @@
 version: v1.25.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
+    SNYK-JS-ASTRO-17356189:
+        - astro@6.1.9:
+              reason: >-
+                  The website is a static site, so server-side vulns are not relevant
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T14:07:20.555Z
+    SNYK-JS-WS-17344547:
+        - puppeteer-core@24.42.0 > ws@8.20.0:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:44:58.747Z
+        - jsdom@26.1.0 > ws@8.18.2:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:44:58.738Z
+    SNYK-JS-VITE-17353904:
+        - astro@6.1.9 > vite@7.3.3:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:44:44.137Z
+        - '@astrojs/react@5.0.4 > vite@7.3.3':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:44:44.136Z
+        - vite@5.4.20:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:44:44.133Z
+        - vitest@2.1.9 > vite-node@2.1.9 > vite@6.3.5:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:44:44.129Z
+        - vitest@2.1.9 > vite@6.3.5:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-06-24T13:44:44.128Z
     SNYK-JS-AXIOS-17172681:
         - vite-plugin-mkcert@1.17.8 > axios@1.9.0:
               reason: >-
