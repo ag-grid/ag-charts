@@ -78,8 +78,7 @@ describe('clockwiseAngles', () => {
 describe('boxOverlapsSector', () => {
     it('reports no collision for a box on the opposite side of the origin from the sector', () => {
         // The upper-half sector (angles in (0, π)) occupies positive y only; a box entirely at
-        // negative y cannot overlap it. The previous `boxCollidesSector` (only top/bottom edges,
-        // no angular filter) returned a false positive here — see AG-16578.
+        // negative y cannot overlap it.
         const sector: Sector = { startAngle: 0.1, endAngle: Math.PI - 0.1, innerRadius: 0, outerRadius: 100 };
         const box: BoxBounds = { x: -20, y: -60, width: 40, height: 20 };
 
@@ -88,8 +87,7 @@ describe('boxOverlapsSector', () => {
     });
 
     it('reports no collision for a box sitting inside the donut hole', () => {
-        // A box wholly within the inner radius overlaps neither arc nor the filled annulus. The old
-        // predicate ignored the inner arc entirely, so donut-hole cases were unreliable.
+        // A box wholly within the inner radius overlaps neither arc nor the filled annulus.
         const sector: Sector = { startAngle: -Math.PI, endAngle: Math.PI, innerRadius: 50, outerRadius: 100 };
         const box: BoxBounds = { x: -10, y: -10, width: 20, height: 20 };
 
@@ -128,8 +126,7 @@ describe('boxOverlapsSector', () => {
             }
         }
 
-        // Only measure-zero boundary grazes should differ from the area-sampling oracle. The old
-        // `boxCollidesSector` disagreed on ~4.6% of such cases; the correct predicate is near-zero.
+        // Only measure-zero boundary grazes should differ from the area-sampling oracle.
         expect(disagreements / trials).toBeLessThan(0.01);
     });
 });
