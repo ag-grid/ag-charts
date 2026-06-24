@@ -5,7 +5,7 @@ ignore:
     SNYK-JS-WS-17344547:
         - jsdom@24.1.3 > ws@8.18.2:
               reason: >-
-                  Used in build & dev - not included in final production build
+                  JSDOM is run in an isolated environment so ws does not have access to the network
               expires: 2026-09-06T00:00:00.000Z
               created: 2026-06-24T13:44:58.736Z
     SNYK-JS-FOLLOWREDIRECTS-16032162:
