@@ -2,6 +2,8 @@ import {
     type BoxBounds,
     type NormalisedPaddingOptions,
     type PointLabelDatum,
+    SpatialIndex,
+    type SpatialIndexVisitor,
     isPointLabelDatum,
     placeLabels,
 } from 'ag-charts-core';
@@ -33,6 +35,8 @@ export interface LabelLayoutParticipant {
 export class LabelManager {
     private readonly labelData: Map<string, PointLabelDatum[]> = new Map();
     private readonly participants: Map<string, LabelLayoutParticipant> = new Map();
+    /** Scratch index reused across all `anyObstacleCollision` calls (cleared, not reallocated). */
+    private readonly obstacleIndex = new SpatialIndex<unknown>();
 
     registerParticipant(participant: LabelLayoutParticipant) {
         this.participants.set(participant.id, participant);
@@ -49,6 +53,61 @@ export class LabelManager {
             obstacles.push(...participant.getLabelObstacles());
         }
         return obstacles;
+    }
+
+    /**
+     * Index-backed any-collision test: does any `queryBox` overlap any `obstacle`? Obstacle AABBs
+     * prune the candidate set via the shared spatial index, and the caller's `exact` predicate runs
+     * only on the survivors. Geometry-agnostic — the caller supplies the precise test (e.g.
+     * `boxOverlapsSector` for pie wedges) so this one primitive serves every label source.
+     */
+    anyObstacleCollision<R>(
+        queryBoxes: readonly BoxBounds[],
+        obstacles: readonly { box: BoxBounds; ref: R }[],
+        exact: (queryBox: BoxBounds, ref: R) => boolean
+    ): boolean {
+        if (queryBoxes.length === 0 || obstacles.length === 0) {
+            return false;
+        }
+
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
+        let dimSum = 0;
+        let dimCount = 0;
+        const extend = (b: BoxBounds) => {
+            minX = Math.min(minX, b.x);
+            minY = Math.min(minY, b.y);
+            maxX = Math.max(maxX, b.x + b.width);
+            maxY = Math.max(maxY, b.y + b.height);
+            dimSum += b.width + b.height;
+            dimCount += 2;
+        };
+        for (const box of queryBoxes) {
+            extend(box);
+        }
+        for (const obstacle of obstacles) {
+            extend(obstacle.box);
+        }
+
+        const bounds = { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+        const cellSize = dimCount > 0 ? dimSum / dimCount : 1;
+        const index = this.obstacleIndex as SpatialIndex<R>;
+        index.reset(bounds, cellSize);
+        for (const obstacle of obstacles) {
+            index.insert(obstacle.box, obstacle.ref);
+        }
+
+        let queryBox: BoxBounds | null = null;
+        const visit: SpatialIndexVisitor<R> = (ref) => queryBox != null && exact(queryBox, ref);
+        for (const box of queryBoxes) {
+            queryBox = box;
+            if (index.query(box, visit)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     updateLabels(
