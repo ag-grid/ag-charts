@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { type BoxBounds, boxCollides } from './boxBounds';
-import { SpatialIndex } from './spatialIndex';
+import { SpatialIndex, anyOverlap } from './spatialIndex';
 
 function makeBoxes(count: number, bounds: BoxBounds): BoxBounds[] {
     // Deterministic pseudo-random spread so the test is reproducible.
@@ -85,5 +85,67 @@ describe('SpatialIndex', () => {
         });
         expect(found).toBe(true);
         expect(visits).toBe(1);
+    });
+});
+
+describe('anyOverlap', () => {
+    const collidesExactly = (a: BoxBounds, b: BoxBounds) => boxCollides(a, b.x, b.y, b.width, b.height);
+    const randomBox = (next: () => number): BoxBounds => ({
+        x: next() * 400 - 200,
+        y: next() * 400 - 200,
+        width: 5 + next() * 50,
+        height: 5 + next() * 50,
+    });
+
+    it('returns false when there are no query boxes or no obstacles', () => {
+        const boxes: BoxBounds[] = [{ x: 0, y: 0, width: 10, height: 10 }];
+        const obstacles = boxes.map((box) => ({ box, ref: box }));
+
+        expect(anyOverlap([], obstacles, collidesExactly)).toBe(false);
+        expect(anyOverlap(boxes, [], collidesExactly)).toBe(false);
+    });
+
+    it('matches a brute-force scan exactly when the exact predicate is AABB overlap', () => {
+        // The index is conservative (never prunes a true overlap) and the exact predicate runs on
+        // every survivor, so an index-backed any-collision must equal the brute-force result.
+        let seed = 0x1234567;
+        const next = () => {
+            seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+            return seed / 0x7fffffff;
+        };
+
+        for (let trial = 0; trial < 500; trial++) {
+            const queryCount = 1 + Math.floor(next() * 12);
+            const obstacleCount = 1 + Math.floor(next() * 12);
+            const queryBoxes = Array.from({ length: queryCount }, () => randomBox(next));
+            const obstacles = Array.from({ length: obstacleCount }, () => {
+                const box = randomBox(next);
+                return { box, ref: box };
+            });
+
+            const bruteForce = obstacles.some((o) => queryBoxes.some((q) => collidesExactly(q, o.ref)));
+            expect(anyOverlap(queryBoxes, obstacles, collidesExactly)).toBe(bruteForce);
+        }
+    });
+
+    it('reuses its scratch index correctly across consecutive calls', () => {
+        const far: BoxBounds = { x: 1000, y: 1000, width: 10, height: 10 };
+        const hitA: BoxBounds = { x: 0, y: 0, width: 10, height: 10 };
+        const hitB: BoxBounds = { x: 5, y: 5, width: 10, height: 10 };
+
+        // A real collision, then a clear miss reusing the same scratch index, then a collision again.
+        expect(anyOverlap([hitA], [{ box: hitB, ref: hitB }], collidesExactly)).toBe(true);
+        expect(anyOverlap([hitA], [{ box: far, ref: far }], collidesExactly)).toBe(false);
+        expect(anyOverlap([hitA], [{ box: hitB, ref: hitB }], collidesExactly)).toBe(true);
+    });
+
+    it('only reports a collision the exact predicate confirms, not merely a cell co-residency', () => {
+        // Two boxes can share a grid cell without their AABBs overlapping; the exact predicate must
+        // have the final say.
+        const query: BoxBounds = { x: 0, y: 0, width: 4, height: 4 };
+        const nearMiss: BoxBounds = { x: 5, y: 5, width: 4, height: 4 };
+
+        expect(collidesExactly(query, nearMiss)).toBe(false);
+        expect(anyOverlap([query], [{ box: nearMiss, ref: nearMiss }], collidesExactly)).toBe(false);
     });
 });

@@ -1,7 +1,7 @@
 import type { NormalisedTextOrSegments } from '../../types/normalised-options/normalisedCommonOptions';
 import type { Point, SizedPoint } from '../../types/scene';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
-import { SpatialIndex } from './spatialIndex';
+import { SpatialIndex, gridCellSize } from './spatialIndex';
 
 export type LabelPlacement =
     | 'top'
@@ -113,19 +113,14 @@ export function placeLabels(data: Map<string, PointLabelDatum[]>, bounds: BoxBou
     );
     const dataValues = [...sortedDataClone.values()].flat();
 
-    // Cell size only affects performance, not correctness: overlapping boxes always share a cell
-    // regardless of cell size. Sizing cells to the typical box keeps queries near O(1).
-    let dimSum = 0;
-    let dimCount = 0;
+    const extents: number[] = [];
     for (const d of dataValues) {
-        dimSum += d.label.width + d.label.height;
-        dimCount += 2;
+        extents.push(d.label.width, d.label.height);
         if (d.point.size > 0) {
-            dimSum += d.point.size;
-            dimCount += 1;
+            extents.push(d.point.size);
         }
     }
-    const cellSize = dimCount > 0 ? Math.max(1, dimSum / dimCount) : 1;
+    const cellSize = gridCellSize(extents);
     markerIndex.reset(bounds, cellSize);
     placedIndex.reset(bounds, cellSize);
 

@@ -16,6 +16,7 @@ import {
     PolarZIndexMap,
     type RequireOptional,
     type WrapOptions,
+    anyOverlap,
     extractDomain,
     formatValue,
     isGradientFill,
@@ -1395,11 +1396,7 @@ export class DonutSeries
                 const sector = { startAngle, endAngle, innerRadius, outerRadius };
                 return { box: sectorBox(sector), ref: sector };
             });
-            const labelsCollideSectors = this.ctx.labelManager.anyObstacleCollision(
-                boxes,
-                sectorObstacles,
-                boxOverlapsSector
-            );
+            const labelsCollideSectors = anyOverlap(boxes, sectorObstacles, boxOverlapsSector);
 
             if (!labelsCollideLabelsByX && !labelsCollideLabelsByY && !labelsCollideSectors) return;
 

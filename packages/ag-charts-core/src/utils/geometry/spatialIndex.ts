@@ -79,3 +79,74 @@ export class SpatialIndex<R> {
         return Math.min(this.rows - 1, Math.max(0, Math.floor((y - this.originY) / this.cellSize)));
     }
 }
+
+/**
+ * Heuristic {@link SpatialIndex} cell size: the mean of the supplied extents, floored at 1. Cell
+ * size only affects query performance, not correctness, so sizing cells to the typical box keeps
+ * queries near O(1).
+ */
+export function gridCellSize(extents: readonly number[]): number {
+    if (extents.length === 0) {
+        return 1;
+    }
+    let sum = 0;
+    for (const extent of extents) {
+        sum += extent;
+    }
+    return Math.max(1, sum / extents.length);
+}
+
+/** Scratch index reused across all `anyOverlap` calls (cleared, not reallocated). */
+const overlapIndex = new SpatialIndex<unknown>();
+
+/**
+ * Index-backed any-collision test: does any `queryBox` overlap any `obstacle`? Obstacle AABBs prune
+ * the candidate set via a shared spatial index, and the caller's `exact` predicate runs only on the
+ * survivors. Geometry-agnostic — the caller supplies the precise test (e.g. `boxOverlapsSector` for
+ * pie wedges) so this one primitive serves every label source.
+ */
+export function anyOverlap<R>(
+    queryBoxes: readonly BoxBounds[],
+    obstacles: readonly { box: BoxBounds; ref: R }[],
+    exact: (queryBox: BoxBounds, ref: R) => boolean
+): boolean {
+    if (queryBoxes.length === 0 || obstacles.length === 0) {
+        return false;
+    }
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    const extents: number[] = [];
+    const extend = (b: BoxBounds) => {
+        minX = Math.min(minX, b.x);
+        minY = Math.min(minY, b.y);
+        maxX = Math.max(maxX, b.x + b.width);
+        maxY = Math.max(maxY, b.y + b.height);
+        extents.push(b.width, b.height);
+    };
+    for (const box of queryBoxes) {
+        extend(box);
+    }
+    for (const obstacle of obstacles) {
+        extend(obstacle.box);
+    }
+
+    const bounds = { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+    const index = overlapIndex as SpatialIndex<R>;
+    index.reset(bounds, gridCellSize(extents));
+    for (const obstacle of obstacles) {
+        index.insert(obstacle.box, obstacle.ref);
+    }
+
+    let queryBox: BoxBounds | null = null;
+    const visit: SpatialIndexVisitor<R> = (ref) => queryBox != null && exact(queryBox, ref);
+    for (const box of queryBoxes) {
+        queryBox = box;
+        if (index.query(box, visit)) {
+            return true;
+        }
+    }
+    return false;
+}
