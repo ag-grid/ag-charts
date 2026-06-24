@@ -71,7 +71,6 @@ import {
 } from '../../data/processors';
 import { Label, expandLabelPadding } from '../../label';
 import { getLabelStyles } from '../../labelUtil';
-import type { LabelCandidate, LabelLayoutParticipant } from '../../layout/labelManager';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -176,10 +175,12 @@ interface PieDonutSeriesLabelFormatterParams
     extends AgDonutSeriesLabelFormatterParams, AgPieSeriesLabelFormatterParams {}
 interface PieDonutSeriesStyle extends NormalisedDonutSeriesStyle, NormalisedPieSeriesStyle {}
 
-export class DonutSeries
-    extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOptions, DonutSeriesProperties, Sector<PieDonutNodeDatum>>
-    implements LabelLayoutParticipant
-{
+export class DonutSeries extends PolarSeries<
+    PieDonutNodeDatum,
+    AgDonutSeriesOptions,
+    DonutSeriesProperties,
+    Sector<PieDonutNodeDatum>
+> {
     static override readonly className: string = 'DonutSeries';
     static readonly type: string = 'donut';
 
@@ -261,35 +262,6 @@ export class DonutSeries
         this.phantomHighlightGroup.opacity = 0.2;
 
         this.innerLabelsGroup.pointerEvents = PointerEvents.None;
-
-        this.ctx.labelManager.registerParticipant(this);
-        this.cleanup.register(() => this.ctx.labelManager.unregisterParticipant(this.id));
-    }
-
-    /**
-     * Callout labels this series occupies after collision resolution, in chart space, exposed to the
-     * chart-wide {@link LabelManager} so other label sources can avoid them. The precise relaxation
-     * still runs in the polar layout loop; this only publishes the resulting boxes.
-     */
-    getLabelObstacles(): readonly LabelCandidate[] {
-        if (!this.properties.calloutLabel.avoidCollisions) {
-            return [];
-        }
-        const { centerX, centerY } = this;
-        const obstacles: LabelCandidate[] = [];
-        for (const datum of this.calloutNodeData) {
-            const label = datum.calloutLabel;
-            if (label == null || label.hidden || datum.outerRadius === 0) {
-                continue;
-            }
-            const box = this.getCalloutLabelBBox(datum as Has<'calloutLabel', PieDonutNodeDatum>);
-            obstacles.push({
-                box: { x: box.x + centerX, y: box.y + centerY, width: box.width, height: box.height },
-                payload: datum,
-                source: 'pie',
-            });
-        }
-        return obstacles;
     }
 
     override attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined): void {
