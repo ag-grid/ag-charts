@@ -320,8 +320,8 @@ describe('DataSource', () => {
                 { x: 'seven', y: 50 },
             ]);
 
-            let windowStart;
-            let windowEnd;
+            let windowStart: unknown;
+            let windowEnd: unknown;
 
             await prepareChart(
                 {
@@ -359,8 +359,8 @@ describe('DataSource', () => {
                 { x: ['delta', 'seven'], y: 50 },
             ]);
 
-            let windowStart;
-            let windowEnd;
+            let windowStart: unknown;
+            let windowEnd: unknown;
             await prepareChart(
                 {
                     getData: (window) => {
@@ -399,8 +399,8 @@ describe('DataSource', () => {
                 { time: new Date('2024-02-12 00:00:00'), price: 50 },
             ]);
 
-            let windowStart;
-            let windowEnd;
+            let windowStart: unknown;
+            let windowEnd: unknown;
             await prepareChart(
                 {
                     getData: (window) => {
@@ -439,8 +439,8 @@ describe('DataSource', () => {
                 { time: new Date('2024-02-12 00:00:00'), price: 50 },
             ]);
 
-            let windowStart;
-            let windowEnd;
+            let windowStart: unknown;
+            let windowEnd: unknown;
             await prepareChart(
                 {
                     getData: (window) => {
