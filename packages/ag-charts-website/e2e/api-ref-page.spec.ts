@@ -34,6 +34,12 @@ function getNavigationText(page: Page, text: string): Locator {
     return getNavigationTree(page).getByText(text, { exact: false });
 }
 
+async function expandNavNode(page: Page, matcher: string | RegExp) {
+    const node = getNavigationProperty(page, matcher);
+    await expect(node).toBeVisible();
+    await node.locator(PROPERTY_EXPANDER_SELECTOR).click();
+}
+
 async function waitForApiReady(page: Page) {
     await expect(page.locator('header h1')).toContainText('AgChartOptions');
     await expect(getNavigationTree(page).locator(PROPERTY_NAME_SELECTOR).first()).toBeVisible();
@@ -124,6 +130,34 @@ test.describe('api-ref-page', () => {
         await expect(getNavigationTree(page).locator(PROPERTY_NAME_SELECTOR).first()).toBeVisible();
     });
 
+    // The themes tree nests everything under `overrides`. Drilling overrides -> common -> axes
+    // renders every axis-type variant through the themeable types, mirroring the options-page axis
+    // surface. setupIntrinsicAssertions fails on the "type-literals" pageerror.
+    test('themes API page expands the common axes node into its axis-type variants', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('themes-api/'));
+        await expect(getNavigationTree(page).locator(PROPERTY_NAME_SELECTOR).first()).toBeVisible();
+
+        await expandNavNode(page, /^overrides/);
+        await expandNavNode(page, /^common/);
+        await expandNavNode(page, /^axes/);
+
+        await expect(getNavigationProperty(page, /^number\b/)).toBeVisible();
+    });
+
+    // A per-series override (here `bar`) exposes a themeable `series` node; expanding it renders the
+    // series themeable options. `\b` keeps the matcher off the sibling `seriesArea` node. Guarded by
+    // setupIntrinsicAssertions against the type-literals pageerror.
+    test('themes API page expands a series override into its themeable series properties', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('themes-api/'));
+        await expect(getNavigationTree(page).locator(PROPERTY_NAME_SELECTOR).first()).toBeVisible();
+
+        await expandNavNode(page, /^overrides/);
+        await expandNavNode(page, /^bar/);
+        await expandNavNode(page, /^series\b/);
+
+        await expect(getNavigationProperty(page, /^direction\b/)).toBeVisible();
+    });
+
     test('shows fallback when search returns no matches', async ({ page }) => {
         await gotoUrl(page, toPageUrl('options/'));
         await waitForApiReady(page);
@@ -209,6 +243,20 @@ test.describe('api-ref-page', () => {
         await barEntry.locator(PROPERTY_EXPANDER_SELECTOR).click();
 
         await expect(getNavigationProperty(page, /^xKey$/)).toBeVisible();
+    });
+
+    // The top-level `axes` node is the union of every axis type; expanding it renders all axis
+    // variants at once. setupIntrinsicAssertions fails on the "type-literals" pageerror, so this
+    // guards the whole axis surface against a nameless type-literal regression — the companion to
+    // the `series` expansion tests above.
+    test('expands the axes node into its axis-type variants', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/'));
+        await waitForApiReady(page);
+
+        await expandNavNode(page, /^axes/);
+
+        await expect(getNavigationProperty(page, /type\s*= 'number'/)).toBeVisible();
+        await expect(getNavigationProperty(page, /type\s*= 'category'/)).toBeVisible();
     });
 
     // On the number-axis page the `crossLines` member sits under the `{ type = 'number' ... }`
