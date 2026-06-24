@@ -113,14 +113,17 @@ export function placeLabels(data: Map<string, PointLabelDatum[]>, bounds: BoxBou
     );
     const dataValues = [...sortedDataClone.values()].flat();
 
-    const extents: number[] = [];
+    let extentSum = 0;
+    let extentCount = 0;
     for (const d of dataValues) {
-        extents.push(d.label.width, d.label.height);
+        extentSum += d.label.width + d.label.height;
+        extentCount += 2;
         if (d.point.size > 0) {
-            extents.push(d.point.size);
+            extentSum += d.point.size;
+            extentCount += 1;
         }
     }
-    const cellSize = gridCellSize(extents);
+    const cellSize = gridCellSize(extentSum, extentCount);
     markerIndex.reset(bounds, cellSize);
     placedIndex.reset(bounds, cellSize);
 

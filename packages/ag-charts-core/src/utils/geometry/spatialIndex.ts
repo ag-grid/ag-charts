@@ -12,7 +12,7 @@ export type SpatialIndexVisitor<R> = (ref: R) => boolean | void;
  * than once for the same ref — callers must keep the precise test idempotent (any-collision is).
  */
 export class SpatialIndex<R> {
-    private cellSize = 1;
+    private invCellSize = 1;
     private cols = 0;
     private rows = 0;
     private originX = 0;
@@ -21,11 +21,12 @@ export class SpatialIndex<R> {
     private readonly cells: R[][] = [];
 
     reset(bounds: BoxBounds, cellSize: number) {
-        this.cellSize = Math.max(cellSize, 1);
+        const clampedCellSize = Math.max(cellSize, 1);
+        this.invCellSize = 1 / clampedCellSize;
         this.originX = bounds.x;
         this.originY = bounds.y;
-        this.cols = Math.max(1, Math.ceil(bounds.width / this.cellSize));
-        this.rows = Math.max(1, Math.ceil(bounds.height / this.cellSize));
+        this.cols = Math.max(1, Math.ceil(bounds.width / clampedCellSize));
+        this.rows = Math.max(1, Math.ceil(bounds.height / clampedCellSize));
 
         const count = this.cols * this.rows;
         const clearTo = Math.max(this.cellCount, count);
@@ -72,28 +73,21 @@ export class SpatialIndex<R> {
     }
 
     private clampCol(x: number): number {
-        return Math.min(this.cols - 1, Math.max(0, Math.floor((x - this.originX) / this.cellSize)));
+        return Math.min(this.cols - 1, Math.max(0, Math.floor((x - this.originX) * this.invCellSize)));
     }
 
     private clampRow(y: number): number {
-        return Math.min(this.rows - 1, Math.max(0, Math.floor((y - this.originY) / this.cellSize)));
+        return Math.min(this.rows - 1, Math.max(0, Math.floor((y - this.originY) * this.invCellSize)));
     }
 }
 
 /**
- * Heuristic {@link SpatialIndex} cell size: the mean of the supplied extents, floored at 1. Cell
- * size only affects query performance, not correctness, so sizing cells to the typical box keeps
- * queries near O(1).
+ * Heuristic {@link SpatialIndex} cell size: the mean extent (`extentSum / extentCount`), floored at
+ * 1. Cell size only affects query performance, not correctness, so sizing cells to the typical box
+ * keeps queries near O(1).
  */
-export function gridCellSize(extents: readonly number[]): number {
-    if (extents.length === 0) {
-        return 1;
-    }
-    let sum = 0;
-    for (const extent of extents) {
-        sum += extent;
-    }
-    return Math.max(1, sum / extents.length);
+export function gridCellSize(extentSum: number, extentCount: number): number {
+    return extentCount > 0 ? Math.max(1, extentSum / extentCount) : 1;
 }
 
 /** Scratch index reused across all `anyOverlap` calls (cleared, not reallocated). */
@@ -118,13 +112,15 @@ export function anyOverlap<R>(
     let minY = Infinity;
     let maxX = -Infinity;
     let maxY = -Infinity;
-    const extents: number[] = [];
+    let extentSum = 0;
+    let extentCount = 0;
     const extend = (b: BoxBounds) => {
         minX = Math.min(minX, b.x);
         minY = Math.min(minY, b.y);
         maxX = Math.max(maxX, b.x + b.width);
         maxY = Math.max(maxY, b.y + b.height);
-        extents.push(b.width, b.height);
+        extentSum += b.width + b.height;
+        extentCount += 2;
     };
     for (const box of queryBoxes) {
         extend(box);
@@ -135,7 +131,7 @@ export function anyOverlap<R>(
 
     const bounds = { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
     const index = overlapIndex as SpatialIndex<R>;
-    index.reset(bounds, gridCellSize(extents));
+    index.reset(bounds, gridCellSize(extentSum, extentCount));
     for (const obstacle of obstacles) {
         index.insert(obstacle.box, obstacle.ref);
     }

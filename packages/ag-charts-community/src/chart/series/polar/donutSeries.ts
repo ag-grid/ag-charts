@@ -1337,15 +1337,13 @@ export class DonutSeries
             .filter((d) => d.midSin >= 0 && d.calloutLabel?.textAlign === 'center')
             .sort((a, b) => a.midCos - b.midCos);
 
-        const getTextBBox = (datum: (typeof data)[number]) => this.getCalloutLabelBBox(datum);
-
         const avoidNeighbourYCollision = (
             label: (typeof data)[number],
             next: (typeof data)[number],
             direction: 'to-top' | 'to-bottom'
         ) => {
-            const box = getTextBBox(label).grow(minSpacing / 2);
-            const other = getTextBBox(next).grow(minSpacing / 2);
+            const box = this.getCalloutLabelBBox(label).grow(minSpacing / 2);
+            const other = this.getCalloutLabelBBox(next).grow(minSpacing / 2);
             // The full collision is not detected, because sometimes
             // the next label can appear behind the label with offset
             const collidesOrBehind =
@@ -1373,10 +1371,16 @@ export class DonutSeries
             }
         };
 
+        const sectorObstacles = fullData.map((datum) => {
+            const { startAngle, endAngle, outerRadius } = datum;
+            const sector = { startAngle, endAngle, innerRadius, outerRadius };
+            return { box: sectorBox(sector), ref: sector };
+        });
+
         const avoidXCollisions = (labels: typeof data) => {
             const labelsCollideLabelsByY = data.some((datum) => datum.calloutLabel.collisionOffsetY !== 0);
 
-            const boxes = labels.map((label) => getTextBBox(label));
+            const boxes = labels.map((label) => this.getCalloutLabelBBox(label));
             const paddedBoxes = boxes.map((box) => box.clone().grow(minSpacing / 2));
 
             let labelsCollideLabelsByX = false;
@@ -1391,11 +1395,6 @@ export class DonutSeries
                 }
             }
 
-            const sectorObstacles = fullData.map((datum) => {
-                const { startAngle, endAngle, outerRadius } = datum;
-                const sector = { startAngle, endAngle, innerRadius, outerRadius };
-                return { box: sectorBox(sector), ref: sector };
-            });
             const labelsCollideSectors = anyOverlap(boxes, sectorObstacles, boxOverlapsSector);
 
             if (!labelsCollideLabelsByX && !labelsCollideLabelsByY && !labelsCollideSectors) return;
