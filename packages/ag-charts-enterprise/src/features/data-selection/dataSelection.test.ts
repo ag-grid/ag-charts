@@ -5467,7 +5467,7 @@ describe('DataSelection', () => {
                 beforeEach(async () => {
                     selectionChange.popEvents(); // pop & ignore initial event.
                     (opts.series![1] as any).selection.enabled = false;
-                    chart.update(opts);
+                    await chart.update(opts);
                     await waitForChartStability(chart);
                 });
                 test('getSelection', () => {
@@ -5479,7 +5479,7 @@ describe('DataSelection', () => {
                 describe('update - enable', () => {
                     beforeEach(async () => {
                         (opts.series![1] as any).selection.enabled = true;
-                        chart.update(opts);
+                        await chart.update(opts);
                         await waitForChartStability(chart);
                     });
                     test('getSelection', () => {
@@ -5502,7 +5502,7 @@ describe('DataSelection', () => {
                 }
                 beforeEach(async () => {
                     selectionChange.popEvents(); // pop & ignore initial event.
-                    chart.updateDelta(deltaOptionsWith({ selection: { enabled: false } }));
+                    await chart.updateDelta(deltaOptionsWith({ selection: { enabled: false } }));
                     await waitForChartStability(chart);
                 });
                 test('getSelection', () => {
@@ -5513,7 +5513,7 @@ describe('DataSelection', () => {
                 });
                 describe('updateDelta - enable', () => {
                     beforeEach(async () => {
-                        chart.updateDelta(deltaOptionsWith({ selection: { enabled: true } }));
+                        await chart.updateDelta(deltaOptionsWith({ selection: { enabled: true } }));
                         await waitForChartStability(chart);
                     });
                     test('getSelection', () => {
