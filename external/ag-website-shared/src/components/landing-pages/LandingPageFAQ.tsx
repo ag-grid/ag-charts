@@ -7,11 +7,17 @@ import type { FunctionComponent } from 'react';
 import styles from './LandingPageFAQ.module.scss';
 import type { RenderedFAQItem } from './renderFAQAnswers';
 
+interface FAQItemProps {
+    itemData: RenderedFAQItem;
+    isOpen: boolean;
+    onClick: () => void;
+}
+
 interface Props {
     FAQData: RenderedFAQItem[];
 }
 
-const FAQItem: FunctionComponent<RenderedFAQItem> = ({ itemData, isOpen, onClick }) => {
+const FAQItem: FunctionComponent<FAQItemProps> = ({ itemData, isOpen, onClick }) => {
     return (
         <div className={classnames(styles.questionContainer, 'plausible-event-name=react-table-expand-faq')}>
             <div className={styles.titleContainer} onClick={onClick}>
@@ -29,11 +35,11 @@ const FAQItem: FunctionComponent<RenderedFAQItem> = ({ itemData, isOpen, onClick
 export const LandingPageFAQ: FunctionComponent<Props> = ({ FAQData }) => {
     const [activeItemIndex, setActiveItemIndex] = useState(-1);
 
-    const clickHandler = (activeIndex) => {
+    const clickHandler = (activeIndex: number) => {
         setActiveItemIndex(activeIndex !== activeItemIndex ? activeIndex : -1);
     };
 
-    const getColumnItems = (columnIndex) => {
+    const getColumnItems = (columnIndex: number) => {
         return FAQData.map((item, i) => {
             if (i % 2 !== columnIndex) return;
 
