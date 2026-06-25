@@ -98,8 +98,25 @@ body > #highlighter {
     align-self: flex-start;
 }
 
-.example-controls :where(button, select, input[type='submit']) {
+.example-controls
+    :where(button, select, input[type='submit'], input[type='checkbox'], input[type='radio'], input[type='range']):not(
+        [disabled]
+    ) {
     cursor: pointer;
+    color: red;
+}
+
+.example-controls
+    :where(
+        button,
+        select,
+        input[type='submit'],
+        input[type='checkbox'],
+        input[type='radio'],
+        input[type='range']
+    ):where([disabled]) {
+    opacity: 0.66;
+    filter: grayscale(1);
 }
 
 .example-controls select {
@@ -126,7 +143,6 @@ body > #highlighter {
 .example-controls input[type='checkbox'],
 .example-controls input[type='radio'] {
     border: 1px solid var(--button-border);
-    cursor: pointer;
 }
 
 .example-controls input[type='radio'] {
@@ -151,7 +167,6 @@ body > #highlighter {
     width: 24px;
     height: 24px;
     border-radius: 6px;
-    cursor: pointer;
 }
 
 .example-controls input[type='checkbox']:checked {
@@ -163,7 +178,6 @@ body > #highlighter {
     appearance: none;
     min-width: 160px;
     border-radius: 8px;
-    cursor: pointer;
     overflow: hidden; /*  slider progress trick  */
     background: var(--range-track-bg);
 }
@@ -200,7 +214,7 @@ body > #highlighter {
     box-shadow: -1007px 0 0 1000px var(--input-accent); /*  slider progress trick  */
 }
 
-.example-controls :is(button, input[type='submit'], select):hover {
+.example-controls :is(button, input[type='submit'], select):not([disabled]):hover {
     background-color: var(--button-hover-bg);
 }
 
