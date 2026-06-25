@@ -1189,8 +1189,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             fromDatum,
             toDatum,
             seriesId,
-            selectionState: 'unselected-item',
-            candidateState: 'none',
+            // Links are not selectable: selection tracks node datum indices, and a link has none of its own.
+            selectionState: undefined,
+            candidateState: undefined,
         } satisfies CallbackParamRules<AgOrganizationSeriesLinkItemStylerParams<unknown, unknown>>;
     }
 
@@ -1214,8 +1215,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             isCollapsed,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
-            selectionState: 'unselected-item',
-            candidateState: 'none',
+            selectionState: this.getSelectionStateString(datumIndex),
+            candidateState: this.getCandidateStateString(datumIndex),
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeItemStylerParams<unknown, unknown>>;
     }
 
@@ -1239,8 +1240,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             isCollapsed,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
-            selectionState: 'unselected-item',
-            candidateState: 'none',
+            selectionState: this.getSelectionStateString(datumIndex),
+            candidateState: this.getCandidateStateString(datumIndex),
         } satisfies CallbackParamRules<AgOrganizationSeriesExpanderItemStylerParams<unknown, unknown>>;
     }
 
@@ -1264,8 +1265,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             isCollapsed,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
-            selectionState: 'unselected-item',
-            candidateState: 'none',
+            selectionState: this.getSelectionStateString(datumIndex),
+            candidateState: this.getCandidateStateString(datumIndex),
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeTextStylerParams<unknown, unknown>>;
     }
 
