@@ -1,6 +1,6 @@
 import type { AgSelectionItemIds } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type AreExact } from 'ag-charts-core';
+import { type AreExact, type Nullable } from 'ag-charts-core';
 
 import type { DataSelectionChangeMap } from './dataSelectionChangeMap';
 import type { DataSetSelection } from './dataSetSelection';
@@ -15,7 +15,7 @@ type Group = _ModuleSupport.Group<unknown>;
 
 type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
 type DragWidgetEvent = _ModuleSupport.DragWidgetEvent;
-type ClickModifier = ClickedNode['series']['properties']['selection']['clickModifier'];
+type ClickModifier = ClickedNode['series']['properties']['selection']['clickModifier'] | undefined;
 
 type EventModifiers = {
     readonly altKey: boolean;
@@ -57,7 +57,7 @@ export function hasAddToSelectionModifier(event: WidgetEventModifiers): boolean 
 }
 
 export function hasClickSelectionModifier(event: WidgetEventModifiers, clickModifier: ClickModifier): boolean {
-    if (clickModifier === 'none') return true;
+    if (clickModifier === 'none' || clickModifier === undefined) return true;
     if (clickModifier === 'alt') return event.sourceEvent.altKey;
     return clickModifier satisfies never;
 }

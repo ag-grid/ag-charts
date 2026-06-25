@@ -217,7 +217,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const { type, clickedNode } = event;
         if (type !== 'click') return;
 
-        const clickModifier = clickedNode?.series.properties.selection.clickModifier ?? 'none';
+        const clickModifier = clickedNode?.series.properties.selection.clickModifier;
         const clickModifierPressed = hasClickSelectionModifier(event, clickModifier);
         const unionModifierPressed = hasAddToSelectionModifier(event);
         const clickMiss = clickedNode === undefined || (!clickedNode.series.isSelectionEnabled() satisfies boolean);
