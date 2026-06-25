@@ -109,7 +109,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
                 const selection: EnabledMixin = get('options', 'selection') ?? {};
                 const series: SeriesOptionsMixins[] = get('options', 'series') ?? [];
                 this.service.setEnabled(
-                    !!(selection.enabled || series.some((s) => s.selection?.enabled || s.tile?.selection?.enabled))
+                    selection.enabled === true ||
+                        series.some((s) => s.selection?.enabled === true || s.tile?.selection?.enabled === true)
                 );
             }),
             ctx.eventsHub.on('series-area:click', (ev) => this.onSeriesAreaClick(ev)),
