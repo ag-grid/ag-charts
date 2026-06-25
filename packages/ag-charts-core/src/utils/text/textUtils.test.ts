@@ -42,6 +42,13 @@ describe('toFontString', () => {
                 '14px "Font Awesome 6 Free", sans-serif'
             );
         });
+
+        it('returns identical results on repeated calls (memoised quoting)', () => {
+            expect(toFontString({ ...baseFont, fontFamily: 'Helvetica Neue' })).toBe('14px "Helvetica Neue"');
+            expect(toFontString({ ...baseFont, fontFamily: 'Helvetica Neue' })).toBe('14px "Helvetica Neue"');
+            // A different family must not be served the cached entry of another.
+            expect(toFontString({ ...baseFont, fontFamily: 'Arial' })).toBe('14px Arial');
+        });
     });
 
     describe('weight and style', () => {
