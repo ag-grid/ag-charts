@@ -25,11 +25,19 @@ export const CSS_GENERIC_FAMILIES = new Set([
     'fangsong',
 ]);
 
+// toFontString runs per text render/measure with a handful of distinct font families, so the
+// split/regex quoting is memoised by input. Soft-capped to bound pathological distinct-family
+// workloads; on overflow the whole cache is cleared (steady-state hit rate stays ~100%).
+const quotedFontFamilyCache = new Map<string, string>();
+const MAX_QUOTED_FONT_FAMILY_ENTRIES = 256;
+
 // Quote multi-word / digit-containing family names so canvas font shorthand
 // parses correctly; preserve already-quoted tokens and CSS generic keywords.
 function quoteFontFamily(fontFamily: string | undefined): string {
     if (!fontFamily) return '';
-    return fontFamily
+    const cached = quotedFontFamilyCache.get(fontFamily);
+    if (cached !== undefined) return cached;
+    const quoted = fontFamily
         .split(',')
         .map((part) => {
             const trimmed = part.trim();
@@ -40,6 +48,9 @@ function quoteFontFamily(fontFamily: string | undefined): string {
             return trimmed;
         })
         .join(', ');
+    if (quotedFontFamilyCache.size >= MAX_QUOTED_FONT_FAMILY_ENTRIES) quotedFontFamilyCache.clear();
+    quotedFontFamilyCache.set(fontFamily, quoted);
+    return quoted;
 }
 
 export function toFontString({ fontSize, fontStyle, fontWeight, fontFamily }: FontOptions) {

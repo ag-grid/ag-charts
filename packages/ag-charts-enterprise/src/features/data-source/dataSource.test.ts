@@ -171,11 +171,6 @@ describe('DataSource', () => {
         throw new Error(`Timed out waiting for ${description}`);
     };
 
-    const zoomRatioKey = () => {
-        const ratioX = chart.getState().zoom?.ratioX;
-        return ratioX ? `${ratioX.start}:${ratioX.end}` : 'full';
-    };
-
     it('should load data asynchronously', async () => {
         const response = delay(1).then(() => [
             { time: new Date('2024-01-01 00:00:00'), price: 0 },
@@ -281,12 +276,24 @@ describe('DataSource', () => {
         });
 
         it('should change the window after a change in zoom', async () => {
-            await prepareChart(dataSource);
+            let callCount = 0;
+            await prepareChart({
+                getData: (window) => {
+                    callCount++;
+                    return dataSource!.getData(window);
+                },
+            });
             await response;
             await compare();
-            const zoomBefore = zoomRatioKey();
+
+            // The wheel zoom commits a frame before the windowed data is re-requested and re-rendered;
+            // wait for that fetch and let it settle, otherwise the snapshot can capture the pre-refetch
+            // frame.
+            const callsBeforeZoom = callCount;
             await scrollAction(cx, cy, -1)(chart);
-            await settleUntil(() => zoomRatioKey() !== zoomBefore, 'the wheel zoom to commit');
+            await settleUntil(() => callCount > callsBeforeZoom, 'the zoom-triggered data request');
+            await delay(1);
+            await waitForChartStability(chart);
             await compare();
         });
     });
@@ -504,7 +511,7 @@ describe('DataSource', () => {
             sources.length = 0;
 
             await chart.updateDelta({});
-            await delay(1);
+            await settleUntil(() => sources.includes('chart-update'), 'the programmatic-refresh data request');
             await waitForChartStability(chart);
 
             expect(sources).toContain('chart-update');
@@ -540,7 +547,7 @@ describe('DataSource', () => {
             sources.length = 0;
 
             await chart.setState(zoomedState);
-            await delay(1);
+            await settleUntil(() => sources.includes('state-change'), 'the state-change data request');
             await waitForChartStability(chart);
 
             expect(sources).toContain('state-change');
