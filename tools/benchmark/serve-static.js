@@ -79,6 +79,15 @@ if (!fs.existsSync(root)) {
 const baseSegment = base.slice(1);
 const baseIsRealDir = baseSegment.length > 0 && fs.existsSync(path.join(root, baseSegment));
 
+function escapeHtml(value) {
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function resolveFile(urlPath) {
     let relPath = decodeURIComponent(urlPath.split('?')[0]);
 
@@ -111,7 +120,7 @@ const server = http.createServer((req, res) => {
     const filePath = resolveFile(req.url ?? '/');
     if (!filePath) {
         res.writeHead(404, { 'content-type': 'text/plain' });
-        res.end(`Not found: ${req.url}`);
+        res.end(`Not found: ${escapeHtml(req.url ?? '')}`);
         return;
     }
 
