@@ -103,7 +103,6 @@ body > #highlighter {
         [disabled]
     ) {
     cursor: pointer;
-    color: red;
 }
 
 .example-controls
