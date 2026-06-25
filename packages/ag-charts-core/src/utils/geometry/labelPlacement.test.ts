@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import type { Point, SizedPoint } from '../../types/scene';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
 import { type LabelPlacement, type PlacedLabel, type PointLabelDatum, placeLabels } from './labelPlacement';
+import { SpatialIndex } from './spatialIndex';
 
 const PLACEMENTS: (LabelPlacement | undefined)[] = [
     undefined,
@@ -170,5 +171,14 @@ describe('placeLabels', () => {
         const result = placeLabels(data, bounds, 5);
         expect(result.has('empty')).toBe(false);
         expect(result.get('present')?.length).toBe(1);
+    });
+
+    it('short-circuits empty input without building the spatial index', () => {
+        // placeLabels runs on every chart update; an empty pass must not touch the index.
+        const resetSpy = vi.spyOn(SpatialIndex.prototype, 'reset');
+        const result = placeLabels(new Map(), bounds, 5);
+        expect(result.size).toBe(0);
+        expect(resetSpy).not.toHaveBeenCalled();
+        resetSpy.mockRestore();
     });
 });

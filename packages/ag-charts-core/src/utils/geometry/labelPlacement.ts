@@ -113,6 +113,10 @@ export function placeLabels(data: Map<string, PointLabelDatum[]>, bounds: BoxBou
     );
     const dataValues = [...sortedDataClone.values()].flat();
 
+    // updateLabels runs every frame for every chart; with no labels the cell size floors to 1px and
+    // resetting the index would walk a per-pixel grid over the whole chart area. Nothing to place.
+    if (dataValues.length === 0) return result;
+
     let extentSum = 0;
     let extentCount = 0;
     for (const d of dataValues) {

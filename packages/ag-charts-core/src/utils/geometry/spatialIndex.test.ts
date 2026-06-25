@@ -70,6 +70,22 @@ describe('SpatialIndex', () => {
         expect(visited).toEqual([]);
     });
 
+    it('caps total grid cells for a degenerate cell size, preserving correctness', () => {
+        const largeBounds: BoxBounds = { x: 0, y: 0, width: 2000, height: 2000 };
+        const index = new SpatialIndex<BoxBounds>();
+        // A 1px cell size over 2000×2000 would be 4,000,000 cells without the cap.
+        index.reset(largeBounds, 1);
+        const cellCount = (index as unknown as { cellCount: number }).cellCount;
+        expect(cellCount).toBeLessThanOrEqual(1 << 14);
+
+        const stored = { x: 100, y: 100, width: 20, height: 20 };
+        index.insert(stored, stored);
+        const hit = { x: 110, y: 110, width: 5, height: 5 };
+        const miss = { x: 1500, y: 1500, width: 5, height: 5 };
+        expect(index.query(hit, (ref) => boxCollides(ref, hit.x, hit.y, hit.width, hit.height))).toBe(true);
+        expect(index.query(miss, (ref) => boxCollides(ref, miss.x, miss.y, miss.width, miss.height))).toBe(false);
+    });
+
     it('stops early when the visitor returns true', () => {
         const index = new SpatialIndex<number>();
         index.reset({ x: 0, y: 0, width: 100, height: 100 }, 50);
