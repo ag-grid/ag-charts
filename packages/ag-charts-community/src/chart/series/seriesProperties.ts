@@ -212,8 +212,13 @@ export class SeriesSelectionProperties<TOpts extends object> extends BasePropert
     @Property
     readonly unselectedSeries: SelectionOptions<TOpts> = {};
 
+    // Undocumented:
     @Property
     selectedOffset = 0; // pie-only
+
+    // Undocumented:
+    @Property
+    clickModifier: 'none' | 'alt' = 'none'; // org-chart only
 
     getStyle(selectionState: SelectionState): SelectionOptions<TOpts> {
         const keys = getSelectionStyleOptionKeys(selectionState);

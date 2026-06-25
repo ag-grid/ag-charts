@@ -21,7 +21,7 @@ import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../serie
 
 export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection'>,
+        AgBaseSeriesOptions<TDatum, TContext>,
         AgOrganizationSeriesOptionsKeys,
         AgOrganizationSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Organization Series. */
@@ -31,10 +31,10 @@ export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = C
     node?: AgOrganizationSeriesOptionsNode<TDatum, TContext>;
 }
 
-export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
-    AgBaseSeriesThemeableOptions<TDatum, TContext>,
-    'selection'
-> {
+export interface AgOrganizationSeriesThemeableOptions<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /**
      * Gap in pixels between sibling nodes (nodes that share the same parent).
      *
