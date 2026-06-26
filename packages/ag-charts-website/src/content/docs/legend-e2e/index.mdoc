@@ -1,0 +1,47 @@
+---
+title: 'Legend'
+---
+
+## E2E Tested
+
+### legend-interactivity
+
+_Auto-tested via Playwright._
+
+What to test:
+
+- Hover a legend item — pointer cursor is shown.
+- Click a legend item — an alert appears and no series are toggled.
+- Paginate to page 2/2, repeat hover and click — alert still appears.
+- Return to page 1/2 and repeat — alert still appears.
+
+{% chartExampleRunner title="Legend Interactivity" name="legend-interactivity" type="generated" /%}
+
+### legend-pagination-resize
+
+_Auto-tested via Playwright._
+
+What to test:
+
+- Shrink the window width until only one legend item is visible, then until none are.
+- Grow the width back until one item is visible and click the paginator next button — legend advances to page 2.
+
+{% chartExampleRunner title="Legend Interactivity" name="legend-pagination-resize" type="generated" /%}
+
+### legend-item-tooltip
+
+_Auto-tested via Playwright._
+
+{% chartExampleRunner title="Legend Item Tooltip" name="legend-item-tooltip" type="generated" /%}
+
+### legend-item-key
+
+_Auto-tested via Playwright._
+
+{% chartExampleRunner title="Legend Item Key" name="legend-item-key" type="generated" /%}
+
+### legend-item-name
+
+_Auto-tested via Playwright._
+
+{% chartExampleRunner title="Legend Item Name" name="legend-item-name" type="generated" /%}
