@@ -27,7 +27,7 @@ type SelectionItem = AgSelectionItem<Datum>;
 // back are plain objects of exactly these fields.
 type SelectionChangeEvent = Pick<AgSelectionChangeEvent<Datum, unknown>, 'type' | 'source' | 'added' | 'removed'>;
 
-const EXAMPLE_URL = toExamplePageUrl('selection-test', 'e2e-accessibility-click', 'vanilla').url;
+const EXAMPLE_URL = toExamplePageUrl('selection-e2e', 'accessibility-click', 'vanilla').url;
 
 const NEW_YORK: SelectionItem = {
     seriesId: 'myBarSeries',
