@@ -6,7 +6,7 @@ test.describe('range-area', () => {
 
     test.describe('AG-9002 share-low-high-match', () => {
         test.beforeEach(async ({ page }) => {
-            const { url } = toExamplePageUrl('range-area-series-test', 'shared-low-high-match', 'vanilla');
+            const { url } = toExamplePageUrl('range-area-series-e2e', 'shared-low-high-match', 'vanilla');
             await gotoExample(page, url);
         });
 
