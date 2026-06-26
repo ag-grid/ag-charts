@@ -2,11 +2,16 @@ import type {
     DomainWithMetadata,
     DynamicContext,
     InternalAgColorType,
+    LabelPlacement,
+    MeasuredLabel,
     NormalisedAreaSeriesMarkerItemStylerParams,
     NormalisedAreaSeriesStylerResult,
     NormalisedColorType,
     NormalisedSeriesMarkerStyle,
+    NormalisedTextOrSegments,
+    PlacedLabel,
     Point,
+    PointLabelDatum,
     RequireOptional,
 } from 'ag-charts-core';
 import {
@@ -15,10 +20,13 @@ import {
     DebugMetrics,
     SeriesContentZIndexMap,
     SeriesZIndexMap,
+    cachedTextMeasurer,
     extent,
+    isArray,
     isContinuous,
     isDefined,
     maxValue,
+    measureTextSegments,
     mergeDefaults,
     minValue,
     toNumber,
@@ -61,6 +69,7 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
+import { expandLabelPadding } from '../../label';
 import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
@@ -182,6 +191,8 @@ interface AreaSeriesCreateNodeDatumContext extends CartesianMarkerLikeContext<Ma
     // Pre-computed flags
     readonly isContinuousY: boolean;
     readonly labelsEnabled: boolean;
+    readonly labelPadding: { left: number; right: number; top: number; bottom: number };
+    readonly labelTextMeasurer: { measureLines: (text: string) => { width: number; height: number } };
     readonly normalizedTo: number | undefined;
 
     // Property caches (in addition to base xKey, yKey, xName, yName)
@@ -226,6 +237,9 @@ interface AreaSeriesTypes extends CartesianSeriesTypes {
     readonly createNodeDataContext: AreaSeriesCreateNodeDatumContext;
 }
 
+const AREA_MARKERLESS_LABEL_GAP = 2;
+const AREA_LABEL_PLACEMENTS: readonly LabelPlacement[] = ['top', 'bottom'];
+
 export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
     static override readonly className = 'AreaSeries';
     static readonly type = 'area' as const;
@@ -235,6 +249,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
     override connectsToYAxis = true;
 
     private readonly aggregationManager = new AggregationManager<AreaSeriesDataAggregationFilter>();
+    private placedLabelData: PlacedLabel<LabelSelectionDatum>[] = [];
     private hideWithSize0 = false;
 
     readonly backgroundGroup = new Group({
@@ -256,6 +271,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             pathsZIndexSubOrderOffset: [0, 1000],
             datumSelectionGarbageCollection: false,
             segmentedDataNodes: false,
+            usesPlacedLabels: true,
             pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             animationResetFns: {
                 path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
@@ -1017,6 +1033,8 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             // Pre-computed flags
             isContinuousY,
             labelsEnabled: label.enabled,
+            labelPadding: expandLabelPadding(label),
+            labelTextMeasurer: cachedTextMeasurer(label),
             normalizedTo,
             canIncrementallyUpdate,
             animationEnabled: !this.ctx.animationManager.isSkipped(),
@@ -1158,6 +1176,13 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                 x: scratch.x,
                 y: scratch.y,
                 labelText,
+                point: { x: scratch.x, y: scratch.y, size: ctx.markerSize },
+                label: this.measureLabel(ctx, labelText),
+                anchor: undefined,
+                placement: 'top',
+                placements: AREA_LABEL_PLACEMENTS,
+                // Markerless points still nudge their label clear of the area with a small fixed gap.
+                gap: ctx.markerSize > 0 ? ctx.markerSize / 2 : AREA_MARKERLESS_LABEL_GAP,
             });
         }
     }
@@ -1498,11 +1523,69 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         }
     }
 
+    private measureLabel(
+        ctx: AreaSeriesCreateNodeDatumContext,
+        labelText: NormalisedTextOrSegments | undefined
+    ): MeasuredLabel {
+        if (labelText == null) {
+            return { text: '', width: 0, height: 0 };
+        }
+        let { width, height } = isArray(labelText)
+            ? measureTextSegments(labelText, this.properties.label)
+            : ctx.labelTextMeasurer.measureLines(String(labelText));
+        width += ctx.labelPadding.left + ctx.labelPadding.right;
+        height += ctx.labelPadding.top + ctx.labelPadding.bottom;
+        return { text: labelText, width, height };
+    }
+
+    override getLabelData(): (LabelSelectionDatum & PointLabelDatum)[] {
+        if (!this.isLabelEnabled()) return [];
+        return this.contextNodeData?.labelData ?? [];
+    }
+
+    public override updatePlacedLabelData(labelData: PlacedLabel<LabelSelectionDatum>[]) {
+        this.placedLabelData = labelData;
+        this.labelSelection.update(
+            labelData.map((v) => ({ ...v.datum, x: v.x, y: v.y })),
+            (text) => {
+                text.pointerEvents = PointerEvents.None;
+            }
+        );
+        this.updateLabelNodes({ labelSelection: this.labelSelection });
+        this.updateHighlightLabelSelection();
+    }
+
+    private updateHighlightLabelSelection() {
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightItem =
+            this.isSeriesHighlighted(highlightedDatum) && highlightedDatum?.datum ? highlightedDatum : undefined;
+
+        const highlightLabelData =
+            highlightItem == null
+                ? []
+                : this.placedLabelData
+                      .filter((label) => label.datum.datumIndex === highlightItem.datumIndex)
+                      .map((label) => ({ ...label.datum, x: label.x, y: label.y }));
+
+        this.highlightLabelSelection =
+            this.updateLabelSelection({
+                labelData: highlightLabelData,
+                labelSelection: this.highlightLabelSelection,
+            }) ?? this.highlightLabelSelection;
+
+        this.highlightLabelGroup.visible = highlightLabelData.length > 0;
+        this.highlightLabelGroup.batchedUpdate(() => {
+            this.updateLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
+        });
+    }
+
     protected override updateLabelSelection(opts: {
         labelData: LabelSelectionDatum[];
         labelSelection: Selection<LabelSelectionDatum, Text<LabelSelectionDatum>>;
     }) {
-        return opts.labelSelection.update(this.isLabelEnabled() ? opts.labelData : []);
+        return opts.labelSelection.update(opts.labelData, (text) => {
+            text.pointerEvents = PointerEvents.None;
+        });
     }
 
     protected updateLabelNodes(opts: {
@@ -1512,6 +1595,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const { isHighlight = false } = opts;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const params: AgAreaSeriesLabelFormatterParams = this.makeLabelFormatterParams();
+        const labelPadding = expandLabelPadding(this.properties.label);
 
         opts.labelSelection.each((text, datum) => {
             const style = getLabelStyles(this, datum, params, this.properties.label, isHighlight, activeHighlight);
@@ -1521,11 +1605,10 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                 text.fontWeight = fontWeight;
                 text.fontSize = fontSize;
                 text.fontFamily = fontFamily;
-                text.textAlign = 'center';
-                text.textBaseline = 'bottom';
-                text.text = datum.labelText;
-                text.x = datum.x;
-                text.y = datum.y - 10;
+                text.textBaseline = 'top';
+                text.text = datum.label.text;
+                text.x = datum.x + labelPadding.left;
+                text.y = datum.y + labelPadding.top;
                 text.fill = color;
                 text.visible = true;
                 text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;

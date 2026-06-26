@@ -1639,7 +1639,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         await Promise.all(seriesToUpdate.map(seriesUpdate).filter((p): p is Promise<void> => p != null));
 
         this.ctx.labelManager.updateLabels(
-            this.series.filter((s) => s.visible && s.usesPlacedLabels),
+            this.series.filter((s) => s.visible),
             this.ctx.chartState.getValue('options', 'padding'),
             this.seriesRect
         );

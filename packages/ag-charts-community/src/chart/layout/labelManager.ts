@@ -1,4 +1,10 @@
-import { type NormalisedPaddingOptions, type PointLabelDatum, isPointLabelDatum, placeLabels } from 'ag-charts-core';
+import {
+    type LabelObstacle,
+    type NormalisedPaddingOptions,
+    type PointLabelDatum,
+    isPointLabelDatum,
+    placeLabels,
+} from 'ag-charts-core';
 
 import { BBox } from '../../scene/bbox';
 import type { ISeries, ISeriesProperties, SeriesNodeDatum } from '../series/seriesTypes';
@@ -7,7 +13,7 @@ export class LabelManager {
     private readonly labelData: Map<string, PointLabelDatum[]> = new Map();
 
     updateLabels(
-        placedLabelSeries: ISeries<SeriesNodeDatum, ISeriesProperties, unknown>[],
+        visibleSeries: ISeries<SeriesNodeDatum, ISeriesProperties, unknown>[],
         padding: NormalisedPaddingOptions,
         seriesRect = BBox.zero
     ) {
@@ -17,6 +23,7 @@ export class LabelManager {
             width: seriesRect.width + padding.left + padding.right,
             height: seriesRect.height + padding.top + padding.bottom,
         };
+        const placedLabelSeries = visibleSeries.filter((s) => s.usesPlacedLabels);
         const expectedSeriesId = new Set(placedLabelSeries.map((s) => s.id));
         for (const seriesId of this.labelData.keys()) {
             if (!expectedSeriesId.has(seriesId)) {
@@ -31,7 +38,18 @@ export class LabelManager {
             }
         }
 
-        const placedLabels = placeLabels(this.labelData, bounds, 5);
+        // Every visible series can contribute entity obstacles (bar rects, sectors, markers) that
+        // any series' labels must avoid, even series that don't place labels of their own.
+        const obstacles: LabelObstacle[] = [];
+        for (const series of visibleSeries) {
+            const seriesObstacles = series.getLabelObstacles?.();
+            if (seriesObstacles == null) continue;
+            for (const obstacle of seriesObstacles) {
+                obstacles.push(obstacle);
+            }
+        }
+
+        const placedLabels = placeLabels(this.labelData, bounds, 5, obstacles);
         for (const series of placedLabelSeries) {
             series.updatePlacedLabelData?.(placedLabels.get(series.id) ?? []);
         }

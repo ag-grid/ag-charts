@@ -1,5 +1,7 @@
 import type {
     InterpolationProperties,
+    LabelPlacement,
+    MeasuredLabel,
     NormalisedSeriesMarkerStyle,
     NormalisedTextOrSegments,
     Point,
@@ -61,6 +63,12 @@ export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSerie
     readonly yValue: NonNullable<CartesianSeriesNodeDatum['yValue']>;
     readonly point: NonNullable<CartesianSeriesNodeDatum['point']>;
     readonly labelText?: NormalisedTextOrSegments;
+    // Placed-label fields (PointLabelDatum shape) — populated when labels are enabled.
+    label: MeasuredLabel;
+    anchor: Point | undefined;
+    placement: LabelPlacement | undefined;
+    placements?: readonly LabelPlacement[];
+    gap?: number;
     // WARNING! This selected-state is related to cross-filtering which is not an officially documented or supported
     // feature. It has nothing to do with the official data selection API in the options contract. Do not use, or use
     // with extreme caution.
@@ -96,6 +104,8 @@ export interface LineSeriesDatumContext extends CartesianMarkerLikeContext<LineN
     readonly size: number;
     readonly yDomain: any[];
     readonly labelsEnabled: boolean;
+    readonly labelPadding: { left: number; right: number; top: number; bottom: number };
+    readonly labelTextMeasurer: { measureLines: (text: string) => { width: number; height: number } };
     readonly dataAggregationFilter: { indices: Uint32Array } | undefined;
     readonly range: number;
 

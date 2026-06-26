@@ -146,11 +146,104 @@ describe('placeLabels', () => {
         }
     });
 
+    it.each([1, 2, 3])(
+        'matches the oracle with markers only (no placed-label collisions) (%i series)',
+        (seriesCount) => {
+            for (let seed = 1; seed <= 5; seed++) {
+                // All datums share one far-apart label position so labels never collide with each other,
+                // isolating the marker-circle obstacle path in the merged index.
+                const data = makeFixture(seriesCount, 30, bounds, seed * 5101);
+                for (const datums of data.values()) {
+                    for (const d of datums) {
+                        (d.label as { width: number; height: number }).width = 1;
+                        (d.label as { width: number; height: number }).height = 1;
+                    }
+                }
+                const actual = placeLabels(data, bounds, 5);
+                const expected = placeLabelsOracle(structuredClone(data), bounds, 5);
+                expect(normalise(actual)).toEqual(normalise(expected));
+            }
+        }
+    );
+
+    it.each([1, 2, 3])('matches the oracle with labels only (no markers) (%i series)', (seriesCount) => {
+        for (let seed = 1; seed <= 5; seed++) {
+            // Zero-size points emit no marker obstacles, isolating the placed-label rect path.
+            const data = makeFixture(seriesCount, 40, bounds, seed * 3299);
+            for (const datums of data.values()) {
+                for (const d of datums) {
+                    (d.point as { size: number }).size = 0;
+                }
+            }
+            const actual = placeLabels(data, bounds, 5);
+            const expected = placeLabelsOracle(structuredClone(data), bounds, 5);
+            expect(normalise(actual)).toEqual(normalise(expected));
+        }
+    });
+
     it('produces identical results across consecutive calls (scratch reuse)', () => {
         const data = makeFixture(2, 60, bounds, 12345);
         const first = normalise(placeLabels(structuredClone(data), bounds, 5));
         const second = normalise(placeLabels(structuredClone(data), bounds, 5));
         expect(second).toEqual(first);
+    });
+
+    it('falls back to the next placement when the first collides', () => {
+        // Two equal markers side by side: the right marker's label, if placed centre/left, would
+        // collide with the left marker, so it must fall back to 'right'.
+        const left: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 20 },
+            label: { text: 'L', width: 40, height: 12 },
+            anchor: undefined,
+            placement: undefined,
+        };
+        const right: PointLabelDatum = {
+            point: { x: 130, y: 100, size: 20 },
+            label: { text: 'R', width: 40, height: 12 },
+            anchor: undefined,
+            placement: undefined,
+            placements: ['left', 'right'],
+        };
+        const result = placeLabels(new Map([['s', [left, right]]]), bounds, 5);
+        const placed = result.get('s')!;
+        const rightPlaced = placed.find((l) => l.datum === right);
+        expect(rightPlaced).toBeDefined();
+        expect(rightPlaced!.placement).toBe('right');
+        expect(rightPlaced!.x).toBeGreaterThan(right.point.x);
+    });
+
+    it('offsets a markerless label above its point via gap', () => {
+        const datum: PointLabelDatum = {
+            point: { x: 200, y: 200, size: 0 },
+            label: { text: 'L', width: 40, height: 12 },
+            anchor: undefined,
+            placement: 'top',
+            gap: 4,
+        };
+        const result = placeLabels(new Map([['s', [datum]]]), bounds, 5);
+        const placed = result.get('s')![0];
+        expect(placed).toBeDefined();
+        // box bottom sits gap + padding above the point: y + height = point.y - (gap + padding)
+        expect(placed.y + placed.height).toBeCloseTo(200 - (4 + 5));
+        expect(placed.x).toBeCloseTo(200 - 40 / 2);
+    });
+
+    it('drops a label when no candidate placement fits', () => {
+        const blocker: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 200 },
+            label: { text: 'B', width: 1, height: 1 },
+            anchor: undefined,
+            placement: undefined,
+        };
+        const blocked: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 0 },
+            label: { text: 'X', width: 30, height: 12 },
+            anchor: undefined,
+            placement: undefined,
+            placements: [],
+        };
+        const result = placeLabels(new Map([['s', [blocker, blocked]]]), bounds, 5);
+        expect(result.get('s')!.some((l) => l.datum === blocked)).toBe(false);
     });
 
     it('skips series whose first datum has no label, like the oracle', () => {

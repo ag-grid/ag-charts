@@ -1,5 +1,7 @@
 import type {
     InternalAgColorType,
+    LabelPlacement,
+    MeasuredLabel,
     NormalisedSeriesMarkerStyle,
     NormalisedTextOrSegments,
     Point,
@@ -51,6 +53,13 @@ export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
 export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
     readonly itemId?: never;
     readonly labelText: NormalisedTextOrSegments;
+    // Placed-label fields (PointLabelDatum shape).
+    readonly point: Readonly<SizedPoint>;
+    label: MeasuredLabel;
+    anchor: Point | undefined;
+    placement: LabelPlacement | undefined;
+    placements?: readonly LabelPlacement[];
+    gap?: number;
 }
 
 export interface AreaSeriesNodeDataContext extends CartesianSeriesNodeDataContext<
