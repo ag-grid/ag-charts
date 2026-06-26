@@ -210,7 +210,11 @@ export function placeLabels(
         const labels: PlacedLabel[] = [];
         if (!datums[0]?.label) continue;
         for (let index = 0, ln = datums.length; index < ln; index++) {
-            const placed = tryPlaceLabel(datums[index], index, padding, bounds);
+            const d = datums[index];
+            // Series emit a datum per point; unlabelled points measure to an empty box. Skip them so
+            // they neither occupy a placement nor act as obstacles against labels that do have text.
+            if (d.label.text === '') continue;
+            const placed = tryPlaceLabel(d, index, padding, bounds);
             if (placed != null) {
                 labels.push(placed);
                 obstacleIndex.insert(placed, { kind: 'rect', box: placed });

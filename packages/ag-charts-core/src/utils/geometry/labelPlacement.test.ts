@@ -246,6 +246,31 @@ describe('placeLabels', () => {
         expect(result.get('s')!.some((l) => l.datum === blocked)).toBe(false);
     });
 
+    it('ignores content-less labels so they neither place nor block real labels', () => {
+        // Series feed a datum per point; points without label text measure to an empty box.
+        // Such boxes must not be placed or treated as obstacles, or they drop real labels.
+        const empty: PointLabelDatum = {
+            point: { x: 200, y: 185, size: 0 },
+            label: { text: '', width: 60, height: 40 },
+            anchor: undefined,
+            placement: undefined,
+        };
+        const real: PointLabelDatum = {
+            point: { x: 200, y: 200, size: 0 },
+            label: { text: 'Real', width: 40, height: 12 },
+            anchor: undefined,
+            placement: 'top',
+            placements: ['top'],
+            gap: 2,
+        };
+        const result = placeLabels(new Map([['s', [empty, real]]]), bounds, 5);
+        const placed = result.get('s')!;
+        expect(placed.some((l) => l.datum === empty)).toBe(false);
+        const realPlaced = placed.find((l) => l.datum === real);
+        expect(realPlaced).toBeDefined();
+        expect(realPlaced!.placement).toBe('top');
+    });
+
     it('skips series whose first datum has no label, like the oracle', () => {
         const data = new Map<string, PointLabelDatum[]>([
             ['empty', []],

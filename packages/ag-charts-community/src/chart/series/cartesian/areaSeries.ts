@@ -1543,6 +1543,18 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         return this.contextNodeData?.labelData ?? [];
     }
 
+    protected override getHighlightLabelData(
+        _labelData: LabelSelectionDatum[],
+        highlightedItem: MarkerSelectionDatum
+    ): LabelSelectionDatum[] | undefined {
+        // Source highlight labels from placed positions, not the original vertices, so hover-driven
+        // highlight updates match placement (and don't resurface labels collision dropped).
+        const items = this.placedLabelData
+            .filter((label) => label.datum.datumIndex === highlightedItem.datumIndex)
+            .map((label) => ({ ...label.datum, x: label.x, y: label.y }));
+        return items.length === 0 ? undefined : items;
+    }
+
     public override updatePlacedLabelData(labelData: PlacedLabel<LabelSelectionDatum>[]) {
         this.placedLabelData = labelData;
         this.labelSelection.update(
@@ -1560,12 +1572,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const highlightItem =
             this.isSeriesHighlighted(highlightedDatum) && highlightedDatum?.datum ? highlightedDatum : undefined;
 
-        const highlightLabelData =
-            highlightItem == null
-                ? []
-                : this.placedLabelData
-                      .filter((label) => label.datum.datumIndex === highlightItem.datumIndex)
-                      .map((label) => ({ ...label.datum, x: label.x, y: label.y }));
+        const highlightLabelData = highlightItem == null ? [] : (this.getHighlightLabelData([], highlightItem) ?? []);
 
         this.highlightLabelSelection =
             this.updateLabelSelection({
