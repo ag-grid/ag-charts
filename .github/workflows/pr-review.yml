@@ -25,10 +25,10 @@ on:
                 type: string
                 required: true
             driver:
-                description: 'Review engine. codex = current single-turn Codex review (default). claude = Claude Code orchestrates a chunked Codex review — same standard pass, split across per-turn-safe chunks (survives large PRs that exceed Codex per-turn input limits).'
+                description: 'Review engine. claude (default) = Claude Code orchestrates a chunked Codex review — same standard pass, split across per-turn-safe chunks (survives large PRs that exceed Codex per-turn input limits). codex = legacy single-turn Codex review (can fail on large PRs that exceed the per-turn input limit).'
                 type: choice
-                options: [codex, claude]
-                default: codex
+                options: [claude, codex]
+                default: claude
                 required: false
             quiet:
                 description: 'Quiet/soak mode: post nothing to the PR; upload the review as an artifact (pr-review-<driver>-<pr#>) instead. Use to compare drivers without touching the PR.'
@@ -120,9 +120,10 @@ jobs:
                   github-token: ${{ github.token }}
                   inline-comments: 'true'
                   dev-prompts-version: ${{ env.DEV_PROMPTS_CHANNEL }}
-                  # Driver/quiet only come from a deliberate workflow_dispatch (or a
-                  # /pr-review --claude comment); pull_request / issue_comment supply
-                  # neither, so they fall through to the unchanged codex + comment flow.
-                  driver: ${{ inputs.driver || 'codex' }}
+                  # claude is the default driver. pull_request / plain /pr-review supply
+                  # no driver input, so they fall through to the `|| 'claude'` default.
+                  # To force codex on a one-off, dispatch with driver=codex. quiet stays
+                  # false → claude reviews post to the PR as normal.
+                  driver: ${{ inputs.driver || 'claude' }}
                   quiet: ${{ inputs.quiet || 'false' }}
                   anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
