@@ -38,7 +38,7 @@ const options: AgStandaloneChartOptions = {
 const chart = AgCharts.create(options);
 
 function onSelectionContainmentChange(containment: AgSelectionContainment) {
-    options.selection.containment = containment;
+    options.selection!.containment = containment;
     chart.update(options);
 }
 
