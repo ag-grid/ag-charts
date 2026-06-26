@@ -14,7 +14,7 @@ test.describe('zoom', () => {
     setupIntrinsicAssertions(test);
 
     test('navigator', async ({ page }) => {
-        const { url } = toExamplePageUrl('financial-charts-test', 'e2e-zoom-navigator', 'vanilla');
+        const { url } = toExamplePageUrl('financial-charts-e2e', 'zoom-navigator', 'vanilla');
 
         await gotoExample(page, url);
 
