@@ -3,7 +3,7 @@ import { type NormalisedPaddingOptions, type PointLabelDatum, isPointLabelDatum,
 import { BBox } from '../../scene/bbox';
 import type { ISeries, ISeriesProperties, SeriesNodeDatum } from '../series/seriesTypes';
 
-export class SeriesLabelLayoutManager {
+export class LabelManager {
     private readonly labelData: Map<string, PointLabelDatum[]> = new Map();
 
     updateLabels(

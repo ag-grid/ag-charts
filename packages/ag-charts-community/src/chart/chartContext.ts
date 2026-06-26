@@ -37,8 +37,8 @@ import { InteractionManager } from './interaction/interactionManager';
 import type { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { WidgetSet } from './interaction/widgetSet';
+import { LabelManager } from './layout/labelManager';
 import { LayoutManager } from './layout/layoutManager';
-import { SeriesLabelLayoutManager } from './layout/seriesLabelLayoutManager';
 import { OptionsGraphService } from './optionsGraphService';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
@@ -115,7 +115,7 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         .service('formatManager', () => new FormatManager())
         .service('seriesStateManager', () => new SeriesStateManager())
         .service('stateManager', () => new StateManager())
-        .service('seriesLabelLayoutManager', () => new SeriesLabelLayoutManager())
+        .service('labelManager', () => new LabelManager())
         .service('interactionManager', () => new InteractionManager())
         .service('optionsGraphService', () => new OptionsGraphService())
         .service('chartTypeOriginator', () => new ChartTypeOriginator(chart))

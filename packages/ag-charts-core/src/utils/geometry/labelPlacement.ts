@@ -1,6 +1,7 @@
 import type { NormalisedTextOrSegments } from '../../types/normalised-options/normalisedCommonOptions';
 import type { Point, SizedPoint } from '../../types/scene';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
+import { SpatialIndex, gridCellSize } from './spatialIndex';
 
 export type LabelPlacement =
     | 'top'
@@ -84,6 +85,20 @@ const labelPlacements: Record<LabelPlacement, { x: -1 | 0 | 1; y: -1 | 0 | 1 }> 
     'bottom-right': { x: 1, y: 1 },
 };
 
+// Scratch indices reused across passes (placeLabels is not reentrant in the single-threaded render loop).
+const markerIndex = new SpatialIndex<PointLabelDatum>();
+const placedIndex = new SpatialIndex<PlacedLabel>();
+const candidateBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
+const markerBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
+
+function markerOverlapsCandidate(datum: PointLabelDatum): boolean {
+    return circleRectOverlap(datum, candidateBox.x, candidateBox.y, candidateBox.width, candidateBox.height);
+}
+
+function placedOverlapsCandidate(placed: PlacedLabel): boolean {
+    return boxCollides(placed, candidateBox.x, candidateBox.y, candidateBox.width, candidateBox.height);
+}
+
 /**
  * @param data Points and labels for one or more series. The order of series determines label placement precedence.
  * @param bounds Bounds to fit the labels into. If a label can't be fully contained, it doesn't fit.
@@ -92,12 +107,47 @@ const labelPlacements: Record<LabelPlacement, { x: -1 | 0 | 1; y: -1 | 0 | 1 }> 
  */
 export function placeLabels(data: Map<string, PointLabelDatum[]>, bounds: BoxBounds, padding = 5) {
     const result: Map<string, PlacedLabel[]> = new Map();
-    const previousResults: PlacedLabel[] = [];
 
     const sortedDataClone = new Map(
         Array.from(data.entries(), ([k, d]) => [k, d.toSorted((a, b) => b.point.size - a.point.size)])
     );
     const dataValues = [...sortedDataClone.values()].flat();
+
+    // updateLabels runs every frame for every chart; with no labels the cell size floors to 1px and
+    // resetting the index would walk a per-pixel grid over the whole chart area. Nothing to place.
+    if (dataValues.length === 0) return result;
+
+    let extentSum = 0;
+    let extentCount = 0;
+    for (const d of dataValues) {
+        extentSum += d.label.width + d.label.height;
+        extentCount += 2;
+        if (d.point.size > 0) {
+            extentSum += d.point.size;
+            extentCount += 1;
+        }
+    }
+    const cellSize = gridCellSize(extentSum, extentCount);
+    markerIndex.reset(bounds, cellSize);
+    placedIndex.reset(bounds, cellSize);
+
+    for (const d of dataValues) {
+        const { size } = d.point;
+        if (size <= 0) continue;
+        let cx = d.point.x;
+        let cy = d.point.y;
+        if (d.anchor != null) {
+            cx -= (d.anchor.x - 0.5) * size;
+            cy -= (d.anchor.y - 0.5) * size;
+        }
+        const r = size / 2;
+        markerBox.x = cx - r;
+        markerBox.y = cy - r;
+        markerBox.width = size;
+        markerBox.height = size;
+        markerIndex.insert(markerBox, d);
+    }
+
     for (const [seriesId, datums] of sortedDataClone.entries()) {
         const labels: PlacedLabel[] = [];
         if (!datums[0]?.label) continue;
@@ -122,14 +172,19 @@ export function placeLabels(data: Map<string, PointLabelDatum[]>, bounds: BoxBou
                 y -= (anchor.y - 0.5) * point.size;
             }
 
+            candidateBox.x = x;
+            candidateBox.y = y;
+            candidateBox.width = width;
+            candidateBox.height = height;
+
             if (
                 boxContains(bounds, x, y, width, height) &&
-                !dataValues.some((dataDatum) => circleRectOverlap(dataDatum, x, y, width, height)) &&
-                !previousResults.some((pr) => boxCollides(pr, x, y, width, height))
+                !markerIndex.query(candidateBox, markerOverlapsCandidate) &&
+                !placedIndex.query(candidateBox, placedOverlapsCandidate)
             ) {
                 const resultDatum = { index, text, x, y, width, height, datum: d };
                 labels.push(resultDatum);
-                previousResults.push(resultDatum);
+                placedIndex.insert(resultDatum, resultDatum);
             }
         }
 

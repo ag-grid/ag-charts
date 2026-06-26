@@ -16,6 +16,7 @@ import {
     PolarZIndexMap,
     type RequireOptional,
     type WrapOptions,
+    anyOverlap,
     extractDomain,
     formatValue,
     isGradientFill,
@@ -55,7 +56,7 @@ import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
 import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
-import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
+import { boxOverlapsSector, isPointInSector, sectorBox } from '../../../scene/util/sector';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, getMissCount } from '../../data/dataModel';
 import {
@@ -1253,10 +1254,30 @@ export class DonutSeries extends PolarSeries<
         return corners.some((corner) => corner.x ** 2 + corner.y ** 2 > sur2);
     }
 
+    private getCalloutLabelBBox(datum: Has<'calloutLabel', PieDonutNodeDatum>): BBox {
+        const { calloutLabel } = this.properties;
+        const label = datum.calloutLabel;
+
+        const style = this.getLabelStyle(datum, calloutLabel, 'calloutLabel');
+        const padding = expandLabelPadding(style);
+        const calloutLength = this.getCalloutLineStyle(datum, false).length;
+
+        const labelRadius = datum.outerRadius + calloutLength + calloutLabel.offset;
+        const x = datum.midCos * labelRadius;
+        const y = datum.midSin * labelRadius + label.collisionOffsetY;
+
+        const textAlign = label.collisionTextAlign ?? label.textAlign;
+        const textBaseline = label.textBaseline;
+        return Text.measureBBox(label.text, x, y, {
+            font: calloutLabel,
+            textAlign,
+            textBaseline,
+        }).grow(padding);
+    }
+
     private computeCalloutLabelCollisionOffsets() {
         const { radiusScale } = this;
-        const { calloutLabel } = this.properties;
-        const { offset, minSpacing } = calloutLabel;
+        const { minSpacing } = this.properties.calloutLabel;
         const innerRadius = radiusScale.convert(0);
 
         const shouldSkip = (datum: PieDonutNodeDatum) => {
@@ -1288,34 +1309,13 @@ export class DonutSeries extends PolarSeries<
             .filter((d) => d.midSin >= 0 && d.calloutLabel?.textAlign === 'center')
             .sort((a, b) => a.midCos - b.midCos);
 
-        const getTextBBox = (datum: (typeof data)[number]) => {
-            const label = datum.calloutLabel;
-            if (label == null) return BBox.zero.clone();
-
-            const style = this.getLabelStyle(datum, calloutLabel, 'calloutLabel');
-            const padding = expandLabelPadding(style);
-            const calloutLength = this.getCalloutLineStyle(datum, false).length;
-
-            const labelRadius = datum.outerRadius + calloutLength + offset;
-            const x = datum.midCos * labelRadius;
-            const y = datum.midSin * labelRadius + label.collisionOffsetY;
-
-            const textAlign = label.collisionTextAlign ?? label.textAlign;
-            const textBaseline = label.textBaseline;
-            return Text.measureBBox(label.text, x, y, {
-                font: this.properties.calloutLabel,
-                textAlign,
-                textBaseline,
-            }).grow(padding);
-        };
-
         const avoidNeighbourYCollision = (
             label: (typeof data)[number],
             next: (typeof data)[number],
             direction: 'to-top' | 'to-bottom'
         ) => {
-            const box = getTextBBox(label).grow(minSpacing / 2);
-            const other = getTextBBox(next).grow(minSpacing / 2);
+            const box = this.getCalloutLabelBBox(label).grow(minSpacing / 2);
+            const other = this.getCalloutLabelBBox(next).grow(minSpacing / 2);
             // The full collision is not detected, because sometimes
             // the next label can appear behind the label with offset
             const collidesOrBehind =
@@ -1343,10 +1343,16 @@ export class DonutSeries extends PolarSeries<
             }
         };
 
+        const sectorObstacles = fullData.map((datum) => {
+            const { startAngle, endAngle, outerRadius } = datum;
+            const sector = { startAngle, endAngle, innerRadius, outerRadius };
+            return { box: sectorBox(sector), ref: sector };
+        });
+
         const avoidXCollisions = (labels: typeof data) => {
             const labelsCollideLabelsByY = data.some((datum) => datum.calloutLabel.collisionOffsetY !== 0);
 
-            const boxes = labels.map((label) => getTextBBox(label));
+            const boxes = labels.map((label) => this.getCalloutLabelBBox(label));
             const paddedBoxes = boxes.map((box) => box.clone().grow(minSpacing / 2));
 
             let labelsCollideLabelsByX = false;
@@ -1361,11 +1367,7 @@ export class DonutSeries extends PolarSeries<
                 }
             }
 
-            const sectors = fullData.map((datum) => {
-                const { startAngle, endAngle, outerRadius } = datum;
-                return { startAngle, endAngle, innerRadius, outerRadius };
-            });
-            const labelsCollideSectors = boxes.some((box) => sectors.some((sector) => boxCollidesSector(box, sector)));
+            const labelsCollideSectors = anyOverlap(boxes, sectorObstacles, boxOverlapsSector);
 
             if (!labelsCollideLabelsByX && !labelsCollideLabelsByY && !labelsCollideSectors) return;
 
