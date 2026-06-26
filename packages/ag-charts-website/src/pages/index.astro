@@ -23,7 +23,7 @@ const { blogPrefix } = whatsNewData['charts'];
 
 // All Gallery Examples
 const { data: FAQData } = (await getEntry('faqs', 'homepage')) as CollectionEntry<'faqs'>;
-const renderedFAQData = renderFAQAnswers(FAQData, 'react');
+const renderedFAQData = renderFAQAnswers(FAQData);
 const { data: versionsData } = (await getEntry('versions', 'ag-charts-versions')) as CollectionEntry<'versions'>;
 
 const frameworksData = [

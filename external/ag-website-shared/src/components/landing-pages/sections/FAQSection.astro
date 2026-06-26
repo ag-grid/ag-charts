@@ -3,6 +3,7 @@ import type { FAQSection, LandingPageContent } from '../types';
 import { LandingPageSection } from '../LandingPageSection';
 import { LandingPageFAQ } from '../LandingPageFAQ';
 import { renderFAQAnswers } from '../renderFAQAnswers';
+import { getFrameworkFromInternalFramework } from '@utils/framework';
 
 interface Props {
     section: FAQSection;
@@ -11,7 +12,8 @@ interface Props {
 
 const { section, pageContent } = Astro.props;
 
-const faqData = renderFAQAnswers(section.items, pageContent.framework || 'react');
+const framework = getFrameworkFromInternalFramework(pageContent.framework);
+const faqData = renderFAQAnswers(section.items, framework);
 ---
 
 <LandingPageSection id="faq" tag={section.tag} heading={section.heading} subHeading={section.subHeading}>
