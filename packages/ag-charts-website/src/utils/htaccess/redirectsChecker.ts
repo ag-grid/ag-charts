@@ -58,7 +58,16 @@ function checkPathExists(pathToCheck: string): Result {
 }
 
 export function redirectsChecker({ buildDir, logger }: { buildDir: string; logger: AstroIntegrationLogger }) {
-    const results: Result[] = SITE_301_REDIRECTS.map(({ to }) => {
+    const results: Result[] = SITE_301_REDIRECTS.map((redirect) => {
+        const { to } = redirect as { to?: string };
+        // Gone (410) rules have no `to` to validate.
+        if (!to) {
+            const { from, fromPattern } = redirect as { from?: string; fromPattern?: string };
+            return {
+                type: 'ignored',
+                path: from ?? fromPattern ?? '',
+            };
+        }
         if (to.startsWith('/')) {
             const toPath = to.split('#')[0]; // Remove search params
 

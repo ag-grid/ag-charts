@@ -56,33 +56,39 @@ export function getRedirectRules() {
     // definitions stay base-relative (`^/react/?$`); the base is spliced in here, matching how
     // `from` rules get the base via `urlWithBaseUrl`.
     const basePath = (SITE_BASE_URL ?? '').replace(/\/$/, '');
+    const toBaseAwarePattern = (fromPattern: string) =>
+        fromPattern.startsWith('^') ? `^${basePath}${fromPattern.slice(1)}` : `${basePath}${fromPattern}`;
     return `${SITE_301_REDIRECTS.map((redirect) => {
-        const { from, fromPattern, to } = redirect as any;
+        const { from, fromPattern, to, gone } = redirect as any;
+        if (!from && !fromPattern) {
+            // eslint-disable-next-line no-console
+            console.warn('Missing `from` in redirect', redirect);
+            return;
+        }
+        // 410 Gone: permanently removed, no target.
+        if (gone) {
+            return from
+                ? `Redirect 410 ${urlWithBaseUrl(from)}`
+                : `RedirectMatch 410 "${toBaseAwarePattern(fromPattern)}"`;
+        }
         if (!to) {
             // eslint-disable-next-line no-console
             console.warn('Missing `to` in redirect', redirect);
-            return;
-        } else if (!from && !fromPattern) {
-            // eslint-disable-next-line no-console
-            console.warn('Missing `from` in redirect', redirect);
             return;
         }
         if (from) {
             return `Redirect 301 ${urlWithBaseUrl(from)} ${urlWithBaseUrl(to)}`;
         }
-        const baseAwarePattern = fromPattern.startsWith('^')
-            ? `^${basePath}${fromPattern.slice(1)}`
-            : `${basePath}${fromPattern}`;
-        return `RedirectMatch 301 "${baseAwarePattern}" "${urlWithBaseUrl(to)}"`;
+        return `RedirectMatch 301 "${toBaseAwarePattern(fromPattern)}" "${urlWithBaseUrl(to)}"`;
     })
         .filter(Boolean)
         .join('\n')}`;
 }
 
 export function getAstroRedirectRules(): AstroUserConfig['redirects'] {
-    // Only for simple redirects, not pattern matches
-    const simpleRedirects = SITE_301_REDIRECTS.filter((redirect) =>
-        Boolean((redirect as SimpleRedirectRule).from)
+    // Only for simple redirects, not pattern matches. Gone rules have no `to`, so skip them.
+    const simpleRedirects = SITE_301_REDIRECTS.filter(
+        (redirect) => Boolean((redirect as SimpleRedirectRule).from) && !(redirect as { gone?: true }).gone
     ) as SimpleRedirectRule[];
 
     return Object.fromEntries(
