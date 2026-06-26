@@ -353,6 +353,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             const isCollapsed =
                 descendantsCount > 0 && datum.itemId != null && this.ctx.collapsedManager.isCollapsed(datum.itemId);
             const styles = this.getNodeStyle(datumIndex, depth, isHighlight, highlightState, isCollapsed);
+            node.opacity = this.getNodeOpacity(datumIndex, isHighlight, highlightState);
 
             const fields = this.resolveVertexFields(datum.vertex);
             const title = this.formatText(fields.title, this.properties.node.title.formatter, datumIndex, isCollapsed);
@@ -911,6 +912,20 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         }
 
         return style;
+    }
+
+    // Selection/highlight dimming is a whole-card effect, so it applies to the node group's
+    // opacity rather than the card paint style, which only covers fill and stroke.
+    private getNodeOpacity(
+        datumIndex: number,
+        isHighlight: boolean,
+        highlightState: _ModuleSupport.HighlightState | undefined
+    ): number {
+        return (
+            this.getSelectionStyle(datumIndex)?.opacity ??
+            this.getHighlightStyle(isHighlight, datumIndex, highlightState).opacity ??
+            1
+        );
     }
 
     private getNodeDefaultStyle(): Normalised<
