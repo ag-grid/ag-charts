@@ -55,7 +55,7 @@ const highlightStates = [
     },
 ];
 
-// List of highlight-test examples
+// List of highlight-e2e examples
 const highlightExamples = [
     'custom-highlight-multiple-series',
     'custom-highlight-multiple-series-markers',
@@ -81,7 +81,7 @@ test.describe('highlight states', () => {
         const states = isSingleSeries
             ? highlightStates.filter((s) => s.name !== 'series' && s.name !== 'other-series')
             : highlightStates;
-        const url = toExamplePageUrl('highlight-test', example, 'vanilla').url;
+        const url = toExamplePageUrl('highlight-e2e', example, 'vanilla').url;
         test.describe(`${example}`, () => {
             for (const state of states) {
                 test(`should render highlight state: ${state.name}`, async ({ page }) => {
