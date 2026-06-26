@@ -1,14 +1,9 @@
 import type { Plugin, ViteDevServer } from 'vite';
 
-import { getCspValue } from '../src/utils/htaccess/cspRules';
+import { EXAMPLES_PATH_REGEXP, getCspValue } from '../src/utils/htaccess/cspRules';
 
 const SITE_CSP = getCspValue({ env: 'dev', scope: 'site' });
 const EXAMPLES_CSP = getCspValue({ env: 'dev', scope: 'examples' });
-
-// Mirrors EXAMPLES_PATH_CONDITION in cspRules.ts: match the /examples/ or
-// /archive/ segment anywhere (charts serves example-runner documents under both
-// /gallery/examples/... and /<framework>/<page>/examples/..., under the /charts base).
-const EXAMPLES_PATH = /\/(examples|archive)\//;
 
 /**
  * Vite plugin serving the dev server's Content-Security-Policy header with the
@@ -21,7 +16,7 @@ export default function agDevCsp(): Plugin {
         name: 'ag-dev-csp',
         configureServer(server: ViteDevServer) {
             server.middlewares.use((req, res, next) => {
-                const csp = EXAMPLES_PATH.test(req.url ?? '') ? EXAMPLES_CSP : SITE_CSP;
+                const csp = EXAMPLES_PATH_REGEXP.test(req.url ?? '') ? EXAMPLES_CSP : SITE_CSP;
                 res.setHeader('Content-Security-Policy', csp);
                 next();
             });
