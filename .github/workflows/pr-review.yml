@@ -24,6 +24,17 @@ on:
                 description: 'PR number to review'
                 type: string
                 required: true
+            driver:
+                description: 'Review engine. codex = current single-turn Codex review (default). claude = Claude Code orchestrates a chunked Codex review — same standard pass, split across per-turn-safe chunks (survives large PRs that exceed Codex per-turn input limits).'
+                type: choice
+                options: [codex, claude]
+                default: codex
+                required: false
+            quiet:
+                description: 'Quiet/soak mode: post nothing to the PR; upload the review as an artifact (pr-review-<driver>-<pr#>) instead. Use to compare drivers without touching the PR.'
+                type: boolean
+                default: false
+                required: false
 
 permissions:
     contents: read
@@ -109,3 +120,9 @@ jobs:
                   github-token: ${{ github.token }}
                   inline-comments: 'true'
                   dev-prompts-version: ${{ env.DEV_PROMPTS_CHANNEL }}
+                  # Driver/quiet only come from a deliberate workflow_dispatch (or a
+                  # /pr-review --claude comment); pull_request / issue_comment supply
+                  # neither, so they fall through to the unchanged codex + comment flow.
+                  driver: ${{ inputs.driver || 'codex' }}
+                  quiet: ${{ inputs.quiet || 'false' }}
+                  anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
