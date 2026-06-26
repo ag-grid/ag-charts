@@ -281,6 +281,29 @@
         ],
         [
             {
+                "title": "Org Chart",
+                "seriesName": "org-chart",
+                "seriesLink": "./org-chart/",
+                "icon": "chartsOrg",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Org Chart",
+                        "name": "simple-org-chart"
+                    },
+                    {
+                        "title": "Org Chart With Vertical Card",
+                        "name": "simple-org-chart-with-vertical-card"
+                    },
+                    {
+                        "title": "Org Chart With Many Nodes",
+                        "name": "org-chart-with-many-nodes"
+                    }
+                ]
+            }
+        ],
+        [
+            {
                 "title": "Histogram",
                 "seriesName": "histogram",
                 "icon": "chartsHistogram",
