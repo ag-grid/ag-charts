@@ -3,7 +3,7 @@ import { expect, test } from './fixture';
 import { SELECTORS, getExamples, setupIntrinsicAssertions } from './util';
 
 const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
-    'image-fill-test': {
+    'image-fill-e2e': {
         'image-contain': {
             snapshot: true,
             frameworks: ['vanilla'],

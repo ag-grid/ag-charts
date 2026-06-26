@@ -10,7 +10,7 @@ test.describe('release', () => {
 
     test.describe('for Angular FW', () => {
         test.describe('callbacks should happen in Zone.js zones', () => {
-            const { url } = toExamplePageUrl('release-test', 'angular-zonejs', 'angular');
+            const { url } = toExamplePageUrl('release-e2e', 'angular-zonejs', 'angular');
 
             test('when clicking each interactable area', async ({ page }) => {
                 const doubleClickElement = async (element: Locator) => {

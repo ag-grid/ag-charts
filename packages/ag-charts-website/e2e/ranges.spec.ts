@@ -28,7 +28,7 @@ test.describe('range buttons', () => {
     });
 
     test('category axis', async ({ page }) => {
-        const { url } = toExamplePageUrl('range-buttons-test', 'e2e-category-range-buttons', 'vanilla');
+        const { url } = toExamplePageUrl('range-buttons-e2e', 'category-range-buttons', 'vanilla');
         await gotoExample(page, url);
 
         const { canvas } = await locateCanvas(page);
@@ -38,7 +38,7 @@ test.describe('range buttons', () => {
     });
 
     test('out of range', async ({ page }) => {
-        const { url } = toExamplePageUrl('range-buttons-test', 'e2e-out-of-range', 'vanilla');
+        const { url } = toExamplePageUrl('range-buttons-e2e', 'out-of-range', 'vanilla');
         await gotoExample(page, url);
         await expect(page.locator('.ag-charts-range-buttons--buttons')).toHaveScreenshot(
             'range-buttons-out-of-range.png'
@@ -46,7 +46,7 @@ test.describe('range buttons', () => {
     });
 
     test('position', async ({ page }) => {
-        const { url } = toExamplePageUrl('range-buttons-test', 'e2e-position', 'vanilla');
+        const { url } = toExamplePageUrl('range-buttons-e2e', 'position', 'vanilla');
         await gotoExample(page, url);
 
         const { canvas } = await locateCanvas(page);
@@ -71,7 +71,7 @@ test.describe('range buttons', () => {
     });
 
     test('actions', async ({ page }) => {
-        const { url } = toExamplePageUrl('range-buttons-test', 'e2e-range-buttons', 'vanilla');
+        const { url } = toExamplePageUrl('range-buttons-e2e', 'range-buttons', 'vanilla');
         await gotoExample(page, url);
 
         const { canvas, wrapper } = await locateCanvas(page);
@@ -106,7 +106,7 @@ test.describe('range buttons', () => {
     });
 
     test('dropdown', async ({ page }) => {
-        const { url } = toExamplePageUrl('range-buttons-test', 'e2e-dropdown', 'vanilla');
+        const { url } = toExamplePageUrl('range-buttons-e2e', 'dropdown', 'vanilla');
         await gotoExample(page, url);
 
         const { canvas } = await locateCanvas(page);
@@ -129,7 +129,7 @@ test.describe('range buttons', () => {
 
     // CRT-705: Disabling and re-enabling ranges should correctly restore the button toolbar.
     test('enable/disable toggle restores buttons', async ({ page }) => {
-        const { url } = toExamplePageUrl('range-buttons-test', 'e2e-enable-disable', 'vanilla');
+        const { url } = toExamplePageUrl('range-buttons-e2e', 'enable-disable', 'vanilla');
         await gotoExample(page, url);
 
         const buttons = page.locator('.ag-charts-range-buttons--buttons');
@@ -147,7 +147,7 @@ test.describe('range buttons', () => {
     });
 
     test('styles', async ({ page }) => {
-        const { url } = toExamplePageUrl('range-buttons-test', 'e2e-styles', 'vanilla');
+        const { url } = toExamplePageUrl('range-buttons-e2e', 'styles', 'vanilla');
         await gotoExample(page, url);
 
         const { canvas } = await locateCanvas(page);

@@ -434,7 +434,7 @@ test.describe('keyboard-nav', () => {
         test.describe('vertical linear', () => {
             let enable: Locator, disable: Locator, item: Locator, container: Locator;
             test.beforeEach(async ({ page }) => {
-                await gotoExample(page, toExamplePageUrl('linear-gauge-test', 'corner-radius', 'vanilla').url);
+                await gotoExample(page, toExamplePageUrl('linear-gauge-e2e', 'corner-radius', 'vanilla').url);
                 enable = page.getByText('Enable');
                 disable = page.getByText('Disable');
                 item = page.getByText('Item');
@@ -512,13 +512,13 @@ test.describe('keyboard-nav', () => {
 
     test.describe('AG-15607 linear gauge bar thickness', () => {
         test('horizontal', async ({ page }) => {
-            await gotoExample(page, toExamplePageUrl('linear-gauge-test', 'bar-thickness-horizontal', 'vanilla').url);
+            await gotoExample(page, toExamplePageUrl('linear-gauge-e2e', 'bar-thickness-horizontal', 'vanilla').url);
             await page.mouse.click(400, 300);
             await page.keyboard.press('ArrowLeft');
             await expect(page).toHaveScreenshot('AG-15607-bar-thickness-horizontal.png');
         });
         test('vertical', async ({ page }) => {
-            await gotoExample(page, toExamplePageUrl('linear-gauge-test', 'bar-thickness-vertical', 'vanilla').url);
+            await gotoExample(page, toExamplePageUrl('linear-gauge-e2e', 'bar-thickness-vertical', 'vanilla').url);
             await page.mouse.click(400, 300);
             await page.keyboard.press('ArrowLeft');
             await expect(page).toHaveScreenshot('AG-15607-bar-thickness-vertical.png');
