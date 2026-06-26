@@ -16,7 +16,8 @@
         "**/*.map",
         "**/_examples/**",
         "**/generated-example-contents.json",
-        "**/docs/*-test/**"
+        "**/docs/*-test/**",
+        "**/docs/*-e2e/**"
     ],
     "useGitignore": true,
     "ignoreRegExpList": ["/id=\"[A-Za-z0-9_-]{11}\"/g"],
