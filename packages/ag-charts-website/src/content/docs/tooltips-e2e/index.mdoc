@@ -1,0 +1,33 @@
+---
+title: 'Tooltips Test'
+---
+
+## E2E Tested
+
+### tooltip-modes
+
+_Auto-tested via Playwright._
+
+{% chartExampleRunner title="Tooltip Modes E2E" name="tooltip-modes" type="generated" /%}
+
+### tooltip-nearest
+
+_Auto-tested via Playwright._
+
+{% chartExampleRunner title="Tooltip Nearest Picking E2E" name="tooltip-nearest" type="generated" /%}
+
+### tooltip-renderer
+
+_Auto-tested via Playwright._
+
+{% chartExampleRunner title="Tooltip Renderer E2E" name="tooltip-renderer" type="generated" /%}
+
+## Tooltip Pagination
+
+When hovering in the center, is should show:
+
+1.  "1 of 2" initially.
+2.  "2 of 2" after clicking.
+3.  "1 of 2" again after clicking again (skipping 2nd bubble series where tooltip is disabled).
+
+{% chartExampleRunner title="Tooltip Pagination Disable Tooltips E2E" name="tooltip-pagination-disabled-series" type="generated" /%}

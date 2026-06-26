@@ -17,7 +17,7 @@ test.describe('forced reflow detection', () => {
     test.describe.configure({ mode: 'serial' });
 
     test('tooltip hover should not cause forced reflows', async ({ page }) => {
-        await gotoExample(page, toExamplePageUrl('tooltips-test', 'e2e-tooltip-modes', 'vanilla').url);
+        await gotoExample(page, toExamplePageUrl('tooltips-e2e', 'tooltip-modes', 'vanilla').url);
         await waitForAllChartUpdates(page);
 
         const initialEvents = await traceAction(page, async () => {

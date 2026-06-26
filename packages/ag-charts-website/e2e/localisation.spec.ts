@@ -63,7 +63,7 @@ test.describe('localisation', () => {
             await page.keyboard.press('ArrowLeft');
         }
 
-        const { url } = toExamplePageUrl('localisation-test', 'locale-and-formatters', 'vanilla');
+        const { url } = toExamplePageUrl('localisation-e2e', 'locale-and-formatters', 'vanilla');
         await gotoExample(page, url);
         const [label1, label2] = await getSwapChainLabels();
         const [announcer1, announcer2] = await getSwapChainAnnouncers();
