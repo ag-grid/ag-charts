@@ -1,6 +1,6 @@
 import type { AgSelectionItemIds } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type AreExact, type Nullable } from 'ag-charts-core';
+import { type AreExact } from 'ag-charts-core';
 
 import type { DataSelectionChangeMap } from './dataSelectionChangeMap';
 import type { DataSetSelection } from './dataSetSelection';
