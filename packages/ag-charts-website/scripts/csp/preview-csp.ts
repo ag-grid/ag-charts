@@ -54,6 +54,11 @@ const MKCERT_CERT = path.join(MKCERT_DIR, 'cert.pem');
 const DEFAULT_PORT = 4601;
 const DEFAULT_BASE = '/charts';
 
+// Where `astro build` actually writes the site (see astro.config.mjs `outDir`).
+// The output lives at the workspace-root dist, NOT a package-local `dist/`, so
+// resolve it relative to this package's cwd to match.
+const BUILD_OUT_DIR = '../../dist/packages/ag-charts-website';
+
 const ENVS: CspEnv[] = ['dev', 'staging', 'production'];
 const MODES: CspMode[] = ['report-only', 'enforce'];
 
@@ -142,7 +147,7 @@ async function main(): Promise<void> {
     const resolveCsp = makeCspResolver(env);
     const headerName = getCspHeaderName(mode);
     const httpsOption = getHttpsOption(https);
-    const outDir = path.join(process.cwd(), 'dist');
+    const outDir = path.resolve(process.cwd(), BUILD_OUT_DIR);
     // Base with the trailing slash trimmed ('' for a root deploy), used to map a
     // request URL back to its file on disk (the files live at the dist root).
     const baseNoTrail = base === '/' ? '' : base.slice(0, -1);
@@ -153,7 +158,7 @@ async function main(): Promise<void> {
         // Serve dist under the baked base (/charts locally), so the prefixed asset
         // and hydration URLs in the built HTML resolve.
         base,
-        build: { outDir: 'dist' },
+        build: { outDir },
         // 'mpa' serves the static build as a multi-page app: each route maps to its
         // own .html file with no SPA fallback. The default 'spa' would serve the
         // homepage for any unmatched URL, which silently breaks example-runner
