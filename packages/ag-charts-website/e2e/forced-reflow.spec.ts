@@ -94,7 +94,7 @@ test.describe('forced reflow detection', () => {
     }
 
     test('sparkline creation should not cause forced reflows', async ({ page }) => {
-        await gotoExample(page, toExamplePageUrl('sparklines-test', 'e2e-sparkline-reflow', 'vanilla').url);
+        await gotoExample(page, toExamplePageUrl('sparklines-e2e', 'sparkline-reflow', 'vanilla').url);
         await waitForAllChartUpdates(page);
 
         const events = await traceAction(page, async () => {
@@ -113,7 +113,7 @@ test.describe('forced reflow detection', () => {
     });
 
     test('sparkline data update should not cause forced reflows', async ({ page }) => {
-        await gotoExample(page, toExamplePageUrl('sparklines-test', 'e2e-sparkline-reflow', 'vanilla').url);
+        await gotoExample(page, toExamplePageUrl('sparklines-e2e', 'sparkline-reflow', 'vanilla').url);
         await waitForAllChartUpdates(page);
 
         // Create sparklines first, then wait for them to settle.
@@ -140,7 +140,7 @@ test.describe('forced reflow detection', () => {
     // then create new ones from pool — the lifecycle that occurs as rows scroll
     // in and out of the viewport.
     test('sparkline scroll recycling should not cause forced reflows', async ({ page }) => {
-        await gotoExample(page, toExamplePageUrl('sparklines-test', 'e2e-sparkline-reflow', 'vanilla').url);
+        await gotoExample(page, toExamplePageUrl('sparklines-e2e', 'sparkline-reflow', 'vanilla').url);
         await waitForAllChartUpdates(page);
 
         // Create initial sparklines, then wait for them to settle.
@@ -167,7 +167,7 @@ test.describe('forced reflow detection', () => {
     // Realistic virtual-scroll scenario: 1000-row list with a 400px viewport,
     // sparklines created/destroyed as rows enter/leave the visible area.
     test('sparkline virtual scroll should not cause forced reflows', async ({ page }) => {
-        await gotoExample(page, toExamplePageUrl('sparklines-test', 'e2e-sparkline-virtual-scroll', 'vanilla').url);
+        await gotoExample(page, toExamplePageUrl('sparklines-e2e', 'sparkline-virtual-scroll', 'vanilla').url);
         await waitForAllChartUpdates(page);
 
         const viewport = page.locator('#viewport');
