@@ -37,17 +37,25 @@ const isNonPublicContent = (page: string) => {
 };
 
 /*
- * Test pages for integration testing
+ * Internal pages for integration and end-to-end testing. The `-test` suffix denotes
+ * manual regression harnesses; `-e2e` denotes pages backing automated Playwright specs.
+ * Both are excluded from search engines and navigation.
  */
-export const isTestPage = (page: string) => {
-    return page.endsWith('-test/') || page.endsWith('-test') || page.endsWith('/benchmarks');
+export const isInternalPage = (page: string) => {
+    return (
+        page.endsWith('-test/') ||
+        page.endsWith('-test') ||
+        page.endsWith('-e2e/') ||
+        page.endsWith('-e2e') ||
+        page.endsWith('/benchmarks')
+    );
 };
 
 const filterIgnoredPages = (page: string) => {
     return (
         !isExamplePage(page) &&
         !isDebugPage(page) &&
-        !isTestPage(page) &&
+        !isInternalPage(page) &&
         !isRedirectPage(page) &&
         !isNonPublicContent(page)
     );
