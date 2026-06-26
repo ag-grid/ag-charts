@@ -76,7 +76,7 @@ test.describe('zoom', () => {
     test('crosshairs', async ({ page }) => {
         const xAxisLabel = '.ag-charts-crosshair-label[data-key="pointer"][data-axis-id="x"]';
         const yAxisLabel = '.ag-charts-crosshair-label[data-key="yKey"]';
-        const { url } = toExamplePageUrl('zoom-test', 'e2e-zoom-crosshairs', 'vanilla');
+        const { url } = toExamplePageUrl('zoom-e2e', 'zoom-crosshairs', 'vanilla');
 
         await gotoExample(page, url);
 
@@ -107,7 +107,7 @@ test.describe('zoom', () => {
     });
 
     test('axis overlap hover keeps highlighting active', async ({ page }) => {
-        const { url } = toExamplePageUrl('zoom-test', 'e2e-zoom-axis-overlap', 'vanilla');
+        const { url } = toExamplePageUrl('zoom-e2e', 'zoom-axis-overlap', 'vanilla');
 
         await gotoExample(page, url);
 
