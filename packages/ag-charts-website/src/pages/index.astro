@@ -236,12 +236,14 @@ const mapExampleHeights = 360;
     </div>
 </Layout>
 
-<script>
-    import { initScrollClassListener } from '@ag-website-shared/utils/initScrollClassListener';
-
-    initScrollClassListener({
-        targetSelector: '.site-header',
-        scrolledClass: 'header-scrolled',
-        scrollPosition: 480,
-    });
-</script>
+{
+    /* Externalised to a 'self' script (config via data- attributes) so the site CSP
+    can drop script-src 'unsafe-inline' — see public/scripts/site-header-scroll.js.
+    Classic non-deferred script so document.currentScript resolves. */
+}
+<script
+    is:inline
+    src={urlWithBaseUrl('/scripts/site-header-scroll.js')}
+    data-target-selector=".site-header"
+    data-scrolled-class="header-scrolled"
+    data-scroll-position="480"></script>
