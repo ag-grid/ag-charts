@@ -37,11 +37,11 @@ const options: AgStandaloneChartOptions = {
 
 const chart = AgCharts.create(options);
 
-export function onSelectionContainmentChange(containment: AgSelectionContainment) {
+function onSelectionContainmentChange(containment: AgSelectionContainment) {
     options.selection.containment = containment;
     chart.update(options);
 }
 
-export function onGetSelectionClicked() {
+function onGetSelectionClicked() {
     console.log(Array.from(chart.getSelection()));
 }
