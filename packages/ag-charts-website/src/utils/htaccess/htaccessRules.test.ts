@@ -123,6 +123,24 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
         );
     });
 
+    it('broad {fw}-charts fallbacks redirect sub-paths only, never the live landing page', () => {
+        const fallbacks = [
+            { pattern: `^${base}/enterprise-charts/.+$`, sub: `${base}/enterprise-charts/license-pricing` },
+            { pattern: `^${base}/javascript-charts/.+$`, sub: `${base}/javascript-charts/whats-new` },
+            { pattern: `^${base}/angular-charts/.+$`, sub: `${base}/angular-charts/whats-new` },
+            { pattern: `^${base}/react-charts/.+$`, sub: `${base}/react-charts/whats-new` },
+            { pattern: `^${base}/vue-charts/.+$`, sub: `${base}/vue-charts/whats-new` },
+        ];
+        for (const { pattern, sub } of fallbacks) {
+            expect(rules).toContain(`RedirectMatch 301 "${pattern}"`);
+            const re = new RegExp(pattern);
+            const landing = sub.replace(/\/[^/]+$/, '/'); // e.g. /charts/react-charts/
+            expect(re.test(landing)).toBe(false); // live marketing landing page must not be redirected
+            expect(re.test(landing.replace(/\/$/, ''))).toBe(false); // nor its bare (no trailing slash) form
+            expect(re.test(sub)).toBe(true); // legacy sub-paths still redirect
+        }
+    });
+
     it('410 rules win over the broad rules: they are emitted first', () => {
         expect(rules.indexOf('RedirectMatch 410')).toBeLessThan(rules.indexOf(`"^${base}/core/(.*)"`));
     });
