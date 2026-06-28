@@ -88,8 +88,8 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
     const base = (SITE_BASE_URL ?? '').replace(/\/$/, '');
 
     it('emits 410 Gone rules with no target for permanently-removed paths', () => {
-        expect(rules).toContain(`RedirectMatch 410 "^${base}/archive/.*"`);
-        expect(rules).toContain(`RedirectMatch 410 "^${base}/privacy(/.*)?"`);
+        expect(rules).toContain(`RedirectMatch 410 "^${base}/archive(/.*)?$"`);
+        expect(rules).toContain(`RedirectMatch 410 "^${base}/privacy(/.*)?$"`);
     });
 
     it('410 rules carry no destination', () => {
@@ -110,16 +110,16 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
 
     it('maps legacy aggregate index pages to the first page of the matching nav section', () => {
         expect(rules).toContain(
-            `RedirectMatch 301 "^${base}/(javascript|angular|react|vue)/series(/.*)?" "${base}/$1/bar-series/"`
+            `RedirectMatch 301 "^${base}/(javascript|angular|react|vue)/series(/.*)?$" "${base}/$1/bar-series/"`
         );
         expect(rules).toContain(
-            `RedirectMatch 301 "^${base}/(javascript|angular|react|vue)/axes(/.*)?" "${base}/$1/axes-configuration/"`
+            `RedirectMatch 301 "^${base}/(javascript|angular|react|vue)/axes(/.*)?$" "${base}/$1/axes-configuration/"`
         );
     });
 
     it('routes server-side-rendering to a framework-scoped page', () => {
         expect(rules).toContain(
-            `RedirectMatch 301 "^${base}/server-side-rendering(/.*)?" "${base}/javascript/server-side-rendering/"`
+            `RedirectMatch 301 "^${base}/server-side-rendering(/.*)?$" "${base}/javascript/server-side-rendering/"`
         );
     });
 
@@ -145,7 +145,7 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
 
 describe('generated redirect rules snapshot', () => {
     // Full-output regression guard. Renders under the pinned `/charts` base (see vi.mock above), so
-    // the snapshots show the production-prefixed rules, e.g. `RedirectMatch 410 "^/charts/archive/.*"`.
+    // the snapshots show the production-prefixed rules, e.g. `RedirectMatch 410 "^/charts/archive(/.*)?$"`.
     it('redirect rules output is unchanged', () => {
         expect(getRedirectRules()).toMatchSnapshot();
     });

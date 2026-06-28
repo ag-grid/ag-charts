@@ -38,8 +38,8 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     // RedirectMatch is first-match-wins, so order is load-bearing: specific before broad.
 
     // Permanently removed → 410 Gone. Listed first so they win over the broad rules below.
-    { fromPattern: '^/archive/.*', gone: true }, // per-release QA artifact, not part of the live IA
-    { fromPattern: '^/privacy(/.*)?', gone: true }, // no page or docs slug exists
+    { fromPattern: '^/archive(/.*)?$', gone: true }, // per-release QA artifact, not part of the live IA
+    { fromPattern: '^/privacy(/.*)?$', gone: true }, // no page or docs slug exists
 
     // Legacy "{fw}-charts/{fw}/<page>" docs scheme → current "{fw}/<page>" (all page slugs verified in content/docs).
     { fromPattern: '^/javascript-charts/javascript/(.*)', to: '/javascript/$1' },
@@ -50,15 +50,15 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     { fromPattern: '^/enterprise-charts/react/(.*)', to: '/react/$1' },
 
     // Legacy "{fw}-charts/gallery|options/..." → framework-agnostic section landing.
-    { fromPattern: '^/[a-z]+-charts/gallery(/.*)?', to: '/gallery/' },
-    { fromPattern: '^/[a-z]+-charts/options(/.*)?', to: '/options/' },
+    { fromPattern: '^/[a-z]+-charts/gallery(/.*)?$', to: '/gallery/' },
+    { fromPattern: '^/[a-z]+-charts/options(/.*)?$', to: '/options/' },
 
     // Remaining "{fw}-charts/<anything else>" (license-pricing, whats-new, bare) → framework landing.
-    { fromPattern: '^/enterprise-charts.*', to: '/enterprise-charts/' },
-    { fromPattern: '^/javascript-charts.*', to: '/javascript/quick-start/' },
-    { fromPattern: '^/angular-charts.*', to: '/angular/quick-start/' },
-    { fromPattern: '^/react-charts.*', to: '/react/quick-start/' },
-    { fromPattern: '^/vue-charts.*', to: '/vue/quick-start/' },
+    { fromPattern: '^/enterprise-charts(/.*)?$', to: '/enterprise-charts/' },
+    { fromPattern: '^/javascript-charts(/.*)?$', to: '/javascript/quick-start/' },
+    { fromPattern: '^/angular-charts(/.*)?$', to: '/angular/quick-start/' },
+    { fromPattern: '^/react-charts(/.*)?$', to: '/react/quick-start/' },
+    { fromPattern: '^/vue-charts(/.*)?$', to: '/vue/quick-start/' },
 
     // Framework-agnostic legacy layouts: core = main docs, side = side-nav docs.
     // All page slugs verified in content/docs → preserve the page under the javascript (default) framework.
@@ -66,9 +66,9 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     { fromPattern: '^/side/(.*)', to: '/javascript/$1' },
 
     // Framework-agnostic "server-side-rendering" is a docs slug → framework-scoped page.
-    { fromPattern: '^/server-side-rendering(/.*)?', to: '/javascript/server-side-rendering/' },
+    { fromPattern: '^/server-side-rendering(/.*)?$', to: '/javascript/server-side-rendering/' },
 
     // Legacy aggregate index pages with no current equivalent → first page of the matching nav section.
-    { fromPattern: '^/(javascript|angular|react|vue)/series(/.*)?', to: '/$1/bar-series/' },
-    { fromPattern: '^/(javascript|angular|react|vue)/axes(/.*)?', to: '/$1/axes-configuration/' },
+    { fromPattern: '^/(javascript|angular|react|vue)/series(/.*)?$', to: '/$1/bar-series/' },
+    { fromPattern: '^/(javascript|angular|react|vue)/axes(/.*)?$', to: '/$1/axes-configuration/' },
 ];
