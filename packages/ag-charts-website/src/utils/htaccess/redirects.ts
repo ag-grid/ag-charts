@@ -39,18 +39,20 @@ export const SITE_301_REDIRECTS: Redirect[] = [
 
     // Permanently removed → 410 Gone. Listed first so they win over the broad rules below.
     { fromPattern: '^/archive(/.*)?$', gone: true }, // per-release QA artifact, not part of the live IA
-    { fromPattern: '^/privacy(/.*)?$', gone: true }, // no page or docs slug exists
+
+    // No charts-scoped privacy page exists; the canonical policy lives on the apex site.
+    { fromPattern: '^/privacy(/.*)?$', to: 'https://www.ag-grid.com/privacy/' },
 
     // Legacy "{fw}-charts/{fw}/<page>" docs scheme → current "{fw}/<page>" (all page slugs verified in content/docs).
     // Require a non-empty page slug ((.+)): an empty slug would target the bare "{fw}/" root, which the
     // "^/{fw}/?$" rule redirects again — a chain. The empty case instead falls through to the broad
     // "^/{fw}-charts/.+$" fallback below, reaching quick-start in a single hop.
-    { fromPattern: '^/javascript-charts/javascript/(.+)', to: '/javascript/$1' },
-    { fromPattern: '^/angular-charts/angular/(.+)', to: '/angular/$1' },
-    { fromPattern: '^/react-charts/react/(.+)', to: '/react/$1' },
-    { fromPattern: '^/vue-charts/vue/(.+)', to: '/vue/$1' },
+    { fromPattern: '^/javascript-charts/javascript/(.+)$', to: '/javascript/$1' },
+    { fromPattern: '^/angular-charts/angular/(.+)$', to: '/angular/$1' },
+    { fromPattern: '^/react-charts/react/(.+)$', to: '/react/$1' },
+    { fromPattern: '^/vue-charts/vue/(.+)$', to: '/vue/$1' },
     // enterprise-charts/react/<page> was the enterprise framework docs (security, accessibility, …) → react docs.
-    { fromPattern: '^/enterprise-charts/react/(.+)', to: '/react/$1' },
+    { fromPattern: '^/enterprise-charts/react/(.+)$', to: '/react/$1' },
 
     // Legacy "{fw}-charts/gallery|options/..." → framework-agnostic section landing.
     { fromPattern: '^/[a-z]+-charts/gallery(/.*)?$', to: '/gallery/' },
