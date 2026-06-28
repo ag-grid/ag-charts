@@ -99,8 +99,19 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
     });
 
     it('rewrites legacy {fw}-charts/{fw}/<page> to the current {fw}/<page> scheme', () => {
-        expect(rules).toContain(`RedirectMatch 301 "^${base}/react-charts/react/(.*)" "${base}/react/$1"`);
-        expect(rules).toContain(`RedirectMatch 301 "^${base}/enterprise-charts/react/(.*)" "${base}/react/$1"`);
+        expect(rules).toContain(`RedirectMatch 301 "^${base}/react-charts/react/(.+)" "${base}/react/$1"`);
+        expect(rules).toContain(`RedirectMatch 301 "^${base}/enterprise-charts/react/(.+)" "${base}/react/$1"`);
+    });
+
+    it('sends an empty docs-scheme root to quick-start in a single hop (no chain via {fw}/)', () => {
+        const emptyDocsRoot = `${base}/react-charts/react/`;
+        const docsRule = new RegExp(`^${base}/react-charts/react/(.+)`);
+        const broadFallback = new RegExp(`^${base}/react-charts/.+$`);
+        // The page-preserving rule must NOT match an empty slug (that would target the bare `/react/`
+        // root and chain through `^/react/?$`); the broad fallback catches it → quick-start directly.
+        expect(docsRule.test(emptyDocsRoot)).toBe(false);
+        expect(broadFallback.test(emptyDocsRoot)).toBe(true);
+        expect(rules).toContain(`RedirectMatch 301 "^${base}/react-charts/.+$" "${base}/react/quick-start/"`);
     });
 
     it('preserves the page for framework-agnostic core/side legacy layouts (under javascript)', () => {

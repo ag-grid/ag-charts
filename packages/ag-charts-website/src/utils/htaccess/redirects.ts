@@ -42,12 +42,15 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     { fromPattern: '^/privacy(/.*)?$', gone: true }, // no page or docs slug exists
 
     // Legacy "{fw}-charts/{fw}/<page>" docs scheme → current "{fw}/<page>" (all page slugs verified in content/docs).
-    { fromPattern: '^/javascript-charts/javascript/(.*)', to: '/javascript/$1' },
-    { fromPattern: '^/angular-charts/angular/(.*)', to: '/angular/$1' },
-    { fromPattern: '^/react-charts/react/(.*)', to: '/react/$1' },
-    { fromPattern: '^/vue-charts/vue/(.*)', to: '/vue/$1' },
+    // Require a non-empty page slug ((.+)): an empty slug would target the bare "{fw}/" root, which the
+    // "^/{fw}/?$" rule redirects again — a chain. The empty case instead falls through to the broad
+    // "^/{fw}-charts/.+$" fallback below, reaching quick-start in a single hop.
+    { fromPattern: '^/javascript-charts/javascript/(.+)', to: '/javascript/$1' },
+    { fromPattern: '^/angular-charts/angular/(.+)', to: '/angular/$1' },
+    { fromPattern: '^/react-charts/react/(.+)', to: '/react/$1' },
+    { fromPattern: '^/vue-charts/vue/(.+)', to: '/vue/$1' },
     // enterprise-charts/react/<page> was the enterprise framework docs (security, accessibility, …) → react docs.
-    { fromPattern: '^/enterprise-charts/react/(.*)', to: '/react/$1' },
+    { fromPattern: '^/enterprise-charts/react/(.+)', to: '/react/$1' },
 
     // Legacy "{fw}-charts/gallery|options/..." → framework-agnostic section landing.
     { fromPattern: '^/[a-z]+-charts/gallery(/.*)?$', to: '/gallery/' },

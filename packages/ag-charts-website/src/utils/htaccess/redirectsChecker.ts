@@ -21,6 +21,10 @@ type ErrorResult = {
 
 type Result = SuccessResult | IgnoredResult | ErrorResult;
 
+// A target that interpolates a captured group (e.g. `/javascript/$1`) has no single literal
+// path to resolve against the build output, so it cannot be validated statically.
+export const isRegexReplacementTarget = (to: string) => /\$\d/.test(to);
+
 const getSuccess = (results: Result[]) => results.filter(({ type }) => type === 'success');
 const getIgnored = (results: Result[]) => results.filter(({ type }) => type === 'ignored');
 const getErrors = (results: Result[]) => results.filter(({ type }) => type === 'error');
@@ -68,6 +72,13 @@ export function redirectsChecker({ buildDir, logger }: { buildDir: string; logge
                 path: from ?? fromPattern ?? '',
             };
         }
+        if (isRegexReplacementTarget(to)) {
+            return {
+                type: 'ignored',
+                path: to,
+            };
+        }
+
         if (to.startsWith('/')) {
             const toPath = to.split('#')[0]; // Remove search params
 
