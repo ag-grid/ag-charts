@@ -695,12 +695,14 @@ export abstract class FlowProportionSeries<
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
+        let minNode: _ModuleSupport.Node<unknown> | undefined;
 
         this.linkSelection.each((node, datum) => {
             const distanceSquared = node.distanceSquared(x, y);
             if (distanceSquared < minDistanceSquared) {
                 minDistanceSquared = distanceSquared;
                 minDatum = datum;
+                minNode = node;
             }
         });
         this.nodeSelection.each((node, datum) => {
@@ -708,10 +710,13 @@ export abstract class FlowProportionSeries<
             if (distanceSquared < minDistanceSquared) {
                 minDistanceSquared = distanceSquared;
                 minDatum = datum;
+                minNode = node;
             }
         });
 
-        return minDatum == null ? undefined : { datum: minDatum, distance: Math.sqrt(minDistanceSquared) };
+        return minDatum == null || minNode == null
+            ? undefined
+            : { datum: minDatum, distance: Math.sqrt(minDistanceSquared), target: minNode };
     }
 
     getDatumAriaText(datum: TDatum<TNodeDatum, TLinkDatum>, description: string) {

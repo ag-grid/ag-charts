@@ -35,7 +35,7 @@ export function findQuadtreeMatch<TDatum extends SeriesNodeDatum>(
     const { x, y } = point;
     const { nearest, distanceSquared } = series.getQuadTree().find(x, y);
     if (nearest !== undefined) {
-        return { datum: nearest.value, distance: Math.sqrt(distanceSquared) };
+        return { datum: nearest.value, distance: Math.sqrt(distanceSquared), target: series.contentGroup };
     }
 
     return undefined;

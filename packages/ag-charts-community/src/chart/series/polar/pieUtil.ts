@@ -147,6 +147,7 @@ type SectorSceneNode = SectorVariables & { readonly datum: any };
 type SectorSeries = {
     centerX: number;
     centerY: number;
+    contentGroup: Group;
     getItemNodes(): SectorSceneNode[];
 };
 
@@ -166,7 +167,7 @@ export function pickByMatchingAngle(series: SectorSeries, point: Point): SeriesN
             } else if (radius > sector.outerRadius) {
                 distance = radius - sector.outerRadius;
             }
-            return { datum: sector.datum, distance };
+            return { datum: sector.datum, distance, target: series.contentGroup };
         }
     }
     return undefined;

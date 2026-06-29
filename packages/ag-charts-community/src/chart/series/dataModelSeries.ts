@@ -9,7 +9,13 @@ import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData } from '../data/dataModel';
 import type { PropertyDefinition } from '../data/dataModelTypes';
 import { DataSet } from '../data/dataSet';
-import type { PickFocusInputs, PickFocusOutputs, SeriesConstructorOpts, SeriesNodeDataContext } from './series';
+import type {
+    PickFocusInputs,
+    PickFocusOutputs,
+    SeriesConstructorOpts,
+    SeriesNodeDataContext,
+    SeriesNodePickMatch,
+} from './series';
 import { Series } from './series';
 import type { SeriesProperties } from './seriesProperties';
 import { type SeriesNodeDatum } from './seriesTypes';
@@ -155,10 +161,10 @@ export abstract class DataModelSeries<
         }
     }
 
-    protected override pickNodesExactShape(point: Point): SeriesNodeDatum[] {
-        const datums = super.pickNodesExactShape(point) as DataModelSeriesNodeDatum[];
-        datums.sort((a, b) => a.datumIndex - b.datumIndex);
-        return datums;
+    protected override pickNodesExactShape(point: Point): SeriesNodePickMatch[] {
+        const matches = super.pickNodesExactShape(point);
+        matches.sort((a, b) => a.datum.datumIndex - b.datum.datumIndex);
+        return matches;
     }
 
     protected isDatumEnabled(nodeData: TDatum[], datumIndex: number): boolean {
