@@ -19,7 +19,7 @@ interface Props {
 
 const { section, pageContent } = Astro.props;
 const { pageName, exampleName, height = 500, cta } = section;
-const framework = pageContent.framework ?? 'reactFunctionalTs';
+const framework = pageContent.internalFramework ?? 'reactFunctionalTs';
 ---
 
 <LandingPageSection

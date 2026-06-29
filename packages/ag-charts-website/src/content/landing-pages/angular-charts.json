@@ -4,7 +4,7 @@
         "description": "Build interactive, high-performance Angular charts with AG Charts. 30+ chart types, financial charts, maps, and more. Free to use with enterprise features available."
     },
     "productName": "AG Charts",
-    "framework": "angular",
+    "internalFramework": "angular",
     "packageName": "ag-charts-angular",
     "docsPath": "angular",
     "analyticsPrefix": "angular-charts",

@@ -4,7 +4,7 @@
         "description": "Build interactive, high-performance React charts with AG Charts. 30+ chart types, financial charts, maps, and more. Free to use with enterprise features available."
     },
     "productName": "AG Charts",
-    "framework": "reactFunctionalTs",
+    "internalFramework": "reactFunctionalTs",
     "packageName": "ag-charts-react",
     "docsPath": "react",
     "analyticsPrefix": "react-charts",

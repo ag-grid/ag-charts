@@ -4,7 +4,7 @@
         "description": "Build interactive, high-performance JavaScript charts with AG Charts. 30+ chart types, financial charts, maps, and more. Free to use with enterprise features available."
     },
     "productName": "AG Charts",
-    "framework": "vanilla",
+    "internalFramework": "vanilla",
     "packageName": "ag-charts-community",
     "docsPath": "javascript",
     "analyticsPrefix": "javascript-charts",

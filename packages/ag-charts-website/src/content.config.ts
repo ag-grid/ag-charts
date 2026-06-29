@@ -1,10 +1,12 @@
-import { FRAMEWORKS } from '@constants';
+import { FRAMEWORKS, INTERNAL_FRAMEWORKS } from '@constants';
 // NOTE: Use glob, instead of file for single object files unless the file is an
 // array of objects
 import { glob } from 'astro/loaders';
-import { defineCollection, z } from 'astro:content';
+import { z } from 'astro/zod';
+import { defineCollection } from 'astro:content';
 
 const framework = z.enum(FRAMEWORKS as any);
+const internalFramework = z.enum(INTERNAL_FRAMEWORKS as any);
 
 const docs = defineCollection({
     loader: glob({ pattern: '**/[^_]*.mdoc', base: './src/content/docs' }),
@@ -238,7 +240,7 @@ const landingPages = defineCollection({
             description: z.string(),
         }),
         productName: z.string().optional(),
-        framework: z.string().optional(),
+        internalFramework,
         packageName: z.string().optional(),
         docsPath: z.string(),
         analyticsPrefix: z.string(),
