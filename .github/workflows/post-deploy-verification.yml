@@ -41,9 +41,15 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
               with:
-                  # Use github.sha (the branch HEAD) rather than workflow_run.head_sha to
-                  # avoid the untrusted-input pattern flagged by the OpenSSF Scorecard.
-                  ref: ${{ github.sha }}
+                  # Use workflow_run.head_sha (the commit CI actually deployed) so that the
+                  # data.json read by page-verification.spec.ts matches what is on staging.
+                  # Using github.sha (branch HEAD) caused a race: if a second commit landed
+                  # before this workflow started, the test would reference examples not yet
+                  # deployed. The OSSF/Scorecard untrusted-input concern does not apply here
+                  # because the if-condition above already guards against fork PRs
+                  # (head_repository.full_name == github.repository). The || github.sha
+                  # fallback covers the workflow_dispatch path where head_sha is absent.
+                  ref: ${{ github.event.workflow_run.head_sha || github.sha }}
                   fetch-depth: 1
                   submodules: true
 
