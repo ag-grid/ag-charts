@@ -87,6 +87,9 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
     'bar-series-e2e': {
         '*': { frameworks: ['vanilla'] },
     },
+    'stylers-e2e': {
+        '*': { frameworks: ['vanilla'] },
+    },
     'sparklines-test': {
         'debug-sequential-render': { frameworks: [] },
     },
