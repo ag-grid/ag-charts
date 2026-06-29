@@ -2,7 +2,6 @@ import type {
     CallbackParamRules,
     DomainWithMetadata,
     DynamicContext,
-    LabelPlacement,
     NormalisedLineSeriesStylerResult,
     NormalisedSeriesMarkerStyle,
     Point,
@@ -101,7 +100,12 @@ import {
     resetMarkerSelectionsDirect,
 } from './markerUtil';
 import { buildResetPathFn, pathSwipeInAnimation, updateClipPath } from './pathUtil';
-import { PlacedLabelCartesianSeries, type PlacedLabelSeriesTypes } from './placedLabelCartesianSeries';
+import {
+    DEFAULT_MARKERLESS_LABEL_GAP,
+    DEFAULT_PLACED_LABEL_PLACEMENTS,
+    PlacedLabelCartesianSeries,
+    type PlacedLabelSeriesTypes,
+} from './placedLabelCartesianSeries';
 import { calculateSegments } from './util';
 
 /**
@@ -157,9 +161,6 @@ type LineStylerApply = MarkerStyleApply<
     LineNodeDatum,
     ReturnType<LineSeries['getStyle']>
 >;
-
-const MARKERLESS_LABEL_GAP = 2;
-const LINE_LABEL_PLACEMENTS: readonly LabelPlacement[] = ['top', 'bottom'];
 
 export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     static override readonly className = 'LineSeries';
@@ -498,7 +499,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             labelPadding: expandLabelPadding(this.properties.label),
             labelTextMeasurer: cachedTextMeasurer(this.properties.label),
             labelAvoid: collisionAvoidance.avoid,
-            labelPlacements: collisionAvoidance.placements(LINE_LABEL_PLACEMENTS),
+            labelPlacements: collisionAvoidance.placements(DEFAULT_PLACED_LABEL_PLACEMENTS),
             labelMinSpacing: collisionAvoidance.minSpacing,
             labelCollideWith: collisionAvoidance.resolveCollideWith(),
             animationEnabled: !this.ctx.animationManager.isSkipped(),
@@ -561,7 +562,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
 
             const label = this.measureLabel(ctx, labelText);
             // Markerless vertices still nudge their label clear of the line with a small fixed gap.
-            const gap = ctx.size > 0 ? ctx.size / 2 : MARKERLESS_LABEL_GAP;
+            const gap = ctx.size > 0 ? ctx.size / 2 : DEFAULT_MARKERLESS_LABEL_GAP;
 
             const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
 

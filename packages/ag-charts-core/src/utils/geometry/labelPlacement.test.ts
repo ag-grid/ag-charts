@@ -232,10 +232,11 @@ describe('placeLabels', () => {
         expect(placed.x).toBeCloseTo(200 - 40 / 2);
     });
 
-    it('drops a label when no candidate placement fits', () => {
+    it('drops an avoiding label when no candidate placement fits', () => {
+        // A large marker covers every candidate position; the avoiding label has nowhere to go.
         const blocker: PointLabelDatum = {
             point: { x: 100, y: 100, size: 200 },
-            label: { text: 'B', width: 1, height: 1 },
+            label: { text: '', width: 0, height: 0 },
             anchor: undefined,
             placement: undefined,
         };
@@ -244,7 +245,9 @@ describe('placeLabels', () => {
             label: { text: 'X', width: 30, height: 12 },
             anchor: undefined,
             placement: undefined,
-            placements: [],
+            placements: ['top'],
+            gap: 0,
+            avoid: true,
         };
         const result = placeLabels(new Map([['s', [blocker, blocked]]]), bounds, 5);
         expect(result.get('s')!.some((l) => l.datum === blocked)).toBe(false);
@@ -332,6 +335,25 @@ describe('placeLabels', () => {
         const placed = placeLabels(new Map([['s', [marker, a, b]]]), bounds, 5).get('s')!;
         expect(placed.some((l) => l.datum === a)).toBe(true);
         expect(placed.some((l) => l.datum === b)).toBe(true);
+    });
+
+    it('places an avoid:false label with no candidate placements rather than dropping it', () => {
+        // An empty `placements` list with avoidance off must still place the label (centred),
+        // honouring the "avoid:false is never dropped" contract.
+        const datum: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 0 },
+            label: { text: 'X', width: 40, height: 12 },
+            anchor: undefined,
+            placement: 'top',
+            placements: [],
+            avoid: false,
+        };
+        const placed = placeLabels(new Map([['s', [datum]]]), bounds, 5).get('s')!;
+        const result = placed.find((l) => l.datum === datum);
+        expect(result).toBeDefined();
+        expect(result!.placement).toBeUndefined();
+        expect(result!.x).toBeCloseTo(100 - 40 / 2);
+        expect(result!.y).toBeCloseTo(100 - 12 / 2);
     });
 
     it('skips obstacle categories disabled via collideWith', () => {

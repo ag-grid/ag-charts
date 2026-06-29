@@ -22,6 +22,11 @@ import type { CartesianSeriesTypes, DatumOf, LabelOf, LabelSelectionOf } from '.
 /** The mutable subset of {@link PointLabelDatum} a placed-label series populates on each datum. */
 export type MutablePlacedLabelFields = Writeable<Omit<PointLabelDatum, 'point'>>;
 
+/** Label offset applied at a markerless vertex (size 0), where the marker radius can't supply one. */
+export const DEFAULT_MARKERLESS_LABEL_GAP = 2;
+/** Default candidate placements when no `reposition` strategy overrides them. */
+export const DEFAULT_PLACED_LABEL_PLACEMENTS: readonly LabelPlacement[] = ['top', 'bottom'];
+
 /** Pre-computed label config a placed-label series caches on its node-data context. */
 export interface PlacedLabelContext {
     readonly labelPadding: { left: number; right: number; top: number; bottom: number };

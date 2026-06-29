@@ -2,7 +2,6 @@ import type {
     DomainWithMetadata,
     DynamicContext,
     InternalAgColorType,
-    LabelPlacement,
     NormalisedAreaSeriesMarkerItemStylerParams,
     NormalisedAreaSeriesStylerResult,
     NormalisedColorType,
@@ -112,6 +111,8 @@ import {
 } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 import {
+    DEFAULT_MARKERLESS_LABEL_GAP,
+    DEFAULT_PLACED_LABEL_PLACEMENTS,
     PlacedLabelCartesianSeries,
     type PlacedLabelContext,
     type PlacedLabelSeriesTypes,
@@ -228,9 +229,6 @@ interface AreaSeriesTypes extends PlacedLabelSeriesTypes {
     readonly stackContext: AreaSeriesStackContext;
     readonly createNodeDataContext: AreaSeriesCreateNodeDatumContext;
 }
-
-const AREA_MARKERLESS_LABEL_GAP = 2;
-const AREA_LABEL_PLACEMENTS: readonly LabelPlacement[] = ['top', 'bottom'];
 
 export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     static override readonly className = 'AreaSeries';
@@ -1027,7 +1025,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             labelPadding: expandLabelPadding(label),
             labelTextMeasurer: cachedTextMeasurer(label),
             labelAvoid: label.collisionAvoidance.avoid,
-            labelPlacements: label.collisionAvoidance.placements(AREA_LABEL_PLACEMENTS),
+            labelPlacements: label.collisionAvoidance.placements(DEFAULT_PLACED_LABEL_PLACEMENTS),
             labelMinSpacing: label.collisionAvoidance.minSpacing,
             labelCollideWith: label.collisionAvoidance.resolveCollideWith(),
             normalizedTo,
@@ -1177,7 +1175,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 placement: 'top',
                 placements: ctx.labelPlacements,
                 // Markerless points still nudge their label clear of the area with a small fixed gap.
-                gap: ctx.markerSize > 0 ? ctx.markerSize / 2 : AREA_MARKERLESS_LABEL_GAP,
+                gap: ctx.markerSize > 0 ? ctx.markerSize / 2 : DEFAULT_MARKERLESS_LABEL_GAP,
                 avoid: ctx.labelAvoid,
                 minSpacing: ctx.labelMinSpacing,
                 collideWith: ctx.labelCollideWith,

@@ -134,7 +134,8 @@ function circleOverlapsBox(cx: number, cy: number, r: number, x: number, y: numb
     }
     const dx = cx - edgeX;
     const dy = cy - edgeY;
-    return Math.hypot(dx, dy) <= r;
+    // Squared-distance compare avoids Math.hypot's overflow-safe scaling on this per-obstacle hot path.
+    return dx * dx + dy * dy <= r * r;
 }
 
 export function isPointLabelDatum(x: any): x is PointLabelDatum {
@@ -172,40 +173,131 @@ const inflatedBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 // The candidate datum's per-category obstacle config, set before each obstacle query.
 let candidateCollideWith: CollideWith | undefined;
 
+function inflateBoxInto(dest: BoxBounds, src: BoxBounds, inflate: number) {
+    dest.x = src.x - inflate;
+    dest.y = src.y - inflate;
+    dest.width = src.width + 2 * inflate;
+    dest.height = src.height + 2 * inflate;
+}
+
 function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
     const cfg = candidateCollideWith?.[o.category ?? 'seriesItem'];
     if (cfg?.enabled === false) return false;
 
-    const inflate = cfg?.minSpacing ?? 0;
-    const x = candidateBox.x - inflate;
-    const y = candidateBox.y - inflate;
-    const width = candidateBox.width + 2 * inflate;
-    const height = candidateBox.height + 2 * inflate;
+    inflateBoxInto(inflatedBox, candidateBox, cfg?.minSpacing ?? 0);
+    const { x, y, width, height } = inflatedBox;
     switch (o.kind) {
         case 'circle':
             return circleOverlapsBox(o.cx, o.cy, o.r, x, y, width, height);
         case 'rect':
             return boxCollides(o.box, x, y, width, height);
         case 'custom':
-            if (inflate === 0) return o.overlaps(candidateBox);
-            inflatedBox.x = x;
-            inflatedBox.y = y;
-            inflatedBox.width = width;
-            inflatedBox.height = height;
             return o.overlaps(inflatedBox);
     }
 }
 
+const obstacleCategories = ['marker', 'label', 'seriesItem'] as const;
+
 function maxInflation(collideWith: CollideWith | undefined): number {
     if (collideWith == null) return 0;
     let max = 0;
-    for (const key of ['marker', 'label', 'seriesItem'] as const) {
+    for (const key of obstacleCategories) {
         const cfg = collideWith[key];
         if (cfg?.enabled !== false && cfg?.minSpacing != null && cfg.minSpacing > max) {
             max = cfg.minSpacing;
         }
     }
     return max;
+}
+
+/** Cell size for the obstacle index, derived from the mean extent of every box it will hold. */
+function obstacleGridCellSize(data: Map<string, PointLabelDatum[]>, obstacles: readonly LabelObstacle[]): number {
+    let extentSum = 0;
+    let extentCount = 0;
+    for (const datums of data.values()) {
+        for (const d of datums) {
+            extentSum += d.label.width + d.label.height;
+            extentCount += 2;
+            if (d.point.size > 0) {
+                extentSum += d.point.size;
+                extentCount += 1;
+            }
+        }
+    }
+    for (const o of obstacles) {
+        extentSum += o.box.width + o.box.height;
+        extentCount += 2;
+    }
+    return gridCellSize(extentSum, extentCount);
+}
+
+/** Inserts a pooled circle obstacle for every sized marker into the obstacle index. */
+function insertMarkerObstacles(data: Map<string, PointLabelDatum[]>) {
+    let markerCount = 0;
+    for (const datums of data.values()) {
+        for (const d of datums) {
+            const { size } = d.point;
+            if (size <= 0) continue;
+            let cx = d.point.x;
+            let cy = d.point.y;
+            if (d.anchor != null) {
+                cx -= (d.anchor.x - 0.5) * size;
+                cy -= (d.anchor.y - 0.5) * size;
+            }
+            const r = size / 2;
+            let obstacle = markerPool[markerCount];
+            if (obstacle == null) {
+                obstacle = {
+                    kind: 'circle',
+                    box: { x: 0, y: 0, width: 0, height: 0 },
+                    cx: 0,
+                    cy: 0,
+                    r: 0,
+                    category: 'marker',
+                };
+                markerPool.push(obstacle);
+            }
+            markerCount++;
+            obstacle.cx = cx;
+            obstacle.cy = cy;
+            obstacle.r = r;
+            obstacle.box.x = cx - r;
+            obstacle.box.y = cy - r;
+            obstacle.box.width = size;
+            obstacle.box.height = size;
+            obstacleIndex.insert(obstacle.box, obstacle);
+        }
+    }
+}
+
+/** True as soon as any datum opts into collision resolution; short-circuits without a full scan. */
+function anyLabelAvoids(data: Map<string, PointLabelDatum[]>): boolean {
+    for (const datums of data.values()) {
+        for (const d of datums) {
+            if (d.avoid) return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Resets the shared obstacle index and populates it with external obstacles and marker circles.
+ * No-op when no label opts into collision resolution — every label then takes its first placement
+ * unconditionally and never queries the index, so the index is never read. Skipping the reset also
+ * avoids walking a per-pixel grid every frame for charts that have no avoiding labels.
+ */
+function buildObstacleIndex(
+    data: Map<string, PointLabelDatum[]>,
+    obstacles: readonly LabelObstacle[],
+    bounds: BoxBounds
+) {
+    if (!anyLabelAvoids(data)) return;
+
+    obstacleIndex.reset(bounds, obstacleGridCellSize(data, obstacles));
+    for (const o of obstacles) {
+        obstacleIndex.insert(o.box, o);
+    }
+    insertMarkerObstacles(data);
 }
 
 /**
@@ -227,66 +319,8 @@ export function placeLabels(
     const sortedDataClone = new Map(
         Array.from(data.entries(), ([k, d]) => [k, d.toSorted((a, b) => b.point.size - a.point.size)])
     );
-    const dataValues = [...sortedDataClone.values()].flat();
 
-    // updateLabels runs every frame for every chart; with no labels the cell size floors to 1px and
-    // resetting the index would walk a per-pixel grid over the whole chart area. Nothing to place.
-    if (dataValues.length === 0) return result;
-
-    let extentSum = 0;
-    let extentCount = 0;
-    for (const d of dataValues) {
-        extentSum += d.label.width + d.label.height;
-        extentCount += 2;
-        if (d.point.size > 0) {
-            extentSum += d.point.size;
-            extentCount += 1;
-        }
-    }
-    for (const o of obstacles) {
-        extentSum += o.box.width + o.box.height;
-        extentCount += 2;
-    }
-    const cellSize = gridCellSize(extentSum, extentCount);
-    obstacleIndex.reset(bounds, cellSize);
-
-    for (const o of obstacles) {
-        obstacleIndex.insert(o.box, o);
-    }
-
-    let markerCount = 0;
-    for (const d of dataValues) {
-        const { size } = d.point;
-        if (size <= 0) continue;
-        let cx = d.point.x;
-        let cy = d.point.y;
-        if (d.anchor != null) {
-            cx -= (d.anchor.x - 0.5) * size;
-            cy -= (d.anchor.y - 0.5) * size;
-        }
-        const r = size / 2;
-        let obstacle = markerPool[markerCount];
-        if (obstacle == null) {
-            obstacle = {
-                kind: 'circle',
-                box: { x: 0, y: 0, width: 0, height: 0 },
-                cx: 0,
-                cy: 0,
-                r: 0,
-                category: 'marker',
-            };
-            markerPool.push(obstacle);
-        }
-        markerCount++;
-        obstacle.cx = cx;
-        obstacle.cy = cy;
-        obstacle.r = r;
-        obstacle.box.x = cx - r;
-        obstacle.box.y = cy - r;
-        obstacle.box.width = size;
-        obstacle.box.height = size;
-        obstacleIndex.insert(obstacle.box, obstacle);
-    }
+    buildObstacleIndex(sortedDataClone, obstacles, bounds);
 
     for (const [seriesId, datums] of sortedDataClone.entries()) {
         const labels: PlacedLabel[] = [];
@@ -313,54 +347,64 @@ export function placeLabels(
     return result;
 }
 
+/** Writes the label box top-left for `placement` into `out`, offset from the point by gap+spacing. */
+function positionLabelBox(
+    out: BoxBounds,
+    d: PointLabelDatum,
+    width: number,
+    height: number,
+    gap: number,
+    spacing: number,
+    placement: LabelPlacement | undefined
+) {
+    const { point, anchor } = d;
+    let dx = 0;
+    let dy = 0;
+    if (gap > 0 && placement != null) {
+        const vec = labelPlacements[placement];
+        dx = (width / 2 + gap + spacing) * vec.x;
+        dy = (height / 2 + gap + spacing) * vec.y;
+    }
+    let x = point.x - width / 2 + dx;
+    let y = point.y - height / 2 + dy;
+    if (anchor) {
+        x -= (anchor.x - 0.5) * point.size;
+        y -= (anchor.y - 0.5) * point.size;
+    }
+    out.x = x;
+    out.y = y;
+}
+
 /**
  * Tries each candidate placement for `d` in order and returns the first that fits within `bounds`
  * and clears every obstacle already in the index, or `undefined` if none do. Candidates come from
  * `d.placements` when present, otherwise the single `d.placement` (no allocation in that case).
+ * Labels that opt out of collision resolution (`avoid` falsy) take their first candidate placement
+ * unconditionally — never bounds-clipped, never dropped, even with no candidates given.
  */
 function tryPlaceLabel(d: PointLabelDatum, index: number, padding: number, bounds: BoxBounds): PlacedLabel | undefined {
-    const { point, label, anchor } = d;
-    const { text, width, height } = label;
-    const r = point.size / 2;
-    const candidates = d.placements;
-    const candidateCount = candidates?.length ?? 1;
-
-    const gap = d.gap ?? r;
+    const { text, width, height } = d.label;
+    const gap = d.gap ?? d.point.size / 2;
     const spacing = d.minSpacing ?? padding;
-    const inflate = d.avoid ? maxInflation(d.collideWith) : 0;
+    const candidates = d.placements;
+
+    if (!d.avoid) {
+        const placement = candidates ? candidates[0] : d.placement;
+        positionLabelBox(candidateBox, d, width, height, gap, spacing, placement);
+        return { index, text, x: candidateBox.x, y: candidateBox.y, width, height, datum: d, placement };
+    }
+
+    const inflate = maxInflation(d.collideWith);
     candidateCollideWith = d.collideWith;
+    const candidateCount = candidates?.length ?? 1;
     for (let pi = 0; pi < candidateCount; pi++) {
         const placement = candidates ? candidates[pi] : d.placement;
-        let dx = 0;
-        let dy = 0;
-        if (gap > 0 && placement != null) {
-            const vec = labelPlacements[placement];
-            dx = (width / 2 + gap + spacing) * vec.x;
-            dy = (height / 2 + gap + spacing) * vec.y;
-        }
-
-        let x = point.x - width / 2 + dx;
-        let y = point.y - height / 2 + dy;
-        if (anchor) {
-            x -= (anchor.x - 0.5) * point.size;
-            y -= (anchor.y - 0.5) * point.size;
-        }
-
-        // Labels that opt out of collision resolution take their first placement unconditionally:
-        // never bounds-clipped, never dropped.
-        if (!d.avoid) {
-            return { index, text, x, y, width, height, datum: d, placement };
-        }
-
-        candidateBox.x = x;
-        candidateBox.y = y;
+        positionLabelBox(candidateBox, d, width, height, gap, spacing, placement);
         candidateBox.width = width;
         candidateBox.height = height;
-        queryBox.x = x - inflate;
-        queryBox.y = y - inflate;
-        queryBox.width = width + 2 * inflate;
-        queryBox.height = height + 2 * inflate;
+        inflateBoxInto(queryBox, candidateBox, inflate);
 
+        const { x, y } = candidateBox;
         if (boxContains(bounds, x, y, width, height) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
             return { index, text, x, y, width, height, datum: d, placement };
         }
