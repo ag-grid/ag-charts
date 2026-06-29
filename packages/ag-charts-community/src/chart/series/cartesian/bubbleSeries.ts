@@ -981,7 +981,12 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
-        return this.contextNodeData?.labelData ?? [];
+        const labelData = this.contextNodeData?.labelData ?? [];
+        const { avoid } = this.properties.label.collisionAvoidance;
+        for (const datum of labelData) {
+            (datum as { avoid?: boolean }).avoid = avoid;
+        }
+        return labelData;
     }
 
     protected override updateDatumSelection(opts: {

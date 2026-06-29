@@ -1,4 +1,5 @@
 import type {
+    CollideWith,
     DomainWithMetadata,
     DynamicContext,
     InternalAgColorType,
@@ -193,6 +194,10 @@ interface AreaSeriesCreateNodeDatumContext extends CartesianMarkerLikeContext<Ma
     readonly labelsEnabled: boolean;
     readonly labelPadding: { left: number; right: number; top: number; bottom: number };
     readonly labelTextMeasurer: { measureLines: (text: string) => { width: number; height: number } };
+    readonly labelAvoid: boolean;
+    readonly labelPlacements: readonly LabelPlacement[];
+    readonly labelMinSpacing: number | undefined;
+    readonly labelCollideWith: CollideWith | undefined;
     readonly normalizedTo: number | undefined;
 
     // Property caches (in addition to base xKey, yKey, xName, yName)
@@ -1035,6 +1040,10 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             labelsEnabled: label.enabled,
             labelPadding: expandLabelPadding(label),
             labelTextMeasurer: cachedTextMeasurer(label),
+            labelAvoid: label.collisionAvoidance.avoid,
+            labelPlacements: label.collisionAvoidance.placements(AREA_LABEL_PLACEMENTS),
+            labelMinSpacing: label.collisionAvoidance.minSpacing,
+            labelCollideWith: label.collisionAvoidance.resolveCollideWith(),
             normalizedTo,
             canIncrementallyUpdate,
             animationEnabled: !this.ctx.animationManager.isSkipped(),
@@ -1180,9 +1189,12 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                 label: this.measureLabel(ctx, labelText),
                 anchor: undefined,
                 placement: 'top',
-                placements: AREA_LABEL_PLACEMENTS,
+                placements: ctx.labelPlacements,
                 // Markerless points still nudge their label clear of the area with a small fixed gap.
                 gap: ctx.markerSize > 0 ? ctx.markerSize / 2 : AREA_MARKERLESS_LABEL_GAP,
+                avoid: ctx.labelAvoid,
+                minSpacing: ctx.labelMinSpacing,
+                collideWith: ctx.labelCollideWith,
             });
         }
     }

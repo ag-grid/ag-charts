@@ -1,4 +1,5 @@
 import type {
+    CollideWith,
     InternalAgColorType,
     LabelPlacement,
     MeasuredLabel,
@@ -60,6 +61,9 @@ export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
     placement: LabelPlacement | undefined;
     placements?: readonly LabelPlacement[];
     gap?: number;
+    avoid?: boolean;
+    minSpacing?: number;
+    collideWith?: CollideWith;
 }
 
 export interface AreaSeriesNodeDataContext extends CartesianSeriesNodeDataContext<

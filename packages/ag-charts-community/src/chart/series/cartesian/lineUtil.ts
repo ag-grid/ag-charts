@@ -1,4 +1,5 @@
 import type {
+    CollideWith,
     InterpolationProperties,
     LabelPlacement,
     MeasuredLabel,
@@ -69,6 +70,9 @@ export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSerie
     placement: LabelPlacement | undefined;
     placements?: readonly LabelPlacement[];
     gap?: number;
+    avoid?: boolean;
+    minSpacing?: number;
+    collideWith?: CollideWith;
     // WARNING! This selected-state is related to cross-filtering which is not an officially documented or supported
     // feature. It has nothing to do with the official data selection API in the options contract. Do not use, or use
     // with extreme caution.
@@ -106,6 +110,10 @@ export interface LineSeriesDatumContext extends CartesianMarkerLikeContext<LineN
     readonly labelsEnabled: boolean;
     readonly labelPadding: { left: number; right: number; top: number; bottom: number };
     readonly labelTextMeasurer: { measureLines: (text: string) => { width: number; height: number } };
+    readonly labelAvoid: boolean;
+    readonly labelPlacements: readonly LabelPlacement[];
+    readonly labelMinSpacing: number | undefined;
+    readonly labelCollideWith: CollideWith | undefined;
     readonly dataAggregationFilter: { indices: Uint32Array } | undefined;
     readonly range: number;
 

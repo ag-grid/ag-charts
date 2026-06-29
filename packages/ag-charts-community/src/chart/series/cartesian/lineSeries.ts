@@ -10,6 +10,7 @@ import type {
     PlacedLabel,
     PointLabelDatum,
     RequireOptional,
+    Writeable,
 } from 'ag-charts-core';
 import {
     AGGREGATION_INDEX_Y_MAX,
@@ -480,6 +481,8 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
+        const { collisionAvoidance } = this.properties.label;
+
         return {
             xAxis,
             yAxis,
@@ -504,6 +507,10 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             labelsEnabled: this.properties.label.enabled,
             labelPadding: expandLabelPadding(this.properties.label),
             labelTextMeasurer: cachedTextMeasurer(this.properties.label),
+            labelAvoid: collisionAvoidance.avoid,
+            labelPlacements: collisionAvoidance.placements(LINE_LABEL_PLACEMENTS),
+            labelMinSpacing: collisionAvoidance.minSpacing,
+            labelCollideWith: collisionAvoidance.resolveCollideWith(),
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,
             dataAggregationFilter,
@@ -570,20 +577,24 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
 
             if (canReuseNode) {
                 // Update existing node datum in place
-                const existingNode = ctx.nodes[ctx.nodeIndex];
-                (existingNode as any).datum = scratch.datum;
-                (existingNode as any).datumIndex = datumIndex;
-                (existingNode as any).point = { x: scratch.x, y: scratch.y, size: ctx.size };
-                (existingNode as any).midPoint = { x: scratch.x, y: scratch.y };
+                const existingNode: Writeable<LineNodeDatum> = ctx.nodes[ctx.nodeIndex];
+                existingNode.datum = scratch.datum;
+                existingNode.datumIndex = datumIndex;
+                existingNode.point = { x: scratch.x, y: scratch.y, size: ctx.size };
+                existingNode.midPoint = { x: scratch.x, y: scratch.y };
                 // Metadata only; position already used the exact bigint, so narrowing here is fine.
-                (existingNode as any).cumulativeValue = Number(scratch.yCumulative);
-                (existingNode as any).cumulativeValueExact = scratch.yCumulative;
-                (existingNode as any).yValue = scratch.yDatum;
-                (existingNode as any).xValue = scratch.xDatum;
-                (existingNode as any).labelText = labelText;
-                (existingNode as any).label = label;
-                (existingNode as any).gap = gap;
-                (existingNode as any).crossFilterSelected = scratch.crossFilterSelected;
+                existingNode.cumulativeValue = Number(scratch.yCumulative);
+                existingNode.cumulativeValueExact = scratch.yCumulative;
+                existingNode.yValue = scratch.yDatum;
+                existingNode.xValue = scratch.xDatum;
+                existingNode.labelText = labelText;
+                existingNode.label = label;
+                existingNode.gap = gap;
+                existingNode.avoid = ctx.labelAvoid;
+                existingNode.placements = ctx.labelPlacements;
+                existingNode.minSpacing = ctx.labelMinSpacing;
+                existingNode.collideWith = ctx.labelCollideWith;
+                existingNode.crossFilterSelected = scratch.crossFilterSelected;
             } else {
                 ctx.nodes.push({
                     series: this,
@@ -602,8 +613,11 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                     label,
                     anchor: undefined,
                     placement: 'top',
-                    placements: LINE_LABEL_PLACEMENTS,
+                    placements: ctx.labelPlacements,
                     gap,
+                    avoid: ctx.labelAvoid,
+                    minSpacing: ctx.labelMinSpacing,
+                    collideWith: ctx.labelCollideWith,
                     crossFilterSelected: scratch.crossFilterSelected,
                 });
             }

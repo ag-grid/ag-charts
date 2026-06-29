@@ -656,7 +656,12 @@ export class MapLineSeries
 
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
-        return this.contextNodeData?.labelData ?? [];
+        const labelData = this.contextNodeData?.labelData ?? [];
+        const { avoid } = this.properties.label.collisionAvoidance;
+        for (const datum of labelData) {
+            (datum as { avoid?: boolean }).avoid = avoid;
+        }
+        return labelData;
     }
 
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {

@@ -120,6 +120,8 @@ function makeFixture(seriesCount: number, perSeries: number, bounds: BoxBounds, 
                 label: { text: `s${s}-${i}`, width: 10 + next() * 50, height: 8 + next() * 16 },
                 anchor,
                 placement: PLACEMENTS[Math.floor(next() * PLACEMENTS.length)],
+                // The oracle always resolves collisions; opt every fixture datum in to match it.
+                avoid: true,
             });
         }
         data.set(`series-${s}`, datums);
@@ -196,6 +198,7 @@ describe('placeLabels', () => {
             label: { text: 'L', width: 40, height: 12 },
             anchor: undefined,
             placement: undefined,
+            avoid: true,
         };
         const right: PointLabelDatum = {
             point: { x: 130, y: 100, size: 20 },
@@ -203,6 +206,7 @@ describe('placeLabels', () => {
             anchor: undefined,
             placement: undefined,
             placements: ['left', 'right'],
+            avoid: true,
         };
         const result = placeLabels(new Map([['s', [left, right]]]), bounds, 5);
         const placed = result.get('s')!;
@@ -298,5 +302,96 @@ describe('placeLabels', () => {
         expect(result.size).toBe(0);
         expect(resetSpy).not.toHaveBeenCalled();
         resetSpy.mockRestore();
+    });
+
+    it('places avoid:false labels unconditionally, ignoring obstacles and each other', () => {
+        // A huge marker would block any avoiding label, and both labels share one position. With
+        // avoid:false each takes its first placement regardless and is not inserted as an obstacle.
+        const marker: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 300 },
+            label: { text: '', width: 0, height: 0 },
+            anchor: undefined,
+            placement: undefined,
+        };
+        const a: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 0 },
+            label: { text: 'A', width: 40, height: 12 },
+            anchor: undefined,
+            placement: 'top',
+            placements: ['top'],
+            avoid: false,
+        };
+        const b: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 0 },
+            label: { text: 'B', width: 40, height: 12 },
+            anchor: undefined,
+            placement: 'top',
+            placements: ['top'],
+            avoid: false,
+        };
+        const placed = placeLabels(new Map([['s', [marker, a, b]]]), bounds, 5).get('s')!;
+        expect(placed.some((l) => l.datum === a)).toBe(true);
+        expect(placed.some((l) => l.datum === b)).toBe(true);
+    });
+
+    it('skips obstacle categories disabled via collideWith', () => {
+        const marker: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 60 },
+            label: { text: '', width: 0, height: 0 },
+            anchor: undefined,
+            placement: undefined,
+        };
+        const label = (markerEnabled: boolean): PointLabelDatum => ({
+            point: { x: 100, y: 100, size: 0 },
+            label: { text: 'X', width: 30, height: 12 },
+            anchor: undefined,
+            placement: 'top',
+            placements: ['top'],
+            gap: 0,
+            avoid: true,
+            collideWith: {
+                marker: { enabled: markerEnabled },
+                label: { enabled: true },
+                seriesItem: { enabled: true },
+            },
+        });
+
+        const enabled = label(true);
+        const disabled = label(false);
+        const enabledResult = placeLabels(new Map([['s', [marker, enabled]]]), bounds, 5).get('s')!;
+        const disabledResult = placeLabels(new Map([['s', [marker, disabled]]]), bounds, 5).get('s')!;
+        expect(enabledResult.some((l) => l.datum === enabled)).toBe(false);
+        expect(disabledResult.some((l) => l.datum === disabled)).toBe(true);
+    });
+
+    it('inflates obstacles by per-category minSpacing', () => {
+        const marker: PointLabelDatum = {
+            point: { x: 100, y: 140, size: 20 },
+            label: { text: '', width: 0, height: 0 },
+            anchor: undefined,
+            placement: undefined,
+        };
+        // Sits clear of the marker by default, but collides once the marker is inflated by minSpacing.
+        const label = (minSpacing: number | undefined): PointLabelDatum => ({
+            point: { x: 100, y: 100, size: 0 },
+            label: { text: 'X', width: 30, height: 12 },
+            anchor: undefined,
+            placement: 'bottom',
+            placements: ['bottom'],
+            gap: 0,
+            avoid: true,
+            collideWith: {
+                marker: { enabled: true, minSpacing },
+                label: { enabled: true },
+                seriesItem: { enabled: true },
+            },
+        });
+
+        const noInflation = label(undefined);
+        const inflated = label(30);
+        const noInflationResult = placeLabels(new Map([['s', [marker, noInflation]]]), bounds, 5).get('s')!;
+        const inflatedResult = placeLabels(new Map([['s', [marker, inflated]]]), bounds, 5).get('s')!;
+        expect(noInflationResult.some((l) => l.datum === noInflation)).toBe(true);
+        expect(inflatedResult.some((l) => l.datum === inflated)).toBe(false);
     });
 });

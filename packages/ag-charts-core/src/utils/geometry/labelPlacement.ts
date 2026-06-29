@@ -36,6 +36,33 @@ export interface PointLabelDatum {
      * e.g. above a line vertex that has no marker.
      */
     readonly gap?: number;
+    /**
+     * When falsy (the default) the label takes its first placement unconditionally — bounds and
+     * obstacle queries are skipped and it is not inserted as an obstacle, so labels are never moved
+     * or dropped. Set true to opt the label into collision resolution.
+     */
+    readonly avoid?: boolean;
+    /**
+     * Offset/proximity threshold in px added to the directional placement gap. Falls back to the
+     * `padding` argument of {@link placeLabels} when unset.
+     */
+    readonly minSpacing?: number;
+    /** Resolved per-category obstacle configuration. Only consulted when {@link avoid} is true. */
+    readonly collideWith?: CollideWith;
+}
+
+export type ObstacleCategory = 'marker' | 'label' | 'seriesItem';
+
+export interface CollideWithCategory {
+    readonly enabled: boolean;
+    /** Extra px the obstacle is inflated by before testing. `undefined` means no inflation. */
+    readonly minSpacing?: number;
+}
+
+export interface CollideWith {
+    readonly marker?: CollideWithCategory;
+    readonly label?: CollideWithCategory;
+    readonly seriesItem?: CollideWithCategory;
 }
 
 export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Readonly<Point> {
@@ -58,14 +85,22 @@ export type LabelObstacle =
           readonly cx: number;
           readonly cy: number;
           readonly r: number;
+          readonly category?: ObstacleCategory;
           readonly sourceId?: string;
           readonly entityIndex?: number;
       }
-    | { readonly kind: 'rect'; readonly box: BoxBounds; readonly sourceId?: string; readonly entityIndex?: number }
+    | {
+          readonly kind: 'rect';
+          readonly box: BoxBounds;
+          readonly category?: ObstacleCategory;
+          readonly sourceId?: string;
+          readonly entityIndex?: number;
+      }
     | {
           readonly kind: 'custom';
           readonly box: BoxBounds;
           readonly overlaps: (box: BoxBounds) => boolean;
+          readonly category?: ObstacleCategory;
           readonly sourceId?: string;
           readonly entityIndex?: number;
       };
@@ -114,23 +149,53 @@ interface PooledCircleObstacle {
     cx: number;
     cy: number;
     r: number;
+    category: ObstacleCategory;
 }
 
 // Scratch state reused across passes (placeLabels is not reentrant in the single-threaded render loop).
 const obstacleIndex = new SpatialIndex<LabelObstacle>();
 const markerPool: PooledCircleObstacle[] = [];
 const candidateBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
+// Broad-phase query box: the candidate inflated by the largest active per-category minSpacing.
+const queryBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
+const inflatedBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
+// The candidate datum's per-category obstacle config, set before each obstacle query.
+let candidateCollideWith: CollideWith | undefined;
 
 function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
-    const { x, y, width, height } = candidateBox;
+    const cfg = candidateCollideWith?.[o.category ?? 'seriesItem'];
+    if (cfg?.enabled === false) return false;
+
+    const inflate = cfg?.minSpacing ?? 0;
+    const x = candidateBox.x - inflate;
+    const y = candidateBox.y - inflate;
+    const width = candidateBox.width + 2 * inflate;
+    const height = candidateBox.height + 2 * inflate;
     switch (o.kind) {
         case 'circle':
             return circleOverlapsBox(o.cx, o.cy, o.r, x, y, width, height);
         case 'rect':
             return boxCollides(o.box, x, y, width, height);
         case 'custom':
-            return o.overlaps(candidateBox);
+            if (inflate === 0) return o.overlaps(candidateBox);
+            inflatedBox.x = x;
+            inflatedBox.y = y;
+            inflatedBox.width = width;
+            inflatedBox.height = height;
+            return o.overlaps(inflatedBox);
     }
+}
+
+function maxInflation(collideWith: CollideWith | undefined): number {
+    if (collideWith == null) return 0;
+    let max = 0;
+    for (const key of ['marker', 'label', 'seriesItem'] as const) {
+        const cfg = collideWith[key];
+        if (cfg?.enabled !== false && cfg?.minSpacing != null && cfg.minSpacing > max) {
+            max = cfg.minSpacing;
+        }
+    }
+    return max;
 }
 
 /**
@@ -192,7 +257,14 @@ export function placeLabels(
         const r = size / 2;
         let obstacle = markerPool[markerCount];
         if (obstacle == null) {
-            obstacle = { kind: 'circle', box: { x: 0, y: 0, width: 0, height: 0 }, cx: 0, cy: 0, r: 0 };
+            obstacle = {
+                kind: 'circle',
+                box: { x: 0, y: 0, width: 0, height: 0 },
+                cx: 0,
+                cy: 0,
+                r: 0,
+                category: 'marker',
+            };
             markerPool.push(obstacle);
         }
         markerCount++;
@@ -217,7 +289,11 @@ export function placeLabels(
             const placed = tryPlaceLabel(d, index, padding, bounds);
             if (placed != null) {
                 labels.push(placed);
-                obstacleIndex.insert(placed, { kind: 'rect', box: placed });
+                // Labels that opt out of collision resolution neither query obstacles nor block
+                // other labels, so they are not inserted into the index.
+                if (d.avoid) {
+                    obstacleIndex.insert(placed, { kind: 'rect', box: placed, category: 'label' });
+                }
             }
         }
 
@@ -240,14 +316,17 @@ function tryPlaceLabel(d: PointLabelDatum, index: number, padding: number, bound
     const candidateCount = candidates?.length ?? 1;
 
     const gap = d.gap ?? r;
+    const spacing = d.minSpacing ?? padding;
+    const inflate = d.avoid ? maxInflation(d.collideWith) : 0;
+    candidateCollideWith = d.collideWith;
     for (let pi = 0; pi < candidateCount; pi++) {
         const placement = candidates ? candidates[pi] : d.placement;
         let dx = 0;
         let dy = 0;
         if (gap > 0 && placement != null) {
             const vec = labelPlacements[placement];
-            dx = (width / 2 + gap + padding) * vec.x;
-            dy = (height / 2 + gap + padding) * vec.y;
+            dx = (width / 2 + gap + spacing) * vec.x;
+            dy = (height / 2 + gap + spacing) * vec.y;
         }
 
         let x = point.x - width / 2 + dx;
@@ -257,12 +336,22 @@ function tryPlaceLabel(d: PointLabelDatum, index: number, padding: number, bound
             y -= (anchor.y - 0.5) * point.size;
         }
 
+        // Labels that opt out of collision resolution take their first placement unconditionally:
+        // never bounds-clipped, never dropped.
+        if (!d.avoid) {
+            return { index, text, x, y, width, height, datum: d, placement };
+        }
+
         candidateBox.x = x;
         candidateBox.y = y;
         candidateBox.width = width;
         candidateBox.height = height;
+        queryBox.x = x - inflate;
+        queryBox.y = y - inflate;
+        queryBox.width = width + 2 * inflate;
+        queryBox.height = height + 2 * inflate;
 
-        if (boxContains(bounds, x, y, width, height) && !obstacleIndex.query(candidateBox, obstacleOverlapsCandidate)) {
+        if (boxContains(bounds, x, y, width, height) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
             return { index, text, x, y, width, height, datum: d, placement };
         }
     }

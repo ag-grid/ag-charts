@@ -1,4 +1,12 @@
-import { BaseProperties, type NormalisedTextOrSegments, Property, type RequireOptional, isArray } from 'ag-charts-core';
+import {
+    BaseProperties,
+    type CollideWith,
+    type LabelPlacement,
+    type NormalisedTextOrSegments,
+    Property,
+    type RequireOptional,
+    isArray,
+} from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
@@ -34,6 +42,85 @@ export class LabelBorder {
 
     @Property
     strokeOpacity?: number;
+}
+
+/**
+ * A single collision-resolution step. Only `reposition` is implemented; `rotate`/`wrap`/`shrink`/
+ * `truncate` are reserved for later drops of the collision-avoidance model.
+ */
+export type LabelCollisionStrategy = { type: 'reposition'; placements?: LabelPlacement[] };
+
+export interface LabelCollideWithCategoryOptions {
+    enabled?: boolean;
+    minSpacing?: number;
+}
+
+export interface LabelCollideWithOptions {
+    markers?: LabelCollideWithCategoryOptions;
+    labels?: LabelCollideWithCategoryOptions;
+    seriesItems?: LabelCollideWithCategoryOptions;
+}
+
+export interface LabelCollisionAvoidanceOptions {
+    enabled?: boolean;
+    strategy?: LabelCollisionStrategy[];
+    minSpacing?: number;
+    collideWith?: LabelCollideWithOptions;
+}
+
+class LabelCollideWithCategory extends BaseProperties implements LabelCollideWithCategoryOptions {
+    @Property
+    enabled?: boolean;
+
+    @Property
+    minSpacing?: number;
+}
+
+class LabelCollideWith extends BaseProperties implements LabelCollideWithOptions {
+    @Property
+    markers = new LabelCollideWithCategory();
+
+    @Property
+    labels = new LabelCollideWithCategory();
+
+    @Property
+    seriesItems = new LabelCollideWithCategory();
+}
+
+export class LabelCollisionAvoidance extends BaseProperties implements LabelCollisionAvoidanceOptions {
+    @Property
+    enabled?: boolean;
+
+    @Property
+    strategy?: LabelCollisionStrategy[];
+
+    @Property
+    minSpacing?: number;
+
+    @Property
+    collideWith = new LabelCollideWith();
+
+    /** Whether labels should be resolved against obstacles; otherwise placed unconditionally. */
+    get avoid(): boolean {
+        return this.enabled === true;
+    }
+
+    /** Placements from the `reposition` strategy, falling back to the series' own default. */
+    placements(fallback: readonly LabelPlacement[]): readonly LabelPlacement[] {
+        const reposition = this.strategy?.find((s) => s.type === 'reposition');
+        return reposition?.placements ?? fallback;
+    }
+
+    /** Resolved per-category obstacle config, or `undefined` when not avoiding collisions. */
+    resolveCollideWith(): CollideWith | undefined {
+        if (!this.avoid) return undefined;
+        const { markers, labels, seriesItems } = this.collideWith;
+        return {
+            marker: { enabled: markers.enabled !== false, minSpacing: markers.minSpacing },
+            label: { enabled: labels.enabled !== false, minSpacing: labels.minSpacing },
+            seriesItem: { enabled: seriesItems.enabled !== false, minSpacing: seriesItems.minSpacing },
+        };
+    }
 }
 
 export class LabelStyle extends BaseProperties implements AgChartLabelStyleOptions {
@@ -74,6 +161,9 @@ export class Label<TParams = never, TDatum = any>
 {
     @Property
     enabled: boolean = false;
+
+    @Property
+    collisionAvoidance = new LabelCollisionAvoidance();
 
     @Property
     formatter?: RichFormatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
