@@ -75,6 +75,18 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
     'sparklines-e2e': {
         '*': { frameworks: ['vanilla'] },
     },
+    'sync-e2e': {
+        '*': { frameworks: ['vanilla'] },
+    },
+    'api-state-e2e': {
+        '*': { frameworks: ['vanilla'] },
+    },
+    'themes-e2e': {
+        '*': { frameworks: ['vanilla'] },
+    },
+    'bar-series-e2e': {
+        '*': { frameworks: ['vanilla'] },
+    },
     'sparklines-test': {
         'debug-sequential-render': { frameworks: [] },
     },

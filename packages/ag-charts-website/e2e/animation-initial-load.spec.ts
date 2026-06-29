@@ -6,7 +6,7 @@ test.describe('CRT-1065: initial animation with container padding', () => {
 
     setupIntrinsicAssertions(test);
 
-    const { url } = toExamplePageUrl('bar-series-test', 'animation-with-padding', 'vanilla');
+    const { url } = toExamplePageUrl('bar-series-e2e', 'animation-with-padding', 'vanilla');
 
     test('should animate on initial load when container has padding', async ({ page }) => {
         await gotoExample(page, url);

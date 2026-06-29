@@ -93,7 +93,7 @@ test.describe('state', () => {
     setupIntrinsicAssertions(test);
 
     test('legend and zoom', async ({ page }) => {
-        const { url } = toExamplePageUrl('api-state-test', 'legend-zoom-e2e', 'vanilla');
+        const { url } = toExamplePageUrl('api-state-e2e', 'legend-zoom', 'vanilla');
 
         await gotoExample(page, url);
 

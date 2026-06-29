@@ -21,7 +21,7 @@ test.describe('synchronised', () => {
     setupIntrinsicAssertions(test);
 
     test.describe('for single-series charts', () => {
-        const { url } = toExamplePageUrl('sync-test', 'single-series-sync', 'vanilla');
+        const { url } = toExamplePageUrl('sync-e2e', 'single-series-sync', 'vanilla');
 
         test.describe('animation', () => {
             test('should animate on initial load', async ({ page }) => {
@@ -160,7 +160,9 @@ test.describe('synchronised', () => {
 
     for (const example of ['multi-series-sync', 'multi-series-horizontal-sync']) {
         test.describe(`for ${example.replace('-sync', '')} with secondary axes`, () => {
-            for (const { framework, url } of toExamplePageUrls('sync-test', example)) {
+            for (const { framework, url } of toExamplePageUrls('sync-e2e', example).filter(
+                (f) => f.framework === 'vanilla'
+            )) {
                 test.describe(`for ${framework}`, () => {
                     test.describe('animation', () => {
                         test('should animate on initial load', async ({ page }) => {
@@ -484,7 +486,7 @@ test.describe('synchronised', () => {
     }
 
     test.describe('for multi-series with matching keys', () => {
-        const { url } = toExamplePageUrl('sync-test', 'multi-series-implicit-key-sync', 'vanilla');
+        const { url } = toExamplePageUrl('sync-e2e', 'multi-series-implicit-key-sync', 'vanilla');
         test.describe('animation', () => {
             test('should animate on initial load', async ({ page }) => {
                 await gotoExample(page, url); // Let animations complete
@@ -759,7 +761,7 @@ test.describe('synchronised', () => {
     });
 
     test.describe('for mixed-series with some matching keys', () => {
-        const { url } = toExamplePageUrl('sync-test', 'mixed-series-sync', 'vanilla');
+        const { url } = toExamplePageUrl('sync-e2e', 'mixed-series-sync', 'vanilla');
         test.describe('animation', () => {
             test('should animate on initial load', async ({ page }) => {
                 await gotoExample(page, url); // Let animations complete
@@ -1022,7 +1024,7 @@ test.describe('synchronised', () => {
     });
 
     test.describe('for financial charts', () => {
-        const { url } = toExamplePageUrl('sync-test', 'financial-charts-sync', 'vanilla');
+        const { url } = toExamplePageUrl('sync-e2e', 'financial-charts-sync', 'vanilla');
         test.describe('tooltip', () => {
             test('should not replicate tooltip', async ({ page }) => {
                 await gotoExample(page, url);
