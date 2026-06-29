@@ -119,7 +119,7 @@ test.describe('context-menu', () => {
 
     test.describe('AG-16259 showsOn', () => {
         test.beforeEach(async ({ page }) => {
-            const { url } = toExamplePageUrl('context-menu-test', 'ag-16259-showOn', 'vanilla');
+            const { url } = toExamplePageUrl('context-menu-e2e', 'ag-16259-showOn', 'vanilla');
             await gotoExample(page, url);
         });
 
@@ -154,7 +154,7 @@ test.describe('context-menu', () => {
     });
 
     test('show context menu on activeChange preventDefault', async ({ page }) => {
-        const { url } = toExamplePageUrl('context-menu-test', 'activeChange-preventDefault', 'vanilla');
+        const { url } = toExamplePageUrl('context-menu-e2e', 'activeChange-preventDefault', 'vanilla');
         await gotoExample(page, url);
 
         await page.mouse.move(404, 265);

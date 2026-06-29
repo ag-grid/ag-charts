@@ -4,7 +4,7 @@ import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl, wai
 test.describe('item-styler-test', () => {
     setupIntrinsicAssertions(test);
 
-    const url = toExamplePageUrl('stylers-test', 'item-styler-test', 'vanilla').url;
+    const url = toExamplePageUrl('stylers-e2e', 'item-styler-test', 'vanilla').url;
 
     const chartTypes = [
         'Bar + Line + Area',

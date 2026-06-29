@@ -10,20 +10,20 @@ const scenarios = [
     {
         name: 'BoxPlot module only',
         import: '{ BoxPlotSeriesModule }',
-        srcLimit: '271 kB',
+        srcLimit: '270 kB',
         distLimit: '389 kB',
     },
     {
         name: 'Mixed modules A',
         import: '{ BoxPlotSeriesModule, NavigatorModule }',
         srcLimit: '321 kB',
-        distLimit: '415 kB',
+        distLimit: '414 kB',
     },
     {
         name: 'Mixed modules B',
         import: '{ AngleNumberAxisModule, RadialBarSeriesModule, StatusBarModule }',
         srcLimit: '273 kB',
-        distLimit: '391 kB',
+        distLimit: '390 kB',
     },
     {
         name: 'Mixed modules C',

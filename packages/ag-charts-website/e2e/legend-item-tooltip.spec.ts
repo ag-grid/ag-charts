@@ -4,7 +4,7 @@ import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl, wai
 test.describe('legend item tooltip', () => {
     setupIntrinsicAssertions(test);
 
-    const { url } = toExamplePageUrl('legend-test', 'legend-item-tooltip-e2e', 'vanilla');
+    const { url } = toExamplePageUrl('legend-e2e', 'legend-item-tooltip', 'vanilla');
 
     test.beforeEach(async ({ page }) => {
         await gotoExample(page, url);

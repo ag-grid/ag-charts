@@ -3,7 +3,7 @@ import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } fr
 
 test.describe('text-navigation', () => {
     setupIntrinsicAssertions(test);
-    const { url } = toExamplePageUrl('financial-charts-test', 'e2e-toolbar', 'vanilla');
+    const { url } = toExamplePageUrl('financial-charts-e2e', 'toolbar', 'vanilla');
 
     test('annotation-text', async ({ page }) => {
         await gotoExample(page, url);

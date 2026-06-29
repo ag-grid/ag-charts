@@ -24,6 +24,18 @@ interface TestCategory {
 const FRAMEWORKS = ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'angular', 'vue3'];
 const TESTS_PER_EXAMPLE = FRAMEWORKS.length; // Each example generates tests for each framework
 
+// Internal test pages merge into their base page category (e.g. 'line-series-test' -> 'line-series').
+const INTERNAL_PAGE_SUFFIXES = ['-test', '-e2e'];
+
+function toBasePageCategory(page: string): string {
+    for (const suffix of INTERNAL_PAGE_SUFFIXES) {
+        if (page.endsWith(suffix)) {
+            return page.slice(0, -suffix.length);
+        }
+    }
+    return page;
+}
+
 function getExamples(): Example[] {
     const examples = glob
         .sync('./src/content/**/_examples/*/main.ts')
@@ -33,8 +45,7 @@ function getExamples(): Example[] {
             const example = examplePath.replace(/\/[a-zA-Z-]+\.ts$/, '');
             const page = pagePath.replace(/^docs\//, '');
 
-            // Merge -test pages into their base page (e.g., 'line-series-test' -> 'line-series')
-            const category = page.endsWith('-test') ? page.slice(0, -5) : page;
+            const category = toBasePageCategory(page);
 
             return {
                 path,

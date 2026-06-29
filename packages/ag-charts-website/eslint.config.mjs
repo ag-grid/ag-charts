@@ -16,6 +16,10 @@ export default [
             '**/_examples/',
             '**/_shared/',
             'scripts/',
+            // Standalone classic browser scripts served verbatim from public/;
+            // not part of any tsconfig project, so excluded from type-aware
+            // linting (as with public/example-runner below).
+            'public/scripts/**',
             '**/.angular',
             '**/benchmarkHarness.ts',
             '**/benchmarkUtils.ts',

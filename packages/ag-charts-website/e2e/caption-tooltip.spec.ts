@@ -5,7 +5,7 @@ test.describe('caption tooltip', () => {
     setupIntrinsicAssertions(test);
 
     test.beforeEach(async ({ page }) => {
-        await gotoExample(page, toExamplePageUrl('layout-test', 'e2e-caption-tooltip', 'vanilla').url);
+        await gotoExample(page, toExamplePageUrl('layout-e2e', 'caption-tooltip', 'vanilla').url);
     });
 
     async function hoverTitle(page: import('@playwright/test').Page) {

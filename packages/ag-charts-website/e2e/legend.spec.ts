@@ -92,7 +92,7 @@ test.describe('legend', () => {
         });
     }
 
-    for (const { framework, url } of toExamplePageUrls('legend-test', 'legend-item-name')) {
+    for (const { framework, url } of toExamplePageUrls('legend-e2e', 'legend-item-name')) {
         test.describe(`for ${framework}`, () => {
             test('mouse hovering shared legend items updates highlight for all linked series', async ({ page }) => {
                 await gotoExample(page, url);
@@ -114,7 +114,7 @@ test.describe('legend', () => {
         });
     }
 
-    for (const { framework, url } of toExamplePageUrls('legend-test', 'legend-item-key')) {
+    for (const { framework, url } of toExamplePageUrls('legend-e2e', 'legend-item-key')) {
         test.describe(`for ${framework}`, () => {
             test('mouse hovering shared legend items for single series updates highlight for all linked items', async ({
                 page,
@@ -144,7 +144,7 @@ test.describe('legend', () => {
         });
     }
 
-    for (const { framework, url } of toExamplePageUrls('legend-test', 'legend-interactivity')) {
+    for (const { framework, url } of toExamplePageUrls('legend-e2e', 'legend-interactivity')) {
         test.describe(`for ${framework}`, () => {
             test('AG-16027 legend remains interactive across paginated pages when toggling is disabled', async ({
                 page,
@@ -191,7 +191,7 @@ test.describe('legend', () => {
         });
     }
 
-    for (const { framework, url } of toExamplePageUrls('legend-test', 'legend-pagination-resize')) {
+    for (const { framework, url } of toExamplePageUrls('legend-e2e', 'legend-pagination-resize')) {
         test.describe(`for ${framework}`, () => {
             test('AG-16038 Legend Pagination goes to wrong page after resize hides and shows legend', async ({
                 page,

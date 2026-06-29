@@ -12,20 +12,20 @@ test.describe('rtl', () => {
     setupIntrinsicAssertions(test);
 
     test('basic RTL bar chart rendering', async ({ page }) => {
-        const { url } = toExamplePageUrl('rtl-test', 'rtl-bar-chart', 'vanilla');
+        const { url } = toExamplePageUrl('rtl-e2e', 'rtl-bar-chart', 'vanilla');
         await gotoExample(page, url);
         await expect(page).toHaveScreenshot('rtl-bar-chart.png', { animations: 'disabled' });
     });
 
     test('captions and BiDi wrapping', async ({ page }) => {
-        const { url } = toExamplePageUrl('rtl-test', 'rtl-captions-bidi', 'vanilla');
+        const { url } = toExamplePageUrl('rtl-e2e', 'rtl-captions-bidi', 'vanilla');
         await gotoExample(page, url);
         await expect(page).toHaveScreenshot('rtl-captions-bidi.png', { animations: 'disabled' });
     });
 
     test.describe('context menu', () => {
         test.beforeEach(async ({ page }) => {
-            const { url } = toExamplePageUrl('rtl-test', 'rtl-context-menu', 'vanilla');
+            const { url } = toExamplePageUrl('rtl-e2e', 'rtl-context-menu', 'vanilla');
             await gotoExample(page, url);
         });
 
@@ -132,7 +132,7 @@ test.describe('rtl', () => {
 
     test.describe('financial chart toolbar', () => {
         test.beforeEach(async ({ page }) => {
-            const { url } = toExamplePageUrl('rtl-test', 'rtl-financial-chart', 'vanilla');
+            const { url } = toExamplePageUrl('rtl-e2e', 'rtl-financial-chart', 'vanilla');
             await gotoExample(page, url);
         });
 

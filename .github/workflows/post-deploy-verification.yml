@@ -21,7 +21,8 @@ concurrency:
 
 permissions:
     contents: read
-    actions: write
+    # read is sufficient: the only actions-scope consumer is `gh run list` below.
+    actions: read
 
 jobs:
     page-verification:
@@ -43,8 +44,20 @@ jobs:
                   # Use github.sha (the branch HEAD) rather than workflow_run.head_sha to
                   # avoid the untrusted-input pattern flagged by the OpenSSF Scorecard.
                   ref: ${{ github.sha }}
-                  fetch-depth: 1
+                  fetch-depth: 0
                   submodules: true
+
+            - name: Align gallery data to deployed commit
+              # page-verification.spec.ts reads data.json from the local checkout to
+              # discover which gallery examples to test. When two commits land in quick
+              # succession, github.sha (HEAD) may be ahead of what was actually deployed,
+              # causing tests to reference examples that don't exist on staging yet.
+              if: github.event_name != 'workflow_dispatch' && github.event.workflow_run.head_sha != ''
+              env:
+                  DEPLOYED_SHA: ${{ github.event.workflow_run.head_sha }}
+              run: |
+                  git show "${DEPLOYED_SHA}:packages/ag-charts-website/src/content/gallery/data.json" \
+                    > packages/ag-charts-website/src/content/gallery/data.json
 
             - name: Setup Node
               uses: actions/setup-node@v4

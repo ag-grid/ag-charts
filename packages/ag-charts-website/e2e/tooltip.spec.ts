@@ -40,7 +40,7 @@ test.describe('tooltip', () => {
     setupIntrinsicAssertions(test);
 
     test.beforeEach(async ({ page }) => {
-        await gotoExample(page, toExamplePageUrl('tooltips-test', 'e2e-tooltip-modes', 'vanilla').url);
+        await gotoExample(page, toExamplePageUrl('tooltips-e2e', 'tooltip-modes', 'vanilla').url);
     });
 
     test.describe('mode', () => {
@@ -64,7 +64,7 @@ test.describe('tooltip', () => {
     });
 
     test.skip('nearest tooltip ignores disabled series', async ({ page }) => {
-        await gotoExample(page, toExamplePageUrl('tooltips-test', 'e2e-tooltip-nearest', 'vanilla').url);
+        await gotoExample(page, toExamplePageUrl('tooltips-e2e', 'tooltip-nearest', 'vanilla').url);
 
         const point = await getScatterCanvasPoint(page);
         const toPage = await canvasToPageTransformer(page);
@@ -79,7 +79,7 @@ test.describe('tooltip', () => {
 
     test.describe('renderer', () => {
         test.beforeEach(async ({ page }) => {
-            await gotoExample(page, toExamplePageUrl('tooltips-test', 'e2e-tooltip-renderer', 'vanilla').url);
+            await gotoExample(page, toExamplePageUrl('tooltips-e2e', 'tooltip-renderer', 'vanilla').url);
         });
 
         test.describe('initial focus', () => {
@@ -159,7 +159,7 @@ test.describe('tooltip', () => {
         }
 
         test.beforeEach(async ({ page }) => {
-            const { url } = toExamplePageUrl('tooltips-test', 'e2e-tooltip-pagination-disabled-series', 'vanilla');
+            const { url } = toExamplePageUrl('tooltips-e2e', 'tooltip-pagination-disabled-series', 'vanilla');
             await gotoExample(page, url);
         });
 

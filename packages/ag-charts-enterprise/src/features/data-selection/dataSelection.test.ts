@@ -5403,4 +5403,127 @@ describe('DataSelection', () => {
             await compareExact('diskusage-treemap-styling');
         });
     });
+
+    describe('AG-17570 series-level selection.enabled option overrides chart-level selection.enabled option', () => {
+        describe('bar', () => {
+            type D = AccountingDatumWithId;
+            type C = unknown;
+            let selectionChange: SelectionChangeRecorder<D, C>;
+            let opts: AgChartOptions<D, C>;
+            const data: D[] = [
+                { id: 'r2018', year: '2018', assets: 100, liabilities: -70, cash: 30 },
+                { id: 'r2019', year: '2019', assets: 120, liabilities: -80, cash: 40 },
+                { id: 'r2020', year: '2020', assets: 150, liabilities: -90, cash: 60 },
+            ];
+
+            const SELECTION: AgSelectionItem<D> = { datum: data[1], seriesId: 's2id', itemId: 'r2019' };
+            const ADDED_EVENT = apiChangeEvent<D, C>({ added: [SELECTION], removed: [] });
+
+            beforeEach(async () => {
+                selectionChange = createSelectionChangeRecorder<D, C>();
+                opts = prepareEnterpriseTestOptions({
+                    data,
+                    dataIdKey: 'id',
+                    selection: {
+                        enabled: false,
+                    },
+                    series: [
+                        {
+                            id: 's1id',
+                            type: 'line',
+                            xKey: 'year',
+                            yKey: 'assets',
+                            selection: { enabled: false },
+                        },
+                        {
+                            id: 's2id',
+                            type: 'line',
+                            xKey: 'year',
+                            yKey: 'liabilities',
+                            selection: { enabled: true },
+                        },
+                        {
+                            id: 's3id',
+                            type: 'line',
+                            xKey: 'year',
+                            yKey: 'cash',
+                            selection: { enabled: false },
+                        },
+                    ],
+                    listeners: { selectionChange },
+                });
+                chart = await createChartInstance(opts);
+                await setChartSelectionArray([SELECTION]);
+            });
+            describe('initial', () => {
+                test('getSelection', () => {
+                    expect(getChartSelectionArray()).toEqual([SELECTION]);
+                });
+                test('selectionChange', () => {
+                    expect(selectionChange.popEvents()).toEqual([ADDED_EVENT]);
+                });
+            });
+            describe('update - disable', () => {
+                beforeEach(async () => {
+                    selectionChange.popEvents(); // pop & ignore initial event.
+                    (opts.series![1] as any).selection.enabled = false;
+                    await chart.update(opts);
+                    await waitForChartStability(chart);
+                });
+                test('getSelection', () => {
+                    expect(getChartSelectionArray()).toEqual([]);
+                });
+                test('selectionChange', () => {
+                    expect(selectionChange.popEvents()).toEqual([]);
+                });
+                describe('update - enable', () => {
+                    beforeEach(async () => {
+                        (opts.series![1] as any).selection.enabled = true;
+                        await chart.update(opts);
+                        await waitForChartStability(chart);
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual([SELECTION]);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+            });
+            describe('updateDelta - disable', () => {
+                function deltaOptionsWith(s2opts: { selection: { enabled: boolean } }): AgCartesianChartOptions<D, C> {
+                    return {
+                        series: [
+                            { id: 's1id', type: 'line' as const, xKey: 'year', yKey: 'assets' },
+                            { id: 's2id', type: 'line' as const, xKey: 'year', yKey: 'liabilities', ...s2opts },
+                            { id: 's3id', type: 'line' as const, xKey: 'year', yKey: 'cash' },
+                        ],
+                    };
+                }
+                beforeEach(async () => {
+                    selectionChange.popEvents(); // pop & ignore initial event.
+                    await chart.updateDelta(deltaOptionsWith({ selection: { enabled: false } }));
+                    await waitForChartStability(chart);
+                });
+                test('getSelection', () => {
+                    expect(getChartSelectionArray()).toEqual([]);
+                });
+                test('selectionChange', () => {
+                    expect(selectionChange.popEvents()).toEqual([]);
+                });
+                describe('updateDelta - enable', () => {
+                    beforeEach(async () => {
+                        await chart.updateDelta(deltaOptionsWith({ selection: { enabled: true } }));
+                        await waitForChartStability(chart);
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual([SELECTION]);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([]);
+                    });
+                });
+            });
+        });
+    });
 });

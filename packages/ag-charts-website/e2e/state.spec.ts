@@ -93,7 +93,7 @@ test.describe('state', () => {
     setupIntrinsicAssertions(test);
 
     test('legend and zoom', async ({ page }) => {
-        const { url } = toExamplePageUrl('api-state-test', 'legend-zoom-e2e', 'vanilla');
+        const { url } = toExamplePageUrl('api-state-e2e', 'legend-zoom', 'vanilla');
 
         await gotoExample(page, url);
 
@@ -317,7 +317,7 @@ test.describe('state', () => {
             }
 
             test.beforeEach(async ({ page }) => {
-                await gotoExample(page, toExamplePageUrl('active-e2e-test', 'line-example', 'vanilla').url);
+                await gotoExample(page, toExamplePageUrl('active-e2e', 'line-example', 'vanilla').url);
                 canvas = page.locator(SELECTORS.canvasCenter);
             });
 
@@ -1101,7 +1101,7 @@ test.describe('state', () => {
             }
 
             test.beforeEach(async ({ page }) => {
-                await gotoExample(page, toExamplePageUrl('active-e2e-test', 'multi-donut-example', 'vanilla').url);
+                await gotoExample(page, toExamplePageUrl('active-e2e', 'multi-donut-example', 'vanilla').url);
                 canvas = page.locator(SELECTORS.canvasCenter);
             });
 
@@ -1440,7 +1440,7 @@ test.describe('state', () => {
             }
 
             test.beforeEach(async ({ page }) => {
-                await gotoExample(page, toExamplePageUrl('active-e2e-test', 'bubble-example', 'vanilla').url);
+                await gotoExample(page, toExamplePageUrl('active-e2e', 'bubble-example', 'vanilla').url);
                 canvas = page.locator(SELECTORS.canvasCenter);
             });
 
@@ -1602,7 +1602,7 @@ test.describe('state', () => {
             }
 
             test.beforeEach(async ({ page }) => {
-                await gotoExample(page, toExamplePageUrl('active-e2e-test', 'grouped-category-bars', 'vanilla').url);
+                await gotoExample(page, toExamplePageUrl('active-e2e', 'grouped-category-bars', 'vanilla').url);
                 canvas = page.locator(SELECTORS.canvasCenter);
             });
 
@@ -1687,7 +1687,7 @@ test.describe('state', () => {
             }
 
             test.beforeEach(async ({ page }) => {
-                await gotoExample(page, toExamplePageUrl('active-e2e-test', 'sankey-example', 'vanilla').url);
+                await gotoExample(page, toExamplePageUrl('active-e2e', 'sankey-example', 'vanilla').url);
                 canvas = page.locator(SELECTORS.canvasCenter);
             });
 
@@ -1783,10 +1783,7 @@ test.describe('state', () => {
 
             test.describe('series-node initialState matches hover event', () => {
                 test.beforeEach(async ({ page }) => {
-                    await gotoExample(
-                        page,
-                        toExamplePageUrl('active-e2e-test', 'initial-state-series-node', 'vanilla').url
-                    );
+                    await gotoExample(page, toExamplePageUrl('active-e2e', 'initial-state-series-node', 'vanilla').url);
                     canvas = page.locator(SELECTORS.canvasCenter);
                 });
 
@@ -1823,7 +1820,7 @@ test.describe('state', () => {
 
             test.describe('legend initialState matches hover event', () => {
                 test.beforeEach(async ({ page }) => {
-                    await gotoExample(page, toExamplePageUrl('active-e2e-test', 'initial-state-legend', 'vanilla').url);
+                    await gotoExample(page, toExamplePageUrl('active-e2e', 'initial-state-legend', 'vanilla').url);
                     canvas = page.locator(SELECTORS.canvasCenter);
                 });
 
@@ -1863,7 +1860,7 @@ test.describe('state', () => {
             let canvas: Locator;
 
             test.beforeEach(async ({ page }) => {
-                const url = toExamplePageUrl('active-e2e-test', 'zoom-and-active-restoration', 'vanilla').url;
+                const url = toExamplePageUrl('active-e2e', 'zoom-and-active-restoration', 'vanilla').url;
                 await gotoExample(page, url);
                 canvas = page.locator(SELECTORS.canvasCenter);
             });
@@ -1975,7 +1972,7 @@ test.describe('state', () => {
             }
 
             test.beforeEach(async ({ page }) => {
-                const url = toExamplePageUrl('active-e2e-test', 'interactive-tooltip-example', 'vanilla').url;
+                const url = toExamplePageUrl('active-e2e', 'interactive-tooltip-example', 'vanilla').url;
                 await gotoExample(page, url);
                 canvas = page.locator(SELECTORS.canvasCenter);
             });
@@ -2247,7 +2244,7 @@ test.describe('state', () => {
             }
 
             test.beforeEach(async ({ page }) => {
-                const url = toExamplePageUrl('active-e2e-test', 'map-prevent-default', 'vanilla').url;
+                const url = toExamplePageUrl('active-e2e', 'map-prevent-default', 'vanilla').url;
                 await gotoExample(page, url);
                 canvas = page.locator(SELECTORS.canvasCenter);
             });
@@ -2448,7 +2445,7 @@ test.describe('state', () => {
             }
 
             test.beforeEach(async ({ page }) => {
-                const url = toExamplePageUrl('active-e2e-test', 'click-to-freeze', 'vanilla').url;
+                const url = toExamplePageUrl('active-e2e', 'click-to-freeze', 'vanilla').url;
                 await gotoExample(page, url);
                 canvas = page.locator(SELECTORS.canvasCenter);
             });
@@ -2755,7 +2752,7 @@ test.describe('state', () => {
             }
 
             test.beforeEach(async ({ page }) => {
-                const url = toExamplePageUrl('active-e2e-test', 'candlestick-crosshairs', 'vanilla').url;
+                const url = toExamplePageUrl('active-e2e', 'candlestick-crosshairs', 'vanilla').url;
                 await gotoExample(page, url);
                 canvas = page.locator(SELECTORS.canvasCenter);
             });
@@ -2864,7 +2861,7 @@ test.describe('state', () => {
             }
 
             test.beforeEach(async ({ page }) => {
-                const url = toExamplePageUrl('active-e2e-test', 'data-mutation', 'vanilla').url;
+                const url = toExamplePageUrl('active-e2e', 'data-mutation', 'vanilla').url;
                 await gotoExample(page, url);
             });
 
@@ -2978,7 +2975,7 @@ test.describe('state', () => {
             }
 
             test.beforeEach(async ({ page }) => {
-                const url = toExamplePageUrl('active-e2e-test', 'frozen-zoompan', 'vanilla').url;
+                const url = toExamplePageUrl('active-e2e', 'frozen-zoompan', 'vanilla').url;
                 await gotoExample(page, url);
                 canvas = page.locator(SELECTORS.canvasCenter);
             });
@@ -3181,7 +3178,7 @@ test.describe('state', () => {
                 consoleTracker = createConsoleTracker(page);
                 consoleTracker.init();
 
-                const url = toExamplePageUrl('active-e2e-test', 'frozen-legendtoggle', 'vanilla').url;
+                const url = toExamplePageUrl('active-e2e', 'frozen-legendtoggle', 'vanilla').url;
                 await gotoExample(page, url);
                 canvas = page.locator(SELECTORS.canvasCenter);
             });
@@ -3424,7 +3421,7 @@ test.describe('state', () => {
             }
 
             test.beforeEach(async ({ page }) => {
-                const url = toExamplePageUrl('active-e2e-test', 'legend-disabled', 'vanilla').url;
+                const url = toExamplePageUrl('active-e2e', 'legend-disabled', 'vanilla').url;
                 await gotoExample(page, url);
                 canvas = page.locator(SELECTORS.canvasCenter);
             });
