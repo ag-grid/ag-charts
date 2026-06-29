@@ -76,6 +76,27 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     // Framework-agnostic "server-side-rendering" is a docs slug → framework-scoped page.
     { fromPattern: '^/server-side-rendering(/.*)?$', to: '/javascript/server-side-rendering/' },
 
+    // --- SE-59: de-duplicate the 5 indexed community pages ---
+    // The community pages (index + Tools & Extensions, Showcase, Events, Media) are SEO duplicates:
+    // the canonical home is the grid apex at https://www.ag-grid.com/community/X/. The charts site
+    // serves self-canonicalising copies under /charts/community/X/ (and charts.ag-grid.com/community/X/),
+    // so Google indexes both. 301 ONLY those 5 page URLs to the apex.
+    //
+    // Page-exact, `/?$`-anchored RedirectMatch (same approach as studio) — NOT a bare prefix `Redirect`.
+    // A prefix match would also sweep every asset served under these paths (e.g.
+    // /charts/community/tools-extensions/streamlit-aggrid.webp, /charts/community/events/organiser-logos/*.svg,
+    // podcast/video thumbnails, showcase .webp) into cross-origin 301s. The anchored pattern matches
+    // only the bare page URL with an optional trailing slash, leaving assets untouched.
+    //
+    // Patterns are base-relative; getRedirectRules() splices in the /charts base (→ ^/charts/community/...).
+    // `to` is an absolute apex URL, which urlWithBaseUrl passes through UNCHANGED (no /charts prefix).
+    // Targets carry a trailing slash so they land on the apex page directly (no redirect chain).
+    { fromPattern: '^/community/?$', to: 'https://www.ag-grid.com/community/' },
+    { fromPattern: '^/community/tools-extensions/?$', to: 'https://www.ag-grid.com/community/tools-extensions/' },
+    { fromPattern: '^/community/showcase/?$', to: 'https://www.ag-grid.com/community/showcase/' },
+    { fromPattern: '^/community/events/?$', to: 'https://www.ag-grid.com/community/events/' },
+    { fromPattern: '^/community/media/?$', to: 'https://www.ag-grid.com/community/media/' },
+
     // Legacy aggregate index pages with no current equivalent → first page of the matching nav section.
     { fromPattern: '^/(javascript|angular|react|vue)/series(/.*)?$', to: '/$1/bar-series/' },
     { fromPattern: '^/(javascript|angular|react|vue)/axes(/.*)?$', to: '/$1/axes-configuration/' },

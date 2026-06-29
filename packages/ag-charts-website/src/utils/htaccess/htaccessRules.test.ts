@@ -166,6 +166,44 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
         );
     });
 
+    it('SE-59: page-exact 301s the 5 community pages to the canonical grid apex (anchored, no /charts on target)', () => {
+        const apex = 'https://www.ag-grid.com/community';
+        // The base-relative pattern gets the base spliced in (→ ^/charts/community/...); the absolute
+        // apex `to` passes through urlWithBaseUrl unchanged. `/?$` anchors to the bare page URL with an
+        // optional trailing slash so assets under the path are NOT matched. Trailing-slash target = no chain.
+        expect(rules).toContain(`RedirectMatch 301 "^${base}/community/?$" "${apex}/"`);
+        expect(rules).toContain(
+            `RedirectMatch 301 "^${base}/community/tools-extensions/?$" "${apex}/tools-extensions/"`
+        );
+        expect(rules).toContain(`RedirectMatch 301 "^${base}/community/showcase/?$" "${apex}/showcase/"`);
+        expect(rules).toContain(`RedirectMatch 301 "^${base}/community/events/?$" "${apex}/events/"`);
+        expect(rules).toContain(`RedirectMatch 301 "^${base}/community/media/?$" "${apex}/media/"`);
+    });
+
+    it('SE-59: community rules are anchored RedirectMatch (not a prefix Redirect) and never sweep assets', () => {
+        const communityLines = rules.split('\n').filter((l) => l.includes('/community/'));
+        expect(communityLines.length).toBe(5);
+        communityLines.forEach((l) => {
+            // Must be an anchored RedirectMatch with a `/?$` tail — NOT a bare prefix `Redirect`.
+            expect(l.startsWith('RedirectMatch 301 ')).toBe(true);
+            expect(l).toMatch(/\/\?\$"/);
+            // Target (after the pattern) must be the absolute apex URL, never charts-relative.
+            const target = l.split('" "')[1]?.replace(/"$/, '');
+            expect(target).toMatch(/^https:\/\/www\.ag-grid\.com\/community\//);
+        });
+        // An asset path served under a community page must NOT match any community rule.
+        const assetPath = `${base}/community/tools-extensions/streamlit-aggrid.webp`;
+        const communityPatterns = communityLines.map((l) => new RegExp(l.split('"')[1]));
+        expect(communityPatterns.some((re) => re.test(assetPath))).toBe(false);
+        // The bare page URL (with and without trailing slash) must match its rule.
+        expect(new RegExp(`^${base}/community/tools-extensions/?$`).test(`${base}/community/tools-extensions`)).toBe(
+            true
+        );
+        expect(new RegExp(`^${base}/community/tools-extensions/?$`).test(`${base}/community/tools-extensions/`)).toBe(
+            true
+        );
+    });
+
     it('astro redirect map excludes pattern-match and gone rules', () => {
         const astro = getAstroRedirectRules() ?? {};
         // gone rules have no `from`; pattern rules have no `from` either — only simple `from` redirects appear.
