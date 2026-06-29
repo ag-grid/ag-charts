@@ -93,8 +93,8 @@ const frameworkLandingPageSlugs = [
     'angular-charts',
     'enterprise-charts',
 ];
-const isFrameworkLandingPage = content.framework && frameworkLandingPageSlugs.includes(content.analyticsPrefix);
-const frameworkKey = isFrameworkLandingPage ? content.framework || '' : '';
+const isFrameworkLandingPage = frameworkLandingPageSlugs.includes(content.analyticsPrefix);
+const frameworkKey = isFrameworkLandingPage ? content.internalFramework : '';
 const pageStyles = isFrameworkLandingPage ? frameworkStyles : styles;
 ---
 
@@ -130,7 +130,7 @@ const pageStyles = isFrameworkLandingPage ? frameworkStyles : styles;
                                     examples={heroSec.galleryExamples}
                                     height={heroSec.demoHeight ?? 500}
                                     autoAdvanceDelay={7000}
-                                    framework={content.framework}
+                                    framework={content.internalFramework}
                                 />
                             )}
 
@@ -165,7 +165,7 @@ const pageStyles = isFrameworkLandingPage ? frameworkStyles : styles;
                             : section;
                     return (
                         <FeaturesSection section={featuresSectionWithLogo} pageContent={content}>
-                            <FeaturesWithExamples features={section.items} framework={content.framework} />
+                            <FeaturesWithExamples features={section.items} framework={content.internalFramework} />
                         </FeaturesSection>
                     );
 
