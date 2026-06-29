@@ -3,35 +3,6 @@ title: 'Radar Line Series Test'
 enterprise: true
 ---
 
-## Styler Tests
-
-### Styler
-
-What to test:
-
-- Each radius key (tank, damage, healer) renders with its distinct stroke, dash and marker shape.
-- Series-level `stroke` and `strokeWidth` on the source series are overridden by the styler output.
-
-{% chartExampleRunner title="Styler" name="styler" type="generated" /%}
-
-### Styler & Item Styler
-
-What to test:
-
-- Series-level styler colours apply to all markers in a series.
-- The "Intelligence" datum on the healer series, the "Vitality" datum on the tank series and the "Agility" datum on the damage series render with their gold item-styler overrides.
-
-{% chartExampleRunner title="Styler & Item Styler" name="styler-and-itemstyler" type="generated" /%}
-
-### Styler Highlight State
-
-What to test:
-
-- Hover a single marker; that marker enlarges and its sibling series fades.
-- Hover a legend item; the matching series highlights while the other dims to the unhighlighted-series styling.
-
-{% chartExampleRunner title="Styler Highlight State" name="styler-highlight-state" type="generated" /%}
-
 ## Radar Line Animation
 
 What to test:
