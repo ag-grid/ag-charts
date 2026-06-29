@@ -37,6 +37,7 @@ const options: AgPolarChartOptions = {
                 },
             },
             styler: (params: AgRadarAreaSeriesStylerParams): AgRadarAreaSeriesStyle => {
+                console.log('[styler]', params.highlightState);
                 if (params.highlightState === 'highlighted-item') {
                     return { marker: { size: 15 } };
                 }
@@ -72,6 +73,7 @@ const options: AgPolarChartOptions = {
                 },
             },
             styler: (params: AgRadarAreaSeriesStylerParams): AgRadarAreaSeriesStyle => {
+                console.log('[styler]', params.highlightState);
                 if (params.highlightState === 'highlighted-item') {
                     return { marker: { size: 15 } };
                 }
@@ -107,6 +109,7 @@ const options: AgPolarChartOptions = {
                 },
             },
             styler: (params: AgRadarAreaSeriesStylerParams): AgRadarAreaSeriesStyle => {
+                console.log('[styler]', params.highlightState);
                 if (params.highlightState === 'highlighted-item') {
                     return { marker: { size: 15 } };
                 }

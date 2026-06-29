@@ -26,6 +26,7 @@ const options: AgCartesianChartOptions<DatumType, unknown> = {
             yHighKey: 'gain_high',
             marker: {
                 itemStyler: (params: AgSeriesMarkerStylerParams<DatumType, unknown>): AgSeriesMarkerStyle => {
+                    console.log('[styler]', params.highlightState);
                     switch (params.highlightState) {
                         case 'highlighted-item':
                             return { size: 35, shape: 'star' /* must have marker.fill 'yellow' */ };
@@ -41,6 +42,7 @@ const options: AgCartesianChartOptions<DatumType, unknown> = {
                 },
             },
             styler: (params: AgRangeAreaSeriesStylerParams<DatumType, unknown>): AgRangeAreaSeriesStyle => {
+                console.log('[styler]', params.highlightState);
                 switch (params.highlightState) {
                     case 'highlighted-item':
                         return lowAndHigh({ marker: { fill: 'yellow' } });
@@ -64,6 +66,7 @@ const options: AgCartesianChartOptions<DatumType, unknown> = {
             yHighKey: 'loss_high',
             marker: {
                 itemStyler: (params: AgSeriesMarkerStylerParams<DatumType, unknown>): AgSeriesMarkerStyle => {
+                    console.log('[styler]', params.highlightState);
                     switch (params.highlightState) {
                         case 'highlighted-item':
                             return { size: 35 /* must have marker.fill 'fuchsia' */ };
@@ -75,6 +78,7 @@ const options: AgCartesianChartOptions<DatumType, unknown> = {
                 },
             },
             styler: (params: AgRangeAreaSeriesStylerParams<DatumType, unknown>): AgRangeAreaSeriesStyle => {
+                console.log('[styler]', params.highlightState);
                 switch (params.highlightState) {
                     case 'highlighted-item':
                         return lowAndHigh({ marker: { fill: 'fuchsia' } });

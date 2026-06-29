@@ -18,6 +18,7 @@ const options: AgChartOptions = {
             radiusKey: 'sw',
             radiusName: 'Software',
             styler: (params: AgRadialSeriesStylerParams<unknown, unknown>): AgRadialSeriesStyle => {
+                console.log('[styler]', params.highlightState);
                 switch (params.highlightState) {
                     case 'highlighted-item':
                         return { fill: 'yellow', strokeWidth: 4 };
@@ -38,6 +39,7 @@ const options: AgChartOptions = {
             angleKey: 'quarter',
             radiusKey: 'hw',
             styler: (params: AgRadialSeriesStylerParams<unknown, unknown>): AgRadialSeriesStyle => {
+                console.log('[styler]', params.highlightState);
                 switch (params.highlightState) {
                     case 'highlighted-item':
                         return { fill: 'lime', strokeWidth: 4 };

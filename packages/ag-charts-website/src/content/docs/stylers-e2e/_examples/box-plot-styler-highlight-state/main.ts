@@ -17,6 +17,7 @@ const options: AgChartOptions = {
             q3Key: 's1_q3',
             maxKey: 's1_max',
             styler: (params: AgBoxPlotSeriesStylerParams<unknown, unknown>) => {
+                console.log('[styler]', params.highlightState);
                 switch (params.highlightState) {
                     case 'highlighted-item':
                         return { fill: 'yellow', strokeWidth: 4 };
@@ -42,6 +43,7 @@ const options: AgChartOptions = {
             q3Key: 's2_q3',
             maxKey: 's2_max',
             styler: (params: AgBoxPlotSeriesStylerParams<unknown, unknown>) => {
+                console.log('[styler]', params.highlightState);
                 switch (params.highlightState) {
                     case 'highlighted-item':
                         return { fill: 'lime', strokeWidth: 4 };

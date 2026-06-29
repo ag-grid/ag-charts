@@ -19,6 +19,7 @@ const options: AgCartesianChartOptions<DatumType, unknown> = {
             yLowKey: 'gain_low',
             yHighKey: 'gain_high',
             styler: (params: AgRangeBarSeriesStylerParams<DatumType, unknown>): AgRangeBarSeriesStyle => {
+                console.log('[styler]', params.highlightState);
                 switch (params.highlightState) {
                     case 'highlighted-item':
                         return { fill: 'yellow', strokeWidth: 4 };
@@ -41,6 +42,7 @@ const options: AgCartesianChartOptions<DatumType, unknown> = {
             yLowKey: 'loss_low',
             yHighKey: 'loss_high',
             styler: (params: AgRangeBarSeriesStylerParams<DatumType, unknown>): AgRangeBarSeriesStyle => {
+                console.log('[styler]', params.highlightState);
                 switch (params.highlightState) {
                     case 'highlighted-item':
                         return { fill: 'lime', strokeWidth: 4 };
