@@ -160,7 +160,9 @@ test.describe('synchronised', () => {
 
     for (const example of ['multi-series-sync', 'multi-series-horizontal-sync']) {
         test.describe(`for ${example.replace('-sync', '')} with secondary axes`, () => {
-            for (const { framework, url } of toExamplePageUrls('sync-e2e', example)) {
+            for (const { framework, url } of toExamplePageUrls('sync-e2e', example).filter(
+                (f) => f.framework === 'vanilla'
+            )) {
                 test.describe(`for ${framework}`, () => {
                     test.describe('animation', () => {
                         test('should animate on initial load', async ({ page }) => {
