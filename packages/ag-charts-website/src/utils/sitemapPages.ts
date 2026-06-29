@@ -37,6 +37,8 @@ const getIgnoredPages = () => {
         addTrailingSlash(urlWithBaseUrl('/archive')),
         // Redirects
         addTrailingSlash(urlWithBaseUrl(`/${FRAMEWORK_REDIRECT_PATH}`)),
+        // Release note stubs — minimal content, crawl waste
+        addTrailingSlash(urlWithBaseUrl('/changelog/releases')),
     ];
 };
 
