@@ -3,12 +3,9 @@ import type {
     DomainWithMetadata,
     DynamicContext,
     LabelPlacement,
-    MeasuredLabel,
     NormalisedLineSeriesStylerResult,
     NormalisedSeriesMarkerStyle,
-    NormalisedTextOrSegments,
-    PlacedLabel,
-    PointLabelDatum,
+    Point,
     RequireOptional,
     Writeable,
 } from 'ag-charts-core';
@@ -18,9 +15,7 @@ import {
     DebugMetrics,
     cachedTextMeasurer,
     extent,
-    isArray,
     isDefined,
-    measureTextSegments,
     mergeDefaults,
     toNumber,
 } from 'ag-charts-core';
@@ -42,7 +37,6 @@ import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
-import type { Text } from '../../../scene/shape/text';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';
@@ -60,7 +54,6 @@ import {
     valueProperty,
 } from '../../data/processors';
 import { expandLabelPadding } from '../../label';
-import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -78,12 +71,8 @@ import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { toHighlightString, toSelectionString } from '../seriesProperties';
 import { HighlightState, SelectionState } from '../seriesTypes';
 import { datumStylerProperties } from '../util';
-import {
-    CartesianSeries,
-    DEFAULT_CARTESIAN_DIRECTION_KEYS,
-    DEFAULT_CARTESIAN_DIRECTION_NAMES,
-} from './cartesianSeries';
-import type { CartesianAnimationDataOf, CartesianSeriesTypes } from './cartesianSeriesTypes';
+import { DEFAULT_CARTESIAN_DIRECTION_KEYS, DEFAULT_CARTESIAN_DIRECTION_NAMES } from './cartesianSeries';
+import type { CartesianAnimationDataOf } from './cartesianSeriesTypes';
 import {
     type LineSeriesDataAggregationFilter,
     aggregateLineDataFromDataModel,
@@ -112,18 +101,20 @@ import {
     resetMarkerSelectionsDirect,
 } from './markerUtil';
 import { buildResetPathFn, pathSwipeInAnimation, updateClipPath } from './pathUtil';
+import { PlacedLabelCartesianSeries, type PlacedLabelSeriesTypes } from './placedLabelCartesianSeries';
 import { calculateSegments } from './util';
 
 /**
  * Consolidated type interface for LineSeries.
  * Defines all type parameters in one place for the series.
  */
-interface LineSeriesTypes extends CartesianSeriesTypes {
+interface LineSeriesTypes extends PlacedLabelSeriesTypes {
     readonly node: Marker<LineNodeDatum>;
     readonly options: AgLineSeriesOptions;
     readonly properties: LineSeriesProperties;
     readonly datum: LineNodeDatum;
     readonly label: LineNodeDatum;
+    readonly labelParams: AgLineSeriesLabelFormatterParams;
     readonly context: LineSeriesNodeDataContext;
     readonly stackContext: never;
     readonly createNodeDataContext: LineSeriesDatumContext;
@@ -170,7 +161,7 @@ type LineStylerApply = MarkerStyleApply<
 const MARKERLESS_LABEL_GAP = 2;
 const LINE_LABEL_PLACEMENTS: readonly LabelPlacement[] = ['top', 'bottom'];
 
-export class LineSeries extends CartesianSeries<LineSeriesTypes> {
+export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     static override readonly className = 'LineSeries';
     static readonly type = 'line' as const;
 
@@ -178,7 +169,6 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
 
     private readonly aggregationManager = new AggregationManager<LineSeriesDataAggregationFilter>();
     private hideWithSize0 = false;
-    private placedLabelData: PlacedLabel<LineNodeDatum>[] = [];
 
     override get pickModeAxis() {
         return this.properties.sparklineMode ? 'main' : 'main-category';
@@ -959,104 +949,16 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         }
     }
 
-    private measureLabel(ctx: LineSeriesDatumContext, labelText: NormalisedTextOrSegments | undefined): MeasuredLabel {
-        if (labelText == null) {
-            return { text: '', width: 0, height: 0 };
-        }
-        let { width, height } = isArray(labelText)
-            ? measureTextSegments(labelText, this.properties.label)
-            : ctx.labelTextMeasurer.measureLines(String(labelText));
-        width += ctx.labelPadding.left + ctx.labelPadding.right;
-        height += ctx.labelPadding.top + ctx.labelPadding.bottom;
-        return { text: labelText, width, height };
+    protected override get labelProperty() {
+        return this.properties.label;
     }
 
-    override getLabelData(): (LineNodeDatum & PointLabelDatum)[] {
-        if (!this.isLabelEnabled()) return [];
-        return this.contextNodeData?.labelData ?? [];
+    protected override writeLabelPoint(datum: LineNodeDatum, x: number, y: number): LineNodeDatum {
+        return { ...datum, point: { ...datum.point, x, y } };
     }
 
-    protected override getHighlightLabelData(
-        _labelData: LineNodeDatum[],
-        highlightedItem: LineNodeDatum
-    ): LineNodeDatum[] | undefined {
-        // Source highlight labels from placed positions, not the original vertices, so hover-driven
-        // highlight updates match placement (and don't resurface labels collision dropped).
-        const items = this.placedLabelData
-            .filter((label) => label.datum.datumIndex === highlightedItem.datumIndex)
-            .map((label) => ({ ...label.datum, point: { ...label.datum.point, x: label.x, y: label.y } }));
-        return items.length === 0 ? undefined : items;
-    }
-
-    public override updatePlacedLabelData(labelData: PlacedLabel<LineNodeDatum>[]) {
-        this.placedLabelData = labelData;
-        this.labelSelection.update(
-            labelData.map((v) => ({ ...v.datum, point: { ...v.datum.point, x: v.x, y: v.y } })),
-            (text) => {
-                text.pointerEvents = PointerEvents.None;
-            }
-        );
-        this.updateLabelNodes({ labelSelection: this.labelSelection });
-        this.updateHighlightLabelSelection();
-    }
-
-    private updateHighlightLabelSelection() {
-        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const highlightItem =
-            this.isSeriesHighlighted(highlightedDatum) && highlightedDatum?.datum ? highlightedDatum : undefined;
-
-        const highlightLabelData = highlightItem == null ? [] : (this.getHighlightLabelData([], highlightItem) ?? []);
-
-        this.highlightLabelSelection =
-            this.updateLabelSelection({
-                labelData: highlightLabelData,
-                labelSelection: this.highlightLabelSelection,
-            }) ?? this.highlightLabelSelection;
-
-        this.highlightLabelGroup.visible = highlightLabelData.length > 0;
-        this.highlightLabelGroup.batchedUpdate(() => {
-            this.updateLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
-        });
-    }
-
-    protected override updateLabelSelection(opts: {
-        labelData: LineNodeDatum[];
-        labelSelection: Selection<LineNodeDatum, Text<LineNodeDatum>>;
-    }) {
-        return opts.labelSelection.update(opts.labelData, (text) => {
-            text.pointerEvents = PointerEvents.None;
-        });
-    }
-
-    protected updateLabelNodes(opts: {
-        labelSelection: Selection<LineNodeDatum, Text<LineNodeDatum>>;
-        isHighlight?: boolean;
-    }) {
-        const { isHighlight = false } = opts;
-        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const params: AgLineSeriesLabelFormatterParams = this.makeLabelFormatterParams();
-        const labelPadding = expandLabelPadding(this.properties.label);
-
-        opts.labelSelection.each((text, datum) => {
-            const style = getLabelStyles(this, datum, params, this.properties.label, isHighlight, activeHighlight);
-            const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
-            if (enabled && datum?.labelText) {
-                text.fontStyle = fontStyle;
-                text.fontWeight = fontWeight;
-                text.fontSize = fontSize;
-                text.fontFamily = fontFamily;
-                text.textBaseline = 'top';
-                text.text = datum.label.text;
-                text.x = datum.point.x + labelPadding.left;
-                text.y = datum.point.y + labelPadding.top;
-                text.fill = color;
-                text.visible = true;
-                text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
-                text.setBoxing(style);
-            } else {
-                text.visible = false;
-            }
-        });
+    protected override readLabelPoint(datum: LineNodeDatum): Point {
+        return datum.point;
     }
 
     makeStylerParams(
@@ -1121,7 +1023,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         } satisfies CallbackParamRules<AgLineSeriesMarkerItemStylerParams<unknown, unknown>>;
     }
 
-    private makeLabelFormatterParams(): AgLineSeriesLabelFormatterParams {
+    protected override makeLabelFormatterParams(): AgLineSeriesLabelFormatterParams {
         const { xKey, xName, yKey, yName, legendItemName } = this.properties;
         return { xKey, xName, yKey, yName, legendItemName } satisfies RequireOptional<AgLineSeriesLabelFormatterParams>;
     }

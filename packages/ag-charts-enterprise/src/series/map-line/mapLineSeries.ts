@@ -13,6 +13,7 @@ import {
     type ITextMeasurer,
     Logger,
     type Point,
+    applyLabelAvoidance,
     cachedTextMeasurer,
     findDiscreteColorBinLabel,
     formatValue,
@@ -657,10 +658,7 @@ export class MapLineSeries
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
         const labelData = this.contextNodeData?.labelData ?? [];
-        const { avoid } = this.properties.label.collisionAvoidance;
-        for (const datum of labelData) {
-            (datum as { avoid?: boolean }).avoid = avoid;
-        }
+        applyLabelAvoidance(labelData, this.properties.label.collisionAvoidance.avoid);
         return labelData;
     }
 

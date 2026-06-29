@@ -65,6 +65,16 @@ export interface CollideWith {
     readonly seriesItem?: CollideWithCategory;
 }
 
+/**
+ * Stamp the `avoid` flag onto label data in place. Series that opt their labels into collision
+ * resolution via theme do so per-render here, rather than baking it into each datum at build time.
+ */
+export function applyLabelAvoidance(labelData: readonly object[], avoid: boolean) {
+    for (const datum of labelData) {
+        (datum as { avoid?: boolean }).avoid = avoid;
+    }
+}
+
 export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Readonly<Point> {
     readonly index: number;
     readonly datum: PLD;

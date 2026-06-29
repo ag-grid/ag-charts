@@ -1,8 +1,5 @@
 import type {
-    CollideWith,
     InternalAgColorType,
-    LabelPlacement,
-    MeasuredLabel,
     NormalisedSeriesMarkerStyle,
     NormalisedTextOrSegments,
     Point,
@@ -25,6 +22,7 @@ import {
     prepareLinePathPropertyAnimation,
     prepareLinePathStrokeAnimationFns,
 } from './lineUtil';
+import type { MutablePlacedLabelFields } from './placedLabelCartesianSeries';
 
 export type AreaFillPathDatum = {
     readonly spans: LinePathSpan[];
@@ -51,19 +49,10 @@ export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
     style?: NormalisedSeriesMarkerStyle;
 }
 
-export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
+export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum, MutablePlacedLabelFields {
     readonly itemId?: never;
     readonly labelText: NormalisedTextOrSegments;
-    // Placed-label fields (PointLabelDatum shape).
     readonly point: Readonly<SizedPoint>;
-    label: MeasuredLabel;
-    anchor: Point | undefined;
-    placement: LabelPlacement | undefined;
-    placements?: readonly LabelPlacement[];
-    gap?: number;
-    avoid?: boolean;
-    minSpacing?: number;
-    collideWith?: CollideWith;
 }
 
 export interface AreaSeriesNodeDataContext extends CartesianSeriesNodeDataContext<

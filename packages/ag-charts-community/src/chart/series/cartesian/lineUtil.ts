@@ -1,8 +1,5 @@
 import type {
-    CollideWith,
     InterpolationProperties,
-    LabelPlacement,
-    MeasuredLabel,
     NormalisedSeriesMarkerStyle,
     NormalisedTextOrSegments,
     Point,
@@ -32,6 +29,7 @@ import type {
 } from './cartesianSeriesTypes';
 import { interpolatedSpanRange, plotInterpolatedSpans, plotSpan } from './lineInterpolationPlotting';
 import { CollapseMode, type SpanInterpolation, pairUpSpans } from './lineInterpolationUtil';
+import type { MutablePlacedLabelFields, PlacedLabelContext } from './placedLabelCartesianSeries';
 
 export interface LinePathSpan {
     span: Span;
@@ -58,21 +56,12 @@ export interface LineSpanPointDatum {
     yDatum: any;
 }
 
-export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
+export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum, MutablePlacedLabelFields {
     readonly itemId?: never;
     readonly xValue: NonNullable<CartesianSeriesNodeDatum['xValue']>;
     readonly yValue: NonNullable<CartesianSeriesNodeDatum['yValue']>;
     readonly point: NonNullable<CartesianSeriesNodeDatum['point']>;
     readonly labelText?: NormalisedTextOrSegments;
-    // Placed-label fields (PointLabelDatum shape) — populated when labels are enabled.
-    label: MeasuredLabel;
-    anchor: Point | undefined;
-    placement: LabelPlacement | undefined;
-    placements?: readonly LabelPlacement[];
-    gap?: number;
-    avoid?: boolean;
-    minSpacing?: number;
-    collideWith?: CollideWith;
     // WARNING! This selected-state is related to cross-filtering which is not an officially documented or supported
     // feature. It has nothing to do with the official data selection API in the options contract. Do not use, or use
     // with extreme caution.
@@ -95,7 +84,7 @@ export interface LineSeriesNodeDataContext extends CartesianSeriesNodeDataContex
  *
  * Extends CartesianMarkerLikeContext to satisfy the template method pattern.
  */
-export interface LineSeriesDatumContext extends CartesianMarkerLikeContext<LineNodeDatum> {
+export interface LineSeriesDatumContext extends CartesianMarkerLikeContext<LineNodeDatum>, PlacedLabelContext {
     // Override yKey to be required (base interface has it optional)
     readonly yKey: string;
 
@@ -108,12 +97,6 @@ export interface LineSeriesDatumContext extends CartesianMarkerLikeContext<LineN
     readonly size: number;
     readonly yDomain: any[];
     readonly labelsEnabled: boolean;
-    readonly labelPadding: { left: number; right: number; top: number; bottom: number };
-    readonly labelTextMeasurer: { measureLines: (text: string) => { width: number; height: number } };
-    readonly labelAvoid: boolean;
-    readonly labelPlacements: readonly LabelPlacement[];
-    readonly labelMinSpacing: number | undefined;
-    readonly labelCollideWith: CollideWith | undefined;
     readonly dataAggregationFilter: { indices: Uint32Array } | undefined;
     readonly range: number;
 

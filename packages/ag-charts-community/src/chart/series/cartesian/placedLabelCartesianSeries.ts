@@ -1,0 +1,160 @@
+import type {
+    CollideWith,
+    LabelPlacement,
+    MeasuredLabel,
+    NormalisedTextOrSegments,
+    PlacedLabel,
+    Point,
+    PointLabelDatum,
+    Writeable,
+} from 'ag-charts-core';
+import { isArray, measureTextSegments } from 'ag-charts-core';
+
+import { PointerEvents } from '../../../scene/node';
+import type { Text } from '../../../scene/shape/text';
+import type { Label } from '../../label';
+import { expandLabelPadding } from '../../label';
+import { getLabelStyles } from '../../labelUtil';
+import type { SeriesNodeDatum } from '../seriesTypes';
+import { CartesianSeries } from './cartesianSeries';
+import type { CartesianSeriesTypes, DatumOf, LabelOf, LabelSelectionOf } from './cartesianSeriesTypes';
+
+/** The mutable subset of {@link PointLabelDatum} a placed-label series populates on each datum. */
+export type MutablePlacedLabelFields = Writeable<Omit<PointLabelDatum, 'point'>>;
+
+/** Pre-computed label config a placed-label series caches on its node-data context. */
+export interface PlacedLabelContext {
+    readonly labelPadding: { left: number; right: number; top: number; bottom: number };
+    readonly labelTextMeasurer: { measureLines: (text: string) => { width: number; height: number } };
+    readonly labelAvoid: boolean;
+    readonly labelPlacements: readonly LabelPlacement[];
+    readonly labelMinSpacing: number | undefined;
+    readonly labelCollideWith: CollideWith | undefined;
+}
+
+/**
+ * Type parameters for a series that renders collision-placed labels. Narrows the base label datum to
+ * a {@link PointLabelDatum} (carrying the placed-label fields) and adds the label formatter-params type.
+ */
+export interface PlacedLabelSeriesTypes extends CartesianSeriesTypes {
+    readonly labelParams: object;
+    readonly label: SeriesNodeDatum & PointLabelDatum & { readonly labelText?: NormalisedTextOrSegments };
+}
+
+function setLabelPointerEvents(text: Text) {
+    text.pointerEvents = PointerEvents.None;
+}
+
+/**
+ * Shared base for cartesian series whose labels are positioned by the collision-aware placement engine
+ * (line and area). Owns all label measurement, selection and styling; subclasses supply only how a
+ * placed `(x, y)` maps onto their datum and the per-series label formatter params.
+ */
+export abstract class PlacedLabelCartesianSeries<
+    TTypes extends PlacedLabelSeriesTypes,
+> extends CartesianSeries<TTypes> {
+    protected placedLabelData: PlacedLabel<LabelOf<TTypes>>[] = [];
+
+    /** Returns a copy of `datum` with the placed `(x, y)` written onto its label anchor. */
+    protected abstract writeLabelPoint(datum: LabelOf<TTypes>, x: number, y: number): LabelOf<TTypes>;
+    /** Reads the label anchor point from a datum. */
+    protected abstract readLabelPoint(datum: LabelOf<TTypes>): Point;
+    protected abstract makeLabelFormatterParams(): TTypes['labelParams'];
+    /** The series' typed label property; bridges `properties.label` to the shared base generic. */
+    protected abstract get labelProperty(): Label<TTypes['labelParams']>;
+
+    protected measureLabel(ctx: PlacedLabelContext, labelText: NormalisedTextOrSegments | undefined): MeasuredLabel {
+        if (labelText == null) {
+            return { text: '', width: 0, height: 0 };
+        }
+        const label = this.labelProperty;
+        let { width, height } = isArray(labelText)
+            ? measureTextSegments(labelText, label)
+            : ctx.labelTextMeasurer.measureLines(String(labelText));
+        width += ctx.labelPadding.left + ctx.labelPadding.right;
+        height += ctx.labelPadding.top + ctx.labelPadding.bottom;
+        return { text: labelText, width, height };
+    }
+
+    override getLabelData(): (LabelOf<TTypes> & PointLabelDatum)[] {
+        if (!this.isLabelEnabled()) return [];
+        return this.contextNodeData?.labelData ?? [];
+    }
+
+    protected override getHighlightLabelData(
+        _labelData: LabelOf<TTypes>[],
+        highlightedItem: DatumOf<TTypes>
+    ): LabelOf<TTypes>[] | undefined {
+        // Source highlight labels from placed positions, not the original vertices, so hover-driven
+        // updates match placement (and don't resurface labels the collision pass dropped).
+        const items = this.placedLabelData
+            .filter((label) => label.datum.datumIndex === highlightedItem.datumIndex)
+            .map((label) => this.writeLabelPoint(label.datum, label.x, label.y));
+        return items.length === 0 ? undefined : items;
+    }
+
+    override updatePlacedLabelData(labelData: PlacedLabel<LabelOf<TTypes>>[]) {
+        this.placedLabelData = labelData;
+        this.labelSelection.update(
+            labelData.map((label) => this.writeLabelPoint(label.datum, label.x, label.y)),
+            setLabelPointerEvents
+        );
+        this.updateLabelNodes({ labelSelection: this.labelSelection });
+        this.updateHighlightLabelSelection();
+    }
+
+    protected updateHighlightLabelSelection() {
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightItem =
+            this.isSeriesHighlighted(highlightedDatum) && highlightedDatum?.datum ? highlightedDatum : undefined;
+        const highlightLabelData = highlightItem == null ? [] : (this.getHighlightLabelData([], highlightItem) ?? []);
+
+        this.highlightLabelSelection =
+            this.updateLabelSelection({
+                labelData: highlightLabelData,
+                labelSelection: this.highlightLabelSelection,
+            }) ?? this.highlightLabelSelection;
+
+        this.highlightLabelGroup.visible = highlightLabelData.length > 0;
+        this.highlightLabelGroup.batchedUpdate(() => {
+            this.updateLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
+        });
+    }
+
+    protected override updateLabelSelection(opts: {
+        labelData: LabelOf<TTypes>[];
+        labelSelection: LabelSelectionOf<TTypes>;
+    }) {
+        return opts.labelSelection.update(opts.labelData, setLabelPointerEvents);
+    }
+
+    protected updateLabelNodes(opts: { labelSelection: LabelSelectionOf<TTypes>; isHighlight?: boolean }) {
+        const isHighlight = opts.isHighlight ?? false;
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const params = this.makeLabelFormatterParams();
+        const label = this.labelProperty;
+        const labelPadding = expandLabelPadding(label);
+
+        opts.labelSelection.each((text, datum) => {
+            const style = getLabelStyles(this, datum, params, label, isHighlight, activeHighlight);
+            const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
+            if (enabled && datum?.labelText) {
+                const point = this.readLabelPoint(datum);
+                text.fontStyle = fontStyle;
+                text.fontWeight = fontWeight;
+                text.fontSize = fontSize;
+                text.fontFamily = fontFamily;
+                text.textBaseline = 'top';
+                text.text = datum.label.text;
+                text.x = point.x + labelPadding.left;
+                text.y = point.y + labelPadding.top;
+                text.fill = color;
+                text.visible = true;
+                text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
+                text.setBoxing(style);
+            } else {
+                text.visible = false;
+            }
+        });
+    }
+}
