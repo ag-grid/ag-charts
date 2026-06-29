@@ -41,17 +41,23 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
               with:
-                  # Use workflow_run.head_sha (the commit CI actually deployed) so that the
-                  # data.json read by page-verification.spec.ts matches what is on staging.
-                  # Using github.sha (branch HEAD) caused a race: if a second commit landed
-                  # before this workflow started, the test would reference examples not yet
-                  # deployed. The OSSF/Scorecard untrusted-input concern does not apply here
-                  # because the if-condition above already guards against fork PRs
-                  # (head_repository.full_name == github.repository). The || github.sha
-                  # fallback covers the workflow_dispatch path where head_sha is absent.
-                  ref: ${{ github.event.workflow_run.head_sha || github.sha }}
-                  fetch-depth: 1
+                  # Use github.sha (the branch HEAD) rather than workflow_run.head_sha to
+                  # avoid the untrusted-input pattern flagged by the OpenSSF Scorecard.
+                  ref: ${{ github.sha }}
+                  fetch-depth: 0
                   submodules: true
+
+            - name: Align gallery data to deployed commit
+              # page-verification.spec.ts reads data.json from the local checkout to
+              # discover which gallery examples to test. When two commits land in quick
+              # succession, github.sha (HEAD) may be ahead of what was actually deployed,
+              # causing tests to reference examples that don't exist on staging yet.
+              if: github.event_name != 'workflow_dispatch' && github.event.workflow_run.head_sha != ''
+              env:
+                  DEPLOYED_SHA: ${{ github.event.workflow_run.head_sha }}
+              run: |
+                  git show "${DEPLOYED_SHA}:packages/ag-charts-website/src/content/gallery/data.json" \
+                    > packages/ag-charts-website/src/content/gallery/data.json
 
             - name: Setup Node
               uses: actions/setup-node@v4
