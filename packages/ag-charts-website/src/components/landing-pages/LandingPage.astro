@@ -136,15 +136,15 @@ const pageStyles = isFrameworkLandingPage ? frameworkStyles : styles;
 
                             {/* Install text slot */}
                             <InstallText slot="hero-install" client:load packageName={content.packageName} />
-                            {section.primaryCta?.useTrialButton && (
-                                <TrialButton
-                                    slot="hero-trial-button"
-                                    client:load
-                                    className={`button-secondary ${styles.heroSectionCta1} plausible-event-name=${content.analyticsPrefix}-trial-cta`}
-                                >
-                                    {section.primaryCta.text}
-                                </TrialButton>
-                            )}
+
+                            <TrialButton
+                                slot="hero-trial-button"
+                                client:load
+                                className={`button-secondary ${styles.heroSectionCta1} plausible-event-name=${content.analyticsPrefix}-trial-cta`}
+                            >
+                                Start Free Trial
+                            </TrialButton>
+
                             {/* Customer logos slot */}
                             <CustomerLogos slot="hero-logos" client:load />
                         </HeroSection>
