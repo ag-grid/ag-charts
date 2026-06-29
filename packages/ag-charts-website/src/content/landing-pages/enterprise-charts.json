@@ -4,7 +4,7 @@
         "description": "Unlock AG Charts' full potential with Enterprise features including Financial Charts, Maps, Gauges, Zoom, Navigator, Annotations, and more. Start your free trial today."
     },
     "productName": "AG Charts",
-    "framework": "reactFunctionalTs",
+    "internalFramework": "reactFunctionalTs",
     "packageName": "ag-charts-enterprise",
     "docsPath": "react",
     "analyticsPrefix": "enterprise-charts",

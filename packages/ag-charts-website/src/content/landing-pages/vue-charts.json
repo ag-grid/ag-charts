@@ -4,7 +4,7 @@
         "description": "Build interactive, high-performance Vue charts with AG Charts. 30+ chart types, financial charts, maps, and more. Free to use with enterprise features available."
     },
     "productName": "AG Charts",
-    "framework": "vue3",
+    "internalFramework": "vue3",
     "packageName": "ag-charts-vue3",
     "docsPath": "vue",
     "analyticsPrefix": "vue-charts",
