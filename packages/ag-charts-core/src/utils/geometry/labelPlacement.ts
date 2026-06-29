@@ -280,19 +280,12 @@ function anyLabelAvoids(data: Map<string, PointLabelDatum[]>): boolean {
     return false;
 }
 
-/**
- * Resets the shared obstacle index and populates it with external obstacles and marker circles.
- * No-op when no label opts into collision resolution — every label then takes its first placement
- * unconditionally and never queries the index, so the index is never read. Skipping the reset also
- * avoids walking a per-pixel grid every frame for charts that have no avoiding labels.
- */
+/** Resets the shared obstacle index and populates it with external obstacles and marker circles. */
 function buildObstacleIndex(
     data: Map<string, PointLabelDatum[]>,
     obstacles: readonly LabelObstacle[],
     bounds: BoxBounds
 ) {
-    if (!anyLabelAvoids(data)) return;
-
     obstacleIndex.reset(bounds, obstacleGridCellSize(data, obstacles));
     for (const o of obstacles) {
         obstacleIndex.insert(o.box, o);
@@ -316,13 +309,18 @@ export function placeLabels(
 ) {
     const result: Map<string, PlacedLabel[]> = new Map();
 
-    const sortedDataClone = new Map(
-        Array.from(data.entries(), ([k, d]) => [k, d.toSorted((a, b) => b.point.size - a.point.size)])
-    );
+    // Sorting by size only establishes collision precedence; when no label opts into avoidance every
+    // label takes its first placement regardless of order, so skip the per-series clone+sort entirely.
+    const avoid = anyLabelAvoids(data);
+    const placementData = avoid
+        ? new Map(Array.from(data.entries(), ([k, d]) => [k, d.toSorted((a, b) => b.point.size - a.point.size)]))
+        : data;
 
-    buildObstacleIndex(sortedDataClone, obstacles, bounds);
+    if (avoid) {
+        buildObstacleIndex(placementData, obstacles, bounds);
+    }
 
-    for (const [seriesId, datums] of sortedDataClone.entries()) {
+    for (const [seriesId, datums] of placementData.entries()) {
         const labels: PlacedLabel[] = [];
         if (!datums[0]?.label) continue;
         for (let index = 0, ln = datums.length; index < ln; index++) {
