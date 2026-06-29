@@ -4,7 +4,7 @@ import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrls } f
 test.describe('css variables', () => {
     setupIntrinsicAssertions(test);
 
-    for (const { framework, url } of toExamplePageUrls('themes-test', 'css-variables')) {
+    for (const { framework, url } of toExamplePageUrls('themes-e2e', 'css-variables')) {
         test.describe(`for ${framework}`, () => {
             test('change value', async ({ page }) => {
                 await gotoExample(page, url);
