@@ -3,35 +3,6 @@ title: 'Range Bar Series Test'
 enterprise: true
 ---
 
-## Styler Tests
-
-### Styler
-
-What to test:
-
-- Confirm each `yLowKey` series picks up its styler fill, stroke, dash and corner-radius settings.
-- Confirm the styler return value overrides the series defaults.
-
-{% chartExampleRunner title="Styler" name="styler" type="generated" /%}
-
-### Styler & Item Styler
-
-What to test:
-
-- Confirm series styling applies to all bars and the item styler overrides only February's bars.
-- Confirm item-styler overrides compose with the base styler (unset fields fall through).
-
-{% chartExampleRunner title="Styler & Item Styler" name="styler-and-itemstyler" type="generated" /%}
-
-### Styler Highlight State
-
-What to test:
-
-- Hover a bar and confirm `highlighted-item` and `unhighlighted-item` styles apply across that series.
-- Hover the legend entry and confirm `highlighted-series` and `unhighlighted-series` styles apply across bars.
-
-{% chartExampleRunner title="Styler Highlight State" name="styler-highlight-state" type="generated" /%}
-
 ## Range Bar Animation
 
 ### Update Data

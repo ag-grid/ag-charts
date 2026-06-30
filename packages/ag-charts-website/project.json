@@ -249,7 +249,8 @@
       "inputs": [
         "{projectRoot}/scripts/validate-modules.mjs",
         "{projectRoot}/tsconfig.examples.json",
-        "{projectRoot}/src/**/_examples/**/*.ts",
+        "{workspaceRoot}/packages/ag-charts-website/src/content/docs/*/_examples/*/*.ts",
+        "{workspaceRoot}/packages/ag-charts-website/src/content/gallery/_examples/*/*.ts",
         "{workspaceRoot}/libraries/ag-charts-eslint-rules/rules/validate-module-registration.mjs",
         "{workspaceRoot}/libraries/ag-charts-eslint-rules/rules/module-mappings.mjs",
         "tsDeclarations"

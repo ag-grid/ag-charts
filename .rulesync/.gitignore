@@ -29,4 +29,5 @@ mcp.json
 !/rules/numeric-values.md
 !/rules/series.md
 !/rules/test-harness-contracts.md
+!/rules/website-e2e-testing.md
 !/rules/server-side-rendering.md
