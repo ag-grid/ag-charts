@@ -66,3 +66,9 @@ test.skip('mousemove over node1', async ({ page }) => {
 ## Structure: table-driven, one describe per example
 
 Use a single example table and a per-example `test.describe(name, () => { test.beforeEach(nav); ... })`, not repeated `for`-loops that each re-navigate. One navigation site, related assertions grouped under the example they exercise.
+
+## Regenerating screenshot baselines — let CI do it
+
+`toHaveScreenshot` baselines are platform-specific (`*-chromium-linux.png`) and cannot be produced reliably on macOS, so never run Playwright with `-u` / `--update-snapshots`. CI regenerates them for you: when a snapshot job detects image diffs it commits the changed PNGs to a branch named `gha/snapshots-<your-branch>`, then fails the run so it stays red until a human reviews them. A bot posts a PR comment linking a compare view ("Merge snapshot changes into this PR"). Review that diff, confirm the changes are intended, and merge the snapshot branch's commit into your PR branch.
+
+This is a repo-wide CI convention — it covers every image snapshot, including the `ag-charts-*-package-tests` e2e suites, not just website specs.
