@@ -31,30 +31,53 @@ const STYLER_EXAMPLES = [
     'range-bar-styler-highlight-state',
 ];
 
-// The highlight-state examples branch the styler on `highlightState`. Driving an item highlight and a
-// series highlight forces every branch to run; the stylers log their input so coverage is asserted.
-const HIGHLIGHT_STATE_EXAMPLES = STYLER_EXAMPLES.filter((name) => name.endsWith('-styler-highlight-state'));
+type Vec2 = { x: number; y: number };
 
-const REQUIRED_HIGHLIGHT_STATES = [
-    'none',
-    'highlighted-item',
-    'unhighlighted-item',
-    'highlighted-series',
-    'unhighlighted-series',
+// The highlight-state examples branch both the series `styler` and an `itemStyler` on `highlightState`.
+// Each example exposes its invocations via `window.agE2E.popStylerCalls()`, so we drive an item highlight
+// then a series highlight and assert per phase that both callback surfaces ran for every branch.
+//
+// `node1` is a PLACEHOLDER for pointer-driven (mouse/touch) hover coverage. Hover coordinates are
+// chart-type-specific and cannot be inferred reliably, so they must be measured by hand: open the
+// example, hover a datum that triggers the styler, read the canvas-relative coordinates, and replace
+// the `NaN` values below. The `mousemove over node1` test is skipped until then.
+interface HighlightStateExample {
+    name: string;
+    node1: Vec2;
+}
+const HIGHLIGHT_STATE_EXAMPLES: HighlightStateExample[] = [
+    { name: 'box-plot-styler-highlight-state', node1: { x: NaN, y: NaN } },
+    { name: 'nightingale-styler-highlight-state', node1: { x: NaN, y: NaN } },
+    { name: 'radar-area-styler-highlight-state', node1: { x: NaN, y: NaN } },
+    { name: 'radar-line-styler-highlight-state', node1: { x: NaN, y: NaN } },
+    { name: 'radial-bar-styler-highlight-state', node1: { x: NaN, y: NaN } },
+    { name: 'radial-column-styler-highlight-state', node1: { x: NaN, y: NaN } },
+    { name: 'range-area-styler-highlight-state', node1: { x: NaN, y: NaN } },
+    { name: 'range-bar-styler-highlight-state', node1: { x: NaN, y: NaN } },
 ];
 
-function collectStylerStates(page: Page): Set<string> {
-    const states = new Set<string>();
-    page.on('console', (msg) => {
-        const text = msg.text();
-        const marker = '[styler]';
-        const index = text.indexOf(marker);
-        if (index !== -1) {
-            const state = text.slice(index + marker.length).trim();
-            if (state.length > 0) states.add(state);
+type StylerKind = 'styler' | 'itemStyler';
+type StylerCall = { kind: StylerKind; seriesId: string; highlightState: string };
+
+const ITEM_STATES = ['highlighted-item', 'unhighlighted-item'];
+const SERIES_STATES = ['highlighted-series', 'unhighlighted-series'];
+
+async function popStylerCalls(page: Page): Promise<StylerCall[]> {
+    await waitForAllChartUpdates(page);
+    return page.evaluate(() => {
+        const hook = (window as { agE2E?: { popStylerCalls?: () => StylerCall[] } }).agE2E;
+        if (!hook || typeof hook.popStylerCalls !== 'function') {
+            throw new Error('window.agE2E.popStylerCalls is not defined');
         }
+        return hook.popStylerCalls();
     });
-    return states;
+}
+
+function expectStatesForKind(calls: StylerCall[], kind: StylerKind, requiredStates: string[], example: string): void {
+    const seen = new Set(calls.filter((call) => call.kind === kind).map((call) => call.highlightState));
+    for (const state of requiredStates) {
+        expect(seen.has(state), `${example}: ${kind} should be invoked with highlightState '${state}'`).toBe(true);
+    }
 }
 
 async function highlightItem(page: Page): Promise<void> {
@@ -86,33 +109,52 @@ test.describe('stylers', () => {
         });
     }
 
-    for (const example of HIGHLIGHT_STATE_EXAMPLES) {
-        test(`exercises every highlightState branch for ${example}`, async ({ page }) => {
-            const states = collectStylerStates(page);
-            const { url } = toExamplePageUrl('stylers-e2e', example, 'vanilla');
-            await gotoExample(page, url);
-            await highlightItem(page);
-            await highlightSeries(page);
+    for (const { name, node1 } of HIGHLIGHT_STATE_EXAMPLES) {
+        test.describe(name, () => {
+            test.beforeEach(async ({ page }) => {
+                await gotoExample(page, toExamplePageUrl('stylers-e2e', name, 'vanilla').url);
+            });
 
-            for (const state of REQUIRED_HIGHLIGHT_STATES) {
-                expect(states.has(state), `${example}: styler should be invoked with highlightState '${state}'`).toBe(
-                    true
-                );
-            }
-            expect(states.has('undefined'), `${example}: styler should never receive an undefined highlightState`).toBe(
-                false
-            );
-        });
+            test('exercises every highlightState branch', async ({ page }) => {
+                // The initial render invokes both surfaces with `none`; assert that, then clear so each
+                // interaction phase is asserted against only its own invocations (a broken later phase
+                // cannot be masked by an earlier one).
+                const initPhase = await popStylerCalls(page);
+                expectStatesForKind(initPhase, 'styler', ['none'], name);
+                expectStatesForKind(initPhase, 'itemStyler', ['none'], name);
 
-        test(`highlight visuals for ${example}`, async ({ page }) => {
-            const { url } = toExamplePageUrl('stylers-e2e', example, 'vanilla');
-            await gotoExample(page, url);
+                await highlightItem(page);
+                const itemPhase = await popStylerCalls(page);
+                expectStatesForKind(itemPhase, 'styler', ITEM_STATES, name);
+                expectStatesForKind(itemPhase, 'itemStyler', ITEM_STATES, name);
 
-            await highlightItem(page);
-            await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`${example}-item.png`);
+                await highlightSeries(page);
+                const seriesPhase = await popStylerCalls(page);
+                expectStatesForKind(seriesPhase, 'styler', SERIES_STATES, name);
+                expectStatesForKind(seriesPhase, 'itemStyler', SERIES_STATES, name);
 
-            await highlightSeries(page);
-            await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`${example}-series.png`);
+                for (const call of [...initPhase, ...itemPhase, ...seriesPhase]) {
+                    expect(
+                        call.highlightState,
+                        `${name}: ${call.kind} should never receive an empty highlightState`
+                    ).not.toBe('');
+                }
+            });
+
+            test('highlight visuals', async ({ page }) => {
+                await highlightItem(page);
+                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`${name}-item.png`);
+
+                await highlightSeries(page);
+                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`${name}-series.png`);
+            });
+
+            // Skipped until `node1` is filled in by hand (see HIGHLIGHT_STATE_EXAMPLES note above).
+            test.skip('mousemove over node1', async ({ page }) => {
+                await page.mouse.move(node1.x, node1.y);
+                await waitForAllChartUpdates(page);
+                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`${name}-node1.png`);
+            });
         });
     }
 });
