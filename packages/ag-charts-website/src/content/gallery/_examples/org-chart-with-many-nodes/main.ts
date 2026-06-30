@@ -4,16 +4,17 @@ import {
     ContextMenuModule,
     ModuleRegistry,
     OrganizationSeriesModule,
+    ZoomModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([OrganizationSeriesModule, ContextMenuModule]);
+ModuleRegistry.registerModules([OrganizationSeriesModule, ContextMenuModule, ZoomModule]);
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Company Organisation',
+        text: 'Company Reporting Hierarchy',
     },
     data: getData(),
     series: [
@@ -35,6 +36,11 @@ const options: AgChartOptions = {
             },
         },
     ],
+    zoom: {
+        buttons: {
+            visible: 'zoomed',
+        },
+    },
 };
 
 AgCharts.create(options);
