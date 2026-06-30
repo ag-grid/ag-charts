@@ -41,15 +41,16 @@ const STYLER_EXAMPLES = [
 type Vec2 = { x: number; y: number };
 
 // The highlight-state examples branch both the series `styler` and an `itemStyler` on `highlightState`.
-// Each example exposes its invocations via `window.agE2E.popStylerCalls()`, so we drive an item highlight
-// then a series highlight and assert per phase that both callback surfaces ran for every branch.
+// Each example exposes its invocations - tagged with the series id and the datum's category value - via
+// `window.agE2E.popStylerCalls()`. We hover a datum and focus a legend item, then assert the highlight is
+// attributed to exactly one node / one series, for both callback surfaces.
 //
 // `node1` is a canvas-relative coordinate over a datum that triggers the item styler, exercising the
 // pointer-driven (mouse/touch) highlight path that keyboard navigation does not. Coordinates are
 // chart-type-specific and were measured against each rendered example, then converted to page
 // coordinates at runtime via `canvasToPageTransformer`. To re-measure: open the example at the e2e
-// viewport, hover a datum until the styler reports `highlighted-item`, and record `pageCoordinate - 16`
-// (the canvas inset).
+// viewport, hover a datum until the styler reports `highlighted-item`, and record the page coordinate
+// minus the canvas-proxy origin (see the website-e2e-testing rule for the full procedure).
 interface HighlightStateExample {
     name: string;
     node1: Vec2;
@@ -66,10 +67,9 @@ const HIGHLIGHT_STATE_EXAMPLES: HighlightStateExample[] = [
 ];
 
 type StylerKind = 'styler' | 'itemStyler';
-type StylerCall = { kind: StylerKind; seriesId: string; highlightState: string };
+type StylerCall = { kind: StylerKind; seriesId: string; highlightState: string; key: string };
 
-const ITEM_STATES = ['highlighted-item', 'unhighlighted-item'];
-const SERIES_STATES = ['highlighted-series', 'unhighlighted-series'];
+const KINDS: StylerKind[] = ['styler', 'itemStyler'];
 
 async function popStylerCalls(page: Page): Promise<StylerCall[]> {
     await waitForAllChartUpdates(page);
@@ -82,10 +82,30 @@ async function popStylerCalls(page: Page): Promise<StylerCall[]> {
     });
 }
 
-function expectStatesForKind(calls: StylerCall[], kind: StylerKind, requiredStates: string[], example: string): void {
-    const seen = new Set(calls.filter((call) => call.kind === kind).map((call) => call.highlightState));
-    for (const state of requiredStates) {
-        expect(seen.has(state), `${example}: ${kind} should be invoked with highlightState '${state}'`).toBe(true);
+// Distinct datum categories recorded with `state` at any point during the pop. We test which element was
+// *ever* highlighted, not its final frame: one highlight can be re-emitted as the chart settles (some
+// series types overwrite the highlighted node with a trailing unhighlighted frame), so the last-seen
+// state is unreliable while the set of highlighted elements is exact. Keyed by category, not by node:
+// hovering one point on a radar chart highlights that category across every overlapping series at once.
+function keysWithState(calls: StylerCall[], kind: StylerKind, state: string): Set<string> {
+    const keys = new Set<string>();
+    for (const call of calls) {
+        if (call.kind === kind && call.highlightState === state) keys.add(call.key);
+    }
+    return keys;
+}
+
+function seriesWithState(calls: StylerCall[], kind: StylerKind, state: string): Set<string> {
+    const series = new Set<string>();
+    for (const call of calls) {
+        if (call.kind === kind && call.highlightState === state) series.add(call.seriesId);
+    }
+    return series;
+}
+
+function expectNoEmptyState(calls: StylerCall[], label: string): void {
+    for (const call of calls) {
+        expect(call.highlightState, `${label}: ${call.kind} received an empty highlightState`).not.toBe('');
     }
 }
 
@@ -124,29 +144,29 @@ test.describe('stylers', () => {
                 await gotoExample(page, toExamplePageUrl('stylers-e2e', name, 'vanilla').url);
             });
 
-            test('exercises every highlightState branch', async ({ page }) => {
-                // The initial render invokes both surfaces with `none`; assert that, then clear so each
-                // interaction phase is asserted against only its own invocations (a broken later phase
-                // cannot be masked by an earlier one).
+            test('legend focus highlights exactly one series', async ({ page }) => {
+                // The initial render must invoke both surfaces, and only with `none`.
                 const initPhase = await popStylerCalls(page);
-                expectStatesForKind(initPhase, 'styler', ['none'], name);
-                expectStatesForKind(initPhase, 'itemStyler', ['none'], name);
+                expectNoEmptyState(initPhase, name);
+                for (const kind of KINDS) {
+                    const states = new Set(initPhase.filter((call) => call.kind === kind).map((c) => c.highlightState));
+                    expect([...states], `${name}: ${kind} initial render should be only 'none'`).toEqual(['none']);
+                }
 
-                await highlightItem(page);
-                const itemPhase = await popStylerCalls(page);
-                expectStatesForKind(itemPhase, 'styler', ITEM_STATES, name);
-                expectStatesForKind(itemPhase, 'itemStyler', ITEM_STATES, name);
-
-                await highlightSeries(page);
+                // Focusing one legend item highlights exactly that series and no individual item.
+                const legendItems = await page.locator(SELECTORS.legendItems).all();
+                await legendItems[0].focus();
                 const seriesPhase = await popStylerCalls(page);
-                expectStatesForKind(seriesPhase, 'styler', SERIES_STATES, name);
-                expectStatesForKind(seriesPhase, 'itemStyler', SERIES_STATES, name);
-
-                for (const call of [...initPhase, ...itemPhase, ...seriesPhase]) {
+                expectNoEmptyState(seriesPhase, name);
+                for (const kind of KINDS) {
                     expect(
-                        call.highlightState,
-                        `${name}: ${call.kind} should never receive an empty highlightState`
-                    ).not.toBe('');
+                        seriesWithState(seriesPhase, kind, 'highlighted-series').size,
+                        `${name}: ${kind} should highlight exactly one series`
+                    ).toBe(1);
+                    expect(
+                        keysWithState(seriesPhase, kind, 'highlighted-item').size,
+                        `${name}: ${kind} series highlight should not highlight an item`
+                    ).toBe(0);
                 }
             });
 
@@ -158,11 +178,25 @@ test.describe('stylers', () => {
                 await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`${name}-series.png`);
             });
 
-            test('mousemove over node1', async ({ page }) => {
+            test('pointer over node1 highlights exactly one item', async ({ page }) => {
+                await popStylerCalls(page); // discard the initial-render invocations
                 const toPage = await canvasToPageTransformer(page);
                 const { x, y } = toPage(node1.x, node1.y);
                 await page.mouse.move(x, y);
-                await waitForAllChartUpdates(page);
+
+                // The measured coordinate must land on a datum: the itemStyler highlights exactly one item
+                // and no whole series.
+                const hoverPhase = await popStylerCalls(page);
+                expectNoEmptyState(hoverPhase, name);
+                expect(
+                    keysWithState(hoverPhase, 'itemStyler', 'highlighted-item').size,
+                    `${name}: hovering node1 should highlight exactly one item`
+                ).toBe(1);
+                expect(
+                    seriesWithState(hoverPhase, 'itemStyler', 'highlighted-series').size,
+                    `${name}: hovering an item should not highlight a series`
+                ).toBe(0);
+
                 await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`${name}-node1.png`);
             });
         });

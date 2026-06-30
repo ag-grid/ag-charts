@@ -10,10 +10,21 @@ import {
 
 import { getData } from './data';
 
-type StylerCall = { kind: 'styler' | 'itemStyler'; seriesId: string; highlightState: string };
+type StylerCall = { kind: 'styler' | 'itemStyler'; seriesId: string; highlightState: string; key: string };
 const stylerCalls: StylerCall[] = [];
-function recordStyler(kind: StylerCall['kind'], params: { seriesId?: string; highlightState?: string }): void {
-    stylerCalls.push({ kind, seriesId: params.seriesId ?? '', highlightState: params.highlightState ?? '' });
+const CATEGORY_KEY = 'quarter';
+function recordStyler(
+    kind: StylerCall['kind'],
+    params: { seriesId?: string; highlightState?: string; datum?: unknown }
+): void {
+    // node identity is series + category value; the datum shape is example-specific
+    const datum = params.datum as Record<string, unknown> | undefined;
+    stylerCalls.push({
+        kind,
+        seriesId: params.seriesId ?? '',
+        highlightState: params.highlightState ?? '',
+        key: String(datum?.[CATEGORY_KEY] ?? ''),
+    });
 }
 
 // itemStyler tracks the per-datum highlight branch independently of the series styler.
