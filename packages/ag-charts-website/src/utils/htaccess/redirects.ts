@@ -45,8 +45,8 @@ export const SITE_301_REDIRECTS: Redirect[] = [
 
     // Legacy "{fw}-charts/{fw}/<page>" docs scheme → current "{fw}/<page>" (all page slugs verified in content/docs).
     // Require a non-empty page slug ((.+)): an empty slug would target the bare "{fw}/" root, which the
-    // "^/{fw}/?$" rule redirects again — a chain. The empty case instead falls through to the broad
-    // "^/{fw}-charts/.+$" fallback below, reaching quick-start in a single hop.
+    // "^/{fw}/?$" rule redirects again — a chain. An empty slug therefore does not match here and is left
+    // to serve/404 (there is no broad "^/{fw}-charts/.+$" fallback for these frameworks).
     { fromPattern: '^/javascript-charts/javascript/(.+)$', to: '/javascript/$1' },
     { fromPattern: '^/angular-charts/angular/(.+)$', to: '/angular/$1' },
     { fromPattern: '^/react-charts/react/(.+)$', to: '/react/$1' },
@@ -58,21 +58,7 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     { fromPattern: '^/[a-z]+-charts/gallery(/.*)?$', to: '/gallery/' },
     { fromPattern: '^/[a-z]+-charts/options(/.*)?$', to: '/options/' },
 
-    // Remaining "{fw}-charts/<sub-path>" (license-pricing, whats-new, …) → framework landing.
-    // "/{fw}-charts" and "/{fw}-charts/" are live marketing landing pages
-    // (src/pages/{fw}-charts.astro) and must not be redirected. The `.+$` (non-empty sub-path)
-    // is not enough on its own: each landing page builds to a directory with an index.html, and
-    // Apache's mod_dir resolves a bare "/{fw}-charts/" request via an internal sub-request for
-    // "/{fw}-charts/index.html". That sub-request is re-evaluated by mod_alias, so a plain `.+$`
-    // matches "index.html" and the redirect fires on the bare landing page — and for
-    // enterprise-charts (target is its own directory) that is an infinite loop. The
-    // `(?!index\.html$)` negative lookahead excludes the DirectoryIndex resource so the landing
-    // page serves while real legacy sub-paths still redirect.
     { fromPattern: '^/enterprise-charts/(?!index\\.html$).+$', to: '/enterprise-charts/' },
-    { fromPattern: '^/javascript-charts/(?!index\\.html$).+$', to: '/javascript/quick-start/' },
-    { fromPattern: '^/angular-charts/(?!index\\.html$).+$', to: '/angular/quick-start/' },
-    { fromPattern: '^/react-charts/(?!index\\.html$).+$', to: '/react/quick-start/' },
-    { fromPattern: '^/vue-charts/(?!index\\.html$).+$', to: '/vue/quick-start/' },
 
     // Framework-agnostic legacy layouts: core = main docs, side = side-nav docs.
     // All page slugs verified in content/docs → preserve the page under the javascript (default) framework.

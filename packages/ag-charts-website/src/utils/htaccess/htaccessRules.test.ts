@@ -106,17 +106,16 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
         expect(rules).toContain(`RedirectMatch 301 "^${base}/enterprise-charts/react/(.+)$" "${base}/react/$1"`);
     });
 
-    it('sends an empty docs-scheme root to quick-start in a single hop (no chain via {fw}/)', () => {
+    it('does not redirect an empty {fw}-charts/{fw}/ docs root (no broad fallback for these frameworks)', () => {
         const emptyDocsRoot = `${base}/react-charts/react/`;
         const docsRule = new RegExp(`^${base}/react-charts/react/(.+)$`);
-        const broadFallback = new RegExp(`^${base}/react-charts/(?!index\\.html$).+$`);
-        // The page-preserving rule must NOT match an empty slug (that would target the bare `/react/`
-        // root and chain through `^/react/?$`); the broad fallback catches it → quick-start directly.
+        // The page-preserving rule requires a non-empty slug, so an empty docs root does not match it.
         expect(docsRule.test(emptyDocsRoot)).toBe(false);
-        expect(broadFallback.test(emptyDocsRoot)).toBe(true);
-        expect(rules).toContain(
-            `RedirectMatch 301 "^${base}/react-charts/(?!index\\.html$).+$" "${base}/react/quick-start/"`
-        );
+        // The broad "^/{fw}-charts/.+$ → quick-start" fallbacks were removed for javascript/angular/
+        // react/vue, so nothing redirects the empty root — it is left to serve/404.
+        for (const fw of ['javascript', 'angular', 'react', 'vue']) {
+            expect(rules).not.toContain(`"^${base}/${fw}-charts/(?!index\\.html$).+$"`);
+        }
     });
 
     it('preserves the page for framework-agnostic core/side legacy layouts (under javascript)', () => {
@@ -139,16 +138,12 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
         );
     });
 
-    it('broad {fw}-charts fallbacks redirect sub-paths only, never the live landing page', () => {
+    it('enterprise-charts fallback redirects sub-paths only, never the live landing page', () => {
         const fallbacks = [
             {
                 pattern: `^${base}/enterprise-charts/(?!index\\.html$).+$`,
                 sub: `${base}/enterprise-charts/license-pricing`,
             },
-            { pattern: `^${base}/javascript-charts/(?!index\\.html$).+$`, sub: `${base}/javascript-charts/whats-new` },
-            { pattern: `^${base}/angular-charts/(?!index\\.html$).+$`, sub: `${base}/angular-charts/whats-new` },
-            { pattern: `^${base}/react-charts/(?!index\\.html$).+$`, sub: `${base}/react-charts/whats-new` },
-            { pattern: `^${base}/vue-charts/(?!index\\.html$).+$`, sub: `${base}/vue-charts/whats-new` },
         ];
         for (const { pattern, sub } of fallbacks) {
             expect(rules).toContain(`RedirectMatch 301 "${pattern}"`);
