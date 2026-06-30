@@ -66,21 +66,32 @@ Use the `showOn` property to specify when the action should be shown.
 {
     contextMenu: {
         items: [
+            'defaults',
+            'separator',
             {
                 showOn: 'always',
                 label: 'Say hello',
                 action: () => console.log('Hello world!'),
             },
+            'separator',
+            {
+                showOn: 'caption',
+                label: 'Say hello in a caption',
+                action: () => console.log('Hello in a caption!'),
+            },
+            'separator',
             {
                 showOn: 'series-area',
                 label: 'Say hello in the series area',
                 action: () => console.log('Hello in the series area!'),
             },
+            'separator',
             {
                 showOn: 'series-node',
                 label: 'Say hello to a node',
                 action: ({ datum, yKey }) => console.log(`Hello ${yKey} in ${datum.month}!`),
             },
+            'separator',
             {
                 showOn: 'legend-item',
                 label: 'Say hello to a legend item',
@@ -93,7 +104,7 @@ Use the `showOn` property to specify when the action should be shown.
 
 In this configuration:
 
-- A single custom action is added for the entire chart, the series area, the series node and the legend items.
+- A single custom action is added for the entire chart, the captions, the series area, the series node and the legend items.
   Multiple actions per item can be specified within the array if required.
 - Right clicking on one of these areas will show these additional actions in the Context Menu.
 - Clicking these extra actions will display information in the console, demonstrating that the action is aware of details about the right-clicked item.

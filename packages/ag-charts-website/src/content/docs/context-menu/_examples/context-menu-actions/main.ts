@@ -40,6 +40,14 @@ const options: AgCartesianChartOptions<DataType> = {
             },
             'separator',
             {
+                showOn: 'caption',
+                label: 'Say hello in a caption',
+                action: () => {
+                    console.log('Hello in a caption!');
+                },
+            },
+            'separator',
+            {
                 showOn: 'series-area',
                 label: 'Say hello in the series area',
                 action: () => {
