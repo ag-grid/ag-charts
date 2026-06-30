@@ -1,12 +1,38 @@
+// @ag-skip-fws
 import {
     AgChartOptions,
     AgCharts,
+    AgRadialSeriesItemStylerParams,
     AgRadialSeriesStyle,
     AgRadialSeriesStylerParams,
     ContextMenuModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
+
+type StylerCall = { kind: 'styler' | 'itemStyler'; seriesId: string; highlightState: string };
+const stylerCalls: StylerCall[] = [];
+function recordStyler(kind: StylerCall['kind'], params: { seriesId?: string; highlightState: string }): void {
+    stylerCalls.push({ kind, seriesId: params.seriesId ?? '', highlightState: params.highlightState });
+}
+
+// itemStyler tracks the per-datum highlight branch independently of the series styler.
+const itemStyler = (params: AgRadialSeriesItemStylerParams<unknown, unknown>): AgRadialSeriesStyle => {
+    recordStyler('itemStyler', params);
+    switch (params.highlightState) {
+        case 'highlighted-item':
+            return { stroke: 'black', strokeWidth: 3 };
+        case 'unhighlighted-item':
+            return { strokeOpacity: 0.2 };
+        case 'highlighted-series':
+            return { stroke: 'white', strokeWidth: 2 };
+        case 'unhighlighted-series':
+            return { strokeOpacity: 0.1 };
+        case 'none':
+        default:
+            return {};
+    }
+};
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -17,8 +43,9 @@ const options: AgChartOptions = {
             angleKey: 'quarter',
             radiusKey: 'sw',
             radiusName: 'Software',
+            itemStyler,
             styler: (params: AgRadialSeriesStylerParams<unknown, unknown>): AgRadialSeriesStyle => {
-                console.log('[styler]', params.highlightState);
+                recordStyler('styler', params);
                 switch (params.highlightState) {
                     case 'highlighted-item':
                         return { fill: 'yellow', strokeWidth: 4 };
@@ -38,8 +65,9 @@ const options: AgChartOptions = {
             type: 'radial-column',
             angleKey: 'quarter',
             radiusKey: 'hw',
+            itemStyler,
             styler: (params: AgRadialSeriesStylerParams<unknown, unknown>): AgRadialSeriesStyle => {
-                console.log('[styler]', params.highlightState);
+                recordStyler('styler', params);
                 switch (params.highlightState) {
                     case 'highlighted-item':
                         return { fill: 'lime', strokeWidth: 4 };
@@ -59,3 +87,6 @@ const options: AgChartOptions = {
 };
 
 AgCharts.create(options);
+
+// e2e hook: expose styler/itemStyler invocations to stylers.spec.ts
+(window as any).agE2E = { popStylerCalls: () => stylerCalls.splice(0) };

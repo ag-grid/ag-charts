@@ -1,3 +1,4 @@
+// @ag-skip-fws
 import {
     AgCharts,
     AgPolarChartOptions,
@@ -9,6 +10,12 @@ import {
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
+
+type StylerCall = { kind: 'styler' | 'itemStyler'; seriesId: string; highlightState: string };
+const stylerCalls: StylerCall[] = [];
+function recordStyler(kind: StylerCall['kind'], params: { seriesId?: string; highlightState: string }): void {
+    stylerCalls.push({ kind, seriesId: params.seriesId ?? '', highlightState: params.highlightState });
+}
 
 const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
@@ -22,6 +29,7 @@ const options: AgPolarChartOptions = {
             marker: {
                 size: 10,
                 itemStyler: (params: AgRadarSeriesItemStylerParams): AgSeriesMarkerStyle | undefined => {
+                    recordStyler('itemStyler', params);
                     if (params.highlightState === 'highlighted-item') {
                         return { fill: 'cyan', strokeWidth: 4 };
                     }
@@ -37,7 +45,7 @@ const options: AgPolarChartOptions = {
                 },
             },
             styler: (params: AgRadarAreaSeriesStylerParams): AgRadarAreaSeriesStyle => {
-                console.log('[styler]', params.highlightState);
+                recordStyler('styler', params);
                 if (params.highlightState === 'highlighted-item') {
                     return { marker: { size: 15 } };
                 }
@@ -58,6 +66,7 @@ const options: AgPolarChartOptions = {
             marker: {
                 size: 10,
                 itemStyler: (params: AgRadarSeriesItemStylerParams): AgSeriesMarkerStyle | undefined => {
+                    recordStyler('itemStyler', params);
                     if (params.highlightState === 'highlighted-item') {
                         return { fill: 'yellow', strokeWidth: 4 };
                     }
@@ -73,7 +82,7 @@ const options: AgPolarChartOptions = {
                 },
             },
             styler: (params: AgRadarAreaSeriesStylerParams): AgRadarAreaSeriesStyle => {
-                console.log('[styler]', params.highlightState);
+                recordStyler('styler', params);
                 if (params.highlightState === 'highlighted-item') {
                     return { marker: { size: 15 } };
                 }
@@ -94,6 +103,7 @@ const options: AgPolarChartOptions = {
             marker: {
                 size: 10,
                 itemStyler: (params: AgRadarSeriesItemStylerParams): AgSeriesMarkerStyle | undefined => {
+                    recordStyler('itemStyler', params);
                     if (params.highlightState === 'highlighted-item') {
                         return { fill: 'lime', strokeWidth: 4 };
                     }
@@ -109,7 +119,7 @@ const options: AgPolarChartOptions = {
                 },
             },
             styler: (params: AgRadarAreaSeriesStylerParams): AgRadarAreaSeriesStyle => {
-                console.log('[styler]', params.highlightState);
+                recordStyler('styler', params);
                 if (params.highlightState === 'highlighted-item') {
                     return { marker: { size: 15 } };
                 }
@@ -134,3 +144,6 @@ const options: AgPolarChartOptions = {
 };
 
 const chart = AgCharts.create(options);
+
+// e2e hook: expose styler/itemStyler invocations to stylers.spec.ts
+(window as any).agE2E = { popStylerCalls: () => stylerCalls.splice(0) };

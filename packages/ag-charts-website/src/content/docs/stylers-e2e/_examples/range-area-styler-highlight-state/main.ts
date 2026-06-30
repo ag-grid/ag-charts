@@ -1,3 +1,4 @@
+// @ag-skip-fws
 import {
     AgCartesianChartOptions,
     AgCharts,
@@ -9,6 +10,12 @@ import {
 } from 'ag-charts-enterprise';
 
 import { type DatumType, getData } from './data';
+
+type StylerCall = { kind: 'styler' | 'itemStyler'; seriesId: string; highlightState: string };
+const stylerCalls: StylerCall[] = [];
+function recordStyler(kind: StylerCall['kind'], params: { seriesId?: string; highlightState: string }): void {
+    stylerCalls.push({ kind, seriesId: params.seriesId ?? '', highlightState: params.highlightState });
+}
 
 function lowAndHigh<T>(p: T): { item: { low: T; high: T } } {
     return { item: { low: p, high: p } };
@@ -26,7 +33,7 @@ const options: AgCartesianChartOptions<DatumType, unknown> = {
             yHighKey: 'gain_high',
             marker: {
                 itemStyler: (params: AgSeriesMarkerStylerParams<DatumType, unknown>): AgSeriesMarkerStyle => {
-                    console.log('[styler]', params.highlightState);
+                    recordStyler('itemStyler', params);
                     switch (params.highlightState) {
                         case 'highlighted-item':
                             return { size: 35, shape: 'star' /* must have marker.fill 'yellow' */ };
@@ -42,7 +49,7 @@ const options: AgCartesianChartOptions<DatumType, unknown> = {
                 },
             },
             styler: (params: AgRangeAreaSeriesStylerParams<DatumType, unknown>): AgRangeAreaSeriesStyle => {
-                console.log('[styler]', params.highlightState);
+                recordStyler('styler', params);
                 switch (params.highlightState) {
                     case 'highlighted-item':
                         return lowAndHigh({ marker: { fill: 'yellow' } });
@@ -66,7 +73,7 @@ const options: AgCartesianChartOptions<DatumType, unknown> = {
             yHighKey: 'loss_high',
             marker: {
                 itemStyler: (params: AgSeriesMarkerStylerParams<DatumType, unknown>): AgSeriesMarkerStyle => {
-                    console.log('[styler]', params.highlightState);
+                    recordStyler('itemStyler', params);
                     switch (params.highlightState) {
                         case 'highlighted-item':
                             return { size: 35 /* must have marker.fill 'fuchsia' */ };
@@ -78,7 +85,7 @@ const options: AgCartesianChartOptions<DatumType, unknown> = {
                 },
             },
             styler: (params: AgRangeAreaSeriesStylerParams<DatumType, unknown>): AgRangeAreaSeriesStyle => {
-                console.log('[styler]', params.highlightState);
+                recordStyler('styler', params);
                 switch (params.highlightState) {
                     case 'highlighted-item':
                         return lowAndHigh({ marker: { fill: 'fuchsia' } });
@@ -98,3 +105,6 @@ const options: AgCartesianChartOptions<DatumType, unknown> = {
 };
 
 AgCharts.create(options);
+
+// e2e hook: expose styler/itemStyler invocations to stylers.spec.ts
+(window as any).agE2E = { popStylerCalls: () => stylerCalls.splice(0) };
