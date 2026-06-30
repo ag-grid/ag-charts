@@ -8,6 +8,7 @@ export function getData() {
             department: 'Executive',
             status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/19.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/gb.png',
         },
 
         // Technology
@@ -19,6 +20,7 @@ export function getData() {
             department: 'Technology',
             status: 'Hybrid',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/25.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/us.png',
         },
         {
             id: 'Jeffrey Brown',
@@ -28,6 +30,7 @@ export function getData() {
             department: 'Technology',
             status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/22.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/ie.png',
         },
         {
             id: 'Melissa Vazquez',
@@ -37,6 +40,7 @@ export function getData() {
             department: 'Technology',
             status: 'Hybrid',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/4.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/it.png',
         },
         {
             id: 'John Thomas',
@@ -46,6 +50,7 @@ export function getData() {
             department: 'Technology',
             status: 'Hybrid',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/5.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/fr.png',
         },
         {
             id: 'Susan Hernandez',
@@ -55,6 +60,7 @@ export function getData() {
             department: 'Technology',
             status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/20.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/us.png',
         },
         {
             id: 'Aisha Khan',
@@ -63,7 +69,8 @@ export function getData() {
             job: 'Software Engineer',
             department: 'Technology',
             status: 'Remote',
-            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/7.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/12.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/gb.png',
         },
         {
             id: 'Justin Contreras',
@@ -73,6 +80,7 @@ export function getData() {
             department: 'Technology',
             status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/10.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/fr.png',
         },
         {
             id: 'Rachel Ibarra',
@@ -82,6 +90,7 @@ export function getData() {
             department: 'Technology',
             status: 'Remote',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/2.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/us.png',
         },
         {
             id: 'John Gomez',
@@ -91,6 +100,7 @@ export function getData() {
             department: 'Technology',
             status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/17.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/us.png',
         },
         {
             id: 'Sam Carter',
@@ -100,6 +110,7 @@ export function getData() {
             department: 'Technology',
             status: 'Hybrid',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/8.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/gb.png',
         },
         {
             id: 'Priya Nair',
@@ -108,7 +119,8 @@ export function getData() {
             job: 'Data Lead',
             department: 'Technology',
             status: 'In Office',
-            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/9.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/12.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/gb.png',
         },
         {
             id: 'Lena Fischer',
@@ -118,6 +130,7 @@ export function getData() {
             department: 'Technology',
             status: 'Remote',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/11.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/gb.png',
         },
         {
             id: 'Mark Daniels',
@@ -126,7 +139,8 @@ export function getData() {
             job: 'Data Engineer',
             department: 'Technology',
             status: 'Hybrid',
-            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/12.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/9.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/us.png',
         },
 
         // Product
@@ -138,6 +152,7 @@ export function getData() {
             department: 'Product',
             status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/29.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/ie.png',
         },
         {
             id: 'Lawrence Martinez',
@@ -147,6 +162,7 @@ export function getData() {
             department: 'Product',
             status: 'Hybrid',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/33.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/it.png',
         },
         {
             id: 'Tom Whitfield',
@@ -156,6 +172,7 @@ export function getData() {
             department: 'Product',
             status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/13.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/fr.png',
         },
         {
             id: 'Olivia Bennett',
@@ -164,7 +181,8 @@ export function getData() {
             job: 'UX Researcher',
             department: 'Product',
             status: 'Hybrid',
-            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/14.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/15.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/fr.png',
         },
         {
             id: 'Devin Pittman',
@@ -174,6 +192,7 @@ export function getData() {
             department: 'Product',
             status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/18.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/fr.png',
         },
         {
             id: 'Emily Barajas',
@@ -183,6 +202,7 @@ export function getData() {
             department: 'Product',
             status: 'Hybrid',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/28.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/ie.png',
         },
         {
             id: 'Noah Kim',
@@ -191,7 +211,8 @@ export function getData() {
             job: 'Product Designer',
             department: 'Product',
             status: 'Remote',
-            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/15.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/14.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/gb.png',
         },
 
         // Finance & Operations
@@ -203,6 +224,7 @@ export function getData() {
             department: 'Finance & Operations',
             status: 'Remote',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/35.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/gb.png',
         },
         {
             id: 'Hannah Lee',
@@ -212,6 +234,7 @@ export function getData() {
             department: 'Finance & Operations',
             status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/23.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/us.png',
         },
         {
             id: 'Carlos Mendez',
@@ -220,7 +243,8 @@ export function getData() {
             job: 'Accountant',
             department: 'Finance & Operations',
             status: 'Hybrid',
-            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/24.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/26.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/us.png',
         },
         {
             id: 'Grace Liu',
@@ -229,25 +253,28 @@ export function getData() {
             job: 'Financial Analyst',
             department: 'Finance & Operations',
             status: 'Remote',
-            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/26.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/24.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/gb.png',
         },
         {
-            id: 'Robert Frank',
+            id: 'Cynthia Frank',
             parentId: 'Eric Jensen',
-            name: 'Robert Frank',
+            name: 'Cynthia Frank',
             job: 'Operations Manager',
             department: 'Finance & Operations',
             status: 'In Office',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/27.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/us.png',
         },
         {
             id: 'Sofia Russo',
-            parentId: 'Robert Frank',
+            parentId: 'Cynthia Frank',
             name: 'Sofia Russo',
             job: 'Operations Coordinator',
             department: 'Finance & Operations',
             status: 'Hybrid',
             avatar: '${baseWWWUrl}/example-assets/docs-images/hr/30.webp',
+            flag: '${baseWWWUrl}/example-assets/flags/ie.png',
         },
     ];
 }

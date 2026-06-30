@@ -22,11 +22,19 @@ const mixForeground = (mix: number): AgCssColorOrRef => ({ ref: 'foregroundColor
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Company Organisation',
+        text: 'Team Directory with Working Status',
     },
     data: getData(),
     initialState: {
-        collapsed: ['Jeffrey Brown', 'Justin Contreras', 'Devin Pittman'],
+        collapsed: [
+            'Jeffrey Brown',
+            'Justin Contreras',
+            'Priya Nair',
+            'Lawrence Martinez',
+            'Devin Pittman',
+            'Hannah Lee',
+            'Cynthia Frank',
+        ],
     },
     series: [
         {
@@ -46,8 +54,23 @@ const options: AgChartOptions = {
                 },
                 subtitle: {
                     key: 'job',
-                    fontStyle: 'italic',
                     color: mixForeground(0.6),
+                    formatter: ({ datum }) => [
+                        {
+                            text: ` ${datum.job}`,
+                            fontStyle: 'italic',
+                        },
+                        {
+                            text: `  |  `,
+                        },
+                        {
+                            type: 'image',
+                            url: datum.flag,
+                            width: 16,
+                            height: 12,
+                            verticalAlign: 'middle',
+                        },
+                    ],
                 },
                 labels: [
                     {
