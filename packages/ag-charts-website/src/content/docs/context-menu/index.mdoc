@@ -135,10 +135,14 @@ To add Sub-Menus to the Context Menu, simply use the `items` property recursivel
                 label: 'Debug Console',
                 items: [
                     {
-                        type: 'action',
                         showOn: 'always',
                         label: `On 'always'`,
                         action: () => console.log(`On 'always' clicked.`),
+                    },
+                    {
+                        showOn: 'caption',
+                        label: `On 'caption'`,
+                        action: ({ captionType }) => console.log(`On 'caption' clicked - ${captionType}`),
                     },
                     {
                         showOn: 'series-area',
