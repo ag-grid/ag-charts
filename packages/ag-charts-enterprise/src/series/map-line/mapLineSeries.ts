@@ -658,7 +658,8 @@ export class MapLineSeries
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
         const labelData = this.contextNodeData?.labelData ?? [];
-        applyLabelAvoidance(labelData, this.properties.label.collisionAvoidance.avoid);
+        const { collisionAvoidance } = this.properties.label;
+        applyLabelAvoidance(labelData, collisionAvoidance.avoid, collisionAvoidance.resolveCollideWith());
         return labelData;
     }
 

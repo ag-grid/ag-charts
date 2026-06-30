@@ -2996,4 +2996,37 @@ describe('BarSeries', () => {
             expect(BigInt(nodeData[0].cumulativeValue)).not.toBe(BIG);
         });
     });
+
+    describe('getLabelObstacles', () => {
+        it('contributes a seriesItem rect obstacle per bar', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'A', y: 3 },
+                    { x: 'B', y: 5 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0] as any;
+            const nodeData = series.contextNodeData?.nodeData as Array<{
+                x: number;
+                y: number;
+                width: number;
+                height: number;
+            }>;
+            const obstacles = series.getLabelObstacles();
+
+            expect(nodeData).toHaveLength(2);
+            expect(obstacles).toEqual(
+                nodeData.map(({ x, y, width, height }) => ({
+                    kind: 'rect',
+                    box: { x, y, width, height },
+                    category: 'seriesItem',
+                }))
+            );
+        });
+    });
 });

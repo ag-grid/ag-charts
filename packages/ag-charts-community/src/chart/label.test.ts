@@ -3,6 +3,7 @@ import { vi } from 'vitest';
 import type { AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
+import { LabelCollisionAvoidance } from './label';
 import {
     extractImageData,
     prepareTestOptions,
@@ -54,6 +55,29 @@ describe('Labels', () => {
             });
             chart = AgCharts.create(options);
             await compare();
+        });
+    });
+
+    describe('collisionAvoidance.resolveCollideWith', () => {
+        test('returns undefined when avoidance is disabled', () => {
+            expect(new LabelCollisionAvoidance().resolveCollideWith()).toBeUndefined();
+        });
+
+        test('defaults markers/labels on and seriesItems off', () => {
+            const collisionAvoidance = new LabelCollisionAvoidance();
+            collisionAvoidance.enabled = true;
+            expect(collisionAvoidance.resolveCollideWith()).toEqual({
+                marker: { enabled: true, minSpacing: undefined },
+                label: { enabled: true, minSpacing: undefined },
+                seriesItem: { enabled: false, minSpacing: undefined },
+            });
+        });
+
+        test('opts seriesItems in only when explicitly enabled', () => {
+            const collisionAvoidance = new LabelCollisionAvoidance();
+            collisionAvoidance.enabled = true;
+            collisionAvoidance.collideWith.seriesItems.enabled = true;
+            expect(collisionAvoidance.resolveCollideWith()?.seriesItem?.enabled).toBe(true);
         });
     });
 });
