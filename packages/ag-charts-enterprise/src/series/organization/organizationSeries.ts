@@ -353,6 +353,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             const isCollapsed =
                 descendantsCount > 0 && datum.itemId != null && this.ctx.collapsedManager.isCollapsed(datum.itemId);
             const styles = this.getNodeStyle(datumIndex, depth, isHighlight, highlightState, isCollapsed);
+            node.opacity = this.getNodeOpacity(datumIndex, isHighlight, highlightState);
 
             const fields = this.resolveVertexFields(datum.vertex);
             const title = this.formatText(fields.title, this.properties.node.title.formatter, datumIndex, isCollapsed);
@@ -913,6 +914,20 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return style;
     }
 
+    // Selection/highlight dimming is a whole-card effect, so it applies to the node group's
+    // opacity rather than the card paint style, which only covers fill and stroke.
+    private getNodeOpacity(
+        datumIndex: number,
+        isHighlight: boolean,
+        highlightState: _ModuleSupport.HighlightState | undefined
+    ): number {
+        return (
+            this.getSelectionStyle(datumIndex)?.opacity ??
+            this.getHighlightStyle(isHighlight, datumIndex, highlightState).opacity ??
+            1
+        );
+    }
+
     private getNodeDefaultStyle(): Normalised<
         DeepRequired<Omit<AgOrganizationSeriesNodeStyle, 'padding'> & { padding: PaddingOptions }>,
         never,
@@ -1189,8 +1204,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             fromDatum,
             toDatum,
             seriesId,
-            selectionState: 'unselected-item',
-            candidateState: 'none',
+            // Links are not selectable: selection tracks node datum indices, and a link has none of its own.
+            selectionState: undefined,
+            candidateState: undefined,
         } satisfies CallbackParamRules<AgOrganizationSeriesLinkItemStylerParams<unknown, unknown>>;
     }
 
@@ -1214,8 +1230,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             isCollapsed,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
-            selectionState: 'unselected-item',
-            candidateState: 'none',
+            selectionState: this.getSelectionStateString(datumIndex),
+            candidateState: this.getCandidateStateString(datumIndex),
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeItemStylerParams<unknown, unknown>>;
     }
 
@@ -1239,8 +1255,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             isCollapsed,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
-            selectionState: 'unselected-item',
-            candidateState: 'none',
+            selectionState: this.getSelectionStateString(datumIndex),
+            candidateState: this.getCandidateStateString(datumIndex),
         } satisfies CallbackParamRules<AgOrganizationSeriesExpanderItemStylerParams<unknown, unknown>>;
     }
 
@@ -1264,8 +1280,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             isCollapsed,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
-            selectionState: 'unselected-item',
-            candidateState: 'none',
+            selectionState: this.getSelectionStateString(datumIndex),
+            candidateState: this.getCandidateStateString(datumIndex),
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeTextStylerParams<unknown, unknown>>;
     }
 
