@@ -16,7 +16,7 @@ import { chromium } from 'playwright';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
-import { discoverExamples } from './benchmark-examples';
+import { parseExamplesArg, resolveExamples } from './benchmark-examples';
 import { type Contention, type HostInfo, diffContention, readCpuSample, readHostInfo } from './contention';
 
 const WORKSPACE_ROOT = path.resolve(__dirname, '../..');
@@ -99,17 +99,13 @@ async function main() {
         process.exit(1);
     }
 
-    // Discover and filter examples
-    let exampleNames = discoverExamples();
-    if (argv.examples) {
-        const filter = new Set(argv.examples.split(',').map((s) => s.trim()));
-        const unknown = [...filter].filter((name) => !exampleNames.includes(name));
-        if (unknown.length > 0) {
-            console.error(`Unknown example(s): ${unknown.join(', ')}`);
-            console.error(`Available: ${exampleNames.join(', ')}`);
-            process.exit(1);
-        }
-        exampleNames = exampleNames.filter((name) => filter.has(name));
+    // Discover and filter examples (empty --examples resolves to the full set).
+    let exampleNames: string[];
+    try {
+        exampleNames = resolveExamples(parseExamplesArg(argv.examples));
+    } catch (e) {
+        console.error((e as Error).message);
+        process.exit(1);
     }
 
     console.log(`Running ${exampleNames.length} benchmark example(s)`);
