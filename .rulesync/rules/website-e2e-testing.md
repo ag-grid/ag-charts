@@ -51,17 +51,35 @@ expectStatesForKind(await popStylerCalls(page), 'styler', SERIES_STATES, name);
 
 When several callbacks feed one recorder (a series `styler` and a marker `itemStyler` both fire on highlight), tag each record with a `kind`. Without it, asserting "every highlight state was seen" is satisfied if *either* surface covers them — the conflation hides an untested callback. Assert coverage per `kind`.
 
-## Pointer/touch coordinates are not AI-guessable
+## Pointer/touch coordinates: measure them, never guess them
 
-Keyboard navigation is deterministic and portable, so prefer it. Mouse/touch hover coordinates differ per chart type and cannot be inferred reliably — they must be measured by a human against the rendered example. Scaffold the test as skipped with an explicit placeholder rather than inventing coordinates:
+Keyboard navigation is deterministic and portable, so prefer it. Mouse/touch hover coordinates differ per chart type and cannot be inferred from the options — but they *can* be measured against the running example using the `agE2E` hook as an oracle, so don't invent values or leave the test permanently skipped.
+
+Store each coordinate **relative to the canvas**, and let the helpers supply the geometry — never bake a viewport size or canvas offset into the spec, both of which drift when `playwright.config.ts` or the site layout changes:
+
+- **Position** is handled by `canvasToPageTransformer(page)`, which reads the live `.ag-charts-canvas-proxy` bounding box and adds its origin. Store `pageCoordinate − proxyOrigin` (the inverse), so no inset literal ever appears and the spec reconstructs the page point at runtime.
+- **Size** must match CI for a canvas-relative coordinate to land on the same datum. The canvas size is fixed by the Playwright `viewport` (in `playwright.config.ts`) minus the page's body padding — reproduce that viewport when measuring rather than copying the resulting pixel dimensions.
+
+Measure against `nx dev` in a real browser:
+
+1. **Reproduce the CI canvas geometry.** Open the example at the Playwright viewport. If the driven browser can't be pinned to it (zoom, window chrome, or DPR drift), constrain `document.body` until `locateCanvas(page)` reports the `width`/`height` CI produces — verify against the helper, don't assume a number.
+2. **Probe with the styler oracle.** Move the pointer to a candidate page coordinate and call `agE2E.popStylerCalls()`. A hover over the target datum reports `highlighted-item`; iterate until it does. This is exact, not eyeballed.
+3. **Record canvas-relative.** Subtract the live canvas-proxy origin (`locateCanvas(page).bbox`) from the page coordinate you settled on. The spec converts back via `canvasToPageTransformer(page)`.
 
 ```typescript
-const EXAMPLES = [{ name: 'box-plot-styler', node1: { x: NaN, y: NaN } /* PLACEHOLDER */ }];
-test.skip('mousemove over node1', async ({ page }) => {
-    await page.mouse.move(node1.x, node1.y);
+const EXAMPLES = [{ name: 'box-plot-styler-highlight-state', node1: { x: 110, y: 285 } }];
+test('mousemove over node1', async ({ page }) => {
+    const toPage = await canvasToPageTransformer(page);
+    const { x, y } = toPage(node1.x, node1.y);
+    await page.mouse.move(x, y);
+    await waitForAllChartUpdates(page);
     await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`${name}-node1.png`);
 });
 ```
+
+**Gotcha — rAF stops in a background tab.** The chart resizes, re-renders, and applies highlights through `requestAnimationFrame`, which the browser throttles to a halt when the tab is not visible. If the measurement window is backgrounded the canvas never resizes to the target geometry and the oracle returns nothing, so keep the window foregrounded throughout.
+
+If the example exposes no styler/`itemStyler` oracle there is no reliable probe — scaffold the test as skipped with a `{ x: NaN, y: NaN } /* PLACEHOLDER */` entry rather than inventing coordinates.
 
 ## Structure: table-driven, one describe per example
 
