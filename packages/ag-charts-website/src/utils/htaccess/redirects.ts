@@ -45,8 +45,8 @@ export const SITE_301_REDIRECTS: Redirect[] = [
 
     // Legacy "{fw}-charts/{fw}/<page>" docs scheme → current "{fw}/<page>" (all page slugs verified in content/docs).
     // Require a non-empty page slug ((.+)): an empty slug would target the bare "{fw}/" root, which the
-    // "^/{fw}/?$" rule redirects again — a chain. The empty case instead falls through to the broad
-    // "^/{fw}-charts/.+$" fallback below, reaching quick-start in a single hop.
+    // "^/{fw}/?$" rule redirects again — a chain. An empty slug therefore does not match here and is left
+    // to serve/404 (there is no broad "^/{fw}-charts/.+$" fallback for these frameworks).
     { fromPattern: '^/javascript-charts/javascript/(.+)$', to: '/javascript/$1' },
     { fromPattern: '^/angular-charts/angular/(.+)$', to: '/angular/$1' },
     { fromPattern: '^/react-charts/react/(.+)$', to: '/react/$1' },
@@ -58,15 +58,7 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     { fromPattern: '^/[a-z]+-charts/gallery(/.*)?$', to: '/gallery/' },
     { fromPattern: '^/[a-z]+-charts/options(/.*)?$', to: '/options/' },
 
-    // Remaining "{fw}-charts/<sub-path>" (license-pricing, whats-new, …) → framework landing.
-    // Match a non-empty sub-path only: "/{fw}-charts" and "/{fw}-charts/" are live marketing
-    // landing pages (src/pages/{fw}-charts.astro) and must not be redirected — for enterprise the
-    // bare-path target would also re-match this rule and loop.
-    { fromPattern: '^/enterprise-charts/.+$', to: '/enterprise-charts/' },
-    { fromPattern: '^/javascript-charts/.+$', to: '/javascript/quick-start/' },
-    { fromPattern: '^/angular-charts/.+$', to: '/angular/quick-start/' },
-    { fromPattern: '^/react-charts/.+$', to: '/react/quick-start/' },
-    { fromPattern: '^/vue-charts/.+$', to: '/vue/quick-start/' },
+    { fromPattern: '^/enterprise-charts/(?!index\\.html$).+$', to: '/enterprise-charts/' },
 
     // Framework-agnostic legacy layouts: core = main docs, side = side-nav docs.
     // All page slugs verified in content/docs → preserve the page under the javascript (default) framework.
