@@ -12,8 +12,8 @@ import { type DatumType, getData } from './data';
 
 type StylerCall = { kind: 'styler' | 'itemStyler'; seriesId: string; highlightState: string };
 const stylerCalls: StylerCall[] = [];
-function recordStyler(kind: StylerCall['kind'], params: { seriesId?: string; highlightState: string }): void {
-    stylerCalls.push({ kind, seriesId: params.seriesId ?? '', highlightState: params.highlightState });
+function recordStyler(kind: StylerCall['kind'], params: { seriesId?: string; highlightState?: string }): void {
+    stylerCalls.push({ kind, seriesId: params.seriesId ?? '', highlightState: params.highlightState ?? '' });
 }
 
 // itemStyler tracks the per-datum highlight branch independently of the series styler.

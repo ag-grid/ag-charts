@@ -13,8 +13,8 @@ import { type DatumType, getData } from './data';
 
 type StylerCall = { kind: 'styler' | 'itemStyler'; seriesId: string; highlightState: string };
 const stylerCalls: StylerCall[] = [];
-function recordStyler(kind: StylerCall['kind'], params: { seriesId?: string; highlightState: string }): void {
-    stylerCalls.push({ kind, seriesId: params.seriesId ?? '', highlightState: params.highlightState });
+function recordStyler(kind: StylerCall['kind'], params: { seriesId?: string; highlightState?: string }): void {
+    stylerCalls.push({ kind, seriesId: params.seriesId ?? '', highlightState: params.highlightState ?? '' });
 }
 
 function lowAndHigh<T>(p: T): { item: { low: T; high: T } } {
