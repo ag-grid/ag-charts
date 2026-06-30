@@ -39,7 +39,7 @@ function discoverExamples() {
 }
 
 /** Split an --examples value (or `/benchmarks` comment remainder) into example names. */
-function parseExamplesArg(value) {
+function parseExamplesArg(value = '') {
     return value.split(/[\s,]+/).filter(Boolean);
 }
 

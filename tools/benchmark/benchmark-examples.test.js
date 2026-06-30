@@ -8,6 +8,9 @@ test('parseExamplesArg splits on commas and/or whitespace and drops empties', ()
     assert.deepEqual(parseExamplesArg('a b'), ['a', 'b']);
     assert.deepEqual(parseExamplesArg('  a , b ,, c '), ['a', 'b', 'c']);
     assert.deepEqual(parseExamplesArg(''), []);
+    // Defaulting to '' keeps the full-run path safe when no value is supplied.
+    assert.deepEqual(parseExamplesArg(), []);
+    assert.deepEqual(parseExamplesArg(undefined), []);
 });
 
 test('resolveExamples with no request returns every runnable example', () => {
