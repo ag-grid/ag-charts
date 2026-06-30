@@ -59,14 +59,20 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     { fromPattern: '^/[a-z]+-charts/options(/.*)?$', to: '/options/' },
 
     // Remaining "{fw}-charts/<sub-path>" (license-pricing, whats-new, …) → framework landing.
-    // Match a non-empty sub-path only: "/{fw}-charts" and "/{fw}-charts/" are live marketing
-    // landing pages (src/pages/{fw}-charts.astro) and must not be redirected — for enterprise the
-    // bare-path target would also re-match this rule and loop.
-    { fromPattern: '^/enterprise-charts/.+$', to: '/enterprise-charts/' },
-    { fromPattern: '^/javascript-charts/.+$', to: '/javascript/quick-start/' },
-    { fromPattern: '^/angular-charts/.+$', to: '/angular/quick-start/' },
-    { fromPattern: '^/react-charts/.+$', to: '/react/quick-start/' },
-    { fromPattern: '^/vue-charts/.+$', to: '/vue/quick-start/' },
+    // "/{fw}-charts" and "/{fw}-charts/" are live marketing landing pages
+    // (src/pages/{fw}-charts.astro) and must not be redirected. The `.+$` (non-empty sub-path)
+    // is not enough on its own: each landing page builds to a directory with an index.html, and
+    // Apache's mod_dir resolves a bare "/{fw}-charts/" request via an internal sub-request for
+    // "/{fw}-charts/index.html". That sub-request is re-evaluated by mod_alias, so a plain `.+$`
+    // matches "index.html" and the redirect fires on the bare landing page — and for
+    // enterprise-charts (target is its own directory) that is an infinite loop. The
+    // `(?!index\.html$)` negative lookahead excludes the DirectoryIndex resource so the landing
+    // page serves while real legacy sub-paths still redirect.
+    { fromPattern: '^/enterprise-charts/(?!index\\.html$).+$', to: '/enterprise-charts/' },
+    { fromPattern: '^/javascript-charts/(?!index\\.html$).+$', to: '/javascript/quick-start/' },
+    { fromPattern: '^/angular-charts/(?!index\\.html$).+$', to: '/angular/quick-start/' },
+    { fromPattern: '^/react-charts/(?!index\\.html$).+$', to: '/react/quick-start/' },
+    { fromPattern: '^/vue-charts/(?!index\\.html$).+$', to: '/vue/quick-start/' },
 
     // Framework-agnostic legacy layouts: core = main docs, side = side-nav docs.
     // All page slugs verified in content/docs → preserve the page under the javascript (default) framework.
