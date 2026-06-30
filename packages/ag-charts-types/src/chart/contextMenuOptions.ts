@@ -21,7 +21,7 @@ export type AgContextMenuItemShowOn = 'always' | 'caption' | 'series-area' | 'se
 
 export type AgContextMenuItemType = 'action' | 'separator';
 
-export type AgContextMenuCaptionType = 'title' | 'subtitle' | 'footnote';
+export type AgCaptionType = 'title' | 'subtitle' | 'footnote';
 
 interface ItemMixin<TDatum = DatumDefault, TContext = ContextDefault> {
     /**
@@ -150,7 +150,7 @@ export interface AgContextMenuGetItemsParamsCaption<_TDatumReserved = never, TCo
     /** Which clicked element this menu item should be shown for. */
     showOn: 'caption';
     /** Which type of caption was clicked on. */
-    caption: AgContextMenuCaptionType;
+    captionType: AgCaptionType;
 }
 
 export interface AgContextMenuGetItemsParamsSeriesArea<_TDatumReserved = never, TContext = ContextDefault>

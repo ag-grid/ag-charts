@@ -11,11 +11,7 @@ import {
     wrapText,
     wrapTextSegments,
 } from 'ag-charts-core';
-import type {
-    AgCaptionTooltipOptions,
-    AgCaptionTooltipRendererParams,
-    AgContextMenuCaptionType,
-} from 'ag-charts-types';
+import type { AgCaptionTooltipOptions, AgCaptionTooltipRendererParams, AgCaptionType } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
@@ -90,7 +86,7 @@ export class ChartCaption implements CaptionLike {
 
     constructor(
         private readonly ctx: DynamicContext<ChartRegistry>,
-        private readonly key: AgContextMenuCaptionType
+        private readonly key: AgCaptionType
     ) {}
 
     /**
@@ -245,7 +241,7 @@ export class ChartCaption implements CaptionLike {
         moduleCtx.contextMenuRegistry?.dispatchContext(
             'caption',
             { widgetEvent: event, canvasX, canvasY },
-            { caption: this.key }
+            { captionType: this.key }
         );
     }
 

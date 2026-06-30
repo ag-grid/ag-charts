@@ -33,7 +33,7 @@ export interface ContextShowOnMap extends ContextShowOnMapRule {
     caption: {
         event: InferTEvent<'caption'>;
         callback: (param: InferTEvent<'caption'>) => void;
-        context: Pick<AgContextMenuGetItemsParamsCaption, 'caption'>;
+        context: Pick<AgContextMenuGetItemsParamsCaption, 'captionType'>;
     };
     'legend-item': {
         event: InferTEvent<'legend-item'>;

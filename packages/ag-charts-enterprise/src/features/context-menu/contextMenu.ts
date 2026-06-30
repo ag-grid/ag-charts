@@ -1,5 +1,5 @@
 import type {
-    AgContextMenuCaptionType,
+    AgCaptionType,
     AgContextMenuGetItemsParams,
     AgContextMenuGetItemsParamsSeriesNode,
     AgContextMenuItem,
@@ -72,7 +72,7 @@ export class ContextMenu extends AbstractModuleInstance {
     // State
     private pickedNode: PickedNode | undefined = undefined;
     private pickedLegendItem?: _ModuleSupport.CategoryLegendDatum;
-    private pickedCaption?: AgContextMenuCaptionType;
+    private pickedCaption?: AgCaptionType;
     private showEvent: MouseEvent | undefined = undefined;
     private x: number = 0;
     private y: number = 0;
@@ -173,8 +173,8 @@ export class ContextMenu extends AbstractModuleInstance {
 
             case 'caption': {
                 if (this.pickedCaption == null) throw new Error(`this.pickedCaption is null`);
-                const caption = this.pickedCaption;
-                return { showOn, context, caption, defaultItems };
+                const captionType = this.pickedCaption;
+                return { showOn, context, captionType, defaultItems };
             }
 
             case 'legend-item':
@@ -219,7 +219,7 @@ export class ContextMenu extends AbstractModuleInstance {
         } else if (ContextMenuRegistry.check('legend-item', event)) {
             this.pickedLegendItem = event.context.legendItem;
         } else if (ContextMenuRegistry.check('caption', event)) {
-            this.pickedCaption = event.context.caption;
+            this.pickedCaption = event.context.captionType;
         }
 
         const expandedItems = this.expandItemsOptions(event);
