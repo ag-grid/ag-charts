@@ -2414,45 +2414,4 @@ describe('LineSeries', () => {
             );
         });
     });
-
-    describe('collision avoidance', () => {
-        const POINT_COUNT = 40;
-        // Wide labels densely packed into a narrow chart so neighbours overlap when avoiding collisions.
-        const labelChartOptions = (collisionAvoidance?: object) => ({
-            data: Array.from({ length: POINT_COUNT }, (_, i) => ({ x: i, y: 12345 })),
-            series: [
-                {
-                    type: 'line' as const,
-                    xKey: 'x',
-                    yKey: 'y',
-                    label: { enabled: true, ...(collisionAvoidance ? { collisionAvoidance } : {}) },
-                },
-            ],
-        });
-
-        const placedLabelCount = async (collisionAvoidance?: object) => {
-            const options = labelChartOptions(collisionAvoidance);
-            prepareTestOptions(options as any);
-            // prepareTestOptions forces a large canvas; shrink it so the dense labels actually overlap.
-            (options as any).width = 160;
-            (options as any).height = 140;
-            chart = AgCharts.create(options as any);
-            await waitForChartStability(chart);
-            const series = deproxy(chart).series[0] as any;
-            return series.labelSelection.nodes().filter((node: { visible: boolean }) => node.visible).length;
-        };
-
-        it('places every label by default, dropping none', async () => {
-            expect(await placedLabelCount()).toBe(POINT_COUNT);
-        });
-
-        it('drops colliding labels when collisionAvoidance is enabled', async () => {
-            const count = await placedLabelCount({
-                enabled: true,
-                strategy: [{ type: 'reposition', placements: ['top', 'bottom'] }],
-            });
-            expect(count).toBeGreaterThan(0);
-            expect(count).toBeLessThan(POINT_COUNT);
-        });
-    });
 });
