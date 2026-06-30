@@ -1,0 +1,178 @@
+{
+    "lastUpdated": "2026-06-30",
+    "introTitle": "What we're building next",
+    "introText": "Our Q3 2026 focus expands AG Charts with new timeline and quadrant chart types, smarter series label collision avoidance for dense data, broader event callbacks, and more flexible multi-chart synchronisation — adding more chart types, deeper integration, and a more polished experience.",
+    "items": [
+        {
+            "id": "AG-15432",
+            "title": "Server-Side Rendering",
+            "q": 1,
+            "status": "shipped",
+            "why": "Expands AG Charts into reporting, exports, and backend workflows where charts must be generated outside the browser.",
+            "desc": "Render charts on the server and in non-DOM environments, producing output without a live browser.",
+            "link": "./server-side-rendering/"
+        },
+        {
+            "id": "AG-6533",
+            "title": "Chart Navigation Improvements",
+            "q": 1,
+            "status": "shipped",
+            "why": "Supports data-heavy applications with more intuitive and stable navigation.",
+            "desc": "Smoother chart exploration with a scrollbar, range buttons, and refined real-time update interactions.",
+            "link": "./scrollbar/"
+        },
+        {
+            "id": "AG-16502",
+            "title": "Richer Bar Chart Customisation",
+            "q": 1,
+            "status": "shipped",
+            "why": "Supports more advanced and in-demand bar visualisation use cases.",
+            "desc": "Overlay bar series to compare values against targets, set fixed-width bars, and skip null values.",
+            "link": "./bars/#actual-vs-target-bars"
+        },
+        {
+            "id": "AG-16501",
+            "title": "Focus State API",
+            "q": 1,
+            "status": "shipped",
+            "why": "Improves responsiveness within interactive applications and eases integration into larger apps.",
+            "desc": "A programmatic API to consume and control tooltip and highlight focus state.",
+            "link": "./api-state/#active"
+        },
+        {
+            "id": "AG-10086",
+            "title": "Server-Side Data Loading",
+            "q": 2,
+            "status": "shipped",
+            "why": "Supports larger datasets and more flexible data architectures.",
+            "desc": "Asynchronous, developer-controlled data loading that fetches only the data in view as users zoom and pan.",
+            "link": "./async-data/"
+        },
+        {
+            "id": "AG-16570",
+            "title": "Data Point Selection",
+            "q": 2,
+            "status": "shipped",
+            "why": "Enables richer application interactions and deeper integration in enterprise applications.",
+            "desc": "Select individual data points and respond to selection within the host application.",
+            "link": "./selection/"
+        },
+        {
+            "id": "AG-16571",
+            "title": "Improved Theming",
+            "q": 2,
+            "status": "shipped",
+            "why": "Delivers consistent cross-product UX and intergration with enterprise design systems.",
+            "desc": "Expanded theming controls and CSS variables.",
+            "link": "./themes/"
+        },
+        {
+            "id": "AG-16573",
+            "title": "Organisation Chart",
+            "q": 2,
+            "status": "shipped",
+            "why": "Expands AG Charts into HR, reporting, and hierarchical data use cases.",
+            "desc": "A new organisation chart series for visualising hierarchical data.",
+            "link": "./org-chart/"
+        },
+        {
+            "id": "AG-15433",
+            "title": "Colour Scale",
+            "q": 2,
+            "status": "shipped",
+            "why": "Supports more expressive and data-driven reporting experiences.",
+            "desc": "A unified colour scale for mapping values to colours across heatmap, treemap, and other series.",
+            "link": "./colour-scale/"
+        },
+        {
+            "id": "AG-16572",
+            "title": "Icons and Images in Labels",
+            "q": 2,
+            "status": "shipped",
+            "why": "Supports more expressive and branded reporting experiences.",
+            "desc": "Embed icons and images within chart labels.",
+            "link": "./text/#displaying-images-and-text"
+        },
+        {
+            "id": "AG-16578",
+            "title": "Series Label Collision Avoidance",
+            "q": 3,
+            "status": "in-progress",
+            "why": "Maintains label legibility in high-volume, data-dense charts.",
+            "desc": "Automatically detect and resolve overlapping series labels for cleaner presentation of dense data.",
+            "link": null
+        },
+        {
+            "id": "AG-16574",
+            "title": "Additional Event Callbacks",
+            "q": 3,
+            "status": "in-progress",
+            "why": "Enables host applications to respond to a wider range of chart interactions and user actions.",
+            "desc": "Broader event coverage with additional callbacks across chart interactions.",
+            "link": null
+        },
+        {
+            "id": "AG-16575",
+            "title": "Timeline Series",
+            "q": 3,
+            "status": "planned",
+            "why": "Expands AG Charts into time-based and analytical use cases.",
+            "desc": "A new timeline series for visualising events over time.",
+            "link": null
+        },
+        {
+            "id": "AG-16576",
+            "title": "Quadrant Chart",
+            "q": 3,
+            "status": "planned",
+            "why": "Expands AG Charts into analytical and data-comparison use cases.",
+            "desc": "A new quadrant chart for comparing items across two dimensions.",
+            "link": null
+        },
+        {
+            "id": "AG-16577",
+            "title": "Expanded Synchronisation Options",
+            "q": 3,
+            "status": "planned",
+            "why": "Supports more flexible and precise synchronisation across multiple charts within a single application.",
+            "desc": "Greater control over synchronising state across multiple charts.",
+            "link": null
+        },
+        {
+            "id": "AG-16579",
+            "title": "Additional Financial Series Types",
+            "q": 4,
+            "status": "planned",
+            "why": "Delivers the most in-demand series types for financial and trading applications.",
+            "desc": "Additional financial and trading chart series types.",
+            "link": null
+        },
+        {
+            "id": "AG-16581",
+            "title": "More Powerful Annotation Tools",
+            "q": 4,
+            "status": "planned",
+            "why": "Enables more precise and expressive annotation for end users in trading and analytical applications.",
+            "desc": "More annotation types with precise placement, axis labels, and magnet snapping.",
+            "link": null
+        },
+        {
+            "id": "AG-16582",
+            "title": "Greater Financial Chart Customisation",
+            "q": 4,
+            "status": "planned",
+            "why": "Gives developers greater control to build bespoke financial and trading applications.",
+            "desc": "Custom user series, configurable axis types, and status bar control for the financial chart.",
+            "link": null
+        },
+        {
+            "id": "AG-16583",
+            "title": "Technical Indicators",
+            "q": 4,
+            "status": "planned",
+            "why": "Supports professional trading and analytical workflows with a range of technical indicators.",
+            "desc": "A range of technical indicators for financial charts.",
+            "link": null
+        }
+    ]
+}
