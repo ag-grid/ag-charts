@@ -1,7 +1,14 @@
 import type { Page } from '@playwright/test';
 
 import { expect, test } from './fixture';
-import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl, waitForAllChartUpdates } from './util';
+import {
+    SELECTORS,
+    canvasToPageTransformer,
+    gotoExample,
+    setupIntrinsicAssertions,
+    toExamplePageUrl,
+    waitForAllChartUpdates,
+} from './util';
 
 // Every consolidated styler example renders a deterministic styled chart; the screenshot is the
 // visual-regression baseline for the series-level `styler` colour-override path.
@@ -37,23 +44,25 @@ type Vec2 = { x: number; y: number };
 // Each example exposes its invocations via `window.agE2E.popStylerCalls()`, so we drive an item highlight
 // then a series highlight and assert per phase that both callback surfaces ran for every branch.
 //
-// `node1` is a PLACEHOLDER for pointer-driven (mouse/touch) hover coverage. Hover coordinates are
-// chart-type-specific and cannot be inferred reliably, so they must be measured by hand: open the
-// example, hover a datum that triggers the styler, read the canvas-relative coordinates, and replace
-// the `NaN` values below. The `mousemove over node1` test is skipped until then.
+// `node1` is a canvas-relative coordinate over a datum that triggers the item styler, exercising the
+// pointer-driven (mouse/touch) highlight path that keyboard navigation does not. Coordinates are
+// chart-type-specific and were measured against each rendered example, then converted to page
+// coordinates at runtime via `canvasToPageTransformer`. To re-measure: open the example at the e2e
+// viewport, hover a datum until the styler reports `highlighted-item`, and record `pageCoordinate - 16`
+// (the canvas inset).
 interface HighlightStateExample {
     name: string;
     node1: Vec2;
 }
 const HIGHLIGHT_STATE_EXAMPLES: HighlightStateExample[] = [
-    { name: 'box-plot-styler-highlight-state', node1: { x: NaN, y: NaN } },
-    { name: 'nightingale-styler-highlight-state', node1: { x: NaN, y: NaN } },
-    { name: 'radar-area-styler-highlight-state', node1: { x: NaN, y: NaN } },
-    { name: 'radar-line-styler-highlight-state', node1: { x: NaN, y: NaN } },
-    { name: 'radial-bar-styler-highlight-state', node1: { x: NaN, y: NaN } },
-    { name: 'radial-column-styler-highlight-state', node1: { x: NaN, y: NaN } },
-    { name: 'range-area-styler-highlight-state', node1: { x: NaN, y: NaN } },
-    { name: 'range-bar-styler-highlight-state', node1: { x: NaN, y: NaN } },
+    { name: 'box-plot-styler-highlight-state', node1: { x: 110, y: 285 } },
+    { name: 'nightingale-styler-highlight-state', node1: { x: 454, y: 354 } },
+    { name: 'radar-area-styler-highlight-state', node1: { x: 247, y: 356 } },
+    { name: 'radar-line-styler-highlight-state', node1: { x: 247, y: 356 } },
+    { name: 'radial-bar-styler-highlight-state', node1: { x: 511, y: 151 } },
+    { name: 'radial-column-styler-highlight-state', node1: { x: 372, y: 109 } },
+    { name: 'range-area-styler-highlight-state', node1: { x: 284, y: 384 } },
+    { name: 'range-bar-styler-highlight-state', node1: { x: 131, y: 266 } },
 ];
 
 type StylerKind = 'styler' | 'itemStyler';
@@ -149,9 +158,10 @@ test.describe('stylers', () => {
                 await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`${name}-series.png`);
             });
 
-            // Skipped until `node1` is filled in by hand (see HIGHLIGHT_STATE_EXAMPLES note above).
-            test.skip('mousemove over node1', async ({ page }) => {
-                await page.mouse.move(node1.x, node1.y);
+            test('mousemove over node1', async ({ page }) => {
+                const toPage = await canvasToPageTransformer(page);
+                const { x, y } = toPage(node1.x, node1.y);
+                await page.mouse.move(x, y);
                 await waitForAllChartUpdates(page);
                 await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`${name}-node1.png`);
             });
