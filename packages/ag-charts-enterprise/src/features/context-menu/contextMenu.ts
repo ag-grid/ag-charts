@@ -75,7 +75,6 @@ export class ContextMenu extends AbstractModuleInstance {
     private pickedNode: PickedNode | undefined = undefined;
     private pickedLegendItem?: _ModuleSupport.CategoryLegendDatum;
     private pickedCaption?: AgCaptionType;
-    private showEvent: MouseEvent | undefined = undefined;
     private x: number = 0;
     private y: number = 0;
     private collapsingSubMenus = 0;
@@ -210,7 +209,6 @@ export class ContextMenu extends AbstractModuleInstance {
         if (!(this.opts.enabled ?? true)) return;
 
         event.widgetEvent.sourceEvent.preventDefault();
-        this.showEvent = event.widgetEvent.sourceEvent;
         this.x = event.x;
         this.y = event.y;
         this.pickedNode = undefined;
@@ -240,7 +238,7 @@ export class ContextMenu extends AbstractModuleInstance {
             this.ctx.chartService.overrideFocusVisible(overrideFocusVisible);
         }
 
-        this.createMenu(expandedItems);
+        this.createMenu(widgetEvent.sourceEvent, expandedItems);
         this.element.appendChild(this.menuWidget.getElement());
         this.menuWidget.expand({ sourceEvent, overrideFocusVisible });
     }
@@ -305,14 +303,14 @@ export class ContextMenu extends AbstractModuleInstance {
         this.collapsingSubMenus--;
     }
 
-    private createMenu(expandedItems: ContextMenuItem[]) {
+    private createMenu(showEvent: MouseEvent, expandedItems: ContextMenuItem[]) {
         const { menuWidget } = this;
         menuWidget.clear();
         menuWidget.setTabIndex(-1);
-        this.createMenuItems(menuWidget, expandedItems);
+        this.createMenuItems(showEvent, menuWidget, expandedItems);
     }
 
-    private createMenuItems(menuWidget: _Widget.MenuWidget, expandedItems: ContextMenuItem[]) {
+    private createMenuItems(showEvent: MouseEvent, menuWidget: _Widget.MenuWidget, expandedItems: ContextMenuItem[]) {
         for (const item of expandedItems) {
             switch (item.type) {
                 case 'separator': {
@@ -323,15 +321,15 @@ export class ContextMenu extends AbstractModuleInstance {
                 case 'action': {
                     if (item.items.length === 0) {
                         const btn = new _Widget.MenuItemWidget();
-                        this.initButtonElement(btn, item);
+                        this.initButtonElement(showEvent, btn, item);
                         menuWidget.addChild(btn);
                     } else {
                         const { subMenuButton, subMenu } = menuWidget.addSubMenu();
                         subMenu.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__menu`);
                         subMenu.addListener('expand-widget', () => this.onSubMenuExpand(subMenuButton, subMenu));
                         subMenu.addListener('collapse-widget', () => this.onSubMenuCollapse(subMenuButton, subMenu));
-                        this.initButtonElement(subMenuButton, item);
-                        this.createMenuItems(subMenu, item.items);
+                        this.initButtonElement(showEvent, subMenuButton, item);
+                        this.createMenuItems(showEvent, subMenu, item.items);
                     }
                     break;
                 }
@@ -341,6 +339,7 @@ export class ContextMenu extends AbstractModuleInstance {
         }
     }
     private createButtonOnClick(
+        showEvent: MouseEvent,
         showOn: AgContextMenuItemShowOn,
         callback: ContextMenuCallback
     ): (event: _Widget.WidgetEvent) => void {
@@ -368,18 +367,17 @@ export class ContextMenu extends AbstractModuleInstance {
         } else if (ContextMenuRegistry.checkCallback('series-area', showOn, callback)) {
             return () => {
                 const caller: Caller = this.ctx.chartService;
-                const apiEvent = { type: 'seriesContextMenuAction', event: this.showEvent! } as const;
+                const apiEvent = { type: 'seriesContextMenuAction', event: showEvent } as const;
                 callWithContext(caller, callback, apiEvent);
                 this.hide();
             };
         } else if (ContextMenuRegistry.checkCallback('series-node', showOn, callback)) {
             return () => {
-                const { showEvent } = this;
                 const { chartService: chart } = this.ctx;
 
                 const pickedNode = this.pickedNode;
                 const callers: (Caller | undefined)[] = [pickedNode?.series.properties, chart];
-                const apiEvent = pickedNode?.series.createNodeContextMenuActionEvent(showEvent!, pickedNode);
+                const apiEvent = pickedNode?.series.createNodeContextMenuActionEvent(showEvent, pickedNode);
                 if (apiEvent) {
                     callWithContext(callers, callback, apiEvent);
                 } else {
@@ -388,13 +386,13 @@ export class ContextMenu extends AbstractModuleInstance {
                 this.hide();
             };
         } else if (ContextMenuRegistry.checkCallback('caption', showOn, callback)) {
-            return (widgetEvent: _ModuleSupport.WidgetEvent) => {
+            return () => {
                 if (this.pickedCaption) {
                     const callers: Caller = this.ctx.chartService;
                     const apiEvent: Omit<AgCaptionContextMenuActionEvent<never>, 'context'> = {
                         type: 'captionContextMenuAction',
                         captionType: this.pickedCaption,
-                        event: widgetEvent.sourceEvent,
+                        event: showEvent,
                     };
                     callWithContext(callers, callback, apiEvent);
                 } else {
@@ -405,7 +403,7 @@ export class ContextMenu extends AbstractModuleInstance {
         } else {
             return () => {
                 const caller: Caller = this.ctx.chartService;
-                const apiEvent = { type: 'contextMenuEvent', event: this.showEvent! } as const;
+                const apiEvent = { type: 'contextMenuEvent', event: showEvent } as const;
                 // Use `satisfies` to check that all other callback types (those with additional context-based parameters)
                 // have been accounted for.
                 callWithContext(caller, callback satisfies ContextMenuCallback<'always'>, apiEvent);
@@ -428,7 +426,7 @@ export class ContextMenu extends AbstractModuleInstance {
         return { cellIcon, cellLabel, cellArrow };
     }
 
-    private initButtonElement(button: _Widget.MenuItemWidget, item: ContextMenuItem) {
+    private initButtonElement(showEvent: MouseEvent, button: _Widget.MenuItemWidget, item: ContextMenuItem) {
         button.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         button.setEnabled(item.enabled);
         const label = this.ctx.localeManager.t(item.label);
@@ -451,7 +449,7 @@ export class ContextMenu extends AbstractModuleInstance {
 
         const { showOn, action } = item;
         if (action != null) {
-            button.addListener('click', this.createButtonOnClick(showOn, action));
+            button.addListener('click', this.createButtonOnClick(showEvent, showOn, action));
         }
         if (item.items.length === 0) {
             // AG-14807 Design clear hover state
