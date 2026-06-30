@@ -1,4 +1,5 @@
 import type {
+    AgContextMenuCaptionType,
     AgContextMenuGetItemsParams,
     AgContextMenuGetItemsParamsSeriesNode,
     AgContextMenuItem,
@@ -19,7 +20,7 @@ import {
 import { ContextMenuItem, expandBuiltinLists, expandItems } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
 
-type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
+type ContextMenuEvent<K extends AgContextMenuItemShowOn = AgContextMenuItemShowOn> = _ModuleSupport.ContextMenuEvent<K>;
 type ContextMenuCallback = _ModuleSupport.ContextMenuCallback<AgContextMenuItemShowOn>;
 
 const { getItemId, ContextMenuRegistry } = _ModuleSupport;
@@ -71,6 +72,7 @@ export class ContextMenu extends AbstractModuleInstance {
     // State
     private pickedNode: PickedNode | undefined = undefined;
     private pickedLegendItem?: _ModuleSupport.CategoryLegendDatum;
+    private pickedCaption?: AgContextMenuCaptionType;
     private showEvent: MouseEvent | undefined = undefined;
     private x: number = 0;
     private y: number = 0;
@@ -169,6 +171,12 @@ export class ContextMenu extends AbstractModuleInstance {
                 return params;
             }
 
+            case 'caption': {
+                if (this.pickedCaption == null) throw new Error(`this.pickedCaption is null`);
+                const caption = this.pickedCaption;
+                return { showOn, context, caption, defaultItems };
+            }
+
             case 'legend-item':
                 if (this.pickedLegendItem == null) throw new Error(`this.pickedLegendItem is null`);
                 const { itemId, seriesId, label, enabled } = this.pickedLegendItem;
@@ -205,10 +213,13 @@ export class ContextMenu extends AbstractModuleInstance {
         this.y = event.y;
         this.pickedNode = undefined;
         this.pickedLegendItem = undefined;
+        this.pickedCaption = undefined;
         if (ContextMenuRegistry.check('series-node', event)) {
             this.pickedNode = event.context.pickedNode;
         } else if (ContextMenuRegistry.check('legend-item', event)) {
             this.pickedLegendItem = event.context.legendItem;
+        } else if (ContextMenuRegistry.check('caption', event)) {
+            this.pickedCaption = event.context.caption;
         }
 
         const expandedItems = this.expandItemsOptions(event);

@@ -17,9 +17,11 @@ export type AgContextMenuItemLiteral =
     | 'toggle-other-series'
     | 'separator';
 
-export type AgContextMenuItemShowOn = 'always' | 'series-area' | 'series-node' | 'legend-item';
+export type AgContextMenuItemShowOn = 'always' | 'caption' | 'series-area' | 'series-node' | 'legend-item';
 
 export type AgContextMenuItemType = 'action' | 'separator';
+
+export type AgContextMenuCaptionType = 'title' | 'subtitle' | 'footnote';
 
 interface ItemMixin<TDatum = DatumDefault, TContext = ContextDefault> {
     /**
@@ -55,6 +57,20 @@ export interface AgContextMenuItemAlways<TDatum = DatumDefault, TContext = Conte
      * Default: `'always'`
      */
     showOn?: 'always';
+    /** Function called when clicking on this menu item. */
+    action?: (event: AgChartContextMenuEvent<TContext>) => void;
+}
+
+export interface AgContextMenuItemCaption<TDatum = DatumDefault, TContext = ContextDefault> extends ItemMixin<
+    TDatum,
+    TContext
+> {
+    /**
+     * Which clicked element this menu item should be shown for. `'caption'` menu items are when clicking on a caption (title, subtitle, footnote).
+     *
+     * Default: `'caption'`
+     */
+    showOn: 'caption';
     /** Function called when clicking on this menu item. */
     action?: (event: AgChartContextMenuEvent<TContext>) => void;
 }
@@ -98,6 +114,7 @@ export interface AgContextMenuItemLegendItem<TDatum = DatumDefault, TContext = C
 export type AgContextMenuItem<TDatum = DatumDefault, TContext = ContextDefault> =
     | AgContextMenuItemLiteral
     | AgContextMenuItemAlways<TDatum, TContext>
+    | AgContextMenuItemCaption<TDatum, TContext>
     | AgContextMenuItemSeriesArea<TDatum, TContext>
     | AgContextMenuItemSeriesNode<TDatum, TContext>
     | AgContextMenuItemLegendItem<TDatum, TContext>;
@@ -124,6 +141,16 @@ export interface AgContextMenuGetItemsParamsAlways<_TDatumReserved = never, TCon
         GetItemsParamsMixin<_TDatumReserved, TContext> {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'always';
+}
+
+export interface AgContextMenuGetItemsParamsCaption<_TDatumReserved = never, TContext = ContextDefault>
+    extends
+        Omit<AgChartContextMenuEvent<TContext>, GetItemsParamsOmissions>,
+        GetItemsParamsMixin<_TDatumReserved, TContext> {
+    /** Which clicked element this menu item should be shown for. */
+    showOn: 'caption';
+    /** Which type of caption was clicked on. */
+    caption: AgContextMenuCaptionType;
 }
 
 export interface AgContextMenuGetItemsParamsSeriesArea<_TDatumReserved = never, TContext = ContextDefault>
@@ -156,6 +183,7 @@ export interface AgContextMenuGetItemsParamsLegendItem<_TDatumReserved = never, 
 
 export type AgContextMenuGetItemsParams<TDatum = DatumDefault, TContext = ContextDefault> =
     | AgContextMenuGetItemsParamsAlways<TDatum, TContext>
+    | AgContextMenuGetItemsParamsCaption<TDatum, TContext>
     | AgContextMenuGetItemsParamsSeriesArea<TDatum, TContext>
     | AgContextMenuGetItemsParamsSeriesNode<TDatum, TContext>
     | AgContextMenuGetItemsParamsLegendItem<TDatum, TContext>;
