@@ -411,7 +411,10 @@ export const SINGLE_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightOptions<A
     },
 };
 
-export const SERIES_SELECTION_THEME: WithThemeParams<AgSelectionOptions<AgSelectionStyleOptions>> = {
+export type SelectionStyleOptionsWithUndocumented = AgSelectionOptions<AgSelectionStyleOptions> & {
+    clickModifier: 'none' | 'alt';
+};
+export const SERIES_SELECTION_THEME: WithThemeParams<SelectionStyleOptionsWithUndocumented> = {
     enabled: { $path: ['/selection/enabled', false] },
     containment: { $path: '/selection/containment' },
     selectedItem: {
@@ -423,6 +426,7 @@ export const SERIES_SELECTION_THEME: WithThemeParams<AgSelectionOptions<AgSelect
     unselectedSeries: {
         opacity: 0.2,
     },
+    clickModifier: 'none',
 };
 
 export const LEGEND_CONTAINER_THEME: any = {
