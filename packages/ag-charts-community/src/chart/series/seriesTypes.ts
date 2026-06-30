@@ -2,6 +2,7 @@ import type {
     BoxBounds,
     ChartAxisDirection,
     DomainWithMetadata,
+    LabelObstacle,
     PlacedLabel,
     Point,
     PointLabelDatum,
@@ -124,6 +125,7 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
     getLabelData(): (TLabel & PointLabelDatum)[];
+    getLabelObstacles?(): LabelObstacle[];
     getTooltipContent(datumIndex: DatumIndex, removeThisDatum: TDatum | undefined): TooltipContent | undefined;
     getDatumAriaText?(seriesDatum: TDatum, description: string): string | undefined;
     getCategoryValue(datumIndex: number): any;
@@ -166,6 +168,7 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     isEnabled(): boolean;
     type: string;
     visible: boolean;
+    usesPlacedLabels: boolean;
     connectsToYAxis: boolean;
     tooltipEnabled?: boolean;
     // @todo(AG-13777) - Remove this function (see CartesianSeries.ts)

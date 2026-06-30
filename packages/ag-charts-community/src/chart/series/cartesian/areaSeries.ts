@@ -15,6 +15,7 @@ import {
     DebugMetrics,
     SeriesContentZIndexMap,
     SeriesZIndexMap,
+    cachedTextMeasurer,
     extent,
     isContinuous,
     isDefined,
@@ -43,7 +44,6 @@ import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
-import type { Text } from '../../../scene/shape/text';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';
@@ -61,7 +61,7 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
-import { getLabelStyles } from '../../labelUtil';
+import { expandLabelPadding } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -93,16 +93,11 @@ import {
     prepareAreaPathAnimation,
 } from './areaUtil';
 import {
-    CartesianSeries,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD,
 } from './cartesianSeries';
-import type {
-    CartesianAnimationDataOf,
-    CartesianMarkerLikeContext,
-    CartesianSeriesTypes,
-} from './cartesianSeriesTypes';
+import type { CartesianAnimationDataOf, CartesianMarkerLikeContext } from './cartesianSeriesTypes';
 import { type LinePathSpan, type LineSpanPointDatum, interpolatePoints, plotLinePathStroke } from './lineUtil';
 import {
     cartesianMarkerDrawMode,
@@ -115,6 +110,13 @@ import {
     resetMarkerSelectionsDirect,
 } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
+import {
+    DEFAULT_MARKERLESS_LABEL_GAP,
+    DEFAULT_PLACED_LABEL_PLACEMENTS,
+    PlacedLabelCartesianSeries,
+    type PlacedLabelContext,
+    type PlacedLabelSeriesTypes,
+} from './placedLabelCartesianSeries';
 import { calculateSegments } from './util';
 
 type AreaAnimationData = CartesianAnimationDataOf<AreaSeriesTypes>;
@@ -166,7 +168,8 @@ interface AreaSeriesStackContext {
 }
 
 /** Context object caching expensive lookups for createNodeData(). */
-interface AreaSeriesCreateNodeDatumContext extends CartesianMarkerLikeContext<MarkerSelectionDatum> {
+interface AreaSeriesCreateNodeDatumContext
+    extends CartesianMarkerLikeContext<MarkerSelectionDatum>, PlacedLabelContext {
     // Override yKey to be required (base interface has it optional)
     readonly yKey: string;
 
@@ -215,18 +218,19 @@ interface AreaNodeDatumScratch {
  * Consolidated type interface for AreaSeries.
  * Defines all type parameters in one place for the series.
  */
-interface AreaSeriesTypes extends CartesianSeriesTypes {
+interface AreaSeriesTypes extends PlacedLabelSeriesTypes {
     readonly node: Marker<MarkerSelectionDatum>;
     readonly options: AgAreaSeriesOptions;
     readonly properties: AreaSeriesProperties;
     readonly datum: MarkerSelectionDatum;
     readonly label: LabelSelectionDatum;
+    readonly labelParams: AgAreaSeriesLabelFormatterParams;
     readonly context: AreaSeriesNodeDataContext;
     readonly stackContext: AreaSeriesStackContext;
     readonly createNodeDataContext: AreaSeriesCreateNodeDatumContext;
 }
 
-export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
+export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     static override readonly className = 'AreaSeries';
     static readonly type = 'area' as const;
 
@@ -256,6 +260,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             pathsZIndexSubOrderOffset: [0, 1000],
             datumSelectionGarbageCollection: false,
             segmentedDataNodes: false,
+            usesPlacedLabels: true,
             pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             animationResetFns: {
                 path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
@@ -1017,6 +1022,12 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             // Pre-computed flags
             isContinuousY,
             labelsEnabled: label.enabled,
+            labelPadding: expandLabelPadding(label),
+            labelTextMeasurer: cachedTextMeasurer(label),
+            labelAvoid: label.collisionAvoidance.avoid,
+            labelPlacements: label.collisionAvoidance.placements(DEFAULT_PLACED_LABEL_PLACEMENTS),
+            labelMinSpacing: label.collisionAvoidance.minSpacing,
+            labelCollideWith: label.collisionAvoidance.resolveCollideWith(),
             normalizedTo,
             canIncrementallyUpdate,
             animationEnabled: !this.ctx.animationManager.isSkipped(),
@@ -1158,6 +1169,16 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                 x: scratch.x,
                 y: scratch.y,
                 labelText,
+                point: { x: scratch.x, y: scratch.y, size: ctx.markerSize },
+                label: this.measureLabel(ctx, labelText),
+                anchor: undefined,
+                placement: 'top',
+                placements: ctx.labelPlacements,
+                // Markerless points still nudge their label clear of the area with a small fixed gap.
+                gap: ctx.markerSize > 0 ? ctx.markerSize / 2 : DEFAULT_MARKERLESS_LABEL_GAP,
+                avoid: ctx.labelAvoid,
+                minSpacing: ctx.labelMinSpacing,
+                collideWith: ctx.labelCollideWith,
             });
         }
     }
@@ -1498,42 +1519,16 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         }
     }
 
-    protected override updateLabelSelection(opts: {
-        labelData: LabelSelectionDatum[];
-        labelSelection: Selection<LabelSelectionDatum, Text<LabelSelectionDatum>>;
-    }) {
-        return opts.labelSelection.update(this.isLabelEnabled() ? opts.labelData : []);
+    protected override get labelProperty() {
+        return this.properties.label;
     }
 
-    protected updateLabelNodes(opts: {
-        labelSelection: Selection<LabelSelectionDatum, Text<LabelSelectionDatum>>;
-        isHighlight?: boolean;
-    }) {
-        const { isHighlight = false } = opts;
-        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const params: AgAreaSeriesLabelFormatterParams = this.makeLabelFormatterParams();
+    protected override writeLabelPoint(datum: LabelSelectionDatum, x: number, y: number): LabelSelectionDatum {
+        return { ...datum, x, y };
+    }
 
-        opts.labelSelection.each((text, datum) => {
-            const style = getLabelStyles(this, datum, params, this.properties.label, isHighlight, activeHighlight);
-            const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
-            if (enabled && datum?.labelText) {
-                text.fontStyle = fontStyle;
-                text.fontWeight = fontWeight;
-                text.fontSize = fontSize;
-                text.fontFamily = fontFamily;
-                text.textAlign = 'center';
-                text.textBaseline = 'bottom';
-                text.text = datum.labelText;
-                text.x = datum.x;
-                text.y = datum.y - 10;
-                text.fill = color;
-                text.visible = true;
-                text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
-                text.setBoxing(style);
-            } else {
-                text.visible = false;
-            }
-        });
+    protected override readLabelPoint(datum: LabelSelectionDatum): Point {
+        return datum;
     }
 
     makeStylerParams(
@@ -1607,7 +1602,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         >;
     }
 
-    private makeLabelFormatterParams(): AgAreaSeriesLabelFormatterParams {
+    protected override makeLabelFormatterParams(): AgAreaSeriesLabelFormatterParams {
         const { xKey, xName, yKey, yName, legendItemName } = this.properties;
         return { xKey, xName, yKey, yName, legendItemName } satisfies RequireOptional<AgAreaSeriesLabelFormatterParams>;
     }

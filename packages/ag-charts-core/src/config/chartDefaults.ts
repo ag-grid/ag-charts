@@ -70,6 +70,7 @@ import {
     validate,
 } from '../state/validation';
 import { isValidNumberFormat } from '../utils/format/numberFormat';
+import type { LabelPlacement } from '../utils/geometry/labelPlacement';
 import {
     borderOptionsDef,
     colorOrRef,
@@ -741,6 +742,38 @@ export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> 
     ...labelBoxOptionsDef,
     ...fontOptionsDef,
 };
+
+const labelCollideWithCategoryDef = {
+    enabled: boolean,
+    minSpacing: positiveNumber,
+};
+
+export const collisionAvoidanceOptionsDef = {
+    enabled: boolean,
+    strategy: arrayOfDefs(
+        typeUnion<{ type: 'reposition'; placements?: LabelPlacement[] }>(
+            {
+                reposition: {
+                    placements: arrayOf(
+                        union('top', 'bottom', 'left', 'right', 'top-left', 'top-right', 'bottom-left', 'bottom-right')
+                    ),
+                },
+            },
+            'a label collision strategy',
+            'reposition'
+        ),
+        'a label collision strategy array'
+    ),
+    minSpacing: positiveNumber,
+    collideWith: {
+        markers: labelCollideWithCategoryDef,
+        labels: labelCollideWithCategoryDef,
+        seriesItems: labelCollideWithCategoryDef,
+    },
+};
+
+// @ts-expect-error undocumented option
+seriesLabelOptionsDefs.collisionAvoidance = undocumented(collisionAvoidanceOptionsDef);
 
 export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOptions<any, any>> = {
     ...seriesLabelOptionsDefs,

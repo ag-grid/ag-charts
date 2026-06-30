@@ -10,6 +10,7 @@ import {
     type Point,
     type RequireOptional,
     type SizedPoint,
+    applyLabelAvoidance,
     cachedTextMeasurer,
     clamp,
     dateToNumber,
@@ -981,7 +982,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
-        return this.contextNodeData?.labelData ?? [];
+        const labelData = this.contextNodeData?.labelData ?? [];
+        applyLabelAvoidance(labelData, this.properties.label.collisionAvoidance.avoid);
+        return labelData;
     }
 
     protected override updateDatumSelection(opts: {

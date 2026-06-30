@@ -13,6 +13,7 @@ import {
     type ITextMeasurer,
     Logger,
     type Point,
+    applyLabelAvoidance,
     cachedTextMeasurer,
     findDiscreteColorBinLabel,
     formatValue,
@@ -656,7 +657,9 @@ export class MapLineSeries
 
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
-        return this.contextNodeData?.labelData ?? [];
+        const labelData = this.contextNodeData?.labelData ?? [];
+        applyLabelAvoidance(labelData, this.properties.label.collisionAvoidance.avoid);
+        return labelData;
     }
 
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {

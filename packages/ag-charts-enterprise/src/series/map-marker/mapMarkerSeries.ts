@@ -14,6 +14,7 @@ import {
     type Point,
     type SizedPoint,
     StateMachine,
+    applyLabelAvoidance,
     cachedTextMeasurer,
     findDiscreteColorBinLabel,
     formatValue,
@@ -928,7 +929,9 @@ export class MapMarkerSeries
 
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
-        return this.contextNodeData?.labelData ?? [];
+        const labelData = this.contextNodeData?.labelData ?? [];
+        applyLabelAvoidance(labelData, this.properties.label.collisionAvoidance.avoid);
+        return labelData;
     }
 
     override pickNodeClosestDatum(p: Point): _ModuleSupport.SeriesNodePickMatch | undefined {

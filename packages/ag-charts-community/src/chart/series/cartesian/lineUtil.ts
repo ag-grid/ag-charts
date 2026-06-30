@@ -29,6 +29,7 @@ import type {
 } from './cartesianSeriesTypes';
 import { interpolatedSpanRange, plotInterpolatedSpans, plotSpan } from './lineInterpolationPlotting';
 import { CollapseMode, type SpanInterpolation, pairUpSpans } from './lineInterpolationUtil';
+import type { MutablePlacedLabelFields, PlacedLabelContext } from './placedLabelCartesianSeries';
 
 export interface LinePathSpan {
     span: Span;
@@ -55,7 +56,7 @@ export interface LineSpanPointDatum {
     yDatum: any;
 }
 
-export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
+export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum, MutablePlacedLabelFields {
     readonly itemId?: never;
     readonly xValue: NonNullable<CartesianSeriesNodeDatum['xValue']>;
     readonly yValue: NonNullable<CartesianSeriesNodeDatum['yValue']>;
@@ -83,7 +84,7 @@ export interface LineSeriesNodeDataContext extends CartesianSeriesNodeDataContex
  *
  * Extends CartesianMarkerLikeContext to satisfy the template method pattern.
  */
-export interface LineSeriesDatumContext extends CartesianMarkerLikeContext<LineNodeDatum> {
+export interface LineSeriesDatumContext extends CartesianMarkerLikeContext<LineNodeDatum>, PlacedLabelContext {
     // Override yKey to be required (base interface has it optional)
     readonly yKey: string;
 

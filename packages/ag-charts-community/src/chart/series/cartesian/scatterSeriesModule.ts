@@ -43,6 +43,8 @@ const themeTemplate: ExtensibleTheme<'scatter'> = {
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'textColor' },
+            // @ts-expect-error undocumented option
+            collisionAvoidance: { enabled: true },
         },
         tooltip: {
             range: {

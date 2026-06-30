@@ -4,12 +4,15 @@ import type {
     DynamicContext,
     NormalisedLineSeriesStylerResult,
     NormalisedSeriesMarkerStyle,
+    Point,
     RequireOptional,
+    Writeable,
 } from 'ag-charts-core';
 import {
     AGGREGATION_INDEX_Y_MAX,
     ChartAxisDirection,
     DebugMetrics,
+    cachedTextMeasurer,
     extent,
     isDefined,
     mergeDefaults,
@@ -33,7 +36,6 @@ import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
-import type { Text } from '../../../scene/shape/text';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';
@@ -50,7 +52,7 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
-import { getLabelStyles } from '../../labelUtil';
+import { expandLabelPadding } from '../../label';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -68,12 +70,8 @@ import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { toHighlightString, toSelectionString } from '../seriesProperties';
 import { HighlightState, SelectionState } from '../seriesTypes';
 import { datumStylerProperties } from '../util';
-import {
-    CartesianSeries,
-    DEFAULT_CARTESIAN_DIRECTION_KEYS,
-    DEFAULT_CARTESIAN_DIRECTION_NAMES,
-} from './cartesianSeries';
-import type { CartesianAnimationDataOf, CartesianSeriesTypes } from './cartesianSeriesTypes';
+import { DEFAULT_CARTESIAN_DIRECTION_KEYS, DEFAULT_CARTESIAN_DIRECTION_NAMES } from './cartesianSeries';
+import type { CartesianAnimationDataOf } from './cartesianSeriesTypes';
 import {
     type LineSeriesDataAggregationFilter,
     aggregateLineDataFromDataModel,
@@ -102,18 +100,25 @@ import {
     resetMarkerSelectionsDirect,
 } from './markerUtil';
 import { buildResetPathFn, pathSwipeInAnimation, updateClipPath } from './pathUtil';
+import {
+    DEFAULT_MARKERLESS_LABEL_GAP,
+    DEFAULT_PLACED_LABEL_PLACEMENTS,
+    PlacedLabelCartesianSeries,
+    type PlacedLabelSeriesTypes,
+} from './placedLabelCartesianSeries';
 import { calculateSegments } from './util';
 
 /**
  * Consolidated type interface for LineSeries.
  * Defines all type parameters in one place for the series.
  */
-interface LineSeriesTypes extends CartesianSeriesTypes {
+interface LineSeriesTypes extends PlacedLabelSeriesTypes {
     readonly node: Marker<LineNodeDatum>;
     readonly options: AgLineSeriesOptions;
     readonly properties: LineSeriesProperties;
     readonly datum: LineNodeDatum;
     readonly label: LineNodeDatum;
+    readonly labelParams: AgLineSeriesLabelFormatterParams;
     readonly context: LineSeriesNodeDataContext;
     readonly stackContext: never;
     readonly createNodeDataContext: LineSeriesDatumContext;
@@ -157,7 +162,7 @@ type LineStylerApply = MarkerStyleApply<
     ReturnType<LineSeries['getStyle']>
 >;
 
-export class LineSeries extends CartesianSeries<LineSeriesTypes> {
+export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     static override readonly className = 'LineSeries';
     static readonly type = 'line' as const;
 
@@ -183,6 +188,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             ],
             datumSelectionGarbageCollection: false,
             segmentedDataNodes: false,
+            usesPlacedLabels: true,
             animationResetFns: {
                 path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,
@@ -466,6 +472,8 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
+        const { collisionAvoidance } = this.properties.label;
+
         return {
             xAxis,
             yAxis,
@@ -488,6 +496,12 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             size: this.properties.marker.enabled ? this.properties.marker.size : 0,
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
             labelsEnabled: this.properties.label.enabled,
+            labelPadding: expandLabelPadding(this.properties.label),
+            labelTextMeasurer: cachedTextMeasurer(this.properties.label),
+            labelAvoid: collisionAvoidance.avoid,
+            labelPlacements: collisionAvoidance.placements(DEFAULT_PLACED_LABEL_PLACEMENTS),
+            labelMinSpacing: collisionAvoidance.minSpacing,
+            labelCollideWith: collisionAvoidance.resolveCollideWith(),
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,
             dataAggregationFilter,
@@ -546,22 +560,32 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                   )
                 : undefined;
 
+            const label = this.measureLabel(ctx, labelText);
+            // Markerless vertices still nudge their label clear of the line with a small fixed gap.
+            const gap = ctx.size > 0 ? ctx.size / 2 : DEFAULT_MARKERLESS_LABEL_GAP;
+
             const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
 
             if (canReuseNode) {
                 // Update existing node datum in place
-                const existingNode = ctx.nodes[ctx.nodeIndex];
-                (existingNode as any).datum = scratch.datum;
-                (existingNode as any).datumIndex = datumIndex;
-                (existingNode as any).point = { x: scratch.x, y: scratch.y, size: ctx.size };
-                (existingNode as any).midPoint = { x: scratch.x, y: scratch.y };
+                const existingNode: Writeable<LineNodeDatum> = ctx.nodes[ctx.nodeIndex];
+                existingNode.datum = scratch.datum;
+                existingNode.datumIndex = datumIndex;
+                existingNode.point = { x: scratch.x, y: scratch.y, size: ctx.size };
+                existingNode.midPoint = { x: scratch.x, y: scratch.y };
                 // Metadata only; position already used the exact bigint, so narrowing here is fine.
-                (existingNode as any).cumulativeValue = Number(scratch.yCumulative);
-                (existingNode as any).cumulativeValueExact = scratch.yCumulative;
-                (existingNode as any).yValue = scratch.yDatum;
-                (existingNode as any).xValue = scratch.xDatum;
-                (existingNode as any).labelText = labelText;
-                (existingNode as any).crossFilterSelected = scratch.crossFilterSelected;
+                existingNode.cumulativeValue = Number(scratch.yCumulative);
+                existingNode.cumulativeValueExact = scratch.yCumulative;
+                existingNode.yValue = scratch.yDatum;
+                existingNode.xValue = scratch.xDatum;
+                existingNode.labelText = labelText;
+                existingNode.label = label;
+                existingNode.gap = gap;
+                existingNode.avoid = ctx.labelAvoid;
+                existingNode.placements = ctx.labelPlacements;
+                existingNode.minSpacing = ctx.labelMinSpacing;
+                existingNode.collideWith = ctx.labelCollideWith;
+                existingNode.crossFilterSelected = scratch.crossFilterSelected;
             } else {
                 ctx.nodes.push({
                     series: this,
@@ -577,6 +601,14 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                     xValue: scratch.xDatum,
                     capDefaults: ctx.capDefaults,
                     labelText,
+                    label,
+                    anchor: undefined,
+                    placement: 'top',
+                    placements: ctx.labelPlacements,
+                    gap,
+                    avoid: ctx.labelAvoid,
+                    minSpacing: ctx.labelMinSpacing,
+                    collideWith: ctx.labelCollideWith,
                     crossFilterSelected: scratch.crossFilterSelected,
                 });
             }
@@ -658,7 +690,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         return {
             itemId: ctx.yKey,
             nodeData: ctx.nodes,
-            labelData: ctx.nodes,
+            labelData: ctx.labelsEnabled ? ctx.nodes : [],
             strokeData: { itemId: ctx.yKey, spans: [] }, // Default for early return
             scales: this.calculateScaling(),
             visible: this.visible,
@@ -918,42 +950,16 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         }
     }
 
-    protected override updateLabelSelection(opts: {
-        labelData: LineNodeDatum[];
-        labelSelection: Selection<LineNodeDatum, Text<LineNodeDatum>>;
-    }) {
-        return opts.labelSelection.update(this.isLabelEnabled() ? opts.labelData : []);
+    protected override get labelProperty() {
+        return this.properties.label;
     }
 
-    protected updateLabelNodes(opts: {
-        labelSelection: Selection<LineNodeDatum, Text<LineNodeDatum>>;
-        isHighlight?: boolean;
-    }) {
-        const { isHighlight = false } = opts;
-        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const params: AgLineSeriesLabelFormatterParams = this.makeLabelFormatterParams();
+    protected override writeLabelPoint(datum: LineNodeDatum, x: number, y: number): LineNodeDatum {
+        return { ...datum, point: { ...datum.point, x, y } };
+    }
 
-        opts.labelSelection.each((text, datum) => {
-            const style = getLabelStyles(this, datum, params, this.properties.label, isHighlight, activeHighlight);
-            const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
-            if (enabled && datum?.labelText) {
-                text.fontStyle = fontStyle;
-                text.fontWeight = fontWeight;
-                text.fontSize = fontSize;
-                text.fontFamily = fontFamily;
-                text.textAlign = 'center';
-                text.textBaseline = 'bottom';
-                text.text = datum.labelText;
-                text.x = datum.point.x;
-                text.y = datum.point.y - 10;
-                text.fill = color;
-                text.visible = true;
-                text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
-                text.setBoxing(style);
-            } else {
-                text.visible = false;
-            }
-        });
+    protected override readLabelPoint(datum: LineNodeDatum): Point {
+        return datum.point;
     }
 
     makeStylerParams(
@@ -1018,7 +1024,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         } satisfies CallbackParamRules<AgLineSeriesMarkerItemStylerParams<unknown, unknown>>;
     }
 
-    private makeLabelFormatterParams(): AgLineSeriesLabelFormatterParams {
+    protected override makeLabelFormatterParams(): AgLineSeriesLabelFormatterParams {
         const { xKey, xName, yKey, yName, legendItemName } = this.properties;
         return { xKey, xName, yKey, yName, legendItemName } satisfies RequireOptional<AgLineSeriesLabelFormatterParams>;
     }

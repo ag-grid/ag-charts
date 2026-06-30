@@ -22,6 +22,7 @@ import {
     prepareLinePathPropertyAnimation,
     prepareLinePathStrokeAnimationFns,
 } from './lineUtil';
+import type { MutablePlacedLabelFields } from './placedLabelCartesianSeries';
 
 export type AreaFillPathDatum = {
     readonly spans: LinePathSpan[];
@@ -48,9 +49,10 @@ export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
     style?: NormalisedSeriesMarkerStyle;
 }
 
-export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
+export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum, MutablePlacedLabelFields {
     readonly itemId?: never;
     readonly labelText: NormalisedTextOrSegments;
+    readonly point: Readonly<SizedPoint>;
 }
 
 export interface AreaSeriesNodeDataContext extends CartesianSeriesNodeDataContext<
