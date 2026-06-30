@@ -9,6 +9,7 @@ import {
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SERIES_SELECTION_THEME,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type {
     AgBubbleSeriesOptions,
@@ -84,8 +85,7 @@ const themeTemplate: ExtensibleTheme<'bubble'> = {
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'textColor' },
-            // @ts-expect-error undocumented option
-            collisionAvoidance: { enabled: true },
+            ...undocumentedThemeOptions({ collisionAvoidance: { enabled: true } }),
         },
         tooltip: {
             range: {

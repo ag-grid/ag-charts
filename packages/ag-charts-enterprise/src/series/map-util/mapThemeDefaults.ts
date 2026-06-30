@@ -1,4 +1,4 @@
-import { deepClone, jsonWalk } from 'ag-charts-core';
+import { deepClone, jsonWalk, undocumentedThemeOptions } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
 export const MAP_THEME_DEFAULTS: ExtensibleTheme<'map-shape' | 'map-line' | 'map-marker'> = {
@@ -7,9 +7,10 @@ export const MAP_THEME_DEFAULTS: ExtensibleTheme<'map-shape' | 'map-line' | 'map
         anchorPointX: 'pointer',
         anchorPointY: 'pointer',
         buttons: {
-            // @ts-expect-error undocumented options
-            anchorPointX: 'middle',
-            anchorPointY: 'middle',
+            ...undocumentedThemeOptions({
+                anchorPointX: 'middle',
+                anchorPointY: 'middle',
+            }),
         },
     },
     legend: {

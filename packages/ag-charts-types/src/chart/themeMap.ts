@@ -1,12 +1,17 @@
-import type { AgLinearGaugeOptions, AgRadialGaugeOptions } from '../chartBuilderOptions';
+import type { AgLinearGaugeThemeableOptions } from '../presets/gauge/linearGaugeOptions';
+import type { AgRadialGaugeThemeableOptions } from '../presets/gauge/radialGaugeOptions';
 import type { SeriesType } from '../series/seriesTypes';
 import type { WithThemeParams } from './operationOptions';
-import type { AgChartThemeOverrides } from './themeOptions';
+import type { AgBaseGaugePresetThemeOptions, AgChartThemeOverrides } from './themeOptions';
 import type { ContextDefault, DatumDefault } from './types';
 
 type ThemesMap<TDatum = DatumDefault, TContext = ContextDefault> = AgChartThemeOverrides<TDatum, TContext> & {
-    'linear-gauge'?: { series: AgLinearGaugeOptions<TDatum, TContext> };
-    'radial-gauge'?: { series: AgRadialGaugeOptions<TDatum, TContext> };
+    'linear-gauge'?: AgBaseGaugePresetThemeOptions<TDatum, TContext> & {
+        series: AgLinearGaugeThemeableOptions<TContext>;
+    };
+    'radial-gauge'?: AgBaseGaugePresetThemeOptions<TDatum, TContext> & {
+        series: AgRadialGaugeThemeableOptions<TContext>;
+    };
 };
 
 export type ExtensibleTheme<

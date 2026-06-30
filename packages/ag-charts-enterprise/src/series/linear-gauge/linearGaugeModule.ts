@@ -7,6 +7,7 @@ import {
     SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
     linearGaugeSeriesOptionsDef,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
@@ -21,21 +22,15 @@ const themeTemplate: ExtensibleTheme<'linear-gauge'> = {
     },
     series: {
         thickness: 50,
-        defaultColorRange: {
-            $if: [
-                { $eq: [{ $palette: 'type' }, 'inbuilt'] },
-                { $interpolate: [{ $palette: 'secondDivergingColors' }, 5] },
-                SAFE_RANGE2_OPERATION,
-            ],
-        },
         scale: {
-            // @ts-expect-error undocumented option
-            defaultFill: { $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
             stroke: { $path: ['/2', SAFE_STROKE_FILL_OPERATION, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
             strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
             label: {
                 spacing: 11,
             },
+            ...undocumentedThemeOptions({
+                defaultFill: { $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
+            }),
         },
         bar: {
             strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
@@ -44,30 +39,6 @@ const themeTemplate: ExtensibleTheme<'linear-gauge'> = {
             enabled: false,
             interval: {},
             spacing: 1,
-        },
-        defaultTarget: {
-            fill: { $ref: 'foregroundColor' },
-            stroke: { $ref: 'foregroundColor' },
-            size: 10,
-            shape: 'triangle',
-            placement: 'after',
-            spacing: 5,
-            label: {
-                enabled: true,
-                fontWeight: { $ref: 'fontWeight' },
-                fontSize: { $ref: 'fontSize' },
-                fontFamily: { $ref: 'fontFamily' },
-                color: { $ref: 'textColor' },
-                spacing: 5,
-            },
-        },
-        defaultScale: {
-            label: {
-                fontWeight: { $ref: 'fontWeight' },
-                fontSize: { $ref: 'fontSize' },
-                fontFamily: { $ref: 'fontFamily' },
-                color: { $ref: 'textColor' },
-            },
         },
         label: {
             ...LABEL_BOXING_DEFAULTS,
@@ -80,11 +51,44 @@ const themeTemplate: ExtensibleTheme<'linear-gauge'> = {
             spacing: 18,
             color: { $ref: 'chartBackgroundColor' },
         },
-        margin: 4,
         tooltip: {
             range: { $path: ['/tooltip/range', 10] },
         },
         selection: SERIES_SELECTION_THEME,
+        ...undocumentedThemeOptions({
+            defaultColorRange: {
+                $if: [
+                    { $eq: [{ $palette: 'type' }, 'inbuilt'] },
+                    { $interpolate: [{ $palette: 'secondDivergingColors' }, 5] },
+                    SAFE_RANGE2_OPERATION,
+                ],
+            },
+            defaultTarget: {
+                fill: { $ref: 'foregroundColor' },
+                stroke: { $ref: 'foregroundColor' },
+                size: 10,
+                shape: 'triangle',
+                placement: 'after',
+                spacing: 5,
+                label: {
+                    enabled: true,
+                    fontWeight: { $ref: 'fontWeight' },
+                    fontSize: { $ref: 'fontSize' },
+                    fontFamily: { $ref: 'fontFamily' },
+                    color: { $ref: 'textColor' },
+                    spacing: 5,
+                },
+            },
+            defaultScale: {
+                label: {
+                    fontWeight: { $ref: 'fontWeight' },
+                    fontSize: { $ref: 'fontSize' },
+                    fontFamily: { $ref: 'fontFamily' },
+                    color: { $ref: 'textColor' },
+                },
+            },
+            margin: 4,
+        }),
     },
 };
 

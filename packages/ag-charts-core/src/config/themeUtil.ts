@@ -21,6 +21,11 @@ import { Color } from '../utils/format/color';
 
 type CartesianAxis = Exclude<AgCartesianChartOptions['axes'], undefined>[0];
 
+/** Spread undocumented theme defaults into a template; the `object` return type erases the keys so siblings stay validated. */
+export function undocumentedThemeOptions(options: object): object {
+    return options;
+}
+
 export const DIRECTION_SWAP_AXES: WithThemeParams<Record<string, CartesianAxis>> = {
     x: {
         position: CARTESIAN_POSITION.BOTTOM,
