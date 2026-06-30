@@ -1,5 +1,6 @@
 import type { SelectionState } from './callbackOptions';
 import type {
+    AgCaptionContextMenuActionEvent,
     AgChartContextMenuEvent,
     AgNodeContextMenuActionEvent,
     AgSeriesAreaContextMenuActionEvent,
@@ -20,8 +21,6 @@ export type AgContextMenuItemLiteral =
 export type AgContextMenuItemShowOn = 'always' | 'caption' | 'series-area' | 'series-node' | 'legend-item';
 
 export type AgContextMenuItemType = 'action' | 'separator';
-
-export type AgCaptionType = 'title' | 'subtitle' | 'footnote';
 
 interface ItemMixin<TDatum = DatumDefault, TContext = ContextDefault> {
     /**
@@ -72,7 +71,7 @@ export interface AgContextMenuItemCaption<TDatum = DatumDefault, TContext = Cont
      */
     showOn: 'caption';
     /** Function called when clicking on this menu item. */
-    action?: (event: AgChartContextMenuEvent<TContext>) => void;
+    action?: (event: AgCaptionContextMenuActionEvent<TContext>) => void;
 }
 
 export interface AgContextMenuItemSeriesArea<TDatum = DatumDefault, TContext = ContextDefault> extends ItemMixin<
@@ -145,12 +144,10 @@ export interface AgContextMenuGetItemsParamsAlways<_TDatumReserved = never, TCon
 
 export interface AgContextMenuGetItemsParamsCaption<_TDatumReserved = never, TContext = ContextDefault>
     extends
-        Omit<AgChartContextMenuEvent<TContext>, GetItemsParamsOmissions>,
+        Omit<AgCaptionContextMenuActionEvent<TContext>, GetItemsParamsOmissions>,
         GetItemsParamsMixin<_TDatumReserved, TContext> {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'caption';
-    /** Which type of caption was clicked on. */
-    captionType: AgCaptionType;
 }
 
 export interface AgContextMenuGetItemsParamsSeriesArea<_TDatumReserved = never, TContext = ContextDefault>

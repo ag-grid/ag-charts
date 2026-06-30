@@ -1,4 +1,5 @@
 import type {
+    AgCaptionContextMenuActionEvent,
     AgCaptionType,
     AgContextMenuGetItemsParams,
     AgContextMenuGetItemsParamsSeriesNode,
@@ -21,7 +22,8 @@ import { ContextMenuItem, expandBuiltinLists, expandItems } from './contextMenuI
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
 
 type ContextMenuEvent<K extends AgContextMenuItemShowOn = AgContextMenuItemShowOn> = _ModuleSupport.ContextMenuEvent<K>;
-type ContextMenuCallback = _ModuleSupport.ContextMenuCallback<AgContextMenuItemShowOn>;
+type ContextMenuCallback<K extends AgContextMenuItemShowOn = AgContextMenuItemShowOn> =
+    _ModuleSupport.ContextMenuCallback<K>;
 
 const { getItemId, ContextMenuRegistry } = _ModuleSupport;
 type UnknownSeries = _ModuleSupport.ISeries<
@@ -385,13 +387,31 @@ export class ContextMenu extends AbstractModuleInstance {
                 }
                 this.hide();
             };
+        } else if (ContextMenuRegistry.checkCallback('caption', showOn, callback)) {
+            return (widgetEvent: _ModuleSupport.WidgetEvent) => {
+                if (this.pickedCaption) {
+                    const callers: Caller = this.ctx.chartService;
+                    const apiEvent: Omit<AgCaptionContextMenuActionEvent<never>, 'context'> = {
+                        type: 'captionContextMenuAction',
+                        captionType: this.pickedCaption,
+                        event: widgetEvent.sourceEvent,
+                    };
+                    callWithContext(callers, callback, apiEvent);
+                } else {
+                    Logger.error('caption item not found');
+                }
+                this.hide();
+            };
+        } else {
+            return () => {
+                const caller: Caller = this.ctx.chartService;
+                const apiEvent = { type: 'contextMenuEvent', event: this.showEvent! } as const;
+                // Use `satisfies` to check that all other callback types (those with additional context-based parameters)
+                // have been accounted for.
+                callWithContext(caller, callback satisfies ContextMenuCallback<'always'>, apiEvent);
+                this.hide();
+            };
         }
-        return () => {
-            const caller: Caller = this.ctx.chartService;
-            const apiEvent = { type: 'contextMenuEvent', event: this.showEvent! } as const;
-            callWithContext(caller, callback, apiEvent);
-            this.hide();
-        };
     }
 
     private initTableCells(elem: Element) {
