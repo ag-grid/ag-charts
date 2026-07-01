@@ -69,20 +69,25 @@ test.describe('axes', () => {
     }
 
     // axis-label-rotation demonstrates the label-rotation and collision-avoidance strategies via buttons.
-    // The default (auto rotation, uniform labels, collision detection on) is the render baseline above.
+    // The default (auto rotation, uniform labels, collision detection on) is the render baseline above; for
+    // those uniform labels that already fit, "No rotation" is byte-identical to the default, so it is not a
+    // distinct state worth its own baseline.
     test.describe('axis-label-rotation controls', () => {
-        test('no rotation keeps labels horizontal', async ({ page }) => {
-            const canvas = await gotoAxesExample(page, 'axis-label-rotation');
-            await page.getByRole('button', { name: 'No rotation' }).click();
-            await waitForAllChartUpdates(page);
-            await expect(canvas).toHaveScreenshot('axis-label-rotation-no-rotation.png');
-        });
-
         test('fixed rotation applies a constant angle', async ({ page }) => {
             const canvas = await gotoAxesExample(page, 'axis-label-rotation');
             await page.getByRole('button', { name: 'Fixed rotation' }).click();
             await waitForAllChartUpdates(page);
             await expect(canvas).toHaveScreenshot('axis-label-rotation-fixed-rotation.png');
+        });
+
+        // Irregular (long, varied) labels need collision avoidance; with detection on the axis rotates them
+        // to keep them readable — the contrast to the collision-off overlap below.
+        test('irregular labels with collision detection rotate to avoid overlap', async ({ page }) => {
+            const canvas = await gotoAxesExample(page, 'axis-label-rotation');
+            await page.getByRole('button', { name: 'Irregular labels' }).click();
+            await page.getByRole('button', { name: 'On (default)', exact: true }).click();
+            await waitForAllChartUpdates(page);
+            await expect(canvas).toHaveScreenshot('axis-label-rotation-irregular-collision.png');
         });
 
         test('irregular labels without collision detection overlap', async ({ page }) => {
