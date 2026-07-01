@@ -91,7 +91,9 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
         // Regression guard: a blanket `^/archive(/.*)?$` 410 removed every /archive/<version>/ page
         // (real archived docs listed on /documentation-archive and in the sitemap). Must not return.
         expect(rules).not.toContain(`RedirectMatch 410 "^${base}/archive(/.*)?$"`);
-        expect(rules.split('\n').filter((l) => l.startsWith('RedirectMatch 410')).length).toBe(0);
+        // Scoped to archive: no 410 rule may target an /archive path. Unrelated 410s are allowed.
+        const gone410 = rules.split('\n').filter((l) => l.startsWith('RedirectMatch 410'));
+        expect(gone410.some((l) => l.includes(`${base}/archive`))).toBe(false);
     });
 
     it('sends the bare archive index to the live archived-versions landing, without touching version docs', () => {
