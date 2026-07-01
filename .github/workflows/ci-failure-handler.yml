@@ -1,0 +1,211 @@
+name: CI failure handler
+
+# Auto-investigate a failed mainline (`latest`) CI run and, if possible, raise a
+# fix PR — streaming live status into the CI-failure Slack thread. Standalone
+# (JIRA-free) sibling of jira-agent-pipeline: a mainline break has no JIRA ticket
+# and no pre-existing PR. The reusable pieces are pulled from the published
+# @ag-grid/dev-prompts package (same channel-pinned install as the jira stub);
+# this file is the thin per-repo stub that owns the trigger + eligibility gate.
+#
+# The `branches: [latest]` filter is the recursion guard: the agent's fix PR
+# lands on a `ci-fix/*` branch whose CI never matches this filter, so a fix can
+# never re-trigger the handler. Transient re-runs are separately bounded by the
+# preflight's rerun budget.
+#
+# ---------------------------------------------------------------------------
+# Rollout ordering (critical — same constraint as jira-resume): `workflow_run`
+# only fires workflows that exist on the repo's DEFAULT branch (`latest`), and
+# the shared actions resolve from @ag-grid/dev-prompts@canary. So this file must
+# be merged to `latest` AND the canary package must already ship the
+# gha-ci-failure-* actions (it does, as of ag-dev-prompts #444) before a real
+# failure will trigger it. Until then, use the workflow_dispatch dry-run hatch.
+# ---------------------------------------------------------------------------
+#
+# Prerequisites (already present for the jira pipeline — same GitHub App):
+#   secrets: JIRA_AGENT_APP_PRIVATE_KEY, ANTHROPIC_API_KEY, SLACK_BOT_OAUTH_TOKEN
+#   vars:    JIRA_AGENT_APP_ID
+#            CI_FAILURE_SLACK_CHANNEL (optional) — Slack channel ID for the CI
+#              alert/status thread; defaults to the `dev-agentic-tooling-status`
+#              channel name. Set to an ID for maximum robustness.
+#            CI_FAILURE_BASE_BRANCH (optional) — base branch the fix PR targets
+#              on automatic runs; defaults to the failing branch (`latest`).
+#   GitHub App `ag-grid-jira-agents` installed on ag-grid/ag-charts with
+#     contents:write, pull-requests:write, actions:write (already the case).
+
+on:
+    workflow_run:
+        workflows: ["CI"]
+        types: [completed]
+        branches: [latest]
+    workflow_dispatch:
+        inputs:
+            run_id:
+                description: 'Failed CI run id to investigate (dry-run hatch).'
+                required: true
+            base_branch:
+                description: 'Branch the fix PR should target (default: the failing branch).'
+                required: false
+                default: ''
+
+concurrency:
+    # One investigation per failing commit; do not cancel an in-flight one.
+    group: ci-failure-handler-${{ github.event.workflow_run.head_sha || inputs.run_id }}
+    cancel-in-progress: false
+
+env:
+    # Track the canary dist-tag during the in-flight rollout (matches
+    # jira-agent-pipeline.yml); pin to `latest` once promoted.
+    DEV_PROMPTS_CHANNEL: canary
+
+jobs:
+    preflight:
+        # Only for genuine failures (workflow_run) or a manual dry-run.
+        if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'failure'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            actions: read
+            contents: read
+            pull-requests: read
+            packages: read
+        outputs:
+            eligible: ${{ steps.pf.outputs.eligible }}
+            run_id: ${{ steps.pf.outputs.run_id }}
+            head_sha: ${{ steps.pf.outputs.head_sha }}
+            head_branch: ${{ steps.pf.outputs.head_branch }}
+            reruns_remaining: ${{ steps.pf.outputs.reruns_remaining }}
+            slack_channel: ${{ steps.pf.outputs.slack_channel }}
+            slack_thread_ts: ${{ steps.pf.outputs.slack_thread_ts }}
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Install @ag-grid/dev-prompts
+              uses: ./external/ag-shared/github/actions/install-ag-dev-prompts
+              with:
+                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
+
+            - name: Resolve event context
+              id: ctx
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  REPO: ${{ github.repository }}
+                  EVENT_NAME: ${{ github.event_name }}
+                  WR_ID: ${{ github.event.workflow_run.id }}
+                  WR_SHA: ${{ github.event.workflow_run.head_sha }}
+                  WR_BRANCH: ${{ github.event.workflow_run.head_branch }}
+                  WR_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+                  WR_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+                  INPUT_RUN_ID: ${{ inputs.run_id }}
+              run: |
+                  set -euo pipefail
+                  if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+                      RUN_ID="$INPUT_RUN_ID"
+                      META=$(gh run view "$RUN_ID" --repo "$REPO" --json headSha,headBranch 2>/dev/null || echo '{}')
+                      SHA=$(echo "$META" | jq -r '.headSha // ""')
+                      BRANCH=$(echo "$META" | jq -r '.headBranch // ""')
+                      ATTEMPT="1"
+                      CONCLUSION="failure"
+                      # Fail fast on a bad/inaccessible run id rather than emitting
+                      # empty metadata that the preflight would silently skip as
+                      # "not a target branch" — a misleading result for a manual run.
+                      if [[ -z "$SHA" || -z "$BRANCH" ]]; then
+                          echo "::error::could not resolve run_id='$RUN_ID' in $REPO (empty headSha/headBranch) — check it is a real CI run this token can read." >&2
+                          exit 1
+                      fi
+                  else
+                      RUN_ID="$WR_ID"; SHA="$WR_SHA"; BRANCH="$WR_BRANCH"
+                      ATTEMPT="${WR_ATTEMPT:-1}"; CONCLUSION="$WR_CONCLUSION"
+                  fi
+                  {
+                      echo "run_id=${RUN_ID}"
+                      echo "head_sha=${SHA}"
+                      echo "head_branch=${BRANCH}"
+                      echo "run_attempt=${ATTEMPT}"
+                      echo "conclusion=${CONCLUSION}"
+                  } >> "$GITHUB_OUTPUT"
+
+            - name: Preflight gate
+              id: pf
+              uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/gha-ci-failure-preflight
+              with:
+                  run_id: ${{ steps.ctx.outputs.run_id }}
+                  head_sha: ${{ steps.ctx.outputs.head_sha }}
+                  head_branch: ${{ steps.ctx.outputs.head_branch }}
+                  run_attempt: ${{ steps.ctx.outputs.run_attempt }}
+                  conclusion: ${{ steps.ctx.outputs.conclusion }}
+                  target_branches: latest
+                  # ag-charts-tuned benign/self-healing job classes: `report` is the
+                  # aggregate fan-in job (fails whenever an upstream job fails — the
+                  # analogue of ag-dev-prompts' `CI gate`/`CI result`), and
+                  # `sonarqube` is advisory (its failure is reported as "partial",
+                  # not a hard CI failure). If EVERY failed job matches one of these,
+                  # the run is skipped; a genuine break is still caught via its own
+                  # (non-excluded) job name.
+                  excluded_jobs: report,sonarqube
+                  github_token: ${{ github.token }}
+
+    handle:
+        needs: preflight
+        if: needs.preflight.outputs.eligible == 'true'
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+        permissions:
+            contents: write
+            pull-requests: write
+            actions: write
+            packages: read
+        steps:
+            # Check out the DEFAULT branch (`latest`) — which is where a
+            # workflow_run event checks out anyway — at fetch-depth: 0 so the agent
+            # can diff since last green and branch its fix off origin/<base>. The
+            # handler action + ci-failure-fix skill come from the installed package
+            # (channel-pinned marketplace), NOT this checkout.
+            #
+            # persist-credentials: false so checkout does NOT leave the workflow
+            # GITHUB_TOKEN as a local `http.*.extraheader`: that would shadow the
+            # App-token URL rewrite the handler installs, so the agent's fix-branch
+            # push would use GITHUB_TOKEN (wrong identity, and a GITHUB_TOKEN push
+            # doesn't trigger the fix PR's CI). The App token (minted in the action)
+            # is the sole credential for all git ops. (The handler also strips any
+            # extraheader defensively, but setting this is the clean belt-and-braces.)
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  persist-credentials: false
+
+            - name: Install @ag-grid/dev-prompts
+              uses: ./external/ag-shared/github/actions/install-ag-dev-prompts
+              with:
+                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
+
+            - name: Investigate + fix
+              uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/gha-ci-failure-handler
+              with:
+                  run_id: ${{ needs.preflight.outputs.run_id }}
+                  head_sha: ${{ needs.preflight.outputs.head_sha }}
+                  head_branch: ${{ needs.preflight.outputs.head_branch }}
+                  # Manual dispatch input wins; else the optional CI_FAILURE_BASE_BRANCH
+                  # repo var. Empty → handler defaults base to the failing branch
+                  # (`latest`), which is what ag-charts wants — a real `latest` code
+                  # break needs a fix PR targeting `latest`.
+                  base_branch: ${{ inputs.base_branch || vars.CI_FAILURE_BASE_BRANCH }}
+                  reruns_remaining: ${{ needs.preflight.outputs.reruns_remaining }}
+                  slack_channel: ${{ needs.preflight.outputs.slack_channel }}
+                  slack_thread_ts: ${{ needs.preflight.outputs.slack_thread_ts }}
+                  # Fallback root-message channel when no alert thread was recovered
+                  # (e.g. ag-charts' CI-failure alert isn't yet reworked to the
+                  # bot-token + ci-failure-slack artifact handoff, so no thread_ts is
+                  # available). Name or ID; set CI_FAILURE_SLACK_CHANNEL to a channel
+                  # ID for robustness.
+                  slack_channel_fallback: ${{ vars.CI_FAILURE_SLACK_CHANNEL || 'dev-agentic-tooling-status' }}
+                  slack_bot_token: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
+                  github_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  github_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+                  dev_prompts_channel: ${{ env.DEV_PROMPTS_CHANNEL }}
+                  # Scope the App token to THIS (failing) repo — the one the handler
+                  # opens the fix PR in. The marketplace is a local-path copy shipped
+                  # in the package, so ag-dev-prompts access is NOT needed here.
+                  repos: ${{ github.event.repository.name }}
