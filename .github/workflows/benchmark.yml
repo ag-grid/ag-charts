@@ -178,10 +178,22 @@ jobs:
                     echo 'build-matrix=[{"role":"head","port":4601},{"role":"base","port":4602}]' >> $GITHUB_OUTPUT
                   fi
 
+            # A `/benchmarks [name...]` PR comment narrows the run to the named
+            # examples; a bare `/benchmarks` (or any non-comment trigger) shards the
+            # full set. The comment body is read from env — never interpolated into
+            # the script — so untrusted comment text cannot inject shell. An unknown
+            # example name fails benchmark-examples.js, so a typo fails loudly here.
             - name: Compute shard matrix
               id: shards
+              env:
+                  COMMENT_BODY: ${{ github.event.comment.body }}
               run: |
-                  shards=$(node ./tools/benchmark/benchmark-examples.js --shards "$AG_SHARD_COUNT")
+                  examples=""
+                  if [[ "${{ github.event_name }}" == "issue_comment" ]]; then
+                    first_line=${COMMENT_BODY%%$'\n'*}
+                    examples=${first_line#/benchmarks}
+                  fi
+                  shards=$(node ./tools/benchmark/benchmark-examples.js --shards "$AG_SHARD_COUNT" --examples "${examples}")
                   echo "shards=${shards}" >> $GITHUB_OUTPUT
                   echo "Shard matrix: ${shards}"
 
