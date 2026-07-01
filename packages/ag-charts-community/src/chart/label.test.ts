@@ -3,6 +3,7 @@ import { vi } from 'vitest';
 import type { AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
+import { LabelCollisionAvoidance } from './label';
 import {
     extractImageData,
     prepareTestOptions,
@@ -54,6 +55,26 @@ describe('Labels', () => {
             });
             chart = AgCharts.create(options);
             await compare();
+        });
+    });
+
+    describe('collisionAvoidance.placements', () => {
+        const DEFAULT = ['top', 'bottom'] as const;
+
+        test('falls back to the legacy placement seed when no strategy is set', () => {
+            expect(new LabelCollisionAvoidance().placements(['bottom'])).toEqual(['bottom']);
+        });
+
+        test('uses the reposition strategy placements over the fallback', () => {
+            const collisionAvoidance = new LabelCollisionAvoidance();
+            collisionAvoidance.strategy = [{ type: 'reposition', placements: ['left', 'right'] }];
+            expect(collisionAvoidance.placements(['bottom'])).toEqual(['left', 'right']);
+        });
+
+        test('falls back when the reposition strategy omits placements', () => {
+            const collisionAvoidance = new LabelCollisionAvoidance();
+            collisionAvoidance.strategy = [{ type: 'reposition' }];
+            expect(collisionAvoidance.placements(DEFAULT)).toEqual(DEFAULT);
         });
     });
 });

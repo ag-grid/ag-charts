@@ -75,6 +75,17 @@ export function applyLabelAvoidance(labelData: readonly object[], avoid: boolean
     }
 }
 
+/**
+ * Stamp the ordered fallback `placements` onto label data in place. Series that resolve their
+ * candidate placements from the collision-avoidance model (rather than a single baked-in placement)
+ * do so per-render here.
+ */
+export function applyLabelPlacements(labelData: readonly object[], placements: readonly LabelPlacement[]) {
+    for (const datum of labelData) {
+        (datum as { placements?: readonly LabelPlacement[] }).placements = placements;
+    }
+}
+
 export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Readonly<Point> {
     readonly index: number;
     readonly datum: PLD;
