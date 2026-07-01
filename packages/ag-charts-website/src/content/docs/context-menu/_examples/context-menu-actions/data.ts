@@ -7,17 +7,17 @@ export interface DataType {
 export function getData(): DataType[] {
     return [
         {
-            month: 'Jun',
+            month: 'Jul',
             sweaters: 50,
             hats: 40,
         },
         {
-            month: 'Jul',
+            month: 'Aug',
             sweaters: 70,
             hats: 50,
         },
         {
-            month: 'Aug',
+            month: 'Sep',
             sweaters: 60,
             hats: 30,
         },
