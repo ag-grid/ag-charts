@@ -13,7 +13,7 @@ export type HtaccessEnv = Extract<CspEnv, 'staging' | 'production'>;
 // allows 'unsafe-eval' everywhere) and reports violations of the tightened
 // path-scoped split. Flip to 'enforce' once the report-only window is clean.
 // Staging always enforces the split.
-export const PRODUCTION_CSP_PHASE: 'report-only' | 'enforce' = 'report-only';
+export const PRODUCTION_CSP_PHASE: 'report-only' | 'enforce' = 'enforce';
 
 export function getHtaccessContent(options: { env: HtaccessEnv }) {
     const { env } = options;

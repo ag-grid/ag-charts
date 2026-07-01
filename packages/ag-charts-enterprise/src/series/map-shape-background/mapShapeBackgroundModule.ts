@@ -5,6 +5,7 @@ import {
     FILL_PATTERN_HIERARCHY_DEFAULTS,
     SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 
 import { TopologyChartModule } from '../../charts/topologyChartModule';
@@ -35,7 +36,7 @@ export const MapShapeBackgroundSeriesModule: SeriesModuleDefinition<AgMapShapeBa
             }),
             stroke: { $ref: 'chartBackgroundColor' },
             strokeWidth: 1,
-            selection: SERIES_SELECTION_THEME,
+            ...undocumentedThemeOptions({ selection: SERIES_SELECTION_THEME }),
         },
     },
 

@@ -93,6 +93,12 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
     'axes-e2e': {
         '*': { frameworks: ['vanilla'] },
     },
+    'accessibility-e2e': {
+        '*': { frameworks: ['vanilla'] },
+    },
+    'security-e2e': {
+        '*': { frameworks: ['vanilla'] },
+    },
     'sparklines-test': {
         'debug-sequential-render': { frameworks: [] },
     },

@@ -47,11 +47,7 @@
                     "exampleName": "simple-range-area"
                 }
             ],
-            "demoHeight": 500,
-            "primaryCta": {
-                "text": "Start Free Trial",
-                "useTrialButton": true
-            }
+            "demoHeight": 500
         },
         {
             "type": "feature-grid",

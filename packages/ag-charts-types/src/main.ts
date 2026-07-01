@@ -9,6 +9,7 @@ export * from './chart/buttonOptions';
 export * from './chart/callbackOptions';
 export * from './chart/chartOptions';
 export * from './chart/chartToolbarOptions';
+export * from './chart/collisionAvoidanceOptions';
 export * from './chart/contextMenuOptions';
 export * from './chart/dataValues';
 export * from './chart/crossLineOptions';

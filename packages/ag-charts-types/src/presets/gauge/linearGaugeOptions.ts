@@ -119,6 +119,8 @@ export interface AgLinearGaugeThemeableOptions<
     cornerMode?: AgGaugeCornerMode;
     /** Configuration for the bar. */
     bar?: AgLinearGaugeBarStyle;
+    /** Configuration for the scale. */
+    scale?: AgLinearGaugeScale<TContext>;
     /** Configuration for the labels shown inside the shape. */
     label?: AgLinearGaugeLabelOptions;
     /** Series-specific tooltip configuration. */
@@ -130,8 +132,6 @@ export interface AgLinearGaugePreset<TContext = ContextDefault> extends AgLinear
     type: 'linear-gauge';
     /** Value of the Linear Gauge. */
     value: AgNumericValue;
-    /** Scale of the Linear Gauge. */
-    scale?: AgLinearGaugeScale<TContext>;
     /** Configuration for the targets. */
     targets?: AgLinearGaugeTarget[];
 }

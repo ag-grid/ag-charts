@@ -66,12 +66,27 @@ export interface CollideWith {
 }
 
 /**
- * Stamp the `avoid` flag onto label data in place. Series that opt their labels into collision
- * resolution via theme do so per-render here, rather than baking it into each datum at build time.
+ * Stamp the `avoid` flag and resolved per-category `collideWith` onto label data in place. Series
+ * that opt their labels into collision resolution via theme do so per-render here, rather than
+ * baking it into each datum at build time. A `collideWith` of `undefined` makes the label avoid
+ * every obstacle category, so series with a resolved config must always pass it.
  */
-export function applyLabelAvoidance(labelData: readonly object[], avoid: boolean) {
+export function applyLabelAvoidance(labelData: readonly object[], avoid: boolean, collideWith?: CollideWith) {
     for (const datum of labelData) {
-        (datum as { avoid?: boolean }).avoid = avoid;
+        const d = datum as { avoid?: boolean; collideWith?: CollideWith };
+        d.avoid = avoid;
+        d.collideWith = collideWith;
+    }
+}
+
+/**
+ * Stamp the ordered fallback `placements` onto label data in place. Series that resolve their
+ * candidate placements from the collision-avoidance model (rather than a single baked-in placement)
+ * do so per-render here.
+ */
+export function applyLabelPlacements(labelData: readonly object[], placements: readonly LabelPlacement[]) {
+    for (const datum of labelData) {
+        (datum as { placements?: readonly LabelPlacement[] }).placements = placements;
     }
 }
 
