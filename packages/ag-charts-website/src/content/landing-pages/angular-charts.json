@@ -39,11 +39,7 @@
                     "exampleName": "simple-scatter"
                 }
             ],
-            "demoHeight": 500,
-            "primaryCta": {
-                "text": "Get Started",
-                "url": "./angular/quick-start/"
-            }
+            "demoHeight": 500
         },
         {
             "type": "feature-grid",
