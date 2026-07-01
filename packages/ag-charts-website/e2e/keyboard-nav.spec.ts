@@ -83,7 +83,7 @@ test.describe('keyboard-nav', () => {
     test('keyboard nav ignores highlight-disabled series', async ({ page }) => {
         await gotoExample(
             page,
-            toExamplePageUrl('accessibility-test', 'keyboard-navigation-highlight-disabled-series', 'vanilla').url
+            toExamplePageUrl('accessibility-e2e', 'keyboard-navigation-highlight-disabled-series', 'vanilla').url
         );
 
         const canvasCenter = page.locator(SELECTORS.canvasCenter);
@@ -163,7 +163,7 @@ test.describe('keyboard-nav', () => {
     });
 
     test('AG-13668 panToBBox', async ({ page }) => {
-        await gotoExample(page, toExamplePageUrl('accessibility-test', 'AG-13668-panToBBox', 'vanilla').url);
+        await gotoExample(page, toExamplePageUrl('accessibility-e2e', 'AG-13668-panToBBox', 'vanilla').url);
         await page.mouse.click(400, 300, { button: 'left' });
 
         await repeat(5, async () => await page.keyboard.press('+'));
@@ -574,7 +574,7 @@ test.describe('keyboard-nav', () => {
          * Related ticket: AG-13041
          */
         test.beforeEach(async ({ page }) => {
-            const { url } = toExamplePageUrl('accessibility-test', 'activatesFocusIndicator-false', 'vanilla');
+            const { url } = toExamplePageUrl('accessibility-e2e', 'activatesFocusIndicator-false', 'vanilla');
             await gotoExample(page, url);
 
             // Focus on chart series-area:
@@ -626,7 +626,7 @@ test.describe('keyboard-nav', () => {
     test('CRT-1047 legend focus indicator updates when font family changes', async ({ page }) => {
         await gotoExample(
             page,
-            toExamplePageUrl('accessibility-test', 'keyboard-navigation-change-font-family', 'vanilla').url
+            toExamplePageUrl('accessibility-e2e', 'keyboard-navigation-change-font-family', 'vanilla').url
         );
 
         // Tab through to the legend
@@ -663,7 +663,7 @@ test.describe('keyboard-nav', () => {
         }
 
         test.beforeEach(async ({ page }) => {
-            await gotoExample(page, toExamplePageUrl('accessibility-test', 'initial-focus', 'vanilla').url);
+            await gotoExample(page, toExamplePageUrl('accessibility-e2e', 'initial-focus', 'vanilla').url);
             canvas = page.locator(SELECTORS.canvasCenter).first();
         });
 

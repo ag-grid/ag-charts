@@ -76,7 +76,7 @@ test.describe('context-menu', () => {
     }
 
     test('AG-13359 context menu on multiple charts', async ({ page }) => {
-        const { url } = toExamplePageUrl('accessibility-test', 'opening-context-menu-second-chart', 'vanilla');
+        const { url } = toExamplePageUrl('accessibility-e2e', 'opening-context-menu-second-chart', 'vanilla');
         await gotoExample(page, url);
 
         await page.mouse.click(360, 570, { button: 'right' });
