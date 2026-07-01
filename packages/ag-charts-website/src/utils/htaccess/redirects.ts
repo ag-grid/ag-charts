@@ -37,8 +37,16 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     // Rules are BASE-RELATIVE; getRedirectRules() splices in the /charts base for both pattern and target.
     // RedirectMatch is first-match-wins, so order is load-bearing: specific before broad.
 
-    // Permanently removed → 410 Gone. Listed first so they win over the broad rules below.
-    { fromPattern: '^/archive(/.*)?$', gone: true }, // per-release QA artifact, not part of the live IA
+    // NB: do NOT add a blanket `^/archive(/.*)?$` 410 here. `/archive/<version>/` holds the live,
+    // indexed archived version docs (listed on /documentation-archive and in the sitemap), not QA
+    // artifacts — 410-ing them removes real content. The CSP <If> block also grants these pages
+    // `unsafe-eval` because they run example-runners, i.e. they are expected to be served.
+
+    // Bare archive index → the live archived-versions landing (documentation-archive.astro), which
+    // lists every archived version and rebuilds current each deploy — no version hardcoded. `/?$`
+    // matches `/archive` and `/archive/` only, never `/archive/<version>/…`, so every version's docs
+    // still serve. Mirrors the grid site's `^/archive/?$` → `/documentation-archive`.
+    { fromPattern: '^/archive/?$', to: '/documentation-archive/' },
 
     // No charts-scoped privacy page exists; the canonical policy lives on the apex site.
     { fromPattern: '^/privacy(/.*)?$', to: 'https://www.ag-grid.com/privacy/' },

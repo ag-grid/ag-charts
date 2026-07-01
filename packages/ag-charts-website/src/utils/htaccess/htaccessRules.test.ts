@@ -87,18 +87,27 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
     // hold regardless of the resolved base.
     const base = (SITE_BASE_URL ?? '').replace(/\/$/, '');
 
-    it('emits 410 Gone rules with no target for permanently-removed paths', () => {
-        expect(rules).toContain(`RedirectMatch 410 "^${base}/archive(/.*)?$"`);
+    it('does not 410 the archive — archived version docs are live, indexed content', () => {
+        // Regression guard: a blanket `^/archive(/.*)?$` 410 removed every /archive/<version>/ page
+        // (real archived docs listed on /documentation-archive and in the sitemap). Must not return.
+        expect(rules).not.toContain(`RedirectMatch 410 "^${base}/archive(/.*)?$"`);
+        // Scoped to archive: no 410 rule may target an /archive path. Unrelated 410s are allowed.
+        const gone410 = rules.split('\n').filter((l) => l.startsWith('RedirectMatch 410'));
+        expect(gone410.some((l) => l.includes(`${base}/archive`))).toBe(false);
+    });
+
+    it('sends the bare archive index to the live archived-versions landing, without touching version docs', () => {
+        const bareArchive = new RegExp(`^${base}/archive/?$`);
+        expect(rules).toContain(`RedirectMatch 301 "^${base}/archive/?$" "${base}/documentation-archive/"`);
+        expect(bareArchive.test(`${base}/archive`)).toBe(true);
+        expect(bareArchive.test(`${base}/archive/`)).toBe(true);
+        // every version's docs still serve — the bare-index rule must not swallow them
+        expect(bareArchive.test(`${base}/archive/13.0.0/`)).toBe(false);
+        expect(bareArchive.test(`${base}/archive/14.0.0/`)).toBe(false);
     });
 
     it('redirects the legacy privacy path to the canonical apex policy page', () => {
         expect(rules).toContain(`RedirectMatch 301 "^${base}/privacy(/.*)?$" "https://www.ag-grid.com/privacy/"`);
-    });
-
-    it('410 rules carry no destination', () => {
-        const goneLines = rules.split('\n').filter((l) => l.startsWith('RedirectMatch 410'));
-        expect(goneLines.length).toBe(1);
-        goneLines.forEach((l) => expect(l.split('"').length).toBe(3)); // only one quoted token (the pattern)
     });
 
     it('rewrites legacy {fw}-charts/{fw}/<page> to the current {fw}/<page> scheme', () => {
@@ -159,10 +168,6 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
             expect(re.test(`${landing}index.html`)).toBe(false);
             expect(re.test(sub)).toBe(true); // legacy sub-paths still redirect
         }
-    });
-
-    it('410 rules win over the broad rules: they are emitted first', () => {
-        expect(rules.indexOf('RedirectMatch 410')).toBeLessThan(rules.indexOf(`"^${base}/core/(.*)"`));
     });
 
     it('emits the SE-60 renamed-slug redirects', () => {
