@@ -222,7 +222,7 @@ export const TrialLicenceFormAllFields: FunctionComponent = ({ submitUrl }: Prop
     return (
         <form id={ZI_FORM_ID} noValidate className={styles.trialForm} onSubmit={handleFormSubmit}>
             <div className={styles.inputs}>
-                <div className={classnames('input-field')}>
+                <div className={classnames('input-field', styles.companyField)}>
                     <label htmlFor="company">Company (optional)</label>
                     <input placeholder="Company" type="text" id="company" name="company" />
                 </div>
@@ -298,7 +298,7 @@ export const TrialLicenceFormAllFields: FunctionComponent = ({ submitUrl }: Prop
 
                 <p className={styles.privacyMessage}>
                     By clicking "Request trial licence" you agree to our <a href={PRIVACY_POLICY_URL}>Privacy Policy</a>
-                    .
+                    , and to be contacted by a member of our team
                 </p>
 
                 {formState === 'success' && (
