@@ -118,6 +118,11 @@ export function setupIntrinsicAssertions(
             // WebGL GPU driver performance messages are browser/OS noise unrelated to the application.
             if (msg.text().includes('GL Driver Message')) return;
 
+            // Permissions-Policy feature violations (e.g. compute-pressure) are emitted by the browser
+            // when a third-party script probes a feature the server-level Permissions-Policy disallows.
+            // This is browser/third-party noise unrelated to the application.
+            if (msg.text().includes('Permissions policy violation')) return;
+
             // Ignore 404s when expected
             const notFoundMatcher = /the server responded with a status of 404/;
             if (msg.location().url.includes('/favicon.ico')) return;

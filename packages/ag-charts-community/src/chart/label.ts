@@ -96,10 +96,11 @@ export class LabelCollisionAvoidance extends BaseProperties implements AgChartLa
     resolveCollideWith(): CollideWith | undefined {
         if (!this.avoid) return undefined;
         const { markers, labels, seriesItems } = this.collideWith;
+        // Marker/label avoidance defaults on; cross-series geometry (seriesItem) is opt-in.
         return {
             marker: { enabled: markers.enabled !== false, minSpacing: markers.minSpacing },
             label: { enabled: labels.enabled !== false, minSpacing: labels.minSpacing },
-            seriesItem: { enabled: seriesItems.enabled !== false, minSpacing: seriesItems.minSpacing },
+            seriesItem: { enabled: seriesItems.enabled === true, minSpacing: seriesItems.minSpacing },
         };
     }
 }

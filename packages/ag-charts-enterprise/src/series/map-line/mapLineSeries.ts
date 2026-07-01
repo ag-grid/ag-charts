@@ -658,8 +658,9 @@ export class MapLineSeries
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
         const labelData = this.contextNodeData?.labelData ?? [];
+        const { collisionAvoidance } = this.properties.label;
         // Labels centre on the line with no directional placement, so they route avoidance only.
-        applyLabelAvoidance(labelData, this.properties.label.collisionAvoidance.avoid);
+        applyLabelAvoidance(labelData, collisionAvoidance.avoid, collisionAvoidance.resolveCollideWith());
         return labelData;
     }
 

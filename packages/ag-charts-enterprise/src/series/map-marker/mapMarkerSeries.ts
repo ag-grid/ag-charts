@@ -932,7 +932,7 @@ export class MapMarkerSeries
         if (!this.isLabelEnabled()) return [];
         const labelData = this.contextNodeData?.labelData ?? [];
         const { collisionAvoidance, placement } = this.properties.label;
-        applyLabelAvoidance(labelData, collisionAvoidance.avoid);
+        applyLabelAvoidance(labelData, collisionAvoidance.avoid, collisionAvoidance.resolveCollideWith());
         applyLabelPlacements(labelData, collisionAvoidance.placements([placement]));
         return labelData;
     }

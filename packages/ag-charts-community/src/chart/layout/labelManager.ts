@@ -31,6 +31,9 @@ export class LabelManager {
             }
         }
 
+        // No series places labels, so gathering obstacles and running placement would be wasted work.
+        if (placedLabelSeries.length === 0) return;
+
         for (const series of placedLabelSeries) {
             const labelData = series.getLabelData();
             if (labelData.every(isPointLabelDatum)) {

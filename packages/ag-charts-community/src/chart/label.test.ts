@@ -87,4 +87,27 @@ describe('Labels', () => {
             expect(collisionAvoidance.placements(['top'])).toEqual(['top']);
         });
     });
+
+    describe('collisionAvoidance.resolveCollideWith', () => {
+        test('returns undefined when avoidance is disabled', () => {
+            expect(new LabelCollisionAvoidance().resolveCollideWith()).toBeUndefined();
+        });
+
+        test('defaults markers/labels on and seriesItems off', () => {
+            const collisionAvoidance = new LabelCollisionAvoidance();
+            collisionAvoidance.enabled = true;
+            expect(collisionAvoidance.resolveCollideWith()).toEqual({
+                marker: { enabled: true, minSpacing: undefined },
+                label: { enabled: true, minSpacing: undefined },
+                seriesItem: { enabled: false, minSpacing: undefined },
+            });
+        });
+
+        test('opts seriesItems in only when explicitly enabled', () => {
+            const collisionAvoidance = new LabelCollisionAvoidance();
+            collisionAvoidance.enabled = true;
+            collisionAvoidance.collideWith.seriesItems.enabled = true;
+            expect(collisionAvoidance.resolveCollideWith()?.seriesItem?.enabled).toBe(true);
+        });
+    });
 });

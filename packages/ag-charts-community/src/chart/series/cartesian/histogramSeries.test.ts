@@ -1057,4 +1057,34 @@ describe('HistogramSeries', () => {
             );
         });
     });
+
+    describe('getLabelObstacles', () => {
+        it('contributes a seriesItem rect obstacle per bin', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [1, 2, 3, 4, 11, 12, 21, 22, 23].map((x) => ({ x })),
+                series: [{ type: 'histogram', xKey: 'x', binCount: 3 }],
+            };
+            prepareTestOptions(options as any);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0] as any;
+            const nodeData = series.contextNodeData?.nodeData as Array<{
+                x: number;
+                y: number;
+                width: number;
+                height: number;
+            }>;
+            const obstacles = series.getLabelObstacles();
+
+            expect(nodeData.length).toBeGreaterThan(0);
+            expect(obstacles).toEqual(
+                nodeData.map(({ x, y, width, height }) => ({
+                    kind: 'rect',
+                    box: { x, y, width, height },
+                    category: 'seriesItem',
+                }))
+            );
+        });
+    });
 });

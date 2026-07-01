@@ -95,6 +95,7 @@ import type {
 import { upsertNodeDatum } from './cartesianSeriesUtil';
 import { type HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
+import { rectLabelObstacles } from './util';
 
 const defaultBinCount = 10;
 
@@ -848,6 +849,10 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             rect.crisp = datum.crisp;
             rect.fillShadow = shadow;
         });
+    }
+
+    getLabelObstacles() {
+        return rectLabelObstacles(this.contextNodeData?.nodeData);
     }
 
     protected override updateLabelSelection(opts: {
