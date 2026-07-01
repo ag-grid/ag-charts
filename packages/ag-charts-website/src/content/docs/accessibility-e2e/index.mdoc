@@ -1,24 +1,22 @@
 ---
-title: 'Accessibility Tests'
+title: 'Accessibility Test'
 ---
 
-## AG-13668 panToBBox
+This page is entirely covered by Playwright e2e tests.
 
-What to test:
+## E2E Tested
 
-- Focus the candlestick chart and pan with the keyboard; the viewport pans to the focused bounding box without console errors.
+### AG-13668-panToBBox
+
+_Auto-tested via Playwright._
 
 {% chartExampleRunner title="Test panToBBox" name="AG-13668-panToBBox" type="generated" /%}
 
-## activatesFocusIndicator: false
+### activatesFocusIndicator-false
 
-What to test:
-
-- Focus the chart, create or interact with the comment annotation, then undo and redo; focus indicator does not activate around the annotation during these actions.
+_Auto-tested via Playwright._
 
 {% chartExampleRunner title="activatesFocusIndicator: false" name="activatesFocusIndicator-false" type="generated" /%}
-
-## E2E Tested
 
 ### initial-focus
 

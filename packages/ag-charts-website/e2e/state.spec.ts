@@ -112,6 +112,15 @@ test.describe('state', () => {
         await expect(page).toHaveScreenshot('state-legend-zoom-1-restored.png', { animations: 'disabled' });
     });
 
+    test('initial-state category zoom loads pre-zoomed', async ({ page }) => {
+        const { url } = toExamplePageUrl('api-state-e2e', 'initial-state-zoom-category', 'vanilla');
+        await gotoExample(page, url);
+
+        // `initialState.zoom.rangeX` is expressed with category values (Q2'18 to Q3'18); the chart must
+        // open zoomed to that sub-range rather than the full domain.
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('initial-state-zoom-category.png');
+    });
+
     test.describe('active', () => {
         async function setStateInactive(version: string, page: Page): Promise<void> {
             await setChartState(page, {

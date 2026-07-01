@@ -90,6 +90,12 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
     'stylers-e2e': {
         '*': { frameworks: ['vanilla'] },
     },
+    'accessibility-e2e': {
+        '*': { frameworks: ['vanilla'] },
+    },
+    'security-e2e': {
+        '*': { frameworks: ['vanilla'] },
+    },
     'sparklines-test': {
         'debug-sequential-render': { frameworks: [] },
     },

@@ -19,7 +19,7 @@ type RenewablesScreenshotsFilename =
 test.describe('legend', () => {
     setupIntrinsicAssertions(test);
 
-    for (const { framework, url } of toExamplePageUrls('accessibility-test', 'keyboard-navigation-with-highlight')) {
+    for (const { framework, url } of toExamplePageUrls('accessibility-e2e', 'keyboard-navigation-with-highlight')) {
         test.describe(`for ${framework}`, () => {
             test('AG-16449 focus replay does not reapply hover highlight', async ({ page }) => {
                 await gotoExample(page, url);
