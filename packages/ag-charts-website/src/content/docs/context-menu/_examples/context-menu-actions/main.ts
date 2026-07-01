@@ -48,8 +48,8 @@ const options: AgCartesianChartOptions<DataType> = {
             {
                 showOn: 'caption',
                 label: 'Say hello in a caption',
-                action: ({ captionType }) => {
-                    console.log(`Hello in a ${captionType} caption!`);
+                action: ({ captionType, text }) => {
+                    console.log(`Hello in a ${captionType} caption: "${text}"`);
                 },
             },
             'separator',

@@ -77,7 +77,7 @@ Use the `showOn` property to specify when the action should be shown.
             {
                 showOn: 'caption',
                 label: 'Say hello in a caption',
-                action: ({ captionType }) => console.log(`Hello in a ${captionType} caption!`),
+                action: ({ captionType, text }) => console.log(`Hello in a ${captionType} caption: "${text}"`),
             },
             'separator',
             {
@@ -142,7 +142,8 @@ To add Sub-Menus to the Context Menu, simply use the `items` property recursivel
                     {
                         showOn: 'caption',
                         label: `On 'caption'`,
-                        action: ({ captionType }) => console.log(`On 'caption' clicked - ${captionType}`),
+                        action: ({ captionType, text }) =>
+                            console.log(`On 'caption' clicked -`, captionType, text),
                     },
                     {
                         showOn: 'series-area',
