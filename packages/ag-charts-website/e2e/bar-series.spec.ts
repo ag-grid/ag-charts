@@ -30,5 +30,28 @@ test.describe('bar-series', () => {
 
             await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('data-per-series-legend-toggled.png');
         });
+
+        // Hovering a legend item highlights that series' stack and dims the rest. Item index 2 is
+        // "MacBook - Retail" (green); the iPad series should fade.
+        test('legend hover highlights the series and dims the others', async ({ page }) => {
+            const legendItems = await page.locator(SELECTORS.legendItems).all();
+            await legendItems[2].hover();
+            await waitForAllChartUpdates(page);
+
+            await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('data-per-series-legend-hover.png');
+        });
+
+        // The same highlight is reachable by keyboard: Tab into the chart, Tab to the legend, then two
+        // ArrowRights to "MacBook - Retail" (the third of four legend items). The focus ring is the only
+        // visible difference from the mouse-hover state.
+        test('keyboard legend focus highlights the series and dims the others', async ({ page }) => {
+            await page.keyboard.press('Tab');
+            await page.keyboard.press('Tab');
+            await page.keyboard.press('ArrowRight');
+            await page.keyboard.press('ArrowRight');
+            await waitForAllChartUpdates(page);
+
+            await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('data-per-series-legend-focus.png');
+        });
     });
 });

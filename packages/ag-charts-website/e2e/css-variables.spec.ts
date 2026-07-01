@@ -54,5 +54,13 @@ test.describe('css variables', () => {
         await waitForAllChartUpdates(page);
         await expect(page.locator('#status')).toContainText('Mode: Dark');
         await expect(charts).toHaveScreenshot('css-variables-dark-mode-dark.png');
+
+        // Toggling again must re-resolve the CSS variables and repaint back to the original light
+        // appearance (still without an explicit chart.update()) — the reverse of the transition above,
+        // which no other baseline exercises. The restored image is expected to match the initial light one.
+        await page.getByText('Toggle Dark Mode').click();
+        await waitForAllChartUpdates(page);
+        await expect(page.locator('#status')).toContainText('Mode: Light');
+        await expect(charts).toHaveScreenshot('css-variables-dark-mode-light-restored.png');
     });
 });
