@@ -11,6 +11,7 @@ import {
     type RequireOptional,
     type SizedPoint,
     applyLabelAvoidance,
+    applyLabelPlacements,
     cachedTextMeasurer,
     clamp,
     dateToNumber,
@@ -983,8 +984,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
         const labelData = this.contextNodeData?.labelData ?? [];
-        const { collisionAvoidance } = this.properties.label;
+        const { collisionAvoidance, placement } = this.properties.label;
         applyLabelAvoidance(labelData, collisionAvoidance.avoid, collisionAvoidance.resolveCollideWith());
+        applyLabelPlacements(labelData, collisionAvoidance.placements([placement]));
         return labelData;
     }
 

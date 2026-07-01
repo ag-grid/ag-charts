@@ -8,6 +8,10 @@ import {
     isArray,
 } from 'ag-charts-core';
 import type {
+    AgChartLabelCollideWithCategoryOptions,
+    AgChartLabelCollideWithOptions,
+    AgChartLabelCollisionAvoidanceOptions,
+    AgChartLabelCollisionStrategy,
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
     AgChartLabelStyleOptions,
@@ -44,31 +48,7 @@ export class LabelBorder {
     strokeOpacity?: number;
 }
 
-/**
- * A single collision-resolution step. Only `reposition` is implemented; `rotate`/`wrap`/`shrink`/
- * `truncate` are reserved for later drops of the collision-avoidance model.
- */
-export type LabelCollisionStrategy = { type: 'reposition'; placements?: LabelPlacement[] };
-
-export interface LabelCollideWithCategoryOptions {
-    enabled?: boolean;
-    minSpacing?: number;
-}
-
-export interface LabelCollideWithOptions {
-    markers?: LabelCollideWithCategoryOptions;
-    labels?: LabelCollideWithCategoryOptions;
-    seriesItems?: LabelCollideWithCategoryOptions;
-}
-
-export interface LabelCollisionAvoidanceOptions {
-    enabled?: boolean;
-    strategy?: LabelCollisionStrategy[];
-    minSpacing?: number;
-    collideWith?: LabelCollideWithOptions;
-}
-
-class LabelCollideWithCategory extends BaseProperties implements LabelCollideWithCategoryOptions {
+class LabelCollideWithCategory extends BaseProperties implements AgChartLabelCollideWithCategoryOptions {
     @Property
     enabled?: boolean;
 
@@ -76,7 +56,7 @@ class LabelCollideWithCategory extends BaseProperties implements LabelCollideWit
     minSpacing?: number;
 }
 
-class LabelCollideWith extends BaseProperties implements LabelCollideWithOptions {
+class LabelCollideWith extends BaseProperties implements AgChartLabelCollideWithOptions {
     @Property
     markers = new LabelCollideWithCategory();
 
@@ -87,12 +67,12 @@ class LabelCollideWith extends BaseProperties implements LabelCollideWithOptions
     seriesItems = new LabelCollideWithCategory();
 }
 
-export class LabelCollisionAvoidance extends BaseProperties implements LabelCollisionAvoidanceOptions {
+export class LabelCollisionAvoidance extends BaseProperties implements AgChartLabelCollisionAvoidanceOptions {
     @Property
     enabled?: boolean;
 
     @Property
-    strategy?: LabelCollisionStrategy[];
+    strategy?: AgChartLabelCollisionStrategy[];
 
     @Property
     minSpacing?: number;
@@ -107,6 +87,7 @@ export class LabelCollisionAvoidance extends BaseProperties implements LabelColl
 
     /** Placements from the `reposition` strategy, falling back to the series' own default. */
     placements(fallback: readonly LabelPlacement[]): readonly LabelPlacement[] {
+        if (!this.avoid) return fallback;
         const reposition = this.strategy?.find((s) => s.type === 'reposition');
         return reposition?.placements ?? fallback;
     }

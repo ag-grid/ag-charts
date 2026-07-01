@@ -15,6 +15,7 @@ import {
     type SizedPoint,
     StateMachine,
     applyLabelAvoidance,
+    applyLabelPlacements,
     cachedTextMeasurer,
     findDiscreteColorBinLabel,
     formatValue,
@@ -930,8 +931,9 @@ export class MapMarkerSeries
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
         const labelData = this.contextNodeData?.labelData ?? [];
-        const { collisionAvoidance } = this.properties.label;
+        const { collisionAvoidance, placement } = this.properties.label;
         applyLabelAvoidance(labelData, collisionAvoidance.avoid, collisionAvoidance.resolveCollideWith());
+        applyLabelPlacements(labelData, collisionAvoidance.placements([placement]));
         return labelData;
     }
 
