@@ -7,6 +7,7 @@ import {
     SERIES_SELECTION_THEME,
     SINGLE_SERIES_HIGHLIGHT_STYLE,
     type SeriesModuleDefinition,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 
 import { StandaloneChartModule } from '../../charts/standaloneChartModule';
@@ -27,11 +28,7 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
         series: {
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
-            fillGradientDefaults: FILL_GRADIENT_LINEAR_DEFAULTS,
-            fillPatternDefaults: FILL_PATTERN_DEFAULTS,
-            fillImageDefaults: FILL_IMAGE_DEFAULTS,
             highlight: SINGLE_SERIES_HIGHLIGHT_STYLE,
-            selection: SERIES_SELECTION_THEME,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 enabled: true,
@@ -52,6 +49,12 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 tension: 0.4,
             },
+            ...undocumentedThemeOptions({
+                selection: SERIES_SELECTION_THEME,
+                fillGradientDefaults: FILL_GRADIENT_LINEAR_DEFAULTS,
+                fillPatternDefaults: FILL_PATTERN_DEFAULTS,
+                fillImageDefaults: FILL_IMAGE_DEFAULTS,
+            }),
         },
         legend: {
             enabled: false,

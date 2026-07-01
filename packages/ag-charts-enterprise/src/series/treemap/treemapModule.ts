@@ -7,6 +7,7 @@ import {
     LABEL_BOXING_DEFAULTS,
     SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 
 import { StandaloneChartModule } from '../../charts/standaloneChartModule';
@@ -46,8 +47,6 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
             colorScale: {
                 fills: { $map: [{ color: { $value: '$1' } }, { $palette: 'divergingColors' }] },
             },
-            undocumentedGroupFills: { $palette: 'hierarchyColors' },
-            undocumentedGroupStrokes: { $palette: 'secondHierarchyColors' },
             group: {
                 label: {
                     ...LABEL_BOXING_DEFAULTS,
@@ -118,6 +117,10 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 },
                 selection: SERIES_SELECTION_THEME,
             },
+            ...undocumentedThemeOptions({
+                undocumentedGroupFills: { $palette: 'hierarchyColors' },
+                undocumentedGroupStrokes: { $palette: 'secondHierarchyColors' },
+            }),
         },
         legend: {
             enabled: {

@@ -131,12 +131,18 @@ export interface AxisModuleDefinition<
 /** The post-theme-merge options shape passed to {@link AxisModuleDefinition.create}. */
 export type AxisCreateOptions<TOptions> = Normalised<TOptions>;
 
+type SeriesThemeTemplate<TOptions> = TOptions extends { type: infer S extends SeriesType }
+    ? ExtensibleTheme<S>
+    : ExtensibleTheme<any>;
+
 export interface SeriesModuleDefinition<TOptions> extends ModuleDefinition<
     ModuleType.Series,
     TOptions,
     SeriesModuleInstance
 > {
     readonly chartType: string;
+
+    themeTemplate?: SeriesThemeTemplate<TOptions>;
 
     readonly groupable?: boolean;
     readonly stackable?: boolean;

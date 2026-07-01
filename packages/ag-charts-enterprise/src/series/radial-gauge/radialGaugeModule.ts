@@ -7,6 +7,7 @@ import {
     SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
     radialGaugeSeriesOptionsDef,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 
 import { GaugePresetModule } from '../../preset/gaugePresetModule';
@@ -32,15 +33,7 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
             innerRadiusRatio: 0.8,
             startAngle: 270,
             endAngle: 270 + 180,
-            defaultColorRange: {
-                $if: [
-                    { $eq: [{ $palette: 'type' }, 'inbuilt'] },
-                    { $interpolate: [{ $palette: 'secondDivergingColors' }, 5] },
-                    SAFE_RANGE2_OPERATION,
-                ],
-            },
             scale: {
-                defaultFill: { $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
                 stroke: { $path: ['/2', SAFE_STROKE_FILL_OPERATION, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 label: {
@@ -50,6 +43,9 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
                     color: { $ref: 'textColor' },
                     spacing: 12,
                 },
+                ...undocumentedThemeOptions({
+                    defaultFill: { $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
+                }),
             },
             bar: {
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
@@ -58,22 +54,6 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
                 enabled: false,
                 interval: {},
                 spacing: 2,
-            },
-            defaultTarget: {
-                fill: { $ref: 'foregroundColor' },
-                stroke: { $ref: 'foregroundColor' },
-                size: 10,
-                shape: 'triangle',
-                placement: 'outside',
-                spacing: 5,
-                label: {
-                    enabled: true,
-                    fontWeight: { $ref: 'fontWeight' },
-                    fontSize: { $ref: 'fontSize' },
-                    fontFamily: { $ref: 'fontFamily' },
-                    color: { $ref: 'textColor' },
-                    spacing: 5,
-                },
             },
             needle: {
                 enabled: false,
@@ -102,6 +82,31 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
                 range: { $path: ['/tooltip/range', 10] },
             },
             selection: SERIES_SELECTION_THEME,
+            ...undocumentedThemeOptions({
+                defaultColorRange: {
+                    $if: [
+                        { $eq: [{ $palette: 'type' }, 'inbuilt'] },
+                        { $interpolate: [{ $palette: 'secondDivergingColors' }, 5] },
+                        SAFE_RANGE2_OPERATION,
+                    ],
+                },
+                defaultTarget: {
+                    fill: { $ref: 'foregroundColor' },
+                    stroke: { $ref: 'foregroundColor' },
+                    size: 10,
+                    shape: 'triangle',
+                    placement: 'outside',
+                    spacing: 5,
+                    label: {
+                        enabled: true,
+                        fontWeight: { $ref: 'fontWeight' },
+                        fontSize: { $ref: 'fontSize' },
+                        fontFamily: { $ref: 'fontFamily' },
+                        color: { $ref: 'textColor' },
+                        spacing: 5,
+                    },
+                },
+            }),
         },
     },
 

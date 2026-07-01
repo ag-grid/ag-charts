@@ -5,7 +5,7 @@ import type {
     AgRangesStateStyles,
     WithThemeParams,
 } from 'ag-charts-community';
-import { FONT_SIZE_RATIO } from 'ag-charts-core';
+import { FONT_SIZE_RATIO, undocumentedThemeOptions } from 'ag-charts-core';
 
 const DAY = 1000 * 60 * 60 * 24;
 const MONTH = DAY * 30;
@@ -59,8 +59,6 @@ export const rangesTheme: WithThemeParams<AgRangesOptions> = {
     position: 'top-right',
     gap: 0,
     spacing: 10,
-    // @ts-expect-error undocumented option
-    minSize: 0,
     ...stylesTheme,
     active: {
         ...stateTheme,
@@ -129,4 +127,5 @@ export const rangesTheme: WithThemeParams<AgRangesOptions> = {
             },
         ],
     },
+    ...undocumentedThemeOptions({ minSize: 0 }),
 };

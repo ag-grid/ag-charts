@@ -7,6 +7,7 @@ import {
     SAFE_FILLS_OPERATION,
     SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 
 import { StandaloneChartModule } from '../../charts/standaloneChartModule';
@@ -33,18 +34,12 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
         series: {
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
-            fillGradientDefaults: FILL_GRADIENT_LINEAR_DEFAULTS,
-            fillPatternDefaults: FILL_PATTERN_DEFAULTS,
-            fillImageDefaults: FILL_IMAGE_DEFAULTS,
-            defaultColorRange: { $palette: 'gradients' },
-            defaultPatternFills: SAFE_FILLS_OPERATION,
             highlight: {
                 enabled: { $path: ['/highlight/enabled', true] },
                 unhighlightedItem: {
                     opacity: 0.5,
                 },
             },
-            selection: SERIES_SELECTION_THEME,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 enabled: true,
@@ -64,6 +59,14 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                 fillOpacity: 0.5,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
             },
+            ...undocumentedThemeOptions({
+                selection: SERIES_SELECTION_THEME,
+                fillGradientDefaults: FILL_GRADIENT_LINEAR_DEFAULTS,
+                fillPatternDefaults: FILL_PATTERN_DEFAULTS,
+                fillImageDefaults: FILL_IMAGE_DEFAULTS,
+                defaultColorRange: { $palette: 'gradients' },
+                defaultPatternFills: SAFE_FILLS_OPERATION,
+            }),
         },
         legend: {
             enabled: false,
