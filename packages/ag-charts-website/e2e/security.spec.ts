@@ -6,7 +6,7 @@ test.describe('security', () => {
 
     test.describe('CSP', () => {
         test.describe('basic-csp example', () => {
-            const { url } = toExamplePageUrl('security-test', 'basic-csp', 'vanilla');
+            const { url } = toExamplePageUrl('security-e2e', 'basic-csp', 'vanilla');
 
             test('should load successfully', async ({ page }) => {
                 await gotoExample(page, url);
@@ -23,7 +23,7 @@ test.describe('security', () => {
         });
 
         test.describe('complex-csp example', () => {
-            const { url } = toExamplePageUrl('security-test', 'complex-csp', 'vanilla');
+            const { url } = toExamplePageUrl('security-e2e', 'complex-csp', 'vanilla');
 
             test('should load successfully', async ({ page }) => {
                 await gotoExample(page, url);
