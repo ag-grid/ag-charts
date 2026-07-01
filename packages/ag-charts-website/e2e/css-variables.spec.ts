@@ -1,5 +1,12 @@
 import { expect, test } from './fixture';
-import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrls } from './util';
+import {
+    SELECTORS,
+    gotoExample,
+    setupIntrinsicAssertions,
+    toExamplePageUrl,
+    toExamplePageUrls,
+    waitForAllChartUpdates,
+} from './util';
 
 test.describe('css variables', () => {
     setupIntrinsicAssertions(test);
@@ -32,4 +39,20 @@ test.describe('css variables', () => {
             });
         });
     }
+
+    // The dark-mode example rebinds `--chart-*` CSS variables by toggling a `body` class; the charts
+    // must re-resolve the theme and repaint without an explicit `chart.update()` call.
+    test('dark mode toggles chart colours via CSS variables without chart.update()', async ({ page }) => {
+        const { url } = toExamplePageUrl('themes-e2e', 'css-variables-dark-mode', 'vanilla');
+        await gotoExample(page, url);
+
+        const charts = page.locator('#charts');
+        await expect(page.locator('#status')).toContainText('Mode: Light');
+        await expect(charts).toHaveScreenshot('css-variables-dark-mode-light.png');
+
+        await page.getByText('Toggle Dark Mode').click();
+        await waitForAllChartUpdates(page);
+        await expect(page.locator('#status')).toContainText('Mode: Dark');
+        await expect(charts).toHaveScreenshot('css-variables-dark-mode-dark.png');
+    });
 });
