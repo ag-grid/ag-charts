@@ -294,4 +294,54 @@ describe('label collision avoidance', () => {
             );
         });
     });
+
+    // Bar/histogram contribute their rects as `seriesItem` obstacles; a placing series only routes
+    // its labels around them when its label opts into that category via collideWith.seriesItems.
+    describe('cross-series obstacles (bar + line)', () => {
+        const comboData = Array.from({ length: 16 }, (_, i) => ({
+            x: `C${i}`,
+            bar: 40 + 20 * Math.sin(i / 2),
+            line: 52 + 22 * Math.sin(i / 2 + 1),
+        }));
+        const comboAxes = {
+            x: { position: 'bottom', type: 'category' },
+            y: { position: 'left', type: 'number' },
+        };
+        const lineLabel = (collisionAvoidance: CollisionAvoidance) => ({
+            type: 'line',
+            xKey: 'x',
+            yKey: 'line',
+            marker: { enabled: true, size: 6 },
+            label: { enabled: true, formatter: ({ value }: any) => value.toFixed(0), collisionAvoidance },
+        });
+        const series = (collisionAvoidance: CollisionAvoidance) => [
+            { type: 'bar', xKey: 'x', yKey: 'bar' },
+            lineLabel(collisionAvoidance),
+        ];
+
+        it('routes line labels around bars when seriesItems is enabled', async () => {
+            await renderAndSnapshot({
+                data: comboData,
+                legend: { enabled: false },
+                axes: comboAxes,
+                series: series({
+                    enabled: true,
+                    strategy: [{ type: 'reposition', placements: ['top', 'bottom'] }],
+                    collideWith: { seriesItems: { enabled: true } },
+                }),
+            });
+        });
+
+        it('leaves line labels over the bars by default (seriesItems off)', async () => {
+            await renderAndSnapshot({
+                data: comboData,
+                legend: { enabled: false },
+                axes: comboAxes,
+                series: series({
+                    enabled: true,
+                    strategy: [{ type: 'reposition', placements: ['top', 'bottom'] }],
+                }),
+            });
+        });
+    });
 });

@@ -125,7 +125,7 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
     getLabelData(): (TLabel & PointLabelDatum)[];
-    getLabelObstacles?(): LabelObstacle[];
+    getLabelObstacles?(): LabelObstacle[] | undefined;
     getTooltipContent(datumIndex: DatumIndex, removeThisDatum: TDatum | undefined): TooltipContent | undefined;
     getDatumAriaText?(seriesDatum: TDatum, description: string): string | undefined;
     getCategoryValue(datumIndex: number): any;

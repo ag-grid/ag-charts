@@ -102,7 +102,7 @@ import {
 } from './cartesianSeries';
 import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 import { calculateDataDiff } from './diffUtil';
-import { calculateSegments } from './util';
+import { calculateSegments, rectLabelObstacles } from './util';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: NormalisedTextOrSegments;
@@ -1606,6 +1606,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         }
 
         opts.datumSelection.each(updateDatumNode);
+    }
+
+    getLabelObstacles() {
+        return rectLabelObstacles(this.contextNodeData?.nodeData);
     }
 
     protected override updateLabelSelection(opts: {

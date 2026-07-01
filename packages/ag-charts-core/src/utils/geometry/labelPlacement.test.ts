@@ -2,7 +2,13 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { Point, SizedPoint } from '../../types/scene';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
-import { type LabelPlacement, type PlacedLabel, type PointLabelDatum, placeLabels } from './labelPlacement';
+import {
+    type LabelObstacle,
+    type LabelPlacement,
+    type PlacedLabel,
+    type PointLabelDatum,
+    placeLabels,
+} from './labelPlacement';
 import { SpatialIndex } from './spatialIndex';
 
 const PLACEMENTS: (LabelPlacement | undefined)[] = [
@@ -415,5 +421,59 @@ describe('placeLabels', () => {
         const inflatedResult = placeLabels(new Map([['s', [marker, inflated]]]), bounds, 5).get('s')!;
         expect(noInflationResult.some((l) => l.datum === noInflation)).toBe(true);
         expect(inflatedResult.some((l) => l.datum === inflated)).toBe(false);
+    });
+
+    it('routes labels around external seriesItem obstacles only when that category is enabled', () => {
+        // A bar-style rect obstacle (category 'seriesItem') sits where the label's only placement lands.
+        const obstacle: LabelObstacle = {
+            kind: 'rect',
+            box: { x: 80, y: 96, width: 60, height: 16 },
+            category: 'seriesItem',
+        };
+        const label = (seriesItemEnabled: boolean): PointLabelDatum => ({
+            point: { x: 100, y: 100, size: 0 },
+            label: { text: 'X', width: 30, height: 12 },
+            anchor: undefined,
+            placement: 'top',
+            placements: ['top'],
+            gap: 0,
+            avoid: true,
+            collideWith: {
+                marker: { enabled: true },
+                label: { enabled: true },
+                seriesItem: { enabled: seriesItemEnabled },
+            },
+        });
+
+        const enabled = label(true);
+        const disabled = label(false);
+        const enabledResult = placeLabels(new Map([['s', [enabled]]]), bounds, 5, [obstacle]).get('s')!;
+        const disabledResult = placeLabels(new Map([['s', [disabled]]]), bounds, 5, [obstacle]).get('s')!;
+        expect(enabledResult.some((l) => l.datum === enabled)).toBe(false);
+        expect(disabledResult.some((l) => l.datum === disabled)).toBe(true);
+    });
+
+    it('disabled-category obstacles do not perturb placement of other categories', () => {
+        const data = makeFixture(2, 40, bounds, 12345);
+        // Stamp a collideWith that disables seriesItem on every datum (matches a series that opts
+        // into avoidance but not cross-series geometry).
+        for (const datums of data.values()) {
+            for (const d of datums) {
+                (d as { collideWith?: unknown }).collideWith = {
+                    marker: { enabled: true },
+                    label: { enabled: true },
+                    seriesItem: { enabled: false },
+                };
+            }
+        }
+        const seriesItemObstacles: LabelObstacle[] = Array.from({ length: 30 }, (_, i) => ({
+            kind: 'rect',
+            box: { x: (i % 6) * 90, y: Math.floor(i / 6) * 70, width: 80, height: 60 },
+            category: 'seriesItem',
+        }));
+
+        const without = placeLabels(structuredClone(data), bounds, 5);
+        const with_ = placeLabels(structuredClone(data), bounds, 5, seriesItemObstacles);
+        expect(normalise(with_)).toEqual(normalise(without));
     });
 });
