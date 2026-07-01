@@ -87,6 +87,7 @@ export class LabelCollisionAvoidance extends BaseProperties implements AgChartLa
 
     /** Placements from the `reposition` strategy, falling back to the series' own default. */
     placements(fallback: readonly LabelPlacement[]): readonly LabelPlacement[] {
+        if (!this.avoid) return fallback;
         const reposition = this.strategy?.find((s) => s.type === 'reposition');
         return reposition?.placements ?? fallback;
     }
