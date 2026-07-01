@@ -77,7 +77,8 @@ Use the `showOn` property to specify when the action should be shown.
             {
                 showOn: 'caption',
                 label: 'Say hello in a caption',
-                action: ({ captionType, text }) => console.log(`Hello in a ${captionType} caption: "${text}"`),
+                action: ({ captionType, text }) =>
+                    console.log(`Hello in a ${captionType} caption: "${text}"`),
             },
             'separator',
             {
