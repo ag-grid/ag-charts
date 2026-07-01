@@ -43,7 +43,7 @@ test.describe('context-menu', () => {
         });
     }
 
-    for (const { framework, url } of toExamplePageUrls('context-menu', 'context-menu-actions')) {
+    for (const { framework, url } of toExamplePageUrls('context-menu-e2e', 'context-menu-actions')) {
         test.describe(`for ${framework}`, () => {
             test('items update', async ({ page }) => {
                 await gotoExample(page, url);
@@ -101,7 +101,7 @@ test.describe('context-menu', () => {
     });
 
     test('AG-16178 mouse exit and reenter', async ({ page }) => {
-        const { url } = toExamplePageUrl('context-menu', 'context-menu-actions', 'vanilla');
+        const { url } = toExamplePageUrl('context-menu-e2e', 'context-menu-actions', 'vanilla');
         await gotoExample(page, url);
 
         await page.mouse.click(400, 300, { button: 'right' });
