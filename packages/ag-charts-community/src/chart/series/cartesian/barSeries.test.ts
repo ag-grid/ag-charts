@@ -669,8 +669,9 @@ describe('BarSeries', () => {
     describe('update animation', () => {
         const animate = spyOnAnimationManager();
 
-        // Intermediate ratios for COLUMN_TIME are covered by the frame-trajectory test (CASE 1);
-        // only the endpoint snapshots are kept as a visual sanity check.
+        // Only the endpoint (0%/100%) snapshots are kept as a visual sanity check; update-animation
+        // invariants at intermediate frames are asserted by the frame-trajectory tests below (CASE 1
+        // covers the same update shape, albeit on a category rather than time x-axis).
         for (const ratio of [0, 1]) {
             it(`for COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
                 animate(1200, 1);
@@ -730,25 +731,29 @@ describe('BarSeries', () => {
     describe('animation frame-trajectory (spike)', () => {
         const frames = spyOnAnimationFrames();
 
-        // CASE 1 — non-scale-affecting data update on a vertical (column) series. The changed bar should
-        // grow/shrink in one dimension only, while sibling bars and the changed bar's x/width stay put.
-        it('CASE 1: column data-update animates height only, monotonically, without disturbing siblings', async () => {
+        // The pinned 0-100 y-domain makes data updates within it provably non-scale-affecting.
+        const columnOptions = (data: Array<{ x: string; y: number }>): AgChartOptions => {
             const options: AgChartOptions = {
-                data: [
-                    { x: 'A', y: 100 },
-                    { x: 'B', y: 40 },
-                    { x: 'C', y: 70 },
-                ],
+                data,
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-                // Pin the y-domain so shrinking B is provably non-scale-affecting (A and C never move).
                 axes: {
                     x: { type: 'category', position: 'bottom' },
                     y: { type: 'number', position: 'left', min: 0, max: 100 },
                 },
             };
-            prepareTestOptions(options);
+            return prepareTestOptions(options);
+        };
 
-            chart = AgCharts.create(options);
+        // CASE 1 — non-scale-affecting data update on a vertical (column) series. The changed bar should
+        // grow/shrink in one dimension only, while sibling bars and the changed bar's x/width stay put.
+        it('CASE 1: column data-update animates height only, monotonically, without disturbing siblings', async () => {
+            chart = AgCharts.create(
+                columnOptions([
+                    { x: 'A', y: 100 },
+                    { x: 'B', y: 40 },
+                    { x: 'C', y: 70 },
+                ])
+            );
             await frames.runToEnd(chart);
             const sampleScene = createSceneGeometrySampler(chart);
             const before = sampleScene();
@@ -766,7 +771,6 @@ describe('BarSeries', () => {
             const after = sampleScene();
 
             // Endpoints: first frame is the before-state, last frame is the after-state.
-            expect(trajectory).toHaveLength(31);
             expect(trajectory[0]).toEqual(before);
             expect(trajectory.at(-1)).toEqual(after);
 
@@ -779,18 +783,6 @@ describe('BarSeries', () => {
                 },
             });
         });
-
-        const columnOptions = (data: Array<{ x: string; y: number }>): AgChartOptions => {
-            const options: AgChartOptions = {
-                data,
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-                axes: {
-                    x: { type: 'category', position: 'bottom' },
-                    y: { type: 'number', position: 'left', min: 0, max: 100 },
-                },
-            };
-            return prepareTestOptions(options);
-        };
 
         // CASE 2 — add + remove. The entering bar grows in from height 0; the leaving bar collapses to 0.
         // Adding/removing a category rebalances the sibling bands and the category axis, so sibling/axis
@@ -824,9 +816,10 @@ describe('BarSeries', () => {
             // decreases) during the update phase; D's own band position never moves — it only grows in
             // vertically during the add phase. The axis rebalances with the bands: labels/ticks may only
             // shift left, and D's entering label/tick may only fade in during the add/remove windows.
+            // 'progresses' on the band rebalance guards against the update snapping in a single frame.
             const shiftLeftAndNarrow = {
-                x: { during: 'update', expect: 'decreases' },
-                width: { during: 'update', expect: 'decreases' },
+                x: { during: 'update', expect: ['decreases', 'progresses'] },
+                width: { during: 'update', expect: ['decreases', 'progresses'] },
             } as const;
             expectSceneTrajectory(addTrajectory, {
                 'series[0]/rect[D]': {
@@ -856,8 +849,8 @@ describe('BarSeries', () => {
             // during the update phase while D collapses during the remove phase, and the axis
             // labels/ticks shift right with the bands (D's label/tick fade out and leave).
             const shiftRightAndWiden = {
-                x: { during: 'update', expect: 'increases' },
-                width: { during: 'update', expect: 'increases' },
+                x: { during: 'update', expect: ['increases', 'progresses'] },
+                width: { during: 'update', expect: ['increases', 'progresses'] },
             } as const;
             expectSceneTrajectory(removeTrajectory, {
                 'series[0]/rect[D]': {

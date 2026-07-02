@@ -43,9 +43,7 @@ import {
     createChart,
     createSceneGeometrySampler,
     deproxy,
-    expectProgresses,
     expectSceneTrajectory,
-    expectWithinBounds,
     extractImageData,
     hoverAction,
     mixinReversedAxesCases,
@@ -290,7 +288,7 @@ describe('LineSeries', () => {
                     x: { during: 'update', expect: 'decreases' },
                     y: { during: 'update', expect: 'increases' },
                     width: { during: 'update', expect: 'decreases' },
-                    height: { during: 'update', expect: 'decreases' },
+                    height: { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
                 },
                 // The marker fade-in starts in the add phase and completes during trailing.
                 'series[0]/marker[*]': { opacity: { during: ['add', 'trailing'], expect: 'increases' } },
@@ -298,11 +296,8 @@ describe('LineSeries', () => {
                 ...axisReflowSpec('left', { shift: 'up', translate: 'right', plotEdge: 'shrinks', grid: true }),
             });
 
-            // The bbox actually animates (not a blank frame or an instant jump) and stays bounded by
-            // the endpoints; per-frame monotonic direction is covered by the trajectory spec above.
-            const heights = trajectory.map((f) => f.get(pathKey)!.height);
-            expectProgresses(heights);
-            expectWithinBounds(heights, before.get(pathKey)!.height, after.get(pathKey)!.height);
+            // Endpoints: the captured trajectory starts at the settled before-state and reaches the
+            // settled after-state (per-frame direction/progression/bounds are in the spec above).
             expect(trajectory[0].get(pathKey)!.height).toBeCloseTo(before.get(pathKey)!.height, 0);
             expect(trajectory.at(-1)!.get(pathKey)!.height).toBeCloseTo(after.get(pathKey)!.height, 0);
         });

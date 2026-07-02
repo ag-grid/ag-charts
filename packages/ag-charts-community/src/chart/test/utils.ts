@@ -912,8 +912,11 @@ export function spyOnAnimationFrames() {
             .mockImplementation(() => false);
         const safMock = vi.spyOn(AnimationManager.prototype, 'scheduleAnimationFrame');
         safMock.mockImplementation(function (this: AnimationManager, cb) {
-            (this as any).requestId = nextRafId++;
-            rafCbs.set(nextRafId++, cb);
+            // NOTE: cancelAnimationFrame is not intercepted, so a mid-animation chart update can leave a
+            // stale callback in the queue; capture flows must drain frames (runToEnd) between updates.
+            const id = nextRafId++;
+            (this as any).requestId = id;
+            rafCbs.set(id, cb);
         });
         // NOTE: `forceTimeJump` is deliberately NOT mocked — its default `false` keeps animations in the
         // batch so they progress frame-by-frame as `fireFrame` is called.
@@ -954,7 +957,9 @@ export function spyOnAnimationFrames() {
      *
      * The result also carries `phaseIntervals`: for each inter-sample interval, the contiguous range of
      * `AnimationPhase`s the batch passed through while producing it (empty once the batch is idle). This
-     * is what lets {@link expectSceneTrajectory} scope expectations with `during`.
+     * is what lets {@link expectSceneTrajectory} scope expectations with `during`. Phase attribution is
+     * per-interval, so an interval spanning a phase boundary (or the batch finishing) accepts movement
+     * from any phase it touched — the `during` guarantee is coarsest exactly at phase boundaries.
      */
     const captureAnimationFrames = async <T>(
         chartOrProxy: ChartOrProxy<any>,
@@ -1304,8 +1309,10 @@ function checkPropertyTrajectory(
             return undefined;
         }
         case 'bounded': {
-            const lo = Math.min(values[0], values.at(-1)!) - tolerances.progress;
-            const hi = Math.max(values[0], values.at(-1)!) + tolerances.progress;
+            // Overshoot tolerance uses the pixel-scale constant tolerance: crisp-pixel rounding can land
+            // a mid-frame value fractionally outside the endpoint interval without being a real overshoot.
+            const lo = Math.min(values[0], values.at(-1)!) - tolerances.constant;
+            const hi = Math.max(values[0], values.at(-1)!) + tolerances.constant;
             const badFrame = values.findIndex((v) => v < lo || v > hi);
             return badFrame < 0
                 ? undefined
@@ -1455,6 +1462,20 @@ export function expectSceneTrajectory(
             for (const prop of Object.keys(frame.get(key) ?? {})) props.add(prop);
         }
 
+        // Property-level typo guard, mirroring the node-level one: a spec-named property the sampler
+        // never emitted would otherwise pass vacuously.
+        if (typeof expectation === 'object') {
+            for (const specProp of Object.keys(expectation)) {
+                if (!props.has(specProp)) {
+                    violations.push({
+                        key,
+                        prop: specProp,
+                        message: 'spec names a property never sampled on this node (typo?)',
+                    });
+                }
+            }
+        }
+
         for (const prop of props) {
             const raw = expectation === 'constant' ? 'constant' : ((expectation as any)[prop] ?? 'constant');
             const isPhased = typeof raw === 'object' && !Array.isArray(raw);
@@ -1462,6 +1483,12 @@ export function expectSceneTrajectory(
             const rawValues = rawValuesFor(prop);
             const values = rawValues.filter((v): v is number => v != null);
             if (values.length < 2) continue;
+            // NaN compares false against everything, so it would sail through every check below.
+            const nonFinite = values.findIndex((v) => !Number.isFinite(v));
+            if (nonFinite >= 0) {
+                violations.push({ key, prop, message: `non-finite value at frame ${nonFinite}`, values: rawValues });
+                continue;
+            }
             for (const propExpectation of propExpectations) {
                 const failure = checkPropertyTrajectory(values, propExpectation, tolerances);
                 if (failure != null) {
