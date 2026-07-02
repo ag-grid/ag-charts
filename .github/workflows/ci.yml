@@ -1007,13 +1007,13 @@ jobs:
                   DEPLOY_TO_STAGING: 'true'
               run: node ./external/ag-shared/scripts/slack/notify-staging-deploy.mjs
 
-            # The bot-token alert below REPLACES this webhook post for the
-            # `latest`-failure case (when configured) so it can be threaded; this
-            # step still owns success alerts, non-`latest` branches, and the case
-            # where the bot path is unconfigured.
+            # Legacy webhook alert — fallback ONLY. When the bot-token path is
+            # configured (SLACK_BOT_OAUTH_TOKEN + CI_FAILURE_SLACK_CHANNEL), the
+            # single bot-token step below owns ALL CI state-change alerts and this
+            # step is fully suppressed, so there is exactly one notification point.
             - name: Slack Notification
               uses: rtCamp/action-slack-notify@v2
-              if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true' && !(github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.workflowStatus == 'failure' && env.SLACK_BOT_OAUTH_TOKEN != '' && vars.CI_FAILURE_SLACK_CHANNEL != '')
+              if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true' && !(env.SLACK_BOT_OAUTH_TOKEN != '' && vars.CI_FAILURE_SLACK_CHANNEL != '')
               env:
                   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
                   SLACK_COLOR: ${{ steps.lastJobStatus.outputs.workflowStatus != 'failure' && 'success' || 'failure' }}
@@ -1039,32 +1039,34 @@ jobs:
 
                       ${{ env.GIT_LOG }}
 
-            # --- Mainline CI-failure alert (bot token, thread anchor) ----------
-            # On a `latest` CI failure (state change) this REPLACES the rtCamp
-            # webhook alert above (suppressed for exactly this case) with an
-            # equivalent bot-token chat.postMessage. Why: a webhook returns no ts,
-            # so it can't be threaded; chat.postMessage yields {channel, ts}. That
-            # anchor is handed to the ci-failure-handler workflow (as the
-            # `ci-failure-slack` artifact) so its live status + fix summary reply
-            # IN-THREAD under this single alert — not as a second message.
-            # Gated on CI_FAILURE_SLACK_CHANNEL: when it's unset the step no-ops and
-            # the rtCamp alert above stays exactly as before (no behaviour change).
+            # --- CI status alert (bot token — the single notification point) ----
+            # When configured (SLACK_BOT_OAUTH_TOKEN + CI_FAILURE_SLACK_CHANNEL),
+            # this step is THE Slack alert for every non-PR CI state change —
+            # success and failure alike — fully replacing the rtCamp webhook post
+            # above. Why bot token rather than webhook: a webhook returns no ts, so
+            # it can't be threaded; chat.postMessage yields {channel, ts}. On a
+            # `latest` failure that anchor is handed to the ci-failure-handler
+            # workflow (as the `ci-failure-slack` artifact) so the AI's live status
+            # + fix summary reply IN-THREAD under this single alert — not as a
+            # second message elsewhere.
             # Best-effort: a Slack hiccup never fails CI — the handler then posts
             # its own root message in the same channel instead. And because the
             # alert only fires on a state CHANGE, a HEAD that was already red posts
             # no anchor; the handler's fallback covers that case too.
-            - name: Post CI-failure alert (bot token, thread anchor)
+            - name: Slack Notification (bot token, thread anchor)
               id: ci_failure_alert
-              if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true' && steps.lastJobStatus.outputs.workflowStatus == 'failure' && github.ref == 'refs/heads/latest' && env.SLACK_BOT_OAUTH_TOKEN != '' && vars.CI_FAILURE_SLACK_CHANNEL != ''
+              if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true' && env.SLACK_BOT_OAUTH_TOKEN != '' && vars.CI_FAILURE_SLACK_CHANNEL != ''
               continue-on-error: true
               env:
                   # SLACK_BOT_OAUTH_TOKEN inherited from the job-level env above.
-                  # CI_FAILURE_SLACK_CHANNEL: set to the SAME channel as the rtCamp
-                  # alert (a channel ID is most robust) so the failure alert stays
-                  # where the team already sees it; the bot must be a member of it.
+                  # CI_FAILURE_SLACK_CHANNEL: set to the SAME channel the webhook
+                  # posted to (a channel ID is most robust) so alerts stay where the
+                  # team already sees them; the bot must be a member of it.
                   # chat.postMessage returns the canonical ID the handler threads on.
                   SLACK_CHANNEL: ${{ vars.CI_FAILURE_SLACK_CHANNEL }}
                   REF_NAME: ${{ github.ref_name }}
+                  WORKFLOW_STATUS: ${{ steps.lastJobStatus.outputs.workflowStatus }}
+                  IS_LATEST: ${{ github.ref == 'refs/heads/latest' }}
                   RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
                   INIT_RESULT: ${{ needs.init.result }}
                   LINT_RESULT: ${{ needs.lint.outputs.lint }}
@@ -1082,7 +1084,11 @@ jobs:
                   set -euo pipefail
                   # `[[ … ]] && LINES+=(…)`: the [[ ]] is the left operand of &&, so
                   # a false test is exempt from set -e (it never exits the step).
-                  LINES=(":x: *ag-charts CI failed on \`${REF_NAME}\`*")
+                  if [[ "$WORKFLOW_STATUS" != "failure" && "$WORKFLOW_STATUS" != "partial" ]]; then
+                      LINES=(":white_check_mark: *ag-charts CI completed successfully on \`${REF_NAME}\`*")
+                  else
+                      LINES=(":x: *ag-charts CI failed on \`${REF_NAME}\`*")
+                  fi
                   [[ "$INIT_RESULT" == "failure" ]] && LINES+=("• Init")
                   [[ "$LINT_RESULT" == "failure" ]] && LINES+=("• Lint")
                   [[ "$FORMAT_RESULT" == "failure" ]] && LINES+=("• Format")
@@ -1105,6 +1111,11 @@ jobs:
                       --data "$PAYLOAD" || echo '{}')
                   if ! echo "$RESP" | jq -e '.ok' >/dev/null 2>&1; then
                       echo "::warning::chat.postMessage failed: $(echo "$RESP" | jq -r '.error // "no response"') — handler will post its own root message."
+                      exit 0
+                  fi
+                  # The thread anchor only matters for the case the ci-failure
+                  # handler picks up: a genuine failure on `latest`.
+                  if [[ "$IS_LATEST" != "true" || "$WORKFLOW_STATUS" != "failure" ]]; then
                       exit 0
                   fi
                   CH=$(echo "$RESP" | jq -r '.channel // ""')

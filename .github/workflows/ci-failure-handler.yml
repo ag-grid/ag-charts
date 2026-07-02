@@ -24,9 +24,10 @@ name: CI failure handler
 # Prerequisites (already present for the jira pipeline — same GitHub App):
 #   secrets: JIRA_AGENT_APP_PRIVATE_KEY, ANTHROPIC_API_KEY, SLACK_BOT_OAUTH_TOKEN
 #   vars:    JIRA_AGENT_APP_ID
-#            CI_FAILURE_SLACK_CHANNEL (optional) — Slack channel ID for the CI
-#              alert/status thread; defaults to the `dev-agentic-tooling-status`
-#              channel name. Set to an ID for maximum robustness.
+#            CI_FAILURE_SLACK_CHANNEL — Slack channel ID for the CI alert/status
+#              thread (the SAME channel ci.yml's alert posts to — the single
+#              notification point). Unset → the handler still runs but posts no
+#              Slack status. Set to an ID for maximum robustness.
 #            CI_FAILURE_BASE_BRANCH (optional) — base branch the fix PR targets
 #              on automatic runs; defaults to the failing branch (`latest`).
 #   GitHub App `ag-grid-jira-agents` installed on ag-grid/ag-charts with
@@ -195,11 +196,11 @@ jobs:
                   slack_channel: ${{ needs.preflight.outputs.slack_channel }}
                   slack_thread_ts: ${{ needs.preflight.outputs.slack_thread_ts }}
                   # Fallback root-message channel when no alert thread was recovered
-                  # (e.g. ag-charts' CI-failure alert isn't yet reworked to the
-                  # bot-token + ci-failure-slack artifact handoff, so no thread_ts is
-                  # available). Name or ID; set CI_FAILURE_SLACK_CHANNEL to a channel
-                  # ID for robustness.
-                  slack_channel_fallback: ${{ vars.CI_FAILURE_SLACK_CHANNEL || 'dev-agentic-tooling-status' }}
+                  # (e.g. HEAD was already red, so the state-change alert posted no
+                  # anchor). Same channel as the CI alert — one notification point.
+                  # Empty (var unset) → the handler posts no Slack status at all
+                  # rather than inventing a second location.
+                  slack_channel_fallback: ${{ vars.CI_FAILURE_SLACK_CHANNEL }}
                   slack_bot_token: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
                   github_app_id: ${{ vars.JIRA_AGENT_APP_ID }}
                   github_app_private_key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
