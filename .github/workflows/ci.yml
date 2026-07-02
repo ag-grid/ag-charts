@@ -821,6 +821,13 @@ jobs:
                 playwright_image,
             ]
         if: cancelled() != true
+        # SLACK_BOT_OAUTH_TOKEN is hoisted to job level on purpose: a step's OWN
+        # env: block is not in scope for that same step's if: (the if is evaluated
+        # before step env is applied). The CI-failure handoff step below gates its
+        # if: on env.SLACK_BOT_OAUTH_TOKEN != '', so it must live here (and no-ops
+        # cleanly when the secret is empty).
+        env:
+            SLACK_BOT_OAUTH_TOKEN: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
         steps:
             - name: Checkout
               id: checkout
@@ -1026,6 +1033,91 @@ jobs:
                       *Changes:*
 
                       ${{ env.GIT_LOG }}
+
+            # --- Mainline CI-failure handler handoff ---------------------------
+            # On a `latest` CI failure (state change), post a bot-token alert to
+            # the agentic-tooling Slack channel so it yields a {channel, ts} that
+            # the ci-failure-handler workflow can thread its live status + fix
+            # summary under, handed off as the `ci-failure-slack` artifact. This is
+            # ADDITIVE: the rtCamp webhook alert above is unchanged (it still
+            # serves the charts team's existing CI channel). Scoped to `latest`
+            # (the only branch the handler fires on) so other branches don't post
+            # orphan anchors. Best-effort: a Slack hiccup never fails CI, and the
+            # handler falls back to its own root message when the artifact is
+            # absent. Uses a raw chat.postMessage (the package's slack-thread.mjs
+            # is not vendored here) — a webhook returns no ts, so it can't anchor.
+            - name: Post CI-failure handoff (threaded anchor, bot token)
+              id: ci_failure_handoff
+              if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true' && steps.lastJobStatus.outputs.workflowStatus == 'failure' && github.ref == 'refs/heads/latest' && env.SLACK_BOT_OAUTH_TOKEN != ''
+              continue-on-error: true
+              env:
+                  # SLACK_BOT_OAUTH_TOKEN inherited from the job-level env above.
+                  # Channel accepts a NAME or ID; chat.postMessage returns the
+                  # canonical ID which the handler threads on. Set the
+                  # CI_FAILURE_SLACK_CHANNEL repo var to an ID for robustness.
+                  SLACK_CHANNEL: ${{ vars.CI_FAILURE_SLACK_CHANNEL || 'dev-agentic-tooling-status' }}
+                  REF_NAME: ${{ github.ref_name }}
+                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                  INIT_RESULT: ${{ needs.init.result }}
+                  LINT_RESULT: ${{ needs.lint.outputs.lint }}
+                  FORMAT_RESULT: ${{ needs.lint.outputs.format }}
+                  GENERATE_RESULT: ${{ needs.generate.outputs.generate }}
+                  BUILD_RESULT: ${{ needs.build.outputs.build }}
+                  VALIDATE_RESULT: ${{ needs.validate.outputs.validate }}
+                  WEBSITE_RESULT: ${{ needs.website_build.outputs.build }}
+                  TEST_RESULT: ${{ needs.test.result }}
+                  E2E_RESULT: ${{ needs.e2e.result }}
+                  FW_PKG_RESULT: ${{ needs.fw_pkg_test.result }}
+                  PLAYWRIGHT_RESULT: ${{ needs.playwright_image.result }}
+                  SONAR_RESULT: ${{ needs.sonarqube.result }}
+              run: |
+                  set -euo pipefail
+                  # `[[ … ]] && LINES+=(…)`: the [[ ]] is the left operand of &&, so
+                  # a false test is exempt from set -e (it never exits the step).
+                  LINES=(":x: *ag-charts CI failed on \`${REF_NAME}\`*")
+                  [[ "$INIT_RESULT" == "failure" ]] && LINES+=("• Init")
+                  [[ "$LINT_RESULT" == "failure" ]] && LINES+=("• Lint")
+                  [[ "$FORMAT_RESULT" == "failure" ]] && LINES+=("• Format")
+                  [[ "$GENERATE_RESULT" == "failure" ]] && LINES+=("• Generate")
+                  [[ "$BUILD_RESULT" == "failure" ]] && LINES+=("• Build")
+                  [[ "$VALIDATE_RESULT" == "failure" ]] && LINES+=("• Validate")
+                  [[ "$WEBSITE_RESULT" == "failure" ]] && LINES+=("• Website")
+                  [[ "$TEST_RESULT" == "failure" ]] && LINES+=("• Test")
+                  [[ "$E2E_RESULT" == "failure" ]] && LINES+=("• E2E")
+                  [[ "$FW_PKG_RESULT" == "failure" ]] && LINES+=("• FW Pkg")
+                  [[ "$PLAYWRIGHT_RESULT" == "failure" ]] && LINES+=("• Playwright Image")
+                  [[ "$SONAR_RESULT" == "failure" ]] && LINES+=("• Sonar")
+                  LINES+=("<${RUN_URL}|CI run>")
+                  if [[ -n "${GIT_LOG:-}" ]]; then LINES+=("" "*Changes:*" "${GIT_LOG}"); fi
+                  TEXT=$(printf '%s\n' "${LINES[@]}")
+                  PAYLOAD=$(jq -nc --arg ch "$SLACK_CHANNEL" --arg text "$TEXT" '{channel:$ch, text:$text}')
+                  RESP=$(curl -sS -X POST https://slack.com/api/chat.postMessage \
+                      -H "Authorization: Bearer ${SLACK_BOT_OAUTH_TOKEN}" \
+                      -H 'Content-type: application/json; charset=utf-8' \
+                      --data "$PAYLOAD" || echo '{}')
+                  if ! echo "$RESP" | jq -e '.ok' >/dev/null 2>&1; then
+                      echo "::warning::chat.postMessage failed: $(echo "$RESP" | jq -r '.error // "no response"') — handler will post its own root message."
+                      exit 0
+                  fi
+                  CH=$(echo "$RESP" | jq -r '.channel // ""')
+                  TS=$(echo "$RESP" | jq -r '.ts // ""')
+                  # Only write the handoff when BOTH are non-empty: an artifact with
+                  # an empty channel/ts would make the handler thread into nothing.
+                  if [[ -n "$CH" && -n "$TS" ]]; then
+                      jq -nc --arg c "$CH" --arg ts "$TS" '{channel:$c, ts:$ts}' > ci-failure-slack.json
+                      echo "wrote ci-failure-slack.json: $(cat ci-failure-slack.json)"
+                  else
+                      echo "[handoff] empty channel/ts from Slack — skipping handoff; handler will post its own root."
+                  fi
+
+            - name: Upload CI-failure Slack thread handoff
+              if: always() && steps.ci_failure_handoff.outcome == 'success' && hashFiles('ci-failure-slack.json') != ''
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ci-failure-slack
+                  path: ci-failure-slack.json
+                  retention-days: 7
+                  if-no-files-found: warn
 
             - name: Fail job if workflow failed
               if: success() && steps.lastJobStatus.outputs.workflowStatus == 'failure'
