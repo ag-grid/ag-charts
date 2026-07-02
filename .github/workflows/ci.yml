@@ -823,9 +823,8 @@ jobs:
         if: cancelled() != true
         # SLACK_BOT_OAUTH_TOKEN is hoisted to job level on purpose: a step's OWN
         # env: block is not in scope for that same step's if: (the if is evaluated
-        # before step env is applied), and the rtCamp step's if: also reads it.
-        # The CI-failure alert step below (and the rtCamp suppression clause) gate
-        # on env.SLACK_BOT_OAUTH_TOKEN != '', so it must live here (and both no-op
+        # before step env is applied). The Slack alert step below gates on
+        # env.SLACK_BOT_OAUTH_TOKEN != '', so it must live here (and no-ops
         # cleanly when the secret is empty).
         env:
             SLACK_BOT_OAUTH_TOKEN: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
@@ -1007,48 +1006,15 @@ jobs:
                   DEPLOY_TO_STAGING: 'true'
               run: node ./external/ag-shared/scripts/slack/notify-staging-deploy.mjs
 
-            # Legacy webhook alert — fallback ONLY. When the bot-token path is
-            # configured (SLACK_BOT_OAUTH_TOKEN + CI_FAILURE_SLACK_CHANNEL), the
-            # single bot-token step below owns ALL CI state-change alerts and this
-            # step is fully suppressed, so there is exactly one notification point.
-            - name: Slack Notification
-              uses: rtCamp/action-slack-notify@v2
-              if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true' && !(env.SLACK_BOT_OAUTH_TOKEN != '' && vars.CI_FAILURE_SLACK_CHANNEL != '')
-              env:
-                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-                  SLACK_COLOR: ${{ steps.lastJobStatus.outputs.workflowStatus != 'failure' && 'success' || 'failure' }}
-                  SLACK_ICON: https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png
-                  SLACK_USERNAME: ag-charts CI
-                  SLACK_FOOTER: ''
-                  SLACK_MESSAGE: >
-                      ${{ steps.lastJobStatus.outputs.workflowStatus != 'failure' && steps.lastJobStatus.outputs.workflowStatus != 'partial' && '✅ CI workflow completed successfully' || '❌ CI workflow failed:' }}
-                      ${{ needs.init.result == 'failure' && '- ❌ Init' || '' }}
-                      ${{ needs.lint.outputs.lint == 'failure' && '- ❌ Lint' || '' }}
-                      ${{ needs.lint.outputs.format == 'failure' && '- ❌ Format' || '' }}
-                      ${{ needs.generate.outputs.generate == 'failure' && '- ❌ Generate' || '' }}
-                      ${{ needs.build.outputs.build == 'failure' && '- ❌ Build' || '' }}
-                      ${{ needs.validate.outputs.validate == 'failure' && '- ❌ Validate' || '' }}
-                      ${{ needs.website_build.outputs.build == 'failure' && '- ❌ Website' || '' }}
-                      ${{ needs.test.result == 'failure' && '- ❌ Test' || '' }}
-                      ${{ needs.e2e.result == 'failure' && '- ❌ E2E' || '' }}
-                      ${{ needs.fw_pkg_test.result == 'failure' && '- ❌ FW Pkg' || '' }}
-                      ${{ needs.playwright_image.result == 'failure' && '- ❌ Playwright Image' || '' }}
-                      ${{ needs.sonarqube.result == 'failure' && '- ❌ Sonar' || '' }}
-
-                      *Changes:*
-
-                      ${{ env.GIT_LOG }}
-
             # --- CI status alert (bot token — the single notification point) ----
-            # When configured (SLACK_BOT_OAUTH_TOKEN + CI_FAILURE_SLACK_CHANNEL),
-            # this step is THE Slack alert for every non-PR CI state change —
-            # success and failure alike — fully replacing the rtCamp webhook post
-            # above. Why bot token rather than webhook: a webhook returns no ts, so
-            # it can't be threaded; chat.postMessage yields {channel, ts}. On a
-            # `latest` failure that anchor is handed to the ci-failure-handler
-            # workflow (as the `ci-failure-slack` artifact) so the AI's live status
-            # + fix summary reply IN-THREAD under this single alert — not as a
-            # second message elsewhere.
+            # THE Slack alert for every non-PR CI state change — success and
+            # failure alike (this replaced the old rtCamp webhook post). Why bot
+            # token rather than webhook: a webhook returns no ts, so it can't be
+            # threaded; chat.postMessage yields {channel, ts}. On a `latest`
+            # failure that anchor is handed to the ci-failure-handler workflow (as
+            # the `ci-failure-slack` artifact) so the AI's live status + fix
+            # summary reply IN-THREAD under this single alert — not as a second
+            # message elsewhere.
             # Best-effort: a Slack hiccup never fails CI — the handler then posts
             # its own root message in the same channel instead. And because the
             # alert only fires on a state CHANGE, a HEAD that was already red posts
