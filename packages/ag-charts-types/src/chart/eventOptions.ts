@@ -165,6 +165,17 @@ export type AgSeriesAreaContextMenuActionEvent<TContext = ContextDefault> = AgCh
     'seriesContextMenuAction',
     TContext
 >;
+
+export type AgCaptionType = 'title' | 'subtitle' | 'footnote';
+
+export interface AgCaptionContextMenuActionEvent<TContext = ContextDefault> extends AgChartEvent<
+    'captionContextMenuAction',
+    TContext
+> {
+    /** Which type of caption was clicked on. */
+    captionType: AgCaptionType;
+}
+
 export interface AgNodeContextMenuActionEvent<
     TDatum = DatumDefault,
     TContext = ContextDefault,

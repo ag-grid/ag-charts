@@ -11,7 +11,7 @@ import {
     wrapText,
     wrapTextSegments,
 } from 'ag-charts-core';
-import type { AgCaptionTooltipOptions, AgCaptionTooltipRendererParams } from 'ag-charts-types';
+import type { AgCaptionTooltipOptions, AgCaptionTooltipRendererParams, AgCaptionType } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
@@ -32,8 +32,6 @@ type CaptionNodeDatum = {
     rotationCenterY: number;
     rotation: number;
 };
-
-export type ChartCaptionKey = 'title' | 'subtitle' | 'footnote';
 
 /** Build the font spec (FontOptions shape) consumed by text measurers from a caption's options. */
 export function captionFont(opts: NormalisedChartCaptionOptions) {
@@ -88,7 +86,7 @@ export class ChartCaption implements CaptionLike {
 
     constructor(
         private readonly ctx: DynamicContext<ChartRegistry>,
-        private readonly key: ChartCaptionKey
+        private readonly key: AgCaptionType
     ) {}
 
     /**
@@ -155,6 +153,7 @@ export class ChartCaption implements CaptionLike {
         if (this.proxyText == null) {
             this.proxyText = proxyInteractionService.createProxyElement({ type: 'text', domManagerId, where });
             this.proxyTextListeners = [
+                this.proxyText.addListener('contextmenu', (ev) => this.handleContextMenu(moduleCtx, ev)),
                 this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev)),
                 this.proxyText.addListener('mouseleave', () => this.handleTooltipHide(moduleCtx)),
                 this.proxyText.addListener('focus', () => this.handleFocus(moduleCtx)),
@@ -214,26 +213,36 @@ export class ChartCaption implements CaptionLike {
         moduleCtx.tooltipManager.updateTooltip(this.id, { canvasX, canvasY, showArrow: false }, [content]);
     }
 
+    private eventToCanvas(event: MouseWidgetEvent<'mousemove' | 'contextmenu'>): { canvasX: number; canvasY: number } {
+        const bbox = Transformable.toCanvas(this.node);
+        return {
+            canvasX: event.sourceEvent.offsetX + bbox.x,
+            canvasY: event.sourceEvent.offsetY + bbox.y,
+        };
+    }
+
     private handleMouseMove(moduleCtx: DynamicContext<ChartRegistry>, event?: MouseWidgetEvent<'mousemove'>) {
         if (event == null) return;
-
-        const { x, y } = Transformable.toCanvas(this.node);
-        const canvasX = event.sourceEvent.offsetX + x;
-        const canvasY = event.sourceEvent.offsetY + y;
+        const { canvasX, canvasY } = this.eventToCanvas(event);
         this.showTooltip(moduleCtx, canvasX, canvasY);
     }
 
     private handleFocus(moduleCtx: DynamicContext<ChartRegistry>) {
-        const bbox = Transformable.toCanvas(this.node);
-        if (!bbox) return;
-
-        const canvasX = bbox.x + bbox.width / 2;
-        const canvasY = bbox.y + bbox.height / 2;
-        this.showTooltip(moduleCtx, canvasX, canvasY);
+        const canvasPoint = Transformable.toCanvas(this.node).computeCenter();
+        this.showTooltip(moduleCtx, canvasPoint.x, canvasPoint.y);
     }
 
     private handleTooltipHide(moduleCtx: DynamicContext<ChartRegistry>) {
         moduleCtx.tooltipManager.removeTooltip(this.id, undefined, true);
+    }
+
+    private handleContextMenu(moduleCtx: DynamicContext<ChartRegistry>, event: MouseWidgetEvent<'contextmenu'>) {
+        const { canvasX, canvasY } = this.eventToCanvas(event);
+        moduleCtx.contextMenuRegistry?.dispatchContext(
+            'caption',
+            { widgetEvent: event, canvasX, canvasY },
+            { captionType: this.key }
+        );
     }
 
     destroy() {

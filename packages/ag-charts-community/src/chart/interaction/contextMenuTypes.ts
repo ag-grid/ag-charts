@@ -1,5 +1,6 @@
 import type { RequireOptional } from 'ag-charts-core';
 import type {
+    AgContextMenuGetItemsParamsCaption,
     AgContextMenuItem,
     AgContextMenuItemAlways,
     AgContextMenuItemLegendItem,
@@ -28,6 +29,11 @@ export interface ContextShowOnMap extends ContextShowOnMapRule {
         event: InferTEvent<'always'>;
         callback: (param: InferTEvent<'always'>) => void;
         context: undefined;
+    };
+    caption: {
+        event: InferTEvent<'caption'>;
+        callback: (param: InferTEvent<'caption'>) => void;
+        context: Pick<AgContextMenuGetItemsParamsCaption, 'captionType'>;
     };
     'legend-item': {
         event: InferTEvent<'legend-item'>;

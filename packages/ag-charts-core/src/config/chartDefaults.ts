@@ -11,6 +11,8 @@ import {
     type AgChartOverlayOptions,
     type AgContextMenuItem,
     type AgContextMenuItemLiteral,
+    type AgContextMenuItemShowOn,
+    type AgContextMenuItemType,
     type AgDropShadowOptions,
     type AgErrorBarOptions,
     type AgErrorBarThemeableOptions,
@@ -229,8 +231,8 @@ const contextMenuItemLiterals: AgContextMenuItemLiteral[] = [
 ];
 
 const contextMenuItemObjectDef: OptionsDefs<Extract<AgContextMenuItem, object>> = {
-    type: union('action', 'separator'),
-    showOn: union('always', 'series-area', 'series-node', 'legend-item'),
+    type: strictUnion<AgContextMenuItemType>()('action', 'separator'),
+    showOn: strictUnion<AgContextMenuItemShowOn>()('always', 'caption', 'series-area', 'series-node', 'legend-item'),
     label: required(string),
     enabled: boolean,
     action: callback,
