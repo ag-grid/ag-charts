@@ -177,6 +177,7 @@ export type { LayoutContext } from './chart/layout/layoutManager';
 export { AnnotationManager } from './chart/annotation/annotationManager';
 export { ContextMenuRegistry } from './chart/interaction/contextMenuRegistry';
 export type {
+    ContextShowOnMap,
     ContextMenuBuiltins,
     ContextMenuCallback,
     ContextMenuItemContract,

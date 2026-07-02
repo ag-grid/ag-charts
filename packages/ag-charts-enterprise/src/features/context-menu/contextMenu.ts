@@ -1,6 +1,5 @@
 import type {
     AgCaptionContextMenuActionEvent,
-    AgCaptionType,
     AgContextMenuGetItemsParams,
     AgContextMenuGetItemsParamsSeriesNode,
     AgContextMenuItem,
@@ -21,6 +20,7 @@ import {
 import { ContextMenuItem, expandBuiltinLists, expandItems } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
 
+type ContextShowOnMap = _ModuleSupport.ContextShowOnMap;
 type ContextMenuEvent<K extends AgContextMenuItemShowOn = AgContextMenuItemShowOn> = _ModuleSupport.ContextMenuEvent<K>;
 type ContextMenuCallback<K extends AgContextMenuItemShowOn = AgContextMenuItemShowOn> =
     _ModuleSupport.ContextMenuCallback<K>;
@@ -74,7 +74,7 @@ export class ContextMenu extends AbstractModuleInstance {
     // State
     private pickedNode: PickedNode | undefined = undefined;
     private pickedLegendItem?: _ModuleSupport.CategoryLegendDatum;
-    private pickedCaption?: AgCaptionType;
+    private pickedCaptionCtx?: ContextShowOnMap['caption']['context'];
     private x: number = 0;
     private y: number = 0;
     private collapsingSubMenus = 0;
@@ -173,9 +173,9 @@ export class ContextMenu extends AbstractModuleInstance {
             }
 
             case 'caption': {
-                if (this.pickedCaption == null) throw new Error(`this.pickedCaption is null`);
-                const captionType = this.pickedCaption;
-                return { showOn, context, captionType, defaultItems };
+                if (this.pickedCaptionCtx == null) throw new Error(`this.pickedCaptionCtx is null`);
+                const { captionType, text } = this.pickedCaptionCtx;
+                return { showOn, context, captionType, text, defaultItems };
             }
 
             case 'legend-item':
@@ -213,13 +213,13 @@ export class ContextMenu extends AbstractModuleInstance {
         this.y = event.y;
         this.pickedNode = undefined;
         this.pickedLegendItem = undefined;
-        this.pickedCaption = undefined;
+        this.pickedCaptionCtx = undefined;
         if (ContextMenuRegistry.check('series-node', event)) {
             this.pickedNode = event.context.pickedNode;
         } else if (ContextMenuRegistry.check('legend-item', event)) {
             this.pickedLegendItem = event.context.legendItem;
         } else if (ContextMenuRegistry.check('caption', event)) {
-            this.pickedCaption = event.context.captionType;
+            this.pickedCaptionCtx = event.context;
         }
 
         const expandedItems = this.expandItemsOptions(event);
@@ -387,11 +387,13 @@ export class ContextMenu extends AbstractModuleInstance {
             };
         } else if (ContextMenuRegistry.checkCallback('caption', showOn, callback)) {
             return () => {
-                if (this.pickedCaption) {
+                if (this.pickedCaptionCtx) {
+                    const { captionType, text } = this.pickedCaptionCtx;
                     const callers: Caller = this.ctx.chartService;
                     const apiEvent: Omit<AgCaptionContextMenuActionEvent<never>, 'context'> = {
                         type: 'captionContextMenuAction',
-                        captionType: this.pickedCaption,
+                        captionType,
+                        text,
                         event: showEvent,
                     };
                     callWithContext(callers, callback, apiEvent);

@@ -1,5 +1,6 @@
 import type { AgActiveState } from '../api/activeState';
 import type { AgStateGroupingValueType, AgStateValueType } from '../api/stateTypes';
+import type { TextOrSegments } from '../series/cartesian/commonOptions';
 import type { AgAnnotation } from './annotationsOptions';
 import type { AgItemType, Listener, SelectionState } from './callbackOptions';
 import type { AgNumericValue } from './dataValues';
@@ -174,6 +175,8 @@ export interface AgCaptionContextMenuActionEvent<TContext = ContextDefault> exte
 > {
     /** Which type of caption was clicked on. */
     captionType: AgCaptionType;
+    /** The text of the clicked caption. */
+    text: TextOrSegments;
 }
 
 export interface AgNodeContextMenuActionEvent<

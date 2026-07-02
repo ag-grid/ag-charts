@@ -55,7 +55,7 @@ const options: AgCartesianChartOptions<DataType> = {
                     {
                         showOn: 'caption',
                         label: `On 'caption'`,
-                        action: ({ captionType }) => console.log(`On 'caption' clicked - ${captionType}`),
+                        action: ({ captionType, text }) => console.log(`On 'caption' clicked -`, captionType, text),
                     },
                     {
                         showOn: 'series-area',

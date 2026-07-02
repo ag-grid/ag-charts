@@ -241,7 +241,7 @@ export class ChartCaption implements CaptionLike {
         moduleCtx.contextMenuRegistry?.dispatchContext(
             'caption',
             { widgetEvent: event, canvasX, canvasY },
-            { captionType: this.key }
+            { captionType: this.key, text: this.text ?? '' }
         );
     }
 
