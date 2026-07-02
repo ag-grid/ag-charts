@@ -37,13 +37,17 @@ import type {
 import { AgCharts } from '../../api/agCharts';
 import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
 import { BBox } from '../../scene/bbox';
-import { Selection } from '../../scene/selection';
+import { Group } from '../../scene/group';
+import type { Node } from '../../scene/node';
+import { Line } from '../../scene/shape/line';
+import { Path } from '../../scene/shape/path';
 import { Rect } from '../../scene/shape/rect';
 import { Sector } from '../../scene/shape/sector';
-import { SegmentedPath } from '../../scene/shape/segmentedPath';
+import { Text } from '../../scene/shape/text';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
+import { Marker } from '../marker/marker';
 import { findChartTarget } from './findTarget';
 
 export type { Chart } from '../chart';
@@ -961,75 +965,6 @@ export function spyOnAnimationFrames() {
     return { runToEnd, captureAnimationFrames };
 }
 
-export interface RectGeometry {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    opacity: number;
-}
-
-/**
- * Enumerate a series' animatable {@link Rect} scene nodes and read their CURRENT geometry. During
- * animation these hold the interpolated per-frame values (bar/column/histogram/waterfall/etc.), written
- * by the series' `applyFn` — see `prepareBarAnimationFunctions` in `barUtil.ts`. Not to be confused with
- * `series.getNodeData()`, which only ever holds the final target layout.
- */
-export function sampleRectGeometry(chartOrProxy: ChartOrProxy<any>, seriesIndex = 0): RectGeometry[] {
-    const series = deproxy(chartOrProxy).series[seriesIndex] as any;
-    return Selection.selectByClass(series.contentGroup, Rect).map((rect) => ({
-        x: rect.x,
-        y: rect.y,
-        width: rect.width,
-        height: rect.height,
-        opacity: rect.opacity ?? 1,
-    }));
-}
-
-export interface SectorGeometry {
-    startAngle: number;
-    endAngle: number;
-    innerRadius: number;
-    outerRadius: number;
-}
-
-/** Enumerate a polar series' {@link Sector} scene nodes (pie/donut) and read their current angular geometry. */
-export function sampleSectorGeometry(chartOrProxy: ChartOrProxy<any>, seriesIndex = 0): SectorGeometry[] {
-    const series = deproxy(chartOrProxy).series[seriesIndex] as any;
-    return Selection.selectByClass(series.contentGroup, Sector).map((sector) => ({
-        startAngle: sector.startAngle,
-        endAngle: sector.endAngle,
-        innerRadius: sector.innerRadius,
-        outerRadius: sector.outerRadius,
-    }));
-}
-
-export interface PathBBox {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-}
-
-/**
- * Read the bounding box of each {@link SegmentedPath} node of a line/area series. Unlike bar/pie nodes,
- * a path's animated geometry lives inside its `Path2D` (re-plotted every frame by the path motion), so
- * there is no per-point property to read; the bbox is the coarse-but-real per-frame signal. `getBBox()`
- * recomputes from the live (dirtied) path on each call.
- */
-export function samplePathBBoxes(chartOrProxy: ChartOrProxy<any>, seriesIndex = 0): PathBBox[] {
-    const series = deproxy(chartOrProxy).series[seriesIndex] as any;
-    return Selection.selectByClass(series.contentGroup, SegmentedPath).map((path) => {
-        const bbox = path.getBBox();
-        return {
-            x: bbox?.x ?? Number.NaN,
-            y: bbox?.y ?? Number.NaN,
-            width: bbox?.width ?? Number.NaN,
-            height: bbox?.height ?? Number.NaN,
-        };
-    });
-}
-
 /**
  * Assert a numeric series never reverses direction (monotonic non-strict). With `direction` omitted the
  * dominant direction is inferred from the endpoints; a flat series (all-equal) satisfies either direction.
@@ -1050,21 +985,6 @@ export function expectMonotonic(values: number[], direction?: 'increasing' | 'de
                 `frame ${i}: expected non-increasing, got ${values[i - 1]} -> ${values[i]}`
             ).toBeLessThanOrEqual(tol);
         }
-    }
-}
-
-/**
- * Assert a numeric series is constant across all frames (dimension isolation, e.g. x/width during a
- * vertical grow). The default half-pixel tolerance absorbs sub-pixel `crisp` rounding, which shifts
- * coordinates slightly between the crisp endpoints and the non-crisp intermediate frames.
- */
-export function expectConstant(values: number[], tol = 0.5): void {
-    expect(values.length).toBeGreaterThan(0);
-    const first = values[0];
-    for (let i = 1; i < values.length; i++) {
-        expect(Math.abs(values[i] - first), `frame ${i}: expected ~${first}, got ${values[i]}`).toBeLessThanOrEqual(
-            tol
-        );
     }
 }
 
@@ -1091,6 +1011,372 @@ export function expectProgresses(values: number[], tol = 1e-3): void {
     const end = values.at(-1)!;
     const hasMidTransition = values.slice(1, -1).some((v) => Math.abs(v - start) > tol && Math.abs(v - end) > tol);
     expect(hasMidTransition, 'no intermediate frame between the endpoints — animation jumped').toBe(true);
+}
+
+export type SceneNodeGeometry = Record<string, number>;
+export type SceneGeometrySample = Map<string, SceneNodeGeometry>;
+
+interface GeometryReader {
+    label: string;
+    matches(node: Node<any>): boolean;
+    read(node: any): SceneNodeGeometry;
+}
+
+// Ordered most-specific first: Rect/Sector/Text/Line before the generic Path (bbox) fallback, which
+// covers markers, segmented line/area paths and any other shape.
+const GEOMETRY_READERS: GeometryReader[] = [
+    {
+        label: 'sector',
+        matches: (n) => n instanceof Sector,
+        read: (n: Sector) => ({
+            startAngle: n.startAngle,
+            endAngle: n.endAngle,
+            innerRadius: n.innerRadius,
+            outerRadius: n.outerRadius,
+            opacity: n.opacity ?? 1,
+        }),
+    },
+    {
+        label: 'rect',
+        matches: (n) => n instanceof Rect,
+        read: (n: Rect) => ({ x: n.x, y: n.y, width: n.width, height: n.height, opacity: n.opacity ?? 1 }),
+    },
+    {
+        label: 'text',
+        matches: (n) => n instanceof Text,
+        read: (n: Text) => ({ x: n.x, y: n.y, opacity: n.opacity ?? 1 }),
+    },
+    {
+        label: 'line',
+        matches: (n) => n instanceof Line,
+        read: (n: Line) => ({ x1: n.x1, y1: n.y1, x2: n.x2, y2: n.y2, opacity: n.opacity ?? 1 }),
+    },
+    {
+        label: 'marker',
+        matches: (n) => n instanceof Marker,
+        read: (n: Path) => {
+            const bbox = n.getBBox();
+            return {
+                x: bbox?.x ?? Number.NaN,
+                y: bbox?.y ?? Number.NaN,
+                width: bbox?.width ?? Number.NaN,
+                height: bbox?.height ?? Number.NaN,
+                opacity: n.opacity ?? 1,
+            };
+        },
+    },
+    {
+        label: 'path',
+        matches: (n) => n instanceof Path,
+        read: (n: Path) => {
+            const bbox = n.getBBox();
+            return {
+                x: bbox?.x ?? Number.NaN,
+                y: bbox?.y ?? Number.NaN,
+                width: bbox?.width ?? Number.NaN,
+                height: bbox?.height ?? Number.NaN,
+                opacity: n.opacity ?? 1,
+            };
+        },
+    },
+];
+
+function readNodeGeometry(node: Node<any>): { label: string; props: SceneNodeGeometry } | undefined {
+    const reader = GEOMETRY_READERS.find((r) => r.matches(node));
+    if (reader == null) return undefined;
+    const props = reader.read(node);
+    // Translation-positioned shapes (e.g. markers) move via translationX/Y, not their local geometry.
+    const { translationX, translationY } = node as any;
+    if (typeof translationX === 'number' && typeof translationY === 'number') {
+        props.translationX = translationX;
+        props.translationY = translationY;
+    }
+    props.visible = node.visible ? 1 : 0;
+    return { label: reader.label, props };
+}
+
+/** Best-effort human-readable identity for a scene node, derived from its datum. */
+function datumKeyOf(node: Node<any>): string | undefined {
+    const datum: any = node.datum;
+    if (datum != null && typeof datum !== 'object') return String(datum);
+    const value = datum?.xValue ?? datum?.angleValue ?? datum?.itemId ?? datum?.index;
+    if (value != null) return String(value);
+    if (node instanceof Text && node.text != null) return String(node.text);
+    return undefined;
+}
+
+/**
+ * Whole-scene geometry sampler for frame-trajectory tests (see {@link spyOnAnimationFrames}).
+ *
+ * Walks every series content/label group and every axis/grid group, reading the animatable properties
+ * of each shape node into a map keyed by a stable, human-readable node path such as
+ * `series[0]/rect[B]` or `axis[left]/text[100]`. Keys are assigned on first sight and pinned to the
+ * node INSTANCE (via WeakMap), so a node keeps its key across frames even if its datum mutates;
+ * colliding names are disambiguated with a `#n` suffix.
+ *
+ * Sampling the whole scene (rather than hand-picking nodes) is what lets {@link expectSceneTrajectory}
+ * default every unnamed node to "must not move" — the class of regression (axis wobble, label flicker,
+ * sibling disturbance) that per-ratio image snapshots caught incidentally.
+ */
+export function createSceneGeometrySampler(chartOrProxy: ChartOrProxy<any>): () => SceneGeometrySample {
+    const nodeKeys = new WeakMap<Node<any>, string>();
+    const keyCounts = new Map<string, number>();
+
+    const assignKey = (node: Node<any>, baseKey: string): string => {
+        let key = nodeKeys.get(node);
+        if (key != null) return key;
+        const count = keyCounts.get(baseKey) ?? 0;
+        keyCounts.set(baseKey, count + 1);
+        // Disambiguate inside the trailing bracket so `label[*]` globs still match: `text[A#2]`.
+        key = count === 0 ? baseKey : baseKey.replace(/\]$/, `#${count + 1}]`);
+        if (key === baseKey && count > 0) key = `${baseKey}#${count + 1}`;
+        nodeKeys.set(node, key);
+        return key;
+    };
+
+    const sampleInto = (sample: SceneGeometrySample, rootPath: string, root: Node<any>) => {
+        const visit = (node: Node<any>) => {
+            const geometry = readNodeGeometry(node);
+            if (geometry != null) {
+                const identity = datumKeyOf(node);
+                const baseKey = `${rootPath}/${geometry.label}[${identity ?? ''}]`;
+                sample.set(assignKey(node, baseKey), geometry.props);
+            } else if (node instanceof Group) {
+                const { translationX, translationY } = node as any;
+                const props: SceneNodeGeometry = { opacity: node.opacity ?? 1, visible: node.visible ? 1 : 0 };
+                if (typeof translationX === 'number' && typeof translationY === 'number') {
+                    props.translationX = translationX;
+                    props.translationY = translationY;
+                }
+                sample.set(assignKey(node, node === root ? rootPath : `${rootPath}/group[${node.name ?? ''}]`), props);
+                for (const child of node.children()) {
+                    visit(child);
+                }
+            }
+        };
+        visit(root);
+    };
+
+    return function sampleSceneGeometry(): SceneGeometrySample {
+        const chart = deproxy(chartOrProxy);
+        const sample: SceneGeometrySample = new Map();
+        for (const [i, series] of (chart.series as any[]).entries()) {
+            sampleInto(sample, `series[${i}]`, series.contentGroup);
+            sampleInto(sample, `series[${i}]/labels`, series.labelGroup);
+        }
+        for (const axis of (chart as any).axes) {
+            const position = axis.position ?? 'unknown';
+            sampleInto(sample, `axis[${position}]`, axis.axisGroup);
+            sampleInto(sample, `axis[${position}]/grid`, axis.gridGroup);
+        }
+        return sample;
+    };
+}
+
+export type TrajectoryExpectation = 'constant' | 'increases' | 'decreases' | 'progresses' | 'bounded' | 'any';
+export type SceneNodeExpectation =
+    | 'constant'
+    | 'any'
+    | Partial<Record<string, TrajectoryExpectation | TrajectoryExpectation[]>>;
+
+interface TrajectoryViolation {
+    key: string;
+    prop?: string;
+    message: string;
+    values?: (number | undefined)[];
+}
+
+const SPARK_CHARS = '▁▂▃▄▅▆▇█';
+
+function sparkline(values: (number | undefined)[]): string {
+    const present = values.filter((v): v is number => v != null && Number.isFinite(v));
+    if (present.length === 0) return '(no finite values)';
+    const min = Math.min(...present);
+    const max = Math.max(...present);
+    const spread = max - min;
+    return values
+        .map((v) => {
+            if (v == null || !Number.isFinite(v)) return '·';
+            if (spread === 0) return SPARK_CHARS[0];
+            return SPARK_CHARS[Math.min(SPARK_CHARS.length - 1, Math.floor(((v - min) / spread) * SPARK_CHARS.length))];
+        })
+        .join('');
+}
+
+function formatValue(v: number | undefined): string {
+    if (v == null) return '∅';
+    return Number.isInteger(v) ? String(v) : v.toFixed(2);
+}
+
+function formatValues(values: (number | undefined)[]): string {
+    return values.map(formatValue).join(', ');
+}
+
+function checkPropertyTrajectory(
+    values: number[],
+    expectation: TrajectoryExpectation,
+    tolerances: { constant: number; monotonic: number; progress: number }
+): string | undefined {
+    switch (expectation) {
+        case 'any':
+            return undefined;
+        case 'constant': {
+            const first = values[0];
+            const badFrame = values.findIndex((v) => Math.abs(v - first) > tolerances.constant);
+            return badFrame < 0
+                ? undefined
+                : `expected constant ~${first.toFixed(2)}, moved to ${values[badFrame].toFixed(2)} at frame ${badFrame}`;
+        }
+        case 'increases':
+        case 'decreases': {
+            const sign = expectation === 'increases' ? 1 : -1;
+            for (let i = 1; i < values.length; i++) {
+                if (sign * (values[i] - values[i - 1]) < -tolerances.monotonic) {
+                    return `expected ${expectation.replace(/s$/, 'ing')} monotonically, reversed at frame ${i} (${values[i - 1].toFixed(2)} -> ${values[i].toFixed(2)})`;
+                }
+            }
+            return undefined;
+        }
+        case 'bounded': {
+            const lo = Math.min(values[0], values.at(-1)!) - tolerances.progress;
+            const hi = Math.max(values[0], values.at(-1)!) + tolerances.progress;
+            const badFrame = values.findIndex((v) => v < lo || v > hi);
+            return badFrame < 0
+                ? undefined
+                : `expected within endpoint bounds [${lo.toFixed(2)}, ${hi.toFixed(2)}], got ${values[badFrame].toFixed(2)} at frame ${badFrame}`;
+        }
+        case 'progresses': {
+            const spread = Math.max(...values) - Math.min(...values);
+            if (spread <= tolerances.progress) return 'expected progression, but trajectory is flat';
+            const start = values[0];
+            const end = values.at(-1)!;
+            const hasMidTransition = values
+                .slice(1, -1)
+                .some((v) => Math.abs(v - start) > tolerances.progress && Math.abs(v - end) > tolerances.progress);
+            return hasMidTransition ? undefined : 'no intermediate frame between the endpoints — animation jumped';
+        }
+    }
+}
+
+/**
+ * Assert invariants over a whole-scene animation trajectory (frames from {@link spyOnAnimationFrames}
+ * sampled by {@link createSceneGeometrySampler}).
+ *
+ * `spec` names the nodes EXPECTED to change and what each property should do; every node not matched by
+ * the spec must hold every property constant on every frame ("nothing else moved" is the default, not an
+ * opt-in). Spec keys are node paths; `*` acts as a glob wildcard (exact keys win over globs, then
+ * longest glob wins).
+ * Values are either `'any'`/`'constant'` for the whole node, or a per-property map — properties omitted
+ * from the map default to constant.
+ *
+ * Nodes may legitimately enter/leave the scene mid-trajectory (add/remove animations); such nodes must be
+ * matched by a non-default spec entry, and property expectations are evaluated over the frames where the
+ * node is present. Spec entries that match no sampled node fail the assertion (typo guard).
+ *
+ * On failure, every violation is reported together (one wobbling axis moves many labels — the cluster
+ * identifies the culprit), each with a sparkline and the full per-frame values.
+ */
+export function expectSceneTrajectory(
+    trajectory: SceneGeometrySample[],
+    spec: Record<string, SceneNodeExpectation> = {},
+    {
+        constantTol = 0.5,
+        monotonicTol = 1e-6,
+        progressTol = 1e-3,
+    }: { constantTol?: number; monotonicTol?: number; progressTol?: number } = {}
+): void {
+    expect(trajectory.length).toBeGreaterThan(1);
+    const tolerances = { constant: constantTol, monotonic: monotonicTol, progress: progressTol };
+
+    const allKeys = new Set<string>();
+    for (const frame of trajectory) {
+        for (const key of frame.keys()) allKeys.add(key);
+    }
+
+    const globToRegExp = (glob: string) =>
+        new RegExp(
+            `^${glob
+                .split('*')
+                .map((s) => s.replace(/[.+?^${}()|[\]\\]/g, '\\$&'))
+                .join('.*')}$`
+        );
+    const wildcardSpecs = Object.keys(spec)
+        .filter((k) => k.includes('*'))
+        .sort((a, b) => b.length - a.length)
+        .map((k) => ({ specKey: k, regexp: globToRegExp(k) }));
+    const matchedSpecKeys = new Set<string>();
+    const specFor = (key: string): { specKey?: string; expectation: SceneNodeExpectation } => {
+        if (spec[key] != null && !key.includes('*')) {
+            matchedSpecKeys.add(key);
+            return { specKey: key, expectation: spec[key] };
+        }
+        const wildcard = wildcardSpecs.find((w) => w.regexp.test(key));
+        if (wildcard != null) {
+            matchedSpecKeys.add(wildcard.specKey);
+            return { specKey: wildcard.specKey, expectation: spec[wildcard.specKey] };
+        }
+        return { expectation: 'constant' };
+    };
+
+    const violations: TrajectoryViolation[] = [];
+
+    for (const key of allKeys) {
+        const { specKey, expectation } = specFor(key);
+        if (expectation === 'any') continue;
+
+        const rawValuesFor = (prop: string) => trajectory.map((frame) => frame.get(key)?.[prop]);
+        const presentFrames = trajectory.filter((frame) => frame.has(key)).length;
+
+        if (presentFrames < trajectory.length && specKey == null) {
+            violations.push({
+                key,
+                message: `present in only ${presentFrames}/${trajectory.length} frames but not named in the spec — nodes entering/leaving the scene must be expected explicitly`,
+            });
+            continue;
+        }
+
+        const props = new Set<string>();
+        for (const frame of trajectory) {
+            for (const prop of Object.keys(frame.get(key) ?? {})) props.add(prop);
+        }
+
+        for (const prop of props) {
+            const propExpectations =
+                expectation === 'constant'
+                    ? ['constant' as const]
+                    : [
+                          (expectation as Record<string, TrajectoryExpectation | TrajectoryExpectation[]>)[prop] ??
+                              'constant',
+                      ].flat();
+            const rawValues = rawValuesFor(prop);
+            const values = rawValues.filter((v): v is number => v != null);
+            if (values.length < 2) continue;
+            for (const propExpectation of propExpectations) {
+                const failure = checkPropertyTrajectory(values, propExpectation, tolerances);
+                if (failure != null) {
+                    violations.push({ key, prop, message: failure, values: rawValues });
+                }
+            }
+        }
+    }
+
+    for (const specKey of Object.keys(spec)) {
+        if (!matchedSpecKeys.has(specKey)) {
+            violations.push({ key: specKey, message: 'spec entry matched no sampled scene node (typo?)' });
+        }
+    }
+
+    if (violations.length > 0) {
+        const details = violations
+            .map((v) => {
+                const prop = v.prop ? '.' + v.prop : '';
+                const header = `  ${v.key}${prop} — ${v.message}`;
+                if (v.values == null) return header;
+                return `${header}\n    ${sparkline(v.values)}  [${formatValues(v.values)}]`;
+            })
+            .join('\n');
+        throw new Error(`Scene trajectory violations (${violations.length}):\n${details}`);
+    }
 }
 
 export function reverseAxes<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, reverse: boolean): T {

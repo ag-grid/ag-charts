@@ -16,18 +16,18 @@ import {
     PATTERN_SNAPSHOT_DEFAULTS,
     clickAction,
     createChart,
+    createSceneGeometrySampler,
     deproxy,
     doubleClickAction,
     doubleTapAction,
-    expectConstant,
     expectMonotonic,
     expectProgresses,
+    expectSceneTrajectory,
     expectWarningsCalls,
     expectWithinBounds,
     extractImageData,
     looserSnapshotDefaults,
     prepareTestOptions,
-    sampleSectorGeometry,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
@@ -101,23 +101,37 @@ describe('PieSeries', () => {
                 )
             );
 
-            const trajectory = await frames.captureAnimationFrames(chart, () => sampleSectorGeometry(chart));
+            const sampleScene = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             await frames.runToEnd(chart);
-            const finalSectors = sampleSectorGeometry(chart);
-            expect(finalSectors).toHaveLength(3);
+            const finalScene = sampleScene();
+            const sectorKeys = [...finalScene.keys()].filter((k) => k.startsWith('series[0]/sector'));
+            expect(sectorKeys).toHaveLength(3);
 
-            for (let i = 0; i < finalSectors.length; i++) {
-                const spans = trajectory.map((f) => f[i].endAngle - f[i].startAngle);
+            // Angles sweep; radii + opacity implicitly constant. Labels (callout/sector text) enter the
+            // scene as the animation completes, so they are unconstrained.
+            expectSceneTrajectory(trajectory, {
+                'series[0]/sector[*]': { startAngle: 'any', endAngle: 'any' },
+                'series[0]/group[*]': 'any', // callout label groups fade in as the sweep completes
+                'series[0]/text[*]': 'any',
+                'series[0]/labels/*': 'any', // sector labels fade in too
+            });
+
+            // The angular span is a derived quantity the spec can't express: assert each sector's span
+            // grows monotonically from 0 to its target, and the total closes up into a full circle.
+            for (const key of sectorKeys) {
+                const spans = trajectory.map((f) => {
+                    const sector = f.get(key)!;
+                    return sector.endAngle - sector.startAngle;
+                });
+                const finalSector = finalScene.get(key)!;
                 expectProgresses(spans);
                 expectMonotonic(spans, 'increasing');
-                expectWithinBounds(spans, 0, finalSectors[i].endAngle - finalSectors[i].startAngle);
-                // Radii are not animated on initial load, only the angular sweep.
-                expectConstant(trajectory.map((f) => f[i].outerRadius));
-                expectConstant(trajectory.map((f) => f[i].innerRadius));
+                expectWithinBounds(spans, 0, finalSector.endAngle - finalSector.startAngle);
             }
-
-            // The sectors close up into a full circle: the total swept angle grows monotonically to 2π.
-            const totalSpan = trajectory.map((f) => f.reduce((sum, g) => sum + (g.endAngle - g.startAngle), 0));
+            const totalSpan = trajectory.map((f) =>
+                sectorKeys.reduce((sum, key) => sum + (f.get(key)!.endAngle - f.get(key)!.startAngle), 0)
+            );
             expectMonotonic(totalSpan, 'increasing');
             expect(totalSpan.at(-1)).toBeCloseTo(Math.PI * 2, 1);
         });

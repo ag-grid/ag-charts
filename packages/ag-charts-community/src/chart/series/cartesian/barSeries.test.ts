@@ -39,22 +39,19 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     PATTERN_SNAPSHOT_DEFAULTS,
-    type RectGeometry,
+    type SceneGeometrySample,
     cartesianChartAssertions,
     clickAction,
     createChart,
+    createSceneGeometrySampler,
     deproxy,
-    expectConstant,
-    expectMonotonic,
-    expectProgresses,
+    expectSceneTrajectory,
     expectWarningsCalls,
-    expectWithinBounds,
     extractImageData,
     hoverAction,
     mixinReversedAxesCases,
     prepareTestOptions,
     repeat,
-    sampleRectGeometry,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
@@ -754,8 +751,9 @@ describe('BarSeries', () => {
 
             chart = AgCharts.create(options);
             await frames.runToEnd(chart);
-            const before = sampleRectGeometry(chart);
-            expect(before).toHaveLength(3);
+            const sampleScene = createSceneGeometrySampler(chart);
+            const before = sampleScene();
+            expect([...before.keys()].filter((k) => k.startsWith('series[0]/rect'))).toHaveLength(3);
 
             await chart.updateDelta({
                 data: [
@@ -764,41 +762,25 @@ describe('BarSeries', () => {
                     { x: 'C', y: 70 },
                 ],
             });
-            const trajectory = await frames.captureAnimationFrames(chart, () => sampleRectGeometry(chart));
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             await frames.runToEnd(chart);
-            const after = sampleRectGeometry(chart);
+            const after = sampleScene();
 
             // Endpoints: first frame is the before-state, last frame is the after-state.
             expect(trajectory).toHaveLength(31);
             expect(trajectory[0]).toEqual(before);
             expect(trajectory.at(-1)).toEqual(after);
 
-            // Changed bar B (index 1): height shrinks monotonically and stays bounded; the top edge (y)
-            // rises monotonically. Progression proves it actually animated (not an instant jump/blank).
-            const bHeights = trajectory.map((f) => f[1].height);
-            expectProgresses(bHeights);
-            expectMonotonic(bHeights, 'decreasing');
-            expectWithinBounds(bHeights, before[1].height, after[1].height);
-            expectMonotonic(
-                trajectory.map((f) => f[1].y),
-                'increasing'
-            );
-
-            // Dimension isolation: B's x and width never change during the animation.
-            expectConstant(trajectory.map((f) => f[1].x));
-            expectConstant(trajectory.map((f) => f[1].width));
-
-            // Sibling bars A and C are completely undisturbed on every frame.
-            for (const idx of [0, 2]) {
-                expectConstant(trajectory.map((f) => f[idx].x));
-                expectConstant(trajectory.map((f) => f[idx].y));
-                expectConstant(trajectory.map((f) => f[idx].width));
-                expectConstant(trajectory.map((f) => f[idx].height));
-            }
+            // Bar B shrinks in height only (top edge rises, x/width/opacity implicitly constant);
+            // EVERYTHING else in the scene — sibling bars, both axes, gridlines, labels — must not move.
+            expectSceneTrajectory(trajectory, {
+                'series[0]/rect[B]': {
+                    height: ['decreases', 'progresses', 'bounded'],
+                    y: ['increases', 'bounded'],
+                },
+            });
         });
 
-        // On a category axis, adding/removing a datum rebalances the sibling bands, so bars are matched
-        // by band-centre x rather than array index. A bar absent from a frame reads as height 0.
         const columnOptions = (data: Array<{ x: string; y: number }>): AgChartOptions => {
             const options: AgChartOptions = {
                 data,
@@ -810,15 +792,12 @@ describe('BarSeries', () => {
             };
             return prepareTestOptions(options);
         };
-        const heightAtCentre = (frame: RectGeometry[], centreX: number, tol = 5): number => {
-            const match = frame.find((r) => Math.abs(r.x + r.width / 2 - centreX) <= tol);
-            return match?.height ?? 0;
-        };
-        const centreOf = (g: RectGeometry) => g.x + g.width / 2;
 
         // CASE 2 — add + remove. The entering bar grows in from height 0; the leaving bar collapses to 0.
+        // Adding/removing a category rebalances the sibling bands and the category axis, so sibling/axis
+        // horizontal movement is expected — but sibling HEIGHTS and the whole value axis must not move.
         it('CASE 2: added bar grows in and removed bar collapses, monotonically', async () => {
-            // ADD: A,B,C -> A,B,C,D. Track D (present only in the after-state) by its band centre.
+            // ADD: A,B,C -> A,B,C,D.
             chart = AgCharts.create(
                 columnOptions([
                     { x: 'A', y: 100 },
@@ -827,6 +806,7 @@ describe('BarSeries', () => {
                 ])
             );
             await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
 
             await chart.updateDelta({
                 data: [
@@ -836,20 +816,26 @@ describe('BarSeries', () => {
                     { x: 'D', y: 50 },
                 ],
             });
-            const addTrajectory = await frames.captureAnimationFrames(chart, () => sampleRectGeometry(chart));
+            const addTrajectory = await frames.captureAnimationFrames(chart, sampleScene);
             await frames.runToEnd(chart);
-            const added = sampleRectGeometry(chart);
-            expect(added).toHaveLength(4);
+            const added = sampleScene();
+            expect([...added.keys()].filter((k) => k.startsWith('series[0]/rect'))).toHaveLength(4);
 
-            const dCentre = centreOf(added.at(-1)!);
-            const dHeights = addTrajectory.map((f) => heightAtCentre(f, dCentre));
-            expect(dHeights[0]).toBe(0); // absent before it is added
-            expectProgresses(dHeights);
-            expectMonotonic(dHeights, 'increasing');
-            expectWithinBounds(dHeights, 0, added.at(-1)!.height);
+            const bandRebalance = { x: 'any', width: 'any' } as const;
+            expectSceneTrajectory(addTrajectory, {
+                'series[0]/rect[D]': {
+                    ...bandRebalance,
+                    height: ['increases', 'progresses', 'bounded'],
+                    y: ['decreases', 'bounded'],
+                },
+                'series[0]/rect[A]': bandRebalance,
+                'series[0]/rect[B]': bandRebalance,
+                'series[0]/rect[C]': bandRebalance,
+                'axis[bottom]/*': 'any', // category tick labels/gridlines rebalance with the bands
+            });
+            expect(addTrajectory[0].get('series[0]/rect[D]')?.height ?? 0).toBeLessThanOrEqual(0.001);
 
-            // REMOVE: A,B,C,D -> A,B,C. Track D (present only in the before-state) collapsing to 0.
-            const dCentreBefore = dCentre;
+            // REMOVE: A,B,C,D -> A,B,C. D collapses to 0 and leaves the scene.
             await chart.updateDelta({
                 data: [
                     { x: 'A', y: 100 },
@@ -857,15 +843,23 @@ describe('BarSeries', () => {
                     { x: 'C', y: 70 },
                 ],
             });
-            const removeTrajectory = await frames.captureAnimationFrames(chart, () => sampleRectGeometry(chart));
+            const removeTrajectory = await frames.captureAnimationFrames(chart, sampleScene);
             await frames.runToEnd(chart);
-            expect(sampleRectGeometry(chart)).toHaveLength(3);
+            expect([...sampleScene().keys()].filter((k) => k.startsWith('series[0]/rect'))).toHaveLength(3);
 
-            const removedHeights = removeTrajectory.map((f) => heightAtCentre(f, dCentreBefore));
-            expect(removedHeights[0]).toBeGreaterThan(1); // still present at full height when removal starts
-            expectProgresses(removedHeights);
-            expectMonotonic(removedHeights, 'decreasing');
-            expect(removedHeights.at(-1)).toBeLessThanOrEqual(0.001);
+            expectSceneTrajectory(removeTrajectory, {
+                'series[0]/rect[D]': {
+                    ...bandRebalance,
+                    height: ['decreases', 'progresses'],
+                    y: 'increases',
+                },
+                'series[0]/rect[A]': bandRebalance,
+                'series[0]/rect[B]': bandRebalance,
+                'series[0]/rect[C]': bandRebalance,
+                'axis[bottom]/*': 'any',
+            });
+            expect(removeTrajectory[0].get('series[0]/rect[D]')!.height).toBeGreaterThan(1);
+            expect(removeTrajectory.at(-1)!.get('series[0]/rect[D]')?.height ?? 0).toBeLessThanOrEqual(0.001);
         });
 
         // CASE 5 — scale-affecting update (the LIMIT case). Growing one datum beyond the domain rescales
@@ -890,7 +884,8 @@ describe('BarSeries', () => {
             };
             chart = AgCharts.create(prepareTestOptions(options));
             await frames.runToEnd(chart);
-            const before = sampleRectGeometry(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+            const before = sampleScene();
 
             await chart.updateDelta({
                 data: [
@@ -899,28 +894,30 @@ describe('BarSeries', () => {
                     { x: 'C', y: 70 },
                 ],
             });
-            const trajectory = await frames.captureAnimationFrames(chart, () => sampleRectGeometry(chart));
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             await frames.runToEnd(chart);
-            const after = sampleRectGeometry(chart);
+            const after = sampleScene();
 
-            expect(trajectory[0]).toEqual(before);
-            expect(trajectory.at(-1)).toEqual(after);
+            // Endpoint equality holds for the bars only: the domain change churns axis tick-label nodes
+            // (new ticks fade in mid-animation, stale ones are garbage-collected after it), so whole-scene
+            // equality is not a valid invariant for a scale-affecting update.
+            const rectsOf = (sample: SceneGeometrySample) =>
+                new Map([...sample].filter(([key]) => key.startsWith('series[0]/rect')));
+            expect(rectsOf(trajectory[0])).toEqual(rectsOf(before));
+            expect(rectsOf(trajectory.at(-1)!)).toEqual(rectsOf(after));
 
-            // The grown bar B rises; the fixed-value bars A and C shrink as the domain expands beneath them.
-            // Height is unaffected by the horizontal reflow (the plot height is constant), so it stays
-            // cleanly monotonic per node — but x/width are deliberately NOT asserted (see comment above).
-            expectMonotonic(
-                trajectory.map((f) => f[1].height),
-                'increasing'
-            );
-            expectProgresses(trajectory.map((f) => f[1].height));
-            for (const idx of [0, 2]) {
-                expectMonotonic(
-                    trajectory.map((f) => f[idx].height),
-                    'decreasing'
-                );
-                expectProgresses(trajectory.map((f) => f[idx].height));
-            }
+            // The grown bar B rises; the fixed-value bars A and C shrink as the domain expands beneath
+            // them. Height is unaffected by the horizontal reflow (the plot height is constant), so it
+            // stays cleanly monotonic per node — but x/y/width and both axes are deliberately
+            // unconstrained (see comment above).
+            const reflow = { x: 'any', y: 'any', width: 'any' } as const;
+            expectSceneTrajectory(trajectory, {
+                'series[0]/rect[B]': { ...reflow, height: ['increases', 'progresses'] },
+                'series[0]/rect[A]': { ...reflow, height: ['decreases', 'progresses'] },
+                'series[0]/rect[C]': { ...reflow, height: ['decreases', 'progresses'] },
+                'series[0]': 'any', // content group translation shifts as the axis gutter widens
+                'axis[*': 'any',
+            });
         });
     });
 

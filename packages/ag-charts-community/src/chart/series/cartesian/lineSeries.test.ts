@@ -40,16 +40,17 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     createChart,
+    createSceneGeometrySampler,
     deproxy,
     expectMonotonic,
     expectProgresses,
+    expectSceneTrajectory,
     expectWithinBounds,
     extractImageData,
     hoverAction,
     mixinReversedAxesCases,
     prepareTestOptions,
     repeat,
-    samplePathBBoxes,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
@@ -245,7 +246,7 @@ describe('LineSeries', () => {
 
     // SPIKE: frame-trajectory invariant test for a PATH-based series (CASE 3 in the plan) — the LIMIT of
     // the approach. Unlike bar/pie, a line exposes NO readable per-vertex geometry: its shape is re-plotted
-    // into a Path2D each frame, so the only per-frame signal is the path bounding box (samplePathBBoxes).
+    // into a Path2D each frame, so the only per-frame signal is the path bounding box.
     // The bbox reflects only the data EXTENT, so this case necessarily uses an extent-changing
     // (scale-affecting) update; a vertex moving *within* the extent would morph the line invisibly to the
     // bbox. This maps the boundary: the clean node-property invariants of bar/pie degrade to a coarse
@@ -264,8 +265,11 @@ describe('LineSeries', () => {
 
             chart = AgCharts.create(options);
             await frames.runToEnd(chart);
-            const before = samplePathBBoxes(chart);
-            expect(before).toHaveLength(1); // one stroke path
+            const sampleScene = createSceneGeometrySampler(chart);
+            const before = sampleScene();
+            const pathKeys = [...before.keys()].filter((k) => k.startsWith('series[0]/path'));
+            expect(pathKeys).toHaveLength(1); // one stroke path
+            const pathKey = pathKeys[0];
 
             await chart.updateDelta({
                 data: [
@@ -273,20 +277,29 @@ describe('LineSeries', () => {
                     { x: 1, y: 10 },
                 ],
             });
-            const trajectory = await frames.captureAnimationFrames(chart, () => samplePathBBoxes(chart));
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             await frames.runToEnd(chart);
-            const after = samplePathBBoxes(chart);
+            const after = sampleScene();
+
+            // The unpinned y-domain grows with the update, so this is also a scale-affecting change:
+            // markers and both axes legitimately move and are left unconstrained.
+            expectSceneTrajectory(trajectory, {
+                [pathKey]: { x: 'any', y: 'any', width: 'any', height: 'any' },
+                'series[0]/marker[*]': 'any',
+                'series[0]': 'any',
+                'axis[*': 'any',
+            });
 
             // The bbox actually animates (not a blank frame or an instant jump), monotonically, and
             // stays bounded by the endpoints. Direction is inferred from the endpoints rather than
             // asserted, because the rescale moves both the top edge and the height.
-            const heights = trajectory.map((f) => f[0].height);
+            const heights = trajectory.map((f) => f.get(pathKey)!.height);
             expectProgresses(heights);
             expectMonotonic(heights);
-            expectWithinBounds(heights, before[0].height, after[0].height);
-            expectMonotonic(trajectory.map((f) => f[0].y));
-            expect(trajectory[0][0].height).toBeCloseTo(before[0].height, 0);
-            expect(trajectory.at(-1)![0].height).toBeCloseTo(after[0].height, 0);
+            expectWithinBounds(heights, before.get(pathKey)!.height, after.get(pathKey)!.height);
+            expectMonotonic(trajectory.map((f) => f.get(pathKey)!.y));
+            expect(trajectory[0].get(pathKey)!.height).toBeCloseTo(before.get(pathKey)!.height, 0);
+            expect(trajectory.at(-1)!.get(pathKey)!.height).toBeCloseTo(after.get(pathKey)!.height, 0);
         });
     });
 
