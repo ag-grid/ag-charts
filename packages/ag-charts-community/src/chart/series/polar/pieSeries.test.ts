@@ -81,9 +81,9 @@ describe('PieSeries', () => {
     const ctx = setupMockCanvas();
     const options: AgPolarChartOptions = prepareTestOptions({});
 
-    // SPIKE: frame-trajectory invariant test for a polar series — probes angular geometry (see CASE 4 in
-    // the plan). On initial load each sector sweeps its angular span from 0 to target; radii are set to
-    // their final values immediately (pieUtil.ts), so only the angle span animates.
+    // SPIKE: frame-trajectory invariant test for a polar series (CASE 4) — probes angular geometry.
+    // On initial load each sector sweeps its angular span from 0 to target; radii are set to their
+    // final values immediately (pieUtil.ts), so only the angle span animates.
     describe('animation frame-trajectory (spike)', () => {
         const frames = spyOnAnimationFrames();
 

@@ -882,7 +882,7 @@ export function spyOnAnimationManager() {
  *
  * This enables asserting invariants over the whole animation trajectory (geometry sampled every frame),
  * rather than pixel-comparing a handful of frozen ratios. Interpolated geometry is written to the scene
- * nodes by each series' `applyFn`, so samplers such as {@link sampleRectGeometry} read the live per-frame
+ * nodes by each series' `applyFn`, so {@link createSceneGeometrySampler} reads the live per-frame
  * values directly.
  */
 export function spyOnAnimationFrames() {
@@ -989,20 +989,12 @@ export function spyOnAnimationFrames() {
 export function expectMonotonic(values: number[], direction?: 'increasing' | 'decreasing', tol = 1e-6): void {
     expect(values.length).toBeGreaterThan(1);
     const inferred = direction ?? (values.at(-1)! >= values[0] ? 'increasing' : 'decreasing');
-    for (let i = 1; i < values.length; i++) {
-        const delta = values[i] - values[i - 1];
-        if (inferred === 'increasing') {
-            expect(
-                delta,
-                `frame ${i}: expected non-decreasing, got ${values[i - 1]} -> ${values[i]}`
-            ).toBeGreaterThanOrEqual(-tol);
-        } else {
-            expect(
-                delta,
-                `frame ${i}: expected non-increasing, got ${values[i - 1]} -> ${values[i]}`
-            ).toBeLessThanOrEqual(tol);
-        }
-    }
+    const failure = checkPropertyTrajectory(values, inferred === 'increasing' ? 'increases' : 'decreases', {
+        constant: 0,
+        monotonic: tol,
+        progress: 0,
+    });
+    expect(failure).toBeUndefined();
 }
 
 /** Assert every frame lies within the closed interval bounded by the two endpoints (no overshoot). */
@@ -1017,17 +1009,13 @@ export function expectWithinBounds(values: number[], from: number, to: number, t
 
 /**
  * Assert the animation actually progressed: the series is not flat, AND at least one intermediate frame
- * differs from BOTH endpoints. Catches the no-op / instantly-jumped / visually-blank class of bug (e.g.
- * CRT-1043) that per-ratio image snapshots miss.
+ * differs from BOTH endpoints. Catches the no-op / instantly-jumped / visually-blank class of bug that
+ * per-ratio image snapshots miss.
  */
 export function expectProgresses(values: number[], tol = 1e-3): void {
     expect(values.length).toBeGreaterThan(2);
-    const spread = Math.max(...values) - Math.min(...values);
-    expect(spread, 'trajectory is flat — animation did not progress').toBeGreaterThan(tol);
-    const start = values[0];
-    const end = values.at(-1)!;
-    const hasMidTransition = values.slice(1, -1).some((v) => Math.abs(v - start) > tol && Math.abs(v - end) > tol);
-    expect(hasMidTransition, 'no intermediate frame between the endpoints — animation jumped').toBe(true);
+    const failure = checkPropertyTrajectory(values, 'progresses', { constant: 0, monotonic: 0, progress: tol });
+    expect(failure).toBeUndefined();
 }
 
 export type SceneNodeGeometry = Record<string, number>;
@@ -1068,35 +1056,20 @@ const GEOMETRY_READERS: GeometryReader[] = [
         matches: (n) => n instanceof Line,
         read: (n: Line) => ({ x1: n.x1, y1: n.y1, x2: n.x2, y2: n.y2, opacity: n.opacity ?? 1 }),
     },
-    {
-        label: 'marker',
-        matches: (n) => n instanceof Marker,
-        read: (n: Path) => {
-            const bbox = n.getBBox();
-            return {
-                x: bbox?.x ?? Number.NaN,
-                y: bbox?.y ?? Number.NaN,
-                width: bbox?.width ?? Number.NaN,
-                height: bbox?.height ?? Number.NaN,
-                opacity: n.opacity ?? 1,
-            };
-        },
-    },
-    {
-        label: 'path',
-        matches: (n) => n instanceof Path,
-        read: (n: Path) => {
-            const bbox = n.getBBox();
-            return {
-                x: bbox?.x ?? Number.NaN,
-                y: bbox?.y ?? Number.NaN,
-                width: bbox?.width ?? Number.NaN,
-                height: bbox?.height ?? Number.NaN,
-                opacity: n.opacity ?? 1,
-            };
-        },
-    },
+    { label: 'marker', matches: (n) => n instanceof Marker, read: readBBoxGeometry },
+    { label: 'path', matches: (n) => n instanceof Path, read: readBBoxGeometry },
 ];
+
+function readBBoxGeometry(n: Path): SceneNodeGeometry {
+    const bbox = n.getBBox();
+    return {
+        x: bbox?.x ?? Number.NaN,
+        y: bbox?.y ?? Number.NaN,
+        width: bbox?.width ?? Number.NaN,
+        height: bbox?.height ?? Number.NaN,
+        opacity: n.opacity ?? 1,
+    };
+}
 
 function readNodeGeometry(node: Node<any>): { label: string; props: SceneNodeGeometry } | undefined {
     const reader = GEOMETRY_READERS.find((r) => r.matches(node));
@@ -1367,18 +1340,19 @@ function checkPhaseWindows(
     if (phaseIntervals == null) return undefined;
     let anchor: number | undefined;
     for (let i = 0; i < rawValues.length - 1; i++) {
+        const from = rawValues[i];
         const to = rawValues[i + 1];
-        if (rawValues[i] == null || to == null) {
+        if (from == null || to == null) {
             anchor = undefined;
             continue;
         }
-        anchor ??= rawValues[i];
+        anchor ??= from;
         const interval = phaseIntervals[i] ?? [];
         if (interval.some((phase) => during.includes(phase))) {
             anchor = to;
-        } else if (Math.abs(to - anchor!) > constantTol) {
+        } else if (Math.abs(to - anchor) > constantTol) {
             const phases = interval.length > 0 ? interval.join('/') : 'idle';
-            return `moved outside its phase window (${during.join('/')}): ${anchor!.toFixed(2)} -> ${to.toFixed(2)} by frame ${i + 1} during ${phases}`;
+            return `moved outside its phase window (${during.join('/')}): ${anchor.toFixed(2)} -> ${to.toFixed(2)} by frame ${i + 1} during ${phases}`;
         }
     }
     return undefined;

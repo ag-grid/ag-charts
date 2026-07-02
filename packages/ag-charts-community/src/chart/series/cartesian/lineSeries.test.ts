@@ -244,7 +244,7 @@ describe('LineSeries', () => {
 
     const ctx = setupMockCanvas();
 
-    // SPIKE: frame-trajectory invariant test for a PATH-based series (CASE 3 in the plan) — the LIMIT of
+    // SPIKE: frame-trajectory invariant test for a PATH-based series (CASE 3) — the LIMIT of
     // the approach. Unlike bar/pie, a line exposes NO readable per-vertex geometry: its shape is re-plotted
     // into a Path2D each frame, so the only per-frame signal is the path bounding box.
     // The bbox reflects only the data EXTENT, so this case necessarily uses an extent-changing

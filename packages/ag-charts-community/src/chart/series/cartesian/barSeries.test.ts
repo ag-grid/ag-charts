@@ -669,10 +669,8 @@ describe('BarSeries', () => {
     describe('update animation', () => {
         const animate = spyOnAnimationManager();
 
-        // SPIKE footprint reduction: the intermediate ratios (25/50/75%) for COLUMN_TIME are now covered
-        // by the frame-trajectory property test (CASE 1), which asserts the full per-frame trajectory
-        // rather than three frozen pixel frames. Only the endpoints are kept as a visual sanity check.
-        // The same reduction generalises to the add/remove blocks (covered by CASE 2).
+        // Intermediate ratios for COLUMN_TIME are covered by the frame-trajectory test (CASE 1);
+        // only the endpoint snapshots are kept as a visual sanity check.
         for (const ratio of [0, 1]) {
             it(`for COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
                 animate(1200, 1);
