@@ -55,10 +55,6 @@ export const DARK_MODE_INIT_SCRIPT = `
         });
     });
     observer.observe(htmlEl, { attributes: true });
-
-    if (localStorage.getItem('documentation:announcement-banner-dismissed') !== 'true') {
-        document.documentElement.dataset.showAnnouncement = 'true';
-    }
 `;
 
 // Plausible analytics queue stub. The tagged-events script itself loads externally
