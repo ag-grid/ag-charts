@@ -55,6 +55,18 @@ const apiMenu = defineCollection({
     }),
 });
 
+const announcementBanner = defineCollection({
+    loader: glob({ base: './src/content/announcement-banner', pattern: 'announcement-banner.json' }),
+    schema: z.object({
+        enabled: z.boolean(),
+        href: z.string(),
+        title: z.string(),
+        description: z.string().optional(),
+        ctaLabel: z.string().optional(),
+        external: z.boolean().optional(),
+    }),
+});
+
 const footer = defineCollection({
     loader: glob({ base: './src/content/footer', pattern: 'footer.json' }),
     schema: z.array(
@@ -252,6 +264,7 @@ export const collections = {
     docs,
     apiMenu,
     footer,
+    announcementBanner,
     faqs,
     siteHeader,
     versions,
