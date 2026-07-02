@@ -17,6 +17,8 @@ import { DevTools } from '@ag-website-shared/components/dev-tools/DevTools';
 import GoogleTagManager from '@ag-website-shared/components/google-tag-manager/GoogleTagManager.astro';
 import GoogleTagManagerBody from '@ag-website-shared/components/google-tag-manager/GoogleTagManagerBody.astro';
 import JsonLd from '@ag-website-shared/components/structured-data/JsonLd.astro';
+import AnnouncementBanner from '@components/announcement-banner/AnnouncementBanner.astro';
+import { announcementBannerConfig } from '@components/announcement-banner/announcementBanner.config';
 import {
     buildOrganization,
     buildSoftwareApplication,
@@ -34,6 +36,7 @@ export interface Props {
     hideHeader?: boolean;
     hideFooter?: boolean;
     noIndex?: boolean;
+    showAnnouncementBanner?: boolean;
     pageStructuredData?: JsonLdObject[];
 }
 
@@ -48,6 +51,7 @@ const {
     hideHeader,
     hideFooter,
     noIndex,
+    showAnnouncementBanner = announcementBannerConfig.enabled,
     pageStructuredData,
 } = Astro.props;
 
@@ -212,6 +216,18 @@ const structuredData: JsonLdObject[] = includeStructuredData
         {/* Authorised in script-src by SHA-256 hash (not 'unsafe-inline'); body lives in
             @utils/csp/inlineScripts so the rendered bytes match the hashed source. */}
         <script is:inline set:html={DARK_MODE_INIT_SCRIPT} />
+
+        {
+            !isArchive && showAnnouncementBanner && (
+                <AnnouncementBanner
+                    href={urlWithBaseUrl(announcementBannerConfig.href)}
+                    title={announcementBannerConfig.title}
+                    description={announcementBannerConfig.description}
+                    ctaLabel={announcementBannerConfig.ctaLabel}
+                    external={announcementBannerConfig.external}
+                />
+            )
+        }
 
         <div class="mainContainer">
             {!hideHeader && <SiteHeader showSearchBar={showSearchBar} showDocsNav={showDocsNav} apiPaths={apiPaths}/>}
