@@ -823,8 +823,9 @@ jobs:
         if: cancelled() != true
         # SLACK_BOT_OAUTH_TOKEN is hoisted to job level on purpose: a step's OWN
         # env: block is not in scope for that same step's if: (the if is evaluated
-        # before step env is applied). The CI-failure handoff step below gates its
-        # if: on env.SLACK_BOT_OAUTH_TOKEN != '', so it must live here (and no-ops
+        # before step env is applied), and the rtCamp step's if: also reads it.
+        # The CI-failure alert step below (and the rtCamp suppression clause) gate
+        # on env.SLACK_BOT_OAUTH_TOKEN != '', so it must live here (and both no-op
         # cleanly when the secret is empty).
         env:
             SLACK_BOT_OAUTH_TOKEN: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
@@ -1006,9 +1007,13 @@ jobs:
                   DEPLOY_TO_STAGING: 'true'
               run: node ./external/ag-shared/scripts/slack/notify-staging-deploy.mjs
 
+            # The bot-token alert below REPLACES this webhook post for the
+            # `latest`-failure case (when configured) so it can be threaded; this
+            # step still owns success alerts, non-`latest` branches, and the case
+            # where the bot path is unconfigured.
             - name: Slack Notification
               uses: rtCamp/action-slack-notify@v2
-              if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true'
+              if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true' && !(github.ref == 'refs/heads/latest' && steps.lastJobStatus.outputs.workflowStatus == 'failure' && env.SLACK_BOT_OAUTH_TOKEN != '' && vars.CI_FAILURE_SLACK_CHANNEL != '')
               env:
                   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
                   SLACK_COLOR: ${{ steps.lastJobStatus.outputs.workflowStatus != 'failure' && 'success' || 'failure' }}
@@ -1034,28 +1039,31 @@ jobs:
 
                       ${{ env.GIT_LOG }}
 
-            # --- Mainline CI-failure handler handoff ---------------------------
-            # On a `latest` CI failure (state change), post a bot-token alert to
-            # the agentic-tooling Slack channel so it yields a {channel, ts} that
-            # the ci-failure-handler workflow can thread its live status + fix
-            # summary under, handed off as the `ci-failure-slack` artifact. This is
-            # ADDITIVE: the rtCamp webhook alert above is unchanged (it still
-            # serves the charts team's existing CI channel). Scoped to `latest`
-            # (the only branch the handler fires on) so other branches don't post
-            # orphan anchors. Best-effort: a Slack hiccup never fails CI, and the
-            # handler falls back to its own root message when the artifact is
-            # absent. Uses a raw chat.postMessage (the package's slack-thread.mjs
-            # is not vendored here) — a webhook returns no ts, so it can't anchor.
-            - name: Post CI-failure handoff (threaded anchor, bot token)
-              id: ci_failure_handoff
-              if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true' && steps.lastJobStatus.outputs.workflowStatus == 'failure' && github.ref == 'refs/heads/latest' && env.SLACK_BOT_OAUTH_TOKEN != ''
+            # --- Mainline CI-failure alert (bot token, thread anchor) ----------
+            # On a `latest` CI failure (state change) this REPLACES the rtCamp
+            # webhook alert above (suppressed for exactly this case) with an
+            # equivalent bot-token chat.postMessage. Why: a webhook returns no ts,
+            # so it can't be threaded; chat.postMessage yields {channel, ts}. That
+            # anchor is handed to the ci-failure-handler workflow (as the
+            # `ci-failure-slack` artifact) so its live status + fix summary reply
+            # IN-THREAD under this single alert — not as a second message.
+            # Gated on CI_FAILURE_SLACK_CHANNEL: when it's unset the step no-ops and
+            # the rtCamp alert above stays exactly as before (no behaviour change).
+            # Best-effort: a Slack hiccup never fails CI — the handler then posts
+            # its own root message in the same channel instead. And because the
+            # alert only fires on a state CHANGE, a HEAD that was already red posts
+            # no anchor; the handler's fallback covers that case too.
+            - name: Post CI-failure alert (bot token, thread anchor)
+              id: ci_failure_alert
+              if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true' && steps.lastJobStatus.outputs.workflowStatus == 'failure' && github.ref == 'refs/heads/latest' && env.SLACK_BOT_OAUTH_TOKEN != '' && vars.CI_FAILURE_SLACK_CHANNEL != ''
               continue-on-error: true
               env:
                   # SLACK_BOT_OAUTH_TOKEN inherited from the job-level env above.
-                  # Channel accepts a NAME or ID; chat.postMessage returns the
-                  # canonical ID which the handler threads on. Set the
-                  # CI_FAILURE_SLACK_CHANNEL repo var to an ID for robustness.
-                  SLACK_CHANNEL: ${{ vars.CI_FAILURE_SLACK_CHANNEL || 'dev-agentic-tooling-status' }}
+                  # CI_FAILURE_SLACK_CHANNEL: set to the SAME channel as the rtCamp
+                  # alert (a channel ID is most robust) so the failure alert stays
+                  # where the team already sees it; the bot must be a member of it.
+                  # chat.postMessage returns the canonical ID the handler threads on.
+                  SLACK_CHANNEL: ${{ vars.CI_FAILURE_SLACK_CHANNEL }}
                   REF_NAME: ${{ github.ref_name }}
                   RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
                   INIT_RESULT: ${{ needs.init.result }}
@@ -1101,17 +1109,17 @@ jobs:
                   fi
                   CH=$(echo "$RESP" | jq -r '.channel // ""')
                   TS=$(echo "$RESP" | jq -r '.ts // ""')
-                  # Only write the handoff when BOTH are non-empty: an artifact with
+                  # Only write the anchor when BOTH are non-empty: an artifact with
                   # an empty channel/ts would make the handler thread into nothing.
                   if [[ -n "$CH" && -n "$TS" ]]; then
                       jq -nc --arg c "$CH" --arg ts "$TS" '{channel:$c, ts:$ts}' > ci-failure-slack.json
                       echo "wrote ci-failure-slack.json: $(cat ci-failure-slack.json)"
                   else
-                      echo "[handoff] empty channel/ts from Slack — skipping handoff; handler will post its own root."
+                      echo "[ci-failure-alert] empty channel/ts from Slack — no anchor; handler will post its own root."
                   fi
 
-            - name: Upload CI-failure Slack thread handoff
-              if: always() && steps.ci_failure_handoff.outcome == 'success' && hashFiles('ci-failure-slack.json') != ''
+            - name: Upload CI-failure Slack thread anchor
+              if: always() && steps.ci_failure_alert.outcome == 'success' && hashFiles('ci-failure-slack.json') != ''
               uses: actions/upload-artifact@v4
               with:
                   name: ci-failure-slack
