@@ -1102,7 +1102,6 @@ jobs:
                   name: ci-failure-slack
                   path: ci-failure-slack.json
                   retention-days: 7
-                  if-no-files-found: warn
 
             - name: Fail job if workflow failed
               if: success() && steps.lastJobStatus.outputs.workflowStatus == 'failure'

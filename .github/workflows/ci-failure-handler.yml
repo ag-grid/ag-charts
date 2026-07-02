@@ -21,6 +21,27 @@ name: CI failure handler
 # failure will trigger it. Until then, use the workflow_dispatch dry-run hatch.
 # ---------------------------------------------------------------------------
 #
+# Security model (why write permissions on an agent fed by CI logs is OK):
+# the `handle` job runs an AI agent with contents:write, pull-requests:write
+# and actions:write, and its primary input is CI log output — which can echo
+# third-party or fuzzed strings even on `latest` (test fixtures, dependency
+# output, snapshot diffs), i.e. a prompt-injection surface. Mitigations that
+# make this acceptable:
+#   - No auto-merge: the agent's only write outcomes are a `ci-fix/*` branch
+#     push and a fix PR; every fix still goes through human review and normal
+#     PR CI before it can land.
+#   - The App token is scoped to this repo only (`repos:` below), so a
+#     compromised run cannot touch other repos.
+#   - The `branches: [latest]` trigger filter means `ci-fix/*` CI can never
+#     re-trigger the handler (no recursion / self-amplification), and the
+#     preflight rerun budget bounds transient re-runs.
+#
+# Alerting fragility note: Slack alerting is now a SINGLE path (the bot-token
+# post in ci.yml — the webhook fallback was removed) and posting failures are
+# swallowed (`continue-on-error` / warn-and-exit-0). If SLACK_BOT_OAUTH_TOKEN
+# is rotated or revoked, alerts stop silently — remember to update the secret
+# when the token changes.
+#
 # Prerequisites (already present for the jira pipeline — same GitHub App):
 #   secrets: JIRA_AGENT_APP_PRIVATE_KEY, ANTHROPIC_API_KEY, SLACK_BOT_OAUTH_TOKEN
 #   vars:    JIRA_AGENT_APP_ID
@@ -188,10 +209,13 @@ jobs:
                   head_sha: ${{ needs.preflight.outputs.head_sha }}
                   head_branch: ${{ needs.preflight.outputs.head_branch }}
                   # Manual dispatch input wins; else the optional CI_FAILURE_BASE_BRANCH
-                  # repo var. Empty → handler defaults base to the failing branch
-                  # (`latest`), which is what ag-charts wants — a real `latest` code
-                  # break needs a fix PR targeting `latest`.
-                  base_branch: ${{ inputs.base_branch || vars.CI_FAILURE_BASE_BRANCH }}
+                  # repo var; else the failing branch itself (resolved in preflight).
+                  # The explicit final fallback matters for manual dry-runs against a
+                  # non-`latest` run: without it the handler would apply its own
+                  # default and could target the wrong base. On automatic runs the
+                  # fallback is `latest` — a real `latest` code break needs a fix PR
+                  # targeting `latest`.
+                  base_branch: ${{ inputs.base_branch || vars.CI_FAILURE_BASE_BRANCH || needs.preflight.outputs.head_branch }}
                   reruns_remaining: ${{ needs.preflight.outputs.reruns_remaining }}
                   slack_channel: ${{ needs.preflight.outputs.slack_channel }}
                   slack_thread_ts: ${{ needs.preflight.outputs.slack_thread_ts }}
