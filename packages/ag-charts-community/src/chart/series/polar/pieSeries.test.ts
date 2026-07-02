@@ -111,10 +111,13 @@ describe('PieSeries', () => {
             // The sweep rotates clockwise from the top: every animated angle increases monotonically,
             // and the first sector's startAngle (the 12 o'clock anchor) never moves. Radii and sector
             // opacity are implicitly constant; the callout/sector labels fade in as the sweep completes.
-            const sweepsClockwise = { startAngle: 'increases', endAngle: 'increases' } as const;
-            const fadesIn = { opacity: 'increases' } as const;
+            const sweepsClockwise = {
+                startAngle: { during: 'initial', expect: 'increases' },
+                endAngle: { during: 'initial', expect: 'increases' },
+            } as const;
+            const fadesIn = { opacity: { during: 'trailing', expect: 'increases' } } as const;
             expectSceneTrajectory(trajectory, {
-                'series[0]/sector[30]': { endAngle: 'increases' },
+                'series[0]/sector[30]': { endAngle: { during: 'initial', expect: 'increases' } },
                 'series[0]/sector[20]': sweepsClockwise,
                 'series[0]/sector[50]': sweepsClockwise,
                 'series[0]/group[*]': fadesIn, // callout label groups

@@ -35,7 +35,7 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
-import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
+import { type AnimationPhase, type IAnimation, PHASE_METADATA, PHASE_ORDER } from '../../motion/animation';
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
@@ -938,28 +938,45 @@ export function spyOnAnimationFrames() {
         }
     };
 
+    // Centralised private-state accessor (see testing guide): the batch's phase index drives the
+    // `during` phase-window assertions of expectSceneTrajectory.
+    const currentPhaseIndex = (chartOrProxy: ChartOrProxy<any>): number => {
+        const batch = (deproxy(chartOrProxy) as any).ctx?.animationManager?.batch;
+        return batch?.isActive() ? (batch.currentPhase ?? PHASE_ORDER.length) : PHASE_ORDER.length;
+    };
+
     /**
      * Step a just-triggered animation across `frames` evenly-spaced frames, invoking `sampler()` after
      * each. Returns `frames + 1` samples (index 0 = start state, index `frames` = end state). `duration`
      * should comfortably exceed the batch's total run time so the final frame reaches the end state; the
      * default (1600ms) covers the default 1s animation and its phase delays. If the batch settles early,
      * later samples simply repeat the final geometry.
+     *
+     * The result also carries `phaseIntervals`: for each inter-sample interval, the contiguous range of
+     * `AnimationPhase`s the batch passed through while producing it (empty once the batch is idle). This
+     * is what lets {@link expectSceneTrajectory} scope expectations with `during`.
      */
     const captureAnimationFrames = async <T>(
         chartOrProxy: ChartOrProxy<any>,
         sampler: () => T,
         { frames = 30, duration = 1600 }: { frames?: number; duration?: number } = {}
-    ): Promise<T[]> => {
+    ): Promise<T[] & PhasedTrajectory> => {
         await settle(chartOrProxy);
         const step = duration / frames;
         const samples: T[] = [sampler()];
+        const phaseIntervals: AnimationPhase[][] = [];
         for (let i = 0; i < frames; i++) {
+            const from = currentPhaseIndex(chartOrProxy);
             if (rafCbs.size > 0) {
                 await fireFrame(step);
             }
+            const to = currentPhaseIndex(chartOrProxy);
+            phaseIntervals.push(
+                from >= PHASE_ORDER.length ? [] : PHASE_ORDER.slice(from, Math.min(to, PHASE_ORDER.length - 1) + 1)
+            );
             samples.push(sampler());
         }
-        return samples;
+        return Object.assign(samples, { phaseIntervals });
     };
 
     return { runToEnd, captureAnimationFrames };
@@ -1174,10 +1191,86 @@ export function createSceneGeometrySampler(chartOrProxy: ChartOrProxy<any>): () 
 }
 
 export type TrajectoryExpectation = 'constant' | 'increases' | 'decreases' | 'progresses' | 'bounded' | 'any';
-export type SceneNodeExpectation =
-    | 'constant'
-    | 'any'
-    | Partial<Record<string, TrajectoryExpectation | TrajectoryExpectation[]>>;
+/**
+ * Scopes a property expectation to the animation phase(s) it may change in: outside `during`, the
+ * property must hold constant frame-to-frame; the `expect` trajectory checks still apply to the whole
+ * trajectory. Requires phase data captured by {@link spyOnAnimationFrames}' `captureAnimationFrames`.
+ */
+export type PhasedPropertyExpectation = {
+    during: AnimationPhase | AnimationPhase[];
+    expect: TrajectoryExpectation | TrajectoryExpectation[];
+};
+export type ScenePropertyExpectation = TrajectoryExpectation | TrajectoryExpectation[] | PhasedPropertyExpectation;
+export type SceneNodeExpectation = 'constant' | 'any' | Partial<Record<string, ScenePropertyExpectation>>;
+export type PhasedTrajectory = { phaseIntervals: AnimationPhase[][] };
+
+export type AxisShiftDirection = 'left' | 'right' | 'up' | 'down';
+
+/**
+ * General axis expectations for a data change that reflows an axis, for tests that exercise an axis
+ * incidentally and only need it bounded (tests that care about exact per-tick behaviour should name
+ * nodes individually instead). The returned spec fragment asserts:
+ * - tick labels and tick/axis lines MOVE only during the `update` phase, and only in the `shift`
+ *   direction (non-strict, so unmoved nodes matched by the globs also pass);
+ * - opacity FADES only during the `remove`/`update`/`add` phases, bounded by its endpoints (stale
+ *   ticks fade out and leave, entering ticks fade in; the axis line fades during `update`);
+ * - with `translate`, the axis sub-groups shift that way during `update` (gutter reflow);
+ * - with `plotEdge`, the far end of the axis/grid lines tracks the plot edge during `update`;
+ * - every other property of every matched node must not change.
+ */
+export function axisReflowSpec(
+    position: 'top' | 'bottom' | 'left' | 'right',
+    {
+        shift,
+        translate,
+        plotEdge,
+        grid = false,
+    }: {
+        shift?: AxisShiftDirection;
+        translate?: AxisShiftDirection;
+        plotEdge?: 'grows' | 'shrinks';
+        grid?: boolean;
+    }
+): Record<string, SceneNodeExpectation> {
+    const directionOf = (d: AxisShiftDirection): TrajectoryExpectation =>
+        d === 'left' || d === 'up' ? 'decreases' : 'increases';
+    const coordOf = (d: AxisShiftDirection) => (d === 'left' || d === 'right' ? 'x' : 'y');
+    const duringUpdate = (expectation: TrajectoryExpectation): PhasedPropertyExpectation => ({
+        during: 'update',
+        expect: expectation,
+    });
+
+    const fades: Record<string, ScenePropertyExpectation> = {
+        opacity: { during: ['remove', 'update', 'add'], expect: 'bounded' },
+    };
+    const slide: Record<string, ScenePropertyExpectation> = {};
+    const lineSlide: Record<string, ScenePropertyExpectation> = {};
+    if (shift != null) {
+        const coord = coordOf(shift);
+        slide[coord] = duringUpdate(directionOf(shift));
+        lineSlide[`${coord}1`] = duringUpdate(directionOf(shift));
+        lineSlide[`${coord}2`] = duringUpdate(directionOf(shift));
+    }
+    // Grid/axis lines span the plot, so their far end is perpendicular to the axis direction.
+    const edge: Record<string, ScenePropertyExpectation> = {};
+    if (plotEdge != null) {
+        const perpendicular = position === 'left' || position === 'right' ? 'x2' : 'y2';
+        edge[perpendicular] = duringUpdate(plotEdge === 'grows' ? 'increases' : 'decreases');
+    }
+
+    const spec: Record<string, SceneNodeExpectation> = {
+        [`axis[${position}]/text[*]`]: { ...fades, ...slide },
+        [`axis[${position}]/line[*]`]: { ...fades, ...lineSlide, ...edge },
+    };
+    if (translate != null) {
+        const translation = coordOf(translate) === 'x' ? 'translationX' : 'translationY';
+        spec[`axis[${position}]/group[*]`] = { [translation]: duringUpdate(directionOf(translate)) };
+    }
+    if (grid) {
+        spec[`axis[${position}]/grid/line[*]`] = { ...fades, ...lineSlide, ...edge };
+    }
+    return spec;
+}
 
 interface TrajectoryViolation {
     key: string;
@@ -1259,6 +1352,39 @@ function checkPropertyTrajectory(
 }
 
 /**
+ * Enforce a `during` phase window: the property may only change across intervals whose traversed
+ * phase range intersects `during`. Outside those windows the value must stay anchored (within
+ * tolerance) to where the last allowed window left it — anchoring catches slow cumulative drift that
+ * per-interval deltas would slip under the tolerance. Intervals where the node is absent at either
+ * end are skipped (presence is checked separately).
+ */
+function checkPhaseWindows(
+    rawValues: (number | undefined)[],
+    during: AnimationPhase[],
+    phaseIntervals: AnimationPhase[][] | undefined,
+    constantTol: number
+): string | undefined {
+    if (phaseIntervals == null) return undefined;
+    let anchor: number | undefined;
+    for (let i = 0; i < rawValues.length - 1; i++) {
+        const to = rawValues[i + 1];
+        if (rawValues[i] == null || to == null) {
+            anchor = undefined;
+            continue;
+        }
+        anchor ??= rawValues[i];
+        const interval = phaseIntervals[i] ?? [];
+        if (interval.some((phase) => during.includes(phase))) {
+            anchor = to;
+        } else if (Math.abs(to - anchor!) > constantTol) {
+            const phases = interval.length > 0 ? interval.join('/') : 'idle';
+            return `moved outside its phase window (${during.join('/')}): ${anchor!.toFixed(2)} -> ${to.toFixed(2)} by frame ${i + 1} during ${phases}`;
+        }
+    }
+    return undefined;
+}
+
+/**
  * Assert invariants over a whole-scene animation trajectory (frames from {@link spyOnAnimationFrames}
  * sampled by {@link createSceneGeometrySampler}).
  *
@@ -1267,7 +1393,10 @@ function checkPropertyTrajectory(
  * opt-in). Spec keys are node paths; `*` acts as a glob wildcard (exact keys win over globs, then
  * longest glob wins).
  * Values are either `'any'`/`'constant'` for the whole node, or a per-property map — properties omitted
- * from the map default to constant.
+ * from the map default to constant. A property expectation may be wrapped as
+ * `{ during: <phase(s)>, expect: ... }` to additionally pin WHEN it may change: outside the named
+ * animation phase(s) the value must stay anchored to where the last allowed window left it. This
+ * requires the trajectory's `phaseIntervals` captured by `captureAnimationFrames`.
  *
  * Nodes may legitimately enter/leave the scene mid-trajectory (add/remove animations); such nodes must be
  * matched by a non-default spec entry, and property expectations are evaluated over the frames where the
@@ -1287,6 +1416,18 @@ export function expectSceneTrajectory(
 ): void {
     expect(trajectory.length).toBeGreaterThan(1);
     const tolerances = { constant: constantTol, monotonic: monotonicTol, progress: progressTol };
+
+    const phaseIntervals = (trajectory as Partial<PhasedTrajectory>).phaseIntervals;
+    const usesPhases = Object.values(spec).some(
+        (nodeExpectation) =>
+            typeof nodeExpectation === 'object' &&
+            Object.values(nodeExpectation).some((p) => typeof p === 'object' && !Array.isArray(p))
+    );
+    if (usesPhases && phaseIntervals == null) {
+        throw new Error(
+            'spec uses `during` phase windows but the trajectory carries no phase data — capture it with spyOnAnimationFrames().captureAnimationFrames'
+        );
+    }
 
     const allKeys = new Set<string>();
     for (const frame of trajectory) {
@@ -1341,18 +1482,20 @@ export function expectSceneTrajectory(
         }
 
         for (const prop of props) {
-            const propExpectations =
-                expectation === 'constant'
-                    ? ['constant' as const]
-                    : [
-                          (expectation as Record<string, TrajectoryExpectation | TrajectoryExpectation[]>)[prop] ??
-                              'constant',
-                      ].flat();
+            const raw = expectation === 'constant' ? 'constant' : ((expectation as any)[prop] ?? 'constant');
+            const isPhased = typeof raw === 'object' && !Array.isArray(raw);
+            const propExpectations: TrajectoryExpectation[] = [isPhased ? raw.expect : raw].flat();
             const rawValues = rawValuesFor(prop);
             const values = rawValues.filter((v): v is number => v != null);
             if (values.length < 2) continue;
             for (const propExpectation of propExpectations) {
                 const failure = checkPropertyTrajectory(values, propExpectation, tolerances);
+                if (failure != null) {
+                    violations.push({ key, prop, message: failure, values: rawValues });
+                }
+            }
+            if (isPhased) {
+                const failure = checkPhaseWindows(rawValues, [raw.during].flat(), phaseIntervals, constantTol);
                 if (failure != null) {
                     violations.push({ key, prop, message: failure, values: rawValues });
                 }
