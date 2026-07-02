@@ -19,12 +19,18 @@ import {
     deproxy,
     doubleClickAction,
     doubleTapAction,
+    expectConstant,
+    expectMonotonic,
+    expectProgresses,
     expectWarningsCalls,
+    expectWithinBounds,
     extractImageData,
     looserSnapshotDefaults,
     prepareTestOptions,
+    sampleSectorGeometry,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAnimationFrames,
     spyOnAnimationManager,
     tapAction,
     waitForChartStability,
@@ -74,6 +80,48 @@ describe('PieSeries', () => {
     let chart: Chart;
     const ctx = setupMockCanvas();
     const options: AgPolarChartOptions = prepareTestOptions({});
+
+    // SPIKE: frame-trajectory invariant test for a polar series — probes angular geometry (see CASE 4 in
+    // the plan). On initial load each sector sweeps its angular span from 0 to target; radii are set to
+    // their final values immediately (pieUtil.ts), so only the angle span animates.
+    describe('animation frame-trajectory (spike)', () => {
+        const frames = spyOnAnimationFrames();
+
+        it('CASE 4: pie initial load sweeps each sector span monotonically to a full circle', async () => {
+            chart = deproxy(
+                AgCharts.create(
+                    prepareTestOptions({
+                        data: [
+                            { label: 'A', value: 30 },
+                            { label: 'B', value: 20 },
+                            { label: 'C', value: 50 },
+                        ],
+                        series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'label' }],
+                    })
+                )
+            );
+
+            const trajectory = await frames.captureAnimationFrames(chart, () => sampleSectorGeometry(chart));
+            await frames.runToEnd(chart);
+            const finalSectors = sampleSectorGeometry(chart);
+            expect(finalSectors).toHaveLength(3);
+
+            for (let i = 0; i < finalSectors.length; i++) {
+                const spans = trajectory.map((f) => f[i].endAngle - f[i].startAngle);
+                expectProgresses(spans);
+                expectMonotonic(spans, 'increasing');
+                expectWithinBounds(spans, 0, finalSectors[i].endAngle - finalSectors[i].startAngle);
+                // Radii are not animated on initial load, only the angular sweep.
+                expectConstant(trajectory.map((f) => f[i].outerRadius));
+                expectConstant(trajectory.map((f) => f[i].innerRadius));
+            }
+
+            // The sectors close up into a full circle: the total swept angle grows monotonically to 2π.
+            const totalSpan = trajectory.map((f) => f.reduce((sum, g) => sum + (g.endAngle - g.startAngle), 0));
+            expectMonotonic(totalSpan, 'increasing');
+            expect(totalSpan.at(-1)).toBeCloseTo(Math.PI * 2, 1);
+        });
+    });
 
     describe('#create', () => {
         test('zerosum pie', async () => {

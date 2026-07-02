@@ -39,18 +39,25 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     PATTERN_SNAPSHOT_DEFAULTS,
+    type RectGeometry,
     cartesianChartAssertions,
     clickAction,
     createChart,
     deproxy,
+    expectConstant,
+    expectMonotonic,
+    expectProgresses,
     expectWarningsCalls,
+    expectWithinBounds,
     extractImageData,
     hoverAction,
     mixinReversedAxesCases,
     prepareTestOptions,
     repeat,
+    sampleRectGeometry,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAnimationFrames,
     spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';
@@ -664,7 +671,11 @@ describe('BarSeries', () => {
     describe('update animation', () => {
         const animate = spyOnAnimationManager();
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+        // SPIKE footprint reduction: the intermediate ratios (25/50/75%) for COLUMN_TIME are now covered
+        // by the frame-trajectory property test (CASE 1), which asserts the full per-frame trajectory
+        // rather than three frozen pixel frames. Only the endpoints are kept as a visual sanity check.
+        // The same reduction generalises to the add/remove blocks (covered by CASE 2).
+        for (const ratio of [0, 1]) {
             it(`for COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
                 animate(1200, 1);
 
@@ -715,6 +726,202 @@ describe('BarSeries', () => {
                 await compare();
             });
         }
+    });
+
+    // SPIKE: frame-trajectory invariant tests. Instead of pixel-comparing frozen ratios, step the
+    // animation frame-by-frame and assert structural invariants over the whole trajectory (monotonicity,
+    // dimension isolation, bounds, progression, endpoints). See spyOnAnimationFrames in chart/test/utils.ts.
+    describe('animation frame-trajectory (spike)', () => {
+        const frames = spyOnAnimationFrames();
+
+        // CASE 1 — non-scale-affecting data update on a vertical (column) series. The changed bar should
+        // grow/shrink in one dimension only, while sibling bars and the changed bar's x/width stay put.
+        it('CASE 1: column data-update animates height only, monotonically, without disturbing siblings', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'A', y: 100 },
+                    { x: 'B', y: 40 },
+                    { x: 'C', y: 70 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                // Pin the y-domain so shrinking B is provably non-scale-affecting (A and C never move).
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0, max: 100 },
+                },
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const before = sampleRectGeometry(chart);
+            expect(before).toHaveLength(3);
+
+            await chart.updateDelta({
+                data: [
+                    { x: 'A', y: 100 },
+                    { x: 'B', y: 20 },
+                    { x: 'C', y: 70 },
+                ],
+            });
+            const trajectory = await frames.captureAnimationFrames(chart, () => sampleRectGeometry(chart));
+            await frames.runToEnd(chart);
+            const after = sampleRectGeometry(chart);
+
+            // Endpoints: first frame is the before-state, last frame is the after-state.
+            expect(trajectory).toHaveLength(31);
+            expect(trajectory[0]).toEqual(before);
+            expect(trajectory.at(-1)).toEqual(after);
+
+            // Changed bar B (index 1): height shrinks monotonically and stays bounded; the top edge (y)
+            // rises monotonically. Progression proves it actually animated (not an instant jump/blank).
+            const bHeights = trajectory.map((f) => f[1].height);
+            expectProgresses(bHeights);
+            expectMonotonic(bHeights, 'decreasing');
+            expectWithinBounds(bHeights, before[1].height, after[1].height);
+            expectMonotonic(
+                trajectory.map((f) => f[1].y),
+                'increasing'
+            );
+
+            // Dimension isolation: B's x and width never change during the animation.
+            expectConstant(trajectory.map((f) => f[1].x));
+            expectConstant(trajectory.map((f) => f[1].width));
+
+            // Sibling bars A and C are completely undisturbed on every frame.
+            for (const idx of [0, 2]) {
+                expectConstant(trajectory.map((f) => f[idx].x));
+                expectConstant(trajectory.map((f) => f[idx].y));
+                expectConstant(trajectory.map((f) => f[idx].width));
+                expectConstant(trajectory.map((f) => f[idx].height));
+            }
+        });
+
+        // On a category axis, adding/removing a datum rebalances the sibling bands, so bars are matched
+        // by band-centre x rather than array index. A bar absent from a frame reads as height 0.
+        const columnOptions = (data: Array<{ x: string; y: number }>): AgChartOptions => {
+            const options: AgChartOptions = {
+                data,
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0, max: 100 },
+                },
+            };
+            return prepareTestOptions(options);
+        };
+        const heightAtCentre = (frame: RectGeometry[], centreX: number, tol = 5): number => {
+            const match = frame.find((r) => Math.abs(r.x + r.width / 2 - centreX) <= tol);
+            return match?.height ?? 0;
+        };
+        const centreOf = (g: RectGeometry) => g.x + g.width / 2;
+
+        // CASE 2 — add + remove. The entering bar grows in from height 0; the leaving bar collapses to 0.
+        it('CASE 2: added bar grows in and removed bar collapses, monotonically', async () => {
+            // ADD: A,B,C -> A,B,C,D. Track D (present only in the after-state) by its band centre.
+            chart = AgCharts.create(
+                columnOptions([
+                    { x: 'A', y: 100 },
+                    { x: 'B', y: 40 },
+                    { x: 'C', y: 70 },
+                ])
+            );
+            await frames.runToEnd(chart);
+
+            await chart.updateDelta({
+                data: [
+                    { x: 'A', y: 100 },
+                    { x: 'B', y: 40 },
+                    { x: 'C', y: 70 },
+                    { x: 'D', y: 50 },
+                ],
+            });
+            const addTrajectory = await frames.captureAnimationFrames(chart, () => sampleRectGeometry(chart));
+            await frames.runToEnd(chart);
+            const added = sampleRectGeometry(chart);
+            expect(added).toHaveLength(4);
+
+            const dCentre = centreOf(added.at(-1)!);
+            const dHeights = addTrajectory.map((f) => heightAtCentre(f, dCentre));
+            expect(dHeights[0]).toBe(0); // absent before it is added
+            expectProgresses(dHeights);
+            expectMonotonic(dHeights, 'increasing');
+            expectWithinBounds(dHeights, 0, added.at(-1)!.height);
+
+            // REMOVE: A,B,C,D -> A,B,C. Track D (present only in the before-state) collapsing to 0.
+            const dCentreBefore = dCentre;
+            await chart.updateDelta({
+                data: [
+                    { x: 'A', y: 100 },
+                    { x: 'B', y: 40 },
+                    { x: 'C', y: 70 },
+                ],
+            });
+            const removeTrajectory = await frames.captureAnimationFrames(chart, () => sampleRectGeometry(chart));
+            await frames.runToEnd(chart);
+            expect(sampleRectGeometry(chart)).toHaveLength(3);
+
+            const removedHeights = removeTrajectory.map((f) => heightAtCentre(f, dCentreBefore));
+            expect(removedHeights[0]).toBeGreaterThan(1); // still present at full height when removal starts
+            expectProgresses(removedHeights);
+            expectMonotonic(removedHeights, 'decreasing');
+            expect(removedHeights.at(-1)).toBeLessThanOrEqual(0.001);
+        });
+
+        // CASE 5 — scale-affecting update (the LIMIT case). Growing one datum beyond the domain rescales
+        // every bar via the shared y-scale AND reflows the layout: as the tick labels grow (70 -> 200) the
+        // y-axis gutter widens, shifting and narrowing every bar horizontally. So NO geometric dimension
+        // isolation holds here (not even x/width). The only invariants that survive a scale-affecting
+        // change are per-node trajectory monotonicity in the primary dimension and correct endpoints —
+        // this is the boundary of what property-style animation tests can assert without image snapshots.
+        it('CASE 5: scale-affecting update rescales all bars monotonically (isolation does not hold)', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'A', y: 50 },
+                    { x: 'B', y: 40 },
+                    { x: 'C', y: 70 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                // No pinned max — the domain grows with the data, rescaling every bar.
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0 },
+                },
+            };
+            chart = AgCharts.create(prepareTestOptions(options));
+            await frames.runToEnd(chart);
+            const before = sampleRectGeometry(chart);
+
+            await chart.updateDelta({
+                data: [
+                    { x: 'A', y: 50 },
+                    { x: 'B', y: 200 },
+                    { x: 'C', y: 70 },
+                ],
+            });
+            const trajectory = await frames.captureAnimationFrames(chart, () => sampleRectGeometry(chart));
+            await frames.runToEnd(chart);
+            const after = sampleRectGeometry(chart);
+
+            expect(trajectory[0]).toEqual(before);
+            expect(trajectory.at(-1)).toEqual(after);
+
+            // The grown bar B rises; the fixed-value bars A and C shrink as the domain expands beneath them.
+            // Height is unaffected by the horizontal reflow (the plot height is constant), so it stays
+            // cleanly monotonic per node — but x/width are deliberately NOT asserted (see comment above).
+            expectMonotonic(
+                trajectory.map((f) => f[1].height),
+                'increasing'
+            );
+            expectProgresses(trajectory.map((f) => f[1].height));
+            for (const idx of [0, 2]) {
+                expectMonotonic(
+                    trajectory.map((f) => f[idx].height),
+                    'decreasing'
+                );
+                expectProgresses(trajectory.map((f) => f[idx].height));
+            }
+        });
     });
 
     describe('legend toggle animation', () => {
