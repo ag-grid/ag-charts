@@ -306,7 +306,9 @@ export function aggregationRangeFittingPoints(
             smallestKeyInterval == null
                 ? estimateSmallestPixelInterval(xValues, d0, d1, xNeedsValueOf)
                 : Number(smallestKeyInterval) / (d1 - d0);
-        return nextPowerOf2(Math.trunc(1 / smallestPixelInterval)) >> 3;
+        // Cap at one bucket per data point: this branch is otherwise unbounded, and a tiny smallest
+        // interval over a wide domain overflows the createAggregationIndices allocation.
+        return Math.min(nextPowerOf2(Math.trunc(1 / smallestPixelInterval)) >> 3, nextPowerOf2(xValues.length));
     } else {
         let power = Math.ceil(Math.log2(xValues.length)) - 1;
         // This cap represents ~500MB for a Float64Array with 4 values per point (or half that for an Int32Array)
