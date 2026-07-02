@@ -25,13 +25,7 @@ ModuleRegistry.registerModules([
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'Q3 Production',
-    },
-    subtitle: {
-        text: 'Total clothing manufactured from July to September',
-    },
-    footnote: {
-        text: 'Note: This data excludes products made with manufacturing defects.',
+        text: 'Sweaters made',
     },
     contextMenu: {
         items: [
@@ -42,14 +36,6 @@ const options: AgCartesianChartOptions<DataType> = {
                 label: 'Say hello',
                 action: () => {
                     console.log('Hello world!');
-                },
-            },
-            'separator',
-            {
-                showOn: 'caption',
-                label: 'Say hello in a caption',
-                action: ({ captionType }) => {
-                    console.log(`Hello in a ${captionType} caption!`);
                 },
             },
             'separator',

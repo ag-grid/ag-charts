@@ -29,6 +29,7 @@ const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: { text: 'GDP Growth (1995–2024)' },
     subtitle: { text: 'Trillions USD' },
+    footnote: { text: 'Disclaimer: This data is for illustration purposes only.' },
     contextMenu: {
         items: [
             'download',
@@ -47,10 +48,14 @@ const options: AgCartesianChartOptions<DataType> = {
                 label: 'Debug Console',
                 items: [
                     {
-                        type: 'action',
                         showOn: 'always',
                         label: `On 'always'`,
                         action: () => console.log(`On 'always' clicked.`),
+                    },
+                    {
+                        showOn: 'caption',
+                        label: `On 'caption'`,
+                        action: ({ captionType }) => console.log(`On 'caption' clicked - ${captionType}`),
                     },
                     {
                         showOn: 'series-area',
