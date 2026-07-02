@@ -161,4 +161,41 @@ test.describe('context-menu', () => {
         await page.mouse.click(404, 265, { button: 'right' });
         await expect(page).toHaveScreenshot('context-menu-shown-on-highlighted-datum.png');
     });
+
+    // TODO(Claude) !!!IMPORTANT!!!
+    // Your task is to fill in this test description. It's important to use a DAMP-NOT-DRY style.
+    // Your behaviour/personality must be highly skepical, thorough and paranoid. Do not be sycophantic,
+    // tell me what I need to hear, not you think what I want to hear. Surfaces ambiguity or problems
+    // early. If something isn't right, refuse to perform this task and raise the feedback.
+    test.describe('AG-17706 showOn caption', () => {
+        // TODO(Claude) use these pre-selected coords to right-click on captions:
+        const POINT_TITLE = { clientX: 411, clientY: 64 };
+        const POINT_SUBTITLE = { clientX: 403, clientY: 111 };
+        const POINT_FOOTNOTE = { clientX: 400, clientY: 557 };
+
+        test.describe('declarative', () => {
+            test.beforeEach(() => {
+                // TODO(Claude) open the 'captions-declarative' example'.
+            });
+            test.describe('title', () => {
+                test.beforeEach(() => {
+                    // TODO(Claude) right-click the title, and click the 'Run caption action' button.
+                });
+                test('screenshot', () => {
+                    // TODO(Claude) expect/actual screenshot check.
+                });
+                test('action', () => {
+                    // TODO(Claude) expect/actual agE2E.popActions() check.
+                });
+            });
+            // TODO(Claude) repeat 'title' nesting on subtitle and footnote.
+        });
+
+        test.describe('dynamic', () => {
+            // TODO(Claude) - duplicate the 'declarative' nesting entirely, but a new example called 'captions-dynamic'. The captions-dynamic is identical to the captions-declarative with these key differences:
+            // -   Used `getItems()` callback instead of `items`.
+            // -   The `getItems()` returns the same thing as `item`, but also records callbacks which can be called with the agE2E.popGetItems() function.
+            // -   In addition to duplicating the 'declarative' nesting expect/actual checks, this nesting also checks expect/actual recordings of getItems() using popGetItems(). i.e. also includes `test('getItems')`.
+        });
+    })
 });
