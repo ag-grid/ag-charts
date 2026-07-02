@@ -108,13 +108,17 @@ describe('PieSeries', () => {
             const sectorKeys = [...finalScene.keys()].filter((k) => k.startsWith('series[0]/sector'));
             expect(sectorKeys).toHaveLength(3);
 
-            // Angles sweep; radii + opacity implicitly constant. Labels (callout/sector text) enter the
-            // scene as the animation completes, so they are unconstrained.
+            // The sweep rotates clockwise from the top: every animated angle increases monotonically,
+            // and the first sector's startAngle (the 12 o'clock anchor) never moves. Radii and sector
+            // opacity are implicitly constant; the callout/sector labels fade in as the sweep completes.
+            const sweepsClockwise = { startAngle: 'increases', endAngle: 'increases' } as const;
+            const fadesIn = { opacity: 'increases' } as const;
             expectSceneTrajectory(trajectory, {
-                'series[0]/sector[*]': { startAngle: 'any', endAngle: 'any' },
-                'series[0]/group[*]': 'any', // callout label groups fade in as the sweep completes
-                'series[0]/text[*]': 'any',
-                'series[0]/labels/*': 'any', // sector labels fade in too
+                'series[0]/sector[30]': { endAngle: 'increases' },
+                'series[0]/sector[20]': sweepsClockwise,
+                'series[0]/sector[50]': sweepsClockwise,
+                'series[0]/group[*]': fadesIn, // callout label groups
+                'series[0]/labels/text[*]': fadesIn,
             });
 
             // The angular span is a derived quantity the spec can't express: assert each sector's span

@@ -821,17 +821,31 @@ describe('BarSeries', () => {
             const added = sampleScene();
             expect([...added.keys()].filter((k) => k.startsWith('series[0]/rect'))).toHaveLength(4);
 
-            const bandRebalance = { x: 'any', width: 'any' } as const;
+            // Adding D narrows every band, so existing bars and their axis labels/ticks shift LEFT
+            // (x decreases) and narrow (width decreases); D's own band position never moves — it only
+            // grows in vertically while its axis label/tick fade in.
+            const shiftLeftAndNarrow = { x: 'decreases', width: 'decreases' } as const;
+            const tickShiftsLeft = { x1: 'decreases', x2: 'decreases' } as const;
+            const fadesIn = { opacity: 'increases' } as const;
             expectSceneTrajectory(addTrajectory, {
                 'series[0]/rect[D]': {
-                    ...bandRebalance,
                     height: ['increases', 'progresses', 'bounded'],
                     y: ['decreases', 'bounded'],
                 },
-                'series[0]/rect[A]': bandRebalance,
-                'series[0]/rect[B]': bandRebalance,
-                'series[0]/rect[C]': bandRebalance,
-                'axis[bottom]/*': 'any', // category tick labels/gridlines rebalance with the bands
+                'series[0]/rect[A]': shiftLeftAndNarrow,
+                'series[0]/rect[B]': shiftLeftAndNarrow,
+                'series[0]/rect[C]': shiftLeftAndNarrow,
+                'axis[bottom]/text[A]': { x: 'decreases' },
+                'axis[bottom]/text[B]': { x: 'decreases' },
+                'axis[bottom]/text[C]': { x: 'decreases' },
+                'axis[bottom]/text[D]': fadesIn,
+                // Tick lines carry no datum, so they key positionally in scene order.
+                'axis[bottom]/line[]': fadesIn,
+                'axis[bottom]/line[#2]': tickShiftsLeft,
+                'axis[bottom]/line[#3]': tickShiftsLeft,
+                'axis[bottom]/line[#4]': { opacity: 'decreases' }, // stale duplicate tick fades out and leaves
+                'axis[bottom]/line[#5]': fadesIn,
+                'axis[bottom]/line[#6]': fadesIn,
             });
             expect(addTrajectory[0].get('series[0]/rect[D]')?.height ?? 0).toBeLessThanOrEqual(0.001);
 
@@ -847,16 +861,29 @@ describe('BarSeries', () => {
             await frames.runToEnd(chart);
             expect([...sampleScene().keys()].filter((k) => k.startsWith('series[0]/rect'))).toHaveLength(3);
 
+            // Removing D widens every band: the mirror image of the add — bars and axis labels/ticks
+            // shift RIGHT and widen while D collapses and its axis label/tick fade out and leave.
+            const shiftRightAndWiden = { x: 'increases', width: 'increases' } as const;
+            const tickShiftsRight = { x1: 'increases', x2: 'increases' } as const;
+            const fadesOut = { opacity: 'decreases' } as const;
             expectSceneTrajectory(removeTrajectory, {
                 'series[0]/rect[D]': {
-                    ...bandRebalance,
                     height: ['decreases', 'progresses'],
                     y: 'increases',
                 },
-                'series[0]/rect[A]': bandRebalance,
-                'series[0]/rect[B]': bandRebalance,
-                'series[0]/rect[C]': bandRebalance,
-                'axis[bottom]/*': 'any',
+                'series[0]/rect[A]': shiftRightAndWiden,
+                'series[0]/rect[B]': shiftRightAndWiden,
+                'series[0]/rect[C]': shiftRightAndWiden,
+                'axis[bottom]/text[A]': { x: 'increases' },
+                'axis[bottom]/text[B]': { x: 'increases' },
+                'axis[bottom]/text[C]': { x: 'increases' },
+                'axis[bottom]/text[D]': fadesOut,
+                'axis[bottom]/line[]': tickShiftsRight,
+                'axis[bottom]/line[#2]': tickShiftsRight,
+                'axis[bottom]/line[#3]': tickShiftsRight,
+                'axis[bottom]/line[#5]': fadesOut, // D's tick fades out and leaves
+                'axis[bottom]/line[#6]': fadesOut,
+                'axis[bottom]/line[#8]': { opacity: 'increases' }, // replacement tick fades in
             });
             expect(removeTrajectory[0].get('series[0]/rect[D]')!.height).toBeGreaterThan(1);
             expect(removeTrajectory.at(-1)!.get('series[0]/rect[D]')?.height ?? 0).toBeLessThanOrEqual(0.001);
@@ -864,10 +891,9 @@ describe('BarSeries', () => {
 
         // CASE 5 — scale-affecting update (the LIMIT case). Growing one datum beyond the domain rescales
         // every bar via the shared y-scale AND reflows the layout: as the tick labels grow (70 -> 200) the
-        // y-axis gutter widens, shifting and narrowing every bar horizontally. So NO geometric dimension
-        // isolation holds here (not even x/width). The only invariants that survive a scale-affecting
-        // change are per-node trajectory monotonicity in the primary dimension and correct endpoints —
-        // this is the boundary of what property-style animation tests can assert without image snapshots.
+        // y-axis gutter widens, shifting and narrowing every bar horizontally. So geometric dimension
+        // ISOLATION does not hold here (not even x/width) — but every movement is still directionally
+        // constrained: monotonic heights/positions, one-way reflow shifts, and fade-in/out tick swaps.
         it('CASE 5: scale-affecting update rescales all bars monotonically (isolation does not hold)', async () => {
             const options: AgChartOptions = {
                 data: [
@@ -907,16 +933,60 @@ describe('BarSeries', () => {
             expect(rectsOf(trajectory.at(-1)!)).toEqual(rectsOf(after));
 
             // The grown bar B rises; the fixed-value bars A and C shrink as the domain expands beneath
-            // them. Height is unaffected by the horizontal reflow (the plot height is constant), so it
-            // stays cleanly monotonic per node — but x/y/width and both axes are deliberately
-            // unconstrained (see comment above).
-            const reflow = { x: 'any', y: 'any', width: 'any' } as const;
+            // them. The wider tick labels (70 -> 200) widen the y-axis gutter, which shifts both axes'
+            // sub-groups right and narrows the plot, compressing bars/ticks/labels leftwards. The domain
+            // growth also swaps the y tick set: old ticks/labels/gridlines fade out and leave the scene
+            // while the new set fades in.
+            const shiftsRight = { translationX: 'increases' } as const;
+            const shiftsLeft = { x1: 'decreases', x2: 'decreases' } as const;
+            const fadesIn = { opacity: 'increases' } as const;
+            const fadesOut = { opacity: 'decreases' } as const;
             expectSceneTrajectory(trajectory, {
-                'series[0]/rect[B]': { ...reflow, height: ['increases', 'progresses'] },
-                'series[0]/rect[A]': { ...reflow, height: ['decreases', 'progresses'] },
-                'series[0]/rect[C]': { ...reflow, height: ['decreases', 'progresses'] },
-                'series[0]': 'any', // content group translation shifts as the axis gutter widens
-                'axis[*': 'any',
+                'series[0]/rect[B]': {
+                    height: ['increases', 'progresses'],
+                    y: 'decreases',
+                    x: 'decreases',
+                    width: 'decreases',
+                },
+                'series[0]/rect[A]': { height: ['decreases', 'progresses'], y: 'increases', width: 'decreases' },
+                'series[0]/rect[C]': {
+                    height: ['decreases', 'progresses'],
+                    y: 'increases',
+                    x: 'decreases',
+                    width: 'decreases',
+                },
+                'axis[bottom]/group[*]': shiftsRight,
+                'axis[left]/group[*]': shiftsRight,
+                'axis[bottom]/text[*]': { x: 'decreases' },
+                'axis[bottom]/line[#2]': shiftsLeft,
+                'axis[bottom]/line[#3]': shiftsLeft,
+                'axis[bottom]/line[#4]': shiftsLeft,
+                'axis[bottom]/line[#5]': { x2: 'decreases' }, // axis line: right end tracks the plot edge
+                'axis[left]/grid/line[]': { x2: 'decreases' },
+                'axis[left]/grid/line[#2]': fadesOut,
+                'axis[left]/grid/line[#3]': fadesOut,
+                'axis[left]/grid/line[#4]': fadesOut,
+                'axis[left]/grid/line[#5]': fadesOut,
+                'axis[left]/grid/line[#6]': fadesIn,
+                'axis[left]/grid/line[#7]': fadesIn,
+                'axis[left]/grid/line[#8]': fadesIn,
+                'axis[left]/grid/line[#9]': fadesIn,
+                'axis[left]/line[#2]': fadesOut,
+                'axis[left]/line[#3]': fadesOut,
+                'axis[left]/line[#4]': fadesOut,
+                'axis[left]/line[#5]': fadesOut,
+                'axis[left]/line[#7]': fadesIn,
+                'axis[left]/line[#8]': fadesIn,
+                'axis[left]/line[#9]': fadesIn,
+                'axis[left]/line[#10]': fadesIn,
+                'axis[left]/text[20]': fadesOut,
+                'axis[left]/text[40]': fadesOut,
+                'axis[left]/text[60]': fadesOut,
+                'axis[left]/text[80]': fadesOut,
+                'axis[left]/text[50]': fadesIn,
+                'axis[left]/text[100]': fadesIn,
+                'axis[left]/text[150]': fadesIn,
+                'axis[left]/text[200]': fadesIn,
             });
         });
     });

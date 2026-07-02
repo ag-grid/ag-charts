@@ -42,7 +42,6 @@ import {
     createChart,
     createSceneGeometrySampler,
     deproxy,
-    expectMonotonic,
     expectProgresses,
     expectSceneTrajectory,
     expectWithinBounds,
@@ -282,22 +281,58 @@ describe('LineSeries', () => {
             const after = sampleScene();
 
             // The unpinned y-domain grows with the update, so this is also a scale-affecting change:
-            // markers and both axes legitimately move and are left unconstrained.
+            // the wider tick labels (100 vs 90) widen the y-axis gutter, shifting both axes' sub-groups
+            // right and compressing the plot leftwards, while the y-axis swaps its tick set (old ticks
+            // fade out and leave, the new set fades in) and surviving ticks slide up the rescaled axis.
+            const shiftsRight = { translationX: 'increases' } as const;
+            const tickShiftsLeft = { x1: 'decreases', x2: 'decreases' } as const;
+            const tickSlidesUp = { y1: 'decreases', y2: 'decreases' } as const;
+            const fadesIn = { opacity: 'increases' } as const;
+            const fadesOut = { opacity: 'decreases' } as const;
             expectSceneTrajectory(trajectory, {
-                [pathKey]: { x: 'any', y: 'any', width: 'any', height: 'any' },
-                'series[0]/marker[*]': 'any',
-                'series[0]': 'any',
-                'axis[*': 'any',
+                [pathKey]: { x: 'decreases', y: 'increases', width: 'decreases', height: 'decreases' },
+                'series[0]/marker[*]': fadesIn,
+                'axis[bottom]/group[*]': shiftsRight,
+                'axis[left]/group[*]': shiftsRight,
+                'axis[bottom]/text[*]': { x: 'decreases' },
+                'axis[bottom]/line[]': fadesIn,
+                'axis[bottom]/line[#2]': tickShiftsLeft,
+                'axis[bottom]/line[#3]': tickShiftsLeft,
+                'axis[bottom]/line[#4]': { x2: 'decreases' }, // axis line: right end tracks the plot edge
+                'axis[left]/line[]': fadesOut,
+                'axis[left]/line[#2]': tickSlidesUp,
+                'axis[left]/line[#3]': fadesOut,
+                'axis[left]/line[#4]': tickSlidesUp,
+                'axis[left]/line[#5]': fadesOut,
+                'axis[left]/line[#7]': fadesIn,
+                'axis[left]/line[#8]': fadesIn,
+                'axis[left]/line[#9]': fadesIn,
+                'axis[left]/line[#10]': fadesIn,
+                'axis[left]/grid/line[]': fadesOut,
+                'axis[left]/grid/line[#2]': { ...tickSlidesUp, x2: 'decreases' },
+                'axis[left]/grid/line[#3]': fadesOut,
+                'axis[left]/grid/line[#4]': { ...tickSlidesUp, x2: 'decreases' },
+                'axis[left]/grid/line[#5]': fadesOut,
+                'axis[left]/grid/line[#6]': fadesIn,
+                'axis[left]/grid/line[#7]': fadesIn,
+                'axis[left]/grid/line[#8]': fadesIn,
+                'axis[left]/grid/line[#9]': fadesIn,
+                'axis[left]/text[50]': fadesOut,
+                'axis[left]/text[70]': fadesOut,
+                'axis[left]/text[90]': fadesOut,
+                'axis[left]/text[60]': { y: 'decreases' },
+                'axis[left]/text[80]': { y: 'decreases' },
+                'axis[left]/text[0]': fadesIn,
+                'axis[left]/text[20]': fadesIn,
+                'axis[left]/text[40]': fadesIn,
+                'axis[left]/text[100]': fadesIn,
             });
 
-            // The bbox actually animates (not a blank frame or an instant jump), monotonically, and
-            // stays bounded by the endpoints. Direction is inferred from the endpoints rather than
-            // asserted, because the rescale moves both the top edge and the height.
+            // The bbox actually animates (not a blank frame or an instant jump) and stays bounded by
+            // the endpoints; per-frame monotonic direction is covered by the trajectory spec above.
             const heights = trajectory.map((f) => f.get(pathKey)!.height);
             expectProgresses(heights);
-            expectMonotonic(heights);
             expectWithinBounds(heights, before.get(pathKey)!.height, after.get(pathKey)!.height);
-            expectMonotonic(trajectory.map((f) => f.get(pathKey)!.y));
             expect(trajectory[0].get(pathKey)!.height).toBeCloseTo(before.get(pathKey)!.height, 0);
             expect(trajectory.at(-1)!.get(pathKey)!.height).toBeCloseTo(after.get(pathKey)!.height, 0);
         });

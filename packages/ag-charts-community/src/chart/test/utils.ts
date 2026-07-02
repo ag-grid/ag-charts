@@ -1232,7 +1232,7 @@ function checkPropertyTrajectory(
             const sign = expectation === 'increases' ? 1 : -1;
             for (let i = 1; i < values.length; i++) {
                 if (sign * (values[i] - values[i - 1]) < -tolerances.monotonic) {
-                    return `expected ${expectation.replace(/s$/, 'ing')} monotonically, reversed at frame ${i} (${values[i - 1].toFixed(2)} -> ${values[i].toFixed(2)})`;
+                    return `expected ${expectation.replace(/es$/, 'ing')} monotonically, reversed at frame ${i} (${values[i - 1].toFixed(2)} -> ${values[i].toFixed(2)})`;
                 }
             }
             return undefined;
