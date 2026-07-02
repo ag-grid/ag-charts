@@ -1175,10 +1175,13 @@ export type TrajectoryExpectation = 'constant' | 'increases' | 'decreases' | 'pr
  * trajectory. Requires phase data captured by {@link spyOnAnimationFrames}' `captureAnimationFrames`.
  */
 export type PhasedPropertyExpectation = {
-    during: AnimationPhase | AnimationPhase[];
-    expect: TrajectoryExpectation | TrajectoryExpectation[];
+    during: AnimationPhase | readonly AnimationPhase[];
+    expect: TrajectoryExpectation | readonly TrajectoryExpectation[];
 };
-export type ScenePropertyExpectation = TrajectoryExpectation | TrajectoryExpectation[] | PhasedPropertyExpectation;
+export type ScenePropertyExpectation =
+    | TrajectoryExpectation
+    | readonly TrajectoryExpectation[]
+    | PhasedPropertyExpectation;
 export type SceneNodeExpectation = 'constant' | 'any' | Partial<Record<string, ScenePropertyExpectation>>;
 export type PhasedTrajectory = { phaseIntervals: AnimationPhase[][] };
 
