@@ -191,6 +191,77 @@ In this example:
 - The Context Menu on Bar Nodes includes a console `Log Datum` Menu Item,
   whose text is dynamically derived from the Context Menu Event parameters.
 
+### Editing Data
+
+The `getItems` callback can be used to change the state or appearance of a data point or series.
+
+{% chartExampleRunner title="Dynamic Context Menu Data" name="dynamic-context-menu-data" type="generated" /%}
+
+```js format="snippet"
+{
+    contextMenu: {
+        getItems: (params) => {
+            if (params.showOn === 'series-node') {
+                const { seriesId } = params;
+                const year = String(params.datum[params.xKey]);
+                const yKey = params.yKey;
+                const isEmphasised = emphasisedPoints.has(pointKey(seriesId, year));
+                return [
+                    'defaults',
+                    'separator',
+                    // Point actions
+                    {
+                        type: 'action',
+                        showOn: 'series-node',
+                        label: `${isEmphasised ? 'Remove Emphasis from' : 'Emphasise'} "${year}" Point`,
+                        action: () => toggleEmphasis(seriesId, year),
+                    },
+                    {
+                        type: 'action',
+                        showOn: 'series-node',
+                        label: `Remove "${year}" Point`,
+                        action: () => removeDataPoint(year, yKey),
+                    },
+                    'separator',
+                    // Series actions
+                    {
+                        showOn: 'series-node',
+                        label: `Color "${seriesId}"`,
+                        // A submenu of color options
+                        items: seriesColors.map((color) => ({
+                            type: 'action',
+                            showOn: 'series-node',
+                            label: color.label,
+                            action: () => colorSeries(seriesId, color.value),
+                        })),
+                    },
+                    {
+                        type: 'action',
+                        showOn: 'series-node',
+                        label: `Hide "${seriesId}"`,
+                        action: () => hideSeries(seriesId),
+                    },
+                    {
+                        type: 'action',
+                        showOn: 'series-node',
+                        label: `Remove "${seriesId}"`,
+                        action: () => removeSeries(seriesId),
+                    },
+                ];
+            }
+        },
+    },
+}
+```
+
+The menu includes actions on the clicked point and its series:
+
+- "Emphasise" enlarges the marker and displays the value. The label reads "Remove Emphasis" while the point is emphasised.
+- "Remove Point" sets the point's value to `null`, leaving a gap in the line.
+- "Color" is a submenu of preset colors; choosing one recolors the series line and its markers.
+- "Hide Series" toggles `series.visible`.
+- "Remove Series" drops the series from `series`.
+
 ## API Reference
 
 {% tabs %}
