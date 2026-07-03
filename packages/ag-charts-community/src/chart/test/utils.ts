@@ -39,7 +39,6 @@ import { type AnimationPhase, type IAnimation, PHASE_METADATA, PHASE_ORDER } fro
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import type { Node, SerializedNodeState } from '../../scene/node';
-import { Text } from '../../scene/shape/text';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
@@ -1070,13 +1069,13 @@ function readNodeGeometry(state: SerializedNodeState): { label: string; props: S
     return { label: state.type, props };
 }
 
-/** Best-effort human-readable identity for a scene node, derived from its datum. */
-function datumKeyOf(node: Node<any>): string | undefined {
+/** Best-effort human-readable identity for a scene node, derived from its datum or serialised state. */
+function datumKeyOf(node: Node<any>, state: SerializedNodeState): string | undefined {
     const datum: any = node.datum;
     if (datum != null && typeof datum !== 'object') return String(datum);
     const value = datum?.xValue ?? datum?.angleValue ?? datum?.itemId ?? datum?.index;
     if (value != null) return String(value);
-    if (node instanceof Text && node.text != null) return String(node.text);
+    if (state.type === 'text' && state.props.text != null) return state.props.text;
     return undefined;
 }
 
@@ -1114,7 +1113,7 @@ export function createSceneGeometrySampler(chartOrProxy: ChartOrProxy<any>): () 
             const state = node.serialize();
             const geometry = readNodeGeometry(state);
             if (geometry != null) {
-                const identity = datumKeyOf(node);
+                const identity = datumKeyOf(node, state);
                 const baseKey = `${rootPath}/${geometry.label}[${identity ?? ''}]`;
                 sample.set(assignKey(node, baseKey), geometry.props);
             } else if (state.type === 'group' && node instanceof Group) {

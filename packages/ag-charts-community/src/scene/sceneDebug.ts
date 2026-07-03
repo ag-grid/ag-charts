@@ -310,42 +310,6 @@ export function debugSceneNodeHighlight(ctx: CanvasRenderingContext2D, debugNode
     }
 }
 
-export const skippedProperties = new Set<string>();
-const allowedProperties = new Set([
-    'gradient',
-    // '_datum',
-    'zIndex',
-    'clipRect',
-    'cachedBBox',
-    'childNodeCounts',
-    'path',
-    '__zIndex',
-    'name',
-    '__scalingCenterX',
-    '__scalingCenterY',
-    '__rotationCenterX',
-    '__rotationCenterY',
-    '_previousDatum',
-    '__fill',
-    '__lineDash',
-    'borderPath',
-    'borderClipPath',
-    '_clipPath',
-]);
-
-function nodeProps(node: Node) {
-    const { ...allProps } = node as any;
-    for (const prop of Object.keys(allProps)) {
-        if (allowedProperties.has(prop)) continue;
-        if (typeof allProps[prop] === 'number') continue;
-        if (typeof allProps[prop] === 'string') continue;
-        if (typeof allProps[prop] === 'boolean') continue;
-        skippedProperties.add(prop);
-        delete allProps[prop];
-    }
-    return allProps;
-}
-
 export function buildTree(node: Node, mode: 'json' | 'console'): BuildTree {
     if (!Debug.check(true, DebugSelectors.SCENE)) {
         return {};
@@ -353,23 +317,24 @@ export function buildTree(node: Node, mode: 'json' | 'console'): BuildTree {
 
     let order = 0;
     return {
-        node: mode === 'json' ? nodeProps(node) : node,
+        node: mode === 'json' ? node.serialize() : node,
         name: node.name ?? node.id,
         dirty: node instanceof Group ? node.dirty : undefined,
-        ...Array.from(node instanceof Group ? node.children() : [], (c) => buildTree(c, mode)).reduce<
-            Record<string, object>
-        >((result, childTree) => {
-            let { name: treeNodeName } = childTree;
-            const {
-                node: { visible, opacity, zIndex, translationX, translationY, rotation, scalingX, scalingY },
-                node: childNode,
-            } = childTree;
+        ...Array.from(node instanceof Group ? node.children() : [], (child) => ({
+            child,
+            tree: buildTree(child, mode),
+        })).reduce<Record<string, object>>((result, { child, tree }) => {
+            let { name: treeNodeName } = tree;
+            const { props } = child.serialize();
+            const { visible, translationX, translationY, rotation, scalingX, scalingY } = props;
+            const opacity = 'opacity' in props ? props.opacity : 1;
             if (!visible || opacity <= 0) {
                 treeNodeName = `(${treeNodeName})`;
             }
-            if (Group.is(childNode) && childNode.renderToOffscreenCanvas) {
+            if (Group.is(child) && child.renderToOffscreenCanvas) {
                 treeNodeName = `*${treeNodeName}*`;
             }
+            const { zIndex } = child;
             const zIndexString = Array.isArray(zIndex) ? `(${zIndex.join(', ')})` : zIndex;
             const key = [
                 `${(order++).toString().padStart(3, '0')}|`,
@@ -389,7 +354,7 @@ export function buildTree(node: Node, mode: 'json' | 'console'): BuildTree {
             while (result[selectedKey] != null && index < 100) {
                 selectedKey = `${key} (${index++})`;
             }
-            result[selectedKey] = childTree;
+            result[selectedKey] = tree;
             return result;
         }, {}),
     };

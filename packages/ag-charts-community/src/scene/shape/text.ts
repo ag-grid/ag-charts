@@ -86,7 +86,12 @@ export class Text<D = unknown> extends Shape<D> {
     }
 
     protected override serializeProps(): SerializedTextProps {
-        return { ...super.serializeProps(), x: this.x, y: this.y };
+        return {
+            ...super.serializeProps(),
+            x: this.x,
+            y: this.y,
+            text: this.text == null ? undefined : String(this.text),
+        };
     }
 
     private lines: string[] = [];

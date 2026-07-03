@@ -291,7 +291,6 @@ export class Scene extends EventEmitter<EventMap> {
                 });
                 // Uncomment to write tree to filesystem from tests / Node.js.
                 // require('fs').writeFileSync('scene.json', JSON.stringify(buildTree(root, 'json')));
-                // console.log('Skipped properties', skippedProperties);
             }
 
             if (root.visible) {

@@ -195,7 +195,13 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     abstract override serialize(): SerializedNodeState;
 
     protected override serializeProps(): SerializedShapeProps {
-        return { ...super.serializeProps(), opacity: this.opacity, drawingMode: this.drawingMode };
+        return {
+            ...super.serializeProps(),
+            opacity: this.opacity,
+            drawingMode: this.drawingMode,
+            hasFill: this.fill != null,
+            hasStroke: this.stroke != null,
+        };
     }
 
     @SceneObjectChangeDetection({ equals: TRIPLE_EQ, checkDirtyOnAssignment: true })

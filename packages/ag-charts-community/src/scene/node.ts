@@ -65,6 +65,8 @@ export interface SerializedGroupProps extends SerializedNodeProps {
 export interface SerializedShapeProps extends SerializedNodeProps {
     opacity: number;
     drawingMode: AgDrawingMode;
+    hasFill: boolean;
+    hasStroke: boolean;
 }
 
 export interface SerializedPathProps extends SerializedShapeProps {
@@ -94,6 +96,7 @@ export interface SerializedLineProps extends SerializedShapeProps {
 export interface SerializedTextProps extends SerializedShapeProps {
     x: number;
     y: number;
+    text?: string;
 }
 
 /**
