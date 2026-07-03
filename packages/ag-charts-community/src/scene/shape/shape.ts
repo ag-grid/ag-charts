@@ -32,6 +32,7 @@ import { LinearGradient } from '../gradient/linearGradient';
 import { RadialGradient } from '../gradient/radialGradient';
 import { getColorStops } from '../gradient/stops';
 import { Image } from '../image/image';
+import type { SerializedNodeState, SerializedShapeProps } from '../node';
 import { Node } from '../node';
 import { Pattern } from '../pattern/pattern';
 import { align } from '../util/pixel';
@@ -190,11 +191,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     opacity: number = 1;
     declare __opacity: number; // optimised field accessor
 
-    override serialize() {
-        const state = super.serialize();
-        state.props.opacity = this.opacity;
-        state.props.drawingMode = this.drawingMode;
-        return state;
+    /** Every concrete shape must declare which {@link SerializedNodeState} variant it serialises as. */
+    abstract override serialize(): SerializedNodeState;
+
+    protected override serializeProps(): SerializedShapeProps {
+        return { ...super.serializeProps(), opacity: this.opacity, drawingMode: this.drawingMode };
     }
 
     @SceneObjectChangeDetection({ equals: TRIPLE_EQ, checkDirtyOnAssignment: true })

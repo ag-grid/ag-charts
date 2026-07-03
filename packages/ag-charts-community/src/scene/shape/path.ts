@@ -3,7 +3,7 @@ import { SceneChangeDetection, createSvgElement } from 'ag-charts-core';
 
 import type { BBox } from '../bbox';
 import { ExtendedPath2D } from '../extendedPath2D';
-import type { ChildNodeCounts, RenderContext } from '../node';
+import type { ChildNodeCounts, RenderContext, SerializedNodeState, SerializedPathProps } from '../node';
 import { Shape } from './shape';
 
 export class Path<D = unknown> extends Shape<D> implements DistantObject {
@@ -46,24 +46,35 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
         this.dirtyPath = true;
     }
 
-    protected override get serializedType(): string {
+    /** Serialised-state discriminator for subclasses (e.g. `Marker`) that share the path property set. */
+    protected get serializedType(): 'path' | 'marker' {
         return 'path';
     }
 
-    override serialize() {
-        const state = super.serialize();
+    override serialize(): SerializedNodeState {
+        return { type: this.serializedType, props: this.serializeProps(), svgPath: this.serializeSvgPath() };
+    }
+
+    protected override serializeProps(): SerializedPathProps {
         const bbox: BBox | undefined = this.getBBox();
-        state.props.x = bbox?.x ?? Number.NaN;
-        state.props.y = bbox?.y ?? Number.NaN;
-        state.props.width = bbox?.width ?? Number.NaN;
-        state.props.height = bbox?.height ?? Number.NaN;
-        state.props.clip = this.clip;
-        state.props.clipX = this._clipX;
-        state.props.clipY = this._clipY;
-        // Read `_path` directly: serialisation must reflect the path as last drawn, without forcing
-        // lazy allocation (Marker) or a premature updatePath.
-        state.svgPath = this._path?.toSVG();
-        return state;
+        return {
+            ...super.serializeProps(),
+            x: bbox?.x ?? Number.NaN,
+            y: bbox?.y ?? Number.NaN,
+            width: bbox?.width ?? Number.NaN,
+            height: bbox?.height ?? Number.NaN,
+            clip: this.clip,
+            clipX: this._clipX,
+            clipY: this._clipY,
+        };
+    }
+
+    /**
+     * The drawn path in SVG form, read from `_path` directly: serialisation must reflect the path as
+     * last drawn, without forcing lazy allocation (Marker) or a premature updatePath.
+     */
+    protected serializeSvgPath(): string | undefined {
+        return this._path?.toSVG();
     }
 
     /**

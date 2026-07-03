@@ -191,7 +191,7 @@ export class Marker<_D = unknown> extends Rotatable(Scalable(Translatable(Intern
     declare __translationX: number;
     declare __translationY: number;
 
-    protected override get serializedType(): string {
+    protected override get serializedType(): 'marker' {
         return 'marker';
     }
 

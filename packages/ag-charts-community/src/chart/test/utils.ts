@@ -1021,32 +1021,45 @@ export function expectProgresses(values: number[], tol = 1e-3): void {
 export type SceneNodeGeometry = Record<string, number>;
 export type SceneGeometrySample = Map<string, SceneNodeGeometry>;
 
-type GeometryBuilder = (state: SerializedNodeState) => SceneNodeGeometry;
-
-function pickProps(state: SerializedNodeState, names: string[]): SceneNodeGeometry {
-    const props: SceneNodeGeometry = {};
-    for (const name of names) {
-        props[name] = state.props[name] as number;
+/**
+ * Map a node's serialised state ({@link Node.serialize}) to the property set trajectory specs assert
+ * over; `null` marks node kinds deliberately not sampled (groups are handled separately by the scene
+ * walk). The switch is exhaustive over {@link SerializedNodeState}: adding a scene node kind fails
+ * compilation here until its sampling is decided. Marker and generic path nodes expose their bbox
+ * extents.
+ */
+function buildGeometry(state: SerializedNodeState): SceneNodeGeometry | null {
+    switch (state.type) {
+        case 'node':
+        case 'group':
+        case 'range':
+            return null;
+        case 'sector': {
+            const { startAngle, endAngle, innerRadius, outerRadius, opacity } = state.props;
+            return { startAngle, endAngle, innerRadius, outerRadius, opacity };
+        }
+        case 'rect':
+        case 'marker':
+        case 'path': {
+            const { x, y, width, height, opacity } = state.props;
+            return { x, y, width, height, opacity };
+        }
+        case 'text': {
+            const { x, y, opacity } = state.props;
+            return { x, y, opacity };
+        }
+        case 'line': {
+            const { x1, y1, x2, y2, opacity } = state.props;
+            return { x1, y1, x2, y2, opacity };
+        }
+        default:
+            return state satisfies never;
     }
-    return props;
 }
 
-// Builders map each node's serialised state ({@link Node.serialize}) to the property set trajectory
-// specs assert over. Node kinds without a builder are not sampled. Marker and generic path nodes
-// expose their bbox extents.
-const GEOMETRY_BUILDERS: Record<string, GeometryBuilder> = {
-    sector: (s) => pickProps(s, ['startAngle', 'endAngle', 'innerRadius', 'outerRadius', 'opacity']),
-    rect: (s) => pickProps(s, ['x', 'y', 'width', 'height', 'opacity']),
-    text: (s) => pickProps(s, ['x', 'y', 'opacity']),
-    line: (s) => pickProps(s, ['x1', 'y1', 'x2', 'y2', 'opacity']),
-    marker: (s) => pickProps(s, ['x', 'y', 'width', 'height', 'opacity']),
-    path: (s) => pickProps(s, ['x', 'y', 'width', 'height', 'opacity']),
-};
-
 function readNodeGeometry(state: SerializedNodeState): { label: string; props: SceneNodeGeometry } | undefined {
-    const builder = GEOMETRY_BUILDERS[state.type];
-    if (builder == null) return undefined;
-    const props = builder(state);
+    const props = buildGeometry(state);
+    if (props == null) return undefined;
     // Translation-positioned shapes (e.g. markers) move via translationX/Y, not their local geometry.
     const { translationX, translationY } = state.props;
     if (typeof translationX === 'number' && typeof translationY === 'number') {
@@ -1104,8 +1117,8 @@ export function createSceneGeometrySampler(chartOrProxy: ChartOrProxy<any>): () 
                 const identity = datumKeyOf(node);
                 const baseKey = `${rootPath}/${geometry.label}[${identity ?? ''}]`;
                 sample.set(assignKey(node, baseKey), geometry.props);
-            } else if (node instanceof Group) {
-                const props: SceneNodeGeometry = { opacity: state.props.opacity as number };
+            } else if (state.type === 'group' && node instanceof Group) {
+                const props: SceneNodeGeometry = { opacity: state.props.opacity };
                 const { translationX, translationY } = state.props;
                 if (typeof translationX === 'number' && typeof translationY === 'number') {
                     props.translationX = translationX;

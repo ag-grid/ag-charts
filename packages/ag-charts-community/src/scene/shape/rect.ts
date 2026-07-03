@@ -4,6 +4,7 @@ import type { AgDrawingMode } from 'ag-charts-types';
 import { BBox } from '../bbox';
 import type { DropShadow } from '../dropShadow';
 import { ExtendedPath2D } from '../extendedPath2D';
+import type { SerializedNodeState, SerializedPathProps } from '../node';
 import { type Corner, drawCorner } from '../util/corner';
 import { Path } from './path';
 import { type CanvasContext } from './shape';
@@ -276,17 +277,12 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
     bottomLeftCornerRadius: number = 0;
     declare __bottomLeftCornerRadius: number; // optimised field accessor
 
-    protected override get serializedType(): string {
-        return 'rect';
+    override serialize(): SerializedNodeState {
+        return { type: 'rect', props: this.serializeProps(), svgPath: this.serializeSvgPath() };
     }
 
-    override serialize() {
-        const state = super.serialize();
-        state.props.x = this.x;
-        state.props.y = this.y;
-        state.props.width = this.width;
-        state.props.height = this.height;
-        return state;
+    protected override serializeProps(): SerializedPathProps {
+        return { ...super.serializeProps(), x: this.x, y: this.y, width: this.width, height: this.height };
     }
 
     set cornerRadius(cornerRadius: number) {
