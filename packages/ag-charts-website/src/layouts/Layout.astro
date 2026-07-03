@@ -17,6 +17,7 @@ import { DevTools } from '@ag-website-shared/components/dev-tools/DevTools';
 import GoogleTagManager from '@ag-website-shared/components/google-tag-manager/GoogleTagManager.astro';
 import GoogleTagManagerBody from '@ag-website-shared/components/google-tag-manager/GoogleTagManagerBody.astro';
 import JsonLd from '@ag-website-shared/components/structured-data/JsonLd.astro';
+import AnnouncementBanner from '@ag-website-shared/components/announcement-banner/AnnouncementBanner.astro';
 import {
     buildOrganization,
     buildSoftwareApplication,
@@ -34,11 +35,16 @@ export interface Props {
     hideHeader?: boolean;
     hideFooter?: boolean;
     noIndex?: boolean;
+    showAnnouncementBanner?: boolean;
     pageStructuredData?: JsonLdObject[];
 }
 
 const { data: metadata } = await getEntry('metadata', 'metadata') as CollectionEntry<'metadata'>;
 const { data: footerItems } = await getEntry('footer', 'footer') as CollectionEntry<'footer'>;
+const { data: announcementBannerContent } = (await getEntry(
+    'announcementBanner',
+    'announcement-banner'
+)) as CollectionEntry<'announcementBanner'>;
 
 const {
     title = metadata.title,
@@ -46,6 +52,7 @@ const {
     showSearchBar,
     showDocsNav,
     hideHeader,
+    showAnnouncementBanner = announcementBannerContent.enabled,
     hideFooter,
     noIndex,
     pageStructuredData,
@@ -212,6 +219,18 @@ const structuredData: JsonLdObject[] = includeStructuredData
         {/* Authorised in script-src by SHA-256 hash (not 'unsafe-inline'); body lives in
             @utils/csp/inlineScripts so the rendered bytes match the hashed source. */}
         <script is:inline set:html={DARK_MODE_INIT_SCRIPT} />
+
+        {
+            !isArchive && showAnnouncementBanner && (
+                <AnnouncementBanner
+                    href={urlWithBaseUrl(announcementBannerContent.href)}
+                    title={announcementBannerContent.title}
+                    description={announcementBannerContent.description}
+                    ctaLabel={announcementBannerContent.ctaLabel}
+                    external={announcementBannerContent.external}
+                />
+            )
+        }
 
         <div class="mainContainer">
             {!hideHeader && <SiteHeader showSearchBar={showSearchBar} showDocsNav={showDocsNav} apiPaths={apiPaths}/>}
