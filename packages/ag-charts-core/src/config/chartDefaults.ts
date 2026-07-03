@@ -231,7 +231,14 @@ const contextMenuItemLiterals: AgContextMenuItemLiteral[] = [
 
 const contextMenuItemObjectDef: OptionsDefs<Extract<AgContextMenuItem, object>> = {
     type: strictUnion<AgContextMenuItemType>()('action', 'separator'),
-    showOn: strictUnion<AgContextMenuItemShowOn>()('always', 'caption', 'series-area', 'series-node', 'legend-item'),
+    showOn: strictUnion<AgContextMenuItemShowOn>()(
+        'always',
+        'axis',
+        'caption',
+        'series-area',
+        'series-node',
+        'legend-item'
+    ),
     label: required(string),
     enabled: boolean,
     action: callback,

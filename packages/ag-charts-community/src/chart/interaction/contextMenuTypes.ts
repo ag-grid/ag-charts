@@ -8,6 +8,7 @@ import type {
     AgContextMenuItemShowOn,
 } from 'ag-charts-types';
 
+import type { Axis } from '../axis/axis';
 import type { CategoryLegendDatum } from '../legend/legendDatum';
 import type { ISeries, SeriesNodeDatum } from '../series/seriesTypes';
 
@@ -29,6 +30,11 @@ export interface ContextShowOnMap extends ContextShowOnMapRule {
         event: InferTEvent<'always'>;
         callback: (param: InferTEvent<'always'>) => void;
         context: undefined;
+    };
+    axis: {
+        event: InferTEvent<'axis'>;
+        callback: (param: InferTEvent<'axis'>) => void;
+        context: { axis: Axis };
     };
     caption: {
         event: InferTEvent<'caption'>;

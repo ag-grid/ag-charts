@@ -172,6 +172,10 @@ export class ContextMenu extends AbstractModuleInstance {
                 return params;
             }
 
+            case 'axis': {
+                throw new Error('not yet implemented');
+            }
+
             case 'caption': {
                 if (this.pickedCaptionCtx == null) throw new Error(`this.pickedCaptionCtx is null`);
                 const { captionType, text } = this.pickedCaptionCtx;
@@ -385,6 +389,8 @@ export class ContextMenu extends AbstractModuleInstance {
                 }
                 this.hide();
             };
+        } else if (ContextMenuRegistry.checkCallback('axis', showOn, callback)) {
+            throw new Error('not yet implemented');
         } else if (ContextMenuRegistry.checkCallback('caption', showOn, callback)) {
             return () => {
                 if (this.pickedCaptionCtx) {
