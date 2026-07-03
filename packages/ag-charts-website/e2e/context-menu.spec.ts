@@ -14,19 +14,7 @@ import {
     waitForChartUpdate,
 } from './util';
 
-// The `captions-declarative` and `captions-dynamic` examples expose drain-and-reset
-// accessors on `window.agE2E`:
-//   - popActions():  caption-action callbacks recorded since the last call, then cleared.
-//   - popGetItems(): getItems() invocations recorded since the last call (dynamic only), then cleared.
-// The wrappers below mirror the defensive guard style in data-selection.spec.ts and wait for
-// chart stability so each destructive accumulator is read at a settled point.
-//
-// The structured-clone boundary of page.evaluate() strips `undefined` fields, so a
-// non-caption getItems record reads back as `{ showOn }` with no `captionType` key.
-type CaptionActionRecord = { type: string; captionType: string };
-type CaptionGetItemsRecord = { showOn: string; captionType?: string };
-
-async function popActions(page: Page): Promise<CaptionActionRecord[]> {
+async function popActions(page: Page): Promise<AgCaptionContextMenuActionEvent[]> {
     await waitForChartUpdate(page.locator(SELECTORS.wrapper));
     const actions = await page.evaluate(() => {
         const agE2E_popActions: unknown = (window as any)?.agE2E?.popActions;
@@ -38,10 +26,10 @@ async function popActions(page: Page): Promise<CaptionActionRecord[]> {
         return agE2E_popActions();
     });
     expect(Array.isArray(actions)).toBe(true);
-    return actions as CaptionActionRecord[];
+    return actions as AgCaptionContextMenuActionEvent[];
 }
 
-async function popGetItems(page: Page): Promise<CaptionGetItemsRecord[]> {
+async function popGetItems(page: Page): Promise<AgContextMenuGetItemsParamsCaption[]> {
     await waitForChartUpdate(page.locator(SELECTORS.wrapper));
     const getItems = await page.evaluate(() => {
         const agE2E_popGetItems: unknown = (window as any)?.agE2E?.popGetItems;
@@ -53,7 +41,7 @@ async function popGetItems(page: Page): Promise<CaptionGetItemsRecord[]> {
         return agE2E_popGetItems();
     });
     expect(Array.isArray(getItems)).toBe(true);
-    return getItems as CaptionGetItemsRecord[];
+    return getItems as AgContextMenuGetItemsParamsCaption[];
 }
 
 test.describe('context-menu', () => {
