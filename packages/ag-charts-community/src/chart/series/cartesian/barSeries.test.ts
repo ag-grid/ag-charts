@@ -39,10 +39,14 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     PATTERN_SNAPSHOT_DEFAULTS,
+    type SceneGeometrySample,
+    axisReflowSpec,
     cartesianChartAssertions,
     clickAction,
     createChart,
+    createSceneGeometrySampler,
     deproxy,
+    expectSceneTrajectory,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
@@ -51,6 +55,7 @@ import {
     repeat,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAnimationFrames,
     spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';
@@ -664,7 +669,10 @@ describe('BarSeries', () => {
     describe('update animation', () => {
         const animate = spyOnAnimationManager();
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+        // Only the endpoint (0%/100%) snapshots are kept as a visual sanity check; update-animation
+        // invariants at intermediate frames are asserted by the frame-trajectory tests below (CASE 1
+        // covers the same update shape, albeit on a category rather than time x-axis).
+        for (const ratio of [0, 1]) {
             it(`for COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
                 animate(1200, 1);
 
@@ -715,6 +723,212 @@ describe('BarSeries', () => {
                 await compare();
             });
         }
+    });
+
+    // SPIKE: frame-trajectory invariant tests. Instead of pixel-comparing frozen ratios, step the
+    // animation frame-by-frame and assert structural invariants over the whole trajectory (monotonicity,
+    // dimension isolation, bounds, progression, endpoints). See spyOnAnimationFrames in chart/test/utils.ts.
+    describe('animation frame-trajectory (spike)', () => {
+        const frames = spyOnAnimationFrames();
+
+        // The pinned 0-100 y-domain makes data updates within it provably non-scale-affecting.
+        const columnOptions = (data: Array<{ x: string; y: number }>): AgChartOptions => {
+            const options: AgChartOptions = {
+                data,
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0, max: 100 },
+                },
+            };
+            return prepareTestOptions(options);
+        };
+
+        // CASE 1 — non-scale-affecting data update on a vertical (column) series. The changed bar should
+        // grow/shrink in one dimension only, while sibling bars and the changed bar's x/width stay put.
+        it('CASE 1: column data-update animates height only, monotonically, without disturbing siblings', async () => {
+            chart = AgCharts.create(
+                columnOptions([
+                    { x: 'A', y: 100 },
+                    { x: 'B', y: 40 },
+                    { x: 'C', y: 70 },
+                ])
+            );
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+            const before = sampleScene();
+            expect([...before.keys()].filter((k) => k.startsWith('series[0]/rect'))).toHaveLength(3);
+
+            await chart.updateDelta({
+                data: [
+                    { x: 'A', y: 100 },
+                    { x: 'B', y: 20 },
+                    { x: 'C', y: 70 },
+                ],
+            });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            await frames.runToEnd(chart);
+            const after = sampleScene();
+
+            // Endpoints: first frame is the before-state, last frame is the after-state.
+            expect(trajectory[0]).toEqual(before);
+            expect(trajectory.at(-1)).toEqual(after);
+
+            // Bar B shrinks in height only (top edge rises, x/width/opacity implicitly constant);
+            // EVERYTHING else in the scene — sibling bars, both axes, gridlines, labels — must not move.
+            expectSceneTrajectory(trajectory, {
+                'series[0]/rect[B]': {
+                    height: { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
+                    y: { during: 'update', expect: ['increases', 'bounded'] },
+                },
+            });
+        });
+
+        // CASE 2 — add + remove. The entering bar grows in from height 0; the leaving bar collapses to 0.
+        // Adding/removing a category rebalances the sibling bands and the category axis, so sibling/axis
+        // horizontal movement is expected — but sibling HEIGHTS and the whole value axis must not move.
+        it('CASE 2: added bar grows in and removed bar collapses, monotonically', async () => {
+            // ADD: A,B,C -> A,B,C,D.
+            chart = AgCharts.create(
+                columnOptions([
+                    { x: 'A', y: 100 },
+                    { x: 'B', y: 40 },
+                    { x: 'C', y: 70 },
+                ])
+            );
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            await chart.updateDelta({
+                data: [
+                    { x: 'A', y: 100 },
+                    { x: 'B', y: 40 },
+                    { x: 'C', y: 70 },
+                    { x: 'D', y: 50 },
+                ],
+            });
+            const addTrajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            await frames.runToEnd(chart);
+            const added = sampleScene();
+            expect([...added.keys()].filter((k) => k.startsWith('series[0]/rect'))).toHaveLength(4);
+
+            // Adding D narrows every band, so existing bars shift LEFT (x decreases) and narrow (width
+            // decreases) during the update phase; D's own band position never moves — it only grows in
+            // vertically during the add phase. The axis rebalances with the bands: labels/ticks may only
+            // shift left, and D's entering label/tick may only fade in during the add/remove windows.
+            // 'progresses' on the band rebalance guards against the update snapping in a single frame.
+            const shiftLeftAndNarrow = {
+                x: { during: 'update', expect: ['decreases', 'progresses'] },
+                width: { during: 'update', expect: ['decreases', 'progresses'] },
+            } as const;
+            expectSceneTrajectory(addTrajectory, {
+                'series[0]/rect[D]': {
+                    height: { during: 'add', expect: ['increases', 'progresses', 'bounded'] },
+                    y: { during: 'add', expect: ['decreases', 'bounded'] },
+                },
+                'series[0]/rect[A]': shiftLeftAndNarrow,
+                'series[0]/rect[B]': shiftLeftAndNarrow,
+                'series[0]/rect[C]': shiftLeftAndNarrow,
+                ...axisReflowSpec('bottom', { shift: 'left' }),
+            });
+            expect(addTrajectory[0].get('series[0]/rect[D]')?.height ?? 0).toBeLessThanOrEqual(0.001);
+
+            // REMOVE: A,B,C,D -> A,B,C. D collapses to 0 and leaves the scene.
+            await chart.updateDelta({
+                data: [
+                    { x: 'A', y: 100 },
+                    { x: 'B', y: 40 },
+                    { x: 'C', y: 70 },
+                ],
+            });
+            const removeTrajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            await frames.runToEnd(chart);
+            expect([...sampleScene().keys()].filter((k) => k.startsWith('series[0]/rect'))).toHaveLength(3);
+
+            // Removing D widens every band: the mirror image of the add — bars shift RIGHT and widen
+            // during the update phase while D collapses during the remove phase, and the axis
+            // labels/ticks shift right with the bands (D's label/tick fade out and leave).
+            const shiftRightAndWiden = {
+                x: { during: 'update', expect: ['increases', 'progresses'] },
+                width: { during: 'update', expect: ['increases', 'progresses'] },
+            } as const;
+            expectSceneTrajectory(removeTrajectory, {
+                'series[0]/rect[D]': {
+                    height: { during: 'remove', expect: ['decreases', 'progresses'] },
+                    y: { during: 'remove', expect: 'increases' },
+                },
+                'series[0]/rect[A]': shiftRightAndWiden,
+                'series[0]/rect[B]': shiftRightAndWiden,
+                'series[0]/rect[C]': shiftRightAndWiden,
+                ...axisReflowSpec('bottom', { shift: 'right' }),
+            });
+            expect(removeTrajectory[0].get('series[0]/rect[D]')!.height).toBeGreaterThan(1);
+            expect(removeTrajectory.at(-1)!.get('series[0]/rect[D]')?.height ?? 0).toBeLessThanOrEqual(0.001);
+        });
+
+        // CASE 5 — scale-affecting update (the LIMIT case). Growing one datum beyond the domain rescales
+        // every bar via the shared y-scale AND reflows the layout: as the tick labels grow (70 -> 200) the
+        // y-axis gutter widens, shifting and narrowing every bar horizontally. So geometric dimension
+        // ISOLATION does not hold here (not even x/width) — but every movement is still directionally
+        // constrained: monotonic heights/positions, one-way reflow shifts, and fade-in/out tick swaps.
+        it('CASE 5: scale-affecting update rescales all bars monotonically (isolation does not hold)', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'A', y: 50 },
+                    { x: 'B', y: 40 },
+                    { x: 'C', y: 70 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                // No pinned max — the domain grows with the data, rescaling every bar.
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0 },
+                },
+            };
+            chart = AgCharts.create(prepareTestOptions(options));
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+            const before = sampleScene();
+
+            await chart.updateDelta({
+                data: [
+                    { x: 'A', y: 50 },
+                    { x: 'B', y: 200 },
+                    { x: 'C', y: 70 },
+                ],
+            });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            await frames.runToEnd(chart);
+            const after = sampleScene();
+
+            // Endpoint equality holds for the bars only: the domain change churns axis tick-label nodes
+            // (new ticks fade in mid-animation, stale ones are garbage-collected after it), so whole-scene
+            // equality is not a valid invariant for a scale-affecting update.
+            const rectsOf = (sample: SceneGeometrySample) =>
+                new Map([...sample].filter(([key]) => key.startsWith('series[0]/rect')));
+            expect(rectsOf(trajectory[0])).toEqual(rectsOf(before));
+            expect(rectsOf(trajectory.at(-1)!)).toEqual(rectsOf(after));
+
+            // The grown bar B rises; the fixed-value bars A and C shrink as the domain expands beneath
+            // them. The wider tick labels (70 -> 200) widen the y-axis gutter, which shifts both axes'
+            // sub-groups right and narrows the plot, compressing bars/ticks/labels leftwards. The domain
+            // growth also swaps the y tick set: old ticks/labels/gridlines fade out and leave the scene
+            // while the new set fades in.
+            const rescales = (heightDirection: 'increases' | 'decreases') =>
+                ({
+                    height: { during: 'update', expect: [heightDirection, 'progresses'] },
+                    y: { during: 'update', expect: heightDirection === 'increases' ? 'decreases' : 'increases' },
+                    x: { during: 'update', expect: 'decreases' },
+                    width: { during: 'update', expect: 'decreases' },
+                }) as const;
+            expectSceneTrajectory(trajectory, {
+                'series[0]/rect[B]': rescales('increases'),
+                'series[0]/rect[A]': rescales('decreases'),
+                'series[0]/rect[C]': rescales('decreases'),
+                ...axisReflowSpec('bottom', { shift: 'left', translate: 'right' }),
+                ...axisReflowSpec('left', { shift: 'up', translate: 'right', plotEdge: 'shrinks', grid: true }),
+            });
+        });
     });
 
     describe('legend toggle animation', () => {

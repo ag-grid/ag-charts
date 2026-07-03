@@ -16,15 +16,21 @@ import {
     PATTERN_SNAPSHOT_DEFAULTS,
     clickAction,
     createChart,
+    createSceneGeometrySampler,
     deproxy,
     doubleClickAction,
     doubleTapAction,
+    expectMonotonic,
+    expectProgresses,
+    expectSceneTrajectory,
     expectWarningsCalls,
+    expectWithinBounds,
     extractImageData,
     looserSnapshotDefaults,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAnimationFrames,
     spyOnAnimationManager,
     tapAction,
     waitForChartStability,
@@ -74,6 +80,69 @@ describe('PieSeries', () => {
     let chart: Chart;
     const ctx = setupMockCanvas();
     const options: AgPolarChartOptions = prepareTestOptions({});
+
+    // SPIKE: frame-trajectory invariant test for a polar series (CASE 4) — probes angular geometry.
+    // On initial load each sector sweeps its angular span from 0 to target; radii are set to their
+    // final values immediately (pieUtil.ts), so only the angle span animates.
+    describe('animation frame-trajectory (spike)', () => {
+        const frames = spyOnAnimationFrames();
+
+        it('CASE 4: pie initial load sweeps each sector span monotonically to a full circle', async () => {
+            chart = deproxy(
+                AgCharts.create(
+                    prepareTestOptions({
+                        data: [
+                            { label: 'A', value: 30 },
+                            { label: 'B', value: 20 },
+                            { label: 'C', value: 50 },
+                        ],
+                        series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'label' }],
+                    })
+                )
+            );
+
+            const sampleScene = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            await frames.runToEnd(chart);
+            const finalScene = sampleScene();
+            const sectorKeys = [...finalScene.keys()].filter((k) => k.startsWith('series[0]/sector'));
+            expect(sectorKeys).toHaveLength(3);
+
+            // The sweep rotates clockwise from the top: every animated angle increases monotonically,
+            // and the first sector's startAngle (the 12 o'clock anchor) never moves. Radii and sector
+            // opacity are implicitly constant; the callout/sector labels fade in as the sweep completes.
+            const sweepsClockwise = {
+                startAngle: { during: 'initial', expect: 'increases' },
+                endAngle: { during: 'initial', expect: 'increases' },
+            } as const;
+            const fadesIn = { opacity: { during: 'trailing', expect: 'increases' } } as const;
+            expectSceneTrajectory(trajectory, {
+                'series[0]/sector[30]': { endAngle: { during: 'initial', expect: 'increases' } },
+                'series[0]/sector[20]': sweepsClockwise,
+                'series[0]/sector[50]': sweepsClockwise,
+                'series[0]/group[*]': fadesIn, // callout label groups
+                'series[0]/labels/text[*]': fadesIn,
+            });
+
+            // The angular span is a derived quantity the spec can't express: assert each sector's span
+            // grows monotonically from 0 to its target, and the total closes up into a full circle.
+            for (const key of sectorKeys) {
+                const spans = trajectory.map((f) => {
+                    const sector = f.get(key)!;
+                    return sector.endAngle - sector.startAngle;
+                });
+                const finalSector = finalScene.get(key)!;
+                expectProgresses(spans);
+                expectMonotonic(spans, 'increasing');
+                expectWithinBounds(spans, 0, finalSector.endAngle - finalSector.startAngle);
+            }
+            const totalSpan = trajectory.map((f) =>
+                sectorKeys.reduce((sum, key) => sum + (f.get(key)!.endAngle - f.get(key)!.startAngle), 0)
+            );
+            expectMonotonic(totalSpan, 'increasing');
+            expect(totalSpan.at(-1)).toBeCloseTo(Math.PI * 2, 1);
+        });
+    });
 
     describe('#create', () => {
         test('zerosum pie', async () => {

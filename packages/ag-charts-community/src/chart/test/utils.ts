@@ -35,11 +35,19 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
-import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
+import { type AnimationPhase, type IAnimation, PHASE_METADATA, PHASE_ORDER } from '../../motion/animation';
 import { BBox } from '../../scene/bbox';
+import { Group } from '../../scene/group';
+import type { Node } from '../../scene/node';
+import { Line } from '../../scene/shape/line';
+import { Path } from '../../scene/shape/path';
+import { Rect } from '../../scene/shape/rect';
+import { Sector } from '../../scene/shape/sector';
+import { Text } from '../../scene/shape/text';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
+import { Marker } from '../marker/marker';
 import { findChartTarget } from './findTarget';
 
 export type { Chart } from '../chart';
@@ -861,6 +869,661 @@ export function spyOnAnimationManager() {
         animateParameters[0] = totalDuration;
         animateParameters[1] = ratio;
     };
+}
+
+/**
+ * Frame-stepping animation harness — a sibling to {@link spyOnAnimationManager}.
+ *
+ * Where `spyOnAnimationManager` mocks `forceTimeJump` to JUMP each animation to an absolute ratio (for
+ * per-ratio image snapshots), this harness leaves `forceTimeJump` at its default (returns `false`). As a
+ * result animations are added to the batch and progress INCREMENTALLY: firing the captured
+ * requestAnimationFrame callbacks with monotonically advancing timestamps steps the real
+ * `AnimationBatch.progress()`, exactly as a browser would render successive frames.
+ *
+ * This enables asserting invariants over the whole animation trajectory (geometry sampled every frame),
+ * rather than pixel-comparing a handful of frozen ratios. Interpolated geometry is written to the scene
+ * nodes by each series' `applyFn`, so {@link createSceneGeometrySampler} reads the live per-frame
+ * values directly.
+ */
+export function spyOnAnimationFrames() {
+    const mocks: { mockRestore: () => void }[] = [];
+    const rafCbs: Map<number, (time: number) => Promise<void> | void> = new Map();
+    let nextRafId = 1;
+    let time = Date.now();
+
+    const fireFrame = async (deltaMs: number) => {
+        time += deltaMs;
+        // Snapshot and clear first: the awaited callback re-registers the next frame's callback.
+        const cbs = [...rafCbs.values()];
+        rafCbs.clear();
+        for (const cb of cbs) {
+            await cb(time);
+        }
+    };
+
+    const settle = async (chartOrProxy: ChartOrProxy<any>) => {
+        await deproxy(chartOrProxy).waitForUpdate(5000, true);
+    };
+
+    beforeEach(() => {
+        const isSkippedMock = vi.spyOn(AnimationManager.prototype, 'isSkipped').mockImplementation(() => false);
+        const skippingFramesMock = vi
+            .spyOn(AnimationManager.prototype, 'isSkippingFrames')
+            .mockImplementation(() => false);
+        const safMock = vi.spyOn(AnimationManager.prototype, 'scheduleAnimationFrame');
+        safMock.mockImplementation(function (this: AnimationManager, cb) {
+            // NOTE: cancelAnimationFrame is not intercepted, so a mid-animation chart update can leave a
+            // stale callback in the queue; capture flows must drain frames (runToEnd) between updates.
+            const id = nextRafId++;
+            (this as any).requestId = id;
+            rafCbs.set(id, cb);
+        });
+        // NOTE: `forceTimeJump` is deliberately NOT mocked — its default `false` keeps animations in the
+        // batch so they progress frame-by-frame as `fireFrame` is called.
+        mocks.push(isSkippedMock, skippingFramesMock, safMock);
+    });
+
+    afterEach(() => {
+        for (const mock of mocks) {
+            mock.mockRestore();
+        }
+        mocks.length = 0;
+        rafCbs.clear();
+    });
+
+    /** Fire frames until the animation batch is idle (safety-capped), establishing a stable rendered state. */
+    const runToEnd = async (chartOrProxy: ChartOrProxy<any>, maxFrames = 1000) => {
+        await settle(chartOrProxy);
+        let i = 0;
+        while (rafCbs.size > 0 && i < maxFrames) {
+            await fireFrame(16);
+            i++;
+        }
+    };
+
+    // Centralised private-state accessor (see testing guide): the batch's phase index drives the
+    // `during` phase-window assertions of expectSceneTrajectory.
+    const currentPhaseIndex = (chartOrProxy: ChartOrProxy<any>): number => {
+        const batch = (deproxy(chartOrProxy) as any).ctx?.animationManager?.batch;
+        return batch?.isActive() ? (batch.currentPhase ?? PHASE_ORDER.length) : PHASE_ORDER.length;
+    };
+
+    /**
+     * Step a just-triggered animation across `frames` evenly-spaced frames, invoking `sampler()` after
+     * each. Returns `frames + 1` samples (index 0 = start state, index `frames` = end state). `duration`
+     * should comfortably exceed the batch's total run time so the final frame reaches the end state; the
+     * default (1600ms) covers the default 1s animation and its phase delays. If the batch settles early,
+     * later samples simply repeat the final geometry.
+     *
+     * The result also carries `phaseIntervals`: for each inter-sample interval, the contiguous range of
+     * `AnimationPhase`s the batch passed through while producing it (empty once the batch is idle). This
+     * is what lets {@link expectSceneTrajectory} scope expectations with `during`. Phase attribution is
+     * per-interval, so an interval spanning a phase boundary (or the batch finishing) accepts movement
+     * from any phase it touched — the `during` guarantee is coarsest exactly at phase boundaries.
+     */
+    const captureAnimationFrames = async <T>(
+        chartOrProxy: ChartOrProxy<any>,
+        sampler: () => T,
+        { frames = 30, duration = 1600 }: { frames?: number; duration?: number } = {}
+    ): Promise<T[] & PhasedTrajectory> => {
+        await settle(chartOrProxy);
+        const step = duration / frames;
+        const samples: T[] = [sampler()];
+        const phaseIntervals: AnimationPhase[][] = [];
+        for (let i = 0; i < frames; i++) {
+            const from = currentPhaseIndex(chartOrProxy);
+            if (rafCbs.size > 0) {
+                await fireFrame(step);
+            }
+            const to = currentPhaseIndex(chartOrProxy);
+            phaseIntervals.push(
+                from >= PHASE_ORDER.length ? [] : PHASE_ORDER.slice(from, Math.min(to, PHASE_ORDER.length - 1) + 1)
+            );
+            samples.push(sampler());
+        }
+        return Object.assign(samples, { phaseIntervals });
+    };
+
+    return { runToEnd, captureAnimationFrames };
+}
+
+/**
+ * Assert a numeric series never reverses direction (monotonic non-strict). With `direction` omitted the
+ * dominant direction is inferred from the endpoints; a flat series (all-equal) satisfies either direction.
+ */
+export function expectMonotonic(values: number[], direction?: 'increasing' | 'decreasing', tol = 1e-6): void {
+    expect(values.length).toBeGreaterThan(1);
+    const inferred = direction ?? (values.at(-1)! >= values[0] ? 'increasing' : 'decreasing');
+    const failure = checkPropertyTrajectory(values, inferred === 'increasing' ? 'increases' : 'decreases', {
+        constant: 0,
+        monotonic: tol,
+        progress: 0,
+    });
+    expect(failure).toBeUndefined();
+}
+
+/** Assert every frame lies within the closed interval bounded by the two endpoints (no overshoot). */
+export function expectWithinBounds(values: number[], from: number, to: number, tol = 1e-3): void {
+    const lo = Math.min(from, to) - tol;
+    const hi = Math.max(from, to) + tol;
+    for (let i = 0; i < values.length; i++) {
+        expect(values[i], `frame ${i}: ${values[i]} outside [${lo}, ${hi}]`).toBeGreaterThanOrEqual(lo);
+        expect(values[i], `frame ${i}: ${values[i]} outside [${lo}, ${hi}]`).toBeLessThanOrEqual(hi);
+    }
+}
+
+/**
+ * Assert the animation actually progressed: the series is not flat, AND at least one intermediate frame
+ * differs from BOTH endpoints. Catches the no-op / instantly-jumped / visually-blank class of bug that
+ * per-ratio image snapshots miss.
+ */
+export function expectProgresses(values: number[], tol = 1e-3): void {
+    expect(values.length).toBeGreaterThan(2);
+    const failure = checkPropertyTrajectory(values, 'progresses', { constant: 0, monotonic: 0, progress: tol });
+    expect(failure).toBeUndefined();
+}
+
+export type SceneNodeGeometry = Record<string, number>;
+export type SceneGeometrySample = Map<string, SceneNodeGeometry>;
+
+interface GeometryReader {
+    label: string;
+    matches(node: Node<any>): boolean;
+    read(node: any): SceneNodeGeometry;
+}
+
+// Ordered most-specific first: Rect/Sector/Text/Line before the generic Path (bbox) fallback, which
+// covers markers, segmented line/area paths and any other shape.
+const GEOMETRY_READERS: GeometryReader[] = [
+    {
+        label: 'sector',
+        matches: (n) => n instanceof Sector,
+        read: (n: Sector) => ({
+            startAngle: n.startAngle,
+            endAngle: n.endAngle,
+            innerRadius: n.innerRadius,
+            outerRadius: n.outerRadius,
+            opacity: n.opacity ?? 1,
+        }),
+    },
+    {
+        label: 'rect',
+        matches: (n) => n instanceof Rect,
+        read: (n: Rect) => ({ x: n.x, y: n.y, width: n.width, height: n.height, opacity: n.opacity ?? 1 }),
+    },
+    {
+        label: 'text',
+        matches: (n) => n instanceof Text,
+        read: (n: Text) => ({ x: n.x, y: n.y, opacity: n.opacity ?? 1 }),
+    },
+    {
+        label: 'line',
+        matches: (n) => n instanceof Line,
+        read: (n: Line) => ({ x1: n.x1, y1: n.y1, x2: n.x2, y2: n.y2, opacity: n.opacity ?? 1 }),
+    },
+    { label: 'marker', matches: (n) => n instanceof Marker, read: readBBoxGeometry },
+    { label: 'path', matches: (n) => n instanceof Path, read: readBBoxGeometry },
+];
+
+function readBBoxGeometry(n: Path): SceneNodeGeometry {
+    const bbox = n.getBBox();
+    return {
+        x: bbox?.x ?? Number.NaN,
+        y: bbox?.y ?? Number.NaN,
+        width: bbox?.width ?? Number.NaN,
+        height: bbox?.height ?? Number.NaN,
+        opacity: n.opacity ?? 1,
+    };
+}
+
+function readNodeGeometry(node: Node<any>): { label: string; props: SceneNodeGeometry } | undefined {
+    const reader = GEOMETRY_READERS.find((r) => r.matches(node));
+    if (reader == null) return undefined;
+    const props = reader.read(node);
+    // Translation-positioned shapes (e.g. markers) move via translationX/Y, not their local geometry.
+    const { translationX, translationY } = node as any;
+    if (typeof translationX === 'number' && typeof translationY === 'number') {
+        props.translationX = translationX;
+        props.translationY = translationY;
+    }
+    props.visible = node.visible ? 1 : 0;
+    return { label: reader.label, props };
+}
+
+/** Best-effort human-readable identity for a scene node, derived from its datum. */
+function datumKeyOf(node: Node<any>): string | undefined {
+    const datum: any = node.datum;
+    if (datum != null && typeof datum !== 'object') return String(datum);
+    const value = datum?.xValue ?? datum?.angleValue ?? datum?.itemId ?? datum?.index;
+    if (value != null) return String(value);
+    if (node instanceof Text && node.text != null) return String(node.text);
+    return undefined;
+}
+
+/**
+ * Whole-scene geometry sampler for frame-trajectory tests (see {@link spyOnAnimationFrames}).
+ *
+ * Walks every series content/label group and every axis/grid group, reading the animatable properties
+ * of each shape node into a map keyed by a stable, human-readable node path such as
+ * `series[0]/rect[B]` or `axis[left]/text[100]`. Keys are assigned on first sight and pinned to the
+ * node INSTANCE (via WeakMap), so a node keeps its key across frames even if its datum mutates;
+ * colliding names are disambiguated with a `#n` suffix.
+ *
+ * Sampling the whole scene (rather than hand-picking nodes) is what lets {@link expectSceneTrajectory}
+ * default every unnamed node to "must not move" — the class of regression (axis wobble, label flicker,
+ * sibling disturbance) that per-ratio image snapshots caught incidentally.
+ */
+export function createSceneGeometrySampler(chartOrProxy: ChartOrProxy<any>): () => SceneGeometrySample {
+    const nodeKeys = new WeakMap<Node<any>, string>();
+    const keyCounts = new Map<string, number>();
+
+    const assignKey = (node: Node<any>, baseKey: string): string => {
+        let key = nodeKeys.get(node);
+        if (key != null) return key;
+        const count = keyCounts.get(baseKey) ?? 0;
+        keyCounts.set(baseKey, count + 1);
+        // Disambiguate inside the trailing bracket so `label[*]` globs still match: `text[A#2]`.
+        key = count === 0 ? baseKey : baseKey.replace(/\]$/, `#${count + 1}]`);
+        if (key === baseKey && count > 0) key = `${baseKey}#${count + 1}`;
+        nodeKeys.set(node, key);
+        return key;
+    };
+
+    const sampleInto = (sample: SceneGeometrySample, rootPath: string, root: Node<any>) => {
+        const visit = (node: Node<any>) => {
+            const geometry = readNodeGeometry(node);
+            if (geometry != null) {
+                const identity = datumKeyOf(node);
+                const baseKey = `${rootPath}/${geometry.label}[${identity ?? ''}]`;
+                sample.set(assignKey(node, baseKey), geometry.props);
+            } else if (node instanceof Group) {
+                const { translationX, translationY } = node as any;
+                const props: SceneNodeGeometry = { opacity: node.opacity ?? 1, visible: node.visible ? 1 : 0 };
+                if (typeof translationX === 'number' && typeof translationY === 'number') {
+                    props.translationX = translationX;
+                    props.translationY = translationY;
+                }
+                sample.set(assignKey(node, node === root ? rootPath : `${rootPath}/group[${node.name ?? ''}]`), props);
+                for (const child of node.children()) {
+                    visit(child);
+                }
+            }
+        };
+        visit(root);
+    };
+
+    return function sampleSceneGeometry(): SceneGeometrySample {
+        const chart = deproxy(chartOrProxy);
+        const sample: SceneGeometrySample = new Map();
+        for (const [i, series] of (chart.series as any[]).entries()) {
+            sampleInto(sample, `series[${i}]`, series.contentGroup);
+            sampleInto(sample, `series[${i}]/labels`, series.labelGroup);
+        }
+        for (const axis of (chart as any).axes) {
+            const position = axis.position ?? 'unknown';
+            sampleInto(sample, `axis[${position}]`, axis.axisGroup);
+            sampleInto(sample, `axis[${position}]/grid`, axis.gridGroup);
+        }
+        return sample;
+    };
+}
+
+export type TrajectoryExpectation = 'constant' | 'increases' | 'decreases' | 'progresses' | 'bounded' | 'any';
+/**
+ * Scopes a property expectation to the animation phase(s) it may change in: outside `during`, the
+ * property must hold constant frame-to-frame; the `expect` trajectory checks still apply to the whole
+ * trajectory. Requires phase data captured by {@link spyOnAnimationFrames}' `captureAnimationFrames`.
+ */
+export type PhasedPropertyExpectation = {
+    during: AnimationPhase | readonly AnimationPhase[];
+    expect: TrajectoryExpectation | readonly TrajectoryExpectation[];
+};
+export type ScenePropertyExpectation =
+    | TrajectoryExpectation
+    | readonly TrajectoryExpectation[]
+    | PhasedPropertyExpectation;
+export type SceneNodeExpectation = 'constant' | 'any' | Partial<Record<string, ScenePropertyExpectation>>;
+export type PhasedTrajectory = { phaseIntervals: AnimationPhase[][] };
+
+export type AxisShiftDirection = 'left' | 'right' | 'up' | 'down';
+
+/**
+ * General axis expectations for a data change that reflows an axis, for tests that exercise an axis
+ * incidentally and only need it bounded (tests that care about exact per-tick behaviour should name
+ * nodes individually instead). The returned spec fragment asserts:
+ * - tick labels and tick/axis lines MOVE only during the `update` phase, and only in the `shift`
+ *   direction (non-strict, so unmoved nodes matched by the globs also pass);
+ * - opacity FADES only during the `remove`/`update`/`add` phases, bounded by its endpoints (stale
+ *   ticks fade out and leave, entering ticks fade in; the axis line fades during `update`);
+ * - with `translate`, the axis sub-groups shift that way during `update` (gutter reflow);
+ * - with `plotEdge`, the far end of the axis/grid lines tracks the plot edge during `update`;
+ * - every other property of every matched node must not change.
+ */
+export function axisReflowSpec(
+    position: 'top' | 'bottom' | 'left' | 'right',
+    {
+        shift,
+        translate,
+        plotEdge,
+        grid = false,
+    }: {
+        shift?: AxisShiftDirection;
+        translate?: AxisShiftDirection;
+        plotEdge?: 'grows' | 'shrinks';
+        grid?: boolean;
+    }
+): Record<string, SceneNodeExpectation> {
+    const directionOf = (d: AxisShiftDirection): TrajectoryExpectation =>
+        d === 'left' || d === 'up' ? 'decreases' : 'increases';
+    const coordOf = (d: AxisShiftDirection) => (d === 'left' || d === 'right' ? 'x' : 'y');
+    const duringUpdate = (expectation: TrajectoryExpectation): PhasedPropertyExpectation => ({
+        during: 'update',
+        expect: expectation,
+    });
+
+    const fades: Record<string, ScenePropertyExpectation> = {
+        opacity: { during: ['remove', 'update', 'add'], expect: 'bounded' },
+    };
+    const slide: Record<string, ScenePropertyExpectation> = {};
+    const lineSlide: Record<string, ScenePropertyExpectation> = {};
+    if (shift != null) {
+        const coord = coordOf(shift);
+        slide[coord] = duringUpdate(directionOf(shift));
+        lineSlide[`${coord}1`] = duringUpdate(directionOf(shift));
+        lineSlide[`${coord}2`] = duringUpdate(directionOf(shift));
+    }
+    // Grid/axis lines span the plot, so their far end is perpendicular to the axis direction.
+    const edge: Record<string, ScenePropertyExpectation> = {};
+    if (plotEdge != null) {
+        const perpendicular = position === 'left' || position === 'right' ? 'x2' : 'y2';
+        edge[perpendicular] = duringUpdate(plotEdge === 'grows' ? 'increases' : 'decreases');
+    }
+
+    const spec: Record<string, SceneNodeExpectation> = {
+        [`axis[${position}]/text[*]`]: { ...fades, ...slide },
+        [`axis[${position}]/line[*]`]: { ...fades, ...lineSlide, ...edge },
+    };
+    if (translate != null) {
+        const translation = coordOf(translate) === 'x' ? 'translationX' : 'translationY';
+        spec[`axis[${position}]/group[*]`] = { [translation]: duringUpdate(directionOf(translate)) };
+    }
+    if (grid) {
+        spec[`axis[${position}]/grid/line[*]`] = { ...fades, ...lineSlide, ...edge };
+    }
+    return spec;
+}
+
+interface TrajectoryViolation {
+    key: string;
+    prop?: string;
+    message: string;
+    values?: (number | undefined)[];
+}
+
+const SPARK_CHARS = '▁▂▃▄▅▆▇█';
+
+function sparkline(values: (number | undefined)[]): string {
+    const present = values.filter((v): v is number => v != null && Number.isFinite(v));
+    if (present.length === 0) return '(no finite values)';
+    const min = Math.min(...present);
+    const max = Math.max(...present);
+    const spread = max - min;
+    return values
+        .map((v) => {
+            if (v == null || !Number.isFinite(v)) return '·';
+            if (spread === 0) return SPARK_CHARS[0];
+            return SPARK_CHARS[Math.min(SPARK_CHARS.length - 1, Math.floor(((v - min) / spread) * SPARK_CHARS.length))];
+        })
+        .join('');
+}
+
+function formatValue(v: number | undefined): string {
+    if (v == null) return '∅';
+    return Number.isInteger(v) ? String(v) : v.toFixed(2);
+}
+
+function formatValues(values: (number | undefined)[]): string {
+    return values.map(formatValue).join(', ');
+}
+
+function checkPropertyTrajectory(
+    values: number[],
+    expectation: TrajectoryExpectation,
+    tolerances: { constant: number; monotonic: number; progress: number }
+): string | undefined {
+    switch (expectation) {
+        case 'any':
+            return undefined;
+        case 'constant': {
+            const first = values[0];
+            const badFrame = values.findIndex((v) => Math.abs(v - first) > tolerances.constant);
+            return badFrame < 0
+                ? undefined
+                : `expected constant ~${first.toFixed(2)}, moved to ${values[badFrame].toFixed(2)} at frame ${badFrame}`;
+        }
+        case 'increases':
+        case 'decreases': {
+            const sign = expectation === 'increases' ? 1 : -1;
+            for (let i = 1; i < values.length; i++) {
+                if (sign * (values[i] - values[i - 1]) < -tolerances.monotonic) {
+                    return `expected ${expectation.replace(/es$/, 'ing')} monotonically, reversed at frame ${i} (${values[i - 1].toFixed(2)} -> ${values[i].toFixed(2)})`;
+                }
+            }
+            return undefined;
+        }
+        case 'bounded': {
+            // Overshoot tolerance uses the pixel-scale constant tolerance: crisp-pixel rounding can land
+            // a mid-frame value fractionally outside the endpoint interval without being a real overshoot.
+            const lo = Math.min(values[0], values.at(-1)!) - tolerances.constant;
+            const hi = Math.max(values[0], values.at(-1)!) + tolerances.constant;
+            const badFrame = values.findIndex((v) => v < lo || v > hi);
+            return badFrame < 0
+                ? undefined
+                : `expected within endpoint bounds [${lo.toFixed(2)}, ${hi.toFixed(2)}], got ${values[badFrame].toFixed(2)} at frame ${badFrame}`;
+        }
+        case 'progresses': {
+            const spread = Math.max(...values) - Math.min(...values);
+            if (spread <= tolerances.progress) return 'expected progression, but trajectory is flat';
+            const start = values[0];
+            const end = values.at(-1)!;
+            const hasMidTransition = values
+                .slice(1, -1)
+                .some((v) => Math.abs(v - start) > tolerances.progress && Math.abs(v - end) > tolerances.progress);
+            return hasMidTransition ? undefined : 'no intermediate frame between the endpoints — animation jumped';
+        }
+    }
+}
+
+/**
+ * Enforce a `during` phase window: the property may only change across intervals whose traversed
+ * phase range intersects `during`. Outside those windows the value must stay anchored (within
+ * tolerance) to where the last allowed window left it — anchoring catches slow cumulative drift that
+ * per-interval deltas would slip under the tolerance. Intervals where the node is absent at either
+ * end are skipped (presence is checked separately).
+ */
+function checkPhaseWindows(
+    rawValues: (number | undefined)[],
+    during: AnimationPhase[],
+    phaseIntervals: AnimationPhase[][] | undefined,
+    constantTol: number
+): string | undefined {
+    if (phaseIntervals == null) return undefined;
+    let anchor: number | undefined;
+    for (let i = 0; i < rawValues.length - 1; i++) {
+        const from = rawValues[i];
+        const to = rawValues[i + 1];
+        if (from == null || to == null) {
+            anchor = undefined;
+            continue;
+        }
+        anchor ??= from;
+        const interval = phaseIntervals[i] ?? [];
+        if (interval.some((phase) => during.includes(phase))) {
+            anchor = to;
+        } else if (Math.abs(to - anchor) > constantTol) {
+            const phases = interval.length > 0 ? interval.join('/') : 'idle';
+            return `moved outside its phase window (${during.join('/')}): ${anchor.toFixed(2)} -> ${to.toFixed(2)} by frame ${i + 1} during ${phases}`;
+        }
+    }
+    return undefined;
+}
+
+/**
+ * Assert invariants over a whole-scene animation trajectory (frames from {@link spyOnAnimationFrames}
+ * sampled by {@link createSceneGeometrySampler}).
+ *
+ * `spec` names the nodes EXPECTED to change and what each property should do; every node not matched by
+ * the spec must hold every property constant on every frame ("nothing else moved" is the default, not an
+ * opt-in). Spec keys are node paths; `*` acts as a glob wildcard (exact keys win over globs, then
+ * longest glob wins).
+ * Values are either `'any'`/`'constant'` for the whole node, or a per-property map — properties omitted
+ * from the map default to constant. A property expectation may be wrapped as
+ * `{ during: <phase(s)>, expect: ... }` to additionally pin WHEN it may change: outside the named
+ * animation phase(s) the value must stay anchored to where the last allowed window left it. This
+ * requires the trajectory's `phaseIntervals` captured by `captureAnimationFrames`.
+ *
+ * Nodes may legitimately enter/leave the scene mid-trajectory (add/remove animations); such nodes must be
+ * matched by a non-default spec entry, and property expectations are evaluated over the frames where the
+ * node is present. Spec entries that match no sampled node fail the assertion (typo guard).
+ *
+ * On failure, every violation is reported together (one wobbling axis moves many labels — the cluster
+ * identifies the culprit), each with a sparkline and the full per-frame values.
+ */
+export function expectSceneTrajectory(
+    trajectory: SceneGeometrySample[],
+    spec: Record<string, SceneNodeExpectation> = {},
+    {
+        constantTol = 0.5,
+        monotonicTol = 1e-6,
+        progressTol = 1e-3,
+    }: { constantTol?: number; monotonicTol?: number; progressTol?: number } = {}
+): void {
+    expect(trajectory.length).toBeGreaterThan(1);
+    const tolerances = { constant: constantTol, monotonic: monotonicTol, progress: progressTol };
+
+    const phaseIntervals = (trajectory as Partial<PhasedTrajectory>).phaseIntervals;
+    const usesPhases = Object.values(spec).some(
+        (nodeExpectation) =>
+            typeof nodeExpectation === 'object' &&
+            Object.values(nodeExpectation).some((p) => typeof p === 'object' && !Array.isArray(p))
+    );
+    if (usesPhases && phaseIntervals == null) {
+        throw new Error(
+            'spec uses `during` phase windows but the trajectory carries no phase data — capture it with spyOnAnimationFrames().captureAnimationFrames'
+        );
+    }
+
+    const allKeys = new Set<string>();
+    for (const frame of trajectory) {
+        for (const key of frame.keys()) allKeys.add(key);
+    }
+
+    const globToRegExp = (glob: string) =>
+        new RegExp(
+            `^${glob
+                .split('*')
+                .map((s) => s.replace(/[.+?^${}()|[\]\\]/g, '\\$&'))
+                .join('.*')}$`
+        );
+    const wildcardSpecs = Object.keys(spec)
+        .filter((k) => k.includes('*'))
+        .sort((a, b) => b.length - a.length)
+        .map((k) => ({ specKey: k, regexp: globToRegExp(k) }));
+    const matchedSpecKeys = new Set<string>();
+    const specFor = (key: string): { specKey?: string; expectation: SceneNodeExpectation } => {
+        if (spec[key] != null && !key.includes('*')) {
+            matchedSpecKeys.add(key);
+            return { specKey: key, expectation: spec[key] };
+        }
+        const wildcard = wildcardSpecs.find((w) => w.regexp.test(key));
+        if (wildcard != null) {
+            matchedSpecKeys.add(wildcard.specKey);
+            return { specKey: wildcard.specKey, expectation: spec[wildcard.specKey] };
+        }
+        return { expectation: 'constant' };
+    };
+
+    const violations: TrajectoryViolation[] = [];
+
+    for (const key of allKeys) {
+        const { specKey, expectation } = specFor(key);
+        if (expectation === 'any') continue;
+
+        const rawValuesFor = (prop: string) => trajectory.map((frame) => frame.get(key)?.[prop]);
+        const presentFrames = trajectory.filter((frame) => frame.has(key)).length;
+
+        if (presentFrames < trajectory.length && specKey == null) {
+            violations.push({
+                key,
+                message: `present in only ${presentFrames}/${trajectory.length} frames but not named in the spec — nodes entering/leaving the scene must be expected explicitly`,
+            });
+            continue;
+        }
+
+        const props = new Set<string>();
+        for (const frame of trajectory) {
+            for (const prop of Object.keys(frame.get(key) ?? {})) props.add(prop);
+        }
+
+        // Property-level typo guard, mirroring the node-level one: a spec-named property the sampler
+        // never emitted would otherwise pass vacuously.
+        if (typeof expectation === 'object') {
+            for (const specProp of Object.keys(expectation)) {
+                if (!props.has(specProp)) {
+                    violations.push({
+                        key,
+                        prop: specProp,
+                        message: 'spec names a property never sampled on this node (typo?)',
+                    });
+                }
+            }
+        }
+
+        for (const prop of props) {
+            const raw = expectation === 'constant' ? 'constant' : ((expectation as any)[prop] ?? 'constant');
+            const isPhased = typeof raw === 'object' && !Array.isArray(raw);
+            const propExpectations: TrajectoryExpectation[] = [isPhased ? raw.expect : raw].flat();
+            const rawValues = rawValuesFor(prop);
+            const values = rawValues.filter((v): v is number => v != null);
+            if (values.length < 2) continue;
+            // NaN compares false against everything, so it would sail through every check below.
+            const nonFinite = values.findIndex((v) => !Number.isFinite(v));
+            if (nonFinite >= 0) {
+                violations.push({ key, prop, message: `non-finite value at frame ${nonFinite}`, values: rawValues });
+                continue;
+            }
+            for (const propExpectation of propExpectations) {
+                const failure = checkPropertyTrajectory(values, propExpectation, tolerances);
+                if (failure != null) {
+                    violations.push({ key, prop, message: failure, values: rawValues });
+                }
+            }
+            if (isPhased) {
+                const failure = checkPhaseWindows(rawValues, [raw.during].flat(), phaseIntervals, constantTol);
+                if (failure != null) {
+                    violations.push({ key, prop, message: failure, values: rawValues });
+                }
+            }
+        }
+    }
+
+    for (const specKey of Object.keys(spec)) {
+        if (!matchedSpecKeys.has(specKey)) {
+            violations.push({ key: specKey, message: 'spec entry matched no sampled scene node (typo?)' });
+        }
+    }
+
+    if (violations.length > 0) {
+        const details = violations
+            .map((v) => {
+                const prop = v.prop ? '.' + v.prop : '';
+                const header = `  ${v.key}${prop} — ${v.message}`;
+                if (v.values == null) return header;
+                return `${header}\n    ${sparkline(v.values)}  [${formatValues(v.values)}]`;
+            })
+            .join('\n');
+        throw new Error(`Scene trajectory violations (${violations.length}):\n${details}`);
+    }
 }
 
 export function reverseAxes<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, reverse: boolean): T {
