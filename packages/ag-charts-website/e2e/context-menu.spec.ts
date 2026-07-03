@@ -248,6 +248,9 @@ test.describe('context-menu', () => {
             return { captionType, defaultItems: ['download'], context: undefined, showOn: 'caption', text };
         };
 
+        const rightClick = (page: Page, point: { clientX: number; clientY: number }) =>
+            page.mouse.click(point.clientX, point.clientY, { button: 'right' });
+
         const runCaptionAction = (page: Page) =>
             page.locator('.ag-charts-context-menu__item').filter({ hasText: 'Run caption action' }).click();
 
@@ -259,12 +262,10 @@ test.describe('context-menu', () => {
 
             test.describe('title', () => {
                 test.beforeEach(async ({ page }) => {
-                    await page.mouse.click(POINT_TITLE.clientX, POINT_TITLE.clientY, { button: 'right' });
+                    await rightClick(page, POINT_TITLE);
                 });
                 test('screenshot', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('AG-17706-title-menu.png', {
-                        animations: 'disabled',
-                    });
+                    await expect(page).toHaveScreenshot('AG-17706-title-menu.png', { animations: 'disabled' });
                 });
                 test('action', async ({ page }) => {
                     await runCaptionAction(page);
@@ -274,7 +275,7 @@ test.describe('context-menu', () => {
 
             test.describe('subtitle', () => {
                 test.beforeEach(async ({ page }) => {
-                    await page.mouse.click(POINT_SUBTITLE.clientX, POINT_SUBTITLE.clientY, { button: 'right' });
+                    await rightClick(page, POINT_SUBTITLE);
                 });
                 test('screenshot', async ({ page }) => {
                     await expect(page).toHaveScreenshot('AG-17706-subtitle-menu.png', { animations: 'disabled' });
@@ -287,7 +288,7 @@ test.describe('context-menu', () => {
 
             test.describe('footnote', () => {
                 test.beforeEach(async ({ page }) => {
-                    await page.mouse.click(POINT_FOOTNOTE.clientX, POINT_FOOTNOTE.clientY, { button: 'right' });
+                    await rightClick(page, POINT_FOOTNOTE);
                 });
                 test('screenshot', async ({ page }) => {
                     await expect(page).toHaveScreenshot('AG-17706-footnote-menu.png', { animations: 'disabled' });
@@ -307,7 +308,7 @@ test.describe('context-menu', () => {
 
             test.describe('title', () => {
                 test.beforeEach(async ({ page }) => {
-                    await page.mouse.click(POINT_TITLE.clientX, POINT_TITLE.clientY, { button: 'right' });
+                    await rightClick(page, POINT_TITLE);
                 });
                 test('screenshot', async ({ page }) => {
                     await expect(page).toHaveScreenshot('AG-17706-title-menu.png', { animations: 'disabled' });
@@ -323,7 +324,7 @@ test.describe('context-menu', () => {
 
             test.describe('subtitle', () => {
                 test.beforeEach(async ({ page }) => {
-                    await page.mouse.click(POINT_SUBTITLE.clientX, POINT_SUBTITLE.clientY, { button: 'right' });
+                    await rightClick(page, POINT_SUBTITLE);
                 });
                 test('screenshot', async ({ page }) => {
                     await expect(page).toHaveScreenshot('AG-17706-subtitle-menu.png', { animations: 'disabled' });
@@ -339,12 +340,10 @@ test.describe('context-menu', () => {
 
             test.describe('footnote', () => {
                 test.beforeEach(async ({ page }) => {
-                    await page.mouse.click(POINT_FOOTNOTE.clientX, POINT_FOOTNOTE.clientY, { button: 'right' });
+                    await rightClick(page, POINT_FOOTNOTE);
                 });
                 test('screenshot', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('AG-17706-footnote-menu.png', {
-                        animations: 'disabled',
-                    });
+                    await expect(page).toHaveScreenshot('AG-17706-footnote-menu.png', { animations: 'disabled' });
                 });
                 test('action', async ({ page }) => {
                     await runCaptionAction(page);
