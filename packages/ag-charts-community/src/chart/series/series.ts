@@ -1127,12 +1127,12 @@ export abstract class Series<
         switch (containment) {
             case 'any':
                 return (selectionBox: BoxBounds, node: Node<unknown>): boolean => {
-                    const nodeBox = Transformable.toCanvas(this.contentGroup, node.getBBox());
+                    const nodeBox = Transformable.toCanvas(node);
                     return boxCollides(selectionBox, nodeBox.x, nodeBox.y, nodeBox.width, nodeBox.height);
                 };
             case 'all':
                 return (selectionBox: BoxBounds, node: Node<unknown>): boolean => {
-                    const nodeBox = Transformable.toCanvas(this.contentGroup, node.getBBox());
+                    const nodeBox = Transformable.toCanvas(node);
                     return boxContains(selectionBox, nodeBox.x, nodeBox.y, nodeBox.width, nodeBox.height);
                 };
             default:
