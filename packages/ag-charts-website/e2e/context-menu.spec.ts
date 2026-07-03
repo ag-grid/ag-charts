@@ -207,19 +207,6 @@ test.describe('context-menu', () => {
         await expect(page).toHaveScreenshot('context-menu-shown-on-highlighted-datum.png');
     });
 
-    // Two example variants exercise `showOn: 'caption'`: `captions-declarative` (static `items`)
-    // and `captions-dynamic` (a `getItems()` callback returning the same items). Both render an
-    // identical chart: an image+text title, a Date subtitle and a plaintext footnote.
-    //
-    // Deliberately DAMP, not DRY: each caption (title/subtitle/footnote) is spelled out in full so
-    // a failure points at exactly one caption without decoding a loop.
-    //
-    // Interaction model per caption:
-    //   - the describe's beforeEach right-clicks the caption, leaving the context menu OPEN;
-    //   - 'screenshot' asserts that open menu (right-clicking a menu item would dismiss it, and the
-    //     caption action has no visible effect, so the click is deferred to the 'action' test);
-    //   - 'action' clicks 'Run caption action' and asserts the recorded callback via popActions();
-    //   - (dynamic only) 'getItems' asserts the getItems() invocation recorded by the right-click.
     test.describe('AG-17706 showOn caption', () => {
         const POINT_TITLE = { clientX: 411, clientY: 64 };
         const POINT_SUBTITLE = { clientX: 403, clientY: 111 };
@@ -239,7 +226,7 @@ test.describe('context-menu', () => {
                     await page.mouse.click(POINT_TITLE.clientX, POINT_TITLE.clientY, { button: 'right' });
                 });
                 test('screenshot', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('AG-17706-declarative-title-menu.png', {
+                    await expect(page).toHaveScreenshot('AG-17706-title-menu.png', {
                         animations: 'disabled',
                     });
                 });
@@ -256,7 +243,7 @@ test.describe('context-menu', () => {
                     await page.mouse.click(POINT_SUBTITLE.clientX, POINT_SUBTITLE.clientY, { button: 'right' });
                 });
                 test('screenshot', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('AG-17706-declarative-subtitle-menu.png', {
+                    await expect(page).toHaveScreenshot('AG-17706-subtitle-menu.png', {
                         animations: 'disabled',
                     });
                 });
@@ -273,7 +260,7 @@ test.describe('context-menu', () => {
                     await page.mouse.click(POINT_FOOTNOTE.clientX, POINT_FOOTNOTE.clientY, { button: 'right' });
                 });
                 test('screenshot', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('AG-17706-declarative-footnote-menu.png', {
+                    await expect(page).toHaveScreenshot('AG-17706-footnote-menu.png', {
                         animations: 'disabled',
                     });
                 });
@@ -297,7 +284,7 @@ test.describe('context-menu', () => {
                     await page.mouse.click(POINT_TITLE.clientX, POINT_TITLE.clientY, { button: 'right' });
                 });
                 test('screenshot', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('AG-17706-dynamic-title-menu.png', {
+                    await expect(page).toHaveScreenshot('AG-17706-title-menu.png', {
                         animations: 'disabled',
                     });
                 });
@@ -317,7 +304,7 @@ test.describe('context-menu', () => {
                     await page.mouse.click(POINT_SUBTITLE.clientX, POINT_SUBTITLE.clientY, { button: 'right' });
                 });
                 test('screenshot', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('AG-17706-dynamic-subtitle-menu.png', {
+                    await expect(page).toHaveScreenshot('AG-17706-subtitle-menu.png', {
                         animations: 'disabled',
                     });
                 });
@@ -337,7 +324,7 @@ test.describe('context-menu', () => {
                     await page.mouse.click(POINT_FOOTNOTE.clientX, POINT_FOOTNOTE.clientY, { button: 'right' });
                 });
                 test('screenshot', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('AG-17706-dynamic-footnote-menu.png', {
+                    await expect(page).toHaveScreenshot('AG-17706-footnote-menu.png', {
                         animations: 'disabled',
                     });
                 });
