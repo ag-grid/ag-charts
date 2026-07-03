@@ -124,6 +124,7 @@ export class Overlay extends BaseProperties {
                 fontFamily: 'var(--ag-charts-font-family)',
                 fontSize: 'var(--ag-charts-font-size)',
                 fontWeight: 'var(--ag-charts-font-weight)',
+                color: 'var(--ag-charts-text-color)',
             });
             if (isArray(this.text)) {
                 const container = createElement('div');
