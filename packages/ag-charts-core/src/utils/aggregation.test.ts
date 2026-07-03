@@ -1,4 +1,10 @@
-import { epochColumnForTimeScale, narrowBigIntColumn, narrowBigIntColumnRelative } from './aggregation';
+import {
+    aggregationRangeFittingPoints,
+    epochColumnForTimeScale,
+    narrowBigIntColumn,
+    narrowBigIntColumnRelative,
+} from './aggregation';
+import { nextPowerOf2 } from './data/numberArray';
 
 // Off the power-of-2 boundary so the ULP is uniform (256): bigints within 128 narrow to the same double.
 const HIGH_MAGNITUDE = 2n ** 60n + 123_456_789n;
@@ -104,5 +110,16 @@ describe('aggregation column preprocessing', () => {
             const first = epochColumnForTimeScale('time', iso, false);
             expect(epochColumnForTimeScale('time', iso, false).values).toBe(first.values);
         });
+    });
+});
+
+describe('aggregationRangeFittingPoints', () => {
+    it('bounds the bucket count to the dataset size on a wide continuous domain', () => {
+        // A 1-unit smallest interval over a 2^28 domain span yields an unbounded maxRange of
+        // nextPowerOf2(2^28) >> 3 = 2^25, which createAggregationIndices cannot allocate.
+        const xValues = Array.from({ length: 2200 }, (_, i) => i);
+        const maxRange = aggregationRangeFittingPoints(xValues, 0, 2 ** 28, { smallestKeyInterval: 1 });
+
+        expect(maxRange).toBeLessThanOrEqual(nextPowerOf2(xValues.length));
     });
 });
