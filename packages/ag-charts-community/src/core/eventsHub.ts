@@ -85,6 +85,13 @@ export interface SeriesAreaClickEvent {
     readonly target: Node<unknown> | undefined;
 }
 
+export interface SeriesAreaContextMenuEvent {
+    readonly consumed: boolean;
+    readonly canvasX: number;
+    readonly canvasY: number;
+    readonly widgetEvent: MouseWidgetEvent<'contextmenu'>;
+}
+
 export interface DataModelSeriesDiff {
     readonly changed: boolean;
     readonly added: Set<string>;
@@ -144,6 +151,7 @@ export interface EventsHubMap {
     'series:keynav-panx': SeriesKeyNavPanXEvent;
     'series-area:hover': SeriesAreaHoverEvent;
     'series-area:click': SeriesAreaClickEvent;
+    'series-area:contextmenu': SeriesAreaContextMenuEvent;
     'series:redo': null;
     'series:undo': null;
     'update:complete': UpdateCompleteEvent;
@@ -232,6 +240,7 @@ export interface AxisDOMProxyUpdateEvent {
     enableDoubleClick: boolean;
     enableDragging: boolean;
     enableScrolling: boolean;
+    enableContextMenu: boolean;
 }
 
 export type ContextMenuEvent<K extends AgContextMenuItemShowOn = AgContextMenuItemShowOn> = {

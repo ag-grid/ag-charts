@@ -132,7 +132,22 @@ export class ContextMenu extends AbstractModuleInstance {
             });
         };
 
-        this.cleanup.register(this.ctx.eventsHub.on('context-menu:complete', (e) => this.onContext(e)));
+        this.cleanup.register(
+            this.ctx.eventsHub.on('context-menu:complete', (e) => this.onContext(e)),
+            this.ctx.eventsHub.on('layout:complete', () => this.updateAxisDOMProxy())
+        );
+    }
+
+    private updateAxisDOMProxy() {
+        const enabled = this.opts.enabled ?? true;
+        this.ctx.eventsHub.emit('axis-dom-proxy:update', {
+            source: moduleId,
+            enabled,
+            enableDoubleClick: false,
+            enableDragging: false,
+            enableScrolling: false,
+            enableContextMenu: enabled,
+        });
     }
 
     private makeGetItemsParams(event: ContextMenuEvent): AgContextMenuGetItemsParams {

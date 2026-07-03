@@ -115,6 +115,7 @@ export type {
     LayoutCompleteEvent,
     ScrollbarWheelEvent,
     SeriesAreaClickEvent,
+    SeriesAreaContextMenuEvent,
     SeriesAreaHoverEvent,
     SeriesKeyNavZoomEvent,
     SeriesKeyNavPanXEvent,
