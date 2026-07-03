@@ -1098,7 +1098,8 @@ function flattenPathPolylines(svgPath: string | undefined): PolylinePoint[][] {
     let i = 0;
     const num = () => Number(tokens[i++]);
     while (i < tokens.length) {
-        switch (tokens[i++]) {
+        const token = tokens[i++];
+        switch (token) {
             case 'M':
                 current = [{ x: num(), y: num() }];
                 polylines.push(current);
@@ -1122,6 +1123,10 @@ function flattenPathPolylines(svgPath: string | undefined): PolylinePoint[][] {
             case 'Z':
                 if (current != null && current.length > 0) current.push({ ...current[0] });
                 break;
+            default:
+                // A command this parser does not consume would desynchronise the token stream and
+                // silently corrupt every downstream geometry assertion — fail loudly instead.
+                throw new Error(`flattenPathPolylines: unsupported SVG path command '${token}' in '${svgPath}'`);
         }
     }
     return polylines.filter((p) => p.length > 1);
@@ -1703,6 +1708,15 @@ export function expectSceneTrajectory(
             if (nonFinite >= 0 && !allowsDegenerate) {
                 violations.push({ key, prop, message: `non-finite value at frame ${nonFinite}`, values: rawValues });
                 continue;
+            }
+            // `degenerate` must not pass vacuously: it asserts the property actually collapses.
+            if (allowsDegenerate && nonFinite < 0) {
+                violations.push({
+                    key,
+                    prop,
+                    message: 'expected degenerate (non-finite) samples but every value was finite',
+                    values: rawValues,
+                });
             }
             const checkedValues = allowsDegenerate ? values.filter((v) => Number.isFinite(v)) : values;
             const checkedRawValues = allowsDegenerate
