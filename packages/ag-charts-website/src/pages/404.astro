@@ -24,12 +24,8 @@ const { data: docsNavData } = (await getEntry('docsNav', 'nav')) as CollectionEn
     </div>
 </Layout>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        if (!window.plausible) {
-            return;
-        }
-
-        window.plausible('404', { props: { path: document.location.pathname } });
-    });
-</script>
+{
+    /* Externalised to a 'self' script so the site CSP can drop script-src
+    'unsafe-inline' — see public/scripts/track-404.js. */
+}
+<script is:inline src={urlWithBaseUrl('/scripts/track-404.js')} defer></script>
