@@ -43,6 +43,17 @@ export interface NodeOptions {
 
 export type NodeWithOpacity<D> = Node<D> & { opacity: number };
 
+/**
+ * Plain-data snapshot of a node's rendered state (see {@link Node.serialize}). `type` discriminates
+ * the node kind (e.g. `'rect'`, `'text'`) independently of subclassing; `svgPath` carries the drawn
+ * path commands in SVG form for path-painting nodes.
+ */
+export interface SerializedNodeState {
+    type: string;
+    props: Record<string, number | string | boolean>;
+    svgPath?: string;
+}
+
 export type ChildNodeCounts = {
     groups: number;
     nonGroups: number;
@@ -392,6 +403,20 @@ export abstract class Node<TDatum = unknown> {
     getBBox(): BBox {
         this.cachedBBox ??= Object.freeze(this.computeBBox()) as BBox;
         return this.cachedBBox;
+    }
+
+    /** Node-kind discriminator for {@link serialize}, stable across subclassing. */
+    protected get serializedType(): string {
+        return 'node';
+    }
+
+    /**
+     * Serialise this node's rendered state to plain data, so consumers (tests, debug tooling) can
+     * inspect scene state without reaching into shape internals. Each subclass and transform mixin
+     * contributes the properties it owns.
+     */
+    serialize(): SerializedNodeState {
+        return { type: this.serializedType, props: { visible: this.visible } };
     }
 
     protected computeBBox(): BBox | undefined {

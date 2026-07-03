@@ -51,6 +51,16 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     @SceneChangeDetection({ convertor: (v: number) => clamp(0, v, 1) })
     opacity: number = 1;
 
+    protected override get serializedType(): string {
+        return 'group';
+    }
+
+    override serialize() {
+        const state = super.serialize();
+        state.props.opacity = this.opacity;
+        return state;
+    }
+
     private _childFontDirty = true;
     private _cachedChildFont: string | undefined;
 

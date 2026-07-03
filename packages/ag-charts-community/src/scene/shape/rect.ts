@@ -276,6 +276,19 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
     bottomLeftCornerRadius: number = 0;
     declare __bottomLeftCornerRadius: number; // optimised field accessor
 
+    protected override get serializedType(): string {
+        return 'rect';
+    }
+
+    override serialize() {
+        const state = super.serialize();
+        state.props.x = this.x;
+        state.props.y = this.y;
+        state.props.width = this.width;
+        state.props.height = this.height;
+        return state;
+    }
+
     set cornerRadius(cornerRadius: number) {
         this.topLeftCornerRadius = cornerRadius;
         this.topRightCornerRadius = cornerRadius;

@@ -197,6 +197,12 @@ export function Rotatable<N extends Node<any>>(Parent: Constructor<N>): Construc
         @SceneChangeDetection()
         rotation: number = 0;
 
+        override serialize() {
+            const state = super.serialize();
+            state.props.rotation = this.rotation;
+            return state;
+        }
+
         override updateMatrix(matrix: Matrix) {
             super.updateMatrix(matrix);
 
@@ -261,6 +267,13 @@ export function Scalable<N extends Node<any>>(Parent: Constructor<N>): Construct
         scalingCenterY: number = 0;
         declare __scalingCenterY: number; // optimised field accessor
 
+        override serialize() {
+            const state = super.serialize();
+            state.props.scalingX = this.scalingX;
+            state.props.scalingY = this.scalingY;
+            return state;
+        }
+
         override updateMatrix(matrix: Matrix) {
             super.updateMatrix(matrix);
 
@@ -314,6 +327,13 @@ export function Translatable<N extends Node<any>>(Parent: Constructor<N>): Const
         translationX: number = 0;
         @SceneChangeDetection()
         translationY: number = 0;
+
+        override serialize() {
+            const state = super.serialize();
+            state.props.translationX = this.translationX;
+            state.props.translationY = this.translationY;
+            return state;
+        }
 
         override updateMatrix(matrix: Matrix) {
             super.updateMatrix(matrix);

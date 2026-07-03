@@ -46,6 +46,26 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
         this.dirtyPath = true;
     }
 
+    protected override get serializedType(): string {
+        return 'path';
+    }
+
+    override serialize() {
+        const state = super.serialize();
+        const bbox: BBox | undefined = this.getBBox();
+        state.props.x = bbox?.x ?? Number.NaN;
+        state.props.y = bbox?.y ?? Number.NaN;
+        state.props.width = bbox?.width ?? Number.NaN;
+        state.props.height = bbox?.height ?? Number.NaN;
+        state.props.clip = this.clip;
+        state.props.clipX = this._clipX;
+        state.props.clipY = this._clipY;
+        // Read `_path` directly: serialisation must reflect the path as last drawn, without forcing
+        // lazy allocation (Marker) or a premature updatePath.
+        state.svgPath = this._path?.toSVG();
+        return state;
+    }
+
     /**
      * The path only has to be updated when certain attributes change.
      * For example, if transform attributes (such as `translationX`)

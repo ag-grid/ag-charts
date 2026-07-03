@@ -81,6 +81,17 @@ export class Text<D = unknown> extends Shape<D> {
     @SceneChangeDetection()
     y: number = 0;
 
+    protected override get serializedType(): string {
+        return 'text';
+    }
+
+    override serialize() {
+        const state = super.serialize();
+        state.props.x = this.x;
+        state.props.y = this.y;
+        return state;
+    }
+
     private lines: string[] = [];
     private onTextChange() {
         this.richText?.clear();

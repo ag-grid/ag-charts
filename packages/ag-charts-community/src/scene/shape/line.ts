@@ -37,6 +37,19 @@ export class Line<D = unknown> extends Shape<D> implements DistantObject {
         this.y2 = value;
     }
 
+    protected override get serializedType(): string {
+        return 'line';
+    }
+
+    override serialize() {
+        const state = super.serialize();
+        state.props.x1 = this.x1;
+        state.props.y1 = this.y1;
+        state.props.x2 = this.x2;
+        state.props.y2 = this.y2;
+        return state;
+    }
+
     get midPoint(): { x: number; y: number } {
         return { x: (this.x1 + this.x2) / 2, y: (this.y1 + this.y2) / 2 };
     }

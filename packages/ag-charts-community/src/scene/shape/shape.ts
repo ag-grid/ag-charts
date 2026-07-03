@@ -190,6 +190,13 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     opacity: number = 1;
     declare __opacity: number; // optimised field accessor
 
+    override serialize() {
+        const state = super.serialize();
+        state.props.opacity = this.opacity;
+        state.props.drawingMode = this.drawingMode;
+        return state;
+    }
+
     @SceneObjectChangeDetection({ equals: TRIPLE_EQ, checkDirtyOnAssignment: true })
     fillShadow: DropShadow | undefined;
     declare __fillShadow: DropShadow | undefined; // optimised field accessor

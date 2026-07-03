@@ -38,16 +38,11 @@ import { AgCharts } from '../../api/agCharts';
 import { type AnimationPhase, type IAnimation, PHASE_METADATA, PHASE_ORDER } from '../../motion/animation';
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
-import type { Node } from '../../scene/node';
-import { Line } from '../../scene/shape/line';
-import { Path } from '../../scene/shape/path';
-import { Rect } from '../../scene/shape/rect';
-import { Sector } from '../../scene/shape/sector';
+import type { Node, SerializedNodeState } from '../../scene/node';
 import { Text } from '../../scene/shape/text';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
-import { Marker } from '../marker/marker';
 import { findChartTarget } from './findTarget';
 
 export type { Chart } from '../chart';
@@ -1026,68 +1021,40 @@ export function expectProgresses(values: number[], tol = 1e-3): void {
 export type SceneNodeGeometry = Record<string, number>;
 export type SceneGeometrySample = Map<string, SceneNodeGeometry>;
 
-interface GeometryReader {
-    label: string;
-    matches(node: Node<any>): boolean;
-    read(node: any): SceneNodeGeometry;
+type GeometryBuilder = (state: SerializedNodeState) => SceneNodeGeometry;
+
+function pickProps(state: SerializedNodeState, names: string[]): SceneNodeGeometry {
+    const props: SceneNodeGeometry = {};
+    for (const name of names) {
+        props[name] = state.props[name] as number;
+    }
+    return props;
 }
 
-// Ordered most-specific first: Rect/Sector/Text/Line before the generic Path (bbox) fallback, which
-// covers markers, segmented line/area paths and any other shape.
-const GEOMETRY_READERS: GeometryReader[] = [
-    {
-        label: 'sector',
-        matches: (n) => n instanceof Sector,
-        read: (n: Sector) => ({
-            startAngle: n.startAngle,
-            endAngle: n.endAngle,
-            innerRadius: n.innerRadius,
-            outerRadius: n.outerRadius,
-            opacity: n.opacity ?? 1,
-        }),
-    },
-    {
-        label: 'rect',
-        matches: (n) => n instanceof Rect,
-        read: (n: Rect) => ({ x: n.x, y: n.y, width: n.width, height: n.height, opacity: n.opacity ?? 1 }),
-    },
-    {
-        label: 'text',
-        matches: (n) => n instanceof Text,
-        read: (n: Text) => ({ x: n.x, y: n.y, opacity: n.opacity ?? 1 }),
-    },
-    {
-        label: 'line',
-        matches: (n) => n instanceof Line,
-        read: (n: Line) => ({ x1: n.x1, y1: n.y1, x2: n.x2, y2: n.y2, opacity: n.opacity ?? 1 }),
-    },
-    { label: 'marker', matches: (n) => n instanceof Marker, read: readBBoxGeometry },
-    { label: 'path', matches: (n) => n instanceof Path, read: readBBoxGeometry },
-];
+// Builders map each node's serialised state ({@link Node.serialize}) to the property set trajectory
+// specs assert over. Node kinds without a builder are not sampled. Marker and generic path nodes
+// expose their bbox extents.
+const GEOMETRY_BUILDERS: Record<string, GeometryBuilder> = {
+    sector: (s) => pickProps(s, ['startAngle', 'endAngle', 'innerRadius', 'outerRadius', 'opacity']),
+    rect: (s) => pickProps(s, ['x', 'y', 'width', 'height', 'opacity']),
+    text: (s) => pickProps(s, ['x', 'y', 'opacity']),
+    line: (s) => pickProps(s, ['x1', 'y1', 'x2', 'y2', 'opacity']),
+    marker: (s) => pickProps(s, ['x', 'y', 'width', 'height', 'opacity']),
+    path: (s) => pickProps(s, ['x', 'y', 'width', 'height', 'opacity']),
+};
 
-function readBBoxGeometry(n: Path): SceneNodeGeometry {
-    const bbox = n.getBBox();
-    return {
-        x: bbox?.x ?? Number.NaN,
-        y: bbox?.y ?? Number.NaN,
-        width: bbox?.width ?? Number.NaN,
-        height: bbox?.height ?? Number.NaN,
-        opacity: n.opacity ?? 1,
-    };
-}
-
-function readNodeGeometry(node: Node<any>): { label: string; props: SceneNodeGeometry } | undefined {
-    const reader = GEOMETRY_READERS.find((r) => r.matches(node));
-    if (reader == null) return undefined;
-    const props = reader.read(node);
+function readNodeGeometry(state: SerializedNodeState): { label: string; props: SceneNodeGeometry } | undefined {
+    const builder = GEOMETRY_BUILDERS[state.type];
+    if (builder == null) return undefined;
+    const props = builder(state);
     // Translation-positioned shapes (e.g. markers) move via translationX/Y, not their local geometry.
-    const { translationX, translationY } = node as any;
+    const { translationX, translationY } = state.props;
     if (typeof translationX === 'number' && typeof translationY === 'number') {
         props.translationX = translationX;
         props.translationY = translationY;
     }
-    props.visible = node.visible ? 1 : 0;
-    return { label: reader.label, props };
+    props.visible = state.props.visible ? 1 : 0;
+    return { label: state.type, props };
 }
 
 /** Best-effort human-readable identity for a scene node, derived from its datum. */
@@ -1131,18 +1098,20 @@ export function createSceneGeometrySampler(chartOrProxy: ChartOrProxy<any>): () 
 
     const sampleInto = (sample: SceneGeometrySample, rootPath: string, root: Node<any>) => {
         const visit = (node: Node<any>) => {
-            const geometry = readNodeGeometry(node);
+            const state = node.serialize();
+            const geometry = readNodeGeometry(state);
             if (geometry != null) {
                 const identity = datumKeyOf(node);
                 const baseKey = `${rootPath}/${geometry.label}[${identity ?? ''}]`;
                 sample.set(assignKey(node, baseKey), geometry.props);
             } else if (node instanceof Group) {
-                const { translationX, translationY } = node as any;
-                const props: SceneNodeGeometry = { opacity: node.opacity ?? 1, visible: node.visible ? 1 : 0 };
+                const props: SceneNodeGeometry = { opacity: state.props.opacity as number };
+                const { translationX, translationY } = state.props;
                 if (typeof translationX === 'number' && typeof translationY === 'number') {
                     props.translationX = translationX;
                     props.translationY = translationY;
                 }
+                props.visible = state.props.visible ? 1 : 0;
                 sample.set(assignKey(node, node === root ? rootPath : `${rootPath}/group[${node.name ?? ''}]`), props);
                 for (const child of node.children()) {
                     visit(child);
