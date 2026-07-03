@@ -58,3 +58,24 @@ SonarQube
 EMEA
 AMER
 APAC
+
+# Beyond the Prompt conference (speaker/company names, page terms)
+bryntum
+bryntse
+khourshid
+kourshid
+koonin
+isaksson
+masterson
+pocock
+tldraw
+monzo
+mixtape
+fleetplan
+geist
+statecharts
+crossfade
+ditherpattern
+floorball
+crawlable
+modeling
