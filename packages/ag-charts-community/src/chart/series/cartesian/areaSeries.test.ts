@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ChartAxisDirection, deepClone } from 'ag-charts-core';
+import { ChartAxisDirection, deepClone, mapValues } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 import type {
     AgAreaSeriesMarkerItemStylerParams,
@@ -43,16 +43,19 @@ import {
 import * as examples from '../../test/examples';
 import { type MockAreaStyler, newFreezableMock } from '../../test/freezableMock';
 import { testLegendItemName } from '../../test/legendItemName';
-import type { CartesianOrPolarTestCase, ChartTestCase } from '../../test/utils';
+import type { CartesianOrPolarTestCase, ChartTestCase, ScenePropertyExpectation } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
+    axisReflowSpec,
     cartesianChartAssertions,
     clickAction,
     createChart,
+    createSceneGeometrySampler,
     deproxy,
     doubleClickAction,
     doubleTapAction,
+    expectSceneTrajectory,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
@@ -61,6 +64,7 @@ import {
     repeat,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAnimationFrames,
     spyOnAnimationManager,
     tapAction,
     waitForChartStability,
@@ -369,6 +373,190 @@ describe('AreaSeries', () => {
     });
 
     const ctx = setupMockCanvas();
+
+    // SPIKE: frame-trajectory invariant tests for stacked areas. Areas paint one fill Path and one
+    // stroke Path per series; both are sampled with `top@<i>` stations, so the animated top edge of
+    // each layer gets per-point trajectories (the fill's baseline below is invisible to the topmost-y
+    // stations, which is exactly the edge that must not dive to the baseline mid-animation).
+    describe('animation frame-trajectory (spike)', () => {
+        const frames = spyOnAnimationFrames();
+
+        const STACKED_AREA_DATA = [
+            { quarter: 'Q1', apples: 50, oranges: 30 },
+            { quarter: 'Q2', apples: 60, oranges: 40 },
+            { quarter: 'Q3', apples: 70, oranges: 35 },
+        ];
+        const EXTENDED_AREA_DATA = [
+            ...STACKED_AREA_DATA,
+            { quarter: 'Q4', apples: 80, oranges: 45 },
+            { quarter: 'Q5', apples: 65, oranges: 50 },
+        ];
+        const stackedAreaOptions = (data: typeof STACKED_AREA_DATA): AgChartOptions =>
+            prepareTestOptions({
+                data,
+                series: [
+                    { type: 'area', xKey: 'quarter', yKey: 'apples', stacked: true },
+                    { type: 'area', xKey: 'quarter', yKey: 'oranges', stacked: true },
+                ],
+                // The pinned y-domain keeps the y-axis static, isolating the stacked layer edges
+                // (and the x-axis reflow) from y-rescale noise.
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0, max: 140 },
+                },
+            });
+
+        it('CASE 7: stacked area point-add morphs each layer edge from its cumulative position', async () => {
+            chart = AgCharts.create(stackedAreaOptions(STACKED_AREA_DATA));
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            await chart.updateDelta({ data: EXTENDED_AREA_DATA });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+
+            // A from-the-baseline regression would send the layer edges toward the bottom of the plot;
+            // monotonic, endpoint-bounded station moves during `add` pin them to cumulative positions.
+            // Width dips below both endpoints mid-flight (band squeeze before the new points extend).
+            const layerEdge = (
+                tops: Record<string, 'increases' | 'decreases'>
+            ): Partial<Record<string, ScenePropertyExpectation>> => ({
+                y: { during: 'add', expect: ['decreases', 'bounded'] },
+                width: { during: ['update', 'add'], expect: 'progresses' },
+                height: { during: 'add', expect: ['increases', 'bounded'] },
+                ...mapValues(tops, (direction) => ({ during: 'add', expect: [direction, 'bounded'] }) as const),
+            });
+            const applesTops = {
+                'top@1': 'decreases',
+                'top@2': 'decreases',
+                'top@3': 'decreases',
+                'top@4': 'increases', // Q5 apples (65) sits below Q4 (80), so the right edge drops
+            } as const;
+            const orangesTops = {
+                'top@1': 'decreases',
+                'top@2': 'decreases',
+                'top@3': 'decreases',
+                'top@4': 'decreases',
+            } as const;
+            // The fill is drawn as one closed polygon per span: extending to the new points adds
+            // subpaths during `add`, then the trailing re-plot merges them into a single polygon —
+            // structural, not monotonic, so only the phase window and settle are asserted.
+            const fillSubpaths = { subpaths: { during: ['add', 'trailing'], expect: 'progresses' } } as const;
+            expectSceneTrajectory(trajectory, {
+                'series[0]/path[stroke]': layerEdge(applesTops),
+                'series[0]/background/path[fill]': { ...layerEdge(applesTops), ...fillSubpaths },
+                'series[1]/path[stroke]': layerEdge(orangesTops),
+                'series[1]/background/path[fill]': { ...layerEdge(orangesTops), ...fillSubpaths },
+                ...axisReflowSpec('bottom', { shift: 'left' }),
+            });
+        });
+
+        it('CASE 8: stacked area point-remove morphs each layer edge back monotonically', async () => {
+            chart = AgCharts.create(stackedAreaOptions(EXTENDED_AREA_DATA));
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            await chart.updateDelta({ data: STACKED_AREA_DATA });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+
+            // Mirror of CASE 7: the removed points retract during `remove` (edges rise toward the
+            // smaller stack, right edge collapses), then the surviving band re-widens during `update`;
+            // the fill sheds its extra subpaths during `remove` with a final merge in the trailing
+            // cleanup.
+            const layerEdge = (
+                tops: Record<string, 'increases' | 'decreases'>
+            ): Partial<Record<string, ScenePropertyExpectation>> => ({
+                y: { during: 'remove', expect: ['increases', 'bounded'] },
+                width: { during: ['remove', 'update'], expect: 'progresses' },
+                height: { during: 'remove', expect: ['decreases', 'bounded'] },
+                ...mapValues(tops, (direction) => ({ during: 'remove', expect: [direction, 'bounded'] }) as const),
+            });
+            const applesTops = {
+                'top@1': 'increases',
+                'top@2': 'increases',
+                'top@3': 'increases',
+                'top@4': 'decreases',
+            } as const;
+            const orangesTops = {
+                'top@1': 'increases',
+                'top@2': 'increases',
+                'top@3': 'increases',
+                'top@4': 'increases',
+            } as const;
+            const fillSubpaths = {
+                subpaths: { during: ['remove', 'trailing'], expect: ['decreases', 'bounded'] },
+            } as const;
+            expectSceneTrajectory(trajectory, {
+                'series[0]/path[stroke]': layerEdge(applesTops),
+                'series[0]/background/path[fill]': { ...layerEdge(applesTops), ...fillSubpaths },
+                'series[1]/path[stroke]': layerEdge(orangesTops),
+                'series[1]/background/path[fill]': { ...layerEdge(orangesTops), ...fillSubpaths },
+                ...axisReflowSpec('bottom', { shift: 'right' }),
+            });
+        });
+
+        it('CASE 9: initial load reveals the fully-drawn stacked areas behind a sweeping clip window', async () => {
+            chart = AgCharts.create(stackedAreaOptions(STACKED_AREA_DATA));
+            const sampleScene = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+
+            // Every fill and stroke is fully drawn from frame 0 (their stations must hold constant);
+            // the ONLY thing that moves in the whole scene is the reveal clip window.
+            const revealPath = {
+                clip: { during: ['initial', 'trailing'], expect: ['decreases', 'bounded'] },
+                'clip:x': { during: 'initial', expect: ['increases', 'progresses', 'bounded'] },
+            } as const;
+            expectSceneTrajectory(trajectory, {
+                'series[0]/path[stroke]': revealPath,
+                'series[0]/background/path[fill]': revealPath,
+                'series[1]/path[stroke]': revealPath,
+                'series[1]/background/path[fill]': revealPath,
+            });
+        });
+
+        it('CASE 10: setting a mid-series datum to undefined opens a gap in both layers', async () => {
+            chart = AgCharts.create(stackedAreaOptions(EXTENDED_AREA_DATA));
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            await chart.updateDelta({
+                data: EXTENDED_AREA_DATA.map((d) => (d.quarter === 'Q3' ? { ...d, apples: undefined as any } : d)),
+            });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+
+            // The nulled apples value sinks its station toward the baseline during remove/update,
+            // then the stroke gap opens (station goes non-finite — `degenerate`); the oranges layer
+            // above drops by the same amount (its own value is still defined) and its stroke splits
+            // around the dead base. Fills keep painting to the baseline, so their stations stay
+            // finite while their span count drops.
+            const sinks = { during: ['remove', 'update'], expect: ['increases', 'bounded'] } as const;
+            const respans = (direction: 'increases' | 'decreases') =>
+                ({ during: ['remove', 'update'], expect: [direction, 'bounded'] }) as const;
+            expectSceneTrajectory(trajectory, {
+                'series[0]/path[stroke]': {
+                    height: { during: ['remove', 'update'], expect: 'progresses' },
+                    subpaths: { during: ['remove', 'update'], expect: 'progresses' },
+                    'top@2': { during: ['remove', 'update'], expect: ['degenerate', 'increases', 'bounded'] },
+                },
+                'series[0]/background/path[fill]': { subpaths: respans('decreases'), 'top@2': sinks },
+                'series[1]/path[stroke]': {
+                    height: { during: ['remove', 'update'], expect: ['increases', 'bounded'] },
+                    subpaths: respans('increases'),
+                    'top@2': sinks,
+                },
+                'series[1]/background/path[fill]': {
+                    height: { during: ['remove', 'update'], expect: ['increases', 'bounded'] },
+                    subpaths: respans('decreases'),
+                    'top@2': sinks,
+                },
+                ...axisReflowSpec('bottom', {}),
+            });
+
+            // The gap must persist: the apples stroke ends split with a dead station over Q3.
+            const finalStroke = trajectory.at(-1)!.get('series[0]/path[stroke]')!;
+            expect(finalStroke.subpaths).toBe(2);
+            expect(Number.isFinite(finalStroke['top@2'])).toBe(false);
+        });
+    });
 
     describe('#create', () => {
         beforeEach(() => {

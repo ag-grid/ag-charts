@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { deepClone } from 'ag-charts-core';
+import { deepClone, mapValues } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,
@@ -13,6 +13,7 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
+import { AnimationManager } from '../../interaction/animationManager';
 import {
     BIG,
     HIGH_VOLUME_COUNT,
@@ -35,7 +36,7 @@ import {
 import * as examples from '../../test/examples';
 import { type MockLineStyler, newFreezableMock } from '../../test/freezableMock';
 import { testLegendItemName } from '../../test/legendItemName';
-import type { CartesianOrPolarTestCase } from '../../test/utils';
+import type { CartesianOrPolarTestCase, SceneNodeExpectation } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     axisReflowSpec,
@@ -43,6 +44,7 @@ import {
     createChart,
     createSceneGeometrySampler,
     deproxy,
+    expectNoAnimation,
     expectSceneTrajectory,
     extractImageData,
     hoverAction,
@@ -242,17 +244,15 @@ describe('LineSeries', () => {
 
     const ctx = setupMockCanvas();
 
-    // SPIKE: frame-trajectory invariant test for a PATH-based series (CASE 3) — the LIMIT of
-    // the approach. Unlike bar/pie, a line exposes NO readable per-vertex geometry: its shape is re-plotted
-    // into a Path2D each frame, so the only per-frame signal is the path bounding box.
-    // The bbox reflects only the data EXTENT, so this case necessarily uses an extent-changing
-    // (scale-affecting) update; a vertex moving *within* the extent would morph the line invisibly to the
-    // bbox. This maps the boundary: the clean node-property invariants of bar/pie degrade to a coarse
-    // extent-level invariant for path series, which is where image snapshots still earn their keep.
+    // SPIKE: frame-trajectory invariant test for a PATH-based series (CASE 3). The sampler reads the
+    // drawn path geometry back each frame: the bbox extent, `top@<i>` (the path's topmost y at fixed
+    // x-stations across its extent, in the path's local space) and `subpaths` (continuity — a gap in
+    // the stroke shows up as extra subpaths). Stations give path series per-point invariants
+    // comparable to bar/pie node properties.
     describe('animation frame-trajectory (spike)', () => {
         const frames = spyOnAnimationFrames();
 
-        it('CASE 3: line data-update morphs the path bbox monotonically (extent-level invariant)', async () => {
+        it('CASE 3: line data-update morphs the path per-station monotonically', async () => {
             const options: AgChartOptions = prepareTestOptions({
                 data: [
                     { x: 0, y: 90 },
@@ -289,6 +289,12 @@ describe('LineSeries', () => {
                     y: { during: 'update', expect: 'increases' },
                     width: { during: 'update', expect: 'decreases' },
                     height: { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
+                    // Per-station: A's end rides the rescale down while B's end rises toward the new
+                    // floor; the midpoint pivots in place. `subpaths` is unnamed so it must stay 1.
+                    'top@0': { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
+                    'top@1': { during: 'update', expect: ['increases', 'bounded'] },
+                    'top@3': { during: 'update', expect: ['decreases', 'bounded'] },
+                    'top@4': { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
                 },
                 // The marker fade-in starts in the add phase and completes during trailing.
                 'series[0]/marker[*]': { opacity: { during: ['add', 'trailing'], expect: 'increases' } },
@@ -300,6 +306,303 @@ describe('LineSeries', () => {
             // settled after-state (per-frame direction/progression/bounds are in the spec above).
             expect(trajectory[0].get(pathKey)!.height).toBeCloseTo(before.get(pathKey)!.height, 0);
             expect(trajectory.at(-1)!.get(pathKey)!.height).toBeCloseTo(after.get(pathKey)!.height, 0);
+        });
+
+        it('CASE 6 (CRT-995): stacked line point-add animates cumulative tops, not from the baseline', async () => {
+            const options: AgChartOptions = prepareTestOptions({
+                data: [
+                    { quarter: 'Q1', apples: 50, oranges: 30 },
+                    { quarter: 'Q2', apples: 60, oranges: 40 },
+                    { quarter: 'Q3', apples: 70, oranges: 35 },
+                ],
+                series: [
+                    { type: 'line', xKey: 'quarter', yKey: 'apples', stacked: true },
+                    { type: 'line', xKey: 'quarter', yKey: 'oranges', stacked: true },
+                ],
+                // The pinned y-domain keeps the y-axis static, so the case isolates the stacked
+                // verticals (and the x-axis reflow) from y-rescale noise.
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0, max: 140 },
+                },
+            });
+
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            await chart.updateDelta({
+                data: [
+                    { quarter: 'Q1', apples: 50, oranges: 30 },
+                    { quarter: 'Q2', apples: 60, oranges: 40 },
+                    { quarter: 'Q3', apples: 70, oranges: 35 },
+                    { quarter: 'Q4', apples: 80, oranges: 45 },
+                    { quarter: 'Q5', apples: 65, oranges: 50 },
+                ],
+            });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+
+            // The regression mode animated stacked layers up from the baseline on point-add; pinning
+            // every station to a monotonic, endpoint-bounded move during the `add` phase (with `top@0`
+            // — the anchored Q1 point — defaulting to constant) makes any dive to the baseline fail.
+            const stackedLayer = (tops: Record<string, 'increases' | 'decreases'>): SceneNodeExpectation => ({
+                x: { during: 'update', expect: ['decreases', 'bounded'] },
+                y: { during: 'add', expect: ['decreases', 'bounded'] },
+                // Width dips below both endpoints mid-flight: the band squeeze (update) precedes the
+                // extension to the new points (add), so it is progressing but not endpoint-bounded.
+                width: { during: ['update', 'add'], expect: 'progresses' },
+                height: { during: 'add', expect: ['increases', 'bounded'] },
+                ...mapValues(tops, (direction) => ({ during: 'add', expect: [direction, 'bounded'] }) as const),
+            });
+            expectSceneTrajectory(trajectory, {
+                'series[0]/path[stroke]': stackedLayer({
+                    'top@1': 'decreases',
+                    'top@2': 'decreases',
+                    'top@3': 'decreases',
+                    'top@4': 'increases', // Q5 apples (65) sits below Q4 (80), so the right edge drops
+                }),
+                'series[1]/path[stroke]': stackedLayer({
+                    'top@1': 'decreases',
+                    'top@2': 'decreases',
+                    'top@3': 'decreases',
+                    'top@4': 'decreases',
+                }),
+                'series[*]/marker[*]': { opacity: { during: ['add', 'trailing'], expect: 'increases' } },
+                ...axisReflowSpec('bottom', { shift: 'left' }),
+            });
+        });
+
+        it('CASE 9 (CRT-1052): markers stay in overlay drawing mode while fading in over the stroke', async () => {
+            const options: AgChartOptions = prepareTestOptions({
+                data: [
+                    { quarter: 'Q1', iphone: 40 },
+                    { quarter: 'Q2', iphone: 45 },
+                    { quarter: 'Q3', iphone: 35 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'quarter',
+                        yKey: 'iphone',
+                        strokeWidth: 4,
+                        marker: { enabled: true, size: 14 },
+                    },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            // Toggle the series off, then back on: the markers fade in over the stroke.
+            options.series![0].visible = false;
+            await chart.update({ ...options });
+            await frames.runToEnd(chart);
+
+            options.series![0].visible = true;
+            await chart.update({ ...options });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+
+            // A cutout marker composites with destination-out, erasing the stroke underneath while it
+            // is still translucent; overlay mode (cutout === 0) must hold on EVERY frame. Asserted by
+            // value because a regression would be constant-cutout, which a constancy check cannot see.
+            for (const quarter of ['Q1', 'Q2', 'Q3']) {
+                const cutouts = trajectory.map((f) => f.get(`series[0]/marker[${quarter}]`)?.cutout);
+                expect(cutouts).toEqual(repeat(0, trajectory.length));
+            }
+            expectSceneTrajectory(trajectory, {
+                'series[0]/path[stroke]': { opacity: { during: ['update', 'add'], expect: 'increases' } },
+                'series[0]/marker[*]': { opacity: { during: ['add', 'trailing'], expect: 'increases' } },
+                ...axisReflowSpec('left', { translate: 'right', grid: true }),
+                ...axisReflowSpec('bottom', { shift: 'left', translate: 'right' }),
+            });
+        });
+
+        it('CASE 11 (AG-10477): initial load reveals the fully-drawn lines behind a sweeping clip window', async () => {
+            const options: AgChartOptions = prepareTestOptions({
+                data: [
+                    { month: 'Jun', a: 50, b: 50 },
+                    { month: 'Jul', a: 100, b: 0 },
+                    { month: 'Aug', a: 100, b: 0 },
+                    { month: 'Sep', a: 100, b: 0 },
+                    { month: 'Oct', a: 100, b: 0 },
+                ],
+                series: [
+                    { type: 'line', xKey: 'month', yKey: 'a', strokeWidth: 22 },
+                    { type: 'line', xKey: 'month', yKey: 'b', strokeWidth: 22 },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            const sampleScene = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+
+            // The regression drew outside the reveal window with thick strokes. The invariant: both
+            // lines are FULLY drawn from frame 0 (path stations are unnamed, so they must hold
+            // constant) while only the clip window sweeps across during `initial`, with markers
+            // swipe-scaling in as it passes them.
+            const revealPath = {
+                clip: { during: ['initial', 'trailing'], expect: ['decreases', 'bounded'] },
+                'clip:x': { during: 'initial', expect: ['increases', 'progresses', 'bounded'] },
+            } as const;
+            const swipesIn = {
+                x: { during: 'initial', expect: 'bounded' },
+                y: { during: 'initial', expect: 'bounded' },
+                width: { during: 'initial', expect: ['increases', 'bounded'] },
+                height: { during: 'initial', expect: ['increases', 'bounded'] },
+            } as const;
+            expectSceneTrajectory(trajectory, {
+                'series[0]/path[stroke]': revealPath,
+                'series[1]/path[stroke]': revealPath,
+                'series[*]/marker[*]': swipesIn,
+            });
+
+            // The sweep is sequential: the Jun marker must be fully grown before Oct starts.
+            const grownFrame = (key: string) => trajectory.findIndex((f) => (f.get(key)?.width ?? 0) >= 6.99);
+            expect(grownFrame('series[0]/marker[Jun]')).toBeGreaterThan(0);
+            expect(grownFrame('series[0]/marker[Jun]')).toBeLessThan(grownFrame('series[0]/marker[Oct]'));
+        });
+
+        it('CASE 12: updating a mid-series point to undefined opens a gap without disturbing the rest', async () => {
+            const options: AgChartOptions = prepareTestOptions({
+                data: [
+                    { quarter: 'Q1', iphone: 40 },
+                    { quarter: 'Q2', iphone: 45 },
+                    { quarter: 'Q3', iphone: 35 },
+                    { quarter: 'Q4', iphone: 50 },
+                    { quarter: 'Q5', iphone: 42 },
+                ],
+                series: [{ type: 'line', xKey: 'quarter', yKey: 'iphone', marker: { enabled: true } }],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0, max: 60 },
+                },
+            });
+
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            await chart.updateDelta({
+                data: [
+                    { quarter: 'Q1', iphone: 40 },
+                    { quarter: 'Q2', iphone: 45 },
+                    { quarter: 'Q3', iphone: undefined },
+                    { quarter: 'Q4', iphone: 50 },
+                    { quarter: 'Q5', iphone: 42 },
+                ],
+            });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+
+            expectSceneTrajectory(trajectory, {
+                'series[0]/path[stroke]': {
+                    // The nulled point retracts during `remove`, splitting the stroke around the gap.
+                    height: { during: 'remove', expect: ['decreases', 'progresses', 'bounded'] },
+                    subpaths: { during: ['remove', 'update'], expect: 'progresses' },
+                    // The station over the gap has no crossing once the point is gone: legitimately
+                    // non-finite, which `degenerate` opts into (anything else must stay constant).
+                    'top@2': ['degenerate'],
+                },
+                'series[0]/marker[*]': {
+                    opacity: { during: ['update', 'add', 'trailing'], expect: ['increases', 'bounded'] },
+                },
+                ...axisReflowSpec('bottom', {}),
+            });
+
+            // The gap must actually open and persist: two subpaths and a dead station at the end.
+            const finalPath = trajectory.at(-1)!.get('series[0]/path[stroke]')!;
+            expect(finalPath.subpaths).toBe(2);
+            expect(Number.isFinite(finalPath['top@2'])).toBe(false);
+        });
+
+        it('CASE 13 (CRT-1025): a series re-shown under an active highlight fades to the dimmed opacity', async () => {
+            const options: AgChartOptions = prepareTestOptions({
+                data: [
+                    { quarter: 'Q1', iphone: 40, macos: 20 },
+                    { quarter: 'Q2', iphone: 45, macos: 25 },
+                    { quarter: 'Q3', iphone: 35, macos: 30 },
+                ],
+                series: [
+                    { type: 'line', xKey: 'quarter', yKey: 'iphone' },
+                    { type: 'line', xKey: 'quarter', yKey: 'macos' },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0, max: 60 },
+                },
+            });
+
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+
+            options.series![0].visible = false;
+            await chart.update({ ...options });
+            await frames.runToEnd(chart);
+
+            const chartInstance = deproxy(chart);
+            const macosSeries = chartInstance.series[1] as any;
+            chartInstance.ctx.highlightManager.updateHighlight(
+                chartInstance.id,
+                macosSeries.contextNodeData.nodeData[0]
+            );
+            await frames.runToEnd(chart);
+            expect(chartInstance.ctx.highlightManager.getActiveHighlight()).toBeDefined();
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            options.series![0].visible = true;
+            await chart.update({ ...options });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+
+            // The regression targeted opacity 1; the re-shown stroke must fade in but SETTLE at the
+            // dimmed value (unhighlightedSeries.opacity = 0.2), pinned by settlesAt. Markers reset
+            // and fade back for both series, flipping from overlay to cutout only once settled.
+            expectSceneTrajectory(trajectory, {
+                'series[0]/path[stroke]': {
+                    opacity: {
+                        during: ['update', 'add'],
+                        expect: ['increases', 'bounded'],
+                        settlesAt: 0.2,
+                    },
+                },
+                'series[*]/marker[*]': {
+                    opacity: { during: ['add', 'trailing'], expect: ['increases', 'bounded'] },
+                    cutout: { during: 'trailing', expect: ['increases', 'bounded'] },
+                },
+                ...axisReflowSpec('bottom', {}),
+            });
+        });
+
+        it('CASE 14 (CRT-1083): hiding a series while animations are skipped snaps without any tween', async () => {
+            const options: AgChartOptions = prepareTestOptions({
+                data: [
+                    { x: 0, v1: 10, v2: 20 },
+                    { x: 1, v1: 30, v2: 40 },
+                ],
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'v1' },
+                    { type: 'line', xKey: 'x', yKey: 'v2' },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            // Simulate the skipped-animations environment (JSDOM default / AG Grid setLegendState)
+            // on top of the frame harness, which otherwise forces animations on.
+            const skipSpy = vi.spyOn(AnimationManager.prototype, 'isSkipped').mockImplementation(() => true);
+            try {
+                (options.series![1] as any).visible = false;
+                await chart.update({ ...options });
+                const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+
+                expectNoAnimation(trajectory);
+                // The hide must have taken effect instantly: invisible from the very first frame.
+                expect(trajectory[0].get('series[1]')!.visible).toBe(0);
+                expect(trajectory.at(-1)!.get('series[1]')!.visible).toBe(0);
+            } finally {
+                skipSpy.mockRestore();
+            }
         });
     });
 

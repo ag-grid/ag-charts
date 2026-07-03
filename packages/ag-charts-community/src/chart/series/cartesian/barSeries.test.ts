@@ -34,7 +34,7 @@ import {
 import * as examples from '../../test/examples';
 import { type MockBarStyler, newFreezableMock } from '../../test/freezableMock';
 import { testLegendItemName } from '../../test/legendItemName';
-import type { CartesianOrPolarTestCase } from '../../test/utils';
+import type { CartesianOrPolarTestCase, SceneFrameInvariant } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
@@ -46,6 +46,7 @@ import {
     createChart,
     createSceneGeometrySampler,
     deproxy,
+    expectSceneSamplesMatch,
     expectSceneTrajectory,
     expectWarningsCalls,
     extractImageData,
@@ -771,8 +772,8 @@ describe('BarSeries', () => {
             const after = sampleScene();
 
             // Endpoints: first frame is the before-state, last frame is the after-state.
-            expect(trajectory[0]).toEqual(before);
-            expect(trajectory.at(-1)).toEqual(after);
+            expectSceneSamplesMatch(trajectory[0], before);
+            expectSceneSamplesMatch(trajectory.at(-1)!, after);
 
             // Bar B shrinks in height only (top edge rises, x/width/opacity implicitly constant);
             // EVERYTHING else in the scene — sibling bars, both axes, gridlines, labels — must not move.
@@ -906,8 +907,8 @@ describe('BarSeries', () => {
             // equality is not a valid invariant for a scale-affecting update.
             const rectsOf = (sample: SceneGeometrySample) =>
                 new Map([...sample].filter(([key]) => key.startsWith('series[0]/rect')));
-            expect(rectsOf(trajectory[0])).toEqual(rectsOf(before));
-            expect(rectsOf(trajectory.at(-1)!)).toEqual(rectsOf(after));
+            expectSceneSamplesMatch(rectsOf(trajectory[0]), rectsOf(before));
+            expectSceneSamplesMatch(rectsOf(trajectory.at(-1)!), rectsOf(after));
 
             // The grown bar B rises; the fixed-value bars A and C shrink as the domain expands beneath
             // them. The wider tick labels (70 -> 200) widen the y-axis gutter, which shifts both axes'
@@ -927,6 +928,63 @@ describe('BarSeries', () => {
                 'series[0]/rect[C]': rescales('decreases'),
                 ...axisReflowSpec('bottom', { shift: 'left', translate: 'right' }),
                 ...axisReflowSpec('left', { shift: 'up', translate: 'right', plotEdge: 'shrinks', grid: true }),
+            });
+        });
+
+        // CASE 10 (CRT-950) — stacked+grouped horizontal bars, removing then re-adding a series.
+        // The essential invariant is CROSS-NODE: the two stacked layers must tile contiguously on
+        // every frame (mac's near edge rides iphone's far edge), which no per-node expectation can
+        // express — this is what `frameInvariants` is for. The sampler reads DRAWN rect geometry, so
+        // the stacked segments (nominal-extent BarShapes segmented in updatePath) compare correctly.
+        it('CASE 10 (CRT-950): stacked layers stay contiguous while a sibling series is removed and re-added', async () => {
+            const stackedContiguous: SceneFrameInvariant = {
+                name: 'stack tiles contiguously',
+                check: (frame) => {
+                    const iphone = frame.get("series[0]/rect[Q1'18]");
+                    const mac = frame.get("series[1]/rect[Q1'18]");
+                    if (iphone == null || mac == null) return undefined;
+                    const gap = Math.abs(mac.x - (iphone.x + iphone.width));
+                    return gap > 1
+                        ? `mac near edge (${mac.x.toFixed(2)}) != iphone far edge (${(iphone.x + iphone.width).toFixed(2)})`
+                        : undefined;
+                },
+            };
+            const bandReflow = (height: 'increases' | 'decreases') =>
+                ({
+                    'series[*]/rect[*]': {
+                        height: { during: 'update', expect: [height, 'bounded'] },
+                        width: { during: 'update', expect: 'bounded' },
+                        x: { during: 'update', expect: 'bounded' },
+                        y: { during: 'update', expect: 'bounded' },
+                        // A re-added series' bars fade in at full size rather than growing.
+                        opacity: { during: ['update', 'add', 'trailing'], expect: ['increases', 'bounded'] },
+                    },
+                    'series[*]/labels/text[*]': {
+                        opacity: { during: ['update', 'add', 'trailing'], expect: ['increases', 'bounded'] },
+                        x: { during: 'update', expect: 'bounded' },
+                        y: { during: 'update', expect: 'bounded' },
+                    },
+                }) as const;
+
+            const options: AgChartOptions = { ...examples.BAR_STACKED_AND_GROUPED_NUMBER_CRT_950 };
+            prepareTestOptions(options);
+            const allSeries = options.series!;
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            // NOTE: a removed series is dropped from chart.series immediately, so its exit
+            // animation is invisible to the sampler — only the survivors' band reflow is captured.
+            await chart.update({ ...options, series: allSeries.slice(0, 2) });
+            const removeTrajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            expectSceneTrajectory(removeTrajectory, bandReflow('increases'), {
+                frameInvariants: [stackedContiguous],
+            });
+
+            await chart.update({ ...options, series: allSeries });
+            const addTrajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            expectSceneTrajectory(addTrajectory, bandReflow('decreases'), {
+                frameInvariants: [stackedContiguous],
             });
         });
     });
