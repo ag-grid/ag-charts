@@ -3,6 +3,8 @@ import {
     AgCaptionContextMenuActionEvent,
     AgCartesianChartOptions,
     AgCharts,
+    AgContextMenuGetItemsParams,
+    AgContextMenuItem,
     ContextMenuModule,
     ModuleRegistry,
 } from 'ag-charts-enterprise';
@@ -17,6 +19,10 @@ const TIMESTAMP_UTC_1970_01_02 = 86400000;
 // For e2e testing: every caption action pushes a serialisable record here, drained by `popActions()`.
 type ActionRecord = { type: string; captionType: string };
 const actions: ActionRecord[] = [];
+
+// For e2e testing: every `getItems()` invocation pushes a serialisable record here, drained by `popGetItems()`.
+type GetItemsRecord = { showOn: string; captionType?: string };
+const getItemsCalls: GetItemsRecord[] = [];
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -34,21 +40,30 @@ const options: AgCartesianChartOptions = {
         text: 'MyPlaintextFootnote',
     },
     contextMenu: {
-        items: [
-            'defaults',
-            'separator',
-            {
-                showOn: 'caption',
-                label: 'Run caption action',
-                action: (ev: AgCaptionContextMenuActionEvent) => {
-                    actions.push({ type: ev.type, captionType: ev.captionType });
+        getItems: (params: AgContextMenuGetItemsParams): AgContextMenuItem[] => {
+            getItemsCalls.push({
+                showOn: params.showOn,
+                captionType: params.showOn === 'caption' ? params.captionType : undefined,
+            });
+            return [
+                'defaults',
+                'separator',
+                {
+                    showOn: 'caption',
+                    label: 'Run caption action',
+                    action: (ev: AgCaptionContextMenuActionEvent) => {
+                        actions.push({ type: ev.type, captionType: ev.captionType });
+                    },
                 },
-            },
-        ],
+            ];
+        },
     },
 };
 
 AgCharts.create(options);
 
-// For e2e testing: expose a drain-and-reset accessor for the recorded caption actions.
-(window as any).agE2E = { popActions: () => actions.splice(0) };
+// For e2e testing: expose drain-and-reset accessors for the recorded caption actions and `getItems()` calls.
+(window as any).agE2E = {
+    popActions: () => actions.splice(0),
+    popGetItems: () => getItemsCalls.splice(0),
+};

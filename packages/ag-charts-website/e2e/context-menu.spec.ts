@@ -1,3 +1,5 @@
+import type { Page } from '@playwright/test';
+
 import { expect, test } from './fixture';
 import {
     SELECTORS,
@@ -7,7 +9,50 @@ import {
     setupIntrinsicAssertions,
     toExamplePageUrl,
     toExamplePageUrls,
+    waitForChartUpdate,
 } from './util';
+
+// The `captions-declarative` and `captions-dynamic` examples expose drain-and-reset
+// accessors on `window.agE2E`:
+//   - popActions():  caption-action callbacks recorded since the last call, then cleared.
+//   - popGetItems(): getItems() invocations recorded since the last call (dynamic only), then cleared.
+// The wrappers below mirror the defensive guard style in data-selection.spec.ts and wait for
+// chart stability so each destructive accumulator is read at a settled point.
+//
+// The structured-clone boundary of page.evaluate() strips `undefined` fields, so a
+// non-caption getItems record reads back as `{ showOn }` with no `captionType` key.
+type CaptionActionRecord = { type: string; captionType: string };
+type CaptionGetItemsRecord = { showOn: string; captionType?: string };
+
+async function popActions(page: Page): Promise<CaptionActionRecord[]> {
+    await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+    const actions = await page.evaluate(() => {
+        const agE2E_popActions: unknown = (window as any)?.agE2E?.popActions;
+        if (agE2E_popActions == null) {
+            throw new Error('window.agE2E.popActions is not defined');
+        } else if (typeof agE2E_popActions !== 'function') {
+            throw new Error('window.agE2E.popActions is not a function');
+        }
+        return agE2E_popActions();
+    });
+    expect(Array.isArray(actions)).toBe(true);
+    return actions as CaptionActionRecord[];
+}
+
+async function popGetItems(page: Page): Promise<CaptionGetItemsRecord[]> {
+    await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+    const getItems = await page.evaluate(() => {
+        const agE2E_popGetItems: unknown = (window as any)?.agE2E?.popGetItems;
+        if (agE2E_popGetItems == null) {
+            throw new Error('window.agE2E.popGetItems is not defined');
+        } else if (typeof agE2E_popGetItems !== 'function') {
+            throw new Error('window.agE2E.popGetItems is not a function');
+        }
+        return agE2E_popGetItems();
+    });
+    expect(Array.isArray(getItems)).toBe(true);
+    return getItems as CaptionGetItemsRecord[];
+}
 
 test.describe('context-menu', () => {
     setupIntrinsicAssertions(test);
@@ -162,40 +207,150 @@ test.describe('context-menu', () => {
         await expect(page).toHaveScreenshot('context-menu-shown-on-highlighted-datum.png');
     });
 
-    // TODO(Claude) !!!IMPORTANT!!!
-    // Your task is to fill in this test description. It's important to use a DAMP-NOT-DRY style.
-    // Your behaviour/personality must be highly skepical, thorough and paranoid. Do not be sycophantic,
-    // tell me what I need to hear, not you think what I want to hear. Surfaces ambiguity or problems
-    // early. If something isn't right, refuse to perform this task and raise the feedback.
+    // Two example variants exercise `showOn: 'caption'`: `captions-declarative` (static `items`)
+    // and `captions-dynamic` (a `getItems()` callback returning the same items). Both render an
+    // identical chart: an image+text title, a Date subtitle and a plaintext footnote.
+    //
+    // Deliberately DAMP, not DRY: each caption (title/subtitle/footnote) is spelled out in full so
+    // a failure points at exactly one caption without decoding a loop.
+    //
+    // Interaction model per caption:
+    //   - the describe's beforeEach right-clicks the caption, leaving the context menu OPEN;
+    //   - 'screenshot' asserts that open menu (right-clicking a menu item would dismiss it, and the
+    //     caption action has no visible effect, so the click is deferred to the 'action' test);
+    //   - 'action' clicks 'Run caption action' and asserts the recorded callback via popActions();
+    //   - (dynamic only) 'getItems' asserts the getItems() invocation recorded by the right-click.
     test.describe('AG-17706 showOn caption', () => {
-        // TODO(Claude) use these pre-selected coords to right-click on captions:
         const POINT_TITLE = { clientX: 411, clientY: 64 };
         const POINT_SUBTITLE = { clientX: 403, clientY: 111 };
         const POINT_FOOTNOTE = { clientX: 400, clientY: 557 };
 
+        const runCaptionAction = (page: Page) =>
+            page.locator('.ag-charts-context-menu__item').filter({ hasText: 'Run caption action' }).click();
+
         test.describe('declarative', () => {
-            test.beforeEach(() => {
-                // TODO(Claude) open the 'captions-declarative' example'.
+            test.beforeEach(async ({ page }) => {
+                const { url } = toExamplePageUrl('context-menu-e2e', 'captions-declarative', 'vanilla');
+                await gotoExample(page, url);
             });
+
             test.describe('title', () => {
-                test.beforeEach(() => {
-                    // TODO(Claude) right-click the title, and click the 'Run caption action' button.
+                test.beforeEach(async ({ page }) => {
+                    await page.mouse.click(POINT_TITLE.clientX, POINT_TITLE.clientY, { button: 'right' });
                 });
-                test('screenshot', () => {
-                    // TODO(Claude) expect/actual screenshot check.
+                test('screenshot', async ({ page }) => {
+                    await expect(page).toHaveScreenshot('AG-17706-declarative-title-menu.png', {
+                        animations: 'disabled',
+                    });
                 });
-                test('action', () => {
-                    // TODO(Claude) expect/actual agE2E.popActions() check.
+                test('action', async ({ page }) => {
+                    await runCaptionAction(page);
+                    expect(await popActions(page)).toEqual([
+                        { type: 'captionContextMenuAction', captionType: 'title' },
+                    ]);
                 });
             });
-            // TODO(Claude) repeat 'title' nesting on subtitle and footnote.
+
+            test.describe('subtitle', () => {
+                test.beforeEach(async ({ page }) => {
+                    await page.mouse.click(POINT_SUBTITLE.clientX, POINT_SUBTITLE.clientY, { button: 'right' });
+                });
+                test('screenshot', async ({ page }) => {
+                    await expect(page).toHaveScreenshot('AG-17706-declarative-subtitle-menu.png', {
+                        animations: 'disabled',
+                    });
+                });
+                test('action', async ({ page }) => {
+                    await runCaptionAction(page);
+                    expect(await popActions(page)).toEqual([
+                        { type: 'captionContextMenuAction', captionType: 'subtitle' },
+                    ]);
+                });
+            });
+
+            test.describe('footnote', () => {
+                test.beforeEach(async ({ page }) => {
+                    await page.mouse.click(POINT_FOOTNOTE.clientX, POINT_FOOTNOTE.clientY, { button: 'right' });
+                });
+                test('screenshot', async ({ page }) => {
+                    await expect(page).toHaveScreenshot('AG-17706-declarative-footnote-menu.png', {
+                        animations: 'disabled',
+                    });
+                });
+                test('action', async ({ page }) => {
+                    await runCaptionAction(page);
+                    expect(await popActions(page)).toEqual([
+                        { type: 'captionContextMenuAction', captionType: 'footnote' },
+                    ]);
+                });
+            });
         });
 
         test.describe('dynamic', () => {
-            // TODO(Claude) - duplicate the 'declarative' nesting entirely, but a new example called 'captions-dynamic'. The captions-dynamic is identical to the captions-declarative with these key differences:
-            // -   Used `getItems()` callback instead of `items`.
-            // -   The `getItems()` returns the same thing as `item`, but also records callbacks which can be called with the agE2E.popGetItems() function.
-            // -   In addition to duplicating the 'declarative' nesting expect/actual checks, this nesting also checks expect/actual recordings of getItems() using popGetItems(). i.e. also includes `test('getItems')`.
+            test.beforeEach(async ({ page }) => {
+                const { url } = toExamplePageUrl('context-menu-e2e', 'captions-dynamic', 'vanilla');
+                await gotoExample(page, url);
+            });
+
+            test.describe('title', () => {
+                test.beforeEach(async ({ page }) => {
+                    await page.mouse.click(POINT_TITLE.clientX, POINT_TITLE.clientY, { button: 'right' });
+                });
+                test('screenshot', async ({ page }) => {
+                    await expect(page).toHaveScreenshot('AG-17706-dynamic-title-menu.png', {
+                        animations: 'disabled',
+                    });
+                });
+                test('action', async ({ page }) => {
+                    await runCaptionAction(page);
+                    expect(await popActions(page)).toEqual([
+                        { type: 'captionContextMenuAction', captionType: 'title' },
+                    ]);
+                });
+                test('getItems', async ({ page }) => {
+                    expect(await popGetItems(page)).toEqual([{ showOn: 'caption', captionType: 'title' }]);
+                });
+            });
+
+            test.describe('subtitle', () => {
+                test.beforeEach(async ({ page }) => {
+                    await page.mouse.click(POINT_SUBTITLE.clientX, POINT_SUBTITLE.clientY, { button: 'right' });
+                });
+                test('screenshot', async ({ page }) => {
+                    await expect(page).toHaveScreenshot('AG-17706-dynamic-subtitle-menu.png', {
+                        animations: 'disabled',
+                    });
+                });
+                test('action', async ({ page }) => {
+                    await runCaptionAction(page);
+                    expect(await popActions(page)).toEqual([
+                        { type: 'captionContextMenuAction', captionType: 'subtitle' },
+                    ]);
+                });
+                test('getItems', async ({ page }) => {
+                    expect(await popGetItems(page)).toEqual([{ showOn: 'caption', captionType: 'subtitle' }]);
+                });
+            });
+
+            test.describe('footnote', () => {
+                test.beforeEach(async ({ page }) => {
+                    await page.mouse.click(POINT_FOOTNOTE.clientX, POINT_FOOTNOTE.clientY, { button: 'right' });
+                });
+                test('screenshot', async ({ page }) => {
+                    await expect(page).toHaveScreenshot('AG-17706-dynamic-footnote-menu.png', {
+                        animations: 'disabled',
+                    });
+                });
+                test('action', async ({ page }) => {
+                    await runCaptionAction(page);
+                    expect(await popActions(page)).toEqual([
+                        { type: 'captionContextMenuAction', captionType: 'footnote' },
+                    ]);
+                });
+                test('getItems', async ({ page }) => {
+                    expect(await popGetItems(page)).toEqual([{ showOn: 'caption', captionType: 'footnote' }]);
+                });
+            });
         });
-    })
+    });
 });

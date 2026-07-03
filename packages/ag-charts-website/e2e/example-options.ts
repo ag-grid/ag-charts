@@ -31,6 +31,10 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
         'interaction-ranges': { skipCanvasUpdateCheck: true },
         'node-click-select': { skipCanvasUpdateCheck: true },
     },
+    'context-menu-e2e': {
+        'captions-declarative': { frameworks: ['vanilla'] },
+        'captions-dynamic': { frameworks: ['vanilla'] },
+    },
     'financial-chart-types': {
         'toggle-financial-features': { clickOrder: 'reverse' },
     },
