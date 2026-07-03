@@ -9,9 +9,7 @@ test.describe('overlay textColor', () => {
             await gotoExample(page, url);
             await waitForAllChartUpdates(page);
 
-            const color = await page
-                .locator('.ag-charts-no-data-overlay')
-                .evaluate((el) => getComputedStyle(el).color);
+            const color = await page.locator('.ag-charts-no-data-overlay').evaluate((el) => getComputedStyle(el).color);
             expect(color).toBe('rgb(255, 0, 0)');
         });
     }
