@@ -24,7 +24,7 @@ type DatumType = {
     india: number | null;
 };
 
-const initialData: DatumType[] = [
+const baseData: DatumType[] = [
     { year: '2015', usa: 2.9, china: 7.0, india: 8.0 },
     { year: '2016', usa: 1.8, china: 6.9, india: 8.3 },
     { year: '2017', usa: 2.5, china: 6.9, india: 6.8 },
@@ -92,7 +92,7 @@ const options: AgCartesianChartOptions<DatumType> = {
     subtitle: {
         text: 'Right-click a point to change the point or its series',
     },
-    data: initialData.map((datum) => ({ ...datum })),
+    data: baseData.map((datum) => ({ ...datum })),
     series: createSeries(),
     contextMenu: {
         getItems: (params): AgContextMenuItem<DatumType>[] | undefined => {
@@ -156,6 +156,8 @@ function toggleEmphasis(seriesId: string, year: string) {
     } else {
         emphasisedPoints.add(key);
     }
+    // Reassign the data so the styler and label re-run with the updated emphasis set.
+    options.data = options.data!.map((datum) => ({ ...datum }));
     chart.update(options);
 }
 
@@ -167,22 +169,17 @@ function removeDataPoint(year: string, yKey: keyof DatumType) {
 
 /** inScope */
 function colorSeries(seriesId: string, color: string) {
-    for (const series of options.series!) {
-        if (series.type === 'line' && series.id === seriesId) {
-            series.stroke = color;
-            series.marker = { ...series.marker, fill: color, stroke: color };
-        }
-    }
+    options.series = options.series!.map((series) =>
+        series.type === 'line' && series.id === seriesId
+            ? { ...series, stroke: color, marker: { ...series.marker, fill: color, stroke: color } }
+            : series
+    );
     chart.update(options);
 }
 
 /** inScope */
 function hideSeries(seriesId: string) {
-    for (const series of options.series!) {
-        if (series.id === seriesId) {
-            series.visible = false;
-        }
-    }
+    options.series = options.series!.map((series) => (series.id === seriesId ? { ...series, visible: false } : series));
     chart.update(options);
 }
 
@@ -192,10 +189,9 @@ function removeSeries(seriesId: string) {
     chart.update(options);
 }
 
-/** inScope */
 function reset() {
     emphasisedPoints.clear();
-    options.data = initialData.map((datum) => ({ ...datum }));
+    options.data = baseData.map((datum) => ({ ...datum }));
     options.series = createSeries();
     chart.update(options);
 }
