@@ -17,12 +17,10 @@ const SMILEY_SVG =
 const TIMESTAMP_UTC_1970_01_02 = 86400000;
 
 // For e2e testing: every caption action pushes a serialisable record here, drained by `popActions()`.
-type ActionRecord = { type: string; captionType: string };
-const actions: ActionRecord[] = [];
+const actions: AgCaptionContextMenuActionEvent[] = [];
 
 // For e2e testing: every `getItems()` invocation pushes a serialisable record here, drained by `popGetItems()`.
-type GetItemsRecord = { showOn: string; captionType?: string };
-const getItemsCalls: GetItemsRecord[] = [];
+const getItemsCalls: AgContextMenuGetItemsParams[] = [];
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -41,10 +39,7 @@ const options: AgCartesianChartOptions = {
     },
     contextMenu: {
         getItems: (params: AgContextMenuGetItemsParams): AgContextMenuItem[] => {
-            getItemsCalls.push({
-                showOn: params.showOn,
-                captionType: params.showOn === 'caption' ? params.captionType : undefined,
-            });
+            getItemsCalls.push(params);
             return [
                 'defaults',
                 'separator',
@@ -52,7 +47,7 @@ const options: AgCartesianChartOptions = {
                     showOn: 'caption',
                     label: 'Run caption action',
                     action: (ev: AgCaptionContextMenuActionEvent) => {
-                        actions.push({ type: ev.type, captionType: ev.captionType });
+                        actions.push(ev);
                     },
                 },
             ];

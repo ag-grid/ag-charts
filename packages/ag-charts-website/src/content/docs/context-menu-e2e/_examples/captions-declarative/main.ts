@@ -15,8 +15,7 @@ const SMILEY_SVG =
 const TIMESTAMP_UTC_1970_01_02 = 86400000;
 
 // For e2e testing: every caption action pushes a serialisable record here, drained by `popActions()`.
-type ActionRecord = { type: string; captionType: string };
-const actions: ActionRecord[] = [];
+const actions: AgCaptionContextMenuActionEvent[] = [];
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -41,7 +40,7 @@ const options: AgCartesianChartOptions = {
                 showOn: 'caption',
                 label: 'Run caption action',
                 action: (ev: AgCaptionContextMenuActionEvent) => {
-                    actions.push({ type: ev.type, captionType: ev.captionType });
+                    actions.push(ev);
                 },
             },
         ],

@@ -1,5 +1,7 @@
 import type { Page } from '@playwright/test';
 
+import type { AgCaptionContextMenuActionEvent, AgContextMenuGetItemsParamsCaption } from 'ag-charts-community';
+
 import { expect, test } from './fixture';
 import {
     SELECTORS,
@@ -212,6 +214,40 @@ test.describe('context-menu', () => {
         const POINT_SUBTITLE = { clientX: 403, clientY: 111 };
         const POINT_FOOTNOTE = { clientX: 400, clientY: 557 };
 
+        type CaptionType = AgCaptionContextMenuActionEvent['captionType'];
+        type TextType = AgCaptionContextMenuActionEvent['text'];
+        const TEXT_TITLE: TextType = [
+            {
+                alt: 'smiley',
+                height: 55,
+                type: 'image',
+                url: 'data:image/svg+xml;charset=utf-8;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+DQogIDxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iODAiIGZpbGw9InllbGxvdyIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIzIi8+DQogIDxjaXJjbGUgY3g9IjcwIiBjeT0iODAiIHI9IjgiIGZpbGw9ImJsYWNrIi8+DQogIDxjaXJjbGUgY3g9IjEzMCIgY3k9IjgwIiByPSI4IiBmaWxsPSJibGFjayIvPg0KICA8cGF0aCBkPSJNIDYwIDEyMCBRIDEwMCAxNjAgMTQwIDEyMCIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSI0IiBmaWxsPSJ0cmFuc3BhcmVudCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+DQo8L3N2Zz4NCg==',
+                width: 55,
+            },
+            {
+                text: 'MyTitle',
+                type: 'text',
+                verticalAlign: 'middle',
+            },
+            {
+                fontWeight: 'bold',
+                text: 'MyStrong',
+                type: 'text',
+                verticalAlign: 'middle',
+            },
+        ];
+        const TEXT_SUBTITLE: TextType = new Date(86400000);
+        const TEXT_FOOTNOTE: TextType = 'MyPlaintextFootnote';
+
+        const actionEvent = (captionType: CaptionType, text: TextType) => {
+            type Rules = Omit<AgCaptionContextMenuActionEvent, 'event'> & { event: unknown };
+            return { captionType, event: expect.anything(), text, type: 'captionContextMenuAction' } satisfies Rules;
+        };
+
+        const getItemsEvent = (captionType: CaptionType, text: TextType): AgContextMenuGetItemsParamsCaption => {
+            return { captionType, defaultItems: ['download'], context: undefined, showOn: 'caption', text };
+        };
+
         const runCaptionAction = (page: Page) =>
             page.locator('.ag-charts-context-menu__item').filter({ hasText: 'Run caption action' }).click();
 
@@ -232,9 +268,7 @@ test.describe('context-menu', () => {
                 });
                 test('action', async ({ page }) => {
                     await runCaptionAction(page);
-                    expect(await popActions(page)).toEqual([
-                        { type: 'captionContextMenuAction', captionType: 'title' },
-                    ]);
+                    expect(await popActions(page)).toEqual([actionEvent('title', TEXT_TITLE)]);
                 });
             });
 
@@ -243,15 +277,11 @@ test.describe('context-menu', () => {
                     await page.mouse.click(POINT_SUBTITLE.clientX, POINT_SUBTITLE.clientY, { button: 'right' });
                 });
                 test('screenshot', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('AG-17706-subtitle-menu.png', {
-                        animations: 'disabled',
-                    });
+                    await expect(page).toHaveScreenshot('AG-17706-subtitle-menu.png', { animations: 'disabled' });
                 });
                 test('action', async ({ page }) => {
                     await runCaptionAction(page);
-                    expect(await popActions(page)).toEqual([
-                        { type: 'captionContextMenuAction', captionType: 'subtitle' },
-                    ]);
+                    expect(await popActions(page)).toEqual([actionEvent('subtitle', TEXT_SUBTITLE)]);
                 });
             });
 
@@ -260,15 +290,11 @@ test.describe('context-menu', () => {
                     await page.mouse.click(POINT_FOOTNOTE.clientX, POINT_FOOTNOTE.clientY, { button: 'right' });
                 });
                 test('screenshot', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('AG-17706-footnote-menu.png', {
-                        animations: 'disabled',
-                    });
+                    await expect(page).toHaveScreenshot('AG-17706-footnote-menu.png', { animations: 'disabled' });
                 });
                 test('action', async ({ page }) => {
                     await runCaptionAction(page);
-                    expect(await popActions(page)).toEqual([
-                        { type: 'captionContextMenuAction', captionType: 'footnote' },
-                    ]);
+                    expect(await popActions(page)).toEqual([actionEvent('footnote', TEXT_FOOTNOTE)]);
                 });
             });
         });
@@ -284,18 +310,14 @@ test.describe('context-menu', () => {
                     await page.mouse.click(POINT_TITLE.clientX, POINT_TITLE.clientY, { button: 'right' });
                 });
                 test('screenshot', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('AG-17706-title-menu.png', {
-                        animations: 'disabled',
-                    });
+                    await expect(page).toHaveScreenshot('AG-17706-title-menu.png', { animations: 'disabled' });
                 });
                 test('action', async ({ page }) => {
                     await runCaptionAction(page);
-                    expect(await popActions(page)).toEqual([
-                        { type: 'captionContextMenuAction', captionType: 'title' },
-                    ]);
+                    expect(await popActions(page)).toEqual([actionEvent('title', TEXT_TITLE)]);
                 });
                 test('getItems', async ({ page }) => {
-                    expect(await popGetItems(page)).toEqual([{ showOn: 'caption', captionType: 'title' }]);
+                    expect(await popGetItems(page)).toEqual([getItemsEvent('title', TEXT_TITLE)]);
                 });
             });
 
@@ -304,18 +326,14 @@ test.describe('context-menu', () => {
                     await page.mouse.click(POINT_SUBTITLE.clientX, POINT_SUBTITLE.clientY, { button: 'right' });
                 });
                 test('screenshot', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('AG-17706-subtitle-menu.png', {
-                        animations: 'disabled',
-                    });
+                    await expect(page).toHaveScreenshot('AG-17706-subtitle-menu.png', { animations: 'disabled' });
                 });
                 test('action', async ({ page }) => {
                     await runCaptionAction(page);
-                    expect(await popActions(page)).toEqual([
-                        { type: 'captionContextMenuAction', captionType: 'subtitle' },
-                    ]);
+                    expect(await popActions(page)).toEqual([actionEvent('subtitle', TEXT_SUBTITLE)]);
                 });
                 test('getItems', async ({ page }) => {
-                    expect(await popGetItems(page)).toEqual([{ showOn: 'caption', captionType: 'subtitle' }]);
+                    expect(await popGetItems(page)).toEqual([getItemsEvent('subtitle', TEXT_SUBTITLE)]);
                 });
             });
 
@@ -330,12 +348,10 @@ test.describe('context-menu', () => {
                 });
                 test('action', async ({ page }) => {
                     await runCaptionAction(page);
-                    expect(await popActions(page)).toEqual([
-                        { type: 'captionContextMenuAction', captionType: 'footnote' },
-                    ]);
+                    expect(await popActions(page)).toEqual([actionEvent('footnote', TEXT_FOOTNOTE)]);
                 });
                 test('getItems', async ({ page }) => {
-                    expect(await popGetItems(page)).toEqual([{ showOn: 'caption', captionType: 'footnote' }]);
+                    expect(await popGetItems(page)).toEqual([getItemsEvent('footnote', TEXT_FOOTNOTE)]);
                 });
             });
         });
