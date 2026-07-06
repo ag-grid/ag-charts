@@ -243,7 +243,7 @@ The `getItems` callback can be used to change the state or appearance of a data 
                     // Series actions
                     {
                         showOn: 'series-node',
-                        label: `Color "${seriesId}"`,
+                        label: `Colour "${seriesId}"`,
                         // A submenu of color options
                         items: seriesColors.map((color) => ({
                             type: 'action',
@@ -275,7 +275,7 @@ The menu includes actions on the clicked point and its series:
 
 - "Emphasise" enlarges the marker and displays the value. The label reads "Remove Emphasis" while the point is emphasised.
 - "Remove Point" sets the point's value to `null`, leaving a gap in the line.
-- "Color" is a submenu of preset colours; choosing one recolours the series line and its markers.
+- "Colour" is a submenu of preset colours; choosing one recolours the series line and its markers.
 - "Hide Series" sets `series.visible` to `false`.
 - "Remove Series" drops the series from `series`.
 

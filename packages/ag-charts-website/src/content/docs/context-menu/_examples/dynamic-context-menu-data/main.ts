@@ -132,7 +132,7 @@ function getItems(params: AgContextMenuGetItemsParams<DatumType>): AgContextMenu
             'separator',
             {
                 showOn: 'series-node',
-                label: `Color "${seriesId}"`,
+                label: `Colour "${seriesId}"`,
                 items: seriesColors.map((color) => ({
                     type: 'action',
                     showOn: 'series-node',
