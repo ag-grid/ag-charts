@@ -164,7 +164,7 @@ export abstract class AbstractNetworkSeries<
                     clickedNode?.series !== this ||
                     clickedNode.itemId == null ||
                     hasClickSelectionModifier(event, clickModifier) ||
-                    !this.shouldToggleCollapseOnClick(target)
+                    !this.hasBuiltinListener(target)
                 ) {
                     return;
                 }
@@ -179,12 +179,6 @@ export abstract class AbstractNetworkSeries<
                 }
             })
         );
-    }
-
-    // Whether a click on `target` should toggle collapse. The whole node is the target by
-    // default; OrganizationSeries narrows this to the expander control.
-    protected shouldToggleCollapseOnClick(_target: _ModuleSupport.Node<unknown> | undefined): boolean {
-        return true;
     }
 
     abstract createNetworkGraph(): TGraph;

@@ -466,7 +466,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     // Keyboard activations have no pointer target — allow them; pointer clicks must hit the expander.
-    protected override shouldToggleCollapseOnClick(target: _ModuleSupport.Node<unknown> | undefined): boolean {
+    override hasBuiltinListener(target: _ModuleSupport.Node<unknown> | undefined): boolean {
         const expanderTag: number = OrganizationNodeTag.Expander;
         return target == null || target.tag === expanderTag;
     }

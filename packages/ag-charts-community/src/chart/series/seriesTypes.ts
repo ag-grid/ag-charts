@@ -12,6 +12,7 @@ import type { AgActiveItemState, AgNumericValue, SelectionState as PublicSelecti
 
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
+import type { Node } from '../../scene/node';
 import type { TypedEvent } from '../../util/observable';
 import type { ProcessedData } from '../data/dataModelTypes';
 import type { DataSet } from '../data/dataSet';
@@ -116,6 +117,8 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     properties: TProps;
     events: { emit: (type: 'data-selection-change', event: null) => void };
     hasEventListener(type: string): boolean;
+    /** Whether a click on `target` triggers a built-in interaction (e.g. the org-chart expander). */
+    hasBuiltinListener(target: Node<unknown> | undefined): boolean;
     hasData: boolean;
     update(opts: { seriesRect?: BBox }): Promise<void> | void;
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[]): void;
