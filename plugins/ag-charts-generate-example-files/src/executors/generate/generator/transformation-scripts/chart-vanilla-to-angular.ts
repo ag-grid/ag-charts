@@ -24,7 +24,7 @@ const tags: Record<ChartAPI, string> = {
 };
 
 function processFunction(code: string, suppressOptionsClone: boolean, methodNames: string[] = []): string {
-    let processed = wrapOptionsUpdateCode(
+    const processed = wrapOptionsUpdateCode(
         convertFunctionToProperty(code),
         'this.options',
         undefined,
@@ -32,18 +32,22 @@ function processFunction(code: string, suppressOptionsClone: boolean, methodName
         !suppressOptionsClone
     );
 
-    // Add this. prefix to instance method calls within this function
+    return prefixInstanceMethodCalls(processed, methodNames);
+}
+
+// Add this. prefix to instance method calls within the given code
+function prefixInstanceMethodCalls(code: string, methodNames: string[]): string {
     methodNames.forEach((methodName) => {
         if (!GLOBAL_FUNCTIONS.includes(methodName)) {
             // Negative lookbehind: not preceded by '.' (covers this.method, obj.method, etc.)
             // Negative lookahead: not followed by '=' or ':' (for declarations like 'method = ')
             // https://regex101.com/r/u79W6c/4
             const regex = new RegExp(`(?<!\\.|'|")\\b${methodName}\\b(?!\\s*[=:])`, 'g');
-            processed = processed.replace(regex, `this.${methodName}`);
+            code = code.replace(regex, `this.${methodName}`);
         }
     });
 
-    return processed;
+    return code;
 }
 
 function getImports(bindings, componentFileNames: string[], { typeParts }): string[] {
@@ -57,10 +61,12 @@ function getImports(bindings, componentFileNames: string[], { typeParts }): stri
         ...i,
         imports: i.imports.filter((imp) => imp !== 'AgCharts'),
     }));
+    // Skip type parts already imported by the example (e.g. from 'ag-charts-types') to avoid duplicate imports.
+    const alreadyImported = new Set(bImports.flatMap((i) => i.imports));
     bImports.push({
         module: enterprise ? `'ag-charts-enterprise'` : `'ag-charts-community'`,
         isNamespaced: false,
-        imports: typeParts.filter((imp) => !declaredTypeNames.includes(imp)),
+        imports: typeParts.filter((imp) => !declaredTypeNames.includes(imp) && !alreadyImported.has(imp)),
     });
 
     const imports = [`import { Component${bindings.usesChartApi ? ', ViewChild' : ''} } from '@angular/core';`];
@@ -79,7 +85,7 @@ function getImports(bindings, componentFileNames: string[], { typeParts }): stri
     return imports;
 }
 
-function getComponentMetadata(bindings: any, property: any) {
+function getComponentMetadata(bindings: any, property: any, methodNames: string[]) {
     const propertyAttributes = [];
     const propertyVars = [];
     const propertyAssignments = [];
@@ -87,7 +93,8 @@ function getComponentMetadata(bindings: any, property: any) {
     if (!isInstanceMethod(bindings.instanceMethods, property)) {
         propertyAttributes.push(`[options]="${property.name}"`);
         propertyVars.push(`public ${property.name};`);
-        propertyAssignments.push(`this.${property.name} = ${property.value};`);
+        // Callbacks inside the options literal may call instance methods, so prefix those calls too.
+        propertyAssignments.push(`this.${property.name} = ${prefixInstanceMethodCalls(property.value, methodNames)};`);
     }
 
     return { propertyAttributes, propertyVars, propertyAssignments };
@@ -183,12 +190,16 @@ export async function vanillaToAngular(
     let indexFile: string;
 
     if (placeholders.length <= 1) {
-        const options = properties.find((p) => p.name === 'options');
-        const { propertyAttributes, propertyAssignments, propertyVars } = getComponentMetadata(bindings, options);
-        const template = getTemplate(bindings, placeholders[0], propertyAttributes);
-
-        // Get method names first so we can transform calls within method bodies
+        // Get method names first so we can transform calls within method bodies and the options literal
         const methodNames = getInstanceMethodNames(bindings);
+
+        const options = properties.find((p) => p.name === 'options');
+        const { propertyAttributes, propertyAssignments, propertyVars } = getComponentMetadata(
+            bindings,
+            options,
+            methodNames
+        );
+        const template = getTemplate(bindings, placeholders[0], propertyAttributes);
 
         const instanceMethods = bindings.instanceMethods.map((v) =>
             processFunction(v, suppressOptionsClone, methodNames)
@@ -262,9 +273,11 @@ export async function vanillaToAngular(
             const className = toTitleCase(id);
 
             const propertyName = bindings.chartProperties[id];
+            // Per-chart components have no instance methods, so there is nothing to prefix with this.
             const { propertyAttributes, propertyAssignments, propertyVars } = getComponentMetadata(
                 bindings,
-                properties.find((p) => p.name === propertyName)
+                properties.find((p) => p.name === propertyName),
+                []
             );
 
             const template = getAngularTag(bindings, propertyAttributes);

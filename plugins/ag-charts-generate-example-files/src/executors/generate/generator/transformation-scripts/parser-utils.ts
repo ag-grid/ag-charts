@@ -96,10 +96,10 @@ export function getFunctionName(code: string): string {
 }
 
 export const convertFunctionToProperty = (code: string) =>
-    code.replace(/(async )?function\s+([^(\s]+)\s*\(([^)]*)\)/, '$2 = $1($3) =>');
+    code.replace(/(async )?function\s+([^(\s]+)\s*\(([^)]*)\)\s*((?::[^{]*?)?)\s*{/, '$2 = $1($3)$4 => {');
 
 export const convertFunctionToConstProperty = (code: string) =>
-    code.replace(/(async ){0,1}function\s+([^(\s]+)\s*\(([^)]*)\)/, 'const $2 = $1($3) =>');
+    code.replace(/(async ){0,1}function\s+([^(\s]+)\s*\(([^)]*)\)\s*((?::[^{]*?)?)\s*{/, 'const $2 = $1($3)$4 => {');
 export const convertFunctionToConstPropertyTs = (code: string) => {
     return code.replace(/(async ){0,1}function\s+([^(\s]+)\s*\(([^)]*)\)(:?\s+[^{]*)/, 'const $2 = $1($3) $4 =>');
 };
