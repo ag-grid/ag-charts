@@ -154,6 +154,34 @@ function nodeClick() {
         expect(output).toContain('listeners: { nodeClick: this.nodeClick }');
     });
 
+    test('angular output does not prefix instance-method names inside string literals', async () => {
+        // A string value in the options literal that happens to contain a method name as a substring
+        // (here `repeat` inside `'no-repeat'`) must be left untouched — only real calls are prefixed.
+        const src = `
+import { AgChartOptions, AgCharts } from 'ag-charts-community';
+
+const options: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    data: [{ quarter: 'Q1', value: 1 }],
+    series: [{ type: 'bar', xKey: 'quarter', yKey: 'value', repeat: 'no-repeat' }],
+};
+
+const chart = AgCharts.create(options);
+
+function repeat() {
+    options.data = [{ quarter: 'Q1', value: 2 }];
+    chart.update(options);
+}
+`;
+        const { typedBindings } = parse(src);
+        const output = await vanillaToAngular(typedBindings, [], false);
+
+        // The string literal is preserved verbatim...
+        expect(output).toContain("repeat: 'no-repeat'");
+        // ...and is never corrupted into the prefixed form.
+        expect(output).not.toContain('no-this.repeat');
+    });
+
     test('angular output does not duplicate option types already imported from ag-charts-types', async () => {
         const src = `
 import { AgCharts } from 'ag-charts-community';

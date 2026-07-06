@@ -35,23 +35,45 @@ function processFunction(code: string, suppressOptionsClone: boolean, methodName
     return prefixInstanceMethodCalls(processed, methodNames);
 }
 
+// Matches JS string literals, template literals, and comments. Their contents must be treated as
+// opaque text when prefixing instance-method calls — otherwise a method name that happens to appear
+// as a substring inside a string (e.g. `repeat` inside `'no-repeat'`) would be wrongly rewritten.
+const STRINGS_AND_COMMENTS = /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`|\/\/[^\n]*|\/\*[\s\S]*?\*\//g;
+
 // Add this. prefix to instance method calls within the given code
 function prefixInstanceMethodCalls(code: string, methodNames: string[]): string {
-    methodNames.forEach((methodName) => {
-        if (!GLOBAL_FUNCTIONS.includes(methodName)) {
+    const targets = methodNames.filter((methodName) => !GLOBAL_FUNCTIONS.includes(methodName));
+    if (targets.length === 0) {
+        return code;
+    }
+
+    const prefixCodeSegment = (segment: string): string => {
+        targets.forEach((methodName) => {
             // Object-literal shorthand ({ method }) must expand to a full property ({ method: this.method });
             // a bare `this.` prefix there would be invalid syntax.
             const shorthandRegex = new RegExp(`(?<=[{,]\\s*)\\b${methodName}\\b(?=\\s*[,}])`, 'g');
-            code = code.replace(shorthandRegex, `${methodName}: this.${methodName}`);
+            segment = segment.replace(shorthandRegex, `${methodName}: this.${methodName}`);
             // Negative lookbehind: not preceded by '.' (covers this.method, obj.method, etc.)
             // Negative lookahead: not followed by '=' or ':' (for declarations like 'method = ')
             // https://regex101.com/r/u79W6c/4
-            const regex = new RegExp(`(?<!\\.|'|")\\b${methodName}\\b(?!\\s*[=:])`, 'g');
-            code = code.replace(regex, `this.${methodName}`);
-        }
-    });
+            const regex = new RegExp(`(?<!\\.)\\b${methodName}\\b(?!\\s*[=:])`, 'g');
+            segment = segment.replace(regex, `this.${methodName}`);
+        });
+        return segment;
+    };
 
-    return code;
+    // Prefix only the code between string/template/comment literals; emit the literals verbatim so
+    // their contents are never rewritten.
+    let result = '';
+    let lastIndex = 0;
+    for (const match of code.matchAll(STRINGS_AND_COMMENTS)) {
+        const start = match.index ?? 0;
+        result += prefixCodeSegment(code.slice(lastIndex, start)) + match[0];
+        lastIndex = start + match[0].length;
+    }
+    result += prefixCodeSegment(code.slice(lastIndex));
+
+    return result;
 }
 
 function getImports(bindings, componentFileNames: string[], { typeParts }): string[] {
