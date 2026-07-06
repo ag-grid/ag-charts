@@ -849,7 +849,6 @@ jobs:
               uses: ./.github/actions/snapshot-notify
               with:
                   branch: ${{ needs.init.outputs.snapshot_branch }}
-                  run_started_at: ${{ github.run_started_at }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
 

@@ -5,8 +5,9 @@ inputs:
         description: 'Snapshot branch name to use.'
         required: true
     run_started_at:
-        description: 'ISO timestamp when the workflow run started (github.run_started_at). Used to detect stale snapshot branches from previous attempts.'
-        required: true
+        description: 'DEPRECATED — ignored. The action resolves the current attempt start time from the runs API itself.'
+        required: false
+        default: ''
     github_token:
         description: 'GitHub token to use for PR creation.'
         required: true
@@ -25,11 +26,25 @@ runs:
           id: snapshot_check
           if: inputs.branch != ''
           shell: bash
+          env:
+              GH_TOKEN: ${{ inputs.github_token }}
           run: |
               set -eux
 
               branch=${{ inputs.branch }}
-              run_started_at="${{ inputs.run_started_at }}"
+              # `github.run_started_at` is NOT a valid workflow context property — it
+              # always renders empty, which made the staleness check below dead code
+              # (any existing snapshot branch → updated=true), so a `rerun --failed`
+              # after a snapshot failure could never turn the run green. Resolve the
+              # timestamp from the runs API instead; its run_started_at resets per
+              # attempt, which is exactly the wanted semantics: a snapshot pushed
+              # during THIS attempt is new (fail/notify), one left over from a
+              # previous attempt is stale (pass).
+              run_started_at=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" --jq .run_started_at)
+              if [[ -z "${run_started_at}" ]]; then
+                  echo "::error::could not resolve run_started_at from the runs API"
+                  exit 1
+              fi
 
               if (git ls-remote --exit-code --heads origin ${branch} >/dev/null) ; then
                   # Get the timestamp of the latest commit on the snapshot branch
