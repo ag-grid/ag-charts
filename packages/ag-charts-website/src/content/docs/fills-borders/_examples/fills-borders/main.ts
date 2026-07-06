@@ -10,9 +10,18 @@ const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Weight vs Height',
+        fill: '#f0f4f9',
+        cornerRadius: 8,
+        border: {
+            enabled: true,
+            stroke: '#999',
+            strokeWidth: 1,
+        },
     },
     subtitle: {
         text: 'by gender',
+        fill: '#f0f4f9',
+        cornerRadius: 8,
     },
     seriesArea: {
         border: {

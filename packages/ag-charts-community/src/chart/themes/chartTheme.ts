@@ -67,6 +67,21 @@ import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultCol
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_BACKGROUND_FILL = '#ffffff';
 
+// A fresh object per caption keeps the relative `$path`/`$isUserOption` padding expressions isolated.
+function captionBoxThemeDefaults() {
+    return {
+        cornerRadius: 4,
+        border: { enabled: false, strokeWidth: 1, stroke: { $foregroundOpacity: 0.08 } },
+        padding: {
+            $if: [
+                { $path: './border/enabled' },
+                { left: 12, right: 12, top: 8, bottom: 8 },
+                { $isUserOption: ['./fill', { left: 12, right: 12, top: 8, bottom: 8 }, 0] },
+            ],
+        },
+    };
+}
+
 type OverridesKey = keyof AgThemeOverrides;
 
 const PRESET_OVERRIDES_TYPES: Record<keyof AgPresetOverrides, true> = {
@@ -252,6 +267,7 @@ export class ChartTheme {
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
+                ...captionBoxThemeDefaults(),
             },
             subtitle: {
                 enabled: false,
@@ -264,6 +280,7 @@ export class ChartTheme {
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
+                ...captionBoxThemeDefaults(),
             },
             footnote: {
                 enabled: false,
@@ -276,6 +293,7 @@ export class ChartTheme {
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
+                ...captionBoxThemeDefaults(),
             },
             highlight: {
                 enabled: true,

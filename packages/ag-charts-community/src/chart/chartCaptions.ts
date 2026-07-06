@@ -53,10 +53,13 @@ export class ChartCaptions {
 
             const textAlign = opts.textAlign ?? 'center';
             if (textAlign === 'left') {
-                caption.node.x = rect.x + caption.padding;
+                caption.node.x = rect.x + caption.contentPadding.left;
             } else if (textAlign === 'right') {
+                // A drawn box grows the measured bounds by its padding, so `bbox.width` already
+                // accounts for the right inset; an unboxed caption still needs it applied.
                 const bbox = caption.node.getBBox();
-                caption.node.x = rect.x + rect.width - bbox.width - caption.padding;
+                const rightInset = caption.contentPadding.right - caption.boxPadding.right;
+                caption.node.x = rect.x + rect.width - bbox.width - rightInset;
             }
         }
     }
@@ -74,10 +77,20 @@ export class ChartCaptions {
         const opts = caption.opts;
         const font = captionFont(opts);
         const text = opts.text;
+        const textAlign = opts.textAlign ?? 'center';
+        const { left, right, top, bottom } = caption.contentPadding;
+        // Inset the node so its text (and any background box) sits inside the layout edge. Only
+        // left/right alignment gets a horizontal inset — a centred caption must stay centred.
+        let xInset = 0;
+        if (textAlign === 'left') {
+            xInset = left;
+        } else if (textAlign === 'right') {
+            xInset = -right;
+        }
         // Position the node even when text is empty so its bbox reserves a line of space —
         // an `enabled: true` caption with `text: ''` should still occupy layout (AG-16511).
-        caption.node.x = this.computeX(opts.textAlign ?? 'center', layoutBox) + caption.padding;
-        caption.node.y = layoutBox.y + (vAlign === 'top' ? 0 : layoutBox.height) + caption.padding;
+        caption.node.x = this.computeX(textAlign, layoutBox) + xInset;
+        caption.node.y = layoutBox.y + (vAlign === 'top' ? top : layoutBox.height - bottom);
         caption.node.textBaseline = vAlign;
         if (!text) return;
         const { lineMetrics } = isArray(text)
@@ -101,7 +114,14 @@ export class ChartCaptions {
             if (vAlign === 'bottom') bbox.y -= bbox.height;
         }
 
-        if (vAlign === 'bottom' && isArray(opts.text)) {
+        const richText = isArray(opts.text);
+        const { top, bottom } = caption.boxPadding;
+
+        if (richText && (top !== 0 || bottom !== 0)) {
+            // Segment bboxes aren't grown by the background box (unlike plain text); grow
+            // explicitly so a boxed rich-text caption reserves the same layout as a boxed plain one.
+            bbox.grow(caption.boxPadding);
+        } else if (vAlign === 'bottom' && richText) {
             bbox.y -= bbox.height;
         }
         layoutBox.shrink(
