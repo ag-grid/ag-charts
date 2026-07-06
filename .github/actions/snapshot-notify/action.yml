@@ -4,9 +4,6 @@ inputs:
     branch:
         description: 'Snapshot branch name to use.'
         required: true
-    run_started_at:
-        description: 'ISO timestamp when the workflow run started (github.run_started_at). Used to detect stale snapshot branches from previous attempts.'
-        required: true
     github_token:
         description: 'GitHub token to use for PR creation.'
         required: true
@@ -25,11 +22,19 @@ runs:
           id: snapshot_check
           if: inputs.branch != ''
           shell: bash
+          env:
+              GH_TOKEN: ${{ inputs.github_token }}
           run: |
               set -eux
 
               branch=${{ inputs.branch }}
-              run_started_at="${{ inputs.run_started_at }}"
+              # Start time of the CURRENT attempt, so a snapshot branch pushed
+              # during a previous attempt reads as stale on a rerun.
+              run_started_at=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT:-1}" --jq .run_started_at)
+              if [[ -z "${run_started_at}" ]]; then
+                  echo "::error::could not resolve run_started_at from the runs API"
+                  exit 1
+              fi
 
               if (git ls-remote --exit-code --heads origin ${branch} >/dev/null) ; then
                   # Get the timestamp of the latest commit on the snapshot branch
