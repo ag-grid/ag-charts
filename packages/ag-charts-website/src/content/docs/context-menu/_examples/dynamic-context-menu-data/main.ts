@@ -7,7 +7,12 @@ import {
     ModuleRegistry,
     NumberAxisModule,
 } from 'ag-charts-enterprise';
-import type { AgCartesianChartOptions, AgContextMenuItem, AgLineSeriesOptions } from 'ag-charts-types';
+import type {
+    AgCartesianChartOptions,
+    AgContextMenuGetItemsParams,
+    AgContextMenuItem,
+    AgLineSeriesOptions,
+} from 'ag-charts-types';
 
 ModuleRegistry.registerModules([
     LineSeriesModule,
@@ -84,6 +89,9 @@ function createSeries(): AgLineSeriesOptions<DatumType>[] {
     );
 }
 
+let data: DatumType[] = baseData.map((datum) => ({ ...datum }));
+let series: AgLineSeriesOptions<DatumType>[] = createSeries();
+
 const options: AgCartesianChartOptions<DatumType> = {
     container: document.getElementById('myChart'),
     title: {
@@ -92,61 +100,70 @@ const options: AgCartesianChartOptions<DatumType> = {
     subtitle: {
         text: 'Right-click a point to change the point or its series',
     },
-    data: baseData.map((datum) => ({ ...datum })),
-    series: createSeries(),
-    contextMenu: {
-        getItems: (params): AgContextMenuItem<DatumType>[] | undefined => {
-            if (params.showOn === 'series-node') {
-                const { seriesId } = params;
-                const year = String(params.datum[params.xKey!]);
-                const yKey = params.yKey!;
-                const isEmphasised = emphasisedPoints.has(pointKey(seriesId, year));
-                return [
-                    'defaults',
-                    'separator',
-                    {
-                        type: 'action',
-                        showOn: 'series-node',
-                        label: `${isEmphasised ? 'Remove Emphasis from' : 'Emphasise'} "${year}" Point`,
-                        action: () => toggleEmphasis(seriesId, year),
-                    },
-                    {
-                        type: 'action',
-                        showOn: 'series-node',
-                        label: `Remove "${year}" Point`,
-                        action: () => removeDataPoint(year, yKey),
-                    },
-                    'separator',
-                    {
-                        showOn: 'series-node',
-                        label: `Color "${seriesId}"`,
-                        items: seriesColors.map((color) => ({
-                            type: 'action',
-                            showOn: 'series-node',
-                            label: color.label,
-                            iconUrl: colorSwatch(color.value),
-                            action: () => colorSeries(seriesId, color.value),
-                        })),
-                    },
-                    {
-                        type: 'action',
-                        showOn: 'series-node',
-                        label: `Hide "${seriesId}"`,
-                        action: () => hideSeries(seriesId),
-                    },
-                    {
-                        type: 'action',
-                        showOn: 'series-node',
-                        label: `Remove "${seriesId}"`,
-                        action: () => removeSeries(seriesId),
-                    },
-                ];
-            }
-        },
-    },
+    data,
+    series,
+    contextMenu: { getItems: (params) => getItems(params) },
 };
 
 const chart = AgCharts.create(options);
+
+/** inScope */
+function getItems(params: AgContextMenuGetItemsParams<DatumType>): AgContextMenuItem<DatumType>[] | undefined {
+    if (params.showOn === 'series-node') {
+        const { seriesId } = params;
+        const year = String(params.datum[params.xKey!]);
+        const yKey = params.yKey!;
+        const isEmphasised = emphasisedPoints.has(pointKey(seriesId, year));
+        return [
+            'defaults',
+            'separator',
+            {
+                type: 'action',
+                showOn: 'series-node',
+                label: `${isEmphasised ? 'Remove Emphasis from' : 'Emphasise'} "${year}" Point`,
+                action: () => toggleEmphasis(seriesId, year),
+            },
+            {
+                type: 'action',
+                showOn: 'series-node',
+                label: `Remove "${year}" Point`,
+                action: () => removeDataPoint(year, yKey),
+            },
+            'separator',
+            {
+                showOn: 'series-node',
+                label: `Color "${seriesId}"`,
+                items: seriesColors.map((color) => ({
+                    type: 'action',
+                    showOn: 'series-node',
+                    label: color.label,
+                    iconUrl: colorSwatch(color.value),
+                    action: () => colorSeries(seriesId, color.value),
+                })),
+            },
+            {
+                type: 'action',
+                showOn: 'series-node',
+                label: `Hide "${seriesId}"`,
+                action: () => hideSeries(seriesId),
+            },
+            {
+                type: 'action',
+                showOn: 'series-node',
+                label: `Remove "${seriesId}"`,
+                action: () => removeSeries(seriesId),
+            },
+        ];
+    }
+}
+
+// Sync both data and series so every update reflects the full current state.
+/** inScope */
+function syncOptions() {
+    options.data = data;
+    options.series = series;
+    chart.update(options);
+}
 
 /** inScope */
 function toggleEmphasis(seriesId: string, year: string) {
@@ -157,41 +174,39 @@ function toggleEmphasis(seriesId: string, year: string) {
         emphasisedPoints.add(key);
     }
     // Reassign the data so the styler and label re-run with the updated emphasis set.
-    options.data = options.data!.map((datum) => ({ ...datum }));
-    chart.update(options);
+    data = data.map((datum) => ({ ...datum }));
+    syncOptions();
 }
 
 /** inScope */
 function removeDataPoint(year: string, yKey: keyof DatumType) {
-    options.data = options.data!.map((datum) => (datum.year === year ? { ...datum, [yKey]: null } : datum));
-    chart.update(options);
+    data = data.map((datum) => (datum.year === year ? { ...datum, [yKey]: null } : datum));
+    syncOptions();
 }
 
 /** inScope */
 function colorSeries(seriesId: string, color: string) {
-    options.series = options.series!.map((series) =>
-        series.type === 'line' && series.id === seriesId
-            ? { ...series, stroke: color, marker: { ...series.marker, fill: color, stroke: color } }
-            : series
+    series = series.map((s) =>
+        s.id === seriesId ? { ...s, stroke: color, marker: { ...s.marker, fill: color, stroke: color } } : s
     );
-    chart.update(options);
+    syncOptions();
 }
 
 /** inScope */
 function hideSeries(seriesId: string) {
-    options.series = options.series!.map((series) => (series.id === seriesId ? { ...series, visible: false } : series));
-    chart.update(options);
+    series = series.map((s) => (s.id === seriesId ? { ...s, visible: false } : s));
+    syncOptions();
 }
 
 /** inScope */
 function removeSeries(seriesId: string) {
-    options.series = options.series!.filter((series) => series.id !== seriesId);
-    chart.update(options);
+    series = series.filter((s) => s.id !== seriesId);
+    syncOptions();
 }
 
 function reset() {
     emphasisedPoints.clear();
-    options.data = baseData.map((datum) => ({ ...datum }));
-    options.series = createSeries();
-    chart.update(options);
+    data = baseData.map((datum) => ({ ...datum }));
+    series = createSeries();
+    syncOptions();
 }
