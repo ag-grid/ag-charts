@@ -5,7 +5,8 @@ import type { ContentSegment, ImageSegment, TextSegment } from 'ag-charts-types'
 import { measureTextSegments } from '../../rendering/textMeasurer';
 import type { ITextMeasurer, MeasuredSegment } from '../../types/text';
 import { EllipsisChar } from './textUtils';
-import { clipLines, truncateLine, wrapLines, wrapTextSegments } from './textWrapper';
+import type { FontOptions } from './textUtils';
+import { clipLines, fitLabelText, truncateLine, wrapLines, wrapTextSegments } from './textWrapper';
 
 // Mock only the canvas leaf so the real cachedTextMeasurer, measureTextSegments and
 // wrapTextSegments run their actual logic against deterministic metrics: every grapheme cluster
@@ -942,5 +943,26 @@ describe('wrapTextSegments — non-never wrap modes with image segments', () => 
 
         expect(imageUrls(result)).toEqual(['https://example.com/icon.png']);
         expect(textOf(result).replace(/\s+/g, ' ').trim()).toBe('AB CD EF');
+    });
+});
+
+describe('fitLabelText', () => {
+    const font: FontOptions = { fontSize: 10, fontFamily: 'sans-serif' };
+
+    it('returns the text unchanged when no fit policy is supplied', () => {
+        expect(fitLabelText('Hello World', undefined, font)).toBe('Hello World');
+    });
+
+    it('returns the text unchanged when the policy sets no width or height bound', () => {
+        expect(fitLabelText('Hello World', { wrapping: 'always' }, font)).toBe('Hello World');
+    });
+
+    it('wraps text to the maxWidth budget', () => {
+        // Each grapheme is 10px, so a 60px budget fits 6 chars per line.
+        expect(fitLabelText('Hello World', { maxWidth: 60 }, font)).toBe('Hello\nWorld');
+    });
+
+    it('truncates with an ellipsis when wrapping is disabled and the text overflows maxWidth', () => {
+        expect(fitLabelText('Hello World', { maxWidth: 60, wrapping: 'never' }, font)).toBe(`Hello${E}`);
     });
 });

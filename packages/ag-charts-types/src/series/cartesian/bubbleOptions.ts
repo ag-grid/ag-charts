@@ -6,10 +6,11 @@ import type {
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { ContextDefault, DatumDefault, DatumKey, LabelPlacement, PixelSize } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey, PixelSize } from '../../chart/types';
 import type { AgSeriesMarkerStyle } from '../markerOptions';
 import type {
     AgBaseCartesianThemeableOptions,
@@ -36,11 +37,12 @@ export interface AgBubbleSeriesLabel<TDatum, TContext = ContextDefault> extends 
     TContext
 > {
     /**
-     * Placement of label in relation to the marker.
+     * Placement of the label in relation to the marker. Either a single placement or an ordered
+     * fallback list tried in turn until one fits.
      *
      * Default: `top`
      */
-    placement?: LabelPlacement;
+    placement?: AgChartLabelCollisionPlacement | AgChartLabelCollisionPlacement[];
 }
 
 export interface AgBubbleSeriesStyle extends AgSeriesMarkerStyle {}

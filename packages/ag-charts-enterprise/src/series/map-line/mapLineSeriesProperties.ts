@@ -12,7 +12,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { FeatureCollection, Geometry, PointLabelDatum } from 'ag-charts-core';
 import { Property } from 'ag-charts-core';
 
-const { ColorScaleProperties, SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
+const { ColorScaleProperties, SeriesProperties, makeSeriesTooltip, FittableLabel } = _ModuleSupport;
 export interface MapLineNodeLabelDatum extends PointLabelDatum {
     readonly datumIndex: number;
     readonly idValue: string;
@@ -96,7 +96,7 @@ export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOpt
     itemStyler?: Styler<AgMapLineSeriesItemStylerParams<unknown>, AgMapLineSeriesStyle>;
 
     @Property
-    readonly label = new Label<AgMapLineSeriesLabelFormatterParams>();
+    readonly label = new FittableLabel<AgMapLineSeriesLabelFormatterParams>();
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgMapLineSeriesTooltipRendererParams<any>>();

@@ -52,8 +52,11 @@ export interface AgRangeBarSeriesLabelOptions<TDatum, TContext = ContextDefault>
     AgRangeBarSeriesLabelFormatterParams<TDatum>,
     TContext
 > {
-    /** Where to render series labels relative to the bars. */
-    placement?: AgRangeBarSeriesLabelPlacement;
+    /**
+     * Where to render series labels relative to the bars. Either a single placement or an ordered
+     * fallback list tried in turn until one fits.
+     */
+    placement?: AgRangeBarSeriesLabelPlacement | AgRangeBarSeriesLabelPlacement[];
     /** Spacing in pixels between the label and the edge of the bar. */
     spacing?: PixelSize;
 }

@@ -9,6 +9,7 @@ import {
     enterprise,
     errorBarOptionsDefs,
     errorBarThemeableOptionsDefs,
+    labelCollisionPlacementDef,
     markerOptionsDefs,
     multiSeriesHighlightOptionsDef,
     number,
@@ -18,7 +19,6 @@ import {
     string,
     tooltipOptionsDefs,
     undocumented,
-    union,
     without,
 } from 'ag-charts-core';
 import type {
@@ -31,7 +31,7 @@ export const scatterSeriesThemeableOptionsDef: OptionsDefs<AgScatterSeriesThemea
     title: string,
     showInMiniChart: boolean,
     label: {
-        placement: union('top', 'right', 'bottom', 'left'),
+        placement: labelCollisionPlacementDef,
         ...seriesLabelOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,

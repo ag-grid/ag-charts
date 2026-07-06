@@ -472,7 +472,8 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
-        const { collisionAvoidance } = this.properties.label;
+        const { label } = this.properties;
+        const { collisionAvoidance } = label;
 
         return {
             xAxis,
@@ -499,9 +500,10 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             labelPadding: expandLabelPadding(this.properties.label),
             labelTextMeasurer: cachedTextMeasurer(this.properties.label),
             labelAvoid: collisionAvoidance.avoid,
-            labelPlacements: collisionAvoidance.placements(DEFAULT_PLACED_LABEL_PLACEMENTS),
+            labelPlacements: label.placements(DEFAULT_PLACED_LABEL_PLACEMENTS),
             labelMinSpacing: collisionAvoidance.minSpacing,
             labelCollideWith: collisionAvoidance.resolveCollideWith(),
+            labelFit: label.resolveFit(),
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,
             dataAggregationFilter,

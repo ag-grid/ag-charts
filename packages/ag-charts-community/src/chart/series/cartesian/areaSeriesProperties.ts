@@ -11,7 +11,7 @@ import type {
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';
-import { Label } from '../../label';
+import { PlacedSeriesLabel } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { makeSeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
@@ -75,7 +75,7 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgAreaSeries
     readonly marker = new SeriesMarker<AgAreaSeriesMarkerItemStylerParams>();
 
     @Property
-    readonly label = new Label<AgAreaSeriesLabelFormatterParams>();
+    readonly label = new PlacedSeriesLabel<AgAreaSeriesLabelFormatterParams>();
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgAreaSeriesTooltipRendererParams>();

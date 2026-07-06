@@ -1,28 +1,33 @@
 import {
     BaseProperties,
     type CollideWith,
+    type LabelFit,
     type LabelPlacement,
     type NormalisedTextOrSegments,
     Property,
     type RequireOptional,
     isArray,
+    toArray,
 } from 'ag-charts-core';
 import type {
     AgChartLabelCollideWithCategoryOptions,
     AgChartLabelCollideWithOptions,
     AgChartLabelCollisionAvoidanceOptions,
-    AgChartLabelCollisionStrategy,
+    AgChartLabelCollisionPlacement,
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
+    AgChartLabelOrientation,
     AgChartLabelStyleOptions,
     AgChartLabelStylerParams,
     ContextDefault,
     FontStyle,
     FontWeight,
+    OverflowStrategy,
     Padding,
     PaddingOptions,
     RichFormatter,
     Styler,
+    TextWrap,
 } from 'ag-charts-types';
 
 import type { ContextFormatter } from '../module/axisContext';
@@ -72,9 +77,6 @@ export class LabelCollisionAvoidance extends BaseProperties implements AgChartLa
     enabled?: boolean;
 
     @Property
-    strategy?: AgChartLabelCollisionStrategy[];
-
-    @Property
     minSpacing?: number;
 
     @Property
@@ -83,13 +85,6 @@ export class LabelCollisionAvoidance extends BaseProperties implements AgChartLa
     /** Whether labels should be resolved against obstacles; otherwise placed unconditionally. */
     get avoid(): boolean {
         return this.enabled === true;
-    }
-
-    /** Placements from the `reposition` strategy, falling back to the series' own default. */
-    placements(fallback: readonly LabelPlacement[]): readonly LabelPlacement[] {
-        if (!this.avoid) return fallback;
-        const reposition = this.strategy?.find((s) => s.type === 'reposition');
-        return reposition?.placements ?? fallback;
     }
 
     /** Resolved per-category obstacle config, or `undefined` when not avoiding collisions. */
@@ -148,6 +143,9 @@ export class Label<TParams = never, TDatum = any>
     collisionAvoidance = new LabelCollisionAvoidance();
 
     @Property
+    orientation?: AgChartLabelOrientation | AgChartLabelOrientation[];
+
+    @Property
     formatter?: RichFormatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
 
     @Property
@@ -155,6 +153,11 @@ export class Label<TParams = never, TDatum = any>
 
     @Property
     itemStyler?: Styler<AgChartLabelStylerParams<TDatum, ContextDefault>, AgChartLabelStyleOptions>;
+
+    /** Configured orientation candidates, or the supplied fallback when none are set. */
+    orientations(fallback: readonly AgChartLabelOrientation[] = ['parallel']): readonly AgChartLabelOrientation[] {
+        return this.orientation == null ? fallback : toArray(this.orientation);
+    }
 
     private _cachedFormatter: FormatterCache | undefined = undefined;
     formatValue(
@@ -185,6 +188,41 @@ export class Label<TParams = never, TDatum = any>
         }
 
         return result == null || isArray(result) ? result : String(result);
+    }
+}
+
+/** Label whose text adapts to a size budget (wrap/truncate), for series that route through the fit step. */
+export class FittableLabel<TParams = never, TDatum = any> extends Label<TParams, TDatum> {
+    @Property
+    maxWidth?: number;
+
+    @Property
+    maxHeight?: number;
+
+    @Property
+    wrapping?: TextWrap;
+
+    @Property
+    overflowStrategy?: OverflowStrategy;
+
+    /** Resolved fit policy passed to the engine, or `undefined` when no fit field is set. */
+    resolveFit(): LabelFit | undefined {
+        const { maxWidth, maxHeight, wrapping, overflowStrategy } = this;
+        if (maxWidth == null && maxHeight == null && wrapping == null && overflowStrategy == null) {
+            return undefined;
+        }
+        return { maxWidth, maxHeight, wrapping, overflowStrategy };
+    }
+}
+
+/** Label for point-like series (line, area, scatter, bubble, map-marker) that resolve a directional placement. */
+export class PlacedSeriesLabel<TParams = never, TDatum = any> extends FittableLabel<TParams, TDatum> {
+    @Property
+    placement?: AgChartLabelCollisionPlacement | AgChartLabelCollisionPlacement[];
+
+    /** Configured placement candidates, or the supplied fallback when none are set. */
+    placements(fallback: readonly LabelPlacement[] = []): readonly LabelPlacement[] {
+        return this.placement == null ? fallback : toArray(this.placement);
     }
 }
 

@@ -1,4 +1,5 @@
 import type {
+    AgChartLabelCollisionPlacement,
     AgMapMarkerSeriesItemStylerParams,
     AgMapMarkerSeriesLabelFormatterParams,
     AgMapMarkerSeriesOptions,
@@ -9,16 +10,10 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type {
-    FeatureCollection,
-    InternalAgColorType,
-    LabelPlacement,
-    PointLabelDatum,
-    SizedPoint,
-} from 'ag-charts-core';
+import type { FeatureCollection, InternalAgColorType, PointLabelDatum, SizedPoint } from 'ag-charts-core';
 import { Property } from 'ag-charts-core';
 
-const { ColorScaleProperties, SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
+const { ColorScaleProperties, SeriesProperties, makeSeriesTooltip, PlacedSeriesLabel } = _ModuleSupport;
 export interface MapMarkerNodeLabelDatum extends PointLabelDatum {
     readonly datumIndex: number;
     readonly datumId: string | number | boolean;
@@ -37,9 +32,9 @@ export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDa
     style: AgMapMarkerSeriesStyle;
 }
 
-class MapMarkerSeriesLabel extends Label<AgMapMarkerSeriesLabelFormatterParams> {
+class MapMarkerSeriesLabel extends PlacedSeriesLabel<AgMapMarkerSeriesLabelFormatterParams> {
     @Property
-    placement: LabelPlacement = 'bottom';
+    override placement: AgChartLabelCollisionPlacement | AgChartLabelCollisionPlacement[] = 'bottom';
 }
 
 export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSeriesOptions> {

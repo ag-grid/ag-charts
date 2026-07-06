@@ -6,10 +6,11 @@ import type {
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { ContextDefault, DatumDefault, DatumKey, LabelPlacement } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey } from '../../chart/types';
 import type { AgSeriesMarkerStyle } from '../markerOptions';
 import type {
     AgBaseCartesianThemeableOptions,
@@ -55,11 +56,12 @@ export interface AgScatterSeriesLabel<TDatum, TContext = ContextDefault> extends
     TContext
 > {
     /**
-     * Placement of label in relation to the marker.
+     * Placement of the label in relation to the marker. Either a single placement or an ordered
+     * fallback list tried in turn until one fits.
      *
      * Default: `top`
      */
-    placement?: LabelPlacement;
+    placement?: AgChartLabelCollisionPlacement | AgChartLabelCollisionPlacement[];
 }
 
 export interface AgScatterSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>

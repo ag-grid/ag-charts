@@ -13,6 +13,7 @@ import type {
     NormalisedTextOrSegments,
 } from '../../types/normalised-options/normalisedCommonOptions';
 import type { ITextMeasurer, MeasuredImageSegment, MeasuredSegment, MeasuredTextSegment } from '../../types/text';
+import type { LabelFit } from '../geometry/labelPlacement';
 import { isArray, isFiniteNumber } from '../types/typeGuards';
 import {
     EllipsisChar,
@@ -52,6 +53,28 @@ export function wrapTextOrSegments(input: NormalisedTextOrSegments, options: Wra
 
 export function wrapText(text: string, options: WrapOptions) {
     return wrapLines(text, options).join('\n');
+}
+
+/**
+ * Adapts a label's text to its fit policy (wrap/truncate), mirroring how the caption fits its own text.
+ * Returns the input unchanged when the policy sets no width or height bound, so an unset policy is a
+ * no-op and callers can apply it unconditionally.
+ */
+export function fitLabelText(
+    text: NormalisedTextOrSegments,
+    fit: LabelFit | undefined,
+    font: FontOptions
+): NormalisedTextOrSegments {
+    if (fit == null) return text;
+    const { maxWidth, maxHeight, wrapping, overflowStrategy } = fit;
+    if (maxWidth == null && maxHeight == null) return text;
+    return wrapTextOrSegments(text, {
+        font,
+        maxWidth: maxWidth ?? Infinity,
+        maxHeight,
+        textWrap: wrapping,
+        overflow: overflowStrategy,
+    });
 }
 
 export function wrapLines(text: string, options: WrapOptions) {

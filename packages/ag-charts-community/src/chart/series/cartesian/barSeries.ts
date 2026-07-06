@@ -24,6 +24,7 @@ import {
     maxValue,
     mergeDefaults,
     minValue,
+    toArray,
     toNumber,
     zeroLike,
 } from 'ag-charts-core';
@@ -929,7 +930,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             const labelPlacement = adjustLabelPlacement({
                 isUpward,
                 isVertical: !ctx.barAlongX,
-                placement: ctx.label.placement,
+                // Array placement is accepted, but only its first candidate is honoured here.
+                placement: toArray(ctx.label.placement)[0],
                 spacing: ctx.labelSpacing,
                 rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
             });

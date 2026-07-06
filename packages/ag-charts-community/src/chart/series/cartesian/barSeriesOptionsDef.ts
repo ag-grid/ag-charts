@@ -1,5 +1,6 @@
 import {
     type OptionsDefs,
+    arrayOf,
     barHighlightOptionsDef,
     boolean,
     callback,
@@ -13,6 +14,7 @@ import {
     lineDashOptionsDef,
     multiSeriesHighlightOptionsDef,
     number,
+    or,
     positiveNumber,
     positiveNumberNonZero,
     ratio,
@@ -30,6 +32,8 @@ import type { AgBarSeriesOptions, AgBarSeriesStyle, AgBarSeriesThemeableOptions 
 
 const highlight = multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef);
 
+const barLabelPlacement = union('inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end');
+
 const barStyler = callbackDefs<AgBarSeriesStyle>({
     ...fillOptionsDef,
     ...strokeOptionsDef,
@@ -46,7 +50,7 @@ export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptio
     crisp: boolean,
     label: {
         ...seriesLabelOptionsDefs,
-        placement: union('inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end'),
+        placement: or(barLabelPlacement, arrayOf(barLabelPlacement)),
         spacing: positiveNumber,
     },
     errorBar: errorBarThemeableOptionsDefs,

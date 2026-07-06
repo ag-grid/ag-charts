@@ -18,8 +18,10 @@ import {
     applyLabelPlacements,
     cachedTextMeasurer,
     findDiscreteColorBinLabel,
+    fitLabelText,
     formatValue,
     mergeDefaults,
+    toArray,
 } from 'ag-charts-core';
 import {
     type AgDrawingMode,
@@ -364,7 +366,7 @@ export class MapMarkerSeries
         if (labelKey == null || !label.enabled) return;
 
         const { datum, datumIndex, index, idValue, lonValue, latValue, point } = node;
-        const { placement } = label;
+        const placement = toArray(label.placement)[0];
         const labelText = this.getLabelText<AgMapMarkerSeriesLabelFormatterParams>(
             labelValue,
             datum,
@@ -391,12 +393,13 @@ export class MapMarkerSeries
         );
         if (labelText == null) return;
 
-        const { width, height } = measurer.measureLines(String(labelText));
+        const fittedText = fitLabelText(labelText, label.resolveFit(), label);
+        const { width, height } = measurer.measureLines(String(fittedText));
         const anchor = Marker.anchor(shape);
 
         return {
             point: { x: point.x, y: point.y, size: point.size },
-            label: { width, height, text: labelText },
+            label: { width, height, text: fittedText },
             anchor,
             placement,
             datumIndex,
@@ -931,9 +934,10 @@ export class MapMarkerSeries
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
         const labelData = this.contextNodeData?.labelData ?? [];
-        const { collisionAvoidance, placement } = this.properties.label;
+        const { label } = this.properties;
+        const { collisionAvoidance } = label;
         applyLabelAvoidance(labelData, collisionAvoidance.avoid, collisionAvoidance.resolveCollideWith());
-        applyLabelPlacements(labelData, collisionAvoidance.placements([placement]));
+        applyLabelPlacements(labelData, label.placements());
         return labelData;
     }
 

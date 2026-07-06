@@ -1,5 +1,6 @@
 import type {
     CollideWith,
+    LabelFit,
     LabelPlacement,
     MeasuredLabel,
     NormalisedTextOrSegments,
@@ -8,7 +9,7 @@ import type {
     PointLabelDatum,
     Writeable,
 } from 'ag-charts-core';
-import { isArray, measureTextSegments } from 'ag-charts-core';
+import { fitLabelText, isArray, measureTextSegments } from 'ag-charts-core';
 
 import { PointerEvents } from '../../../scene/node';
 import type { Text } from '../../../scene/shape/text';
@@ -35,6 +36,7 @@ export interface PlacedLabelContext {
     readonly labelPlacements: readonly LabelPlacement[];
     readonly labelMinSpacing: number | undefined;
     readonly labelCollideWith: CollideWith | undefined;
+    readonly labelFit: LabelFit | undefined;
 }
 
 /**
@@ -73,12 +75,13 @@ export abstract class PlacedLabelCartesianSeries<
             return { text: '', width: 0, height: 0 };
         }
         const label = this.labelProperty;
-        let { width, height } = isArray(labelText)
-            ? measureTextSegments(labelText, label)
-            : ctx.labelTextMeasurer.measureLines(String(labelText));
+        const fittedText = fitLabelText(labelText, ctx.labelFit, label);
+        let { width, height } = isArray(fittedText)
+            ? measureTextSegments(fittedText, label)
+            : ctx.labelTextMeasurer.measureLines(String(fittedText));
         width += ctx.labelPadding.left + ctx.labelPadding.right;
         height += ctx.labelPadding.top + ctx.labelPadding.bottom;
-        return { text: labelText, width, height };
+        return { text: fittedText, width, height };
     }
 
     override getLabelData(): (LabelOf<TTypes> & PointLabelDatum)[] {

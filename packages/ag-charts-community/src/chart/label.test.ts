@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 import type { AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
-import { LabelCollisionAvoidance } from './label';
+import { FittableLabel, Label, LabelCollisionAvoidance, PlacedSeriesLabel } from './label';
 import {
     extractImageData,
     prepareTestOptions,
@@ -58,33 +58,75 @@ describe('Labels', () => {
         });
     });
 
-    describe('collisionAvoidance.placements', () => {
-        const DEFAULT = ['top', 'bottom'] as const;
+    describe('PlacedSeriesLabel.placements', () => {
+        test('falls back to the supplied placements when none are set', () => {
+            expect(new PlacedSeriesLabel().placements(['bottom'])).toEqual(['bottom']);
+        });
 
-        function enabled(strategy?: LabelCollisionAvoidance['strategy']) {
+        test('normalises a single configured placement to an array', () => {
+            const label = new PlacedSeriesLabel();
+            label.placement = 'left';
+            expect(label.placements(['bottom'])).toEqual(['left']);
+        });
+
+        test('uses the configured placement array over the fallback', () => {
+            const label = new PlacedSeriesLabel();
+            label.placement = ['left', 'right'];
+            expect(label.placements(['bottom'])).toEqual(['left', 'right']);
+        });
+    });
+
+    describe('Label.orientations', () => {
+        test('defaults to parallel when no orientation is set', () => {
+            expect(new Label().orientations()).toEqual(['parallel']);
+        });
+
+        test('normalises a single configured orientation to an array', () => {
+            const label = new Label();
+            label.orientation = 'perpendicular';
+            expect(label.orientations()).toEqual(['perpendicular']);
+        });
+
+        test('uses the configured orientation array over the fallback', () => {
+            const label = new Label();
+            label.orientation = ['perpendicular', 'parallel'];
+            expect(label.orientations()).toEqual(['perpendicular', 'parallel']);
+        });
+    });
+
+    describe('FittableLabel.resolveFit', () => {
+        test('returns undefined when no fit field is set', () => {
+            expect(new FittableLabel().resolveFit()).toBeUndefined();
+        });
+
+        test('resolves the configured fit policy', () => {
+            const label = new FittableLabel();
+            label.maxWidth = 120;
+            label.wrapping = 'on-space';
+            expect(label.resolveFit()).toEqual({
+                maxWidth: 120,
+                maxHeight: undefined,
+                wrapping: 'on-space',
+                overflowStrategy: undefined,
+            });
+        });
+    });
+
+    describe('collisionAvoidance.avoid', () => {
+        test('is false when enabled is unset (opt-in default off)', () => {
+            expect(new LabelCollisionAvoidance().avoid).toBe(false);
+        });
+
+        test('is false when enabled is false', () => {
+            const collisionAvoidance = new LabelCollisionAvoidance();
+            collisionAvoidance.enabled = false;
+            expect(collisionAvoidance.avoid).toBe(false);
+        });
+
+        test('is true only when enabled is true', () => {
             const collisionAvoidance = new LabelCollisionAvoidance();
             collisionAvoidance.enabled = true;
-            collisionAvoidance.strategy = strategy;
-            return collisionAvoidance;
-        }
-
-        test('falls back to the legacy placement seed when no strategy is set', () => {
-            expect(enabled().placements(['bottom'])).toEqual(['bottom']);
-        });
-
-        test('uses the reposition strategy placements over the fallback', () => {
-            const collisionAvoidance = enabled([{ type: 'reposition', placements: ['left', 'right'] }]);
-            expect(collisionAvoidance.placements(['bottom'])).toEqual(['left', 'right']);
-        });
-
-        test('falls back when the reposition strategy omits placements', () => {
-            expect(enabled([{ type: 'reposition' }]).placements(DEFAULT)).toEqual(DEFAULT);
-        });
-
-        test('ignores the reposition strategy when avoidance is disabled', () => {
-            const collisionAvoidance = new LabelCollisionAvoidance();
-            collisionAvoidance.strategy = [{ type: 'reposition', placements: ['left', 'right'] }];
-            expect(collisionAvoidance.placements(['top'])).toEqual(['top']);
+            expect(collisionAvoidance.avoid).toBe(true);
         });
     });
 

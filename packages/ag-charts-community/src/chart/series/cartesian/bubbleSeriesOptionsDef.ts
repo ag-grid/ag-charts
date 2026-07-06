@@ -10,6 +10,7 @@ import {
     commonSeriesThemeableOptionsDefs,
     constant,
     enterprise,
+    labelCollisionPlacementDef,
     markerOptionsDefs,
     multiSeriesHighlightOptionsDef,
     number,
@@ -21,7 +22,6 @@ import {
     string,
     tooltipOptionsDefs,
     undocumented,
-    union,
     without,
 } from 'ag-charts-core';
 import type {
@@ -37,7 +37,7 @@ export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeabl
     maxSize: positiveNumber,
     showInMiniChart: boolean,
     label: {
-        placement: union('top', 'right', 'bottom', 'left'),
+        placement: labelCollisionPlacementDef,
         ...seriesLabelOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,

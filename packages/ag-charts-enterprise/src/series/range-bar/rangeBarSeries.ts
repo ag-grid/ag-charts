@@ -28,6 +28,7 @@ import {
     findMinMax,
     isContinuous,
     mergeDefaults,
+    toArray,
     toNumber,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
@@ -433,6 +434,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
         const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
 
+        // Array placement is accepted, but only its first candidate is honoured here.
+        const labelPlacement = toArray(this.properties.label.placement)[0];
+
         return {
             xAxis,
             yAxis,
@@ -453,11 +457,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yLowKey: this.properties.yLowKey,
             yHighKey: this.properties.yHighKey,
             labelEnabled: this.properties.label.enabled,
-            labelPlacement: this.properties.label.placement,
+            labelPlacement,
             labelPadding:
                 (this.properties.label.spacing +
                     (typeof this.properties.label.padding === 'number' ? this.properties.label.padding : 0)) *
-                (this.properties.label.placement === 'outside' ? 1 : -1),
+                (labelPlacement === 'outside' ? 1 : -1),
             canIncrementallyUpdate,
             nodes: canIncrementallyUpdate ? this.contextNodeData.nodeData : [],
             nodeIndex: 0,
