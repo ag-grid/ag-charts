@@ -914,15 +914,29 @@ export function spyOnAnimationFrames() {
             .mockImplementation(() => false);
         const safMock = vi.spyOn(AnimationManager.prototype, 'scheduleAnimationFrame');
         safMock.mockImplementation(function (this: AnimationManager, cb) {
-            // NOTE: cancelAnimationFrame is not intercepted, so a mid-animation chart update can leave a
-            // stale callback in the queue; capture flows must drain frames (runToEnd) between updates.
             const id = nextRafId++;
             (this as any).requestId = id;
             rafCbs.set(id, cb);
         });
+        // Mirror browser cancelAnimationFrame semantics: a mid-animation chart update cancels the
+        // pending frame, so its mock callback must leave the queue too (the ids here are fake, so the
+        // real agDocument.cancelAnimationFrame inside the original is a harmless no-op).
+        const animationManagerProto = AnimationManager.prototype as unknown as {
+            cancelAnimation: (this: AnimationManager) => void;
+        };
+        const originalCancelAnimation = animationManagerProto.cancelAnimation;
+        const cancelMock = vi.spyOn(animationManagerProto, 'cancelAnimation').mockImplementation(function (
+            this: AnimationManager
+        ) {
+            const id = (this as any).requestId;
+            if (id != null) {
+                rafCbs.delete(id);
+            }
+            originalCancelAnimation.call(this);
+        });
         // NOTE: `forceTimeJump` is deliberately NOT mocked — its default `false` keeps animations in the
         // batch so they progress frame-by-frame as `fireFrame` is called.
-        mocks.push(isSkippedMock, skippingFramesMock, safMock);
+        mocks.push(isSkippedMock, skippingFramesMock, safMock, cancelMock);
     });
 
     afterEach(() => {
@@ -966,13 +980,27 @@ export function spyOnAnimationFrames() {
     const captureAnimationFrames = async <T>(
         chartOrProxy: ChartOrProxy<any>,
         sampler: () => T,
-        { frames = 30, duration = 1600 }: { frames?: number; duration?: number } = {}
+        {
+            frames = 30,
+            duration = 1600,
+            onFrame,
+        }: {
+            frames?: number;
+            duration?: number;
+            /**
+             * Invoked before firing frame `frameIndex` (0-based) — the hook for mid-capture chart
+             * updates (streaming/rapid-update scenarios). Await the update inside the hook so the
+             * interrupted batch has re-scheduled before the next frame fires.
+             */
+            onFrame?: (frameIndex: number) => void | Promise<void>;
+        } = {}
     ): Promise<T[] & PhasedTrajectory> => {
         await settle(chartOrProxy);
         const step = duration / frames;
         const samples: T[] = [sampler()];
         const phaseIntervals: AnimationPhase[][] = [];
         for (let i = 0; i < frames; i++) {
+            await onFrame?.(i);
             const from = currentPhaseIndex(chartOrProxy);
             if (rafCbs.size > 0) {
                 await fireFrame(step);
@@ -986,7 +1014,34 @@ export function spyOnAnimationFrames() {
         return Object.assign(samples, { phaseIntervals });
     };
 
-    return { runToEnd, captureAnimationFrames };
+    /**
+     * The standard single-action capture flow shared by trajectory CASEs: settle, sample the before
+     * state, apply `action` (a chart update or API call), capture the resulting animation, run it to
+     * completion and sample the after state. Asserts the trajectory endpoints equal the before/after
+     * scenes, so callers only assert what moves in between.
+     */
+    const captureUpdate = async (
+        chartOrProxy: ChartOrProxy<any>,
+        sampler: () => SceneGeometrySample,
+        action: () => void | Promise<void>,
+        options: { frames?: number; duration?: number } = {}
+    ): Promise<{
+        trajectory: SceneGeometrySample[] & PhasedTrajectory;
+        before: SceneGeometrySample;
+        after: SceneGeometrySample;
+    }> => {
+        await runToEnd(chartOrProxy);
+        const before = sampler();
+        await action();
+        const trajectory = await captureAnimationFrames(chartOrProxy, sampler, options);
+        await runToEnd(chartOrProxy);
+        const after = sampler();
+        expectSceneSamplesMatch(trajectory[0], before);
+        expectSceneSamplesMatch(trajectory.at(-1)!, after);
+        return { trajectory, before, after };
+    };
+
+    return { runToEnd, captureAnimationFrames, captureUpdate };
 }
 
 /**
