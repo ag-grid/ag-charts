@@ -213,6 +213,44 @@ describe('Caption', () => {
         });
     });
 
+    // AG-11688: adding the box feature must not drop the pre-existing `padding` inset for
+    // captions that have no background box (e.g. the financial preset's `title: { padding: 4 }`).
+    describe('AG-11688 caption padding without a background box', () => {
+        const seriesOptions = {
+            data: [
+                { x: 'A', y: 3 },
+                { x: 'B', y: 5 },
+                { x: 'C', y: 2 },
+                { x: 'D', y: 4 },
+            ],
+            series: [{ type: 'bar' as const, xKey: 'x', yKey: 'y' }],
+            legend: { enabled: false },
+        };
+
+        test('left-aligned title is horizontally inset by its padding when unboxed', async () => {
+            chart = await createChart({ ...seriesOptions, title: { text: 'Revenue', textAlign: 'left' } });
+            const withoutPadding = Transformable.toCanvas(chart.title.node).x;
+
+            chart = await createChart({
+                ...seriesOptions,
+                title: { text: 'Revenue', textAlign: 'left', padding: 16 },
+            });
+            const withPadding = Transformable.toCanvas(chart.title.node).x;
+
+            expect(withPadding - withoutPadding).toBeCloseTo(16, 0);
+        });
+
+        test('title padding reserves vertical layout space when unboxed', async () => {
+            chart = await createChart({ ...seriesOptions, title: { text: 'Revenue' } });
+            const withoutPadding = chart.seriesAreaBoundingBox.y;
+
+            chart = await createChart({ ...seriesOptions, title: { text: 'Revenue', padding: 16 } });
+            const withPadding = chart.seriesAreaBoundingBox.y;
+
+            expect(withPadding).toBeGreaterThan(withoutPadding);
+        });
+    });
+
     // AG-11688: title/subtitle/footnote captions accept a background fill/border box.
     describe('AG-11688 caption background box', () => {
         const seriesOptions = {

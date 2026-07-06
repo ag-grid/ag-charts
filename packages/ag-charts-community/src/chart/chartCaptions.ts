@@ -53,12 +53,13 @@ export class ChartCaptions {
 
             const textAlign = opts.textAlign ?? 'center';
             if (textAlign === 'left') {
-                caption.node.x = rect.x + caption.boxPadding.left;
+                caption.node.x = rect.x + caption.contentPadding.left;
             } else if (textAlign === 'right') {
-                // `bbox.width` already includes the box's left/right padding (the box grows the
-                // measured bounds), so no further right inset is needed.
+                // A drawn box grows the measured bounds by its padding, so `bbox.width` already
+                // accounts for the right inset; an unboxed caption still needs it applied.
                 const bbox = caption.node.getBBox();
-                caption.node.x = rect.x + rect.width - bbox.width;
+                const rightInset = caption.contentPadding.right - caption.boxPadding.right;
+                caption.node.x = rect.x + rect.width - bbox.width - rightInset;
             }
         }
     }
@@ -77,9 +78,9 @@ export class ChartCaptions {
         const font = captionFont(opts);
         const text = opts.text;
         const textAlign = opts.textAlign ?? 'center';
-        const { left, right, top, bottom } = caption.boxPadding;
-        // Inset the node so its background box sits inside the layout edge. Only left/right
-        // alignment gets a horizontal inset — a centred caption must stay centred.
+        const { left, right, top, bottom } = caption.contentPadding;
+        // Inset the node so its text (and any background box) sits inside the layout edge. Only
+        // left/right alignment gets a horizontal inset — a centred caption must stay centred.
         let xInset = 0;
         if (textAlign === 'left') {
             xInset = left;

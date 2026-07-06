@@ -6,6 +6,7 @@ import {
     isArray,
     isSegmentTruncated,
     isTextTruncated,
+    resolvePadding,
     toPlainText,
     toTextString,
     wrapText,
@@ -84,6 +85,11 @@ export class ChartCaption implements CaptionLike {
         return expandLabelPadding(this.opts);
     }
 
+    /** Per-side padding that insets the caption text and shrinks its layout footprint, whether or not a box is drawn. */
+    get contentPadding() {
+        return resolvePadding(this.opts.padding);
+    }
+
     private truncated = false;
     private proxyText?: BoundedTextWidget;
     private proxyTextListeners?: Array<() => void>;
@@ -128,7 +134,7 @@ export class ChartCaption implements CaptionLike {
         const opts = this.opts;
         const wrapping = opts.wrapping ?? 'always';
         const truncate = opts.truncate ?? true;
-        const { left, right, top, bottom } = this.boxPadding;
+        const { left, right, top, bottom } = this.contentPadding;
         const effectiveContainerWidth = truncate ? containerWidth : Infinity;
         const effectiveContainerHeight = truncate ? containerHeight : Infinity;
         const maxWidth = Math.min(opts.maxWidth ?? Infinity, effectiveContainerWidth) - (left + right);
