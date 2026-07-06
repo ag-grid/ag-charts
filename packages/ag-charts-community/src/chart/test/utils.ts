@@ -1036,7 +1036,10 @@ export function spyOnAnimationFrames() {
         const trajectory = await captureAnimationFrames(chartOrProxy, sampler, options);
         await runToEnd(chartOrProxy);
         const after = sampler();
-        expectSceneSamplesMatch(trajectory[0], before);
+        // A structural update adds/removes nodes at frame 0, so the start check is scoped to nodes
+        // present on both sides: surviving geometry must not jump when the update lands.
+        const common = new Map([...before].filter(([key]) => trajectory[0].has(key)));
+        expectSceneSamplesMatch(new Map([...trajectory[0]].filter(([key]) => common.has(key))), common);
         expectSceneSamplesMatch(trajectory.at(-1)!, after);
         return { trajectory, before, after };
     };
@@ -1374,6 +1377,9 @@ export type TrajectoryExpectation =
     | 'constant'
     | 'increases'
     | 'decreases'
+    /** Monotonic in the direction inferred from the endpoints — for updates where each node may
+     * legitimately move either way (e.g. randomised data). A flat trajectory satisfies it. */
+    | 'monotonic'
     | 'progresses'
     | 'bounded'
     | 'degenerate'
@@ -1549,7 +1555,8 @@ function formatValues(values: (number | undefined)[]): string {
 
 function checkPropertyTrajectory(
     values: number[],
-    expectation: TrajectoryExpectation,
+    // 'degenerate' is a presence modifier handled by the caller, not a trajectory shape.
+    expectation: Exclude<TrajectoryExpectation, 'degenerate'>,
     tolerances: { constant: number; monotonic: number; progress: number }
 ): string | undefined {
     switch (expectation) {
@@ -1563,11 +1570,19 @@ function checkPropertyTrajectory(
                 : `expected constant ~${first.toFixed(2)}, moved to ${values[badFrame].toFixed(2)} at frame ${badFrame}`;
         }
         case 'increases':
-        case 'decreases': {
-            const sign = expectation === 'increases' ? 1 : -1;
+        case 'decreases':
+        case 'monotonic': {
+            const inferredIncreasing = values.at(-1)! >= values[0];
+            const increasing = expectation === 'monotonic' ? inferredIncreasing : expectation === 'increases';
+            const sign = increasing ? 1 : -1;
+            const inferredDirection = inferredIncreasing ? 'increasing' : 'decreasing';
+            const description =
+                expectation === 'monotonic'
+                    ? `monotonic (${inferredDirection} by endpoints)`
+                    : `${expectation.replace(/es$/, 'ing')} monotonically`;
             for (let i = 1; i < values.length; i++) {
                 if (sign * (values[i] - values[i - 1]) < -tolerances.monotonic) {
-                    return `expected ${expectation.replace(/es$/, 'ing')} monotonically, reversed at frame ${i} (${values[i - 1].toFixed(2)} -> ${values[i].toFixed(2)})`;
+                    return `expected ${description}, reversed at frame ${i} (${values[i - 1].toFixed(2)} -> ${values[i].toFixed(2)})`;
                 }
             }
             return undefined;
@@ -1592,6 +1607,9 @@ function checkPropertyTrajectory(
                 .some((v) => Math.abs(v - start) > tolerances.progress && Math.abs(v - end) > tolerances.progress);
             return hasMidTransition ? undefined : 'no intermediate frame between the endpoints — animation jumped';
         }
+        default:
+            // Exhaustive: an unrecognised expectation must fail loudly, never silently pass.
+            return expectation satisfies never;
     }
 }
 

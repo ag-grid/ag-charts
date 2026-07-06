@@ -46,6 +46,7 @@ import {
     createChart,
     createSceneGeometrySampler,
     deproxy,
+    expectNoAnimation,
     expectSceneSamplesMatch,
     expectSceneTrajectory,
     expectWarningsCalls,
@@ -985,6 +986,316 @@ describe('BarSeries', () => {
             const addTrajectory = await frames.captureAnimationFrames(chart, sampleScene);
             expectSceneTrajectory(addTrajectory, bandReflow('decreases'), {
                 frameInvariants: [stackedContiguous],
+            });
+        });
+    });
+
+    // Trajectory coverage for every interactive action on the bar-series-test docs page (the manual
+    // animation QA harness), in both standalone and integrated modes where the page offers the toggle.
+    describe('animation -test page actions', () => {
+        const frames = spyOnAnimationFrames();
+
+        const groupedSeries = (): NonNullable<AgCartesianChartOptions['series']> => [
+            { type: 'bar', xKey: 'quarter', yKey: 'iphone' },
+            { type: 'bar', xKey: 'quarter', yKey: 'mac' },
+            { type: 'bar', xKey: 'quarter', yKey: 'services' },
+        ];
+        // The pinned 0-160 y-domain makes the data updates below provably non-scale-affecting.
+        const groupedOptions = (mode?: 'integrated'): AgCartesianChartOptions => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { quarter: 'Q1', iphone: 140, mac: 16, services: 20 },
+                    { quarter: 'Q2', iphone: 124, mac: 20, services: 30 },
+                ],
+                series: groupedSeries(),
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0, max: 160 },
+                },
+            };
+            if (mode != null) {
+                (options as AgChartOptions & { mode: string }).mode = mode;
+            }
+            return prepareTestOptions(options);
+        };
+
+        const rectCount = (sample: SceneGeometrySample) =>
+            [...sample.keys()].filter((k) => /^series\[\d+\]\/rect/.test(k)).length;
+
+        // "Remove Series" — survivors' bands widen to reabsorb the vacated sub-band. The removed
+        // series leaves chart.series immediately, so only the survivors' reflow is observable.
+        it('remove series: surviving bars widen monotonically into the vacated band', async () => {
+            const options = groupedOptions();
+            const allSeries = options.series!;
+            chart = AgCharts.create(options);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            const { trajectory, before, after } = await frames.captureUpdate(chart, sampleScene, () =>
+                chart.update({ ...options, series: allSeries.slice(0, 2) })
+            );
+            expect(rectCount(before)).toBe(6);
+            expect(rectCount(after)).toBe(4);
+            expectSceneTrajectory(trajectory, {
+                'series[*]/rect[*]': {
+                    width: { during: 'update', expect: ['increases', 'progresses'] },
+                    height: { during: 'update', expect: 'bounded' },
+                    y: { during: 'update', expect: 'bounded' },
+                    x: { during: 'update', expect: 'bounded' },
+                },
+            });
+        });
+
+        // "Add Series" — the mirror image: survivors narrow while the entering series' bars fade in
+        // at full size (only initial load grows bars from the baseline; cf. CASE 10's re-add).
+        it('add series: existing bars narrow and entering bars fade in at full size', async () => {
+            const options = groupedOptions();
+            const allSeries = options.series!;
+            options.series = allSeries.slice(0, 2);
+            chart = AgCharts.create(options);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            const { trajectory, after } = await frames.captureUpdate(chart, sampleScene, () =>
+                chart.update({ ...options, series: allSeries })
+            );
+            expect(rectCount(after)).toBe(6);
+            // The settling crisp-pixel snap moves heights by <1px, so heights are 'bounded' not
+            // 'constant'.
+            const narrow = {
+                width: { during: 'update', expect: ['decreases', 'progresses'] },
+                x: { during: 'update', expect: 'bounded' },
+                height: { during: ['update', 'trailing'], expect: 'bounded' },
+                y: { during: ['update', 'trailing'], expect: 'bounded' },
+            } as const;
+            expectSceneTrajectory(trajectory, {
+                'series[0]/rect[*]': narrow,
+                'series[1]/rect[*]': narrow,
+                // The entering series spawns directly at its final band geometry and only fades in.
+                'series[2]/rect[*]': {
+                    width: { during: ['update', 'trailing'], expect: 'bounded' },
+                    x: { during: ['update', 'trailing'], expect: 'bounded' },
+                    height: { during: ['update', 'trailing'], expect: 'bounded' },
+                    y: { during: ['update', 'trailing'], expect: 'bounded' },
+                    opacity: { during: ['update', 'add', 'trailing'], expect: ['increases', 'progresses', 'bounded'] },
+                },
+            });
+            expect(trajectory[0].get('series[2]/rect[Q1]')?.opacity ?? 1).toBeLessThanOrEqual(0.001);
+        });
+
+        // "Randomise" — a whole-dataset value update. Every bar tweens height-only toward its new
+        // value; bands (x/width) and both axes stay put because the domain is pinned.
+        it('randomise: all bars tween height only, monotonically toward their new values', async () => {
+            const options = groupedOptions();
+            chart = AgCharts.create(options);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            const { trajectory } = await frames.captureUpdate(chart, sampleScene, () =>
+                chart.updateDelta({
+                    data: [
+                        { quarter: 'Q1', iphone: 100, mac: 40, services: 60 },
+                        { quarter: 'Q2', iphone: 150, mac: 10, services: 15 },
+                    ],
+                })
+            );
+            expectSceneTrajectory(trajectory, {
+                'series[*]/rect[*]': {
+                    height: { during: 'update', expect: ['monotonic', 'progresses', 'bounded'] },
+                    y: { during: 'update', expect: ['monotonic', 'bounded'] },
+                },
+            });
+        });
+
+        // "Remove Data" — dropping the last category: the leaving bars collapse during the remove
+        // phase while the surviving band widens to fill the axis.
+        it('remove data: last category collapses and the surviving band widens', async () => {
+            const options = groupedOptions();
+            chart = AgCharts.create(options);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            const { trajectory, after } = await frames.captureUpdate(chart, sampleScene, () =>
+                chart.updateDelta({ data: [{ quarter: 'Q1', iphone: 140, mac: 16, services: 20 }] })
+            );
+            expect(rectCount(after)).toBe(3);
+            expectSceneTrajectory(trajectory, {
+                'series[*]/rect[Q2]': {
+                    height: { during: 'remove', expect: ['decreases', 'progresses'] },
+                    y: { during: 'remove', expect: 'increases' },
+                },
+                'series[*]/rect[Q1]': {
+                    width: { during: 'update', expect: ['increases', 'progresses'] },
+                    x: { during: 'update', expect: 'bounded' },
+                    height: { during: 'update', expect: 'bounded' },
+                    y: { during: 'update', expect: 'bounded' },
+                },
+                // The surviving band recentres on the axis, so Q1's tick/label move right.
+                ...axisReflowSpec('bottom', { shift: 'right' }),
+            });
+        });
+
+        // "Switch to Stacked" / "Switch to Grouped" — changing the grouping re-creates the series
+        // (there is no morph between grouped and stacked layouts), so the switch replays the
+        // initial-load reveal: bars grow from the baseline in their final bands.
+        it('grouped -> stacked -> grouped: switch re-creates series with an initial-load reveal', async () => {
+            const initialReveal = {
+                'series[*]/rect[*]': {
+                    height: { during: 'initial', expect: ['increases', 'progresses', 'bounded'] },
+                    y: { during: 'initial', expect: ['decreases', 'bounded'] },
+                    // Bands take their final position immediately; the settling crisp-pixel snap
+                    // moves x by <1px so it is 'bounded' rather than 'constant'.
+                    x: { during: ['initial', 'trailing'], expect: 'bounded' },
+                    width: { during: ['initial', 'trailing'], expect: 'bounded' },
+                },
+            } as const;
+            // Each grouping switch re-creates the series nodes, bumping the sampler's duplicate-key
+            // suffix (rect[Q1], rect[Q1#2], ...) — resolve by prefix instead of exact key.
+            const tileKey = (sample: SceneGeometrySample, i: number, quarter: string) => {
+                const pattern = new RegExp(`^series\\[${i}\\]/rect\\[${quarter}(#\\d+)?\\]$`);
+                const matches = [...sample.keys()].filter((k) => pattern.test(k));
+                expect(matches, `series[${i}]/rect[${quarter}]`).toHaveLength(1);
+                return sample.get(matches[0])!;
+            };
+
+            const options = groupedOptions();
+            const allSeries = options.series! as AgBarSeriesOptions[];
+            chart = AgCharts.create(options);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            // The -test page mutates the same series option objects in place (fresh objects would be
+            // diffed as removed+added series rather than a grouping change).
+            for (const s of allSeries) s.stacked = true;
+            const { trajectory: toStacked, after: stacked } = await frames.captureUpdate(chart, sampleScene, () =>
+                chart.update({ ...options, series: allSeries })
+            );
+            expectSceneTrajectory(toStacked, initialReveal);
+            expect(toStacked[0].get('series[0]/rect[Q1#2]')?.height ?? 0).toBeLessThanOrEqual(0.1);
+            for (const quarter of ['Q1', 'Q2']) {
+                const [s0, s1, s2] = [0, 1, 2].map((i) => tileKey(stacked, i, quarter));
+                // Stacked layers share the band x and tile vertically bottom-up: s0 on the baseline,
+                // each subsequent layer's bottom edge on the previous layer's top edge.
+                expect(Math.abs(s1.x - s0.x), quarter).toBeLessThanOrEqual(1);
+                expect(Math.abs(s2.x - s0.x), quarter).toBeLessThanOrEqual(1);
+                expect(Math.abs(s1.y + s1.height - s0.y), quarter).toBeLessThanOrEqual(1);
+                expect(Math.abs(s2.y + s2.height - s1.y), quarter).toBeLessThanOrEqual(1);
+            }
+
+            for (const s of allSeries) delete s.stacked;
+            const { trajectory: toGrouped, after: grouped } = await frames.captureUpdate(chart, sampleScene, () =>
+                chart.update({ ...options, series: allSeries })
+            );
+            expectSceneTrajectory(toGrouped, initialReveal);
+            for (const quarter of ['Q1', 'Q2']) {
+                const [s0, s1, s2] = [0, 1, 2].map((i) => tileKey(grouped, i, quarter));
+                // Grouped bars partition the band left-to-right without overlap.
+                expect(s1.x, quarter).toBeGreaterThanOrEqual(s0.x + s0.width - 1);
+                expect(s2.x, quarter).toBeGreaterThanOrEqual(s1.x + s1.width - 1);
+            }
+        });
+
+        // "Switch Direction" — vertical -> horizontal is a series re-creation like the grouping
+        // switch, so the reveal replays along the new value axis: widths grow out of the left
+        // baseline while bands (now y/height) hold their final position.
+        it('switch direction: bars re-reveal along the new value axis', async () => {
+            const options = groupedOptions();
+            // Default axes: explicit positions cannot follow the direction flip.
+            delete options.axes;
+            const allSeries = options.series! as AgBarSeriesOptions[];
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            for (const s of allSeries) s.direction = 'horizontal';
+            const { trajectory } = await frames.captureUpdate(chart, sampleScene, () =>
+                chart.update({ ...options, series: allSeries })
+            );
+            expectSceneTrajectory(trajectory, {
+                'series[*]/rect[*]': {
+                    width: { during: 'initial', expect: ['increases', 'progresses', 'bounded'] },
+                    x: { during: ['initial', 'trailing'], expect: 'bounded' },
+                    y: { during: ['initial', 'trailing'], expect: 'bounded' },
+                    height: { during: ['initial', 'trailing'], expect: 'bounded' },
+                },
+            });
+            expect(trajectory[0].get('series[0]/rect[Q1#2]')?.width ?? 0).toBeLessThanOrEqual(0.1);
+        });
+
+        // Integrated mode: initial load must animate exactly as standalone does.
+        it('integrated mode: initial load reveals bars from the baseline', async () => {
+            chart = AgCharts.create(groupedOptions('integrated'));
+            const sampleScene = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            expectSceneTrajectory(trajectory, {
+                'series[*]/rect[*]': {
+                    height: { during: 'initial', expect: ['increases', 'progresses', 'bounded'] },
+                    y: { during: 'initial', expect: ['decreases', 'bounded'] },
+                    x: { during: ['initial', 'trailing'], expect: 'bounded' },
+                    width: { during: ['initial', 'trailing'], expect: 'bounded' },
+                },
+            });
+            expect(trajectory[0].get('series[0]/rect[Q1]')?.height ?? 0).toBeLessThanOrEqual(0.1);
+        });
+
+        // Integrated chart-type switches call resetAnimations() before the update so the chart
+        // replays its initial-load reveal. A plain data update makes the effect observable: with the
+        // reset the bars re-grow from the baseline instead of tweening from their old heights.
+        it('integrated mode: resetAnimations before a data update replays the initial reveal', async () => {
+            const options = groupedOptions('integrated');
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            // Not captureUpdate: the reset legitimately snaps surviving bars to the baseline before
+            // the first frame, so frame 0 differs from the pre-update scene.
+            chart.resetAnimations();
+            await chart.updateDelta({
+                data: [
+                    { quarter: 'Q1', iphone: 100, mac: 40, services: 60 },
+                    { quarter: 'Q2', iphone: 150, mac: 10, services: 15 },
+                ],
+            });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            expectSceneTrajectory(trajectory, {
+                'series[*]/rect[*]': {
+                    height: { during: 'initial', expect: ['increases', 'progresses', 'bounded'] },
+                    y: { during: 'initial', expect: ['decreases', 'bounded'] },
+                    x: { during: ['initial', 'trailing'], expect: 'bounded' },
+                    width: { during: ['initial', 'trailing'], expect: 'bounded' },
+                },
+            });
+            // Without the reset this would tween from the old height (140-worth of pixels).
+            expect(trajectory[0].get('series[0]/rect[Q1]')?.height ?? 0).toBeLessThanOrEqual(0.1);
+        });
+
+        // The -test page calls skipAnimations() before a legend move; the product also skips the
+        // batch itself whenever the layout rect changes, so a legend move must always snap.
+        it('integrated mode: legend move snaps without tweening', async () => {
+            const options = groupedOptions('integrated');
+            options.legend = { position: 'bottom' };
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            // Not captureUpdate: a skipped batch lands the whole change before the first frame, so
+            // frame 0 legitimately differs from the pre-update scene.
+            chart.skipAnimations();
+            await chart.update({ ...options, legend: { position: 'right' } });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            expectNoAnimation(trajectory);
+        });
+
+        // The grouped-category axis is the axis type AG Grid integrated charts use for row groups
+        // (the -test page's animation-grouped-category example).
+        it('integrated mode: grouped-category chart reveals bars from the baseline on initial load', async () => {
+            const options: AgChartOptions = { ...examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            const sampleScene = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            expectSceneTrajectory(trajectory, {
+                'series[*]/rect[*]': {
+                    height: { during: 'initial', expect: ['increases', 'bounded'] },
+                    y: { during: 'initial', expect: ['decreases', 'bounded'] },
+                    x: { during: ['initial', 'trailing'], expect: 'bounded' },
+                    width: { during: ['initial', 'trailing'], expect: 'bounded' },
+                },
             });
         });
     });
