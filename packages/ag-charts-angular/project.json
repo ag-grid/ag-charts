@@ -14,6 +14,30 @@
         "script": "build"
       }
     },
+    "test": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["ag-charts-community:build"],
+      "inputs": [
+        "{projectRoot}/angular.json",
+        "{projectRoot}/projects/**",
+        "{projectRoot}/tests/**",
+        "{projectRoot}/vitest.config.ts",
+        "{workspaceRoot}/packages/ag-charts-types/src/**",
+        "!{projectRoot}/dist"
+      ],
+      "cache": true,
+      "options": {
+        "cwd": "{projectRoot}",
+        "parallel": false,
+        "commands": ["npx ng test --watch=false --browsers=ChromeHeadless", "npx vitest run --config vitest.config.ts"]
+      },
+      "configurations": {
+        "ci": {},
+        "watch": {
+          "commands": ["npx vitest --config vitest.config.ts"]
+        }
+      }
+    },
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
@@ -43,6 +67,6 @@
       }
     }
   },
-  "tags": ["fw"],
+  "tags": ["fw", "no-sharding"],
   "implicitDependencies": ["ag-charts-community"]
 }

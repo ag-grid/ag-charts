@@ -1,0 +1,158 @@
+{
+    "AgBaseChartListeners.activeChange": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
+    "AgBaseChartListeners.annotations": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
+    "AgBaseChartListeners.click": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
+    "AgBaseChartListeners.doubleClick": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
+    "AgBaseChartListeners.selectionChange": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
+    "AgBaseChartListeners.seriesNodeClick": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
+    "AgBaseChartListeners.seriesNodeDoubleClick": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
+    "AgBaseChartListeners.seriesVisibilityChange": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
+    "AgBaseChartListeners.zoom": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
+    "AgChartLegendListeners.legendItemClick": {
+        "classification": "zone-wrap",
+        "reason": "Legend listener; re-entered into the zone by patchChartOptions via patchListeners(options.legend.listeners)."
+    },
+    "AgChartLegendListeners.legendItemDoubleClick": {
+        "classification": "zone-wrap",
+        "reason": "Legend listener; re-entered into the zone by patchChartOptions via patchListeners(options.legend.listeners)."
+    },
+    "AgSeriesListeners.seriesNodeClick": {
+        "classification": "zone-wrap",
+        "reason": "Series listener; re-entered into the zone by patchChartOptions via patchListeners(series.listeners)."
+    },
+    "AgSeriesListeners.seriesNodeDoubleClick": {
+        "classification": "zone-wrap",
+        "reason": "Series listener; re-entered into the zone by patchChartOptions via patchListeners(series.listeners)."
+    },
+    "AgHistogramSeriesListeners.seriesNodeClick": {
+        "classification": "zone-wrap",
+        "reason": "Series listener; re-entered into the zone by patchChartOptions via patchListeners(series.listeners)."
+    },
+    "AgHistogramSeriesListeners.seriesNodeDoubleClick": {
+        "classification": "zone-wrap",
+        "reason": "Series listener; re-entered into the zone by patchChartOptions via patchListeners(series.listeners)."
+    },
+    "AgContextMenuOptions.getItems": {
+        "classification": "zone-wrap",
+        "reason": "Returns menu items carrying action callbacks; patchChartOptions wraps the returned items' actions via patchContextMenu."
+    },
+    "AgContextMenuItemAlways.action": {
+        "classification": "zone-wrap",
+        "reason": "Context-menu action dispatched from out-of-zone DOM listeners; re-entered into the zone by patchContextMenu."
+    },
+    "AgContextMenuItemSeriesArea.action": {
+        "classification": "zone-wrap",
+        "reason": "Context-menu action dispatched from out-of-zone DOM listeners; re-entered into the zone by patchContextMenu."
+    },
+    "AgContextMenuItemSeriesNode.action": {
+        "classification": "zone-wrap",
+        "reason": "Context-menu action dispatched from out-of-zone DOM listeners; re-entered into the zone by patchContextMenu."
+    },
+    "AgContextMenuItemLegendItem.action": {
+        "classification": "zone-wrap",
+        "reason": "Context-menu action dispatched from out-of-zone DOM listeners; re-entered into the zone by patchContextMenu."
+    },
+    "AgAreaSeriesThemeableOptions.styler": {
+        "classification": "no-wrap",
+        "reason": "Render-path styler; flagged only because its style result may carry a custom marker shape draw callback."
+    },
+    "AgBubbleSeriesThemeableOptions.itemStyler": {
+        "classification": "no-wrap",
+        "reason": "Render-path styler; flagged only because its style result may carry a custom marker shape draw callback."
+    },
+    "AgBubbleSeriesThemeableOptions.styler": {
+        "classification": "no-wrap",
+        "reason": "Render-path styler; flagged only because its style result may carry a custom marker shape draw callback."
+    },
+    "AgLineSeriesThemeableOptions.styler": {
+        "classification": "no-wrap",
+        "reason": "Render-path styler; flagged only because its style result may carry a custom marker shape draw callback."
+    },
+    "AgMapMarkerSeriesThemeableOptions.itemStyler": {
+        "classification": "no-wrap",
+        "reason": "Render-path styler; flagged only because its style result may carry a custom marker shape draw callback."
+    },
+    "AgRadarAreaSeriesThemeableOptions.styler": {
+        "classification": "no-wrap",
+        "reason": "Render-path styler; flagged only because its style result may carry a custom marker shape draw callback."
+    },
+    "AgRadarLineSeriesThemeableOptions.styler": {
+        "classification": "no-wrap",
+        "reason": "Render-path styler; flagged only because its style result may carry a custom marker shape draw callback."
+    },
+    "AgRangeAreaMarker.itemStyler": {
+        "classification": "no-wrap",
+        "reason": "Render-path styler; flagged only because its style result may carry a custom marker shape draw callback."
+    },
+    "AgScatterSeriesThemeableOptions.itemStyler": {
+        "classification": "no-wrap",
+        "reason": "Render-path styler; flagged only because its style result may carry a custom marker shape draw callback."
+    },
+    "AgScatterSeriesThemeableOptions.styler": {
+        "classification": "no-wrap",
+        "reason": "Render-path styler; flagged only because its style result may carry a custom marker shape draw callback."
+    },
+    "AgSeriesMarkerOptions.itemStyler": {
+        "classification": "no-wrap",
+        "reason": "Render-path styler; flagged only because its style result may carry a custom marker shape draw callback."
+    },
+    "AgChartLegendMarkerOptions.shape": {
+        "classification": "no-wrap",
+        "reason": "Custom marker path-draw callback; runs on the render path and must not trigger change detection."
+    },
+    "AgLinearGaugeTarget.shape": {
+        "classification": "no-wrap",
+        "reason": "Custom marker path-draw callback; runs on the render path and must not trigger change detection."
+    },
+    "AgMapMarkerSeriesStyle.shape": {
+        "classification": "no-wrap",
+        "reason": "Custom marker path-draw callback; runs on the render path and must not trigger change detection."
+    },
+    "AgPaginationMarkerOptions.shape": {
+        "classification": "no-wrap",
+        "reason": "Custom marker path-draw callback; runs on the render path and must not trigger change detection."
+    },
+    "AgRadialGaugeTarget.shape": {
+        "classification": "no-wrap",
+        "reason": "Custom marker path-draw callback; runs on the render path and must not trigger change detection."
+    },
+    "AgSeriesMarkerStyle.shape": {
+        "classification": "no-wrap",
+        "reason": "Custom marker path-draw callback; runs on the render path and must not trigger change detection."
+    },
+    "AgSeriesTooltip.renderer": {
+        "classification": "no-wrap",
+        "reason": "Tooltip renderer; render path (flagged only because its result may carry a marker shape draw callback)."
+    },
+    "AgWaterfallSeriesItemTooltip.renderer": {
+        "classification": "no-wrap",
+        "reason": "Tooltip renderer; render path (flagged only because its result may carry a marker shape draw callback)."
+    }
+}
