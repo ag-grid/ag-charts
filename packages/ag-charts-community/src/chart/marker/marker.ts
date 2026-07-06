@@ -191,6 +191,10 @@ export class Marker<_D = unknown> extends Rotatable(Scalable(Translatable(Intern
     declare __translationX: number;
     declare __translationY: number;
 
+    protected override get serializedType(): 'marker' {
+        return 'marker';
+    }
+
     static anchor(shape: AgMarkerShape | undefined): Point {
         if (shape === 'pin') {
             return PIN_ANCHOR;

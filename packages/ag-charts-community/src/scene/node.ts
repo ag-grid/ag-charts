@@ -1,4 +1,5 @@
 import { DeclaredSceneChangeDetection, Logger, createId, createSvgElement, objectsEqual } from 'ag-charts-core';
+import type { AgDrawingMode } from 'ag-charts-types';
 
 import { BBox } from './bbox';
 import type { ImageLoader } from './image/imageLoader';
@@ -42,6 +43,79 @@ export interface NodeOptions {
 }
 
 export type NodeWithOpacity<D> = Node<D> & { opacity: number };
+
+/**
+ * Properties every node contributes to its serialised state (see {@link Node.serialize}). The
+ * transform properties are contributed by the Translatable/Scalable/Rotatable mixins when applied,
+ * so they are optional on every node kind.
+ */
+export interface SerializedNodeProps {
+    visible: boolean;
+    translationX?: number;
+    translationY?: number;
+    scalingX?: number;
+    scalingY?: number;
+    rotation?: number;
+}
+
+export interface SerializedGroupProps extends SerializedNodeProps {
+    opacity: number;
+}
+
+export interface SerializedShapeProps extends SerializedNodeProps {
+    opacity: number;
+    drawingMode: AgDrawingMode;
+    hasFill: boolean;
+    hasStroke: boolean;
+}
+
+export interface SerializedPathProps extends SerializedShapeProps {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    clip: boolean;
+    clipX: number;
+    clipY: number;
+}
+
+export interface SerializedSectorProps extends SerializedPathProps {
+    startAngle: number;
+    endAngle: number;
+    innerRadius: number;
+    outerRadius: number;
+}
+
+export interface SerializedLineProps extends SerializedShapeProps {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+}
+
+export interface SerializedTextProps extends SerializedShapeProps {
+    x: number;
+    y: number;
+    text?: string;
+}
+
+/**
+ * Plain-data snapshot of a node's rendered state (see {@link Node.serialize}), discriminated by node
+ * kind independently of subclassing (e.g. a specialised bar shape still reads as `'rect'`); `svgPath`
+ * carries the drawn path commands in SVG form for path-painting nodes. This union is closed: a new
+ * node kind must add its variant here, which forces every exhaustive consumer to decide how to
+ * handle it.
+ */
+export type SerializedNodeState =
+    | { type: 'node'; props: SerializedNodeProps }
+    | { type: 'group'; props: SerializedGroupProps }
+    | { type: 'path'; props: SerializedPathProps; svgPath?: string }
+    | { type: 'marker'; props: SerializedPathProps; svgPath?: string }
+    | { type: 'rect'; props: SerializedPathProps; svgPath?: string }
+    | { type: 'sector'; props: SerializedSectorProps; svgPath?: string }
+    | { type: 'line'; props: SerializedLineProps }
+    | { type: 'range'; props: SerializedLineProps }
+    | { type: 'text'; props: SerializedTextProps };
 
 export type ChildNodeCounts = {
     groups: number;
@@ -392,6 +466,20 @@ export abstract class Node<TDatum = unknown> {
     getBBox(): BBox {
         this.cachedBBox ??= Object.freeze(this.computeBBox()) as BBox;
         return this.cachedBBox;
+    }
+
+    /**
+     * Serialise this node's rendered state to plain data, so consumers (tests, debug tooling) can
+     * inspect scene state without reaching into shape internals. Each subclass returns its own
+     * {@link SerializedNodeState} variant, accumulating inherited property contributions (including
+     * the transform mixins') via {@link serializeProps}.
+     */
+    serialize(): SerializedNodeState {
+        return { type: 'node', props: this.serializeProps() };
+    }
+
+    protected serializeProps(): SerializedNodeProps {
+        return { visible: this.visible };
     }
 
     protected computeBBox(): BBox | undefined {

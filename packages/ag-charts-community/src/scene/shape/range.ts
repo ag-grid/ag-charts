@@ -1,5 +1,5 @@
 import { BBox } from '../bbox';
-import type { NodeOptions, RenderContext } from '../node';
+import type { NodeOptions, RenderContext, SerializedLineProps, SerializedNodeState } from '../node';
 import { SceneChangeDetection } from '../node';
 import { Shape } from './shape';
 
@@ -31,6 +31,14 @@ export class Range<D = any> extends Shape<D> {
 
     @SceneChangeDetection()
     horizontal: boolean = false;
+
+    override serialize(): SerializedNodeState {
+        return { type: 'range', props: this.serializeProps() };
+    }
+
+    protected override serializeProps(): SerializedLineProps {
+        return { ...super.serializeProps(), x1: this.x1, y1: this.y1, x2: this.x2, y2: this.y2 };
+    }
 
     protected override computeBBox(): BBox {
         return new BBox(this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y1);

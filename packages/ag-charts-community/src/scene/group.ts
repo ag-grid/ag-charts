@@ -2,7 +2,7 @@ import { clamp, toIterable } from 'ag-charts-core';
 
 import { BBox } from './bbox';
 import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
-import type { ChildNodeCounts, IScene, RenderContext } from './node';
+import type { ChildNodeCounts, IScene, RenderContext, SerializedGroupProps, SerializedNodeState } from './node';
 import { Node, PointerEvents, SceneChangeDetection } from './node';
 import { type CanvasContext, Shape } from './shape/shape';
 import {
@@ -50,6 +50,14 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
     @SceneChangeDetection({ convertor: (v: number) => clamp(0, v, 1) })
     opacity: number = 1;
+
+    override serialize(): SerializedNodeState {
+        return { type: 'group', props: this.serializeProps() };
+    }
+
+    protected override serializeProps(): SerializedGroupProps {
+        return { ...super.serializeProps(), opacity: this.opacity };
+    }
 
     private _childFontDirty = true;
     private _cachedChildFont: string | undefined;

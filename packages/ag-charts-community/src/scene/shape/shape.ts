@@ -32,6 +32,7 @@ import { LinearGradient } from '../gradient/linearGradient';
 import { RadialGradient } from '../gradient/radialGradient';
 import { getColorStops } from '../gradient/stops';
 import { Image } from '../image/image';
+import type { SerializedNodeState, SerializedShapeProps } from '../node';
 import { Node } from '../node';
 import { Pattern } from '../pattern/pattern';
 import { align } from '../util/pixel';
@@ -189,6 +190,19 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     @DeclaredSceneChangeDetection({ convertor: (v: number) => clamp(0, v ?? 1, 1) })
     opacity: number = 1;
     declare __opacity: number; // optimised field accessor
+
+    /** Every concrete shape must declare which {@link SerializedNodeState} variant it serialises as. */
+    abstract override serialize(): SerializedNodeState;
+
+    protected override serializeProps(): SerializedShapeProps {
+        return {
+            ...super.serializeProps(),
+            opacity: this.opacity,
+            drawingMode: this.drawingMode,
+            hasFill: this.fill != null,
+            hasStroke: this.stroke != null,
+        };
+    }
 
     @SceneObjectChangeDetection({ equals: TRIPLE_EQ, checkDirtyOnAssignment: true })
     fillShadow: DropShadow | undefined;

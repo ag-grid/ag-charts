@@ -2,6 +2,7 @@ import type { Point } from 'ag-charts-core';
 import { SceneChangeDetection, SceneObjectChangeDetection } from 'ag-charts-core';
 
 import type { BBox } from '../bbox';
+import type { SerializedNodeState, SerializedSectorProps } from '../node';
 import { SectorBox } from '../sectorBox';
 import {
     arcCircleIntersectionAngle,
@@ -99,6 +100,20 @@ export class Sector<D = unknown> extends Path<D> {
 
     @SceneChangeDetection()
     endInnerCornerRadius: number = 0;
+
+    override serialize(): SerializedNodeState {
+        return { type: 'sector', props: this.serializeProps(), svgPath: this.serializeSvgPath() };
+    }
+
+    protected override serializeProps(): SerializedSectorProps {
+        return {
+            ...super.serializeProps(),
+            startAngle: this.startAngle,
+            endAngle: this.endAngle,
+            innerRadius: this.innerRadius,
+            outerRadius: this.outerRadius,
+        };
+    }
 
     set inset(value: number) {
         this.concentricEdgeInset = value;

@@ -28,7 +28,7 @@ import type { FontStyle, FontWeight, Opacity, Padding, PixelSize } from 'ag-char
 
 import { BBox } from '../bbox';
 import { Group } from '../group';
-import type { IScene, Node, NodeOptions, RenderContext } from '../node';
+import type { IScene, Node, NodeOptions, RenderContext, SerializedNodeState, SerializedTextProps } from '../node';
 import { SceneChangeDetection } from '../node';
 import { DebugSelectors } from '../sceneDebug';
 import { Rotatable, type RotatableType, Translatable, type TranslatableType } from '../transformable';
@@ -80,6 +80,19 @@ export class Text<D = unknown> extends Shape<D> {
 
     @SceneChangeDetection()
     y: number = 0;
+
+    override serialize(): SerializedNodeState {
+        return { type: 'text', props: this.serializeProps() };
+    }
+
+    protected override serializeProps(): SerializedTextProps {
+        return {
+            ...super.serializeProps(),
+            x: this.x,
+            y: this.y,
+            text: this.text == null ? undefined : String(this.text),
+        };
+    }
 
     private lines: string[] = [];
     private onTextChange() {

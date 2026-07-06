@@ -2,7 +2,7 @@ import type { DistantObject } from 'ag-charts-core';
 import { createSvgElement, lineDistanceSquared } from 'ag-charts-core';
 
 import { BBox } from '../bbox';
-import type { NodeOptions, RenderContext } from '../node';
+import type { NodeOptions, RenderContext, SerializedLineProps, SerializedNodeState } from '../node';
 import { SceneChangeDetection } from '../node';
 import { Shape } from './shape';
 
@@ -35,6 +35,14 @@ export class Line<D = unknown> extends Shape<D> implements DistantObject {
     set y(value: number) {
         this.y1 = value;
         this.y2 = value;
+    }
+
+    override serialize(): SerializedNodeState {
+        return { type: 'line', props: this.serializeProps() };
+    }
+
+    protected override serializeProps(): SerializedLineProps {
+        return { ...super.serializeProps(), x1: this.x1, y1: this.y1, x2: this.x2, y2: this.y2 };
     }
 
     get midPoint(): { x: number; y: number } {
