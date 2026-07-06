@@ -1448,10 +1448,10 @@ export class SeriesAreaManager extends BaseManager {
             }
 
             const pick = series.pickNodes(point, intent, exactMatchOnly);
-            if (pick == null || pick.datums.length === 0) continue;
+            if (pick == null || pick.picks.length === 0) continue;
 
-            const { datums, distance } = pick;
-            if (pick.datums.length === 0) continue;
+            const { picks } = pick;
+            const distance = picks[0].distance;
 
             if (distance === 0) {
                 // Accumulate multiple series when the nodes are under the cursor
@@ -1460,12 +1460,12 @@ export class SeriesAreaManager extends BaseManager {
                     result = { matches: [], distance: 0 };
                 }
 
-                for (const datum of datums) {
+                for (const { datum } of picks) {
                     result.matches.push(datum);
                 }
             } else if (result == null || result.distance > distance) {
                 // Don't accumulate multiple datums when matching by nearest distance
-                result = { matches: datums, distance };
+                result = { matches: picks.map((p) => p.datum), distance };
             }
         }
 

@@ -117,6 +117,12 @@ export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'highlight-tooltip'
 export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum;
     distance: number;
+    /**
+     * The scene-node hit under the pointer, as accurate as possible. Exact-shape and
+     * nearest-object picks report the matched leaf; modes that match on datum geometry (e.g.
+     * "closest") cannot resolve the leaf efficiently and fall back to the series `contentGroup`.
+     */
+    target: Node<unknown>;
 };
 
 export type PickFocusInputs = {
@@ -146,8 +152,7 @@ export type PickFocusOutputs = {
 
 export type PickResult = {
     pickMode: SeriesNodePickMode;
-    datums: SeriesNodeDatum[];
-    distance: number;
+    picks: SeriesNodePickMatch[];
 };
 
 export type PickNodesInBBoxPredicate = (selectionBox: BoxBounds, node: Node<unknown>) => boolean;
@@ -1044,12 +1049,12 @@ export abstract class Series<
         }
 
         for (const pickMode of selectedPickModes) {
-            let result: { datums: SeriesNodeDatum[]; distance: number } | undefined;
+            let picks: SeriesNodePickMatch[] | undefined;
 
             switch (pickMode) {
                 case SeriesNodePickMode.EXACT_SHAPE_MATCH: {
                     const exact = this.pickNodesExactShape(point);
-                    result = exact.length === 0 ? undefined : { datums: exact, distance: 0 };
+                    if (exact.length !== 0) picks = exact;
                     break;
                 }
 
@@ -1057,11 +1062,9 @@ export abstract class Series<
                     const closest = this.pickNodeClosestDatum(point);
                     const exact = closest?.distance === 0 ? this.pickNodesExactShape(point) : undefined;
                     if (exact != null && exact.length !== 0) {
-                        result = { datums: exact, distance: 0 };
+                        picks = exact;
                     } else if (closest) {
-                        result = { datums: [closest.datum], distance: closest.distance };
-                    } else {
-                        result = undefined;
+                        picks = [closest];
                     }
                     break;
                 }
@@ -1071,28 +1074,28 @@ export abstract class Series<
                         pickModeAxis == null
                             ? undefined
                             : this.pickNodeMainAxisFirst(point, pickModeAxis === 'main-category');
-                    result = closest == null ? undefined : { datums: [closest.datum], distance: closest.distance };
+                    if (closest != null) picks = [closest];
                     break;
                 }
             }
 
-            if (result && result.distance <= maxDistance) {
-                return this._pickNodeCache.set(key, { pickMode, datums: result.datums, distance: result.distance });
+            if (picks && picks[0].distance <= maxDistance) {
+                return this._pickNodeCache.set(key, { pickMode, picks });
             }
         }
 
         return this._pickNodeCache.set(key, undefined);
     }
 
-    protected pickNodesExactShape(point: Point): SeriesNodeDatum[] {
-        const datums: SeriesNodeDatum[] = [];
+    protected pickNodesExactShape(point: Point): SeriesNodePickMatch[] {
+        const picks: SeriesNodePickMatch[] = [];
         for (const node of this.contentGroup.pickNodes(point.x, point.y)) {
             const datum = node.unsafeClosestDatum();
             if (typeof datum === 'object' && datum != null && datum.missing !== true) {
-                datums.push(datum);
+                picks.push({ datum, distance: 0, target: node });
             }
         }
-        return datums;
+        return picks;
     }
 
     protected pickNodeClosestDatum(_point: Point): SeriesNodePickMatch | undefined {
@@ -1105,10 +1108,10 @@ export abstract class Series<
         point: Point,
         items: Iterable<T>
     ): SeriesNodePickMatch | undefined {
-        const match = nearestSquared(point.x, point.y, items);
-        const datum = match.nearest?.unsafeClosestDatum();
-        if (typeof datum === 'object' && datum != null && datum.missing !== true) {
-            return { datum, distance: Math.sqrt(match.distanceSquared) };
+        const { nearest, distanceSquared } = nearestSquared(point.x, point.y, items);
+        const datum = nearest?.unsafeClosestDatum();
+        if (nearest != null && typeof datum === 'object' && datum != null && datum.missing !== true) {
+            return { datum, distance: Math.sqrt(distanceSquared), target: nearest };
         }
     }
 

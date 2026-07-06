@@ -954,7 +954,9 @@ export class MapMarkerSeries
             }
         }
 
-        return minDatum == null ? undefined : { datum: minDatum, distance: Math.sqrt(minDistanceSquared) };
+        return minDatum == null
+            ? undefined
+            : { datum: minDatum, distance: Math.sqrt(minDistanceSquared), target: this.contentGroup };
     }
 
     private legendItemSymbol(datumIndex?: number): _ModuleSupport.LegendSymbolOptions {

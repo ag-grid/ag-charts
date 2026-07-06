@@ -969,7 +969,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         return result;
     }
 
-    protected pickNodeDataExactShape(point: Point): SeriesNodeDatum[] | undefined {
+    protected pickNodeDataExactShape(point: Point): SeriesNodePickMatch[] | undefined {
         const { x, y } = point;
 
         const { dataNodeGroup } = this;
@@ -979,22 +979,21 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         });
 
         if (matches.length !== 0) {
-            const datums = matches.map((match) => match.datum);
-            return datums;
+            return matches.map((match) => ({ datum: match.datum, distance: 0, target: match }));
         }
     }
 
-    protected pickModulesExactShape(point: Point): SeriesNodeDatum[] | undefined {
+    protected pickModulesExactShape(point: Point): SeriesNodePickMatch[] | undefined {
         for (const mod of this.moduleMap.modules()) {
             const { unsafeDatum } = mod.pickNodeExact(point) ?? {};
             if (unsafeDatum == null) continue;
             if (unsafeDatum?.missing === true) continue;
 
-            return [unsafeDatum];
+            return [{ datum: unsafeDatum, distance: 0, target: this.contentGroup }];
         }
     }
 
-    protected override pickNodesExactShape(point: Point): SeriesNodeDatum[] {
+    protected override pickNodesExactShape(point: Point): SeriesNodePickMatch[] {
         const result = super.pickNodesExactShape(point);
 
         if (result.length !== 0) {
@@ -1078,7 +1077,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         }
 
         if (closestDatum) {
-            return { datum: closestDatum, distance: minDistance };
+            return { datum: closestDatum, distance: minDistance, target: this.contentGroup };
         }
     }
 
@@ -1159,6 +1158,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             return {
                 datum: closestDatum!,
                 distance: Math.sqrt(closestDistanceSquared),
+                target: this.contentGroup,
             };
         }
     }
