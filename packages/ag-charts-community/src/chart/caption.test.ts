@@ -389,6 +389,40 @@ describe('Caption', () => {
 
             expect(boxedSeriesY).toBeGreaterThan(unboxedSeriesY);
         });
+
+        // A plain-text box grows the caption bbox by its padding; a rich-text (segment) box does
+        // not, so the layout compensates. The compensation must reserve the same space as the
+        // plain-text box, not double-count the padding against the caption's inset position.
+        test('boxed rich-text caption does not double-count box padding vs plain text', async () => {
+            chart = await createChart({
+                ...seriesOptions,
+                footnote: { text: 'Source', fill: '#4a90d9', padding: boxPadding },
+            });
+            const plainFootBottom = chart.seriesAreaBoundingBox.y + chart.seriesAreaBoundingBox.height;
+
+            chart = await createChart({
+                ...seriesOptions,
+                footnote: { text: [{ text: 'Source' }], fill: '#4a90d9', padding: boxPadding },
+            });
+            const richFootBottom = chart.seriesAreaBoundingBox.y + chart.seriesAreaBoundingBox.height;
+
+            expect(richFootBottom).toBeCloseTo(plainFootBottom, 0);
+
+            chart = await createChart({
+                ...seriesOptions,
+                title: { text: 'Revenue', fill: '#4a90d9', padding: boxPadding },
+            });
+            const plainTitleY = chart.seriesAreaBoundingBox.y;
+
+            chart = await createChart({
+                ...seriesOptions,
+                title: { text: [{ text: 'Revenue' }], fill: '#4a90d9', padding: boxPadding },
+            });
+            const richTitleY = chart.seriesAreaBoundingBox.y;
+
+            expect(richTitleY).toBeGreaterThanOrEqual(plainTitleY);
+            expect(richTitleY - plainTitleY).toBeLessThan(boxPadding.top + boxPadding.bottom);
+        });
     });
 
     // CRT-1041: Footnote caption with multi-line rich text should have correct bounding box

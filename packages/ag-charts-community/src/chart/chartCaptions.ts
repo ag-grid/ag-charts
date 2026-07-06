@@ -114,18 +114,20 @@ export class ChartCaptions {
             if (vAlign === 'bottom') bbox.y -= bbox.height;
         }
 
-        // Segment/rich-text bboxes are not grown by the background-box padding (unlike plain
-        // text), so reserve the box's vertical extent explicitly to keep it clear of the plot.
+        const richText = isArray(opts.text);
         const { top, bottom } = caption.boxPadding;
-        const segmentBoxExtent = isArray(opts.text) ? top + bottom : 0;
 
-        if (vAlign === 'bottom' && isArray(opts.text)) {
+        if (richText && (top !== 0 || bottom !== 0)) {
+            // Segment bboxes aren't grown by the background box (unlike plain text); grow
+            // explicitly so a boxed rich-text caption reserves the same layout as a boxed plain one.
+            bbox.grow(caption.boxPadding);
+        } else if (vAlign === 'bottom' && richText) {
             bbox.y -= bbox.height;
         }
         layoutBox.shrink(
             vAlign === 'top'
-                ? Math.ceil(bbox.y - layoutBox.y + bbox.height + spacing + segmentBoxExtent)
-                : Math.ceil(layoutBox.y + layoutBox.height - bbox.y + spacing + segmentBoxExtent),
+                ? Math.ceil(bbox.y - layoutBox.y + bbox.height + spacing)
+                : Math.ceil(layoutBox.y + layoutBox.height - bbox.y + spacing),
             vAlign
         );
     }
