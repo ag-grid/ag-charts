@@ -4,10 +4,6 @@ inputs:
     branch:
         description: 'Snapshot branch name to use.'
         required: true
-    run_started_at:
-        description: 'DEPRECATED — ignored. The action resolves the current attempt start time from the runs API itself.'
-        required: false
-        default: ''
     github_token:
         description: 'GitHub token to use for PR creation.'
         required: true
