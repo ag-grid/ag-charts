@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 import type { AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
-import { FittableLabel, Label, LabelCollisionAvoidance, PlacedSeriesLabel } from './label';
+import { LabelCollisionAvoidance } from './label';
 import {
     extractImageData,
     prepareTestOptions,
@@ -55,60 +55,6 @@ describe('Labels', () => {
             });
             chart = AgCharts.create(options);
             await compare();
-        });
-    });
-
-    describe('PlacedSeriesLabel.placements', () => {
-        test('falls back to the supplied placements when none are set', () => {
-            expect(new PlacedSeriesLabel().placements(['bottom'])).toEqual(['bottom']);
-        });
-
-        test('normalises a single configured placement to an array', () => {
-            const label = new PlacedSeriesLabel();
-            label.placement = 'left';
-            expect(label.placements(['bottom'])).toEqual(['left']);
-        });
-
-        test('uses the configured placement array over the fallback', () => {
-            const label = new PlacedSeriesLabel();
-            label.placement = ['left', 'right'];
-            expect(label.placements(['bottom'])).toEqual(['left', 'right']);
-        });
-    });
-
-    describe('Label.orientations', () => {
-        test('defaults to parallel when no orientation is set', () => {
-            expect(new Label().orientations()).toEqual(['parallel']);
-        });
-
-        test('normalises a single configured orientation to an array', () => {
-            const label = new Label();
-            label.orientation = 'perpendicular';
-            expect(label.orientations()).toEqual(['perpendicular']);
-        });
-
-        test('uses the configured orientation array over the fallback', () => {
-            const label = new Label();
-            label.orientation = ['perpendicular', 'parallel'];
-            expect(label.orientations()).toEqual(['perpendicular', 'parallel']);
-        });
-    });
-
-    describe('FittableLabel.resolveFit', () => {
-        test('returns undefined when no fit field is set', () => {
-            expect(new FittableLabel().resolveFit()).toBeUndefined();
-        });
-
-        test('resolves the configured fit policy', () => {
-            const label = new FittableLabel();
-            label.maxWidth = 120;
-            label.wrapping = 'on-space';
-            expect(label.resolveFit()).toEqual({
-                maxWidth: 120,
-                maxHeight: undefined,
-                wrapping: 'on-space',
-                overflowStrategy: undefined,
-            });
         });
     });
 

@@ -16,6 +16,8 @@ import {
     extent,
     isDefined,
     mergeDefaults,
+    resolveLabelFit,
+    toArray,
     toNumber,
 } from 'ag-charts-core';
 import {
@@ -102,7 +104,6 @@ import {
 import { buildResetPathFn, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 import {
     DEFAULT_MARKERLESS_LABEL_GAP,
-    DEFAULT_PLACED_LABEL_PLACEMENTS,
     PlacedLabelCartesianSeries,
     type PlacedLabelSeriesTypes,
 } from './placedLabelCartesianSeries';
@@ -500,10 +501,10 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             labelPadding: expandLabelPadding(this.properties.label),
             labelTextMeasurer: cachedTextMeasurer(this.properties.label),
             labelAvoid: collisionAvoidance.avoid,
-            labelPlacements: label.placements(DEFAULT_PLACED_LABEL_PLACEMENTS),
+            labelPlacements: toArray(label.placement),
             labelMinSpacing: collisionAvoidance.minSpacing,
             labelCollideWith: collisionAvoidance.resolveCollideWith(),
-            labelFit: label.resolveFit(),
+            labelFit: resolveLabelFit(label),
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,
             dataAggregationFilter,

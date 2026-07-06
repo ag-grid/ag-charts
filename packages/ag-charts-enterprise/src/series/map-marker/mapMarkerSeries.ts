@@ -21,6 +21,7 @@ import {
     fitLabelText,
     formatValue,
     mergeDefaults,
+    resolveLabelFit,
     toArray,
 } from 'ag-charts-core';
 import {
@@ -393,7 +394,7 @@ export class MapMarkerSeries
         );
         if (labelText == null) return;
 
-        const fittedText = fitLabelText(labelText, label.resolveFit(), label);
+        const fittedText = fitLabelText(labelText, resolveLabelFit(label), label);
         const { width, height } = measurer.measureLines(String(fittedText));
         const anchor = Marker.anchor(shape);
 
@@ -937,7 +938,7 @@ export class MapMarkerSeries
         const { label } = this.properties;
         const { collisionAvoidance } = label;
         applyLabelAvoidance(labelData, collisionAvoidance.avoid, collisionAvoidance.resolveCollideWith());
-        applyLabelPlacements(labelData, label.placements());
+        applyLabelPlacements(labelData, toArray(label.placement));
         return labelData;
     }
 

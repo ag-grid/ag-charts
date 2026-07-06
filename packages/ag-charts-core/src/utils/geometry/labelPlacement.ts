@@ -32,6 +32,15 @@ export interface LabelFit {
     readonly overflowStrategy?: OverflowStrategy;
 }
 
+/** Resolved fit policy passed to the engine, or `undefined` when no fit field is set. */
+export function resolveLabelFit(fit: LabelFit): LabelFit | undefined {
+    const { maxWidth, maxHeight, wrapping, overflowStrategy } = fit;
+    if (maxWidth == null && maxHeight == null && wrapping == null && overflowStrategy == null) {
+        return undefined;
+    }
+    return { maxWidth, maxHeight, wrapping, overflowStrategy };
+}
+
 export interface PointLabelDatum {
     readonly point: Readonly<SizedPoint>;
     readonly label: MeasuredLabel;

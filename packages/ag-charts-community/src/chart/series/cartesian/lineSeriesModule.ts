@@ -11,6 +11,7 @@ import {
     SAFE_STROKE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { AgLineSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
@@ -53,6 +54,7 @@ const themeTemplate: ExtensibleTheme<'line'> = {
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'textColor' },
+            ...undocumentedThemeOptions({ placement: ['top', 'bottom'] }),
         },
         tooltip: {
             range: {

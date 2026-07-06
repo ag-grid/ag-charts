@@ -925,6 +925,10 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "padding": 8,
+                    "placement": [
+                      "top",
+                      "bottom",
+                    ],
                   },
                   "lineDash": [
                     0,
@@ -995,6 +999,10 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "padding": 8,
+                    "placement": [
+                      "top",
+                      "bottom",
+                    ],
                   },
                   "lineDash": [
                     0,
@@ -1400,6 +1408,10 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "padding": 8,
+                    "placement": [
+                      "top",
+                      "bottom",
+                    ],
                   },
                   "lineDash": [
                     0,
@@ -1470,6 +1482,10 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "padding": 8,
+                    "placement": [
+                      "top",
+                      "bottom",
+                    ],
                   },
                   "lineDash": [
                     0,
@@ -1875,6 +1891,10 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "padding": 8,
+                    "placement": [
+                      "top",
+                      "bottom",
+                    ],
                   },
                   "lineDash": [
                     0,
@@ -1945,6 +1965,10 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "padding": 8,
+                    "placement": [
+                      "top",
+                      "bottom",
+                    ],
                   },
                   "lineDash": [
                     0,

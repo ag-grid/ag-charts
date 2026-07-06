@@ -23,6 +23,7 @@ import {
     isArray,
     measureTextSegments,
     rescaleVisibleRange,
+    resolveLabelFit,
     toArray,
     toNumber,
     toPlainText,
@@ -641,7 +642,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             labelTextDomain,
             labelPadding: expandLabelPadding(label),
             labelTextMeasurer: cachedTextMeasurer(label),
-            labelFit: label.resolveFit(),
+            labelFit: resolveLabelFit(label),
             label,
 
             // Other state
@@ -993,7 +994,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const { label } = this.properties;
         const { collisionAvoidance } = label;
         applyLabelAvoidance(labelData, collisionAvoidance.avoid, collisionAvoidance.resolveCollideWith());
-        applyLabelPlacements(labelData, label.placements());
+        applyLabelPlacements(labelData, toArray(label.placement));
         return labelData;
     }
 

@@ -1,13 +1,10 @@
 import {
     BaseProperties,
     type CollideWith,
-    type LabelFit,
-    type LabelPlacement,
     type NormalisedTextOrSegments,
     Property,
     type RequireOptional,
     isArray,
-    toArray,
 } from 'ag-charts-core';
 import type {
     AgChartLabelCollideWithCategoryOptions,
@@ -154,11 +151,6 @@ export class Label<TParams = never, TDatum = any>
     @Property
     itemStyler?: Styler<AgChartLabelStylerParams<TDatum, ContextDefault>, AgChartLabelStyleOptions>;
 
-    /** Configured orientation candidates, or the supplied fallback when none are set. */
-    orientations(fallback: readonly AgChartLabelOrientation[] = ['parallel']): readonly AgChartLabelOrientation[] {
-        return this.orientation == null ? fallback : toArray(this.orientation);
-    }
-
     private _cachedFormatter: FormatterCache | undefined = undefined;
     formatValue(
         formatWithContext: ContextFormatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>,
@@ -204,26 +196,12 @@ export class FittableLabel<TParams = never, TDatum = any> extends Label<TParams,
 
     @Property
     overflowStrategy?: OverflowStrategy;
-
-    /** Resolved fit policy passed to the engine, or `undefined` when no fit field is set. */
-    resolveFit(): LabelFit | undefined {
-        const { maxWidth, maxHeight, wrapping, overflowStrategy } = this;
-        if (maxWidth == null && maxHeight == null && wrapping == null && overflowStrategy == null) {
-            return undefined;
-        }
-        return { maxWidth, maxHeight, wrapping, overflowStrategy };
-    }
 }
 
 /** Label for point-like series (line, area, scatter, bubble, map-marker) that resolve a directional placement. */
 export class PlacedSeriesLabel<TParams = never, TDatum = any> extends FittableLabel<TParams, TDatum> {
     @Property
     placement?: AgChartLabelCollisionPlacement | AgChartLabelCollisionPlacement[];
-
-    /** Configured placement candidates, or the supplied fallback when none are set. */
-    placements(fallback: readonly LabelPlacement[] = []): readonly LabelPlacement[] {
-        return this.placement == null ? fallback : toArray(this.placement);
-    }
 }
 
 type LabelBoxingMixin = { border?: { enabled?: boolean; stroke?: string }; fill?: unknown; padding?: Padding };
