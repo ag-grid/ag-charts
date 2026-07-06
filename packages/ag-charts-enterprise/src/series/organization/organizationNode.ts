@@ -1,5 +1,5 @@
 import { type TextAlign, _ModuleSupport } from 'ag-charts-community';
-import { type NormalisedTextOrSegments, type Point, wrapTextOrSegments } from 'ag-charts-core';
+import { type NormalisedTextOrSegments, wrapTextOrSegments } from 'ag-charts-core';
 
 import { layoutScenesColumn, layoutScenesRow } from '../../utils/sceneLayout';
 import type {
@@ -9,6 +9,12 @@ import type {
     OrganizationNodeFields,
 } from './organizationTypes';
 import { applyFillStyles, applyStrokeStyles, applyTextBoxingStyles, applyTextStyles } from './organizationUtils';
+
+// Scene-node `tag` selector so hit-testing can tell the card apart from the expander control.
+export enum OrganizationNodeTag {
+    Card,
+    Expander,
+}
 
 // Sub-pixel slack on the overflow check; pure float-comparison guard, not user-tunable.
 const CLIP_EPSILON = 0.5;
@@ -47,7 +53,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     // appended later in `updateExpanderNode` so it stays visually on top. `contentGroup`
     // also carries the conditional clip applied in `updateBBox` when `maxWidth`/`maxHeight`
     // clamp the card under its intrinsic content size.
-    private readonly shapeNode = this.appendChild(new _ModuleSupport.Rect());
+    private readonly shapeNode = this.appendChild(new _ModuleSupport.Rect({ tag: OrganizationNodeTag.Card }));
     private readonly contentGroup = this.appendChild(new _ModuleSupport.Group());
     private imageNode?: _ModuleSupport.Rect;
     private titleNode?: _ModuleSupport.Text;
@@ -226,11 +232,6 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
     }
 
-    expanderContainsPoint(point: Point) {
-        if (!this.expanderNode) return false;
-        return this.expanderNode.containsPoint(point.x, point.y);
-    }
-
     // Card-only bbox in node-local coords; excludes the expander pill that hangs below.
     getCardBBox(): _ModuleSupport.BBox {
         return new _ModuleSupport.BBox(0, 0, this.shapeNode.width, this.shapeNode.height);
@@ -367,14 +368,14 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
     private chevronNode?: ChevronPath;
 
     update(descendantsCount: number, isCollapsed: boolean, isRtl: boolean, styles: NormalisedOrganizationNodeStyle) {
-        this.shapeNode ??= this.appendChild(new _ModuleSupport.Rect());
+        this.shapeNode ??= this.appendChild(new _ModuleSupport.Rect({ tag: OrganizationNodeTag.Expander }));
 
-        this.countNode ??= this.appendChild(new _ModuleSupport.Text());
+        this.countNode ??= this.appendChild(new _ModuleSupport.Text({ tag: OrganizationNodeTag.Expander }));
         this.countNode.y = styles.expander.padding.top;
         this.countNode.text = `${descendantsCount}`;
         applyTextStyles(this.countNode, styles.expander.text);
 
-        this.chevronNode ??= this.appendChild(new ChevronPath());
+        this.chevronNode ??= this.appendChild(new ChevronPath({ tag: OrganizationNodeTag.Expander }));
         this.chevronNode.update(
             styles.expander.text.fontSize * (7 / 12),
             styles.expander.text.fontSize * (3.5 / 12),

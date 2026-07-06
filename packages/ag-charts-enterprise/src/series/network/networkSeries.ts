@@ -157,13 +157,14 @@ export abstract class AbstractNetworkSeries<
 
         this.cleanup.register(
             ctx.eventsHub.on('series-area:click', (event) => {
-                const { type, clickedNode, sourceEvent } = event;
+                const { type, clickedNode, target, sourceEvent } = event;
                 const clickModifier = clickedNode?.series.properties.selection.clickModifier;
                 if (
                     type !== 'click' ||
                     clickedNode?.series !== this ||
                     clickedNode.itemId == null ||
-                    hasClickSelectionModifier(event, clickModifier)
+                    hasClickSelectionModifier(event, clickModifier) ||
+                    !this.shouldToggleCollapseOnClick(target)
                 ) {
                     return;
                 }
@@ -178,6 +179,12 @@ export abstract class AbstractNetworkSeries<
                 }
             })
         );
+    }
+
+    // Whether a click on `target` should toggle collapse. The whole node is the target by
+    // default; OrganizationSeries narrows this to the expander control.
+    protected shouldToggleCollapseOnClick(_target: _ModuleSupport.Node<unknown> | undefined): boolean {
+        return true;
     }
 
     abstract createNetworkGraph(): TGraph;

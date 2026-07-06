@@ -78,6 +78,11 @@ export interface SeriesAreaClickEvent {
     readonly consumed: boolean;
     readonly sourceEvent: MouseEvent | TouchEvent | KeyboardEvent;
     readonly clickedNode: SeriesNodeDatum | undefined;
+    /**
+     * The scene-node under the pointer for `clickedNode`. Undefined for keyboard-synthesised
+     * clicks (Enter/Space on a focused node), which have no pointer position to hit-test.
+     */
+    readonly target: Node<unknown> | undefined;
 }
 
 export interface DataModelSeriesDiff {

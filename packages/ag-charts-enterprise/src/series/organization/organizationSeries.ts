@@ -37,7 +37,7 @@ import { AbstractNetworkSeries } from '../network/networkSeries';
 import { NetworkTreeLayout, type NetworkTreeLayoutUpdateOptions } from '../network/networkTreeLayout';
 import type { NetworkLinkInterpolation } from '../network/networkTypes';
 import { OrganizationGraph } from './organizationGraph';
-import { OrganizationNode } from './organizationNode';
+import { OrganizationNode, OrganizationNodeTag } from './organizationNode';
 import { OrganizationSeriesNodeTextProperties, OrganizationSeriesProperties } from './organizationSeriesProperties';
 import type {
     NormalisedOrganizationNodeStyle,
@@ -451,14 +451,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const id = this.getItemId(itemIdOrIndex);
         if (id == null) return;
 
-        const vertex = this.graph.findVertexById(id);
-        if (vertex == null) return;
-
-        // const node = this.datumSelection.at(this.graph.findNeighbourValue(vertex, 'datumIndex') as number);
-        // if (node == null || !node.expanderContainsPoint(point)) {
-        //     return;
-        // }
-
         if (this.ctx.collapsedManager.expand([id])) {
             this.markNodeDataDirty();
         }
@@ -471,6 +463,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         if (this.ctx.collapsedManager.collapseAppend([id])) {
             this.markNodeDataDirty();
         }
+    }
+
+    // Keyboard activations have no pointer target — allow them; pointer clicks must hit the expander.
+    protected override shouldToggleCollapseOnClick(target: _ModuleSupport.Node<unknown> | undefined): boolean {
+        const expanderTag: number = OrganizationNodeTag.Expander;
+        return target == null || target.tag === expanderTag;
     }
 
     public override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {

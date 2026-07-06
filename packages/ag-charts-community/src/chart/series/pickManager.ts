@@ -1,6 +1,7 @@
 import { objectsEqual } from 'ag-charts-core';
 import type { AgActiveItemState } from 'ag-charts-types';
 
+import type { Node } from '../../scene/node';
 import type { ActiveManager } from '../interaction/activeManager';
 import type { SeriesNodeDatum } from './seriesTypes';
 
@@ -18,6 +19,8 @@ export type PickedNode = SeriesNodeDatum;
 export type PickedNodes = {
     matches: PickedNode[];
     distance: number;
+    /** Topmost scene-node under the pointer for the primary match; undefined for datum-geometry picks. */
+    target: Node<unknown> | undefined;
 };
 
 export function getItemId(node: PickedNode, dataIdKey?: string): NonNullable<AgActiveItemState['itemId']> {

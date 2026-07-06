@@ -19,6 +19,7 @@ import { FocusSwapChain } from '../../dom/focusSwapChain';
 import type { ChartRegistry } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import type { TranslatableGroup } from '../../scene/group';
+import type { Node as SceneNode } from '../../scene/node';
 import { Transformable } from '../../scene/transformable';
 import { BaseManager } from '../../util/baseManager';
 import type { TypedEvent } from '../../util/observable';
@@ -619,9 +620,9 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         if (isSeriesWidget) {
-            const clickedNode: PickedNode | undefined = this.checkSeriesNodeClick(event);
-            if (clickedNode) {
-                this.emitSeriesAreaClickEvent(event, true, clickedNode);
+            const clicked = this.checkSeriesNodeClick(event);
+            if (clicked) {
+                this.emitSeriesAreaClickEvent(event, true, clicked.node, clicked.target);
                 this.update(ChartUpdateType.SERIES_UPDATE);
                 event.sourceEvent.preventDefault();
                 return;
@@ -645,10 +646,11 @@ export class SeriesAreaManager extends BaseManager {
     private emitSeriesAreaClickEvent(
         event: ClickLikeEvent | KeyboardSyntheticMouseWidgetEvent,
         consumed: boolean,
-        clickedNode?: PickedNode
+        clickedNode?: PickedNode,
+        target?: SceneNode<unknown>
     ): void {
         const { type, sourceEvent } = event;
-        const payload: SeriesAreaClickEvent = { type, consumed, sourceEvent, clickedNode };
+        const payload: SeriesAreaClickEvent = { type, consumed, sourceEvent, clickedNode, target };
 
         const { datum } = this.focus;
         const oldSelectionState = datum?.series.getDataSelectionState(datum.datumIndex);
@@ -797,7 +799,9 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private checkSeriesNodeClick(event: ClickLikeEvent & { preventZoomDblClick?: boolean }): PickedNode | undefined {
+    private checkSeriesNodeClick(
+        event: ClickLikeEvent & { preventZoomDblClick?: boolean }
+    ): { node: PickedNode; target: SceneNode<unknown> | undefined } | undefined {
         const pickedNodes = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
         const updated = this.pickManager.onPickedNodesTooltip(pickedNodes);
         if (pickedNodes === undefined || updated.active === undefined) return undefined;
@@ -820,7 +824,7 @@ export class SeriesAreaManager extends BaseManager {
                     });
                 }
             }
-            return updated.active;
+            return { node: updated.active, target: pickedNodes.target };
         }
 
         if (event.type === 'dblclick') {
@@ -835,7 +839,7 @@ export class SeriesAreaManager extends BaseManager {
             event.preventZoomDblClick = distance === 0;
 
             updated.active.series.fireNodeDoubleClickEvent(event.sourceEvent, updated.active);
-            return updated.active;
+            return { node: updated.active, target: pickedNodes.target };
         }
 
         return undefined;
@@ -1452,12 +1456,15 @@ export class SeriesAreaManager extends BaseManager {
 
             const { picks } = pick;
             const distance = picks[0].distance;
+            // The topmost (last-rendered) hit; for org-charts this is the expander when it
+            // overlaps the card, so the click resolves to the control the user sees.
+            const target = picks.at(-1)?.target;
 
             if (distance === 0) {
                 // Accumulate multiple series when the nodes are under the cursor
                 // I.e. the distance is 0
                 if (result?.distance !== 0) {
-                    result = { matches: [], distance: 0 };
+                    result = { matches: [], distance: 0, target };
                 }
 
                 for (const { datum } of picks) {
@@ -1465,7 +1472,7 @@ export class SeriesAreaManager extends BaseManager {
                 }
             } else if (result == null || result.distance > distance) {
                 // Don't accumulate multiple datums when matching by nearest distance
-                result = { matches: picks.map((p) => p.datum), distance };
+                result = { matches: picks.map((p) => p.datum), distance, target };
             }
         }
 
@@ -1605,6 +1612,6 @@ export class SeriesAreaManager extends BaseManager {
             return undefined;
         }
 
-        return { matches: [desiredDatum], distance: 0 };
+        return { matches: [desiredDatum], distance: 0, target: undefined };
     }
 }
