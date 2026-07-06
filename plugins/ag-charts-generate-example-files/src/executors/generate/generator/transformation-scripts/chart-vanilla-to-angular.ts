@@ -39,6 +39,10 @@ function processFunction(code: string, suppressOptionsClone: boolean, methodName
 function prefixInstanceMethodCalls(code: string, methodNames: string[]): string {
     methodNames.forEach((methodName) => {
         if (!GLOBAL_FUNCTIONS.includes(methodName)) {
+            // Object-literal shorthand ({ method }) must expand to a full property ({ method: this.method });
+            // a bare `this.` prefix there would be invalid syntax.
+            const shorthandRegex = new RegExp(`(?<=[{,]\\s*)\\b${methodName}\\b(?=\\s*[,}])`, 'g');
+            code = code.replace(shorthandRegex, `${methodName}: this.${methodName}`);
             // Negative lookbehind: not preceded by '.' (covers this.method, obj.method, etc.)
             // Negative lookahead: not followed by '=' or ':' (for declarations like 'method = ')
             // https://regex101.com/r/u79W6c/4
@@ -273,7 +277,8 @@ export async function vanillaToAngular(
             const className = toTitleCase(id);
 
             const propertyName = bindings.chartProperties[id];
-            // Per-chart components have no instance methods, so there is nothing to prefix with this.
+            // The multi-chart path never emits instanceMethods/externalEventHandlers onto the generated
+            // components, so prefixing calls with this. would reference members that do not exist.
             const { propertyAttributes, propertyAssignments, propertyVars } = getComponentMetadata(
                 bindings,
                 properties.find((p) => p.name === propertyName),

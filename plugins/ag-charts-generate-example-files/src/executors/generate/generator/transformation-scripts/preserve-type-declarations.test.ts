@@ -122,6 +122,38 @@ function refresh(): boolean | undefined {
         expect(reactOutput).toMatch(/const refresh = \(\): boolean \| undefined => \{/);
     });
 
+    test('angular output expands object shorthand references to inScope functions', async () => {
+        const src = `
+import { AgChartOptions, AgCharts } from 'ag-charts-community';
+
+const options: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    data: [{ quarter: 'Q1', value: 1 }],
+    series: [
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'value',
+            listeners: { nodeClick },
+        },
+    ],
+};
+
+const chart = AgCharts.create(options);
+
+/** inScope */
+function nodeClick() {
+    options.data = [{ quarter: 'Q1', value: 2 }];
+    chart.update(options);
+}
+`;
+        const { typedBindings } = parse(src);
+        const output = await vanillaToAngular(typedBindings, [], false);
+
+        // Shorthand cannot take a bare this. prefix; it expands to a full property instead.
+        expect(output).toContain('listeners: { nodeClick: this.nodeClick }');
+    });
+
     test('angular output does not duplicate option types already imported from ag-charts-types', async () => {
         const src = `
 import { AgCharts } from 'ag-charts-community';

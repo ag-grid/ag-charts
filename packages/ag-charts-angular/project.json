@@ -34,7 +34,8 @@
       "configurations": {
         "ci": {},
         "watch": {
-          "commands": ["npx vitest --config vitest.config.ts"]
+          "parallel": true,
+          "commands": ["npx ng test --browsers=ChromeHeadless", "npx vitest --config vitest.config.ts"]
         }
       }
     },

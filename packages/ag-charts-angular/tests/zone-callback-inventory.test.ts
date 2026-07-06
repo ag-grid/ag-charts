@@ -17,7 +17,9 @@ import inventory from './zone-callback-inventory.json';
  *   with `action` callbacks) — the shape that motivated this guard.
  *
  * Value-returning render callbacks (formatters, renderers, stylers) are excluded — they run
- * during rendering and must NOT trigger change detection.
+ * during rendering and must NOT trigger change detection. Known render-path property names
+ * (IGNORED_PROPERTY_NAMES) are skipped outright, even where their return types carry nested
+ * callbacks (e.g. stylers whose style result may include a marker shape draw callback).
  *
  * Every collected surface must be classified in zone-callback-inventory.json as either
  * `zone-wrap` (patchChartOptions handles it) or `no-wrap` (deliberate, with a reason).
@@ -28,6 +30,8 @@ import inventory from './zone-callback-inventory.json';
 const TYPES_ENTRY = path.resolve(__dirname, '../../ag-charts-types/src/main.ts');
 const ROOT_TYPES = ['AgChartOptions', 'AgFinancialChartOptions', 'AgGaugeOptions', 'AgSparklineOptions'];
 const CARRIES_CALLBACKS_DEPTH = 3;
+// Render-path callbacks by convention; not intended to mutate state, so never zone-wrapped.
+const IGNORED_PROPERTY_NAMES = new Set(['renderer', 'itemStyler', 'styler', 'shape', 'formatter']);
 
 type Classification = { classification: 'zone-wrap' | 'no-wrap'; reason: string };
 
@@ -122,7 +126,7 @@ function collectCallbackSurfaces(): Set<string> {
                 if (!isDeclaredLocally(prop)) continue;
                 const propType = checker.getTypeOfSymbol(prop);
                 if (expand(propType).some((m) => m.getCallSignatures().length > 0)) {
-                    if (isEventLike(propType)) {
+                    if (!IGNORED_PROPERTY_NAMES.has(prop.name) && isEventLike(propType)) {
                         surfaces.add(`${ownerName(prop)}.${prop.name}`);
                     }
                     continue;
