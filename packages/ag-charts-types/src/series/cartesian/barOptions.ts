@@ -33,8 +33,11 @@ export interface AgBarSeriesLabelOptions<TDatum, TParams, TContext = ContextDefa
     TParams,
     TContext
 > {
-    /** Where to render series labels relative to the segments. */
-    placement?: AgBarSeriesLabelPlacement;
+    /**
+     * Where to render series labels relative to the segments. Either a single placement or an ordered
+     * fallback list tried in turn until one fits.
+     */
+    placement?: AgBarSeriesLabelPlacement | AgBarSeriesLabelPlacement[];
     /** Distance between the shape edges and the text. */
     spacing?: PixelSize;
 }

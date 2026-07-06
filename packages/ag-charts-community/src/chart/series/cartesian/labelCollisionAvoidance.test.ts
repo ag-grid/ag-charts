@@ -3,9 +3,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
+import { expectPixelIdenticalAcrossUpdate } from '../../test/bigintExamples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
+    createChart,
     extractImageData,
     prepareTestOptions,
     setupMockCanvas,
@@ -13,51 +15,47 @@ import {
     waitForChartStability,
 } from '../../test/utils';
 
-// `label.collisionAvoidance` is an undocumented opt-in model (see chartDefaults.ts), so the
-// option objects below are built untyped and cast at the AgCharts.create boundary.
-type RepositionStrategy = { type: 'reposition'; placements?: string[] };
-type CollisionAvoidance = {
-    enabled?: boolean;
-    strategy?: RepositionStrategy[];
-    minSpacing?: number;
-    collideWith?: object;
+// `label.placement` is documented for point-like series, but `label.collisionAvoidance` is an
+// undocumented opt-in model (see chartDefaults.ts), so the option objects below are built untyped
+// and cast at the AgCharts.create boundary.
+type LabelCollisionConfig = {
+    placement?: string[];
+    collisionAvoidance?: {
+        enabled?: boolean;
+        minSpacing?: number;
+        collideWith?: object;
+    };
 };
 
-// Line and area route labels through the collision-placement engine, which honours the
-// repositioning strategy: each candidate-placement set resolves colliding labels into different
-// final positions, so the rendered output diverges per strategy.
-const PLACED_LABEL_STRATEGIES: Record<string, CollisionAvoidance> = {
-    'disabled (place all)': { enabled: false },
+// Line and area route labels through the collision-placement engine, which honours the configured
+// placements: each candidate-placement set resolves colliding labels into different final positions,
+// so the rendered output diverges per placement.
+const PLACED_LABEL_STRATEGIES: Record<string, LabelCollisionConfig> = {
+    'disabled (place all)': { collisionAvoidance: { enabled: false } },
     'reposition top-bottom': {
-        enabled: true,
-        strategy: [{ type: 'reposition', placements: ['top', 'bottom'] }],
+        placement: ['top', 'bottom'],
+        collisionAvoidance: { enabled: true },
     },
     'reposition left-right': {
-        enabled: true,
-        strategy: [{ type: 'reposition', placements: ['left', 'right'] }],
+        placement: ['left', 'right'],
+        collisionAvoidance: { enabled: true },
     },
     'reposition all directions': {
-        enabled: true,
-        strategy: [
-            {
-                type: 'reposition',
-                placements: ['top', 'bottom', 'left', 'right', 'top-left', 'top-right', 'bottom-left', 'bottom-right'],
-            },
-        ],
+        placement: ['top', 'bottom', 'left', 'right', 'top-left', 'top-right', 'bottom-left', 'bottom-right'],
+        collisionAvoidance: { enabled: true },
     },
     'reposition with min spacing': {
-        enabled: true,
-        minSpacing: 8,
-        strategy: [{ type: 'reposition', placements: ['top', 'bottom'] }],
+        placement: ['top', 'bottom'],
+        collisionAvoidance: { enabled: true, minSpacing: 8 },
     },
 };
 
 // Scatter (and bubble, which it extends) only consume the `enabled` flag — they position labels at
-// their own fixed `label.placement` and ignore the strategy's candidate placements — so the single
-// meaningful axis for marker series is collision avoidance on vs off.
-const MARKER_LABEL_STRATEGIES: Record<string, CollisionAvoidance> = {
-    'disabled (place all)': { enabled: false },
-    'enabled (avoid collisions)': { enabled: true },
+// their own fixed `label.placement` and ignore the placement candidates — so the single meaningful
+// axis for marker series is collision avoidance on vs off.
+const MARKER_LABEL_STRATEGIES: Record<string, LabelCollisionConfig> = {
+    'disabled (place all)': { collisionAvoidance: { enabled: false } },
+    'enabled (avoid collisions)': { collisionAvoidance: { enabled: true } },
 };
 
 describe('label collision avoidance', () => {
@@ -94,7 +92,7 @@ describe('label collision avoidance', () => {
     describe('line series', () => {
         const data = lineData;
 
-        for (const [name, collisionAvoidance] of Object.entries(PLACED_LABEL_STRATEGIES)) {
+        for (const [name, config] of Object.entries(PLACED_LABEL_STRATEGIES)) {
             it(`renders with ${name}`, async () => {
                 await renderAndSnapshot({
                     data,
@@ -109,7 +107,7 @@ describe('label collision avoidance', () => {
                             label: {
                                 enabled: true,
                                 formatter: ({ value }: any) => value.toFixed(1),
-                                collisionAvoidance,
+                                ...config,
                             },
                         },
                     ],
@@ -121,7 +119,7 @@ describe('label collision avoidance', () => {
     describe('area series', () => {
         const data = lineData;
 
-        for (const [name, collisionAvoidance] of Object.entries(PLACED_LABEL_STRATEGIES)) {
+        for (const [name, config] of Object.entries(PLACED_LABEL_STRATEGIES)) {
             it(`renders with ${name}`, async () => {
                 await renderAndSnapshot({
                     data,
@@ -136,7 +134,7 @@ describe('label collision avoidance', () => {
                             label: {
                                 enabled: true,
                                 formatter: ({ value }: any) => value.toFixed(1),
-                                collisionAvoidance,
+                                ...config,
                             },
                         },
                     ],
@@ -148,7 +146,7 @@ describe('label collision avoidance', () => {
     describe('scatter series', () => {
         const data = markerData;
 
-        for (const [name, collisionAvoidance] of Object.entries(MARKER_LABEL_STRATEGIES)) {
+        for (const [name, config] of Object.entries(MARKER_LABEL_STRATEGIES)) {
             it(`renders with ${name}`, async () => {
                 await renderAndSnapshot(
                     {
@@ -161,7 +159,7 @@ describe('label collision avoidance', () => {
                                 xKey: 'x',
                                 yKey: 'y',
                                 labelKey: 'label',
-                                label: { enabled: true, collisionAvoidance },
+                                label: { enabled: true, ...config },
                             },
                         ],
                     },
@@ -174,7 +172,7 @@ describe('label collision avoidance', () => {
     describe('bubble series', () => {
         const data = markerData;
 
-        for (const [name, collisionAvoidance] of Object.entries(MARKER_LABEL_STRATEGIES)) {
+        for (const [name, config] of Object.entries(MARKER_LABEL_STRATEGIES)) {
             it(`renders with ${name}`, async () => {
                 await renderAndSnapshot(
                     {
@@ -188,7 +186,7 @@ describe('label collision avoidance', () => {
                                 yKey: 'y',
                                 sizeKey: 'size',
                                 labelKey: 'label',
-                                label: { enabled: true, collisionAvoidance },
+                                label: { enabled: true, ...config },
                             },
                         ],
                     },
@@ -201,23 +199,9 @@ describe('label collision avoidance', () => {
     // Label box dimensions and per-datum marker sizes feed the collision engine, so placement must
     // stay correct as font size, padding and stylers vary the geometry it resolves against.
     describe('with varied label options and stylers', () => {
-        const repositionAllDirections = {
-            enabled: true,
-            strategy: [
-                {
-                    type: 'reposition',
-                    placements: [
-                        'top',
-                        'bottom',
-                        'left',
-                        'right',
-                        'top-left',
-                        'top-right',
-                        'bottom-left',
-                        'bottom-right',
-                    ],
-                },
-            ],
+        const repositionAllDirections: LabelCollisionConfig = {
+            placement: ['top', 'bottom', 'left', 'right', 'top-left', 'top-right', 'bottom-left', 'bottom-right'],
+            collisionAvoidance: { enabled: true },
         };
 
         it('line: large labels with padding repositioned around dense markers', async () => {
@@ -237,7 +221,7 @@ describe('label collision avoidance', () => {
                             fontWeight: 'bold',
                             padding: 6,
                             formatter: ({ value }: any) => value.toFixed(1),
-                            collisionAvoidance: repositionAllDirections,
+                            ...repositionAllDirections,
                         },
                     },
                 ],
@@ -261,9 +245,9 @@ describe('label collision avoidance', () => {
                         label: {
                             enabled: true,
                             formatter: ({ value }: any) => value.toFixed(1),
+                            placement: ['top', 'bottom'],
                             collisionAvoidance: {
                                 enabled: true,
-                                strategy: [{ type: 'reposition', placements: ['top', 'bottom'] }],
                                 collideWith: { markers: { enabled: true, minSpacing: 4 } },
                             },
                         },
@@ -307,17 +291,14 @@ describe('label collision avoidance', () => {
             x: { position: 'bottom', type: 'category' },
             y: { position: 'left', type: 'number' },
         };
-        const lineLabel = (collisionAvoidance: CollisionAvoidance) => ({
+        const lineLabel = (config: LabelCollisionConfig) => ({
             type: 'line',
             xKey: 'x',
             yKey: 'line',
             marker: { enabled: true, size: 6 },
-            label: { enabled: true, formatter: ({ value }: any) => value.toFixed(0), collisionAvoidance },
+            label: { enabled: true, formatter: ({ value }: any) => value.toFixed(0), ...config },
         });
-        const series = (collisionAvoidance: CollisionAvoidance) => [
-            { type: 'bar', xKey: 'x', yKey: 'bar' },
-            lineLabel(collisionAvoidance),
-        ];
+        const series = (config: LabelCollisionConfig) => [{ type: 'bar', xKey: 'x', yKey: 'bar' }, lineLabel(config)];
 
         it('routes line labels around bars when seriesItems is enabled', async () => {
             await renderAndSnapshot({
@@ -325,9 +306,11 @@ describe('label collision avoidance', () => {
                 legend: { enabled: false },
                 axes: comboAxes,
                 series: series({
-                    enabled: true,
-                    strategy: [{ type: 'reposition', placements: ['top', 'bottom'] }],
-                    collideWith: { seriesItems: { enabled: true } },
+                    placement: ['top', 'bottom'],
+                    collisionAvoidance: {
+                        enabled: true,
+                        collideWith: { seriesItems: { enabled: true } },
+                    },
                 }),
             });
         });
@@ -338,10 +321,32 @@ describe('label collision avoidance', () => {
                 legend: { enabled: false },
                 axes: comboAxes,
                 series: series({
-                    enabled: true,
-                    strategy: [{ type: 'reposition', placements: ['top', 'bottom'] }],
+                    placement: ['top', 'bottom'],
+                    collisionAvoidance: { enabled: true },
                 }),
             });
+        });
+    });
+
+    // Bar-family `placement` was widened to accept an ordered array, but the bar candidate-fallback
+    // engine is not yet wired (Ticket C). Until then a supplied array must be inert-safe: the first
+    // candidate is used, matching the single-value render, with no error raised.
+    describe('bar placement (widened type, fallback not yet wired)', () => {
+        const barData = Array.from({ length: 8 }, (_, i) => ({ x: `C${i}`, y: 20 + 10 * Math.sin(i) }));
+        const barOptions = (placement: string | string[]) => ({
+            data: barData,
+            legend: { enabled: false },
+            axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y', label: { enabled: true, placement } }],
+        });
+
+        it('renders an array placement identically to its first candidate', async () => {
+            await expectPixelIdenticalAcrossUpdate(
+                ctx,
+                createChart,
+                barOptions('inside-end') as any,
+                barOptions(['inside-end', 'outside-end']) as any
+            );
         });
     });
 });

@@ -15,6 +15,7 @@ import {
     fillOptionsDef,
     highlightOptionsDef,
     interpolationOptionsDefs,
+    labelCollisionPlacementDef,
     lessThanOrEqual,
     lineDashOptionsDef,
     lineHighlightOptionsDef,
@@ -22,6 +23,7 @@ import {
     markerStyleOptionsDefs,
     multiSeriesHighlightOptionsDef,
     numberFormatValidator,
+    or,
     overflowStrategy,
     positiveNumber,
     positiveNumberNonZero,
@@ -347,7 +349,7 @@ export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesTh
     maxSize: positiveNumber,
     sizeDomain: and(arrayOf(positiveNumericValue), arrayLength(2, 2)),
     label: {
-        placement: union('top', 'bottom', 'left', 'right'),
+        placement: labelCollisionPlacementDef,
         ...seriesLabelOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,
@@ -523,13 +525,18 @@ const rangeAreaSeriesLineStyleDef: OptionsDefs<AgRangeAreaSeriesLineStyle> = {
     ...lineDashOptionsDef,
 };
 
+const insideOutsidePlacement = union('inside', 'outside');
+const rangeInsideOutsidePlacementDef = or(insideOutsidePlacement, arrayOf(insideOutsidePlacement));
+const waterfallPlacement = union('inside-start', 'inside-center', 'inside-end', 'outside-start', 'outside-end');
+const waterfallPlacementDef = or(waterfallPlacement, arrayOf(waterfallPlacement));
+
 export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesThemeableOptions> = {
     showInMiniChart: boolean,
     connectMissingData: boolean,
     interpolation: interpolationOptionsDefs,
     label: {
         ...seriesLabelOptionsDefs,
-        placement: union('inside', 'outside'),
+        placement: rangeInsideOutsidePlacementDef,
         spacing: positiveNumber,
     },
     tooltip: tooltipOptionsDefs,
@@ -572,7 +579,7 @@ export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThem
     itemStyler: rangeBarStyleCallback,
     label: {
         ...seriesLabelOptionsDefs,
-        placement: union('inside', 'outside'),
+        placement: rangeInsideOutsidePlacementDef,
         spacing: positiveNumber,
     },
     tooltip: tooltipOptionsDefs,
@@ -728,7 +735,7 @@ const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<an
     }),
     label: {
         ...seriesLabelOptionsDefs,
-        placement: union('inside-start', 'inside-center', 'inside-end', 'outside-start', 'outside-end'),
+        placement: waterfallPlacementDef,
         spacing: positiveNumber,
     },
     tooltip: tooltipOptionsDefs,

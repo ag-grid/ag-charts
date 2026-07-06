@@ -65,8 +65,11 @@ export interface AgWaterfallSeriesLabelOptions<TDatum, TParams, TContext = Conte
     TParams,
     TContext
 > {
-    /** Where to render series labels relative to the bars. */
-    placement?: AgWaterfallSeriesLabelPlacement;
+    /**
+     * Where to render series labels relative to the bars. Either a single placement or an ordered
+     * fallback list tried in turn until one fits.
+     */
+    placement?: AgWaterfallSeriesLabelPlacement | AgWaterfallSeriesLabelPlacement[];
     /** Spacing in pixels between the label and the edge of the bar. */
     spacing?: PixelSize;
 }

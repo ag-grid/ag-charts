@@ -14,16 +14,12 @@ export type AgChartLabelCollisionPlacement =
     | 'bottom-right';
 
 /**
- * A single collision-resolution step. Only `reposition` is currently implemented; further strategies
- * (`rotate`, `wrap`, `shrink`, `truncate`) are reserved for later drops of the collision-avoidance model.
+ * Rotation of a label relative to the shape it is rendered inside, for series whose label occupies a
+ * bounded region (bar, waterfall, range-bar, range-area). Independent of the series' own
+ * horizontal/vertical `direction`: `parallel` runs along the shape's length, while the two
+ * `perpendicular` variants run across it, reading in opposite directions.
  */
-export interface AgChartLabelRepositionStrategy {
-    type: 'reposition';
-    /** Ordered fallback placements, tried in turn until one fits; the label is dropped if none do. */
-    placements?: AgChartLabelCollisionPlacement[];
-}
-
-export type AgChartLabelCollisionStrategy = AgChartLabelRepositionStrategy;
+export type AgChartLabelOrientation = 'parallel' | 'perpendicular' | 'perpendicular-reversed';
 
 /** Avoidance configuration for a single category of obstacle. */
 export interface AgChartLabelCollideWithCategoryOptions {
@@ -47,8 +43,6 @@ export interface AgChartLabelCollideWithOptions {
 export interface AgChartLabelCollisionAvoidanceOptions {
     /** Whether collision avoidance runs for this label. */
     enabled?: boolean;
-    /** Ordered collision-resolution strategies to apply. */
-    strategy?: AgChartLabelCollisionStrategy[];
     /** Proximity threshold, in pixels, added to each obstacle before testing for overlap. */
     minSpacing?: PixelSize;
     /** Per-category configuration for the obstacles the label avoids. */

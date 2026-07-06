@@ -8,6 +8,7 @@ import {
     type PlacedLabel,
     type PointLabelDatum,
     placeLabels,
+    resolveLabelFit,
 } from './labelPlacement';
 import { SpatialIndex } from './spatialIndex';
 
@@ -475,5 +476,20 @@ describe('placeLabels', () => {
         const without = placeLabels(structuredClone(data), bounds, 5);
         const with_ = placeLabels(structuredClone(data), bounds, 5, seriesItemObstacles);
         expect(normalise(with_)).toEqual(normalise(without));
+    });
+});
+
+describe('resolveLabelFit', () => {
+    it('returns undefined when no fit field is set', () => {
+        expect(resolveLabelFit({})).toBeUndefined();
+    });
+
+    it('resolves the configured fit policy', () => {
+        expect(resolveLabelFit({ maxWidth: 120, wrapping: 'on-space' })).toEqual({
+            maxWidth: 120,
+            maxHeight: undefined,
+            wrapping: 'on-space',
+            overflowStrategy: undefined,
+        });
     });
 });

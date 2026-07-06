@@ -58,33 +58,21 @@ describe('Labels', () => {
         });
     });
 
-    describe('collisionAvoidance.placements', () => {
-        const DEFAULT = ['top', 'bottom'] as const;
+    describe('collisionAvoidance.avoid', () => {
+        test('is false when enabled is unset (opt-in default off)', () => {
+            expect(new LabelCollisionAvoidance().avoid).toBe(false);
+        });
 
-        function enabled(strategy?: LabelCollisionAvoidance['strategy']) {
+        test('is false when enabled is false', () => {
+            const collisionAvoidance = new LabelCollisionAvoidance();
+            collisionAvoidance.enabled = false;
+            expect(collisionAvoidance.avoid).toBe(false);
+        });
+
+        test('is true only when enabled is true', () => {
             const collisionAvoidance = new LabelCollisionAvoidance();
             collisionAvoidance.enabled = true;
-            collisionAvoidance.strategy = strategy;
-            return collisionAvoidance;
-        }
-
-        test('falls back to the legacy placement seed when no strategy is set', () => {
-            expect(enabled().placements(['bottom'])).toEqual(['bottom']);
-        });
-
-        test('uses the reposition strategy placements over the fallback', () => {
-            const collisionAvoidance = enabled([{ type: 'reposition', placements: ['left', 'right'] }]);
-            expect(collisionAvoidance.placements(['bottom'])).toEqual(['left', 'right']);
-        });
-
-        test('falls back when the reposition strategy omits placements', () => {
-            expect(enabled([{ type: 'reposition' }]).placements(DEFAULT)).toEqual(DEFAULT);
-        });
-
-        test('ignores the reposition strategy when avoidance is disabled', () => {
-            const collisionAvoidance = new LabelCollisionAvoidance();
-            collisionAvoidance.strategy = [{ type: 'reposition', placements: ['left', 'right'] }];
-            expect(collisionAvoidance.placements(['top'])).toEqual(['top']);
+            expect(collisionAvoidance.avoid).toBe(true);
         });
     });
 

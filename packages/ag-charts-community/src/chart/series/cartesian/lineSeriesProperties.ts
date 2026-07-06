@@ -9,7 +9,7 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import { Label } from '../../label';
+import { PlacedSeriesLabel } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { makeSeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
@@ -67,7 +67,7 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
     readonly marker = new SeriesMarker<AgLineSeriesMarkerItemStylerParams>();
 
     @Property
-    readonly label = new Label<AgLineSeriesLabelFormatterParams>();
+    readonly label = new PlacedSeriesLabel<AgLineSeriesLabelFormatterParams>();
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgLineSeriesTooltipRendererParams>();

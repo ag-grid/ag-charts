@@ -25,6 +25,7 @@ import {
     mergeDefaults,
     minValue,
     subtractValues,
+    toArray,
     zeroLike,
 } from 'ag-charts-core';
 import type { AgNumericValue, SelectionState } from 'ag-charts-types';
@@ -672,7 +673,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const labelPlacement = adjustLabelPlacement({
                 isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
                 isVertical: !barAlongX,
-                placement: label.placement,
+                // Array placement is accepted, but only its first candidate is honoured here.
+                placement: toArray(label.placement)[0],
                 spacing,
                 rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
             });

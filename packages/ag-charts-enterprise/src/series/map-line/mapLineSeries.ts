@@ -16,8 +16,10 @@ import {
     applyLabelAvoidance,
     cachedTextMeasurer,
     findDiscreteColorBinLabel,
+    fitLabelText,
     formatValue,
     mergeDefaults,
+    resolveLabelFit,
 } from 'ag-charts-core';
 import type {
     AgDrawingMode,
@@ -290,7 +292,8 @@ export class MapLineSeries
         );
         if (labelText == null) return;
 
-        const labelSize = measurer.measureLines(String(labelText));
+        const fittedText = fitLabelText(labelText, resolveLabelFit(label), label);
+        const labelSize = measurer.measureLines(String(fittedText));
         const labelCenter = lineStringCenter(lineString);
         if (labelCenter == null) return;
 
@@ -299,7 +302,7 @@ export class MapLineSeries
 
         return {
             point: { x, y, size: 0 },
-            label: { width, height, text: labelText },
+            label: { width, height, text: fittedText },
             anchor: undefined,
             placement: undefined,
             datumIndex,
@@ -618,7 +621,14 @@ export class MapLineSeries
         const activeHighlight = this.getHighlightedDatum();
         labelSelection.each((label, placedLabel) => {
             const { x, y, width, height, text, datum: labelDatum } = placedLabel;
-            const style = getLabelStyles(this, undefined, properties, properties.label, isHighlight, activeHighlight);
+            const style = getLabelStyles<AgMapLineSeriesLabelFormatterParams>(
+                this,
+                undefined,
+                properties,
+                properties.label,
+                isHighlight,
+                activeHighlight
+            );
             const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = style;
             label.visible = true;
             label.x = x + width / 2;
@@ -658,7 +668,8 @@ export class MapLineSeries
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
         const labelData = this.contextNodeData?.labelData ?? [];
-        const { collisionAvoidance } = this.properties.label;
+        const { label } = this.properties;
+        const { collisionAvoidance } = label;
         // Labels centre on the line with no directional placement, so they route avoidance only.
         applyLabelAvoidance(labelData, collisionAvoidance.avoid, collisionAvoidance.resolveCollideWith());
         return labelData;

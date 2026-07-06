@@ -3,6 +3,7 @@ import {
     type CallbackParamRules,
     ChartAxisDirection,
     type DomainWithMetadata,
+    type LabelFit,
     type LabelPlacement,
     type MeasuredLabel,
     type Mutable,
@@ -17,10 +18,13 @@ import {
     dateToNumber,
     extent,
     findDiscreteColorBinLabel,
+    fitLabelText,
     formatValue,
     isArray,
     measureTextSegments,
     rescaleVisibleRange,
+    resolveLabelFit,
+    toArray,
     toNumber,
     toPlainText,
 } from 'ag-charts-core';
@@ -251,6 +255,7 @@ interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<Bubble
     readonly labelTextDomain: any[];
     readonly labelPadding: { left: number; right: number; top: number; bottom: number };
     readonly labelTextMeasurer: { measureLines: (text: string) => { width: number; height: number } };
+    readonly labelFit: LabelFit | undefined;
     readonly label: BubbleScatterSeriesProperties['label'];
 
     // Other state
@@ -632,11 +637,12 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
             // Label properties
             labelsEnabled: label.enabled,
-            labelPlacement: label.placement,
+            labelPlacement: toArray(label.placement)[0],
             labelAnchor: Marker.anchor(marker.shape),
             labelTextDomain,
             labelPadding: expandLabelPadding(label),
             labelTextMeasurer: cachedTextMeasurer(label),
+            labelFit: resolveLabelFit(label),
             label,
 
             // Other state
@@ -896,14 +902,15 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             }
         );
 
-        let { width, height } = isArray(labelText)
-            ? measureTextSegments(labelText, ctx.label)
-            : ctx.labelTextMeasurer.measureLines(String(labelText));
+        const fittedText = fitLabelText(labelText, ctx.labelFit, ctx.label);
+        let { width, height } = isArray(fittedText)
+            ? measureTextSegments(fittedText, ctx.label)
+            : ctx.labelTextMeasurer.measureLines(String(fittedText));
 
         width += ctx.labelPadding.left + ctx.labelPadding.right;
         height += ctx.labelPadding.bottom + ctx.labelPadding.top;
 
-        return { text: labelText, width, height };
+        return { text: fittedText, width, height };
     }
 
     /**
@@ -984,9 +991,10 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
         const labelData = this.contextNodeData?.labelData ?? [];
-        const { collisionAvoidance, placement } = this.properties.label;
+        const { label } = this.properties;
+        const { collisionAvoidance } = label;
         applyLabelAvoidance(labelData, collisionAvoidance.avoid, collisionAvoidance.resolveCollideWith());
-        applyLabelPlacements(labelData, collisionAvoidance.placements([placement]));
+        applyLabelPlacements(labelData, toArray(label.placement));
         return labelData;
     }
 

@@ -75,8 +75,11 @@ export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams, TContext = Conte
     TParams,
     TContext
 > {
-    /** Where to render series labels relative to the area. */
-    placement?: AgRangeAreaSeriesLabelPlacement;
+    /**
+     * Where to render series labels relative to the area. Either a single placement or an ordered
+     * fallback list tried in turn until one fits.
+     */
+    placement?: AgRangeAreaSeriesLabelPlacement | AgRangeAreaSeriesLabelPlacement[];
     /** Spacing in pixels between the label and the edge of the marker. */
     spacing?: PixelSize;
 }

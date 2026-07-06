@@ -8,6 +8,7 @@ import type {
     AgBubbleSeriesStylerParams,
     AgBubbleSeriesStylerResult,
     AgBubbleSeriesTooltipRendererParams,
+    AgChartLabelCollisionPlacement,
     AgMarkerShape,
     AgNumericValue,
     AgScatterSeriesItemStylerParams,
@@ -15,12 +16,11 @@ import type {
     AgScatterSeriesStylerParams,
     AgScatterSeriesStylerResult,
     BubbleSeriesItemStylerParams,
-    LabelPlacement,
     Styler,
 } from 'ag-charts-types';
 
 import { ColorScaleProperties } from '../../../scene/gradient/stops';
-import { Label } from '../../label';
+import { PlacedSeriesLabel } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { makeSeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
@@ -40,9 +40,9 @@ class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys | AgScat
     sizeDomain?: readonly [AgNumericValue, AgNumericValue];
 }
 
-class BubbleSeriesLabel extends Label<AgBubbleSeriesLabelFormatterParams> {
+class BubbleSeriesLabel extends PlacedSeriesLabel<AgBubbleSeriesLabelFormatterParams> {
     @Property
-    placement: LabelPlacement = 'top';
+    override placement: AgChartLabelCollisionPlacement | AgChartLabelCollisionPlacement[] = 'top';
 }
 
 export class BubbleScatterSeriesProperties extends CartesianSeriesProperties<AgBubbleSeriesOptions> {

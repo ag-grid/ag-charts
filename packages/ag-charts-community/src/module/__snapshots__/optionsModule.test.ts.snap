@@ -316,6 +316,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -389,6 +393,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -462,6 +470,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -1074,6 +1086,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -1467,6 +1483,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -1542,6 +1562,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -1617,6 +1641,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -1692,6 +1720,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -1767,6 +1799,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -1842,6 +1878,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -1917,6 +1957,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -3683,6 +3727,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -3756,6 +3804,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -3829,6 +3881,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -3902,6 +3958,10 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -4295,6 +4355,10 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -4381,6 +4445,10 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -4467,6 +4535,10 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -4553,6 +4625,10 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -4639,6 +4715,10 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -8502,6 +8582,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -8578,6 +8662,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -8654,6 +8742,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -8730,6 +8822,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -8806,6 +8902,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -8882,6 +8982,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -8958,6 +9062,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -9034,6 +9142,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -9110,6 +9222,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -9186,6 +9302,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -9262,6 +9382,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -9338,6 +9462,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -9414,6 +9542,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -9490,6 +9622,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -9566,6 +9702,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -9642,6 +9782,10 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -10026,6 +10170,10 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -10418,6 +10566,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -10512,6 +10664,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -10606,6 +10762,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -10700,6 +10860,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -10794,6 +10958,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -10888,6 +11056,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -10982,6 +11154,10 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -12806,6 +12982,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -12889,6 +13069,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -12972,6 +13156,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -13055,6 +13243,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -14245,6 +14437,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -14319,6 +14515,10 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -15435,6 +15635,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -15525,6 +15729,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -15615,6 +15823,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -15705,6 +15917,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -15795,6 +16011,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,
@@ -15885,6 +16105,10 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fontSize": 12,
         "fontWeight": 400,
         "padding": 8,
+        "placement": [
+          "top",
+          "bottom",
+        ],
       },
       "lineDash": [
         0,

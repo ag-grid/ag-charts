@@ -1,0 +1,191 @@
+import { afterEach, describe, expect, it } from 'vitest';
+
+import type { AgChartOptions } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
+import {
+    IMAGE_SNAPSHOT_DEFAULTS,
+    deproxy,
+    expectPixelIdenticalAcrossUpdate,
+    extractImageData,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from 'ag-charts-community-test';
+
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
+import { ukRoadData } from './map-test/ukRoadData';
+import ukRoadTopology from './map-test/ukRoadTopology.json';
+import ukTopology from './map-test/ukTopology.json';
+
+// Consolidated placement/collision-avoidance coverage for enterprise series. `collisionAvoidance` is
+// an undocumented opt-in model, so option objects that use it are built untyped and cast at the
+// AgCharts.create boundary.
+describe('label collision avoidance', () => {
+    setupMockConsole();
+
+    let chart: any;
+
+    afterEach(() => {
+        if (chart) {
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    const ctx = setupMockCanvas();
+
+    const renderAndSnapshot = async (options: object) => {
+        prepareEnterpriseTestOptions(options as AgChartOptions);
+        chart = deproxy(AgCharts.create(options as AgChartOptions));
+        await waitForChartStability(chart);
+        expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+    };
+
+    // A tight cluster of lat/lon markers (projection fixed by the UK background) forces overlapping
+    // labels, so placement candidates resolve real collisions when enabled and are ignored when off.
+    describe('map-marker', () => {
+        // 4x4 grid of points within a ~1° box; at the UK-wide projection they land in a small pixel
+        // region, so their labels overlap heavily.
+        const collisionData = Array.from({ length: 16 }, (_, i) => ({
+            name: `Site ${i + 1}`,
+            lat: 51.5 + (i % 4) * 0.3,
+            lon: -1.5 + Math.floor(i / 4) * 0.3,
+        }));
+        const markerOptions = (config: object) => ({
+            topology: ukTopology,
+            series: [
+                { type: 'map-shape-background' },
+                {
+                    type: 'map-marker',
+                    data: collisionData,
+                    latitudeKey: 'lat',
+                    longitudeKey: 'lon',
+                    labelKey: 'name',
+                    label: { enabled: true, placement: ['top', 'right', 'left', 'bottom'], ...config },
+                },
+            ],
+        });
+
+        it('should reposition overlapping labels via the collisionAvoidance model', async () => {
+            await renderAndSnapshot(markerOptions({ collisionAvoidance: { enabled: true } }));
+        });
+
+        it('places every label at its first placement when disabled', async () => {
+            await renderAndSnapshot(markerOptions({ collisionAvoidance: { enabled: false } }));
+        });
+    });
+
+    // Map-line labels centre on the line (no directional placement), so avoidance only drops
+    // colliding labels; disabling it must render every label regardless of overlap.
+    describe('map-line', () => {
+        const lineOptions = (config: object) => ({
+            topology: ukRoadTopology,
+            data: ukRoadData,
+            series: [
+                {
+                    type: 'map-line',
+                    idKey: 'name',
+                    labelKey: 'name',
+                    // Large bold labels so neighbouring route names genuinely overlap, forcing the
+                    // avoidance pass to drop some when enabled (and keep them all when disabled).
+                    label: { enabled: true, fontSize: 24, fontWeight: 'bold', ...config },
+                },
+            ],
+        });
+
+        it('resolves overlapping route labels when enabled', async () => {
+            await renderAndSnapshot(lineOptions({ collisionAvoidance: { enabled: true } }));
+        });
+
+        it('places every route label when disabled', async () => {
+            await renderAndSnapshot(lineOptions({ collisionAvoidance: { enabled: false } }));
+        });
+    });
+
+    // Bar-family `placement` was widened to accept an ordered array, but the bar candidate-fallback
+    // engine is not yet wired. Until then a supplied array must be inert-safe: the first candidate is
+    // used, matching the single-value render, with no error raised.
+    describe('bar-family placement (widened type, fallback not yet wired)', () => {
+        it('waterfall renders an array placement identically to its first candidate', async () => {
+            const options = (placement: string | string[]): AgChartOptions => ({
+                data: [
+                    { year: '2020', spending: 10 },
+                    { year: '2021', spending: -20 },
+                    { year: '2022', spending: 30 },
+                ],
+                series: [
+                    {
+                        type: 'waterfall',
+                        xKey: 'year',
+                        yKey: 'spending',
+                        item: {
+                            positive: { label: { enabled: true, placement } },
+                            negative: { label: { enabled: true, placement } },
+                            total: { label: { enabled: true, placement } },
+                        },
+                    } as never,
+                ],
+            });
+            await expectPixelIdenticalAcrossUpdate(
+                ctx,
+                createEnterpriseChart,
+                options('inside-end'),
+                options(['inside-end', 'outside-end'])
+            );
+        });
+
+        const rangeData = [
+            { x: 'A', low: 2, high: 8 },
+            { x: 'B', low: 3, high: 9 },
+            { x: 'C', low: 1, high: 7 },
+        ];
+        const rangeAxes = {
+            x: { type: 'category', position: 'bottom' },
+            y: { type: 'number', position: 'left' },
+        };
+
+        it('range-bar renders an array placement identically to its first candidate', async () => {
+            const options = (placement: string | string[]): AgChartOptions => ({
+                data: rangeData,
+                axes: rangeAxes as never,
+                series: [
+                    {
+                        type: 'range-bar',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        label: { enabled: true, placement },
+                    } as never,
+                ],
+            });
+            await expectPixelIdenticalAcrossUpdate(
+                ctx,
+                createEnterpriseChart,
+                options('outside'),
+                options(['outside', 'inside'])
+            );
+        });
+
+        it('range-area renders an array placement identically to its first candidate', async () => {
+            const options = (placement: string | string[]): AgChartOptions => ({
+                data: rangeData,
+                axes: rangeAxes as never,
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        label: { enabled: true, placement },
+                    } as never,
+                ],
+            });
+            await expectPixelIdenticalAcrossUpdate(
+                ctx,
+                createEnterpriseChart,
+                options('outside'),
+                options(['outside', 'inside'])
+            );
+        });
+    });
+});

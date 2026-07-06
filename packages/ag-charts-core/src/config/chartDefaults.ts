@@ -72,7 +72,6 @@ import {
     validate,
 } from '../state/validation';
 import { isValidNumberFormat } from '../utils/format/numberFormat';
-import type { LabelPlacement } from '../utils/geometry/labelPlacement';
 import {
     borderOptionsDef,
     colorOrRef,
@@ -749,22 +748,26 @@ const labelCollideWithCategoryDef = {
     minSpacing: positiveNumber,
 };
 
+const labelCollisionPlacementValidator = union(
+    'top',
+    'bottom',
+    'left',
+    'right',
+    'top-left',
+    'top-right',
+    'bottom-left',
+    'bottom-right'
+);
+const labelOrientationValidator = union('parallel', 'perpendicular', 'perpendicular-reversed');
+
+/** Directional label placement accepting a single value or an ordered fallback list. */
+export const labelCollisionPlacementDef = or(
+    labelCollisionPlacementValidator,
+    arrayOf(labelCollisionPlacementValidator)
+);
+
 export const collisionAvoidanceOptionsDef = {
     enabled: boolean,
-    strategy: arrayOfDefs(
-        typeUnion<{ type: 'reposition'; placements?: LabelPlacement[] }>(
-            {
-                reposition: {
-                    placements: arrayOf(
-                        union('top', 'bottom', 'left', 'right', 'top-left', 'top-right', 'bottom-left', 'bottom-right')
-                    ),
-                },
-            },
-            'a label collision strategy',
-            'reposition'
-        ),
-        'a label collision strategy array'
-    ),
     minSpacing: positiveNumber,
     collideWith: {
         markers: labelCollideWithCategoryDef,
@@ -775,6 +778,21 @@ export const collisionAvoidanceOptionsDef = {
 
 // @ts-expect-error undocumented option
 seriesLabelOptionsDefs.collisionAvoidance = undocumented(collisionAvoidanceOptionsDef);
+// @ts-expect-error undocumented option
+seriesLabelOptionsDefs.orientation = undocumented(or(labelOrientationValidator, arrayOf(labelOrientationValidator)));
+// @ts-expect-error undocumented option
+seriesLabelOptionsDefs.maxWidth = undocumented(positiveNumber);
+// @ts-expect-error undocumented option
+seriesLabelOptionsDefs.maxHeight = undocumented(positiveNumber);
+// @ts-expect-error undocumented option
+seriesLabelOptionsDefs.wrapping = undocumented(textWrap);
+// @ts-expect-error undocumented option
+seriesLabelOptionsDefs.overflowStrategy = undocumented(overflowStrategy);
+
+/** Label defs for point-like series (line, area) that expose an undocumented directional placement. */
+export const placedSeriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = { ...seriesLabelOptionsDefs };
+// @ts-expect-error undocumented option
+placedSeriesLabelOptionsDefs.placement = undocumented(labelCollisionPlacementDef);
 
 export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOptions<any, any>> = {
     ...seriesLabelOptionsDefs,

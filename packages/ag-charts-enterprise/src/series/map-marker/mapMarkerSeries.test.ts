@@ -136,47 +136,6 @@ describe('MapMarkerSeries', () => {
         });
     });
 
-    // `label.collisionAvoidance` is an undocumented opt-in model, so the option is cast at the
-    // create boundary. A tight cluster of lat/lon markers (projection fixed by the UK background)
-    // forces overlapping labels, so the `reposition` strategy must resolve real collisions —
-    // proving map-marker routes placement through the collision-avoidance model.
-    describe('label collision avoidance', () => {
-        // 4x4 grid of points within a ~1° box; at the UK-wide projection they land in a small
-        // pixel region, so their labels overlap heavily.
-        const collisionData = Array.from({ length: 16 }, (_, i) => ({
-            name: `Site ${i + 1}`,
-            lat: 51.5 + (i % 4) * 0.3,
-            lon: -1.5 + Math.floor(i / 4) * 0.3,
-        }));
-
-        it('should reposition overlapping labels via the collisionAvoidance model', async () => {
-            const options = {
-                topology: ukTopology,
-                series: [
-                    { type: 'map-shape-background' },
-                    {
-                        type: 'map-marker',
-                        data: collisionData,
-                        latitudeKey: 'lat',
-                        longitudeKey: 'lon',
-                        labelKey: 'name',
-                        label: {
-                            enabled: true,
-                            collisionAvoidance: {
-                                enabled: true,
-                                strategy: [{ type: 'reposition', placements: ['top', 'right', 'left', 'bottom'] }],
-                            },
-                        },
-                    },
-                ],
-            };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
-            await compare();
-        });
-    });
-
     const testPointerEvents = (testParams: {
         seriesOptions: any;
         chartOptions?: any;

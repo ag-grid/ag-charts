@@ -1,3 +1,5 @@
+import type { OverflowStrategy, TextWrap } from 'ag-charts-types';
+
 import type { NormalisedTextOrSegments } from '../../types/normalised-options/normalisedCommonOptions';
 import type { Point, SizedPoint } from '../../types/scene';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
@@ -17,6 +19,26 @@ export interface MeasuredLabel {
     readonly text: NormalisedTextOrSegments;
     readonly width: number;
     readonly height: number;
+}
+
+/**
+ * How a label's text adapts to the region produced by its placement. `maxWidth`/`maxHeight` bound the
+ * region explicitly; when omitted the fit step derives a budget from the series or an estimate.
+ */
+export interface LabelFit {
+    readonly maxWidth?: number;
+    readonly maxHeight?: number;
+    readonly wrapping?: TextWrap;
+    readonly overflowStrategy?: OverflowStrategy;
+}
+
+/** Resolved fit policy passed to the engine, or `undefined` when no fit field is set. */
+export function resolveLabelFit(fit: LabelFit): LabelFit | undefined {
+    const { maxWidth, maxHeight, wrapping, overflowStrategy } = fit;
+    if (maxWidth == null && maxHeight == null && wrapping == null && overflowStrategy == null) {
+        return undefined;
+    }
+    return { maxWidth, maxHeight, wrapping, overflowStrategy };
 }
 
 export interface PointLabelDatum {
@@ -95,6 +117,8 @@ export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Reado
     readonly datum: PLD;
     /** Which candidate placement was chosen, or `undefined` for the centred (no-offset) position. */
     readonly placement: LabelPlacement | undefined;
+    /** Rotation applied to the label, in degrees, or `undefined` when unrotated. */
+    readonly rotation?: number;
 }
 
 /**
@@ -187,6 +211,13 @@ const queryBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 const inflatedBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 // The candidate datum's per-category obstacle config, set before each obstacle query.
 let candidateCollideWith: CollideWith | undefined;
+// The label's text/box after the fit step, reused per label to keep the hot path allocation-free.
+const fittedLabel: { text: NormalisedTextOrSegments; width: number; height: number; rotation: number | undefined } = {
+    text: '',
+    width: 0,
+    height: 0,
+    rotation: undefined,
+};
 
 function inflateBoxInto(dest: BoxBounds, src: BoxBounds, inflate: number) {
     dest.x = src.x - inflate;
@@ -389,22 +420,38 @@ function positionLabelBox(
 }
 
 /**
- * Tries each candidate placement for `d` in order and returns the first that fits within `bounds`
- * and clears every obstacle already in the index, or `undefined` if none do. Candidates come from
- * `d.placements` when present, otherwise the single `d.placement` (no allocation in that case).
- * Labels that opt out of collision resolution (`avoid` falsy) take their first candidate placement
- * unconditionally — never bounds-clipped, never dropped, even with no candidates given.
+ * Fit axis of the two-axis model: adapts the measured label to its region, writing the result into the
+ * shared {@link fittedLabel} scratch, and returns that scratch. A pass-through today — text/box are
+ * copied unchanged and rotation left unset; the placement axis (below) then tests the box against
+ * bounds and obstacles.
+ */
+function fitLabel(d: PointLabelDatum) {
+    const { text, width, height } = d.label;
+    fittedLabel.text = text;
+    fittedLabel.width = width;
+    fittedLabel.height = height;
+    fittedLabel.rotation = undefined;
+    return fittedLabel;
+}
+
+/**
+ * Placement axis of the two-axis model: tries each candidate region for `d` in order and returns the
+ * first whose fitted label fits within `bounds` and clears every obstacle already in the index, or
+ * `undefined` if none do. Candidates come from `d.placements` when present, otherwise the single
+ * `d.placement` (no allocation in that case). Labels that opt out of collision resolution (`avoid`
+ * falsy) take their first candidate region unconditionally — never bounds-clipped, never dropped,
+ * even with no candidates given.
  */
 function tryPlaceLabel(d: PointLabelDatum, index: number, padding: number, bounds: BoxBounds): PlacedLabel | undefined {
-    const { text, width, height } = d.label;
     const gap = d.gap ?? d.point.size / 2;
     const spacing = d.minSpacing ?? padding;
     const candidates = d.placements;
+    const { text, width, height, rotation } = fitLabel(d);
 
     if (!d.avoid) {
         const placement = candidates ? candidates[0] : d.placement;
         positionLabelBox(candidateBox, d, width, height, gap, spacing, placement);
-        return { index, text, x: candidateBox.x, y: candidateBox.y, width, height, datum: d, placement };
+        return { index, text, x: candidateBox.x, y: candidateBox.y, width, height, datum: d, placement, rotation };
     }
 
     const inflate = maxInflation(d.collideWith);
@@ -419,7 +466,7 @@ function tryPlaceLabel(d: PointLabelDatum, index: number, padding: number, bound
 
         const { x, y } = candidateBox;
         if (boxContains(bounds, x, y, width, height) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
-            return { index, text, x, y, width, height, datum: d, placement };
+            return { index, text, x, y, width, height, datum: d, placement, rotation };
         }
     }
 

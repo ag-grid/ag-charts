@@ -16,6 +16,8 @@ import {
     extent,
     isDefined,
     mergeDefaults,
+    resolveLabelFit,
+    toArray,
     toNumber,
 } from 'ag-charts-core';
 import {
@@ -102,7 +104,6 @@ import {
 import { buildResetPathFn, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 import {
     DEFAULT_MARKERLESS_LABEL_GAP,
-    DEFAULT_PLACED_LABEL_PLACEMENTS,
     PlacedLabelCartesianSeries,
     type PlacedLabelSeriesTypes,
 } from './placedLabelCartesianSeries';
@@ -472,7 +473,8 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
-        const { collisionAvoidance } = this.properties.label;
+        const { label } = this.properties;
+        const { collisionAvoidance } = label;
 
         return {
             xAxis,
@@ -499,9 +501,10 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             labelPadding: expandLabelPadding(this.properties.label),
             labelTextMeasurer: cachedTextMeasurer(this.properties.label),
             labelAvoid: collisionAvoidance.avoid,
-            labelPlacements: collisionAvoidance.placements(DEFAULT_PLACED_LABEL_PLACEMENTS),
+            labelPlacements: toArray(label.placement),
             labelMinSpacing: collisionAvoidance.minSpacing,
             labelCollideWith: collisionAvoidance.resolveCollideWith(),
+            labelFit: resolveLabelFit(label),
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,
             dataAggregationFilter,
