@@ -202,14 +202,13 @@ const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
     maxWidth: positiveNumber,
     maxHeight: positiveNumber,
     ...fontOptionsDef,
+    ...labelBoxOptionsDef,
     tooltip: {
         visible: union('auto', 'always', 'never'),
         text: string,
         renderer: callbackOf(or(string, number, date)),
     },
 };
-// @ts-expect-error undocumented option
-chartCaptionOptionsDefs.padding = undocumented(positiveNumber);
 // @ts-expect-error undocumented option
 chartCaptionOptionsDefs.truncate = undocumented(boolean);
 

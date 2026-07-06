@@ -252,6 +252,15 @@ export class ChartTheme {
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
+                cornerRadius: 4,
+                border: { enabled: false, strokeWidth: 1, stroke: { $foregroundOpacity: 0.08 } },
+                padding: {
+                    $if: [
+                        { $path: './border/enabled' },
+                        { left: 12, right: 12, top: 8, bottom: 8 },
+                        { $isUserOption: ['./fill', { left: 12, right: 12, top: 8, bottom: 8 }, 0] },
+                    ],
+                },
             },
             subtitle: {
                 enabled: false,
@@ -264,6 +273,15 @@ export class ChartTheme {
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
+                cornerRadius: 4,
+                border: { enabled: false, strokeWidth: 1, stroke: { $foregroundOpacity: 0.08 } },
+                padding: {
+                    $if: [
+                        { $path: './border/enabled' },
+                        { left: 12, right: 12, top: 8, bottom: 8 },
+                        { $isUserOption: ['./fill', { left: 12, right: 12, top: 8, bottom: 8 }, 0] },
+                    ],
+                },
             },
             footnote: {
                 enabled: false,
@@ -276,6 +294,15 @@ export class ChartTheme {
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
+                cornerRadius: 4,
+                border: { enabled: false, strokeWidth: 1, stroke: { $foregroundOpacity: 0.08 } },
+                padding: {
+                    $if: [
+                        { $path: './border/enabled' },
+                        { left: 12, right: 12, top: 8, bottom: 8 },
+                        { $isUserOption: ['./fill', { left: 12, right: 12, top: 8, bottom: 8 }, 0] },
+                    ],
+                },
             },
             highlight: {
                 enabled: true,

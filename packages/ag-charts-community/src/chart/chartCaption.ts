@@ -20,6 +20,7 @@ import { Transformable } from '../scene/transformable';
 import type { BoundedTextWidget } from '../widget/boundedTextWidget';
 import type { MouseWidgetEvent } from '../widget/widgetEvents';
 import type { CaptionLike } from './captionLike';
+import { expandLabelPadding } from './label';
 import type { TooltipContent } from './tooltip/tooltipContent';
 
 type CaptionNodeDatum = {
@@ -75,7 +76,12 @@ export class ChartCaption implements CaptionLike {
     }
 
     get padding(): number {
-        return this.opts.padding ?? 0;
+        return typeof this.opts.padding === 'number' ? this.opts.padding : 0;
+    }
+
+    /** Per-side padding reserved by the background box; zeros when no box is active. */
+    get boxPadding() {
+        return expandLabelPadding(this.opts);
     }
 
     private truncated = false;
@@ -105,6 +111,13 @@ export class ChartCaption implements CaptionLike {
         node.fontSize = opts.fontSize ?? FONT_SIZE.SMALLER;
         node.fontFamily = opts.fontFamily ?? 'sans-serif';
         node.fill = opts.color;
+        node.setBoxing({
+            fill: opts.fill,
+            fillOpacity: opts.fillOpacity,
+            cornerRadius: opts.cornerRadius,
+            padding: opts.padding,
+            border: opts.border,
+        });
     }
 
     registerInteraction(moduleCtx: DynamicContext<ChartRegistry>, where: 'beforebegin' | 'afterend') {
@@ -115,11 +128,11 @@ export class ChartCaption implements CaptionLike {
         const opts = this.opts;
         const wrapping = opts.wrapping ?? 'always';
         const truncate = opts.truncate ?? true;
-        const padding = opts.padding ?? 0;
+        const { left, right, top, bottom } = this.boxPadding;
         const effectiveContainerWidth = truncate ? containerWidth : Infinity;
         const effectiveContainerHeight = truncate ? containerHeight : Infinity;
-        const maxWidth = Math.min(opts.maxWidth ?? Infinity, effectiveContainerWidth) - padding * 2;
-        const maxHeight = opts.maxHeight ?? effectiveContainerHeight - padding * 2;
+        const maxWidth = Math.min(opts.maxWidth ?? Infinity, effectiveContainerWidth) - (left + right);
+        const maxHeight = opts.maxHeight ?? effectiveContainerHeight - (top + bottom);
         const options = { maxWidth, maxHeight, font: captionFont(opts), textWrap: wrapping };
 
         const text = opts.text;

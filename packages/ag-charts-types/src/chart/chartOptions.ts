@@ -1,5 +1,5 @@
 import type { AgInitialStateOptions } from '../api/initialStateOptions';
-import type { BorderOptions, Padding, TextOrSegments } from '../series/cartesian/commonOptions';
+import type { BorderOptions, LabelBoxOptions, Padding, TextOrSegments } from '../series/cartesian/commonOptions';
 import type { AgAnimationOptions } from './animationOptions';
 import type { AgChartBackgroundImage } from './backgroundOptions';
 import type { Renderer } from './callbackOptions';
@@ -100,7 +100,7 @@ export interface AgCaptionTooltipOptions<TContext = ContextDefault> {
     renderer?: Renderer<AgCaptionTooltipRendererParams<TContext>, never>;
 }
 
-export interface AgChartCaptionOptions<TContext = ContextDefault> {
+export interface AgChartCaptionOptions<TContext = ContextDefault> extends LabelBoxOptions {
     /** Whether the text should be shown. */
     enabled?: boolean;
     /** The text to display. Plain text, or an array of segments for rich content. */

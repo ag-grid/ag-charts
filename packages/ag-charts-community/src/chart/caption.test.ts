@@ -213,6 +213,146 @@ describe('Caption', () => {
         });
     });
 
+    // AG-11688: title/subtitle/footnote captions accept a background fill/border box.
+    describe('AG-11688 caption background box', () => {
+        const seriesOptions = {
+            data: [
+                { x: 'A', y: 3 },
+                { x: 'B', y: 5 },
+                { x: 'C', y: 2 },
+                { x: 'D', y: 4 },
+            ],
+            series: [{ type: 'bar' as const, xKey: 'x', yKey: 'y' }],
+            legend: { enabled: false },
+        };
+        const boxPadding = { top: 20, right: 12, bottom: 20, left: 12 };
+
+        describe('visual snapshots', () => {
+            test('title fill and fillOpacity', async () => {
+                chart = await createChart({
+                    ...seriesOptions,
+                    title: { text: 'Revenue', fill: '#4a90d9', fillOpacity: 0.5 },
+                });
+                await compare();
+            });
+
+            test('title border', async () => {
+                chart = await createChart({
+                    ...seriesOptions,
+                    title: { text: 'Revenue', border: { enabled: true, stroke: '#204060', strokeWidth: 2 } },
+                });
+                await compare();
+            });
+
+            test('title cornerRadius and object padding', async () => {
+                chart = await createChart({
+                    ...seriesOptions,
+                    title: {
+                        text: 'Revenue',
+                        fill: '#e0e8f0',
+                        cornerRadius: 8,
+                        padding: { top: 6, right: 16, bottom: 6, left: 16 },
+                    },
+                });
+                await compare();
+            });
+
+            test('title numeric padding', async () => {
+                chart = await createChart({
+                    ...seriesOptions,
+                    title: { text: 'Revenue', fill: '#e0e8f0', padding: 20 },
+                });
+                await compare();
+            });
+
+            test('subtitle fill', async () => {
+                chart = await createChart({
+                    ...seriesOptions,
+                    title: { text: 'Revenue' },
+                    subtitle: { text: 'Quarterly', fill: '#f0d0d0' },
+                });
+                await compare();
+            });
+
+            test('footnote fill', async () => {
+                chart = await createChart({
+                    ...seriesOptions,
+                    footnote: { text: 'Source: internal', fill: '#d0f0d0' },
+                });
+                await compare();
+            });
+        });
+
+        // AC4: fill or border with no explicit padding still reserves non-zero inset, so the
+        // background box grows the caption bounds rather than clipping the text.
+        test('bordered title with no explicit padding grows the caption bbox', async () => {
+            chart = await createChart({ ...seriesOptions, title: { text: 'Revenue' } });
+            const plainBBox = chart.title.node.getBBox();
+
+            chart = await createChart({
+                ...seriesOptions,
+                title: { text: 'Revenue', border: { enabled: true, stroke: '#204060' } },
+            });
+            const borderedBBox = chart.title.node.getBBox();
+
+            expect(borderedBBox.width).toBeGreaterThan(plainBBox.width);
+            expect(borderedBBox.height).toBeGreaterThan(plainBBox.height);
+        });
+
+        test('fill-only title with no explicit padding grows the caption bbox', async () => {
+            chart = await createChart({ ...seriesOptions, title: { text: 'Revenue' } });
+            const plainBBox = chart.title.node.getBBox();
+
+            chart = await createChart({ ...seriesOptions, title: { text: 'Revenue', fill: '#4a90d9' } });
+            const filledBBox = chart.title.node.getBBox();
+
+            expect(filledBBox.width).toBeGreaterThan(plainBBox.width);
+            expect(filledBBox.height).toBeGreaterThan(plainBBox.height);
+        });
+
+        // TC1: layout reserves space for the box, pushing the series area away from the caption.
+        test('boxed title pushes the series area down vs unboxed', async () => {
+            chart = await createChart({ ...seriesOptions, title: { text: 'Revenue' } });
+            const unboxedSeriesY = chart.seriesAreaBoundingBox.y;
+
+            chart = await createChart({
+                ...seriesOptions,
+                title: { text: 'Revenue', fill: '#4a90d9', padding: boxPadding },
+            });
+            const boxedSeriesY = chart.seriesAreaBoundingBox.y;
+
+            expect(boxedSeriesY).toBeGreaterThan(unboxedSeriesY);
+        });
+
+        test('boxed footnote lifts the series area bottom vs unboxed', async () => {
+            chart = await createChart({ ...seriesOptions, footnote: { text: 'Source' } });
+            const unboxedBottom = chart.seriesAreaBoundingBox.y + chart.seriesAreaBoundingBox.height;
+
+            chart = await createChart({
+                ...seriesOptions,
+                footnote: { text: 'Source', fill: '#4a90d9', padding: boxPadding },
+            });
+            const boxedBottom = chart.seriesAreaBoundingBox.y + chart.seriesAreaBoundingBox.height;
+
+            expect(boxedBottom).toBeLessThan(unboxedBottom);
+        });
+
+        // Rich-text/segment captions render the box but their bbox is not grown by the box
+        // padding, so the layout reservation is compensated caption-side.
+        test('boxed rich-text title reserves box padding in the layout', async () => {
+            chart = await createChart({ ...seriesOptions, title: { text: [{ text: 'Revenue' }] } });
+            const unboxedSeriesY = chart.seriesAreaBoundingBox.y;
+
+            chart = await createChart({
+                ...seriesOptions,
+                title: { text: [{ text: 'Revenue' }], fill: '#4a90d9', padding: boxPadding },
+            });
+            const boxedSeriesY = chart.seriesAreaBoundingBox.y;
+
+            expect(boxedSeriesY).toBeGreaterThan(unboxedSeriesY);
+        });
+    });
+
     // CRT-1041: Footnote caption with multi-line rich text should have correct bounding box
     // for the accessibility proxy element.
     describe('CRT-1041 footnote caption bounds', () => {
