@@ -1,3 +1,7 @@
+import type { Page } from '@playwright/test';
+
+import type { AgCaptionContextMenuActionEvent, AgContextMenuGetItemsParamsCaption } from 'ag-charts-community';
+
 import { expect, test } from './fixture';
 import {
     SELECTORS,
@@ -7,7 +11,38 @@ import {
     setupIntrinsicAssertions,
     toExamplePageUrl,
     toExamplePageUrls,
+    waitForChartUpdate,
 } from './util';
+
+async function popActions(page: Page): Promise<AgCaptionContextMenuActionEvent[]> {
+    await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+    const actions = await page.evaluate(() => {
+        const agE2E_popActions: unknown = (window as any)?.agE2E?.popActions;
+        if (agE2E_popActions == null) {
+            throw new Error('window.agE2E.popActions is not defined');
+        } else if (typeof agE2E_popActions !== 'function') {
+            throw new Error('window.agE2E.popActions is not a function');
+        }
+        return agE2E_popActions();
+    });
+    expect(Array.isArray(actions)).toBe(true);
+    return actions as AgCaptionContextMenuActionEvent[];
+}
+
+async function popGetItems(page: Page): Promise<AgContextMenuGetItemsParamsCaption[]> {
+    await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+    const getItems = await page.evaluate(() => {
+        const agE2E_popGetItems: unknown = (window as any)?.agE2E?.popGetItems;
+        if (agE2E_popGetItems == null) {
+            throw new Error('window.agE2E.popGetItems is not defined');
+        } else if (typeof agE2E_popGetItems !== 'function') {
+            throw new Error('window.agE2E.popGetItems is not a function');
+        }
+        return agE2E_popGetItems();
+    });
+    expect(Array.isArray(getItems)).toBe(true);
+    return getItems as AgContextMenuGetItemsParamsCaption[];
+}
 
 test.describe('context-menu', () => {
     setupIntrinsicAssertions(test);
@@ -160,5 +195,152 @@ test.describe('context-menu', () => {
         await page.mouse.move(404, 265);
         await page.mouse.click(404, 265, { button: 'right' });
         await expect(page).toHaveScreenshot('context-menu-shown-on-highlighted-datum.png');
+    });
+
+    test.describe('AG-17706 showOn caption', () => {
+        const POINT_TITLE = { clientX: 411, clientY: 64 };
+        const POINT_SUBTITLE = { clientX: 403, clientY: 111 };
+        const POINT_FOOTNOTE = { clientX: 400, clientY: 557 };
+
+        type CaptionType = AgCaptionContextMenuActionEvent['captionType'];
+        type TextType = AgCaptionContextMenuActionEvent['text'];
+        const TEXT_TITLE: TextType = [
+            {
+                alt: 'smiley',
+                height: 55,
+                type: 'image',
+                url: 'data:image/svg+xml;charset=utf-8;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+DQogIDxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iODAiIGZpbGw9InllbGxvdyIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIzIi8+DQogIDxjaXJjbGUgY3g9IjcwIiBjeT0iODAiIHI9IjgiIGZpbGw9ImJsYWNrIi8+DQogIDxjaXJjbGUgY3g9IjEzMCIgY3k9IjgwIiByPSI4IiBmaWxsPSJibGFjayIvPg0KICA8cGF0aCBkPSJNIDYwIDEyMCBRIDEwMCAxNjAgMTQwIDEyMCIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSI0IiBmaWxsPSJ0cmFuc3BhcmVudCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+DQo8L3N2Zz4NCg==',
+                width: 55,
+            },
+            {
+                text: 'MyTitle',
+                type: 'text',
+                verticalAlign: 'middle',
+            },
+            {
+                fontWeight: 'bold',
+                text: 'MyStrong',
+                type: 'text',
+                verticalAlign: 'middle',
+            },
+        ];
+        const TEXT_SUBTITLE: TextType = new Date(86400000);
+        const TEXT_FOOTNOTE: TextType = 'MyPlaintextFootnote';
+
+        const actionEvent = (captionType: CaptionType, text: TextType) => {
+            type Rules = Omit<AgCaptionContextMenuActionEvent, 'event'> & { event: unknown };
+            return { captionType, event: expect.anything(), text, type: 'captionContextMenuAction' } satisfies Rules;
+        };
+
+        const getItemsEvent = (captionType: CaptionType, text: TextType): AgContextMenuGetItemsParamsCaption => {
+            return { captionType, defaultItems: ['download'], context: undefined, showOn: 'caption', text };
+        };
+
+        const rightClick = (page: Page, point: { clientX: number; clientY: number }) =>
+            page.mouse.click(point.clientX, point.clientY, { button: 'right' });
+
+        const runCaptionAction = (page: Page) =>
+            page.locator('.ag-charts-context-menu__item').filter({ hasText: 'Run caption action' }).click();
+
+        test.describe('declarative', () => {
+            test.beforeEach(async ({ page }) => {
+                const { url } = toExamplePageUrl('context-menu-e2e', 'captions-declarative', 'vanilla');
+                await gotoExample(page, url);
+            });
+
+            test.describe('title', () => {
+                test.beforeEach(async ({ page }) => {
+                    await rightClick(page, POINT_TITLE);
+                });
+                test('screenshot', async ({ page }) => {
+                    await expect(page).toHaveScreenshot('AG-17706-title-menu.png', { animations: 'disabled' });
+                });
+                test('action', async ({ page }) => {
+                    await runCaptionAction(page);
+                    expect(await popActions(page)).toEqual([actionEvent('title', TEXT_TITLE)]);
+                });
+            });
+
+            test.describe('subtitle', () => {
+                test.beforeEach(async ({ page }) => {
+                    await rightClick(page, POINT_SUBTITLE);
+                });
+                test('screenshot', async ({ page }) => {
+                    await expect(page).toHaveScreenshot('AG-17706-subtitle-menu.png', { animations: 'disabled' });
+                });
+                test('action', async ({ page }) => {
+                    await runCaptionAction(page);
+                    expect(await popActions(page)).toEqual([actionEvent('subtitle', TEXT_SUBTITLE)]);
+                });
+            });
+
+            test.describe('footnote', () => {
+                test.beforeEach(async ({ page }) => {
+                    await rightClick(page, POINT_FOOTNOTE);
+                });
+                test('screenshot', async ({ page }) => {
+                    await expect(page).toHaveScreenshot('AG-17706-footnote-menu.png', { animations: 'disabled' });
+                });
+                test('action', async ({ page }) => {
+                    await runCaptionAction(page);
+                    expect(await popActions(page)).toEqual([actionEvent('footnote', TEXT_FOOTNOTE)]);
+                });
+            });
+        });
+
+        test.describe('dynamic', () => {
+            test.beforeEach(async ({ page }) => {
+                const { url } = toExamplePageUrl('context-menu-e2e', 'captions-dynamic', 'vanilla');
+                await gotoExample(page, url);
+            });
+
+            test.describe('title', () => {
+                test.beforeEach(async ({ page }) => {
+                    await rightClick(page, POINT_TITLE);
+                });
+                test('screenshot', async ({ page }) => {
+                    await expect(page).toHaveScreenshot('AG-17706-title-menu.png', { animations: 'disabled' });
+                });
+                test('action', async ({ page }) => {
+                    await runCaptionAction(page);
+                    expect(await popActions(page)).toEqual([actionEvent('title', TEXT_TITLE)]);
+                });
+                test('getItems', async ({ page }) => {
+                    expect(await popGetItems(page)).toEqual([getItemsEvent('title', TEXT_TITLE)]);
+                });
+            });
+
+            test.describe('subtitle', () => {
+                test.beforeEach(async ({ page }) => {
+                    await rightClick(page, POINT_SUBTITLE);
+                });
+                test('screenshot', async ({ page }) => {
+                    await expect(page).toHaveScreenshot('AG-17706-subtitle-menu.png', { animations: 'disabled' });
+                });
+                test('action', async ({ page }) => {
+                    await runCaptionAction(page);
+                    expect(await popActions(page)).toEqual([actionEvent('subtitle', TEXT_SUBTITLE)]);
+                });
+                test('getItems', async ({ page }) => {
+                    expect(await popGetItems(page)).toEqual([getItemsEvent('subtitle', TEXT_SUBTITLE)]);
+                });
+            });
+
+            test.describe('footnote', () => {
+                test.beforeEach(async ({ page }) => {
+                    await rightClick(page, POINT_FOOTNOTE);
+                });
+                test('screenshot', async ({ page }) => {
+                    await expect(page).toHaveScreenshot('AG-17706-footnote-menu.png', { animations: 'disabled' });
+                });
+                test('action', async ({ page }) => {
+                    await runCaptionAction(page);
+                    expect(await popActions(page)).toEqual([actionEvent('footnote', TEXT_FOOTNOTE)]);
+                });
+                test('getItems', async ({ page }) => {
+                    expect(await popGetItems(page)).toEqual([getItemsEvent('footnote', TEXT_FOOTNOTE)]);
+                });
+            });
+        });
     });
 });
