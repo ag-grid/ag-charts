@@ -19,6 +19,7 @@ import {
     ChartAxisDirection,
     DebugMetrics,
     areScalingEqual,
+    barLabelRotation,
     isContinuous,
     isFiniteNumber,
     maxValue,
@@ -109,6 +110,7 @@ interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: NormalisedTextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
+    readonly rotation: number;
 }
 
 /**
@@ -935,6 +937,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 spacing: ctx.labelSpacing,
                 rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
             });
+            const rotation = barLabelRotation(toArray(ctx.label.orientation)[0]);
 
             const existingLabel = mutableNode.label;
             if (existingLabel) {
@@ -944,11 +947,13 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 existingLabel.y = labelPlacement.y;
                 existingLabel.textAlign = labelPlacement.textAlign;
                 existingLabel.textBaseline = labelPlacement.textBaseline;
+                existingLabel.rotation = rotation;
             } else {
                 // Create new label object (first time label is added)
                 mutableNode.label = {
                     text: nodeLabelText,
                     ...labelPlacement,
+                    rotation,
                 };
             }
         }

@@ -16,6 +16,7 @@ export interface RangeAreaLabelDatum extends Readonly<Point> {
     text: NormalisedTextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
+    rotation: number;
     datum: any;
     readonly itemId?: never;
     readonly itemType: AgRangeAreaSeriesItemType;

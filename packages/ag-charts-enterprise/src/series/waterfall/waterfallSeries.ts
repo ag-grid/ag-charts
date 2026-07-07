@@ -19,6 +19,7 @@ import {
     type NormalisedTextOrSegments,
     type Point,
     type RequireOptional,
+    barLabelRotation,
     easeOut,
     isContinuous,
     maxValue,
@@ -70,6 +71,7 @@ type WaterfallNodeLabelDatum = Readonly<Point> & {
     readonly text: NormalisedTextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
+    readonly rotation: number;
 };
 
 type WaterfallNodePointDatum = _ModuleSupport.DataModelSeriesNodeDatum['point'] & {
@@ -585,7 +587,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             height: 0,
             midPoint: { x: 0, y: 0 },
             crisp,
-            label: { text: '', x: 0, y: 0, textAlign: 'center', textBaseline: 'middle' },
+            label: { text: '', x: 0, y: 0, textAlign: 'center', textBaseline: 'middle', rotation: 0 },
         };
     }
 
@@ -684,6 +686,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             mutableNode.label.y = labelPlacement.y;
             mutableNode.label.textAlign = labelPlacement.textAlign;
             mutableNode.label.textBaseline = labelPlacement.textBaseline;
+            mutableNode.label.rotation = barLabelRotation(toArray(label.orientation)[0]);
         } else {
             // Clear label when disabled
             mutableNode.label.text = '';

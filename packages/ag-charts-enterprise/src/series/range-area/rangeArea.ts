@@ -28,6 +28,7 @@ import {
     type NormalisedSeriesMarkerStyle,
     type Point,
     type RequireOptional,
+    barLabelRotation,
     extent,
     findMinMax,
     isContinuous,
@@ -875,6 +876,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             ),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
+            rotation: barLabelRotation(toArray(label.orientation)[0]),
         };
     }
 

@@ -25,6 +25,7 @@ import {
     type Point,
     type RequireOptional,
     areScalingEqual,
+    barLabelRotation,
     findMinMax,
     isContinuous,
     mergeDefaults,
@@ -78,6 +79,7 @@ interface RangeBarNodeLabelDatum extends Readonly<Point> {
     text: NormalisedTextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
+    rotation: number;
     datum: any;
     itemType: 'high' | 'low';
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
@@ -867,6 +869,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const barAlongX = ctx.barAlongX;
         const placement = ctx.labelPlacement;
         const labelPadding = ctx.labelPadding;
+        const rotation = barLabelRotation(toArray(label.orientation)[0]);
 
         // Calculate label positions and alignment using scratch params
         const rectX = params.rectX;
@@ -945,6 +948,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yLowLabel.y = yLowY;
             yLowLabel.textAlign = yLowTextAlign;
             yLowLabel.textBaseline = yLowTextBaseline;
+            yLowLabel.rotation = rotation;
             yLowLabel.text = yLowText;
             yLowLabel.datum = datum;
         } else {
@@ -955,6 +959,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 y: yLowY,
                 textAlign: yLowTextAlign,
                 textBaseline: yLowTextBaseline,
+                rotation,
                 text: yLowText,
                 itemType: 'low',
                 datum,
@@ -971,6 +976,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yHighLabel.y = yHighY;
             yHighLabel.textAlign = yHighTextAlign;
             yHighLabel.textBaseline = yHighTextBaseline;
+            yHighLabel.rotation = rotation;
             yHighLabel.text = yHighText;
             yHighLabel.datum = datum;
         } else {
@@ -981,6 +987,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 y: yHighY,
                 textAlign: yHighTextAlign,
                 textBaseline: yHighTextBaseline,
+                rotation,
                 text: yHighText,
                 itemType: 'high',
                 datum,

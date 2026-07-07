@@ -1,8 +1,10 @@
-import type { OverflowStrategy, TextWrap } from 'ag-charts-types';
+import type { AgChartLabelOrientation, OverflowStrategy, TextWrap } from 'ag-charts-types';
 
 import type { NormalisedTextOrSegments } from '../../types/normalised-options/normalisedCommonOptions';
 import type { Point, SizedPoint } from '../../types/scene';
+import { toRadians } from './angle';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
+import { getMinOuterRectSize } from './math/shapeUtils';
 import { SpatialIndex, gridCellSize } from './spatialIndex';
 
 export type LabelPlacement =
@@ -52,6 +54,12 @@ export interface PointLabelDatum {
      * one-element list.
      */
     readonly placements?: readonly LabelPlacement[];
+    /**
+     * Orientation candidate(s), tried per placement until one fits; falls back to no rotation. A
+     * single value is equivalent to a one-element list. The engine maps each orientation to the
+     * rotation angle it renders at ({@link PlacedLabel.rotation}).
+     */
+    readonly orientation?: AgChartLabelOrientation | AgChartLabelOrientation[];
     /**
      * Distance from the point to the nearest label edge when a directional placement applies.
      * Defaults to the marker radius. Lets markerless points (size 0) still offset their labels,
@@ -181,6 +189,22 @@ export function isPointLabelDatum(x: any): x is PointLabelDatum {
     return x != null && typeof x.point === 'object' && typeof x.label === 'object';
 }
 
+// Rotation angle (degrees) each orientation renders at, relative to a horizontal baseline:
+// `parallel` reads upright, the two `perpendicular` variants a quarter-turn in either direction.
+const orientationAngles: Record<AgChartLabelOrientation, number> = {
+    parallel: 0,
+    perpendicular: 90,
+    'perpendicular-reversed': -90,
+};
+
+/**
+ * Rotation (radians) for a bar-family label from its `orientation`; `0` when the orientation is
+ * unset, so an unrotated label renders exactly as before.
+ */
+export function barLabelRotation(orientation: AgChartLabelOrientation | undefined): number {
+    return orientation == null ? 0 : toRadians(orientationAngles[orientation]);
+}
+
 const labelPlacements: Record<LabelPlacement, { x: -1 | 0 | 1; y: -1 | 0 | 1 }> = {
     top: { x: 0, y: -1 },
     bottom: { x: 0, y: 1 },
@@ -212,12 +236,29 @@ const inflatedBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 // The candidate datum's per-category obstacle config, set before each obstacle query.
 let candidateCollideWith: CollideWith | undefined;
 // The label's text/box after the fit step, reused per label to keep the hot path allocation-free.
-const fittedLabel: { text: NormalisedTextOrSegments; width: number; height: number; rotation: number | undefined } = {
+const fittedLabel: { text: NormalisedTextOrSegments; width: number; height: number } = {
     text: '',
     width: 0,
     height: 0,
-    rotation: undefined,
 };
+// Rotated axis-aligned footprint, written per candidate to keep the rotation loop allocation-free.
+const rotatedSize = { width: 0, height: 0 };
+
+// Writes the axis-aligned footprint of a `w`×`h` label rotated `rotationDeg` into the shared
+// `rotatedSize` scratch (allocation-free variant of getMinOuterRectSize for the candidate hot loop).
+// Short-circuits the unrotated case so the common path pays no trig.
+function rotatedSizeInto(rotationDeg: number, w: number, h: number) {
+    if (rotationDeg === 0) {
+        rotatedSize.width = w;
+        rotatedSize.height = h;
+        return;
+    }
+    const angle = (rotationDeg % 180) * (Math.PI / 180);
+    const sin = Math.abs(Math.sin(angle));
+    const cos = Math.abs(Math.cos(angle));
+    rotatedSize.width = w * cos + h * sin;
+    rotatedSize.height = w * sin + h * cos;
+}
 
 function inflateBoxInto(dest: BoxBounds, src: BoxBounds, inflate: number) {
     dest.x = src.x - inflate;
@@ -380,7 +421,8 @@ export function placeLabels(
                 // Labels that opt out of collision resolution neither query obstacles nor block
                 // other labels, so they are not inserted into the index.
                 if (d.avoid) {
-                    obstacleIndex.insert(placed, { kind: 'rect', box: placed, category: 'label' });
+                    const box = labelObstacleBox(placed);
+                    obstacleIndex.insert(box, { kind: 'rect', box, category: 'label' });
                 }
             }
         }
@@ -389,6 +431,17 @@ export function placeLabels(
     }
 
     return result;
+}
+
+/**
+ * The box a placed label occupies as an obstacle. Unrotated labels return their own box unchanged
+ * (the common path, zero-allocation); rotated labels return their outer axis-aligned footprint so
+ * later labels avoid the true rotated extent, not the narrower measured box.
+ */
+function labelObstacleBox(placed: PlacedLabel): BoxBounds {
+    if (placed.rotation == null) return placed;
+    const { width, height } = getMinOuterRectSize(placed.rotation, placed.width, placed.height);
+    return { x: placed.x, y: placed.y, width, height };
 }
 
 /** Writes the label box top-left for `placement` into `out`, offset from the point by gap+spacing. */
@@ -430,45 +483,78 @@ function fitLabel(d: PointLabelDatum) {
     fittedLabel.text = text;
     fittedLabel.width = width;
     fittedLabel.height = height;
-    fittedLabel.rotation = undefined;
     return fittedLabel;
 }
 
 /**
- * Placement axis of the two-axis model: tries each candidate region for `d` in order and returns the
- * first whose fitted label fits within `bounds` and clears every obstacle already in the index, or
- * `undefined` if none do. Candidates come from `d.placements` when present, otherwise the single
- * `d.placement` (no allocation in that case). Labels that opt out of collision resolution (`avoid`
- * falsy) take their first candidate region unconditionally — never bounds-clipped, never dropped,
- * even with no candidates given.
+ * Placement axis of the two-axis model: tries each candidate region for `d` in order — and, within
+ * each, each candidate rotation — and returns the first whose fitted label fits within `bounds` and
+ * clears every obstacle already in the index, or `undefined` if none do. Candidates come from
+ * `d.placements`/`d.rotations` when present, otherwise the single `d.placement` and no rotation (no
+ * allocation in that case). The reported box keeps the label's measured `width`/`height`; the rotated
+ * footprint is used only for containment and obstacle tests. Labels that opt out of collision
+ * resolution (`avoid` falsy) take their first candidate region unconditionally — never bounds-clipped,
+ * never dropped, even with no candidates given.
  */
 function tryPlaceLabel(d: PointLabelDatum, index: number, padding: number, bounds: BoxBounds): PlacedLabel | undefined {
     const gap = d.gap ?? d.point.size / 2;
     const spacing = d.minSpacing ?? padding;
     const candidates = d.placements;
-    const { text, width, height, rotation } = fitLabel(d);
+    const orientations = Array.isArray(d.orientation) ? d.orientation : undefined;
+    const singleOrientation = Array.isArray(d.orientation) ? undefined : d.orientation;
+    const { text, width, height } = fitLabel(d);
 
     if (!d.avoid) {
-        const placement = candidates ? candidates[0] : d.placement;
-        positionLabelBox(candidateBox, d, width, height, gap, spacing, placement);
-        return { index, text, x: candidateBox.x, y: candidateBox.y, width, height, datum: d, placement, rotation };
+        const placement = candidateAt(candidates, d.placement, 0);
+        const orientation = candidateAt(orientations, singleOrientation, 0);
+        const rotation = positionCandidate(d, placement, orientation, width, height, gap, spacing);
+        const { x, y } = candidateBox;
+        return { index, text, x, y, width, height, datum: d, placement, rotation: rotation || undefined };
     }
 
     const inflate = maxInflation(d.collideWith);
     candidateCollideWith = d.collideWith;
     const candidateCount = candidates?.length ?? 1;
+    const orientationCount = orientations?.length ?? 1;
     for (let pi = 0; pi < candidateCount; pi++) {
-        const placement = candidates ? candidates[pi] : d.placement;
-        positionLabelBox(candidateBox, d, width, height, gap, spacing, placement);
-        candidateBox.width = width;
-        candidateBox.height = height;
-        inflateBoxInto(queryBox, candidateBox, inflate);
-
-        const { x, y } = candidateBox;
-        if (boxContains(bounds, x, y, width, height) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
-            return { index, text, x, y, width, height, datum: d, placement, rotation };
+        const placement = candidateAt(candidates, d.placement, pi);
+        for (let oi = 0; oi < orientationCount; oi++) {
+            const orientation = candidateAt(orientations, singleOrientation, oi);
+            const rotation = positionCandidate(d, placement, orientation, width, height, gap, spacing);
+            inflateBoxInto(queryBox, candidateBox, inflate);
+            const { x, y, width: cw, height: ch } = candidateBox;
+            if (boxContains(bounds, x, y, cw, ch) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
+                return { index, text, x, y, width, height, datum: d, placement, rotation: rotation || undefined };
+            }
         }
     }
 
     return undefined;
+}
+
+/** The `i`-th candidate: `list[i]` when a candidate list is present, else the lone `single` value. */
+function candidateAt<T>(list: readonly T[] | undefined, single: T | undefined, i: number): T | undefined {
+    return list ? list[i] : single;
+}
+
+/**
+ * Positions one (placement, orientation) candidate into the shared {@link candidateBox} — its
+ * top-left offset and its rotated footprint as width/height — and returns the render rotation in
+ * degrees (`0` when the orientation is unset).
+ */
+function positionCandidate(
+    d: PointLabelDatum,
+    placement: LabelPlacement | undefined,
+    orientation: AgChartLabelOrientation | undefined,
+    width: number,
+    height: number,
+    gap: number,
+    spacing: number
+): number {
+    const rotation = orientation == null ? 0 : orientationAngles[orientation];
+    rotatedSizeInto(rotation, width, height);
+    positionLabelBox(candidateBox, d, rotatedSize.width, rotatedSize.height, gap, spacing, placement);
+    candidateBox.width = rotatedSize.width;
+    candidateBox.height = rotatedSize.height;
+    return rotation;
 }

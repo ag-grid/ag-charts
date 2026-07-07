@@ -188,4 +188,75 @@ describe('label collision avoidance', () => {
             );
         });
     });
+
+    // `label.orientation` rotates bar-family labels along/across the bar's length. Coverage across the
+    // three enterprise bar-family series; the `parallel`/`perpendicular` distinction is what varies.
+    describe('bar-family label orientation', () => {
+        const orientations = ['parallel', 'perpendicular', 'perpendicular-reversed'];
+        const rangeData = [
+            { x: 'A', low: 2, high: 8 },
+            { x: 'B', low: 3, high: 9 },
+            { x: 'C', low: 1, high: 7 },
+        ];
+        const rangeAxes = {
+            x: { type: 'category', position: 'bottom' },
+            y: { type: 'number', position: 'left' },
+        };
+
+        for (const orientation of orientations) {
+            it(`waterfall renders labels with orientation '${orientation}'`, async () => {
+                await renderAndSnapshot({
+                    data: [
+                        { year: '2020', spending: 10 },
+                        { year: '2021', spending: -20 },
+                        { year: '2022', spending: 30 },
+                    ],
+                    series: [
+                        {
+                            type: 'waterfall',
+                            xKey: 'year',
+                            yKey: 'spending',
+                            item: {
+                                positive: { label: { enabled: true, orientation } },
+                                negative: { label: { enabled: true, orientation } },
+                                total: { label: { enabled: true, orientation } },
+                            },
+                        },
+                    ],
+                });
+            });
+
+            it(`range-bar renders labels with orientation '${orientation}'`, async () => {
+                await renderAndSnapshot({
+                    data: rangeData,
+                    axes: rangeAxes,
+                    series: [
+                        {
+                            type: 'range-bar',
+                            xKey: 'x',
+                            yLowKey: 'low',
+                            yHighKey: 'high',
+                            label: { enabled: true, orientation },
+                        },
+                    ],
+                });
+            });
+
+            it(`range-area renders labels with orientation '${orientation}'`, async () => {
+                await renderAndSnapshot({
+                    data: rangeData,
+                    axes: rangeAxes,
+                    series: [
+                        {
+                            type: 'range-area',
+                            xKey: 'x',
+                            yLowKey: 'low',
+                            yHighKey: 'high',
+                            label: { enabled: true, orientation },
+                        },
+                    ],
+                });
+            });
+        }
+    });
 });

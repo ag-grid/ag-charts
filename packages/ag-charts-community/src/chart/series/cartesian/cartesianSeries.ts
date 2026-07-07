@@ -33,7 +33,7 @@ import { SegmentedGroup } from '../../../scene/segmentedGroup';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import { SegmentedPath } from '../../../scene/shape/segmentedPath';
-import { Text } from '../../../scene/shape/text';
+import { RotatableText, Text } from '../../../scene/shape/text';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { NumberAxis } from '../../axis/numberAxis';
 import { TimeAxis } from '../../axis/timeAxis';
@@ -193,7 +193,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     private datumSelection: Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
     protected labelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>> = Selection.select<
         Text<LabelOf<TTypes>>
-    >(this.labelGroup, Text);
+    >(this.labelGroup, RotatableText);
 
     private highlightSelection = Selection.selectNoInference<DatumOf<TTypes>, NodeOf<TTypes>>(
         this.highlightNodeGroup,
@@ -201,7 +201,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     );
     protected highlightLabelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>> = Selection.select<
         Text<LabelOf<TTypes>>
-    >(this.highlightLabelGroup, Text);
+    >(this.highlightLabelGroup, RotatableText);
 
     public annotationSelections: Set<Selection<DatumOf<TTypes>, NodeWithOpacity<DatumOf<TTypes>>>> = new Set();
 

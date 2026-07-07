@@ -349,4 +349,44 @@ describe('label collision avoidance', () => {
             );
         });
     });
+
+    // `label.orientation` rotates bar-family labels: `parallel` reads upright, the two `perpendicular`
+    // variants a quarter-turn in either direction. Both a column and a horizontal bar are exercised
+    // per orientation.
+    describe('bar label orientation', () => {
+        const barData = Array.from({ length: 6 }, (_, i) => ({ cat: `Category ${i}`, value: 30 + 10 * Math.sin(i) }));
+        const orientations = ['parallel', 'perpendicular', 'perpendicular-reversed'];
+        const barOrientationOptions = (orientation: string, direction: 'vertical' | 'horizontal') => ({
+            data: barData,
+            legend: { enabled: false },
+            axes:
+                direction === 'vertical'
+                    ? { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } }
+                    : { x: { type: 'number', position: 'bottom' }, y: { type: 'category', position: 'left' } },
+            series: [{ type: 'bar', xKey: 'cat', yKey: 'value', direction, label: { enabled: true, orientation } }],
+        });
+
+        for (const orientation of orientations) {
+            it(`renders a column with orientation '${orientation}'`, async () => {
+                await renderAndSnapshot(barOrientationOptions(orientation, 'vertical'));
+            });
+
+            it(`renders a horizontal bar with orientation '${orientation}'`, async () => {
+                await renderAndSnapshot(barOrientationOptions(orientation, 'horizontal'));
+            });
+        }
+
+        // `parallel` maps to 0deg (upright), so it must render identically to an unrotated label —
+        // pinning the mapping and the unset default.
+        it('renders a parallel label identically to no orientation', async () => {
+            const unset = barOrientationOptions('parallel', 'vertical');
+            delete (unset.series[0].label as { orientation?: string }).orientation;
+            await expectPixelIdenticalAcrossUpdate(
+                ctx,
+                createChart,
+                unset as any,
+                barOrientationOptions('parallel', 'vertical') as any
+            );
+        });
+    });
 });

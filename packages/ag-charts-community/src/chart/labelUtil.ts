@@ -20,6 +20,7 @@ import type {
 import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
 import type { Text } from '../scene/shape/text';
+import { isRotatable } from '../scene/transformable';
 import type { Label } from './label';
 import { getItemId } from './series/pickManager';
 import type { DatumIndex, SeriesNodeDatum } from './series/seriesTypes';
@@ -54,6 +55,8 @@ type LabelDatum = Point & {
     text: NormalisedTextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
+    /** Rotation in radians applied to the label node; `undefined`/`0` renders upright. */
+    rotation?: number;
 };
 
 export function getLabelStyles<TParams>(
@@ -146,6 +149,18 @@ export function updateLabelNode<TParams>(
         textNode.setAlign(labelDatum);
         textNode.setFont(style);
         textNode.setBoxing(style);
+        if (isRotatable(textNode)) {
+            const rotation = labelDatum.rotation ?? 0;
+            if (rotation !== 0) {
+                // Pivot about the glyph box centre so the label rotates in place; the (x,y) anchor
+                // sits on an edge for non-center alignments, so pivoting there swings it off position.
+                // Use the untransformed text box (getBBox would already have rotation applied).
+                const bbox = textNode.getTextMeasureBBox();
+                textNode.rotationCenterX = bbox.x + bbox.width / 2;
+                textNode.rotationCenterY = bbox.y + bbox.height / 2;
+            }
+            textNode.rotation = rotation;
+        }
     } else {
         textNode.visible = false;
     }

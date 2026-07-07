@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import type { AgChartLabelOrientation } from 'ag-charts-types';
+
 import type { Point, SizedPoint } from '../../types/scene';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
 import {
@@ -476,6 +478,86 @@ describe('placeLabels', () => {
         const without = placeLabels(structuredClone(data), bounds, 5);
         const with_ = placeLabels(structuredClone(data), bounds, 5, seriesItemObstacles);
         expect(normalise(with_)).toEqual(normalise(without));
+    });
+});
+
+describe('placeLabels orientation candidates', () => {
+    const bounds: BoxBounds = { x: 0, y: 0, width: 200, height: 200 };
+
+    const wideLabel = (
+        orientation?: AgChartLabelOrientation | AgChartLabelOrientation[],
+        avoid = true
+    ): PointLabelDatum => ({
+        point: { x: 50, y: 50, size: 0 },
+        label: { text: 'W', width: 100, height: 10 },
+        anchor: undefined,
+        placement: undefined,
+        orientation,
+        gap: 0,
+        avoid,
+    });
+
+    it('leaves rotation unset when no orientation is supplied', () => {
+        const placed = placeLabels(new Map([['s', [wideLabel()]]]), bounds, 5).get('s')![0];
+        expect(placed.rotation).toBeUndefined();
+    });
+
+    it('rotates a perpendicular label to fit when the parallel box overflows the bounds', () => {
+        // The 100-wide label overflows the 60-wide bounds parallel; perpendicular it becomes a
+        // 10x100 vertical box that clears them. With no orientation it is dropped.
+        const tall: BoxBounds = { x: 0, y: 0, width: 60, height: 200 };
+        const overflowing = { ...wideLabel(), point: { x: 50, y: 100, size: 0 } };
+
+        const dropped = placeLabels(new Map([['s', [overflowing]]]), tall, 5).get('s')!;
+        expect(dropped.length).toBe(0);
+
+        const rotated = placeLabels(new Map([['s', [{ ...overflowing, orientation: 'perpendicular' }]]]), tall, 5).get(
+            's'
+        )![0];
+        expect(rotated).toBeDefined();
+        expect(rotated.rotation).toBe(90);
+        expect(rotated.width).toBe(100);
+        expect(rotated.height).toBe(10);
+    });
+
+    it('tries orientations in order, choosing the first that fits', () => {
+        const small: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 0 },
+            label: { text: 'S', width: 20, height: 10 },
+            anchor: undefined,
+            placement: undefined,
+            orientation: ['perpendicular', 'parallel'],
+            gap: 0,
+            avoid: true,
+        };
+        const placed = placeLabels(new Map([['s', [small]]]), bounds, 5).get('s')![0];
+        expect(placed.rotation).toBe(90);
+    });
+
+    it('blocks a later label by the rotated footprint, not the measured box', () => {
+        // A perpendicular 100x10 label occupies a tall 10x100 vertical band; a second label
+        // overlapping that band collides, whereas it would clear the parallel horizontal band.
+        const second: PointLabelDatum = {
+            point: { x: 52, y: 20, size: 0 },
+            label: { text: 'B', width: 10, height: 10 },
+            anchor: undefined,
+            placement: undefined,
+            gap: 0,
+            avoid: true,
+        };
+
+        const blocked = placeLabels(new Map([['s', [wideLabel('perpendicular'), second]]]), bounds, 5).get('s')!;
+        expect(blocked.some((l) => l.datum === second)).toBe(false);
+
+        const clear = placeLabels(new Map([['s', [wideLabel('parallel'), second]]]), bounds, 5).get('s')!;
+        expect(clear.some((l) => l.datum === second)).toBe(true);
+    });
+
+    it('adopts the first orientation candidate for an avoid:false label', () => {
+        const placed = placeLabels(new Map([['s', [wideLabel('perpendicular', false)]]]), bounds, 5).get('s')![0];
+        expect(placed.rotation).toBe(90);
+        expect(placed.width).toBe(100);
+        expect(placed.height).toBe(10);
     });
 });
 
