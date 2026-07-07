@@ -1,10 +1,11 @@
 import { Component, NgZone } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 
 import {
     AgChartOptions,
-    AgContextMenuGetItemsCallback,
     AgContextMenuItem,
+    AgContextMenuOptions,
     BarSeriesModule,
     CategoryAxisModule,
     ModuleRegistry,
@@ -138,12 +139,19 @@ describe('context menu zone patching', () => {
     let host: ContextMenuHostComponent;
     let fixture: ComponentFixture<ContextMenuHostComponent>;
     let ngZone: NgZone;
+    // Captures the options the wrapper hands to the chart at creation: patchChartOptions does not mutate
+    // host.options, so the wrapped callbacks live only on the copy the chart receives, not on host.options.
+    let createChartSpy: jasmine.Spy;
 
-    const contextMenu = () => (host.options as any).contextMenu;
     const objectItems = (items: AgContextMenuItem[]) =>
         items.filter((item): item is Exclude<AgContextMenuItem, string> => typeof item !== 'string');
+    const createdContextMenu = () =>
+        (createChartSpy.calls.argsFor(0)[0] as AgChartOptions).contextMenu as AgContextMenuOptions;
+    const chartInstance = () => fixture.debugElement.query(By.directive(AgCharts)).componentInstance.chart;
 
     beforeEach(async () => {
+        createChartSpy = spyOn(AgCharts.prototype as any, 'createChart').and.callThrough();
+
         await TestBed.configureTestingModule({
             imports: [ContextMenuHostComponent, AgCharts],
         }).compileComponents();
@@ -159,7 +167,7 @@ describe('context menu zone patching', () => {
     });
 
     it('runs static item actions inside the Angular zone when dispatched outside it', () => {
-        const [staticItem, subItem] = objectItems(contextMenu().items);
+        const [staticItem, subItem] = objectItems(createdContextMenu().items!);
 
         ngZone.runOutsideAngular(() => {
             staticItem.action!({} as any);
@@ -174,7 +182,7 @@ describe('context menu zone patching', () => {
 
     it('runs getItems-returned actions inside the Angular zone and passes literals through', () => {
         ngZone.runOutsideAngular(() => {
-            const items = contextMenu().getItems({ defaultItems: [] })!;
+            const items = createdContextMenu().getItems!({ defaultItems: [] } as any)!;
             expect(items[0]).toBe('defaults');
             objectItems(items)[0].action!({} as any);
         });
@@ -183,15 +191,24 @@ describe('context menu zone patching', () => {
         expect(host.dynamicAction.inZone).toEqual([true]);
     });
 
-    it('does not re-wrap callbacks when options are patched again', () => {
-        const patchedGetItems = contextMenu().getItems as AgContextMenuGetItemsCallback;
+    it('never mutates the consumer options and re-wraps freshly on each patch', () => {
+        const original = (host.options as any).contextMenu as AgContextMenuOptions;
+        const originalGetItems = original.getItems;
+        const [originalStatic] = objectItems(original.items!);
+        const originalStaticAction = originalStatic.action;
 
+        // Second patch flows through ngOnChanges -> chart.update, so observe the options it receives.
+        const updateSpy = spyOn(chartInstance(), 'update').and.callThrough();
         host.options = { ...host.options };
         fixture.detectChanges();
 
-        expect(contextMenu().getItems).toBe(patchedGetItems);
+        // The consumer's own options object was never written back to.
+        expect((host.options as any).contextMenu.getItems).toBe(originalGetItems);
+        expect(objectItems((host.options as any).contextMenu.items)[0].action).toBe(originalStaticAction);
 
-        const [staticItem] = objectItems(contextMenu().items);
+        // The freshly-patched options the chart received still re-enter the zone.
+        const updated = updateSpy.calls.argsFor(0)[0] as AgChartOptions;
+        const [staticItem] = objectItems((updated.contextMenu as AgContextMenuOptions).items!);
         ngZone.runOutsideAngular(() => staticItem.action!({} as any));
 
         expect(host.staticAction.calls).toBe(1);

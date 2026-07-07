@@ -10,9 +10,6 @@ import {
     AgSeriesListeners,
 } from 'ag-charts-community';
 
-// Marks functions already wrapped by patchChartOptions, which re-runs on every ngOnChanges.
-const ZONE_WRAPPED = Symbol('agChartsAngularZoneWrapped');
-
 @Component({
     template: '',
 })
@@ -56,61 +53,63 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
         }
     }
 
+    // Returns a patched copy rather than mutating the consumer's options: event-style callbacks
+    // (listeners, context-menu actions) are wrapped to re-enter the Angular zone the chart runs outside.
     private patchChartOptions(propsOptions: any): any {
-        const patchListeners = (
-            listenerConfig: undefined | AgChartLegendListeners | AgSeriesListeners<any> | AgBaseChartListeners<any>
-        ) => {
-            const config = listenerConfig ?? ({} as any);
-            for (const listenerName of Object.keys(config)) {
-                const listener = config[listenerName];
-                if (typeof listener !== 'function') continue;
+        const patched: any = { ...propsOptions };
 
-                config[listenerName] = (...args: any) => {
-                    this.runInsideAngular(() => listener(...args));
-                };
-            }
-        };
-
-        patchListeners(propsOptions?.legend?.listeners);
-        patchListeners(propsOptions?.listeners);
-        if (propsOptions.series) {
-            for (const series of propsOptions.series) {
-                patchListeners(series.listeners);
-            }
+        if (propsOptions.listeners) {
+            patched.listeners = this.patchListeners(propsOptions.listeners);
         }
-        this.patchContextMenu(propsOptions?.contextMenu);
-
-        if (propsOptions.container) {
-            return propsOptions;
+        if (propsOptions.legend?.listeners) {
+            patched.legend = { ...propsOptions.legend, listeners: this.patchListeners(propsOptions.legend.listeners) };
         }
+        if (Array.isArray(propsOptions.series)) {
+            patched.series = propsOptions.series.map((series: any) =>
+                series?.listeners ? { ...series, listeners: this.patchListeners(series.listeners) } : series
+            );
+        }
+        if (propsOptions.contextMenu) {
+            patched.contextMenu = this.patchContextMenu(propsOptions.contextMenu);
+        }
+        patched.container ??= this._nativeElement;
 
-        return { ...propsOptions, container: this._nativeElement };
+        return patched;
+    }
+
+    private patchListeners(
+        listenerConfig: AgChartLegendListeners | AgSeriesListeners<any> | AgBaseChartListeners<any>
+    ): any {
+        const config: any = listenerConfig;
+        const patched: any = {};
+        for (const listenerName of Object.keys(config)) {
+            const listener = config[listenerName];
+            patched[listenerName] =
+                typeof listener === 'function'
+                    ? (...args: any) => this.runInsideAngular(() => listener(...args))
+                    : listener;
+        }
+        return patched;
     }
 
     // Context-menu actions are dispatched from DOM listeners the chart registers outside the Angular
     // zone; without re-entering the zone, options reassignments in actions never trigger change detection.
-    private patchContextMenu(contextMenu: AgContextMenuOptions | undefined): void {
-        if (!contextMenu) {
-            return;
+    private patchContextMenu(contextMenu: AgContextMenuOptions): AgContextMenuOptions {
+        const patched: AgContextMenuOptions = { ...contextMenu };
+        if (typeof patched.getItems === 'function') {
+            patched.getItems = this.wrapGetItems(patched.getItems);
         }
-        if (typeof contextMenu.getItems === 'function') {
-            contextMenu.getItems = this.wrapGetItems(contextMenu.getItems);
+        if (Array.isArray(patched.items)) {
+            patched.items = this.wrapContextMenuItems(patched.items);
         }
-        if (Array.isArray(contextMenu.items)) {
-            contextMenu.items = this.wrapContextMenuItems(contextMenu.items);
-        }
+        return patched;
     }
 
     private wrapGetItems(getItems: AgContextMenuGetItemsCallback): AgContextMenuGetItemsCallback {
-        if ((getItems as any)[ZONE_WRAPPED]) {
-            return getItems;
-        }
-        const wrapped: AgContextMenuGetItemsCallback = (params) => {
+        return (params) => {
             const items = getItems(params);
-            return items && this.wrapContextMenuItems(items);
+            return items ? this.wrapContextMenuItems(items) : undefined;
         };
-        (wrapped as any)[ZONE_WRAPPED] = true;
-        return wrapped;
     }
 
     private wrapContextMenuItems(items: AgContextMenuItem[]): AgContextMenuItem[] {
@@ -131,12 +130,7 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
     }
 
     private wrapZoneAction<T extends (...args: any[]) => void>(action: T): T {
-        if ((action as any)[ZONE_WRAPPED]) {
-            return action;
-        }
-        const wrapped = ((...args: any[]) => this.runInsideAngular(() => action(...args))) as T;
-        (wrapped as any)[ZONE_WRAPPED] = true;
-        return wrapped;
+        return ((...args: any[]) => this.runInsideAngular(() => action(...args))) as T;
     }
 
     private runOutsideAngular<T>(callback: () => T): T {
