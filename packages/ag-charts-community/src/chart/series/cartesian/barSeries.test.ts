@@ -1298,6 +1298,83 @@ describe('BarSeries', () => {
                 },
             });
         });
+
+        // The -test page only calls skipAnimations() for a legend move in integrated mode; in
+        // standalone it relies on the product skipping the batch whenever the layout rect changes.
+        it('standalone: legend move snaps without tweening', async () => {
+            const options = groupedOptions();
+            options.legend = { position: 'bottom' };
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            await chart.update({ ...options, legend: { position: 'right' } });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            expectNoAnimation(trajectory);
+        });
+
+        // "Change Theme" — a restyle, not a data change: like the legend move it must snap.
+        it('standalone: theme change snaps without tweening', async () => {
+            const options = groupedOptions();
+            options.theme = 'ag-default';
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            await chart.update({ ...options, theme: 'ag-sheets' });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            expectNoAnimation(trajectory);
+        });
+
+        // "Remove Data" on the grouped-category axis snaps (no tween runs), and after the snap the
+        // axis labels and bars must sit in the reflowed category bands (the grouped-category -test
+        // example's stated concern is labels staying aligned with their bars).
+        it('integrated mode: grouped-category remove data snaps with labels aligned to their bands', async () => {
+            const options: AgChartOptions = { ...examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            const data = examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE.data!;
+            const before = sampleScene();
+            await chart.updateDelta({ data: data.slice(0, 7) });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            expectNoAnimation(trajectory);
+
+            const after = trajectory.at(-1)!;
+            // The removed group's separator line/grid nodes linger with zero width; the visible
+            // contract is that its LABELS leave and the bar count drops.
+            const labelKeys = (sample: SceneGeometrySample) =>
+                [...sample.keys()].filter((key) => key.startsWith('axis[bottom]/text['));
+            expect(labelKeys(before).some((k) => k.includes('Nebulon'))).toBe(true);
+            expect(labelKeys(after).some((k) => k.includes('Nebulon'))).toBe(false);
+            expect(rectCount(after)).toBeLessThan(rectCount(before));
+
+            // The grid band rects give the reflowed category bands; every leaf year label must sit
+            // on a band centre and every bar must sit inside a band.
+            const bands = [...after]
+                .filter(([key]) => /^axis\[bottom\]\/grid\/rect\[\d+___.+\]$/.test(key))
+                .map(([, state]) => state as { x: number; width: number });
+            expect(bands.length).toBeGreaterThan(0);
+            const labelXs = [...after]
+                .filter(([key]) => /^axis\[bottom\]\/text\[\d{4}(_\d+)?\]$/.test(key))
+                .map(([, state]) => (state as { x: number }).x);
+            expect(labelXs.length).toBeGreaterThan(0);
+            for (const labelX of labelXs) {
+                const distances = bands.map((b) => Math.abs(b.x + b.width / 2 - labelX));
+                expect(Math.min(...distances), `label at x=${labelX}`).toBeLessThanOrEqual(1);
+            }
+            for (const [key, state] of after) {
+                if (!/^series\[\d+\]\/rect\[/.test(key)) continue;
+                const { x, width } = state as { x: number; width: number };
+                const cx = x + width / 2;
+                expect(
+                    bands.some((b) => cx >= b.x - 0.5 && cx <= b.x + b.width + 0.5),
+                    `${key} centre ${cx} outside all bands`
+                ).toBe(true);
+            }
+        });
     });
 
     describe('legend toggle animation', () => {
