@@ -134,6 +134,30 @@ describe('formatTypeToCode', () => {
         expect(code).toContain('interface AgAreaSeriesOptions');
         expect(code).toContain('interface AgBarSeriesOptions');
     });
+
+    // Mirrors `AgChartContextMenuEvent = AgChartEvent<'contextMenuEvent', TContext>`: the resolved
+    // node keeps `type: T` / `context?: TContext` members but carries a genericsMap that binds them.
+    // The code block must substitute the generics just like the member table does.
+    it('substitutes generic type parameters using the node genericsMap', () => {
+        const eventNode = {
+            kind: 'interface' as const,
+            name: 'AgChartContextMenuEvent',
+            typeParams: [{ kind: 'typeParam', name: 'TContext', default: 'ContextDefault' }],
+            members: [
+                { kind: 'member', name: 'type', type: 'T', optional: false },
+                { kind: 'member', name: 'context', type: 'TContext', optional: true },
+            ],
+            genericsMap: { TContext: 'ContextDefault', T: "'contextMenuEvent'" },
+        };
+        const eventMember = { kind: 'member', name: 'action', type: 'AgChartContextMenuEvent', optional: true } as any;
+
+        const code = formatTypeToCode(eventNode as any, eventMember, new Map() as any, new Set());
+
+        expect(code).toContain("type: 'contextMenuEvent';");
+        expect(code).toContain('context?: ContextDefault;');
+        expect(code).not.toContain('type: T;');
+        expect(code).not.toContain('context?: TContext;');
+    });
 });
 
 describe('getAliasedUnionVariants', () => {

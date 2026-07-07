@@ -108,6 +108,16 @@ export function getMemberType(member: MemberNode): string {
     if ('type' in type && typeof (type as any).type === 'string') {
         return (type as any).type;
     }
+    // A single-or-array union (e.g. `Foo | Foo[]`) resolves to `Foo` so it expands like the bare alias.
+    if (isUnionNode(type)) {
+        const names = new Set(
+            type.type.map((subType) => getReferencedTypeName(isArrayNode(subType) ? subType.type : subType))
+        );
+        const [only] = names;
+        if (names.size === 1 && only) {
+            return only;
+        }
+    }
     return type.kind;
 }
 
@@ -421,12 +431,14 @@ function formatInterfaceCode(
     reference: ApiReferenceType,
     seen: Set<string>
 ) {
+    const genericsMap = new Map<string, unknown>(entries(apiNode.genericsMap ?? {}));
     const additionalTypes = new Set<string>();
     const typesList = apiNode.members.map((nodeMember) => {
-        const memberString = `${nodeMember.name}${nodeMember.optional ? '?' : ''}: ${normalizeType(nodeMember.type)};`;
-        collectAdditionalTypes(nodeMember, additionalTypes, seen);
-        if (nodeMember.docs?.length && nodeMember.docs[0] !== '') {
-            return nodeMember.docs
+        const resolved = genericsMap.size ? applyGenericsToMember(nodeMember, genericsMap) : nodeMember;
+        const memberString = `${resolved.name}${resolved.optional ? '?' : ''}: ${normalizeType(resolved.type)};`;
+        collectAdditionalTypes(resolved, additionalTypes, seen);
+        if (resolved.docs?.length && resolved.docs[0] !== '') {
+            return resolved.docs
                 .map((docsLine: string) => `// ${docsLine}`)
                 .concat(memberString)
                 .join('\n    ');
