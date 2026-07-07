@@ -258,5 +258,79 @@ describe('label collision avoidance', () => {
                 });
             });
         }
+
+        // Orientation array fall-through for waterfall (inside-center, so the fit region is the bar rect):
+        // tall, thin bars whose long upright (parallel) label overflows the bar width fall through to
+        // perpendicular for every bar, matching a fixed perpendicular orientation. Alternating deltas keep
+        // the bars tall so the perpendicular candidate fits the bar height.
+        it('waterfall falls through to perpendicular when the parallel label overflows a thin bar', async () => {
+            const thinWaterfall = (orientation: string | string[]) => {
+                const label = { enabled: true, placement: 'inside-center', orientation, formatter: () => 'WWWWWWWWWW' };
+                return {
+                    data: Array.from({ length: 12 }, (_, i) => ({ year: `Y${i}`, spending: i % 2 === 0 ? 100 : -100 })),
+                    series: [
+                        {
+                            type: 'waterfall',
+                            xKey: 'year',
+                            yKey: 'spending',
+                            item: { positive: { label }, negative: { label }, total: { label } },
+                        },
+                    ],
+                };
+            };
+            await expectPixelIdenticalAcrossUpdate(
+                ctx,
+                createEnterpriseChart,
+                thinWaterfall(['parallel', 'perpendicular']) as any,
+                thinWaterfall('perpendicular') as any
+            );
+        });
+
+        // Range-bar carries two labels (low + high) per node; an inside-placement orientation array is
+        // resolved against the bar rect. Integration coverage of the dual-label seam.
+        it('range-bar resolves an inside-placement orientation array against the bar rect', async () => {
+            await renderAndSnapshot({
+                data: Array.from({ length: 10 }, (_, i) => ({ x: `C${i}`, low: 0, high: 100 })),
+                axes: rangeAxes,
+                series: [
+                    {
+                        type: 'range-bar',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        label: {
+                            enabled: true,
+                            placement: 'inside',
+                            orientation: ['parallel', 'perpendicular'],
+                            formatter: () => 'WWWWWWWWWW',
+                        },
+                    },
+                ],
+            });
+        });
+
+        // Range-area labels are point-anchored (no bar rect), so fall-through is collision-driven. With
+        // labels spread apart (no collision) the array keeps its first candidate — identical to the scalar.
+        it('range-area keeps the first orientation when no label collides', async () => {
+            const rangeAreaOptions = (orientation: string | string[]) => ({
+                data: rangeData,
+                axes: rangeAxes,
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        label: { enabled: true, orientation },
+                    },
+                ],
+            });
+            await expectPixelIdenticalAcrossUpdate(
+                ctx,
+                createEnterpriseChart,
+                rangeAreaOptions(['parallel', 'perpendicular']) as any,
+                rangeAreaOptions('parallel') as any
+            );
+        });
     });
 });

@@ -388,5 +388,44 @@ describe('label collision avoidance', () => {
                 barOrientationOptions('parallel', 'vertical') as any
             );
         });
+
+        // Orientation array fall-through: many thin columns whose long upright (parallel) label
+        // overflows the bar width, forcing every label through to perpendicular.
+        const thinColumns = (orientation: string | string[]) => ({
+            data: Array.from({ length: 12 }, (_, i) => ({ cat: `Category ${i}`, value: 50 })),
+            legend: { enabled: false },
+            axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'cat',
+                    yKey: 'value',
+                    direction: 'vertical',
+                    label: { enabled: true, orientation, formatter: () => 'WWWWWWWWWW' },
+                },
+            ],
+        });
+
+        // Every parallel label overflows its thin bar, so the array resolves to perpendicular for all
+        // of them — matching a fixed `perpendicular` orientation exactly.
+        it('falls through to perpendicular when the parallel label overflows a thin bar', async () => {
+            await expectPixelIdenticalAcrossUpdate(
+                ctx,
+                createChart,
+                thinColumns(['parallel', 'perpendicular']) as any,
+                thinColumns('perpendicular') as any
+            );
+        });
+
+        // A single-element array has nothing to resolve, so it must render identically to the scalar
+        // (the byte-identical fast path that keeps existing charts out of the placement engine).
+        it('renders a single-element orientation array identically to the scalar', async () => {
+            await expectPixelIdenticalAcrossUpdate(
+                ctx,
+                createChart,
+                barOrientationOptions(['perpendicular'] as any, 'vertical') as any,
+                barOrientationOptions('perpendicular', 'vertical') as any
+            );
+        });
     });
 });

@@ -1181,7 +1181,7 @@ export abstract class Series<
 
     isPointInArea?(x: number, y: number): boolean;
 
-    public getLabelData(): (TLabel & PointLabelDatum)[] {
+    public getLabelData(): PointLabelDatum[] {
         return [];
     }
     public updatePlacedLabelData(_labels: PlacedLabel<TLabel>[]) {

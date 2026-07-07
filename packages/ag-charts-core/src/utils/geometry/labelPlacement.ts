@@ -79,6 +79,12 @@ export interface PointLabelDatum {
     readonly minSpacing?: number;
     /** Resolved per-category obstacle configuration. Only consulted when {@link avoid} is true. */
     readonly collideWith?: CollideWith;
+    /**
+     * Containment rect for this label's fit test, overriding the shared `bounds`. Bar-family labels
+     * constrain to their own bar rect so a candidate that overflows the bar is rejected. Falls back
+     * to `bounds` when unset, so existing point-series consumers are unaffected.
+     */
+    readonly region?: BoxBounds;
 }
 
 export type ObstacleCategory = 'marker' | 'label' | 'seriesItem';
@@ -203,6 +209,100 @@ const orientationAngles: Record<AgChartLabelOrientation, number> = {
  */
 export function barLabelRotation(orientation: AgChartLabelOrientation | undefined): number {
     return orientation == null ? 0 : toRadians(orientationAngles[orientation]);
+}
+
+export interface OrientationAnchor {
+    readonly x: number;
+    readonly y: number;
+    readonly textAlign: CanvasTextAlign;
+    readonly textBaseline: CanvasTextBaseline;
+}
+
+/**
+ * A bar-family label routed through {@link placeLabels} to resolve an ordered `orientation` array.
+ * `target` back-references the baked label datum the chosen rotation is written onto.
+ */
+export interface BarPlacedLabelDatum extends PointLabelDatum {
+    readonly target: { rotation: number };
+}
+
+// Bar labels sit inside their own bar rect, so avoid other labels only — not markers, and not the
+// bar rects themselves (a bar label would otherwise always collide with its own `seriesItem` box).
+const barLabelCollideWith: CollideWith = {
+    label: { enabled: true },
+    marker: { enabled: false },
+    seriesItem: { enabled: false },
+};
+
+/**
+ * True when an `orientation` array offers more than one candidate to fall through. A single value
+ * (or unset) has nothing to resolve, so the series keeps its unconditional first-orientation bake
+ * and never enters the placement engine — leaving existing charts byte-identical.
+ */
+export function barLabelResolvesOrientation(
+    orientation: AgChartLabelOrientation | AgChartLabelOrientation[] | undefined
+): boolean {
+    return Array.isArray(orientation) && orientation.length > 1;
+}
+
+/**
+ * Centre of the unrotated glyph box for a label drawn at `anchor` with the given measured size. The
+ * bar-label renderer pivots rotation about this centre, so it is invariant to orientation and seeds
+ * the placement engine's centred candidate box at the position the label actually renders.
+ */
+export function labelGlyphCentre(anchor: OrientationAnchor, width: number, height: number): Point {
+    let { x, y } = anchor;
+    if (anchor.textAlign === 'left' || anchor.textAlign === 'start') {
+        x += width / 2;
+    } else if (anchor.textAlign === 'right' || anchor.textAlign === 'end') {
+        x -= width / 2;
+    }
+    if (anchor.textBaseline === 'top') {
+        y += height / 2;
+    } else if (anchor.textBaseline === 'bottom') {
+        y -= height / 2;
+    }
+    return { x, y };
+}
+
+/**
+ * Builds the {@link PointLabelDatum} that routes a bar label through the placement engine: centred on
+ * its glyph box, constrained to `region` (its bar rect, or `undefined` to fall back to the plot
+ * bounds for outside placements), avoiding other labels, and offering the `orientations` candidates.
+ */
+export function buildBarLabelDatum(
+    anchor: OrientationAnchor,
+    text: NormalisedTextOrSegments,
+    width: number,
+    height: number,
+    orientations: AgChartLabelOrientation[],
+    region: BoxBounds | undefined,
+    target: { rotation: number }
+): BarPlacedLabelDatum {
+    const { x, y } = labelGlyphCentre(anchor, width, height);
+    return {
+        point: { x, y, size: 0 },
+        label: { text, width, height },
+        anchor: undefined,
+        placement: undefined,
+        orientation: orientations,
+        gap: 0,
+        avoid: true,
+        collideWith: barLabelCollideWith,
+        region,
+        target,
+    };
+}
+
+/**
+ * Writes each placed label's chosen orientation back as a render rotation (radians) onto its target.
+ * Labels the engine dropped are absent here and keep the first-orientation rotation baked at
+ * node-data time. Every datum here was produced by {@link buildBarLabelDatum}, so it carries `target`.
+ */
+export function applyBarLabelOrientation(placed: readonly PlacedLabel<unknown>[]): void {
+    for (const { datum, rotation } of placed) {
+        (datum as BarPlacedLabelDatum).target.rotation = toRadians(rotation ?? 0);
+    }
 }
 
 const labelPlacements: Record<LabelPlacement, { x: -1 | 0 | 1; y: -1 | 0 | 1 }> = {
@@ -523,7 +623,10 @@ function tryPlaceLabel(d: PointLabelDatum, index: number, padding: number, bound
             const rotation = positionCandidate(d, placement, orientation, width, height, gap, spacing);
             inflateBoxInto(queryBox, candidateBox, inflate);
             const { x, y, width: cw, height: ch } = candidateBox;
-            if (boxContains(bounds, x, y, cw, ch) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
+            if (
+                boxContains(d.region ?? bounds, x, y, cw, ch) &&
+                !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)
+            ) {
                 return { index, text, x, y, width, height, datum: d, placement, rotation: rotation || undefined };
             }
         }

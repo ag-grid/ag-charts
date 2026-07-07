@@ -8,6 +8,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    type BoxBounds,
     type CallbackParamRules,
     ChartAxisDirection,
     type DomainWithMetadata,
@@ -17,12 +18,20 @@ import {
     type Normalised,
     type NormalisedColorType,
     type NormalisedTextOrSegments,
+    type PlacedLabel,
     type Point,
+    type PointLabelDatum,
     type RequireOptional,
+    applyBarLabelOrientation,
+    barLabelResolvesOrientation,
     barLabelRotation,
+    buildBarLabelDatum,
+    cachedTextMeasurer,
     easeOut,
+    isArray,
     isContinuous,
     maxValue,
+    measureTextSegments,
     mergeDefaults,
     minValue,
     subtractValues,
@@ -71,7 +80,10 @@ type WaterfallNodeLabelDatum = Readonly<Point> & {
     readonly text: NormalisedTextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
-    readonly rotation: number;
+    /** Written upright at node-data time; overwritten by the placement engine's chosen orientation. */
+    rotation: number;
+    /** Bar rect the label must fit within, when its `orientation` array is resolved by the engine. */
+    readonly region?: BoxBounds;
 };
 
 type WaterfallNodePointDatum = _ModuleSupport.DataModelSeriesNodeDatum['point'] & {
@@ -672,11 +684,12 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             );
 
             const spacing: number = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
+            // Array placement is accepted, but only its first candidate is honoured here.
+            const placement = toArray(label.placement)[0];
             const labelPlacement = adjustLabelPlacement({
                 isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
                 isVertical: !barAlongX,
-                // Array placement is accepted, but only its first candidate is honoured here.
-                placement: toArray(label.placement)[0],
+                placement,
                 spacing,
                 rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
             });
@@ -686,7 +699,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             mutableNode.label.y = labelPlacement.y;
             mutableNode.label.textAlign = labelPlacement.textAlign;
             mutableNode.label.textBaseline = labelPlacement.textBaseline;
+            // First orientation baked upright; a multi-orientation array is then resolved by the
+            // placement engine against the bar rect (inside placements only — see barSeries).
             mutableNode.label.rotation = barLabelRotation(toArray(label.orientation)[0]);
+            mutableNode.label.region =
+                barLabelResolvesOrientation(label.orientation) && (placement == null || placement.startsWith('inside'))
+                    ? { x: rectX, y: rectY, width: rectWidth, height: rectHeight }
+                    : undefined;
         } else {
             // Clear label when disabled
             mutableNode.label.text = '';
@@ -1005,11 +1024,42 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         });
     }
 
+    override getLabelData(): PointLabelDatum[] {
+        if (!this.usesPlacedLabels) return [];
+        const data: PointLabelDatum[] = [];
+        for (const node of this.contextNodeData?.labelData ?? []) {
+            const barLabel = node.label;
+            if (barLabel.text === '') continue;
+            const label = this.getItemConfig(node.itemType).label;
+            const orientations = toArray(label.orientation);
+            if (orientations.length <= 1) continue;
+            const { width, height } = isArray(barLabel.text)
+                ? measureTextSegments(barLabel.text, label)
+                : cachedTextMeasurer(label).measureLines(String(barLabel.text));
+            data.push(
+                buildBarLabelDatum(barLabel, barLabel.text, width, height, orientations, barLabel.region, barLabel)
+            );
+        }
+        return data;
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<WaterfallNodeDatum>[]) {
+        applyBarLabelOrientation(placed);
+        this.updateLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
+    }
+
     protected override updateLabelSelection(opts: {
         labelData: WaterfallNodeDatum[];
         labelSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Text<WaterfallNodeDatum>>;
     }) {
         const { labelData, labelSelection } = opts;
+
+        // Only a multi-orientation array needs the placement engine; single/unset keeps the baked
+        // rotation, so the series stays out of the collision pass and renders byte-identically.
+        const { positive, negative, total } = this.properties.item;
+        this.usesPlacedLabels = [positive, negative, total].some((item) =>
+            barLabelResolvesOrientation(item.label.orientation)
+        );
 
         if (labelData.length === 0) {
             return labelSelection.update([]);

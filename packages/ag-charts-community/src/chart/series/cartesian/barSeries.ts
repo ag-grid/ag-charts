@@ -1,11 +1,15 @@
 import type {
+    BarPlacedLabelDatum,
+    BoxBounds,
     CallbackParamRules,
     DomainWithMetadata,
     DynamicContext,
     Mutable,
     NormalisedBarSeriesStyle,
     NormalisedTextOrSegments,
+    PlacedLabel,
     Point,
+    PointLabelDatum,
     RequireOptional,
     Scale,
 } from 'ag-charts-core';
@@ -18,11 +22,17 @@ import {
     AGGREGATION_SPAN,
     ChartAxisDirection,
     DebugMetrics,
+    applyBarLabelOrientation,
     areScalingEqual,
+    barLabelResolvesOrientation,
     barLabelRotation,
+    buildBarLabelDatum,
+    cachedTextMeasurer,
+    isArray,
     isContinuous,
     isFiniteNumber,
     maxValue,
+    measureTextSegments,
     mergeDefaults,
     minValue,
     toArray,
@@ -110,7 +120,10 @@ interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: NormalisedTextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
-    readonly rotation: number;
+    /** Written upright at node-data time; overwritten by the placement engine's chosen orientation. */
+    rotation: number;
+    /** Bar rect the label must fit within, when its `orientation` array is resolved by the engine. */
+    readonly region?: BoxBounds;
 }
 
 /**
@@ -929,15 +942,24 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         if (nodeLabelText == null) {
             mutableNode.label = undefined;
         } else {
+            // Array placement is accepted, but only its first candidate is honoured here.
+            const placement = toArray(ctx.label.placement)[0];
             const labelPlacement = adjustLabelPlacement({
                 isUpward,
                 isVertical: !ctx.barAlongX,
-                // Array placement is accepted, but only its first candidate is honoured here.
-                placement: toArray(ctx.label.placement)[0],
+                placement,
                 spacing: ctx.labelSpacing,
                 rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
             });
+            // First orientation is baked upright here; a multi-orientation array is then resolved by the
+            // placement engine, fit-testing each candidate against the bar rect (inside placements only —
+            // an outside label sits beyond the bar, so it falls back to the plot bounds via no region).
             const rotation = barLabelRotation(toArray(ctx.label.orientation)[0]);
+            const region =
+                barLabelResolvesOrientation(ctx.label.orientation) &&
+                (placement == null || placement.startsWith('inside'))
+                    ? { x: rectX, y: rectY, width: rectWidth, height: rectHeight }
+                    : undefined;
 
             const existingLabel = mutableNode.label;
             if (existingLabel) {
@@ -948,12 +970,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 existingLabel.textAlign = labelPlacement.textAlign;
                 existingLabel.textBaseline = labelPlacement.textBaseline;
                 existingLabel.rotation = rotation;
+                existingLabel.region = region;
             } else {
                 // Create new label object (first time label is added)
                 mutableNode.label = {
                     text: nodeLabelText,
                     ...labelPlacement,
                     rotation,
+                    region,
                 };
             }
         }
@@ -1210,6 +1234,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
      * Creates scratch objects and delegates to strategy-specific methods.
      */
     protected override populateNodeData(ctx: BarSeriesNodeDatumContext): void {
+        // Only a multi-orientation array needs the placement engine; single/unset keeps the baked
+        // rotation, so the series stays out of the collision pass and renders byte-identically.
+        this.usesPlacedLabels = barLabelResolvesOrientation(this.properties.label.orientation);
+
         // Helper for x position calculation (uses context)
         const xPosition = (index: number): number => this.computeXPosition(ctx, index);
 
@@ -1617,6 +1645,29 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
     getLabelObstacles() {
         return rectLabelObstacles(this.contextNodeData?.nodeData);
+    }
+
+    override getLabelData(): PointLabelDatum[] {
+        if (!this.usesPlacedLabels || !this.isLabelEnabled()) return [];
+        const { label } = this.properties;
+        const orientations = toArray(label.orientation);
+        const measurer = cachedTextMeasurer(label);
+        const data: BarPlacedLabelDatum[] = [];
+        for (const { label: barLabel } of this.contextNodeData?.labelData ?? []) {
+            if (barLabel == null || barLabel.text === '') continue;
+            const { width, height } = isArray(barLabel.text)
+                ? measureTextSegments(barLabel.text, label)
+                : measurer.measureLines(String(barLabel.text));
+            data.push(
+                buildBarLabelDatum(barLabel, barLabel.text, width, height, orientations, barLabel.region, barLabel)
+            );
+        }
+        return data;
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<BarNodeDatum>[]) {
+        applyBarLabelOrientation(placed);
+        this.updateLabelNodes({ labelSelection: this.labelSelection });
     }
 
     protected override updateLabelSelection(opts: {
