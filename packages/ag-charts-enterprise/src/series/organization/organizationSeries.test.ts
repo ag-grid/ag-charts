@@ -69,6 +69,29 @@ const SIMPLE_ORG_CHART: AgChartOptions = {
     ],
 };
 
+const NUMERIC_ID_ORG_CHART: AgChartOptions = {
+    data: [
+        { id: 1, name: 'Alice Chen', job: 'Chief Executive Officer', location: 'London', parentId: null },
+        { id: 2, name: 'Bob Smith', job: 'Chief Technology Officer', location: 'London', parentId: 1 },
+        { id: 3, name: 'Carol Wu', job: 'Chief Financial Officer', location: 'London', parentId: 1 },
+        { id: 4, name: 'Dave Jones', job: 'Developer', location: 'New York', parentId: 2 },
+        { id: 5, name: 'Eve Park', job: 'Quality Assurance', location: 'London', parentId: 2 },
+        { id: 6, name: 'Frank Cash', job: 'Accountant', location: 'London', parentId: 3 },
+    ],
+    series: [
+        {
+            type: 'organization',
+            idKey: 'id',
+            parentIdKey: 'parentId',
+            node: {
+                title: { key: 'name' },
+                subtitle: { key: 'job' },
+                labels: [{ key: 'location' }],
+            },
+        },
+    ],
+};
+
 const SIMPLE_ORG_CHART_THEMED: AgChartOptions = {
     ...SIMPLE_ORG_CHART,
     theme: {
@@ -826,6 +849,77 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await chart.setState({ version: '13.3.0', collapsed: ['cto'] });
             await compare();
+        });
+    });
+
+    describe('numeric ids', () => {
+        const renderedItemIds = (c: any): number[] => {
+            const ids: number[] = [];
+            (deproxy(c).series[0] as any).datumSelection.each((_node: any, datum: any) => {
+                ids.push(datum.itemId);
+            });
+            return ids.sort((a, b) => a - b);
+        };
+
+        it('should accept a numeric id in initialState.collapsed and collapse that node', async () => {
+            const options: AgChartOptions = {
+                ...NUMERIC_ID_ORG_CHART,
+                initialState: { collapsed: [2] },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Node 2 (Bob) is collapsed, so its children (4, 5) are not rendered. setupMockConsole's
+            // afterEach fails the test on any console warning, covering the string-array validator warning.
+            expect(renderedItemIds(chart)).toEqual([1, 2, 3, 6]);
+        });
+
+        it('should round-trip a numeric collapsed id through setState', async () => {
+            const options: AgChartOptions = { ...NUMERIC_ID_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await chart.setState({ version: '13.3.0', collapsed: [2] });
+            await waitForChartStability(chart);
+            expect(renderedItemIds(chart)).toEqual([1, 2, 3, 6]);
+
+            await chart.setState({ version: '13.3.0', collapsed: [] });
+            await waitForChartStability(chart);
+            expect(renderedItemIds(chart)).toEqual([1, 2, 3, 4, 5, 6]);
+        });
+
+        it('should toggle a numeric-id node via collapseItem then expandItem', async () => {
+            const options: AgChartOptions = { ...NUMERIC_ID_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0] as any;
+            const { collapsedManager } = series.ctx;
+            const point = { x: Number.NaN, y: Number.NaN };
+
+            series.collapseItem(2, point);
+            expect(collapsedManager.isCollapsed(2)).toBe(true);
+
+            // Expand must target node 2 by id, not misread the numeric id as a datumSelection index.
+            series.expandItem(2, point);
+            expect(collapsedManager.isCollapsed(2)).toBe(false);
+        });
+
+        it('should resolve a numeric id to the matching node, not a positional index', async () => {
+            const options: AgChartOptions = { ...NUMERIC_ID_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0] as any;
+            const node = series.findNodeDatum(2);
+            expect(node?.itemId).toBe(2);
+            expect(node?.datum?.name).toBe('Bob Smith');
         });
     });
 

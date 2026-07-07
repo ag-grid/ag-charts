@@ -101,7 +101,7 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
         return totalDescendants;
     }
 
-    findVertexById(id: string): Vertex<OrganizationVertex, OrganizationEdge> | undefined {
+    findVertexById(id: string | number): Vertex<OrganizationVertex, OrganizationEdge> | undefined {
         return this.verticesById[id];
     }
 

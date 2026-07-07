@@ -27,7 +27,7 @@ export interface AgInitialStateOptions {
     /** The initial chart type. */
     chartType?: AgInitialStateChartType;
     /** The initial collapsed datums by id, for Organization Charts. */
-    collapsed?: string[];
+    collapsed?: (string | number)[];
     /** The initial legend series visibility state. */
     legend?: AgInitialStateLegendOptions[];
     /** The initial zoom state. */

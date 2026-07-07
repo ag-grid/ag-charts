@@ -8,6 +8,7 @@ import {
     defined,
     geoJson,
     htmlElement,
+    number,
     object,
     or,
     positiveNumber,
@@ -51,7 +52,7 @@ export const commonChartOptions = {
     initialState: {
         active: initialStatePickedOptionsDef,
         chartType: string,
-        collapsed: arrayOf(string),
+        collapsed: arrayOf(or(string, number)),
         annotations: defined,
         legend: arrayOfDefs<AgInitialStateLegendOptions>(
             {
