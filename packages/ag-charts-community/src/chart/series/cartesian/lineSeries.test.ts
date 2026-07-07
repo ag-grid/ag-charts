@@ -242,17 +242,15 @@ describe('LineSeries', () => {
 
     const ctx = setupMockCanvas();
 
-    // SPIKE: frame-trajectory invariant test for a PATH-based series (CASE 3) — the LIMIT of
-    // the approach. Unlike bar/pie, a line exposes NO readable per-vertex geometry: its shape is re-plotted
-    // into a Path2D each frame, so the only per-frame signal is the path bounding box.
-    // The bbox reflects only the data EXTENT, so this case necessarily uses an extent-changing
-    // (scale-affecting) update; a vertex moving *within* the extent would morph the line invisibly to the
-    // bbox. This maps the boundary: the clean node-property invariants of bar/pie degrade to a coarse
-    // extent-level invariant for path series, which is where image snapshots still earn their keep.
+    // SPIKE: frame-trajectory invariant test for a PATH-based series (CASE 3). The sampler reads the
+    // drawn path geometry back each frame: the bbox extent, `top@<i>` (the path's topmost y at fixed
+    // x-stations across its extent, in the path's local space) and `subpaths` (continuity — a gap in
+    // the stroke shows up as extra subpaths). Stations give path series per-point invariants
+    // comparable to bar/pie node properties.
     describe('animation frame-trajectory (spike)', () => {
         const frames = spyOnAnimationFrames();
 
-        it('CASE 3: line data-update morphs the path bbox monotonically (extent-level invariant)', async () => {
+        it('CASE 3: line data-update morphs the path per-station monotonically', async () => {
             const options: AgChartOptions = prepareTestOptions({
                 data: [
                     { x: 0, y: 90 },
@@ -289,6 +287,12 @@ describe('LineSeries', () => {
                     y: { during: 'update', expect: 'increases' },
                     width: { during: 'update', expect: 'decreases' },
                     height: { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
+                    // Per-station: A's end rides the rescale down while B's end rises toward the new
+                    // floor; the midpoint pivots in place. `subpaths` is unnamed so it must stay 1.
+                    'top@0': { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
+                    'top@1': { during: 'update', expect: ['increases', 'bounded'] },
+                    'top@3': { during: 'update', expect: ['decreases', 'bounded'] },
+                    'top@4': { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
                 },
                 // The marker fade-in starts in the add phase and completes during trailing.
                 'series[0]/marker[*]': { opacity: { during: ['add', 'trailing'], expect: 'increases' } },
