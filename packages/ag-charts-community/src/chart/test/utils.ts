@@ -900,10 +900,8 @@ export function spyOnAnimationFrames() {
     };
 
     beforeEach(() => {
-        // Drop the environment terms (`!rafAvailable` — always true in JSDOM — and `skipAnimations`,
-        // which only the enterprise animation module clears) but PRESERVE batch-level skips: product
-        // snap paths (resize, skipCurrentBatch) must still skip, or trajectories would show tweens
-        // that never happen in a real browser.
+        // Drop the environment terms (`!rafAvailable`, `skipAnimations`) but preserve batch-level
+        // skips: product snap paths (resize, skipCurrentBatch) must still skip.
         const isSkippedMock = vi.spyOn(AnimationManager.prototype, 'isSkipped').mockImplementation(function (
             this: AnimationManager
         ) {
@@ -918,9 +916,8 @@ export function spyOnAnimationFrames() {
             (this as any).requestId = id;
             rafCbs.set(id, cb);
         });
-        // Mirror browser cancelAnimationFrame semantics: a mid-animation chart update cancels the
-        // pending frame, so its mock callback must leave the queue too (the ids here are fake, so the
-        // real agDocument.cancelAnimationFrame inside the original is a harmless no-op).
+        // Mirror browser cancelAnimationFrame semantics: a mid-animation update cancels the pending
+        // frame, so its mock callback must leave the queue too.
         const animationManagerProto = AnimationManager.prototype as unknown as {
             cancelAnimation: (this: AnimationManager) => void;
         };
@@ -1102,9 +1099,8 @@ function buildGeometry(state: SerializedNodeState): SceneNodeGeometry | null {
             const { startAngle, endAngle, innerRadius, outerRadius, opacity } = state.props;
             return { startAngle, endAngle, innerRadius, outerRadius, opacity };
         }
-        // Prefer the DRAWN path over the x/y/width/height fields: specialised rects (e.g. stacked
-        // BarShape) keep nominal extents in the fields and derive the painted segment in updatePath,
-        // so only the path reflects what is actually on screen.
+        // Specialised rects (e.g. stacked BarShape) keep nominal extents in the fields and derive
+        // the painted segment in updatePath — only the drawn path reflects the screen.
         case 'rect': {
             const { x, y, width, height, opacity } = state.props;
             const drawn = flattenPathPolylines(state.svgPath);

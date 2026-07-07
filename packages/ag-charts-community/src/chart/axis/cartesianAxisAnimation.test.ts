@@ -15,10 +15,8 @@ import {
     spyOnAnimationFrames,
 } from '../test/utils';
 
-// SPIKE: axis-focused frame-trajectory animation tests. Series tests exercise axes incidentally via
-// axisReflowSpec; this suite drives the axis behaviours directly — per-tick identity across a domain
-// change (which tick leaves, which enters, which slides where), label-rotation interpolation, and
-// out-of-range tick culling — with a minimal line series as scaffolding.
+// Axis-focused frame-trajectory tests — per-tick identity across domain changes, label rotation
+// and out-of-range culling — with a minimal line series as scaffolding.
 describe('CartesianAxis animation', () => {
     setupMockConsole();
     setupMockCanvas();
@@ -76,15 +74,13 @@ describe('CartesianAxis animation', () => {
         await frames.runToEnd(chart);
         const sampleScene = createSceneGeometrySampler(chart);
 
-        // Grow the domain via the axis option so the series geometry morphs smoothly and the case
-        // stays focused on the axis: surviving ticks slide, the stale set fades out, the new set
-        // fades in.
+        // Grow the domain via the axis option so the case stays axis-focused: surviving ticks
+        // slide, the stale set fades out, the new set fades in.
         await chart.updateDelta({ axes: { x: { max: 200 } } });
         const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
 
-        // Per-tick identity: tick 0 anchors (default constant), tick 100 slides to the domain
-        // midpoint, ticks 20-80 (the stale step-20 set) slide out fading, ticks 50/150/200 (the new
-        // step-50 set) fade in at their final positions during `add`.
+        // Tick 0 anchors, tick 100 slides to the midpoint; the stale step-20 set slides out
+        // fading, the new step-50 set fades in at its final positions.
         expectSceneTrajectory(trajectory, {
             'series[0]/path[stroke]': { width: { during: 'update', expect: ['decreases', 'progresses', 'bounded'] } },
             ...bottomTick('l:100', { slide: slidesLeft }),
@@ -115,9 +111,7 @@ describe('CartesianAxis animation', () => {
         ): ScenePropertyExpectation => ({ during: 'update', expect: expect_ });
 
         // The rotated labels shrink the bottom gutter, so the whole plot reflows a few pixels
-        // downward alongside the rotation tween: the bottom axis groups translate down, the bottom
-        // gridlines' far end (measured upward, negative) follows, and the left axis ticks/labels/grid
-        // slide down with the plot edge.
+        // down alongside the rotation tween.
         expectSceneTrajectory(trajectory, {
             'axis[bottom]/text[l:*]': { rotation: duringUpdate('increases', 'progresses', 'bounded') },
             'axis[bottom]/group[*]': { translationY: duringUpdate('decreases', 'bounded') },
@@ -155,9 +149,8 @@ describe('CartesianAxis animation', () => {
         await frames.runToEnd(chart);
         const sampleScene = createSceneGeometrySampler(chart);
 
-        // Pan the window right: surviving ticks slide left, and any tick crossing the range edge
-        // must flip invisible rather than draw outside the plot. The y-axis is pinned to keep the
-        // case bottom-axis-only (the smaller visible data window would otherwise rescale y too).
+        // Pan right: surviving ticks slide left and a tick crossing the range edge must flip
+        // invisible. The y-axis is pinned to keep the case bottom-axis-only.
         await chart.updateDelta({ axes: { x: { min: 50, max: 150 }, y: { min: 0, max: 100 } } });
         const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
 
@@ -175,9 +168,8 @@ describe('CartesianAxis animation', () => {
 
         // Nothing may be drawn outside the range once the pan settles: tick 0 crosses the range
         // start mid-flight and must be fully faded by the last frame it is still in the scene.
-        // NOTE: the dedicated visibility culling (axisUtil `node.visible = !outOfBounds(node.y)`)
-        // is inert — Line exposes only a `y` SETTER, so `node.y` reads undefined — hence only the
-        // fade is assertable here.
+        // The axisUtil visibility culling is inert (Line has only a `y` setter, so `node.y` reads
+        // undefined) — only the fade is assertable here.
         const lastPresent = [...trajectory].reverse().find((f) => f.has('axis[bottom]/text[l:0]'));
         for (const node of ['text[l:0]', 'line[l:0]', 'grid/line[l:0]']) {
             expect(lastPresent!.get(`axis[bottom]/${node}`)!.opacity).toBe(0);
@@ -200,9 +192,8 @@ describe('CartesianAxis animation', () => {
         const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
 
         // Mirror of the unreversed case: tick 100 starts at the range START and slides right.
-        // NOTE: the series stroke path is empty until the trailing phase on a reversed-axis domain
-        // change (the tween hides the line entirely) — the path node therefore carries no drawn
-        // geometry mid-flight and only its settled frames are checked.
+        // On a reversed-axis domain change the stroke path stays empty until trailing, so only
+        // its settled frames carry drawn geometry.
         const slidesRight = { during: 'update', expect: ['increases', 'bounded'] } as const;
         const rightTick = (id: string): Record<string, SceneNodeExpectation> => ({
             [`axis[bottom]/text[${id}]`]: { x: slidesRight, opacity: fadesOut },
@@ -248,9 +239,8 @@ describe('CartesianAxis animation', () => {
         });
         const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
 
-        // The day→month unit change replaces the whole tick set (epoch-keyed identities): with no
-        // surviving ticks the `update` phase is empty, so the old day ticks fade out in `remove`
-        // and the month ticks fade in during `add`. All movement stays phase-scoped and bounded.
+        // The unit change replaces the whole tick set: day ticks fade out in `remove`, month
+        // ticks fade in during `add`.
         const fadeSwap = { during: ['remove', 'update', 'add'], expect: 'bounded' } as const;
         const holds = { during: ['update', 'add'], expect: 'bounded' } as const;
         const lineReticks = { opacity: fadeSwap, x1: holds, x2: holds } as const;
