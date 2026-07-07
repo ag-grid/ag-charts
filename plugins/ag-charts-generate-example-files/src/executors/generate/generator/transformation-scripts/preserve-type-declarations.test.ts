@@ -82,6 +82,125 @@ const chart = AgCharts.create(options);
         expect(vanillaToTypescript(typedBindings)).toContain('interface MyDatumType');
     });
 
+    test('angular output prefixes inScope function calls inside the options literal with this.', async () => {
+        const src = `
+import { AgChartOptions, AgCharts } from 'ag-charts-community';
+
+const options: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    data: [{ quarter: 'Q1', value: 1 }],
+    series: [
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'value',
+            listeners: { nodeClick: () => refresh() },
+        },
+    ],
+};
+
+const chart = AgCharts.create(options);
+
+/** inScope */
+function refresh(): boolean | undefined {
+    options.data = [{ quarter: 'Q1', value: 2 }];
+    chart.update(options);
+    return true;
+}
+`;
+        const { typedBindings } = parse(src);
+        const output = await vanillaToAngular(typedBindings, [], false);
+
+        // The call inside the options literal is rewritten to target the instance method...
+        expect(output).toContain('nodeClick: () => this.refresh()');
+        // ...which the component still defines, with its declaration left unprefixed and the
+        // return type annotation placed before the arrow.
+        expect(output).toMatch(/^\s*refresh = \(\): boolean \| undefined => \{/m);
+
+        // The react conversion places the return type annotation the same way.
+        const reactOutput = await vanillaToReactFunctionalTs(typedBindings, [], [], false);
+        expect(reactOutput).toMatch(/const refresh = \(\): boolean \| undefined => \{/);
+    });
+
+    test('angular output expands object shorthand references to inScope functions', async () => {
+        const src = `
+import { AgChartOptions, AgCharts } from 'ag-charts-community';
+
+const options: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    data: [{ quarter: 'Q1', value: 1 }],
+    series: [
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'value',
+            listeners: { nodeClick },
+        },
+    ],
+};
+
+const chart = AgCharts.create(options);
+
+/** inScope */
+function nodeClick() {
+    options.data = [{ quarter: 'Q1', value: 2 }];
+    chart.update(options);
+}
+`;
+        const { typedBindings } = parse(src);
+        const output = await vanillaToAngular(typedBindings, [], false);
+
+        // Shorthand cannot take a bare this. prefix; it expands to a full property instead.
+        expect(output).toContain('listeners: { nodeClick: this.nodeClick }');
+    });
+
+    test('angular output does not prefix instance-method names inside string literals', async () => {
+        // A string value in the options literal that happens to contain a method name as a substring
+        // (here `repeat` inside `'no-repeat'`) must be left untouched — only real calls are prefixed.
+        const src = `
+import { AgChartOptions, AgCharts } from 'ag-charts-community';
+
+const options: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    data: [{ quarter: 'Q1', value: 1 }],
+    series: [{ type: 'bar', xKey: 'quarter', yKey: 'value', repeat: 'no-repeat' }],
+};
+
+const chart = AgCharts.create(options);
+
+function repeat() {
+    options.data = [{ quarter: 'Q1', value: 2 }];
+    chart.update(options);
+}
+`;
+        const { typedBindings } = parse(src);
+        const output = await vanillaToAngular(typedBindings, [], false);
+
+        // The string literal is preserved verbatim...
+        expect(output).toContain("repeat: 'no-repeat'");
+        // ...and is never corrupted into the prefixed form.
+        expect(output).not.toContain('no-this.repeat');
+    });
+
+    test('angular output does not duplicate option types already imported from ag-charts-types', async () => {
+        const src = `
+import { AgCharts } from 'ag-charts-community';
+import type { AgChartOptions } from 'ag-charts-types';
+
+const options: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    data: [{ quarter: 'Q1', value: 1 }],
+    series: [{ type: 'bar', xKey: 'quarter', yKey: 'value' }],
+};
+
+const chart = AgCharts.create(options);
+`;
+        const { typedBindings } = parse(src);
+        const output = await vanillaToAngular(typedBindings, [], false);
+
+        expect(output.match(/^import .*\bAgChartOptions\b.* from/gm)).toHaveLength(1);
+    });
+
     test('vue3 restores a type-only import that a preserved declaration references', async () => {
         // A declaration can reference a type that only the TS source imports — sucrase drops
         // type-only imports from the JS bindings, so the generator (frameworkFilesGenerator.vue3,

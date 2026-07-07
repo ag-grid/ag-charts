@@ -1,0 +1,86 @@
+{
+    "AgBaseChartListeners.activeChange": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
+    "AgBaseChartListeners.annotations": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
+    "AgBaseChartListeners.click": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
+    "AgBaseChartListeners.doubleClick": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
+    "AgBaseChartListeners.selectionChange": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
+    "AgBaseChartListeners.seriesNodeClick": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
+    "AgBaseChartListeners.seriesNodeDoubleClick": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
+    "AgBaseChartListeners.seriesVisibilityChange": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
+    "AgBaseChartListeners.zoom": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
+    "AgChartLegendListeners.legendItemClick": {
+        "classification": "zone-wrap",
+        "reason": "Legend listener; re-entered into the zone by patchChartOptions via patchListeners(options.legend.listeners)."
+    },
+    "AgChartLegendListeners.legendItemDoubleClick": {
+        "classification": "zone-wrap",
+        "reason": "Legend listener; re-entered into the zone by patchChartOptions via patchListeners(options.legend.listeners)."
+    },
+    "AgSeriesListeners.seriesNodeClick": {
+        "classification": "zone-wrap",
+        "reason": "Series listener; re-entered into the zone by patchChartOptions via patchListeners(series.listeners)."
+    },
+    "AgSeriesListeners.seriesNodeDoubleClick": {
+        "classification": "zone-wrap",
+        "reason": "Series listener; re-entered into the zone by patchChartOptions via patchListeners(series.listeners)."
+    },
+    "AgHistogramSeriesListeners.seriesNodeClick": {
+        "classification": "zone-wrap",
+        "reason": "Series listener; re-entered into the zone by patchChartOptions via patchListeners(series.listeners)."
+    },
+    "AgHistogramSeriesListeners.seriesNodeDoubleClick": {
+        "classification": "zone-wrap",
+        "reason": "Series listener; re-entered into the zone by patchChartOptions via patchListeners(series.listeners)."
+    },
+    "AgContextMenuOptions.getItems": {
+        "classification": "zone-wrap",
+        "reason": "Returns menu items carrying action callbacks; patchChartOptions wraps the returned items' actions via patchContextMenu."
+    },
+    "AgContextMenuItemAlways.action": {
+        "classification": "zone-wrap",
+        "reason": "Context-menu action dispatched from out-of-zone DOM listeners; re-entered into the zone by patchContextMenu."
+    },
+    "AgContextMenuItemCaption.action": {
+        "classification": "zone-wrap",
+        "reason": "Context-menu action dispatched from out-of-zone DOM listeners; re-entered into the zone by patchContextMenu."
+    },
+    "AgContextMenuItemSeriesArea.action": {
+        "classification": "zone-wrap",
+        "reason": "Context-menu action dispatched from out-of-zone DOM listeners; re-entered into the zone by patchContextMenu."
+    },
+    "AgContextMenuItemSeriesNode.action": {
+        "classification": "zone-wrap",
+        "reason": "Context-menu action dispatched from out-of-zone DOM listeners; re-entered into the zone by patchContextMenu."
+    },
+    "AgContextMenuItemLegendItem.action": {
+        "classification": "zone-wrap",
+        "reason": "Context-menu action dispatched from out-of-zone DOM listeners; re-entered into the zone by patchContextMenu."
+    }
+}
