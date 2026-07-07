@@ -1105,15 +1105,7 @@ function buildGeometry(state: SerializedNodeState): SceneNodeGeometry | null {
             const { x, y, width, height, opacity } = state.props;
             const drawn = flattenPathPolylines(state.svgPath);
             if (drawn.length === 0) return { x, y, width, height, opacity };
-            let [minX, minY, maxX, maxY] = [Infinity, Infinity, -Infinity, -Infinity];
-            for (const line of drawn) {
-                for (const p of line) {
-                    minX = Math.min(minX, p.x);
-                    minY = Math.min(minY, p.y);
-                    maxX = Math.max(maxX, p.x);
-                    maxY = Math.max(maxY, p.y);
-                }
-            }
+            const { minX, minY, maxX, maxY } = polylineBounds(drawn);
             return { x: minX, y: minY, width: maxX - minX, height: maxY - minY, opacity };
         }
         case 'text': {
@@ -1142,6 +1134,19 @@ const PATH_STATION_COUNT = 5;
 const CURVE_FLATTEN_STEPS = 8;
 
 type PolylinePoint = { x: number; y: number };
+
+function polylineBounds(polylines: PolylinePoint[][]) {
+    let [minX, minY, maxX, maxY] = [Infinity, Infinity, -Infinity, -Infinity];
+    for (const line of polylines) {
+        for (const p of line) {
+            minX = Math.min(minX, p.x);
+            minY = Math.min(minY, p.y);
+            maxX = Math.max(maxX, p.x);
+            maxY = Math.max(maxY, p.y);
+        }
+    }
+    return { minX, minY, maxX, maxY };
+}
 
 /** Flatten a node's serialised drawn path (SVG form) into one polyline per subpath. */
 function flattenPathPolylines(svgPath: string | undefined): PolylinePoint[][] {
@@ -1193,14 +1198,7 @@ function flattenPathPolylines(svgPath: string | undefined): PolylinePoint[][] {
  * crossing (a gap in the drawn path) yields NaN, which trajectory checks reject as non-finite.
  */
 function pathStationTopYs(polylines: PolylinePoint[][]): number[] {
-    let minX = Infinity;
-    let maxX = -Infinity;
-    for (const line of polylines) {
-        for (const p of line) {
-            minX = Math.min(minX, p.x);
-            maxX = Math.max(maxX, p.x);
-        }
-    }
+    const { minX, maxX } = polylineBounds(polylines);
     const tops: number[] = new Array(PATH_STATION_COUNT).fill(Number.NaN);
     if (!Number.isFinite(minX) || maxX <= minX) return tops;
     for (let station = 0; station < PATH_STATION_COUNT; station++) {
@@ -1479,10 +1477,14 @@ export function expectNoAnimation(trajectory: SceneGeometrySample[]): void {
     expectSceneTrajectory(trajectory, {});
 }
 
+// Flag/range properties whose whole domain fits inside a 1px geometry tolerance — compare exactly.
+const EXACT_MATCH_PROPS = new Set(['opacity', 'visible', 'clip', 'cutout', 'subpaths']);
+
 /**
  * Endpoint sanity: two whole-scene samples describe the same scene within a pixel tolerance. Strict
  * deep-equality is too brittle for drawn geometry — the crisp-pixel snap when an animation settles
- * shifts values fractionally depending on when the scene last rendered.
+ * shifts values fractionally depending on when the scene last rendered. Flag/range props
+ * ({@link EXACT_MATCH_PROPS}) are compared exactly.
  */
 export function expectSceneSamplesMatch(actual: SceneGeometrySample, expected: SceneGeometrySample, tol = 1): void {
     const byName = (a: string, b: string) => a.localeCompare(b);
@@ -1494,10 +1496,11 @@ export function expectSceneSamplesMatch(actual: SceneGeometrySample, expected: S
             const expectedValue = expectedProps[prop];
             const actualValue = actualProps[prop];
             if (Number.isFinite(expectedValue)) {
+                const propTol = EXACT_MATCH_PROPS.has(prop) ? 1e-6 : tol;
                 expect(
                     Math.abs(actualValue - expectedValue),
                     `${key}.${prop}: ${actualValue} vs ${expectedValue}`
-                ).toBeLessThanOrEqual(tol);
+                ).toBeLessThanOrEqual(propTol);
             } else {
                 expect(actualValue, `${key}.${prop}`).toBe(expectedValue);
             }
