@@ -199,7 +199,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         const axis = this.pickAxisAtPoint(event);
         if (!axis) return;
 
-        this.dispatchAxisContextMenu(axis, event.widgetEvent, event.canvasX, event.canvasY);
+        this.dispatchAxisContextMenu(axis.axisId, event.widgetEvent, event.canvasX, event.canvasY);
     }
 
     private onSeriesAreaDoubleClick(event: _ModuleSupport.DragInterpreterDblClickEvent) {
@@ -347,7 +347,6 @@ export class AxisDOMProxy extends AbstractModuleInstance {
 
     private createAxisDOMProxy(axisId: AxisID, direction: ChartAxisDirection): ProxyAxis {
         const div = this.ctx.widgets.axisWidgets.acquireRegion(axisId);
-        const proxyAxis: ProxyAxis = { axisId, div, direction };
 
         div.addListener('drag-start', (event) => {
             if (!this.isEnabled() || !this.isEnabledDragging()) return;
@@ -390,7 +389,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
             // nested axis title) was actually hit, so they stay correct once the title is nested.
             const canvasX = event.currentX + div.cssLeft();
             const canvasY = event.currentY + div.cssTop();
-            this.dispatchAxisContextMenu(axis, event, canvasX, canvasY);
+            this.dispatchAxisContextMenu(axisId, event, canvasX, canvasY);
         });
 
         return { axisId, div, direction };

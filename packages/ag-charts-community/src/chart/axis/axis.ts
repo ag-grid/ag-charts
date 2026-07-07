@@ -1076,10 +1076,6 @@ export abstract class Axis<
         return resolvedDirection;
     }
 
-    public getFormatterBoundSeries(): AgAxisBoundSeries[] {
-        return this.formatterBoundSeries.get();
-    }
-
     protected getTitleFormatterParams(domain: D[]) {
         const { direction } = this;
         const boundSeries = this.formatterBoundSeries.get();
@@ -1193,6 +1189,7 @@ export abstract class Axis<
             getRangeOverflow: (value) => this.getRangeOverflow(value),
             pickBand: (point) => this.pickBand(point),
             measureBand: (value) => this.measureBand(value),
+            getFormatterBoundSeries: () => this.formatterBoundSeries.get(),
         };
     }
 
