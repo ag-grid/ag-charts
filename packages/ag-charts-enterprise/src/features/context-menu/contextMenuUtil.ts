@@ -16,6 +16,6 @@ export function toPublicAxisContext(event: _ModuleSupport.ContextMenuEvent<'axis
     const { axisId, direction } = axisCtx;
     const { domain } = axisCtx.scale;
     const boundSeries = axisCtx.getFormatterBoundSeries();
-    const value = NaN; // not yet implemented
+    const value = Number.NaN; // not yet implemented
     return { axisId, direction, context: userCtx, boundSeries, domain, value };
 }
