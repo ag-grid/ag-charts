@@ -157,9 +157,9 @@ function getItems(params: AgContextMenuGetItemsParams<DatumType>): AgContextMenu
     }
 }
 
-// Sync both data and series so every update reflects the full current state.
 /** inScope */
 function syncOptions() {
+    // Sync both data and series so every update reflects the full current state.
     options.data = data;
     options.series = series;
     chart.update(options);
