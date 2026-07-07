@@ -1,6 +1,7 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
+    AgContextMenuGetItemsParamsAxis,
     AnimationModule,
     CategoryAxisModule,
     ContextMenuModule,
@@ -51,6 +52,12 @@ const options: AgCartesianChartOptions<DataType> = {
                         showOn: 'always',
                         label: `On 'always'`,
                         action: () => console.log(`On 'always' clicked.`),
+                    },
+                    {
+                        showOn: 'axis',
+                        label: `On 'axis'`,
+                        action: (ev: AgContextMenuGetItemsParamsAxis) =>
+                            console.log(`On 'axis' clicked -`, ev.axisId, ev),
                     },
                     {
                         showOn: 'caption',
