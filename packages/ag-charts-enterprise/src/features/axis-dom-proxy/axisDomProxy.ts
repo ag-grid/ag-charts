@@ -6,7 +6,7 @@ type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };
 type ProxyAxis = {
     axisId: AxisID;
     direction: ChartAxisDirection;
-    div: _Widget.NativeWidget<HTMLDivElement>;
+    div: _Widget.AxisWidget;
     bounds?: _ModuleSupport.BBox;
 };
 
@@ -58,7 +58,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
 
     private teardown() {
         for (const a of this.axes) {
-            a.div.destroy();
+            this.ctx.widgets.axisWidgets.releaseRegion(a.axisId);
         }
     }
 
@@ -107,7 +107,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
             this.axes = this.axes.filter((entry) => {
                 if (!removed.includes(entry.axisId)) return true;
 
-                entry.div.destroy();
+                this.ctx.widgets.axisWidgets.releaseRegion(entry.axisId);
                 this.overlappingAxisIds.delete(entry.axisId);
 
                 if (this.hoveredAxisId === entry.axisId) this.hoveredAxisId = undefined;
@@ -131,7 +131,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
             if (bbox == undefined) {
                 axis.bounds = undefined;
             } else {
-                axis.div.setBounds(bbox);
+                this.ctx.widgets.axisWidgets.setRegionBounds(axis.axisId, bbox);
                 axis.bounds = new _ModuleSupport.BBox(bbox.x, bbox.y, bbox.width, bbox.height);
             }
         }
@@ -345,12 +345,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
     }
 
     private createAxisDOMProxy(axisId: AxisID, direction: ChartAxisDirection): ProxyAxis {
-        const {
-            ctx: { proxyInteractionService },
-        } = this;
-
-        const where = 'afterend';
-        const div = proxyInteractionService.createProxyElement({ type: 'region', domManagerId: axisId, where });
+        const div = this.ctx.widgets.axisWidgets.acquireRegion(axisId);
         const proxyAxis: ProxyAxis = { axisId, div, direction };
 
         div.addListener('drag-start', (event) => {
@@ -390,9 +385,10 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         });
         div.addListener('contextmenu', (event) => {
             if (!this.isEnabled() || !this.isEnabledContextMenu()) return;
-            const { bounds } = proxyAxis;
-            const canvasX = event.offsetX + (bounds?.x ?? 0);
-            const canvasY = event.offsetY + (bounds?.y ?? 0);
+            // currentX/currentY are relative to the region regardless of which descendant (e.g. the
+            // nested axis title) was actually hit, so they stay correct once the title is nested.
+            const canvasX = event.currentX + div.cssLeft();
+            const canvasY = event.currentY + div.cssTop();
             this.dispatchAxisContextMenu(axisId, direction, event, canvasX, canvasY);
         });
 
