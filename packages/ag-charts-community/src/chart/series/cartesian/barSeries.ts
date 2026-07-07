@@ -1,5 +1,4 @@
 import type {
-    BarPlacedLabelDatum,
     BoxBounds,
     CallbackParamRules,
     DomainWithMetadata,
@@ -26,13 +25,10 @@ import {
     areScalingEqual,
     barLabelResolvesOrientation,
     barLabelRotation,
-    buildBarLabelDatum,
-    cachedTextMeasurer,
-    isArray,
+    buildBarLabelData,
     isContinuous,
     isFiniteNumber,
     maxValue,
-    measureTextSegments,
     mergeDefaults,
     minValue,
     toArray,
@@ -120,9 +116,8 @@ interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: NormalisedTextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
-    /** Written upright at node-data time; overwritten by the placement engine's chosen orientation. */
     rotation: number;
-    /** Bar rect the label must fit within, when its `orientation` array is resolved by the engine. */
+    /** Bar rect an orientation candidate must fit within; unset for outside placements. */
     readonly region?: BoxBounds;
 }
 
@@ -951,9 +946,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 spacing: ctx.labelSpacing,
                 rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
             });
-            // First orientation is baked upright here; a multi-orientation array is then resolved by the
-            // placement engine, fit-testing each candidate against the bar rect (inside placements only —
-            // an outside label sits beyond the bar, so it falls back to the plot bounds via no region).
+            // Bake the first orientation; an array resolves against the bar rect for inside placements
+            // only (outside labels fall back to the plot bounds via no region).
             const rotation = barLabelRotation(toArray(ctx.label.orientation)[0]);
             const region =
                 barLabelResolvesOrientation(ctx.label.orientation) &&
@@ -1233,11 +1227,11 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
      * Populates node data by selecting the appropriate strategy based on data type.
      * Creates scratch objects and delegates to strategy-specific methods.
      */
-    protected override populateNodeData(ctx: BarSeriesNodeDatumContext): void {
-        // Only a multi-orientation array needs the placement engine; single/unset keeps the baked
-        // rotation, so the series stays out of the collision pass and renders byte-identically.
-        this.usesPlacedLabels = barLabelResolvesOrientation(this.properties.label.orientation);
+    protected override resolveUsesPlacedLabels(): boolean {
+        return barLabelResolvesOrientation(this.properties.label.orientation);
+    }
 
+    protected override populateNodeData(ctx: BarSeriesNodeDatumContext): void {
         // Helper for x position calculation (uses context)
         const xPosition = (index: number): number => this.computeXPosition(ctx, index);
 
@@ -1650,24 +1644,12 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels || !this.isLabelEnabled()) return [];
         const { label } = this.properties;
-        const orientations = toArray(label.orientation);
-        const measurer = cachedTextMeasurer(label);
-        const data: BarPlacedLabelDatum[] = [];
-        for (const { label: barLabel } of this.contextNodeData?.labelData ?? []) {
-            if (barLabel == null || barLabel.text === '') continue;
-            const { width, height } = isArray(barLabel.text)
-                ? measureTextSegments(barLabel.text, label)
-                : measurer.measureLines(String(barLabel.text));
-            data.push(
-                buildBarLabelDatum(barLabel, barLabel.text, width, height, orientations, barLabel.region, barLabel)
-            );
-        }
-        return data;
+        return buildBarLabelData(this.contextNodeData?.labelData, (node) => ({ label: node.label, config: label }));
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<BarNodeDatum>[]) {
         applyBarLabelOrientation(placed);
-        this.updateLabelNodes({ labelSelection: this.labelSelection });
+        this.refreshPlacedLabelNodes();
     }
 
     protected override updateLabelSelection(opts: {

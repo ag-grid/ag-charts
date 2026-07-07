@@ -25,13 +25,10 @@ import {
     applyBarLabelOrientation,
     barLabelResolvesOrientation,
     barLabelRotation,
-    buildBarLabelDatum,
-    cachedTextMeasurer,
+    buildBarLabelData,
     easeOut,
-    isArray,
     isContinuous,
     maxValue,
-    measureTextSegments,
     mergeDefaults,
     minValue,
     subtractValues,
@@ -80,9 +77,8 @@ type WaterfallNodeLabelDatum = Readonly<Point> & {
     readonly text: NormalisedTextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
-    /** Written upright at node-data time; overwritten by the placement engine's chosen orientation. */
     rotation: number;
-    /** Bar rect the label must fit within, when its `orientation` array is resolved by the engine. */
+    /** Bar rect an orientation candidate must fit within; unset for outside placements. */
     readonly region?: BoxBounds;
 };
 
@@ -699,8 +695,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             mutableNode.label.y = labelPlacement.y;
             mutableNode.label.textAlign = labelPlacement.textAlign;
             mutableNode.label.textBaseline = labelPlacement.textBaseline;
-            // First orientation baked upright; a multi-orientation array is then resolved by the
-            // placement engine against the bar rect (inside placements only — see barSeries).
+            // Bake the first orientation; an array resolves against the bar rect for inside placements
+            // only (see barSeries).
             mutableNode.label.rotation = barLabelRotation(toArray(label.orientation)[0]);
             mutableNode.label.region =
                 barLabelResolvesOrientation(label.orientation) && (placement == null || placement.startsWith('inside'))
@@ -1026,26 +1022,20 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels) return [];
-        const data: PointLabelDatum[] = [];
-        for (const node of this.contextNodeData?.labelData ?? []) {
-            const barLabel = node.label;
-            if (barLabel.text === '') continue;
-            const label = this.getItemConfig(node.itemType).label;
-            const orientations = toArray(label.orientation);
-            if (orientations.length <= 1) continue;
-            const { width, height } = isArray(barLabel.text)
-                ? measureTextSegments(barLabel.text, label)
-                : cachedTextMeasurer(label).measureLines(String(barLabel.text));
-            data.push(
-                buildBarLabelDatum(barLabel, barLabel.text, width, height, orientations, barLabel.region, barLabel)
-            );
-        }
-        return data;
+        return buildBarLabelData(this.contextNodeData?.labelData, (node) => ({
+            label: node.label,
+            config: this.getItemConfig(node.itemType).label,
+        }));
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<WaterfallNodeDatum>[]) {
         applyBarLabelOrientation(placed);
-        this.updateLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
+        this.refreshPlacedLabelNodes();
+    }
+
+    protected override resolveUsesPlacedLabels(): boolean {
+        const { positive, negative, total } = this.properties.item;
+        return [positive, negative, total].some((item) => barLabelResolvesOrientation(item.label.orientation));
     }
 
     protected override updateLabelSelection(opts: {
@@ -1053,13 +1043,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         labelSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Text<WaterfallNodeDatum>>;
     }) {
         const { labelData, labelSelection } = opts;
-
-        // Only a multi-orientation array needs the placement engine; single/unset keeps the baked
-        // rotation, so the series stays out of the collision pass and renders byte-identically.
-        const { positive, negative, total } = this.properties.item;
-        this.usesPlacedLabels = [positive, negative, total].some((item) =>
-            barLabelResolvesOrientation(item.label.orientation)
-        );
 
         if (labelData.length === 0) {
             return labelSelection.update([]);

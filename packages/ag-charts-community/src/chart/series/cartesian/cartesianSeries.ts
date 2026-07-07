@@ -706,6 +706,8 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     }
 
     protected updateSeriesSelections() {
+        this.usesPlacedLabels = this.resolveUsesPlacedLabels();
+
         const { datumSelection, labelSelection, paths } = this;
         const contextData = this._contextNodeData;
         if (!contextData) return;
@@ -1665,6 +1667,23 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         labelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>>;
         isHighlight?: boolean;
     }): void;
+
+    // Preserves a constructor-set opt-in by default; bar-family series override to derive it from
+    // their `orientation` option each render.
+    protected resolveUsesPlacedLabels(): boolean {
+        return this.usesPlacedLabels;
+    }
+
+    // Re-renders both label selections after the placement engine has written back the chosen
+    // orientation, so highlighted labels pick up the resolved rotation too.
+    protected refreshPlacedLabelNodes() {
+        this.labelGroup.batchedUpdate(() => {
+            this.updateLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
+        });
+        this.highlightLabelGroup.batchedUpdate(() => {
+            this.updateLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
+        });
+    }
 
     protected abstract isLabelEnabled(): boolean;
 

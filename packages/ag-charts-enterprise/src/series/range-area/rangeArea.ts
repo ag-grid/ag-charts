@@ -33,13 +33,10 @@ import {
     applyBarLabelOrientation,
     barLabelResolvesOrientation,
     barLabelRotation,
-    buildBarLabelDatum,
-    cachedTextMeasurer,
+    buildBarLabelData,
     extent,
     findMinMax,
-    isArray,
     isContinuous,
-    measureTextSegments,
     mergeDefaults,
     toArray,
     toNumber,
@@ -1220,26 +1217,21 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels || !this.properties.label.enabled) return [];
         const { label } = this.properties;
-        const orientations = toArray(label.orientation);
-        const measurer = cachedTextMeasurer(label);
-        const data: PointLabelDatum[] = [];
-        for (const labelDatum of this.contextNodeData?.labelData ?? []) {
-            if (labelDatum.text === '') continue;
-            const { width, height } = isArray(labelDatum.text)
-                ? measureTextSegments(labelDatum.text, label)
-                : measurer.measureLines(String(labelDatum.text));
-            // Point-anchored (no bar rect), so the fit region is the plot bounds; fall-through is
-            // driven by collision with other labels.
-            data.push(
-                buildBarLabelDatum(labelDatum, labelDatum.text, width, height, orientations, undefined, labelDatum)
-            );
-        }
-        return data;
+        // Point-anchored (no bar rect): the label datum carries no region, so the fit falls back to the
+        // plot bounds and orientation fall-through is driven by collision with other labels.
+        return buildBarLabelData(this.contextNodeData?.labelData, (labelDatum) => ({
+            label: labelDatum,
+            config: label,
+        }));
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<RangeAreaLabelDatum>[]) {
         applyBarLabelOrientation(placed);
-        this.updateLabelNodes({ labelSelection: this.labelSelection });
+        this.refreshPlacedLabelNodes();
+    }
+
+    protected override resolveUsesPlacedLabels(): boolean {
+        return barLabelResolvesOrientation(this.properties.label.orientation);
     }
 
     protected override updateLabelSelection(opts: {
@@ -1247,10 +1239,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         labelSelection: _ModuleSupport.Selection<RangeAreaLabelDatum, _ModuleSupport.Text<RangeAreaLabelDatum>>;
     }) {
         const { labelData, labelSelection } = opts;
-
-        // Only a multi-orientation array needs the placement engine; single/unset keeps the baked
-        // rotation, so the series stays out of the collision pass and renders byte-identically.
-        this.usesPlacedLabels = barLabelResolvesOrientation(this.properties.label.orientation);
 
         return labelSelection.update(labelData, (text) => {
             text.pointerEvents = PointerEvents.None;

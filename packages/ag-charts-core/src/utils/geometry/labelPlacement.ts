@@ -1,7 +1,11 @@
 import type { AgChartLabelOrientation, OverflowStrategy, TextWrap } from 'ag-charts-types';
 
+import { cachedTextMeasurer, measureTextSegments } from '../../rendering/textMeasurer';
 import type { NormalisedTextOrSegments } from '../../types/normalised-options/normalisedCommonOptions';
 import type { Point, SizedPoint } from '../../types/scene';
+import type { FontOptions } from '../../types/text';
+import { toArray } from '../data/arrays';
+import { isArray } from '../types/typeGuards';
 import { toRadians } from './angle';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
 import { getMinOuterRectSize } from './math/shapeUtils';
@@ -85,6 +89,13 @@ export interface PointLabelDatum {
      * to `bounds` when unset, so existing point-series consumers are unaffected.
      */
     readonly region?: BoxBounds;
+    /**
+     * The label is always rendered, so it must never be dropped: when no candidate fits its region or
+     * clears every obstacle, the least region-overflowing candidate is kept instead. Bar-family labels
+     * set this because the engine only chooses their orientation — dropping one would revert it to the
+     * baked first orientation and overflow the bar. Droppable point labels leave it unset.
+     */
+    readonly neverDrop?: boolean;
 }
 
 export type ObstacleCategory = 'marker' | 'label' | 'seriesItem';
@@ -246,9 +257,8 @@ export function barLabelResolvesOrientation(
 }
 
 /**
- * Centre of the unrotated glyph box for a label drawn at `anchor` with the given measured size. The
- * bar-label renderer pivots rotation about this centre, so it is invariant to orientation and seeds
- * the placement engine's centred candidate box at the position the label actually renders.
+ * Centre of the unrotated glyph box for a label at `anchor`. The renderer pivots rotation about this
+ * centre, so it is orientation-invariant and seeds the engine's centred candidate box.
  */
 export function labelGlyphCentre(anchor: OrientationAnchor, width: number, height: number): Point {
     let { x, y } = anchor;
@@ -266,9 +276,9 @@ export function labelGlyphCentre(anchor: OrientationAnchor, width: number, heigh
 }
 
 /**
- * Builds the {@link PointLabelDatum} that routes a bar label through the placement engine: centred on
- * its glyph box, constrained to `region` (its bar rect, or `undefined` to fall back to the plot
- * bounds for outside placements), avoiding other labels, and offering the `orientations` candidates.
+ * Builds the {@link PointLabelDatum} routing a bar label through the placement engine: centred on its
+ * glyph box, constrained to `region` (its bar rect, or `undefined` for the plot bounds), avoiding
+ * other labels, offering the `orientations` candidates.
  */
 export function buildBarLabelDatum(
     anchor: OrientationAnchor,
@@ -288,6 +298,7 @@ export function buildBarLabelDatum(
         orientation: orientations,
         gap: 0,
         avoid: true,
+        neverDrop: true,
         collideWith: barLabelCollideWith,
         region,
         target,
@@ -303,6 +314,40 @@ export function applyBarLabelOrientation(placed: readonly PlacedLabel<unknown>[]
     for (const { datum, rotation } of placed) {
         (datum as BarPlacedLabelDatum).target.rotation = toRadians(rotation ?? 0);
     }
+}
+
+/** Measured size of a label's text or rich-text segments under the given font. */
+export function measureLabelText(text: NormalisedTextOrSegments, font: FontOptions): { width: number; height: number } {
+    return isArray(text) ? measureTextSegments(text, font) : cachedTextMeasurer(font).measureLines(String(text));
+}
+
+/** A baked bar-family label paired with the label config that governs its orientation and font. */
+export interface BarLabelSource {
+    readonly label:
+        | (OrientationAnchor & { text: NormalisedTextOrSegments; rotation: number; region?: BoxBounds })
+        | undefined;
+    readonly config: FontOptions & { orientation?: AgChartLabelOrientation | AgChartLabelOrientation[] };
+}
+
+/**
+ * Builds the placement-engine data for a series' baked labels: for each element `resolve` yields the
+ * label object and its config; single-orientation labels are skipped (nothing to resolve).
+ */
+export function buildBarLabelData<T>(
+    elements: Iterable<T> | undefined,
+    resolve: (element: T) => BarLabelSource | undefined
+): BarPlacedLabelDatum[] {
+    const data: BarPlacedLabelDatum[] = [];
+    for (const element of elements ?? []) {
+        const source = resolve(element);
+        if (source?.label == null || source.label.text === '') continue;
+        const { label, config } = source;
+        const orientations = toArray(config.orientation);
+        if (orientations.length <= 1) continue;
+        const { width, height } = measureLabelText(label.text, config);
+        data.push(buildBarLabelDatum(label, label.text, width, height, orientations, label.region, label));
+    }
+    return data;
 }
 
 const labelPlacements: Record<LabelPlacement, { x: -1 | 0 | 1; y: -1 | 0 | 1 }> = {
@@ -599,40 +644,102 @@ function fitLabel(d: PointLabelDatum) {
 function tryPlaceLabel(d: PointLabelDatum, index: number, padding: number, bounds: BoxBounds): PlacedLabel | undefined {
     const gap = d.gap ?? d.point.size / 2;
     const spacing = d.minSpacing ?? padding;
-    const candidates = d.placements;
-    const orientations = Array.isArray(d.orientation) ? d.orientation : undefined;
-    const singleOrientation = Array.isArray(d.orientation) ? undefined : d.orientation;
     const { text, width, height } = fitLabel(d);
 
     if (!d.avoid) {
-        const placement = candidateAt(candidates, d.placement, 0);
-        const orientation = candidateAt(orientations, singleOrientation, 0);
+        const placement = candidateAt(d.placements, d.placement, 0);
+        const orientation = candidateAt(orientationsOf(d), singleOrientationOf(d), 0);
         const rotation = positionCandidate(d, placement, orientation, width, height, gap, spacing);
         const { x, y } = candidateBox;
         return { index, text, x, y, width, height, datum: d, placement, rotation: rotation || undefined };
     }
 
+    return placeAvoidingLabel(d, index, bounds, text, width, height, gap, spacing);
+}
+
+/**
+ * Tries each `(placement × orientation)` candidate for an avoidance label, returning the first whose
+ * rotated box fits `d.region ?? bounds` and clears every obstacle. When none fits: a {@link
+ * PointLabelDatum.neverDrop} label keeps the least region-overflowing candidate (it is always
+ * rendered, so dropping it would revert its orientation to the baked first one), otherwise it is
+ * dropped (`undefined`).
+ */
+function placeAvoidingLabel(
+    d: PointLabelDatum,
+    index: number,
+    bounds: BoxBounds,
+    text: NormalisedTextOrSegments,
+    width: number,
+    height: number,
+    gap: number,
+    spacing: number
+): PlacedLabel | undefined {
+    const candidates = d.placements;
+    const orientations = orientationsOf(d);
+    const singleOrientation = singleOrientationOf(d);
     const inflate = maxInflation(d.collideWith);
     candidateCollideWith = d.collideWith;
     const candidateCount = candidates?.length ?? 1;
     const orientationCount = orientations?.length ?? 1;
+    const region = d.region ?? bounds;
+
+    let bestOverflow = Infinity;
+    let bestX = 0;
+    let bestY = 0;
+    let bestRotation = 0;
+    let bestPlacement: LabelPlacement | undefined;
+
     for (let pi = 0; pi < candidateCount; pi++) {
         const placement = candidateAt(candidates, d.placement, pi);
         for (let oi = 0; oi < orientationCount; oi++) {
             const orientation = candidateAt(orientations, singleOrientation, oi);
             const rotation = positionCandidate(d, placement, orientation, width, height, gap, spacing);
-            inflateBoxInto(queryBox, candidateBox, inflate);
             const { x, y, width: cw, height: ch } = candidateBox;
-            if (
-                boxContains(d.region ?? bounds, x, y, cw, ch) &&
-                !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)
-            ) {
+            inflateBoxInto(queryBox, candidateBox, inflate);
+            if (boxContains(region, x, y, cw, ch) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
                 return { index, text, x, y, width, height, datum: d, placement, rotation: rotation || undefined };
+            }
+            const overflow = d.neverDrop ? regionOverflow(region, x, y, cw, ch) : Infinity;
+            if (overflow < bestOverflow) {
+                bestOverflow = overflow;
+                bestX = x;
+                bestY = y;
+                bestRotation = rotation;
+                bestPlacement = placement;
             }
         }
     }
 
-    return undefined;
+    if (bestOverflow === Infinity) return undefined;
+    return {
+        index,
+        text,
+        x: bestX,
+        y: bestY,
+        width,
+        height,
+        datum: d,
+        placement: bestPlacement,
+        rotation: bestRotation || undefined,
+    };
+}
+
+function orientationsOf(d: PointLabelDatum): AgChartLabelOrientation[] | undefined {
+    return Array.isArray(d.orientation) ? d.orientation : undefined;
+}
+
+function singleOrientationOf(d: PointLabelDatum): AgChartLabelOrientation | undefined {
+    return Array.isArray(d.orientation) ? undefined : d.orientation;
+}
+
+/** Total px a `w`×`h` box at `(x, y)` extends beyond `region` across all four sides; `0` when contained. */
+function regionOverflow(region: BoxBounds, x: number, y: number, w: number, h: number): number {
+    return (
+        Math.max(0, region.x - x) +
+        Math.max(0, x + w - (region.x + region.width)) +
+        Math.max(0, region.y - y) +
+        Math.max(0, y + h - (region.y + region.height))
+    );
 }
 
 /** The `i`-th candidate: `list[i]` when a candidate list is present, else the lone `single` value. */

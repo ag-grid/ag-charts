@@ -8,6 +8,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
     createChart,
+    deproxy,
     extractImageData,
     prepareTestOptions,
     setupMockCanvas,
@@ -426,6 +427,67 @@ describe('label collision avoidance', () => {
                 barOrientationOptions(['perpendicular'] as any, 'vertical') as any,
                 barOrientationOptions('perpendicular', 'vertical') as any
             );
+        });
+
+        // Shrinking the chart width must not make a resolved perpendicular label snap back to the wider
+        // parallel bake. Once a bar is too narrow for parallel the engine picks perpendicular; when it
+        // is too narrow for even perpendicular the label must keep the least-overflowing orientation
+        // rather than being dropped and reverting to the first (parallel) orientation baked at node-data
+        // time, which would overflow the bar rect (AG-17782).
+        it('keeps a narrowing bar label perpendicular instead of reverting to parallel', async () => {
+            const optionsAt = (width: number) => {
+                const options = {
+                    data: Array.from({ length: 8 }, (_, i) => ({ cat: `Category ${i}`, value: 100 })),
+                    legend: { enabled: false },
+                    axes: {
+                        x: { type: 'category', position: 'bottom' },
+                        y: { type: 'number', position: 'left', max: 100 },
+                    },
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'cat',
+                            yKey: 'value',
+                            label: {
+                                enabled: true,
+                                placement: 'inside-center',
+                                orientation: ['parallel', 'perpendicular'],
+                                formatter: () => 'WWWWWWWWWW',
+                            },
+                        },
+                    ],
+                };
+                prepareTestOptions(options as any);
+                (options as any).width = width;
+                return options as any;
+            };
+
+            const firstLabelRotation = () => {
+                const series = deproxy(chart as any).series[0] as unknown as {
+                    contextNodeData?: { labelData?: { label?: { text?: unknown; rotation?: number } }[] };
+                };
+                const labelData = series.contextNodeData?.labelData ?? [];
+                const labelled = labelData.find((d) => d.label != null && d.label.text !== '');
+                return labelled?.label?.rotation ?? 0;
+            };
+
+            chart = AgCharts.create(optionsAt(1000));
+            await waitForChartStability(chart);
+
+            const rotations: number[] = [];
+            for (const width of [1000, 700, 500, 350, 240, 160, 110, 70]) {
+                await chart.update(optionsAt(width));
+                await waitForChartStability(chart);
+                rotations.push(firstLabelRotation());
+            }
+
+            // The scenario must actually reach perpendicular at some width, then never revert to the
+            // parallel (0) bake as the bar narrows further.
+            const firstPerpendicular = rotations.findIndex((rotation) => rotation !== 0);
+            expect(firstPerpendicular).toBeGreaterThanOrEqual(0);
+            for (let i = firstPerpendicular; i < rotations.length; i++) {
+                expect(rotations[i]).not.toBe(0);
+            }
         });
     });
 });
