@@ -1076,6 +1076,10 @@ export abstract class Axis<
         return resolvedDirection;
     }
 
+    public getFormatterBoundSeries(): AgAxisBoundSeries[] {
+        return this.formatterBoundSeries.get();
+    }
+
     protected getTitleFormatterParams(domain: D[]) {
         const { direction } = this;
         const boundSeries = this.formatterBoundSeries.get();
