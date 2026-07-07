@@ -126,7 +126,6 @@ const modifiedExamples = getModifiedGalleryExamples();
         flex-direction: row;
         position: relative;
         background-color: var(--color-bg-primary);
-        padding-top: var(--layout-site-header-height);
     }
 
     .menu {
@@ -277,10 +276,13 @@ const modifiedExamples = getModifiedGalleryExamples();
 <style lang="scss" is:global>
     @use 'design-system' as *;
 
+    // Sticky (not fixed) so the header sits below the in-flow announcement banner
+    // and rises as it scrolls away; forced at all widths (default is sticky only ≥1100px).
     .site-header {
-        position: fixed !important;
+        position: sticky !important;
+        top: 0;
         width: 100%;
-        z-index: 2;
+        z-index: 10002;
     }
 
     .icon {
