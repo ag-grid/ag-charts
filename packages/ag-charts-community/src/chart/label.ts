@@ -19,7 +19,6 @@ import type {
     ContextDefault,
     FontStyle,
     FontWeight,
-    OverflowStrategy,
     Padding,
     PaddingOptions,
     RichFormatter,
@@ -143,6 +142,18 @@ export class Label<TParams = never, TDatum = any>
     orientation?: AgChartLabelOrientation | AgChartLabelOrientation[];
 
     @Property
+    maxWidth?: number;
+
+    @Property
+    maxHeight?: number;
+
+    @Property
+    wrapping?: TextWrap;
+
+    @Property
+    truncate?: boolean;
+
+    @Property
     formatter?: RichFormatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
 
     @Property
@@ -183,23 +194,8 @@ export class Label<TParams = never, TDatum = any>
     }
 }
 
-/** Label whose text adapts to a size budget (wrap/truncate), for series that route through the fit step. */
-export class FittableLabel<TParams = never, TDatum = any> extends Label<TParams, TDatum> {
-    @Property
-    maxWidth?: number;
-
-    @Property
-    maxHeight?: number;
-
-    @Property
-    wrapping?: TextWrap;
-
-    @Property
-    overflowStrategy?: OverflowStrategy;
-}
-
 /** Label for point-like series (line, area, scatter, bubble, map-marker) that resolve a directional placement. */
-export class PlacedSeriesLabel<TParams = never, TDatum = any> extends FittableLabel<TParams, TDatum> {
+export class PlacedSeriesLabel<TParams = never, TDatum = any> extends Label<TParams, TDatum> {
     @Property
     placement?: AgChartLabelCollisionPlacement | AgChartLabelCollisionPlacement[];
 }

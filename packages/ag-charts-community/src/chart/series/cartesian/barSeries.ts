@@ -75,7 +75,7 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
-import { adjustLabelPlacement, updateLabelNode } from '../../labelUtil';
+import { adjustLabelPlacement, fitLabelToContainer, updateLabelNode } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
@@ -959,17 +959,20 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 spacing: ctx.labelSpacing,
                 rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
             });
-            // The first orientation is baked into `rotation`; an array resolves against the bar rect for
-            // inside placements only (outside labels fall back to the plot bounds via no region).
-            const region =
-                ctx.labelResolvesOrientation && (placement == null || placement.startsWith('inside'))
+            // Inside labels fit within the bar rect; outside labels sit beside it, so leave them unbound.
+            const insideBox =
+                placement == null || placement.startsWith('inside')
                     ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, ctx.labelSpacing)
                     : undefined;
+            // The first orientation is baked into `rotation`; an array resolves against the bar rect for
+            // inside placements only (outside labels fall back to the plot bounds via no region).
+            const region = ctx.labelResolvesOrientation ? insideBox : undefined;
+            const fittedText = fitLabelToContainer(nodeLabelText, ctx.label, insideBox);
 
             const existingLabel = mutableNode.label;
             if (existingLabel) {
                 // Update existing label object in place
-                existingLabel.text = nodeLabelText;
+                existingLabel.text = fittedText;
                 existingLabel.x = labelPlacement.x;
                 existingLabel.y = labelPlacement.y;
                 existingLabel.textAlign = labelPlacement.textAlign;
@@ -981,7 +984,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             } else {
                 // Create new label object (first time label is added)
                 mutableNode.label = {
-                    text: nodeLabelText,
+                    text: fittedText,
                     ...labelPlacement,
                     rotation,
                     region,

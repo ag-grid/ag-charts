@@ -1,0 +1,224 @@
+import { afterEach, describe, expect, it } from 'vitest';
+
+import type { AgChartOptions } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
+import {
+    IMAGE_SNAPSHOT_DEFAULTS,
+    deproxy,
+    extractImageData,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from 'ag-charts-community-test';
+
+import { prepareEnterpriseTestOptions } from '../test/utils';
+import ukTopology from './map-test/ukTopology.json';
+
+const ELLIPSIS = '…';
+
+// Consolidated cross-series coverage for the label-fit surface (`maxWidth`/`maxHeight`/`wrapping`/`truncate`) on
+// enterprise series. These are undocumented options, so labels are built untyped and cast at the AgCharts.create
+// boundary; `setupMockConsole` fails on any "property is unknown" warning. Each snapshot deliberately mixes label
+// lengths and item sizes so a single image exercises the whole spectrum — shown whole, wrapped, and
+// wrapped-then-ellipsised. Range-bar and waterfall fit their labels to the bar rect (truncation applies with no
+// explicit bound); range-area, radar and map-marker are representative of the explicit-bounds path. The remaining
+// explicit-bounds series (chord, sankey, map-line) share that same fit path and are covered by the community unit
+// tests plus these representatives, so they are intentionally not snapshotted.
+describe('series label fit', () => {
+    setupMockConsole();
+
+    let chart: any;
+    const ctx = setupMockCanvas();
+
+    afterEach(() => {
+        chart?.destroy();
+    });
+
+    const renderAndSnapshot = async (options: object) => {
+        prepareEnterpriseTestOptions(options as AgChartOptions);
+        chart = deproxy(AgCharts.create(options as AgChartOptions));
+        await waitForChartStability(chart);
+        expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+    };
+
+    // Range-bar and range-area carry the fitted text flat on each `labelData` entry; waterfall, radar and map-marker
+    // nest it under `.label.text`.
+    const flatLabelTexts = (seriesIndex = 0): unknown[] => {
+        const series = chart.series[seriesIndex] as { contextNodeData?: { labelData?: { text?: unknown }[] } };
+        return (series.contextNodeData?.labelData ?? []).map((d) => d.text);
+    };
+    const nestedLabelTexts = (seriesIndex = 0): unknown[] => {
+        const series = chart.series[seriesIndex] as {
+            contextNodeData?: { labelData?: { label?: { text?: unknown } }[] };
+        };
+        return (series.contextNodeData?.labelData ?? []).map((d) => d.label?.text);
+    };
+    const someWrapped = (texts: unknown[]) => texts.some((text) => String(text).includes('\n'));
+    const someTruncated = (texts: unknown[]) => texts.some((text) => String(text).includes(ELLIPSIS));
+
+    const cartesianAxes = {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    };
+    const perDatumLabel = (extra: object) => ({ enabled: true, formatter: (p: any) => p.datum.label, ...extra });
+
+    it('wraps range-bar inside labels to the bar rect across bars of varied span', async () => {
+        // Each bar carries a yLow (bottom) and yHigh (top) label, both fit to the full bar rect. Spans are kept tall
+        // enough that the two labels stay separated: short labels sit on one line, longer ones wrap. Inside-rect
+        // truncation is covered cleanly by the waterfall case below — a range-bar span short enough to ellipsise is
+        // also too short to separate its low/high pair, so it is deliberately avoided here.
+        const data = [
+            { cat: 'A', low: 30, high: 70, label: 'One Two Three Four Five Six' },
+            { cat: 'B', low: 5, high: 95, label: 'A long range label that wraps neatly' },
+            { cat: 'C', low: 38, high: 62, label: 'Short' },
+            { cat: 'D', low: 25, high: 75, label: 'Another wrapping range label' },
+            { cat: 'E', low: 20, high: 80, label: 'Medium length label' },
+        ];
+        await renderAndSnapshot({
+            data,
+            legend: { enabled: false },
+            axes: cartesianAxes,
+            series: [
+                {
+                    type: 'range-bar',
+                    xKey: 'cat',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                    label: perDatumLabel({ placement: 'inside', wrapping: 'on-space', truncate: true }),
+                },
+            ],
+        });
+        const texts = flatLabelTexts();
+        expect(someWrapped(texts)).toBe(true);
+    });
+
+    describe('waterfall (fits inside the bar rect)', () => {
+        // Waterfall labels are configured per item type (positive/negative/total), not at the series root, and default
+        // to an outside placement — force `inside-center` so the label fits the bar rect container.
+        const waterfallChart = (label: object, data: object[]) => {
+            const itemLabel = { label: { enabled: true, placement: 'inside-center', ...label } };
+            return {
+                data,
+                legend: { enabled: false },
+                axes: cartesianAxes,
+                series: [
+                    {
+                        type: 'waterfall',
+                        xKey: 'cat',
+                        yKey: 'value',
+                        item: { positive: itemLabel, negative: itemLabel, total: itemLabel },
+                    },
+                ],
+            };
+        };
+
+        it('wraps and truncates inside labels across bars of varied height', async () => {
+            const data = [
+                { cat: 'A', value: 100, label: 'One Two Three Four Five' },
+                {
+                    cat: 'B',
+                    value: 30,
+                    label: 'A very long waterfall label that overflows the bar badly and keeps on going',
+                },
+                { cat: 'C', value: 55, label: 'Short' },
+                {
+                    cat: 'D',
+                    value: 35,
+                    label: 'Another overflowing waterfall label that also runs well past the bar edge',
+                },
+                { cat: 'E', value: 45, label: 'Medium sized label' },
+            ];
+            await renderAndSnapshot(
+                waterfallChart({ wrapping: 'on-space', truncate: true, formatter: (p: any) => p.datum.label }, data)
+            );
+            const texts = nestedLabelTexts();
+            expect(someWrapped(texts)).toBe(true);
+            expect(someTruncated(texts)).toBe(true);
+        });
+
+        it('hides oversized labels when collision avoidance is enabled', async () => {
+            const data = Array.from({ length: 10 }, (_, i) => ({ cat: `Category ${i}`, value: 100 }));
+            await renderAndSnapshot(
+                waterfallChart(
+                    {
+                        collisionAvoidance: { enabled: true },
+                        formatter: () => 'A very long waterfall label that cannot possibly fit inside the bar',
+                    },
+                    data
+                )
+            );
+            const texts = nestedLabelTexts();
+            // avoid → overflow 'hide': oversized labels drop to empty rather than ellipsising.
+            expect(texts.some((text) => text === '' || text == null)).toBe(true);
+            expect(someTruncated(texts)).toBe(false);
+        });
+    });
+
+    it('wraps and truncates range-area labels within an explicit maxWidth/maxHeight', async () => {
+        const data = [
+            { cat: 'A', low: 10, high: 90, label: 'Hi' },
+            { cat: 'B', low: 20, high: 80, label: 'A medium length label' },
+            { cat: 'C', low: 30, high: 70, label: 'A very long range-area label that will not fit at all' },
+            { cat: 'D', low: 15, high: 85, label: 'Two words' },
+        ];
+        await renderAndSnapshot({
+            data,
+            legend: { enabled: false },
+            axes: cartesianAxes,
+            series: [
+                {
+                    type: 'range-area',
+                    xKey: 'cat',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                    label: perDatumLabel({ maxWidth: 50, maxHeight: 32, wrapping: 'on-space', truncate: true }),
+                },
+            ],
+        });
+        expect(someTruncated(flatLabelTexts())).toBe(true);
+    });
+
+    it('wraps and truncates radar labels within an explicit maxWidth/maxHeight', async () => {
+        const data = [
+            { subject: 'Maths', grade: 8, label: 'Hi' },
+            { subject: 'English', grade: 7, label: 'A medium length label' },
+            { subject: 'History', grade: 6, label: 'A very long radar label that will not fit at all' },
+            { subject: 'Science', grade: 9, label: 'Two words' },
+        ];
+        await renderAndSnapshot({
+            data,
+            series: [
+                {
+                    type: 'radar-line',
+                    angleKey: 'subject',
+                    radiusKey: 'grade',
+                    label: perDatumLabel({ maxWidth: 50, maxHeight: 32, wrapping: 'on-space', truncate: true }),
+                },
+            ],
+        });
+        expect(someTruncated(nestedLabelTexts())).toBe(true);
+    });
+
+    it('wraps and truncates map-marker labels within an explicit maxWidth/maxHeight', async () => {
+        await renderAndSnapshot({
+            topology: ukTopology,
+            series: [
+                { type: 'map-shape-background' },
+                {
+                    type: 'map-marker',
+                    // Well separated so no marker is dropped by the default marker collision avoidance.
+                    data: [
+                        { name: 'A', lat: 51.5, lon: -3.5, label: 'Hi' },
+                        { name: 'B', lat: 55, lon: 0, label: 'A very long marker label that will not fit at all' },
+                        { name: 'C', lat: 53, lon: -4.5, label: 'A medium length label' },
+                    ],
+                    latitudeKey: 'lat',
+                    longitudeKey: 'lon',
+                    labelKey: 'name',
+                    label: perDatumLabel({ maxWidth: 50, maxHeight: 32, wrapping: 'on-space', truncate: true }),
+                },
+            ],
+        });
+        expect(someTruncated(nestedLabelTexts(1))).toBe(true);
+    });
+});
