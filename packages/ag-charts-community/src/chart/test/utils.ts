@@ -1155,7 +1155,15 @@ function flattenPathPolylines(svgPath: string | undefined): PolylinePoint[][] {
     const polylines: PolylinePoint[][] = [];
     let current: PolylinePoint[] | undefined;
     let i = 0;
-    const num = () => Number(tokens[i++]);
+    const num = () => {
+        const value = Number(tokens[i++]);
+        // A non-numeric coordinate (or a command consuming the wrong argument count) would poison
+        // every downstream geometry assertion with NaN — fail loudly at the source instead.
+        if (!Number.isFinite(value)) {
+            throw new Error(`flattenPathPolylines: non-finite coordinate at token ${i - 1} in '${svgPath}'`);
+        }
+        return value;
+    };
     while (i < tokens.length) {
         const token = tokens[i++];
         switch (token) {
