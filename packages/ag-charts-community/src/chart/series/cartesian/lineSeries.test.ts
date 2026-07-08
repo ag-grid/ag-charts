@@ -38,7 +38,6 @@ import { testLegendItemName } from '../../test/legendItemName';
 import type { CartesianOrPolarTestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
-    type SceneFrameInvariant,
     type SceneGeometrySample,
     type SceneNodeExpectation,
     axisReflowSpec,
@@ -898,6 +897,13 @@ describe('LineSeries', () => {
                     }
                 },
             });
+            // The stroke stays a single connected subpath through the interrupted transition.
+            for (let i = 0; i < trajectory.length; i++) {
+                const frameKey = [...trajectory[i].keys()].find((k) => k.startsWith('series[0]/path'));
+                if (frameKey != null) {
+                    expect(trajectory[i].get(frameKey)!.subpaths, `frame ${i} subpaths`).toBe(1);
+                }
+            }
             await frames.runToEnd(chart);
             const after = sampleScene();
             const key = pathKey(after);
