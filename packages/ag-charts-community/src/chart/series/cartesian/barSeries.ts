@@ -39,6 +39,7 @@ import {
 import type {
     AgBarSeriesItemStylerParams,
     AgBarSeriesLabelFormatterParams,
+    AgBarSeriesLabelPlacement,
     AgBarSeriesOptions,
     AgBarSeriesStylerParams,
     AgErrorBoundSeriesTooltipRendererParams,
@@ -183,6 +184,11 @@ interface BarSeriesNodeDatumContext {
     readonly yName: string | undefined;
     readonly legendItemName: string | undefined;
     readonly label: BarSeriesProperties['label'];
+    // Label orientation/placement derived once here (series-constant) so the per-datum node build
+    // pays no allocation or trig for the common no-orientation case.
+    readonly labelPlacement: AgBarSeriesLabelPlacement;
+    readonly labelRotation: number;
+    readonly labelResolvesOrientation: boolean;
     readonly yDomain: any[];
 }
 
@@ -671,6 +677,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             yName: this.properties.yName,
             legendItemName: this.properties.legendItemName,
             label,
+            labelPlacement: toArray(label.placement)[0],
+            labelRotation: barLabelRotation(toArray(label.orientation)[0]),
+            labelResolvesOrientation: barLabelResolvesOrientation(label.orientation),
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
         };
     }
@@ -942,7 +951,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             mutableNode.label = undefined;
         } else {
             // Array placement is accepted, but only its first candidate is honoured here.
-            const placement = toArray(ctx.label.placement)[0];
+            const { labelPlacement: placement, labelRotation: rotation } = ctx;
             const labelPlacement = adjustLabelPlacement({
                 isUpward,
                 isVertical: !ctx.barAlongX,
@@ -950,12 +959,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 spacing: ctx.labelSpacing,
                 rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
             });
-            // Bake the first orientation; an array resolves against the bar rect for inside placements
-            // only (outside labels fall back to the plot bounds via no region).
-            const rotation = barLabelRotation(toArray(ctx.label.orientation)[0]);
+            // The first orientation is baked into `rotation`; an array resolves against the bar rect for
+            // inside placements only (outside labels fall back to the plot bounds via no region).
             const region =
-                barLabelResolvesOrientation(ctx.label.orientation) &&
-                (placement == null || placement.startsWith('inside'))
+                ctx.labelResolvesOrientation && (placement == null || placement.startsWith('inside'))
                     ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, ctx.labelSpacing)
                     : undefined;
 

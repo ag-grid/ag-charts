@@ -27,6 +27,7 @@ import {
     barLabelRotation,
     buildBarLabelData,
     easeOut,
+    firstCandidate,
     insetBox,
     isContinuous,
     maxValue,
@@ -710,7 +711,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             mutableNode.label.textBaseline = labelPlacement.textBaseline;
             // Bake the first orientation; an array resolves against the bar rect for inside placements
             // only (see barSeries).
-            mutableNode.label.rotation = barLabelRotation(toArray(label.orientation)[0]);
+            mutableNode.label.rotation = barLabelRotation(firstCandidate(label.orientation));
             mutableNode.label.region =
                 barLabelResolvesOrientation(label.orientation) && (placement == null || placement.startsWith('inside'))
                     ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, spacing)

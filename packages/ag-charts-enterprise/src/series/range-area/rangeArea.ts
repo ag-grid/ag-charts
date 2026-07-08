@@ -36,9 +36,9 @@ import {
     buildBarLabelData,
     extent,
     findMinMax,
+    firstCandidate,
     isContinuous,
     mergeDefaults,
-    toArray,
     toNumber,
 } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
@@ -849,7 +849,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     }): RangeAreaLabelDatum {
         const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, legendItemName, label } = this.properties;
         // Array placement is accepted, but only its first candidate is honoured here.
-        const placement = toArray(label.placement)[0];
+        const placement = firstCandidate(label.placement);
         const spacing = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
 
         let actualItemId = itemType;
@@ -881,7 +881,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             ),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
-            rotation: barLabelRotation(toArray(label.orientation)[0]),
+            rotation: barLabelRotation(firstCandidate(label.orientation)),
         };
     }
 

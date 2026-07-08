@@ -128,6 +128,9 @@ interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateN
     readonly labelEnabled: boolean;
     readonly labelPlacement: 'inside' | 'outside';
     readonly labelPadding: number;
+    // Orientation derived once (series-constant) to keep the per-datum label build allocation-free.
+    readonly labelRotation: number;
+    readonly labelResolvesOrientation: boolean;
 
     // Incremental update support
     readonly dataAggregationFilter: RangeBarSeriesDataAggregationFilter | undefined;
@@ -471,6 +474,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yHighKey: this.properties.yHighKey,
             labelEnabled: this.properties.label.enabled,
             labelPlacement,
+            labelRotation: barLabelRotation(toArray(this.properties.label.orientation)[0]),
+            labelResolvesOrientation: barLabelResolvesOrientation(this.properties.label.orientation),
             labelPadding:
                 (this.properties.label.spacing +
                     (typeof this.properties.label.padding === 'number' ? this.properties.label.padding : 0)) *
@@ -880,8 +885,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const barAlongX = ctx.barAlongX;
         const placement = ctx.labelPlacement;
         const labelPadding = ctx.labelPadding;
-        // Bake the first orientation; an array resolves against the bar rect for inside placement only.
-        const rotation = barLabelRotation(toArray(label.orientation)[0]);
+        // The first orientation is baked into `rotation`; an array resolves against the bar rect for inside placement only.
+        const rotation = ctx.labelRotation;
 
         // Calculate label positions and alignment using scratch params
         const rectX = params.rectX;
@@ -890,7 +895,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const rectHeight = params.rectHeight;
 
         const region =
-            barLabelResolvesOrientation(label.orientation) && placement === 'inside'
+            ctx.labelResolvesOrientation && placement === 'inside'
                 ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, Math.abs(labelPadding))
                 : undefined;
 
