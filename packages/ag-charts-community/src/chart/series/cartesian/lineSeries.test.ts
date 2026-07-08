@@ -796,6 +796,135 @@ describe('LineSeries', () => {
             const key = pathKey(before);
             expectSceneTrajectory(trajectory, { [key]: 'any', ...markersReflow });
         });
+
+        // "Start ticking" — a point is appended on a timer while the previous append is still animating.
+        // Each interrupting update must keep the stroke a single connected subpath and let the line keep
+        // growing, never leaving a broken or frozen path.
+        it('ticking: appending points mid-animation keeps the stroke connected and growing', async () => {
+            const data = [
+                { x: 0, y: 40 },
+                { x: 1, y: 120 },
+                { x: 2, y: 80 },
+                { x: 3, y: 160 },
+                { x: 4, y: 60 },
+            ];
+            chart = AgCharts.create(lineOptions(data));
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+            let nextX = 5;
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene, {
+                frames: 40,
+                onFrame: async (i) => {
+                    if (i > 0 && i % 8 === 0 && nextX <= 8) {
+                        data.push({ x: nextX, y: nextX % 2 === 0 ? 90 : 140 });
+                        nextX++;
+                        await chart.updateDelta({ data: [...data] });
+                    }
+                },
+            });
+            const key = pathKey(trajectory.at(-1)!);
+            for (let i = 0; i < trajectory.length; i++) {
+                expect(trajectory[i].get(key)?.subpaths, `frame ${i} subpaths`).toBe(1);
+            }
+            expect(markerCount(trajectory.at(-1)!)).toBeGreaterThan(markerCount(trajectory[0]));
+        });
+
+        // "Rapid Update" — a second data change lands before the first has finished animating. The batch
+        // must abandon the first target and settle on the second: the final point count is the second
+        // update's (3 -> 7), proving the interrupted first update (which shrank to 3) did not win.
+        it('rapid update: an interrupting update settles on the final data, not the abandoned one', async () => {
+            chart = AgCharts.create(
+                lineOptions([
+                    { x: 0, y: 40 },
+                    { x: 1, y: 120 },
+                    { x: 2, y: 80 },
+                    { x: 3, y: 160 },
+                    { x: 4, y: 60 },
+                ])
+            );
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            await chart.updateDelta({
+                data: [
+                    { x: 0, y: 40 },
+                    { x: 1, y: 120 },
+                    { x: 2, y: 80 },
+                ],
+            });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene, {
+                onFrame: async (i) => {
+                    if (i === 5) {
+                        await chart.updateDelta({
+                            data: [
+                                { x: 0, y: 40 },
+                                { x: 1, y: 120 },
+                                { x: 2, y: 80 },
+                                { x: 3, y: 160 },
+                                { x: 4, y: 60 },
+                                { x: 5, y: 130 },
+                                { x: 6, y: 90 },
+                            ],
+                        });
+                    }
+                },
+            });
+            await frames.runToEnd(chart);
+            const after = sampleScene();
+            const key = pathKey(after);
+            expect(markerCount(after)).toBe(7);
+            expect(after.get(key)!.subpaths).toBe(1);
+        });
+
+        // easeOut-very-slow: the initial load reveals the line via a left-to-right path swipe with the
+        // markers scaling in glued to that swipe edge. The observable sync is the ordering — the leftmost
+        // marker completes its scale-in before the rightmost even starts — captured here across frames.
+        it('easeOut reveal: markers scale in left-to-right in sync with the path swipe', async () => {
+            const data = [
+                { x: 'A', y: 40 },
+                { x: 'B', y: 120 },
+                { x: 'C', y: 80 },
+                { x: 'D', y: 160 },
+                { x: 'E', y: 60 },
+                { x: 'F', y: 100 },
+            ];
+            chart = AgCharts.create(categoryOptions(data));
+            const sampleScene = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene, { frames: 40 });
+            const key = pathKey(trajectory.at(-1)!);
+            // The swipe is clip-based: the stroke is drawn in full from the first frame and a clip window
+            // reveals it left-to-right, so the path's vertices (its per-station tops) never move.
+            expectSceneTrajectory(trajectory, {
+                [key]: {
+                    'top@0': 'constant',
+                    'top@1': 'constant',
+                    'top@2': 'constant',
+                    'top@3': 'constant',
+                    'top@4': 'constant',
+                    x: 'any',
+                    y: 'any',
+                    width: 'any',
+                    height: 'any',
+                    opacity: 'any',
+                    subpaths: 'any',
+                    clip: 'any',
+                    'clip:x': 'any',
+                    'clip:y': 'any',
+                },
+                ...markersScaleIn,
+            });
+
+            const finalWidth = trajectory.at(-1)!.get('series[0]/marker[A]')!.width;
+            expect(finalWidth).toBeGreaterThan(1);
+            const reachesFullSize = (label: string) =>
+                trajectory.findIndex((f) => (f.get(`series[0]/marker[${label}]`)?.width ?? 0) >= finalWidth * 0.9);
+            const leftmost = reachesFullSize('A');
+            const rightmostStart = trajectory.findIndex(
+                (f) => (f.get('series[0]/marker[F]')?.width ?? 0) > finalWidth * 0.01
+            );
+            expect(leftmost).toBeGreaterThanOrEqual(0);
+            expect(leftmost).toBeLessThanOrEqual(rightmostStart);
+        });
     });
 
     describe('#create', () => {
