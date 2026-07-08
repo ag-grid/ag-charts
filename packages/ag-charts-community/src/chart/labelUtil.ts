@@ -20,6 +20,7 @@ import type {
 import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
 import type { Text } from '../scene/shape/text';
+import { isRotatable } from '../scene/transformable';
 import type { Label } from './label';
 import { getItemId } from './series/pickManager';
 import type { DatumIndex, SeriesNodeDatum } from './series/seriesTypes';
@@ -54,6 +55,11 @@ type LabelDatum = Point & {
     text: NormalisedTextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
+    /** Rotation in radians applied to the label node; `undefined`/`0` renders upright. */
+    rotation?: number;
+    /** Translation (px) sliding a region-bound label flush inside its region; `undefined`/`0` leaves it anchored. */
+    offsetX?: number;
+    offsetY?: number;
 };
 
 export function getLabelStyles<TParams>(
@@ -139,13 +145,25 @@ export function updateLabelNode<TParams>(
     if (series.visible && label.enabled && labelDatum) {
         const style = getLabelStyles(series, textNode.datum, params, label, isHighlight, activeHighlight, labelPath);
         textNode.visible = true;
-        textNode.x = labelDatum.x;
-        textNode.y = labelDatum.y;
+        // Offset slides a rotated bar label flush inside its bar rect; the pivot below is re-derived
+        // from the shifted position, so the rotated glyph box moves with it. `0` for every other label.
+        textNode.x = labelDatum.x + (labelDatum.offsetX ?? 0);
+        textNode.y = labelDatum.y + (labelDatum.offsetY ?? 0);
         textNode.text = labelDatum.text;
         textNode.fill = style.color;
         textNode.setAlign(labelDatum);
         textNode.setFont(style);
         textNode.setBoxing(style);
+        if (isRotatable(textNode)) {
+            const rotation = labelDatum.rotation ?? 0;
+            if (rotation !== 0) {
+                // Pivot about the untransformed glyph-box centre so the label rotates in place.
+                const bbox = textNode.getTextMeasureBBox();
+                textNode.rotationCenterX = bbox.x + bbox.width / 2;
+                textNode.rotationCenterY = bbox.y + bbox.height / 2;
+            }
+            textNode.rotation = rotation;
+        }
     } else {
         textNode.visible = false;
     }

@@ -26,13 +26,19 @@ import {
     type Normalised,
     type NormalisedColorType,
     type NormalisedSeriesMarkerStyle,
+    type PlacedLabel,
     type Point,
+    type PointLabelDatum,
     type RequireOptional,
+    applyBarLabelOrientation,
+    barLabelResolvesOrientation,
+    barLabelRotation,
+    buildBarLabelData,
     extent,
     findMinMax,
+    firstCandidate,
     isContinuous,
     mergeDefaults,
-    toArray,
     toNumber,
 } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
@@ -843,7 +849,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     }): RangeAreaLabelDatum {
         const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, legendItemName, label } = this.properties;
         // Array placement is accepted, but only its first candidate is honoured here.
-        const placement = toArray(label.placement)[0];
+        const placement = firstCandidate(label.placement);
         const spacing = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
 
         let actualItemId = itemType;
@@ -875,6 +881,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             ),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
+            rotation: barLabelRotation(firstCandidate(label.orientation)),
         };
     }
 
@@ -1205,6 +1212,26 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             this.properties.item.low.marker.markClean();
             this.properties.item.high.marker.markClean();
         }
+    }
+
+    override getLabelData(): PointLabelDatum[] {
+        if (!this.usesPlacedLabels || !this.properties.label.enabled) return [];
+        const { label } = this.properties;
+        // Point-anchored (no bar rect): the label datum carries no region, so the fit falls back to the
+        // plot bounds and orientation fall-through is driven by collision with other labels.
+        return buildBarLabelData(this.contextNodeData?.labelData, (labelDatum) => ({
+            label: labelDatum,
+            config: label,
+        }));
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<RangeAreaLabelDatum>[]) {
+        applyBarLabelOrientation(placed);
+        this.refreshPlacedLabelNodes();
+    }
+
+    protected override resolveUsesPlacedLabels(): boolean {
+        return barLabelResolvesOrientation(this.properties.label.orientation);
     }
 
     protected override updateLabelSelection(opts: {

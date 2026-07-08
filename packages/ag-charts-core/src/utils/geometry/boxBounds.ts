@@ -10,6 +10,11 @@ export function boxContains(b: BoxBounds, x: number, y: number, w: number = 0, h
     return x >= b.x && x + w <= b.x + b.width && y >= b.y && y + h <= b.y + b.height;
 }
 
+/** `b` shrunk by `inset` px on every side. Width/height may go non-positive for a small box; callers guard. */
+export function insetBox(b: BoxBounds, inset: number): BoxBounds {
+    return { x: b.x + inset, y: b.y + inset, width: b.width - 2 * inset, height: b.height - 2 * inset };
+}
+
 export function boxEmpty(b: BoxBounds | undefined): boolean {
     return b == null || b.height === 0 || b.width === 0 || Number.isNaN(b.height) || Number.isNaN(b.width);
 }

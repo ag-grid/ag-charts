@@ -329,6 +329,12 @@ export class Text<D = unknown> extends Shape<D> {
     }
 
     protected override computeBBox(): BBox {
+        return this.computeTextBBox();
+    }
+
+    // Untransformed glyph box; must bypass the computeBBox override so getTextMeasureBBox never folds
+    // in the node's own rotation/translation.
+    private computeTextBBox(): BBox {
         if (!this.hasRenderableText()) {
             return new BBox(this.x, this.y, 0, 0);
         }
@@ -347,7 +353,7 @@ export class Text<D = unknown> extends Shape<D> {
     }
 
     getTextMeasureBBox() {
-        return this.computeBBox();
+        return this.computeTextBBox();
     }
 
     getPlainText() {

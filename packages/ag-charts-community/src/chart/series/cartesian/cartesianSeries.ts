@@ -33,7 +33,7 @@ import { SegmentedGroup } from '../../../scene/segmentedGroup';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import { SegmentedPath } from '../../../scene/shape/segmentedPath';
-import { Text } from '../../../scene/shape/text';
+import { RotatableText, Text } from '../../../scene/shape/text';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { NumberAxis } from '../../axis/numberAxis';
 import { TimeAxis } from '../../axis/timeAxis';
@@ -193,7 +193,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     private datumSelection: Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
     protected labelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>> = Selection.select<
         Text<LabelOf<TTypes>>
-    >(this.labelGroup, Text);
+    >(this.labelGroup, RotatableText);
 
     private highlightSelection = Selection.selectNoInference<DatumOf<TTypes>, NodeOf<TTypes>>(
         this.highlightNodeGroup,
@@ -201,7 +201,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     );
     protected highlightLabelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>> = Selection.select<
         Text<LabelOf<TTypes>>
-    >(this.highlightLabelGroup, Text);
+    >(this.highlightLabelGroup, RotatableText);
 
     public annotationSelections: Set<Selection<DatumOf<TTypes>, NodeWithOpacity<DatumOf<TTypes>>>> = new Set();
 
@@ -706,6 +706,8 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     }
 
     protected updateSeriesSelections() {
+        this.usesPlacedLabels = this.resolveUsesPlacedLabels();
+
         const { datumSelection, labelSelection, paths } = this;
         const contextData = this._contextNodeData;
         if (!contextData) return;
@@ -1665,6 +1667,23 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         labelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>>;
         isHighlight?: boolean;
     }): void;
+
+    // Preserves a constructor-set opt-in by default; bar-family series override to derive it from
+    // their `orientation` option each render.
+    protected resolveUsesPlacedLabels(): boolean {
+        return this.usesPlacedLabels;
+    }
+
+    // Re-renders both label selections after the placement engine has written back the chosen
+    // orientation, so highlighted labels pick up the resolved rotation too.
+    protected refreshPlacedLabelNodes() {
+        this.labelGroup.batchedUpdate(() => {
+            this.updateLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
+        });
+        this.highlightLabelGroup.batchedUpdate(() => {
+            this.updateLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
+        });
+    }
 
     protected abstract isLabelEnabled(): boolean;
 

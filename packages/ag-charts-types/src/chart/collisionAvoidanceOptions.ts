@@ -14,10 +14,9 @@ export type AgChartLabelCollisionPlacement =
     | 'bottom-right';
 
 /**
- * Rotation of a label relative to the shape it is rendered inside, for series whose label occupies a
- * bounded region (bar, waterfall, range-bar, range-area). Independent of the series' own
- * horizontal/vertical `direction`: `parallel` runs along the shape's length, while the two
- * `perpendicular` variants run across it, reading in opposite directions.
+ * Rotation of a label rendered inside a bounded region (bar, waterfall, range-bar, range-area).
+ * `parallel` renders the label upright in the normal reading direction; the two `perpendicular`
+ * variants rotate it a quarter-turn in opposite directions.
  */
 export type AgChartLabelOrientation = 'parallel' | 'perpendicular' | 'perpendicular-reversed';
 

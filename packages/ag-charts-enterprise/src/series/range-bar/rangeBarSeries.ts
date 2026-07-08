@@ -13,6 +13,7 @@ import {
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_SPAN,
+    type BoxBounds,
     type CallbackParamRules,
     ChartAxisDirection,
     DebugMetrics,
@@ -22,10 +23,17 @@ import {
     type Mutable,
     type Normalised,
     type NormalisedTextOrSegments,
+    type PlacedLabel,
     type Point,
+    type PointLabelDatum,
     type RequireOptional,
+    applyBarLabelOrientation,
     areScalingEqual,
+    barLabelResolvesOrientation,
+    barLabelRotation,
+    buildBarLabelData,
     findMinMax,
+    insetBox,
     isContinuous,
     mergeDefaults,
     toArray,
@@ -78,6 +86,11 @@ interface RangeBarNodeLabelDatum extends Readonly<Point> {
     text: NormalisedTextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
+    rotation: number;
+    region?: BoxBounds;
+    /** Flush offset written by the placement engine to keep a rotated label inside its region. */
+    offsetX?: number;
+    offsetY?: number;
     datum: any;
     itemType: 'high' | 'low';
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
@@ -115,6 +128,9 @@ interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateN
     readonly labelEnabled: boolean;
     readonly labelPlacement: 'inside' | 'outside';
     readonly labelPadding: number;
+    // Orientation derived once (series-constant) to keep the per-datum label build allocation-free.
+    readonly labelRotation: number;
+    readonly labelResolvesOrientation: boolean;
 
     // Incremental update support
     readonly dataAggregationFilter: RangeBarSeriesDataAggregationFilter | undefined;
@@ -458,6 +474,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yHighKey: this.properties.yHighKey,
             labelEnabled: this.properties.label.enabled,
             labelPlacement,
+            labelRotation: barLabelRotation(toArray(this.properties.label.orientation)[0]),
+            labelResolvesOrientation: barLabelResolvesOrientation(this.properties.label.orientation),
             labelPadding:
                 (this.properties.label.spacing +
                     (typeof this.properties.label.padding === 'number' ? this.properties.label.padding : 0)) *
@@ -867,12 +885,19 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const barAlongX = ctx.barAlongX;
         const placement = ctx.labelPlacement;
         const labelPadding = ctx.labelPadding;
+        // The first orientation is baked into `rotation`; an array resolves against the bar rect for inside placement only.
+        const rotation = ctx.labelRotation;
 
         // Calculate label positions and alignment using scratch params
         const rectX = params.rectX;
         const rectY = params.rectY;
         const rectWidth = params.rectWidth;
         const rectHeight = params.rectHeight;
+
+        const region =
+            ctx.labelResolvesOrientation && placement === 'inside'
+                ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, Math.abs(labelPadding))
+                : undefined;
 
         const yLowX = rectX + (barAlongX ? -labelPadding : rectWidth / 2);
         const yLowY = rectY + (barAlongX ? rectHeight / 2 : rectHeight + labelPadding);
@@ -945,6 +970,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yLowLabel.y = yLowY;
             yLowLabel.textAlign = yLowTextAlign;
             yLowLabel.textBaseline = yLowTextBaseline;
+            yLowLabel.rotation = rotation;
+            yLowLabel.region = region;
+            yLowLabel.offsetX = 0;
+            yLowLabel.offsetY = 0;
             yLowLabel.text = yLowText;
             yLowLabel.datum = datum;
         } else {
@@ -955,6 +984,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 y: yLowY,
                 textAlign: yLowTextAlign,
                 textBaseline: yLowTextBaseline,
+                rotation,
+                region,
+                offsetX: 0,
+                offsetY: 0,
                 text: yLowText,
                 itemType: 'low',
                 datum,
@@ -971,6 +1004,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yHighLabel.y = yHighY;
             yHighLabel.textAlign = yHighTextAlign;
             yHighLabel.textBaseline = yHighTextBaseline;
+            yHighLabel.rotation = rotation;
+            yHighLabel.region = region;
+            yHighLabel.offsetX = 0;
+            yHighLabel.offsetY = 0;
             yHighLabel.text = yHighText;
             yHighLabel.datum = datum;
         } else {
@@ -981,6 +1018,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 y: yHighY,
                 textAlign: yHighTextAlign,
                 textBaseline: yHighTextBaseline,
+                rotation,
+                region,
+                offsetX: 0,
+                offsetY: 0,
                 text: yHighText,
                 itemType: 'high',
                 datum,
@@ -1213,6 +1254,24 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 undefined
             );
         });
+    }
+
+    override getLabelData(): PointLabelDatum[] {
+        if (!this.usesPlacedLabels || !this.properties.label.enabled) return [];
+        const { label } = this.properties;
+        return buildBarLabelData(this.contextNodeData?.labelData, (labelDatum) => ({
+            label: labelDatum,
+            config: label,
+        }));
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<RangeBarNodeLabelDatum>[]) {
+        applyBarLabelOrientation(placed);
+        this.refreshPlacedLabelNodes();
+    }
+
+    protected override resolveUsesPlacedLabels(): boolean {
+        return barLabelResolvesOrientation(this.properties.label.orientation);
     }
 
     protected override updateLabelSelection(opts: {

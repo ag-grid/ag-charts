@@ -1,11 +1,14 @@
 import type {
+    BoxBounds,
     CallbackParamRules,
     DomainWithMetadata,
     DynamicContext,
     Mutable,
     NormalisedBarSeriesStyle,
     NormalisedTextOrSegments,
+    PlacedLabel,
     Point,
+    PointLabelDatum,
     RequireOptional,
     Scale,
 } from 'ag-charts-core';
@@ -18,7 +21,12 @@ import {
     AGGREGATION_SPAN,
     ChartAxisDirection,
     DebugMetrics,
+    applyBarLabelOrientation,
     areScalingEqual,
+    barLabelResolvesOrientation,
+    barLabelRotation,
+    buildBarLabelData,
+    insetBox,
     isContinuous,
     isFiniteNumber,
     maxValue,
@@ -31,6 +39,7 @@ import {
 import type {
     AgBarSeriesItemStylerParams,
     AgBarSeriesLabelFormatterParams,
+    AgBarSeriesLabelPlacement,
     AgBarSeriesOptions,
     AgBarSeriesStylerParams,
     AgErrorBoundSeriesTooltipRendererParams,
@@ -109,6 +118,12 @@ interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: NormalisedTextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
+    rotation: number;
+    /** Bar rect an orientation candidate must fit within; unset for outside placements. */
+    readonly region?: BoxBounds;
+    /** Flush offset written by the placement engine to keep a rotated label inside its region. */
+    offsetX?: number;
+    offsetY?: number;
 }
 
 /**
@@ -169,6 +184,11 @@ interface BarSeriesNodeDatumContext {
     readonly yName: string | undefined;
     readonly legendItemName: string | undefined;
     readonly label: BarSeriesProperties['label'];
+    // Label orientation/placement derived once here (series-constant) so the per-datum node build
+    // pays no allocation or trig for the common no-orientation case.
+    readonly labelPlacement: AgBarSeriesLabelPlacement;
+    readonly labelRotation: number;
+    readonly labelResolvesOrientation: boolean;
     readonly yDomain: any[];
 }
 
@@ -657,6 +677,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             yName: this.properties.yName,
             legendItemName: this.properties.legendItemName,
             label,
+            labelPlacement: toArray(label.placement)[0],
+            labelRotation: barLabelRotation(toArray(label.orientation)[0]),
+            labelResolvesOrientation: barLabelResolvesOrientation(label.orientation),
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
         };
     }
@@ -927,14 +950,21 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         if (nodeLabelText == null) {
             mutableNode.label = undefined;
         } else {
+            // Array placement is accepted, but only its first candidate is honoured here.
+            const { labelPlacement: placement, labelRotation: rotation } = ctx;
             const labelPlacement = adjustLabelPlacement({
                 isUpward,
                 isVertical: !ctx.barAlongX,
-                // Array placement is accepted, but only its first candidate is honoured here.
-                placement: toArray(ctx.label.placement)[0],
+                placement,
                 spacing: ctx.labelSpacing,
                 rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
             });
+            // The first orientation is baked into `rotation`; an array resolves against the bar rect for
+            // inside placements only (outside labels fall back to the plot bounds via no region).
+            const region =
+                ctx.labelResolvesOrientation && (placement == null || placement.startsWith('inside'))
+                    ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, ctx.labelSpacing)
+                    : undefined;
 
             const existingLabel = mutableNode.label;
             if (existingLabel) {
@@ -944,11 +974,19 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 existingLabel.y = labelPlacement.y;
                 existingLabel.textAlign = labelPlacement.textAlign;
                 existingLabel.textBaseline = labelPlacement.textBaseline;
+                existingLabel.rotation = rotation;
+                existingLabel.region = region;
+                existingLabel.offsetX = 0;
+                existingLabel.offsetY = 0;
             } else {
                 // Create new label object (first time label is added)
                 mutableNode.label = {
                     text: nodeLabelText,
                     ...labelPlacement,
+                    rotation,
+                    region,
+                    offsetX: 0,
+                    offsetY: 0,
                 };
             }
         }
@@ -1204,6 +1242,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
      * Populates node data by selecting the appropriate strategy based on data type.
      * Creates scratch objects and delegates to strategy-specific methods.
      */
+    protected override resolveUsesPlacedLabels(): boolean {
+        return barLabelResolvesOrientation(this.properties.label.orientation);
+    }
+
     protected override populateNodeData(ctx: BarSeriesNodeDatumContext): void {
         // Helper for x position calculation (uses context)
         const xPosition = (index: number): number => this.computeXPosition(ctx, index);
@@ -1612,6 +1654,17 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
     getLabelObstacles() {
         return rectLabelObstacles(this.contextNodeData?.nodeData);
+    }
+
+    override getLabelData(): PointLabelDatum[] {
+        if (!this.usesPlacedLabels || !this.isLabelEnabled()) return [];
+        const { label } = this.properties;
+        return buildBarLabelData(this.contextNodeData?.labelData, (node) => ({ label: node.label, config: label }));
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<BarNodeDatum>[]) {
+        applyBarLabelOrientation(placed);
+        this.refreshPlacedLabelNodes();
     }
 
     protected override updateLabelSelection(opts: {

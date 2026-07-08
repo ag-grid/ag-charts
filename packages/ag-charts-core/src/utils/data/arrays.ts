@@ -11,6 +11,14 @@ export function toArray<T>(value: T | T[] | undefined): T[] {
 }
 
 /**
+ * First candidate of an array-or-scalar value: its first element when an array, the value itself
+ * otherwise, or `undefined`. Equivalent to `toArray(value)[0]` but allocates nothing.
+ */
+export function firstCandidate<T>(value: T | T[] | undefined): T | undefined {
+    return Array.isArray(value) ? value[0] : value;
+}
+
+/**
  * Removes duplicate values from an array.
  * @param array - The array to process.
  * @returns A new array with unique values.
