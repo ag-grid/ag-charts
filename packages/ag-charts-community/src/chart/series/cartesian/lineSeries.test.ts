@@ -791,6 +791,56 @@ describe('LineSeries', () => {
             expect(trajectory[0].get('series[0]/marker[w2]')?.opacity ?? 1).toBeLessThanOrEqual(0.001);
         });
 
+        // "Add Weeks 7+8" — the distinct middle-insertion case: two categories drop into the interior gap
+        // (between w6 and w9) rather than at an edge. The new bands must land BETWEEN their neighbours and
+        // the categories to their right must slide right to make room, on both the series and the axis.
+        it('category add middle weeks: inserted bands land between neighbours and slide the rest right', async () => {
+            const withMiddle = [
+                { x: 'w3', y: 60 },
+                { x: 'w4', y: 185 },
+                { x: 'w5', y: 148 },
+                { x: 'w6', y: 130 },
+                { x: 'w7', y: 90 },
+                { x: 'w8', y: 110 },
+                { x: 'w9', y: 62 },
+                { x: 'w10', y: 137 },
+                { x: 'w11', y: 121 },
+            ];
+            const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS), () =>
+                chart.updateDelta({ data: withMiddle })
+            );
+            expect(markerCount(before)).toBe(7);
+            expect(markerCount(after)).toBe(9);
+            expect([...before.keys()]).not.toContain('series[0]/marker[w7]');
+            expect([...after.keys()]).toContain('series[0]/marker[w7]');
+            expect([...after.keys()]).toContain('series[0]/marker[w8]');
+
+            // Settled screen x of a marker (position may live in either the local coord or the translation).
+            const markerX = (s: SceneGeometrySample, label: string) => {
+                const m = s.get(`series[0]/marker[${label}]`)!;
+                return m.x + (m.translationX ?? 0);
+            };
+            // The inserted markers land in order between w6 and w9...
+            expect(markerX(after, 'w6')).toBeLessThan(markerX(after, 'w7'));
+            expect(markerX(after, 'w7')).toBeLessThan(markerX(after, 'w8'));
+            expect(markerX(after, 'w8')).toBeLessThan(markerX(after, 'w9'));
+            // ...and the series point just past the insertion slides right to make room for them.
+            expect(markerX(after, 'w9')).toBeGreaterThan(markerX(before, 'w9'));
+
+            // The axis mirrors it: the two interior category labels are inserted, and the category to their
+            // right slides right to make room (the axis reflow is a bidirectional spread from the gap, so it
+            // is asserted directly here rather than through the single-direction axisReflowSpec).
+            const axisLabelX = (s: SceneGeometrySample, label: string) => s.get(`axis[bottom]/text[${label}]`)?.x;
+            expect(axisLabelX(before, 'l:w7')).toBeUndefined();
+            expect(axisLabelX(after, 'l:w7')).toBeDefined();
+            expect(axisLabelX(after, 'l:w8')).toBeDefined();
+            expect(axisLabelX(after, 'l:w9')!).toBeGreaterThan(axisLabelX(before, 'l:w9')!);
+
+            // The inserted markers animate in from invisible to fully shown.
+            expect(trajectory[0].get('series[0]/marker[w7]')?.opacity ?? 1).toBeLessThanOrEqual(0.001);
+            expect(after.get('series[0]/marker[w7]')!.opacity).toBeGreaterThan(0.99);
+        });
+
         // "Reorder" — the category order is scrambled; the same markers stay (count holds) but re-map to
         // reshuffled bands, so positions move while the path reshapes and markers re-fade.
         it('category reorder: markers re-map to reshuffled bands with the count unchanged', async () => {
