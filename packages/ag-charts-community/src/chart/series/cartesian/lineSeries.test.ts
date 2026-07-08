@@ -674,6 +674,128 @@ describe('LineSeries', () => {
             expect([...after.keys()].filter((k) => k.startsWith('series[1]/path'))).toHaveLength(0);
             expectSceneTrajectory(trajectory, markersFadeIn);
         });
+
+        // A category x-axis re-spaces its bands whenever the category set changes, so the markers move with
+        // their bands (position in flux) while still fading in. This glob pins the fade and marker size but
+        // leaves position free.
+        const markersReflow: Record<string, SceneNodeExpectation> = {
+            'series[0]/marker[*]': {
+                opacity: { during: ['add', 'trailing'], expect: ['increases', 'bounded'], settlesAt: 1 },
+                x: 'any',
+                y: 'any',
+                translationX: 'any',
+                translationY: 'any',
+            },
+        };
+
+        // On an initial-load reveal the markers additionally scale in from zero size (the swipe scale-in
+        // the easeOut-very-slow debug flag suppresses), staggered across the reveal, so width/height grow
+        // monotonically rather than holding constant.
+        const markersScaleIn: Record<string, SceneNodeExpectation> = {
+            'series[0]/marker[*]': {
+                opacity: { during: ['add', 'trailing'], expect: ['increases', 'bounded'], settlesAt: 1 },
+                width: ['increases', 'bounded'],
+                height: ['increases', 'bounded'],
+                x: 'any',
+                y: 'any',
+                translationX: 'any',
+                translationY: 'any',
+            },
+        };
+
+        const WEEKS: Array<{ x: string; y: number }> = [
+            { x: 'w3', y: 60 },
+            { x: 'w4', y: 185 },
+            { x: 'w5', y: 148 },
+            { x: 'w6', y: 130 },
+            { x: 'w9', y: 62 },
+            { x: 'w10', y: 137 },
+            { x: 'w11', y: 121 },
+        ];
+
+        const categoryOptions = (
+            data: Array<{ x: string; y: number }>,
+            mode?: 'integrated'
+        ): AgCartesianChartOptions => {
+            const options: AgCartesianChartOptions = {
+                data,
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: true } }],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0, max: 200 },
+                },
+            };
+            if (mode != null) {
+                (options as AgChartOptions & { mode: string }).mode = mode;
+            }
+            return prepareTestOptions(options);
+        };
+
+        // "Add End Week" — a new category appends; every band narrows and shifts left to make room, the
+        // path re-covers the reflowed bands, and the new marker fades in.
+        it('category add end week: bands reflow left and the new marker fades in', async () => {
+            const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS), () =>
+                chart.updateDelta({ data: [...WEEKS, { x: 'w12', y: 78 }] })
+            );
+            expect(markerCount(before)).toBe(7);
+            expect(markerCount(after)).toBe(8);
+            const key = pathKey(before);
+            expectSceneTrajectory(trajectory, {
+                [key]: 'any',
+                ...markersReflow,
+                ...axisReflowSpec('bottom', { shift: 'left' }),
+            });
+            expect(trajectory[0].get('series[0]/marker[w12]')?.opacity ?? 1).toBeLessThanOrEqual(0.001);
+        });
+
+        // "Add Start Week" — a new category prepends; bands reflow right and the new leading marker fades in.
+        it('category add start week: bands reflow right and the leading marker fades in', async () => {
+            const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS), () =>
+                chart.updateDelta({ data: [{ x: 'w2', y: 90 }, ...WEEKS] })
+            );
+            expect(markerCount(after)).toBe(8);
+            const key = pathKey(before);
+            expectSceneTrajectory(trajectory, {
+                [key]: 'any',
+                ...markersReflow,
+                ...axisReflowSpec('bottom', { shift: 'right' }),
+            });
+            expect(trajectory[0].get('series[0]/marker[w2]')?.opacity ?? 1).toBeLessThanOrEqual(0.001);
+        });
+
+        // "Reorder" — the category order is scrambled; the same markers stay (count holds) but re-map to
+        // reshuffled bands, so positions move while the path reshapes and markers re-fade.
+        it('category reorder: markers re-map to reshuffled bands with the count unchanged', async () => {
+            const reordered = [WEEKS[3], WEEKS[0], WEEKS[5], WEEKS[1], WEEKS[6], WEEKS[2], WEEKS[4]];
+            const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS), () =>
+                chart.updateDelta({ data: reordered })
+            );
+            expect(markerCount(after)).toBe(markerCount(before));
+            const key = pathKey(before);
+            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersReflow });
+        });
+
+        // Integrated mode initial load: the line must still reveal, scaling its markers in from zero size.
+        it('integrated mode: initial load reveals the line and scales its markers in', async () => {
+            chart = AgCharts.create(categoryOptions(WEEKS, 'integrated'));
+            const sampleScene = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            const key = pathKey(trajectory.at(-1)!);
+            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersScaleIn });
+            // The last marker scales in last, so it is still zero-size at the start of the reveal.
+            expect(trajectory[0].get('series[0]/marker[w11]')?.width ?? 99).toBeLessThanOrEqual(0.001);
+        });
+
+        // "Reverse" (integrated-only) — the data order is reversed, reshuffling the category bands; markers
+        // re-map with the count unchanged.
+        it('integrated mode: reverse re-maps markers to the reversed bands', async () => {
+            const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS, 'integrated'), () =>
+                chart.updateDelta({ data: [...WEEKS].reverse() })
+            );
+            expect(markerCount(after)).toBe(markerCount(before));
+            const key = pathKey(before);
+            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersReflow });
+        });
     });
 
     describe('#create', () => {
