@@ -1,7 +1,7 @@
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import { afterEach, beforeEach, expect, vi } from 'vitest';
 
-import { fromPairs, getDocument, mapValues } from 'ag-charts-core';
+import { evaluateBezier, fromPairs, getDocument, mapValues } from 'ag-charts-core';
 import {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
@@ -900,21 +900,40 @@ export function spyOnAnimationFrames() {
     };
 
     beforeEach(() => {
-        const isSkippedMock = vi.spyOn(AnimationManager.prototype, 'isSkipped').mockImplementation(() => false);
+        // Drop the environment terms (`!rafAvailable`, `skipAnimations`) but preserve batch-level
+        // skips: product snap paths (resize, skipCurrentBatch) must still skip.
+        const isSkippedMock = vi.spyOn(AnimationManager.prototype, 'isSkipped').mockImplementation(function (
+            this: AnimationManager
+        ) {
+            return (this as unknown as { batch: { isSkipped(): boolean } }).batch.isSkipped();
+        });
         const skippingFramesMock = vi
             .spyOn(AnimationManager.prototype, 'isSkippingFrames')
             .mockImplementation(() => false);
         const safMock = vi.spyOn(AnimationManager.prototype, 'scheduleAnimationFrame');
         safMock.mockImplementation(function (this: AnimationManager, cb) {
-            // NOTE: cancelAnimationFrame is not intercepted, so a mid-animation chart update can leave a
-            // stale callback in the queue; capture flows must drain frames (runToEnd) between updates.
             const id = nextRafId++;
             (this as any).requestId = id;
             rafCbs.set(id, cb);
         });
+        // Mirror browser cancelAnimationFrame semantics: a mid-animation update cancels the pending
+        // frame, so its mock callback must leave the queue too.
+        const animationManagerProto = AnimationManager.prototype as unknown as {
+            cancelAnimation: (this: AnimationManager) => void;
+        };
+        const originalCancelAnimation = animationManagerProto.cancelAnimation;
+        const cancelMock = vi.spyOn(animationManagerProto, 'cancelAnimation').mockImplementation(function (
+            this: AnimationManager
+        ) {
+            const id = (this as any).requestId;
+            if (id != null) {
+                rafCbs.delete(id);
+            }
+            originalCancelAnimation.call(this);
+        });
         // NOTE: `forceTimeJump` is deliberately NOT mocked — its default `false` keeps animations in the
         // batch so they progress frame-by-frame as `fireFrame` is called.
-        mocks.push(isSkippedMock, skippingFramesMock, safMock);
+        mocks.push(isSkippedMock, skippingFramesMock, safMock, cancelMock);
     });
 
     afterEach(() => {
@@ -958,13 +977,27 @@ export function spyOnAnimationFrames() {
     const captureAnimationFrames = async <T>(
         chartOrProxy: ChartOrProxy<any>,
         sampler: () => T,
-        { frames = 30, duration = 1600 }: { frames?: number; duration?: number } = {}
+        {
+            frames = 30,
+            duration = 1600,
+            onFrame,
+        }: {
+            frames?: number;
+            duration?: number;
+            /**
+             * Invoked before firing frame `frameIndex` (0-based) — the hook for mid-capture chart
+             * updates (streaming/rapid-update scenarios). Await the update inside the hook so the
+             * interrupted batch has re-scheduled before the next frame fires.
+             */
+            onFrame?: (frameIndex: number) => void | Promise<void>;
+        } = {}
     ): Promise<T[] & PhasedTrajectory> => {
         await settle(chartOrProxy);
         const step = duration / frames;
         const samples: T[] = [sampler()];
         const phaseIntervals: AnimationPhase[][] = [];
         for (let i = 0; i < frames; i++) {
+            await onFrame?.(i);
             const from = currentPhaseIndex(chartOrProxy);
             if (rafCbs.size > 0) {
                 await fireFrame(step);
@@ -978,7 +1011,37 @@ export function spyOnAnimationFrames() {
         return Object.assign(samples, { phaseIntervals });
     };
 
-    return { runToEnd, captureAnimationFrames };
+    /**
+     * The standard single-action capture flow shared by trajectory CASEs: settle, sample the before
+     * state, apply `action` (a chart update or API call), capture the resulting animation, run it to
+     * completion and sample the after state. Asserts the trajectory endpoints equal the before/after
+     * scenes, so callers only assert what moves in between.
+     */
+    const captureUpdate = async (
+        chartOrProxy: ChartOrProxy<any>,
+        sampler: () => SceneGeometrySample,
+        action: () => void | Promise<void>,
+        options: { frames?: number; duration?: number } = {}
+    ): Promise<{
+        trajectory: SceneGeometrySample[] & PhasedTrajectory;
+        before: SceneGeometrySample;
+        after: SceneGeometrySample;
+    }> => {
+        await runToEnd(chartOrProxy);
+        const before = sampler();
+        await action();
+        const trajectory = await captureAnimationFrames(chartOrProxy, sampler, options);
+        await runToEnd(chartOrProxy);
+        const after = sampler();
+        // A structural update adds/removes nodes at frame 0, so the start check is scoped to nodes
+        // present on both sides: surviving geometry must not jump when the update lands.
+        const common = new Map([...before].filter(([key]) => trajectory[0].has(key)));
+        expectSceneSamplesMatch(new Map([...trajectory[0]].filter(([key]) => common.has(key))), common);
+        expectSceneSamplesMatch(trajectory.at(-1)!, after);
+        return { trajectory, before, after };
+    };
+
+    return { runToEnd, captureAnimationFrames, captureUpdate };
 }
 
 /**
@@ -1024,8 +1087,7 @@ export type SceneGeometrySample = Map<string, SceneNodeGeometry>;
  * Map a node's serialised state ({@link Node.serialize}) to the property set trajectory specs assert
  * over; `null` marks node kinds deliberately not sampled (groups are handled separately by the scene
  * walk). The switch is exhaustive over {@link SerializedNodeState}: adding a scene node kind fails
- * compilation here until its sampling is decided. Marker and generic path nodes expose their bbox
- * extents.
+ * compilation here until its sampling is decided.
  */
 function buildGeometry(state: SerializedNodeState): SceneNodeGeometry | null {
     switch (state.type) {
@@ -1037,23 +1099,158 @@ function buildGeometry(state: SerializedNodeState): SceneNodeGeometry | null {
             const { startAngle, endAngle, innerRadius, outerRadius, opacity } = state.props;
             return { startAngle, endAngle, innerRadius, outerRadius, opacity };
         }
-        case 'rect':
-        case 'marker':
-        case 'path': {
+        // Specialised rects (e.g. stacked BarShape) keep nominal extents in the fields and derive
+        // the painted segment in updatePath — only the drawn path reflects the screen.
+        case 'rect': {
             const { x, y, width, height, opacity } = state.props;
-            return { x, y, width, height, opacity };
+            const drawn = flattenPathPolylines(state.svgPath);
+            if (drawn.length === 0) return { x, y, width, height, opacity };
+            const { minX, minY, maxX, maxY } = polylineBounds(drawn);
+            return { x: minX, y: minY, width: maxX - minX, height: maxY - minY, opacity };
         }
         case 'text': {
-            const { x, y, opacity } = state.props;
-            return { x, y, opacity };
+            const { x, y, opacity, rotation } = state.props;
+            const props: SceneNodeGeometry = { x, y, opacity };
+            // Rotation only exists on the Rotatable mixin variants (e.g. axis labels).
+            if (typeof rotation === 'number') props.rotation = rotation;
+            return props;
         }
         case 'line': {
             const { x1, y1, x2, y2, opacity } = state.props;
             return { x1, y1, x2, y2, opacity };
         }
+        case 'marker': {
+            const { x, y, width, height, opacity } = state.props;
+            return { x, y, width, height, opacity };
+        }
+        case 'path':
+            return readPathGeometry(state);
         default:
             return state satisfies never;
     }
+}
+
+const PATH_STATION_COUNT = 5;
+const CURVE_FLATTEN_STEPS = 8;
+
+type PolylinePoint = { x: number; y: number };
+
+function polylineBounds(polylines: PolylinePoint[][]) {
+    let [minX, minY, maxX, maxY] = [Infinity, Infinity, -Infinity, -Infinity];
+    for (const line of polylines) {
+        for (const p of line) {
+            minX = Math.min(minX, p.x);
+            minY = Math.min(minY, p.y);
+            maxX = Math.max(maxX, p.x);
+            maxY = Math.max(maxY, p.y);
+        }
+    }
+    return { minX, minY, maxX, maxY };
+}
+
+/** Flatten a node's serialised drawn path (SVG form) into one polyline per subpath. */
+function flattenPathPolylines(svgPath: string | undefined): PolylinePoint[][] {
+    if (svgPath == null) return [];
+    const tokens = svgPath.split(' ').filter((t) => t.length > 0);
+    const polylines: PolylinePoint[][] = [];
+    let current: PolylinePoint[] | undefined;
+    let i = 0;
+    const num = () => {
+        const value = Number(tokens[i++]);
+        // A non-numeric coordinate (or a command consuming the wrong argument count) would poison
+        // every downstream geometry assertion with NaN — fail loudly at the source instead.
+        if (!Number.isFinite(value)) {
+            throw new Error(`flattenPathPolylines: non-finite coordinate at token ${i - 1} in '${svgPath}'`);
+        }
+        return value;
+    };
+    while (i < tokens.length) {
+        const token = tokens[i++];
+        switch (token) {
+            case 'M':
+                current = [{ x: num(), y: num() }];
+                polylines.push(current);
+                break;
+            case 'L':
+                current?.push({ x: num(), y: num() });
+                break;
+            case 'C': {
+                const [x1, y1, x2, y2, x3, y3] = [num(), num(), num(), num(), num(), num()];
+                const from = current?.at(-1);
+                if (from == null) break;
+                for (let step = 1; step <= CURVE_FLATTEN_STEPS; step++) {
+                    const t = step / CURVE_FLATTEN_STEPS;
+                    current!.push({
+                        x: evaluateBezier(from.x, x1, x2, x3, t),
+                        y: evaluateBezier(from.y, y1, y2, y3, t),
+                    });
+                }
+                break;
+            }
+            case 'Z':
+                if (current != null && current.length > 0) current.push({ ...current[0] });
+                break;
+            default:
+                // A command this parser does not consume would desynchronise the token stream and
+                // silently corrupt every downstream geometry assertion — fail loudly instead.
+                throw new Error(`flattenPathPolylines: unsupported SVG path command '${token}' in '${svgPath}'`);
+        }
+    }
+    return polylines.filter((p) => p.length > 1);
+}
+
+/**
+ * The topmost (minimum) y where the drawn path crosses each of {@link PATH_STATION_COUNT} x-stations
+ * spread evenly across the path's own x-extent. For a line stroke this traces the line itself; for an
+ * area fill it traces the animated top edge (the baseline below has a larger y). A station with no
+ * crossing (a gap in the drawn path) yields NaN, which trajectory checks reject as non-finite.
+ */
+function pathStationTopYs(polylines: PolylinePoint[][]): number[] {
+    const { minX, maxX } = polylineBounds(polylines);
+    const tops: number[] = new Array(PATH_STATION_COUNT).fill(Number.NaN);
+    if (!Number.isFinite(minX) || maxX <= minX) return tops;
+    for (let station = 0; station < PATH_STATION_COUNT; station++) {
+        const x = minX + ((maxX - minX) * station) / (PATH_STATION_COUNT - 1);
+        let top = Infinity;
+        for (const line of polylines) {
+            for (let i = 1; i < line.length; i++) {
+                const a = line[i - 1];
+                const b = line[i];
+                if ((a.x - x) * (b.x - x) > 0) continue;
+                const y = a.x === b.x ? Math.min(a.y, b.y) : a.y + ((x - a.x) / (b.x - a.x)) * (b.y - a.y);
+                top = Math.min(top, y);
+            }
+        }
+        tops[station] = Number.isFinite(top) ? top : Number.NaN;
+    }
+    return tops;
+}
+
+/**
+ * Paths get interior geometry on top of the bbox: `subpaths` (drawn-gap detector — a stroke that
+ * should be continuous must keep `subpaths` at 1) and `top@<i>` per x-station (see
+ * {@link pathStationTopYs}), so path-based series (line/area) can assert per-point trajectories
+ * rather than extent-level bbox movement only. Paths with nothing drawn get the bbox props only.
+ */
+function readPathGeometry(s: Extract<SerializedNodeState, { type: 'path' }>): SceneNodeGeometry {
+    const polylines = flattenPathPolylines(s.svgPath);
+    // An empty drawn path has no meaningful geometry (its bbox is ±Infinity): emit paint props only,
+    // so geometry checks span just the frames where something is actually drawn.
+    if (polylines.length === 0) return { opacity: s.props.opacity };
+    const { x, y, width, height, opacity } = s.props;
+    const props: SceneNodeGeometry = { x, y, width, height, opacity };
+    // The reveal (swipe-in) animation masks the fully-drawn path behind a growing clip window, so
+    // the clip fields are the only per-frame signal of the sweep.
+    props.clip = s.props.clip ? 1 : 0;
+    if (s.props.clip) {
+        props['clip:x'] = s.props.clipX;
+        props['clip:y'] = s.props.clipY;
+    }
+    props.subpaths = polylines.length;
+    for (const [i, topY] of pathStationTopYs(polylines).entries()) {
+        props[`top@${i}`] = topY;
+    }
+    return props;
 }
 
 function readNodeGeometry(state: SerializedNodeState): { label: string; props: SceneNodeGeometry } | undefined {
@@ -1065,6 +1262,11 @@ function readNodeGeometry(state: SerializedNodeState): { label: string; props: S
         props.translationX = translationX;
         props.translationY = translationY;
     }
+    // Cutout compositing (destination-out) punches holes through siblings — a marker left in cutout
+    // mode while translucent erases the series stroke underneath it, which no geometry check can see.
+    if (state.type !== 'node' && state.type !== 'group') {
+        props.cutout = state.props.drawingMode === 'cutout' ? 1 : 0;
+    }
     props.visible = state.props.visible ? 1 : 0;
     return { label: state.type, props };
 }
@@ -1073,9 +1275,15 @@ function readNodeGeometry(state: SerializedNodeState): { label: string; props: S
 function datumKeyOf(node: Node<any>, state: SerializedNodeState): string | undefined {
     const datum: any = node.datum;
     if (datum != null && typeof datum !== 'object') return String(datum);
-    const value = datum?.xValue ?? datum?.angleValue ?? datum?.itemId ?? datum?.index;
+    const value = datum?.xValue ?? datum?.angleValue ?? datum?.itemId ?? datum?.tickId ?? datum?.index;
     if (value != null) return String(value);
     if (state.type === 'text' && state.props.text != null) return state.props.text;
+    // Series paint one Path per role (e.g. area fill vs stroke), distinguishable by which paint is set.
+    if (state.type === 'path') {
+        const { hasFill, hasStroke } = state.props;
+        if (hasFill && !hasStroke) return 'fill';
+        if (hasStroke && !hasFill) return 'stroke';
+    }
     return undefined;
 }
 
@@ -1118,10 +1326,9 @@ export function createSceneGeometrySampler(chartOrProxy: ChartOrProxy<any>): () 
                 sample.set(assignKey(node, baseKey), geometry.props);
             } else if (state.type === 'group' && node instanceof Group) {
                 const props: SceneNodeGeometry = { opacity: state.props.opacity };
-                const { translationX, translationY } = state.props;
-                if (typeof translationX === 'number' && typeof translationY === 'number') {
-                    props.translationX = translationX;
-                    props.translationY = translationY;
+                for (const name of ['translationX', 'translationY', 'scalingX', 'scalingY', 'rotation'] as const) {
+                    const value = state.props[name];
+                    if (typeof value === 'number') props[name] = value;
                 }
                 props.visible = state.props.visible ? 1 : 0;
                 sample.set(assignKey(node, node === root ? rootPath : `${rootPath}/group[${node.name ?? ''}]`), props);
@@ -1139,25 +1346,57 @@ export function createSceneGeometrySampler(chartOrProxy: ChartOrProxy<any>): () 
         for (const [i, series] of (chart.series as any[]).entries()) {
             sampleInto(sample, `series[${i}]`, series.contentGroup);
             sampleInto(sample, `series[${i}]/labels`, series.labelGroup);
+            // Some series paint outside contentGroup (e.g. area fills render behind in backgroundGroup).
+            if (series.backgroundGroup != null) {
+                sampleInto(sample, `series[${i}]/background`, series.backgroundGroup);
+            }
         }
         for (const axis of (chart as any).axes) {
             const position = axis.position ?? 'unknown';
             sampleInto(sample, `axis[${position}]`, axis.axisGroup);
             sampleInto(sample, `axis[${position}]/grid`, axis.gridGroup);
         }
+        // Cartesian charts clip the series area to an animated rect (the `clip-rect` motion group).
+        const clipRect = (chart as any).lastUpdateClipRect;
+        if (clipRect != null) {
+            sample.set('chart/clipRect', {
+                x: clipRect.x,
+                y: clipRect.y,
+                width: clipRect.width,
+                height: clipRect.height,
+            });
+        }
         return sample;
     };
 }
 
-export type TrajectoryExpectation = 'constant' | 'increases' | 'decreases' | 'progresses' | 'bounded' | 'any';
+/**
+ * `degenerate` opts a property into legitimately non-finite frames (e.g. a line gap where a datum is
+ * `undefined` leaves stations with no crossing): non-finite samples are treated as absent instead of
+ * failing, and any other expectations in the same list are checked over the finite frames only.
+ */
+export type TrajectoryExpectation =
+    | 'constant'
+    | 'increases'
+    | 'decreases'
+    /** Monotonic in the direction inferred from the endpoints — for updates where each node may
+     * legitimately move either way (e.g. randomised data). A flat trajectory satisfies it. */
+    | 'monotonic'
+    | 'progresses'
+    | 'bounded'
+    | 'degenerate'
+    | 'any';
 /**
  * Scopes a property expectation to the animation phase(s) it may change in: outside `during`, the
  * property must hold constant frame-to-frame; the `expect` trajectory checks still apply to the whole
  * trajectory. Requires phase data captured by {@link spyOnAnimationFrames}' `captureAnimationFrames`.
  */
 export type PhasedPropertyExpectation = {
-    during: AnimationPhase | readonly AnimationPhase[];
-    expect: TrajectoryExpectation | readonly TrajectoryExpectation[];
+    during?: AnimationPhase | readonly AnimationPhase[];
+    expect?: TrajectoryExpectation | readonly TrajectoryExpectation[];
+    /** The value the property must have settled at by the final frame (within constantTol) — for
+     * targets that directional checks cannot pin, e.g. "fades to the DIMMED opacity, not to 1". */
+    settlesAt?: number;
 };
 export type ScenePropertyExpectation =
     | TrajectoryExpectation
@@ -1234,6 +1473,65 @@ export function axisReflowSpec(
     return spec;
 }
 
+/**
+ * Assert a captured trajectory shows NO animation: no batch phase ran on any interval, and every
+ * node property holds constant across all frames (a skipped batch must SNAP to the end state before
+ * the first frame, not tween towards it). The complement of {@link expectSceneTrajectory} specs —
+ * use it for skipped-animation paths (animation disabled, resize).
+ */
+export function expectNoAnimation(trajectory: SceneGeometrySample[]): void {
+    // A skipped batch still advances through its phases (they just do no work), so phase data can't
+    // distinguish a snap from a tween — full-scene constancy from the first frame is the signal.
+    expectSceneTrajectory(trajectory, {});
+}
+
+// Flag/range properties whose whole domain fits inside a 1px geometry tolerance — compare exactly.
+const EXACT_MATCH_PROPS = new Set(['opacity', 'visible', 'clip', 'cutout', 'subpaths']);
+// These props live on a 0..1 (or 0/1) scale, so the pixel-scaled constant tolerance would let a value
+// drift halfway across its whole range unnoticed. Judge their constancy/bounds against a scale-honest
+// epsilon instead — loose enough to absorb interpolation float noise, tight enough to catch a stalled
+// fade or a drifting opacity.
+const EXACT_MATCH_TRAJECTORY_TOL = 1e-3;
+
+/**
+ * Endpoint sanity: two whole-scene samples describe the same scene within a pixel tolerance. Strict
+ * deep-equality is too brittle for drawn geometry — the crisp-pixel snap when an animation settles
+ * shifts values fractionally depending on when the scene last rendered. Flag/range props
+ * ({@link EXACT_MATCH_PROPS}) are compared exactly.
+ */
+export function expectSceneSamplesMatch(actual: SceneGeometrySample, expected: SceneGeometrySample, tol = 1): void {
+    const byName = (a: string, b: string) => a.localeCompare(b);
+    expect([...actual.keys()].sort(byName)).toEqual([...expected.keys()].sort(byName));
+    for (const [key, expectedProps] of expected) {
+        const actualProps = actual.get(key)!;
+        expect(Object.keys(actualProps).sort(byName), key).toEqual(Object.keys(expectedProps).sort(byName));
+        for (const prop of Object.keys(expectedProps)) {
+            const expectedValue = expectedProps[prop];
+            const actualValue = actualProps[prop];
+            if (Number.isFinite(expectedValue)) {
+                const propTol = EXACT_MATCH_PROPS.has(prop) ? 1e-6 : tol;
+                expect(
+                    Math.abs(actualValue - expectedValue),
+                    `${key}.${prop}: ${actualValue} vs ${expectedValue}`
+                ).toBeLessThanOrEqual(propTol);
+            } else {
+                expect(actualValue, `${key}.${prop}`).toBe(expectedValue);
+            }
+        }
+    }
+}
+
+/**
+ * A cross-node check evaluated on every captured frame — for relationships no per-node/per-property
+ * expectation can express (e.g. "stacked layer N's far edge equals layer N+1's near edge on every
+ * frame"). Return a message to fail, undefined to pass; only the first failing frame per invariant is
+ * reported.
+ */
+export interface SceneFrameInvariant {
+    name: string;
+    check(frame: SceneGeometrySample, frameIndex: number): string | undefined;
+}
+
 interface TrajectoryViolation {
     key: string;
     prop?: string;
@@ -1269,7 +1567,8 @@ function formatValues(values: (number | undefined)[]): string {
 
 function checkPropertyTrajectory(
     values: number[],
-    expectation: TrajectoryExpectation,
+    // 'degenerate' is a presence modifier handled by the caller, not a trajectory shape.
+    expectation: Exclude<TrajectoryExpectation, 'degenerate'>,
     tolerances: { constant: number; monotonic: number; progress: number }
 ): string | undefined {
     switch (expectation) {
@@ -1283,11 +1582,19 @@ function checkPropertyTrajectory(
                 : `expected constant ~${first.toFixed(2)}, moved to ${values[badFrame].toFixed(2)} at frame ${badFrame}`;
         }
         case 'increases':
-        case 'decreases': {
-            const sign = expectation === 'increases' ? 1 : -1;
+        case 'decreases':
+        case 'monotonic': {
+            const inferredIncreasing = values.at(-1)! >= values[0];
+            const increasing = expectation === 'monotonic' ? inferredIncreasing : expectation === 'increases';
+            const sign = increasing ? 1 : -1;
+            const inferredDirection = inferredIncreasing ? 'increasing' : 'decreasing';
+            const description =
+                expectation === 'monotonic'
+                    ? `monotonic (${inferredDirection} by endpoints)`
+                    : `${expectation.replace(/es$/, 'ing')} monotonically`;
             for (let i = 1; i < values.length; i++) {
                 if (sign * (values[i] - values[i - 1]) < -tolerances.monotonic) {
-                    return `expected ${expectation.replace(/es$/, 'ing')} monotonically, reversed at frame ${i} (${values[i - 1].toFixed(2)} -> ${values[i].toFixed(2)})`;
+                    return `expected ${description}, reversed at frame ${i} (${values[i - 1].toFixed(2)} -> ${values[i].toFixed(2)})`;
                 }
             }
             return undefined;
@@ -1312,6 +1619,9 @@ function checkPropertyTrajectory(
                 .some((v) => Math.abs(v - start) > tolerances.progress && Math.abs(v - end) > tolerances.progress);
             return hasMidTransition ? undefined : 'no intermediate frame between the endpoints — animation jumped';
         }
+        default:
+            // Exhaustive: an unrecognised expectation must fail loudly, never silently pass.
+            return expectation satisfies never;
     }
 }
 
@@ -1375,9 +1685,17 @@ export function expectSceneTrajectory(
     spec: Record<string, SceneNodeExpectation> = {},
     {
         constantTol = 0.5,
-        monotonicTol = 1e-6,
+        // Drawn geometry snaps to crisp pixels when an animation settles, so a sub-pixel "reversal"
+        // on the final frame is rounding, not a direction change.
+        monotonicTol = 0.5,
         progressTol = 1e-3,
-    }: { constantTol?: number; monotonicTol?: number; progressTol?: number } = {}
+        frameInvariants = [],
+    }: {
+        constantTol?: number;
+        monotonicTol?: number;
+        progressTol?: number;
+        frameInvariants?: readonly SceneFrameInvariant[];
+    } = {}
 ): void {
     expect(trajectory.length).toBeGreaterThan(1);
     const tolerances = { constant: constantTol, monotonic: monotonicTol, progress: progressTol };
@@ -1386,7 +1704,9 @@ export function expectSceneTrajectory(
     const usesPhases = Object.values(spec).some(
         (nodeExpectation) =>
             typeof nodeExpectation === 'object' &&
-            Object.values(nodeExpectation).some((p) => typeof p === 'object' && !Array.isArray(p))
+            Object.values(nodeExpectation).some(
+                (p) => typeof p === 'object' && !Array.isArray(p) && (p as PhasedPropertyExpectation).during != null
+            )
     );
     if (usesPhases && phaseIntervals == null) {
         throw new Error(
@@ -1462,27 +1782,59 @@ export function expectSceneTrajectory(
 
         for (const prop of props) {
             const raw = expectation === 'constant' ? 'constant' : ((expectation as any)[prop] ?? 'constant');
+            // `constant`/`bounded`/`settlesAt` all pin absolute position, so they must use the prop's
+            // native scale; direction (`monotonic`) and `progresses` are scale-agnostic and keep the
+            // pixel tolerances.
+            const propConstantTol = EXACT_MATCH_PROPS.has(prop) ? EXACT_MATCH_TRAJECTORY_TOL : constantTol;
+            const propTolerances = { ...tolerances, constant: propConstantTol };
             const isPhased = typeof raw === 'object' && !Array.isArray(raw);
-            const propExpectations: TrajectoryExpectation[] = [isPhased ? raw.expect : raw].flat();
+            const propExpectations: TrajectoryExpectation[] = [isPhased ? (raw.expect ?? []) : raw].flat();
             const rawValues = rawValuesFor(prop);
             const values = rawValues.filter((v): v is number => v != null);
             if (values.length < 2) continue;
             // NaN compares false against everything, so it would sail through every check below.
+            const allowsDegenerate = propExpectations.includes('degenerate');
             const nonFinite = values.findIndex((v) => !Number.isFinite(v));
-            if (nonFinite >= 0) {
+            if (nonFinite >= 0 && !allowsDegenerate) {
                 violations.push({ key, prop, message: `non-finite value at frame ${nonFinite}`, values: rawValues });
                 continue;
             }
+            // `degenerate` must not pass vacuously: it asserts the property actually collapses.
+            if (allowsDegenerate && nonFinite < 0) {
+                violations.push({
+                    key,
+                    prop,
+                    message: 'expected degenerate (non-finite) samples but every value was finite',
+                    values: rawValues,
+                });
+            }
+            const checkedValues = allowsDegenerate ? values.filter((v) => Number.isFinite(v)) : values;
+            const checkedRawValues = allowsDegenerate
+                ? rawValues.map((v) => (v != null && Number.isFinite(v) ? v : undefined))
+                : rawValues;
+            if (checkedValues.length < 2) continue;
             for (const propExpectation of propExpectations) {
-                const failure = checkPropertyTrajectory(values, propExpectation, tolerances);
+                if (propExpectation === 'degenerate') continue;
+                const failure = checkPropertyTrajectory(checkedValues, propExpectation, propTolerances);
                 if (failure != null) {
                     violations.push({ key, prop, message: failure, values: rawValues });
                 }
             }
-            if (isPhased) {
-                const failure = checkPhaseWindows(rawValues, [raw.during].flat(), phaseIntervals, constantTol);
+            if (isPhased && raw.during != null) {
+                const failure = checkPhaseWindows(checkedRawValues, [raw.during].flat(), phaseIntervals, constantTol);
                 if (failure != null) {
                     violations.push({ key, prop, message: failure, values: rawValues });
+                }
+            }
+            if (isPhased && raw.settlesAt != null) {
+                const finalValue = checkedValues.at(-1)!;
+                if (Math.abs(finalValue - raw.settlesAt) > propConstantTol) {
+                    violations.push({
+                        key,
+                        prop,
+                        message: `expected to settle at ${raw.settlesAt}, ended at ${finalValue.toFixed(2)}`,
+                        values: rawValues,
+                    });
                 }
             }
         }
@@ -1491,6 +1843,19 @@ export function expectSceneTrajectory(
     for (const specKey of Object.keys(spec)) {
         if (!matchedSpecKeys.has(specKey)) {
             violations.push({ key: specKey, message: 'spec entry matched no sampled scene node (typo?)' });
+        }
+    }
+
+    for (const invariant of frameInvariants) {
+        for (const [frameIndex, frame] of trajectory.entries()) {
+            const failure = invariant.check(frame, frameIndex);
+            if (failure != null) {
+                violations.push({
+                    key: `frameInvariant[${invariant.name}]`,
+                    message: `frame ${frameIndex}: ${failure}`,
+                });
+                break;
+            }
         }
     }
 
