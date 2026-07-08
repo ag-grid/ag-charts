@@ -152,8 +152,7 @@ export function updateLabelNode<TParams>(
         if (isRotatable(textNode)) {
             const rotation = labelDatum.rotation ?? 0;
             if (rotation !== 0) {
-                // Pivot about the untransformed glyph-box centre so the label rotates in place;
-                // getBBox would fold in the current rotation and drift the pivot each frame.
+                // Pivot about the untransformed glyph-box centre so the label rotates in place.
                 const bbox = textNode.getTextMeasureBBox();
                 textNode.rotationCenterX = bbox.x + bbox.width / 2;
                 textNode.rotationCenterY = bbox.y + bbox.height / 2;

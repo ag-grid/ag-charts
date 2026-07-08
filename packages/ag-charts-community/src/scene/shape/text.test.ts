@@ -7,7 +7,7 @@ import type { TextWrap } from 'ag-charts-types';
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { expectWarningMessages, setupMockConsole } from '../../util/test/mockConsole';
 import type { IScene } from '../node';
-import { Text } from './text';
+import { RotatableText, Text } from './text';
 
 function setUpMockScene(canvasCtx: any): IScene {
     return {
@@ -884,6 +884,36 @@ describe('Text', () => {
             const textMeasurerB = cachedTextMeasurer({ fontSize: 48, fontFamily: 'Verdana', fontWeight: 'bold' });
             expect(textMeasurerA.measureText('Hello world!')).toMatchSnapshot();
             expect(textMeasurerB.measureText('Hello world!')).toMatchSnapshot();
+        });
+    });
+
+    describe('getTextMeasureBBox', () => {
+        const mockScene = setUpMockScene(canvasCtx);
+
+        // The rotation pivot in updateLabelNode is derived from getTextMeasureBBox each render. If the
+        // measure folds in the node's own rotation, a reused label node drifts frame over frame — the
+        // resize-instability bug. getTextMeasureBBox must report the untransformed glyph box.
+        it('is unaffected by the node rotation and rotation centre', () => {
+            const node = Object.assign(new RotatableText(), {
+                ...BASE_OPTIONS,
+                text: 'Testing testing',
+                x: 100,
+                y: 60,
+            });
+            node.setScene(mockScene);
+
+            const upright = node.getTextMeasureBBox();
+
+            node.rotationCenterX = upright.x - 40;
+            node.rotationCenterY = upright.y + 25;
+            node.rotation = Math.PI / 2;
+
+            const rotated = node.getTextMeasureBBox();
+
+            expect(rotated.x).toBeCloseTo(upright.x);
+            expect(rotated.y).toBeCloseTo(upright.y);
+            expect(rotated.width).toBeCloseTo(upright.width);
+            expect(rotated.height).toBeCloseTo(upright.height);
         });
     });
 });

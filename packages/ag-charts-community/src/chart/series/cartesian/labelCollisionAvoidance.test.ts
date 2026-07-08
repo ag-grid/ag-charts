@@ -489,5 +489,68 @@ describe('label collision avoidance', () => {
                 expect(rotations[i]).not.toBe(0);
             }
         });
+
+        // A perpendicular label is rendered by rotating its Text node about the untransformed glyph-box
+        // centre. If the pivot is re-derived each render from a box that already folds in the previous
+        // rotation, it walks a little every resize step — the label orbits the rect centre and drifts
+        // out of the bar. Resizing away and back must leave the node's pivot exactly where it started
+        // (AG-17782).
+        it('keeps a perpendicular label pivot stable across resizes (no drift)', async () => {
+            const optionsAt = (width: number) => {
+                const options = {
+                    data: Array.from({ length: 12 }, (_, i) => ({ cat: `Category ${i}`, value: 50 })),
+                    legend: { enabled: false },
+                    axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'cat',
+                            yKey: 'value',
+                            label: {
+                                enabled: true,
+                                placement: 'inside-center',
+                                orientation: ['parallel', 'perpendicular'],
+                                formatter: () => 'WWWWWWWWWW',
+                            },
+                        },
+                    ],
+                };
+                prepareTestOptions(options as any);
+                (options as any).width = width;
+                return options as any;
+            };
+
+            const firstRotatedLabelPivot = () => {
+                const series = deproxy(chart as any).series[0] as unknown as {
+                    labelSelection: {
+                        nodes(): {
+                            visible: boolean;
+                            rotation: number;
+                            rotationCenterX: number;
+                            rotationCenterY: number;
+                        }[];
+                    };
+                };
+                return series.labelSelection.nodes().find((node) => node.visible && node.rotation !== 0);
+            };
+
+            chart = AgCharts.create(optionsAt(300));
+            await waitForChartStability(chart);
+
+            const initial = firstRotatedLabelPivot();
+            // Anti-vacuous guard: the scenario must actually produce a rotated (perpendicular) label.
+            expect(initial).toBeDefined();
+            const { rotationCenterX, rotationCenterY } = initial!;
+
+            for (const width of [300, 200, 140, 200, 300, 140, 300]) {
+                await chart.update(optionsAt(width));
+                await waitForChartStability(chart);
+            }
+
+            const settled = firstRotatedLabelPivot();
+            expect(settled).toBeDefined();
+            expect(settled!.rotationCenterX).toBeCloseTo(rotationCenterX);
+            expect(settled!.rotationCenterY).toBeCloseTo(rotationCenterY);
+        });
     });
 });
