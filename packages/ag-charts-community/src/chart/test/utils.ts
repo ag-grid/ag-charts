@@ -1487,6 +1487,11 @@ export function expectNoAnimation(trajectory: SceneGeometrySample[]): void {
 
 // Flag/range properties whose whole domain fits inside a 1px geometry tolerance — compare exactly.
 const EXACT_MATCH_PROPS = new Set(['opacity', 'visible', 'clip', 'cutout', 'subpaths']);
+// These props live on a 0..1 (or 0/1) scale, so the pixel-scaled constant tolerance would let a value
+// drift halfway across its whole range unnoticed. Judge their constancy/bounds against a scale-honest
+// epsilon instead — loose enough to absorb interpolation float noise, tight enough to catch a stalled
+// fade or a drifting opacity.
+const EXACT_MATCH_TRAJECTORY_TOL = 1e-3;
 
 /**
  * Endpoint sanity: two whole-scene samples describe the same scene within a pixel tolerance. Strict
@@ -1777,6 +1782,11 @@ export function expectSceneTrajectory(
 
         for (const prop of props) {
             const raw = expectation === 'constant' ? 'constant' : ((expectation as any)[prop] ?? 'constant');
+            // `constant`/`bounded`/`settlesAt` all pin absolute position, so they must use the prop's
+            // native scale; direction (`monotonic`) and `progresses` are scale-agnostic and keep the
+            // pixel tolerances.
+            const propConstantTol = EXACT_MATCH_PROPS.has(prop) ? EXACT_MATCH_TRAJECTORY_TOL : constantTol;
+            const propTolerances = { ...tolerances, constant: propConstantTol };
             const isPhased = typeof raw === 'object' && !Array.isArray(raw);
             const propExpectations: TrajectoryExpectation[] = [isPhased ? (raw.expect ?? []) : raw].flat();
             const rawValues = rawValuesFor(prop);
@@ -1805,7 +1815,7 @@ export function expectSceneTrajectory(
             if (checkedValues.length < 2) continue;
             for (const propExpectation of propExpectations) {
                 if (propExpectation === 'degenerate') continue;
-                const failure = checkPropertyTrajectory(checkedValues, propExpectation, tolerances);
+                const failure = checkPropertyTrajectory(checkedValues, propExpectation, propTolerances);
                 if (failure != null) {
                     violations.push({ key, prop, message: failure, values: rawValues });
                 }
@@ -1818,7 +1828,7 @@ export function expectSceneTrajectory(
             }
             if (isPhased && raw.settlesAt != null) {
                 const finalValue = checkedValues.at(-1)!;
-                if (Math.abs(finalValue - raw.settlesAt) > constantTol) {
+                if (Math.abs(finalValue - raw.settlesAt) > propConstantTol) {
                     violations.push({
                         key,
                         prop,

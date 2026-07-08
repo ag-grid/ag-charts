@@ -30,8 +30,10 @@ describe('CartesianAxis animation', () => {
     });
 
     const slidesLeft = { during: 'update', expect: ['decreases', 'bounded'] } as const;
-    const fadesOut = { during: ['remove', 'update', 'add'], expect: 'bounded' } as const;
-    const fadesIn = { during: 'add', expect: ['increases', 'bounded'] } as const;
+    // A departing tick must fade all the way to invisible, not merely dim: pin the endpoint at 0 so a
+    // fade that stalls part-way (leaving a ghost tick drawn) fails.
+    const fadesOut = { during: ['remove', 'update', 'add'], expect: ['decreases', 'bounded'], settlesAt: 0 } as const;
+    const fadesIn = { during: 'add', expect: ['increases', 'bounded'], settlesAt: 1 } as const;
     // Expand a generic {slide, ...} tick spec onto a node's actual coordinate props.
     const mapKeyedCoords = (
         spec: Partial<Record<string, ScenePropertyExpectation>>,
@@ -201,7 +203,9 @@ describe('CartesianAxis animation', () => {
             [`axis[bottom]/grid/line[${id}]`]: { x1: slidesRight, x2: slidesRight, opacity: fadesOut },
         });
         expectSceneTrajectory(trajectory, {
-            ...rightTick('l:100'),
+            // Tick 100 survives the step-20 -> step-50 re-tick (value 100 is in both sets), so it
+            // slides right at full opacity rather than fading out.
+            ...bottomTick('l:100', { slide: slidesRight }),
             ...rightTick('l:20'),
             ...rightTick('l:40'),
             ...rightTick('l:60'),

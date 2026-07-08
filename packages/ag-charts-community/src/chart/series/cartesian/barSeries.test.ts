@@ -955,10 +955,18 @@ describe('BarSeries', () => {
                         x: { during: 'update', expect: 'bounded' },
                         y: { during: 'update', expect: 'bounded' },
                         // A re-added series' bars fade in at full size rather than growing.
-                        opacity: { during: ['update', 'add', 'trailing'], expect: ['increases', 'bounded'] },
+                        opacity: {
+                            during: ['update', 'add', 'trailing'],
+                            expect: ['increases', 'bounded'],
+                            settlesAt: 1,
+                        },
                     },
                     'series[*]/labels/text[*]': {
-                        opacity: { during: ['update', 'add', 'trailing'], expect: ['increases', 'bounded'] },
+                        opacity: {
+                            during: ['update', 'add', 'trailing'],
+                            expect: ['increases', 'bounded'],
+                            settlesAt: 1,
+                        },
                         x: { during: 'update', expect: 'bounded' },
                         y: { during: 'update', expect: 'bounded' },
                     },
@@ -1118,7 +1126,11 @@ describe('BarSeries', () => {
                     x: { during: ['update', 'trailing'], expect: 'bounded' },
                     height: { during: ['update', 'trailing'], expect: 'bounded' },
                     y: { during: ['update', 'trailing'], expect: 'bounded' },
-                    opacity: { during: ['update', 'add', 'trailing'], expect: ['increases', 'progresses', 'bounded'] },
+                    opacity: {
+                        during: ['update', 'add', 'trailing'],
+                        expect: ['increases', 'progresses', 'bounded'],
+                        settlesAt: 1,
+                    },
                 },
             });
             expect(trajectory[0].get('series[2]/rect[Q1]')?.opacity ?? 1).toBeLessThanOrEqual(0.001);
