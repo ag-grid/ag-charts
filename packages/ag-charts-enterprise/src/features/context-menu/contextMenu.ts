@@ -150,7 +150,7 @@ export class ContextMenu extends AbstractModuleInstance {
                 // FIXME: Some optional keys like dataIdKey are not set. Is that a concern?
                 const params: AgContextMenuGetItemsParamsSeriesNode = {
                     showOn,
-                    context,
+                    context: this.pickedNode.series.properties.context ?? context,
                     seriesId: this.pickedNode.series.id,
                     itemId: getItemId(this.pickedNode, this.pickedNode.series.data?.dataIdKey),
                     datum: this.pickedNode.datum,
