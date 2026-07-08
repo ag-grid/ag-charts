@@ -322,7 +322,7 @@ export abstract class AbstractNetworkSeries<
         }
     }
 
-    protected expand(ids: string[]) {
+    protected expand(ids: (string | number)[]) {
         const changed = this.ctx.collapsedManager.expand(ids);
         if (changed) {
             this.markNodeDataDirty();

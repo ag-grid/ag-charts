@@ -27,12 +27,13 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
         this.eventsHub.emit('collapsed:restore', { collapsed: this.createMemento() });
     }
 
-    collapse(ids: string[]) {
+    collapse(ids: (string | number)[]) {
         let changed = false;
         const after: Record<string, boolean> = {};
         for (const id of ids) {
-            changed ||= !this.collapsedIds[id];
-            after[id] = true;
+            const key = String(id);
+            changed ||= !this.collapsedIds[key];
+            after[key] = true;
         }
         // Detect implicit expansions: previous map ids missing from `after` are now expanded.
         if (!changed) {
@@ -48,27 +49,29 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
         return changed;
     }
 
-    collapseAppend(ids: string[]) {
+    collapseAppend(ids: (string | number)[]) {
         let changed = false;
         for (const id of ids) {
-            changed ||= !this.collapsedIds[id];
-            this.collapsedIds[id] = true;
+            const key = String(id);
+            changed ||= !this.collapsedIds[key];
+            this.collapsedIds[key] = true;
         }
         if (changed) this.eventsHub.emit('collapsed:change', null);
         return changed;
     }
 
-    expand(ids: string[]) {
+    expand(ids: (string | number)[]) {
         let changed = false;
         for (const id of ids) {
-            changed ||= Boolean(this.collapsedIds[id]);
-            delete this.collapsedIds[id];
+            const key = String(id);
+            changed ||= Boolean(this.collapsedIds[key]);
+            delete this.collapsedIds[key];
         }
         if (changed) this.eventsHub.emit('collapsed:change', null);
         return changed;
     }
 
-    isCollapsed(id: string) {
-        return Boolean(this.collapsedIds[id]);
+    isCollapsed(id: string | number) {
+        return Boolean(this.collapsedIds[String(id)]);
     }
 }
