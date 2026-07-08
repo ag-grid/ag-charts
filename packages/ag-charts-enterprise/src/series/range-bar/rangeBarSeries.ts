@@ -33,6 +33,7 @@ import {
     barLabelRotation,
     buildBarLabelData,
     findMinMax,
+    insetBox,
     isContinuous,
     mergeDefaults,
     toArray,
@@ -87,6 +88,9 @@ interface RangeBarNodeLabelDatum extends Readonly<Point> {
     textBaseline: CanvasTextBaseline;
     rotation: number;
     region?: BoxBounds;
+    /** Flush offset written by the placement engine to keep a rotated label inside its region. */
+    offsetX?: number;
+    offsetY?: number;
     datum: any;
     itemType: 'high' | 'low';
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
@@ -887,7 +891,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
         const region =
             barLabelResolvesOrientation(label.orientation) && placement === 'inside'
-                ? { x: rectX, y: rectY, width: rectWidth, height: rectHeight }
+                ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, Math.abs(labelPadding))
                 : undefined;
 
         const yLowX = rectX + (barAlongX ? -labelPadding : rectWidth / 2);
@@ -963,6 +967,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yLowLabel.textBaseline = yLowTextBaseline;
             yLowLabel.rotation = rotation;
             yLowLabel.region = region;
+            yLowLabel.offsetX = 0;
+            yLowLabel.offsetY = 0;
             yLowLabel.text = yLowText;
             yLowLabel.datum = datum;
         } else {
@@ -975,6 +981,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 textBaseline: yLowTextBaseline,
                 rotation,
                 region,
+                offsetX: 0,
+                offsetY: 0,
                 text: yLowText,
                 itemType: 'low',
                 datum,
@@ -993,6 +1001,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yHighLabel.textBaseline = yHighTextBaseline;
             yHighLabel.rotation = rotation;
             yHighLabel.region = region;
+            yHighLabel.offsetX = 0;
+            yHighLabel.offsetY = 0;
             yHighLabel.text = yHighText;
             yHighLabel.datum = datum;
         } else {
@@ -1005,6 +1015,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 textBaseline: yHighTextBaseline,
                 rotation,
                 region,
+                offsetX: 0,
+                offsetY: 0,
                 text: yHighText,
                 itemType: 'high',
                 datum,

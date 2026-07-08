@@ -286,8 +286,9 @@ describe('label collision avoidance', () => {
             );
         });
 
-        // Range-bar carries two labels (low + high) per node; an inside-placement orientation array is
-        // resolved against the bar rect. Integration coverage of the dual-label seam.
+        // Range-bar carries two labels (low + high) per node, each anchored at a bar end. An inside
+        // orientation array resolves against the bar rect and the resolved label is slid flush inside
+        // it, so neither end label straddles or overflows the bar. Coverage of the dual-label seam.
         it('range-bar resolves an inside-placement orientation array against the bar rect', async () => {
             await renderAndSnapshot({
                 data: Array.from({ length: 10 }, (_, i) => ({ x: `C${i}`, low: 0, high: 100 })),

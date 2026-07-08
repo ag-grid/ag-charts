@@ -57,6 +57,9 @@ type LabelDatum = Point & {
     textBaseline: CanvasTextBaseline;
     /** Rotation in radians applied to the label node; `undefined`/`0` renders upright. */
     rotation?: number;
+    /** Translation (px) sliding a region-bound label flush inside its region; `undefined`/`0` leaves it anchored. */
+    offsetX?: number;
+    offsetY?: number;
 };
 
 export function getLabelStyles<TParams>(
@@ -142,8 +145,10 @@ export function updateLabelNode<TParams>(
     if (series.visible && label.enabled && labelDatum) {
         const style = getLabelStyles(series, textNode.datum, params, label, isHighlight, activeHighlight, labelPath);
         textNode.visible = true;
-        textNode.x = labelDatum.x;
-        textNode.y = labelDatum.y;
+        // Offset slides a rotated bar label flush inside its bar rect; the pivot below is re-derived
+        // from the shifted position, so the rotated glyph box moves with it. `0` for every other label.
+        textNode.x = labelDatum.x + (labelDatum.offsetX ?? 0);
+        textNode.y = labelDatum.y + (labelDatum.offsetY ?? 0);
         textNode.text = labelDatum.text;
         textNode.fill = style.color;
         textNode.setAlign(labelDatum);

@@ -26,6 +26,7 @@ import {
     barLabelResolvesOrientation,
     barLabelRotation,
     buildBarLabelData,
+    insetBox,
     isContinuous,
     isFiniteNumber,
     maxValue,
@@ -119,6 +120,9 @@ interface BarNodeLabelDatum extends Readonly<Point> {
     rotation: number;
     /** Bar rect an orientation candidate must fit within; unset for outside placements. */
     readonly region?: BoxBounds;
+    /** Flush offset written by the placement engine to keep a rotated label inside its region. */
+    offsetX?: number;
+    offsetY?: number;
 }
 
 /**
@@ -952,7 +956,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             const region =
                 barLabelResolvesOrientation(ctx.label.orientation) &&
                 (placement == null || placement.startsWith('inside'))
-                    ? { x: rectX, y: rectY, width: rectWidth, height: rectHeight }
+                    ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, ctx.labelSpacing)
                     : undefined;
 
             const existingLabel = mutableNode.label;
@@ -965,6 +969,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 existingLabel.textBaseline = labelPlacement.textBaseline;
                 existingLabel.rotation = rotation;
                 existingLabel.region = region;
+                existingLabel.offsetX = 0;
+                existingLabel.offsetY = 0;
             } else {
                 // Create new label object (first time label is added)
                 mutableNode.label = {
@@ -972,6 +978,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                     ...labelPlacement,
                     rotation,
                     region,
+                    offsetX: 0,
+                    offsetY: 0,
                 };
             }
         }

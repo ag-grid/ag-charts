@@ -27,6 +27,7 @@ import {
     barLabelRotation,
     buildBarLabelData,
     easeOut,
+    insetBox,
     isContinuous,
     maxValue,
     mergeDefaults,
@@ -80,6 +81,9 @@ type WaterfallNodeLabelDatum = Readonly<Point> & {
     rotation: number;
     /** Bar rect an orientation candidate must fit within; unset for outside placements. */
     readonly region?: BoxBounds;
+    /** Flush offset written by the placement engine to keep a rotated label inside its region. */
+    offsetX?: number;
+    offsetY?: number;
 };
 
 type WaterfallNodePointDatum = _ModuleSupport.DataModelSeriesNodeDatum['point'] & {
@@ -595,7 +599,16 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             height: 0,
             midPoint: { x: 0, y: 0 },
             crisp,
-            label: { text: '', x: 0, y: 0, textAlign: 'center', textBaseline: 'middle', rotation: 0 },
+            label: {
+                text: '',
+                x: 0,
+                y: 0,
+                textAlign: 'center',
+                textBaseline: 'middle',
+                rotation: 0,
+                offsetX: 0,
+                offsetY: 0,
+            },
         };
     }
 
@@ -700,8 +713,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             mutableNode.label.rotation = barLabelRotation(toArray(label.orientation)[0]);
             mutableNode.label.region =
                 barLabelResolvesOrientation(label.orientation) && (placement == null || placement.startsWith('inside'))
-                    ? { x: rectX, y: rectY, width: rectWidth, height: rectHeight }
+                    ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, spacing)
                     : undefined;
+            mutableNode.label.offsetX = 0;
+            mutableNode.label.offsetY = 0;
         } else {
             // Clear label when disabled
             mutableNode.label.text = '';

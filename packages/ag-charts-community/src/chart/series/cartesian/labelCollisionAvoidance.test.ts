@@ -552,5 +552,70 @@ describe('label collision avoidance', () => {
             expect(settled!.rotationCenterX).toBeCloseTo(rotationCenterX);
             expect(settled!.rotationCenterY).toBeCloseTo(rotationCenterY);
         });
+
+        // An inside-start/inside-end label is anchored at the bar's start/end edge. When the array
+        // resolves to the along-bar (perpendicular) orientation, the label is rotated about its glyph
+        // centre — which sits at that edge — so without a correction it straddles the end and half of
+        // it pokes out of the bar. The placement engine must slide it flush inside the rect (AG-17782).
+        const thinTallColumns = (placement: string) => ({
+            data: Array.from({ length: 10 }, (_, i) => ({ cat: `Category ${i}`, value: 100 })),
+            legend: { enabled: false },
+            axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left', max: 100 } },
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'cat',
+                    yKey: 'value',
+                    label: {
+                        enabled: true,
+                        placement,
+                        orientation: ['parallel', 'perpendicular'],
+                        formatter: () => 'WWWWWWWWWW',
+                    },
+                },
+            ],
+        });
+
+        for (const placement of ['inside-start', 'inside-end']) {
+            it(`keeps a resolved '${placement}' label inside the bar rect`, async () => {
+                await renderAndSnapshot(thinTallColumns(placement));
+            });
+
+            it(`slides a resolved '${placement}' label flush within the bar rect`, async () => {
+                const options = thinTallColumns(placement);
+                prepareTestOptions(options as any);
+                chart = AgCharts.create(options as any);
+                await waitForChartStability(chart);
+
+                const series = deproxy(chart as any).series[0] as unknown as {
+                    contextNodeData?: { nodeData?: { x: number; y: number; width: number; height: number }[] };
+                    labelSelection: {
+                        nodes(): {
+                            visible: boolean;
+                            rotation: number;
+                            computeBBox(): { x: number; y: number; width: number; height: number } | undefined;
+                        }[];
+                    };
+                };
+                const bars = series.contextNodeData?.nodeData ?? [];
+                const rotatedLabels = series.labelSelection
+                    .nodes()
+                    .filter((node) => node.visible && node.rotation !== 0);
+
+                // Anti-vacuous guard: the scenario must actually resolve to a rotated label per bar.
+                expect(rotatedLabels.length).toBe(bars.length);
+
+                for (const node of rotatedLabels) {
+                    const bbox = node.computeBBox();
+                    expect(bbox).toBeDefined();
+                    const bar = bars.find(
+                        (b) => bbox!.x + bbox!.width / 2 >= b.x && bbox!.x + bbox!.width / 2 <= b.x + b.width
+                    );
+                    expect(bar).toBeDefined();
+                    expect(bbox!.y).toBeGreaterThanOrEqual(bar!.y - 0.5);
+                    expect(bbox!.y + bbox!.height).toBeLessThanOrEqual(bar!.y + bar!.height + 0.5);
+                }
+            });
+        }
     });
 });

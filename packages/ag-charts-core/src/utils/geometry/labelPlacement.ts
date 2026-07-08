@@ -144,6 +144,9 @@ export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Reado
     readonly placement: LabelPlacement | undefined;
     /** Rotation applied to the label, in degrees, or `undefined` when unrotated. */
     readonly rotation?: number;
+    /** Translation (px) applied to slide a region-bound label flush inside its region; `0` otherwise. */
+    readonly offsetX?: number;
+    readonly offsetY?: number;
 }
 
 /**
@@ -234,7 +237,14 @@ export interface OrientationAnchor {
  * `target` back-references the baked label datum the chosen rotation is written onto.
  */
 export interface BarPlacedLabelDatum extends PointLabelDatum {
-    readonly target: { rotation: number };
+    readonly target: BarLabelTarget;
+}
+
+/** The baked label datum an orientation resolution writes its chosen rotation and flush offset back onto. */
+export interface BarLabelTarget {
+    rotation: number;
+    offsetX?: number;
+    offsetY?: number;
 }
 
 // Bar labels sit inside their own bar rect, so avoid other labels only — not markers, and not the
@@ -287,7 +297,7 @@ export function buildBarLabelDatum(
     height: number,
     orientations: AgChartLabelOrientation[],
     region: BoxBounds | undefined,
-    target: { rotation: number }
+    target: BarLabelTarget
 ): BarPlacedLabelDatum {
     const { x, y } = labelGlyphCentre(anchor, width, height);
     return {
@@ -306,13 +316,17 @@ export function buildBarLabelDatum(
 }
 
 /**
- * Writes each placed label's chosen orientation back as a render rotation (radians) onto its target.
- * Labels the engine dropped are absent here and keep the first-orientation rotation baked at
- * node-data time. Every datum here was produced by {@link buildBarLabelDatum}, so it carries `target`.
+ * Writes each placed label's chosen orientation back as a render rotation (radians), plus the flush
+ * offset that slid it inside its region, onto its target. Labels the engine dropped are absent here
+ * and keep the first-orientation rotation baked at node-data time. Every datum here was produced by
+ * {@link buildBarLabelDatum}, so it carries `target`.
  */
 export function applyBarLabelOrientation(placed: readonly PlacedLabel<unknown>[]): void {
-    for (const { datum, rotation } of placed) {
-        (datum as BarPlacedLabelDatum).target.rotation = toRadians(rotation ?? 0);
+    for (const { datum, rotation, offsetX, offsetY } of placed) {
+        const { target } = datum as BarPlacedLabelDatum;
+        target.rotation = toRadians(rotation ?? 0);
+        target.offsetX = offsetX ?? 0;
+        target.offsetY = offsetY ?? 0;
     }
 }
 
@@ -324,7 +338,7 @@ export function measureLabelText(text: NormalisedTextOrSegments, font: FontOptio
 /** A baked bar-family label paired with the label config that governs its orientation and font. */
 export interface BarLabelSource {
     readonly label:
-        | (OrientationAnchor & { text: NormalisedTextOrSegments; rotation: number; region?: BoxBounds })
+        | (OrientationAnchor & { text: NormalisedTextOrSegments; region?: BoxBounds } & BarLabelTarget)
         | undefined;
     readonly config: FontOptions & { orientation?: AgChartLabelOrientation | AgChartLabelOrientation[] };
 }
@@ -682,11 +696,17 @@ function placeAvoidingLabel(
     const candidateCount = candidates?.length ?? 1;
     const orientationCount = orientations?.length ?? 1;
     const region = d.region ?? bounds;
+    // Edge-anchored bar labels are centred on their glyph centre, which for inside-start/inside-end
+    // sits at the bar's end; a candidate rotated to run along the bar would straddle that end. Slide
+    // it flush inside its own bar rect instead (a no-op for inside-center, already centred).
+    const flushToRegion = d.region != null && d.neverDrop;
 
     let bestOverflow = Infinity;
     let bestX = 0;
     let bestY = 0;
     let bestRotation = 0;
+    let bestOffsetX = 0;
+    let bestOffsetY = 0;
     let bestPlacement: LabelPlacement | undefined;
 
     for (let pi = 0; pi < candidateCount; pi++) {
@@ -694,10 +714,33 @@ function placeAvoidingLabel(
         for (let oi = 0; oi < orientationCount; oi++) {
             const orientation = candidateAt(orientations, singleOrientation, oi);
             const rotation = positionCandidate(d, placement, orientation, width, height, gap, spacing);
-            const { x, y, width: cw, height: ch } = candidateBox;
+            let { x, y } = candidateBox;
+            const { width: cw, height: ch } = candidateBox;
+            let offsetX = 0;
+            let offsetY = 0;
+            if (flushToRegion) {
+                const nx = clampAxis(x, cw, region.x, region.width);
+                const ny = clampAxis(y, ch, region.y, region.height);
+                offsetX = nx - x;
+                offsetY = ny - y;
+                candidateBox.x = x = nx;
+                candidateBox.y = y = ny;
+            }
             inflateBoxInto(queryBox, candidateBox, inflate);
             if (boxContains(region, x, y, cw, ch) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
-                return { index, text, x, y, width, height, datum: d, placement, rotation: rotation || undefined };
+                return {
+                    index,
+                    text,
+                    x,
+                    y,
+                    width,
+                    height,
+                    datum: d,
+                    placement,
+                    rotation: rotation || undefined,
+                    offsetX,
+                    offsetY,
+                };
             }
             const overflow = d.neverDrop ? regionOverflow(region, x, y, cw, ch) : Infinity;
             if (overflow < bestOverflow) {
@@ -705,6 +748,8 @@ function placeAvoidingLabel(
                 bestX = x;
                 bestY = y;
                 bestRotation = rotation;
+                bestOffsetX = offsetX;
+                bestOffsetY = offsetY;
                 bestPlacement = placement;
             }
         }
@@ -721,6 +766,8 @@ function placeAvoidingLabel(
         datum: d,
         placement: bestPlacement,
         rotation: bestRotation || undefined,
+        offsetX: bestOffsetX,
+        offsetY: bestOffsetY,
     };
 }
 
@@ -730,6 +777,12 @@ function orientationsOf(d: PointLabelDatum): AgChartLabelOrientation[] | undefin
 
 function singleOrientationOf(d: PointLabelDatum): AgChartLabelOrientation | undefined {
     return Array.isArray(d.orientation) ? undefined : d.orientation;
+}
+
+/** Slides a `size`-long span starting at `pos` flush inside `[min, min+extent]`; unchanged when it is too big to fit. */
+function clampAxis(pos: number, size: number, min: number, extent: number): number {
+    if (size > extent) return pos;
+    return Math.min(Math.max(pos, min), min + extent - size);
 }
 
 /** Total px a `w`×`h` box at `(x, y)` extends beyond `region` across all four sides; `0` when contained. */
