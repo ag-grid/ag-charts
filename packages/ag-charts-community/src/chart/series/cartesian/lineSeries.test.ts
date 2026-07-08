@@ -425,6 +425,31 @@ describe('LineSeries', () => {
                 opacity: { during: ['add', 'trailing'], expect: ['increases', 'bounded'], settlesAt: 1 },
             },
         };
+        // When survivors also change position (their y updates, or a category axis re-spaces the bands),
+        // the markers move while still fading in — pin the fade and size but leave position free.
+        const markersReflow: Record<string, SceneNodeExpectation> = {
+            'series[0]/marker[*]': {
+                opacity: { during: ['add', 'trailing'], expect: ['increases', 'bounded'], settlesAt: 1 },
+                x: 'any',
+                y: 'any',
+                translationX: 'any',
+                translationY: 'any',
+            },
+        };
+        // On an initial-load reveal the markers additionally scale in from zero size (the swipe scale-in
+        // the easeOut-very-slow debug flag suppresses), staggered across the reveal, so width/height grow
+        // monotonically rather than holding constant.
+        const markersScaleIn: Record<string, SceneNodeExpectation> = {
+            'series[0]/marker[*]': {
+                opacity: { during: ['add', 'trailing'], expect: ['increases', 'bounded'], settlesAt: 1 },
+                width: ['increases', 'bounded'],
+                height: ['increases', 'bounded'],
+                x: 'any',
+                y: 'any',
+                translationX: 'any',
+                translationY: 'any',
+            },
+        };
         const reshapingPath = {
             y: 'any',
             height: 'any',
@@ -557,6 +582,38 @@ describe('LineSeries', () => {
             });
         });
 
+        // "Add & Remove & Update" (docs data-updates) — one update simultaneously drops points, adds
+        // points, and changes surviving values. The removed markers leave, the new ones enter, and the
+        // survivors re-map to their new heights (positions in flux), all in a single batch.
+        it('combined add/remove/update: markers leave, enter, and re-map in one update', async () => {
+            const { before, trajectory, after } = await captureFrom(
+                lineOptions([
+                    { x: 0, y: 40 },
+                    { x: 1, y: 120 },
+                    { x: 2, y: 80 },
+                    { x: 3, y: 160 },
+                    { x: 4, y: 60 },
+                ]),
+                () =>
+                    chart.updateDelta({
+                        data: [
+                            { x: 1, y: 100 },
+                            { x: 2, y: 60 },
+                            { x: 3, y: 150 },
+                            { x: 5, y: 90 },
+                            { x: 6, y: 120 },
+                        ],
+                    })
+            );
+            expect([...before.keys()]).toContain('series[0]/marker[0]');
+            expect([...after.keys()]).not.toContain('series[0]/marker[0]');
+            expect([...after.keys()]).not.toContain('series[0]/marker[4]');
+            expect([...after.keys()]).toContain('series[0]/marker[5]');
+            const key = pathKey(before);
+            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersReflow });
+            expect(trajectory[0].get('series[0]/marker[5]')?.opacity ?? 1).toBeLessThanOrEqual(0.001);
+        });
+
         // "Shift left" — drop the first point, append one at the end. The shared interior points hold, so
         // the path's left edge steps in (x increases) while its width holds; one marker leaves at the start
         // and one enters at the end.
@@ -674,34 +731,6 @@ describe('LineSeries', () => {
             expect([...after.keys()].filter((k) => k.startsWith('series[1]/path'))).toHaveLength(0);
             expectSceneTrajectory(trajectory, markersFadeIn);
         });
-
-        // A category x-axis re-spaces its bands whenever the category set changes, so the markers move with
-        // their bands (position in flux) while still fading in. This glob pins the fade and marker size but
-        // leaves position free.
-        const markersReflow: Record<string, SceneNodeExpectation> = {
-            'series[0]/marker[*]': {
-                opacity: { during: ['add', 'trailing'], expect: ['increases', 'bounded'], settlesAt: 1 },
-                x: 'any',
-                y: 'any',
-                translationX: 'any',
-                translationY: 'any',
-            },
-        };
-
-        // On an initial-load reveal the markers additionally scale in from zero size (the swipe scale-in
-        // the easeOut-very-slow debug flag suppresses), staggered across the reveal, so width/height grow
-        // monotonically rather than holding constant.
-        const markersScaleIn: Record<string, SceneNodeExpectation> = {
-            'series[0]/marker[*]': {
-                opacity: { during: ['add', 'trailing'], expect: ['increases', 'bounded'], settlesAt: 1 },
-                width: ['increases', 'bounded'],
-                height: ['increases', 'bounded'],
-                x: 'any',
-                y: 'any',
-                translationX: 'any',
-                translationY: 'any',
-            },
-        };
 
         const WEEKS: Array<{ x: string; y: number }> = [
             { x: 'w3', y: 60 },
@@ -924,6 +953,42 @@ describe('LineSeries', () => {
             );
             expect(leftmost).toBeGreaterThanOrEqual(0);
             expect(leftmost).toBeLessThanOrEqual(rightmostStart);
+        });
+
+        // "Move Legend" — a legend reposition reflows the layout rect, which the product snaps rather than
+        // tweening. The reflow lands (the path width changes) but no frame animates.
+        it('legend move snaps without tweening', async () => {
+            const options = categoryOptions(WEEKS);
+            options.legend = { position: 'bottom' };
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            const before = sampleScene();
+            await chart.update({ ...options, legend: { position: 'right' } });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            expectNoAnimation(trajectory);
+            const key = pathKey(before);
+            expect(Math.abs(trajectory.at(-1)!.get(key)!.width - before.get(key)!.width)).toBeGreaterThan(1);
+        });
+
+        // "Change Theme" — a restyle, not a data change: the data-driven series geometry lands immediately
+        // (no tween), while only the axis re-fades its restyled tick lines.
+        it('theme change snaps the series without tweening', async () => {
+            const options = categoryOptions(WEEKS);
+            options.theme = 'ag-default';
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            const strokeOf = () => (deproxy(chart).series[0] as any).properties.stroke;
+            const strokeBefore = strokeOf();
+            await chart.update({ ...options, theme: 'ag-sheets' });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            const seriesOnly = (s: SceneGeometrySample) => new Map([...s].filter(([k]) => k.startsWith('series[')));
+            expectSceneSamplesMatch(seriesOnly(trajectory[0]), seriesOnly(trajectory.at(-1)!));
+            // The sampler reads geometry only, so the palette swap is the change-landed signal.
+            expect(strokeOf()).not.toBe(strokeBefore);
         });
     });
 
