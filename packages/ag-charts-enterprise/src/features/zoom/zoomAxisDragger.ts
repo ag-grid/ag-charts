@@ -10,7 +10,7 @@ export class ZoomAxisDragger {
     private oldZoom?: DefinedZoomState;
 
     update(
-        event: { offsetX: number; offsetY: number },
+        event: { currentX: number; currentY: number },
         direction: ChartAxisDirection,
         anchor: AgZoomAnchorPoint,
         bbox: BoxBounds,
@@ -22,7 +22,7 @@ export class ZoomAxisDragger {
             direction === ChartAxisDirection.X ? { ...zoom, x: axisZoom } : { ...zoom, y: axisZoom }
         );
 
-        this.updateCoords(event.offsetX, event.offsetY);
+        this.updateCoords(event.currentX, event.currentY);
         return this.updateZoom(direction, anchor, bbox);
     }
 
