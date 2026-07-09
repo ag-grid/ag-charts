@@ -1,7 +1,7 @@
 # ag-charts-demos
 
 Standalone, multi-file React application examples ("demo apps") that showcase AG Charts in a
-realistic app context (React + Material UI). These are distinct from the single-file-per-framework
+realistic app context (React). These are distinct from the single-file-per-framework
 snippets under `ag-charts-website`'s `content/**/_examples/`.
 
 This is a dedicated Vite/React package rather than part of `ag-charts-website` on purpose: the
@@ -31,10 +31,19 @@ src/
 
 ## Commands
 
-- `yarn nx dev ag-charts-demos` — dev server; open `/#<id>` (e.g. `/#starter`).
+- `yarn nx dev ag-charts-demos` — standalone dev server; open `/#<id>` (e.g. `/#starter`).
 - `yarn nx build ag-charts-demos` — type-check (`tsc --noEmit`) + `vite build`. This is the CI gate.
 - `yarn nx test:e2e ag-charts-demos` — Playwright smoke: loads each demo and asserts it renders with
   no console errors.
+
+### In the website dev server
+
+`yarn nx dev` builds this package (in `--watch` mode) and the website's dev server serves the built
+output same-origin at `/charts/debug/demos/<id>` (e.g. `https://localhost:4600/charts/debug/demos/starter`).
+Serving the build — rather than proxying a second dev server — keeps the embed same-origin, which the
+website's `frame-src` CSP requires. Edits to a demo rebuild automatically; reload the page to pick them
+up (there is no HMR through the build). The route is dev-only (see `agDemosStatic` and the `getStaticPaths`
+production guard), so demos never reach the live site.
 
 ## Adding a demo app
 

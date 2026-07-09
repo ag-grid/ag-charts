@@ -6,18 +6,18 @@ import { AgCharts } from 'ag-charts-react';
 import { DemoPage } from '../../DemoPage';
 import { getData } from './data';
 
-export const StarterExample = () => {
+export const LineExample = () => {
     const options = useMemo<AgChartOptions>(
         () => ({
-            title: { text: 'Monthly revenue' },
+            title: { text: 'Website visitors' },
             data: getData(),
-            series: [{ type: 'bar', xKey: 'month', yKey: 'revenue', yName: 'Revenue' }],
+            series: [{ type: 'line', xKey: 'month', yKey: 'visitors', yName: 'Visitors' }],
         }),
         []
     );
 
     return (
-        <DemoPage title="Starter demo" description="A minimal AG Charts React bar chart.">
+        <DemoPage title="Line demo" description="A minimal AG Charts React line chart.">
             <AgCharts options={options} style={{ height: 400 }} />
         </DemoPage>
     );

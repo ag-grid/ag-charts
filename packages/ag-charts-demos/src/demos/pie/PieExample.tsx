@@ -6,18 +6,18 @@ import { AgCharts } from 'ag-charts-react';
 import { DemoPage } from '../../DemoPage';
 import { getData } from './data';
 
-export const StarterExample = () => {
+export const PieExample = () => {
     const options = useMemo<AgChartOptions>(
         () => ({
-            title: { text: 'Monthly revenue' },
+            title: { text: 'Traffic by source' },
             data: getData(),
-            series: [{ type: 'bar', xKey: 'month', yKey: 'revenue', yName: 'Revenue' }],
+            series: [{ type: 'pie', angleKey: 'share', calloutLabelKey: 'source', legendItemKey: 'source' }],
         }),
         []
     );
 
     return (
-        <DemoPage title="Starter demo" description="A minimal AG Charts React bar chart.">
+        <DemoPage title="Pie demo" description="A minimal AG Charts React pie chart.">
             <AgCharts options={options} style={{ height: 400 }} />
         </DemoPage>
     );

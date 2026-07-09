@@ -4,8 +4,12 @@ import { DEMO_APPS } from './registry';
 
 const readHashId = () => window.location.hash.replace(/^#/, '');
 
+// When embedded (website dev server) the host fixes the demo via #root[data-demo-id];
+// the standalone server has no such attribute and selects via the URL hash instead.
+const readInitialId = () => document.getElementById('root')?.dataset.demoId ?? readHashId();
+
 export const App = () => {
-    const [id, setId] = useState(readHashId);
+    const [id, setId] = useState(readInitialId);
 
     useEffect(() => {
         const onHashChange = () => setId(readHashId());
