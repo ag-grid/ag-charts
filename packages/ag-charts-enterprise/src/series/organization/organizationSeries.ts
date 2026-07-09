@@ -467,8 +467,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     // Keyboard activations have no pointer target — allow them; pointer clicks must hit the expander.
     override hasBuiltinListener(target: _ModuleSupport.Node<unknown> | undefined): boolean {
-        const expanderTag: number = OrganizationNodeTag.Expander;
-        return target == null || target.tag === expanderTag;
+        return (
+            target == null ||
+            target.tag === OrganizationNodeTag.Expander ||
+            (target.tag === OrganizationNodeTag.Card && this.properties.node.clickToExpand)
+        );
     }
 
     public override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {

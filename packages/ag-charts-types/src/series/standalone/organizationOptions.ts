@@ -31,10 +31,10 @@ export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = C
     node?: AgOrganizationSeriesOptionsNode<TDatum, TContext>;
 }
 
-export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
-    AgBaseSeriesThemeableOptions<TDatum, TContext>,
-    'selection'
-> {
+export interface AgOrganizationSeriesThemeableOptions<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /**
      * Gap in pixels between sibling nodes (nodes that share the same parent).
      *
@@ -118,6 +118,11 @@ export interface AgOrganizationSeriesThemeableOptionsNode<
     labels?: AgOrganizationSeriesOptionsNodeText<TDatum, TContext>[];
     subtitle?: AgOrganizationSeriesOptionsNodeSubtitle<TDatum, TContext>;
     title?: AgOrganizationSeriesOptionsNodeTitle<TDatum, TContext>;
+    /**
+     * When set to true, clicking the card will expand/collapse the node. Defaults to `false` when node-clicks are used
+     * for something else (e.g. data selection), otherwise defaults to `true`.
+     */
+    clickToExpand?: boolean;
 }
 
 export interface AgOrganizationSeriesNodeStyle extends FillOptions, LineDashOptions, StrokeOptions {
