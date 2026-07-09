@@ -20,6 +20,7 @@ import agSourcemapCors from '../../external/ag-website-shared/plugins/agSourcema
 import { SITEMAP_CACHE_DIR } from '../../external/ag-website-shared/src/constants';
 import agAutoRedirect from './plugins/agAutoRedirect';
 import agCssAsString from './plugins/agCssAsString';
+import agDemosStatic from './plugins/agDemosStatic';
 import agDevCsp from './plugins/agDevCsp';
 import agHotModuleReload from './plugins/agHotModuleReload';
 import agHtaccessGen from './plugins/agHtaccessGen';
@@ -87,6 +88,7 @@ const plugins = [
     agHotModuleReload(),
     agAutoRedirect(['/javascript', '/react', '/vue', '/angular', '/gallery']),
     agDevCsp(),
+    agDemosStatic(),
 ];
 if (NODE_ENV !== 'test') {
     plugins.push(mkcert()); // mkcert is not necessary for tests
