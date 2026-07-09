@@ -1,5 +1,5 @@
-const { spawnSync, execSync } = require('child_process');
-const { existsSync } = require('fs');
+import { execSync, spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 
 // Get the branch type input (pr, latest, release)
 const branchType = process.env.INPUT_BRANCH_TYPE || 'pr';
@@ -51,7 +51,7 @@ if (branchType === 'pr') {
 }
 
 if (shouldReset) {
-    console.log(`⚠️  ${reason} (${cacheSizeMB}MB)`);
+    console.log(`${reason} (${cacheSizeMB}MB)`);
     console.log('Performing nx reset to clear cache before build...');
     console.log('The cache will be repopulated during this CI run and saved at the end.');
 
@@ -64,15 +64,15 @@ if (shouldReset) {
         if (result.status === 0) {
             const newCacheSizeMB = getCacheSizeMB();
             console.log(
-                `✅ Cache reset complete. New size: ${newCacheSizeMB}MB (freed ${cacheSizeMB - newCacheSizeMB}MB)`
+                `Cache reset complete. New size: ${newCacheSizeMB}MB (freed ${cacheSizeMB - newCacheSizeMB}MB)`
             );
             console.log('Cache will be rebuilt during this CI run.');
         } else {
-            console.error('❌ nx reset failed with status:', result.status);
+            console.error('nx reset failed with status:', result.status);
         }
     } catch (error) {
-        console.error('❌ Failed to run nx reset:', error.message);
+        console.error('Failed to run nx reset:', error.message);
     }
 } else {
-    console.log(`✅ Cache size is within limits (${cacheSizeMB}MB), no reset needed.`);
+    console.log(`Cache size is within limits (${cacheSizeMB}MB), no reset needed.`);
 }
