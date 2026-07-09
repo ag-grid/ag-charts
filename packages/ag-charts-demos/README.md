@@ -22,7 +22,7 @@ runnable locally, but not published or linked from the live website. Surfacing t
 src/
   main.tsx           # entry
   App.tsx            # selects a demo app by URL hash (#<id>) and renders it
-  registry.ts        # the single list of demo apps (id, title, description, lazy loader)
+  registry.ts        # the single list of demo apps (id + lazy loader)
   demos/<id>/        # one folder per demo app; folder name === registry id
     index.tsx        #   default export: the app root
     <App>Example.tsx #   the app itself
@@ -41,5 +41,6 @@ src/
 1. Create `src/demos/<id>/` with an `index.tsx` that `export default`s the app root.
 2. Add one entry to `DEMO_APPS` in `src/registry.ts` (use the same `<id>` as the folder name).
 
-No per-app build or test wiring is needed: the type-check globs the tree, and the e2e smoke
-discovers apps by folder.
+No per-app build or test wiring is needed: the type-check globs the tree, and the e2e smoke is
+driven by `DEMO_APPS`. Both steps are required — the smoke suite fails if a demo folder has no
+matching registry entry, so a folder alone cannot slip through untested.

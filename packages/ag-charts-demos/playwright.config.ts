@@ -18,7 +18,7 @@ export default defineConfig({
     },
     projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
     webServer: {
-        command: 'npx vite --port 4700',
+        command: 'npx vite',
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,

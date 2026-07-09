@@ -6,14 +6,13 @@
   "targets": {
     "build": {
       "executor": "nx:run-commands",
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "typecheck"],
       "inputs": ["production", "^production"],
-      "outputs": ["{workspaceRoot}/dist/packages/ag-charts-demos"],
+      "outputs": ["{projectRoot}/dist"],
       "cache": true,
       "options": {
         "cwd": "{projectRoot}",
-        "parallel": false,
-        "commands": ["tsc --noEmit -p tsconfig.json", "vite build"]
+        "command": "vite build"
       }
     },
     "typecheck": {
@@ -29,12 +28,12 @@
     },
     "dev": {
       "dependsOn": ["^build"],
-      "command": "vite --host",
+      "command": "vite",
       "options": { "cwd": "{projectRoot}" }
     },
     "preview": {
       "dependsOn": ["build"],
-      "command": "vite preview --host",
+      "command": "vite preview",
       "options": { "cwd": "{projectRoot}" }
     },
     "test:e2e": {
