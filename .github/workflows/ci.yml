@@ -715,7 +715,7 @@ jobs:
             - name: nx test:e2e ag-charts-demos
               id: demos_e2e
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
-              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test:e2e --projects=ag-charts-demos
+              run: yarn nx run ag-charts-demos:test:e2e
               timeout-minutes: 15
 
     fw_pkg_test:
