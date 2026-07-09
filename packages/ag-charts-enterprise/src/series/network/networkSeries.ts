@@ -155,23 +155,16 @@ export abstract class AbstractNetworkSeries<
         );
 
         this.cleanup.register(
-<<<<<<< HEAD
             ctx.eventsHub.on('series-area:click', (event) => {
                 const { type, clickedNode, target, sourceEvent } = event;
-                const clickModifier = clickedNode?.series.properties.selection.clickModifier;
                 if (
                     type !== 'click' ||
                     clickedNode?.series !== this ||
                     clickedNode.itemId == null ||
-                    hasClickSelectionModifier(event, clickModifier) ||
                     !this.hasBuiltinListener(target)
                 ) {
                     return;
                 }
-=======
-            ctx.eventsHub.on('series-area:click', ({ type, clickedNode, sourceEvent }) => {
-                if (type !== 'click' || clickedNode?.series !== this || clickedNode.itemId == null) return;
->>>>>>> parent of a3537108b4 (Merge pull request #7262 from ag-grid/AG-17333/org-chart-selection_02)
                 const point = {
                     x: 'layerX' in sourceEvent ? sourceEvent.layerX : Number.NaN,
                     y: 'layerY' in sourceEvent ? sourceEvent.layerY : Number.NaN,
