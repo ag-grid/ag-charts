@@ -1,5 +1,6 @@
 import type {
     DynamicContext,
+    LabelFit,
     NormalisedColorType,
     NormalisedDonutSeriesStyle,
     NormalisedPieSeriesStyle,
@@ -500,6 +501,8 @@ export class DonutSeries extends PolarSeries<
         const phantomNodes: PieDonutNodeDatum[] | undefined = angleFilterRawValues == null ? undefined : [];
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         const invalidData = processedData.invalidData?.get(this.id);
+        const { calloutLabel } = this.properties;
+        const calloutLabelFit = resolveLabelFit(calloutLabel, calloutLabel.collisionAvoidance.avoid);
         for (const [datumIndex, datum] of rawData.entries()) {
             if (invalidData?.[datumIndex] === true) continue;
             const currentValue = useFilterAngles ? angleFilterValues![datumIndex] : angleValues[datumIndex];
@@ -522,7 +525,7 @@ export class DonutSeries extends PolarSeries<
             const radiusValue = radiusRawValues?.[datumIndex];
             const legendItemValue = legendItemValues?.[datumIndex];
 
-            const nodeLabels = this.getLabels(datumIndex, datum, midAngle, span, processedDataValues);
+            const nodeLabels = this.getLabels(datumIndex, datum, midAngle, span, processedDataValues, calloutLabelFit);
             const sectorFormat = this.getItemStyle({ datum, datumIndex }, false, false);
 
             const node = {
@@ -573,7 +576,8 @@ export class DonutSeries extends PolarSeries<
     private getLabelContent(
         datumIndex: number,
         datum: any,
-        values: Pick<ProcessedDataValues, 'calloutLabelValues' | 'sectorLabelValues' | 'legendItemValues'>
+        values: Pick<ProcessedDataValues, 'calloutLabelValues' | 'sectorLabelValues' | 'legendItemValues'>,
+        calloutLabelFit: LabelFit | undefined
     ) {
         const { id: seriesId, ctx, properties } = this;
         const { formatManager } = ctx;
@@ -619,7 +623,7 @@ export class DonutSeries extends PolarSeries<
                     { ...labelFormatterParams, value: calloutLabelValue },
                     allowNullKeys
                 ),
-                resolveLabelFit(calloutLabel, calloutLabel.collisionAvoidance.avoid),
+                calloutLabelFit,
                 calloutLabel
             );
         }
@@ -657,11 +661,18 @@ export class DonutSeries extends PolarSeries<
         return result;
     }
 
-    private getLabels(datumIndex: number, datum: any, midAngle: number, span: number, values: ProcessedDataValues) {
+    private getLabels(
+        datumIndex: number,
+        datum: any,
+        midAngle: number,
+        span: number,
+        values: ProcessedDataValues,
+        calloutLabelFit: LabelFit | undefined
+    ) {
         const { properties } = this;
         const { calloutLabel, sectorLabel, legendItemKey } = properties;
 
-        const formats = this.getLabelContent(datumIndex, datum, values);
+        const formats = this.getLabelContent(datumIndex, datum, values, calloutLabelFit);
         const result: {
             calloutLabel?: PieDonutLabelDatum;
             sectorLabel?: { text: NormalisedTextOrSegments };
@@ -1645,13 +1656,19 @@ export class DonutSeries extends PolarSeries<
         const innerRadius = this.getInnerRadius();
         // The inner labels fit the square inscribed in the hole circle (diagonal 2·r ⇒ side r·√2).
         const holeExtent = (innerRadius > 0 ? innerRadius : this.getOuterRadius()) * Math.SQRT2;
+        const holeBox = { width: holeExtent, height: holeExtent };
         this.innerLabelsSelection.each((text, datum) => {
             const { fontStyle, fontWeight, fontSize, fontFamily, color } = datum;
             text.fontStyle = fontStyle;
             text.fontWeight = fontWeight;
             text.fontSize = fontSize;
             text.fontFamily = fontFamily;
-            text.text = fitLabelToContainer(datum.text, datum, { width: holeExtent, height: holeExtent });
+            text.text = fitLabelToContainer(
+                datum.text,
+                resolveLabelFit(datum, datum.collisionAvoidance.avoid),
+                datum,
+                holeBox
+            );
             text.x = 0;
             text.y = 0;
             text.fill = color;
@@ -1731,7 +1748,9 @@ export class DonutSeries extends PolarSeries<
         const { angleRawValues } = processedDataValues;
         const angleRawValue = angleRawValues[datumIndex];
 
-        const labelValues = this.getLabelContent(datumIndex, datum, processedDataValues);
+        const { calloutLabel } = this.properties;
+        const calloutLabelFit = resolveLabelFit(calloutLabel, calloutLabel.collisionAvoidance.avoid);
+        const labelValues = this.getLabelContent(datumIndex, datum, processedDataValues, calloutLabelFit);
         const label = labelValues.legendItem ?? labelValues.callout ?? labelValues.sector ?? angleName;
 
         const domain = extractDomain(dataModel.getDomain(this, `angleRaw`, 'value', processedData));
@@ -1832,6 +1851,8 @@ export class DonutSeries extends PolarSeries<
         const hideZeros = this.properties.hideZeroValueSectorsInLegend;
         const rawData = processedData.dataSources.get(this.id)?.data;
         const invalidData = processedData.invalidData?.get(this.id);
+        const { calloutLabel } = this.properties;
+        const calloutLabelFit = resolveLabelFit(calloutLabel, calloutLabel.collisionAvoidance.avoid);
         for (let datumIndex = 0; datumIndex < processedData.input.count; datumIndex++) {
             const datum = rawData?.[datumIndex] as any;
             const angleRawValue = angleRawValues[datumIndex];
@@ -1844,7 +1865,7 @@ export class DonutSeries extends PolarSeries<
             if (titleText) {
                 labelParts.push(titleText);
             }
-            const labels = this.getLabelContent(datumIndex, datum, processedDataValues);
+            const labels = this.getLabelContent(datumIndex, datum, processedDataValues, calloutLabelFit);
 
             if (legendItemKey && labels.legendItem !== undefined) {
                 labelParts.push(labels.legendItem);

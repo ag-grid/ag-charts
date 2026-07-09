@@ -33,6 +33,7 @@ import {
     maxValue,
     mergeDefaults,
     minValue,
+    resolveLabelFit,
     subtractValues,
     toArray,
     zeroLike,
@@ -694,10 +695,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 }
             );
 
+            // Label config is item-type specific, so the fit is resolved per datum rather than hoisted.
+            const labelFit = resolveLabelFit(label, label.collisionAvoidance.avoid);
             const spacing: number = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
             // Array placement is accepted, but only its first candidate is honoured here.
             const placement = toArray(label.placement)[0];
             const insidePlacement = placement == null || placement.startsWith('inside');
+            const resolvesOrientation = barLabelResolvesOrientation(label.orientation);
             const labelPlacement = adjustLabelPlacement({
                 isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
                 isVertical: !barAlongX,
@@ -705,12 +709,14 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 spacing,
                 rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
             });
-            // Inside labels fit within the bar rect; outside labels sit beside it, so leave them unbound.
-            const container = insidePlacement
-                ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, spacing)
-                : undefined;
+            // Inside labels fit within the bar rect; outside labels sit beside it. The rect is only
+            // needed to bound the fit or to resolve orientation, so skip it otherwise.
+            const container =
+                insidePlacement && (labelFit != null || resolvesOrientation)
+                    ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, spacing)
+                    : undefined;
 
-            mutableNode.label.text = fitLabelToContainer(labelText, label, container);
+            mutableNode.label.text = fitLabelToContainer(labelText, labelFit, label, container);
             mutableNode.label.x = labelPlacement.x;
             mutableNode.label.y = labelPlacement.y;
             mutableNode.label.textAlign = labelPlacement.textAlign;
@@ -718,7 +724,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             // Bake the first orientation; an array resolves against the bar rect for inside placements
             // only (see barSeries).
             mutableNode.label.rotation = barLabelRotation(firstCandidate(label.orientation));
-            mutableNode.label.region = barLabelResolvesOrientation(label.orientation) ? container : undefined;
+            mutableNode.label.region = resolvesOrientation ? container : undefined;
             mutableNode.label.offsetX = 0;
             mutableNode.label.offsetY = 0;
         } else {

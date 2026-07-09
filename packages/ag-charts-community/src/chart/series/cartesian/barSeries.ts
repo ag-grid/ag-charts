@@ -3,6 +3,7 @@ import type {
     CallbackParamRules,
     DomainWithMetadata,
     DynamicContext,
+    LabelFit,
     Mutable,
     NormalisedBarSeriesStyle,
     NormalisedTextOrSegments,
@@ -32,6 +33,7 @@ import {
     maxValue,
     mergeDefaults,
     minValue,
+    resolveLabelFit,
     toArray,
     toNumber,
     zeroLike,
@@ -189,6 +191,7 @@ interface BarSeriesNodeDatumContext {
     readonly labelPlacement: AgBarSeriesLabelPlacement;
     readonly labelRotation: number;
     readonly labelResolvesOrientation: boolean;
+    readonly labelFit: LabelFit | undefined;
     readonly yDomain: any[];
 }
 
@@ -680,6 +683,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             labelPlacement: toArray(label.placement)[0],
             labelRotation: barLabelRotation(toArray(label.orientation)[0]),
             labelResolvesOrientation: barLabelResolvesOrientation(label.orientation),
+            labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid),
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
         };
     }
@@ -960,14 +964,17 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
             });
             // Inside labels fit within the bar rect; outside labels sit beside it, so leave them unbound.
+            // The rect is only needed to bound the fit or to resolve orientation, so skip it otherwise.
+            const isInside = placement == null || placement.startsWith('inside');
+            const needsRect = ctx.labelFit != null || ctx.labelResolvesOrientation;
             const insideBox =
-                placement == null || placement.startsWith('inside')
+                isInside && needsRect
                     ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, ctx.labelSpacing)
                     : undefined;
             // The first orientation is baked into `rotation`; an array resolves against the bar rect for
             // inside placements only (outside labels fall back to the plot bounds via no region).
             const region = ctx.labelResolvesOrientation ? insideBox : undefined;
-            const fittedText = fitLabelToContainer(nodeLabelText, ctx.label, insideBox);
+            const fittedText = fitLabelToContainer(nodeLabelText, ctx.labelFit, ctx.label, insideBox);
 
             const existingLabel = mutableNode.label;
             if (existingLabel) {
