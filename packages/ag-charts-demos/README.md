@@ -38,13 +38,19 @@ src/
 
 ### In the website dev server
 
-`yarn nx dev` builds this package (in `--watch` mode) and the website's dev server serves the built
-output same-origin at `/charts/debug/demos/<id>` (e.g. `https://localhost:4600/charts/debug/demos/starter`).
-`/charts/debug/demos` (no id) lists the available demos with a link to each.
-Serving the build — rather than proxying a second dev server — keeps the embed same-origin, which the
-website's `frame-src` CSP requires. Edits to a demo rebuild automatically; reload the page to pick them
-up (there is no HMR through the build). The route is dev-only (see `agDemosStatic` and the `getStaticPaths`
-production guard), so demos never reach the live site.
+`yarn nx dev` builds this package once at startup and the website's dev server serves the built output
+same-origin at `/charts/debug/demos/<id>` (e.g. `https://localhost:4600/charts/debug/demos/starter`).
+`/charts/debug/demos` (no id) lists the available demos with a link to each. Serving the build — rather
+than proxying a second dev server — keeps the embed same-origin, which the website's `frame-src` CSP
+requires.
+
+Editing a demo is wired into the shared watch loop: the change triggers the `build:watch` target (via
+`chartsWatch.config.js`), which rebuilds `dist` with the embedded base path, and the dev server reloads
+the browser once the rebuild completes. There is no HMR — it is a gated full reload, so the page only
+refreshes after `dist` is ready (never mid-rebuild).
+
+The route is dev-only (see `agDemosStatic` and the `getStaticPaths` production guard), so demos never
+reach the live site.
 
 ## Adding a demo app
 
