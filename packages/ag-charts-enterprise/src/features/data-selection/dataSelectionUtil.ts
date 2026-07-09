@@ -15,14 +15,6 @@ type Group = _ModuleSupport.Group<unknown>;
 
 type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
 type DragWidgetEvent = _ModuleSupport.DragWidgetEvent;
-type ClickModifier = ClickedNode['series']['properties']['selection']['clickModifier'] | undefined;
-
-type EventModifiers = {
-    readonly altKey: boolean;
-    readonly ctrlKey: boolean;
-    readonly metaKey: boolean;
-};
-type WidgetEventModifiers = { sourceEvent: EventModifiers };
 
 type Service = {
     clearSelection(): void;
@@ -52,14 +44,8 @@ export function toCanvasBBox(seriesRoot: Group, event1: DragWidgetEvent, event2:
     return _ModuleSupport.Transformable.toCanvas(seriesRoot, seriesBounds);
 }
 
-export function hasAddToSelectionModifier(event: WidgetEventModifiers): boolean {
+export function hasAddToSelectionModifier(event: { sourceEvent: { ctrlKey: boolean; metaKey: boolean } }): boolean {
     return event.sourceEvent.ctrlKey || event.sourceEvent.metaKey;
-}
-
-export function hasClickSelectionModifier(event: WidgetEventModifiers, clickModifier: ClickModifier): boolean {
-    if (clickModifier === 'none' || clickModifier === undefined) return true;
-    if (clickModifier === 'alt') return event.sourceEvent.altKey;
-    return clickModifier satisfies never;
 }
 
 export function rollbackChanges(changes: SelectionChangesWithItems, service: Service): void {

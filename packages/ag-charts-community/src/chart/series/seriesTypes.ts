@@ -107,7 +107,6 @@ export interface ISeriesProperties {
     yKey?: string;
     context?: unknown;
     tooltip: { enabled?: boolean };
-    selection: { clickModifier: 'none' | 'alt' };
 }
 
 export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesProperties, TLabel = TDatum> {

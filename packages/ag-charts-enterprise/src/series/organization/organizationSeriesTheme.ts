@@ -1,5 +1,5 @@
 import type { ExtensibleTheme } from 'ag-charts-community';
-import { BASE_FONT_SIZE, FONT_SIZE_RATIO, SERIES_SELECTION_THEME } from 'ag-charts-core';
+import { BASE_FONT_SIZE, FONT_SIZE_RATIO } from 'ag-charts-core';
 
 export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
     zoom: {
@@ -48,10 +48,6 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
                 strokeWidth: 2,
             },
         },
-        selection: {
-            ...SERIES_SELECTION_THEME,
-            clickModifier: 'alt',
-        } satisfies Partial<typeof SERIES_SELECTION_THEME> as Partial<typeof SERIES_SELECTION_THEME>,
         link: {
             interpolation: {
                 type: 'step',

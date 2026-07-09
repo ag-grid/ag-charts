@@ -359,7 +359,6 @@ export function selectionOptionsDef<T>(itemSelectionOptionsDef: T) {
         selectedItem: itemSelectionOptionsDef,
         unselectedItem: itemSelectionOptionsDef,
         unselectedSeries: itemSelectionOptionsDef,
-        clickModifier: undocumented(union('none', 'alt')),
     };
 }
 

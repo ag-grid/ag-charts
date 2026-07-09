@@ -338,7 +338,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -415,7 +414,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -492,7 +490,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -936,7 +933,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -1018,7 +1014,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -1108,7 +1103,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -1504,7 +1498,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -1583,7 +1576,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -1662,7 +1654,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -1741,7 +1732,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -1820,7 +1810,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -1899,7 +1888,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -1978,7 +1966,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -2363,7 +2350,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -2446,7 +2432,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -2529,7 +2514,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -2612,7 +2596,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -2695,7 +2678,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -2778,7 +2760,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -2861,7 +2842,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -2944,7 +2924,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -3333,7 +3312,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
       "maxSize": 100,
       "minSize": 5,
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -3749,7 +3727,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -3826,7 +3803,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -3903,7 +3879,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -3980,7 +3955,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -4378,7 +4352,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -4468,7 +4441,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -4558,7 +4530,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -4648,7 +4619,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -4738,7 +4708,6 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -5129,7 +5098,6 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -5530,7 +5498,6 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -5930,7 +5897,6 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
       "maxSize": 30,
       "minSize": 0,
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -6316,7 +6282,6 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
       "maxSize": 100,
       "minSize": 5,
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -6704,7 +6669,6 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -6784,7 +6748,6 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -7182,7 +7145,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -7267,7 +7229,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -7671,7 +7632,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -7758,7 +7718,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -7845,7 +7804,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -7932,7 +7890,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -8019,7 +7976,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -8106,7 +8062,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -8193,7 +8148,6 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -8604,7 +8558,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -8684,7 +8637,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -8764,7 +8716,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -8844,7 +8795,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -8924,7 +8874,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -9004,7 +8953,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -9084,7 +9032,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -9164,7 +9111,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -9244,7 +9190,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -9324,7 +9269,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -9404,7 +9348,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -9484,7 +9427,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -9564,7 +9506,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -9644,7 +9585,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -9724,7 +9664,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -9804,7 +9743,6 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -10191,7 +10129,6 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -10590,7 +10527,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -10688,7 +10624,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -10786,7 +10721,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -10884,7 +10818,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -10982,7 +10915,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -11080,7 +11012,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -11178,7 +11109,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -11582,7 +11512,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -11668,7 +11597,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -11754,7 +11682,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -12153,7 +12080,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -12236,7 +12162,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -12319,7 +12244,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -12402,7 +12326,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -12485,7 +12408,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -12568,7 +12490,6 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -13005,7 +12926,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -13092,7 +13012,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -13179,7 +13098,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -13266,7 +13184,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -13659,7 +13576,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -14015,7 +13931,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
       "sectorLabelKey": "count",
       "sectorSpacing": 1,
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -14458,7 +14373,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -14536,7 +14450,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -14845,7 +14758,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
       "sectorLabelKey": "population",
       "sectorSpacing": 1,
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -15236,7 +15148,6 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
       },
       "maxRenderedItems": 2000,
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -15658,7 +15569,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -15752,7 +15662,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -15846,7 +15755,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -15940,7 +15848,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -16034,7 +15941,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -16128,7 +16034,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -16530,7 +16435,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -16615,7 +16519,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -16700,7 +16603,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -16785,7 +16687,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -17187,7 +17088,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -17272,7 +17172,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -17357,7 +17256,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -17442,7 +17340,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
@@ -17527,7 +17424,6 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "key": "x",
       },
       "selection": {
-        "clickModifier": "none",
         "enabled": false,
         "selectedItem": {
           "strokeWidth": 2,
