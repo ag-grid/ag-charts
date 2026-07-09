@@ -42,10 +42,11 @@ const baseData: DatumType[] = [
     { year: '2024', usa: 2.8, china: 5.0, india: 6.5 },
 ];
 
-const seriesMeta: { id: string; yKey: keyof DatumType; yName: string }[] = [
-    { id: 'United States', yKey: 'usa', yName: 'United States' },
-    { id: 'China', yKey: 'china', yName: 'China' },
-    { id: 'India', yKey: 'india', yName: 'India' },
+// Default theme palette fills, in palette order, so the initial colours match the default theme.
+const seriesMeta: { id: string; yKey: keyof DatumType; yName: string; color: string }[] = [
+    { id: 'United States', yKey: 'usa', yName: 'United States', color: '#5090dc' },
+    { id: 'China', yKey: 'china', yName: 'China', color: '#ffa03a' },
+    { id: 'India', yKey: 'india', yName: 'India', color: '#459d55' },
 ];
 
 const seriesColors: { label: string; value: string }[] = [
@@ -69,21 +70,26 @@ function colorSwatch(color: string) {
 
 function createSeries(): AgLineSeriesOptions<DatumType>[] {
     return seriesMeta.map(
-        ({ id, yKey, yName }): AgLineSeriesOptions<DatumType> => ({
+        ({ id, yKey, yName, color }): AgLineSeriesOptions<DatumType> => ({
             id,
             type: 'line',
             xKey: 'year',
             yKey,
             yName,
+            // Assign an explicit colour per series so the palette isn't reassigned by position when a series is removed.
+            stroke: color,
             marker: {
                 enabled: true,
+                fill: color,
+                stroke: color,
                 itemStyler: ({ seriesId, datum }) =>
                     emphasisedPoints.has(pointKey(seriesId, datum.year)) ? { size: 14 } : {},
             },
             label: {
                 enabled: true,
-                formatter: ({ seriesId, datum, value }) =>
-                    emphasisedPoints.has(pointKey(seriesId, datum.year)) ? String(value) : '',
+                itemStyler: ({ seriesId, datum }) => ({
+                    enabled: emphasisedPoints.has(pointKey(seriesId, datum.year)),
+                }),
             },
         })
     );
@@ -98,7 +104,23 @@ const options: AgCartesianChartOptions<DatumType> = {
         text: 'Annual GDP Growth by Country',
     },
     subtitle: {
-        text: 'Right-click a point to change the point or its series',
+        text: 'Right-click a point or legend item to change the point or its series',
+    },
+    theme: {
+        overrides: {
+            line: {
+                series: {
+                    highlight: {
+                        highlightedItem: {
+                            strokeWidth: 2,
+                        },
+                        unhighlightedSeries: {
+                            opacity: 1,
+                        },
+                    },
+                },
+            },
+        },
     },
     data,
     series,
@@ -115,8 +137,6 @@ function getItems(params: AgContextMenuGetItemsParams<DatumType>): AgContextMenu
         const yKey = params.yKey!;
         const isEmphasised = emphasisedPoints.has(pointKey(seriesId, year));
         return [
-            'defaults',
-            'separator',
             {
                 type: 'action',
                 showOn: 'series-node',
@@ -129,29 +149,28 @@ function getItems(params: AgContextMenuGetItemsParams<DatumType>): AgContextMenu
                 label: `Remove "${year}" Point`,
                 action: () => removeDataPoint(year, yKey),
             },
-            'separator',
+        ];
+    }
+    if (params.showOn === 'legend-item') {
+        const { seriesId } = params;
+        return [
+            'toggle-series-visibility',
             {
-                showOn: 'series-node',
+                type: 'action',
+                showOn: 'legend-item',
+                label: `Remove "${seriesId}"`,
+                action: () => removeSeries(seriesId),
+            },
+            {
+                showOn: 'legend-item',
                 label: `Colour "${seriesId}"`,
                 items: seriesColors.map((color) => ({
                     type: 'action',
-                    showOn: 'series-node',
+                    showOn: 'legend-item',
                     label: color.label,
                     iconUrl: colorSwatch(color.value),
                     action: () => colorSeries(seriesId, color.value),
                 })),
-            },
-            {
-                type: 'action',
-                showOn: 'series-node',
-                label: `Hide "${seriesId}"`,
-                action: () => hideSeries(seriesId),
-            },
-            {
-                type: 'action',
-                showOn: 'series-node',
-                label: `Remove "${seriesId}"`,
-                action: () => removeSeries(seriesId),
             },
         ];
     }
@@ -189,12 +208,6 @@ function colorSeries(seriesId: string, color: string) {
     series = series.map((s) =>
         s.id === seriesId ? { ...s, stroke: color, marker: { ...s.marker, fill: color, stroke: color } } : s
     );
-    syncOptions();
-}
-
-/** inScope */
-function hideSeries(seriesId: string) {
-    series = series.map((s) => (s.id === seriesId ? { ...s, visible: false } : s));
     syncOptions();
 }
 
