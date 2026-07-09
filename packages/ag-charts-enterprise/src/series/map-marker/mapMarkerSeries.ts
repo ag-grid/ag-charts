@@ -394,7 +394,7 @@ export class MapMarkerSeries
         );
         if (labelText == null) return;
 
-        const fittedText = fitLabelText(labelText, resolveLabelFit(label), label);
+        const fittedText = fitLabelText(labelText, resolveLabelFit(label, label.collisionAvoidance.avoid), label);
         const { width, height } = measurer.measureLines(String(fittedText));
         const anchor = Marker.anchor(shape);
 

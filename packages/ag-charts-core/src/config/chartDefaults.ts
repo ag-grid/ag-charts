@@ -71,6 +71,7 @@ import {
     union,
     validate,
 } from '../state/validation';
+import { without } from '../utils/data/object';
 import { isValidNumberFormat } from '../utils/format/numberFormat';
 import {
     borderOptionsDef,
@@ -787,7 +788,7 @@ seriesLabelOptionsDefs.maxHeight = undocumented(positiveNumber);
 // @ts-expect-error undocumented option
 seriesLabelOptionsDefs.wrapping = undocumented(textWrap);
 // @ts-expect-error undocumented option
-seriesLabelOptionsDefs.overflowStrategy = undocumented(overflowStrategy);
+seriesLabelOptionsDefs.truncate = undocumented(boolean);
 
 /** Label defs for point-like series (line, area) that expose an undocumented directional placement. */
 export const placedSeriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = { ...seriesLabelOptionsDefs };
@@ -795,7 +796,7 @@ export const placedSeriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, 
 placedSeriesLabelOptionsDefs.placement = undocumented(labelCollisionPlacementDef);
 
 export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOptions<any, any>> = {
-    ...seriesLabelOptionsDefs,
+    ...without(seriesLabelOptionsDefs, ['truncate']),
     lineHeight: positiveNumber,
     minimumFontSize: positiveNumber,
     wrapping: textWrap,

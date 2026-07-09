@@ -18,6 +18,7 @@ import {
     type WrapOptions,
     anyOverlap,
     extractDomain,
+    fitLabelText,
     formatValue,
     isGradientFill,
     isStringFillArray,
@@ -25,6 +26,7 @@ import {
     mergeDefaults,
     modulus,
     normalizeAngle180,
+    resolveLabelFit,
     toNumber,
     toPlainText,
     toRadians,
@@ -70,7 +72,7 @@ import {
     valueProperty,
 } from '../../data/processors';
 import { Label, expandLabelPadding } from '../../label';
-import { getLabelStyles } from '../../labelUtil';
+import { fitLabelToContainer, getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -606,15 +608,19 @@ export class DonutSeries extends PolarSeries<
         };
 
         if (calloutLabelKey) {
-            result.callout = this.getLabelText<PieDonutSeriesLabelFormatterParams>(
-                calloutLabelValue,
-                datum,
-                calloutLabelKey,
-                'calloutLabel',
-                [],
-                calloutLabel,
-                { ...labelFormatterParams, value: calloutLabelValue },
-                allowNullKeys
+            result.callout = fitLabelText(
+                this.getLabelText<PieDonutSeriesLabelFormatterParams>(
+                    calloutLabelValue,
+                    datum,
+                    calloutLabelKey,
+                    'calloutLabel',
+                    [],
+                    calloutLabel,
+                    { ...labelFormatterParams, value: calloutLabelValue },
+                    allowNullKeys
+                ),
+                resolveLabelFit(calloutLabel, calloutLabel.collisionAvoidance.avoid),
+                calloutLabel
             );
         }
 
@@ -1636,13 +1642,16 @@ export class DonutSeries extends PolarSeries<
     private updateInnerLabelNodes() {
         const textBBoxes: BBox[] = [];
         const margins: number[] = [];
+        const innerRadius = this.getInnerRadius();
+        // The inner labels fit the square inscribed in the hole circle (diagonal 2·r ⇒ side r·√2).
+        const holeExtent = (innerRadius > 0 ? innerRadius : this.getOuterRadius()) * Math.SQRT2;
         this.innerLabelsSelection.each((text, datum) => {
             const { fontStyle, fontWeight, fontSize, fontFamily, color } = datum;
             text.fontStyle = fontStyle;
             text.fontWeight = fontWeight;
             text.fontSize = fontSize;
             text.fontFamily = fontFamily;
-            text.text = datum.text;
+            text.text = fitLabelToContainer(datum.text, datum, { width: holeExtent, height: holeExtent });
             text.x = 0;
             text.y = 0;
             text.fill = color;
@@ -1657,7 +1666,6 @@ export class DonutSeries extends PolarSeries<
             (sum, bbox, i) => sum + bbox.height + getMarginTop(i) + getMarginBottom(i),
             0
         );
-        const innerRadius = this.getInnerRadius();
         const labelRadius = Math.sqrt(Math.pow(totalWidth / 2, 2) + Math.pow(totalHeight / 2, 2));
         const labelsVisible = labelRadius <= (innerRadius > 0 ? innerRadius : this.getOuterRadius());
 

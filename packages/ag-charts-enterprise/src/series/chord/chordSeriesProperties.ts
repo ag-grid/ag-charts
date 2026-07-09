@@ -21,7 +21,7 @@ class ChordSeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams
     spacing: number = 1;
 
     @Property
-    maxWidth: number = 1;
+    override maxWidth: number = 1;
 }
 
 class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions> {

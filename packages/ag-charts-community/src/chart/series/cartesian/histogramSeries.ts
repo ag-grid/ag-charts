@@ -60,7 +60,7 @@ import {
     rowCountProperty,
     valueProperty,
 } from '../../data/processors';
-import { adjustLabelPlacement, getLabelStyles } from '../../labelUtil';
+import { adjustLabelPlacement, fitLabelToContainer, getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
@@ -532,14 +532,18 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             y: ly,
             textAlign,
             textBaseline,
-            text: this.getLabelText<AgHistogramSeriesLabelFormatterParams>(total, datum, yKey!, 'y', [], label, {
-                ...this.binParams(bin),
-                value: total,
-                xKey,
-                yKey,
-                xName,
-                yName,
-            }),
+            text: fitLabelToContainer(
+                this.getLabelText<AgHistogramSeriesLabelFormatterParams>(total, datum, yKey!, 'y', [], label, {
+                    ...this.binParams(bin),
+                    value: total,
+                    xKey,
+                    yKey,
+                    xName,
+                    yName,
+                }),
+                label,
+                { width: w, height: h }
+            ),
         };
     }
 

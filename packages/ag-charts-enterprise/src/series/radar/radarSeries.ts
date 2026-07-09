@@ -19,9 +19,11 @@ import {
     type Point,
     type RequireOptional,
     extent,
+    fitLabelText,
     isFiniteNumber,
     isNumberEqual,
     mergeDefaults,
+    resolveLabelFit,
 } from 'ag-charts-core';
 
 import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
@@ -313,7 +315,7 @@ export abstract class RadarSeries<
                     labelNodeDatum = {
                         x: x + cos * marker.size,
                         y: y + sin * marker.size,
-                        text: labelText,
+                        text: fitLabelText(labelText, resolveLabelFit(label, label.collisionAvoidance.avoid), label),
                         textAlign,
                         textBaseline,
                     };

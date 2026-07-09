@@ -642,7 +642,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             labelTextDomain,
             labelPadding: expandLabelPadding(label),
             labelTextMeasurer: cachedTextMeasurer(label),
-            labelFit: resolveLabelFit(label),
+            labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid),
             label,
 
             // Other state

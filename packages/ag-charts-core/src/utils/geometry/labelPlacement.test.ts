@@ -701,16 +701,31 @@ describe('bar label placement helpers', () => {
 });
 
 describe('resolveLabelFit', () => {
-    it('returns undefined when no fit field is set', () => {
+    it('returns undefined (show) when neither truncate nor collision avoidance is set', () => {
         expect(resolveLabelFit({})).toBeUndefined();
+        // A bound alone does not opt in: without truncate or avoidance the full text renders.
+        expect(resolveLabelFit({ maxWidth: 120, wrapping: 'on-space' })).toBeUndefined();
     });
 
-    it('resolves the configured fit policy', () => {
-        expect(resolveLabelFit({ maxWidth: 120, wrapping: 'on-space' })).toEqual({
+    it('resolves truncate:true to an ellipsis overflow, honouring the explicit bound', () => {
+        expect(resolveLabelFit({ maxWidth: 120, wrapping: 'on-space', truncate: true })).toEqual({
             maxWidth: 120,
             maxHeight: undefined,
             wrapping: 'on-space',
-            overflowStrategy: undefined,
+            overflowStrategy: 'ellipsis',
         });
+    });
+
+    it('resolves collision avoidance without truncate to a hide overflow', () => {
+        expect(resolveLabelFit({ maxWidth: 120 }, true)).toEqual({
+            maxWidth: 120,
+            maxHeight: undefined,
+            wrapping: undefined,
+            overflowStrategy: 'hide',
+        });
+    });
+
+    it('lets truncate:true win over collision avoidance', () => {
+        expect(resolveLabelFit({ maxWidth: 120, truncate: true }, true)?.overflowStrategy).toBe('ellipsis');
     });
 });
