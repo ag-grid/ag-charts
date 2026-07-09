@@ -946,6 +946,44 @@ describe('LineSeries', () => {
             expectSceneTrajectory(trajectory, {});
         });
 
+        // CRT-823: a series that is legend-hidden both before and after an update must stay visually inert,
+        // even when its own data changes underneath it. The historic bug ran the hidden line's update
+        // animation regardless, briefly drawing its line across the x-axis baseline before it vanished again.
+        // The invariant is defended in more than one place (the guard in animateWaitingUpdateReady, plus the
+        // hidden path rendering visible:0), so any single regression may not surface it — but the observable
+        // contract is worth pinning: while a visible sibling genuinely animates, the hidden series contributes
+        // no motion of any kind (its path never flips visible, its opacity never moves).
+        it('hidden series: a legend-hidden line stays inert while a sibling animates', async () => {
+            const base = twoSeriesOptions(2);
+            const hidden: AgCartesianChartOptions = {
+                ...base,
+                series: base.series!.map((s, i) => (i === 1 ? { ...s, visible: false } : s)),
+            };
+            chart = AgCharts.create(hidden);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+            const before = sampleScene();
+            // Every value changes; series[1] is hidden throughout, so only visible series[0] may animate.
+            await chart.updateDelta({
+                data: [
+                    { x: 0, a: 90, b: 150 },
+                    { x: 1, a: 50, b: 30 },
+                    { x: 2, a: 140, b: 175 },
+                    { x: 3, a: 70, b: 45 },
+                    { x: 4, a: 110, b: 160 },
+                ],
+            });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            expect([...before.keys()].filter((k) => k.startsWith('series[1]')).length).toBeGreaterThan(0);
+            // The update triggered real motion: the visible series[0] re-fades its markers from invisible.
+            // Without this the hidden-series assertion below could pass on an update that did nothing at all.
+            expectMarkerStartsCollapsed(trajectory, '0');
+            // The hidden series[1], by contrast, holds every tracked property constant across that same
+            // capture — filtered to its nodes, nothing (visibility, opacity, geometry) moves.
+            const hiddenOnly = (s: SceneGeometrySample) => new Map([...s].filter(([k]) => k.startsWith('series[1]')));
+            expectNoAnimation(trajectory.map(hiddenOnly));
+        });
+
         const WEEKS: Array<{ x: string; y: number }> = [
             { x: 'w3', y: 60 },
             { x: 'w4', y: 185 },
