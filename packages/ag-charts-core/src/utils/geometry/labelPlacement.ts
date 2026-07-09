@@ -818,9 +818,9 @@ function regionOverflow(region: BoxBounds, x: number, y: number, w: number, h: n
     );
 }
 
-/** The `i`-th candidate: `list[i]` when a non-empty candidate list is present, else the lone `single` value. */
+/** The `i`-th candidate: `list[i]` when a candidate list is present, else the lone `single` value. */
 function candidateAt<T>(list: readonly T[] | undefined, single: T | undefined, i: number): T | undefined {
-    return list?.length ? list[i] : single;
+    return list ? list[i] : single;
 }
 
 /**

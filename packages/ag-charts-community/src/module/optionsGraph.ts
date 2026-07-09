@@ -107,7 +107,7 @@ export const SHALLOW_OPTION_KEYS = new Set<string>(['context', 'data', 'topology
 // Keys whose array value is an ordered scalar fallback list, not a structure to merge element-wise.
 // Descended shallow so a user array replaces the theme default wholesale instead of merging index-by-index.
 // Only array values qualify; a theme operation such as a `$path` reference is still descended and resolved.
-const ATOMIC_LIST_OPTION_KEYS = new Set<string>(['placement']);
+const ATOMIC_LIST_OPTION_KEYS = new Set<string>(['placement', 'orientation']);
 
 /**
  * The OptionsGraph combines the theme config, params, palette, overrides and user options into a graph which can then
