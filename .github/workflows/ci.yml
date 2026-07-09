@@ -247,6 +247,7 @@ jobs:
               with:
                   cache_mode: ro
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+                  free_disk_space: false
 
             - name: nx format:check
               id: format
@@ -379,6 +380,7 @@ jobs:
               with:
                   cache_mode: ro
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+                  free_disk_space: false
 
             - name: nx run-many -t validate-examples
               id: validate
