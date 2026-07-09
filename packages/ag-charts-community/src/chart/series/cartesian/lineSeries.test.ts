@@ -38,8 +38,10 @@ import { testLegendItemName } from '../../test/legendItemName';
 import type { CartesianOrPolarTestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    type PhasedPropertyExpectation,
     type SceneGeometrySample,
     type SceneNodeExpectation,
+    type ScenePropertyExpectation,
     axisReflowSpec,
     cartesianChartAssertions,
     createChart,
@@ -348,11 +350,17 @@ describe('LineSeries', () => {
         const markerCount = (sample: SceneGeometrySample) =>
             [...sample.keys()].filter((k) => /^series\[\d+\]\/marker\[/.test(k)).length;
 
-        // Line markers set their local y to the new target the instant the data lands and animate the
-        // move via translationY (easing the offset to 0), so within the captured trajectory local y/x hold
-        // constant and translationY carries the motion. captureUpdate's whole-scene endpoint check trips on
-        // that frame-0 snap, so line CASEs hand-roll the capture (as spike CASE 3 does) and pin only the
-        // properties that genuinely tween.
+        // A marker's settled screen x (its position may live in the local coord or the translation).
+        const markerX = (sample: SceneGeometrySample, label: string) => {
+            const m = sample.get(`series[0]/marker[${label}]`);
+            return m ? m.x + (m.translationX ?? 0) : undefined;
+        };
+
+        // Line markers set their local position to the new target the instant the data lands and hold it
+        // there (translation stays 0 — they do NOT position-tween); the animation a data update carries is
+        // the opacity re-fade (number-axis value updates) and the path reshape, while category reorders snap
+        // the markers to their new bands. captureUpdate's whole-scene endpoint check trips on that frame-0
+        // snap, so line CASEs hand-roll the capture (as spike CASE 3 does) and pin only what genuinely tweens.
         const captureFrom = async (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
             chart = AgCharts.create(options);
             await frames.runToEnd(chart);
@@ -362,12 +370,52 @@ describe('LineSeries', () => {
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             await frames.runToEnd(chart);
             const after = sampleScene();
+            // The last captured frame must already be the settled state: this end-anchor (which captureUpdate
+            // also applies, and which the dropped frame-0 start check has no bearing on) guards against a
+            // trajectory that never converged within the capture window.
+            expectSceneSamplesMatch(trajectory.at(-1)!, after);
             return { sampleScene, before, trajectory, after };
         };
 
+        // The anti-vacuous guard for the fade/scale-in specs: a node must be present but visually collapsed
+        // (opacity or size ~0) on the first captured frame, proving the animation started from nothing
+        // rather than snapping to its final state. A missing node defaults to Infinity so the guard fails
+        // loudly rather than passing on an absent node.
+        const expectNodeStartsCollapsed = (
+            trajectory: SceneGeometrySample[],
+            key: string,
+            prop: 'opacity' | 'width' = 'opacity'
+        ) => {
+            const value = trajectory[0].get(key)?.[prop] ?? Infinity;
+            expect(value, `${key} ${prop} at frame 0`).toBeLessThanOrEqual(0.001);
+        };
+        const expectMarkerStartsCollapsed = (
+            trajectory: SceneGeometrySample[],
+            label: string,
+            prop: 'opacity' | 'width' = 'opacity'
+        ) => expectNodeStartsCollapsed(trajectory, `series[0]/marker[${label}]`, prop);
+
+        // The fade contract shared by every marker re-entry: on a number-axis value update all present
+        // markers (survivors and entrants) snap to opacity 0 and fade back to 1 during add/trailing. Defined
+        // once so the CASEs express intent by name. NOTE this is only anti-vacuous alongside a frame-0
+        // `expectMarkerStartsCollapsed` guard — a marker held at opacity 1 throughout also satisfies
+        // increases/bounded/settlesAt, so the guard is what proves a fade actually happened.
+        const fadeIn: PhasedPropertyExpectation = {
+            during: ['add', 'trailing'],
+            expect: ['increases', 'bounded'],
+            settlesAt: 1,
+        };
+        const positionFree: Record<string, ScenePropertyExpectation> = {
+            x: 'any',
+            y: 'any',
+            translationX: 'any',
+            translationY: 'any',
+        };
+
         // "Update points" / "Randomise" — every value jitters within the pinned domain. The path morphs
-        // per-station and the markers ride to their new heights (via translationY), while the x-extent (bbox
-        // x/width, marker translationX) and both axes hold, and the stroke stays a single unbroken subpath.
+        // per-station (the stations tween through intermediate shapes) and the markers re-fade opacity at
+        // their new heights, while the x-extent (bbox x/width, marker translation) and both axes hold, and
+        // the stroke stays a single unbroken subpath.
         it('update points: path morphs per-station while the x-extent and axes hold', async () => {
             const { before, trajectory } = await captureFrom(
                 lineOptions([
@@ -395,58 +443,49 @@ describe('LineSeries', () => {
                     width: { during: 'update', expect: 'constant' },
                     // The bbox envelope (top y, total height) is not endpoint-bounded mid-morph: different
                     // stations peak at different times, so the aggregate swings past its endpoints. The
-                    // per-station tops below carry the real per-point invariant.
+                    // per-station tops carry the real per-point invariant, and `progresses` on two of them
+                    // proves the path tweens through intermediate shapes rather than snapping.
                     y: 'any',
                     height: 'any',
                     'top@0': { during: 'update', expect: ['monotonic', 'progresses', 'bounded'] },
                     'top@1': { during: 'update', expect: ['monotonic', 'bounded'] },
-                    'top@2': { during: 'update', expect: ['monotonic', 'bounded'] },
+                    'top@2': { during: 'update', expect: ['monotonic', 'progresses', 'bounded'] },
                     'top@3': { during: 'update', expect: ['monotonic', 'bounded'] },
                     'top@4': { during: 'update', expect: ['monotonic', 'bounded'] },
                 },
-                // Markers re-enter on a data update: they snap to the new target (local y) and fade back in
-                // during add/trailing while translationY eases the move to 0. translationX holds (x fixed).
+                // Markers are re-created at their new local position and only opacity re-fades — they do not
+                // position-tween, so translation holds at 0. The path stations above carry the value motion.
                 'series[0]/marker[*]': {
-                    translationX: { during: 'update', expect: 'constant' },
-                    translationY: { during: 'update', expect: ['monotonic', 'bounded'] },
-                    opacity: { during: ['add', 'trailing'], expect: ['increases', 'bounded'], settlesAt: 1 },
+                    translationX: 'constant',
+                    translationY: 'constant',
+                    opacity: fadeIn,
                 },
             });
+            // Marker 2 survives the update yet still re-fades from invisible: the guard that makes the
+            // opacity spec above non-vacuous (without it a marker held at opacity 1 would also pass).
+            expectMarkerStartsCollapsed(trajectory, '2');
         });
 
-        // All present markers (survivors and entrants alike) snap to opacity 0 when data lands and fade
-        // back in during add/trailing; departed markers leave the scene immediately. So marker enter/exit
-        // is asserted through markerCount plus this shared fade-in glob rather than by naming a departed
-        // marker. The path's per-station tops and bbox envelope reshape freely on a structural change (the
-        // fixed x-fraction stations resample a changed path), so only the extent and continuity are pinned.
+        // Marker enter/exit is asserted through markerCount plus this shared fade-in glob rather than by
+        // naming a departed marker (departed markers leave the scene immediately). The path's per-station
+        // tops and bbox envelope reshape freely on a structural change, so only the extent and continuity
+        // are pinned by the CASEs.
         const markersFadeIn: Record<string, SceneNodeExpectation> = {
-            'series[0]/marker[*]': {
-                opacity: { during: ['add', 'trailing'], expect: ['increases', 'bounded'], settlesAt: 1 },
-            },
+            'series[0]/marker[*]': { opacity: fadeIn },
         };
         // When survivors also change position (their y updates, or a category axis re-spaces the bands),
-        // the markers move while still fading in — pin the fade and size but leave position free.
+        // the markers move while still fading in — pin the fade but leave position free.
         const markersReflow: Record<string, SceneNodeExpectation> = {
-            'series[0]/marker[*]': {
-                opacity: { during: ['add', 'trailing'], expect: ['increases', 'bounded'], settlesAt: 1 },
-                x: 'any',
-                y: 'any',
-                translationX: 'any',
-                translationY: 'any',
-            },
+            'series[0]/marker[*]': { opacity: fadeIn, ...positionFree },
         };
         // On an initial-load reveal the markers additionally scale in from zero size (the swipe scale-in
-        // the easeOut-very-slow debug flag suppresses), staggered across the reveal, so width/height grow
-        // monotonically rather than holding constant.
+        // the easeOut-very-slow debug flag suppresses), staggered across the reveal, so width/height grow.
         const markersScaleIn: Record<string, SceneNodeExpectation> = {
             'series[0]/marker[*]': {
-                opacity: { during: ['add', 'trailing'], expect: ['increases', 'bounded'], settlesAt: 1 },
+                opacity: fadeIn,
                 width: ['increases', 'bounded'],
                 height: ['increases', 'bounded'],
-                x: 'any',
-                y: 'any',
-                translationX: 'any',
-                translationY: 'any',
+                ...positionFree,
             },
         };
         const reshapingPath = {
@@ -495,7 +534,7 @@ describe('LineSeries', () => {
                 },
                 ...markersFadeIn,
             });
-            expect(trajectory[0].get('series[0]/marker[5]')?.opacity ?? 1).toBeLessThanOrEqual(0.001);
+            expectMarkerStartsCollapsed(trajectory, '5');
         });
 
         // "Remove points middle" — interior points leave; the endpoints (x-extent) are unchanged so the
@@ -610,7 +649,7 @@ describe('LineSeries', () => {
             expect([...after.keys()]).toContain('series[0]/marker[5]');
             const key = pathKey(before);
             expectSceneTrajectory(trajectory, { [key]: 'any', ...markersReflow });
-            expect(trajectory[0].get('series[0]/marker[5]')?.opacity ?? 1).toBeLessThanOrEqual(0.001);
+            expectMarkerStartsCollapsed(trajectory, '5');
         });
 
         // "Shift left" — drop the first point, append one at the end. The shared interior points hold, so
@@ -646,7 +685,7 @@ describe('LineSeries', () => {
                 trajectory.map((f) => f.get(key)!.x),
                 'increasing'
             );
-            expect(trajectory[0].get('series[0]/marker[6]')?.opacity ?? 1).toBeLessThanOrEqual(0.001);
+            expectMarkerStartsCollapsed(trajectory, '6');
         });
 
         // "Shift right" — prepend a point, drop the last. Mirror of shift left: the left edge steps out
@@ -678,7 +717,7 @@ describe('LineSeries', () => {
                 trajectory.map((f) => f.get(key)!.x),
                 'decreasing'
             );
-            expect(trajectory[0].get('series[0]/marker[1]')?.opacity ?? 1).toBeLessThanOrEqual(0.001);
+            expectMarkerStartsCollapsed(trajectory, '1');
         });
 
         const twoSeriesOptions = (seriesCount: 1 | 2): AgCartesianChartOptions => {
@@ -703,21 +742,24 @@ describe('LineSeries', () => {
             return prepareTestOptions(options);
         };
 
-        // "Add Series" — a second line joins. Its path and markers fade in.
-        it('add series: the entering series path and markers fade in', async () => {
-            const full = twoSeriesOptions(2);
-            const { before, trajectory, after } = await captureFrom(twoSeriesOptions(1), () => chart.update(full));
+        // "Add Series" — a second line joins. The line implementation brings a newly added series in
+        // fully-formed with no entrance animation: its path and markers are at final geometry and full
+        // opacity from the first frame and nothing tweens. (Bar, by contrast, fades its entering series in
+        // from opacity 0 — see barSeries.test.ts.) This CASE pins the snap so a future change either way is
+        // caught.
+        it('add series: the entering series appears fully-formed without animation', async () => {
+            const options = twoSeriesOptions(1);
+            const { before, trajectory, after } = await captureFrom(options, () =>
+                chart.update({ ...options, series: twoSeriesOptions(2).series })
+            );
             expect([...before.keys()].filter((k) => k.startsWith('series[1]/path'))).toHaveLength(0);
             const enteringPath = [...after.keys()].filter((k) => k.startsWith('series[1]/path'));
             expect(enteringPath).toHaveLength(1);
-            expectSceneTrajectory(trajectory, {
-                [enteringPath[0]]: {
-                    opacity: { during: ['add', 'trailing'], expect: ['increases', 'bounded'], settlesAt: 1 },
-                },
-                'series[1]/marker[*]': {
-                    opacity: { during: ['add', 'trailing'], expect: ['increases', 'bounded'], settlesAt: 1 },
-                },
-            });
+            // Present and already at full opacity on the first frame (a snap, not a fade)...
+            expect(trajectory[0].get(enteringPath[0])?.opacity).toBe(1);
+            expect(trajectory[0].get('series[1]/marker[0]')?.opacity).toBe(1);
+            // ...and nothing animates across the capture.
+            expectNoAnimation(trajectory);
         });
 
         // "Remove Series" — the second line leaves the scene (its nodes drop immediately, like a removed
@@ -728,7 +770,12 @@ describe('LineSeries', () => {
             );
             expect([...before.keys()].filter((k) => k.startsWith('series[1]/path'))).toHaveLength(1);
             expect([...after.keys()].filter((k) => k.startsWith('series[1]/path'))).toHaveLength(0);
-            expectSceneTrajectory(trajectory, markersFadeIn);
+            // The removed series drops immediately (no fade-out to observe), so the honest invariant is
+            // that nothing else animates: the surviving series[0] holds every property constant across the
+            // capture (default-constant catches it) — not the misleading survivor fade the shared glob
+            // would vacuously accept. series[1] is already gone by the first captured frame.
+            expect(trajectory.some((f) => [...f.keys()].some((k) => k.startsWith('series[1]')))).toBe(false);
+            expectSceneTrajectory(trajectory, {});
         });
 
         const WEEKS: Array<{ x: string; y: number }> = [
@@ -773,7 +820,7 @@ describe('LineSeries', () => {
                 ...markersReflow,
                 ...axisReflowSpec('bottom', { shift: 'left' }),
             });
-            expect(trajectory[0].get('series[0]/marker[w12]')?.opacity ?? 1).toBeLessThanOrEqual(0.001);
+            expectMarkerStartsCollapsed(trajectory, 'w12');
         });
 
         // "Add Start Week" — a new category prepends; bands reflow right and the new leading marker fades in.
@@ -788,7 +835,7 @@ describe('LineSeries', () => {
                 ...markersReflow,
                 ...axisReflowSpec('bottom', { shift: 'right' }),
             });
-            expect(trajectory[0].get('series[0]/marker[w2]')?.opacity ?? 1).toBeLessThanOrEqual(0.001);
+            expectMarkerStartsCollapsed(trajectory, 'w2');
         });
 
         // "Add Weeks 7+8" — the distinct middle-insertion case: two categories drop into the interior gap
@@ -815,17 +862,12 @@ describe('LineSeries', () => {
             expect([...after.keys()]).toContain('series[0]/marker[w7]');
             expect([...after.keys()]).toContain('series[0]/marker[w8]');
 
-            // Settled screen x of a marker (position may live in either the local coord or the translation).
-            const markerX = (s: SceneGeometrySample, label: string) => {
-                const m = s.get(`series[0]/marker[${label}]`)!;
-                return m.x + (m.translationX ?? 0);
-            };
             // The inserted markers land in order between w6 and w9...
-            expect(markerX(after, 'w6')).toBeLessThan(markerX(after, 'w7'));
-            expect(markerX(after, 'w7')).toBeLessThan(markerX(after, 'w8'));
-            expect(markerX(after, 'w8')).toBeLessThan(markerX(after, 'w9'));
+            expect(markerX(after, 'w6')).toBeLessThan(markerX(after, 'w7')!);
+            expect(markerX(after, 'w7')).toBeLessThan(markerX(after, 'w8')!);
+            expect(markerX(after, 'w8')).toBeLessThan(markerX(after, 'w9')!);
             // ...and the series point just past the insertion slides right to make room for them.
-            expect(markerX(after, 'w9')).toBeGreaterThan(markerX(before, 'w9'));
+            expect(markerX(after, 'w9')).toBeGreaterThan(markerX(before, 'w9')!);
 
             // The axis mirrors it: the two interior category labels are inserted, and the category to their
             // right slides right to make room (the axis reflow is a bidirectional spread from the gap, so it
@@ -837,20 +879,30 @@ describe('LineSeries', () => {
             expect(axisLabelX(after, 'l:w9')!).toBeGreaterThan(axisLabelX(before, 'l:w9')!);
 
             // The inserted markers animate in from invisible to fully shown.
-            expect(trajectory[0].get('series[0]/marker[w7]')?.opacity ?? 1).toBeLessThanOrEqual(0.001);
+            expectMarkerStartsCollapsed(trajectory, 'w7');
             expect(after.get('series[0]/marker[w7]')!.opacity).toBeGreaterThan(0.99);
         });
 
         // "Reorder" — the category order is scrambled; the same markers stay (count holds) but re-map to
         // reshuffled bands, so positions move while the path reshapes and markers re-fade.
-        it('category reorder: markers re-map to reshuffled bands with the count unchanged', async () => {
+        // "Reorder" — the category order is scrambled. The markers snap to their new band positions (line
+        // reorder does not tween marker position), so the animation coverage here is that the reshuffle
+        // actually LANDED: the settled left-to-right order matches the reordered data and w6 (moved from
+        // last to first) really shifted left. Without this the CASE would pass on a no-op reorder.
+        it('category reorder: markers re-map to the reshuffled bands', async () => {
             const reordered = [WEEKS[3], WEEKS[0], WEEKS[5], WEEKS[1], WEEKS[6], WEEKS[2], WEEKS[4]];
             const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS), () =>
                 chart.updateDelta({ data: reordered })
             );
             expect(markerCount(after)).toBe(markerCount(before));
-            const key = pathKey(before);
-            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersReflow });
+            const order = reordered.map((d) => d.x);
+            for (let i = 1; i < order.length; i++) {
+                expect(markerX(after, order[i - 1])!).toBeLessThan(markerX(after, order[i])!);
+            }
+            expect(markerX(after, 'w6')!).toBeLessThan(markerX(before, 'w6')!);
+            // Markers snap rather than tween: each holds position and opacity constant across the capture
+            // (default-constant), while only the path reshapes.
+            expectSceneTrajectory(trajectory, { [pathKey(before)]: 'any' });
         });
 
         // Integrated mode initial load: the line must still reveal, scaling its markers in from zero size.
@@ -861,18 +913,21 @@ describe('LineSeries', () => {
             const key = pathKey(trajectory.at(-1)!);
             expectSceneTrajectory(trajectory, { [key]: 'any', ...markersScaleIn });
             // The last marker scales in last, so it is still zero-size at the start of the reveal.
-            expect(trajectory[0].get('series[0]/marker[w11]')?.width ?? 99).toBeLessThanOrEqual(0.001);
+            expectMarkerStartsCollapsed(trajectory, 'w11', 'width');
         });
 
-        // "Reverse" (integrated-only) — the data order is reversed, reshuffling the category bands; markers
-        // re-map with the count unchanged.
+        // "Reverse" (integrated-only) — the data order is reversed, reshuffling the category bands. As with
+        // reorder the markers snap to their new bands, so the coverage is that the reversal LANDED: the first
+        // category (w3) is now rightmost and the last (w11) leftmost.
         it('integrated mode: reverse re-maps markers to the reversed bands', async () => {
             const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS, 'integrated'), () =>
                 chart.updateDelta({ data: [...WEEKS].reverse() })
             );
             expect(markerCount(after)).toBe(markerCount(before));
-            const key = pathKey(before);
-            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersReflow });
+            expect(markerX(after, 'w11')!).toBeLessThan(markerX(after, 'w3')!);
+            expect(markerX(after, 'w3')!).toBeGreaterThan(markerX(before, 'w3')!);
+            expect(markerX(after, 'w11')!).toBeLessThan(markerX(before, 'w11')!);
+            expectSceneTrajectory(trajectory, { [pathKey(before)]: 'any' });
         });
 
         // "Start ticking" — a point is appended on a timer while the previous append is still animating.
@@ -905,6 +960,8 @@ describe('LineSeries', () => {
                 expect(trajectory[i].get(key)?.subpaths, `frame ${i} subpaths`).toBe(1);
             }
             expect(markerCount(trajectory.at(-1)!)).toBeGreaterThan(markerCount(trajectory[0]));
+            // The stroke keeps growing (not frozen mid-tick): its final width exceeds its initial width.
+            expect(trajectory.at(-1)!.get(key)!.width).toBeGreaterThan(trajectory[0].get(key)!.width);
         });
 
         // "Rapid Update" — a second data change lands before the first has finished animating. The batch
@@ -978,7 +1035,10 @@ describe('LineSeries', () => {
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene, { frames: 40 });
             const key = pathKey(trajectory.at(-1)!);
             // The swipe is clip-based: the stroke is drawn in full from the first frame and a clip window
-            // reveals it left-to-right, so the path's vertices (its per-station tops) never move.
+            // reveals it left-to-right, so the path's vertices (its per-station tops) never move while the
+            // clip window's right edge (clip:x) grows monotonically across the plot — that growth IS the
+            // swipe, so it is asserted rather than left 'any'. (clip drops to 0 once the mask is removed at
+            // the end, so clip:x is only present during the sweep and checked over those frames.)
             expectSceneTrajectory(trajectory, {
                 [key]: {
                     'top@0': 'constant',
@@ -986,6 +1046,7 @@ describe('LineSeries', () => {
                     'top@2': 'constant',
                     'top@3': 'constant',
                     'top@4': 'constant',
+                    'clip:x': ['increases', 'progresses', 'bounded'],
                     x: 'any',
                     y: 'any',
                     width: 'any',
@@ -993,7 +1054,6 @@ describe('LineSeries', () => {
                     opacity: 'any',
                     subpaths: 'any',
                     clip: 'any',
-                    'clip:x': 'any',
                     'clip:y': 'any',
                 },
                 ...markersScaleIn,
@@ -1001,14 +1061,20 @@ describe('LineSeries', () => {
 
             const finalWidth = trajectory.at(-1)!.get('series[0]/marker[A]')!.width;
             expect(finalWidth).toBeGreaterThan(1);
-            const reachesFullSize = (label: string) =>
-                trajectory.findIndex((f) => (f.get(`series[0]/marker[${label}]`)?.width ?? 0) >= finalWidth * 0.9);
-            const leftmost = reachesFullSize('A');
-            const rightmostStart = trajectory.findIndex(
-                (f) => (f.get('series[0]/marker[F]')?.width ?? 0) > finalWidth * 0.01
+            const firstFrameAbove = (label: string, fraction: number) =>
+                trajectory.findIndex((f) => (f.get(`series[0]/marker[${label}]`)?.width ?? 0) > finalWidth * fraction);
+            // Each marker begins scaling in no earlier than the one to its left: the L-to-R stagger across
+            // the whole row, not just the extremes.
+            const starts = ['A', 'B', 'C', 'D', 'E', 'F'].map((l) => firstFrameAbove(l, 0.01));
+            expectMonotonic(starts, 'increasing');
+            // And the stagger is wide enough that the leftmost finishes (>=90%) strictly before the rightmost
+            // even starts — this strictness is what fails on a total snap (all indices would be 0).
+            const leftmostDone = trajectory.findIndex(
+                (f) => (f.get('series[0]/marker[A]')?.width ?? 0) >= finalWidth * 0.9
             );
-            expect(leftmost).toBeGreaterThanOrEqual(0);
-            expect(leftmost).toBeLessThanOrEqual(rightmostStart);
+            expect(leftmostDone).toBeGreaterThan(0);
+            expect(starts.at(-1)!).toBeGreaterThan(0);
+            expect(leftmostDone).toBeLessThan(starts.at(-1)!);
         });
 
         // "Move Legend" — a legend reposition reflows the layout rect, which the product snaps rather than
@@ -1041,8 +1107,11 @@ describe('LineSeries', () => {
             const strokeBefore = strokeOf();
             await chart.update({ ...options, theme: 'ag-sheets' });
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            // Per-frame (not just endpoints): the data-driven series geometry holds constant on EVERY frame,
+            // so a tween that wandered off and returned would still be caught. Restricted to series nodes
+            // because the axis legitimately re-fades its restyled tick lines.
             const seriesOnly = (s: SceneGeometrySample) => new Map([...s].filter(([k]) => k.startsWith('series[')));
-            expectSceneSamplesMatch(seriesOnly(trajectory[0]), seriesOnly(trajectory.at(-1)!));
+            expectNoAnimation(trajectory.map(seriesOnly));
             // The sampler reads geometry only, so the palette swap is the change-landed signal.
             expect(strokeOf()).not.toBe(strokeBefore);
         });
