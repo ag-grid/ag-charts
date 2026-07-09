@@ -491,7 +491,7 @@ describe('LineSeries', () => {
         const reshapingPath = {
             y: 'any',
             height: 'any',
-            'top@0': 'any',
+            'top@0': 'constant',
             'top@1': 'any',
             'top@2': 'any',
             'top@3': 'any',
@@ -610,6 +610,9 @@ describe('LineSeries', () => {
             expectSceneTrajectory(trajectory, {
                 [key]: {
                     ...reshapingPath,
+                    // Both endpoints are pinned, so the right-edge station holds too — only the interior
+                    // stations resample the reshaped middle.
+                    'top@4': 'constant',
                     x: { during: 'update', expect: 'constant' },
                     width: { during: 'update', expect: 'constant' },
                     subpaths: { during: 'update', expect: 'constant' },
@@ -647,6 +650,9 @@ describe('LineSeries', () => {
             expectSceneTrajectory(trajectory, {
                 [key]: {
                     ...reshapingPath,
+                    // Both endpoints are pinned, so the right-edge station holds too — only the interior
+                    // stations resample the reshaped middle.
+                    'top@4': 'constant',
                     x: { during: 'update', expect: 'constant' },
                     width: { during: 'update', expect: 'constant' },
                     subpaths: { during: 'update', expect: 'constant' },
@@ -765,12 +771,12 @@ describe('LineSeries', () => {
                     height: 'any',
                     subpaths: 'any',
                     // Stations 2 and 3 straddle the opened gap (x=2), so they lose their crossing and go
-                    // non-finite; the flanking stations keep a crossing and stay finite.
-                    'top@0': 'any',
-                    'top@1': 'any',
+                    // non-finite; the flanking stations sit on unchanged pinned-extent points and hold.
+                    'top@0': 'constant',
+                    'top@1': 'constant',
                     'top@2': 'degenerate',
                     'top@3': 'degenerate',
-                    'top@4': 'any',
+                    'top@4': 'constant',
                 },
                 ...markersFadeIn,
             });
