@@ -18,6 +18,7 @@ import {
     type AgErrorBarThemeableOptions,
     type AgInitialFocus,
     type AgInterpolationType,
+    type AgLineSeriesLabelOptions,
     type AgRangesButton,
     type AgSeriesMarkerOptions,
     type AgSeriesMarkerStyle,
@@ -767,6 +768,9 @@ export const labelCollisionPlacementDef = or(
     arrayOf(labelCollisionPlacementValidator)
 );
 
+/** Label orientation accepting a single value or an ordered fallback list. */
+export const labelOrientationDef = or(labelOrientationValidator, arrayOf(labelOrientationValidator));
+
 export const collisionAvoidanceOptionsDef = {
     enabled: boolean,
     minSpacing: positiveNumber,
@@ -780,7 +784,7 @@ export const collisionAvoidanceOptionsDef = {
 // @ts-expect-error undocumented option
 seriesLabelOptionsDefs.collisionAvoidance = undocumented(collisionAvoidanceOptionsDef);
 // @ts-expect-error undocumented option
-seriesLabelOptionsDefs.orientation = undocumented(or(labelOrientationValidator, arrayOf(labelOrientationValidator)));
+seriesLabelOptionsDefs.orientation = undocumented(labelOrientationDef);
 // @ts-expect-error undocumented option
 seriesLabelOptionsDefs.maxWidth = undocumented(positiveNumber);
 // @ts-expect-error undocumented option
@@ -790,10 +794,11 @@ seriesLabelOptionsDefs.wrapping = undocumented(textWrap);
 // @ts-expect-error undocumented option
 seriesLabelOptionsDefs.truncate = undocumented(boolean);
 
-/** Label defs for point-like series (line, area) that expose an undocumented directional placement. */
-export const placedSeriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = { ...seriesLabelOptionsDefs };
-// @ts-expect-error undocumented option
-placedSeriesLabelOptionsDefs.placement = undocumented(labelCollisionPlacementDef);
+/** Label defs for point-like series (line, area) that expose a directional placement. */
+export const placedSeriesLabelOptionsDefs: OptionsDefs<AgLineSeriesLabelOptions<any, any>> = {
+    ...seriesLabelOptionsDefs,
+    placement: labelCollisionPlacementDef,
+};
 
 export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOptions<any, any>> = {
     ...without(seriesLabelOptionsDefs, ['truncate']),

@@ -144,6 +144,78 @@ describe('label collision avoidance', () => {
         }
     });
 
+    // Line and area default collision avoidance off; a configured `placement` must still offset each
+    // label from its point, and a user value must override the theme default rather than merge into it.
+    describe('placement without collision avoidance (opt-out default)', () => {
+        const sparseData = Array.from({ length: 5 }, (_, i) => ({ x: i, y: 50 }));
+
+        const placedLabels = () => {
+            const series = deproxy(chart as any).series[0] as unknown as {
+                placedLabelData: {
+                    x: number;
+                    y: number;
+                    placement?: string;
+                    datum: { point: { x: number; y: number } };
+                }[];
+            };
+            return series.placedLabelData;
+        };
+
+        const render = async (type: 'line' | 'area', placement?: string | string[]) => {
+            const options: any = {
+                data: sparseData,
+                legend: { enabled: false },
+                axes: cartesianAxes,
+                series: [
+                    {
+                        type,
+                        xKey: 'x',
+                        yKey: 'y',
+                        marker: { enabled: true, size: 6 },
+                        label: {
+                            enabled: true,
+                            formatter: ({ value }: any) => String(value),
+                            ...(placement == null ? {} : { placement }),
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return placedLabels();
+        };
+
+        for (const type of ['line', 'area'] as const) {
+            it(`${type}: places labels above the point by default`, async () => {
+                const placed = await render(type);
+                expect(placed.length).toBe(sparseData.length);
+                for (const label of placed) {
+                    expect(label.placement).toBe('top');
+                    expect(label.y).toBeLessThan(label.datum.point.y);
+                }
+            });
+
+            it(`${type}: honours a scalar placement over the theme default`, async () => {
+                const placed = await render(type, 'bottom');
+                expect(placed.length).toBe(sparseData.length);
+                for (const label of placed) {
+                    expect(label.placement).toBe('bottom');
+                    expect(label.y).toBeGreaterThan(label.datum.point.y);
+                }
+            });
+
+            it(`${type}: honours a directional scalar placement`, async () => {
+                const placed = await render(type, 'right');
+                expect(placed.length).toBe(sparseData.length);
+                for (const label of placed) {
+                    expect(label.placement).toBe('right');
+                    expect(label.x).toBeGreaterThan(label.datum.point.x);
+                }
+            });
+        }
+    });
+
     describe('scatter series', () => {
         const data = markerData;
 

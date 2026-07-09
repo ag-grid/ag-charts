@@ -5,6 +5,7 @@ import type {
     Renderer,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgChartLabelOrientation } from '../../chart/collisionAvoidanceOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
@@ -70,6 +71,14 @@ export interface AgWaterfallSeriesLabelOptions<TDatum, TParams, TContext = Conte
      * fallback list tried in turn until one fits.
      */
     placement?: AgWaterfallSeriesLabelPlacement | AgWaterfallSeriesLabelPlacement[];
+    /**
+     * Orientation of the label within the bar. `parallel` reads upright; the two `perpendicular`
+     * variants rotate it a quarter-turn in opposite directions. Either a single orientation or an
+     * ordered fallback list tried in turn until one fits.
+     *
+     * Default: `parallel`
+     */
+    orientation?: AgChartLabelOrientation | AgChartLabelOrientation[];
     /** Spacing in pixels between the label and the edge of the bar. */
     spacing?: PixelSize;
 }
