@@ -62,6 +62,27 @@ export interface AgHistogramSeriesLabelFormatterParams<TDatum = DatumDefault>
 export interface AgHistogramSeriesGetItemIdParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends ContextCallbackParams<TContext>, AgHistogramSeriesBinParams<TDatum> {}
 
+export type AgHistogramSeriesLabelPlacement =
+    | 'inside-center'
+    | 'inside-start'
+    | 'inside-end'
+    | 'outside-start'
+    | 'outside-end';
+
+export interface AgHistogramSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault> extends AgChartLabelOptions<
+    TDatum,
+    TParams,
+    TContext
+> {
+    /**
+     * Where to render series labels relative to the bars. Either a single placement or an ordered
+     * fallback list tried in turn until one fits.
+     */
+    placement?: AgHistogramSeriesLabelPlacement | AgHistogramSeriesLabelPlacement[];
+    /** Distance between the bar edges and the text. */
+    spacing?: PixelSize;
+}
+
 export interface AgHistogramSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each bar. */
     cornerRadius?: PixelSize;
@@ -91,7 +112,7 @@ export interface AgHistogramSeriesThemeableOptions<TDatum = DatumDefault, TConte
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Configuration for the labels shown on bars. */
-    label?: AgChartLabelOptions<undefined, AgHistogramSeriesLabelFormatterParams<TDatum>, TContext>;
+    label?: AgHistogramSeriesLabelOptions<undefined, AgHistogramSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgHistogramSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Configuration for highlighting when a series or legend item is hovered over. */

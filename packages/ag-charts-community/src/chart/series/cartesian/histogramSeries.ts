@@ -18,6 +18,7 @@ import {
     maxValue,
     mergeDefaults,
     tickStep,
+    toArray,
     toNumber,
 } from 'ag-charts-core';
 import type {
@@ -59,7 +60,7 @@ import {
     rowCountProperty,
     valueProperty,
 } from '../../data/processors';
-import { fitLabelToContainer, getLabelStyles } from '../../labelUtil';
+import { adjustLabelPlacement, fitLabelToContainer, getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
@@ -499,7 +500,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         x: number,
         y: number,
         w: number,
-        h: number
+        h: number,
+        isUpward: boolean
     ): HistogramNodeDatum['label'] {
         const { label, yKey, xKey, xName, yName } = ctx;
         const { total, datum } = bin;
@@ -509,9 +511,27 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             return undefined;
         }
 
+        // Array placement is accepted, but only its first candidate is honoured.
+        const placement = toArray(label.placement)[0] ?? 'inside-center';
+        const {
+            x: lx,
+            y: ly,
+            textAlign,
+            textBaseline,
+        } = adjustLabelPlacement({
+            isUpward,
+            isVertical: true,
+            placement,
+            // Matches bar series: the theme feeds an 8px default via `padding`, replaced by a user `spacing`.
+            spacing: label.spacing + (typeof label.padding === 'number' ? label.padding : 0),
+            rect: { x, y, width: w, height: h },
+        });
+
         return {
-            x: x + w / 2,
-            y: y + h / 2,
+            x: lx,
+            y: ly,
+            textAlign,
+            textBaseline,
             text: fitLabelToContainer(
                 this.getLabelText<AgHistogramSeriesLabelFormatterParams>(total, datum, yKey!, 'y', [], label, {
                     ...this.binParams(bin),
@@ -593,6 +613,9 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
         const x = Math.min(xMinPx, xMaxPx);
         const y = Math.min(yZeroPx, yMaxPx);
+        // The bar grows upward when its top edge sits at or above the zero line in screen space;
+        // derived from pixels so it stays correct for negative aggregates and a reversed y-axis.
+        const isUpward = yMaxPx <= yZeroPx;
 
         // Update properties
         mutableNode.datumIndex = binIndex;
@@ -626,7 +649,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         mutableNode.bottomLeftCornerRadius = yAxisReversed;
 
         // Update label
-        mutableNode.label = this.createLabelData(ctx, bin, x, y, w, h);
+        mutableNode.label = this.createLabelData(ctx, bin, x, y, w, h, isUpward);
     }
 
     /**
@@ -867,8 +890,6 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
         return labelSelection.update(labelData, (text) => {
             text.pointerEvents = PointerEvents.None;
-            text.textAlign = 'center';
-            text.textBaseline = 'middle';
         });
     }
 
@@ -901,6 +922,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 text.text = datum.label.text;
                 text.x = datum.label.x;
                 text.y = datum.label.y;
+                text.textAlign = datum.label.textAlign;
+                text.textBaseline = datum.label.textBaseline;
                 text.fontStyle = fontStyle;
                 text.fontWeight = fontWeight;
                 text.fontFamily = fontFamily;
