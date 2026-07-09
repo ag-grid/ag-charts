@@ -53,6 +53,7 @@ const {
     valueProperty,
     keyProperty,
     checkCrisp,
+    fitLabelToContainer,
     updateLabelNode,
     SMALLEST_KEY_INTERVAL,
     LARGEST_KEY_INTERVAL,
@@ -894,10 +895,12 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const rectWidth = params.rectWidth;
         const rectHeight = params.rectHeight;
 
-        const region =
-            ctx.labelResolvesOrientation && placement === 'inside'
+        // Inside labels fit within the bar rect; outside labels sit beside it, so leave them unbound.
+        const container =
+            placement === 'inside'
                 ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, Math.abs(labelPadding))
                 : undefined;
+        const region = ctx.labelResolvesOrientation ? container : undefined;
 
         const yLowX = rectX + (barAlongX ? -labelPadding : rectWidth / 2);
         const yLowY = rectY + (barAlongX ? rectHeight / 2 : rectHeight + labelPadding);
@@ -941,24 +944,24 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const labelTextParams = { datum, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName };
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y).domain;
 
-        const yLowText = this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(
-            yLowValue,
-            datum,
-            yLowKey,
-            'y',
-            yDomain,
+        const yLowText = fitLabelToContainer(
+            this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(yLowValue, datum, yLowKey, 'y', yDomain, label, {
+                itemType: 'low',
+                value: yLowValue,
+                ...labelTextParams,
+            }),
             label,
-            { itemType: 'low', value: yLowValue, ...labelTextParams }
+            container
         );
 
-        const yHighText = this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(
-            yHighValue,
-            datum,
-            yHighKey,
-            'y',
-            yDomain,
+        const yHighText = fitLabelToContainer(
+            this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(yHighValue, datum, yHighKey, 'y', yDomain, label, {
+                itemType: 'high',
+                value: yHighValue,
+                ...labelTextParams,
+            }),
             label,
-            { itemType: 'high', value: yHighValue, ...labelTextParams }
+            container
         );
 
         // Update or create yLowLabel

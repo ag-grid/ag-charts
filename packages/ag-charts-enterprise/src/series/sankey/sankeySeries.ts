@@ -14,7 +14,9 @@ import {
     TextMeasurer,
     cachedTextMeasurer,
     calcLineHeight,
+    fitLabelText,
     mergeDefaults,
+    resolveLabelFit,
     toPlainText,
     wrapText,
 } from 'ag-charts-core';
@@ -216,7 +218,7 @@ export class SankeySeries extends FlowProportionSeries<
             node.size = size;
 
             const { label } = this.properties;
-            const labelText = label.enabled
+            let labelText = label.enabled
                 ? this.getLabelText<AgSankeySeriesLabelFormatterParams>(
                       node.label,
                       node.datum,
@@ -227,6 +229,9 @@ export class SankeySeries extends FlowProportionSeries<
                       { datum: node.datum, value: node.label, fromKey, toKey, sizeKey, size }
                   )
                 : undefined;
+            if (labelText != null) {
+                labelText = fitLabelText(labelText, resolveLabelFit(label, label.collisionAvoidance.avoid), label);
+            }
             node.label = toPlainText(labelText);
 
             column.nodes.push(graphNode);

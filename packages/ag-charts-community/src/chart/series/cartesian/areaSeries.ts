@@ -1029,7 +1029,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             labelPlacements: toArray(label.placement),
             labelMinSpacing: label.collisionAvoidance.minSpacing,
             labelCollideWith: label.collisionAvoidance.resolveCollideWith(),
-            labelFit: resolveLabelFit(label),
+            labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid),
             normalizedTo,
             canIncrementallyUpdate,
             animationEnabled: !this.ctx.animationManager.isSkipped(),

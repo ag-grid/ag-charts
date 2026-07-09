@@ -292,7 +292,7 @@ export class MapLineSeries
         );
         if (labelText == null) return;
 
-        const fittedText = fitLabelText(labelText, resolveLabelFit(label), label);
+        const fittedText = fitLabelText(labelText, resolveLabelFit(label, label.collisionAvoidance.avoid), label);
         const labelSize = measurer.measureLines(String(fittedText));
         const labelCenter = lineStringCenter(lineString);
         if (labelCenter == null) return;

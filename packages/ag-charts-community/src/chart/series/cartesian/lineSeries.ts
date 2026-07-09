@@ -504,7 +504,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             labelPlacements: toArray(label.placement),
             labelMinSpacing: collisionAvoidance.minSpacing,
             labelCollideWith: collisionAvoidance.resolveCollideWith(),
-            labelFit: resolveLabelFit(label),
+            labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid),
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,
             dataAggregationFilter,

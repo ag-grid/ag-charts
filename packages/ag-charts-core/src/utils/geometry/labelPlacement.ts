@@ -28,6 +28,17 @@ export interface MeasuredLabel {
 }
 
 /**
+ * The label-surface fit fields as authored on a series label. `truncate` is the public ellipsis-vs-hide
+ * policy; {@link resolveLabelFit} maps it onto the engine's internal {@link LabelFit.overflowStrategy}.
+ */
+export interface LabelFitOptions {
+    readonly maxWidth?: number;
+    readonly maxHeight?: number;
+    readonly wrapping?: TextWrap;
+    readonly truncate?: boolean;
+}
+
+/**
  * How a label's text adapts to the region produced by its placement. `maxWidth`/`maxHeight` bound the
  * region explicitly; when omitted the fit step derives a budget from the series or an estimate.
  */
@@ -38,12 +49,24 @@ export interface LabelFit {
     readonly overflowStrategy?: OverflowStrategy;
 }
 
-/** Resolved fit policy passed to the engine, or `undefined` when no fit field is set. */
-export function resolveLabelFit(fit: LabelFit): LabelFit | undefined {
-    const { maxWidth, maxHeight, wrapping, overflowStrategy } = fit;
-    if (maxWidth == null && maxHeight == null && wrapping == null && overflowStrategy == null) {
+/**
+ * Resolves the label-surface fit fields to an engine {@link LabelFit}, mapping the public `truncate`
+ * boolean onto the internal overflow strategy:
+ *  - `truncate: true` → `'ellipsis'`: the bound is applied and overflow truncates with an ellipsis.
+ *  - `truncate` unset + `avoidCollisions` → `'hide'`: the bound is applied and the label hides if it overflows.
+ *  - `truncate` unset + no collision avoidance → `undefined`: no bound is applied and the full text
+ *    renders, leaving charts that opt into neither truncation nor collision avoidance unchanged.
+ */
+export function resolveLabelFit(fit: LabelFitOptions, avoidCollisions = false): LabelFit | undefined {
+    let overflowStrategy: OverflowStrategy | undefined;
+    if (fit.truncate) {
+        overflowStrategy = 'ellipsis';
+    } else if (avoidCollisions) {
+        overflowStrategy = 'hide';
+    } else {
         return undefined;
     }
+    const { maxWidth, maxHeight, wrapping } = fit;
     return { maxWidth, maxHeight, wrapping, overflowStrategy };
 }
 

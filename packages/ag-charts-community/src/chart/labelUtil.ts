@@ -2,12 +2,15 @@ import type {
     Callback,
     CallbackParam,
     DynamicContext,
+    FontOptions,
     IsAny,
+    LabelFit,
+    LabelFitOptions,
     NormalisedColorType,
     NormalisedTextOrSegments,
     Point,
 } from 'ag-charts-core';
-import { type NormalisedChartLabelStyleOptions, mergeDefaults } from 'ag-charts-core';
+import { type NormalisedChartLabelStyleOptions, fitLabelText, mergeDefaults, resolveLabelFit } from 'ag-charts-core';
 import type {
     AgChartLabelStylerParams,
     CssColor,
@@ -61,6 +64,30 @@ type LabelDatum = Point & {
     offsetX?: number;
     offsetY?: number;
 };
+
+/**
+ * Fits a label's text to its resolved policy and, when the series supplies one, its geometric container
+ * (bar rect, donut hole, …). Each axis is bounded by the tighter of the explicit `maxWidth`/`maxHeight`
+ * and the container extent, so text never overflows its container yet the user can constrain further.
+ * When the policy resolves to "show" (no truncation and no collision avoidance) no bound is applied and
+ * the text renders in full, leaving container series unchanged unless the user opts into truncation.
+ */
+export function fitLabelToContainer(
+    text: NormalisedTextOrSegments,
+    label: LabelFitOptions & FontOptions & { collisionAvoidance: { avoid: boolean } },
+    container: { width: number; height: number } | undefined
+): NormalisedTextOrSegments {
+    const fit = resolveLabelFit(label, label.collisionAvoidance.avoid);
+    if (fit == null || container == null) {
+        return fitLabelText(text, fit, label);
+    }
+    const boundedFit: LabelFit = {
+        ...fit,
+        maxWidth: Math.min(fit.maxWidth ?? Infinity, container.width),
+        maxHeight: Math.min(fit.maxHeight ?? Infinity, container.height),
+    };
+    return fitLabelText(text, boundedFit, label);
+}
 
 export function getLabelStyles<TParams>(
     series: SeriesLike,

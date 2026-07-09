@@ -1,0 +1,209 @@
+import { afterEach, describe, expect, it } from 'vitest';
+
+import type { AgChartInstance } from 'ag-charts-types';
+
+import { AgCharts } from '../../api/agCharts';
+import {
+    IMAGE_SNAPSHOT_DEFAULTS,
+    deproxy,
+    extractImageData,
+    prepareTestOptions,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from '../test/utils';
+
+const ELLIPSIS = '…';
+
+// Consolidated cross-series coverage for the label-fit surface (`maxWidth`/`maxHeight`/`wrapping`/`truncate`).
+// These are undocumented options, so the label objects below are built untyped and cast at the AgCharts.create
+// boundary. `setupMockConsole` fails the test on any "property is unknown" warning, so every case also proves the
+// fit options are accepted on the series' label. Each snapshot deliberately mixes label lengths and item sizes so a
+// single image exercises the whole spectrum — labels shown whole, wrapped across lines, and wrapped-then-ellipsised.
+// Bar and histogram fit their labels to their own geometry (bar rect / bin), so truncation applies with no explicit
+// bound; line is representative of the explicit-bounds path.
+describe('series label fit', () => {
+    setupMockConsole();
+
+    let chart: AgChartInstance;
+    const ctx = setupMockCanvas();
+
+    afterEach(() => {
+        chart?.destroy();
+    });
+
+    const renderAndSnapshot = async (options: object) => {
+        prepareTestOptions(options as any);
+        chart = AgCharts.create(options as any);
+        await waitForChartStability(chart);
+        expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+    };
+
+    // Bar, histogram and line all expose their fitted label as `node.label.text` on `contextNodeData.labelData`.
+    const labelTexts = (seriesIndex = 0): unknown[] => {
+        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
+            contextNodeData?: { labelData?: { label?: { text?: unknown } }[] };
+        };
+        return (series.contextNodeData?.labelData ?? []).map((d) => d.label?.text);
+    };
+    const someWrapped = (texts: unknown[]) => texts.some((text) => String(text).includes('\n'));
+    const someTruncated = (texts: unknown[]) => texts.some((text) => String(text).includes(ELLIPSIS));
+
+    const cartesianAxes = {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    };
+    // Varied bar heights (values) paired with varied label lengths, so one chart shows short labels shown whole,
+    // tall bars wrap a long label to fit, and the shortest bars wrap-then-ellipsise a long label that cannot.
+    const barData = [
+        { cat: 'A', value: 100, label: 'Short' },
+        { cat: 'B', value: 90, label: 'One Two Three Four Five' },
+        { cat: 'C', value: 80, label: 'A few words here' },
+        { cat: 'D', value: 8, label: 'Another overly long label that overflows its narrow bar' },
+        { cat: 'E', value: 60, label: 'Medium length label' },
+        { cat: 'F', value: 10, label: 'A very long bar label that cannot fit inside a short bar' },
+    ];
+    const barChart = (label: object, data: object[] = barData) => ({
+        data,
+        legend: { enabled: false },
+        axes: cartesianAxes,
+        series: [
+            {
+                type: 'bar',
+                xKey: 'cat',
+                yKey: 'value',
+                label: { enabled: true, formatter: (p: any) => p.datum.label, ...label },
+            },
+        ],
+    });
+
+    describe('bar (fits inside the bar rect)', () => {
+        it('wraps and truncates mixed labels across bars of varied height', async () => {
+            await renderAndSnapshot(barChart({ wrapping: 'on-space', truncate: true }));
+            const texts = labelTexts();
+            expect(someWrapped(texts)).toBe(true);
+            expect(someTruncated(texts)).toBe(true);
+        });
+
+        it('honours an explicit maxWidth tighter than the bar rect, and defers to the rect when looser', async () => {
+            // Two grouped bar series share the same long label. Series A's maxWidth (20) is tighter than the (halved)
+            // grouped-bar width, so the explicit bound governs and truncates hard; series B's maxWidth (400) is far
+            // looser than the bar, so the rect governs and more text survives.
+            const data = [
+                { cat: 'A', a: 100, b: 100 },
+                { cat: 'B', a: 70, b: 70 },
+                { cat: 'C', a: 90, b: 90 },
+                { cat: 'D', a: 50, b: 50 },
+            ];
+            const series = (yKey: string, maxWidth: number) => ({
+                type: 'bar',
+                xKey: 'cat',
+                yKey,
+                label: {
+                    enabled: true,
+                    maxWidth,
+                    wrapping: 'never',
+                    truncate: true,
+                    formatter: () => 'A very long grouped bar label',
+                },
+            });
+            await renderAndSnapshot({
+                data,
+                legend: { enabled: false },
+                axes: cartesianAxes,
+                series: [series('a', 20), series('b', 400)],
+            });
+            const tight = String(labelTexts(0).find((t) => t !== '' && t != null));
+            const loose = String(labelTexts(1).find((t) => t !== '' && t != null));
+            expect(tight).toContain(ELLIPSIS);
+            expect(loose).toContain(ELLIPSIS);
+            expect(tight.length).toBeLessThan(loose.length);
+        });
+
+        it('leaves every label untouched when truncation is not opted into (show)', async () => {
+            // Moderate labels on tall bars so the untouched full text reads cleanly rather than overflowing into
+            // neighbouring bars; the point of this case is that the show path never mutates the text.
+            const showData = [
+                { cat: 'A', value: 80, label: 'Alpha' },
+                { cat: 'B', value: 60, label: 'Beta value' },
+                { cat: 'C', value: 90, label: 'Gamma reading' },
+                { cat: 'D', value: 70, label: 'Delta measure' },
+            ];
+            await renderAndSnapshot(barChart({}, showData));
+            expect(labelTexts()).toEqual(showData.map((d) => d.label));
+        });
+
+        it('hides oversized labels when collision avoidance is enabled', async () => {
+            await renderAndSnapshot(barChart({ collisionAvoidance: { enabled: true } }));
+            const texts = labelTexts();
+            // avoid → overflow 'hide': oversized labels are dropped to empty rather than ellipsised, while labels
+            // that already fit their bar survive intact.
+            expect(texts.some((text) => text === '' || text == null)).toBe(true);
+            expect(someTruncated(texts)).toBe(false);
+        });
+    });
+
+    it('wraps and truncates histogram bin labels across bins of varied frequency', async () => {
+        const binLabels = ['Short', 'A longer bin label spanning words', 'Mid label', 'A very long bin label overflow'];
+        await renderAndSnapshot({
+            data: [0, 0, 1, 1, 1, 2, 2, 3, 10, 10, 20, 30, 30, 30, 30, 45].map((x) => ({ x })),
+            legend: { enabled: false },
+            axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+            series: [
+                {
+                    type: 'histogram',
+                    xKey: 'x',
+                    label: {
+                        enabled: true,
+                        // Bin width governs wrapping; the small maxHeight caps the wrapped block so the longest
+                        // labels resolve to an ellipsis while shorter ones fit.
+                        maxHeight: 24,
+                        wrapping: 'on-space',
+                        truncate: true,
+                        formatter: (p: any) => binLabels[p.binIndex % binLabels.length],
+                    },
+                },
+            ],
+        });
+        expect(someTruncated(labelTexts())).toBe(true);
+    });
+
+    it('wraps and truncates line labels within an explicit maxWidth/maxHeight', async () => {
+        // Line labels have no geometric container, so both bounds are explicit: maxWidth forces wrapping and
+        // maxHeight caps the wrapped block so the longest labels resolve to an ellipsis.
+        const pointLabels = ['Hi', 'Two words', 'A medium length label', 'A very long label that will not fit at all'];
+        await renderAndSnapshot({
+            // Mid-range y values keep every point's wrapped label clear of the canvas edges.
+            data: [
+                { x: 0, y: 40, label: pointLabels[0] },
+                { x: 1, y: 55, label: pointLabels[1] },
+                { x: 2, y: 45, label: pointLabels[2] },
+                { x: 3, y: 60, label: pointLabels[3] },
+            ],
+            legend: { enabled: false },
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'number', position: 'left', min: 0, max: 100 },
+            },
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'y',
+                    marker: { enabled: true },
+                    label: {
+                        enabled: true,
+                        maxWidth: 50,
+                        maxHeight: 32,
+                        wrapping: 'on-space',
+                        truncate: true,
+                        formatter: (p: any) => p.datum.label,
+                    },
+                },
+            ],
+        });
+        const texts = labelTexts();
+        expect(someWrapped(texts)).toBe(true);
+        expect(someTruncated(texts)).toBe(true);
+    });
+});

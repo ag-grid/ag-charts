@@ -37,8 +37,10 @@ import {
     extent,
     findMinMax,
     firstCandidate,
+    fitLabelText,
     isContinuous,
     mergeDefaults,
+    resolveLabelFit,
     toNumber,
 } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
@@ -870,14 +872,30 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             itemType,
             datum,
             datumIndex,
-            text: this.getLabelText<AgRangeAreaSeriesLabelFormatterParams>(
-                value,
-                datum,
-                itemType === 'high' ? yHighKey : yLowKey,
-                'y',
-                yDomain,
-                label,
-                { value, datum, itemType, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName }
+            text: fitLabelText(
+                this.getLabelText<AgRangeAreaSeriesLabelFormatterParams>(
+                    value,
+                    datum,
+                    itemType === 'high' ? yHighKey : yLowKey,
+                    'y',
+                    yDomain,
+                    label,
+                    {
+                        value,
+                        datum,
+                        itemType,
+                        xKey,
+                        yLowKey,
+                        yHighKey,
+                        xName,
+                        yLowName,
+                        yHighName,
+                        yName,
+                        legendItemName,
+                    }
+                ),
+                resolveLabelFit(label, label.collisionAvoidance.avoid),
+                label
             ),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
