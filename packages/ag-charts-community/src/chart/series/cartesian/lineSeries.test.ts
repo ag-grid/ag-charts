@@ -405,11 +405,16 @@ describe('LineSeries', () => {
             expect: ['increases', 'bounded'],
             settlesAt: 1,
         };
-        const positionFree: Record<string, ScenePropertyExpectation> = {
+        // Markers re-map their local x/y to new targets the instant the data lands — and ride a category-axis
+        // reflow across frames — so local position is left free. Translation, however, must stay put: the
+        // CRT-238 regression tweened marker translation via fromToMotion, making the markers fly across the
+        // screen instead of the path extending smoothly. Pinning translation to constant catches a recurrence
+        // while leaving the legitimate local re-map free.
+        const markerPosition: Record<string, ScenePropertyExpectation> = {
             x: 'any',
             y: 'any',
-            translationX: 'any',
-            translationY: 'any',
+            translationX: 'constant',
+            translationY: 'constant',
         };
 
         // "Update points" / "Randomise" — every value jitters within the pinned domain. The path morphs
@@ -474,9 +479,10 @@ describe('LineSeries', () => {
             'series[0]/marker[*]': { opacity: fadeIn },
         };
         // When survivors also change position (their y updates, or a category axis re-spaces the bands),
-        // the markers move while still fading in — pin the fade but leave position free.
+        // the markers move while still fading in — pin the fade, leave local position free (translation
+        // stays pinned by markerPosition so a fly-across regression is still caught).
         const markersReflow: Record<string, SceneNodeExpectation> = {
-            'series[0]/marker[*]': { opacity: fadeIn, ...positionFree },
+            'series[0]/marker[*]': { opacity: fadeIn, ...markerPosition },
         };
         // On an initial-load reveal the markers additionally scale in from zero size (the swipe scale-in
         // the easeOut-very-slow debug flag suppresses), staggered across the reveal, so width/height grow.
@@ -485,7 +491,7 @@ describe('LineSeries', () => {
                 opacity: fadeIn,
                 width: ['increases', 'bounded'],
                 height: ['increases', 'bounded'],
-                ...positionFree,
+                ...markerPosition,
             },
         };
         const reshapingPath = {
