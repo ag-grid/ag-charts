@@ -5,12 +5,11 @@ import type {
     FontOptions,
     IsAny,
     LabelFit,
-    LabelFitOptions,
     NormalisedColorType,
     NormalisedTextOrSegments,
     Point,
 } from 'ag-charts-core';
-import { type NormalisedChartLabelStyleOptions, fitLabelText, mergeDefaults, resolveLabelFit } from 'ag-charts-core';
+import { type NormalisedChartLabelStyleOptions, fitLabelText, mergeDefaults } from 'ag-charts-core';
 import type {
     AgChartLabelStylerParams,
     CssColor,
@@ -74,19 +73,19 @@ type LabelDatum = Point & {
  */
 export function fitLabelToContainer(
     text: NormalisedTextOrSegments,
-    label: LabelFitOptions & FontOptions & { collisionAvoidance: { avoid: boolean } },
+    fit: LabelFit | undefined,
+    font: FontOptions,
     container: { width: number; height: number } | undefined
 ): NormalisedTextOrSegments {
-    const fit = resolveLabelFit(label, label.collisionAvoidance.avoid);
     if (fit == null || container == null) {
-        return fitLabelText(text, fit, label);
+        return fitLabelText(text, fit, font);
     }
     const boundedFit: LabelFit = {
         ...fit,
         maxWidth: Math.min(fit.maxWidth ?? Infinity, container.width),
         maxHeight: Math.min(fit.maxHeight ?? Infinity, container.height),
     };
-    return fitLabelText(text, boundedFit, label);
+    return fitLabelText(text, boundedFit, font);
 }
 
 export function getLabelStyles<TParams>(

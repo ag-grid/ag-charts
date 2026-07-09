@@ -153,6 +153,8 @@ export class ChordSeries extends FlowProportionSeries<
             { includeCircularReferences: true }
         );
 
+        const labelFit = resolveLabelFit(properties.label, properties.label.collisionAvoidance.avoid);
+
         let totalSize = 0;
         for (const [id, { datum: node, linksBefore, linksAfter }] of nodeGraph.entries()) {
             const size =
@@ -177,7 +179,7 @@ export class ChordSeries extends FlowProportionSeries<
                       )
                     : undefined;
                 if (labelText != null) {
-                    labelText = fitLabelText(labelText, resolveLabelFit(label, label.collisionAvoidance.avoid), label);
+                    labelText = fitLabelText(labelText, labelFit, label);
                 }
                 node.label = toPlainText(labelText);
             }

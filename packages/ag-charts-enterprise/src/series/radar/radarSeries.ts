@@ -264,6 +264,7 @@ export abstract class RadarSeries<
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         const allowNullKeys = this.properties.allowNullKeys ?? false;
         const nodeData: RadarNodeDatum[] = [];
+        const labelFit = resolveLabelFit(label, label.collisionAvoidance.avoid);
 
         for (let datumIndex = 0; datumIndex < rawData.length; datumIndex++) {
             const datum = rawData[datumIndex];
@@ -315,7 +316,7 @@ export abstract class RadarSeries<
                     labelNodeDatum = {
                         x: x + cos * marker.size,
                         y: y + sin * marker.size,
-                        text: fitLabelText(labelText, resolveLabelFit(label, label.collisionAvoidance.avoid), label),
+                        text: fitLabelText(labelText, labelFit, label),
                         textAlign,
                         textBaseline,
                     };

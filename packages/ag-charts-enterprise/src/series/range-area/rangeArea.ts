@@ -23,6 +23,7 @@ import {
     type DeepRequired,
     type DomainWithMetadata,
     type DynamicContext,
+    type LabelFit,
     type Normalised,
     type NormalisedColorType,
     type NormalisedSeriesMarkerStyle,
@@ -158,6 +159,7 @@ interface RangeAreaSeriesNodeDatumContext extends _ModuleSupport.CartesianCreate
 
     // Pre-computed flags
     readonly labelsEnabled: boolean;
+    readonly labelFit: LabelFit | undefined;
 
     // Property caches
     readonly yLowKey: string;
@@ -431,6 +433,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             dataAggregationFilter,
             range,
             labelsEnabled: this.properties.label.enabled,
+            labelFit: resolveLabelFit(this.properties.label, this.properties.label.collisionAvoidance.avoid),
             animationEnabled,
             canIncrementallyUpdate,
             xKey: this.properties.xKey,
@@ -646,6 +649,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 inverted: scratch.inverted,
                 datum: scratch.datum,
                 series: this,
+                labelFit: ctx.labelFit,
             });
             ctx.labelData.push(labelDatum);
         }
@@ -838,6 +842,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         inverted,
         datum,
         series,
+        labelFit,
     }: {
         datumIndex: number;
         point: Point;
@@ -848,6 +853,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         inverted: boolean;
         datum: any;
         series: RangeAreaSeries;
+        labelFit: LabelFit | undefined;
     }): RangeAreaLabelDatum {
         const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, legendItemName, label } = this.properties;
         // Array placement is accepted, but only its first candidate is honoured here.
@@ -894,7 +900,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                         legendItemName,
                     }
                 ),
-                resolveLabelFit(label, label.collisionAvoidance.avoid),
+                labelFit,
                 label
             ),
             textAlign: 'center',

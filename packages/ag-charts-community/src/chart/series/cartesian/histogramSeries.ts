@@ -1,4 +1,4 @@
-import type { CallbackParamRules, DynamicContext, NormalisedHistogramSeriesStyle } from 'ag-charts-core';
+import type { CallbackParamRules, DynamicContext, LabelFit, NormalisedHistogramSeriesStyle } from 'ag-charts-core';
 import {
     ChartAxisDirection,
     type DomainWithMetadata,
@@ -17,6 +17,7 @@ import {
     isNumericValue,
     maxValue,
     mergeDefaults,
+    resolveLabelFit,
     tickStep,
     toArray,
     toNumber,
@@ -148,6 +149,7 @@ interface HistogramSeriesNodeDatumContext extends CartesianCreateNodeDataContext
 
     // Histogram-specific property lookups
     readonly label: HistogramSeriesProperties['label'];
+    readonly labelFit: LabelFit | undefined;
 }
 
 class HistogramSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends CartesianSeriesNodeEvent<TEvent> {
@@ -474,6 +476,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             xName,
             yName,
             label,
+            labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid),
 
             // Animation flag
             animationEnabled: !this.ctx.animationManager.isSkipped(),
@@ -503,7 +506,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         h: number,
         isUpward: boolean
     ): HistogramNodeDatum['label'] {
-        const { label, yKey, xKey, xName, yName } = ctx;
+        const { label, labelFit, yKey, xKey, xName, yName } = ctx;
         const { total, datum } = bin;
 
         // Number() coercion: a bigint `0n` total is an empty bin too, but `0n === 0` is false.
@@ -541,6 +544,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                     xName,
                     yName,
                 }),
+                labelFit,
                 label,
                 { width: w, height: h }
             ),

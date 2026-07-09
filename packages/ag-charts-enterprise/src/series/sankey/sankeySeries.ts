@@ -199,7 +199,8 @@ export class SankeySeries extends FlowProportionSeries<
         columns: Column[],
         maxPathLength: number
     ) {
-        const { fromKey, toKey, sizeKey, labelKey } = this.properties;
+        const { fromKey, toKey, sizeKey, labelKey, label } = this.properties;
+        const labelFit = resolveLabelFit(label, label.collisionAvoidance.avoid);
 
         for (const graphNode of nodeGraph.values()) {
             const { datum: node, linksBefore, linksAfter } = graphNode;
@@ -217,7 +218,6 @@ export class SankeySeries extends FlowProportionSeries<
 
             node.size = size;
 
-            const { label } = this.properties;
             let labelText = label.enabled
                 ? this.getLabelText<AgSankeySeriesLabelFormatterParams>(
                       node.label,
@@ -230,7 +230,7 @@ export class SankeySeries extends FlowProportionSeries<
                   )
                 : undefined;
             if (labelText != null) {
-                labelText = fitLabelText(labelText, resolveLabelFit(label, label.collisionAvoidance.avoid), label);
+                labelText = fitLabelText(labelText, labelFit, label);
             }
             node.label = toPlainText(labelText);
 
