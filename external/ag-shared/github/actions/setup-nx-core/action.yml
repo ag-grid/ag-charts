@@ -46,6 +46,13 @@ inputs:
         options:
             - 'true'
             - 'false'
+    tidy_nx_cache:
+        description: 'Reset the Nx cache before a build when it exceeds a branch-type size threshold. Set false to skip the tidy step (e.g. ag-studio, which historically did not tidy).'
+        required: false
+        default: 'true'
+        options:
+            - 'true'
+            - 'false'
     node_modules_paths:
         description: 'Newline-delimited cache paths for the node_modules cache (repo layout specific). Also reused as the wipe list on an inexact cache restore. Supplied by the wrapper.'
         required: true
@@ -214,7 +221,7 @@ runs:
 
         - name: Tidy Nx Cache
           uses: ./external/ag-shared/github/actions/tidy-nx-cache
-          if: inputs.cache_mode == 'rw' && inputs.nx_restore != 'false'
+          if: inputs.cache_mode == 'rw' && inputs.nx_restore != 'false' && inputs.tidy_nx_cache != 'false'
           with:
               branch_type: ${{ steps.nx_config.outputs.type }}
 

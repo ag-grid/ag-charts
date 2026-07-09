@@ -46,6 +46,13 @@ inputs:
         options:
             - 'true'
             - 'false'
+    tidy_nx_cache:
+        description: 'Reset the Nx cache before a build when it exceeds a branch-type size threshold. Set false to skip the tidy step.'
+        required: false
+        default: 'true'
+        options:
+            - 'true'
+            - 'false'
 
 outputs:
     base:
@@ -68,6 +75,7 @@ runs:
               base_ref: ${{ inputs.base_ref }}
               cache_mode: ${{ inputs.cache_mode }}
               free_disk_space: ${{ inputs.free_disk_space }}
+              tidy_nx_cache: ${{ inputs.tidy_nx_cache }}
               node_modules_paths: |
                   node_modules/
                   packages/*/node_modules/
