@@ -537,6 +537,88 @@ describe('LineSeries', () => {
             expectMarkerStartsCollapsed(trajectory, '5');
         });
 
+        // "Add points before" — prepend points; the path's left edge steps OUT (bbox x decreases) and the
+        // width grows, mirroring add-after. The new leading markers fade in.
+        it('add points before: the left edge steps out and the width grows', async () => {
+            const { before, trajectory, after } = await captureFrom(
+                lineOptions([
+                    { x: 3, y: 40 },
+                    { x: 4, y: 120 },
+                    { x: 5, y: 80 },
+                    { x: 6, y: 160 },
+                    { x: 7, y: 60 },
+                ]),
+                () =>
+                    chart.updateDelta({
+                        data: [
+                            { x: 1, y: 90 },
+                            { x: 2, y: 70 },
+                            { x: 3, y: 40 },
+                            { x: 4, y: 120 },
+                            { x: 5, y: 80 },
+                            { x: 6, y: 160 },
+                            { x: 7, y: 60 },
+                        ],
+                    })
+            );
+            expect(markerCount(before)).toBe(5);
+            expect(markerCount(after)).toBe(7);
+            const key = pathKey(before);
+            // The extent grew leftward: the left edge stepped out and the width grew (settled endpoints),
+            // and the left edge slid there monotonically. Per-station tops go transiently non-finite as the
+            // path reshapes, so the path node is left 'any' and its edge motion asserted via the scalars.
+            expect(after.get(key)!.x).toBeLessThan(before.get(key)!.x);
+            expect(after.get(key)!.width).toBeGreaterThan(before.get(key)!.width);
+            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersFadeIn });
+            expectMonotonic(
+                trajectory.map((f) => f.get(key)!.x),
+                'decreasing'
+            );
+            expectMarkerStartsCollapsed(trajectory, '1');
+        });
+
+        // "Add points middle" (continuous) — insert interpolated interior points. The extent is unchanged so
+        // the width HOLDS while the interior densifies (distinct from add-after, which grows the width, and
+        // from the category middle-weeks reflow). The new interior markers fade in.
+        it('add points middle: the extent holds while the interior densifies', async () => {
+            const { before, trajectory, after } = await captureFrom(
+                lineOptions([
+                    { x: 0, y: 40 },
+                    { x: 2, y: 120 },
+                    { x: 4, y: 80 },
+                    { x: 6, y: 160 },
+                    { x: 8, y: 60 },
+                ]),
+                () =>
+                    chart.updateDelta({
+                        data: [
+                            { x: 0, y: 40 },
+                            { x: 1, y: 90 },
+                            { x: 2, y: 120 },
+                            { x: 4, y: 80 },
+                            { x: 5, y: 110 },
+                            { x: 6, y: 160 },
+                            { x: 8, y: 60 },
+                        ],
+                    })
+            );
+            expect(markerCount(before)).toBe(5);
+            expect(markerCount(after)).toBe(7);
+            const key = pathKey(before);
+            expect(after.get(key)!.x).toBeCloseTo(before.get(key)!.x, 0);
+            expect(after.get(key)!.width).toBeCloseTo(before.get(key)!.width, 0);
+            expectSceneTrajectory(trajectory, {
+                [key]: {
+                    ...reshapingPath,
+                    x: { during: 'update', expect: 'constant' },
+                    width: { during: 'update', expect: 'constant' },
+                    subpaths: { during: 'update', expect: 'constant' },
+                },
+                ...markersFadeIn,
+            });
+            expectMarkerStartsCollapsed(trajectory, '1');
+        });
+
         // "Remove points middle" — interior points leave; the endpoints (x-extent) are unchanged so the
         // path keeps its width and single subpath, and the removed markers drop from the scene.
         it('remove points: interior markers leave while the stroke stays connected', async () => {
@@ -571,6 +653,80 @@ describe('LineSeries', () => {
                 },
                 ...markersFadeIn,
             });
+        });
+
+        // "Remove the first point" — the leftmost point leaves, so the path's left edge steps IN: bbox x
+        // increases while width shrinks (unlike remove-middle, which holds the extent).
+        it('remove first point: the left edge steps in and the width shrinks', async () => {
+            const { before, trajectory, after } = await captureFrom(
+                lineOptions([
+                    { x: 1, y: 40 },
+                    { x: 2, y: 120 },
+                    { x: 3, y: 80 },
+                    { x: 4, y: 160 },
+                    { x: 5, y: 60 },
+                ]),
+                () =>
+                    chart.updateDelta({
+                        data: [
+                            { x: 2, y: 120 },
+                            { x: 3, y: 80 },
+                            { x: 4, y: 160 },
+                            { x: 5, y: 60 },
+                        ],
+                    })
+            );
+            expect(markerCount(before)).toBe(5);
+            expect(markerCount(after)).toBe(4);
+            const key = pathKey(before);
+            // The left edge stepped in and the width shrank (settled endpoints), and the edge slid there
+            // monotonically. The reshaping tops go transiently non-finite, so the path node is left 'any'.
+            expect(after.get(key)!.x).toBeGreaterThan(before.get(key)!.x);
+            expect(after.get(key)!.width).toBeLessThan(before.get(key)!.width);
+            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersFadeIn });
+            expectMonotonic(
+                trajectory.map((f) => f.get(key)!.x),
+                'increasing'
+            );
+            // Marker 2 survives the removal yet re-fades from invisible (removal snaps all present markers to
+            // opacity 0 and fades them back, as value updates do), making the fade glob non-vacuous.
+            expectMarkerStartsCollapsed(trajectory, '2');
+        });
+
+        // "Remove the last point" — the rightmost point leaves, so the path's right edge steps in: bbox x
+        // holds (left edge anchored) while width shrinks.
+        it('remove last point: the right edge steps in and the width shrinks', async () => {
+            const { before, trajectory, after } = await captureFrom(
+                lineOptions([
+                    { x: 1, y: 40 },
+                    { x: 2, y: 120 },
+                    { x: 3, y: 80 },
+                    { x: 4, y: 160 },
+                    { x: 5, y: 60 },
+                ]),
+                () =>
+                    chart.updateDelta({
+                        data: [
+                            { x: 1, y: 40 },
+                            { x: 2, y: 120 },
+                            { x: 3, y: 80 },
+                            { x: 4, y: 160 },
+                        ],
+                    })
+            );
+            expect(markerCount(before)).toBe(5);
+            expect(markerCount(after)).toBe(4);
+            const key = pathKey(before);
+            // The left edge stays anchored (x holds on every frame) while the width shrinks monotonically as
+            // the right edge steps in. The path node is 'any' because the reshaping tops go non-finite.
+            expect(after.get(key)!.width).toBeLessThan(before.get(key)!.width);
+            expect(trajectory.every((f) => Math.abs(f.get(key)!.x - before.get(key)!.x) < 1)).toBe(true);
+            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersFadeIn });
+            expectMonotonic(
+                trajectory.map((f) => f.get(key)!.width),
+                'decreasing'
+            );
+            expectMarkerStartsCollapsed(trajectory, '1');
         });
 
         // "Update points to undefined" — an interior value becoming undefined opens a gap: the stroke
@@ -927,6 +1083,39 @@ describe('LineSeries', () => {
             expect(markerX(after, 'w11')!).toBeLessThan(markerX(after, 'w3')!);
             expect(markerX(after, 'w3')!).toBeGreaterThan(markerX(before, 'w3')!);
             expect(markerX(after, 'w11')!).toBeLessThan(markerX(before, 'w11')!);
+            expectSceneTrajectory(trajectory, { [pathKey(before)]: 'any' });
+        });
+
+        // Integrated mode changes animation defaults, so re-exercise a category add there: adding an end
+        // week must still fade the new marker in (the entrant is invisible on the first frame) — proving
+        // integrated defaults do not suppress the entrance animation.
+        it('integrated mode: category add end week fades the new marker in', async () => {
+            const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS, 'integrated'), () =>
+                chart.updateDelta({ data: [...WEEKS, { x: 'w12', y: 78 }] })
+            );
+            expect(markerCount(before)).toBe(7);
+            expect(markerCount(after)).toBe(8);
+            expectSceneTrajectory(trajectory, {
+                [pathKey(before)]: 'any',
+                ...markersReflow,
+                ...axisReflowSpec('bottom', { shift: 'left' }),
+            });
+            expectMarkerStartsCollapsed(trajectory, 'w12');
+        });
+
+        // Integrated reorder mirrors the standalone case: the reshuffle must land (markers re-map to their
+        // new bands) under integrated defaults too.
+        it('integrated mode: reorder re-maps markers to the reshuffled bands', async () => {
+            const reordered = [WEEKS[3], WEEKS[0], WEEKS[5], WEEKS[1], WEEKS[6], WEEKS[2], WEEKS[4]];
+            const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS, 'integrated'), () =>
+                chart.updateDelta({ data: reordered })
+            );
+            expect(markerCount(after)).toBe(markerCount(before));
+            const order = reordered.map((d) => d.x);
+            for (let i = 1; i < order.length; i++) {
+                expect(markerX(after, order[i - 1])!).toBeLessThan(markerX(after, order[i])!);
+            }
+            expect(markerX(after, 'w6')!).toBeLessThan(markerX(before, 'w6')!);
             expectSceneTrajectory(trajectory, { [pathKey(before)]: 'any' });
         });
 
