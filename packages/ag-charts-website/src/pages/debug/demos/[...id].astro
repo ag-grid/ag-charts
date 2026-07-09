@@ -1,0 +1,101 @@
+---
+import { readFileSync, readdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+// Astro hoists getStaticPaths and runs it in isolation, so it cannot reference
+// component-scope consts — resolve paths from import.meta.url inline instead.
+export function getStaticPaths() {
+    // Dev-only. Returning no paths in a production build keeps the demo apps off
+    // the live site — they are compiled and smoke-tested in CI, never published.
+    if (!import.meta.env.DEV) {
+        return [];
+    }
+
+    const demosDir = fileURLToPath(new URL('../../../../../ag-charts-demos/src/demos', import.meta.url));
+    const ids = readdirSync(demosDir, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name);
+
+    // `id: undefined` is the index listing (`/debug/demos`); each id is one demo.
+    return [{ params: { id: undefined } }, ...ids.map((id) => ({ params: { id } }))];
+}
+
+// Emit the built demos SPA shell verbatim. The entry bundle lives under
+// /internal-demos/assets and is served by the agDemosStatic dev plugin; the demo
+// is selected by the data-demo-id on the root element. Served as a `partial`
+// (like the example-runner docs) so Astro injects no page scaffolding.
+export const partial = true;
+
+const { id } = Astro.params;
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+// Index listing: enumerate the registered demos and link to each shell.
+let demoIds: string[] = [];
+if (!id) {
+    const demosDir = fileURLToPath(new URL('../../../../../ag-charts-demos/src/demos', import.meta.url));
+    demoIds = readdirSync(demosDir, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name)
+        .sort();
+}
+
+const distIndex = fileURLToPath(new URL('../../../../../ag-charts-demos/dist/index.html', import.meta.url));
+
+// The build is produced by `nx dev` (vite build --watch); read the entry bundle
+// from it fresh each request so rebuilds (which rehash the filename) are picked
+// up. Missing until the first build completes.
+let entrySrc: string | undefined;
+if (id) {
+    try {
+        entrySrc = readFileSync(distIndex, 'utf8').match(/src="([^"]+\/assets\/[^"]+\.js)"/)?.[1];
+    } catch {
+        entrySrc = undefined;
+    }
+}
+---
+
+<!doctype html>
+{
+    !id ? (
+        <html lang="en">
+            <head>
+                <meta charset="utf-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <meta name="robots" content="noindex" />
+                <title>Demos</title>
+            </head>
+            <body style="margin: 0; padding: 24px; font-family: system-ui, sans-serif;">
+                <h1>AG Charts demo apps</h1>
+                {demoIds.length ? (
+                    <ul>
+                        {demoIds.map((demoId) => (
+                            <li>
+                                <a href={`${base}/debug/demos/${demoId}`}>{demoId}</a>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p>No demo apps are registered.</p>
+                )}
+            </body>
+        </html>
+    ) : (
+        <html lang="en" style="height: 100%;">
+            <head>
+                <meta charset="utf-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <meta name="robots" content="noindex" />
+                <title>{`Demo: ${id}`}</title>
+            </head>
+            <body style="margin: 0; height: 100%;">
+                <div id="root" data-demo-id={id} />
+                {entrySrc ? (
+                    <script type="module" src={entrySrc} />
+                ) : (
+                    <p>The demos bundle has not been built yet. Wait for `nx dev` to finish building, then reload.</p>
+                )}
+            </body>
+        </html>
+    )
+}

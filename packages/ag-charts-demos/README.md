@@ -40,6 +40,7 @@ src/
 
 `yarn nx dev` builds this package (in `--watch` mode) and the website's dev server serves the built
 output same-origin at `/charts/debug/demos/<id>` (e.g. `https://localhost:4600/charts/debug/demos/starter`).
+`/charts/debug/demos` (no id) lists the available demos with a link to each.
 Serving the build — rather than proxying a second dev server — keeps the embed same-origin, which the
 website's `frame-src` CSP requires. Edits to a demo rebuild automatically; reload the page to pick them
 up (there is no HMR through the build). The route is dev-only (see `agDemosStatic` and the `getStaticPaths`
