@@ -684,6 +684,40 @@ jobs:
                   path: |
                       reports/
 
+    demos_e2e:
+        runs-on: ubuntu-24.04
+        name: Demo Apps Smoke
+        needs: [detect-changes, init]
+        if: needs.detect-changes.outputs.run_full_ci == 'true'
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Fetch Refs
+              run: |
+                  git fetch origin --depth 1 latest next
+                  git fetch origin --depth 1 tag latest-success next-success
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+
+            - name: Install Playwright Chromium
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              run: npx playwright install --with-deps chromium
+
+            - name: nx test:e2e ag-charts-demos
+              id: demos_e2e
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test:e2e --projects=ag-charts-demos
+              timeout-minutes: 15
+
     fw_pkg_test:
         runs-on: ubuntu-24.04
         name: Framework Package Tests (${{ matrix.framework }})
@@ -815,6 +849,7 @@ jobs:
                 website_build,
                 test,
                 e2e,
+                demos_e2e,
                 sonarqube,
                 fw_pkg_test,
                 bundle_tests,
@@ -895,6 +930,8 @@ jobs:
                   elif [ "${{ needs.test.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.e2e.result }}" == "failure" ] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [ "${{ needs.demos_e2e.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.fw_pkg_test.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"

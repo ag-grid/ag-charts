@@ -1,0 +1,27 @@
+import { expect, test } from '@playwright/test';
+import { readdirSync } from 'fs';
+import { join } from 'path';
+
+const demosDir = join(process.cwd(), 'src', 'demos');
+const demoApps = readdirSync(demosDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+
+for (const app of demoApps) {
+    test(`demo "${app}" renders without console errors`, async ({ page }) => {
+        const consoleIssues: string[] = [];
+        page.on('console', (msg) => {
+            if (msg.type() !== 'error' && msg.type() !== 'warning') return;
+            // AG Charts licence message is logged with a leading '*'.
+            if (msg.text().startsWith('*')) return;
+            consoleIssues.push(msg.text());
+        });
+        page.on('pageerror', (err) => consoleIssues.push(err.message));
+
+        await page.goto(`/#${app}`);
+
+        await expect(page.locator('.ag-charts-wrapper')).toBeVisible();
+        await expect(page.locator('canvas').first()).toBeVisible();
+        expect(consoleIssues).toEqual([]);
+    });
+}
