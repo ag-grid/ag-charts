@@ -1,7 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { mapValues } from 'ag-charts-core';
-import type { AgCartesianChartOptions, AgChartOptions, AgNumericValue } from 'ag-charts-types';
+import type {
+    AgCartesianChartOptions,
+    AgChartOptions,
+    AgHistogramSeriesLabelPlacement,
+    AgNumericValue,
+} from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import { Transformable } from '../../../scene/transformable';
@@ -531,6 +536,159 @@ describe('HistogramSeries', () => {
                     frequency: 0,
                 });
             }
+        });
+    });
+
+    describe('label placement', () => {
+        // A single populated bin keeps the geometry deterministic; the bar grows upward (positive total).
+        const sourceData = [
+            { x: 2, y: 5 },
+            { x: 4, y: 5 },
+            { x: 6, y: 5 },
+        ];
+        const bins: [number, number][] = [[0, 10]];
+
+        const createChart = (label: Record<string, unknown>) => {
+            const options: AgCartesianChartOptions = {
+                data: sourceData,
+                series: [
+                    {
+                        type: 'histogram',
+                        xKey: 'x',
+                        yKey: 'y',
+                        aggregation: 'sum',
+                        bins,
+                        label: { enabled: true, ...label },
+                    },
+                ],
+            };
+            prepareTestOptions(options as any);
+            return AgCharts.create(options);
+        };
+
+        const firstBinLabel = (c: any) => {
+            const node = nodeDataOf(c)[0];
+            return { node, label: node.label };
+        };
+
+        it('keeps inside-center at the bar centre (unchanged default)', async () => {
+            chart = createChart({ placement: 'inside-center' });
+            await waitForChartStability(chart);
+            const { node, label } = firstBinLabel(chart);
+            expect(label.x).toBeCloseTo(node.x + node.width / 2);
+            expect(label.y).toBeCloseTo(node.y + node.height / 2);
+            expect(label.textAlign).toBe('center');
+            expect(label.textBaseline).toBe('middle');
+        });
+
+        it('sits the default (no placement) at the bar centre, matching today', async () => {
+            chart = createChart({});
+            await waitForChartStability(chart);
+            const { node, label } = firstBinLabel(chart);
+            expect(label.x).toBeCloseTo(node.x + node.width / 2);
+            expect(label.y).toBeCloseTo(node.y + node.height / 2);
+            expect(label.textAlign).toBe('center');
+            expect(label.textBaseline).toBe('middle');
+        });
+
+        it('anchors inside-start to the bar base', async () => {
+            chart = createChart({ placement: 'inside-start', spacing: 0 });
+            await waitForChartStability(chart);
+            const { node, label } = firstBinLabel(chart);
+            expect(label.x).toBeCloseTo(node.x + node.width / 2);
+            expect(label.y).toBeCloseTo(node.y + node.height);
+            expect(label.textAlign).toBe('center');
+            expect(label.textBaseline).toBe('bottom');
+        });
+
+        it('anchors inside-end to the bar top', async () => {
+            chart = createChart({ placement: 'inside-end', spacing: 0 });
+            await waitForChartStability(chart);
+            const { node, label } = firstBinLabel(chart);
+            expect(label.x).toBeCloseTo(node.x + node.width / 2);
+            expect(label.y).toBeCloseTo(node.y);
+            expect(label.textAlign).toBe('center');
+            expect(label.textBaseline).toBe('top');
+        });
+
+        it('places outside-end above the bar top', async () => {
+            chart = createChart({ placement: 'outside-end', spacing: 0 });
+            await waitForChartStability(chart);
+            const { node, label } = firstBinLabel(chart);
+            expect(label.x).toBeCloseTo(node.x + node.width / 2);
+            expect(label.y).toBeCloseTo(node.y);
+            expect(label.textAlign).toBe('center');
+            expect(label.textBaseline).toBe('bottom');
+        });
+
+        it('places outside-start below the bar base', async () => {
+            chart = createChart({ placement: 'outside-start', spacing: 0 });
+            await waitForChartStability(chart);
+            const { node, label } = firstBinLabel(chart);
+            expect(label.x).toBeCloseTo(node.x + node.width / 2);
+            expect(label.y).toBeCloseTo(node.y + node.height);
+            expect(label.textAlign).toBe('center');
+            expect(label.textBaseline).toBe('top');
+        });
+
+        it('applies spacing as an offset from the placement anchor', async () => {
+            const spacing = 12;
+            chart = createChart({ placement: 'inside-end', spacing });
+            await waitForChartStability(chart);
+            const { node, label } = firstBinLabel(chart);
+            // inside-end anchors to the bar top; spacing pushes the label down into the bar.
+            expect(label.y).toBeCloseTo(node.y + spacing);
+        });
+
+        it('accepts a placement array and honours its first candidate', async () => {
+            chart = createChart({ placement: ['inside-end', 'inside-center'], spacing: 0 });
+            await waitForChartStability(chart);
+            const { node, label } = firstBinLabel(chart);
+            expect(label.y).toBeCloseTo(node.y);
+            expect(label.textBaseline).toBe('top');
+        });
+
+        it('applies the bar-aligned 8px default gap when spacing is unset', async () => {
+            chart = createChart({ placement: 'inside-end' });
+            await waitForChartStability(chart);
+            const { node, label } = firstBinLabel(chart);
+            // No explicit spacing: the theme default (padding) pushes the label 8px in from the bar top.
+            expect(label.y).toBeCloseTo(node.y + 8);
+        });
+    });
+
+    describe('label placement snapshots', () => {
+        const PLACEMENTS: AgHistogramSeriesLabelPlacement[] = [
+            'inside-center',
+            'inside-start',
+            'inside-end',
+            'outside-start',
+            'outside-end',
+        ];
+
+        // Frequency data is all-positive, so the bar base sits on the plot floor. Extend the y-axis
+        // below zero so outside-start labels (rendered below the base) have room instead of being clipped.
+        const axes = HISTOGRAM_SERIES_LABELS.axes as any;
+        const withPlacement = (label: Record<string, unknown>) => ({
+            options: {
+                ...HISTOGRAM_SERIES_LABELS,
+                axes: { ...axes, y: { ...axes.y, min: -10 } },
+                series: (HISTOGRAM_SERIES_LABELS.series ?? []).map((s: any) => ({
+                    ...s,
+                    label: { ...s.label, enabled: true, ...label },
+                })),
+            },
+        });
+
+        it.each(PLACEMENTS)('renders %s labels as expected', async (placement) => {
+            chart = createHistogramChart(withPlacement({ placement }));
+            await compare();
+        });
+
+        it('lets an explicit spacing override the default gap', async () => {
+            // spacing: 0 replaces the theme's 8px default, pinning the label flush to the bar top.
+            chart = createHistogramChart(withPlacement({ placement: 'inside-end', spacing: 0 }));
+            await compare();
         });
     });
 

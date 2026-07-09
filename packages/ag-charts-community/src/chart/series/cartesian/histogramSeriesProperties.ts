@@ -9,11 +9,13 @@ import type {
     AgHistogramSeriesGetItemIdParams,
     AgHistogramSeriesItemStylerParams,
     AgHistogramSeriesLabelFormatterParams,
+    AgHistogramSeriesLabelPlacement,
     AgHistogramSeriesOptions,
     AgHistogramSeriesStyle,
     AgHistogramSeriesStylerParams,
     AgHistogramSeriesTooltipRendererParams,
     AgNumericValue,
+    PixelSize,
     Styler,
 } from 'ag-charts-types';
 
@@ -46,11 +48,21 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
         readonly text: NormalisedTextOrSegments;
         readonly x: number;
         readonly y: number;
+        readonly textAlign: CanvasTextAlign;
+        readonly textBaseline: CanvasTextBaseline;
     };
     // Required for types
     readonly crisp: boolean;
     readonly opacity?: number;
     style?: RequireOptional<NormalisedHistogramSeriesStyle>;
+}
+
+class HistogramSeriesLabel extends Label<AgHistogramSeriesLabelFormatterParams> {
+    @Property
+    placement: AgHistogramSeriesLabelPlacement = 'inside-center';
+
+    @Property
+    spacing: PixelSize = 0;
 }
 
 export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHistogramSeriesOptions> {
@@ -115,7 +127,7 @@ export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHisto
     readonly shadow = new DropShadow();
 
     @Property
-    readonly label = new Label<AgHistogramSeriesLabelFormatterParams>();
+    readonly label = new HistogramSeriesLabel();
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgHistogramSeriesTooltipRendererParams>();

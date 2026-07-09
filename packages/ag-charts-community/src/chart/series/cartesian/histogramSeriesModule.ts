@@ -38,11 +38,25 @@ const themeTemplate: ExtensibleTheme<'histogram'> = {
         lineDashOffset: 0,
         label: {
             ...LABEL_BOXING_DEFAULTS,
+            // Default 8px gap between the bar and edge-anchored labels; a user-set `spacing` replaces it.
+            padding: { $isUserOption: ['./spacing', 0, 8] } as any,
             enabled: false,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            color: { $ref: 'chartBackgroundColor' },
+            color: {
+                $if: [
+                    {
+                        $or: [
+                            { $eq: [{ $path: './placement' }, 'outside-start'] },
+                            { $eq: [{ $path: './placement' }, 'outside-end'] },
+                        ],
+                    },
+                    { $ref: 'textColor' },
+                    { $ref: 'chartBackgroundColor' },
+                ],
+            },
+            placement: 'inside-center',
         },
         shadow: {
             enabled: false,

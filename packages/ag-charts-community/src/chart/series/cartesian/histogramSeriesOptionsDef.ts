@@ -11,6 +11,7 @@ import {
     lineDashOptionsDef,
     multiSeriesHighlightOptionsDef,
     number,
+    or,
     positiveNumber,
     required,
     seriesLabelOptionsDefs,
@@ -34,12 +35,18 @@ const histogramStyler = callbackDefs<AgHistogramSeriesStyle>({
     cornerRadius: positiveNumber,
 });
 
+const histogramLabelPlacement = union('inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end');
+
 export const histogramSeriesThemeableOptionsDef: OptionsDefs<AgHistogramSeriesThemeableOptions> = {
     showInMiniChart: boolean,
     cornerRadius: positiveNumber,
     styler: histogramStyler,
     itemStyler: histogramStyler,
-    label: seriesLabelOptionsDefs,
+    label: {
+        ...seriesLabelOptionsDefs,
+        placement: or(histogramLabelPlacement, arrayOf(histogramLabelPlacement)),
+        spacing: positiveNumber,
+    },
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
