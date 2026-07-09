@@ -899,13 +899,12 @@ describe('OrganizationSeries', () => {
 
             const series = deproxy(chart).series[0] as any;
             const { collapsedManager } = series.ctx;
-            const point = { x: Number.NaN, y: Number.NaN };
 
-            series.collapseItem(2, point);
+            series.collapseItem(2);
             expect(collapsedManager.isCollapsed(2)).toBe(true);
 
             // Expand must target node 2 by id, not misread the numeric id as a datumSelection index.
-            series.expandItem(2, point);
+            series.expandItem(2);
             expect(collapsedManager.isCollapsed(2)).toBe(false);
         });
 

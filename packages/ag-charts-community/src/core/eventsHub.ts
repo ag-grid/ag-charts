@@ -142,6 +142,8 @@ export interface EventsHubMap {
     'series:focus-change': null;
     'series:keynav-zoom': SeriesKeyNavZoomEvent;
     'series:keynav-panx': SeriesKeyNavPanXEvent;
+    'series:keynav-expand': SeriesNodeDatum;
+    'series:keynav-collapse': SeriesNodeDatum;
     'series-area:hover': SeriesAreaHoverEvent;
     'series-area:click': SeriesAreaClickEvent;
     'series:redo': null;
