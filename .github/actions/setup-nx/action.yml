@@ -1,5 +1,11 @@
 name: setup-nx
 
+# Thin, config-only wrapper over the shared ./external/ag-shared/github/actions/setup-nx-core.
+# It declares ONLY this repo's layout literals (cache paths, node_modules clean globs, and the
+# two hashFiles() keys — which must be literal here because hashFiles() cannot take a runtime
+# input) and forwards every behavioural input to the shared core. Keep behaviour changes in the
+# core so they percolate to ag-grid / ag-studio via the ag-shared subrepo.
+
 inputs:
     yarn_postinstall:
         description: 'Always ensure yarn postinstall is run.'
@@ -27,7 +33,7 @@ inputs:
         required: false
     cache_mode:
         description: 'Read/write mode for caches'
-        require: false
+        required: false
         default: 'rw'
         options:
             - 'rw'
@@ -40,209 +46,41 @@ inputs:
         options:
             - 'true'
             - 'false'
+    tidy_nx_cache:
+        description: 'Reset the Nx cache before a build when it exceeds a branch-type size threshold. Set false to skip the tidy step.'
+        required: false
+        default: 'true'
+        options:
+            - 'true'
+            - 'false'
+
 outputs:
     base:
         description: 'Base branch/SHA for diff detection'
-        value: ${{ steps.nx_config.outputs.base }}
+        value: ${{ steps.core.outputs.base }}
     type:
         description: 'Type of job execution detected'
-        value: ${{ steps.nx_config.outputs.type }}
+        value: ${{ steps.core.outputs.type }}
 
 runs:
     using: 'composite'
     steps:
-        - name: Free disk space
-          if: runner.os == 'Linux' && inputs.free_disk_space == 'true'
-          shell: bash
-          run: |
-              # Log starting headroom (before the delete) and the amount reclaimed.
-              df -h /
-              # Best-effort reclaim of root-partition space to avoid runner ENOSPC by
-              # deleting large preinstalled toolchains this repo never uses. Disjoint
-              # trees are unlinked concurrently to overlap I/O latency; cost is dominated
-              # by the many-small-file android/tool-cache trees.
-              # ($AGENT_TOOLSDIRECTORY == /opt/hostedtoolcache, so it is not listed twice.)
-              sudo rm -rf /usr/local/lib/android &
-              sudo rm -rf /opt/hostedtoolcache &
-              sudo rm -rf /usr/share/dotnet &
-              sudo rm -rf /opt/ghc /usr/local/share/boost &
-              wait
-              df -h /
-
-        - name: Dump GitHub context
-          env:
-              GITHUB_CONTEXT: ${{ toJson(github) }}
-          if: ${{ env.ACTIONS_STEP_DEBUG == 'true' }}
-          shell: bash
-          run: echo "$GITHUB_CONTEXT"
-
-        - name: Set Nx parallelization
-          shell: bash
-          run: |
-              if [ -z "${NX_PARALLEL}" ]; then
-                CPUS=$(nproc)
-                echo "NX_PARALLEL=${CPUS}" >> $GITHUB_ENV
-                echo "Setting NX_PARALLEL to ${CPUS}"
-              else
-                echo "NX_PARALLEL already set to ${NX_PARALLEL}, skipping"
-              fi
-
-        - name: Nx Affected SHA Setup
-          id: nx_config
-          shell: bash
-          run: |
-              set -x
-
-              fetch_success_tag() {
-                local tag=$1
-                if git show-ref --verify --quiet "refs/tags/${tag}" ; then
-                  echo "Using already-fetched ${tag} tag"
-                  return 0
-                fi
-
-                git fetch origin -f --depth 1 tag "${tag}"
-              }
-
-              branch=$(git branch --show-current)
-              if [[ ${branch} == 'latest' || ${branch} == 'next' ]] ; then
-                # Latest
-                echo "base=${branch}-success" >> $GITHUB_OUTPUT
-                echo "NX_BASE=${branch}-success" >> $GITHUB_ENV
-                echo "type=latest" >> $GITHUB_OUTPUT
-                fetch_success_tag "${branch}-success"
-              elif [[ ${branch} =~ b[0-9][0-9]\..+ ]] ; then
-                # Release
-                # Try to use the -success tag if it exists, otherwise fall back to branch name
-                if fetch_success_tag "${branch}-success" 2>/dev/null; then
-                  echo "base=${branch}-success" >> $GITHUB_OUTPUT
-                  echo "NX_BASE=${branch}-success" >> $GITHUB_ENV
-                else
-                  echo "base=${branch}" >> $GITHUB_OUTPUT
-                  echo "NX_BASE=${branch}" >> $GITHUB_ENV
-                fi
-                echo "type=release" >> $GITHUB_OUTPUT
-                echo "release_branch=${branch}" >> $GITHUB_OUTPUT
-              else
-                # PR
-                echo "base=origin/${{ inputs.base_ref }}" >> $GITHUB_OUTPUT
-                echo "NX_BASE=origin/${{ inputs.base_ref }}" >> $GITHUB_ENV
-                echo "type=pr" >> $GITHUB_OUTPUT
-                if [[ ${{ inputs.fetch_base }} == 'shallow' ]] ; then
-                  git fetch origin --depth 1 ${{ inputs.base_ref }}
-                elif [[ ${{ inputs.fetch_base }} == 'full' ]] ; then
-                  git fetch origin ${{ inputs.base_ref }}
-                fi
-
-                if [[ "${{inputs.base_ref}}" =~ b[0-9][0-9]\..+ ]] ; then
-                  echo "release_branch=${{ inputs.base_ref }}" >> $GITHUB_OUTPUT
-                fi
-              fi
-
-              cat $GITHUB_OUTPUT
-              cat $GITHUB_ENV
-
-        - name: Restore node_modules
-          if: inputs.cache_mode == 'ro'
-          id: cache_ro
-          uses: actions/cache/restore@v4
-          env:
-              NODE_MODULES_HASH: ${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json', 'libraries/*/package.json', 'external/*/package.json') }}
+        - name: Setup Nx (shared core)
+          id: core
+          uses: ./external/ag-shared/github/actions/setup-nx-core
           with:
-              path: |
+              yarn_postinstall: ${{ inputs.yarn_postinstall }}
+              fetch_base: ${{ inputs.fetch_base }}
+              nx_restore: ${{ inputs.nx_restore }}
+              base_ref: ${{ inputs.base_ref }}
+              cache_mode: ${{ inputs.cache_mode }}
+              free_disk_space: ${{ inputs.free_disk_space }}
+              tidy_nx_cache: ${{ inputs.tidy_nx_cache }}
+              node_modules_paths: |
                   node_modules/
                   packages/*/node_modules/
                   plugins/*/node_modules/
                   libraries/*/node_modules/
                   external/*/node_modules/
-              key: node_modules-${{ runner.os }}-${{ steps.nx_config.outputs.release_branch && format('release-{0}-{1}', steps.nx_config.outputs.release_branch, env.NODE_MODULES_HASH) || env.NODE_MODULES_HASH }}
-              restore-keys: ${{ steps.nx_config.outputs.release_branch && format('node_modules-{0}-release-{1}-', runner.os, steps.nx_config.outputs.release_branch) || format('node_modules-{0}-', runner.os) }}
-              # For releases add release branch to key, otherwise take any latest cache if failed to find it for current yarn.lock
-              # fail-on-cache-miss: true
-
-        - name: Cache node_modules
-          if: inputs.cache_mode == 'rw'
-          id: cache_rw
-          uses: actions/cache@v4
-          env:
-              NODE_MODULES_HASH: ${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json', 'libraries/*/package.json', 'external/*/package.json') }}
-          with:
-              path: |
-                  node_modules/
-                  packages/*/node_modules/
-                  plugins/*/node_modules/
-                  libraries/*/node_modules/
-                  external/*/node_modules/
-              key: node_modules-${{ runner.os }}-${{ steps.nx_config.outputs.release_branch && format('release-{0}-{1}', steps.nx_config.outputs.release_branch, env.NODE_MODULES_HASH) || env.NODE_MODULES_HASH }}
-              restore-keys: ${{ steps.nx_config.outputs.release_branch && format('node_modules-{0}-release-{1}-', runner.os, steps.nx_config.outputs.release_branch) || format('node_modules-{0}-', runner.os) }}
-              # For releases add release branch to key, otherwise take any latest cache if failed to find it for current yarn.lock
-
-        - name: Cache Nx
-          if: inputs.cache_mode == 'rw' && inputs.nx_restore != 'false'
-          uses: actions/cache@v4
-          with:
-              path: |
-                  .nx/cache
-                  .nx/workspace-data
-              key: cache-nx-v20-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-${{ github.sha }}
-              restore-keys: cache-nx-v20-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
-
-        - name: Restore Nx
-          if: inputs.cache_mode == 'ro' && inputs.nx_restore != 'false'
-          id: cache_nx_ro
-          uses: actions/cache/restore@v4
-          with:
-              path: |
-                  .nx/cache
-                  .nx/workspace-data
-              key: cache-nx-v20-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-${{ github.sha }}
-              restore-keys: cache-nx-v20-${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}-
-              # fail-on-cache-miss: true
-
-        - name: Setup Node.js
-          id: setup_node
-          uses: actions/setup-node@v4
-          with:
-              node-version-file: package.json
-
-        - name: Tidy Nx Cache
-          uses: ./.github/actions/tidy-nx-cache
-          if: inputs.cache_mode == 'rw' && inputs.nx_restore != 'false'
-          with:
-              branch_type: ${{ steps.nx_config.outputs.type }}
-
-        - name: yarn install
-          if: inputs.yarn_postinstall == 'true'
-          id: yarn_install_slow
-          shell: bash
-          env:
-              # 'true' only on an exact key hit; an inexact restore-keys fallback can carry a stale hoisting layout.
-              EXACT_CACHE_HIT: ${{ steps.cache_rw.outputs.cache-hit || steps.cache_ro.outputs.cache-hit }}
-          run: |
-              if [[ "${EXACT_CACHE_HIT}" != "true" ]] ; then
-                # Fallback restore: wipe node_modules so install rebuilds hoisting from this lockfile, avoiding stale-layout cache poisoning.
-                rm -rf node_modules packages/*/node_modules plugins/*/node_modules libraries/*/node_modules external/*/node_modules
-                yarn install --ci
-                yarn check --integrity
-              elif (yarn check --integrity) ; then
-                yarn postinstall
-              else
-                yarn install --ci
-
-                # Ensure that the integrity check passes after install to avoid
-                # cache polution with entries that will fail future integrity checks.
-                yarn check --integrity
-              fi
-
-        - name: yarn install (skipping postinstall)
-          if: inputs.cache_mode == 'rw' && inputs.yarn_postinstall == 'false'
-          id: yarn_install_fast
-          shell: bash
-          run: |
-              yarn check --integrity || yarn install --ci
-
-        - name: yarn install (skipping postinstall)
-          if: inputs.cache_mode == 'rw' && inputs.yarn_postinstall == 'no-install' && steps.cache_ro.outputs.cache-hit != 'false'
-          id: yarn_install_check
-          shell: bash
-          run: |
-              yarn check --integrity
+              node_modules_hash: ${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json', 'libraries/*/package.json', 'external/*/package.json') }}
+              nx_cache_hash: ${{ hashFiles('yarn.lock','patches/*.patch', 'packages/*/package.json', 'plugins/*/package.json') }}
