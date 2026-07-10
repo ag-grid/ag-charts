@@ -1549,9 +1549,18 @@ describe('AreaSeries', () => {
             );
             expect(markerCount(before)).toBe(7);
             expect(markerCount(after)).toBe(8);
+            // The left edge is pinned (station 0 holds); the interior widens towards the new right edge,
+            // except the station nearest it, which overshoots past its resting value before correcting.
+            const addEndWeekTops = {
+                'top@0': 'constant' as const,
+                'top@1': increasingExtent,
+                'top@2': increasingExtent,
+                'top@3': squeezing,
+                'top@4': increasingExtent,
+            };
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': extentMorph('constant', squeezing, 'any'),
-                'series[0]/path[stroke]': extentMorph('constant', squeezing, 'constant'),
+                'series[0]/background/path[*]': extentMorph('constant', squeezing, 'any', [], addEndWeekTops),
+                'series[0]/path[stroke]': extentMorph('constant', squeezing, 'constant', [], addEndWeekTops),
                 ...markersFadeIn,
                 ...axisReflowSpec('bottom', { shift: 'left' }),
             });
@@ -1564,9 +1573,18 @@ describe('AreaSeries', () => {
                 chart.updateDelta({ data: [{ x: 'w2', y: 90 }, ...WEEKS] })
             );
             expect(markerCount(after)).toBe(8);
+            // The right edge is pinned (station 4 holds); the interior narrows away from the new left edge,
+            // except the station nearest it, which dips past its resting value before correcting.
+            const addStartWeekTops = {
+                'top@0': decreasingExtent,
+                'top@1': squeezing,
+                'top@2': decreasingExtent,
+                'top@3': increasingExtent,
+                'top@4': 'constant' as const,
+            };
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': extentMorph(squeezing, squeezing, 'any'),
-                'series[0]/path[stroke]': extentMorph(squeezing, squeezing, 'constant'),
+                'series[0]/background/path[*]': extentMorph(squeezing, squeezing, 'any', [], addStartWeekTops),
+                'series[0]/path[stroke]': extentMorph(squeezing, squeezing, 'constant', [], addStartWeekTops),
                 ...markersFadeIn,
                 ...axisReflowSpec('bottom', { shift: 'right' }),
             });
@@ -1611,9 +1629,19 @@ describe('AreaSeries', () => {
             expect(shift('w9')).toBeGreaterThan(shift('w10'));
             expect(Math.abs(shift('w3'))).toBeLessThanOrEqual(1);
             expect(Math.abs(shift('w11'))).toBeLessThanOrEqual(1);
+            // Interior stations 1-3 fall between reflowed bands and tween smoothly toward their new resting
+            // value as the paths re-cover the redistributed layout; the outer stations sit on the untouched
+            // end categories (w3, w11) and hold.
+            const addMiddleWeeksTops = {
+                'top@0': 'constant' as const,
+                'top@1': increasingExtent,
+                'top@2': increasingExtent,
+                'top@3': increasingExtent,
+                'top@4': 'constant' as const,
+            };
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': extentMorph('constant', 'constant', 'any'),
-                'series[0]/path[stroke]': extentMorph('constant', 'constant', 'constant'),
+                'series[0]/background/path[*]': extentMorph('constant', 'constant', 'any', [], addMiddleWeeksTops),
+                'series[0]/path[stroke]': extentMorph('constant', 'constant', 'constant', [], addMiddleWeeksTops),
                 ...markersFadeIn,
                 'axis[bottom]/text[*]': {
                     opacity: { during: ['remove', 'update', 'add'], expect: 'bounded' },
@@ -1643,9 +1671,18 @@ describe('AreaSeries', () => {
             }
             // w6 moved from last to first, so it really shifted left.
             expect(markerX(after, 'w6')!).toBeLessThan(markerX(before, 'w6')!);
+            // A reorder redraws the whole path in its new shape at once (no per-frame path tween — only
+            // the markers re-fade into their remapped bands), so every station holds constant throughout.
+            const reorderTops = {
+                'top@0': 'constant' as const,
+                'top@1': 'constant' as const,
+                'top@2': 'constant' as const,
+                'top@3': 'constant' as const,
+                'top@4': 'constant' as const,
+            };
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': extentMorph('constant', 'constant', 'any'),
-                'series[0]/path[stroke]': extentMorph('constant', 'constant', 'constant'),
+                'series[0]/background/path[*]': extentMorph('constant', 'constant', 'any', [], reorderTops),
+                'series[0]/path[stroke]': extentMorph('constant', 'constant', 'constant', [], reorderTops),
                 ...markersFadeIn,
                 ...axisReflowSpec('bottom', {}),
             });
@@ -1750,10 +1787,18 @@ describe('AreaSeries', () => {
                 chart.update(swapOptions(d2))
             );
             // The fill and stroke genuinely tween: their left edge sweeps out to an intermediate and back
-            // (the smooth path morphs across the reshuffled categories) rather than snapping.
+            // (the smooth path morphs across the reshuffled categories) rather than snapping. The interior
+            // stations mirror that dip-and-return, except the rightmost, which settles by rising cleanly.
+            const swapTops = {
+                'top@0': squeezing,
+                'top@1': squeezing,
+                'top@2': squeezing,
+                'top@3': increasingExtent,
+                'top@4': increasingExtent,
+            };
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': extentMorph(squeezing, squeezing, 'any'),
-                'series[0]/path[stroke]': extentMorph(squeezing, squeezing, 'constant'),
+                'series[0]/background/path[*]': extentMorph(squeezing, squeezing, 'any', [], swapTops),
+                'series[0]/path[stroke]': extentMorph(squeezing, squeezing, 'constant', [], swapTops),
                 'axis[bottom]/text[*]': {
                     opacity: { during: ['remove', 'update', 'add'], expect: 'bounded' },
                     x: 'any',
