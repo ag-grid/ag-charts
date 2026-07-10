@@ -75,6 +75,12 @@ Use the `showOn` property to specify when the action should be shown.
             },
             'separator',
             {
+                showOn: 'axis',
+                label: 'Say hello to an axis',
+                action: (ev) => console.log(`Hello in axis "${ev.axisId}":"`, ev),
+            },
+            'separator',
+            {
                 showOn: 'caption',
                 label: 'Say hello in a caption',
                 action: ({ captionType, text }) =>
@@ -139,6 +145,11 @@ To add Sub-Menus to the Context Menu, simply use the `items` property recursivel
                         showOn: 'always',
                         label: `On 'always'`,
                         action: () => console.log(`On 'always' clicked.`),
+                    },
+                    {
+                        showOn: 'axis',
+                        label: `On 'axis'`,
+                        action: (ev) => console.log(`On 'axis' clicked -`, ev.axisId, ev),
                     },
                     {
                         showOn: 'caption',
@@ -288,6 +299,9 @@ The menu includes actions on the clicked point and its series:
 {% /tabItem %}
 {% tabItem id="AgContextMenuItemAlways" label="Always" %}
 {% apiReference id="AgContextMenuItemAlways" /%}
+{% /tabItem %}
+{% tabItem id="AgContextMenuItemAxis" label="Axis" %}
+{% apiReference id="AgContextMenuItemAxis" /%}
 {% /tabItem %}
 {% tabItem id="AgContextMenuItemCaption" label="Caption" %}
 {% apiReference id="AgContextMenuItemCaption" /%}
