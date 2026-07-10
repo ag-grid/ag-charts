@@ -36,6 +36,7 @@ interface ButtonListener {
 interface LegendDOMProxyUpdateParams {
     visible: boolean;
     interactive: boolean;
+    contextMenuAvailable: boolean;
     ctx: Pick<ChartRegistry, 'proxyInteractionService' | 'localeManager'>;
     itemSelection: ItemSelection;
     group: Node;
@@ -48,7 +49,7 @@ interface LegendDOMProxyUpdateParams {
 
 type LegendDOMProxyPageChangeParams = Pick<
     LegendDOMProxyUpdateParams,
-    'itemSelection' | 'group' | 'pagination' | 'interactive'
+    'itemSelection' | 'group' | 'pagination' | 'interactive' | 'contextMenuAvailable'
 >;
 
 export class LegendDOMProxy {
@@ -163,7 +164,13 @@ export class LegendDOMProxy {
         this.paginationGroup.setHidden(!visible);
     }
 
-    private updateItemProxyButtons({ itemSelection, group, pagination, interactive }: LegendDOMProxyPageChangeParams) {
+    private updateItemProxyButtons({
+        itemSelection,
+        group,
+        pagination,
+        interactive,
+        contextMenuAvailable,
+    }: LegendDOMProxyPageChangeParams) {
         const groupBBox = Transformable.toCanvas(group);
         this.itemList.setBounds(groupBBox);
 
@@ -177,11 +184,12 @@ export class LegendDOMProxy {
                 const bbox: BoxBounds = { x: x - groupBBox.x, y: y - margin - groupBBox.y, height: maxHeight, width };
 
                 const enabled = interactive && visible;
+                const pointerEnabled = (interactive || contextMenuAvailable) && visible;
                 // Discrete colour-scale bin items don't toggle and don't drive series highlight, so the
                 // pointer cursor is misleading — see `suppressHighlight` on CategoryLegendDatum.
                 l.proxyButton.setCursor(datum.suppressHighlight ? 'default' : 'pointer');
                 l.proxyButton.setEnabled(enabled);
-                l.proxyButton.setPointerEvents(enabled ? undefined : 'none');
+                l.proxyButton.setPointerEvents(pointerEnabled ? undefined : 'none');
                 l.proxyButton.setBounds(bbox);
                 l.proxyButton.setAriaDescribedBy(enabled ? this.itemDescription.id : undefined);
             }

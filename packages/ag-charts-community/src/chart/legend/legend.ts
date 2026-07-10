@@ -241,6 +241,13 @@ export class Legend {
         return toggleSeries || legendItemDoubleClick != null || legendItemClick != null || hasExplicitTooltip;
     }
 
+    private hasEnabledContextMenu(): boolean {
+        return (
+            this.ctx.contextMenuRegistry != null &&
+            (this.ctx.chartState.getValue('options', 'contextMenu')?.enabled ?? true)
+        );
+    }
+
     private checkInteractionState(): boolean {
         return this.ctx.interactionManager.isState(InteractionState.Frozen);
     }
@@ -735,7 +742,13 @@ export class Legend {
         this.pagination.updateMarkers(paginationOpts);
 
         this.updatePositions(pageNumber);
-        this.domProxy.onPageChange({ itemSelection, group, pagination, interactive: this.isInteractive() });
+        this.domProxy.onPageChange({
+            itemSelection,
+            group,
+            pagination,
+            interactive: this.isInteractive(),
+            contextMenuAvailable: this.hasEnabledContextMenu(),
+        });
 
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
@@ -1328,6 +1341,7 @@ export class Legend {
         this.domProxy.update({
             visible,
             interactive,
+            contextMenuAvailable: this.hasEnabledContextMenu(),
             ctx,
             itemSelection,
             group,
