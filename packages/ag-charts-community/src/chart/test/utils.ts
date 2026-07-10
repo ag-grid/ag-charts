@@ -1834,11 +1834,13 @@ export function expectSceneTrajectory(
 
         for (const prop of props) {
             const raw = expectation === 'constant' ? 'constant' : ((expectation as any)[prop] ?? 'constant');
-            // `constant`/`bounded`/`settlesAt` all pin absolute position, so they must use the prop's
-            // native scale; direction (`monotonic`) and `progresses` are scale-agnostic and keep the
-            // pixel tolerances.
-            const propConstantTol = EXACT_MATCH_PROPS.has(prop) ? EXACT_MATCH_TRAJECTORY_TOL : constantTol;
-            const propTolerances = { ...tolerances, constant: propConstantTol };
+            // Flag/range props must be judged on their native 0..1 scale for constancy AND direction:
+            // at the pixel-scaled monotonic tolerance every per-frame opacity step fits both
+            // `increases` and `decreases`, making direction assertions vacuous. `progresses` keeps its
+            // own scale-free spread tolerance.
+            const propTolerances = EXACT_MATCH_PROPS.has(prop)
+                ? { ...tolerances, constant: EXACT_MATCH_TRAJECTORY_TOL, monotonic: EXACT_MATCH_TRAJECTORY_TOL }
+                : tolerances;
             const isPhased = typeof raw === 'object' && !Array.isArray(raw);
             const propExpectations: TrajectoryExpectation[] = [isPhased ? (raw.expect ?? []) : raw].flat();
             const rawValues = rawValuesFor(prop);
@@ -1880,7 +1882,7 @@ export function expectSceneTrajectory(
             }
             if (isPhased && raw.settlesAt != null) {
                 const finalValue = checkedValues.at(-1)!;
-                if (Math.abs(finalValue - raw.settlesAt) > propConstantTol) {
+                if (Math.abs(finalValue - raw.settlesAt) > propTolerances.constant) {
                     violations.push({
                         key,
                         prop,
