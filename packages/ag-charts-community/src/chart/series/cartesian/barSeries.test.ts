@@ -1296,6 +1296,16 @@ describe('BarSeries', () => {
             expectSceneShifted(before, trajectory.at(-1)!);
         });
 
+        // The create-time reveal in standalone mode (the integrated variants below re-run it via
+        // resetAnimations; this pins the plain first render).
+        it('standalone: initial load reveals bars from the baseline', async () => {
+            chart = AgCharts.create(groupedOptions());
+            const sampleScene = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            expectSceneTrajectory(trajectory, revealFromBaseline('height'));
+            expectStartsCollapsed(trajectory[0], 'series[0]/rect[Q1]', 'height');
+        });
+
         // The grouped-category axis is what AG Grid integrated charts use for row groups.
         it('integrated mode: grouped-category chart reveals bars from the baseline on initial load', async () => {
             chart = AgCharts.create(groupedCategoryOptions());
@@ -1380,6 +1390,143 @@ describe('BarSeries', () => {
                     `${key} centre ${cx} outside all bands`
                 ).toBe(true);
             }
+        });
+
+        // A series toggle snaps structurally at frame 0 (the labels group flips visible, re-entering
+        // rects arrive from a null-x placeholder), which trips captureUpdate's whole-scene start
+        // anchor — so the toggle CASEs hand-roll the capture, keeping only the end anchor (as the
+        // line suite's captureFrom does).
+        const captureToggle = async (create: AgCartesianChartOptions, action: () => Promise<void> | void) => {
+            chart = AgCharts.create(create);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+            await action();
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            await frames.runToEnd(chart);
+            const after = sampleScene();
+            expectSceneSamplesMatch(trajectory.at(-1)!, after);
+            return { trajectory, after };
+        };
+
+        // Survivors of a series toggle re-share the category band: width tweens during update while
+        // the value dimension holds (bounded absorbs the crisp-pixel settle).
+        const survivorBands = (width: 'increases' | 'decreases'): SceneNodeExpectation =>
+            ({
+                width: { during: 'update', expect: [width, 'progresses'] },
+                x: { during: 'update', expect: 'bounded' },
+                height: 'bounded',
+                y: 'bounded',
+            }) as const;
+
+        // "Toggle series off" — a two-beat exit: the toggled-off bars first collapse to the baseline
+        // (remove phase, their band frozen), THEN the survivors widen into the vacated band (update
+        // phase). Contrast with the stacked CRT-1040 toggle below, which coordinates in one beat.
+        it('legend hide: toggled-off bars collapse to the baseline before survivors widen', async () => {
+            const options = groupedOptions();
+            const { trajectory, after } = await captureToggle(options, () =>
+                chart.update({
+                    ...options,
+                    series: options.series!.map((s, i) => (i === 1 ? { ...s, visible: false } : s)),
+                })
+            );
+            // Anti-vacuity: the toggled-off bar starts at full height and must genuinely collapse.
+            expect(trajectory[0].get('series[1]/rect[Q1]')!.height).toBeGreaterThan(40);
+            expectSceneTrajectory(trajectory, {
+                'series[1]/rect[*]': {
+                    height: { during: 'remove', expect: ['decreases', 'bounded'], settlesAt: 0 },
+                    y: { during: 'remove', expect: ['increases', 'bounded'] },
+                },
+                'series[0]/rect[*]': survivorBands('increases'),
+                'series[2]/rect[*]': survivorBands('increases'),
+            });
+            expect(after.get('series[1]/rect[Q1]')!.height).toBe(0);
+        });
+
+        // "Toggle series back on" — the exit in reverse: survivors narrow to re-make room (update
+        // phase), then the re-shown bars grow back from the baseline (add phase) — a grow, not a fade.
+        it('legend show: survivors narrow before the re-shown bars grow from the baseline', async () => {
+            const options = groupedOptions();
+            const hidden = {
+                ...options,
+                series: options.series!.map((s, i) => (i === 1 ? { ...s, visible: false } : s)),
+            };
+            const { trajectory, after } = await captureToggle(hidden, () => chart.update(options));
+            expectStartsCollapsed(trajectory[0], 'series[1]/rect[Q1]', 'height');
+            expectSceneTrajectory(trajectory, {
+                'series[1]/rect[*]': {
+                    height: { during: 'add', expect: ['increases', 'bounded'] },
+                    y: { during: 'add', expect: ['decreases', 'bounded'] },
+                },
+                'series[0]/rect[*]': survivorBands('decreases'),
+                'series[2]/rect[*]': survivorBands('decreases'),
+            });
+            expect(after.get('series[1]/rect[Q1]')!.height).toBeGreaterThan(40);
+        });
+
+        // CRT-1040: a stacked legend toggle must animate as ONE coordinated update — the toggled-off
+        // layer collapses at the baseline while the survivors slide down into its place, tiling
+        // contiguously on every frame. The historic bug left the invisible series without nodeData, so
+        // it ran the desynchronised remove/add phases instead; the `during: 'update'` windows are the
+        // regression detector.
+        it('CRT-1040 stacked toggle: survivors slide in the coordinated update phase, tiling contiguously', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { category: 'A', v1: 10, v2: 20, v3: 15 },
+                    { category: 'B', v1: 30, v2: 40, v3: 25 },
+                    { category: 'C', v1: 20, v2: 10, v3: 35 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'category', yKey: 'v1', stacked: true },
+                    { type: 'bar', xKey: 'category', yKey: 'v2', stacked: true },
+                    { type: 'bar', xKey: 'category', yKey: 'v3', stacked: true },
+                ],
+                // Pinned so the toggle is non-scale-affecting: survivors slide, nothing rescales.
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0, max: 110 },
+                },
+            };
+            prepareTestOptions(options);
+            const { trajectory, after } = await captureToggle(options, () =>
+                chart.update({
+                    ...options,
+                    series: options.series!.map((s, i) => (i === 0 ? { ...s, visible: false } : s)),
+                })
+            );
+            const slideDown: SceneNodeExpectation = {
+                y: { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
+                height: { during: 'update', expect: 'bounded' },
+                x: { during: 'update', expect: 'bounded' },
+                width: { during: 'update', expect: 'bounded' },
+            };
+            const stackedContiguous: SceneFrameInvariant = {
+                name: 'stack tiles contiguously above the collapsing layer',
+                check: (frame) => {
+                    for (const cat of ['A', 'B', 'C']) {
+                        const [v1, v2, v3] = [0, 1, 2].map((i) => frame.get(`series[${i}]/rect[${cat}]`));
+                        if (v1 == null || v2 == null || v3 == null) return `missing rects for category ${cat}`;
+                        const gaps = [Math.abs(v2.y + v2.height - v1.y), Math.abs(v3.y + v3.height - v2.y)];
+                        if (gaps.some((gap) => gap > 1)) {
+                            return `stack gap at category ${cat}: [${gaps.map((g) => g.toFixed(2)).join(', ')}]`;
+                        }
+                    }
+                    return undefined;
+                },
+            };
+            expect(trajectory[0].get('series[0]/rect[A]')!.height).toBeGreaterThan(40);
+            expectSceneTrajectory(
+                trajectory,
+                {
+                    'series[0]/rect[*]': {
+                        height: { during: 'update', expect: ['decreases', 'bounded'], settlesAt: 0 },
+                        y: { during: 'update', expect: ['increases', 'bounded'] },
+                    },
+                    'series[1]/rect[*]': slideDown,
+                    'series[2]/rect[*]': slideDown,
+                },
+                { frameInvariants: [stackedContiguous] }
+            );
+            expect(after.get('series[0]/rect[A]')!.height).toBe(0);
         });
 
         // Endpoint sanity guards: the animated route must settle at exactly the pixels a snapped
