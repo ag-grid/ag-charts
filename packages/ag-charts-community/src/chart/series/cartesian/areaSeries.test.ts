@@ -62,6 +62,7 @@ import {
     deproxy,
     doubleClickAction,
     doubleTapAction,
+    expectAnimatedEndpointsMatchStatic,
     expectMonotonic,
     expectNoAnimation,
     expectProgresses,
@@ -1917,6 +1918,45 @@ describe('AreaSeries', () => {
             }
             // Anti-vacuity: several markers were genuinely checked against a live sweep edge.
             expect(checked).toBeGreaterThanOrEqual(3);
+        });
+
+        // Endpoint sanity guards: the animated route must settle at exactly the pixels a snapped
+        // render of the same options produces (see expectAnimatedEndpointsMatchStatic).
+        it('sanity: single update points endpoints match static renders', async () => {
+            const options = singleOptions([
+                { x: 0, y: 40 },
+                { x: 2, y: 120 },
+                { x: 4, y: 80 },
+                { x: 6, y: 160 },
+                { x: 8, y: 60 },
+            ]);
+            chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
+                ...options,
+                data: [
+                    { x: 0, y: 90 },
+                    { x: 2, y: 50 },
+                    { x: 4, y: 140 },
+                    { x: 6, y: 70 },
+                    { x: 8, y: 110 },
+                ],
+            });
+        });
+
+        it('sanity: add series endpoints match static renders', async () => {
+            const full = stackedOptions();
+            const before = { ...full, series: full.series!.slice(0, 2) };
+            chart = AgCharts.create(before);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, before, full);
+        });
+
+        it('sanity: legend hide endpoints match static renders', async () => {
+            const options = stackedOptions();
+            chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
+                ...options,
+                series: options.series!.map((s, i) => (i === 0 ? { ...s, visible: false } : s)),
+            });
         });
     });
 
