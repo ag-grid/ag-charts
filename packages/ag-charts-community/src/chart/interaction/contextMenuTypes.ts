@@ -1,4 +1,4 @@
-import type { RequireOptional } from 'ag-charts-core';
+import type { AxisID, ChartAxisDirection, RequireOptional } from 'ag-charts-core';
 import type {
     AgContextMenuGetItemsParamsCaption,
     AgContextMenuItem,
@@ -29,6 +29,11 @@ export interface ContextShowOnMap extends ContextShowOnMapRule {
         event: InferTEvent<'always'>;
         callback: (param: InferTEvent<'always'>) => void;
         context: undefined;
+    };
+    axis: {
+        event: InferTEvent<'axis'>;
+        callback: (param: InferTEvent<'axis'>) => void;
+        context: { axisId: AxisID; direction: ChartAxisDirection };
     };
     caption: {
         event: InferTEvent<'caption'>;

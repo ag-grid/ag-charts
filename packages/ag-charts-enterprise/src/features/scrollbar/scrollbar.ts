@@ -197,6 +197,7 @@ export class Scrollbar extends AbstractModuleInstance {
             enableDoubleClick: false,
             enableDragging: false,
             enableScrolling: opts.enableAxisScrolling,
+            enableContextMenu: false,
         });
 
         this.seriesRect = event.series.rect;

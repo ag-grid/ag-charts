@@ -9,6 +9,7 @@ import {
 import type { Direction } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../module/moduleContext';
+import { AxisWidget } from '../widget/axisWidget';
 import { BoundedTextWidget } from '../widget/boundedTextWidget';
 import { ButtonWidget } from '../widget/buttonWidget';
 import { GroupWidget } from '../widget/groupWidget';
@@ -75,6 +76,10 @@ type ProxyMeta = {
         params: ParentProperties<GroupWidget> & ElemParams<'region'> & { readonly role?: string };
         result: NativeWidget<HTMLDivElement>;
     };
+    axis: {
+        params: ParentProperties<GroupWidget> & ElemParams<'axis'> & { readonly role?: string };
+        result: AxisWidget;
+    };
 
     // Containers
     toolbar: {
@@ -91,7 +96,7 @@ type ProxyMeta = {
     };
 };
 
-type ProxyElementType = 'button' | 'slider' | 'text' | 'listswitch' | 'region';
+type ProxyElementType = 'button' | 'slider' | 'text' | 'listswitch' | 'region' | 'axis';
 type ProxyContainerType = 'toolbar' | 'group' | 'list';
 
 function checkType<T extends keyof ProxyMeta>(type: T, meta: ProxyMeta[keyof ProxyMeta]): meta is ProxyMeta[T] {
@@ -111,6 +116,8 @@ function allocateResult<T extends keyof ProxyMeta>(type: T): ProxyMeta[T]['resul
         return new ListWidget();
     } else if ('region' === type) {
         return new NativeWidget<HTMLDivElement>(createElement('div'));
+    } else if ('axis' === type) {
+        return new AxisWidget();
     } else if ('text' === type) {
         return new BoundedTextWidget();
     } else if ('listswitch' === type) {
@@ -218,6 +225,14 @@ export class ProxyInteractionService {
             const region = result.getElement();
             this.initInteract(params, result);
             region.role = params.role ?? 'region';
+            this.setParent(meta.params, meta.result);
+        }
+
+        if (checkType('axis', meta)) {
+            const { params, result } = meta;
+            const axis = result.getElement();
+            this.initInteract(params, result);
+            axis.role = params.role ?? 'region';
             this.setParent(meta.params, meta.result);
         }
 

@@ -132,7 +132,22 @@ export class ContextMenu extends AbstractModuleInstance {
             });
         };
 
-        this.cleanup.register(this.ctx.eventsHub.on('context-menu:complete', (e) => this.onContext(e)));
+        this.cleanup.register(
+            this.ctx.eventsHub.on('context-menu:complete', (e) => this.onContext(e)),
+            this.ctx.eventsHub.on('layout:complete', () => this.updateAxisDOMProxy())
+        );
+    }
+
+    private updateAxisDOMProxy() {
+        const enabled = this.opts.enabled ?? true;
+        this.ctx.eventsHub.emit('axis-dom-proxy:update', {
+            source: moduleId,
+            enabled,
+            enableDoubleClick: false,
+            enableDragging: false,
+            enableScrolling: false,
+            enableContextMenu: enabled,
+        });
     }
 
     private makeGetItemsParams(event: ContextMenuEvent): AgContextMenuGetItemsParams {
@@ -170,6 +185,10 @@ export class ContextMenu extends AbstractModuleInstance {
                     Object.assign(params, { datums, binIndex, binRange, aggregatedValue, frequency });
                 }
                 return params;
+            }
+
+            case 'axis': {
+                throw new Error('not yet implemented');
             }
 
             case 'caption': {
@@ -385,6 +404,8 @@ export class ContextMenu extends AbstractModuleInstance {
                 }
                 this.hide();
             };
+        } else if (ContextMenuRegistry.checkCallback('axis', showOn, callback)) {
+            throw new Error('not yet implemented');
         } else if (ContextMenuRegistry.checkCallback('caption', showOn, callback)) {
             return () => {
                 if (this.pickedCaptionCtx) {

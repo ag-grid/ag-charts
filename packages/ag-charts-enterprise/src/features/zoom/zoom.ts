@@ -770,6 +770,7 @@ export class Zoom extends AbstractModuleInstance {
             enableDoubleClick: enableDoubleClickToReset,
             enableDragging: enableAxisDragging,
             enableScrolling: enableAxisScrolling,
+            enableContextMenu: false,
         });
 
         if (!enabled) return;

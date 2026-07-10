@@ -1,4 +1,4 @@
-import type { DynamicContext, NormalisedTextOrSegments } from 'ag-charts-core';
+import type { AxisID, DynamicContext, NormalisedTextOrSegments } from 'ag-charts-core';
 import {
     BaseProperties,
     FONT_SIZE,
@@ -124,9 +124,11 @@ export class Caption extends BaseProperties implements CaptionLike {
     private proxyTextListeners?: Array<() => void>;
     private lastProxyTextContent?: string;
     private lastProxyBBox?: { x: number; y: number; width: number; height: number };
+    private a11yContext?: { moduleCtx: DynamicContext<ChartRegistry>; axisId: AxisID };
 
-    registerInteraction(moduleCtx: DynamicContext<ChartRegistry>, where: 'beforebegin' | 'afterend') {
-        return moduleCtx.eventsHub.on('layout:complete', () => this.updateA11yText(moduleCtx, where));
+    registerInteraction(moduleCtx: DynamicContext<ChartRegistry>, axisId: AxisID) {
+        this.a11yContext = { moduleCtx, axisId };
+        return moduleCtx.eventsHub.on('layout:complete', () => this.updateA11yText(moduleCtx, axisId));
     }
 
     computeTextWrap(containerWidth: number, containerHeight: number) {
@@ -153,8 +155,7 @@ export class Caption extends BaseProperties implements CaptionLike {
         this.node.text = wrappedText;
     }
 
-    private updateA11yText(moduleCtx: DynamicContext<ChartRegistry>, where: 'beforebegin' | 'afterend') {
-        const { proxyInteractionService } = moduleCtx;
+    private updateA11yText(moduleCtx: DynamicContext<ChartRegistry>, axisId: AxisID) {
         if (!this.enabled || !this.text) {
             this.destroyProxyText();
             return;
@@ -163,9 +164,8 @@ export class Caption extends BaseProperties implements CaptionLike {
         const bbox = Transformable.toCanvas(this.node);
         if (!bbox) return;
 
-        const { id: domManagerId } = this;
         if (this.proxyText == null) {
-            this.proxyText = proxyInteractionService.createProxyElement({ type: 'text', domManagerId, where });
+            this.proxyText = moduleCtx.widgets.axisWidgets.acquireTitle(axisId);
             this.proxyTextListeners = [
                 this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev)),
                 this.proxyText.addListener('mouseleave', () => this.handleTooltipHide(moduleCtx)),
@@ -189,7 +189,7 @@ export class Caption extends BaseProperties implements CaptionLike {
             bbox.width !== lastProxyBBox?.width ||
             bbox.height !== lastProxyBBox?.height
         ) {
-            this.proxyText.setBounds(bbox);
+            moduleCtx.widgets.axisWidgets.setTitleBounds(axisId, bbox);
             this.lastProxyBBox = { x: bbox.x, y: bbox.y, width: bbox.width, height: bbox.height };
         }
     }
@@ -261,7 +261,8 @@ export class Caption extends BaseProperties implements CaptionLike {
             cleanup();
         }
         this.proxyTextListeners = undefined;
-        this.proxyText.destroy();
+        // The widget itself is owned by AxisWidgets, not the caption; release it there.
+        this.a11yContext?.moduleCtx.widgets.axisWidgets.releaseTitle(this.a11yContext.axisId);
         this.proxyText = undefined;
         this.lastProxyTextContent = undefined;
         this.lastProxyBBox = undefined;
