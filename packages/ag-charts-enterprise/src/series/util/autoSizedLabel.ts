@@ -4,7 +4,7 @@ import type { OverflowStrategy, TextWrap } from 'ag-charts-types';
 
 class BaseAutoSizedLabel<FormatterParams> extends _ModuleSupport.Label<FormatterParams> {
     @Property
-    wrapping: TextWrap = 'on-space';
+    override wrapping: TextWrap = 'on-space';
 
     @Property
     overflowStrategy: OverflowStrategy = 'ellipsis';

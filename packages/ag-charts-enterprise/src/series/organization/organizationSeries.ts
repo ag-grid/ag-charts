@@ -424,7 +424,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return;
 
-        const id = this.getItemId(itemIdOrIndex);
+        const id = this.resolveItemId(itemIdOrIndex);
         if (id == null) return;
 
         let vertex = this.graph.findVertexById(id);
@@ -448,7 +448,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     expandItem(itemIdOrIndex: string | number, _point: Point) {
-        const id = this.getItemId(itemIdOrIndex);
+        const id = this.resolveItemId(itemIdOrIndex);
         if (id == null) return;
 
         if (this.ctx.collapsedManager.expand([id])) {
@@ -457,7 +457,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     collapseItem(itemIdOrIndex: string | number, _point: Point) {
-        const id = this.getItemId(itemIdOrIndex);
+        const id = this.resolveItemId(itemIdOrIndex);
         if (id == null) return;
 
         if (this.ctx.collapsedManager.collapseAppend([id])) {
@@ -615,11 +615,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): OrganizationDatum | undefined {
-        if (typeof itemIdOrIndex === 'number') {
-            return this.datumSelection.at(itemIdOrIndex)?.datum;
-        }
+        const id = this.resolveItemId(itemIdOrIndex);
+        if (id == null) return undefined;
 
-        const vertex = this.graph.findVertexById(itemIdOrIndex);
+        const vertex = this.graph.findVertexById(id);
         if (!vertex) return undefined;
 
         return this.createNodeDatumFromVertex(vertex);
@@ -1302,7 +1301,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         } satisfies CallbackParamRules<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;
     }
 
-    private getItemId(itemIdOrIndex: string | number): string | undefined {
+    // Resolve as a real vertex id first; only a number matching no vertex is treated as a datumSelection index.
+    private resolveItemId(itemIdOrIndex: string | number): string | number | undefined {
+        if (this.graph.findVertexById(itemIdOrIndex) != null) {
+            return itemIdOrIndex;
+        }
         if (typeof itemIdOrIndex === 'number') {
             return this.datumSelection.at(itemIdOrIndex)?.datum?.itemId;
         }

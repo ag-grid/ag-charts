@@ -104,6 +104,11 @@ export function createOptionsGraph(
 // options walk into a stack overflow.
 export const SHALLOW_OPTION_KEYS = new Set<string>(['context', 'data', 'topology']);
 
+// Keys whose array value is an ordered scalar fallback list, not a structure to merge element-wise.
+// Descended shallow so a user array replaces the theme default wholesale instead of merging index-by-index.
+// Only array values qualify; a theme operation such as a `$path` reference is still descended and resolved.
+const ATOMIC_LIST_OPTION_KEYS = new Set<string>(['placement', 'orientation']);
+
 /**
  * The OptionsGraph combines the theme config, params, palette, overrides and user options into a graph which can then
  * be resolved down into an object.
@@ -836,7 +841,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             const childPathVertex = pathVertices?.get(key) ?? this.addVertex(key);
             childPathArray[pathArrayLength] = key;
 
-            if (shallowPaths?.has(key)) {
+            const atomicList = ATOMIC_LIST_OPTION_KEYS.has(key) && Array.isArray(object[key]);
+            if (shallowPaths?.has(key) || atomicList) {
                 this.buildShallowGraphFromValue(parentVertex, childPathVertex, edgeValue, childPathArray, object[key]);
             } else {
                 this.buildGraphFromValue(

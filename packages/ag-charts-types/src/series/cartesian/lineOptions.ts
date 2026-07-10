@@ -5,8 +5,9 @@ import type {
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgChartLabelFitOptions, AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, Opacity } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
@@ -34,6 +35,17 @@ export interface AgLineSeriesTooltipRendererParams<TDatum = DatumDefault, TConte
 export type AgLineSeriesLabelFormatterParams<TDatum = DatumDefault> = AgLineSeriesOptionsKeys<TDatum> &
     AgLineSeriesOptionsNames;
 
+export interface AgLineSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
+    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelFitOptions {
+    /**
+     * Placement of the label in relation to the data point. Either a single placement or an ordered
+     * fallback list tried in turn until one fits.
+     *
+     * Default: `top`
+     */
+    placement?: AgChartLabelCollisionPlacement | AgChartLabelCollisionPlacement[];
+}
+
 export interface AgLineSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends StrokeOptions, LineDashOptions, Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'highlight'> {
     /** Function used to return formatting for entire series, based on the given parameters.*/
@@ -45,7 +57,7 @@ export interface AgLineSeriesThemeableOptions<TDatum = DatumDefault, TContext = 
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Configuration for the labels shown on top of data points. */
-    label?: AgChartLabelOptions<TDatum, AgLineSeriesLabelFormatterParams<TDatum>, TContext>;
+    label?: AgLineSeriesLabelOptions<TDatum, AgLineSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgLineSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Configuration for the Error Bars. */

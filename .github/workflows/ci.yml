@@ -134,6 +134,7 @@ jobs:
             test_pkg_matrix: ${{ steps.matrix.outputs.pkg_matrix }}
             e2e_matrix: ${{ steps.matrix.outputs.e2e_matrix }}
             e2e_count: ${{ steps.matrix.outputs.e2e_count }}
+            demos_affected: ${{ steps.matrix.outputs.demos_affected }}
             build_type: ${{ steps.setup.outputs.type }}
             snapshot_branch: ${{ steps.snapshot-prepare.outputs.branch }}
             pkg_tests_modified: ${{ steps.matrix.outputs.pkg_tests_modified }}
@@ -199,6 +200,15 @@ jobs:
                   echo "e2e_count=${e2e_count}" >> $GITHUB_OUTPUT
                   echo "E2E matrix determined to be: ${e2e_matrix} (e2e_test_count=${e2e_count})"
 
+                  # Whether the demo-apps smoke should run (its own files or an upstream dep changed).
+                  if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
+                    demos_affected=1
+                  else
+                    demos_affected=$(yarn -s nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test:e2e | grep -Fxc 'ag-charts-demos' || true)
+                  fi
+                  echo "demos_affected=${demos_affected}" >> $GITHUB_OUTPUT
+                  echo "Demos affected: ${demos_affected}"
+
                   # Check if package test files are directly modified in PR
                   pkg_tests_modified="false"
                   if git diff --name-only ${{ steps.setup.outputs.base }}...HEAD 2>/dev/null | grep -q "^tests/.*-package-tests/"; then
@@ -247,6 +257,7 @@ jobs:
               with:
                   cache_mode: ro
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+                  free_disk_space: false
 
             - name: nx format:check
               id: format
@@ -379,6 +390,7 @@ jobs:
               with:
                   cache_mode: ro
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+                  free_disk_space: false
 
             - name: nx run-many -t validate-examples
               id: validate
@@ -684,6 +696,64 @@ jobs:
                   path: |
                       reports/
 
+    demos_e2e:
+        runs-on: ubuntu-24.04
+        name: Demo Apps Smoke
+        needs: [detect-changes, init, playwright_image]
+        if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.demos_affected != '0'
+        env:
+            PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Restore Init Build Outputs
+              uses: actions/download-artifact@v4
+              with:
+                  name: e2e-init-outputs
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  yarn_postinstall: no-install
+                  nx_restore: false # Restored in previous step.
+                  cache_mode: ro
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+
+            - name: Restore Playwright Image Cache
+              uses: actions/cache/restore@v4
+              with:
+                  path: /tmp/playwright-docker-image.tar
+                  key: playwright-image-v1.60.0-jammy-v1
+                  fail-on-cache-miss: true
+
+            - name: Load Playwright Image
+              run: docker load -i /tmp/playwright-docker-image.tar
+
+            - name: playwright test ag-charts-demos
+              id: demos_e2e
+              run: |
+                  docker run --rm --ipc=host --init \
+                    -v "$(pwd)":/data \
+                    -w /data/packages/ag-charts-demos \
+                    -e CI \
+                    ${PLAYWRIGHT_IMAGE} \
+                    npx playwright test
+              timeout-minutes: 15
+
+            - name: Persist test results
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: test-results-demos-e2e
+                  path: |
+                      reports/
+                      packages/ag-charts-demos/test-results/
+
     fw_pkg_test:
         runs-on: ubuntu-24.04
         name: Framework Package Tests (${{ matrix.framework }})
@@ -815,6 +885,7 @@ jobs:
                 website_build,
                 test,
                 e2e,
+                demos_e2e,
                 sonarqube,
                 fw_pkg_test,
                 bundle_tests,
@@ -853,7 +924,7 @@ jobs:
                   slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
 
             - name: Merge JUnit Report XMLs
-              if: needs.test.result != 'skipped' || needs.e2e.result != 'skipped'
+              if: needs.test.result != 'skipped' || needs.e2e.result != 'skipped' || needs.demos_e2e.result != 'skipped'
               continue-on-error: true
               run: |
                   yarn global add junit-report-merger
@@ -865,7 +936,7 @@ jobs:
 
             - name: Test Report
               uses: dorny/test-reporter@v1
-              if: needs.test.result == 'success' || needs.test.result == 'failure'
+              if: needs.test.result == 'success' || needs.test.result == 'failure' || needs.demos_e2e.result == 'success' || needs.demos_e2e.result == 'failure'
               id: testReport
               continue-on-error: true
               with:
@@ -895,6 +966,8 @@ jobs:
                   elif [ "${{ needs.test.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.e2e.result }}" == "failure" ] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [ "${{ needs.demos_e2e.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.fw_pkg_test.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
@@ -1042,6 +1115,7 @@ jobs:
                   WEBSITE_RESULT: ${{ needs.website_build.outputs.build }}
                   TEST_RESULT: ${{ needs.test.result }}
                   E2E_RESULT: ${{ needs.e2e.result }}
+                  DEMOS_E2E_RESULT: ${{ needs.demos_e2e.result }}
                   FW_PKG_RESULT: ${{ needs.fw_pkg_test.result }}
                   PLAYWRIGHT_RESULT: ${{ needs.playwright_image.result }}
                   SONAR_RESULT: ${{ needs.sonarqube.result }}
@@ -1063,6 +1137,7 @@ jobs:
                   [[ "$WEBSITE_RESULT" == "failure" ]] && LINES+=("• Website")
                   [[ "$TEST_RESULT" == "failure" ]] && LINES+=("• Test")
                   [[ "$E2E_RESULT" == "failure" ]] && LINES+=("• E2E")
+                  [[ "$DEMOS_E2E_RESULT" == "failure" ]] && LINES+=("• Demos E2E")
                   [[ "$FW_PKG_RESULT" == "failure" ]] && LINES+=("• FW Pkg")
                   [[ "$PLAYWRIGHT_RESULT" == "failure" ]] && LINES+=("• Playwright Image")
                   [[ "$SONAR_RESULT" == "failure" ]] && LINES+=("• Sonar")

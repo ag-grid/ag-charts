@@ -6,7 +6,7 @@ type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };
 type ProxyAxis = {
     axisId: AxisID;
     direction: ChartAxisDirection;
-    div: _Widget.NativeWidget<HTMLDivElement>;
+    div: _Widget.AxisWidget;
     bounds?: _ModuleSupport.BBox;
 };
 
@@ -22,6 +22,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
     private readonly enableDoubleClick = new Map<string, boolean>();
     private readonly enableDragging = new Map<string, boolean>();
     private readonly enableScrolling = new Map<string, boolean>();
+    private readonly enableContextMenu = new Map<string, boolean>();
 
     private axes: ProxyAxis[] = [];
 
@@ -50,13 +51,14 @@ export class AxisDOMProxy extends AbstractModuleInstance {
             ctx.eventsHub.on('axis-dom-proxy:update', (event) => this.onUpdate(event)),
             ctx.eventsHub.on('series-area:hover', (event) => this.onSeriesAreaHover(event)),
             ctx.eventsHub.on('series-area:click', (event) => this.onSeriesAreaClick(event)),
+            ctx.eventsHub.on('series-area:contextmenu', (event) => this.onSeriesAreaContextMenu(event)),
             () => this.teardown()
         );
     }
 
     private teardown() {
         for (const a of this.axes) {
-            a.div.destroy();
+            this.ctx.widgets.axisWidgets.releaseRegion(a.axisId);
         }
     }
 
@@ -65,15 +67,20 @@ export class AxisDOMProxy extends AbstractModuleInstance {
     }
 
     private onUpdate(event: _ModuleSupport.AxisDOMProxyUpdateEvent) {
-        const { enabled, enableDoubleClick, enableDragging, enableScrolling, source } = event;
+        const { enabled, enableDoubleClick, enableDragging, enableScrolling, enableContextMenu, source } = event;
 
         this.enabled.set(source, enabled);
         this.enableDoubleClick.set(source, enableDoubleClick);
         this.enableDragging.set(source, enableDragging);
         this.enableScrolling.set(source, enableScrolling);
+        this.enableContextMenu.set(source, enableContextMenu);
 
         const isEnabled =
-            this.isEnabled() && (this.isEnabledDoubleClick() || this.isEnabledDragging() || this.isEnabledScrolling());
+            this.isEnabled() &&
+            (this.isEnabledDoubleClick() ||
+                this.isEnabledDragging() ||
+                this.isEnabledScrolling() ||
+                this.isEnabledContextMenu());
 
         for (const axis of this.axes) {
             axis.div.setHidden(!isEnabled);
@@ -100,7 +107,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
             this.axes = this.axes.filter((entry) => {
                 if (!removed.includes(entry.axisId)) return true;
 
-                entry.div.destroy();
+                this.ctx.widgets.axisWidgets.releaseRegion(entry.axisId);
                 this.overlappingAxisIds.delete(entry.axisId);
 
                 if (this.hoveredAxisId === entry.axisId) this.hoveredAxisId = undefined;
@@ -124,7 +131,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
             if (bbox == undefined) {
                 axis.bounds = undefined;
             } else {
-                axis.div.setBounds(bbox);
+                this.ctx.widgets.axisWidgets.setRegionBounds(axis.axisId, bbox);
                 axis.bounds = new _ModuleSupport.BBox(bbox.x, bbox.y, bbox.width, bbox.height);
             }
         }
@@ -178,6 +185,21 @@ export class AxisDOMProxy extends AbstractModuleInstance {
             axisId: axis.axisId,
             direction: axis.direction,
         });
+    }
+
+    private onSeriesAreaContextMenu(event: _ModuleSupport.SeriesAreaContextMenuEvent) {
+        if (!this.isEnabled() || !this.isEnabledContextMenu()) return;
+
+        // A series node was hit; leave the context menu to the series area.
+        if (event.consumed) return;
+
+        // Only continue if we know we have axes that overlap the series area.
+        if (!this.hasOverlappingAxes()) return;
+
+        const axis = this.pickAxisAtPoint(event);
+        if (!axis) return;
+
+        this.dispatchAxisContextMenu(axis.axisId, event.widgetEvent, event.canvasX, event.canvasY);
     }
 
     private onSeriesAreaDoubleClick(event: _ModuleSupport.DragInterpreterDblClickEvent) {
@@ -257,6 +279,17 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         });
     }
 
+    private dispatchAxisContextMenu(
+        axisId: AxisID,
+        widgetEvent: _Widget.MouseWidgetEvent<'contextmenu'>,
+        canvasX: number,
+        canvasY: number
+    ) {
+        const axisCtx = this.ctx.axisManager.getAxisIdContext(axisId);
+        if (!axisCtx) return;
+        this.ctx.contextMenuRegistry?.dispatchContext('axis', { widgetEvent, canvasX, canvasY }, axisCtx);
+    }
+
     private pickAxisAtPoint(point: { canvasX: number; canvasY: number }): AxisHit | undefined {
         for (const axis of this.axes) {
             if (!this.overlappingAxisIds.has(axis.axisId)) continue;
@@ -280,7 +313,8 @@ export class AxisDOMProxy extends AbstractModuleInstance {
     private updateOverlappingAxisPointerEvents() {
         this.overlappingAxisIds.clear();
 
-        const shouldEnableInteraction = (this.isEnabledDragging() || this.isEnabledScrolling()) && this.seriesRect;
+        const shouldEnableInteraction =
+            (this.isEnabledDragging() || this.isEnabledScrolling() || this.isEnabledContextMenu()) && this.seriesRect;
 
         for (const axis of this.axes) {
             if (!shouldEnableInteraction) {
@@ -312,12 +346,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
     }
 
     private createAxisDOMProxy(axisId: AxisID, direction: ChartAxisDirection): ProxyAxis {
-        const {
-            ctx: { proxyInteractionService },
-        } = this;
-
-        const where = 'afterend';
-        const div = proxyInteractionService.createProxyElement({ type: 'region', domManagerId: axisId, where });
+        const div = this.ctx.widgets.axisWidgets.acquireRegion(axisId);
 
         div.addListener('drag-start', (event) => {
             if (!this.isEnabled() || !this.isEnabledDragging()) return;
@@ -354,6 +383,14 @@ export class AxisDOMProxy extends AbstractModuleInstance {
             if (!this.isEnabled() || !this.isEnabledScrolling()) return;
             this.ctx.eventsHub.emit('axis-dom-proxy:wheel', { axisId, direction, event });
         });
+        div.addListener('contextmenu', (event) => {
+            if (!this.isEnabled() || !this.isEnabledContextMenu()) return;
+            // currentX/currentY are relative to the region regardless of which descendant (e.g. the
+            // nested axis title) was actually hit, so they stay correct once the title is nested.
+            const canvasX = event.currentX + div.cssLeft();
+            const canvasY = event.currentY + div.cssTop();
+            this.dispatchAxisContextMenu(axisId, event, canvasX, canvasY);
+        });
 
         return { axisId, div, direction };
     }
@@ -382,6 +419,10 @@ export class AxisDOMProxy extends AbstractModuleInstance {
 
     private isEnabledScrolling() {
         return this.isBooleanMap(this.enableScrolling);
+    }
+
+    private isEnabledContextMenu() {
+        return this.isBooleanMap(this.enableContextMenu);
     }
 
     private isBooleanMap(map: Map<string, boolean>) {

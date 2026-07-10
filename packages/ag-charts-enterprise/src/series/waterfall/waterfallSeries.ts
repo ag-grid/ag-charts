@@ -8,6 +8,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    type BoxBounds,
     type CallbackParamRules,
     ChartAxisDirection,
     type DomainWithMetadata,
@@ -17,13 +18,22 @@ import {
     type Normalised,
     type NormalisedColorType,
     type NormalisedTextOrSegments,
+    type PlacedLabel,
     type Point,
+    type PointLabelDatum,
     type RequireOptional,
+    applyBarLabelOrientation,
+    barLabelResolvesOrientation,
+    barLabelRotation,
+    buildBarLabelData,
     easeOut,
+    firstCandidate,
+    insetBox,
     isContinuous,
     maxValue,
     mergeDefaults,
     minValue,
+    resolveLabelFit,
     subtractValues,
     toArray,
     zeroLike,
@@ -38,6 +48,7 @@ type NormalisedWaterfallSeriesStyle = Normalised<AgWaterfallSeriesStyle, never, 
 
 const {
     adjustLabelPlacement,
+    fitLabelToContainer,
     SeriesNodePickMode,
     fixNumericExtent,
     valueProperty,
@@ -70,6 +81,12 @@ type WaterfallNodeLabelDatum = Readonly<Point> & {
     readonly text: NormalisedTextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
+    rotation: number;
+    /** Bar rect an orientation candidate must fit within; unset for outside placements. */
+    readonly region?: BoxBounds;
+    /** Flush offset written by the placement engine to keep a rotated label inside its region. */
+    offsetX?: number;
+    offsetY?: number;
 };
 
 type WaterfallNodePointDatum = _ModuleSupport.DataModelSeriesNodeDatum['point'] & {
@@ -585,7 +602,16 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             height: 0,
             midPoint: { x: 0, y: 0 },
             crisp,
-            label: { text: '', x: 0, y: 0, textAlign: 'center', textBaseline: 'middle' },
+            label: {
+                text: '',
+                x: 0,
+                y: 0,
+                textAlign: 'center',
+                textBaseline: 'middle',
+                rotation: 0,
+                offsetX: 0,
+                offsetY: 0,
+            },
         };
     }
 
@@ -669,21 +695,38 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 }
             );
 
+            // Label config is item-type specific, so the fit is resolved per datum rather than hoisted.
+            const labelFit = resolveLabelFit(label, label.collisionAvoidance.avoid);
             const spacing: number = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
+            // Array placement is accepted, but only its first candidate is honoured here.
+            const placement = toArray(label.placement)[0];
+            const insidePlacement = placement == null || placement.startsWith('inside');
+            const resolvesOrientation = barLabelResolvesOrientation(label.orientation);
             const labelPlacement = adjustLabelPlacement({
                 isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
                 isVertical: !barAlongX,
-                // Array placement is accepted, but only its first candidate is honoured here.
-                placement: toArray(label.placement)[0],
+                placement,
                 spacing,
                 rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
             });
+            // Inside labels fit within the bar rect; outside labels sit beside it. The rect is only
+            // needed to bound the fit or to resolve orientation, so skip it otherwise.
+            const container =
+                insidePlacement && (labelFit != null || resolvesOrientation)
+                    ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, spacing)
+                    : undefined;
 
-            mutableNode.label.text = labelText;
+            mutableNode.label.text = fitLabelToContainer(labelText, labelFit, label, container);
             mutableNode.label.x = labelPlacement.x;
             mutableNode.label.y = labelPlacement.y;
             mutableNode.label.textAlign = labelPlacement.textAlign;
             mutableNode.label.textBaseline = labelPlacement.textBaseline;
+            // Bake the first orientation; an array resolves against the bar rect for inside placements
+            // only (see barSeries).
+            mutableNode.label.rotation = barLabelRotation(firstCandidate(label.orientation));
+            mutableNode.label.region = resolvesOrientation ? container : undefined;
+            mutableNode.label.offsetX = 0;
+            mutableNode.label.offsetY = 0;
         } else {
             // Clear label when disabled
             mutableNode.label.text = '';
@@ -1000,6 +1043,24 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
             rect.crisp = datum.crisp;
         });
+    }
+
+    override getLabelData(): PointLabelDatum[] {
+        if (!this.usesPlacedLabels) return [];
+        return buildBarLabelData(this.contextNodeData?.labelData, (node) => ({
+            label: node.label,
+            config: this.getItemConfig(node.itemType).label,
+        }));
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<WaterfallNodeDatum>[]) {
+        applyBarLabelOrientation(placed);
+        this.refreshPlacedLabelNodes();
+    }
+
+    protected override resolveUsesPlacedLabels(): boolean {
+        const { positive, negative, total } = this.properties.item;
+        return [positive, negative, total].some((item) => barLabelResolvesOrientation(item.label.orientation));
     }
 
     protected override updateLabelSelection(opts: {

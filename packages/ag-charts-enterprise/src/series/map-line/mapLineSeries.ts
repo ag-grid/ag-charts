@@ -11,6 +11,7 @@ import type {
 } from 'ag-charts-core';
 import {
     type ITextMeasurer,
+    type LabelFit,
     Logger,
     type Point,
     applyLabelAvoidance,
@@ -260,7 +261,8 @@ export class MapLineSeries
         idValue: string | undefined,
         labelValue: string | undefined,
         projectedGeometry: Geometry | undefined,
-        measurer: ITextMeasurer
+        measurer: ITextMeasurer,
+        labelFit: LabelFit | undefined
     ): MapLineNodeLabelDatum | undefined {
         if (labelValue == null || projectedGeometry == null || idValue == null) return;
 
@@ -292,7 +294,7 @@ export class MapLineSeries
         );
         if (labelText == null) return;
 
-        const fittedText = fitLabelText(labelText, resolveLabelFit(label), label);
+        const fittedText = fitLabelText(labelText, labelFit, label);
         const labelSize = measurer.measureLines(String(fittedText));
         const labelCenter = lineStringCenter(lineString);
         if (labelCenter == null) return;
@@ -390,6 +392,7 @@ export class MapLineSeries
         const maxStrokeWidth = properties.maxStrokeWidth ?? properties.strokeWidth;
         sizeScale.range = [minStrokeWidth, Math.max(minStrokeWidth, maxStrokeWidth)];
         const measurer = cachedTextMeasurer(label);
+        const labelFit = resolveLabelFit(label, label.collisionAvoidance.avoid);
 
         const projectedGeometries = this.prepareProjectedLineGeometries(
             columns.idValues,
@@ -421,7 +424,8 @@ export class MapLineSeries
                 dataValues.idValue,
                 dataValues.labelValue,
                 projectedGeometry,
-                measurer
+                measurer,
+                labelFit
             );
             if (labelDatum != null) {
                 labelData.push(labelDatum);

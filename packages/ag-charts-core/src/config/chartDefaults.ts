@@ -4,6 +4,7 @@ import {
     type AgBaseThemeableChartOptions,
     type AgChartAutoSizedBaseLabelOptions,
     type AgChartCaptionOptions,
+    type AgChartLabelFitOptions,
     type AgChartLabelOptions,
     type AgChartLabelStyleOptions,
     type AgChartLegendPlacement,
@@ -18,6 +19,7 @@ import {
     type AgErrorBarThemeableOptions,
     type AgInitialFocus,
     type AgInterpolationType,
+    type AgLineSeriesLabelOptions,
     type AgRangesButton,
     type AgSeriesMarkerOptions,
     type AgSeriesMarkerStyle,
@@ -230,7 +232,14 @@ const contextMenuItemLiterals: AgContextMenuItemLiteral[] = [
 
 const contextMenuItemObjectDef: OptionsDefs<Extract<AgContextMenuItem, object>> = {
     type: strictUnion<AgContextMenuItemType>()('action', 'separator'),
-    showOn: strictUnion<AgContextMenuItemShowOn>()('always', 'caption', 'series-area', 'series-node', 'legend-item'),
+    showOn: strictUnion<AgContextMenuItemShowOn>()(
+        'always',
+        'axis',
+        'caption',
+        'series-area',
+        'series-node',
+        'legend-item'
+    ),
     label: required(string),
     enabled: boolean,
     action: callback,
@@ -730,19 +739,6 @@ export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     ...markerStyleOptionsDefs,
 };
 
-export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
-    enabled: boolean,
-    formatter: callbackOf(textOrSegments),
-    format: numberFormatValidator,
-    itemStyler: callbackDefs<AgChartLabelStyleOptions>({
-        enabled: boolean,
-        ...labelBoxOptionsDef,
-        ...fontOptionsDef,
-    }),
-    ...labelBoxOptionsDef,
-    ...fontOptionsDef,
-};
-
 const labelCollideWithCategoryDef = {
     enabled: boolean,
     minSpacing: positiveNumber,
@@ -766,6 +762,9 @@ export const labelCollisionPlacementDef = or(
     arrayOf(labelCollisionPlacementValidator)
 );
 
+/** Label orientation accepting a single value or an ordered fallback list. */
+export const labelOrientationDef = or(labelOrientationValidator, arrayOf(labelOrientationValidator));
+
 export const collisionAvoidanceOptionsDef = {
     enabled: boolean,
     minSpacing: positiveNumber,
@@ -776,23 +775,34 @@ export const collisionAvoidanceOptionsDef = {
     },
 };
 
-// @ts-expect-error undocumented option
-seriesLabelOptionsDefs.collisionAvoidance = undocumented(collisionAvoidanceOptionsDef);
-// @ts-expect-error undocumented option
-seriesLabelOptionsDefs.orientation = undocumented(or(labelOrientationValidator, arrayOf(labelOrientationValidator)));
-// @ts-expect-error undocumented option
-seriesLabelOptionsDefs.maxWidth = undocumented(positiveNumber);
-// @ts-expect-error undocumented option
-seriesLabelOptionsDefs.maxHeight = undocumented(positiveNumber);
-// @ts-expect-error undocumented option
-seriesLabelOptionsDefs.wrapping = undocumented(textWrap);
-// @ts-expect-error undocumented option
-seriesLabelOptionsDefs.overflowStrategy = undocumented(overflowStrategy);
+export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
+    enabled: boolean,
+    formatter: callbackOf(textOrSegments),
+    format: numberFormatValidator,
+    itemStyler: callbackDefs<AgChartLabelStyleOptions>({
+        enabled: boolean,
+        ...labelBoxOptionsDef,
+        ...fontOptionsDef,
+    }),
+    ...labelBoxOptionsDef,
+    ...fontOptionsDef,
+};
 
-/** Label defs for point-like series (line, area) that expose an undocumented directional placement. */
-export const placedSeriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = { ...seriesLabelOptionsDefs };
-// @ts-expect-error undocumented option
-placedSeriesLabelOptionsDefs.placement = undocumented(labelCollisionPlacementDef);
+/** Label-fit defs shared by series that fit their labels to a placement region. */
+export const labelFitOptionsDefs: OptionsDefs<AgChartLabelFitOptions> = {
+    collisionAvoidance: collisionAvoidanceOptionsDef,
+    maxWidth: positiveNumber,
+    maxHeight: positiveNumber,
+    wrapping: textWrap,
+    truncate: boolean,
+};
+
+/** Label defs for point-like series (line, area) that expose a directional placement. */
+export const placedSeriesLabelOptionsDefs: OptionsDefs<AgLineSeriesLabelOptions<any, any>> = {
+    ...seriesLabelOptionsDefs,
+    ...labelFitOptionsDefs,
+    placement: labelCollisionPlacementDef,
+};
 
 export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOptions<any, any>> = {
     ...seriesLabelOptionsDefs,

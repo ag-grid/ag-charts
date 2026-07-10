@@ -183,6 +183,11 @@ export type RotatableType<T> = MatrixTransformType<
     }
 >;
 
+/** Type guard for nodes that carry the {@link Rotatable} mixin's rotation properties. */
+export function isRotatable<T extends Node>(node: T): node is RotatableType<T> {
+    return 'rotation' in node && 'rotationCenterX' in node && 'rotationCenterY' in node;
+}
+
 /** Mixin type for scene Nodes that are rotatable. */
 export function Rotatable<N extends Node<any>>(Parent: Constructor<N>): Constructor<RotatableType<N>> {
     const ParentNode = Parent as Constructor<Node>;

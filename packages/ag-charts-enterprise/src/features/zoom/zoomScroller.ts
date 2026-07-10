@@ -10,16 +10,11 @@ type StateRetrieval = _ModuleSupport.CoreZoomStateSafeRetrieval;
 
 export class ZoomScroller {
     updateAxes(event: _Widget.WheelWidgetEvent, props: ZoomProperties, bbox: BoxBounds, zooms: StateRetrieval): State {
-        const sourceEvent = event.sourceEvent;
         const newZooms: State = {};
         const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
 
-        // Convert the cursor position to coordinates as a ratio of 0 to 1
-        const origin = pointToRatio(
-            bbox,
-            sourceEvent.offsetX ?? sourceEvent.clientX,
-            sourceEvent.offsetY ?? sourceEvent.clientY
-        );
+        // Convert the cursor position to coordinates as a ratio of 0 to 1.
+        const origin = pointToRatio(bbox, event.currentX, event.currentY);
 
         for (const [axisId, value] of entries(zooms)) {
             if (value == null) continue;
@@ -57,8 +52,8 @@ export class ZoomScroller {
     ): DefinedZoomState | undefined {
         const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
 
-        const canvasX = event.offsetX + bbox.x;
-        const canvasY = event.offsetY + bbox.y;
+        const canvasX = event.currentX + bbox.x;
+        const canvasY = event.currentY + bbox.y;
         const origin = pointToRatio(bbox, canvasX, canvasY);
 
         // Scale the zoom bounding box

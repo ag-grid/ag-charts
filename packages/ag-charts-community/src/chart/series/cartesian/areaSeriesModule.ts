@@ -12,7 +12,6 @@ import {
     MARKER_SERIES_HIGHLIGHT_STYLE,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
-    undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { AgAreaSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
@@ -73,7 +72,7 @@ const themeTemplate: ExtensibleTheme<'area'> = {
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'textColor' },
-            ...undocumentedThemeOptions({ placement: ['top', 'bottom'] }),
+            placement: ['top', 'bottom'],
         },
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },

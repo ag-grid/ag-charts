@@ -161,7 +161,7 @@ export abstract class CartesianAxis<
                 }
                 previousSize = size;
             }),
-            this.caption.registerInteraction(this.moduleCtx, 'afterend')
+            this.caption.registerInteraction(this.moduleCtx, this.id)
         );
     }
 

@@ -1,12 +1,21 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import type { AgChartLabelOrientation } from 'ag-charts-types';
+
 import type { Point, SizedPoint } from '../../types/scene';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
 import {
+    type BarPlacedLabelDatum,
+    type CollideWith,
     type LabelObstacle,
     type LabelPlacement,
+    type OrientationAnchor,
     type PlacedLabel,
     type PointLabelDatum,
+    applyBarLabelOrientation,
+    barLabelResolvesOrientation,
+    buildBarLabelDatum,
+    labelGlyphCentre,
     placeLabels,
     resolveLabelFit,
 } from './labelPlacement';
@@ -479,17 +488,244 @@ describe('placeLabels', () => {
     });
 });
 
-describe('resolveLabelFit', () => {
-    it('returns undefined when no fit field is set', () => {
-        expect(resolveLabelFit({})).toBeUndefined();
+describe('placeLabels orientation candidates', () => {
+    const bounds: BoxBounds = { x: 0, y: 0, width: 200, height: 200 };
+
+    const wideLabel = (
+        orientation?: AgChartLabelOrientation | AgChartLabelOrientation[],
+        avoid = true
+    ): PointLabelDatum => ({
+        point: { x: 50, y: 50, size: 0 },
+        label: { text: 'W', width: 100, height: 10 },
+        anchor: undefined,
+        placement: undefined,
+        orientation,
+        gap: 0,
+        avoid,
     });
 
-    it('resolves the configured fit policy', () => {
-        expect(resolveLabelFit({ maxWidth: 120, wrapping: 'on-space' })).toEqual({
+    it('leaves rotation unset when no orientation is supplied', () => {
+        const placed = placeLabels(new Map([['s', [wideLabel()]]]), bounds, 5).get('s')![0];
+        expect(placed.rotation).toBeUndefined();
+    });
+
+    it('rotates a perpendicular label to fit when the parallel box overflows the bounds', () => {
+        // The 100-wide label overflows the 60-wide bounds parallel; perpendicular it becomes a
+        // 10x100 vertical box that clears them. With no orientation it is dropped.
+        const tall: BoxBounds = { x: 0, y: 0, width: 60, height: 200 };
+        const overflowing = { ...wideLabel(), point: { x: 50, y: 100, size: 0 } };
+
+        const dropped = placeLabels(new Map([['s', [overflowing]]]), tall, 5).get('s')!;
+        expect(dropped.length).toBe(0);
+
+        const rotated = placeLabels(new Map([['s', [{ ...overflowing, orientation: 'perpendicular' }]]]), tall, 5).get(
+            's'
+        )![0];
+        expect(rotated).toBeDefined();
+        expect(rotated.rotation).toBe(90);
+        expect(rotated.width).toBe(100);
+        expect(rotated.height).toBe(10);
+    });
+
+    it('tries orientations in order, choosing the first that fits', () => {
+        const small: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 0 },
+            label: { text: 'S', width: 20, height: 10 },
+            anchor: undefined,
+            placement: undefined,
+            orientation: ['perpendicular', 'parallel'],
+            gap: 0,
+            avoid: true,
+        };
+        const placed = placeLabels(new Map([['s', [small]]]), bounds, 5).get('s')![0];
+        expect(placed.rotation).toBe(90);
+    });
+
+    it('blocks a later label by the rotated footprint, not the measured box', () => {
+        // A perpendicular 100x10 label occupies a tall 10x100 vertical band; a second label
+        // overlapping that band collides, whereas it would clear the parallel horizontal band.
+        const second: PointLabelDatum = {
+            point: { x: 52, y: 20, size: 0 },
+            label: { text: 'B', width: 10, height: 10 },
+            anchor: undefined,
+            placement: undefined,
+            gap: 0,
+            avoid: true,
+        };
+
+        const blocked = placeLabels(new Map([['s', [wideLabel('perpendicular'), second]]]), bounds, 5).get('s')!;
+        expect(blocked.some((l) => l.datum === second)).toBe(false);
+
+        const clear = placeLabels(new Map([['s', [wideLabel('parallel'), second]]]), bounds, 5).get('s')!;
+        expect(clear.some((l) => l.datum === second)).toBe(true);
+    });
+
+    it('adopts the first orientation candidate for an avoid:false label', () => {
+        const placed = placeLabels(new Map([['s', [wideLabel('perpendicular', false)]]]), bounds, 5).get('s')![0];
+        expect(placed.rotation).toBe(90);
+        expect(placed.width).toBe(100);
+        expect(placed.height).toBe(10);
+    });
+
+    it('tests containment against a per-label region, falling through when the first orientation overflows it', () => {
+        // A 100x10 label in a narrow-tall region: parallel overflows the 30-wide region, perpendicular
+        // (10x100 footprint) fits. The shared bounds are large enough that only the region forces it.
+        const region: BoxBounds = { x: 40, y: 0, width: 30, height: 200 };
+        const datum: PointLabelDatum = {
+            point: { x: 55, y: 100, size: 0 },
+            label: { text: 'W', width: 100, height: 10 },
+            anchor: undefined,
+            placement: undefined,
+            orientation: ['parallel', 'perpendicular'],
+            gap: 0,
+            avoid: true,
+            region,
+        };
+
+        const constrained = placeLabels(new Map([['s', [datum]]]), bounds, 5).get('s')![0];
+        expect(constrained.rotation).toBe(90);
+
+        // Without a region the parallel box fits the shared bounds, so it stays unrotated.
+        const { region: _omit, ...unconstrained } = datum;
+        const free = placeLabels(new Map([['s', [unconstrained]]]), bounds, 5).get('s')![0];
+        expect(free.rotation).toBeUndefined();
+    });
+
+    it('falls through orientations on collision with another label', () => {
+        const labelOnly: CollideWith = {
+            label: { enabled: true },
+            marker: { enabled: false },
+            seriesItem: { enabled: false },
+        };
+        // A occupies a wide horizontal band. B's parallel box reaches into it, but B's perpendicular
+        // (narrow-tall) footprint sits clear to the left, so B rotates to avoid A.
+        const a: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 0 },
+            label: { text: 'A', width: 100, height: 10 },
+            anchor: undefined,
+            placement: undefined,
+            orientation: 'parallel',
+            gap: 0,
+            avoid: true,
+            collideWith: labelOnly,
+        };
+        const b: PointLabelDatum = {
+            point: { x: 30, y: 100, size: 0 },
+            label: { text: 'B', width: 60, height: 10 },
+            anchor: undefined,
+            placement: undefined,
+            orientation: ['parallel', 'perpendicular'],
+            gap: 0,
+            avoid: true,
+            collideWith: labelOnly,
+        };
+
+        const placed = placeLabels(new Map([['s', [a, b]]]), bounds, 5).get('s')!;
+        const placedB = placed.find((l) => l.datum === b);
+        expect(placedB).toBeDefined();
+        expect(placedB!.rotation).toBe(90);
+    });
+});
+
+describe('bar label placement helpers', () => {
+    describe('barLabelResolvesOrientation', () => {
+        it.each([
+            [undefined, false],
+            ['parallel' as const, false],
+            [['parallel'] as const, false],
+            [['parallel', 'perpendicular'] as const, true],
+        ])('%o -> %s', (orientation, expected) => {
+            expect(barLabelResolvesOrientation(orientation as any)).toBe(expected);
+        });
+    });
+
+    describe('labelGlyphCentre', () => {
+        // The renderer pivots rotation about this centre, so it must be invariant to text alignment:
+        // every alignment of the same box maps back to the same rendered centre.
+        const anchorAt = (textAlign: CanvasTextAlign, textBaseline: CanvasTextBaseline): OrientationAnchor => {
+            let x = 100;
+            if (textAlign === 'left' || textAlign === 'start') x = 80;
+            else if (textAlign === 'right' || textAlign === 'end') x = 120;
+            let y = 50;
+            if (textBaseline === 'top') y = 45;
+            else if (textBaseline === 'bottom') y = 55;
+            return { x, y, textAlign, textBaseline };
+        };
+
+        it.each<[CanvasTextAlign, CanvasTextBaseline]>([
+            ['center', 'middle'],
+            ['left', 'top'],
+            ['start', 'bottom'],
+            ['right', 'top'],
+            ['end', 'middle'],
+        ])('recovers the box centre from a %s/%s anchor', (textAlign, textBaseline) => {
+            const centre = labelGlyphCentre(anchorAt(textAlign, textBaseline), 40, 10);
+            expect(centre).toEqual({ x: 100, y: 50 });
+        });
+    });
+
+    describe('buildBarLabelDatum + applyBarLabelOrientation', () => {
+        const region: BoxBounds = { x: 0, y: 0, width: 30, height: 200 };
+        const anchor: OrientationAnchor = { x: 15, y: 100, textAlign: 'center', textBaseline: 'middle' };
+
+        it('centres the candidate box, constrains it to the region, and avoids other labels only', () => {
+            const target = { rotation: 0 };
+            const datum = buildBarLabelDatum(anchor, 'label', 100, 10, ['parallel', 'perpendicular'], region, target);
+            expect(datum.point).toEqual({ x: 15, y: 100, size: 0 });
+            expect(datum.region).toBe(region);
+            expect(datum.avoid).toBe(true);
+            expect(datum.placement).toBeUndefined();
+            expect(datum.orientation).toEqual(['parallel', 'perpendicular']);
+            expect(datum.collideWith).toEqual({
+                label: { enabled: true },
+                marker: { enabled: false },
+                seriesItem: { enabled: false },
+            });
+            expect(datum.target).toBe(target);
+        });
+
+        it('resolves the orientation through the engine and writes the rotation (radians) back to the target', () => {
+            const target = { rotation: 0 };
+            const datum = buildBarLabelDatum(anchor, 'label', 100, 10, ['parallel', 'perpendicular'], region, target);
+            const placed = placeLabels(
+                new Map<string, BarPlacedLabelDatum[]>([['s', [datum]]]),
+                { x: 0, y: 0, width: 200, height: 200 },
+                5
+            ).get('s') as PlacedLabel<BarPlacedLabelDatum>[];
+
+            applyBarLabelOrientation(placed);
+            // Parallel (100 wide) overflows the 30-wide region, so it falls through to perpendicular (90deg).
+            expect(target.rotation).toBeCloseTo(Math.PI / 2);
+        });
+    });
+});
+
+describe('resolveLabelFit', () => {
+    it('returns undefined (show) when neither truncate nor collision avoidance is set', () => {
+        expect(resolveLabelFit({})).toBeUndefined();
+        // A bound alone does not opt in: without truncate or avoidance the full text renders.
+        expect(resolveLabelFit({ maxWidth: 120, wrapping: 'on-space' })).toBeUndefined();
+    });
+
+    it('resolves truncate:true to an ellipsis overflow, honouring the explicit bound', () => {
+        expect(resolveLabelFit({ maxWidth: 120, wrapping: 'on-space', truncate: true })).toEqual({
             maxWidth: 120,
             maxHeight: undefined,
             wrapping: 'on-space',
-            overflowStrategy: undefined,
+            overflowStrategy: 'ellipsis',
         });
+    });
+
+    it('resolves collision avoidance without truncate to a hide overflow', () => {
+        expect(resolveLabelFit({ maxWidth: 120 }, true)).toEqual({
+            maxWidth: 120,
+            maxHeight: undefined,
+            wrapping: undefined,
+            overflowStrategy: 'hide',
+        });
+    });
+
+    it('lets truncate:true win over collision avoidance', () => {
+        expect(resolveLabelFit({ maxWidth: 120, truncate: true }, true)?.overflowStrategy).toBe('ellipsis');
     });
 });

@@ -10,9 +10,11 @@ import {
     cachedTextMeasurer,
     calcLineHeight,
     evaluateBezier,
+    fitLabelText,
     isBetweenAngles,
     mergeDefaults,
     normalizeAngle360,
+    resolveLabelFit,
     toPlainText,
     wrapText,
 } from 'ag-charts-core';
@@ -151,6 +153,8 @@ export class ChordSeries extends FlowProportionSeries<
             { includeCircularReferences: true }
         );
 
+        const labelFit = resolveLabelFit(properties.label, properties.label.collisionAvoidance.avoid);
+
         let totalSize = 0;
         for (const [id, { datum: node, linksBefore, linksAfter }] of nodeGraph.entries()) {
             const size =
@@ -163,7 +167,7 @@ export class ChordSeries extends FlowProportionSeries<
                 node.size = size;
                 totalSize += node.size;
 
-                const labelText = label.enabled
+                let labelText = label.enabled
                     ? this.getLabelText<AgChordSeriesLabelFormatterParams>(
                           node.label,
                           node.datum,
@@ -174,6 +178,9 @@ export class ChordSeries extends FlowProportionSeries<
                           { datum: node.datum, value: node.label, fromKey, toKey, sizeKey, size: node.size }
                       )
                     : undefined;
+                if (labelText != null) {
+                    labelText = fitLabelText(labelText, labelFit, label);
+                }
                 node.label = toPlainText(labelText);
             }
         }

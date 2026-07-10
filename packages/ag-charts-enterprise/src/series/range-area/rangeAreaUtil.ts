@@ -16,6 +16,10 @@ export interface RangeAreaLabelDatum extends Readonly<Point> {
     text: NormalisedTextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
+    rotation: number;
+    /** Flush offset written by the placement engine; always `0` here (range-area labels are point-anchored). */
+    offsetX?: number;
+    offsetY?: number;
     datum: any;
     readonly itemId?: never;
     readonly itemType: AgRangeAreaSeriesItemType;

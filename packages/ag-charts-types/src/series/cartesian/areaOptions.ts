@@ -5,8 +5,9 @@ import type {
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgChartLabelFitOptions, AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
@@ -25,6 +26,17 @@ import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, St
 export type AgAreaSeriesLabelFormatterParams<TDatum = DatumDefault> = AgAreaSeriesOptionsKeys<TDatum> &
     AgAreaSeriesOptionsNames;
 
+export interface AgAreaSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
+    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelFitOptions {
+    /**
+     * Placement of the label in relation to the data point. Either a single placement or an ordered
+     * fallback list tried in turn until one fits.
+     *
+     * Default: `top`
+     */
+    placement?: AgChartLabelCollisionPlacement | AgChartLabelCollisionPlacement[];
+}
+
 export interface AgAreaSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgCartesianSeriesTooltipRendererParams<TDatum, TContext>, FillOptions, StrokeOptions {}
 
@@ -39,7 +51,7 @@ export interface AgAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = 
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
     /** Configuration for the labels shown on top of data points. */
-    label?: AgChartLabelOptions<TDatum, AgAreaSeriesLabelFormatterParams<TDatum>, TContext>;
+    label?: AgAreaSeriesLabelOptions<TDatum, AgAreaSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgAreaSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Set to `true` to connect across missing data points. */

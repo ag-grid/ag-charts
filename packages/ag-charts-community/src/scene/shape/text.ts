@@ -323,12 +323,22 @@ export class Text<D = unknown> extends Shape<D> {
         const { height, lineMetrics } = this.getSegmentMetrics(this.text);
         const offsetTop = Text.calcSegmentedTopOffset(height, lineMetrics, this.textBaseline);
         const y = this.y - offsetTop;
-        if (bbox.y === y) return bbox;
+        if (bbox.y === y && this.boxing == null) return bbox;
 
-        return new BBox(bbox.x, y, bbox.width, bbox.height);
+        const segmentBBox = new BBox(bbox.x, y, bbox.width, bbox.height);
+        // Mirror the plain-text grow (computeTextBBox) so a boxed segment caption's bounds — and the
+        // render layer sized from them — include the box; without it the box top is clipped.
+        if (this.boxing != null) segmentBBox.grow(this.boxPadding);
+        return segmentBBox;
     }
 
     protected override computeBBox(): BBox {
+        return this.computeTextBBox();
+    }
+
+    // Untransformed glyph box; must bypass the computeBBox override so getTextMeasureBBox never folds
+    // in the node's own rotation/translation.
+    private computeTextBBox(): BBox {
         if (!this.hasRenderableText()) {
             return new BBox(this.x, this.y, 0, 0);
         }
@@ -347,7 +357,7 @@ export class Text<D = unknown> extends Shape<D> {
     }
 
     getTextMeasureBBox() {
-        return this.computeBBox();
+        return this.computeTextBBox();
     }
 
     getPlainText() {

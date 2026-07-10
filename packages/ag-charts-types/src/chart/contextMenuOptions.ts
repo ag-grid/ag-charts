@@ -1,5 +1,6 @@
 import type { SelectionState } from './callbackOptions';
 import type {
+    AgAxisContextMenuActionEvent,
     AgCaptionContextMenuActionEvent,
     AgChartContextMenuEvent,
     AgNodeContextMenuActionEvent,
@@ -18,7 +19,7 @@ export type AgContextMenuItemLiteral =
     | 'toggle-other-series'
     | 'separator';
 
-export type AgContextMenuItemShowOn = 'always' | 'caption' | 'series-area' | 'series-node' | 'legend-item';
+export type AgContextMenuItemShowOn = 'always' | 'axis' | 'caption' | 'series-area' | 'series-node' | 'legend-item';
 
 export type AgContextMenuItemType = 'action' | 'separator';
 
@@ -58,6 +59,20 @@ export interface AgContextMenuItemAlways<TDatum = DatumDefault, TContext = Conte
     showOn?: 'always';
     /** Function called when clicking on this menu item. */
     action?: (event: AgChartContextMenuEvent<TContext>) => void;
+}
+
+export interface AgContextMenuItemAxis<TDatum = DatumDefault, TContext = ContextDefault> extends ItemMixin<
+    TDatum,
+    TContext
+> {
+    /**
+     * Which clicked element this menu item should be shown for. `'axis'` menu items are when clicking any part of an axis.
+     *
+     * Default: `'axis'`
+     */
+    showOn: 'axis';
+    /** Function called when clicking on this menu item. */
+    action?: (event: AgAxisContextMenuActionEvent<TContext>) => void;
 }
 
 export interface AgContextMenuItemCaption<TDatum = DatumDefault, TContext = ContextDefault> extends ItemMixin<
@@ -113,6 +128,7 @@ export interface AgContextMenuItemLegendItem<TDatum = DatumDefault, TContext = C
 export type AgContextMenuItem<TDatum = DatumDefault, TContext = ContextDefault> =
     | AgContextMenuItemLiteral
     | AgContextMenuItemAlways<TDatum, TContext>
+    | AgContextMenuItemAxis<TDatum, TContext>
     | AgContextMenuItemCaption<TDatum, TContext>
     | AgContextMenuItemSeriesArea<TDatum, TContext>
     | AgContextMenuItemSeriesNode<TDatum, TContext>
@@ -140,6 +156,14 @@ export interface AgContextMenuGetItemsParamsAlways<_TDatumReserved = never, TCon
         GetItemsParamsMixin<_TDatumReserved, TContext> {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'always';
+}
+
+export interface AgContextMenuGetItemsParamsAxis<_TDatumReserved = never, TContext = ContextDefault>
+    extends
+        Omit<AgAxisContextMenuActionEvent<TContext>, GetItemsParamsOmissions>,
+        GetItemsParamsMixin<_TDatumReserved, TContext> {
+    /** Which clicked element this menu item should be shown for. */
+    showOn: 'axis';
 }
 
 export interface AgContextMenuGetItemsParamsCaption<_TDatumReserved = never, TContext = ContextDefault>
@@ -180,6 +204,7 @@ export interface AgContextMenuGetItemsParamsLegendItem<_TDatumReserved = never, 
 
 export type AgContextMenuGetItemsParams<TDatum = DatumDefault, TContext = ContextDefault> =
     | AgContextMenuGetItemsParamsAlways<TDatum, TContext>
+    | AgContextMenuGetItemsParamsAxis<TDatum, TContext>
     | AgContextMenuGetItemsParamsCaption<TDatum, TContext>
     | AgContextMenuGetItemsParamsSeriesArea<TDatum, TContext>
     | AgContextMenuGetItemsParamsSeriesNode<TDatum, TContext>

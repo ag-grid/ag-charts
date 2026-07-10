@@ -1,4 +1,5 @@
 import {
+    AgAxisContextMenuActionEvent,
     AgCartesianChartOptions,
     AgCharts,
     AnimationModule,
@@ -42,6 +43,14 @@ const options: AgCartesianChartOptions<DataType> = {
                 label: 'Say hello',
                 action: () => {
                     console.log('Hello world!');
+                },
+            },
+            'separator',
+            {
+                showOn: 'axis',
+                label: 'Say hello to an axis',
+                action: (ev: AgAxisContextMenuActionEvent) => {
+                    console.log(`Hello in axis "${ev.axisId}":"`, ev);
                 },
             },
             'separator',

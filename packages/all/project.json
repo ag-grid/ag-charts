@@ -128,7 +128,7 @@
       "options": {
         "parallel": true,
         "commands": [
-          "NX_DAEMON=true yarn concurrently -n \"watch,astro\" --kill-others \"node external/ag-shared/scripts/watch/watch.js charts\" \"nx run ag-charts-website:dev\""
+          "NX_DAEMON=true nx run ag-charts-demos:build:watch; NX_DAEMON=true yarn concurrently -n \"watch,astro\" --kill-others \"node external/ag-shared/scripts/watch/watch.js charts\" \"nx run ag-charts-website:dev\""
         ]
       }
     },
@@ -297,6 +297,7 @@
     "ag-charts-enterprise",
     "ag-charts-community-examples",
     "ag-charts-server-side",
+    "ag-charts-demos",
     "ag-charts-website",
     "ag-charts-angular",
     "ag-charts-locale",

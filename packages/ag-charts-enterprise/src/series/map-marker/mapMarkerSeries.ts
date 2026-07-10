@@ -8,6 +8,7 @@ import {
     type FillStrokeMorph,
     type Geometry,
     type ITextMeasurer,
+    type LabelFit,
     Logger,
     type Normalised,
     type PlacedLabel,
@@ -344,7 +345,8 @@ export class MapMarkerSeries
     private getLabelDatum(
         node: MapMarkerNodeDatum,
         labelValue: string | undefined,
-        measurer: ITextMeasurer
+        measurer: ITextMeasurer,
+        labelFit: LabelFit | undefined
     ): MapMarkerNodeLabelDatum | undefined {
         if (labelValue == null) return;
 
@@ -394,7 +396,7 @@ export class MapMarkerSeries
         );
         if (labelText == null) return;
 
-        const fittedText = fitLabelText(labelText, resolveLabelFit(label), label);
+        const fittedText = fitLabelText(labelText, labelFit, label);
         const { width, height } = measurer.measureLines(String(fittedText));
         const anchor = Marker.anchor(shape);
 
@@ -493,7 +495,8 @@ export class MapMarkerSeries
         latValue: number,
         dataValues: MarkerDataValues,
         size: number,
-        measurer: ITextMeasurer
+        measurer: ITextMeasurer,
+        labelFit: LabelFit | undefined
     ): { node: MapMarkerNodeDatum; label: MapMarkerNodeLabelDatum | undefined } {
         if (this.scale == null) {
             throw new Error('Scale is required for createNodeFromLatLon');
@@ -504,7 +507,7 @@ export class MapMarkerSeries
 
         const node = this.buildNodeDatum(datum, datumIndex, -1, point, dataValues);
 
-        const label = this.getLabelDatum(node, dataValues.labelValue, measurer) ?? undefined;
+        const label = this.getLabelDatum(node, dataValues.labelValue, measurer, labelFit) ?? undefined;
 
         return { node, label };
     }
@@ -515,7 +518,8 @@ export class MapMarkerSeries
         geometry: Geometry,
         dataValues: MarkerDataValues,
         size: number,
-        measurer: ITextMeasurer
+        measurer: ITextMeasurer,
+        labelFit: LabelFit | undefined
     ): { nodes: MapMarkerNodeDatum[]; labels: MapMarkerNodeLabelDatum[] } {
         const nodes: MapMarkerNodeDatum[] = [];
         const labels: MapMarkerNodeLabelDatum[] = [];
@@ -526,7 +530,7 @@ export class MapMarkerSeries
             const node = this.buildNodeDatum(datum, datumIndex, index, point, dataValues);
             nodes.push(node);
 
-            const label = this.getLabelDatum(node, dataValues.labelValue, measurer);
+            const label = this.getLabelDatum(node, dataValues.labelValue, measurer, labelFit);
             if (label) {
                 labels.push(label);
             }
@@ -579,6 +583,7 @@ export class MapMarkerSeries
         const markerMaxSize = properties.maxSize ?? properties.size;
         sizeScale.range = [markerMinSize, Math.max(markerMinSize, markerMaxSize)];
         const measurer = cachedTextMeasurer(label);
+        const labelFit = resolveLabelFit(label, label.collisionAvoidance.avoid);
 
         const projectedGeometries = this.prepareProjectedGeometries(
             columns.idValues,
@@ -617,7 +622,8 @@ export class MapMarkerSeries
                     dataValues.latValue,
                     dataValues,
                     size,
-                    measurer
+                    measurer,
+                    labelFit
                 );
                 nodeData.push(result.node);
                 if (result.label) labelData.push(result.label);
@@ -628,7 +634,8 @@ export class MapMarkerSeries
                     projectedGeometry,
                     dataValues,
                     size,
-                    measurer
+                    measurer,
+                    labelFit
                 );
                 nodeData.push(...result.nodes);
                 labelData.push(...result.labels);

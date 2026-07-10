@@ -23,16 +23,25 @@ import {
     type DeepRequired,
     type DomainWithMetadata,
     type DynamicContext,
+    type LabelFit,
     type Normalised,
     type NormalisedColorType,
     type NormalisedSeriesMarkerStyle,
+    type PlacedLabel,
     type Point,
+    type PointLabelDatum,
     type RequireOptional,
+    applyBarLabelOrientation,
+    barLabelResolvesOrientation,
+    barLabelRotation,
+    buildBarLabelData,
     extent,
     findMinMax,
+    firstCandidate,
+    fitLabelText,
     isContinuous,
     mergeDefaults,
-    toArray,
+    resolveLabelFit,
     toNumber,
 } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
@@ -150,6 +159,7 @@ interface RangeAreaSeriesNodeDatumContext extends _ModuleSupport.CartesianCreate
 
     // Pre-computed flags
     readonly labelsEnabled: boolean;
+    readonly labelFit: LabelFit | undefined;
 
     // Property caches
     readonly yLowKey: string;
@@ -423,6 +433,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             dataAggregationFilter,
             range,
             labelsEnabled: this.properties.label.enabled,
+            labelFit: resolveLabelFit(this.properties.label, this.properties.label.collisionAvoidance.avoid),
             animationEnabled,
             canIncrementallyUpdate,
             xKey: this.properties.xKey,
@@ -638,6 +649,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 inverted: scratch.inverted,
                 datum: scratch.datum,
                 series: this,
+                labelFit: ctx.labelFit,
             });
             ctx.labelData.push(labelDatum);
         }
@@ -830,6 +842,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         inverted,
         datum,
         series,
+        labelFit,
     }: {
         datumIndex: number;
         point: Point;
@@ -840,10 +853,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         inverted: boolean;
         datum: any;
         series: RangeAreaSeries;
+        labelFit: LabelFit | undefined;
     }): RangeAreaLabelDatum {
         const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, legendItemName, label } = this.properties;
         // Array placement is accepted, but only its first candidate is honoured here.
-        const placement = toArray(label.placement)[0];
+        const placement = firstCandidate(label.placement);
         const spacing = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
 
         let actualItemId = itemType;
@@ -864,17 +878,34 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             itemType,
             datum,
             datumIndex,
-            text: this.getLabelText<AgRangeAreaSeriesLabelFormatterParams>(
-                value,
-                datum,
-                itemType === 'high' ? yHighKey : yLowKey,
-                'y',
-                yDomain,
-                label,
-                { value, datum, itemType, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName }
+            text: fitLabelText(
+                this.getLabelText<AgRangeAreaSeriesLabelFormatterParams>(
+                    value,
+                    datum,
+                    itemType === 'high' ? yHighKey : yLowKey,
+                    'y',
+                    yDomain,
+                    label,
+                    {
+                        value,
+                        datum,
+                        itemType,
+                        xKey,
+                        yLowKey,
+                        yHighKey,
+                        xName,
+                        yLowName,
+                        yHighName,
+                        yName,
+                        legendItemName,
+                    }
+                ),
+                labelFit,
+                label
             ),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
+            rotation: barLabelRotation(firstCandidate(label.orientation)),
         };
     }
 
@@ -1205,6 +1236,26 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             this.properties.item.low.marker.markClean();
             this.properties.item.high.marker.markClean();
         }
+    }
+
+    override getLabelData(): PointLabelDatum[] {
+        if (!this.usesPlacedLabels || !this.properties.label.enabled) return [];
+        const { label } = this.properties;
+        // Point-anchored (no bar rect): the label datum carries no region, so the fit falls back to the
+        // plot bounds and orientation fall-through is driven by collision with other labels.
+        return buildBarLabelData(this.contextNodeData?.labelData, (labelDatum) => ({
+            label: labelDatum,
+            config: label,
+        }));
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<RangeAreaLabelDatum>[]) {
+        applyBarLabelOrientation(placed);
+        this.refreshPlacedLabelNodes();
+    }
+
+    protected override resolveUsesPlacedLabels(): boolean {
+        return barLabelResolvesOrientation(this.properties.label.orientation);
     }
 
     protected override updateLabelSelection(opts: {
