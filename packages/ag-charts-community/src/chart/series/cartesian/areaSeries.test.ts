@@ -64,6 +64,7 @@ import {
     doubleClickAction,
     doubleTapAction,
     expectMonotonic,
+    expectNoAnimation,
     expectProgresses,
     expectSceneSamplesMatch,
     expectSceneTrajectory,
@@ -1539,10 +1540,10 @@ describe('AreaSeries', () => {
             expectMarkerStartsCollapsed(trajectory, 'w7');
         });
 
-        // "Reorder" — the category order is scrambled; the same markers stay (count holds) but re-map to
-        // the reshuffled bands, so the coverage is that the reshuffle LANDED (the settled left-to-right
-        // order matches the reordered data) while the paths reshape.
-        it('category reorder: markers re-map to the reshuffled bands', async () => {
+        // CRT-490 / AG-12655: reordering categories must not crash (the historic collapseSpan datumIndex
+        // error) and the markers must re-map to the reshuffled bands. The capture running without a throw
+        // is the no-crash guard; the ordering assertions are the re-map guard.
+        it('CRT-490 category reorder: markers re-map to the reshuffled bands without crashing', async () => {
             const reordered = [WEEKS[3], WEEKS[0], WEEKS[5], WEEKS[1], WEEKS[6], WEEKS[2], WEEKS[4]];
             const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS), () =>
                 chart.updateDelta({ data: reordered })
@@ -1819,6 +1820,210 @@ describe('AreaSeries', () => {
             const after = sampleScene();
             expect(markerCount(after)).toBe(7);
             expect(after.get(strokeKey(after))!.subpaths).toBe(1);
+        });
+
+        // AG-12468 / AG-10542: a data update that flips the x-scale between category and continuous is not
+        // path-comparable (areaUtil's prepareAreaPathAnimation returns undefined), so the batch must SNAP
+        // rather than tween garbage between incompatible scales.
+        it('AG-12468 scale-type change: a category->number x-scale flip snaps without tweening', async () => {
+            const category: AgCartesianChartOptions = {
+                data: [
+                    { x: 'a', y: 40 },
+                    { x: 'b', y: 120 },
+                    { x: 'c', y: 80 },
+                ],
+                series: [{ type: 'area', xKey: 'x', yKey: 'y', marker: { enabled: true } }],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0, max: 200 },
+                },
+            };
+            const numeric: AgCartesianChartOptions = {
+                ...category,
+                data: [
+                    { x: 0, y: 40 },
+                    { x: 1, y: 120 },
+                    { x: 2, y: 80 },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 2 },
+                    y: { type: 'number', position: 'left', min: 0, max: 200 },
+                },
+            };
+            prepareTestOptions(category);
+            prepareTestOptions(numeric);
+            chart = AgCharts.create(category);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+            const before = sampleScene();
+            await chart.update(numeric);
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            expectNoAnimation(trajectory);
+            // Anti-vacuity: the scale flip genuinely landed (the axis retyped from category to number).
+            expect([...before.keys()]).toContain('axis[bottom]/text[l:a]');
+            expect([...trajectory.at(-1)!.keys()]).toContain('axis[bottom]/text[l:0]');
+        });
+
+        // AG-10904: re-applying identical data is a no-op (prepareAreaPathAnimation reports 'no-op'), so no
+        // motion may run — every geometry property holds constant. The fill's drawn-subpath count is
+        // re-decomposed by the redraw (not motion), so it alone is exempt.
+        it('AG-10904 no-op update: re-applying identical data produces no animation', async () => {
+            const options = singleOptions([
+                { x: 0, y: 40 },
+                { x: 2, y: 120 },
+                { x: 4, y: 80 },
+                { x: 6, y: 160 },
+                { x: 8, y: 60 },
+            ]);
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+            await chart.update({ ...options });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            expectSceneTrajectory(trajectory, {
+                'series[0]/background/path[*]': { subpaths: 'any' },
+            });
+            // Anti-vacuity: the paths were genuinely present and drawn, not an empty scene.
+            expect(trajectory[0].get(strokeKey(trajectory[0]))!.subpaths).toBe(1);
+        });
+
+        // CRT-823: a legend-hidden area series must stay visually inert while a visible sibling animates —
+        // the historic bug ran the hidden series' update animation, briefly drawing it across the baseline.
+        it('CRT-823 hidden series: a legend-hidden area stays inert while a sibling animates', async () => {
+            const base = stackedOptions();
+            const hidden: AgCartesianChartOptions = {
+                ...base,
+                series: base.series!.map((s, i) => (i === 2 ? { ...s, visible: false } : s)),
+            };
+            chart = AgCharts.create(hidden);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+            await chart.updateDelta({
+                data: [
+                    { q: 'Q1', a: 90, b: 20, c: 30 },
+                    { q: 'Q2', a: 20, b: 55, c: 25 },
+                    { q: 'Q3', a: 70, b: 15, c: 40 },
+                ],
+            });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            // The update triggered real motion on the visible series.
+            expectMarkerStartsCollapsed(trajectory, 'Q1');
+            // The hidden series[2] holds every tracked property constant across that same capture.
+            const hiddenOnly = (s: SceneGeometrySample) => new Map([...s].filter(([k]) => k.startsWith('series[2]')));
+            expect([...trajectory[0].keys()].some((k) => k.startsWith('series[2]'))).toBe(true);
+            expectNoAnimation(trajectory.map(hiddenOnly));
+        });
+
+        // AG-16436: toggling series off until only one remains visible must still animate the survivor
+        // coordinated in the update phase (the toggled layer collapses to the baseline, the survivor slides
+        // down to become the sole layer) rather than desyncing or leaving garbage.
+        it('AG-16436 toggle to last visible: the survivor slides to the baseline as the other collapses', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 'a', v1: 40, v2: 30 },
+                    { x: 'b', v1: 60, v2: 40 },
+                    { x: 'c', v1: 50, v2: 35 },
+                ],
+                series: [
+                    { type: 'area', xKey: 'x', yKey: 'v1', stacked: true, marker: { enabled: true } },
+                    { type: 'area', xKey: 'x', yKey: 'v2', stacked: true, marker: { enabled: true } },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0, max: 200 },
+                },
+            };
+            prepareTestOptions(options);
+            const { trajectory, after } = await captureFrom(options, () =>
+                chart.update({
+                    ...options,
+                    series: options.series!.map((s, i) => (i === 0 ? { ...s, visible: false } : s)),
+                })
+            );
+            const bottomFill = fillKey(trajectory[0], 0);
+            // Anti-vacuity: the toggled-off layer starts at full height and must genuinely collapse.
+            expect(trajectory[0].get(bottomFill)!.height).toBeGreaterThan(40);
+            const slideDown: SceneNodeExpectation = {
+                y: { during: 'update', expect: ['increases', 'bounded'] },
+                height: 'any',
+                x: { during: 'update', expect: 'constant' },
+                width: { during: 'update', expect: 'constant' },
+                subpaths: 'any',
+                'top@0': { during: 'update', expect: ['increases', 'bounded'] },
+                'top@2': { during: 'update', expect: ['increases', 'bounded'] },
+                'top@4': { during: 'update', expect: ['increases', 'bounded'] },
+                'top@1': 'any',
+                'top@3': 'any',
+            };
+            expectSceneTrajectory(
+                trajectory,
+                {
+                    'series[0]/background/path[*]': {
+                        height: { during: 'update', expect: ['decreases', 'bounded'], settlesAt: 0 },
+                        y: { during: 'update', expect: ['increases', 'bounded'] },
+                        subpaths: 'any',
+                        visible: { during: 'update', expect: ['decreases', 'bounded'] },
+                        'top@0': 'any',
+                        'top@1': 'any',
+                        'top@2': 'any',
+                        'top@3': 'any',
+                        'top@4': 'any',
+                        x: 'any',
+                        width: 'any',
+                    },
+                    'series[0]/path[stroke]': 'any',
+                    'series[0]/marker[*]': 'any',
+                    'series[1]/background/path[*]': slideDown,
+                    'series[1]/path[stroke]': slideDown,
+                    'series[1]/marker[*]': markerRefade,
+                    ...axisReflowSpec('bottom', {}),
+                },
+                { frameInvariants: [stackTopsOrdered] }
+            );
+            // The survivor ends as the sole layer anchored to the baseline.
+            const survivorFill = after.get(fillKey(after, 1))!;
+            expect(after.get(fillKey(after, 0))!.visible).toBe(0);
+            expect(survivorFill.y + survivorFill.height).toBeGreaterThan(480);
+        });
+
+        // AG-9954: the initial-load swipe glues the marker scale-in to the sweep edge — the leftmost marker
+        // finishes scaling in before the rightmost even starts, in lock-step with the clip window's advance.
+        it('AG-9954 reveal sync: markers scale in left-to-right in lock-step with the swipe', async () => {
+            const labels = ['A', 'B', 'C', 'D', 'E', 'F'];
+            chart = AgCharts.create(
+                categoryOptions([
+                    { x: 'A', y: 40 },
+                    { x: 'B', y: 120 },
+                    { x: 'C', y: 80 },
+                    { x: 'D', y: 160 },
+                    { x: 'E', y: 60 },
+                    { x: 'F', y: 100 },
+                ])
+            );
+            const sampleScene = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene, { frames: 40 });
+            const fill0 = fillKey(trajectory.at(-1)!);
+            // The clip window sweeps across the plot; clip:x is present only while the mask is active, so
+            // progression is asserted over the sweep frames.
+            const clipXs = trajectory
+                .map((f) => f.get(fill0)?.['clip:x'])
+                .filter((v): v is number => v != null && Number.isFinite(v));
+            expectProgresses(clipXs);
+            const finalWidth = trajectory.at(-1)!.get('series[0]/marker[A]')!.width;
+            expect(finalWidth).toBeGreaterThan(1);
+            const firstFrameAbove = (label: string, fraction: number) =>
+                trajectory.findIndex((f) => (f.get(`series[0]/marker[${label}]`)?.width ?? 0) > finalWidth * fraction);
+            // Each marker begins scaling in no earlier than the one to its left.
+            const starts = labels.map((l) => firstFrameAbove(l, 0.01));
+            expectMonotonic(starts, 'increasing');
+            // The leftmost finishes (>=90%) strictly before the rightmost even starts — this strictness is
+            // what fails on a total snap (all indices would be 0).
+            const leftmostDone = trajectory.findIndex(
+                (f) => (f.get('series[0]/marker[A]')?.width ?? 0) >= finalWidth * 0.9
+            );
+            expect(leftmostDone).toBeGreaterThan(0);
+            expect(starts.at(-1)!).toBeGreaterThan(0);
+            expect(leftmostDone).toBeLessThan(starts.at(-1)!);
         });
     });
 
