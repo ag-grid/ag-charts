@@ -50,6 +50,7 @@ import type {
     SceneGeometrySample,
     SceneNodeExpectation,
     ScenePropertyExpectation,
+    TrajectoryExpectation,
 } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -617,11 +618,11 @@ describe('AreaSeries', () => {
             'top@3': 'constant',
             'top@4': 'constant',
             'clip:x': ['increases', 'progresses', 'bounded'],
-            x: 'any',
-            y: 'any',
-            width: 'any',
-            height: 'any',
-            opacity: 'any',
+            x: 'constant',
+            y: 'constant',
+            width: 'constant',
+            height: 'constant',
+            opacity: 'constant',
             subpaths: 'any',
             clip: 'any',
             'clip:y': 'any',
@@ -886,6 +887,28 @@ describe('AreaSeries', () => {
             'top@4': opts.pinnedTops ? 'constant' : { during: 'update', expect: ['monotonic', 'bounded'] },
         });
 
+        // Add/remove/reflow cases pin the fill and stroke to the x-extent motion they share — the left
+        // edge (x) and total width step a known direction — and leave the interior (per-station tops and
+        // the vertical bbox derived from them) free. `increasingExtent`/`decreasingExtent` bound a
+        // monotonic edge to its endpoints and force a real tween (never a snap); `squeezing` is for an
+        // edge that dips and returns to where it started (a shift, or a category reflow that redistributes
+        // bands within a fixed plot width) so it cannot be endpoint-bounded, only proven to move.
+        const increasingExtent: readonly TrajectoryExpectation[] = ['increases', 'progresses', 'bounded'];
+        const decreasingExtent: readonly TrajectoryExpectation[] = ['decreases', 'progresses', 'bounded'];
+        const squeezing: readonly TrajectoryExpectation[] = ['progresses'];
+        const extentMorph = (
+            x: ScenePropertyExpectation,
+            width: ScenePropertyExpectation,
+            subpaths: ScenePropertyExpectation,
+            // Stations whose crossing legitimately vanishes mid-animation (a point entering/leaving at
+            // that edge) sample non-finite for part of the trajectory, so they must be `degenerate`.
+            degenerateTops: number[] = []
+        ): SceneNodeExpectation => {
+            const tops: Record<string, ScenePropertyExpectation> = {};
+            for (let i = 0; i <= 4; i++) tops[`top@${i}`] = degenerateTops.includes(i) ? 'degenerate' : 'any';
+            return { x, width, subpaths, y: 'any', height: 'any', ...tops };
+        };
+
         // "Update points" — every value jitters within the pinned domain. Both paths morph per-station
         // while the x-extent and axes hold, the stroke stays one subpath, and the markers re-fade.
         it('single update points: both paths morph per-station while the extent holds', async () => {
@@ -950,8 +973,8 @@ describe('AreaSeries', () => {
             const stroke0 = strokeKey(before);
             expect(after.get(stroke0)!.width).toBeGreaterThan(before.get(stroke0)!.width);
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': 'any',
-                'series[0]/path[stroke]': 'any',
+                'series[0]/background/path[*]': extentMorph('constant', increasingExtent, 'any'),
+                'series[0]/path[stroke]': extentMorph('constant', increasingExtent, 'constant'),
                 ...markersFadeIn,
             });
             expectMarkerStartsCollapsed(trajectory, '5');
@@ -985,14 +1008,10 @@ describe('AreaSeries', () => {
             const stroke0 = strokeKey(before);
             expect(after.get(stroke0)!.x).toBeLessThan(before.get(stroke0)!.x);
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': 'any',
-                'series[0]/path[stroke]': 'any',
+                'series[0]/background/path[*]': extentMorph(decreasingExtent, increasingExtent, 'any', [4]),
+                'series[0]/path[stroke]': extentMorph(decreasingExtent, increasingExtent, 'constant', [4]),
                 ...markersFadeIn,
             });
-            expectMonotonic(
-                trajectory.map((f) => f.get(stroke0)!.x),
-                'decreasing'
-            );
             expectMarkerStartsCollapsed(trajectory, '1');
         });
 
@@ -1077,14 +1096,10 @@ describe('AreaSeries', () => {
             expect(after.get(stroke0)!.x).toBeGreaterThan(before.get(stroke0)!.x);
             expect(after.get(stroke0)!.width).toBeLessThan(before.get(stroke0)!.width);
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': 'any',
-                'series[0]/path[stroke]': 'any',
+                'series[0]/background/path[*]': extentMorph(increasingExtent, decreasingExtent, 'any'),
+                'series[0]/path[stroke]': extentMorph(increasingExtent, decreasingExtent, 'constant'),
                 ...markersFadeIn,
             });
-            expectMonotonic(
-                trajectory.map((f) => f.get(stroke0)!.x),
-                'increasing'
-            );
             expectMarkerStartsCollapsed(trajectory, '2');
         });
 
@@ -1112,16 +1127,11 @@ describe('AreaSeries', () => {
             expect(markerCount(after)).toBe(4);
             const stroke0 = strokeKey(before);
             expect(after.get(stroke0)!.width).toBeLessThan(before.get(stroke0)!.width);
-            expect(trajectory.every((f) => Math.abs(f.get(stroke0)!.x - before.get(stroke0)!.x) < 1)).toBe(true);
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': 'any',
-                'series[0]/path[stroke]': 'any',
+                'series[0]/background/path[*]': extentMorph('constant', decreasingExtent, 'any'),
+                'series[0]/path[stroke]': extentMorph('constant', decreasingExtent, 'constant'),
                 ...markersFadeIn,
             });
-            expectMonotonic(
-                trajectory.map((f) => f.get(stroke0)!.width),
-                'decreasing'
-            );
             expectMarkerStartsCollapsed(trajectory, '1');
         });
 
@@ -1208,8 +1218,8 @@ describe('AreaSeries', () => {
             expect(after.get(stroke0)!.subpaths).toBe(1);
             expect(markerCount(after)).toBeGreaterThan(markerCount(before));
             expectSceneTrajectory(trajectory, {
-                'series[0]/path[stroke]': 'any',
-                'series[0]/background/path[*]': 'any',
+                'series[0]/path[stroke]': extentMorph('constant', 'constant', 'any'),
+                'series[0]/background/path[*]': extentMorph('constant', 'constant', 'any'),
                 ...markersFadeIn,
             });
             expectMarkerStartsCollapsed(trajectory, '2');
@@ -1218,7 +1228,7 @@ describe('AreaSeries', () => {
         // "Shift left" — drop the first point, append one at the end: the left edge steps in (x increases)
         // while one marker leaves at the start and one enters at the end.
         it('single shift left: the left edge steps in as the first point leaves and one enters', async () => {
-            const { before, trajectory, after } = await captureFrom(
+            const { trajectory, after } = await captureFrom(
                 singleOptions([
                     { x: 1, y: 40 },
                     { x: 2, y: 120 },
@@ -1238,22 +1248,17 @@ describe('AreaSeries', () => {
                     })
             );
             expect(markerCount(after)).toBe(5);
-            const stroke0 = strokeKey(before);
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': 'any',
-                'series[0]/path[stroke]': 'any',
+                'series[0]/background/path[*]': extentMorph(increasingExtent, squeezing, 'any', [4]),
+                'series[0]/path[stroke]': extentMorph(increasingExtent, squeezing, 'constant', [4]),
                 ...markersFadeIn,
             });
-            expectMonotonic(
-                trajectory.map((f) => f.get(stroke0)!.x),
-                'increasing'
-            );
             expectMarkerStartsCollapsed(trajectory, '6');
         });
 
         // "Shift right" — prepend a point, drop the last: mirror of shift left, the left edge steps out.
         it('single shift right: the left edge steps out as a new first point enters and the last leaves', async () => {
-            const { before, trajectory, after } = await captureFrom(
+            const { trajectory, after } = await captureFrom(
                 singleOptions([
                     { x: 2, y: 40 },
                     { x: 3, y: 120 },
@@ -1273,17 +1278,149 @@ describe('AreaSeries', () => {
                     })
             );
             expect(markerCount(after)).toBe(5);
-            const stroke0 = strokeKey(before);
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': 'any',
-                'series[0]/path[stroke]': 'any',
+                'series[0]/background/path[*]': extentMorph(decreasingExtent, squeezing, 'any', [4]),
+                'series[0]/path[stroke]': extentMorph(decreasingExtent, squeezing, 'constant', [4]),
                 ...markersFadeIn,
             });
-            expectMonotonic(
-                trajectory.map((f) => f.get(stroke0)!.x),
-                'decreasing'
-            );
             expectMarkerStartsCollapsed(trajectory, '1');
+        });
+
+        // "Add points middle" (continuous x-axis) — an interior point drops in between two existing ones.
+        // On a pinned number axis every point maps to a fixed pixel, so the neighbours do NOT spread apart
+        // (unlike a category reflow): the new point is woven in while the existing geometry holds. This
+        // exercises the enter animation for a datum arriving in the interior rather than at an edge.
+        it('single add points middle: an interior point weaves in without disturbing its neighbours', async () => {
+            const { before, trajectory, after } = await captureFrom(
+                singleOptions([
+                    { x: 0, y: 40 },
+                    { x: 2, y: 120 },
+                    { x: 4, y: 80 },
+                    { x: 6, y: 160 },
+                    { x: 8, y: 60 },
+                ]),
+                () =>
+                    chart.updateDelta({
+                        data: [
+                            { x: 0, y: 40 },
+                            { x: 2, y: 120 },
+                            { x: 4, y: 80 },
+                            { x: 5, y: 100 },
+                            { x: 6, y: 160 },
+                            { x: 8, y: 60 },
+                        ],
+                    })
+            );
+            expect(markerCount(before)).toBe(5);
+            expect(markerCount(after)).toBe(6);
+            expect([...after.keys()]).toContain('series[0]/marker[5]');
+            // The new point lands strictly between its neighbours.
+            expect(markerX(after, '4')).toBeLessThan(markerX(after, '5')!);
+            expect(markerX(after, '5')).toBeLessThan(markerX(after, '6')!);
+            // Insertion-spread on a continuous axis: the existing points keep their exact pixel positions,
+            // so the neighbours hold rather than moving away from the insertion.
+            for (const n of ['0', '2', '4', '6', '8']) {
+                expect(markerX(after, n), `marker ${n} present after`).toBeDefined();
+                expect(Math.abs(markerX(after, n)! - markerX(before, n)!), `marker ${n} held`).toBeLessThanOrEqual(1);
+            }
+            expectSceneTrajectory(trajectory, {
+                'series[0]/background/path[*]': extentMorph('constant', 'constant', 'any'),
+                'series[0]/path[stroke]': extentMorph('constant', 'constant', 'constant'),
+                ...markersFadeIn,
+            });
+            expectMarkerStartsCollapsed(trajectory, '5');
+        });
+
+        // "Remove half" — a bulk update drops several interior points at once, exercising simultaneous
+        // leave animations. The retained endpoints pin the extent, so the band holds its width and stays
+        // one connected subpath while four markers leave together.
+        it('single remove half: several interior points leave together while the extent holds', async () => {
+            const { before, trajectory, after } = await captureFrom(
+                singleOptions([
+                    { x: 0, y: 40 },
+                    { x: 1, y: 120 },
+                    { x: 2, y: 80 },
+                    { x: 3, y: 160 },
+                    { x: 4, y: 60 },
+                    { x: 5, y: 100 },
+                    { x: 6, y: 140 },
+                    { x: 7, y: 70 },
+                ]),
+                () =>
+                    chart.updateDelta({
+                        data: [
+                            { x: 0, y: 40 },
+                            { x: 2, y: 80 },
+                            { x: 5, y: 100 },
+                            { x: 7, y: 70 },
+                        ],
+                    })
+            );
+            expect(markerCount(before)).toBe(8);
+            expect(markerCount(after)).toBe(4);
+            for (const gone of ['1', '3', '4', '6']) {
+                expect([...after.keys()], `marker ${gone} removed`).not.toContain(`series[0]/marker[${gone}]`);
+            }
+            // The survivors keep their positions and the endpoints pin the extent.
+            for (const kept of ['0', '2', '5', '7']) {
+                expect(markerX(after, kept), `marker ${kept} present after`).toBeDefined();
+                expect(
+                    Math.abs(markerX(after, kept)! - markerX(before, kept)!),
+                    `marker ${kept} held`
+                ).toBeLessThanOrEqual(1);
+            }
+            expectSceneTrajectory(trajectory, {
+                'series[0]/background/path[*]': extentMorph('constant', 'constant', 'any'),
+                'series[0]/path[stroke]': extentMorph('constant', 'constant', 'constant'),
+                ...markersFadeIn,
+            });
+        });
+
+        // "Add double" — the bulk-insertion mirror: one update roughly doubles the point count by weaving
+        // several new points into the interior, exercising simultaneous enter animations. The retained
+        // endpoints pin the extent; the three new markers fade in together.
+        it('single add double: several interior points enter together at a fixed extent', async () => {
+            const { before, trajectory, after } = await captureFrom(
+                singleOptions([
+                    { x: 0, y: 40 },
+                    { x: 2, y: 80 },
+                    { x: 4, y: 60 },
+                    { x: 6, y: 140 },
+                ]),
+                () =>
+                    chart.updateDelta({
+                        data: [
+                            { x: 0, y: 40 },
+                            { x: 1, y: 120 },
+                            { x: 2, y: 80 },
+                            { x: 3, y: 160 },
+                            { x: 4, y: 60 },
+                            { x: 5, y: 100 },
+                            { x: 6, y: 140 },
+                        ],
+                    })
+            );
+            expect(markerCount(before)).toBe(4);
+            expect(markerCount(after)).toBe(7);
+            for (const added of ['1', '3', '5']) {
+                expect([...after.keys()], `marker ${added} added`).toContain(`series[0]/marker[${added}]`);
+            }
+            // The originals keep their positions; the inserted points weave between them.
+            for (const kept of ['0', '2', '4', '6']) {
+                expect(markerX(after, kept), `marker ${kept} present after`).toBeDefined();
+                expect(
+                    Math.abs(markerX(after, kept)! - markerX(before, kept)!),
+                    `marker ${kept} held`
+                ).toBeLessThanOrEqual(1);
+            }
+            expectSceneTrajectory(trajectory, {
+                'series[0]/background/path[*]': extentMorph('constant', 'constant', 'any'),
+                'series[0]/path[stroke]': extentMorph('constant', 'constant', 'constant'),
+                ...markersFadeIn,
+            });
+            expectMarkerStartsCollapsed(trajectory, '1');
+            expectMarkerStartsCollapsed(trajectory, '3');
+            expectMarkerStartsCollapsed(trajectory, '5');
         });
 
         const WEEKS: Array<{ x: string; y: number }> = [
@@ -1305,8 +1442,8 @@ describe('AreaSeries', () => {
             expect(markerCount(before)).toBe(7);
             expect(markerCount(after)).toBe(8);
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': 'any',
-                'series[0]/path[stroke]': 'any',
+                'series[0]/background/path[*]': extentMorph('constant', squeezing, 'any'),
+                'series[0]/path[stroke]': extentMorph('constant', squeezing, 'constant'),
                 ...markersFadeIn,
                 ...axisReflowSpec('bottom', { shift: 'left' }),
             });
@@ -1320,8 +1457,8 @@ describe('AreaSeries', () => {
             );
             expect(markerCount(after)).toBe(8);
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': 'any',
-                'series[0]/path[stroke]': 'any',
+                'series[0]/background/path[*]': extentMorph(squeezing, squeezing, 'any'),
+                'series[0]/path[stroke]': extentMorph(squeezing, squeezing, 'constant'),
                 ...markersFadeIn,
                 ...axisReflowSpec('bottom', { shift: 'right' }),
             });
@@ -1350,15 +1487,25 @@ describe('AreaSeries', () => {
             expect(markerCount(after)).toBe(9);
             expect([...after.keys()]).toContain('series[0]/marker[w7]');
             expect([...after.keys()]).toContain('series[0]/marker[w8]');
-            // The inserted markers land in order between w6 and w9...
+            // The inserted markers land in order within the vacated w6..w9 gap.
             expect(markerX(after, 'w6')).toBeLessThan(markerX(after, 'w7')!);
             expect(markerX(after, 'w7')).toBeLessThan(markerX(after, 'w8')!);
             expect(markerX(after, 'w8')).toBeLessThan(markerX(after, 'w9')!);
-            // ...and the point just past the insertion slides right to make room.
-            expect(markerX(after, 'w9')).toBeGreaterThan(markerX(before, 'w9')!);
+            // Insertion-spread: category bands snap to their reflowed positions at frame 0 (no per-frame
+            // slide), so the spread is asserted across the settled endpoints. Neighbours left of the
+            // insertion end further LEFT and those to the right end further RIGHT, the outer edges (w3, w11)
+            // stay pinned, and the shift grows towards the gap as the bands redistribute across a fixed plot.
+            const shift = (label: string) => markerX(after, label)! - markerX(before, label)!;
+            expect(shift('w4')).toBeLessThan(0);
+            expect(shift('w5')).toBeLessThan(shift('w4'));
+            expect(shift('w6')).toBeLessThan(shift('w5'));
+            expect(shift('w10')).toBeGreaterThan(0);
+            expect(shift('w9')).toBeGreaterThan(shift('w10'));
+            expect(Math.abs(shift('w3'))).toBeLessThanOrEqual(1);
+            expect(Math.abs(shift('w11'))).toBeLessThanOrEqual(1);
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': 'any',
-                'series[0]/path[stroke]': 'any',
+                'series[0]/background/path[*]': extentMorph('constant', 'constant', 'any'),
+                'series[0]/path[stroke]': extentMorph('constant', 'constant', 'constant'),
                 ...markersFadeIn,
                 'axis[bottom]/text[*]': {
                     opacity: { during: ['remove', 'update', 'add'], expect: 'bounded' },
@@ -1389,8 +1536,8 @@ describe('AreaSeries', () => {
             // w6 moved from last to first, so it really shifted left.
             expect(markerX(after, 'w6')!).toBeLessThan(markerX(before, 'w6')!);
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': 'any',
-                'series[0]/path[stroke]': 'any',
+                'series[0]/background/path[*]': extentMorph('constant', 'constant', 'any'),
+                'series[0]/path[stroke]': extentMorph('constant', 'constant', 'constant'),
                 ...markersFadeIn,
                 ...axisReflowSpec('bottom', {}),
             });
@@ -1494,12 +1641,11 @@ describe('AreaSeries', () => {
             const { before, trajectory, after } = await captureFrom(swapOptions(d1), () =>
                 chart.update(swapOptions(d2))
             );
-            const fill0 = fillKey(before);
-            // The fill genuinely tweens: its left edge sweeps out to an intermediate and back.
-            expectProgresses(trajectory.map((f) => f.get(fill0)?.x ?? Number.NaN));
+            // The fill and stroke genuinely tween: their left edge sweeps out to an intermediate and back
+            // (the smooth path morphs across the reshuffled categories) rather than snapping.
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': 'any',
-                'series[0]/path[stroke]': 'any',
+                'series[0]/background/path[*]': extentMorph(squeezing, squeezing, 'any'),
+                'series[0]/path[stroke]': extentMorph(squeezing, squeezing, 'constant'),
                 'axis[bottom]/text[*]': {
                     opacity: { during: ['remove', 'update', 'add'], expect: 'bounded' },
                     x: 'any',
@@ -1543,8 +1689,8 @@ describe('AreaSeries', () => {
             expect(markerCount(before)).toBe(7);
             expect(markerCount(after)).toBe(8);
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': 'any',
-                'series[0]/path[stroke]': 'any',
+                'series[0]/background/path[*]': extentMorph('constant', squeezing, 'any'),
+                'series[0]/path[stroke]': extentMorph('constant', squeezing, 'constant'),
                 ...markersFadeIn,
                 ...axisReflowSpec('bottom', { shift: 'left' }),
             });
@@ -1564,8 +1710,8 @@ describe('AreaSeries', () => {
             }
             expect(markerX(after, 'w6')!).toBeLessThan(markerX(before, 'w6')!);
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': 'any',
-                'series[0]/path[stroke]': 'any',
+                'series[0]/background/path[*]': extentMorph('constant', 'constant', 'any'),
+                'series[0]/path[stroke]': extentMorph('constant', 'constant', 'constant'),
                 ...markersFadeIn,
                 ...axisReflowSpec('bottom', {}),
             });
