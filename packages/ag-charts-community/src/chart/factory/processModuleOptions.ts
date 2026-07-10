@@ -190,20 +190,36 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(
     const missingOptions = groupBy(missingModules, (module) => (module.enterprise ? 'enterprise' : 'community'));
 
     if (missingModules.length) {
-        const packageName =
-            ModuleRegistry.isEnterprise() || missingOptions.enterprise?.length ? 'enterprise' : 'community';
         Logger.errorOnce(
-            [
-                'required modules are not registered. Check if you have registered the modules:',
-                '',
-                ModuleRegistry.isUmd()
-                    ? `Install and register 'ag-charts-enterprise' before creating the chart.`
-                    : createRegistrySnippet(missingModules.map(formatMissingModuleName), packageName),
-                '',
-                `See ${installationReferenceUrl} for more details.`,
-            ].join('\n')
+            ModuleRegistry.isUmd()
+                ? umdMissingModulesMessage(missingOptions.enterprise ?? [], installationReferenceUrl)
+                : bundlerMissingModulesMessage(missingModules, missingOptions, installationReferenceUrl)
         );
     }
+}
+
+function umdMissingModulesMessage(enterpriseModules: ModulePlaceholder[], installationReferenceUrl: string): string {
+    const enterpriseOptions = enterpriseModules.map((module) => module.name).join(', ');
+    return [
+        `unable to use these enterprise features as 'ag-charts-enterprise' has not been loaded: ${enterpriseOptions}`,
+        '',
+        `See ${installationReferenceUrl} for more details.`,
+    ].join('\n');
+}
+
+function bundlerMissingModulesMessage(
+    missingModules: ModulePlaceholder[],
+    missingOptions: Partial<Record<'enterprise' | 'community', ModulePlaceholder[]>>,
+    installationReferenceUrl: string
+): string {
+    const packageName = ModuleRegistry.isEnterprise() || missingOptions.enterprise?.length ? 'enterprise' : 'community';
+    return [
+        'required modules are not registered. Check if you have registered the modules:',
+        '',
+        createRegistrySnippet(missingModules.map(formatMissingModuleName), packageName),
+        '',
+        `See ${installationReferenceUrl} for more details.`,
+    ].join('\n');
 }
 
 function formatMissingModuleName(module: ModulePlaceholder): string {
