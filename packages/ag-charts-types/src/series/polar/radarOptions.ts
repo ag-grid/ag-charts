@@ -6,7 +6,7 @@ import type {
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgChartLabelFitOptions, AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, Opacity } from '../../chart/types';
 import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
@@ -33,7 +33,7 @@ export interface AgRadarSeriesThemeableOptions<
     /** Configuration for the markers used in the series. */
     marker?: AgSeriesMarkerOptions<TDatum, AgRadialSeriesOptionsKeys<TDatum>, TContext>;
     /** Configuration for the labels shown on top of data points. */
-    label?: AgChartLabelOptions<TDatum, AgRadarSeriesLabelFormatterParams<TDatum>, TContext>;
+    label?: AgRadarSeriesLabelOptions<TDatum, TContext>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRadarSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Set to `true` to connect across missing data points. */
@@ -99,3 +99,6 @@ export interface AgRadarSeriesStyle extends StrokeOptions, LineDashOptions {
 
 export type AgRadarSeriesLabelFormatterParams<TDatum = DatumDefault> = AgRadialSeriesOptionsKeys<TDatum> &
     AgRadialSeriesOptionsNames;
+
+export interface AgRadarSeriesLabelOptions<TDatum, TContext = ContextDefault>
+    extends AgChartLabelOptions<TDatum, AgRadarSeriesLabelFormatterParams<TDatum>, TContext>, AgChartLabelFitOptions {}

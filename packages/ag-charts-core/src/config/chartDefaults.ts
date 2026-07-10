@@ -4,6 +4,7 @@ import {
     type AgBaseThemeableChartOptions,
     type AgChartAutoSizedBaseLabelOptions,
     type AgChartCaptionOptions,
+    type AgChartLabelFitOptions,
     type AgChartLabelOptions,
     type AgChartLabelStyleOptions,
     type AgChartLegendPlacement,
@@ -72,7 +73,6 @@ import {
     union,
     validate,
 } from '../state/validation';
-import { without } from '../utils/data/object';
 import { isValidNumberFormat } from '../utils/format/numberFormat';
 import {
     borderOptionsDef,
@@ -732,19 +732,6 @@ export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     ...markerStyleOptionsDefs,
 };
 
-export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
-    enabled: boolean,
-    formatter: callbackOf(textOrSegments),
-    format: numberFormatValidator,
-    itemStyler: callbackDefs<AgChartLabelStyleOptions>({
-        enabled: boolean,
-        ...labelBoxOptionsDef,
-        ...fontOptionsDef,
-    }),
-    ...labelBoxOptionsDef,
-    ...fontOptionsDef,
-};
-
 const labelCollideWithCategoryDef = {
     enabled: boolean,
     minSpacing: positiveNumber,
@@ -781,27 +768,37 @@ export const collisionAvoidanceOptionsDef = {
     },
 };
 
-// @ts-expect-error undocumented option
-seriesLabelOptionsDefs.collisionAvoidance = undocumented(collisionAvoidanceOptionsDef);
-// @ts-expect-error undocumented option
-seriesLabelOptionsDefs.orientation = undocumented(labelOrientationDef);
-// @ts-expect-error undocumented option
-seriesLabelOptionsDefs.maxWidth = undocumented(positiveNumber);
-// @ts-expect-error undocumented option
-seriesLabelOptionsDefs.maxHeight = undocumented(positiveNumber);
-// @ts-expect-error undocumented option
-seriesLabelOptionsDefs.wrapping = undocumented(textWrap);
-// @ts-expect-error undocumented option
-seriesLabelOptionsDefs.truncate = undocumented(boolean);
+export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
+    enabled: boolean,
+    formatter: callbackOf(textOrSegments),
+    format: numberFormatValidator,
+    itemStyler: callbackDefs<AgChartLabelStyleOptions>({
+        enabled: boolean,
+        ...labelBoxOptionsDef,
+        ...fontOptionsDef,
+    }),
+    ...labelBoxOptionsDef,
+    ...fontOptionsDef,
+};
+
+/** Label-fit defs shared by series that fit their labels to a placement region. */
+export const labelFitOptionsDefs: OptionsDefs<AgChartLabelFitOptions> = {
+    collisionAvoidance: collisionAvoidanceOptionsDef,
+    maxWidth: positiveNumber,
+    maxHeight: positiveNumber,
+    wrapping: textWrap,
+    truncate: boolean,
+};
 
 /** Label defs for point-like series (line, area) that expose a directional placement. */
 export const placedSeriesLabelOptionsDefs: OptionsDefs<AgLineSeriesLabelOptions<any, any>> = {
     ...seriesLabelOptionsDefs,
+    ...labelFitOptionsDefs,
     placement: labelCollisionPlacementDef,
 };
 
 export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOptions<any, any>> = {
-    ...without(seriesLabelOptionsDefs, ['truncate']),
+    ...seriesLabelOptionsDefs,
     lineHeight: positiveNumber,
     minimumFontSize: positiveNumber,
     wrapping: textWrap,

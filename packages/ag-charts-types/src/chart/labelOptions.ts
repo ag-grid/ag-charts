@@ -7,6 +7,7 @@ import type {
     SelectionState,
     Styler,
 } from './callbackOptions';
+import type { AgChartLabelCollisionAvoidanceOptions } from './collisionAvoidanceOptions';
 import type { ContextDefault, FontSize, OverflowStrategy, PixelSize, TextWrap } from './types';
 
 export interface AgChartLabelStyleOptions extends Toggleable, TextOptions, LabelBoxOptions {}
@@ -36,6 +37,35 @@ export interface AgChartLabelOptions<TDatum, TParams, TContext = ContextDefault>
     format?: string;
     /** Function used to style individual datum labels. */
     itemStyler?: Styler<AgChartLabelStylerParams<TDatum, TContext> & TParams, AgChartLabelStyleOptions>;
+}
+
+/**
+ * Controls how a series label is fitted to the region produced by its placement: bounding its size,
+ * wrapping or truncating overflow, and opting into collision avoidance. Only series that reserve a
+ * region for their labels honour these options.
+ */
+export interface AgChartLabelFitOptions {
+    /**
+     * Configuration controlling how the label is repositioned or dropped to avoid overlapping other
+     * labels, markers or series geometry. The `minSpacing` and `collideWith` sub-options only apply to
+     * point-based series (line, area, scatter, bubble and map markers/lines); elsewhere only whether
+     * avoidance is enabled is honoured.
+     */
+    collisionAvoidance?: AgChartLabelCollisionAvoidanceOptions;
+    /** Maximum width, in pixels, the label may occupy before it is wrapped or truncated to fit. */
+    maxWidth?: PixelSize;
+    /** Maximum height, in pixels, the label may occupy before it is wrapped or truncated to fit. */
+    maxHeight?: PixelSize;
+    /**
+     * Text wrapping strategy applied when the label is constrained by `maxWidth` or `maxHeight`.
+     * - `'always'` will always wrap text to fit within the bounds.
+     * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
+     * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the bounds, the text will be truncated.
+     * - `'never'` disables text wrapping.
+     */
+    wrapping?: TextWrap;
+    /** Whether to truncate the label with an ellipsis when it does not fit within its bounds. */
+    truncate?: boolean;
 }
 
 export interface AgChartLabelFormatterParams<TDatum, TContext = ContextDefault> extends AgChartCallbackParams<
