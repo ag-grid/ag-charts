@@ -902,11 +902,13 @@ describe('AreaSeries', () => {
             subpaths: ScenePropertyExpectation,
             // Stations whose crossing legitimately vanishes mid-animation (a point entering/leaving at
             // that edge) sample non-finite for part of the trajectory, so they must be `degenerate`.
-            degenerateTops: number[] = []
+            degenerateTops: number[] = [],
+            // Per-station overrides once the probed trajectory supports a stronger expectation than `any`.
+            tops: Record<string, ScenePropertyExpectation> = {}
         ): SceneNodeExpectation => {
-            const tops: Record<string, ScenePropertyExpectation> = {};
-            for (let i = 0; i <= 4; i++) tops[`top@${i}`] = degenerateTops.includes(i) ? 'degenerate' : 'any';
-            return { x, width, subpaths, y: 'any', height: 'any', ...tops };
+            const stationTops: Record<string, ScenePropertyExpectation> = {};
+            for (let i = 0; i <= 4; i++) stationTops[`top@${i}`] = degenerateTops.includes(i) ? 'degenerate' : 'any';
+            return { x, width, subpaths, y: 'any', height: 'any', ...stationTops, ...tops };
         };
 
         // "Update points" — every value jitters within the pinned domain. Both paths morph per-station
@@ -970,9 +972,19 @@ describe('AreaSeries', () => {
             expect(markerCount(after)).toBe(7);
             const stroke0 = strokeKey(before);
             expect(after.get(stroke0)!.width).toBeGreaterThan(before.get(stroke0)!.width);
+            // The new points widen the path from the right: the two stations nearest the anchored left
+            // edge settle cleanly, but the station nearest the growing edge overshoots past its final
+            // resting value before correcting, so it can only be proven to progress.
+            const addAfterTops = {
+                'top@0': 'constant' as const,
+                'top@1': increasingExtent,
+                'top@2': decreasingExtent,
+                'top@3': squeezing,
+                'top@4': decreasingExtent,
+            };
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': extentMorph('constant', increasingExtent, 'any'),
-                'series[0]/path[stroke]': extentMorph('constant', increasingExtent, 'constant'),
+                'series[0]/background/path[*]': extentMorph('constant', increasingExtent, 'any', [], addAfterTops),
+                'series[0]/path[stroke]': extentMorph('constant', increasingExtent, 'constant', [], addAfterTops),
                 ...markersFadeIn,
             });
             expectMarkerStartsCollapsed(trajectory, '5');
@@ -1005,9 +1017,31 @@ describe('AreaSeries', () => {
             expect(markerCount(after)).toBe(7);
             const stroke0 = strokeKey(before);
             expect(after.get(stroke0)!.x).toBeLessThan(before.get(stroke0)!.x);
+            // The prepended points widen the path from the left: the station nearest the anchored right
+            // edge legitimately vanishes as the new leading segment sweeps past it (degenerate), and the
+            // station nearest the growing left edge overshoots past its final resting value, so it can
+            // only be proven to progress.
+            const addBeforeTops = {
+                'top@0': decreasingExtent,
+                'top@1': squeezing,
+                'top@2': decreasingExtent,
+                'top@3': increasingExtent,
+            };
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': extentMorph(decreasingExtent, increasingExtent, 'any', [4]),
-                'series[0]/path[stroke]': extentMorph(decreasingExtent, increasingExtent, 'constant', [4]),
+                'series[0]/background/path[*]': extentMorph(
+                    decreasingExtent,
+                    increasingExtent,
+                    'any',
+                    [4],
+                    addBeforeTops
+                ),
+                'series[0]/path[stroke]': extentMorph(
+                    decreasingExtent,
+                    increasingExtent,
+                    'constant',
+                    [4],
+                    addBeforeTops
+                ),
                 ...markersFadeIn,
             });
             expectMarkerStartsCollapsed(trajectory, '1');
@@ -1048,9 +1082,9 @@ describe('AreaSeries', () => {
                     subpaths: 'any',
                     'top@0': 'constant',
                     'top@4': 'constant',
-                    'top@1': 'any',
-                    'top@2': 'any',
-                    'top@3': 'any',
+                    'top@1': decreasingExtent,
+                    'top@2': increasingExtent,
+                    'top@3': increasingExtent,
                 },
                 'series[0]/path[stroke]': {
                     x: { during: 'update', expect: 'constant' },
@@ -1060,9 +1094,9 @@ describe('AreaSeries', () => {
                     height: 'any',
                     'top@0': 'constant',
                     'top@4': 'constant',
-                    'top@1': 'any',
-                    'top@2': 'any',
-                    'top@3': 'any',
+                    'top@1': decreasingExtent,
+                    'top@2': increasingExtent,
+                    'top@3': increasingExtent,
                 },
                 ...markersFadeIn,
             });
@@ -1093,9 +1127,30 @@ describe('AreaSeries', () => {
             const stroke0 = strokeKey(before);
             expect(after.get(stroke0)!.x).toBeGreaterThan(before.get(stroke0)!.x);
             expect(after.get(stroke0)!.width).toBeLessThan(before.get(stroke0)!.width);
+            // The retained points keep their pixel positions, so every interior station morphs cleanly
+            // to where the shrunk path now crosses it.
+            const removeFirstTops = {
+                'top@0': decreasingExtent,
+                'top@1': increasingExtent,
+                'top@2': decreasingExtent,
+                'top@3': increasingExtent,
+                'top@4': 'constant' as const,
+            };
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': extentMorph(increasingExtent, decreasingExtent, 'any'),
-                'series[0]/path[stroke]': extentMorph(increasingExtent, decreasingExtent, 'constant'),
+                'series[0]/background/path[*]': extentMorph(
+                    increasingExtent,
+                    decreasingExtent,
+                    'any',
+                    [],
+                    removeFirstTops
+                ),
+                'series[0]/path[stroke]': extentMorph(
+                    increasingExtent,
+                    decreasingExtent,
+                    'constant',
+                    [],
+                    removeFirstTops
+                ),
                 ...markersFadeIn,
             });
             expectMarkerStartsCollapsed(trajectory, '2');
@@ -1125,9 +1180,18 @@ describe('AreaSeries', () => {
             expect(markerCount(after)).toBe(4);
             const stroke0 = strokeKey(before);
             expect(after.get(stroke0)!.width).toBeLessThan(before.get(stroke0)!.width);
+            // The retained points keep their pixel positions, so every interior station morphs cleanly
+            // to where the shrunk path now crosses it.
+            const removeLastTops = {
+                'top@0': 'constant' as const,
+                'top@1': increasingExtent,
+                'top@2': decreasingExtent,
+                'top@3': increasingExtent,
+                'top@4': decreasingExtent,
+            };
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': extentMorph('constant', decreasingExtent, 'any'),
-                'series[0]/path[stroke]': extentMorph('constant', decreasingExtent, 'constant'),
+                'series[0]/background/path[*]': extentMorph('constant', decreasingExtent, 'any', [], removeLastTops),
+                'series[0]/path[stroke]': extentMorph('constant', decreasingExtent, 'constant', [], removeLastTops),
                 ...markersFadeIn,
             });
             expectMarkerStartsCollapsed(trajectory, '1');
@@ -1321,9 +1385,18 @@ describe('AreaSeries', () => {
                 expect(markerX(after, n), `marker ${n} present after`).toBeDefined();
                 expect(Math.abs(markerX(after, n)! - markerX(before, n)!), `marker ${n} held`).toBeLessThanOrEqual(1);
             }
+            // None of the five stations fall on the woven-in point, and the retained points don't move,
+            // so every station is untouched by the insertion.
+            const addMiddleTops = {
+                'top@0': 'constant' as const,
+                'top@1': 'constant' as const,
+                'top@2': 'constant' as const,
+                'top@3': 'constant' as const,
+                'top@4': 'constant' as const,
+            };
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': extentMorph('constant', 'constant', 'any'),
-                'series[0]/path[stroke]': extentMorph('constant', 'constant', 'constant'),
+                'series[0]/background/path[*]': extentMorph('constant', 'constant', 'any', [], addMiddleTops),
+                'series[0]/path[stroke]': extentMorph('constant', 'constant', 'constant', [], addMiddleTops),
                 ...markersFadeIn,
             });
             expectMarkerStartsCollapsed(trajectory, '5');
@@ -1367,9 +1440,18 @@ describe('AreaSeries', () => {
                     `marker ${kept} held`
                 ).toBeLessThanOrEqual(1);
             }
+            // The retained endpoints anchor stations 0 and 4; the three interior stations all morph
+            // toward the surviving neighbours in the same direction as the removed points drop out.
+            const removeHalfTops = {
+                'top@0': 'constant' as const,
+                'top@1': increasingExtent,
+                'top@2': increasingExtent,
+                'top@3': increasingExtent,
+                'top@4': 'constant' as const,
+            };
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': extentMorph('constant', 'constant', 'any'),
-                'series[0]/path[stroke]': extentMorph('constant', 'constant', 'constant'),
+                'series[0]/background/path[*]': extentMorph('constant', 'constant', 'any', [], removeHalfTops),
+                'series[0]/path[stroke]': extentMorph('constant', 'constant', 'constant', [], removeHalfTops),
                 ...markersFadeIn,
             });
         });
@@ -1411,9 +1493,18 @@ describe('AreaSeries', () => {
                     `marker ${kept} held`
                 ).toBeLessThanOrEqual(1);
             }
+            // Stations 0, 3 and 4 land exactly on retained points that don't move; stations 1 and 2 sit
+            // between originals and morph toward the woven-in points.
+            const addDoubleTops = {
+                'top@0': 'constant' as const,
+                'top@1': decreasingExtent,
+                'top@2': decreasingExtent,
+                'top@3': 'constant' as const,
+                'top@4': 'constant' as const,
+            };
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': extentMorph('constant', 'constant', 'any'),
-                'series[0]/path[stroke]': extentMorph('constant', 'constant', 'constant'),
+                'series[0]/background/path[*]': extentMorph('constant', 'constant', 'any', [], addDoubleTops),
+                'series[0]/path[stroke]': extentMorph('constant', 'constant', 'constant', [], addDoubleTops),
                 ...markersFadeIn,
             });
             expectMarkerStartsCollapsed(trajectory, '1');
