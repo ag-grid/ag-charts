@@ -65,15 +65,15 @@ What to test:
 What to test:
 
 - Collapse/expand operations do not change the selection state, and vice-versa.
-- The "Get Selection" button logs the nodes that are visibly selected.
+- The "Get Selection" button logs the nodes that are selected, whether shown or hidden (collapsed).
 - When something is selected
     - Selected cards have a slightly thicker stroke-width.
     - Unselected cards are dimmed.
 - Mouse:
     - Clicking on Cards updates selection.
     - Clicking on Expander collapses/expands tree.
-    - Dragging with containment "all" selects Cards that intersect with the drag-rect.
-    - Dragging with containment "any" selects Cards that are contained within the drag-rect.
+    - Dragging with containment "any" selects Cards that intersect with the drag-rect.
+    - Dragging with containment "all" selects Cards that are contained within the drag-rect.
 - Keyboard:
     - ArrowLeft: Navigate to sibling on the left.
     - ArrowRight: Navigate to sibling on the right.
