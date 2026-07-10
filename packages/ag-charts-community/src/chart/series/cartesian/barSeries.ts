@@ -454,6 +454,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
         this.largestDataInterval = processedData.reduced?.largestKeyInterval;
 
+        this.updateDatumValidKeys();
+
         this.animationState.transition('updateData');
     }
 
@@ -694,7 +696,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     private computeXPosition(ctx: BarSeriesNodeDatumContext, datumIndex: number): number {
         const x = ctx.xScale.convert(ctx.xValues[datumIndex]);
         if (!Number.isFinite(x)) return Number.NaN;
-        return x + ctx.groupOffset + ctx.barOffset + this.getDatumOffset(datumIndex);
+        return x + ctx.groupOffset + ctx.barOffset + this.getDatumOffset(ctx.xValues[datumIndex]);
     }
 
     private prepareNodeDatumState(

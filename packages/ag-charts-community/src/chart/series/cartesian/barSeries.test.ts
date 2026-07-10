@@ -20,6 +20,7 @@ import {
     STRIPPED_NUMBER_AXES,
     STRIPPED_TIME_AXES,
     expectPixelIdenticalAcrossMagnitude,
+    expectPixelIdenticalAcrossUpdate,
     isoEpochPair,
     magnitudePair,
     scaleToBigIntFinite,
@@ -3231,6 +3232,114 @@ describe('BarSeries', () => {
 
             chart = AgCharts.create(options);
             await compare();
+        });
+
+        it.each(directions)('per-series data arrays %s', async (direction) => {
+            const options: AgCartesianChartOptions = {
+                series: [
+                    {
+                        type: 'bar',
+                        direction,
+                        xKey: 'quarter',
+                        yKey: 'value',
+                        data: [
+                            { quarter: "Q1'24", value: 5100 },
+                            { quarter: "Q2'24", value: 5400 },
+                            { quarter: "Q4'24", value: 5700 },
+                        ],
+                    },
+                    {
+                        type: 'bar',
+                        direction,
+                        xKey: 'quarter',
+                        yKey: 'value',
+                        data: [
+                            { quarter: "Q2'24", value: 3400 },
+                            { quarter: "Q3'24", value: 3800 },
+                        ],
+                    },
+                    {
+                        type: 'bar',
+                        direction,
+                        xKey: 'quarter',
+                        yKey: 'value',
+                        data: [
+                            { quarter: "Q1'24", value: 3500 },
+                            { quarter: "Q3'24", value: 2500 },
+                            { quarter: "Q4'24", value: 3100 },
+                        ],
+                    },
+                ],
+                axes: {
+                    [direction === 'horizontal' ? 'y' : 'x']: {
+                        type: 'category',
+                        skipNullBars: true,
+                    },
+                },
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('per-series data arrays render identically to equivalent shared-data nulls', async () => {
+            const axes: AgCartesianChartOptions['axes'] = {
+                x: { type: 'category', skipNullBars: true },
+                y: { type: 'number' },
+            };
+            const perSeriesData: AgCartesianChartOptions = {
+                legend: { enabled: false },
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'quarter',
+                        yKey: 'value',
+                        data: [
+                            { quarter: "Q1'24", value: 5100 },
+                            { quarter: "Q2'24", value: 5400 },
+                            { quarter: "Q3'24", value: 4900 },
+                            { quarter: "Q4'24", value: 5700 },
+                        ],
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'quarter',
+                        yKey: 'value',
+                        data: [
+                            { quarter: "Q1'24", value: 3500 },
+                            { quarter: "Q3'24", value: 2500 },
+                        ],
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'quarter',
+                        yKey: 'value',
+                        data: [
+                            { quarter: "Q2'24", value: 3400 },
+                            { quarter: "Q4'24", value: 3100 },
+                        ],
+                    },
+                ],
+                axes,
+            };
+            const sharedDataNulls: AgCartesianChartOptions = {
+                legend: { enabled: false },
+                data: [
+                    { quarter: "Q1'24", a: 5100, b: 3500, c: null },
+                    { quarter: "Q2'24", a: 5400, b: null, c: 3400 },
+                    { quarter: "Q3'24", a: 4900, b: 2500, c: null },
+                    { quarter: "Q4'24", a: 5700, b: null, c: 3100 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'quarter', yKey: 'a' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'b' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'c' },
+                ],
+                axes,
+            };
+
+            await expectPixelIdenticalAcrossUpdate(ctx, createChart, perSeriesData, sharedDataNulls);
         });
 
         it.each(directions)('stacked %s', async (direction) => {
