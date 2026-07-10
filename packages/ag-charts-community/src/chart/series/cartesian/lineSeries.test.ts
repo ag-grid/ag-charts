@@ -1140,8 +1140,18 @@ describe('LineSeries', () => {
             expect(markerCount(before)).toBe(7);
             expect(markerCount(after)).toBe(8);
             const key = pathKey(before);
+            // The narrower bands pull the left edge in a touch (decreasingExtent) while the new band
+            // widens the covered extent past its start before settling (squeezing); stations 1, 2, 4
+            // ride the rescale monotonically to their new crossings, and station 3 overshoots past its
+            // settled height before recovering (squeezing) — station 0 sits on the unmoved first band.
             expectSceneTrajectory(trajectory, {
-                [key]: 'any',
+                [key]: extentMorph(decreasingExtent, squeezing, 'constant', [], {
+                    'top@0': 'constant',
+                    'top@1': increasingExtent,
+                    'top@2': increasingExtent,
+                    'top@3': squeezing,
+                    'top@4': increasingExtent,
+                }),
                 ...markersReflow,
                 ...axisReflowSpec('bottom', { shift: 'left' }),
             });
@@ -1155,8 +1165,19 @@ describe('LineSeries', () => {
             );
             expect(markerCount(after)).toBe(8);
             const key = pathKey(before);
+            // The prepended band pushes the covered extent right before the narrower bands pull it back
+            // in past its start (squeezing on both x and width); the leading stations resample the
+            // reshaped left side (station 0 rides the rescale down, station 1 dips then overshoots past
+            // its settled height, station 2 eases down cleanly, station 3 eases up cleanly), while the
+            // untouched trailing station holds.
             expectSceneTrajectory(trajectory, {
-                [key]: 'any',
+                [key]: extentMorph(squeezing, squeezing, 'constant', [], {
+                    'top@0': decreasingExtent,
+                    'top@1': squeezing,
+                    'top@2': decreasingExtent,
+                    'top@3': increasingExtent,
+                    'top@4': 'constant',
+                }),
                 ...markersReflow,
                 ...axisReflowSpec('bottom', { shift: 'right' }),
             });
@@ -1178,8 +1199,19 @@ describe('LineSeries', () => {
             );
             expect(markerCount(before)).toBe(7);
             expect(markerCount(after)).toBe(3);
+            // The old-to-new bands share a single stroke path throughout — no re-creation, so the swap
+            // genuinely tweens rather than snapping: the extent expands (x) while shrinking (width) as
+            // the seven bands compress into three, station 0 rides that rescale down cleanly, station 4
+            // eases up cleanly, and the interior stations (which pick up wildly different data on the
+            // new set) overshoot past their settled heights before recovering.
             expectSceneTrajectory(trajectory, {
-                'series[0]/path[*]': 'any',
+                'series[0]/path[*]': extentMorph(increasingExtent, decreasingExtent, 'constant', [], {
+                    'top@0': decreasingExtent,
+                    'top@1': squeezing,
+                    'top@2': squeezing,
+                    'top@3': squeezing,
+                    'top@4': increasingExtent,
+                }),
                 ...markersReflow,
                 'axis[bottom]/text[*]': {
                     opacity: { during: ['remove', 'update', 'add'], expect: 'bounded' },
@@ -1216,6 +1248,25 @@ describe('LineSeries', () => {
             expect([...before.keys()]).not.toContain('series[0]/marker[w7]');
             expect([...after.keys()]).toContain('series[0]/marker[w7]');
             expect([...after.keys()]).toContain('series[0]/marker[w8]');
+            // The narrower bands pull the covered extent in from the left (decreasingExtent) while
+            // widening past it (increasingExtent) as the two new bands claim their share; every interior
+            // station rides that rescale up cleanly to its new crossing, and the untouched flanking
+            // stations (on the unmoved first and last bands) hold.
+            expectSceneTrajectory(trajectory, {
+                [pathKey(before)]: extentMorph(decreasingExtent, increasingExtent, 'constant', [], {
+                    'top@0': 'constant',
+                    'top@1': increasingExtent,
+                    'top@2': increasingExtent,
+                    'top@3': increasingExtent,
+                    'top@4': 'constant',
+                }),
+                ...markersReflow,
+                // Left of the gap the labels are unmoved; from the gap rightward every label slides to make
+                // room for the two insertions — a bidirectional spread the single-direction axisReflowSpec
+                // cannot express, so the per-frame motion is left free (the landing is asserted below).
+                'axis[bottom]/text[*]': 'any',
+                'axis[bottom]/line[*]': 'any',
+            });
 
             // The inserted markers land in order between w6 and w9...
             expect(markerX(after, 'w6')).toBeLessThan(markerX(after, 'w7')!);
@@ -1238,12 +1289,12 @@ describe('LineSeries', () => {
             expect(after.get('series[0]/marker[w7]')!.opacity).toBeGreaterThan(0.99);
         });
 
-        // "Reorder" — the category order is scrambled; the same markers stay (count holds) but re-map to
-        // reshuffled bands, so positions move while the path reshapes and markers re-fade.
         // "Reorder" — the category order is scrambled. The markers snap to their new band positions (line
         // reorder does not tween marker position), so the animation coverage here is that the reshuffle
         // actually LANDED: the settled left-to-right order matches the reordered data and w6 (moved from
-        // last to first) really shifted left. Without this the CASE would pass on a no-op reorder.
+        // last to first) really shifted left. Without this the CASE would pass on a no-op reorder. A line
+        // always draws its stroke in category-axis order, so scrambling the input array cannot change the
+        // drawn shape at all — the path is pinned `constant`, and genuinely holds through every frame.
         it('category reorder: markers re-map to the reshuffled bands', async () => {
             const reordered = [WEEKS[3], WEEKS[0], WEEKS[5], WEEKS[1], WEEKS[6], WEEKS[2], WEEKS[4]];
             const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS), () =>
@@ -1255,9 +1306,7 @@ describe('LineSeries', () => {
                 expect(markerX(after, order[i - 1])!).toBeLessThan(markerX(after, order[i])!);
             }
             expect(markerX(after, 'w6')!).toBeLessThan(markerX(before, 'w6')!);
-            // Markers snap rather than tween: each holds position and opacity constant across the capture
-            // (default-constant), while only the path reshapes.
-            expectSceneTrajectory(trajectory, { [pathKey(before)]: 'any' });
+            expectSceneTrajectory(trajectory, { [pathKey(before)]: 'constant' });
         });
 
         // Integrated mode initial load: the line must still reveal, scaling its markers in from zero size.
