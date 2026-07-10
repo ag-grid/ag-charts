@@ -994,11 +994,14 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         const canIncrementallyUpdate =
             existingNodeData != null && this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
-        const labelPlacement = toArray(label.placement)[0];
-        const labelFit =
-            labelPlacement === 'inside'
-                ? boundLabelFit(resolveLabelFit(label, true), insideMarkerContainer(marker.size))
-                : resolveLabelFit(label, label.collisionAvoidance.avoid);
+        const placements = toArray(label.placement);
+        // Only fit to the marker when `inside` is the sole placement; a mixed fallback list must keep
+        // full-size text so a directional fallback isn't constrained to the marker.
+        const insideOnly = placements.length > 0 && placements.every((placement) => placement === 'inside');
+        const markerSize = marker.enabled ? marker.size : 0;
+        const labelFit = insideOnly
+            ? boundLabelFit(resolveLabelFit(label, true), insideMarkerContainer(markerSize))
+            : resolveLabelFit(label, label.collisionAvoidance.avoid);
 
         return {
             // Axes (from template method parameters)

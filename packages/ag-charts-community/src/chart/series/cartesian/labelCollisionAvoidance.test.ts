@@ -235,7 +235,11 @@ describe('label collision avoidance', () => {
             return series.placedLabelData;
         };
 
-        const render = async (type: 'line' | 'area', markerSize: number) => {
+        const render = async (
+            type: 'line' | 'area',
+            opts: { markerSize?: number; markerEnabled?: boolean; placement?: string | string[] } = {}
+        ) => {
+            const { markerSize = 40, markerEnabled = true, placement = 'inside' } = opts;
             const options: any = {
                 data: sparseData,
                 legend: { enabled: false },
@@ -245,10 +249,10 @@ describe('label collision avoidance', () => {
                         type,
                         xKey: 'x',
                         yKey: 'y',
-                        marker: { enabled: true, size: markerSize },
+                        marker: { enabled: markerEnabled, size: markerSize },
                         label: {
                             enabled: true,
-                            placement: 'inside',
+                            placement,
                             formatter: ({ value }: any) => String(value),
                         },
                     },
@@ -262,7 +266,7 @@ describe('label collision avoidance', () => {
 
         for (const type of ['line', 'area'] as const) {
             it(`${type}: centres each label on its point when it fits the marker`, async () => {
-                const placed = await render(type, 40);
+                const placed = await render(type, { markerSize: 40 });
                 expect(placed.length).toBe(sparseData.length);
                 for (const label of placed) {
                     expect(label.placement).toBe('inside');
@@ -272,8 +276,20 @@ describe('label collision avoidance', () => {
             });
 
             it(`${type}: hides labels whose text overflows a small marker`, async () => {
-                const placed = await render(type, 4);
+                const placed = await render(type, { markerSize: 4 });
                 expect(placed.length).toBe(0);
+            });
+
+            it(`${type}: hides inside labels when the marker is disabled`, async () => {
+                const placed = await render(type, { markerEnabled: false, markerSize: 40 });
+                expect(placed.length).toBe(0);
+            });
+
+            it(`${type}: a mixed placement list keeps full text for the directional fallback`, async () => {
+                // A small marker hides a pure `inside` label, but mixing `inside` with a directional
+                // fallback must not constrain the text to the marker, so the labels still render.
+                const placed = await render(type, { markerSize: 4, placement: ['inside', 'top'] });
+                expect(placed.length).toBe(sparseData.length);
             });
         }
     });

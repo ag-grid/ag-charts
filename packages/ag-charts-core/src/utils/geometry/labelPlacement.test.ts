@@ -279,6 +279,32 @@ describe('placeLabels', () => {
         expect(placed.y).toBeCloseTo(100 - 8 / 2 - (1 - 0.5) * 20);
     });
 
+    it('lets an inside avoiding label sit over its own marker but not another', () => {
+        const own: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 20 },
+            label: { text: 'I', width: 16, height: 10 },
+            anchor: { x: 0.5, y: 0.5 },
+            placement: 'inside',
+            placements: ['inside'],
+            gap: 0,
+            avoid: true,
+        };
+        // Its own marker is the only obstacle: the centred inside label ignores it and is placed.
+        const alone = placeLabels(new Map([['s', [own]]]), bounds, 5).get('s')!;
+        expect(alone.some((l) => l.datum === own)).toBe(true);
+
+        // A second marker overlapping the centred box is a real obstacle; with no room to move, the
+        // inside label drops rather than overlapping a marker that isn't its own.
+        const neighbour: PointLabelDatum = {
+            point: { x: 108, y: 100, size: 20 },
+            label: { text: '', width: 0, height: 0 },
+            anchor: undefined,
+            placement: undefined,
+        };
+        const withNeighbour = placeLabels(new Map([['s', [own, neighbour]]]), bounds, 5).get('s')!;
+        expect(withNeighbour.some((l) => l.datum === own)).toBe(false);
+    });
+
     it('drops an avoiding label when no candidate placement fits', () => {
         // A large marker covers every candidate position; the avoiding label has nowhere to go.
         const blocker: PointLabelDatum = {
