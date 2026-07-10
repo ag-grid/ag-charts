@@ -75,6 +75,12 @@ export interface PointLabelDatum {
     readonly point: Readonly<SizedPoint>;
     readonly label: MeasuredLabel;
     readonly anchor: Point | undefined;
+    /**
+     * Shifts an `inside` label off the marker centre by this fraction of the marker diameter (x, y
+     * down), so the label sits at the largest rectangle within a non-centred shape. Applied only for
+     * the `inside` placement, leaving directional placements unaffected.
+     */
+    readonly insideOffset?: Readonly<Point>;
     readonly placement: LabelPlacement | undefined;
     /**
      * Ordered fallback placements, tried in turn until one fits; the label is dropped if none do.
@@ -678,6 +684,10 @@ function positionLabelBox(
     if (anchor) {
         x -= (anchor.x - 0.5) * point.size;
         y -= (anchor.y - 0.5) * point.size;
+    }
+    if (placement === 'inside' && d.insideOffset) {
+        x += d.insideOffset.x * point.size;
+        y += d.insideOffset.y * point.size;
     }
     out.x = x;
     out.y = y;

@@ -64,7 +64,7 @@ import {
     valueProperty,
 } from '../../data/processors';
 import { expandLabelPadding } from '../../label';
-import { boundLabelFit, insideMarkerContainer } from '../../labelUtil';
+import { boundLabelFit, insideMarkerContainer, insideMarkerOffset } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -1000,8 +1000,9 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         const insideOnly = placements.length > 0 && placements.every((placement) => placement === 'inside');
         const markerSize = marker.enabled ? marker.size : 0;
         const labelFit = insideOnly
-            ? boundLabelFit(resolveLabelFit(label, true), insideMarkerContainer(markerSize))
+            ? boundLabelFit(resolveLabelFit(label, true), insideMarkerContainer(markerSize, marker.shape))
             : resolveLabelFit(label, label.collisionAvoidance.avoid);
+        const labelInsideOffset = insideOnly ? insideMarkerOffset(marker.shape) : undefined;
 
         return {
             // Axes (from template method parameters)
@@ -1040,6 +1041,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             labelMinSpacing: label.collisionAvoidance.minSpacing,
             labelCollideWith: label.collisionAvoidance.resolveCollideWith(),
             labelFit,
+            labelInsideOffset,
             normalizedTo,
             canIncrementallyUpdate,
             animationEnabled: !this.ctx.animationManager.isSkipped(),
@@ -1184,6 +1186,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 point: { x: scratch.x, y: scratch.y, size: ctx.markerSize },
                 label: this.measureLabel(ctx, labelText),
                 anchor: undefined,
+                insideOffset: ctx.labelInsideOffset,
                 placement: 'top',
                 placements: ctx.labelPlacements,
                 // Markerless points still nudge their label clear of the area with a small fixed gap.

@@ -12,6 +12,7 @@ import type {
 import { type NormalisedChartLabelStyleOptions, fitLabelText, mergeDefaults } from 'ag-charts-core';
 import type {
     AgChartLabelStylerParams,
+    AgMarkerShape,
     CssColor,
     HighlightState,
     NormalisedCallbackParams,
@@ -24,6 +25,7 @@ import type { ChartRegistry } from '../module/moduleContext';
 import type { Text } from '../scene/shape/text';
 import { isRotatable } from '../scene/transformable';
 import type { Label } from './label';
+import { markerLabelRect } from './marker/markerLabelRect';
 import { getItemId } from './series/pickManager';
 import type { DatumIndex, SeriesNodeDatum } from './series/seriesTypes';
 
@@ -100,13 +102,19 @@ export function boundLabelFit(
 }
 
 /**
- * Container that keeps an `inside` label within a marker of diameter `markerSize`: the largest
- * axis-aligned square inscribed in the marker's circle, whose corners touch the circle. Conservative
- * for non-circular marker shapes, so text stays within the marker regardless of shape.
+ * Container that keeps an `inside` label within a marker of diameter `markerSize`, sized to the largest
+ * rectangle that fits the marker's shape (analysed once per shape by {@link markerLabelRect}). Pair with
+ * {@link insideMarkerOffset} to position the label at that rectangle, which need not be marker-centred.
  */
-export function insideMarkerContainer(markerSize: number): { width: number; height: number } {
-    const side = markerSize / Math.SQRT2;
-    return { width: side, height: side };
+export function insideMarkerContainer(markerSize: number, shape?: AgMarkerShape): { width: number; height: number } {
+    const rect = markerLabelRect(shape);
+    return { width: markerSize * rect.width, height: markerSize * rect.height };
+}
+
+/** The inside-label rectangle's centre offset from the marker centre, as a fraction of the diameter. */
+export function insideMarkerOffset(shape: AgMarkerShape | undefined): Point {
+    const { cx, cy } = markerLabelRect(shape);
+    return { x: cx, y: cy };
 }
 
 export function getLabelStyles<TParams>(

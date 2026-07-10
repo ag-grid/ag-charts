@@ -55,7 +55,7 @@ import {
     valueProperty,
 } from '../../data/processors';
 import { expandLabelPadding } from '../../label';
-import { boundLabelFit, insideMarkerContainer } from '../../labelUtil';
+import { boundLabelFit, insideMarkerContainer, insideMarkerOffset } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -482,8 +482,9 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         const insideOnly = placements.length > 0 && placements.every((placement) => placement === 'inside');
         const markerSize = marker.enabled ? marker.size : 0;
         const labelFit = insideOnly
-            ? boundLabelFit(resolveLabelFit(label, true), insideMarkerContainer(markerSize))
+            ? boundLabelFit(resolveLabelFit(label, true), insideMarkerContainer(markerSize, marker.shape))
             : resolveLabelFit(label, collisionAvoidance.avoid);
+        const labelInsideOffset = insideOnly ? insideMarkerOffset(marker.shape) : undefined;
 
         return {
             xAxis,
@@ -514,6 +515,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             labelMinSpacing: collisionAvoidance.minSpacing,
             labelCollideWith: collisionAvoidance.resolveCollideWith(),
             labelFit,
+            labelInsideOffset,
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,
             dataAggregationFilter,
@@ -615,6 +617,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                     labelText,
                     label,
                     anchor: undefined,
+                    insideOffset: ctx.labelInsideOffset,
                     placement: 'top',
                     placements: ctx.labelPlacements,
                     gap,

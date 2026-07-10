@@ -100,6 +100,29 @@ describe('insideMarkerContainer', () => {
         expect(Math.hypot(width, height)).toBeCloseTo(20);
     });
 
+    it('scales the analysed shape rectangle by the marker diameter', () => {
+        const small = insideMarkerContainer(50, 'square');
+        const large = insideMarkerContainer(100, 'square');
+        expect(large.width).toBeCloseTo(small.width * 2);
+        expect(large.height).toBeCloseTo(small.height * 2);
+        // A square marker uses almost its whole box.
+        expect(large.width).toBeGreaterThan(90);
+    });
+
+    it('gives a heart a wide, short box and a diamond a smaller near-square one', () => {
+        const heart = insideMarkerContainer(100, 'heart');
+        const diamond = insideMarkerContainer(100, 'diamond');
+        expect(heart.width).toBeGreaterThan(heart.height * 2);
+        expect(diamond.width).toBeGreaterThan(40);
+        expect(diamond.width).toBeLessThan(60);
+    });
+
+    it('falls back to the inscribed square for an unanalysable (empty) custom shape', () => {
+        const side = 20 / Math.SQRT2;
+        expect(insideMarkerContainer(20, () => {}).width).toBeCloseTo(side);
+        expect(insideMarkerContainer(20).width).toBeCloseTo(side);
+    });
+
     it('collapses to an empty container for a markerless point', () => {
         expect(insideMarkerContainer(0)).toEqual({ width: 0, height: 0 });
     });
