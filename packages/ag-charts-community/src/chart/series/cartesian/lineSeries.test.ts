@@ -43,6 +43,7 @@ import {
     type SceneGeometrySample,
     type SceneNodeExpectation,
     type ScenePropertyExpectation,
+    type TrajectoryExpectation,
     axisReflowSpec,
     cartesianChartAssertions,
     createChart,
@@ -506,6 +507,31 @@ describe('LineSeries', () => {
             'top@4': 'any',
         } as const;
 
+        // Add/remove cases pin the path to the x-extent motion it settles on — the left edge (x) and total
+        // width step a known direction — and leave the interior (per-station tops and the vertical bbox
+        // derived from them) free unless probing supports a stronger per-station expectation.
+        // `increasingExtent`/`decreasingExtent` bound a monotonic edge to its endpoints and force a real
+        // tween (never a snap); `squeezing` is for an edge that overshoots past its settled value or dips
+        // and recovers (interior stations resampling a reshaped middle, or a combined add+remove batch) so
+        // it cannot be endpoint-bounded, only proven to move.
+        const increasingExtent: readonly TrajectoryExpectation[] = ['increases', 'progresses', 'bounded'];
+        const decreasingExtent: readonly TrajectoryExpectation[] = ['decreases', 'progresses', 'bounded'];
+        const squeezing: readonly TrajectoryExpectation[] = ['progresses'];
+        const extentMorph = (
+            x: ScenePropertyExpectation,
+            width: ScenePropertyExpectation,
+            subpaths: ScenePropertyExpectation,
+            // Stations whose crossing legitimately vanishes mid-animation (a point entering/leaving at
+            // that edge) sample non-finite for part of the trajectory, so they must be `degenerate`.
+            degenerateTops: number[] = [],
+            // Per-station overrides once the probed trajectory supports a stronger expectation than `any`.
+            tops: Record<string, ScenePropertyExpectation> = {}
+        ): SceneNodeExpectation => {
+            const stationTops: Record<string, ScenePropertyExpectation> = {};
+            for (let i = 0; i <= 4; i++) stationTops[`top@${i}`] = degenerateTops.includes(i) ? 'degenerate' : 'any';
+            return { x, width, subpaths, y: 'any', height: 'any', ...stationTops, ...tops };
+        };
+
         // "Add points after" — new points extend the path rightward within the pinned x-domain: the left
         // edge (x=0) is anchored so bbox x holds while width grows, and the two new markers fade in.
         it('add points: path extends and new markers fade in', async () => {
@@ -572,16 +598,20 @@ describe('LineSeries', () => {
             expect(markerCount(before)).toBe(5);
             expect(markerCount(after)).toBe(7);
             const key = pathKey(before);
-            // The extent grew leftward: the left edge stepped out and the width grew (settled endpoints),
-            // and the left edge slid there monotonically. Per-station tops go transiently non-finite as the
-            // path reshapes, so the path node is left 'any' and its edge motion asserted via the scalars.
-            expect(after.get(key)!.x).toBeLessThan(before.get(key)!.x);
-            expect(after.get(key)!.width).toBeGreaterThan(before.get(key)!.width);
-            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersFadeIn });
-            expectMonotonic(
-                trajectory.map((f) => f.get(key)!.x),
-                'decreasing'
-            );
+            // The prepended points widen the path from the left: the station nearest the anchored right
+            // edge legitimately vanishes as the new leading segment sweeps past it (degenerate), and the
+            // station nearest the growing left edge overshoots past its final resting value, so it can
+            // only be proven to progress.
+            const addBeforeTops = {
+                'top@0': decreasingExtent,
+                'top@1': squeezing,
+                'top@2': decreasingExtent,
+                'top@3': increasingExtent,
+            };
+            expectSceneTrajectory(trajectory, {
+                [key]: extentMorph(decreasingExtent, increasingExtent, 'constant', [4], addBeforeTops),
+                ...markersFadeIn,
+            });
             expectMarkerStartsCollapsed(trajectory, '1');
         });
 
@@ -693,15 +723,19 @@ describe('LineSeries', () => {
             expect(markerCount(before)).toBe(5);
             expect(markerCount(after)).toBe(4);
             const key = pathKey(before);
-            // The left edge stepped in and the width shrank (settled endpoints), and the edge slid there
-            // monotonically. The reshaping tops go transiently non-finite, so the path node is left 'any'.
-            expect(after.get(key)!.x).toBeGreaterThan(before.get(key)!.x);
-            expect(after.get(key)!.width).toBeLessThan(before.get(key)!.width);
-            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersFadeIn });
-            expectMonotonic(
-                trajectory.map((f) => f.get(key)!.x),
-                'increasing'
-            );
+            // The retained points keep their pixel positions, so every interior station morphs cleanly to
+            // where the shrunk path now crosses it.
+            const removeFirstTops = {
+                'top@0': decreasingExtent,
+                'top@1': increasingExtent,
+                'top@2': decreasingExtent,
+                'top@3': increasingExtent,
+                'top@4': 'constant' as const,
+            };
+            expectSceneTrajectory(trajectory, {
+                [key]: extentMorph(increasingExtent, decreasingExtent, 'constant', [], removeFirstTops),
+                ...markersFadeIn,
+            });
             // Marker 2 survives the removal yet re-fades from invisible (removal snaps all present markers to
             // opacity 0 and fades them back, as value updates do), making the fade glob non-vacuous.
             expectMarkerStartsCollapsed(trajectory, '2');
@@ -731,15 +765,19 @@ describe('LineSeries', () => {
             expect(markerCount(before)).toBe(5);
             expect(markerCount(after)).toBe(4);
             const key = pathKey(before);
-            // The left edge stays anchored (x holds on every frame) while the width shrinks monotonically as
-            // the right edge steps in. The path node is 'any' because the reshaping tops go non-finite.
-            expect(after.get(key)!.width).toBeLessThan(before.get(key)!.width);
-            expect(trajectory.every((f) => Math.abs(f.get(key)!.x - before.get(key)!.x) < 1)).toBe(true);
-            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersFadeIn });
-            expectMonotonic(
-                trajectory.map((f) => f.get(key)!.width),
-                'decreasing'
-            );
+            // The retained points keep their pixel positions, so every interior station morphs cleanly to
+            // where the shrunk path now crosses it.
+            const removeLastTops = {
+                'top@0': 'constant' as const,
+                'top@1': increasingExtent,
+                'top@2': decreasingExtent,
+                'top@3': increasingExtent,
+                'top@4': decreasingExtent,
+            };
+            expectSceneTrajectory(trajectory, {
+                [key]: extentMorph('constant', decreasingExtent, 'constant', [], removeLastTops),
+                ...markersFadeIn,
+            });
             expectMarkerStartsCollapsed(trajectory, '1');
         });
 
@@ -818,7 +856,19 @@ describe('LineSeries', () => {
             expect([...after.keys()]).not.toContain('series[0]/marker[4]');
             expect([...after.keys()]).toContain('series[0]/marker[5]');
             const key = pathKey(before);
-            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersReflow });
+            // The batch runs its remove and add phases back-to-back: the left edge steps in as point 0
+            // drops (monotonic, so x is endpoint-bounded), but width and the interior stations dip through
+            // the mid-batch remove shape before growing past their start to the extended-right settle, so
+            // only `squeezing` (real movement, no monotonic/bounded claim) holds; subpaths briefly forks
+            // as the reshape and the new segment overlap before rejoining to one, another squeeze.
+            expectSceneTrajectory(trajectory, {
+                [key]: extentMorph(increasingExtent, squeezing, squeezing, [3, 4], {
+                    'top@0': squeezing,
+                    'top@1': squeezing,
+                    'top@2': squeezing,
+                }),
+                ...markersReflow,
+            });
             expectMarkerStartsCollapsed(trajectory, '5');
         });
 
