@@ -423,6 +423,28 @@ describe('Caption', () => {
             expect(richTitleY).toBeGreaterThanOrEqual(plainTitleY);
             expect(richTitleY - plainTitleY).toBeLessThan(boxPadding.top + boxPadding.bottom);
         });
+
+        // A boxed caption renders into a layer sized to node.getBBox(); if the segment bbox omits
+        // the box padding the box top is clipped. Its getBBox must include the box like plain text.
+        // `truncate: false` keeps the padded title from wrapping to an empty (zero-height) bbox in
+        // the small mock layout.
+        test('boxed rich-text title bbox includes the box like plain text (no clip)', async () => {
+            chart = await createChart({
+                ...seriesOptions,
+                title: { text: 'Revenue', fill: '#4a90d9', padding: boxPadding, truncate: false } as any,
+            });
+            const plainBBox = chart.title.node.getBBox();
+
+            chart = await createChart({
+                ...seriesOptions,
+                title: { text: [{ text: 'Revenue' }], fill: '#4a90d9', padding: boxPadding, truncate: false } as any,
+            });
+            const richBBox = chart.title.node.getBBox();
+
+            expect(chart.title.node.y - richBBox.y).toBeCloseTo(boxPadding.top, 0);
+            expect(richBBox.y).toBeCloseTo(plainBBox.y, 0);
+            expect(richBBox.height).toBeCloseTo(plainBBox.height, 0);
+        });
     });
 
     // CRT-1041: Footnote caption with multi-line rich text should have correct bounding box
