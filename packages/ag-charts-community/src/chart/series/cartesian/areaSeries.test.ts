@@ -1986,8 +1986,6 @@ describe('AreaSeries', () => {
             expect(survivorFill.y + survivorFill.height).toBeGreaterThan(480);
         });
 
-        // AG-9954: the initial-load swipe glues the marker scale-in to the sweep edge — the leftmost marker
-        // finishes scaling in before the rightmost even starts, in lock-step with the clip window's advance.
         // AG-12468: adding the first data via updateDelta onto an empty chart. With unpinned axes the
         // empty starting state has a non-finite (invalid) x-scale, which isScaleValid guards: the batch
         // must snap so the area is drawn at full geometry immediately. Without the guard the batch tweens
@@ -2030,6 +2028,8 @@ describe('AreaSeries', () => {
             }
         });
 
+        // AG-9954: the initial-load swipe glues the marker scale-in to the sweep edge — the leftmost marker
+        // finishes scaling in before the rightmost even starts, in lock-step with the clip window's advance.
         it('AG-9954 reveal sync: markers scale in left-to-right in lock-step with the swipe', async () => {
             const labels = ['A', 'B', 'C', 'D', 'E', 'F'];
             chart = AgCharts.create(
@@ -2066,6 +2066,25 @@ describe('AreaSeries', () => {
             expect(leftmostDone).toBeGreaterThan(0);
             expect(starts.at(-1)!).toBeGreaterThan(0);
             expect(leftmostDone).toBeLessThan(starts.at(-1)!);
+            // The sync itself: a marker must not begin scaling in ahead of the clip edge that reveals it.
+            // At the frame each marker starts, the sweep (clip:x) has already reached that marker's band.
+            // The historic desync (a non-inverse easing on the delay) pops mid-plot markers in early —
+            // e.g. the second marker starting while the sweep is still ~100px short of it.
+            const last = trajectory.at(-1)!;
+            const SWEEP_LEAD_TOL = 40;
+            let checked = 0;
+            for (const l of labels) {
+                const startFrame = firstFrameAbove(l, 0.01);
+                const clipAtStart = trajectory[startFrame]?.get(fill0)?.['clip:x'];
+                if (clipAtStart == null || !Number.isFinite(clipAtStart)) continue;
+                const mx = markerX(last, l)!;
+                expect(clipAtStart, `marker ${l} starts before the sweep reaches it`).toBeGreaterThanOrEqual(
+                    mx - SWEEP_LEAD_TOL
+                );
+                checked++;
+            }
+            // Anti-vacuity: several markers were genuinely checked against a live sweep edge.
+            expect(checked).toBeGreaterThanOrEqual(3);
         });
     });
 
